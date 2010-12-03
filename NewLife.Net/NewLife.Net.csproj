@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{5A8EF50C-3394-4C1E-99F0-33EFE8691CB0}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NewLife.Net</RootNamespace>
+    <AssemblyName>NewLife.Net</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\生成\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\..\生成\NewLife.Net.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\生成\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\..\生成\NewLife.Net.XML</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Application\TcpEchoServer.cs" />
+    <Compile Include="Application\TcpStreamServer.cs" />
+    <Compile Include="Application\UdpEchoServer.cs" />
+    <Compile Include="Application\UdpStreamServer.cs" />
+    <Compile Include="Common\NetHelper.cs" />
+    <Compile Include="IO\FileClient.cs" />
+    <Compile Include="IO\FileFormat.cs" />
+    <Compile Include="IO\FileServer.cs" />
+    <Compile Include="Sockets\Netbase.cs" />
+    <Compile Include="Sockets\NetServer.cs" />
+    <Compile Include="Sockets\SocketBase.cs" />
+    <Compile Include="Sockets\SocketClient.cs" />
+    <Compile Include="Sockets\SocketServer.cs" />
+    <Compile Include="Sockets\NetEventArgs.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sockets\SocketStream.cs" />
+    <Compile Include="Tcp\TcpClientX.cs" />
+    <Compile Include="Tcp\TcpNetServer.cs" />
+    <Compile Include="Tcp\TcpServer.cs" />
+    <Compile Include="Tcp\TcpSession.cs" />
+    <Compile Include="Tcp\TcpSessionCollection.cs" />
+    <Compile Include="Tcp\TcpTest.cs" />
+    <Compile Include="Udp\UdpClientX.cs" />
+    <Compile Include="Udp\UdpNetServer.cs" />
+    <Compile Include="Udp\UdpServer.cs" />
+    <Compile Include="Udp\UdpStream.cs" />
+    <Compile Include="Udp\UdpTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="App.config" />
+    <None Include="网络模型.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
+      <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
+      <Name>NewLife.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

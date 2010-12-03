@@ -1,0 +1,13 @@
+﻿.choose
+{
+    background-color: #E7E7E7;
+    background-image: url(<%= WebResource("XControl.Button.choose.gif") %>);
+    border: 0 solid #FFFFFF;
+    color: #333333;
+    cursor: pointer;
+    font-family: "宋体" ,arial,verdana,helvetica,sans-serif;
+    font-size: 12px;
+    height: 25px;
+    margin-top: 5px;
+    width: 128px;
+}

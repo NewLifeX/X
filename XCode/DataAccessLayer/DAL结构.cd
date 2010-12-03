@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="XCode.DataAccessLayer.Access" Collapsed="true">
+    <Position X="3.75" Y="1.75" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Properties" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAgACAIMAAIhABAAAEICgEACQkACAAAIBEAAA=</HashCode>
+      <FileName>DataAccessLayer\Database\Access.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="XCode.DataAccessLayer.MySql" Collapsed="true">
+    <Position X="10.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAIAAAABAQACAAACAAAAAAAAAABAA=</HashCode>
+      <FileName>DataAccessLayer\Database\MySql.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="XCode.DataAccessLayer.SQLite" Collapsed="true">
+    <Position X="9" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAgACAIMAAIgABABAUMCgAACQkACAAAIBABAA=</HashCode>
+      <FileName>DataAccessLayer\Database\SQLite.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="XCode.DataAccessLayer.SqlServer" Collapsed="true">
+    <Position X="5.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BUABgAAEiAikIIAAMAABAAgUEAoEACAcAQAACIAABAA=</HashCode>
+      <FileName>DataAccessLayer\Database\SqlServer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="XCode.DataAccessLayer.SqlServer2005" Collapsed="true">
+    <Position X="5.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQABgAAEAAgEIAAAMAAAAAAEAAAAACAAAQAAAAAABAA=</HashCode>
+      <FileName>DataAccessLayer\Database\SqlServer2005.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="XCode.DataAccessLayer.Oracle" Collapsed="true">
+    <Position X="7.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAgAAAAAAAIAAAAAAAACAAACAAAAAAAAAABAA=</HashCode>
+      <FileName>DataAccessLayer\Database\Oracle.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="XCode.DataAccessLayer.Database" Collapsed="true">
+    <Position X="5.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AUABEECliGiwoIULMEEBhRgUEChkAChcEKQAi8CHBAA=</HashCode>
+      <FileName>DataAccessLayer\Database.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="XCode.DataAccessLayer.DAL" Collapsed="true">
+    <Position X="10" Y="0.5" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Properties" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>gABAAEIhAAAABBUGIDAA5AAAEGAAAGAABETAQQAABdA=</HashCode>
+      <FileName>DataAccessLayer\DAL.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="DB" />
+    </ShowAsAssociation>
+  </Class>
+  <Interface Name="XCode.DataAccessLayer.IDatabase" Collapsed="true">
+    <Position X="7.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AUAAAECBAACAoIUCIAABBRAQECgAAChEACAAAACCBAA=</HashCode>
+      <FileName>DataAccessLayer\IDatabase.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="微软雅黑" Size="9" />
+</ClassDiagram>

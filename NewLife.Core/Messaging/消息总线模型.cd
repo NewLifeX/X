@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="NewLife.Messaging.ExceptionMessage" Collapsed="true">
+    <Position X="1" Y="4.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAoQAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Messaging\ExceptionMessage.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Messaging.Message">
+    <Position X="0.5" Y="0.5" Width="2.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AIAAAAAAAAAAgACEAgAAAAAAACBAAEAAIAAAAABAAAQ=</HashCode>
+      <FileName>Messaging\Message.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Messaging.MessageStreamHandler">
+    <Position X="6.75" Y="2.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAABAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Messaging\MessageStreamHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="NewLife.Messaging.MessageStreamHandlerFactory">
+    <Position X="9.75" Y="2.75" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAACAAAAAAAAAA=</HashCode>
+      <FileName>Messaging\MessageStreamHandler.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="Handler" />
+    </ShowAsAssociation>
+  </Class>
+  <Interface Name="NewLife.Messaging.IMessageFactory">
+    <Position X="4.25" Y="0.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAACAAAAAAAAAAAAAAEAAAAAAAAAAAAA=</HashCode>
+      <FileName>Messaging\IMessageFactory.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="NewLife.Messaging.IMessageHandler">
+    <Position X="7.5" Y="0.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Messaging\IMessageHandler.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="NewLife.Messaging.MessageExceptionOption">
+    <Position X="9.75" Y="0.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAA=</HashCode>
+      <FileName>Messaging\MessageExceptionOption.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="微软雅黑" Size="9" />
+</ClassDiagram>

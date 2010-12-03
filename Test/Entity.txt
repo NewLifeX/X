@@ -1,0 +1,2 @@
+﻿表名：<#= table.Name #>
+表说明：<#= table.Description #>

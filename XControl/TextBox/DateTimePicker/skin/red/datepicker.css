@@ -1,0 +1,111 @@
+/* 
+ * My97 DatePicker 4.6
+ * 皮肤名称:YcloudRed
+ * 皮肤作者:风逍云逸 abc123@foxmail.com
+ */
+ 
+/* 日期选择容器 DIV */
+.WdateDiv { width:180px; padding:2px; background-color:#fff; border: solid 1px #eb2f14; }
+/* 双月日历的宽度 */
+.WdateDiv2{width:360px;}
+.WdateDiv * { font:9pt Arial, Helvetica, sans-serif; }
+/****************************
+ * 导航图标 全部是A标签
+ ***************************/
+.WdateDiv .NavImg a{ display:block;width:16px; height:16px; cursor:pointer; }
+.WdateDiv .NavImgll a{ float:left;background:url(<%=WebResource("XControl.TextBox.DateTimePicker.skin.red.bg.gif") %>) no-repeat 4px 6px; }
+.WdateDiv .NavImgl a{ float:left;background:url(<%=WebResource("XControl.TextBox.DateTimePicker.skin.red.bg.gif") %>) no-repeat 4px -10px; }
+.WdateDiv .NavImgr a{ float:right;background:url(<%=WebResource("XControl.TextBox.DateTimePicker.skin.red.bg.gif") %>) no-repeat -20px -10px; }
+.WdateDiv .NavImgrr a{ float:right;background:url(<%=WebResource("XControl.TextBox.DateTimePicker.skin.red.bg.gif") %>) no-repeat -20px 6px; }
+/****************************
+ * 年份月份相关
+ ***************************/
+/* 年份月份栏 DIV */
+.WdateDiv #dpTitle { height:24px; margin-bottom:2px; background:#ea3017 url(<%=WebResource("XControl.TextBox.DateTimePicker.skin.red.qs.jpg") %>) repeat-x bottom; }
+/* 年份月份输入框 INPUT */
+.WdateDiv .yminput { width:50px; height:16px; margin-top:2px; border:0px; background:transparent; cursor:pointer; color:white; line-height:14px; text-align:center; }
+/* 年份月份输入框获得焦点时的样式 INPUT */
+.WdateDiv .yminputfocus { width:50px; height:16px; margin-top:2px; border:#939393 1px solid; color:red; font-weight:bold; line-height:14px; text-align:center; }
+/* 菜单选择框 DIV */
+.WdateDiv .menuSel { z-index:1;position:absolute; display:none; background-color:#FFFFFF; border:#eb2f14 1px solid; }
+/* 菜单的样式 TD */
+.WdateDiv .menu { cursor:pointer; background-color:#fff; color:#e12b17; }
+/* 菜单的mouseover样式 TD */
+.WdateDiv .menuOn { cursor:pointer; color:white; background-color:#e12b17; }
+/* 菜单无效时的样式 TD */
+.WdateDiv .invalidMenu { color:#aaa; }
+/* 年选择框的偏移 DIV */
+.WdateDiv .YMenu { margin-top:16px; }
+/* 月选择框的偏移 DIV */
+.WdateDiv .MMenu { margin-top:16px; *width:62px;
+}
+/* 时选择框的位置 DIV */
+.WdateDiv .hhMenu { margin:-90px 0 0 26px; }
+/* 分选择框的位置 DIV */
+.WdateDiv .mmMenu { margin:-46px 0 0 26px; }
+/* 秒选择框的位置 DIV */
+.WdateDiv .ssMenu { margin:-24px 0 0 26px; }
+/****************************
+ * 周相关
+ ***************************/
+ .WdateDiv .Wweek { background:#DAF3F5; border-right:#BDEBEE 1px solid; text-align:center; }
+/****************************
+ * 星期,日期相关
+ ***************************/
+ /* 星期栏 TR */
+.WdateDiv .MTitle { background:#ef341c; color:white; }
+/* 日期栏表格 TABLE */
+.WdateDiv .WdayTable { background:white; border:#eb2f14 1px solid; color:red; }
+.WdateDiv .WdayTable td {line-height:20px;}
+/* 日期格的样式 TD */
+.WdateDiv .Wday { cursor:pointer; }
+/* 日期格的mouseover样式 TD */
+.WdateDiv .WdayOn { background-color:#e12b17; cursor:pointer; font-size:13px; color:yellow; }
+/* 周末日期格的样式 TD */
+.WdateDiv .Wwday { cursor:pointer; color:green; }
+/* 周末日期格的mouseover样式 TD */
+.WdateDiv .WwdayOn { background-color:#e12b17; color:yellow; cursor:pointer; font-size:13px; }
+.WdateDiv .Wtoday { cursor:pointer; color:blue; font-size:13px; }
+.WdateDiv .Wselday { background-color:#e12b17; color:yellow; font-size:13px; }
+.WdateDiv .WspecialDay{	background-color:#EAF330;}
+/* 其他月份的日期 */
+.WdateDiv .WotherDay { cursor:pointer; color:#666; }
+/* 其他月份的日期mouseover样式 */
+.WdateDiv .WotherDayOn { cursor:pointer; color:#666; }
+/* 无效日期的样式,即在日期范围以外日期格的样式,不能选择的日期 */
+.WdateDiv .WinvalidDay { color:#aaa; }
+
+/****************************
+ * 时间相关
+ ***************************/
+/* 时间栏 DIV */
+.WdateDiv #dpTime { margin-top:3px; }
+/* 时间文字 SPAN */
+.WdateDiv #dpTime #dpTimeStr { margin-left:1px; color:green; }
+/* 时间输入框 INPUT */
+.WdateDiv #dpTime input { width:18px; height:16px; border:#eb2f14 1px solid; color:black; line-height:14px; text-align:center; }
+/* 时间 时 INPUT */
+.WdateDiv #dpTime .tB { border-right:0px; }
+/* 时间 分和间隔符 ':' INPUT */
+.WdateDiv #dpTime .tE { border-left:0; border-right:0; }
+/* 时间 秒 INPUT */
+.WdateDiv #dpTime .tm { width:7px; border-left:0; border-right:0; }
+/* 时间右边的向上按钮 BUTTON */
+.WdateDiv #dpTime #dpTimeUp { border:solid 1px #d80303; border-right:solid 1px #c33210; height:10px; width:13px; padding:0; 
+background:#c33210 url(<%=WebResource("XControl.TextBox.DateTimePicker.skin.red.bg.gif") %>) no-repeat -10px 2px; 
+*background:#c33210 url(<%=WebResource("XControl.TextBox.DateTimePicker.skin.red.bg.gif") %>) no-repeat -11px 1px;
+}
+/* 时间右边的向下按钮 BUTTON */
+.WdateDiv #dpTime #dpTimeDown { border:solid 1px #d80303; border-right:solid 1px #c33210; height:10px; width:13px; padding:0;
+background:#c33210 url(<%=WebResource("XControl.TextBox.DateTimePicker.skin.red.bg.gif") %>) no-repeat -10px -17px; 
+*background:#c33210 url(<%=WebResource("XControl.TextBox.DateTimePicker.skin.red.bg.gif") %>) no-repeat -11px -18px;
+}
+/****************************
+ * 其他
+ ***************************/
+ .WdateDiv #dpQS { float:left; width:20px; height:20px; margin:3px 3px 0 0;
+background-image:url(<%=WebResource("XControl.TextBox.DateTimePicker.skin.red.qs.jpg") %>); cursor:pointer; }
+.WdateDiv #dpControl { margin-top:3px; text-align:right; }
+.WdateDiv .dpButton { width:45px; height:21px; overflow:hidden; 
+background:#c33210 url(<%=WebResource("XControl.TextBox.DateTimePicker.skin.red.qs.jpg") %>) repeat-x bottom; color:white; border: solid 1px #D80303; *border: solid 1px;
+line-height:19px; }

@@ -1,0 +1,46 @@
+﻿<style type="text/css">
+<!--
+.caption td {
+    border:1px solid #666666;
+    font-weight:bold;
+    background-color: #CCCCCC;
+}
+.dbtable {
+    border:1px solid #666666;
+}
+.dbbody td {
+    border:1px solid #666666;
+}
+-->
+</style>
+<#
+foreach(XTable table in Tables){
+#>
+<#=table.Name#>：
+<strong><#=table.Description#> （<#=table.Name#>）</strong> <BR>
+<table border="0" cellspacing="0" class="dbtable">
+  <tr align="center" valign="middle" class="caption">
+    <td width="150">中文名</td>
+    <td width="150">英文名</td>
+    <td width="75">数据类型</td>
+    <td width="75">大小</td>
+    <td width="75">是否主键</td>
+    <td width="75">是否唯一</td>
+    <td width="75">是否必填</td>
+    <td width="75">默认值</td>
+  </tr><#
+  foreach(XField Field in table.Fields)
+  {
+  #>
+  <tr class="dbbody">
+    <td><#=GetPropertyDescription(Field)#></td>
+    <td><#=Field.Name#></td>
+    <td><#=Field.FieldType#></td>
+    <td><#=Field.Length#></td>
+    <td align="center"><#=Field.PrimaryKey?"是":"&nbsp;"#></td>
+    <td align="center"><#=Field.Identity?"是":(Field.PrimaryKey?"是":"&nbsp;")#></td>
+    <td align="center"><#=Field.Nullable?"&nbsp;":"是"#></td>
+    <td width="75"><#=Field.Default#></td>
+  </tr><#}#>
+</table>
+<#}#>
