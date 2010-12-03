@@ -41,7 +41,8 @@ namespace NewLife.Messaging
 
             BinaryWriterX writer = new BinaryWriterX(stream);
             // 基类写入编号，保证编号在最前面
-            writer.WriteEncoded(ID);
+            //writer.WriteEncoded(ID);
+            writer.Write((Byte)ID);
             Write(writer);
         }
 
@@ -65,7 +66,8 @@ namespace NewLife.Messaging
         {
             BinaryReaderX reader = new BinaryReaderX(stream);
             // 读取了响应类型和消息类型后，动态创建消息对象
-            Int32 id = reader.ReadEncodedInt32();
+            //Int32 id = reader.ReadEncodedInt32();
+            Int32 id = reader.ReadByte();
             if (id <= 0) throw new Exception("无效的消息唯一编码" + id);
 
             Message msg = Create(id);

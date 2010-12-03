@@ -14,12 +14,12 @@ namespace NewLife.Messaging
         /// </summary>
         public override int ID
         {
-            get { return 2; }
+            get { return 0xFF; }
         }
 
-        private Exception _Error;
+        private String _Error;
         /// <summary>异常</summary>
-        public Exception Error
+        public String Error
         {
             get { return _Error; }
             set { _Error = value; }
@@ -31,7 +31,7 @@ namespace NewLife.Messaging
         /// <param name="ex"></param>
         public ExceptionMessage(Exception ex)
         {
-            Error = ex;
+            Error = ex.Message;
         }
     }
 }
