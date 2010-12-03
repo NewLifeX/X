@@ -24,6 +24,27 @@ namespace NewLife.PeerToPeer.Messages
         }
         #endregion
 
+        #region
+        /// <summary>
+        /// 处理接收到的Ping消息 处理消息自身
+        /// </summary>
+        /// <returns></returns>
+        public Boolean ReceivedMessageProcess()
+        {
+            return ReceivedMessageProcess(this);
+        }
+
+        /// <summary>
+        /// 处理接收到的Ping消息
+        /// </summary>
+        /// <param name="pm"></param>
+        /// <returns></returns>
+        public static Boolean ReceivedMessageProcess(PingMessage pm)
+        {
+            return false;
+        }
+        #endregion
+
         #region 响应
         /// <summary>
         /// 邀请响应

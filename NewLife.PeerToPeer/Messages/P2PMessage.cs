@@ -200,6 +200,31 @@ namespace NewLife.PeerToPeer.Messages
 
             return base.CreateInstance(type);
         }
+
+        /// <summary>
+        /// 接收消息外理
+        /// </summary>
+        /// <param name="msg"></param>
+        public static void ReceivedMessageProcess(Object sender, EventArgs<Message, Stream> e, Stream outStream)
+        {
+            P2PMessage msg = e.Arg1 as P2PMessage;
+            if (msg == null) return;
+
+            switch (msg.MessageType)
+            {
+                case MessageTypes.Test:
+                    break;
+                case MessageTypes.Ping:
+                    break;
+                case MessageTypes.FindTorrent:
+                    break;
+                case MessageTypes.Text:
+                    break;
+                default:
+                    break;
+            }
+
+        }
         #endregion
     }
 

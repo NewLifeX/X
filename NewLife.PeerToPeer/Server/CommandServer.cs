@@ -3,6 +3,7 @@ using System.IO;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.PeerToPeer.Messages;
+using System.Collections.Generic;
 
 namespace NewLife.PeerToPeer.Server
 {
@@ -41,6 +42,7 @@ namespace NewLife.PeerToPeer.Server
         //    get { return _Instance ?? (_Instance = new CommandServer()); }
         //}
         //#endregion
+
 
         #region 处理
         ///// <summary>

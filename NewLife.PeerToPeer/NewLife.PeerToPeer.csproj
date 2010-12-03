@@ -64,6 +64,7 @@
     <Compile Include="Messages\TestMessage.cs" />
     <Compile Include="Messages\TextMessage.cs" />
     <Compile Include="Messages\TranFileMessage.cs" />
+    <Compile Include="Online\PeerOnline.cs" />
     <Compile Include="P2PTest.cs" />
     <Compile Include="Common\Peer.cs" />
     <Compile Include="Client\P2PClient.cs" />
