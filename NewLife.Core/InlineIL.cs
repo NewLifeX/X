@@ -26,4 +26,4 @@ namespace NewLife
         }
     }
 //#endif
-}
+}　
