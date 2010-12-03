@@ -72,7 +72,7 @@
         <br />
         <asp:Label ID="Label2" runat="server" Text="Label"></asp:Label>
         <br />
-        <asp:Label ID="Label3" runat="server" Text="Label"></asp:Label>
+        <asp:Label ID="Label4" runat="server" Text="Label"></asp:Label>
         <br />
         <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" DataObjectTypeName="XSite.Entities.Area"
             DeleteMethod="Delete" EnablePaging="True" InsertMethod="Insert" OldValuesParameterFormatString="original_{0}"
