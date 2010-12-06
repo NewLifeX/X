@@ -148,7 +148,7 @@ namespace NewLife.PeerToPeer.Online
             Peer p = new Peer();
             p.Token = token;
             p.Private = privateIP;
-            p.Public = new IPEndPoint(publicIP, 0);
+            p.Public = new IPEndPoint(IPAddress.Parse(publicIP), 0);
             p.ActiveTime = DateTime.Now;
 
             return Add(p);
