@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Net;
+using NewLife.Messaging;
+using System.IO;
+using NewLife.Web;
+using NewLife.Net.Sockets;
 
 namespace NewLife.PeerToPeer.Messages
 {
@@ -31,7 +35,7 @@ namespace NewLife.PeerToPeer.Messages
         /// <returns></returns>
         public Boolean ReceivedMessageProcess()
         {
-            return ReceivedMessageProcess(this);
+            return ReceivedMessageProcess(this, null);
         }
 
         /// <summary>
@@ -39,7 +43,7 @@ namespace NewLife.PeerToPeer.Messages
         /// </summary>
         /// <param name="pm"></param>
         /// <returns></returns>
-        public static Boolean ReceivedMessageProcess(PingMessage pm)
+        public static Boolean ReceivedMessageProcess(PingMessage pm, EventArgs<Message, Stream> e)
         {
             return false;
         }
