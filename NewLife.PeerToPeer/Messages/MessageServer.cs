@@ -20,7 +20,7 @@ namespace NewLife.PeerToPeer.Messages
         /// </summary>
         public MessageServer()
         {
-            MessageHandler.Received += new EventHandler<EventArgs<Message, Stream>>(OnReceived);
+            P2PMessage.Received += new EventHandler<EventArgs<Message, Stream>>(OnReceived);
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace NewLife.PeerToPeer.Messages
         /// </summary>
         ~MessageServer()
         {
-            MessageHandler.Received -= new EventHandler<EventArgs<Message, Stream>>(OnReceived);
+            P2PMessage.Received -= new EventHandler<EventArgs<Message, Stream>>(OnReceived);
         }
         #endregion
 

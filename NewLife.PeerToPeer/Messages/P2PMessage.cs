@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Reflection;
 using NewLife.Messaging;
-using NewLife.Reflection;
-using NewLife.IO;
-using System.IO;
-using NewLife.Web;
-using NewLife.Net.Sockets;
 
 namespace NewLife.PeerToPeer.Messages
 {

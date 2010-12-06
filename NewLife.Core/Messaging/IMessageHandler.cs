@@ -316,7 +316,7 @@ namespace NewLife.Messaging
                 {
                     IMessageHandler handler = item;
                     if (!handler.IsReusable) handler = item.Clone() as IMessageHandler;
-                    handler.Process(message, stream);
+                    stream = handler.Process(message, stream);
                     if (stream == null) break;
                 }
             }
