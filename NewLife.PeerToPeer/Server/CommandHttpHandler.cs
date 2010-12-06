@@ -30,7 +30,7 @@ namespace NewLife.PeerToPeer.Server
                 P2PMessage.ReceivedMessageProcess(sender, e, context.Response.OutputStream);
             };
 
-            P2PMessage.Process(stream);
+            MessageHandler.Process(stream);
         }
 
         /// <summary>

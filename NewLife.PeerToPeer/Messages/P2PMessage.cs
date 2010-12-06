@@ -12,7 +12,7 @@ namespace NewLife.PeerToPeer.Messages
     /// <summary>
     /// P2P消息
     /// </summary>
-    public abstract class P2PMessage : Message, IMessageFactory
+    public abstract class P2PMessage : Message, IMessageHandler
     {
         #region 属性
         /// <summary>
@@ -63,29 +63,39 @@ namespace NewLife.PeerToPeer.Messages
             foreach (Type item in list)
             {
                 P2PMessage msg = Activator.CreateInstance(item) as P2PMessage;
-                RegisterFactory(msg.ID, msg);
+                MessageHandler.Register(msg.ID, msg, false);
             }
         }
         #endregion
 
-        #region IMessageFactory 成员
-        Message IMessageFactory.Create(Int32 messageID)
+        #region IMessageHandler 成员
+        private Message _Message;
+        Message IMessageHandler.Create(int messageID)
         {
-            return Create();
+            if (_Message == null) _Message = Create();
+
+            return (_Message as ICloneable).Clone() as Message;
         }
 
         /// <summary>
-        /// 创建消息实例
+        /// 创建消息
         /// </summary>
         /// <returns></returns>
         protected abstract P2PMessage Create();
 
-        IMessageHandler IMessageFactory.CreateHandler(Int32 messageID)
+        void IMessageHandler.Process(Message message, Stream stream)
         {
-            //return MessageHandler.Instance;
+            throw new NotImplementedException();
+        }
 
-            // 目前结构非常糟糕，这里没办法完成很好的处理机制，暂时由基类Message的Received事件顶着
-            return null;
+        bool IMessageHandler.IsReusable
+        {
+            get { return true; }
+        }
+
+        Object ICloneable.Clone()
+        {
+            return MemberwiseClone();
         }
         #endregion
 

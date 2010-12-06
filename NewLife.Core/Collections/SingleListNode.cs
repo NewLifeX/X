@@ -47,5 +47,41 @@ namespace NewLife.Collections
             Item = item;
             Next = next;
         }
+
+        /// <summary>
+        /// 在单向链表中查找指定项
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public Boolean Contain(T item)
+        {
+            for (SingleListNode<T> node = this; node != null; node = node.Next)
+            {
+                if (Object.Equals(node.Item, item)) return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 在单向链表中移除指定项
+        /// </summary>
+        /// <param name="item">指定项</param>
+        /// <returns></returns>
+        public Boolean Remove(T item)
+        {
+            // 当前项
+            if (Object.Equals(Item, item)) return true;
+
+            // 下一项
+            for (SingleListNode<T> node = this; node.Next != null; node = node.Next)
+            {
+                if (Object.Equals(node.Next.Item, item))
+                {
+                    node.Next = node.Next.Next;
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

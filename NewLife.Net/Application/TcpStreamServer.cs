@@ -10,12 +10,12 @@ namespace NewLife.Net.Application
     /// </summary>
     public class TcpStreamServer : TcpNetServer
     {
-        private String _StreamHandlerFactoryName;
-        /// <summary>数据流工厂名称</summary>
-        public String StreamHandlerFactoryName
+        private String _StreamHandlerName;
+        /// <summary>数据流处理器名称</summary>
+        public String StreamHandlerName
         {
-            get { return _StreamHandlerFactoryName; }
-            set { _StreamHandlerFactoryName = value; }
+            get { return _StreamHandlerName; }
+            set { _StreamHandlerName = value; }
         }
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace NewLife.Net.Application
         /// </summary>
         protected override void EnsureCreateServer()
         {
-            if (String.IsNullOrEmpty(StreamHandlerFactoryName)) throw new Exception("未指定数据流工厂名称！");
+            if (String.IsNullOrEmpty(StreamHandlerName)) throw new Exception("未指定数据流处理器名称！");
 
             Name = "数据流服务器（TCP）";
 
@@ -37,7 +37,7 @@ namespace NewLife.Net.Application
         /// <param name="e"></param>
         protected override void OnReceived(object sender, NetEventArgs e)
         {
-            if (e.BytesTransferred > 0) StreamHandlerFactory.Process(StreamHandlerFactoryName, e.GetStream());
+            if (e.BytesTransferred > 0) StreamHandler.Process(StreamHandlerName, e.GetStream());
         }
     }
 }

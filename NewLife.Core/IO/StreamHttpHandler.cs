@@ -1,7 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Web;
 using NewLife.Web;
-using System.IO;
 
 namespace NewLife.IO
 {
@@ -18,7 +18,7 @@ namespace NewLife.IO
         {
             // 以文件名（没有后缀）作为数据流工厂总线名称
             String name = Path.GetFileNameWithoutExtension(context.Request.FilePath);
-            StreamHandlerFactory.Process(name, new HttpStream(context));
+            StreamHandler.Process(name, new HttpStream(context));
         }
 
         /// <summary>
