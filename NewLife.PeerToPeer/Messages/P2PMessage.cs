@@ -85,10 +85,16 @@ namespace NewLife.PeerToPeer.Messages
         /// <returns></returns>
         protected abstract P2PMessage Create();
 
-        void IMessageHandler.Process(Message message, Stream stream)
+        Stream IMessageHandler.Process(Message message, Stream stream)
         {
-            throw new NotImplementedException();
+            if (Received != null) Received(null, new EventArgs<Message, Stream>(message, stream));
+            return stream;
         }
+
+        /// <summary>
+        /// 消息到达时触发
+        /// </summary>
+        public static event EventHandler<EventArgs<Message, Stream>> Received;
 
         bool IMessageHandler.IsReusable
         {

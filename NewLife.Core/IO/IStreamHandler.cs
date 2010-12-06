@@ -163,7 +163,15 @@ namespace NewLife.IO
                 if (String.IsNullOrEmpty(str)) continue;
 
                 String[] ss = str.Split(new Char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-                List<Type> list = dic.ContainsKey(name) ? dic[name] : new List<Type>();
+                //List<Type> list = dic.ContainsKey(name) ? dic[name] : new List<Type>();
+                List<Type> list = null;
+                if (dic.ContainsKey(name))
+                    list = dic[name];
+                else
+                {
+                    list = new List<Type>();
+                    dic.Add(name, list);
+                }
                 foreach (String item in ss)
                 {
                     Type type = Type.GetType(item);

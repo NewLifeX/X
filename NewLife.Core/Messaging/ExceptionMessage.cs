@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 
 namespace NewLife.Messaging
 {
@@ -24,6 +25,11 @@ namespace NewLife.Messaging
             get { return _Error; }
             set { _Error = value; }
         }
+
+        /// <summary>
+        /// 初始化
+        /// </summary>
+        public ExceptionMessage() { }
 
         /// <summary>
         /// 初始化

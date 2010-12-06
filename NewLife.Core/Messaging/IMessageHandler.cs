@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
 using System.Collections.Specialized;
 using System.Configuration;
+using System.IO;
 using NewLife.Log;
 
 namespace NewLife.Messaging
@@ -25,7 +24,8 @@ namespace NewLife.Messaging
         /// </summary>
         /// <param name="message">消息</param>
         /// <param name="stream">数据流，已经从里面读取消息实体</param>
-        void Process(Message message, Stream stream);
+        /// <returns>转发给下一个处理器的数据流，如果不想让后续处理器处理，返回空</returns>
+        Stream Process(Message message, Stream stream);
 
         /// <summary>
         /// 是否可以重用。
@@ -51,7 +51,8 @@ namespace NewLife.Messaging
         /// </summary>
         /// <param name="message">消息</param>
         /// <param name="stream">数据流，已经从里面读取消息实体</param>
-        public abstract void Process(Message message, Stream stream);
+        /// <returns></returns>
+        public abstract Stream Process(Message message, Stream stream);
 
         /// <summary>
         /// 是否可以重用
@@ -68,6 +69,9 @@ namespace NewLife.Messaging
         static MessageHandler()
         {
             LoadConfig();
+
+            ExceptionMessage msg = new ExceptionMessage();
+            Register(msg.ID, new DefaultMessageHandler(), false);
         }
         #endregion
 
@@ -185,8 +189,20 @@ namespace NewLife.Messaging
                 if (String.IsNullOrEmpty(str)) continue;
 
                 String[] ss = str.Split(new Char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-                List<Type> list = dic.ContainsKey(id) ? dic[id] : new List<Type>();
+                //List<Type> list = dic.ContainsKey(id) ? dic[id] : new List<Type>();
+                List<Type> list = null;
+                if (dic.ContainsKey(id))
+                    list = dic[id];
+                else
+                {
+                    list = new List<Type>();
+                    dic.Add(id, list);
+                }
                 foreach (String item in ss)
+                {
+                    Type type = Type.GetType(item);
+                    list.Add(type);
+                } foreach (String item in ss)
                 {
                     Type type = Type.GetType(item);
                     list.Add(type);
@@ -292,7 +308,6 @@ namespace NewLife.Messaging
         {
             Message message = Message.Deserialize(stream);
 
-            // 复制到数组，以免线程冲突
             IMessageHandler[] fs = QueryRegister(message.ID);
 
             if (fs != null && fs.Length > 0)
@@ -342,6 +357,33 @@ namespace NewLife.Messaging
         /// 消息到达时触发
         /// </summary>
         public static event EventHandler<EventArgs<Message, Stream>> Received;
+        #endregion
+
+        #region 核心事件
+        /// <summary>
+        /// 异常发生时触发
+        /// </summary>
+        public static event EventHandler<EventArgs<Message, Stream>> Error;
+
+        /// <summary>
+        /// 异常消息处理器
+        /// </summary>
+        class DefaultMessageHandler : MessageHandler
+        {
+            public override Message Create(int messageID)
+            {
+                if (messageID == 0xFF) return new ExceptionMessage();
+
+                return null;
+            }
+
+            public override Stream Process(Message message, Stream stream)
+            {
+                if (message is ExceptionMessage && Error != null) Error(this, new EventArgs<Message, Stream>(message, stream));
+
+                return stream;
+            }
+        }
         #endregion
     }
 }
