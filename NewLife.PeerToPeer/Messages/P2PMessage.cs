@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using NewLife.Messaging;
+using System.Threading;
 
 namespace NewLife.PeerToPeer.Messages
 {
@@ -36,19 +37,23 @@ namespace NewLife.PeerToPeer.Messages
         #endregion
 
         #region 构造
-        ///// <summary>
-        ///// 静态构造函数
-        ///// </summary>
-        //static P2PMessage()
-        //{
-        //    Init();
-        //}
+        /// <summary>
+        /// 静态构造函数
+        /// </summary>
+        static P2PMessage()
+        {
+            Init();
+        }
 
+        private static Int32 _Inited = 0;
         /// <summary>
         /// 初始化，用于注册所有消息
         /// </summary>
         public static void Init()
         {
+            // 只执行一次，防止多线程冲突
+            if (Interlocked.CompareExchange(ref _Inited, 1, 0) != 0) return;
+
             Type[] ts = Assembly.GetExecutingAssembly().GetTypes();
             List<Type> list = new List<Type>();
             foreach (Type item in ts)
@@ -215,31 +220,31 @@ namespace NewLife.PeerToPeer.Messages
             return base.CreateInstance(type);
         }
 
-        /// <summary>
-        /// 接收消息外理
-        /// </summary>
-        /// <param name="msg"></param>
-        public static void ReceivedMessageProcess(Object sender, EventArgs<Message, Stream> e, Stream outStream)
-        {
-            P2PMessage msg = e.Arg1 as P2PMessage;
-            if (msg == null) return;
+        ///// <summary>
+        ///// 接收消息外理
+        ///// </summary>
+        ///// <param name="msg"></param>
+        //public static void ReceivedMessageProcess(Object sender, EventArgs<Message, Stream> e, Stream outStream)
+        //{
+        //    P2PMessage msg = e.Arg1 as P2PMessage;
+        //    if (msg == null) return;
 
-            switch (msg.MessageType)
-            {
-                case MessageTypes.Test:
-                    break;
-                case MessageTypes.Ping:
-                    PingMessage.ReceivedMessageProcess(msg as PingMessage, e);
-                    break;
-                case MessageTypes.FindTorrent:
-                    break;
-                case MessageTypes.Text:
-                    break;
-                default:
-                    break;
-            }
+        //    switch (msg.MessageType)
+        //    {
+        //        case MessageTypes.Test:
+        //            break;
+        //        case MessageTypes.Ping:
+        //            PingMessage.ReceivedMessageProcess(msg as PingMessage, e);
+        //            break;
+        //        case MessageTypes.FindTorrent:
+        //            break;
+        //        case MessageTypes.Text:
+        //            break;
+        //        default:
+        //            break;
+        //    }
 
-        }
+        //}
         #endregion
     }
 
