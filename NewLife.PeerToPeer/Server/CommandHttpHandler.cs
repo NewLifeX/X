@@ -27,10 +27,12 @@ namespace NewLife.PeerToPeer.Server
 
             CS.Ping += delegate(Object sender, EventArgs<Message, Stream> e)
             {
+                PingMessage pm = e.Arg1 as PingMessage;
+                CS.OnlineUser.Save(pm.Token, pm.Private, context.Request.UserHostAddress);
                 P2PMessage.ReceivedMessageProcess(sender, e, context.Response.OutputStream);
             };
 
-            MessageHandler.Process(stream);
+            P2PMessage.Process(stream);
         }
 
         /// <summary>
