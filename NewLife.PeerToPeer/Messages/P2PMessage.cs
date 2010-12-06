@@ -6,6 +6,8 @@ using NewLife.Messaging;
 using NewLife.Reflection;
 using NewLife.IO;
 using System.IO;
+using NewLife.Web;
+using NewLife.Net.Sockets;
 
 namespace NewLife.PeerToPeer.Messages
 {
@@ -225,6 +227,7 @@ namespace NewLife.PeerToPeer.Messages
                 case MessageTypes.Test:
                     break;
                 case MessageTypes.Ping:
+                    PingMessage.ReceivedMessageProcess(msg as PingMessage, e);
                     break;
                 case MessageTypes.FindTorrent:
                     break;
