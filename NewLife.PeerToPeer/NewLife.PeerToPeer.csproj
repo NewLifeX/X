@@ -80,7 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="App.config" />
-    <None Include="模型.cd" />
+    <None Include="架构设计\模型.cd" />
     <None Include="Messages\消息结构.cd" />
   </ItemGroup>
   <ItemGroup>
@@ -94,7 +94,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="说明.txt" />
+    <Content Include="架构设计\P2P_Tracker流程.jpg" />
+    <Content Include="架构设计\P2P_命令客户端.jpg" />
+    <Content Include="架构设计\P2P_命令服务器.jpg" />
+    <Content Include="架构设计\P2P_消息结构.jpg" />
+    <Content Include="架构设计\说明.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

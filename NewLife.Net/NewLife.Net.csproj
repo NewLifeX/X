@@ -77,13 +77,19 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="App.config" />
-    <None Include="网络模型.cd" />
+    <None Include="架构设计\网络模型.cd" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
       <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
       <Name>NewLife.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="架构设计\NewLife_SocketClient.jpg" />
+    <Content Include="架构设计\NewLife_TcpServer.jpg" />
+    <Content Include="架构设计\NewLife_TCP状态变迁.jpg" />
+    <Content Include="架构设计\NewLife_UdpServer.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
