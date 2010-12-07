@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="NewLife.PeerToPeer.Server.TrackerServer">
+    <Position X="4.75" Y="2.25" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAEAAAAABCAAAABCAAQAEAAQAEABAAAAIAAAAAALAAA=</HashCode>
+      <FileName>Server\TrackerServer.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Tracker" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Friends" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="NewLife.PeerToPeer.Server.UdpTrackerServer">
+    <Position X="7.25" Y="3.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAQAQAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Server\UdpTrackerServer.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="NewLife.Net.Sockets.NetServer" Collapsed="true">
+    <Position X="8.75" Y="2.25" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="NewLife.Net.Sockets.Netbase" Collapsed="true">
+    <Position X="7.5" Y="0.75" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="NewLife.PeerToPeer.Client.P2PClient">
+    <Position X="10" Y="3.75" Width="2" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAEIAAQARAAEAAAGEEQgASEAEgAJAAIAIEAAKAALQBA=</HashCode>
+      <FileName>Client\P2PClient.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Friends" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="NewLife.PeerToPeer.Peer">
+    <Position X="7.5" Y="7.25" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAABEAAAQAAEAEAAAAAIAAAAgAJQAA=</HashCode>
+      <FileName>Common\Peer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="NewLife.PeerToPeer.Server.ITrackerServer">
+    <Position X="1.75" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAQCAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAA=</HashCode>
+      <FileName>Server\ITrackerServer.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="微软雅黑" Size="9" />
+</ClassDiagram>
