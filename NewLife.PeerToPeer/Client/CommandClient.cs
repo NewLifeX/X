@@ -103,7 +103,8 @@ namespace NewLife.PeerToPeer.Client
             if (String.IsNullOrEmpty(ServerAddress)) throw new Exception("未指定命令服务器地址！");
 
             WebClient client = new WebClient();
-            return client.UploadData(ServerAddress, buffer);
+            //return client.UploadData(ServerAddress, buffer);
+            return client.DownloadData(String.Format("{0}?{1}", ServerAddress, ToHex(buffer)));
         }
 
         /// <summary>
@@ -113,13 +114,42 @@ namespace NewLife.PeerToPeer.Client
         /// <returns></returns>
         public Message Send(Message message)
         {
-            MemoryStream ms = new MemoryStream();
-            message.Serialize(ms);
-            Byte[] buffer = Send(ms.ToArray());
+            Byte[] buffer = Send(message.ToArray());
             if (buffer == null || buffer.Length < 1) return null;
 
-            ms = new MemoryStream(buffer);
+            MemoryStream ms = new MemoryStream(buffer);
             return Message.Deserialize(ms);
+        }
+        #endregion
+
+        #region 编码
+        /// <summary>
+        /// 加密
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static String ToHex(Byte[] data)
+        {
+            if (data == null || data.Length < 1) return null;
+
+            return BitConverter.ToString(data).Replace("-", null);
+        }
+
+        /// <summary>
+        /// 解密
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static Byte[] FromHex(String data)
+        {
+            if (String.IsNullOrEmpty(data)) return null;
+
+            Byte[] bts = new Byte[data.Length / 2];
+            for (int i = 0; i < data.Length / 2; i++)
+            {
+                bts[i] = (Byte)Convert.ToInt32(data.Substring(2 * i, 2), 16);
+            }
+            return bts;
         }
         #endregion
     }

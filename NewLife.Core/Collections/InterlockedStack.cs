@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 namespace NewLife.Collections
 {
     /// <summary>
-    /// 先进先出FIFO的原子锁栈结构，采用CAS保证线程安全。
+    /// 先进先出LIFO的原子锁栈结构，采用CAS保证线程安全。
     /// </summary>
     /// <remarks>
     /// 经过测试，对象数量在万级以上时，性能急剧下降！

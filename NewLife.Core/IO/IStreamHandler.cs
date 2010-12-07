@@ -157,7 +157,7 @@ namespace NewLife.IO
                 if (!appName.StartsWith(handlerKey, StringComparison.Ordinal)) continue;
 
                 // 总线通道名称
-                String name = appName.Substring(handlerKey.Length + 1);
+                String name = appName.Substring(handlerKey.Length);
 
                 String str = ConfigurationManager.AppSettings[appName];
                 if (String.IsNullOrEmpty(str)) continue;
@@ -229,17 +229,6 @@ namespace NewLife.IO
                 stream = handler.Process(stream);
                 if (stream == null) break;
             }
-            //// 倒序遍历工厂，后来者优先
-            //for (int i = fs.Length - 1; i >= 0; i--)
-            //{
-            //    // 把数据流分给每一个工厂，看看谁有能力处理数据流，有能力者返回数据流处理器
-            //    handler = fs[i].GetHandler(stream);
-            //    if (handler != null) break;
-            //}
-            //if (handler == null) return;
-
-            //// 由该处理器处理数据流
-            //handler.Process(stream);
         }
         #endregion
     }

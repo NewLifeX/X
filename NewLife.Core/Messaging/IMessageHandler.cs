@@ -366,6 +366,11 @@ namespace NewLife.Messaging
         public static event EventHandler<EventArgs<Message, Stream>> Error;
 
         /// <summary>
+        /// 空消息发生时触发
+        /// </summary>
+        public static event EventHandler<EventArgs<Message, Stream>> Null;
+
+        /// <summary>
         /// 异常消息处理器
         /// </summary>
         class DefaultMessageHandler : MessageHandler
@@ -373,6 +378,7 @@ namespace NewLife.Messaging
             public override Message Create(int messageID)
             {
                 if (messageID == 0xFF) return new ExceptionMessage();
+                if (messageID == 0xFE) return new NullMessage();
 
                 return null;
             }
@@ -380,6 +386,7 @@ namespace NewLife.Messaging
             public override Stream Process(Message message, Stream stream)
             {
                 if (message is ExceptionMessage && Error != null) Error(this, new EventArgs<Message, Stream>(message, stream));
+                if (message is NullMessage && Null != null) Null(this, new EventArgs<Message, Stream>(message, stream));
 
                 return stream;
             }

@@ -14,7 +14,6 @@ namespace NewLife.PeerToPeer.Server
     public class CommandServer : MessageServer
     {
         #region 属性
-
         private PeerOnline _OnlineUser;
         /// <summary>在线用户</summary>
         public PeerOnline OnlineUser
@@ -25,55 +24,7 @@ namespace NewLife.PeerToPeer.Server
 
         #endregion
 
-        //#region 构造
-        //static CommandServer()
-        //{
-        //    P2PMessage.Init();
-        //}
-
-        //CommandServer()
-        //{
-        //    //MessageHandler.Instance.MessageReceived += new EventHandler<EventArgs<Message, Stream>>(Instance_MessageReceived);
-        //    Message.Received += new EventHandler<EventArgs<Message, Stream>>(Message_Received);
-        //}
-
-        ///// <summary>
-        ///// 析构，取消事件注册
-        ///// </summary>
-        //~CommandServer()
-        //{
-        //    //MessageHandler.Instance.MessageReceived -= new EventHandler<EventArgs<Message, Stream>>(Instance_MessageReceived);
-        //    Message.Received += new EventHandler<EventArgs<Message, Stream>>(Message_Received);
-        //}
-        //#endregion
-
-        //#region 实例
-        //private static CommandServer _Instance;
-        ///// <summary>实例</summary>
-        //public static CommandServer Instance
-        //{
-        //    get { return _Instance ?? (_Instance = new CommandServer()); }
-        //}
-        //#endregion
-
-
         #region 处理
-        ///// <summary>
-        ///// 处理数据流
-        ///// </summary>
-        ///// <param name="stream"></param>
-        //public void Process(Stream stream)
-        //{
-        //    try
-        //    {
-        //        Message.Process(stream, MessageExceptionOption.Throw);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        XTrace.WriteLine(ex.ToString());
-        //    }
-        //}
-
         /// <summary>
         /// 已重载。
         /// </summary>

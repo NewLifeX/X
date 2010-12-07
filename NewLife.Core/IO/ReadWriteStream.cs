@@ -11,18 +11,18 @@ namespace NewLife.IO
         #region 属性
         private Stream _InputStream;
         /// <summary>输入流</summary>
-        protected Stream InputStream
+        public Stream InputStream
         {
             get { return _InputStream; }
-            private set { _InputStream = value; }
+            set { _InputStream = value; }
         }
 
         private Stream _OutputStream;
         /// <summary>输出流</summary>
-        protected Stream OutputStream
+        public Stream OutputStream
         {
             get { return _OutputStream; }
-            private set { _OutputStream = value; }
+            set { _OutputStream = value; }
         }
         #endregion
 
