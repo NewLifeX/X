@@ -104,8 +104,16 @@ namespace XControl
                 origAttr = new System.Web.UI.AttributeCollection(new StateBag());
             }
 
-            CopyCollection(Attributes, origAttr, GetAttributeCollectionItem, SetAttributeCollectionItem, FilterStyleAttribute, Attributes.Keys);
-            CopyCollection(Style, origAttr.CssStyle, GetCssStyleCollectionItem, SetCssStyleCollectionItem, null, Style.Keys);
+            CopyCollection(Attributes, origAttr ,
+                new GetItemByKey<System.Web.UI.AttributeCollection,string>(GetAttributeCollectionItem),
+                new SetItemByKey<System.Web.UI.AttributeCollection,string>(SetAttributeCollectionItem), 
+                new CopyFilter<System.Web.UI.AttributeCollection,System.Web.UI.AttributeCollection,string>(FilterStyleAttribute),
+                Attributes.Keys);
+            CopyCollection(Style, origAttr.CssStyle, 
+                new GetItemByKey<CssStyleCollection,string>(GetCssStyleCollectionItem),
+                new SetItemByKey<CssStyleCollection,string>(SetCssStyleCollectionItem),
+                null, 
+                Style.Keys);
 
             base.Render(writer);
 
