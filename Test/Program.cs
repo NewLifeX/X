@@ -9,6 +9,8 @@ using NewLife.Net.Udp;
 using NewLife.Net.Sockets;
 using System.IO;
 using NewLife.Messaging;
+using System.Web;
+using System.Collections.Generic;
 
 namespace Test
 {
@@ -25,7 +27,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                Test3();
                 //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
@@ -107,6 +109,20 @@ namespace Test
         {
             Stream stream = e.GetStream();
             Message msg = Message.Deserialize(stream);
+        }
+
+        static void Test3()
+        {
+            //List<AssemblyX> list = AssemblyX.GetAssemblies();
+            List<AssemblyX> list = AssemblyX.ReflectionOnlyGetAssemblies();
+            Console.WriteLine(list[13].Title);
+
+            foreach (AssemblyX item in list)
+            {
+                Console.WriteLine(item.Version);
+            }
+
+            list = AssemblyX.GetAssemblies();
         }
     }
 }

@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collections\DictionaryCache.cs" />
+    <Compile Include="Collections\ListX.cs" />
     <Compile Include="Collections\ObjectPool.cs" />
     <Compile Include="Collections\SingleListNode.cs" />
     <Compile Include="Collections\InterlockedStack.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="Messaging\MessageExceptionOption.cs" />
     <Compile Include="Messaging\MessageStreamHandler.cs" />
     <Compile Include="Messaging\NullMessage.cs" />
+    <Compile Include="Reflection\AssemblyX.cs" />
     <Compile Include="Reflection\ReadWriteLock.cs" />
     <Compile Include="Reflection\TypeX.cs" />
     <Compile Include="Reflection\WeakReference.cs" />
@@ -126,6 +128,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Remoting\" />
+    <Folder Include="Xml\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

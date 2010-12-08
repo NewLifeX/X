@@ -11,7 +11,7 @@ namespace NewLife.IO
     /// <summary>
     /// 二进制数据访问器
     /// </summary>
-    public class BinaryAccessor : IBinaryAccessor
+    public class BinaryAccessor : FastIndexAccessor, IBinaryAccessor
     {
         #region 读写
         /// <summary>
