@@ -65,6 +65,7 @@
     <Compile Include="Messaging\MessageStreamHandler.cs" />
     <Compile Include="Messaging\NullMessage.cs" />
     <Compile Include="Reflection\ReadWriteLock.cs" />
+    <Compile Include="Reflection\TypeX.cs" />
     <Compile Include="Reflection\WeakReference.cs" />
     <Compile Include="Event\EventArgs.cs" />
     <Compile Include="InlineIL.cs" />

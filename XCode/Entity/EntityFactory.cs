@@ -49,7 +49,11 @@ namespace XCode
         public static IEntityOperate CreateOperate(String typeName)
         {
             Type type = GetType(typeName);
-            if (type == null) return null;
+            if (type == null)
+            {
+                WriteLog("创建实体操作接口时无法找到{0}类！", typeName);
+                return null;
+            }
 
             return CreateOperate(type);
         }
@@ -237,6 +241,11 @@ namespace XCode
         private static void WriteLog(String msg)
         {
             if (XCode.DataAccessLayer.Database.Debug) XCode.DataAccessLayer.Database.WriteLog(msg);
+        }
+
+        private static void WriteLog(String format, params Object[] args)
+        {
+            if (XCode.DataAccessLayer.Database.Debug) XCode.DataAccessLayer.Database.WriteLog(format, args);
         }
         #endregion
     }
