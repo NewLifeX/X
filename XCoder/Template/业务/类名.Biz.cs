@@ -116,7 +116,7 @@ foreach (XField Field in Table.Fields){
 			// 实体缓存
 			//return Meta.Cache.Entities.Find(_.ID, id);
 			// 单对象缓存
-			//return Meta.SingleCacheInt[id];
+			//return Meta.SingleCache[id];
 		}
 <#
     }
@@ -133,7 +133,7 @@ foreach (XField Field in Table.Fields){
 			// 实体缓存
 			//return Meta.Cache.Entities.Find(_.Name, name);
 			// 单对象缓存
-			//return Meta.SingleCacheStr[name];
+			//return Meta.SingleCache[name];
 		}
 <#
     }
