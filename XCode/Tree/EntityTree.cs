@@ -166,7 +166,7 @@ namespace XCode
         /// <returns></returns>
         protected static EntityList<TEntity> FindAllChilds(IEntityTree<TEntity> entity)
         {
-            XTrace.WriteLine("FindAllChilds ", entity);
+            //XTrace.WriteLine("FindAllChilds ", entity);
             if (entity == null || entity.Childs == null || entity.Childs.Count < 1) return null;
 
             EntityList<TEntity> list = new EntityList<TEntity>();
@@ -197,7 +197,7 @@ namespace XCode
             }
             // 去掉第一个，那是自身
             list.RemoveAt(0);
-            XTrace.WriteLine("FindAllChilds Count={0}", list.Count);
+            //XTrace.WriteLine("FindAllChilds Count={0}", list.Count);
 
             return list.Count > 0 ? list : null;
         }
