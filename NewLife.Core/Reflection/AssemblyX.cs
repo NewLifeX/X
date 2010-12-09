@@ -262,11 +262,21 @@ namespace NewLife.Reflection
             }
         }
 
+        /// <summary>
+        /// 查找插件
+        /// </summary>
+        /// <typeparam name="TPlugin"></typeparam>
+        /// <returns></returns>
         public ListX<TypeX> FindPlugins<TPlugin>()
         {
             return FindPlugins(typeof(TPlugin));
         }
 
+        /// <summary>
+        /// 查找插件
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public ListX<TypeX> FindPlugins(Type type)
         {
             ListX<TypeX> list = Types;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using NewLife.Collections;
 
 namespace NewLife.Reflection
 {
@@ -19,14 +20,39 @@ namespace NewLife.Reflection
             set { _Field = value; }
         }
 
-        FastGetValueHandler gethandler;
-        FastSetValueHandler sethandler;
+        FastGetValueHandler _GetHandler;
+        /// <summary>
+        /// 快速调用委托，延迟到首次使用才创建
+        /// </summary>
+        FastGetValueHandler GetHandler
+        {
+            get
+            {
+                if (_GetHandler == null) _GetHandler = GetValueInvoker(Field);
+
+                return _GetHandler;
+            }
+        }
+
+        FastSetValueHandler _SetHandler;
+        /// <summary>
+        /// 快速调用委托，延迟到首次使用才创建
+        /// </summary>
+        FastSetValueHandler SetHandler
+        {
+            get
+            {
+                if (_SetHandler == null) _SetHandler = SetValueInvoker(Field);
+
+                return _SetHandler;
+            }
+        }
         #endregion
 
         #region 构造
         private FieldInfoX(FieldInfo field) : base(field) { Field = field; }
 
-        private static Dictionary<FieldInfo, FieldInfoX> cache = new Dictionary<FieldInfo, FieldInfoX>();
+        private static DictionaryCache<FieldInfo, FieldInfoX> cache = new DictionaryCache<FieldInfo, FieldInfoX>();
         /// <summary>
         /// 创建
         /// </summary>
@@ -36,21 +62,25 @@ namespace NewLife.Reflection
         {
             if (field == null) return null;
 
-            if (cache.ContainsKey(field)) return cache[field];
-            lock (cache)
+            return cache.GetItem(field, delegate(FieldInfo key)
             {
-                if (cache.ContainsKey(field)) return cache[field];
+                return new FieldInfoX(key);
+            });
+            //if (cache.ContainsKey(field)) return cache[field];
+            //lock (cache)
+            //{
+            //    if (cache.ContainsKey(field)) return cache[field];
 
-                FieldInfoX entity = new FieldInfoX(field);
+            //    FieldInfoX entity = new FieldInfoX(field);
 
-                //entity.Field = field;
-                entity.gethandler = GetValueInvoker(field);
-                entity.sethandler = SetValueInvoker(field);
+            //    //entity.Field = field;
+            //    entity.gethandler = GetValueInvoker(field);
+            //    entity.sethandler = SetValueInvoker(field);
 
-                cache.Add(field, entity);
+            //    cache.Add(field, entity);
 
-                return entity;
-            }
+            //    return entity;
+            //}
         }
 
         /// <summary>
@@ -133,7 +163,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public override Object GetValue(Object obj)
         {
-            return gethandler.Invoke(obj);
+            return GetHandler.Invoke(obj);
         }
 
         /// <summary>
@@ -143,7 +173,7 @@ namespace NewLife.Reflection
         /// <param name="value"></param>
         public override void SetValue(Object obj, Object value)
         {
-            sethandler.Invoke(obj, value);
+            SetHandler.Invoke(obj, value);
         }
 
         delegate Object FastGetValueHandler(Object obj);

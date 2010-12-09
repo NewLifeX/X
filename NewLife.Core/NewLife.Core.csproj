@@ -66,6 +66,8 @@
     <Compile Include="Messaging\MessageStreamHandler.cs" />
     <Compile Include="Messaging\NullMessage.cs" />
     <Compile Include="Reflection\AssemblyX.cs" />
+    <Compile Include="Reflection\ConstructorInfoX.cs" />
+    <Compile Include="Reflection\EmitHelper.cs" />
     <Compile Include="Reflection\ReadWriteLock.cs" />
     <Compile Include="Reflection\TypeX.cs" />
     <Compile Include="Reflection\WeakReference.cs" />
@@ -113,8 +115,8 @@
     <Compile Include="Threading\ThreadTask.cs" />
     <Compile Include="Threading\ThreadX.cs" />
     <Compile Include="Web\HttpStream.cs" />
-    <Compile Include="XLog\WriteLogEventArgs.cs" />
-    <Compile Include="XLog\XTrace.cs" />
+    <Compile Include="Log\WriteLogEventArgs.cs" />
+    <Compile Include="Log\XTrace.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Serialization\Protocol\说明.txt" />
