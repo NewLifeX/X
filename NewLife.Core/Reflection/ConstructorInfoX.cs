@@ -29,7 +29,7 @@ namespace NewLife.Reflection
         {
             get
             {
-                if (_Handler == null) _Handler = CreateDelegate<FastCreateInstanceHandler>(Constructor);
+                if (_Handler == null) _Handler = CreateDelegate<FastCreateInstanceHandler>(Constructor, typeof(Object), new Type[] { typeof(Object[]) });
                 return _Handler;
             }
         }
@@ -91,9 +91,28 @@ namespace NewLife.Reflection
         {
             ConstructorInfo constructor = type.GetConstructor(types);
             if (constructor == null) constructor = type.GetConstructor(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, types, null);
-            if (constructor == null) return null;
+            if (constructor != null) return Create(constructor);
 
-            return Create(constructor);
+            //ListX<ConstructorInfo> list = TypeX.Create(type).Constructors;
+            //if (list != null && list.Count > 0)
+            //{
+            //    if (types == null || types.Length <= 1) return list[0];
+
+            //    ListX<ConstructorInfo> list2 = new ListX<ConstructorInfo>();
+            //    foreach (ConstructorInfo item in list)
+            //    {
+            //        ParameterInfo[] ps = item.GetParameters();
+            //        if (ps == null || ps.Length < 1 || ps.Length != types.Length) continue;
+
+            //        for (int i = 0; i < ps.Length; i++)
+            //        {
+
+            //        }
+            //    }
+            //}
+
+            // 基本不可能的错误，因为每个类都会有构造函数
+            throw new Exception("无法找到构造函数！");
         }
 
         /// <summary>
@@ -115,58 +134,58 @@ namespace NewLife.Reflection
         //    DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object), typeof(Object[]) }, Constructor.DeclaringType.Module, true);
         //    ILGenerator il = dynamicMethod.GetILGenerator();
 
-        //    GetMethodInvoker(il);
+        //    GetMethodInvoker(il, Constructor);
 
         //    FastCreateInstanceHandler invoder = (FastCreateInstanceHandler)dynamicMethod.CreateDelegate(typeof(FastCreateInstanceHandler));
         //    return invoder;
         //}
 
-        internal static void GetMethodInvoker(ILGenerator il, ConstructorInfo method)
-        {
-            Type targetType = method.DeclaringType;
+        //internal static void GetMethodInvoker(ILGenerator il, ConstructorInfo method)
+        //{
+        //    Type targetType = method.DeclaringType;
 
-            //准备参数
-            ParameterInfo[] ps = method.GetParameters();
+        //    //准备参数
+        //    ParameterInfo[] ps = method.GetParameters();
 
-            if (targetType.IsValueType || ps == null || ps.Length < 1)
-            {
-                // 值类型和无参数类型
+        //    if (targetType.IsValueType || ps == null || ps.Length < 1)
+        //    {
+        //        // 值类型和无参数类型
 
-                // 声明目标类型的本地变量
-                il.DeclareLocal(targetType);
-                // 加载地址
-                il.Emit(OpCodes.Ldloca_S, 0);
-                // 创建对象
-                il.Emit(OpCodes.Initobj, targetType);
-                // 加载对象
-                il.Emit(OpCodes.Ldloc_0);
-            }
-            else if (targetType.IsArray)
-            {
-                // 数组类型
+        //        // 声明目标类型的本地变量
+        //        il.DeclareLocal(targetType);
+        //        // 加载地址
+        //        il.Emit(OpCodes.Ldloca_S, 0);
+        //        // 创建对象
+        //        il.Emit(OpCodes.Initobj, targetType);
+        //        // 加载对象
+        //        il.Emit(OpCodes.Ldloc_0);
+        //    }
+        //    else if (targetType.IsArray)
+        //    {
+        //        // 数组类型
 
-                il.Emit(OpCodes.Ldarg_0);
-                il.Emit(OpCodes.Ldc_I4_0);
-                il.Emit(OpCodes.Ldelem_Ref);
-                il.Emit(OpCodes.Unbox_Any, typeof(Int32));
-                il.Emit(OpCodes.Newarr, targetType.GetElementType());
-            }
-            else
-            {
-                // 其它类型
-                EmitHelper help = new EmitHelper(il);
+        //        il.Emit(OpCodes.Ldarg_0);
+        //        il.Emit(OpCodes.Ldc_I4_0);
+        //        il.Emit(OpCodes.Ldelem_Ref);
+        //        il.Emit(OpCodes.Unbox_Any, typeof(Int32));
+        //        il.Emit(OpCodes.Newarr, targetType.GetElementType());
+        //    }
+        //    else
+        //    {
+        //        // 其它类型
+        //        EmitHelper help = new EmitHelper(il);
 
-                help.PushParams(method);
+        //        help.PushParams(method);
 
-                // 创建对象
-                il.Emit(OpCodes.Initobj, targetType);
-            }
+        //        // 创建对象
+        //        il.Emit(OpCodes.Initobj, targetType);
+        //    }
 
-            // 是否需要装箱
-            if (targetType.IsValueType) il.Emit(OpCodes.Box, targetType);
+        //    // 是否需要装箱
+        //    if (targetType.IsValueType) il.Emit(OpCodes.Box, targetType);
 
-            il.Emit(OpCodes.Ret);
-        }
+        //    il.Emit(OpCodes.Ret);
+        //}
 
         /// <summary>
         /// 快速调用委托
@@ -182,7 +201,7 @@ namespace NewLife.Reflection
         /// </summary>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public override Object CreateInstance(Object[] parameters)
+        public override Object CreateInstance(params Object[] parameters)
         {
             return Handler.Invoke(parameters);
         }

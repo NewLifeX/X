@@ -12,7 +12,7 @@ namespace NewLife.Collections
     /// 增强的强类型列表
     /// </summary>
     [Serializable]
-    public class ListX<T> : List<T> //where T : IIndexAccessor
+    public class ListX<T> : List<T>, ICloneable //where T : IIndexAccessor
     {
         #region 构造函数
         /// <summary>
@@ -61,34 +61,54 @@ namespace NewLife.Collections
         /// <summary>
         /// 集合相加
         /// </summary>
-        /// <param name="entities1">第一个实体集合</param>
-        /// <param name="entities2">第二个实体集合</param>
+        /// <param name="list1">第一个实体集合</param>
+        /// <param name="list2">第二个实体集合</param>
         /// <returns></returns>
-        public static ListX<T> operator +(ListX<T> entities1, ListX<T> entities2)
+        public static ListX<T> operator +(ListX<T> list1, ListX<T> list2)
         {
-            if ((entities1 == null || entities1.Count < 1) && (entities2 == null || entities2.Count < 1)) return null;
+            if (list1 == null || list1.Count < 1)
+            {
+                return list2;
+            }
+            else
+            {
+                if (list2 == null || list2.Count < 1)
+                {
+                    return list1;
+                }
+                else
+                {
+                    ListX<T> list = new ListX<T>();
+                    list.AddRange(list1);
+                    list.AddRange(list2);
 
-            ListX<T> list = new ListX<T>();
-            if (entities1 != null && entities1.Count > 0) list.AddRange(entities1);
-            if (entities2 != null && entities2.Count > 0) list.AddRange(entities2);
+                    return list;
+                }
+            }
 
-            return list;
+            //if ((list1 == null || list1.Count < 1) && (list2 == null || list2.Count < 1)) return null;
+
+            //ListX<T> list = new ListX<T>();
+            //if (list1 != null && list1.Count > 0) list.AddRange(list1);
+            //if (list2 != null && list2.Count > 0) list.AddRange(list2);
+
+            //return list;
         }
 
         /// <summary>
         /// 集合相减
         /// </summary>
-        /// <param name="entities1">第一个实体集合</param>
-        /// <param name="entities2">第二个实体集合</param>
+        /// <param name="list1">第一个实体集合</param>
+        /// <param name="list2">第二个实体集合</param>
         /// <returns></returns>
-        public static ListX<T> operator -(ListX<T> entities1, ListX<T> entities2)
+        public static ListX<T> operator -(ListX<T> list1, ListX<T> list2)
         {
-            if (entities1 == null || entities1.Count < 1) return null;
+            if (list1 == null || list1.Count < 1) return null;
 
             ListX<T> list = new ListX<T>();
-            foreach (T item in entities1)
+            foreach (T item in list1)
             {
-                if (entities2 != null && !entities2.Contains(item)) list.Add(item);
+                if (list2 != null && !list2.Contains(item)) list.Add(item);
             }
 
             if (list == null || list.Count < 1) return null;
@@ -491,6 +511,23 @@ namespace NewLife.Collections
         //{
         //    FastIndexAccessor.SetValue(target, name, value);
         //}
+        #endregion
+
+        #region ICloneable 成员
+
+        object ICloneable.Clone()
+        {
+            return Clone();
+        }
+
+        /// <summary>
+        /// 克隆
+        /// </summary>
+        /// <returns></returns>
+        public ListX<T> Clone()
+        {
+            return new ListX<T>(this);
+        }
         #endregion
     }
 }

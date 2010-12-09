@@ -28,7 +28,7 @@ namespace NewLife.Reflection
         {
             get
             {
-                if (_Handler == null) _Handler = CreateDelegate<FastInvokeHandler>(Method);
+                if (_Handler == null) _Handler = CreateDelegate<FastInvokeHandler>(Method, Method.ReturnType, new Type[] { typeof(Object[]) });
                 return _Handler;
             }
         }
@@ -144,7 +144,7 @@ namespace NewLife.Reflection
         /// <param name="obj"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public override Object Invoke(Object obj, Object[] parameters)
+        public override Object Invoke(Object obj, params  Object[] parameters)
         {
             return Handler.Invoke(obj, parameters);
         }

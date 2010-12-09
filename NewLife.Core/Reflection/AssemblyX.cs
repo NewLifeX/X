@@ -191,17 +191,40 @@ namespace NewLife.Reflection
                 return new AssemblyX(key);
             });
         }
+
+        static AssemblyX()
+        {
+            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += new ResolveEventHandler(CurrentDomain_ReflectionOnlyAssemblyResolve);
+        }
+
+        static Assembly CurrentDomain_ReflectionOnlyAssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            return Assembly.ReflectionOnlyLoad(args.Name);
+        }
         #endregion
 
         #region 扩展属性
-        private ListX<TypeX> _Types;
-        /// <summary>类型集合</summary>
-        public ListX<TypeX> Types
+        private ListX<Type> _Types;
+        /// <summary>类型集合，当前程序集的所有类型</summary>
+        public ListX<Type> Types
         {
             get
             {
-                if (_Types == null) _Types = ListX<TypeX>.From(new ListX<Type>(Asm.GetExportedTypes()));
-                return _Types;
+                //if (_Types == null) _Types = ListX<TypeX>.From(new ListX<Type>(Asm.GetTypes()));
+                if (_Types == null) _Types = new ListX<Type>(Asm.GetTypes());
+                return _Types == null ? null : _Types.Clone();
+            }
+        }
+
+        private ListX<TypeX> _TypeXs;
+        /// <summary>类型集合，当前程序集的所有类型</summary>
+        public ListX<TypeX> TypeXs
+        {
+            get
+            {
+                if (_TypeXs == null)
+                    _TypeXs = ListX<TypeX>.From<Type>(Types, delegate(Type type) { return TypeX.Create(type); });
+                return _TypeXs == null ? null : _TypeXs.Clone();
             }
         }
 
@@ -249,9 +272,9 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public TResult GetCustomAttributeValue<TAttribute, TResult>()
         {
-            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += new ResolveEventHandler(CurrentDomain_ReflectionOnlyAssemblyResolve);
+            //AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += new ResolveEventHandler(CurrentDomain_ReflectionOnlyAssemblyResolve);
 
-            try
+            //try
             {
                 IList<CustomAttributeData> list = CustomAttributeData.GetCustomAttributes(Asm);
                 if (list == null || list.Count < 1) return default(TResult);
@@ -266,10 +289,10 @@ namespace NewLife.Reflection
 
                 return default(TResult);
             }
-            finally
-            {
-                AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve -= new ResolveEventHandler(CurrentDomain_ReflectionOnlyAssemblyResolve);
-            }
+            //finally
+            //{
+            //    AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve -= new ResolveEventHandler(CurrentDomain_ReflectionOnlyAssemblyResolve);
+            //}
         }
 
         /// <summary>
@@ -289,7 +312,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public ListX<TypeX> FindPlugins(Type type)
         {
-            ListX<TypeX> list = Types;
+            ListX<TypeX> list = TypeXs;
             if (list == null || list.Count < 1) return null;
 
             return list.FindAll(delegate(TypeX item)
@@ -339,9 +362,9 @@ namespace NewLife.Reflection
             String[] ss = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
             if (ss == null || ss.Length < 1) return null;
 
-            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += new ResolveEventHandler(CurrentDomain_ReflectionOnlyAssemblyResolve);
+            //AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += new ResolveEventHandler(CurrentDomain_ReflectionOnlyAssemblyResolve);
 
-            try
+            //try
             {
                 ListX<AssemblyX> loadeds = AssemblyX.GetAssemblies();
 
@@ -363,15 +386,10 @@ namespace NewLife.Reflection
 
                 return list;
             }
-            finally
-            {
-                AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve -= new ResolveEventHandler(CurrentDomain_ReflectionOnlyAssemblyResolve);
-            }
-        }
-
-        static Assembly CurrentDomain_ReflectionOnlyAssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            return Assembly.ReflectionOnlyLoad(args.Name);
+            //finally
+            //{
+            //    AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve -= new ResolveEventHandler(CurrentDomain_ReflectionOnlyAssemblyResolve);
+            //}
         }
 
         /// <summary>

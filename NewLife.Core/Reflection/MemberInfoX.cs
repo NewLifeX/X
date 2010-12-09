@@ -32,6 +32,8 @@ namespace NewLife.Reflection
                 if (Member == null) return null;
                 switch (Member.MemberType)
                 {
+                    case MemberTypes.Constructor:
+                        return (Member as ConstructorInfo).DeclaringType;
                     case MemberTypes.Field:
                         return (Member as FieldInfo).FieldType;
                     case MemberTypes.Method:
@@ -67,38 +69,33 @@ namespace NewLife.Reflection
         /// </summary>
         /// <typeparam name="TDelegate"></typeparam>
         /// <param name="method"></param>
+        /// <param name="retType"></param>
+        /// <param name="paramTypes"></param>
         /// <returns></returns>
-        public static TDelegate CreateDelegate<TDelegate>(MethodBase method)
+        internal protected static TDelegate CreateDelegate<TDelegate>(MethodBase method, Type retType, Type[] paramTypes)
         {
             if (!typeof(Delegate).IsAssignableFrom(typeof(TDelegate))) throw new ArgumentOutOfRangeException("TDelegate");
 
-            // 这里本应该根据委托来构建动态方法返回类型和参数类型，无奈做不到！！！
-            Type type = typeof(TDelegate);
-            //ParameterInfo[] ps = type.GetConstructors()[0].GetParameters();
-            ParameterInfo[] ps = method.GetParameters();
-            //List<Type> types = new List<Type>();
-            //foreach (ParameterInfo item in ps)
+            //Type[] types = null;
+            //Type retType = null;
+            //if (method is MethodInfo)
             //{
-            //    types.Add(item.ParameterType);
-            //}
-            Type[] types = null;
-            Type retType = null;
-            if (method is MethodInfo)
-            {
-                if (ps != null && ps.Length > 0)
-                    types = new Type[] { typeof(Object), typeof(Object[]) };
-                else
-                    types = new Type[] { typeof(Object) };
+            //    ParameterInfo[] ps = method.GetParameters();
+            //    if (ps != null && ps.Length > 0)
+            //        types = new Type[] { typeof(Object), typeof(Object[]) };
+            //    else
+            //        types = new Type[] { typeof(Object) };
 
-                if ((method as MethodInfo).ReturnType != null) retType = typeof(Object);
-            }
-            else if (method is ConstructorInfo)
-            {
-                types = new Type[] { typeof(Object[]) };
-                retType = method.DeclaringType;
-            }
+            //    if ((method as MethodInfo).ReturnType != null) retType = typeof(Object);
+            //}
+            //else if (method is ConstructorInfo)
+            //{
+            //    types = new Type[] { typeof(Object[]) };
+            //    retType = method.DeclaringType;
+            //}
+
             //定义一个没有名字的动态方法
-            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, retType, types, method.DeclaringType.Module, true);
+            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, retType, paramTypes, method.DeclaringType.Module, true);
             ILGenerator il = dynamicMethod.GetILGenerator();
 
             if (method is MethodInfo)
@@ -106,7 +103,69 @@ namespace NewLife.Reflection
             else if (method is ConstructorInfo)
                 GetConstructorInvoker(il, method as ConstructorInfo);
 
-            return (TDelegate)(Object)dynamicMethod.CreateDelegate(type);
+#if DEBUG
+            AssemblyName name = new AssemblyName(String.Format("FastTest_{0:yyyyMMddHHmmssfff}", DateTime.Now));
+            AssemblyBuilder abuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(name, AssemblyBuilderAccess.RunAndSave);
+            ModuleBuilder mbuilder = abuilder.DefineDynamicModule(name.Name + ".dll");
+            TypeBuilder tbuilder = mbuilder.DefineType(retType.Name, TypeAttributes.Public);
+            MethodBuilder mb = tbuilder.DefineMethod(method.Name.Replace(".", "_"), method.Attributes, retType, paramTypes);
+            ILGenerator il2 = mb.GetILGenerator();
+
+            if (method is MethodInfo)
+                GetMethodInvoker(il2, method as MethodInfo);
+            else if (method is ConstructorInfo)
+                GetConstructorInvoker(il2, method as ConstructorInfo);
+
+            Type t = tbuilder.CreateType();
+
+            abuilder.Save(name.Name + ".dll");
+#endif
+
+            return (TDelegate)(Object)dynamicMethod.CreateDelegate(typeof(TDelegate));
+        }
+
+        /// <summary>
+        /// 创建不需要目标方法的委托
+        /// </summary>
+        /// <typeparam name="TDelegate"></typeparam>
+        /// <param name="targetType"></param>
+        /// <param name="retType"></param>
+        /// <param name="paramTypes"></param>
+        /// <returns></returns>
+        internal protected static TDelegate CreateDelegate<TDelegate>(Type targetType, Type retType, Type[] paramTypes)
+        {
+            if (!typeof(Delegate).IsAssignableFrom(typeof(TDelegate))) throw new ArgumentOutOfRangeException("TDelegate");
+
+            //定义一个没有名字的动态方法
+            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, MethodAttributes.Public | MethodAttributes.Static, CallingConventions.Standard, retType, paramTypes, targetType.Module, true);
+            ILGenerator il = dynamicMethod.GetILGenerator();
+
+            if (targetType.IsValueType)
+                GetValueTypeInvoker(il, targetType);
+            else if (targetType.IsArray)
+                GetCreateArrayInvoker(il, targetType.GetElementType());
+            else
+                throw new NotSupportedException();
+
+#if DEBUG
+            AssemblyName name = new AssemblyName(String.Format("FastTest_{0:yyyyMMddHHmmssfff}", DateTime.Now));
+            AssemblyBuilder abuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(name, AssemblyBuilderAccess.RunAndSave);
+            ModuleBuilder mbuilder = abuilder.DefineDynamicModule(name.Name + ".dll");
+            TypeBuilder tbuilder = mbuilder.DefineType(targetType.Name, TypeAttributes.Public);
+            MethodBuilder mb = tbuilder.DefineMethod("Test", dynamicMethod.Attributes, dynamicMethod.ReturnType, paramTypes);
+            ILGenerator il2 = mb.GetILGenerator();
+
+            if (targetType.IsValueType)
+                GetValueTypeInvoker(il2, targetType);
+            else if (targetType.IsArray)
+                GetCreateArrayInvoker(il2, targetType.GetElementType());
+
+            Type t = tbuilder.CreateType();
+
+            abuilder.Save(name.Name + ".dll");
+#endif
+
+            return (TDelegate)(Object)dynamicMethod.CreateDelegate(typeof(TDelegate));
         }
 
         /// <summary>
@@ -121,8 +180,31 @@ namespace NewLife.Reflection
             if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
 
             help.PushParams(method)
-                .Call(method as MethodInfo)
-                .Ret(method as MethodInfo);
+                .Call(method)
+                .Ret(method);
+        }
+
+        private static void GetValueTypeInvoker(ILGenerator il, Type targetType)
+        {
+            // 声明目标类型的本地变量
+            il.DeclareLocal(targetType);
+            // 加载地址
+            il.Emit(OpCodes.Ldloca_S, 0);
+            // 创建对象
+            il.Emit(OpCodes.Initobj, targetType);
+            // 加载对象
+            il.Emit(OpCodes.Ldloc_0);
+            il.Emit(OpCodes.Ret);
+        }
+
+        private static void GetCreateArrayInvoker(ILGenerator il, Type elementType)
+        {
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldc_I4_0);
+            il.Emit(OpCodes.Ldelem_Ref);
+            il.Emit(OpCodes.Unbox_Any, typeof(Int32));
+            il.Emit(OpCodes.Newarr, elementType);
+            il.Emit(OpCodes.Ret);
         }
 
         private static void GetConstructorInvoker(ILGenerator il, ConstructorInfo method)
@@ -130,45 +212,86 @@ namespace NewLife.Reflection
             EmitHelper help = new EmitHelper(il);
 
             Type targetType = method.DeclaringType;
-            //准备参数
-            ParameterInfo[] ps = method.GetParameters();
-            if (targetType.IsValueType || ps == null || ps.Length < 1)
-            {
-                // 值类型和无参数类型
-
-                // 声明目标类型的本地变量
-                il.DeclareLocal(targetType);
-                // 加载地址
-                il.Emit(OpCodes.Ldloca_S, 0);
-                // 创建对象
-                il.Emit(OpCodes.Initobj, targetType);
-                // 加载对象
-                il.Emit(OpCodes.Ldloc_0);
-            }
+            if (targetType.IsValueType)
+                GetValueTypeInvoker(il, targetType);
             else if (targetType.IsArray)
-            {
-                // 数组类型
-
-                il.Emit(OpCodes.Ldarg_0);
-                il.Emit(OpCodes.Ldc_I4_0);
-                il.Emit(OpCodes.Ldelem_Ref);
-                il.Emit(OpCodes.Unbox_Any, typeof(Int32));
-                il.Emit(OpCodes.Newarr, targetType.GetElementType());
-            }
+                GetCreateArrayInvoker(il, targetType.GetElementType());
             else
             {
                 // 其它类型
                 help.PushParams(method);
 
                 // 创建对象
-                il.Emit(OpCodes.Initobj, targetType);
+                il.Emit(OpCodes.Newobj, method);
             }
-
-            // 是否需要装箱
-            if (targetType.IsValueType) il.Emit(OpCodes.Box, targetType);
 
             il.Emit(OpCodes.Ret);
         }
+
+        //private static ModuleBuilder _module;
+        //static MethodBuilder CreateMethod(MethodBase method)
+        //{
+        //    if (_module == null)
+        //    {
+        //        AssemblyName name = new AssemblyName("FastTest");
+        //        AssemblyBuilder abuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(name, AssemblyBuilderAccess.RunAndSave);
+        //        ModuleBuilder mbuilder = abuilder.DefineDynamicModule(name.Name + ".dll");
+        //        _module = mbuilder;
+        //    }
+
+        //    Type[] types = null;
+        //    Type retType = null;
+        //    if (method is MethodInfo)
+        //    {
+        //        ParameterInfo[] ps = method.GetParameters();
+        //        if (ps != null && ps.Length > 0)
+        //            types = new Type[] { typeof(Object), typeof(Object[]) };
+        //        else
+        //            types = new Type[] { typeof(Object) };
+
+        //        if ((method as MethodInfo).ReturnType != null) retType = typeof(Object);
+        //    }
+        //    else if (method is ConstructorInfo)
+        //    {
+        //        types = new Type[] { typeof(Object[]) };
+        //        retType = method.DeclaringType;
+        //    }
+
+        //    TypeBuilder tbuilder = _module.DefineType(method.DeclaringType.Name, TypeAttributes.Public);
+        //    MethodBuilder mb = tbuilder.DefineMethod(method.Name.Replace(".", "_"), method.Attributes, retType, types);
+
+        //    return mb;
+        //}
+
+        //public static void RenderMethod(TypeBuilder builder, MethodBase method)
+        //{
+        //    Type[] types = null;
+        //    Type retType = null;
+        //    if (method is MethodInfo)
+        //    {
+        //        ParameterInfo[] ps = method.GetParameters();
+        //        if (ps != null && ps.Length > 0)
+        //            types = new Type[] { typeof(Object), typeof(Object[]) };
+        //        else
+        //            types = new Type[] { typeof(Object) };
+
+        //        if ((method as MethodInfo).ReturnType != null) retType = typeof(Object);
+        //    }
+        //    else if (method is ConstructorInfo)
+        //    {
+        //        types = new Type[] { typeof(Object[]) };
+        //        retType = method.DeclaringType;
+        //    }
+
+        //    MethodBuilder mb = builder.DefineMethod(null, MethodAttributes.Public, retType, types);
+
+        //    ILGenerator il = mb.GetILGenerator();
+
+        //    if (method is MethodInfo)
+        //        GetMethodInvoker(il, method as MethodInfo);
+        //    else if (method is ConstructorInfo)
+        //        GetConstructorInvoker(il, method as ConstructorInfo);
+        //}
         #endregion
 
         #region 调用
@@ -178,7 +301,7 @@ namespace NewLife.Reflection
         /// <param name="obj"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public virtual Object Invoke(Object obj, Object[] parameters) { throw new NotImplementedException(); }
+        public virtual Object Invoke(Object obj, params Object[] parameters) { throw new NotImplementedException(); }
 
         /// <summary>
         /// 取值
@@ -229,7 +352,7 @@ namespace NewLife.Reflection
         /// </summary>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public virtual Object CreateInstance(Object[] parameters) { throw new NotImplementedException(); }
+        public virtual Object CreateInstance(params Object[] parameters) { throw new NotImplementedException(); }
         #endregion
 
         #region 类型转换
@@ -271,7 +394,7 @@ namespace NewLife.Reflection
                 case MemberTypes.Property:
                     return PropertyInfoX.Create(obj as PropertyInfo);
                 case MemberTypes.TypeInfo:
-                    break;
+                    return TypeX.Create(obj as Type);
                 default:
                     break;
             }

@@ -339,14 +339,35 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public EmitHelper PushParams(MethodBase method)
         {
-            //Int32 firstParamIndex = method.IsStatic ? 0 : 1;
+            Int32 firstParamIndex = method.IsStatic || method.IsConstructor ? 0 : 1;
             ParameterInfo[] ps = method.GetParameters();
             for (Int32 i = 0; i < ps.Length; i++)
             {
-                this.Ldarg(1)
+                this.Ldarg(firstParamIndex)
                     .Ldc_I4(i)
                     .Ldelem_Ref()
                     .CastFromObject(ps[i].ParameterType);
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// 将指定参数位置的数组参数一个个压栈
+        /// </summary>
+        /// <param name="paramIndex"></param>
+        /// <param name="paramTypes"></param>
+        /// <returns></returns>
+        public EmitHelper PushParams(Int32 paramIndex, Type[] paramTypes)
+        {
+            if (paramTypes == null || paramTypes.Length < 1) return this;
+
+            for (int i = 0; i < paramTypes.Length; i++)
+            {
+                this.Ldarg(paramIndex)
+                    .Ldc_I4(i)
+                    .Ldelem_Ref()
+                    .CastFromObject(paramTypes[i]);
             }
 
             return this;

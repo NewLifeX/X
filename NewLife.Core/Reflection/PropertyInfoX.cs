@@ -64,7 +64,8 @@ namespace NewLife.Reflection
         {
             get
             {
-                if (_GetHandler == null && GetMethod != null) _GetHandler = CreateDelegate<FastGetValueHandler>(GetMethod);
+                if (_GetHandler == null && GetMethod != null)
+                    _GetHandler = CreateDelegate<FastGetValueHandler>(GetMethod, Property.PropertyType, new Type[] { typeof(Object) });
 
                 return _GetHandler;
             }
@@ -78,7 +79,8 @@ namespace NewLife.Reflection
         {
             get
             {
-                if (_SetHandler == null && SetMethod != null) _SetHandler = CreateDelegate<FastSetValueHandler>(SetMethod);
+                if (_SetHandler == null && SetMethod != null)
+                    _SetHandler = CreateDelegate<FastSetValueHandler>(SetMethod, null, new Type[] { typeof(Object), typeof(Object[]) });
                 //if (_SetHandler == null && SetMethod != null) _SetHandler = SetValueInvoker(Property);
 
                 return _SetHandler;
