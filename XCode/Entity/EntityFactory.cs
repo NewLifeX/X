@@ -4,6 +4,7 @@ using System.Text;
 using System.Reflection;
 using System.Web;
 using System.IO;
+using NewLife.Collections;
 
 namespace XCode
 {
@@ -58,7 +59,7 @@ namespace XCode
             return CreateOperate(type);
         }
 
-        private static Dictionary<Type, IEntityOperate> op_cache = new Dictionary<Type, IEntityOperate>();
+        private static DictionaryCache<Type, IEntityOperate> op_cache = new DictionaryCache<Type, IEntityOperate>();
         /// <summary>
         /// 创建实体操作接口
         /// </summary>
@@ -69,21 +70,23 @@ namespace XCode
         {
             if (type == null) return null;
 
-            if (op_cache.ContainsKey(type)) return op_cache[type];
-            lock (op_cache)
+            //if (op_cache.ContainsKey(type)) return op_cache[type];
+            //lock (op_cache)
+            //{
+            //    if (op_cache.ContainsKey(type)) return op_cache[type];
+
+            return op_cache.GetItem(type, delegate(Type key)
             {
-                if (op_cache.ContainsKey(type)) return op_cache[type];
+                EntityBase entity = Create(key) as EntityBase;
+                if (entity == null) throw new Exception(String.Format("无法创建{0}的实体操作接口！", key));
 
-                EntityBase entity = Create(type) as EntityBase;
-                if (entity == null) throw new Exception(String.Format("无法创建{0}的实体操作接口！", type));
-
-                if (op_cache.ContainsKey(type))
-                    op_cache[type] = entity;
-                else
-                    op_cache.Add(type, entity);
+                //if (op_cache.ContainsKey(key))
+                //    op_cache[key] = entity;
+                //else
+                //    op_cache.Add(key, entity);
 
                 return entity;
-            }
+            });
         }
 
         /// <summary>

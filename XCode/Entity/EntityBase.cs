@@ -472,16 +472,22 @@ namespace XCode
         /// <returns></returns>
         protected virtual TResult GetExtend<TDependEntity, TResult>(String key, Func<String, Object> func) where TDependEntity : Entity<TDependEntity>, new()
         {
-            if (Extends.ContainsKey(key)) return (TResult)Extends[key];
+            Object value = null;
+            if (Extends.TryGetValue(key, out value)) return (TResult)value;
 
             if (StopExtend) return default(TResult);
 
             // 针对每个类型，仅注册一个事件
             Type type = typeof(TDependEntity);
-            if (!Depends.ContainsKey(type)) Depends.Add(type, new List<String>());
+            List<String> list = null;
+            if (!Depends.TryGetValue(type, out list))
+            {
+                list = new List<String>();
+                Depends.Add(type, list);
+            }
 
             // 这里使用了成员方法GetExtend<TDependEntity>而不是匿名函数，为了避免生成包装类，且每次调用前实例化包装类带来较大开销
-            return (TResult)Extends.GetItem<Object[]>(key, new Object[] { func, Depends[type] }, new Func<String, Object[], Object>(GetExtend<TDependEntity>));
+            return (TResult)Extends.GetItem<Object[]>(key, new Object[] { func, list }, new Func<String, Object[], Object>(GetExtend<TDependEntity>));
         }
 
         Object GetExtend<TDependEntity>(String key, Object[] args) where TDependEntity : Entity<TDependEntity>, new()
@@ -524,7 +530,7 @@ namespace XCode
                 // 清理该类型的所有扩展属性
                 foreach (String key in list)
                 {
-                    if (Extends.ContainsKey(key))
+                    //if (Extends.ContainsKey(key))
                     {
                         //if (Database.Debug)
                         //{
@@ -548,8 +554,12 @@ namespace XCode
         {
             // 针对每个类型，仅注册一个事件
             Type type = typeof(TDependEntity);
-            if (!Depends.ContainsKey(type)) Depends.Add(type, new List<String>());
-            List<String> list = Depends[type];
+            List<String> list = null;
+            if (!Depends.TryGetValue(type, out list))
+            {
+                list = new List<String>();
+                Depends.Add(type, list);
+            }
 
             lock (Extends)
             {

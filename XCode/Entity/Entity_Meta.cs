@@ -368,7 +368,7 @@ namespace XCode
             #endregion
 
             #region 缓存
-            private static Dictionary<String, EntityCache<TEntity>> _cache = new Dictionary<string, EntityCache<TEntity>>();
+            private static DictionaryCache<String, EntityCache<TEntity>> _cache = new DictionaryCache<string, EntityCache<TEntity>>();
             /// <summary>
             /// 实体缓存
             /// </summary>
@@ -378,75 +378,77 @@ namespace XCode
                 get
                 {
                     // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
-                    String key = String.Format("{0}_{1}", ConnName, TableName);
-                    if (_cache.ContainsKey(key)) return _cache[key];
-                    lock (_cache)
-                    {
-                        if (_cache.ContainsKey(key)) return _cache[key];
+                    //String key = String.Format("{0}_{1}", ConnName, TableName);
+                    //if (_cache.ContainsKey(key)) return _cache[key];
+                    //lock (_cache)
+                    //{
+                    //    if (_cache.ContainsKey(key)) return _cache[key];
 
+                    return _cache.GetItem(String.Format("{0}_{1}", ConnName, TableName), delegate(String key)
+                    {
                         EntityCache<TEntity> ec = new EntityCache<TEntity>();
                         ec.ConnName = ConnName;
                         ec.TableName = TableName;
-                        _cache.Add(key, ec);
+                        //_cache.Add(key, ec);
 
                         return ec;
-                    }
+                    });
                 }
             }
 
-            private static Dictionary<String, SingleEntityCache<Int32, TEntity>> _singleCacheInt = new Dictionary<string, SingleEntityCache<Int32, TEntity>>();
-            /// <summary>
-            /// 单实体整型主键缓存。
-            /// 建议自定义查询数据方法，并从二级缓存中获取实体数据，以抵消因初次填充而带来的消耗。
-            /// </summary>
-            [Obsolete("下一个版本将不再支持该功能，请改为使用SingleCache！")]
-            public static SingleEntityCache<Int32, TEntity> SingleCacheInt
-            {
-                get
-                {
-                    // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
-                    String key = String.Format("{0}_{1}", ConnName, TableName);
-                    if (_singleCacheInt.ContainsKey(key)) return _singleCacheInt[key];
-                    lock (_singleCacheInt)
-                    {
-                        if (_singleCacheInt.ContainsKey(key)) return _singleCacheInt[key];
+            //private static Dictionary<String, SingleEntityCache<Int32, TEntity>> _singleCacheInt = new Dictionary<string, SingleEntityCache<Int32, TEntity>>();
+            ///// <summary>
+            ///// 单实体整型主键缓存。
+            ///// 建议自定义查询数据方法，并从二级缓存中获取实体数据，以抵消因初次填充而带来的消耗。
+            ///// </summary>
+            //[Obsolete("下一个版本将不再支持该功能，请改为使用SingleCache！")]
+            //public static SingleEntityCache<Int32, TEntity> SingleCacheInt
+            //{
+            //    get
+            //    {
+            //        // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
+            //        String key = String.Format("{0}_{1}", ConnName, TableName);
+            //        if (_singleCacheInt.ContainsKey(key)) return _singleCacheInt[key];
+            //        lock (_singleCacheInt)
+            //        {
+            //            if (_singleCacheInt.ContainsKey(key)) return _singleCacheInt[key];
 
-                        SingleEntityCache<Int32, TEntity> ec = new SingleEntityCache<Int32, TEntity>();
-                        ec.ConnName = ConnName;
-                        ec.TableName = TableName;
-                        _singleCacheInt.Add(key, ec);
+            //            SingleEntityCache<Int32, TEntity> ec = new SingleEntityCache<Int32, TEntity>();
+            //            ec.ConnName = ConnName;
+            //            ec.TableName = TableName;
+            //            _singleCacheInt.Add(key, ec);
 
-                        return ec;
-                    }
-                }
-            }
+            //            return ec;
+            //        }
+            //    }
+            //}
 
-            private static Dictionary<String, SingleEntityCache<String, TEntity>> _singleCacheStr = new Dictionary<string, SingleEntityCache<String, TEntity>>();
-            /// <summary>
-            /// 单实体字符串主键缓存。
-            /// 建议自定义查询数据方法，并从二级缓存中获取实体数据，以抵消因初次填充而带来的消耗。
-            /// </summary>
-            [Obsolete("下一个版本将不再支持该功能，请改为使用SingleCache！")]
-            public static SingleEntityCache<String, TEntity> SingleCacheStr
-            {
-                get
-                {
-                    // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
-                    String key = String.Format("{0}_{1}", ConnName, TableName);
-                    if (_singleCacheStr.ContainsKey(key)) return _singleCacheStr[key];
-                    lock (_singleCacheStr)
-                    {
-                        if (_singleCacheStr.ContainsKey(key)) return _singleCacheStr[key];
+            //private static Dictionary<String, SingleEntityCache<String, TEntity>> _singleCacheStr = new Dictionary<string, SingleEntityCache<String, TEntity>>();
+            ///// <summary>
+            ///// 单实体字符串主键缓存。
+            ///// 建议自定义查询数据方法，并从二级缓存中获取实体数据，以抵消因初次填充而带来的消耗。
+            ///// </summary>
+            //[Obsolete("下一个版本将不再支持该功能，请改为使用SingleCache！")]
+            //public static SingleEntityCache<String, TEntity> SingleCacheStr
+            //{
+            //    get
+            //    {
+            //        // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
+            //        String key = String.Format("{0}_{1}", ConnName, TableName);
+            //        if (_singleCacheStr.ContainsKey(key)) return _singleCacheStr[key];
+            //        lock (_singleCacheStr)
+            //        {
+            //            if (_singleCacheStr.ContainsKey(key)) return _singleCacheStr[key];
 
-                        SingleEntityCache<String, TEntity> ec = new SingleEntityCache<String, TEntity>();
-                        ec.ConnName = ConnName;
-                        ec.TableName = TableName;
-                        _singleCacheStr.Add(key, ec);
+            //            SingleEntityCache<String, TEntity> ec = new SingleEntityCache<String, TEntity>();
+            //            ec.ConnName = ConnName;
+            //            ec.TableName = TableName;
+            //            _singleCacheStr.Add(key, ec);
 
-                        return ec;
-                    }
-                }
-            }
+            //            return ec;
+            //        }
+            //    }
+            //}
 
             private static DictionaryCache<String, SingleEntityCache<Object, TEntity>> _singleCache = new DictionaryCache<String, SingleEntityCache<Object, TEntity>>();
             /// <summary>

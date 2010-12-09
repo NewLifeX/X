@@ -91,24 +91,16 @@ namespace NewLife.Messaging
             LinkedList<IMessageHandler> list = null;
 
             // 在字典中查找
-            if (!maps.ContainsKey(id))
+            if (!maps.TryGetValue(id, out list))
             {
                 lock (maps)
                 {
-                    if (!maps.ContainsKey(id))
+                    if (!maps.TryGetValue(id, out list))
                     {
                         list = new LinkedList<IMessageHandler>();
                         maps.Add(id, list);
                     }
-                    else
-                    {
-                        list = maps[id];
-                    }
                 }
-            }
-            else
-            {
-                list = maps[id];
             }
 
             // 修改处理器链表
@@ -138,12 +130,13 @@ namespace NewLife.Messaging
         /// <returns></returns>
         public static IMessageHandler[] QueryRegister(Int32 id)
         {
-            if (maps == null || maps.Count < 1 || !maps.ContainsKey(id)) return null;
+            if (maps == null || maps.Count < 1) return null;
+            LinkedList<IMessageHandler> list = null;
+            if (!maps.TryGetValue(id, out list)) return null;
             lock (maps)
             {
-                if (!maps.ContainsKey(id)) return null;
+                if (!maps.TryGetValue(id, out list)) return null;
 
-                LinkedList<IMessageHandler> list = maps[id];
                 IMessageHandler[] fs = new IMessageHandler[list.Count];
                 list.CopyTo(fs, 0);
                 return fs;
@@ -191,9 +184,7 @@ namespace NewLife.Messaging
                 String[] ss = str.Split(new Char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
                 //List<Type> list = dic.ContainsKey(id) ? dic[id] : new List<Type>();
                 List<Type> list = null;
-                if (dic.ContainsKey(id))
-                    list = dic[id];
-                else
+                if (!dic.TryGetValue(id, out list))
                 {
                     list = new List<Type>();
                     dic.Add(id, list);

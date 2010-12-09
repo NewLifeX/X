@@ -95,6 +95,16 @@ namespace NewLife.Reflection
 
             return Create(constructor);
         }
+
+        /// <summary>
+        /// 创建
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static ConstructorInfoX Create(Type type)
+        {
+            return Create(type, Type.EmptyTypes);
+        }
         #endregion
 
         #region 创建动态方法
@@ -113,7 +123,7 @@ namespace NewLife.Reflection
 
         internal static void GetMethodInvoker(ILGenerator il, ConstructorInfo method)
         {
-            Type targetType=method.DeclaringType;
+            Type targetType = method.DeclaringType;
 
             //准备参数
             ParameterInfo[] ps = method.GetParameters();
@@ -150,73 +160,6 @@ namespace NewLife.Reflection
 
                 // 创建对象
                 il.Emit(OpCodes.Initobj, targetType);
-
-                // 处理引用参数
-                //Boolean hasRefParam = false;
-                //Int32 numberOfByRefParams = 0;
-                //for (int i = 0; i < ps.Length; i++)
-                //{
-                //    // 处理引用类型参数
-                //    if (!ps[i].ParameterType.IsByRef) continue;
-
-                //    hasRefParam = true;
-                //    Type type = ps[i].ParameterType.GetElementType();
-                //    il.DeclareLocal(type);
-                //    // 处理输出类型
-                //    if (ps[i].IsOut)
-                //    {
-                //        il.Emit(OpCodes.Ldarg_0);
-                //        EmitFastInt(il, i);
-                //        il.Emit(OpCodes.Ldelem_Ref);
-                //        if (type != typeof(Object))
-                //        {
-                //            if (type.IsValueType)
-                //                il.Emit(OpCodes.Unbox_Any, type);
-                //            else
-                //                il.Emit(OpCodes.Castclass, type);
-                //        }
-                //        il.Emit(OpCodes.Stloc, numberOfByRefParams);
-                //    }
-                //    numberOfByRefParams++;
-                //}
-
-                //// 声明目标类型的本地变量
-                //il.DeclareLocal(TargetType);
-
-                //// 参数入栈
-                //Int32 currentByRefParam = 0;
-                //for (int i = 0; i < ps.Length; i++)
-                //{
-                //    if (ps[i].ParameterType.IsByRef)
-                //    {
-                //        il.Emit(OpCodes.Ldloca_S, currentByRefParam++);
-                //    }
-                //    else
-                //    {
-
-                //    }
-                //    il.Emit(OpCodes.Ldarg_0);
-                //    EmitFastInt(il, i);
-                //    il.Emit(OpCodes.Ldelem_Ref);
-
-                //    if (ps[i].ParameterType != typeof(Object))
-                //    {
-                //        if (ps[i].ParameterType.IsValueType)
-                //            il.Emit(OpCodes.Unbox_Any, ps[i].ParameterType);
-                //        else
-                //            il.Emit(OpCodes.Castclass, ps[i].ParameterType);
-                //    }
-                //}
-
-                //// 创建对象
-                //il.Emit(OpCodes.Initobj, TargetType);
-
-                //// 处理引用参数
-                //if (hasRefParam)
-                //{
-                //    il.Emit(OpCodes.Stloc, numberOfByRefParams);
-                //    il.Emit(OpCodes.Ldloc, numberOfByRefParams);
-                //}
             }
 
             // 是否需要装箱

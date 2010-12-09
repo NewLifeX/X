@@ -94,7 +94,7 @@ namespace Test
             //ProtocolTest.Test();
 
             //P2PTest.TestTracker();
-            P2PTest.TestClient();
+            //P2PTest.TestClient();
             //P2PTest.TestMessage();
         }
 
@@ -114,15 +114,65 @@ namespace Test
         static void Test3()
         {
             //List<AssemblyX> list = AssemblyX.GetAssemblies();
-            List<AssemblyX> list = AssemblyX.ReflectionOnlyGetAssemblies();
-            Console.WriteLine(list[13].Title);
+            //List<AssemblyX> list = AssemblyX.ReflectionOnlyGetAssemblies();
+            //Console.WriteLine(list[13].Title);
 
-            foreach (AssemblyX item in list)
+            //foreach (AssemblyX item in list)
+            //{
+            //    Console.WriteLine(item.Version);
+            //}
+
+            //list = AssemblyX.GetAssemblies();
+
+            //AssemblyX asm = list[9];
+
+            //MemberInfoX member = MethodInfoX.Create(typeof(AssemblyX), "Add");
+            //Console.WriteLine(member.Invoke(null, new Object[] { 1, 2 }));
+
+            //member = MethodInfoX.Create(typeof(AssemblyX), "Change");
+            //Console.WriteLine(member.Invoke(asm, new Object[] { "aaasss" }));
             {
-                Console.WriteLine(item.Version);
+                MemoryStream ms = new MemoryStream();
+            }
+            {
+                MemberInfoX member = ConstructorInfoX.Create(typeof(MemoryStream));
+                MemoryStream ms = member.CreateInstance(null) as MemoryStream;
+            }
+            {
+                MemoryStream ms = Activator.CreateInstance(typeof(MemoryStream)) as MemoryStream;
             }
 
-            list = AssemblyX.GetAssemblies();
+            Int32 n = 1000000;
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            for (int i = 0; i < n; i++)
+            {
+                MemoryStream ms = new MemoryStream();
+            }
+            sw.Stop();
+            Console.WriteLine(sw.Elapsed);
+
+            sw.Reset();
+            sw.Start();
+            {
+                for (int i = 0; i < n; i++)
+                {
+                    MemberInfoX member = ConstructorInfoX.Create(typeof(MemoryStream));
+                    MemoryStream ms = member.CreateInstance(null) as MemoryStream;
+                }
+            }
+            sw.Stop();
+            Console.WriteLine(sw.Elapsed);
+
+            //sw.Reset();
+            //sw.Start();
+            //for (int i = 0; i < n; i++)
+            //{
+            //    MemoryStream ms = Activator.CreateInstance(typeof(MemoryStream)) as MemoryStream;
+            //}
+            //sw.Stop();
+            //Console.WriteLine(sw.Elapsed);
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using XCode.DataAccessLayer;
 using System.Configuration;
+using NewLife.Collections;
 
 namespace XCode.Configuration
 {
@@ -80,28 +81,30 @@ namespace XCode.Configuration
             }
         }
 
-        private static Dictionary<Type, TableMapAttribute[]> _AllTableMaps = new Dictionary<Type, TableMapAttribute[]>();
+        private static DictionaryCache<Type, TableMapAttribute[]> _AllTableMaps = new DictionaryCache<Type, TableMapAttribute[]>();
         /// <summary>
         /// 所有多表映射
         /// </summary>
-        /// <param name="t">实体类型</param>
+        /// <param name="type">实体类型</param>
         /// <returns>所有多表映射列表</returns>
-        static TableMapAttribute[] AllTableMaps(Type t)
+        static TableMapAttribute[] AllTableMaps(Type type)
         {
-            if (_AllTableMaps.ContainsKey(t)) return _AllTableMaps[t];
-            lock (_AllTableMaps)
+            //if (_AllTableMaps.ContainsKey(t)) return _AllTableMaps[t];
+            //lock (_AllTableMaps)
+            //{
+            //    if (_AllTableMaps.ContainsKey(t)) return _AllTableMaps[t];
+            return _AllTableMaps.GetItem(type, delegate(Type key)
             {
-                if (_AllTableMaps.ContainsKey(t)) return _AllTableMaps[t];
                 List<TableMapAttribute> maps = new List<TableMapAttribute>();
-                PropertyInfo[] pis = t.GetProperties();
+                PropertyInfo[] pis = key.GetProperties();
                 foreach (PropertyInfo pi in pis)
                 {
                     TableMapAttribute table = TableMapAttribute.GetCustomAttribute(pi);
                     maps.Add(table);
                 }
-                _AllTableMaps.Add(t, maps.ToArray());
+                //_AllTableMaps.Add(key, maps.ToArray());
                 return maps.ToArray();
-            }
+            });
         }
 
         /// <summary>
@@ -128,7 +131,7 @@ namespace XCode.Configuration
             return maps.ToArray();
         }
 
-        private static Dictionary<Type, BindTableAttribute> _Tables = new Dictionary<Type, BindTableAttribute>();
+        private static DictionaryCache<Type, BindTableAttribute> _Tables = new DictionaryCache<Type, BindTableAttribute>();
         /// <summary>
         /// 取得指定类的数据表。
         /// 静态缓存。
@@ -137,21 +140,23 @@ namespace XCode.Configuration
         /// <returns>实体类绑定的数据表</returns>
         public static BindTableAttribute Table(Type t)
         {
-            if (_Tables.ContainsKey(t)) return _Tables[t];
-            lock (_Tables)
-            {
-                if (_Tables.ContainsKey(t)) return _Tables[t];
+            //if (_Tables.ContainsKey(t)) return _Tables[t];
+            //lock (_Tables)
+            //{
+            //    if (_Tables.ContainsKey(t)) return _Tables[t];
 
-                BindTableAttribute table = BindTableAttribute.GetCustomAttribute(t);
+            //    BindTableAttribute table = BindTableAttribute.GetCustomAttribute(t);
 
-                _Tables.Add(t, table);
+            //    _Tables.Add(t, table);
 
-                ////检查数据实体授权
-                //if (XLicense.License.EntityCount != _Tables.Count)
-                //    XLicense.License.EntityCount = _Tables.Count;
+            //    ////检查数据实体授权
+            //    //if (XLicense.License.EntityCount != _Tables.Count)
+            //    //    XLicense.License.EntityCount = _Tables.Count;
 
-                return table;
-            }
+            //    return table;
+            //}
+
+            return _Tables.GetItem(t, delegate(Type key) { return BindTableAttribute.GetCustomAttribute(key); });
         }
 
         /// <summary>
@@ -287,57 +292,61 @@ namespace XCode.Configuration
             }
         }
 
-        private static Dictionary<Type, String> _Selects = new Dictionary<Type, String>();
+        private static DictionaryCache<Type, String> _Selects = new DictionaryCache<Type, String>();
         /// <summary>
         /// 取得指定类对应的Select字句字符串。
         /// 静态缓存。
         /// </summary>
-        /// <param name="t">实体类型</param>
+        /// <param name="type">实体类型</param>
         /// <returns>Select字句字符串</returns>
-        public static String Selects(Type t)
+        public static String Selects(Type type)
         {
-            if (_Selects.ContainsKey(t)) return _Selects[t];
-            lock (_Selects)
-            {
-                if (_Selects.ContainsKey(t)) return _Selects[t];
+            //if (_Selects.ContainsKey(t)) return _Selects[t];
+            //lock (_Selects)
+            //{
+            //    if (_Selects.ContainsKey(t)) return _Selects[t];
 
+            return _Selects.GetItem(type, delegate(Type key)
+            {
                 StringBuilder sbSelects = new StringBuilder();
-                foreach (FieldItem fi in Fields(t))
+                foreach (FieldItem fi in Fields(key))
                 {
                     if (sbSelects.Length > 0) sbSelects.Append(", ");
                     sbSelects.AppendFormat("{0}", fi.ColumnName);
                 }
                 String str = sbSelects.ToString();
-                _Selects.Add(t, str);
+                //_Selects.Add(key, str);
                 return str;
-            }
+            });
         }
 
-        private static Dictionary<Type, String> _SelectsEx = new Dictionary<Type, String>();
+        private static DictionaryCache<Type, String> _SelectsEx = new DictionaryCache<Type, String>();
         /// <summary>
         /// 取得指定类对应的Select字句字符串。每个字段均带前缀。
         /// 静态缓存。
         /// </summary>
-        /// <param name="t">实体类型</param>
+        /// <param name="type">实体类型</param>
         /// <returns>Select字句字符串</returns>
-        public static String SelectsEx(Type t)
+        public static String SelectsEx(Type type)
         {
-            if (_SelectsEx.ContainsKey(t)) return _SelectsEx[t];
-            lock (_SelectsEx)
+            //if (_SelectsEx.ContainsKey(t)) return _SelectsEx[t];
+            //lock (_SelectsEx)
+            //{
+            //    if (_SelectsEx.ContainsKey(t)) return _SelectsEx[t];
+            return _SelectsEx.GetItem(type, delegate(Type key)
             {
-                if (_SelectsEx.ContainsKey(t)) return _SelectsEx[t];
-                String prefix = ColumnPrefix(t);
-                String tablename = TableName(t);
+                String prefix = ColumnPrefix(key);
+                String tablename = TableName(key);
                 StringBuilder sbSelects = new StringBuilder();
-                foreach (FieldItem fi in Fields(t))
+                foreach (FieldItem fi in Fields(key))
                 {
                     if (sbSelects.Length > 0) sbSelects.Append(", ");
                     sbSelects.AppendFormat("{0}.{1} as {2}{1}", tablename, fi.ColumnName, prefix);
                 }
                 String str = sbSelects.ToString();
-                _SelectsEx.Add(t, str);
+                //_SelectsEx.Add(key, str);
                 return str;
-            }
+            });
         }
 
         /// <summary>

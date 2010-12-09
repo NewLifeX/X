@@ -8,6 +8,7 @@ using System.Threading;
 using System.Web;
 using XCode.Configuration;
 using NewLife.Log;
+using NewLife.Collections;
 
 namespace XCode.DataAccessLayer
 {
@@ -111,7 +112,7 @@ namespace XCode.DataAccessLayer
             Database = database;
         }
 
-        private static Dictionary<DAL, DatabaseSchema> _objcache = new Dictionary<DAL, DatabaseSchema>();
+        private static DictionaryCache<DAL, DatabaseSchema> _objcache = new DictionaryCache<DAL, DatabaseSchema>();
         /// <summary>
         /// 创建对象
         /// </summary>
@@ -119,16 +120,15 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static DatabaseSchema Create(DAL database)
         {
-            if (_objcache.ContainsKey(database)) return _objcache[database];
-            lock (_objcache)
+            //if (_objcache.ContainsKey(database)) return _objcache[database];
+            //lock (_objcache)
+            //{
+            //    if (_objcache.ContainsKey(database)) return _objcache[database];
+
+            return _objcache.GetItem(database, delegate(DAL key)
             {
-                if (_objcache.ContainsKey(database)) return _objcache[database];
-
-                DatabaseSchema ds = new DatabaseSchema(database);
-                _objcache.Add(database, ds);
-
-                return ds;
-            }
+                return new DatabaseSchema(key);
+            });
         }
 
         private static Dictionary<String, DateTime> _cache = new Dictionary<String, DateTime>();

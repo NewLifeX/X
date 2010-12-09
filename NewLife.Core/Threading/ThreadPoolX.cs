@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using NewLife.Log;
 using ThreadState = System.Threading.ThreadState;
+using NewLife.Collections;
 
 namespace NewLife.Threading
 {
@@ -194,7 +195,7 @@ namespace NewLife.Threading
             //EnableWait = false;
         }
 
-        private static Dictionary<String, ThreadPoolX> _cache = new Dictionary<string, ThreadPoolX>();
+        private static DictionaryCache<String, ThreadPoolX> _cache = new DictionaryCache<String, ThreadPoolX>();
         /// <summary>
         /// 创建线程池。一个名字只能创建一个线程池。线程安全。
         /// </summary>
@@ -204,16 +205,17 @@ namespace NewLife.Threading
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException(name, "线程池名字不能为空！");
 
-            if (_cache.ContainsKey(name)) return _cache[name];
-            lock (_cache)
-            {
-                if (_cache.ContainsKey(name)) return _cache[name];
+            return _cache.GetItem(name, delegate(String key) { return new ThreadPoolX(key); });
+            //if (_cache.ContainsKey(name)) return _cache[name];
+            //lock (_cache)
+            //{
+            //    if (_cache.ContainsKey(name)) return _cache[name];
 
-                ThreadPoolX pool = new ThreadPoolX(name);
-                _cache.Add(name, pool);
+            //    ThreadPoolX pool = new ThreadPoolX(name);
+            //    _cache.Add(name, pool);
 
-                return pool;
-            }
+            //    return pool;
+            //}
         }
         #endregion
 

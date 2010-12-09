@@ -18,12 +18,13 @@ namespace NewLife.Collections
         /// <returns></returns>
         public virtual TValue GetItem(TKey key, Func<TKey, TValue> func)
         {
-            if (ContainsKey(key)) return this[key];
+            TValue value;
+            if (TryGetValue(key, out value)) return value;
             lock (this)
             {
-                if (ContainsKey(key)) return this[key];
+                if (TryGetValue(key, out value)) return value;
 
-                TValue value = func(key);
+                value = func(key);
                 //Add(key, value);
                 this[key] = value;
 
@@ -41,12 +42,13 @@ namespace NewLife.Collections
         /// <returns></returns>
         public virtual TValue GetItem<TArgs>(TKey key, TArgs args, Func<TKey, TArgs, TValue> func)
         {
-            if (ContainsKey(key)) return this[key];
+            TValue value;
+            if (TryGetValue(key, out value)) return value;
             lock (this)
             {
-                if (ContainsKey(key)) return this[key];
+                if (TryGetValue(key, out value)) return value;
 
-                TValue value = func(key, args);
+                value = func(key, args);
                 //Add(key, value);
                 this[key] = value;
 

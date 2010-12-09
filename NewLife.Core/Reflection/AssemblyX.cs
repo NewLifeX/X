@@ -215,6 +215,16 @@ namespace NewLife.Reflection
                 return Asm.FullName.EndsWith("PublicKeyToken=b77a5c561934e089");
             }
         }
+
+        private static Int32 Add(Int32 x, Int32 y)
+        {
+            return x + y;
+        }
+
+        private String Change(String str)
+        {
+            return _Title = str;
+        }
         #endregion
 
         #region 方法

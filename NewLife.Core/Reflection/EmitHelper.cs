@@ -237,9 +237,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public EmitHelper Ret(MethodInfo method)
         {
-            if (method.ReturnType == typeof(void))
-                IL.Emit(OpCodes.Ldnull);
-            else if (method.ReturnType.IsValueType)
+            if (method.ReturnType != typeof(void) && method.ReturnType.IsValueType)
                 IL.Emit(OpCodes.Box, method.ReturnType);
 
             IL.Emit(OpCodes.Ret);
@@ -341,11 +339,11 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public EmitHelper PushParams(MethodBase method)
         {
-            Int32 firstParamIndex = method.IsStatic ? 0 : 1;
+            //Int32 firstParamIndex = method.IsStatic ? 0 : 1;
             ParameterInfo[] ps = method.GetParameters();
             for (Int32 i = 0; i < ps.Length; i++)
             {
-                this.Ldarg(firstParamIndex)
+                this.Ldarg(1)
                     .Ldc_I4(i)
                     .Ldelem_Ref()
                     .CastFromObject(ps[i].ParameterType);

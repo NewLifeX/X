@@ -6,6 +6,7 @@ using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.IO;
 using System.Reflection;
+using NewLife.Collections;
 
 namespace XCode.Code
 {
@@ -72,7 +73,7 @@ namespace XCode.Code
         #endregion
 
         #region 构造
-        private static Dictionary<String, Assembly> cache = new Dictionary<String, Assembly>();
+        private static DictionaryCache<String, Assembly> cache = new DictionaryCache<String, Assembly>();
         /// <summary>
         ///为数据访问层创建实体程序集
         /// </summary>
@@ -80,20 +81,22 @@ namespace XCode.Code
         /// <returns></returns>
         public static Assembly Create(DAL dal)
         {
-            String key = dal.ConnName;
-            if (cache.ContainsKey(key)) return cache[key];
-            lock (cache)
-            {
-                if (cache.ContainsKey(key)) return cache[key];
+            //String key = dal.ConnName;
+            //if (cache.ContainsKey(key)) return cache[key];
+            //lock (cache)
+            //{
+            //    if (cache.ContainsKey(key)) return cache[key];
 
+            return cache.GetItem(dal.ConnName, delegate(String key)
+            {
                 EntityAssembly asm = new EntityAssembly();
                 asm.Dal = dal;
                 asm.CreateAll();
 
                 Assembly am = asm.Compile();
-                cache.Add(key, am);
+                //cache.Add(key, am);
                 return am;
-            }
+            });
         }
         #endregion
 

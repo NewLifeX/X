@@ -79,6 +79,7 @@ namespace NewLife.Reflection
             get
             {
                 if (_SetHandler == null && SetMethod != null) _SetHandler = CreateDelegate<FastSetValueHandler>(SetMethod);
+                //if (_SetHandler == null && SetMethod != null) _SetHandler = SetValueInvoker(Property);
 
                 return _SetHandler;
             }
@@ -196,7 +197,8 @@ namespace NewLife.Reflection
         //    //for (int i = 0; i < ps.Length; i++)
         //    //{
         //    //    il.Emit(OpCodes.Ldarg_1);
-        //    //    EmitFastInt(il, i);
+        //    //    //EmitFastInt(il, i);
+        //    //    help.Ldc_I4(i);
         //    //    il.Emit(OpCodes.Ldelem_Ref);
         //    //    if (ps[i].ParameterType.IsValueType)
         //    //        il.Emit(OpCodes.Unbox_Any, ps[i].ParameterType);

@@ -72,18 +72,39 @@ namespace NewLife.Reflection
         {
             if (!typeof(Delegate).IsAssignableFrom(typeof(TDelegate))) throw new ArgumentOutOfRangeException("TDelegate");
 
+            // 这里本应该根据委托来构建动态方法返回类型和参数类型，无奈做不到！！！
             Type type = typeof(TDelegate);
-            ParameterInfo[] ps = type.GetConstructors()[0].GetParameters();
-            List<Type> types = new List<Type>();
-            foreach (ParameterInfo item in ps)
+            //ParameterInfo[] ps = type.GetConstructors()[0].GetParameters();
+            ParameterInfo[] ps = method.GetParameters();
+            //List<Type> types = new List<Type>();
+            //foreach (ParameterInfo item in ps)
+            //{
+            //    types.Add(item.ParameterType);
+            //}
+            Type[] types = null;
+            Type retType = null;
+            if (method is MethodInfo)
             {
-                types.Add(item.ParameterType);
-            }
+                if (ps != null && ps.Length > 0)
+                    types = new Type[] { typeof(Object), typeof(Object[]) };
+                else
+                    types = new Type[] { typeof(Object) };
 
+                if ((method as MethodInfo).ReturnType != null) retType = typeof(Object);
+            }
+            else if (method is ConstructorInfo)
+            {
+                types = new Type[] { typeof(Object[]) };
+                retType = method.DeclaringType;
+            }
             //定义一个没有名字的动态方法
-            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, method.ReflectedType, types.ToArray(), method.DeclaringType.Module, true);
+            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, retType, types, method.DeclaringType.Module, true);
             ILGenerator il = dynamicMethod.GetILGenerator();
-            GetMethodInvoker(il, method);
+
+            if (method is MethodInfo)
+                GetMethodInvoker(il, method as MethodInfo);
+            else if (method is ConstructorInfo)
+                GetConstructorInvoker(il, method as ConstructorInfo);
 
             return (TDelegate)(Object)dynamicMethod.CreateDelegate(type);
         }
@@ -93,22 +114,60 @@ namespace NewLife.Reflection
         /// </summary>
         /// <param name="il"></param>
         /// <param name="method"></param>
-        protected static void GetMethodInvoker(ILGenerator il, MethodBase method)
+        private static void GetMethodInvoker(ILGenerator il, MethodInfo method)
         {
             EmitHelper help = new EmitHelper(il);
 
             if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
 
-            if (method is MethodInfo)
-            {
-                help.PushParams(method)
-                    .Call(method as MethodInfo)
-                    .Ret(method as MethodInfo);
-            }
-            else if (method is ConstructorBuilder)
-            {
+            help.PushParams(method)
+                .Call(method as MethodInfo)
+                .Ret(method as MethodInfo);
+        }
 
+        private static void GetConstructorInvoker(ILGenerator il, ConstructorInfo method)
+        {
+            EmitHelper help = new EmitHelper(il);
+
+            Type targetType = method.DeclaringType;
+            //准备参数
+            ParameterInfo[] ps = method.GetParameters();
+            if (targetType.IsValueType || ps == null || ps.Length < 1)
+            {
+                // 值类型和无参数类型
+
+                // 声明目标类型的本地变量
+                il.DeclareLocal(targetType);
+                // 加载地址
+                il.Emit(OpCodes.Ldloca_S, 0);
+                // 创建对象
+                il.Emit(OpCodes.Initobj, targetType);
+                // 加载对象
+                il.Emit(OpCodes.Ldloc_0);
             }
+            else if (targetType.IsArray)
+            {
+                // 数组类型
+
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldc_I4_0);
+                il.Emit(OpCodes.Ldelem_Ref);
+                il.Emit(OpCodes.Unbox_Any, typeof(Int32));
+                il.Emit(OpCodes.Newarr, targetType.GetElementType());
+            }
+            else
+            {
+                // 其它类型
+                help.PushParams(method);
+
+                // 创建对象
+                il.Emit(OpCodes.Initobj, targetType);
+            }
+
+            // 是否需要装箱
+            if (targetType.IsValueType) il.Emit(OpCodes.Box, targetType);
+
+            il.Emit(OpCodes.Ret);
         }
         #endregion
 
@@ -134,6 +193,36 @@ namespace NewLife.Reflection
         /// <param name="obj"></param>
         /// <param name="value"></param>
         public virtual void SetValue(Object obj, Object value) { throw new NotImplementedException(); }
+
+        /// <summary>
+        /// 静态 取值
+        /// </summary>
+        /// <returns></returns>
+        public Object GetValue() { return GetValue(null); }
+
+        /// <summary>
+        /// 静态 赋值
+        /// </summary>
+        /// <param name="value"></param>
+        public void SetValue(Object value) { SetValue(null, value); }
+
+        /// <summary>
+        /// 属性/字段 索引器
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public virtual Object this[Object obj]
+        {
+            get { return GetValue(obj); }
+            set { SetValue(obj, value); }
+        }
+
+        /// <summary>静态 属性/字段 值</summary>
+        public Object Value
+        {
+            get { return GetValue(null); }
+            set { SetValue(null, value); }
+        }
 
         /// <summary>
         /// 创建实例

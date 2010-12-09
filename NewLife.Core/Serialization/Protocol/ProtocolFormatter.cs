@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Log;
+using NewLife.Collections;
 
 namespace NewLife.Serialization.Protocol
 {
@@ -631,7 +632,7 @@ namespace NewLife.Serialization.Protocol
         #endregion
 
         #region 获取字段/属性
-        static Dictionary<String, MemberInfo[]> cache1 = new Dictionary<String, MemberInfo[]>();
+        static DictionaryCache<String, MemberInfo[]> cache1 = new DictionaryCache<String, MemberInfo[]>();
 
         /// <summary>
         /// 获取所有可序列化的字段
@@ -641,12 +642,10 @@ namespace NewLife.Serialization.Protocol
         /// <returns></returns>
         static MemberInfo[] FindAllSerialized(Type type, Boolean serialProperty)
         {
-            String key = String.Format("{0}_{1}", type.FullName, serialProperty);
-            if (cache1.ContainsKey(key)) return cache1[key];
-            lock (cache1)
-            {
-                if (cache1.ContainsKey(key)) return cache1[key];
+            String key0 = String.Format("{0}_{1}", type.FullName, serialProperty);
 
+            return cache1.GetItem(key0, delegate(String key)
+            {
                 MemberInfo[] mis = type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                 if (mis == null || mis.Length < 1) return null;
 
@@ -675,10 +674,10 @@ namespace NewLife.Serialization.Protocol
                 else
                     mis = list.ToArray();
 
-                cache1.Add(key, mis);
+                //cache1.Add(key, mis);
 
                 return mis;
-            }
+            });
         }
         #endregion
 

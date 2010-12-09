@@ -1082,10 +1082,13 @@ namespace XCode
             StringBuilder sb = new StringBuilder();
             for (Int32 i = 0; i < names.Length; i++)
             {
-                if (!fs.ContainsKey(names[i].ToLower())) throw new ArgumentException("类[" + Meta.ThisType.FullName + "]中不存在[" + names[i] + "]属性");
+                FieldItem fi = null;
+                if (!fs.TryGetValue(names[i].ToLower(), out fi))
+                    throw new ArgumentException("类[" + Meta.ThisType.FullName + "]中不存在[" + names[i] + "]属性");
+
                 // 同时构造SQL语句。names是属性列表，必须转换成对应的字段列表
                 if (i > 0) sb.AppendFormat(" {0} ", action);
-                sb.AppendFormat("{0}={1}", Meta.FormatKeyWord(fs[names[i].ToLower()].ColumnName), SqlDataFormat(values[i], fs[names[i].ToLower()]));
+                sb.AppendFormat("{0}={1}", Meta.FormatKeyWord(fi.ColumnName), SqlDataFormat(values[i], fi));
             }
             return sb.ToString();
         }
@@ -1448,9 +1451,10 @@ namespace XCode
             Int32 count = 0;
             foreach (String item in Meta.FieldNames)
             {
+                Boolean b = false;
                 if (isDirty)
                 {
-                    if (!Dirtys.ContainsKey(item) || !Dirtys[item])
+                    if (!Dirtys.TryGetValue(item, out b) || !b)
                     {
                         Dirtys[item] = true;
                         count++;
@@ -1459,7 +1463,7 @@ namespace XCode
                 else
                 {
                     if (Dirtys == null || Dirtys.Count < 1) break;
-                    if (Dirtys.ContainsKey(item) && Dirtys[item])
+                    if (Dirtys.TryGetValue(item, out b) && b)
                     {
                         Dirtys[item] = false;
                         count++;
