@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using NewLife.Collections;
+using System.ComponentModel;
 
 namespace NewLife.Reflection
 {
@@ -113,6 +114,8 @@ namespace NewLife.Reflection
         #endregion
 
         #region 扩展属性
+        private List<String> hasLoad = new List<String>();
+
         /// <summary>
         /// 是否系统类型
         /// </summary>
@@ -124,10 +127,30 @@ namespace NewLife.Reflection
                 return BaseType.Assembly.FullName.EndsWith("PublicKeyToken=b77a5c561934e089");
             }
         }
+
+        private String _Description;
+        /// <summary>说明</summary>
+        public String Description
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_Description) && !hasLoad.Contains("Description"))
+                {
+                    hasLoad.Add("Description");
+
+                    //AssemblyDescriptionAttribute av = Attribute.GetCustomAttribute(Asm, typeof(AssemblyDescriptionAttribute)) as AssemblyDescriptionAttribute;
+                    //if (av != null) _Description = av.Description;
+                    //AssemblyDescriptionAttribute av = GetCustomAttribute<AssemblyDescriptionAttribute>();
+                    //if (av != null) _Description = av.Description;
+                    _Description = GetCustomAttributeValue<DescriptionAttribute, String>();
+                }
+                return _Description;
+            }
+            //set { _Description = value; }
+        }
         #endregion
 
         #region 成员缓冲
-        private List<String> hasLoad = new List<String>();
         private ListX<MemberInfo> _Members;
         /// <summary>所有成员</summary>
         public ListX<MemberInfo> Members
@@ -251,6 +274,22 @@ namespace NewLife.Reflection
             }
             //set { _Events = value; }
         }
+
+        private ListX<Type> _Interfaces;
+        /// <summary>接口集合</summary>
+        public ListX<Type> Interfaces
+        {
+            get
+            {
+                if (_Interfaces == null && !hasLoad.Contains("Interfaces"))
+                {
+                    _Interfaces = new ListX<System.Type>(BaseType.GetInterfaces());
+                    hasLoad.Add("Interfaces");
+                }
+                return _Interfaces == null ? null : _Interfaces.Clone();
+            }
+            //set { _Interfaces = value; }
+        }
         #endregion
 
         #region 方法
@@ -263,11 +302,27 @@ namespace NewLife.Reflection
         {
             if (type == null) throw new ArgumentNullException("type");
 
-            if (!BaseType.IsAssignableFrom(type)) return false;
-
-            // 继续……
             //为空、不是类、抽象类、泛型类 都不是实体类
-            if (!type.IsClass || type.IsAbstract || type.IsGenericType) return false;
+            if (!BaseType.IsClass || BaseType.IsAbstract || BaseType.IsGenericType) return false;
+
+            if (type.IsInterface)
+            {
+                //if (!Interfaces.Contains(type)) return false;
+                if (Interfaces == null || Interfaces.Count < 1) return false;
+
+                Boolean b = false;
+                foreach (Type item in Interfaces)
+                {
+                    if (item == type) { b = true; break; }
+
+                    if (item.FullName == type.FullName && item.AssemblyQualifiedName == type.AssemblyQualifiedName) { b = true; break; }
+                }
+                if (!b) return false;
+            }
+            else
+            {
+                if (!type.IsAssignableFrom(BaseType)) return false;
+            }
 
             return true;
         }
@@ -280,7 +335,35 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public override string ToString()
         {
-            return BaseType.FullName;
+            String des = Description;
+            if (!String.IsNullOrEmpty(des))
+                return des;
+            else
+                return BaseType.FullName;
+        }
+
+        /// <summary>
+        /// 判断两个类型是否相同，避免引用加载和执行上下文加载的相同类型显示不同
+        /// </summary>
+        /// <param name="type1"></param>
+        /// <param name="type2"></param>
+        /// <returns></returns>
+        public static Boolean Equal(Type type1, Type type2)
+        {
+            if (type1 == type2) return true;
+
+            return type1.FullName == type2.FullName && type1.AssemblyQualifiedName == type2.AssemblyQualifiedName;
+        }
+
+        /// <summary>
+        /// 获取自定义属性的值。可用于ReflectionOnly加载的程序集
+        /// </summary>
+        /// <typeparam name="TAttribute"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <returns></returns>
+        public TResult GetCustomAttributeValue<TAttribute, TResult>()
+        {
+            return AttributeX.GetCustomAttributeValue<TAttribute, TResult>(BaseType, true);
         }
         #endregion
     }

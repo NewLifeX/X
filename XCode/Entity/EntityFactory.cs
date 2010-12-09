@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Web;
 using System.IO;
 using NewLife.Collections;
+using NewLife.Reflection;
 
 namespace XCode
 {
@@ -115,20 +116,47 @@ namespace XCode
         #endregion
 
         #region 加载插件
+        //private static Int32 _AsmCount = 0;
         private static List<Type> _AllEntities;
         /// <summary>所有实体</summary>
         public static List<Type> AllEntities
         {
             get
             {
+                //Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
+                //if (_AllEntities != null && _AsmCount == asms.Length) return _AllEntities;
                 if (_AllEntities != null) return _AllEntities;
                 lock (typeof(EntityFactory))
                 {
                     if (_AllEntities != null) return _AllEntities;
 
                     _AllEntities = LoadEntities();
+                    //_AsmCount = asms.Length;
+                    AppDomain.CurrentDomain.AssemblyLoad += new AssemblyLoadEventHandler(CurrentDomain_AssemblyLoad);
 
                     return _AllEntities;
+                }
+            }
+        }
+
+        static void CurrentDomain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
+        {
+            //_AllEntities = null;
+            AssemblyX asm = AssemblyX.Create(args.LoadedAssembly);
+            if (!asm.IsSystemAssembly)
+            {
+                ListX<TypeX> list = asm.FindPlugins<IEntity>();
+                if (list != null && list.Count > 0)
+                {
+                    WriteLog("程序集{0}找到实体{1}个！", asm.ToString(), list.Count);
+
+                    List<Type> list2 = new List<Type>();
+                    if (_AllEntities != null) list2.AddRange(_AllEntities);
+                    foreach (TypeX item in list)
+                    {
+                        list2.Add(item.BaseType);
+                    }
+                    _AllEntities = list2;
                 }
             }
         }

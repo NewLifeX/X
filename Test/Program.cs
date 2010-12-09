@@ -11,6 +11,10 @@ using System.IO;
 using NewLife.Messaging;
 using System.Web;
 using System.Collections.Generic;
+using System.Net;
+using NewLife.Collections;
+using XCode;
+using NewLife.CommonEntity;
 
 namespace Test
 {
@@ -113,24 +117,73 @@ namespace Test
 
         static void Test3()
         {
-            //List<AssemblyX> list = AssemblyX.GetAssemblies();
-            //List<AssemblyX> list = AssemblyX.ReflectionOnlyGetAssemblies();
-            //Console.WriteLine(list[13].Title);
 
-            //foreach (AssemblyX item in list)
-            //{
-            //    Console.WriteLine(item.Version);
-            //}
+            //List<AssemblyX> list = AssemblyX.GetAssemblies();
+            AssemblyX.ReflectionOnlyLoad();
+            List<AssemblyX> list = AssemblyX.ReflectionOnlyGetAssemblies();
+            //Console.WriteLine(list[13].Title);
+            //Int32 m = Administrator.Meta.Count;
+
+            foreach (AssemblyX item in list)
+            {
+                Console.WriteLine(item.ToString());
+
+                ListX<TypeX> list2 = item.FindPlugins<IEntity>();
+                Console.WriteLine(list2 == null);
+                if (list2 != null) Console.WriteLine(list2[0].Description);
+
+                //Console.WriteLine("类型：");
+                //foreach (TypeX type in item.TypeXs)
+                //{
+                //    Console.WriteLine("{0} 方法：", type);
+                //    if (type.Methods != null)
+                //    {
+                //        foreach (MethodInfo elm in type.Methods)
+                //        {
+                //            Console.WriteLine(elm.Name);
+                //        }
+                //    }
+                //}
+            }
+            return;
 
             //list = AssemblyX.GetAssemblies();
 
-            //AssemblyX asm = list[9];
+            AssemblyX asm = list[9];
 
-            //MemberInfoX member = MethodInfoX.Create(typeof(AssemblyX), "Add");
-            //Console.WriteLine(member.Invoke(null, new Object[] { 1, 2 }));
+            //MemberInfoX member2 = MethodInfoX.Create(typeof(Console), "WriteLine");
+            //member2.Invoke(null, new Object[] { 1, 2 });
 
-            //member = MethodInfoX.Create(typeof(AssemblyX), "Change");
-            //Console.WriteLine(member.Invoke(asm, new Object[] { "aaasss" }));
+            //MemberInfoX member2 = MethodInfoX.Create(typeof(AssemblyX), "Change");
+            //Console.WriteLine(member2.Invoke(asm, new Object[] { "aaasss" }));
+
+            {
+                TypeX type = TypeX.Create(typeof(ConsoleKeyInfo));
+                Object obj = type.CreateInstance();
+
+                type = TypeX.Create(typeof(Byte[]));
+                Byte[] buffer = (Byte[])type.CreateInstance(567);
+
+                type = TypeX.Create(typeof(MemoryStream));
+                MemoryStream ms = type.CreateInstance(buffer) as MemoryStream;
+                Console.WriteLine(ms.Length);
+            }
+
+            {
+                MemberInfoX member = ConstructorInfoX.Create(typeof(MemoryStream));
+                Object obj = member.CreateInstance();
+
+                //member = ConstructorInfoX.Create(typeof(IPAddress[]));
+                // obj = member.CreateInstance(null);
+
+                member = ConstructorInfoX.Create(typeof(Byte[]));
+                //Byte[] buffer = new Byte[1024];
+                Byte[] buffer = (Byte[])member.CreateInstance(567);
+                member = ConstructorInfoX.Create(typeof(MemoryStream), new Type[] { typeof(Byte[]) });
+                MemoryStream ms = member.CreateInstance(buffer) as MemoryStream;
+                Console.WriteLine(ms.Length);
+            }
+
             {
                 MemoryStream ms = new MemoryStream();
             }
@@ -173,6 +226,26 @@ namespace Test
             //}
             //sw.Stop();
             //Console.WriteLine(sw.Elapsed);
+        }
+
+        public static Stream Add(Object[] args)
+        {
+            return new MemoryStream();
+        }
+
+        public static Stream Add2(Object[] args)
+        {
+            return new MemoryStream((Byte[])args[0]);
+        }
+
+        public static Int32[] Add3(Object[] args)
+        {
+            return new Int32[(Int32)args[0]];
+        }
+
+        public static ConsoleKeyInfo Add4(Object[] args)
+        {
+            return new ConsoleKeyInfo();
         }
     }
 }

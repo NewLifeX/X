@@ -54,6 +54,10 @@
     <Compile Include="ThreadPoolTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NewLife.CommonEntity\NewLife.CommonEntity.csproj">
+      <Project>{50D7FAE5-2304-4395-A6FA-7D35279D9D84}</Project>
+      <Name>NewLife.CommonEntity</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
       <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
       <Name>NewLife.Core</Name>
@@ -65,6 +69,10 @@
     <ProjectReference Include="..\NewLife.PeerToPeer\NewLife.PeerToPeer.csproj">
       <Project>{195A5858-8FE1-4043-9E51-7F879791629C}</Project>
       <Name>NewLife.PeerToPeer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\XCode\XCode.csproj">
+      <Project>{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}</Project>
+      <Name>XCode</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

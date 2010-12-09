@@ -66,6 +66,7 @@
     <Compile Include="Messaging\MessageStreamHandler.cs" />
     <Compile Include="Messaging\NullMessage.cs" />
     <Compile Include="Reflection\AssemblyX.cs" />
+    <Compile Include="Reflection\AttributeX.cs" />
     <Compile Include="Reflection\ConstructorInfoX.cs" />
     <Compile Include="Reflection\EmitHelper.cs" />
     <Compile Include="Reflection\ReadWriteLock.cs" />

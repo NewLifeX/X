@@ -39,7 +39,7 @@ namespace NewLife.Reflection
                 }
                 return _Name;
             }
-            set { _Name = value; }
+            //set { _Name = value; }
         }
 
         private String _Version;
@@ -78,7 +78,7 @@ namespace NewLife.Reflection
                 }
                 return _Title;
             }
-            set { _Title = value; }
+            //set { _Title = value; }
         }
 
         private String _FileVersion;
@@ -166,9 +166,9 @@ namespace NewLife.Reflection
                     //if (av != null) _Description = av.Description;
                     _Description = GetCustomAttributeValue<AssemblyDescriptionAttribute, String>();
                 }
-                return _Company;
+                return _Description;
             }
-            set { _Description = value; }
+            //set { _Description = value; }
         }
         #endregion
 
@@ -351,11 +351,38 @@ namespace NewLife.Reflection
         public static ListX<AssemblyX> GetAssemblies() { return GetAssemblies(AppDomain.CurrentDomain); }
 
         /// <summary>
+        /// 只反射加载有效路径（应用程序是当前路径，Web是Bin目录）的所有程序集
+        /// </summary>
+        /// <param name="domain"></param>
+        /// <returns></returns>
+        public static ListX<AssemblyX> ReflectionOnlyGetAssemblies(AppDomain domain)
+        {
+            if (domain == null) domain = AppDomain.CurrentDomain;
+
+            Assembly[] asms = domain.ReflectionOnlyGetAssemblies();
+            if (asms == null || asms.Length < 1) return null;
+
+            ListX<AssemblyX> list = new ListX<AssemblyX>();
+            foreach (Assembly item in asms)
+            {
+                list.Add(AssemblyX.Create(item));
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// 获取当前程序域所有程序集的辅助类
+        /// </summary>
+        /// <returns></returns>
+        public static ListX<AssemblyX> ReflectionOnlyGetAssemblies() { return ReflectionOnlyGetAssemblies(AppDomain.CurrentDomain); }
+
+        /// <summary>
         /// 只反射加载指定路径的所有程序集
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public static ListX<AssemblyX> ReflectionOnlyGetAssemblies(String path)
+        public static ListX<AssemblyX> ReflectionOnlyLoad(String path)
         {
             if (!Directory.Exists(path)) return null;
 
@@ -367,6 +394,7 @@ namespace NewLife.Reflection
             //try
             {
                 ListX<AssemblyX> loadeds = AssemblyX.GetAssemblies();
+                ListX<AssemblyX> loadeds2 = AssemblyX.ReflectionOnlyGetAssemblies();
 
                 ListX<AssemblyX> list = new ListX<AssemblyX>();
                 foreach (String item in ss)
@@ -374,12 +402,18 @@ namespace NewLife.Reflection
                     if (!item.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) &&
                         !item.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
 
-                    if (loadeds.Exists(delegate(AssemblyX elm)
+                    if (loadeds != null && loadeds.Exists(delegate(AssemblyX elm)
                     {
                         return item.Equals(elm.Asm.Location, StringComparison.OrdinalIgnoreCase);
                     })) continue;
 
-                    Assembly asm = Assembly.ReflectionOnlyLoad(File.ReadAllBytes(item));
+                    if (loadeds2 != null && loadeds2.Exists(delegate(AssemblyX elm)
+                    {
+                        return item.Equals(elm.Asm.Location, StringComparison.OrdinalIgnoreCase);
+                    })) continue;
+
+                    //Assembly asm = Assembly.ReflectionOnlyLoad(File.ReadAllBytes(item));
+                    Assembly asm = Assembly.ReflectionOnlyLoadFrom(item);
 
                     list.Add(AssemblyX.Create(asm));
                 }
@@ -396,12 +430,12 @@ namespace NewLife.Reflection
         /// 只反射加载有效路径（应用程序是当前路径，Web是Bin目录）的所有程序集
         /// </summary>
         /// <returns></returns>
-        public static ListX<AssemblyX> ReflectionOnlyGetAssemblies()
+        public static ListX<AssemblyX> ReflectionOnlyLoad()
         {
             if (HttpRuntime.AppDomainId == null)
-                return ReflectionOnlyGetAssemblies(AppDomain.CurrentDomain.BaseDirectory);
+                return ReflectionOnlyLoad(AppDomain.CurrentDomain.BaseDirectory);
             else
-                return ReflectionOnlyGetAssemblies(HttpRuntime.BinDirectory);
+                return ReflectionOnlyLoad(HttpRuntime.BinDirectory);
         }
         #endregion
 
@@ -417,6 +451,19 @@ namespace NewLife.Reflection
                 return Title;
             else
                 return Name;
+        }
+
+        /// <summary>
+        /// 判断两个程序集是否相同，避免引用加载和执行上下文加载的相同程序集显示不同
+        /// </summary>
+        /// <param name="asm1"></param>
+        /// <param name="asm2"></param>
+        /// <returns></returns>
+        public static Boolean Equal(Assembly asm1, Assembly asm2)
+        {
+            if (asm1 == asm2) return true;
+
+            return asm1.FullName == asm2.FullName;
         }
         #endregion
     }
