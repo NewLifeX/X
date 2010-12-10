@@ -21,15 +21,16 @@ namespace NewLife.Reflection
             private set { _Constructor = value; }
         }
 
-        FastCreateInstanceHandler _Handler;
+        FastHandler _Handler;
         /// <summary>
         /// 快速调用委托，延迟到首次使用才创建
         /// </summary>
-        FastCreateInstanceHandler Handler
+        FastHandler Handler
         {
             get
             {
-                if (_Handler == null) _Handler = CreateDelegate<FastCreateInstanceHandler>(Constructor, typeof(Object), new Type[] { typeof(Object[]) });
+                //if (_Handler == null) _Handler = CreateDelegate<FastCreateInstanceHandler>(Constructor, typeof(Object), new Type[] { typeof(Object[]) });
+                if (_Handler == null) _Handler = GetConstructorInvoker(Constructor);
                 return _Handler;
             }
         }
@@ -127,72 +128,26 @@ namespace NewLife.Reflection
         #endregion
 
         #region 创建动态方法
-        //private FastCreateInstanceHandler GetConstructorInvoker()
-        //{
-        //    // 定义一个没有名字的动态方法。
-        //    // 关联到模块，并且跳过JIT可见性检查，可以访问所有类型的所有成员
-        //    DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object), typeof(Object[]) }, Constructor.DeclaringType.Module, true);
-        //    ILGenerator il = dynamicMethod.GetILGenerator();
+        delegate Object FastHandler(Object[] parameters);
 
-        //    GetMethodInvoker(il, Constructor);
+        private static FastHandler GetConstructorInvoker(ConstructorInfo constructor)
+        {
+            // 定义一个没有名字的动态方法。
+            // 关联到模块，并且跳过JIT可见性检查，可以访问所有类型的所有成员
+            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object[]) }, constructor.DeclaringType.Module, true);
+            ILGenerator il = dynamicMethod.GetILGenerator();
 
-        //    FastCreateInstanceHandler invoder = (FastCreateInstanceHandler)dynamicMethod.CreateDelegate(typeof(FastCreateInstanceHandler));
-        //    return invoder;
-        //}
+            EmitHelper help = new EmitHelper(il);
+            Type target = constructor.DeclaringType;
+            if (target.IsValueType)
+                help.NewValueType(target).BoxIfValueType(target).Ret();
+            else if (target.IsArray)
+                help.PushParams(0, new Type[] { typeof(Int32) }).NewArray(target.GetElementType()).Ret();
+            else
+                help.PushParams(0, constructor).NewObj(constructor).Ret();
 
-        //internal static void GetMethodInvoker(ILGenerator il, ConstructorInfo method)
-        //{
-        //    Type targetType = method.DeclaringType;
-
-        //    //准备参数
-        //    ParameterInfo[] ps = method.GetParameters();
-
-        //    if (targetType.IsValueType || ps == null || ps.Length < 1)
-        //    {
-        //        // 值类型和无参数类型
-
-        //        // 声明目标类型的本地变量
-        //        il.DeclareLocal(targetType);
-        //        // 加载地址
-        //        il.Emit(OpCodes.Ldloca_S, 0);
-        //        // 创建对象
-        //        il.Emit(OpCodes.Initobj, targetType);
-        //        // 加载对象
-        //        il.Emit(OpCodes.Ldloc_0);
-        //    }
-        //    else if (targetType.IsArray)
-        //    {
-        //        // 数组类型
-
-        //        il.Emit(OpCodes.Ldarg_0);
-        //        il.Emit(OpCodes.Ldc_I4_0);
-        //        il.Emit(OpCodes.Ldelem_Ref);
-        //        il.Emit(OpCodes.Unbox_Any, typeof(Int32));
-        //        il.Emit(OpCodes.Newarr, targetType.GetElementType());
-        //    }
-        //    else
-        //    {
-        //        // 其它类型
-        //        EmitHelper help = new EmitHelper(il);
-
-        //        help.PushParams(method);
-
-        //        // 创建对象
-        //        il.Emit(OpCodes.Initobj, targetType);
-        //    }
-
-        //    // 是否需要装箱
-        //    if (targetType.IsValueType) il.Emit(OpCodes.Box, targetType);
-
-        //    il.Emit(OpCodes.Ret);
-        //}
-
-        /// <summary>
-        /// 快速调用委托
-        /// </summary>
-        /// <param name="parameters"></param>
-        /// <returns></returns>
-        delegate Object FastCreateInstanceHandler(Object[] parameters);
+            return (FastHandler)dynamicMethod.CreateDelegate(typeof(FastHandler));
+        }
         #endregion
 
         #region 调用

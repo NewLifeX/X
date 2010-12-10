@@ -108,13 +108,11 @@ namespace NewLife.Reflection
             ILGenerator il = dynamicMethod.GetILGenerator();
 
             il.Emit(OpCodes.Ldarg_0);
-            //il.Emit(OpCodes.Isinst, field.DeclaringType);
             il.Emit(OpCodes.Ldfld, field);
             if (field.FieldType.IsValueType) il.Emit(OpCodes.Box, field.FieldType);
             il.Emit(OpCodes.Ret);
 
-            FastGetValueHandler invoder = (FastGetValueHandler)dynamicMethod.CreateDelegate(typeof(FastGetValueHandler));
-            return invoder;
+            return (FastGetValueHandler)dynamicMethod.CreateDelegate(typeof(FastGetValueHandler));
         }
 
         private static FastSetValueHandler SetValueInvoker(FieldInfo field)
@@ -124,7 +122,6 @@ namespace NewLife.Reflection
             ILGenerator il = dynamicMethod.GetILGenerator();
 
             il.Emit(OpCodes.Ldarg_0);
-            //il.Emit(OpCodes.Isinst, field.DeclaringType);
             il.Emit(OpCodes.Ldarg_1);
 
             MethodInfo method = GetMethod(field.FieldType);
@@ -144,8 +141,7 @@ namespace NewLife.Reflection
             il.Emit(OpCodes.Stfld, field);
             il.Emit(OpCodes.Ret);
 
-            FastSetValueHandler invoder = (FastSetValueHandler)dynamicMethod.CreateDelegate(typeof(FastSetValueHandler));
-            return invoder;
+            return (FastSetValueHandler)dynamicMethod.CreateDelegate(typeof(FastSetValueHandler));
         }
 
         static MethodInfo GetMethod(Type type)

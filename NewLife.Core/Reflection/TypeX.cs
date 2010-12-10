@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using NewLife.Collections;
 using System.ComponentModel;
+using System.Reflection.Emit;
 
 namespace NewLife.Reflection
 {
@@ -21,24 +22,22 @@ namespace NewLife.Reflection
             //set { _Type = value; }
         }
 
-        FastCreateInstanceHandler _Handler;
+        FastHandler _Handler;
         /// <summary>
         /// 快速调用委托，延迟到首次使用才创建
         /// </summary>
-        FastCreateInstanceHandler Handler
+        FastHandler Handler
         {
             get
             {
                 if (_Handler == null)
                 {
-                    if (BaseType.IsValueType)
-                        _Handler = CreateDelegate<FastCreateInstanceHandler>(BaseType, typeof(Object), new Type[] { typeof(Object[]) });
-                    else if (BaseType.IsArray)
-                        _Handler = CreateDelegate<FastCreateInstanceHandler>(BaseType, typeof(Object), new Type[] { typeof(Object[]) });
+                    if (BaseType.IsValueType || BaseType.IsArray)
+                        _Handler = GetConstructorInvoker(BaseType, null);
                     else
                     {
                         ListX<ConstructorInfo> list = Constructors;
-                        if (list != null && list.Count > 0) _Handler = CreateDelegate<FastCreateInstanceHandler>(list[0], typeof(Object), new Type[] { typeof(Object[]) });
+                        if (list != null && list.Count > 0) _Handler = GetConstructorInvoker(BaseType, list[0]);
                     }
                 }
                 return _Handler;
@@ -64,6 +63,41 @@ namespace NewLife.Reflection
         }
         #endregion
 
+        #region 创建动态方法
+        delegate Object FastHandler(Object[] parameters);
+
+        private static FastHandler GetConstructorInvoker(Type target, ConstructorInfo constructor)
+        {
+            // 定义一个没有名字的动态方法。
+            // 关联到模块，并且跳过JIT可见性检查，可以访问所有类型的所有成员
+            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object[]) }, target.Module, true);
+            {
+                ILGenerator il = dynamicMethod.GetILGenerator();
+                EmitHelper help = new EmitHelper(il);
+                if (target.IsValueType)
+                    help.NewValueType(target).BoxIfValueType(target).Ret();
+                else if (target.IsArray)
+                    help.PushParams(0, new Type[] { typeof(Int32) }).NewArray(target.GetElementType()).Ret();
+                else
+                    help.PushParams(0, constructor).NewObj(constructor).Ret();
+            }
+#if DEBUG
+            //SaveIL(dynamicMethod, delegate(ILGenerator il)
+            //     {
+            //         EmitHelper help = new EmitHelper(il);
+            //         if (target.IsValueType)
+            //             help.NewValueType(target).BoxIfValueType(target).Ret();
+            //         else if (target.IsArray)
+            //             help.PushParams(0, new Type[] { typeof(Int32) }).NewArray(target.GetElementType()).Ret();
+            //         else
+            //             help.PushParams(0, constructor).NewObj(constructor).Ret();
+            //     });
+#endif
+
+            return (FastHandler)dynamicMethod.CreateDelegate(typeof(FastHandler));
+        }
+        #endregion
+
         #region 调用
         /// <summary>
         /// 创建实例
@@ -76,6 +110,7 @@ namespace NewLife.Reflection
                 return Handler.Invoke(parameters);
             else
             {
+                // 准备参数类型数组，以匹配构造函数
                 Type[] paramTypes = Type.EmptyTypes;
                 if (parameters != null && parameters.Length > 0)
                 {
@@ -93,24 +128,17 @@ namespace NewLife.Reflection
             }
         }
 
-        DictionaryCache<ConstructorInfo, FastCreateInstanceHandler> _cache = new DictionaryCache<ConstructorInfo, FastCreateInstanceHandler>();
-        FastCreateInstanceHandler GetHandler(Type[] paramTypes)
+        DictionaryCache<ConstructorInfo, FastHandler> _cache = new DictionaryCache<ConstructorInfo, FastHandler>();
+        FastHandler GetHandler(Type[] paramTypes)
         {
             ConstructorInfo constructor = BaseType.GetConstructor(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, paramTypes, null);
             if (constructor == null) throw new Exception("没有找到匹配的构造函数！");
 
             return _cache.GetItem(constructor, delegate(ConstructorInfo key)
             {
-                return CreateDelegate<FastCreateInstanceHandler>(key, typeof(Object), new Type[] { typeof(Object[]) });
+                return GetConstructorInvoker(BaseType, key);
             });
         }
-
-        /// <summary>
-        /// 快速调用委托
-        /// </summary>
-        /// <param name="parameters"></param>
-        /// <returns></returns>
-        delegate Object FastCreateInstanceHandler(Object[] parameters);
         #endregion
 
         #region 扩展属性

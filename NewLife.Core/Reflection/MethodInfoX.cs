@@ -28,7 +28,8 @@ namespace NewLife.Reflection
         {
             get
             {
-                if (_Handler == null) _Handler = CreateDelegate<FastInvokeHandler>(Method, typeof(Object), new Type[] { typeof(Object), typeof(Object[]) });
+                //if (_Handler == null) _Handler = CreateDelegate<FastInvokeHandler>(Method, typeof(Object), new Type[] { typeof(Object), typeof(Object[]) });
+                if (_Handler == null) _Handler = GetMethodInvoker(Method);
                 return _Handler;
             }
         }
@@ -71,62 +72,56 @@ namespace NewLife.Reflection
         #endregion
 
         #region 创建动态方法
-        //private FastInvokeHandler GetMethodInvoker(MethodInfo method)
-        //{
-        //    // 定义一个没有名字的动态方法。
-        //    // 关联到模块，并且跳过JIT可见性检查，可以访问所有类型的所有成员
-        //    DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object), typeof(Object[]) }, method.DeclaringType.Module, true);
-        //    ILGenerator il = dynamicMethod.GetILGenerator();
+        private FastInvokeHandler GetMethodInvoker(MethodInfo method)
+        {
+            // 定义一个没有名字的动态方法。
+            // 关联到模块，并且跳过JIT可见性检查，可以访问所有类型的所有成员
+            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object), typeof(Object[]) }, method.DeclaringType.Module, true);
+            ILGenerator il = dynamicMethod.GetILGenerator();
 
-        //    GetMethodInvoker(il, method);
+            GetMethodInvoker(il, method);
+#if DEBUG
+            //SaveIL(dynamicMethod, delegate(ILGenerator il2)
+            //{
+            //    GetMethodInvoker(il2, method);
+            //});
+#endif
 
-        //    FastInvokeHandler invoder = (FastInvokeHandler)dynamicMethod.CreateDelegate(typeof(FastInvokeHandler));
-        //    return invoder;
-        //}
+            return (FastInvokeHandler)dynamicMethod.CreateDelegate(typeof(FastInvokeHandler));
+        }
 
-        //internal static void GetMethodInvoker(ILGenerator il, MethodInfo method)
-        //{
-        //    EmitHelper help = new EmitHelper(il);
+        static void GetMethodInvoker(ILGenerator il, MethodInfo method)
+        {
+            EmitHelper help = new EmitHelper(il);
+            Type retType = method.ReturnType;
 
-        //    // 为引用类型建立本地变量
-        //    //Int32 refParams = 0;
-        //    //if (HasRefParam(method))
-        //    //{
-        //    //    refParams = helper.CreateLocalsForByRefParams(method);
-        //    //}
+            if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
 
-        //    if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
+            // 方法的参数数组放在动态方法的第二位，所以是1
+            help.PushParams(1, method)
+                .Call(method)
+                .BoxIfValueType(retType);
 
-        //    //准备参数
-        //    //ParameterInfo[] ps = method.GetParameters();
-        //    //for (int i = 0; i < ps.Length; i++)
-        //    //{
-        //    //    il.Emit(OpCodes.Ldarg_1);
-        //    //    EmitFastInt(il, i);
-        //    //    il.Emit(OpCodes.Ldelem_Ref);
-        //    //    if (ps[i].ParameterType.IsValueType)
-        //    //        il.Emit(OpCodes.Unbox_Any, ps[i].ParameterType);
-        //    //    else
-        //    //        il.Emit(OpCodes.Castclass, ps[i].ParameterType);
-        //    //}
-        //    help.PushParams(method)
-        //        .Call(method)
-        //        .Ret(method);
+            //处理返回值，如果调用的方法没有返回值，则需要返回一个空
+            if (retType == null || retType == typeof(void))
+                help.Ldnull().Ret();
+            else
+                help.Ret();
 
-        //    //调用目标方法
-        //    //if (method.IsVirtual)
-        //    //    il.EmitCall(OpCodes.Callvirt, method, null);
-        //    //else
-        //    //    il.EmitCall(OpCodes.Call, method, null);
+            //调用目标方法
+            //if (method.IsVirtual)
+            //    il.EmitCall(OpCodes.Callvirt, method, null);
+            //else
+            //    il.EmitCall(OpCodes.Call, method, null);
 
-        //    ////处理返回值
-        //    //if (method.ReturnType == typeof(void))
-        //    //    il.Emit(OpCodes.Ldnull);
-        //    //else if (method.ReturnType.IsValueType)
-        //    //    il.Emit(OpCodes.Box, method.ReturnType);
+            ////处理返回值
+            //if (method.ReturnType == typeof(void))
+            //    il.Emit(OpCodes.Ldnull);
+            //else if (method.ReturnType.IsValueType)
+            //    il.Emit(OpCodes.Box, method.ReturnType);
 
-        //    //il.Emit(OpCodes.Ret);
-        //}
+            //il.Emit(OpCodes.Ret);
+        }
 
         /// <summary>
         /// 快速调用委托

@@ -64,8 +64,9 @@ namespace NewLife.Reflection
         {
             get
             {
-                if (_GetHandler == null && GetMethod != null)
-                    _GetHandler = CreateDelegate<FastGetValueHandler>(GetMethod, typeof(Object), new Type[] { typeof(Object) });
+                //if (_GetHandler == null && GetMethod != null)
+                //_GetHandler = CreateDelegate<FastGetValueHandler>(GetMethod, typeof(Object), new Type[] { typeof(Object) });
+                if (_GetHandler == null && GetMethod != null) _GetHandler = GetValueInvoker(GetMethod);
 
                 return _GetHandler;
             }
@@ -79,9 +80,9 @@ namespace NewLife.Reflection
         {
             get
             {
-                if (_SetHandler == null && SetMethod != null)
-                    _SetHandler = CreateDelegate<FastSetValueHandler>(SetMethod, null, new Type[] { typeof(Object), typeof(Object[]) });
-                //if (_SetHandler == null && SetMethod != null) _SetHandler = SetValueInvoker(Property);
+                //if (_SetHandler == null && SetMethod != null)
+                //    _SetHandler = CreateDelegate<FastSetValueHandler>(SetMethod, null, new Type[] { typeof(Object), typeof(Object[]) });
+                if (_SetHandler == null && SetMethod != null) _SetHandler = SetValueInvoker(SetMethod);
 
                 return _SetHandler;
             }
@@ -163,73 +164,41 @@ namespace NewLife.Reflection
         #endregion
 
         #region 创建动态方法
-        //private static FastGetValueHandler GetValueInvoker(PropertyInfo property)
-        //{
-        //    MethodInfo method = property.GetGetMethod();
-        //    if (method == null) method = property.GetGetMethod(true);
-        //    if (method == null) return null;
+        delegate Object FastGetValueHandler(Object obj);
+        delegate void FastSetValueHandler(Object obj, Object value);
 
-        //    //定义一个没有名字的动态方法
-        //    DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object) }, property.DeclaringType.Module, true);
-        //    ILGenerator il = dynamicMethod.GetILGenerator();
+        private static FastGetValueHandler GetValueInvoker(MethodInfo method)
+        {
+            //定义一个没有名字的动态方法
+            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object) }, method.DeclaringType.Module, true);
+            ILGenerator il = dynamicMethod.GetILGenerator();
 
-        //    GetMethodInvoker(il, method);
+            EmitHelper help = new EmitHelper(il);
+            if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
+            // 目标方法没有参数
+            help.Call(method)
+                .BoxIfValueType(method.ReturnType)
+                .Ret();
 
-        //    FastGetValueHandler invoder = (FastGetValueHandler)dynamicMethod.CreateDelegate(typeof(FastGetValueHandler));
-        //    return invoder;
-        //}
+            return (FastGetValueHandler)dynamicMethod.CreateDelegate(typeof(FastGetValueHandler));
+        }
 
-        //private static FastSetValueHandler SetValueInvoker(PropertyInfo property)
-        //{
-        //    MethodInfo method = property.GetSetMethod();
-        //    if (method == null) method = property.GetSetMethod(true);
-        //    if (method == null) return null;
+        private static FastSetValueHandler SetValueInvoker(MethodInfo method)
+        {
+            //定义一个没有名字的动态方法
+            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, null, new Type[] { typeof(Object), typeof(Object) }, method.DeclaringType.Module, true);
+            ILGenerator il = dynamicMethod.GetILGenerator();
 
-        //    //定义一个没有名字的动态方法
-        //    DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, null, new Type[] { typeof(Object), typeof(Object[]) }, property.DeclaringType.Module, true);
-        //    ILGenerator il = dynamicMethod.GetILGenerator();
+            EmitHelper help = new EmitHelper(il);
+            if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
+            // 目标方法只有一个参数
+            help.Ldarg(1)
+                .CastFromObject(method.GetParameters()[0].ParameterType)
+                .Call(method)
+                .Ret();
 
-        //    GetMethodInvoker(il, method);
-
-        //    FastSetValueHandler invoder = (FastSetValueHandler)dynamicMethod.CreateDelegate(typeof(FastSetValueHandler));
-        //    return invoder;
-        //}
-
-        //internal static void GetMethodInvoker(ILGenerator il, MethodInfo method)
-        //{
-        //    EmitHelper help = new EmitHelper(il);
-
-        //    if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
-
-        //    help.PushParams(method)
-        //        .Call(method)
-        //        .Ret(method);
-
-        //    ////准备参数
-        //    //ParameterInfo[] ps = method.GetParameters();
-        //    //for (int i = 0; i < ps.Length; i++)
-        //    //{
-        //    //    il.Emit(OpCodes.Ldarg_1);
-        //    //    //EmitFastInt(il, i);
-        //    //    help.Ldc_I4(i);
-        //    //    il.Emit(OpCodes.Ldelem_Ref);
-        //    //    if (ps[i].ParameterType.IsValueType)
-        //    //        il.Emit(OpCodes.Unbox_Any, ps[i].ParameterType);
-        //    //    else
-        //    //        il.Emit(OpCodes.Castclass, ps[i].ParameterType);
-        //    //}
-
-        //    ////调用目标方法
-        //    //if (method.IsVirtual)
-        //    //    il.EmitCall(OpCodes.Callvirt, method, null);
-        //    //else
-        //    //    il.EmitCall(OpCodes.Call, method, null);
-
-        //    ////处理返回值
-        //    //if (method.ReturnType != typeof(void) && method.ReturnType.IsValueType) il.Emit(OpCodes.Box, method.ReturnType);
-
-        //    //il.Emit(OpCodes.Ret);
-        //}
+            return (FastSetValueHandler)dynamicMethod.CreateDelegate(typeof(FastSetValueHandler));
+        }
         #endregion
 
         #region 调用
@@ -252,11 +221,8 @@ namespace NewLife.Reflection
         public override void SetValue(Object obj, Object value)
         {
             if (SetHandler == null) throw new InvalidOperationException("不支持SetValue操作！");
-            SetHandler.Invoke(obj, new Object[] { value });
+            SetHandler.Invoke(obj, value);
         }
-
-        delegate Object FastGetValueHandler(Object obj);
-        delegate void FastSetValueHandler(Object obj, Object[] parameters);
         #endregion
 
         #region 类型转换

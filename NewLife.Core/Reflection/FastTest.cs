@@ -4,9 +4,9 @@ using System.Text;
 using NewLife.Log;
 using System.Diagnostics;
 
+#if DEBUG
 namespace NewLife.Reflection
 {
-#if DEBUG
     /// <summary>
     /// 快速反射测试
     /// </summary>
@@ -33,18 +33,28 @@ namespace NewLife.Reflection
 
             obj = type.CreateInstance(111, "aaa");
             Debug.Assert(obj != null, "创建实例出错！");
+
+            XTrace.WriteLine("创建值类型实例");
+            type = TypeX.Create(typeof(ConsoleKeyInfo));
+            obj = type.CreateInstance();
+            Debug.Assert(obj != null, "创建值类型实例出错！");
+
+            XTrace.WriteLine("创建数组类型实例");
+            type = TypeX.Create(typeof(ConsoleKeyInfo[]));
+            obj = type.CreateInstance(5);
+            Debug.Assert(obj != null, "创建数组类型实例出错！");
             #endregion
 
             #region 构造函数
             ConstructorInfoX ctr = ConstructorInfoX.Create(typeof(FastTest));
-            obj = type.CreateInstance();
+            obj = ctr.CreateInstance();
             Debug.Assert(obj != null, "创建实例出错！");
 
             ctr = ConstructorInfoX.Create(typeof(FastTest), new Type[] { typeof(Int32) });
-            obj = type.CreateInstance(123);
+            obj = ctr.CreateInstance(123);
             Debug.Assert(obj != null, "创建实例出错！");
             ctr = ConstructorInfoX.Create(typeof(FastTest), new Type[] { typeof(Int32), typeof(String) });
-            obj = type.CreateInstance(111, "aaa");
+            obj = ctr.CreateInstance(111, "aaa");
             Debug.Assert(obj != null, "创建实例出错！");
             #endregion
 
@@ -163,6 +173,30 @@ namespace NewLife.Reflection
         {
             return FastTest.GetFullName(123, "abc");
         }
+        #endregion
+
+        #region 样本
+        static Object R1(Object[] args) { return new FastTest(); }
+
+        static Object R2(Object[] args) { return new FastTest((Int32)args[0]); }
+
+        static Object R3(Object[] args) { return new FastTest((Int32)args[0], (String)args[1]); }
+
+        static Object R4(Object[] args) { return new ConsoleKeyInfo(); }
+
+        static Object R5(Object[] args) { return new ConsoleKeyInfo[(Int32)args[0]]; }
+
+        static Object R6(Object[] args) { return new FastTest[(Int32)args[0]]; }
+
+        static Object R7(Object obj) { return (obj as FastTest).ID; }
+
+        static Object R8(Object obj) { return FastTest.Name; }
+
+        static void R9(Object obj, Object value) { (obj as FastTest).ID = (Int32)value; }
+
+        static Object R10(Object obj, Object[] args) { (obj as FastTest).Test2(); return null; }
+
+        static Object R11(Object obj, Object[] args) { return FastTest.GetFullName((Int32)args[0], (String)args[1]); }
         #endregion
     }
 }

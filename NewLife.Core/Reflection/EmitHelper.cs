@@ -203,11 +203,11 @@ namespace NewLife.Reflection
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public EmitHelper Box(Type type)
+        public EmitHelper BoxIfValueType(Type type)
         {
             if (type == null) throw new ArgumentNullException("type");
 
-            if (type.IsValueType) IL.Emit(OpCodes.Box, type);
+            if (type.IsValueType && type != typeof(void)) IL.Emit(OpCodes.Box, type);
             return this;
         }
 
@@ -248,6 +248,52 @@ namespace NewLife.Reflection
         public EmitHelper Ret()
         {
             IL.Emit(OpCodes.Ret);
+
+            return this;
+        }
+        #endregion
+
+        #region 创建对象
+        /// <summary>
+        /// 创建值类型，对象位于栈上
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public EmitHelper NewValueType(Type type)
+        {
+            // 声明目标类型的本地变量
+            //Int32 index = IL.DeclareLocal(type).LocalIndex;
+            IL.DeclareLocal(type);
+            // 加载地址
+            IL.Emit(OpCodes.Ldloca_S, 0);
+            // 创建对象
+            IL.Emit(OpCodes.Initobj, type);
+            // 加载对象
+            IL.Emit(OpCodes.Ldloc_0);
+
+            return this;
+        }
+
+        /// <summary>
+        /// 创建数组，参数必须是Object[]
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public EmitHelper NewArray(Type type)
+        {
+            IL.Emit(OpCodes.Newarr, type);
+
+            return this;
+        }
+
+        /// <summary>
+        /// 创建对象
+        /// </summary>
+        /// <param name="constructor"></param>
+        /// <returns></returns>
+        public EmitHelper NewObj(ConstructorInfo constructor)
+        {
+            IL.Emit(OpCodes.Newobj, constructor);
 
             return this;
         }
@@ -304,7 +350,7 @@ namespace NewLife.Reflection
                 this.Ldarg(firstParamIndex)
                     .Ldc_I4(i)
                     .Ldloc(refParam++)
-                    .Box(ps[i].ParameterType.GetElementType())
+                    .BoxIfValueType(ps[i].ParameterType.GetElementType())
                     .Stelem_Ref();
             }
 
@@ -340,17 +386,17 @@ namespace NewLife.Reflection
         }
 
         /// <summary>
-        /// 将参数压栈
+        /// 将指定参数位置的数组参数按照方法参数要求压栈
         /// </summary>
+        /// <param name="paramIndex"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public EmitHelper PushParams(MethodBase method)
+        public EmitHelper PushParams(Int32 paramIndex, MethodBase method)
         {
-            Int32 firstParamIndex = method.IsStatic || method.IsConstructor ? 0 : 1;
             ParameterInfo[] ps = method.GetParameters();
             for (Int32 i = 0; i < ps.Length; i++)
             {
-                this.Ldarg(firstParamIndex)
+                this.Ldarg(paramIndex)
                     .Ldc_I4(i)
                     .Ldelem_Ref()
                     .CastFromObject(ps[i].ParameterType);
