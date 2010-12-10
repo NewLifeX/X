@@ -70,8 +70,22 @@ namespace NewLife.Configuration
         {
             if (AppSettings == null || AppSettings.Count < 1) return default(T);
 
+            return GetConfig<T>(name, default(T));
+        }
+
+        /// <summary>
+        /// 取得指定名称的设置项，并转为指定类型。如果设置不存在，则返回默认值
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static T GetConfig<T>(String name, T defaultValue)
+        {
+            if (AppSettings == null || AppSettings.Count < 1) return defaultValue;
+
             String str = AppSettings[name];
-            if (String.IsNullOrEmpty(name)) return default(T);
+            if (String.IsNullOrEmpty(name)) return defaultValue;
 
             Type type = typeof(T);
             TypeCode code = Type.GetTypeCode(type);

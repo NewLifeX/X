@@ -17,6 +17,11 @@ namespace NewLife.CommonEntity
     /// <summary>
     /// 统计
     /// </summary>
+    public class Statistics : Statistics<Statistics> { }
+
+    /// <summary>
+    /// 统计
+    /// </summary>
     public partial class Statistics<TEntity> : Entity<TEntity> where TEntity : Statistics<TEntity>, new()
     {
         #region 对象操作
