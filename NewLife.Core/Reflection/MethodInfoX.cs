@@ -28,7 +28,7 @@ namespace NewLife.Reflection
         {
             get
             {
-                if (_Handler == null) _Handler = CreateDelegate<FastInvokeHandler>(Method, Method.ReturnType, new Type[] { typeof(Object[]) });
+                if (_Handler == null) _Handler = CreateDelegate<FastInvokeHandler>(Method, typeof(Object), new Type[] { typeof(Object[]) });
                 return _Handler;
             }
         }
