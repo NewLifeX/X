@@ -70,6 +70,7 @@
     <Compile Include="Reflection\AttributeX.cs" />
     <Compile Include="Reflection\ConstructorInfoX.cs" />
     <Compile Include="Reflection\EmitHelper.cs" />
+    <Compile Include="Reflection\FastTest.cs" />
     <Compile Include="Reflection\ReadWriteLock.cs" />
     <Compile Include="Reflection\TypeX.cs" />
     <Compile Include="Reflection\WeakReference.cs" />
