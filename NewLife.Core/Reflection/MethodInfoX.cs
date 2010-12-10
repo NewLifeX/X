@@ -146,7 +146,10 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public override Object Invoke(Object obj, params  Object[] parameters)
         {
-            return Handler.Invoke(obj, parameters);
+            if (parameters != null && parameters.Length == 0)
+                return Handler.Invoke(obj, null);
+            else
+                return Handler.Invoke(obj, parameters);
         }
         #endregion
 

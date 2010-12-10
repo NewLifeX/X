@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
 using System.Reflection.Emit;
+using NewLife.Collections;
+using System.Threading;
 
 namespace NewLife.Reflection
 {
@@ -76,49 +78,23 @@ namespace NewLife.Reflection
         {
             if (!typeof(Delegate).IsAssignableFrom(typeof(TDelegate))) throw new ArgumentOutOfRangeException("TDelegate");
 
-            //Type[] types = null;
-            //Type retType = null;
-            //if (method is MethodInfo)
-            //{
-            //    ParameterInfo[] ps = method.GetParameters();
-            //    if (ps != null && ps.Length > 0)
-            //        types = new Type[] { typeof(Object), typeof(Object[]) };
-            //    else
-            //        types = new Type[] { typeof(Object) };
-
-            //    if ((method as MethodInfo).ReturnType != null) retType = typeof(Object);
-            //}
-            //else if (method is ConstructorInfo)
-            //{
-            //    types = new Type[] { typeof(Object[]) };
-            //    retType = method.DeclaringType;
-            //}
-
             //定义一个没有名字的动态方法
             DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, retType, paramTypes, method.DeclaringType.Module, true);
             ILGenerator il = dynamicMethod.GetILGenerator();
 
             if (method is MethodInfo)
-                GetMethodInvoker(il, method as MethodInfo);
+                GetMethodInvoker(il, dynamicMethod, method as MethodInfo);
             else if (method is ConstructorInfo)
                 GetConstructorInvoker(il, method as ConstructorInfo);
 
 #if DEBUG
-            AssemblyName name = new AssemblyName(String.Format("FastTest_{0:yyyyMMddHHmmssfff}", DateTime.Now));
-            AssemblyBuilder abuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(name, AssemblyBuilderAccess.RunAndSave);
-            ModuleBuilder mbuilder = abuilder.DefineDynamicModule(name.Name + ".dll");
-            TypeBuilder tbuilder = mbuilder.DefineType(retType.Name, TypeAttributes.Public);
-            MethodBuilder mb = tbuilder.DefineMethod(method.Name.Replace(".", "_"), method.Attributes, retType, paramTypes);
-            ILGenerator il2 = mb.GetILGenerator();
-
-            if (method is MethodInfo)
-                GetMethodInvoker(il2, method as MethodInfo);
-            else if (method is ConstructorInfo)
-                GetConstructorInvoker(il2, method as ConstructorInfo);
-
-            Type t = tbuilder.CreateType();
-
-            abuilder.Save(name.Name + ".dll");
+            SaveIL(dynamicMethod, delegate(ILGenerator il2)
+            {
+                if (method is MethodInfo)
+                    GetMethodInvoker(il2, dynamicMethod, method as MethodInfo);
+                else if (method is ConstructorInfo)
+                    GetConstructorInvoker(il2, method as ConstructorInfo);
+            });
 #endif
 
             return (TDelegate)(Object)dynamicMethod.CreateDelegate(typeof(TDelegate));
@@ -137,7 +113,7 @@ namespace NewLife.Reflection
             if (!typeof(Delegate).IsAssignableFrom(typeof(TDelegate))) throw new ArgumentOutOfRangeException("TDelegate");
 
             //定义一个没有名字的动态方法
-            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, MethodAttributes.Public | MethodAttributes.Static, CallingConventions.Standard, retType, paramTypes, targetType.Module, true);
+            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, retType, paramTypes, targetType.Module, true);
             ILGenerator il = dynamicMethod.GetILGenerator();
 
             if (targetType.IsValueType)
@@ -148,40 +124,74 @@ namespace NewLife.Reflection
                 throw new NotSupportedException();
 
 #if DEBUG
-            AssemblyName name = new AssemblyName(String.Format("FastTest_{0:yyyyMMddHHmmssfff}", DateTime.Now));
-            AssemblyBuilder abuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(name, AssemblyBuilderAccess.RunAndSave);
-            ModuleBuilder mbuilder = abuilder.DefineDynamicModule(name.Name + ".dll");
-            TypeBuilder tbuilder = mbuilder.DefineType(targetType.Name, TypeAttributes.Public);
-            MethodBuilder mb = tbuilder.DefineMethod("Test", dynamicMethod.Attributes, dynamicMethod.ReturnType, paramTypes);
-            ILGenerator il2 = mb.GetILGenerator();
-
-            if (targetType.IsValueType)
-                GetValueTypeInvoker(il2, targetType);
-            else if (targetType.IsArray)
-                GetCreateArrayInvoker(il2, targetType.GetElementType());
-
-            Type t = tbuilder.CreateType();
-
-            abuilder.Save(name.Name + ".dll");
+            SaveIL(dynamicMethod, delegate(ILGenerator il2)
+            {
+                if (targetType.IsValueType)
+                    GetValueTypeInvoker(il2, targetType);
+                else if (targetType.IsArray)
+                    GetCreateArrayInvoker(il2, targetType.GetElementType());
+            });
 #endif
 
             return (TDelegate)(Object)dynamicMethod.CreateDelegate(typeof(TDelegate));
         }
 
+#if DEBUG
+        //private static DynamicAssembly asm = null;
+        //private static Timer timer = null;
+
+        /// <summary>
+        /// 保存IL
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="action"></param>
+        internal protected static void SaveIL(MethodInfo method, Action<ILGenerator> action)
+        {
+            ////if (asm == null) asm = new DynamicAssembly(String.Format("FastTest_{0:yyyyMMddHHmmssfff}", DateTime.Now));
+            //if (asm == null)
+            //{
+            //    asm = new DynamicAssembly("FastTest");
+            //    timer = new Timer(delegate { asm.Save(null); });
+            //}
+            //asm.AddGlobalMethod(method, action);
+            ////asm.Save(null);
+            //timer.Change(1000, Timeout.Infinite);
+
+            DynamicAssembly asm = new DynamicAssembly(String.Format("FastTest_{0:yyyyMMddHHmmssfff}", DateTime.Now));
+            asm.AddGlobalMethod(method, action);
+            asm.Save(null);
+        }
+#endif
+
         /// <summary>
         /// 获取方法的调用代码
         /// </summary>
         /// <param name="il"></param>
-        /// <param name="method"></param>
-        private static void GetMethodInvoker(ILGenerator il, MethodInfo method)
+        /// <param name="method">要创建的方法</param>
+        /// <param name="target">目标方法</param>
+        private static void GetMethodInvoker(ILGenerator il, MethodInfo method, MethodInfo target)
         {
+            // Object Method(Object, Object[] args)
+            // Method(Object, Object[] args)
+
             EmitHelper help = new EmitHelper(il);
 
-            if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
+            if (!target.IsStatic) il.Emit(OpCodes.Ldarg_0);
 
-            help.PushParams(method)
-                .Call(method)
-                .Ret(method);
+            help.PushParams(target)
+                .Call(target);
+
+            if (method.ReturnType != null && method.ReturnType != typeof(void))
+            {
+                if (target.ReturnType != typeof(void))
+                    help.Box(target.ReturnType).Ret();
+                else
+                    help.Ldnull().Ret();
+            }
+            else
+            {
+                help.Ret();
+            }
         }
 
         private static void GetValueTypeInvoker(ILGenerator il, Type targetType)
@@ -197,6 +207,11 @@ namespace NewLife.Reflection
             il.Emit(OpCodes.Ret);
         }
 
+        /// <summary>
+        /// Object Method(Object[] args)
+        /// </summary>
+        /// <param name="il"></param>
+        /// <param name="elementType"></param>
         private static void GetCreateArrayInvoker(ILGenerator il, Type elementType)
         {
             il.Emit(OpCodes.Ldarg_0);
@@ -207,6 +222,11 @@ namespace NewLife.Reflection
             il.Emit(OpCodes.Ret);
         }
 
+        /// <summary>
+        /// Object Method(Object[] args)
+        /// </summary>
+        /// <param name="il"></param>
+        /// <param name="method"></param>
         private static void GetConstructorInvoker(ILGenerator il, ConstructorInfo method)
         {
             EmitHelper help = new EmitHelper(il);

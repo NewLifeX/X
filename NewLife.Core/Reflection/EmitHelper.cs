@@ -231,15 +231,22 @@ namespace NewLife.Reflection
         }
 
         /// <summary>
+        /// 加载空
+        /// </summary>
+        /// <returns></returns>
+        public EmitHelper Ldnull()
+        {
+            IL.Emit(OpCodes.Ldnull);
+
+            return this;
+        }
+
+        /// <summary>
         /// 返回
         /// </summary>
-        /// <param name="method"></param>
         /// <returns></returns>
-        public EmitHelper Ret(MethodInfo method)
+        public EmitHelper Ret()
         {
-            if (method.ReturnType != typeof(void) && method.ReturnType.IsValueType)
-                IL.Emit(OpCodes.Box, method.ReturnType);
-
             IL.Emit(OpCodes.Ret);
 
             return this;

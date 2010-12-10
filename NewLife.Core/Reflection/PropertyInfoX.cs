@@ -99,6 +99,17 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static PropertyInfoX Create(PropertyInfo property)
         {
+            ////PropertyInfoX obj = new PropertyInfoX(property);
+            ////FastGetValueHandler h1 = obj.GetValue;
+            ////FastSetValueHandler h2 = obj.SetValue;
+
+            //Type t1 = typeof(FastSetValueHandler);
+            //Type t2 = typeof(FastSetValueHandler);
+            //TypeX tt1 = TypeX.Create(t1);
+            //TypeX tt2 = TypeX.Create(t2);
+
+
+
             if (property == null) return null;
 
             return cache.GetItem(property, delegate(PropertyInfo key)
