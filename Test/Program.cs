@@ -31,8 +31,8 @@ namespace Test
                 try
                 {
 #endif
-                Test4();
-                //ThreadPoolTest.Main2(args);
+                    Test4();
+                    //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -243,14 +243,16 @@ namespace Test
             return new Int32[(Int32)args[0]];
         }
 
-        public static ConsoleKeyInfo Add4(Object[] args)
+        public static Object Add4(Object[] args)
         {
             return new ConsoleKeyInfo();
         }
 
         static void Test4()
         {
-            FastTest.Test();
+#if DEBUG
+           FastTest.Test();
+#endif
         }
     }
 }
