@@ -53,6 +53,7 @@
     <Compile Include="Collections\ObjectPool.cs" />
     <Compile Include="Collections\SingleListNode.cs" />
     <Compile Include="Collections\InterlockedStack.cs" />
+    <Compile Include="Configuration\Config.cs" />
     <Compile Include="Common\DisposeBase.cs" />
     <Compile Include="Event\WeakAction.cs" />
     <Compile Include="Event\WeakEventHandler.cs" />
