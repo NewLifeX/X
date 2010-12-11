@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 
 namespace NewLife.PeerToPeer.Messages
 {
@@ -44,16 +45,6 @@ namespace NewLife.PeerToPeer.Messages
                 set { _Name = value; }
             }
 
-            private String _Address;
-            /// <summary>
-            /// 下载地址（Tracker服务器地址）
-            /// </summary>
-            public String Address
-            {
-                get { return _Address; }
-                set { _Address = value; }
-            }
-
             private String _Guid;
             /// <summary>
             /// 种子标识
@@ -64,44 +55,20 @@ namespace NewLife.PeerToPeer.Messages
                 set { _Guid = value; }
             }
 
-            private Int32 _Length;
-            /// <summary>
-            /// 大小
-            /// </summary>
-            public Int32 Length
+            private String _DownLoadPath;
+            /// <summary>下载地址</summary>
+            public String DownLoadPath
             {
-                get { return _Length; }
-                set { _Length = value; }
+                get { return _DownLoadPath; }
+                set { _DownLoadPath = value; }
             }
 
-            private Int32 _FileNumber;
-            /// <summary>
-            /// 文件数
-            /// </summary>
-            public Int32 FileNumber
+            private FileStream _Torrent;
+            /// <summary>种子</summary>
+            public FileStream Torrent
             {
-                get { return _FileNumber; }
-                set { _FileNumber = value; }
-            }
-
-            private Int32 _BlockNumber;
-            /// <summary>
-            /// 分块数
-            /// </summary>
-            public Int32 BlockNumber
-            {
-                get { return _BlockNumber; }
-                set { _BlockNumber = value; }
-            }
-
-            private Int32 _BlockSize;
-            /// <summary>
-            /// 分块大小
-            /// </summary>
-            public Int32 BlockSize
-            {
-                get { return _BlockSize; }
-                set { _BlockSize = value; }
+                get { return _Torrent; }
+                set { _Torrent = value; }
             }
         }
         #endregion
