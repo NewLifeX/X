@@ -132,6 +132,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Template\列表页\类名.aspx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>ASPXCodeBehind</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Template\数据字典\连接名数据字典.htm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
