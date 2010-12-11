@@ -51,7 +51,7 @@ namespace NewLife.PeerToPeer
             //UdpTrackerServer us = new UdpTrackerServer();
             //us.Port = 2010;
 
-            TrackerServer server = new TrackerServer();
+            //TrackerServer server = new TrackerServer();
             //server.Tracker = us;
             //server.Start();
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using NewLife.Messaging;
+using NewLife.Log;
 
 namespace NewLife.PeerToPeer.Messages
 {
@@ -39,6 +40,27 @@ namespace NewLife.PeerToPeer.Messages
         /// <param name="sender"></param>
         /// <param name="e"></param>
         protected abstract void OnReceived(object sender, EventArgs<Message, Stream> e);
+        #endregion
+
+        #region 日志
+        /// <summary>
+        /// 写日志
+        /// </summary>
+        /// <param name="message"></param>
+        protected static void WriteLog(String message)
+        {
+            XTrace.WriteLine(message);
+        }
+
+        /// <summary>
+        /// 写日志
+        /// </summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        protected static void WriteLog(String format, params Object[] args)
+        {
+            XTrace.WriteLine(format, args);
+        }
         #endregion
     }
 }

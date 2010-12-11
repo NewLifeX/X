@@ -5,6 +5,9 @@ using System.Net;
 using NewLife.Net.Sockets;
 using NewLife.PeerToPeer.Messages;
 using NewLife.Messaging;
+using NewLife.Log;
+using System.Threading;
+using NewLife.Web;
 
 namespace NewLife.PeerToPeer.Server
 {
@@ -18,11 +21,7 @@ namespace NewLife.PeerToPeer.Server
         /// <summary>标识</summary>
         public Guid Token
         {
-            get
-            {
-                if (_Token == Guid.Empty) _Token = Guid.NewGuid();
-                return _Token;
-            }
+            get { return _Token; }
             set { _Token = value; }
         }
 
@@ -39,77 +38,57 @@ namespace NewLife.PeerToPeer.Server
         //}
         #endregion
 
-        //#region 构造
-        //static TrackerServer()
-        //{
-        //    P2PMessage.Init();
-        //}
+        #region 构造
+        /// <summary>
+        /// 根据标识实例化Tracker服务器
+        /// </summary>
+        /// <param name="token"></param>
+        public TrackerServer(Guid token)
+        {
+            Token = token;
 
-        //TrackerServer()
-        //{
-        //    Message.Received += new EventHandler<EventArgs<Message, Stream>>(Message_Received);
-        //}
+            MessageHandler.Error += new EventHandler<EventArgs<Message, Stream>>(MessageHandler_Error);
+            MessageHandler.Null += new EventHandler<EventArgs<Message, Stream>>(MessageHandler_Null);
+        }
 
-        ///// <summary>
-        ///// 析构，取消事件注册
-        ///// </summary>
-        //~TrackerServer()
-        //{
-        //    Message.Received += new EventHandler<EventArgs<Message, Stream>>(Message_Received);
-        //}
-        //#endregion
+        /// <summary>
+        /// 析构，取消事件注册
+        /// </summary>
+        ~TrackerServer()
+        {
+            MessageHandler.Error -= new EventHandler<EventArgs<Message, Stream>>(MessageHandler_Error);
+            MessageHandler.Null -= new EventHandler<EventArgs<Message, Stream>>(MessageHandler_Null);
+        }
 
-        #region 服务器控制
-        //private ITrackerServer _Tracker;
-        ///// <summary>跟踪服务器</summary>
-        //public ITrackerServer Tracker
-        //{
-        //    get { return _Tracker; }
-        //    set { _Tracker = value; }
-        //}
+        private static Int32 _Inited = 0;
+        /// <summary>
+        /// 初始化
+        /// </summary>
+        public static void Init()
+        {
+            // 只执行一次，防止多线程冲突
+            if (Interlocked.CompareExchange(ref _Inited, 1, 0) != 0) return;
 
-        ///// <summary>
-        ///// 开始
-        ///// </summary>
-        //public void Start()
-        //{
-        //    Tracker.MessageArrived += new EventHandler<EventArgs<P2PMessage, Stream>>(OnMessageArrived);
-        //    Tracker.Start();
-        //}
+        }
 
-        ///// <summary>
-        ///// 停止
-        ///// </summary>
-        //public void Stop()
-        //{
-        //    Dispose();
-        //}
+        static void MessageHandler_Null(object sender, EventArgs<Message, Stream> e)
+        {
+            NullMessage message = e.Arg1 as NullMessage;
+            Stream stream = e.Arg2;
 
-        ///// <summary>
-        ///// 已重载。
-        ///// </summary>
-        ///// <param name="disposing"></param>
-        //protected override void OnDispose(bool disposing)
-        //{
-        //    Tracker.Stop();
+            WriteLog("空数据！");
 
-        //    base.OnDispose(disposing);
-        //}
+            message.Serialize(stream);
+        }
+
+        static void MessageHandler_Error(object sender, EventArgs<Message, Stream> e)
+        {
+            ExceptionMessage message = e.Arg1 as ExceptionMessage;
+            Stream stream = e.Arg2;
+
+            WriteLog("出错！" + message.Error);
+        }
         #endregion
-
-        //#region 发送
-        ///// <summary>
-        ///// 发送信息
-        ///// </summary>
-        ///// <param name="msg"></param>
-        ///// <param name="remoteEP"></param>
-        //public void Send(P2PMessage msg, EndPoint remoteEP)
-        //{
-        //    msg.Token = Token;
-
-        //    Tracker.Send(msg.ToArray(), remoteEP);
-        //}
-        //#endregion
 
         #region 处理
         /// <summary>
@@ -128,6 +107,7 @@ namespace NewLife.PeerToPeer.Server
                 case MessageTypes.Unkown:
                     break;
                 case MessageTypes.Test:
+                    OnTest(e.Arg1 as TestMessage, e.Arg2);
                     break;
                 case MessageTypes.TestResponse:
                     break;
@@ -136,7 +116,7 @@ namespace NewLife.PeerToPeer.Server
                 case MessageTypes.InviteResponse:
                     break;
                 case MessageTypes.Ping:
-                    OnPing(sender as ITrackerServer, e.Arg1 as PingMessage, e.Arg2);
+                    OnPing(e.Arg1 as PingMessage, e.Arg2);
                     break;
                 case MessageTypes.PingResponse:
                     break;
@@ -156,11 +136,21 @@ namespace NewLife.PeerToPeer.Server
                     break;
             }
         }
+        #endregion
 
+        #region 测试
+        void OnTest(TestMessage msg, Stream stream)
+        {
+            WriteLog("收到{0}的测试消息：{1}", GetEndPoint(stream), msg.Str);
+
+            TestMessage.Response response = new TestMessage.Response();
+            response.Str = "消息收到！";
+            response.Serialize(stream);
+        }
         #endregion
 
         #region 活跃
-        void OnPing(ITrackerServer tracker, PingMessage msg, Stream stream)
+        void OnPing(PingMessage msg, Stream stream)
         {
             //WriteLog("{0} Ping Private={1}", remoteEP, msg.Private == null ? 0 : msg.Private.Count);
 
@@ -241,6 +231,27 @@ namespace NewLife.PeerToPeer.Server
                 //WriteLog("取得好友：{0}", list.Count);
                 return list;
             }
+        }
+        #endregion
+
+        #region 辅助方法
+        static IPEndPoint GetEndPoint(Stream stream)
+        {
+            IPAddress address = IPAddress.Any;
+            if (stream is HttpStream)
+            {
+                String ip = (stream as HttpStream).Context.Request.UserHostAddress;
+
+                IPAddress.TryParse(ip, out address);
+
+                return new IPEndPoint(address, 0);
+            }
+            else if (stream is SocketStream)
+            {
+                return (stream as SocketStream).RemoteEndPoint;
+            }
+
+            return new IPEndPoint(address, 0);
         }
         #endregion
     }
