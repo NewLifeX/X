@@ -16,7 +16,13 @@
             <td width="15%" align="right"><#=GetPropertyDescription(Field)#>：</td>
             <td width="75%"><#
                 if(code == TypeCode.String){
+                    if(pname.Equals("Password", StringComparison.OrdinalIgnoreCase) || pname.Equals("Pass", StringComparison.OrdinalIgnoreCase)){
+                #><asp:TextBox ID="<#=frmName#>" runat="server" Text='<%# Entity.<#=pname#> %>' TextMode="Password"></asp:TextBox><#
+                    }else if(Field.Length>300 || Field.Length<0){
+                #><asp:TextBox ID="<#=frmName#>" runat="server" Text='<%# Entity.<#=pname#> %>' TextMode="MultiLine" Width="400px" Height="80px"></asp:TextBox><#
+                    }else{
                 #><asp:TextBox ID="<#=frmName#>" runat="server" Text='<%# Entity.<#=pname#> %>'></asp:TextBox><#
+                    }
                 }else if(code == TypeCode.Int32){
                 #><XCL:NumberBox ID="<#=frmName#>" runat="server" Text='<%# Entity.<#=pname#> %>' Width="80px"></XCL:NumberBox><#
                 }else if(code == TypeCode.Double){
