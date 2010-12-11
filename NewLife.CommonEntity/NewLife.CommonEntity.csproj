@@ -80,10 +80,6 @@
       <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
       <Name>NewLife.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\XCommon\XCommon.csproj">
-      <Project>{44ADA6A8-427A-4802-976C-48F93622E0A8}</Project>
-      <Name>XCommon</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

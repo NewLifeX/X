@@ -3,8 +3,9 @@ using System.ComponentModel;
 using System.Web;
 using System.Xml.Serialization;
 using NewLife.Log;
+using NewLife.Web;
 using XCode;
-using XCommon;
+using NewLife.Security;
 
 namespace NewLife.CommonEntity
 {

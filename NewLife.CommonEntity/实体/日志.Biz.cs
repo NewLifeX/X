@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using NewLife.Web;
 using XCode;
-using System.Xml.Serialization;
-using XCommon;
 
 namespace NewLife.CommonEntity
 {
