@@ -289,7 +289,11 @@ namespace NewLife.CommonEntity
         /// </summary>
         public void SaveFile()
         {
-
+            // 1，根据文件上传控件创建附件实例
+            // 2，使用读取基本信息到附件实例
+            // 3，保存附件信息，取得ID
+            // 4，调用GetFilePath取得文件存放路径
+            // 5，保存文件并且再次保存附件信息
         }
         #endregion
     }
