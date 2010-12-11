@@ -41,9 +41,11 @@
     <DocumentationFile>..\..\生成\NewLife.Core.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -88,6 +90,10 @@
     <Compile Include="Reflection\MemberInfoX.cs" />
     <Compile Include="Reflection\MethodInfoX.cs" />
     <Compile Include="Reflection\PropertyInfoX.cs" />
+    <Compile Include="Security\CRC32.cs" />
+    <Compile Include="Security\DataHelper.cs" />
+    <Compile Include="Common\HardInfo.cs" />
+    <Compile Include="Common\IdentityCard.cs" />
     <Compile Include="Serialization\Protocol\Attributes\OnProtocol.cs" />
     <Compile Include="Serialization\Protocol\Attributes\ProtocolArrayAttribute.cs" />
     <Compile Include="Serialization\Protocol\Attributes\ProtocolAttribute.cs" />
@@ -118,9 +124,13 @@
     <Compile Include="Threading\ThreadPoolX.cs" />
     <Compile Include="Threading\ThreadTask.cs" />
     <Compile Include="Threading\ThreadX.cs" />
+    <Compile Include="Web\HttpState.cs" />
     <Compile Include="Web\HttpStream.cs" />
     <Compile Include="Log\WriteLogEventArgs.cs" />
     <Compile Include="Log\XTrace.cs" />
+    <Compile Include="Web\WebHelper.cs" />
+    <Compile Include="Xml\ExtendData.cs" />
+    <Compile Include="Xml\XMLEntity.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Serialization\Protocol\说明.txt" />
@@ -134,7 +144,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Remoting\" />
-    <Folder Include="Xml\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
