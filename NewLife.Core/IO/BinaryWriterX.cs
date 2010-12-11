@@ -59,11 +59,14 @@ namespace NewLife.IO
         /// <returns>是否成功写入</returns>
         public Boolean WriteValue(Object value, Boolean encodeInt)
         {
-            if (value == null)
-            {
-                Write((Byte)0);
-                return true;
-            }
+            //if (value == null)
+            //{
+            //    Write((Byte)0);
+            //    return true;
+            //}
+
+            // 值类型不会有空，写入器不知道该如何处理空，由外部决定吧
+            if (value == null) return false;
 
             TypeCode code = Type.GetTypeCode(value.GetType());
             switch (code)

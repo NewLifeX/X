@@ -211,6 +211,8 @@ namespace NewLife.IO
         {
             Int32 p = 0;
             p = ReadEncodedInt32();
+            if (p == 0) return null;
+
             Byte[] buffer = ReadBytes(p);
 
             return new IPAddress(buffer);
@@ -222,6 +224,9 @@ namespace NewLife.IO
         /// <returns></returns>
         public IPEndPoint ReadIPEndPoint()
         {
+            if (ReadByte() == 0) return null;
+            BaseStream.Seek(-1, SeekOrigin.Current);
+
             IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
             ep.Address = ReadIPAddress();
             //// 端口实际只占2字节

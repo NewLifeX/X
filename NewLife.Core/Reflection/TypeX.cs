@@ -139,6 +139,19 @@ namespace NewLife.Reflection
                 return GetConstructorInvoker(BaseType, key);
             });
         }
+
+        /// <summary>
+        /// 快速反射创建指定类型的实例
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public static Object CreateInstance(Type type, params Object[] parameters)
+        {
+            if (type == null) throw new ArgumentNullException("type");
+
+            return Create(type).CreateInstance(parameters);
+        }
         #endregion
 
         #region 扩展属性

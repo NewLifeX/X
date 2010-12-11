@@ -72,6 +72,7 @@ namespace NewLife.PeerToPeer.Messages
         #endregion
 
         #region IMessageHandler 成员
+        [NonSerialized]
         private Message _Message;
         Message IMessageHandler.Create(int messageID)
         {

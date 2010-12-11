@@ -157,7 +157,8 @@ namespace NewLife.IO
         /// <returns></returns>
         protected virtual Object CreateInstance(Type type)
         {
-            return Activator.CreateInstance(type);
+            //return Activator.CreateInstance(type);
+            return TypeX.CreateInstance(type);
         }
 
         /// <summary>
@@ -216,7 +217,7 @@ namespace NewLife.IO
             MemberTypes mt = member.Member.MemberType;
             if (mt == MemberTypes.Field || mt == MemberTypes.Property)
             {
-                if (!TryWrite(target, writer, member, encodeInt, allowNull)) throw new InvalidOperationException("无法读取数据，如果是复杂类型请实现IBinaryAccessor接口。");
+                if (!TryWrite(target, writer, member, encodeInt, allowNull)) throw new InvalidOperationException("无法写入数据，如果是复杂类型请实现IBinaryAccessor接口。");
             }
             else
                 throw new ArgumentOutOfRangeException("member", "成员只能是FieldInfo或PropertyInfo。");
