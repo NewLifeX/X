@@ -130,6 +130,29 @@ namespace NewLife.CommonEntity
                 return Path.Combine(GetConfigPath(Category), FilePath);
             }
         }
+
+        private FileStream _FileStream;
+        /// <summary>文件流</summary>
+        public FileStream FileStream
+        {
+            get
+            {
+                if (_FileStream == null && !Dirtys.ContainsKey("FileStream"))
+                {
+                    try
+                    {
+                        using (FileStream openFile = File.Open(FullFilePath, FileMode.Open, FileAccess.Read))
+                        {
+                            _FileStream = openFile;
+                        }
+                    }
+                    catch { };
+                    Dirtys.Add("FileStream", true);
+                }
+                return _FileStream;
+            }
+            set { _FileStream = value; }
+        }
         #endregion
 
         #region 扩展查询
