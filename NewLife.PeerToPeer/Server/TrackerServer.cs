@@ -145,7 +145,11 @@ namespace NewLife.PeerToPeer.Server
 
             TestMessage.Response response = new TestMessage.Response();
             response.Str = "消息收到！";
-            response.Serialize(stream);
+
+            // 必须一次性写入到流中去，否则使用UDP时将会分多次发送
+            //response.Serialize(stream);
+            Byte[] buffer = response.ToArray();
+            stream.Write(buffer, 0, buffer.Length);
         }
         #endregion
 

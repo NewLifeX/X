@@ -17,6 +17,8 @@ namespace NewLife.Net.Tcp
         {
             TcpServer svr = new TcpServer(Address, Port);
             svr.Accepted += new EventHandler<NetEventArgs>(OnAccepted);
+
+            Server = svr;
         }
 
         /// <summary>
