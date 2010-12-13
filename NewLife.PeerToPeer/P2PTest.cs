@@ -74,7 +74,7 @@ namespace NewLife.PeerToPeer
         public static void TestClient()
         {
             P2PClient app = new P2PClient();
-            app.TrackerServer = new IPEndPoint(IPAddress.Parse("192.168.1.101"), 2010);
+            //app.TrackerServer = new IPEndPoint(IPAddress.Parse("192.168.1.101"), 2010);
             app.Start();
 
             Console.ReadKey();

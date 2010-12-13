@@ -17,23 +17,19 @@ namespace NewLife.PeerToPeer.Client
     {
         #region 属性
         private Guid _Token;
-        /// <summary>标识</summary>
+        /// <summary>唯一本地标识</summary>
         public Guid Token
         {
-            get
-            {
-                if (_Token == Guid.Empty) _Token = Guid.NewGuid();
-                return _Token;
-            }
+            get { return _Token; }
             set { _Token = value; }
         }
 
-        private IPEndPoint _TrackerServer;
+        private List<IPEndPoint> _Trackers;
         /// <summary>跟踪服务器地址</summary>
-        public IPEndPoint TrackerServer
+        public List<IPEndPoint> Trackers
         {
-            get { return _TrackerServer; }
-            set { _TrackerServer = value; }
+            get { return _Trackers; }
+            set { _Trackers = value; }
         }
 
         private List<IPAddress> _Private;
@@ -287,8 +283,8 @@ namespace NewLife.PeerToPeer.Client
             {
                 try
                 {
-                    // Ping跟踪服务器
-                    Ping(TrackerServer);
+                    //// Ping跟踪服务器
+                    //Ping(TrackerServer);
 
                     // Ping好友
                     if (Friends != null && Friends.Count > 0)
