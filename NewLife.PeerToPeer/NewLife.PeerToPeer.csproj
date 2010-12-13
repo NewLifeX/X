@@ -50,7 +50,7 @@
   <ItemGroup>
     <Compile Include="Client\ClientPeer.cs" />
     <Compile Include="Client\CommandClient.cs" />
-    <Compile Include="Client\INetClient.cs" />
+    <Compile Include="Client\NetClient.cs" />
     <Compile Include="Connections\Connection.cs" />
     <Compile Include="Connections\LANConnection.cs" />
     <Compile Include="Connections\TcpConnection.cs" />
@@ -71,13 +71,8 @@
     <Compile Include="Client\P2PClient.cs" />
     <Compile Include="Common\PeerType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Server\CommandHttpHandler.cs" />
     <Compile Include="Server\CommandServer.cs" />
-    <Compile Include="Server\HttpTrackerServer.cs" />
-    <Compile Include="Server\ITrackerServer.cs" />
-    <Compile Include="Server\ServerPeer.cs" />
     <Compile Include="Server\TrackerServer.cs" />
-    <Compile Include="Server\UdpTrackerServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="App.config" />

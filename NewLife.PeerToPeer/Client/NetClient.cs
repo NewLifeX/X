@@ -7,12 +7,15 @@ namespace NewLife.PeerToPeer.Client
     /// <summary>
     /// 网络客户端
     /// </summary>
-    public interface INetClient
+    public class NetClient
     {
-    }
+        #region 属性
+        #endregion
 
-    class NetClient : INetClient
-    {
+        #region 构造
+        #endregion
 
+        #region 方法
+        #endregion
     }
 }

@@ -1,16 +1,15 @@
 ﻿using System;
 using System.IO;
-using NewLife.Messaging;
-using NewLife.PeerToPeer.Messages;
 using System.Net;
-using System.Configuration;
+using NewLife.Messaging;
+using NewLife.Security;
 
 namespace NewLife.PeerToPeer.Client
 {
     /// <summary>
     /// 命令客户端
     /// </summary>
-    public class CommandClient //: MessageServer
+    public class CommandClient
     {
         #region 属性
         private String _ServerAddress;
@@ -23,20 +22,20 @@ namespace NewLife.PeerToPeer.Client
         #endregion
 
         #region 实例
-        private static CommandClient _Instance;
-        /// <summary>实例</summary>
-        public static CommandClient Instance
-        {
-            get
-            {
-                if (_Instance == null)
-                {
-                    _Instance = new CommandClient();
-                    _Instance.ServerAddress = ConfigurationManager.AppSettings["NewLife.PeerToPeer.CommandServer"];
-                }
-                return _Instance;
-            }
-        }
+        //private static CommandClient _Instance;
+        ///// <summary>实例</summary>
+        //public static CommandClient Instance
+        //{
+        //    get
+        //    {
+        //        if (_Instance == null)
+        //        {
+        //            _Instance = new CommandClient();
+        //            _Instance.ServerAddress = ConfigurationManager.AppSettings["NewLife.PeerToPeer.CommandServer"];
+        //        }
+        //        return _Instance;
+        //    }
+        //}
         #endregion
 
         #region 处理
@@ -104,7 +103,7 @@ namespace NewLife.PeerToPeer.Client
 
             WebClient client = new WebClient();
             //return client.UploadData(ServerAddress, buffer);
-            return client.DownloadData(String.Format("{0}?{1}", ServerAddress, ToHex(buffer)));
+            return client.DownloadData(String.Format("{0}?{1}", ServerAddress, DataHelper.ToHex(buffer)));
         }
 
         /// <summary>
@@ -119,37 +118,6 @@ namespace NewLife.PeerToPeer.Client
 
             MemoryStream ms = new MemoryStream(buffer);
             return Message.Deserialize(ms);
-        }
-        #endregion
-
-        #region 编码
-        /// <summary>
-        /// 加密
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public static String ToHex(Byte[] data)
-        {
-            if (data == null || data.Length < 1) return null;
-
-            return BitConverter.ToString(data).Replace("-", null);
-        }
-
-        /// <summary>
-        /// 解密
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public static Byte[] FromHex(String data)
-        {
-            if (String.IsNullOrEmpty(data)) return null;
-
-            Byte[] bts = new Byte[data.Length / 2];
-            for (int i = 0; i < data.Length / 2; i++)
-            {
-                bts[i] = (Byte)Convert.ToInt32(data.Substring(2 * i, 2), 16);
-            }
-            return bts;
         }
         #endregion
     }
