@@ -58,6 +58,16 @@ namespace NewLife.Messaging
         }
 
         /// <summary>
+        /// 消息序列化后打包，一次性写入指定流，防止数据因序列化中多次写入而分片发出（比如UDP网络）
+        /// </summary>
+        /// <param name="stream"></param>
+        public void WritePacket(Stream stream)
+        {
+            Byte[] buffer = ToArray();
+            stream.Write(buffer, 0, buffer.Length);
+        }
+
+        /// <summary>
         /// 反序列化
         /// </summary>
         /// <param name="stream"></param>
