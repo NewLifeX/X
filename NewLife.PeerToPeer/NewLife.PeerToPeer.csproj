@@ -55,6 +55,7 @@
     <Compile Include="Connections\LANConnection.cs" />
     <Compile Include="Connections\TcpConnection.cs" />
     <Compile Include="Connections\UdpConnection.cs" />
+    <Compile Include="Messages\FindTorrentMessage.cs" />
     <Compile Include="Messages\InviteMessage.cs" />
     <Compile Include="Messages\MessageServer.cs" />
     <Compile Include="Messages\P2PMessage.cs" />
