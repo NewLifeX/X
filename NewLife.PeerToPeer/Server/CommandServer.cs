@@ -4,7 +4,7 @@ using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.PeerToPeer.Messages;
 using System.Collections.Generic;
-using NewLife.PeerToPeer.Online;
+//using NewLife.PeerToPeer.Online;
 
 namespace NewLife.PeerToPeer.Server
 {
@@ -14,13 +14,13 @@ namespace NewLife.PeerToPeer.Server
     public class CommandServer : MessageServer
     {
         #region 属性
-        private PeerOnline _OnlineUser;
-        /// <summary>在线用户</summary>
-        public PeerOnline OnlineUser
-        {
-            get { return _OnlineUser; }
-            set { _OnlineUser = value; }
-        }
+        //private PeerOnline _OnlineUser;
+        ///// <summary>在线用户</summary>
+        //public PeerOnline OnlineUser
+        //{
+        //    get { return _OnlineUser; }
+        //    set { _OnlineUser = value; }
+        //}
 
         #endregion
 

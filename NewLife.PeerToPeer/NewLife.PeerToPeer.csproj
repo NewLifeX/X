@@ -48,7 +48,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client\ClientPeer.cs" />
     <Compile Include="Client\CommandClient.cs" />
     <Compile Include="Client\NetClient.cs" />
     <Compile Include="Connections\Connection.cs" />

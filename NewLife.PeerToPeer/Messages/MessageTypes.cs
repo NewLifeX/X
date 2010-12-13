@@ -7,8 +7,12 @@ namespace NewLife.PeerToPeer.Messages
     /// <summary>
     /// 消息类型
     /// </summary>
+    /// <remarks>
+    /// 所有消息分成四段，便于每一段增加消息
+    /// </remarks>
     public enum MessageTypes
     {
+        #region 公共消息
         /// <summary>
         /// 未知
         /// </summary>
@@ -23,21 +27,13 @@ namespace NewLife.PeerToPeer.Messages
         /// 测试响应
         /// </summary>
         TestResponse,
+        #endregion
 
-        /// <summary>
-        /// 邀请
-        /// </summary>
-        Invite,
-
-        /// <summary>
-        /// 邀请响应
-        /// </summary>
-        InviteResponse,
-
+        #region 命令消息
         /// <summary>
         /// 活跃测试
         /// </summary>
-        Ping,
+        Ping = 0x10,
 
         /// <summary>
         /// 活跃测试响应
@@ -55,6 +51,41 @@ namespace NewLife.PeerToPeer.Messages
         FindTorrentResponse,
 
         /// <summary>
+        /// 文字信息
+        /// </summary>
+        Text,
+
+        /// <summary>
+        /// 文字信息响应
+        /// </summary>
+        TextResponse,
+
+        #endregion
+
+        #region Tracker通讯消息
+        /// <summary>
+        /// 跟踪
+        /// </summary>
+        Track = 0x50,
+
+        /// <summary>
+        /// 跟踪响应
+        /// </summary>
+        TrackResponse,
+        #endregion
+
+        #region 客户端互相通讯消息
+        /// <summary>
+        /// 邀请
+        /// </summary>
+        Invite = 0x90,
+
+        /// <summary>
+        /// 邀请响应
+        /// </summary>
+        InviteResponse,
+
+        /// <summary>
         /// 传输文件
         /// </summary>
         TranFile,
@@ -63,15 +94,6 @@ namespace NewLife.PeerToPeer.Messages
         /// 传输文件响应
         /// </summary>
         TranFileResponse,
-
-        /// <summary>
-        /// 文字信息
-        /// </summary>
-        Text,
-
-        /// <summary>
-        /// 文字信息响应
-        /// </summary>
-        TextResponse
+        #endregion
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Net;
 using System.IO;
-using NewLife.PeerToPeer.Common;
+//using NewLife.PeerToPeer.Common;
 
 namespace NewLife.PeerToPeer.Messages
 {
@@ -50,13 +50,13 @@ namespace NewLife.PeerToPeer.Messages
                 set { _Public = value; }
             }
 
-            private Dictionary<Guid, Peer> _Friends;
-            /// <summary>对方的好友列表</summary>
-            public Dictionary<Guid, Peer> Friends
-            {
-                get { return _Friends; }
-                set { _Friends = value; }
-            }
+            //private Dictionary<Guid, Peer> _Friends;
+            ///// <summary>对方的好友列表</summary>
+            //public Dictionary<Guid, Peer> Friends
+            //{
+            //    get { return _Friends; }
+            //    set { _Friends = value; }
+            //}
         }
         #endregion
 

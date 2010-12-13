@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
+using NewLife.Net.Common;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
-using NewLife.PeerToPeer.Common;
+//using NewLife.PeerToPeer.Common;
 using NewLife.PeerToPeer.Messages;
-using NewLife.Net.Common;
 
 namespace NewLife.PeerToPeer.Client
 {
@@ -212,8 +212,8 @@ namespace NewLife.PeerToPeer.Client
         /// <param name="str"></param>
         public void Test(IPEndPoint ep, String str)
         {
-            Peer peer = new ClientPeer(this);
-            peer.Public = ep;
+            //Peer peer = new ClientPeer(this);
+            //peer.Public = ep;
 
             //peer.MessageArrived += delegate(Object sender, MessageArrivedEventArgs e)
             //{
@@ -240,8 +240,8 @@ namespace NewLife.PeerToPeer.Client
         /// <param name="ep"></param>
         public void Invite(IPEndPoint ep)
         {
-            Peer peer = new ClientPeer(this);
-            peer.Public = ep;
+            //Peer peer = new ClientPeer(this);
+            //peer.Public = ep;
             //peer.MessageArrived += delegate(Object sender, MessageArrivedEventArgs e)
             //{
             //    Console.WriteLine("收到消息！");
@@ -256,8 +256,8 @@ namespace NewLife.PeerToPeer.Client
             //        Console.WriteLine("邀请好友：" + e.Token);
             //    }
             //};
-            peer.Public = ep;
-            Invite(peer);
+            //peer.Public = ep;
+            //Invite(peer);
         }
 
         /// <summary>

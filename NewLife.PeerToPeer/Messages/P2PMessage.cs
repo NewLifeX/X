@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Reflection;
-using NewLife.Messaging;
 using System.Threading;
+using NewLife.Messaging;
 
 namespace NewLife.PeerToPeer.Messages
 {
