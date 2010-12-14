@@ -383,7 +383,7 @@ namespace NewLife.CommonEntity
                 }
                 catch (Exception e)
                 { 
-                   throw new Exception(String.Format("“{0}”上传出错！[{1}]",item.FileName,e.Message);
+                   throw new Exception(String.Format("“{0}”上传出错！[{1}]",item.FileName,e.Message));
                 }
             }
 
