@@ -7,7 +7,7 @@ using NewLife.Messaging;
 namespace NewLife.PeerToPeer.Messages
 {
     /// <summary>
-    /// 任务执行状态
+    /// 任务执行状态 任务就是任务，区别于其他信息
     /// </summary>
     public class TaskMessage : Message<TaskMessage>
     {
@@ -23,9 +23,9 @@ namespace NewLife.PeerToPeer.Messages
             set { _TaskID = value; }
         }
 
-        private ExecutionEngineException _State;
+        private Int32 _State;
         /// <summary>执行状态</summary>
-        public ExecutionEngineException State
+        public Int32 State
         {
             get { return _State; }
             set { _State = value; }
@@ -50,17 +50,17 @@ namespace NewLife.PeerToPeer.Messages
                 set { _TaskID = value; }
             }
 
-            private ExecutionEngineException _State;
+            private Int32 _State;
             /// <summary>执行状态</summary>
-            public ExecutionEngineException State
+            public Int32 State
             {
                 get { return _State; }
                 set { _State = value; }
             }
 
-            private Message _TaskMessage;
+            private Stream _TaskMessage;
             /// <summary>任务信息</summary>
-            public Message TaskMessage
+            public Stream TaskMessage
             {
                 get { return _TaskMessage; }
                 set { _TaskMessage = value; }
