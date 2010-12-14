@@ -60,6 +60,16 @@ namespace NewLife.PeerToPeer.Messages
         /// </summary>
         TextResponse,
 
+        /// <summary>
+        /// 任务
+        /// </summary>
+        Task,
+
+        /// <summary>
+        /// 任务响应信息
+        /// </summary>
+        TaskResponse,
+
         #endregion
 
         #region Tracker通讯消息
