@@ -54,6 +54,7 @@
     <Compile Include="Connections\LANConnection.cs" />
     <Compile Include="Connections\TcpConnection.cs" />
     <Compile Include="Connections\UdpConnection.cs" />
+    <Compile Include="ExecutionState\CommandExecutionStateType.cs" />
     <Compile Include="Messages\FindTorrentMessage.cs" />
     <Compile Include="Messages\InviteMessage.cs" />
     <Compile Include="Messages\MessageServer.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="Messages\TestMessage.cs" />
     <Compile Include="Messages\TextMessage.cs" />
     <Compile Include="Messages\TranFileMessage.cs" />
+    <Compile Include="Messages\TaskMessage.cs" />
     <Compile Include="Online\PeerOnline.cs" />
     <Compile Include="P2PTest.cs" />
     <Compile Include="Common\Peer.cs" />
