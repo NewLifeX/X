@@ -1,4 +1,8 @@
-﻿2010-12-01 19:32
+﻿201--12-15 04:02
+1，TrackerClient与Tracker服务器一一对应，工厂模式创建
+2，每个种子任务，只能从TrackerClient工厂里面选择一个Client来发信息，而一个Client收到的信息，可能同时到达多个种子任务处理程序
+
+2010-12-01 19:32
 1，命令服务器是CommandServer，业务代码可以直接在该实例上挂接事件处理方法，以处理各种消息的请求。需要返回消息给请求方时，直接序列化消息然后写入事件参数的数据流中即可。
 2，命令客户端是CommandClient，需要配置参数NewLife.PeerToPeer.CommandServer以指定命令服务器地址。客户端采用WebClient同步收发消息，注意阻塞。
 3，命令服务器托管于网站，可以在Web.config中配置HttpHandler，指向NewLife.IO.StreamHttpHandler，名称必须是Message.ashx，因为数据流工厂使用文件名作为总线名，而消息模型向总线注册的名字是Message。
