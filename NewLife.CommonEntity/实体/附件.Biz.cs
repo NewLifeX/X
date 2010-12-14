@@ -10,6 +10,9 @@ using System.ComponentModel;
 using System.IO;
 using NewLife.Configuration;
 using XCode;
+using System.Web.UI.WebControls;
+using System.Web;
+using System.Collections.Generic;
 
 namespace NewLife.CommonEntity
 {
@@ -137,18 +140,18 @@ namespace NewLife.CommonEntity
         {
             get
             {
-                if (_FileStream == null && !Dirtys.ContainsKey("FileStream"))
-                {
-                    try
-                    {
-                        using (FileStream openFile = File.Open(FullFilePath, FileMode.Open, FileAccess.Read))
-                        {
-                            _FileStream = openFile;
-                        }
-                    }
-                    catch { };
-                    Dirtys.Add("FileStream", true);
-                }
+                //if (_FileStream == null && !Dirtys.ContainsKey("FileStream"))
+                //{
+                //    try
+                //    {
+                //        using (FileStream openFile = File.Open(FullFilePath, FileMode.Open, FileAccess.Read))
+                //        {
+                //            _FileStream = openFile;
+                //        }
+                //    }
+                //    catch { };
+                //    Dirtys.Add("FileStream", true);
+                //}
                 return _FileStream;
             }
             set { _FileStream = value; }
@@ -312,12 +315,88 @@ namespace NewLife.CommonEntity
         /// </summary>
         public void SaveFile()
         {
+            //Request.Files
+
             // 1，根据文件上传控件创建附件实例
             // 2，使用读取基本信息到附件实例
             // 3，保存附件信息，取得ID
             // 4，调用GetFilePath取得文件存放路径
             // 5，保存文件并且再次保存附件信息
         }
+
+        /// <summary>
+        /// 保存上传文件
+        /// </summary>
+        /// <param name="fileUpload"></param>
+        /// <param name="category"></param>
+        /// <param name="userName"></param>
+        /// <returns></returns>
+        public Attachment SaveFile(FileUpload fileUpload, String category, String userName)
+        {
+            if (fileUpload.HasFile == false) return null;
+            //使用事务保护，保存文件不成功时，回滚记录
+            Meta.DBO.BeginTransaction();
+            Attachment att = new Attachment();
+            try
+            {
+                att.FileName = fileUpload.FileName;
+                att.Size = fileUpload.PostedFile.ContentLength / 1024;
+                att.Extension = System.IO.Path.GetExtension(fileUpload.FileName);
+                att.Category = category;
+                //att.FilePath = 
+                att.ContentType = fileUpload.PostedFile.ContentType;
+                att.UploadTime = DateTime.Now;
+                att.UserName = userName;
+                //att.Save();
+                att.GetFilePath();
+                att.Save();
+                fileUpload.SaveAs(att.FilePath);
+
+                Meta.DBO.Commit();
+            }
+            catch (Exception e)
+            {
+                Meta.DBO.Rollback();
+                throw e;
+            }
+            //att.Save();
+
+            return att;
+        }
+
+        /// <summary>
+        /// 保存上传文件
+        /// </summary>
+        /// <param name="fileUploads"></param>
+        /// <param name="category"></param>
+        /// <param name="userName"></param>
+        /// <returns></returns>
+        public List<Attachment> SaveFile(HttpFileCollection fileUploads, String category, String userName)
+        {
+            List<Attachment> atts = new List<Attachment>();
+            foreach (FileUpload item in fileUploads)
+            {
+                try
+                {
+                    Attachment att = SaveFile(item, category, userName);
+                    if (att != null) atts.Add(att);
+                }
+                catch (Exception e)
+                { 
+                   throw new Exception(String.Format("“{0}”上传出错！[{1}]",item.FileName,e.Message);
+                }
+            }
+
+            return atts.Count > 0 ? atts : null;
+        }
+
+        //public Boolean SaveChecked(HttpFileCollection fileUploads)
+        //{
+        //    //1.是否开启上传
+        //    //2.格式检查
+        //    //3.文件大小检查
+        //    return false;
+        //}
         #endregion
     }
 }
