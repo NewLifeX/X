@@ -55,10 +55,12 @@ namespace NewLife.CommonEntity
             {
                 return GetExtend<TMenuEntity, EntityList<TMenuEntity>>("MenuList", delegate
                 {
-                    return EntityList<TMenuEntity>.From<TRoleMenuEntity>(RoleMenu<TRoleMenuEntity>.FindAllByRoleID(ID), delegate(TRoleMenuEntity item)
+                    EntityList<TMenuEntity> list = EntityList<TMenuEntity>.From<TRoleMenuEntity>(Menus, delegate(TRoleMenuEntity item)
                     {
                         return Menu<TMenuEntity>.FindByID(item.MenuID);
                     });
+                    if (list != null) list.Sort(Menu<TMenuEntity>._.Sort, true);
+                    return list;
                 });
             }
             set { Extends["MenuList"] = value; }
