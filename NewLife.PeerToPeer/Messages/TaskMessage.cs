@@ -66,6 +66,6 @@ namespace NewLife.PeerToPeer.Messages
                 set { _TaskMessage = value; }
             }
         }
-        #endregion
+        #endregion1
     }
 }
