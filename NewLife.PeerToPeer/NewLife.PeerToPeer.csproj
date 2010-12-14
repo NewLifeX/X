@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Client\CommandClient.cs" />
     <Compile Include="Client\NetClient.cs" />
+    <Compile Include="Client\TrackerClient.cs" />
     <Compile Include="Connections\Connection.cs" />
     <Compile Include="Connections\LANConnection.cs" />
     <Compile Include="Connections\TcpConnection.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="Messages\PingMessage.cs" />
     <Compile Include="Messages\TestMessage.cs" />
     <Compile Include="Messages\TextMessage.cs" />
+    <Compile Include="Messages\TrackMessage.cs" />
     <Compile Include="Messages\TranFileMessage.cs" />
     <Compile Include="Messages\TaskMessage.cs" />
     <Compile Include="Online\PeerOnline.cs" />

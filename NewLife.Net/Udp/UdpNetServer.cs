@@ -15,10 +15,13 @@ namespace NewLife.Net.Udp
         /// </summary>
         protected override void EnsureCreateServer()
         {
-            UdpServer svr = new UdpServer(Address, Port);
-            svr.Received += new EventHandler<NetEventArgs>(OnReceived);
+            if (Server == null)
+            {
+                UdpServer svr = new UdpServer(Address, Port);
+                svr.Received += new EventHandler<NetEventArgs>(OnReceived);
 
-            Server = svr;
+                Server = svr;
+            }
         }
 
         /// <summary>

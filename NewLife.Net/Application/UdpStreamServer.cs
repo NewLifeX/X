@@ -25,7 +25,7 @@ namespace NewLife.Net.Application
         {
             if (String.IsNullOrEmpty(StreamHandlerName)) throw new Exception("未指定数据流处理器名称！");
 
-            Name = "数据流服务器（UDP）";
+            if (String.IsNullOrEmpty(Name)) Name = "数据流服务器（UDP）";
 
             base.EnsureCreateServer();
         }

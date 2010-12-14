@@ -15,10 +15,13 @@ namespace NewLife.Net.Tcp
         /// </summary>
         protected override void EnsureCreateServer()
         {
-            TcpServer svr = new TcpServer(Address, Port);
-            svr.Accepted += new EventHandler<NetEventArgs>(OnAccepted);
+            if (Server == null)
+            {
+                TcpServer svr = new TcpServer(Address, Port);
+                svr.Accepted += new EventHandler<NetEventArgs>(OnAccepted);
 
-            Server = svr;
+                Server = svr;
+            }
         }
 
         /// <summary>
