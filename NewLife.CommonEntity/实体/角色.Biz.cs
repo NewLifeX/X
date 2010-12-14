@@ -96,6 +96,24 @@ namespace NewLife.CommonEntity
             TMenuEntity entity = Menu<TMenuEntity>.FindByPath(MenuList, name, Menu<TMenuEntity>._.Permission);
             return entity != null;
         }
+
+        /// <summary>
+        /// 取得当前角色的子菜单，有权限、可显示、排序
+        /// </summary>
+        /// <param name="parentID"></param>
+        /// <returns></returns>
+        public EntityList<TMenuEntity> GetMySubMenus(Int32 parentID)
+        {
+            EntityList<TMenuEntity> list = MenuList;
+            if (list == null || list.Count < 1) return null;
+
+            list = list.FindAll(Menu<TMenuEntity>._.ParentID, parentID);
+            if (list == null || list.Count < 1) return null;
+            list = list.FindAll(Menu<TMenuEntity>._.IsShow, true);
+            if (list == null || list.Count < 1) return null;
+
+            return list;
+        }
         #endregion
     }
 
