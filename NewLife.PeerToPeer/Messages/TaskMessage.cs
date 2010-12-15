@@ -58,9 +58,9 @@ namespace NewLife.PeerToPeer.Messages
                 set { _State = value; }
             }
 
-            private Stream _TaskMessage;
+            private byte[] _TaskMessage;
             /// <summary>任务信息</summary>
-            public Stream TaskMessage
+            public byte[] TaskMessage
             {
                 get { return _TaskMessage; }
                 set { _TaskMessage = value; }
