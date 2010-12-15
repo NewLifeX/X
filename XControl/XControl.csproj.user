@@ -8,4 +8,7 @@
     <StartAction>Program</StartAction>
     <StartProgram>D:\MS\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe</StartProgram>
   </PropertyGroup>
+  <PropertyGroup>
+    <ProjectView>ShowAllFiles</ProjectView>
+  </PropertyGroup>
 </Project>
