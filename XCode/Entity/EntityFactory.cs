@@ -116,50 +116,50 @@ namespace XCode
         #endregion
 
         #region 加载插件
-        //private static Int32 _AsmCount = 0;
-        private static List<Type> _AllEntities;
-        /// <summary>所有实体</summary>
-        public static List<Type> AllEntities
-        {
-            get
-            {
-                //Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
-                //if (_AllEntities != null && _AsmCount == asms.Length) return _AllEntities;
-                if (_AllEntities != null) return _AllEntities;
-                lock (typeof(EntityFactory))
-                {
-                    if (_AllEntities != null) return _AllEntities;
+        ////private static Int32 _AsmCount = 0;
+        //private static List<Type> _AllEntities;
+        ///// <summary>所有实体</summary>
+        //public static List<Type> AllEntities
+        //{
+        //    get
+        //    {
+        //        //Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
+        //        //if (_AllEntities != null && _AsmCount == asms.Length) return _AllEntities;
+        //        if (_AllEntities != null) return _AllEntities;
+        //        lock (typeof(EntityFactory))
+        //        {
+        //            if (_AllEntities != null) return _AllEntities;
 
-                    _AllEntities = LoadEntities();
-                    //_AsmCount = asms.Length;
-                    AppDomain.CurrentDomain.AssemblyLoad += new AssemblyLoadEventHandler(CurrentDomain_AssemblyLoad);
+        //            _AllEntities = LoadEntities();
+        //            //_AsmCount = asms.Length;
+        //            AppDomain.CurrentDomain.AssemblyLoad += new AssemblyLoadEventHandler(CurrentDomain_AssemblyLoad);
 
-                    return _AllEntities;
-                }
-            }
-        }
+        //            return _AllEntities;
+        //        }
+        //    }
+        //}
 
-        static void CurrentDomain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
-        {
-            //_AllEntities = null;
-            AssemblyX asm = AssemblyX.Create(args.LoadedAssembly);
-            if (!asm.IsSystemAssembly)
-            {
-                ListX<TypeX> list = asm.FindPlugins<IEntity>();
-                if (list != null && list.Count > 0)
-                {
-                    WriteLog("程序集{0}找到实体{1}个！", asm.ToString(), list.Count);
+        //static void CurrentDomain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
+        //{
+        //    //_AllEntities = null;
+        //    AssemblyX asm = AssemblyX.Create(args.LoadedAssembly);
+        //    if (!asm.IsSystemAssembly)
+        //    {
+        //        ListX<TypeX> list = asm.FindPlugins<IEntity>();
+        //        if (list != null && list.Count > 0)
+        //        {
+        //            WriteLog("程序集{0}找到实体{1}个！", asm.ToString(), list.Count);
 
-                    List<Type> list2 = new List<Type>();
-                    if (_AllEntities != null) list2.AddRange(_AllEntities);
-                    foreach (TypeX item in list)
-                    {
-                        list2.Add(item.BaseType);
-                    }
-                    _AllEntities = list2;
-                }
-            }
-        }
+        //            List<Type> list2 = new List<Type>();
+        //            if (_AllEntities != null) list2.AddRange(_AllEntities);
+        //            foreach (TypeX item in list)
+        //            {
+        //                list2.Add(item.BaseType);
+        //            }
+        //            _AllEntities = list2;
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// 列出所有实体类
@@ -167,55 +167,57 @@ namespace XCode
         /// <returns></returns>
         public static List<Type> LoadEntities()
         {
-            Assembly curAsm = Assembly.GetExecutingAssembly();
-            String path = AppDomain.CurrentDomain.BaseDirectory;
-            path = Path.GetDirectoryName(path);
+            return AssemblyX.FindAllPlugins(typeof(IEntity));
 
-            if (!String.IsNullOrEmpty(HttpRuntime.AppDomainAppId))
-            {
-                path = HttpRuntime.BinDirectory;
-            }
+            //Assembly curAsm = Assembly.GetExecutingAssembly();
+            //String path = AppDomain.CurrentDomain.BaseDirectory;
+            //path = Path.GetDirectoryName(path);
 
-            WriteLog("程序集目录：" + path);
+            //if (!String.IsNullOrEmpty(HttpRuntime.AppDomainAppId))
+            //{
+            //    path = HttpRuntime.BinDirectory;
+            //}
 
-            List<Assembly> asms = new List<Assembly>(AppDomain.CurrentDomain.GetAssemblies());
-            for (int i = asms.Count - 1; i >= 0; i--)
-            {
-                Assembly asm = asms[i];
+            //WriteLog("程序集目录：" + path);
 
-                if (asm.GlobalAssemblyCache ||
-                    asm.FullName.StartsWith("Interop.") || asm.FullName.StartsWith("System.") ||
-                    asm.FullName.StartsWith("System,") || asm.FullName.StartsWith("Microsoft.") ||
-                    asm.FullName.StartsWith("XCode,") || asm.FullName.StartsWith("XLog,"))
-                    asms.RemoveAt(i);
-            }
+            //List<Assembly> asms = new List<Assembly>(AppDomain.CurrentDomain.GetAssemblies());
+            //for (int i = asms.Count - 1; i >= 0; i--)
+            //{
+            //    Assembly asm = asms[i];
 
-            List<Type> types = new List<Type>();
-            if (asms != null) WriteLog("共找到程序集：" + asms.Count);
-            foreach (Assembly item in asms)
-            {
-                WriteLog("加载程序集：" + item.FullName);
+            //    if (asm.GlobalAssemblyCache ||
+            //        asm.FullName.StartsWith("Interop.") || asm.FullName.StartsWith("System.") ||
+            //        asm.FullName.StartsWith("System,") || asm.FullName.StartsWith("Microsoft.") ||
+            //        asm.FullName.StartsWith("XCode,") || asm.FullName.StartsWith("XLog,"))
+            //        asms.RemoveAt(i);
+            //}
 
-                try
-                {
-                    Type[] ts = item.GetTypes();
-                    if (ts != null && ts.Length > 0) types.AddRange(ts);
-                }
-                catch { }
-            }
-            if (types.Count < 1) return null;
+            //List<Type> types = new List<Type>();
+            //if (asms != null) WriteLog("共找到程序集：" + asms.Count);
+            //foreach (Assembly item in asms)
+            //{
+            //    WriteLog("加载程序集：" + item.FullName);
 
-            Type t = typeof(EntityBase);
-            //查找插件类型，所有继承自Entity的类
-            for (int i = types.Count - 1; i >= 0; i--)
-            {
-                if (!t.IsAssignableFrom(types[i]) || !IsEntity(types[i])) types.RemoveAt(i);
-            }
+            //    try
+            //    {
+            //        Type[] ts = item.GetTypes();
+            //        if (ts != null && ts.Length > 0) types.AddRange(ts);
+            //    }
+            //    catch { }
+            //}
+            //if (types.Count < 1) return null;
 
-            if (types.Count < 1)
-                return null;
-            else
-                return types;
+            //Type t = typeof(EntityBase);
+            ////查找插件类型，所有继承自Entity的类
+            //for (int i = types.Count - 1; i >= 0; i--)
+            //{
+            //    if (!t.IsAssignableFrom(types[i]) || !IsEntity(types[i])) types.RemoveAt(i);
+            //}
+
+            //if (types.Count < 1)
+            //    return null;
+            //else
+            //    return types;
         }
 
         /// <summary>
@@ -259,10 +261,14 @@ namespace XCode
             Type type = Type.GetType(typeName);
             if (type == null)
             {
-                if (!typeName.Contains("."))
-                    type = AllEntities.Find(delegate(Type item) { return item.Name == typeName; });
-                else
-                    type = AllEntities.Find(delegate(Type item) { return item.FullName == typeName; });
+                List<Type> entities = LoadEntities();
+                if (entities != null && entities.Count > 0)
+                {
+                    if (!typeName.Contains("."))
+                        type = entities.Find(delegate(Type item) { return item.Name == typeName; });
+                    else
+                        type = entities.Find(delegate(Type item) { return item.FullName == typeName; });
+                }
             }
             return type;
         }

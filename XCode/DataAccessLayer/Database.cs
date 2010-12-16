@@ -1171,6 +1171,7 @@ namespace XCode.DataAccessLayer
             }
         }
         #endregion
+        #endregion
 
         #region 数据定义
         /// <summary>
@@ -1484,10 +1485,6 @@ namespace XCode.DataAccessLayer
             return null;
         }
         #endregion
-
-        #region 数据定义操作
-        #endregion
-        #endregion
         #endregion
 
         #region 数据库特性
@@ -1508,7 +1505,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String FormatDateTime(DateTime dateTime)
         {
-            throw new NotImplementedException("数据库实体不支持该操作！");
+            return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime);
         }
 
         /// <summary>

@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-
 using System.Data;
 using System.Data.Common;
 using System.Data.OracleClient;
-using NewLife.Log;
 using System.Text.RegularExpressions;
 
 namespace XCode.DataAccessLayer
@@ -222,6 +219,18 @@ namespace XCode.DataAccessLayer
         //            return typeof(String);
         //    }
         //}
+        #endregion
+
+        #region 数据库特性
+        /// <summary>
+        /// 已重载。格式化时间
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public override string FormatDateTime(DateTime dateTime)
+        {
+            return String.Format("To_Date('{0}', 'YYYYMMDDHH24MISS')", dateTime.ToString("yyyyMMddhhmmss"));
+        }
         #endregion
     }
 }

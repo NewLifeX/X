@@ -426,12 +426,12 @@ namespace XCode.DataAccessLayer
                     return File.Exists(FileName);
                 case DDLSchema.CreateTable:
                     obj = base.SetSchema(DDLSchema.CreateTable, values);
-                    XTable table = values[0] as XTable;
-                    if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(table.Name, table.Description);
-                    foreach (XField item in table.Fields)
-                    {
-                        if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(table.Name, item.Name, item.Description);
-                    }
+                    //XTable table = values[0] as XTable;
+                    //if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(table.Name, table.Description);
+                    //foreach (XField item in table.Fields)
+                    //{
+                    //    if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(table.Name, item.Name, item.Description);
+                    //}
                     return obj;
                 case DDLSchema.DropTable:
                     break;
@@ -439,30 +439,35 @@ namespace XCode.DataAccessLayer
                     DataTable dt = GetSchema("Tables", new String[] { null, null, (String)values[0], "TABLE" });
                     if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
                     return true;
-                case DDLSchema.AddTableDescription:
-                    return AddTableDescription((String)values[0], (String)values[1]);
-                case DDLSchema.DropTableDescription:
-                    return DropTableDescription((String)values[0]);
+                //case DDLSchema.AddTableDescription:
+                //    return AddTableDescription((String)values[0], (String)values[1]);
+                //case DDLSchema.DropTableDescription:
+                //    return DropTableDescription((String)values[0]);
                 case DDLSchema.AddColumn:
                     obj = base.SetSchema(DDLSchema.AddColumn, values);
-                    AddColumnDescription((String)values[0], ((XField)values[1]).Name, ((XField)values[1]).Description);
+                    //AddColumnDescription((String)values[0], ((XField)values[1]).Name, ((XField)values[1]).Description);
                     return obj;
                 case DDLSchema.AlterColumn:
                     break;
                 case DDLSchema.DropColumn:
                     break;
-                case DDLSchema.AddColumnDescription:
-                    return AddColumnDescription((String)values[0], (String)values[1], (String)values[2]);
-                case DDLSchema.DropColumnDescription:
-                    return DropColumnDescription((String)values[0], (String)values[1]);
-                case DDLSchema.AddDefault:
-                    return AddDefault((String)values[0], (String)values[1], (String)values[2]);
-                case DDLSchema.DropDefault:
-                    return DropDefault((String)values[0], (String)values[1]);
+                //case DDLSchema.AddColumnDescription:
+                //    return AddColumnDescription((String)values[0], (String)values[1], (String)values[2]);
+                //case DDLSchema.DropColumnDescription:
+                //    return DropColumnDescription((String)values[0], (String)values[1]);
+                //case DDLSchema.AddDefault:
+                //    return AddDefault((String)values[0], (String)values[1], (String)values[2]);
+                //case DDLSchema.DropDefault:
+                //    return DropDefault((String)values[0], (String)values[1]);
                 default:
                     break;
             }
             return base.SetSchema(schema, values);
+        }
+
+        public override string AlterColumnSQL(string tablename, XField field)
+        {
+            return null;
         }
 
         public override string FieldClause(XField field, bool onlyDefine)
@@ -477,7 +482,7 @@ namespace XCode.DataAccessLayer
             switch (tc)
             {
                 case TypeCode.Boolean:
-                    sb.Append("bit");
+                    sb.Append("BOOLEAN");
                     break;
                 case TypeCode.Byte:
                     sb.Append("byte");
@@ -494,21 +499,21 @@ namespace XCode.DataAccessLayer
                     sb.AppendFormat("decimal");
                     break;
                 case TypeCode.Double:
-                    sb.Append("float");
+                    sb.Append("double");
                     break;
                 case TypeCode.Empty:
                     break;
                 case TypeCode.Int16:
                 case TypeCode.UInt16:
-                    sb.Append("smallint");
-                    break;
+                    //sb.Append("smallint");
+                    //break;
                 case TypeCode.Int32:
                 case TypeCode.UInt32:
-                    sb.Append("int");
-                    break;
+                    //sb.Append("interger");
+                    //break;
                 case TypeCode.Int64:
                 case TypeCode.UInt64:
-                    sb.Append("bigint");
+                    sb.Append("INTEGER");
                     break;
                 case TypeCode.Object:
                     break;
@@ -519,8 +524,12 @@ namespace XCode.DataAccessLayer
                     sb.Append("float");
                     break;
                 case TypeCode.String:
-                    //sb.AppendFormat("TEXT({0})", field.Length);
-                    sb.Append("ntext");
+                    Int32 len = field.Length;
+                    if (len < 1) len = 50;
+                    if (len > 4000)
+                        sb.Append("TEXT");
+                    else
+                        sb.AppendFormat("nvarchar({0})", len);
                     break;
                 default:
                     break;
@@ -528,9 +537,10 @@ namespace XCode.DataAccessLayer
 
             if (field.PrimaryKey)
             {
-                sb.Append(" PRIMARY KEY");
+                sb.Append(" primary key");
 
-                if (onlyDefine && field.Identity) sb.Append(" AUTOINCREMENT");
+                // 如果不加这个关键字，SQLite会利用最大值加1的方式，所以，最大行被删除后，它的编号将会被重用
+                if (onlyDefine && field.Identity) sb.Append(" autoincrement");
             }
             else
             {
@@ -573,81 +583,81 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 表和字段备注
-        public Boolean AddTableDescription(String tablename, String description)
-        {
-            try
-            {
-                using (ADOTabe table = new ADOTabe(ConnectionString, FileName, tablename))
-                {
-                    table.Description = description;
-                    return true;
-                }
-            }
-            catch { return false; }
-        }
+        //public Boolean AddTableDescription(String tablename, String description)
+        //{
+        //    try
+        //    {
+        //        using (ADOTabe table = new ADOTabe(ConnectionString, FileName, tablename))
+        //        {
+        //            table.Description = description;
+        //            return true;
+        //        }
+        //    }
+        //    catch { return false; }
+        //}
 
-        public Boolean DropTableDescription(String tablename)
-        {
-            return AddTableDescription(tablename, null);
-        }
+        //public Boolean DropTableDescription(String tablename)
+        //{
+        //    return AddTableDescription(tablename, null);
+        //}
 
-        public Boolean AddColumnDescription(String tablename, String columnname, String description)
-        {
-            try
-            {
-                using (ADOTabe table = new ADOTabe(ConnectionString, FileName, tablename))
-                {
-                    if (table.Supported && table.Columns != null)
-                    {
-                        foreach (ADOColumn item in table.Columns)
-                        {
-                            if (item.Name == columnname)
-                            {
-                                item.Description = description;
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
-                }
-            }
-            catch { return false; }
-        }
+        //public Boolean AddColumnDescription(String tablename, String columnname, String description)
+        //{
+        //    try
+        //    {
+        //        using (ADOTabe table = new ADOTabe(ConnectionString, FileName, tablename))
+        //        {
+        //            if (table.Supported && table.Columns != null)
+        //            {
+        //                foreach (ADOColumn item in table.Columns)
+        //                {
+        //                    if (item.Name == columnname)
+        //                    {
+        //                        item.Description = description;
+        //                        return true;
+        //                    }
+        //                }
+        //            }
+        //            return false;
+        //        }
+        //    }
+        //    catch { return false; }
+        //}
 
-        public Boolean DropColumnDescription(String tablename, String columnname)
-        {
-            return AddColumnDescription(tablename, columnname, null);
-        }
+        //public Boolean DropColumnDescription(String tablename, String columnname)
+        //{
+        //    return AddColumnDescription(tablename, columnname, null);
+        //}
         #endregion
 
         #region 默认值
-        public virtual Boolean AddDefault(String tablename, String columnname, String value)
-        {
-            try
-            {
-                using (ADOTabe table = new ADOTabe(ConnectionString, FileName, tablename))
-                {
-                    if (table.Supported && table.Columns != null)
-                    {
-                        foreach (ADOColumn item in table.Columns)
-                        {
-                            if (item.Name == columnname)
-                            {
-                                item.Default = value;
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
-                }
-            }
-            catch { return false; }
-        }
+        //public virtual Boolean AddDefault(String tablename, String columnname, String value)
+        //{
+        //    try
+        //    {
+        //        using (ADOTabe table = new ADOTabe(ConnectionString, FileName, tablename))
+        //        {
+        //            if (table.Supported && table.Columns != null)
+        //            {
+        //                foreach (ADOColumn item in table.Columns)
+        //                {
+        //                    if (item.Name == columnname)
+        //                    {
+        //                        item.Default = value;
+        //                        return true;
+        //                    }
+        //                }
+        //            }
+        //            return false;
+        //        }
+        //    }
+        //    catch { return false; }
+        //}
 
-        public virtual Boolean DropDefault(String tablename, String columnname)
-        {
-            return AddDefault(tablename, columnname, null);
-        }
+        //public virtual Boolean DropDefault(String tablename, String columnname)
+        //{
+        //    return AddDefault(tablename, columnname, null);
+        //}
         #endregion
 
         #region 数据库特性

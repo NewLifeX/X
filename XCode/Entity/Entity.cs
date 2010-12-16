@@ -954,30 +954,32 @@ namespace XCode
                 DateTime dt = Convert.ToDateTime(obj);
 
                 //if (Meta.DbType == DatabaseType.Access) return "#" + dt.ToString("yyyy-MM-dd HH:mm:ss") + "#";
-                if (Meta.DbType == DatabaseType.Access) return Meta.FormatDateTime(dt);
+                //if (Meta.DbType == DatabaseType.Access) return Meta.FormatDateTime(dt);
 
-                if ((dt == DateTime.MinValue || dt == year1900) && isNullable) return "null";
-                if (Meta.DbType == DatabaseType.Oracle)
-                    return String.Format("To_Date('{0}', 'YYYYMMDDHH24MISS')", dt.ToString("yyyyMMddhhmmss"));
+                //if (Meta.DbType == DatabaseType.Oracle)
+                //    return String.Format("To_Date('{0}', 'YYYYMMDDHH24MISS')", dt.ToString("yyyyMMddhhmmss"));
                 // SqlServer拒绝所有其不能识别为 1753 年到 9999 年间的日期的值
                 if (Meta.DbType == DatabaseType.SqlServer || Meta.DbType == DatabaseType.SqlServer2005)
                 {
-                    try
-                    {
-                        if (dt < year1753 || dt > year9999) return isNullable ? "null" : "''";
-                    }
-                    catch { }
+                    if (dt < year1753 || dt > year9999) return isNullable ? "null" : "''";
                 }
-                return "'" + dt.ToString("yyyy-MM-dd HH:mm:ss") + "'";
+                if ((dt == DateTime.MinValue || dt == year1900) && isNullable) return "null";
+                //return "'" + dt.ToString("yyyy-MM-dd HH:mm:ss") + "'";
+                return Meta.FormatDateTime(dt);
             }
             //else if (typeName.Contains("Boolean"))
             else if (code == TypeCode.Boolean)
             {
                 if (obj == null) return isNullable ? "null" : "";
-                if (Meta.DbType == DatabaseType.SqlServer || Meta.DbType == DatabaseType.SqlServer2005)
-                    return Convert.ToBoolean(obj) ? "1" : "0";
-                else
+                //if (Meta.DbType == DatabaseType.SqlServer || Meta.DbType == DatabaseType.SqlServer2005)
+                //    return Convert.ToBoolean(obj) ? "1" : "0";
+                //else
+                //    return obj.ToString();
+
+                if (Meta.DbType == DatabaseType.Access)
                     return obj.ToString();
+                else
+                    return Convert.ToBoolean(obj) ? "1" : "0";
             }
             else
             {

@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Web;
-using XCode.Configuration;
-using NewLife.Log;
 using NewLife.Collections;
+using NewLife.Log;
+using XCode.Configuration;
 
 namespace XCode.DataAccessLayer
 {
@@ -36,7 +33,8 @@ namespace XCode.DataAccessLayer
                 {
                     _Entities = new List<Type>();
 
-                    IList<Type> list = EntityFactory.AllEntities;
+                    //IList<Type> list = EntityFactory.AllEntities;
+                    IList<Type> list = EntityFactory.LoadEntities();
                     if (list != null && list.Count > 0)
                     {
                         foreach (Type item in list)
@@ -281,7 +279,6 @@ namespace XCode.DataAccessLayer
 #endif
             {
                 String sql = String.Empty;
-                //Boolean b = (Boolean)Database.DB.SetSchema(DDLSchema.TableExist, new Object[] { entitytable.Name });
                 if (dbtable == null)
                 {
                     #region 创建表
@@ -290,37 +287,11 @@ namespace XCode.DataAccessLayer
                         XTrace.WriteLine("创建表：" + entitytable.Name);
                         //建表
                         Database.DB.SetSchema(DDLSchema.CreateTable, new Object[] { entitytable });
-                        ////表说明
-                        //try
-                        //{
-                        //    Database.DB.SetSchema(DDLSchema.AddTableDescription, new Object[] { entitytable.Name, entitytable.Description });
-                        //}
-                        //catch { }
-                        ////字段说明
-                        //try
-                        //{
-                        //    foreach (XField elm in entitytable.Fields)
-                        //    {
-                        //        Database.DB.SetSchema(DDLSchema.AddColumnDescription, new Object[] { entitytable.Name, elm.Name, elm.Description });
-                        //    }
-                        //}
-                        //catch { }
                     }
                     else
                     {
                         StringBuilder sb = new StringBuilder();
                         sb.AppendLine(Database.DB.GetSchemaSQL(DDLSchema.CreateTable, new Object[] { entitytable }) + ";");
-                        //try
-                        //{
-                        //    sql = Database.DB.GetSchemaSQL(DDLSchema.AddTableDescription, new Object[] { entitytable.Name, entitytable.Description });
-                        //    if (!String.IsNullOrEmpty(sql)) sb.AppendLine(sql + ";");
-                        //    foreach (XField elm in entitytable.Fields)
-                        //    {
-                        //        sql = Database.DB.GetSchemaSQL(DDLSchema.AddColumnDescription, new Object[] { entitytable.Name, elm.Name, elm.Description });
-                        //        if (!String.IsNullOrEmpty(sql)) sb.AppendLine(sql + ";");
-                        //    }
-                        //}
-                        //catch { }
 
                         sql = sb.ToString();
                         XTrace.WriteLine("DatabaseSchema_Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sql);
