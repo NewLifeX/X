@@ -94,6 +94,13 @@ namespace NewLife.CommonEntity
             //return true;
 
             TMenuEntity entity = Menu<TMenuEntity>.FindByPath(MenuList, name, Menu<TMenuEntity>._.Permission);
+
+            // 找不到的时候，修改当前页面
+            if (entity == null && Menu<TMenuEntity>.Current != null)
+            {
+                if (Menu<TMenuEntity>.Current.ResetName(name)) entity = Menu<TMenuEntity>.Current;
+            }
+
             return entity != null;
         }
 

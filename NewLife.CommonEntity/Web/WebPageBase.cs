@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Web;
 using System.Web.UI;
 using XCode.DataAccessLayer;
@@ -28,7 +29,21 @@ namespace NewLife.CommonEntity.Web
         /// <summary>
         /// 权限名。默认是页面标题
         /// </summary>
-        public virtual String PermissionName { get { return Title; } }
+        public virtual String PermissionName
+        {
+            get
+            {
+                // 默认使用标题
+                if (!String.IsNullOrEmpty(Title)) return Title;
+
+                // 计算 目录/文件 的形式
+                String p = Request.PhysicalPath;
+                String dirName = new DirectoryInfo(Path.GetDirectoryName(p)).Name;
+                String fileName = Path.GetFileNameWithoutExtension(p);
+
+                return String.Format(@"{0}/{1}", dirName, fileName);
+            }
+        }
 
         /// <summary>
         /// 已重载。
@@ -40,6 +55,7 @@ namespace NewLife.CommonEntity.Web
 
             if (ValidatePermission && !CheckPermission())
             {
+                Response.StatusCode = 403;
                 Response.Write("没有权限访问该页！");
                 Response.End();
             }

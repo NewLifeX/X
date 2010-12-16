@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Web;
 using System.Xml.Serialization;
 using NewLife.Log;
 using XCode;
+using System.Text;
 
 namespace NewLife.CommonEntity
 {
@@ -33,11 +37,56 @@ namespace NewLife.CommonEntity
                 TEntity entity = Root;
                 entity = entity.AddChild("控制台", null);
                 entity = entity.AddChild("系统管理", null);
+                entity.Sort = 9999;
+                entity.Save();
+
                 entity.AddChild("菜单管理", "../System/Menu.aspx");
                 entity.AddChild("管理员管理", "../System/UserManage.aspx");
                 entity.AddChild("角色管理", "../System/Role.aspx");
                 entity.AddChild("权限管理", "../System/RoleMenu.aspx");
                 entity.AddChild("日志管理", "../System/Log.aspx");
+
+                // 准备增加Admin目录下的所有页面
+                try
+                {
+                    String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Admin");
+                    if (Directory.Exists(p))
+                    {
+                        String[] dis = Directory.GetDirectories(p);
+                        if (dis != null && dis.Length > 0)
+                        {
+                            foreach (String item in dis)
+                            {
+                                String dirName = new DirectoryInfo(item).Name;
+                                if (dirName.Equals("Frame", StringComparison.OrdinalIgnoreCase)) continue;
+                                if (dirName.Equals("System", StringComparison.OrdinalIgnoreCase)) continue;
+                                if (dirName.StartsWith("img", StringComparison.OrdinalIgnoreCase)) continue;
+
+                                String[] fs = Directory.GetFiles(item, "*.aspx", SearchOption.TopDirectoryOnly);
+                                if (fs == null || fs.Length < 1) continue;
+
+                                List<String> files = new List<String>();
+                                foreach (String elm in fs)
+                                {
+                                    // 过滤掉表单页面
+                                    if (Path.GetFileNameWithoutExtension(elm).EndsWith("Form", StringComparison.OrdinalIgnoreCase)) continue;
+
+                                    files.Add(elm);
+                                }
+                                if (files.Count < 1) continue;
+
+                                // 添加
+                                TEntity parent = Root.Childs[0].AddChild(dirName, null);
+                                foreach (String elm in files)
+                                {
+                                    String url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
+                                    parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch { }
 
                 if (XTrace.Debug) XTrace.WriteLine("完成初始化表单数据！");
             }
@@ -50,6 +99,38 @@ namespace NewLife.CommonEntity
         /// </summary>
         [XmlIgnore]
         public virtual String ParentMenuName { get { return Parent == null ? null : Parent.Name; } set { } }
+
+        ///// <summary>
+        ///// 完整文件路径
+        ///// </summary>
+        //public String FullFilePath
+        //{
+        //    get
+        //    {
+        //        if (String.IsNullOrEmpty(Url)) return Url;
+
+
+        //    }
+        //}
+
+        /// <summary>
+        /// 当前页所对应的菜单项
+        /// </summary>
+        public static TEntity Current
+        {
+            get
+            {
+                if (HttpContext.Current == null || HttpContext.Current.Request == null) return null;
+
+                // 计算当前文件路径
+                String p = HttpContext.Current.Request.PhysicalPath;
+                String dirName = new DirectoryInfo(Path.GetDirectoryName(p)).Name;
+                String fileName = Path.GetFileName(p);
+
+                String url = String.Format(@"../{0}/{1}", dirName, fileName);
+                return Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
+            }
+        }
         #endregion
 
         #region 扩展查询
@@ -200,6 +281,33 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展操作
+        /// <summary>
+        /// 检查并重新设置名称和权限项
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public Boolean ResetName(String name)
+        {
+            if (name.Contains(@".") || name.Contains(@"/") || name.Contains(@"\")) return false;
+
+            // 没有设置权限项或者权限项和名字相同时
+            if (String.IsNullOrEmpty(Permission) || IsEnglish(Permission)) Permission = name;
+            if (String.IsNullOrEmpty(Name) || IsEnglish(Name)) Name = name;
+
+            return Save() > 0;
+        }
+
+        /// <summary>
+        /// 是否全英文
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        private static Boolean IsEnglish(String str)
+        {
+            if (String.IsNullOrEmpty(str)) return false;
+
+            return Encoding.UTF8.GetByteCount(str) == str.Length;
+        }
         #endregion
 
         #region 业务
