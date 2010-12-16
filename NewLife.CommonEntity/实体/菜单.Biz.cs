@@ -30,65 +30,77 @@ namespace NewLife.CommonEntity
 
         static Menu()
         {
-            if (Meta.Count <= 0)
+            try
             {
-                if (XTrace.Debug) XTrace.WriteLine("开始初始化表单数据……");
-
-                TEntity entity = Root;
-                entity = entity.AddChild("控制台", null);
-                entity = entity.AddChild("系统管理", null);
-                entity.Sort = 9999;
-                entity.Save();
-
-                entity.AddChild("菜单管理", "../System/Menu.aspx");
-                entity.AddChild("管理员管理", "../System/UserManage.aspx");
-                entity.AddChild("角色管理", "../System/Role.aspx");
-                entity.AddChild("权限管理", "../System/RoleMenu.aspx");
-                entity.AddChild("日志管理", "../System/Log.aspx");
-
-                // 准备增加Admin目录下的所有页面
-                try
+                if (Meta.Count <= 0)
                 {
-                    String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Admin");
-                    if (Directory.Exists(p))
+                    if (XTrace.Debug) XTrace.WriteLine("开始初始化表单数据……");
+
+                    TEntity entity = Root;
+                    entity = entity.AddChild("控制台", null);
+                    entity = entity.AddChild("系统管理", null);
+                    entity.Sort = 9999;
+                    entity.Save();
+
+                    entity.AddChild("菜单管理", "../System/Menu.aspx");
+                    entity.AddChild("管理员管理", "../System/UserManage.aspx");
+                    entity.AddChild("角色管理", "../System/Role.aspx");
+                    entity.AddChild("权限管理", "../System/RoleMenu.aspx");
+                    entity.AddChild("日志管理", "../System/Log.aspx");
+
+                    // 准备增加Admin目录下的所有页面
+                    #region 扫描文件
+                    try
                     {
-                        String[] dis = Directory.GetDirectories(p);
-                        if (dis != null && dis.Length > 0)
+                        String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Admin");
+                        if (Directory.Exists(p))
                         {
-                            foreach (String item in dis)
+                            String[] dis = Directory.GetDirectories(p);
+                            if (dis != null && dis.Length > 0)
                             {
-                                String dirName = new DirectoryInfo(item).Name;
-                                if (dirName.Equals("Frame", StringComparison.OrdinalIgnoreCase)) continue;
-                                if (dirName.Equals("System", StringComparison.OrdinalIgnoreCase)) continue;
-                                if (dirName.StartsWith("img", StringComparison.OrdinalIgnoreCase)) continue;
-
-                                String[] fs = Directory.GetFiles(item, "*.aspx", SearchOption.TopDirectoryOnly);
-                                if (fs == null || fs.Length < 1) continue;
-
-                                List<String> files = new List<String>();
-                                foreach (String elm in fs)
+                                foreach (String item in dis)
                                 {
-                                    // 过滤掉表单页面
-                                    if (Path.GetFileNameWithoutExtension(elm).EndsWith("Form", StringComparison.OrdinalIgnoreCase)) continue;
+                                    String dirName = new DirectoryInfo(item).Name;
+                                    if (dirName.Equals("Frame", StringComparison.OrdinalIgnoreCase)) continue;
+                                    if (dirName.Equals("System", StringComparison.OrdinalIgnoreCase)) continue;
+                                    if (dirName.StartsWith("img", StringComparison.OrdinalIgnoreCase)) continue;
 
-                                    files.Add(elm);
-                                }
-                                if (files.Count < 1) continue;
+                                    String[] fs = Directory.GetFiles(item, "*.aspx", SearchOption.TopDirectoryOnly);
+                                    if (fs == null || fs.Length < 1) continue;
 
-                                // 添加
-                                TEntity parent = Root.Childs[0].AddChild(dirName, null);
-                                foreach (String elm in files)
-                                {
-                                    String url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
-                                    parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
+                                    List<String> files = new List<String>();
+                                    foreach (String elm in fs)
+                                    {
+                                        // 过滤掉表单页面
+                                        if (Path.GetFileNameWithoutExtension(elm).EndsWith("Form", StringComparison.OrdinalIgnoreCase)) continue;
+
+                                        files.Add(elm);
+                                    }
+                                    if (files.Count < 1) continue;
+
+                                    // 添加
+                                    TEntity parent = Root.Childs[0].AddChild(dirName, null);
+                                    foreach (String elm in files)
+                                    {
+                                        String url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
+                                        parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                catch { }
+                    catch (Exception ex)
+                    {
+                        if (XTrace.Debug) XTrace.WriteLine(ex.ToString());
+                    }
+                    #endregion
 
-                if (XTrace.Debug) XTrace.WriteLine("完成初始化表单数据！");
+                    if (XTrace.Debug) XTrace.WriteLine("完成初始化表单数据！");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (XTrace.Debug) XTrace.WriteLine(ex.ToString());
             }
         }
         #endregion
