@@ -262,6 +262,8 @@ namespace NewLife.CommonEntity
             }
             update.RoleID = obj.RoleID;
             update.IsEnable = obj.IsEnable;
+            update.Tel = obj.Tel;
+            update.Email = obj.Email;
             return update.Update();
         }
         #endregion
