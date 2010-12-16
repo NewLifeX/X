@@ -6,10 +6,10 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Reflection;
-using System.Text;
 
 namespace NewLife.IO
 {
@@ -49,7 +49,7 @@ namespace NewLife.IO
         /// 以压缩格式写入32位整数
         /// </summary>
         /// <param name="value"></param>
-        /// <returns>写入字节数</returns>
+        /// <returns>是否写入成功</returns>
         public Int32 WriteEncoded(Int32 value)
         {
             //Write7BitEncodedInt(value);
@@ -72,7 +72,7 @@ namespace NewLife.IO
         /// 以压缩格式写入64位整数
         /// </summary>
         /// <param name="value"></param>
-        /// <returns>写入字节数</returns>
+        /// <returns>是否写入成功</returns>
         public Int32 WriteEncoded(Int64 value)
         {
             Int32 count = 1;
@@ -117,15 +117,15 @@ namespace NewLife.IO
         /// 把对象写入数据流，空对象写入0，所有子孙成员编码整数、允许空、写入字段。
         /// </summary>
         /// <param name="value">对象</param>
-        /// <returns>写入字节数</returns>
-        public Int32 WriteObject(Object value)
+        /// <returns>是否写入成功</returns>
+        public Boolean WriteObject(Object value)
         {
             // 因为值类型不会为空，所以不用担心这里会多写一个0而出错
-            if (value == null) return WriteValue((Byte)1, true);
-            //{
-            //    Write(false);
-            //    return 1;
-            //}
+            if (value == null)
+            {
+                Write(false);
+                return true;
+            }
 
             return WriteObject(value, value.GetType(), true, true, false);
         }
@@ -138,8 +138,8 @@ namespace NewLife.IO
         /// <param name="encodeInt">是否编码整数</param>
         /// <param name="allowNull">是否允许空</param>
         /// <param name="isProperty">是否处理属性</param>
-        /// <returns>写入字节数</returns>
-        public Int32 WriteObject(Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty)
+        /// <returns>是否写入成功</returns>
+        public Boolean WriteObject(Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty)
         {
             // 使用自己作为处理成员的方法
             return WriteObject(target, member, encodeInt, allowNull, isProperty, WriteMember);
@@ -154,8 +154,8 @@ namespace NewLife.IO
         /// <param name="allowNull">是否允许空</param>
         /// <param name="isProperty">是否处理属性</param>
         /// <param name="callback">处理成员的方法</param>
-        /// <returns>写入字节数</returns>
-        public Int32 WriteObject(Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, WriteCallback callback)
+        /// <returns>是否写入成功</returns>
+        public Boolean WriteObject(Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, WriteCallback callback)
         {
             Type type = member.Type;
             //Object value = null;
@@ -168,21 +168,19 @@ namespace NewLife.IO
             if (value != null) type = value.GetType();
             if (callback == null) callback = WriteMember;
 
-            Int32 num = 0;
             // 基本类型
-            if ((num = WriteValue(value, type, encodeInt)) >= 0) return num;
+            if (WriteValue(value, type, encodeInt)) return true;
 
             // 扩展类型
-            if ((num = WriteX(value, type)) >= 0) return num;
+            if (WriteX(value, type)) return true;
 
             #region 枚举
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
-                if ((num = WriteEnumerable(value as IEnumerable, type, encodeInt, allowNull, isProperty, callback)) >= 0) return num;
+                if (WriteEnumerable(value as IEnumerable, type, encodeInt, allowNull, isProperty, callback)) return true;
             }
             #endregion
 
-            num = 0;
             #region 复杂对象
             // 值类型不会为null，只有引用类型才需要写标识
             if (!type.IsValueType)
@@ -190,30 +188,27 @@ namespace NewLife.IO
                 // 允许空时，增加一个字节表示对象是否为空
                 if (value == null)
                 {
-                    if (allowNull) return WriteValue((Byte)0, true);
-                    return 0;
+                    if (allowNull) Write(false);
+                    return true;
                 }
-                if (allowNull) num += WriteValue((Byte)1, true);
+                if (allowNull) Write(true);
             }
 
             // 复杂类型，处理对象成员
             if (isProperty)
             {
                 PropertyInfo[] pis = FindProperties(type);
-                if (pis == null || pis.Length < 1) return num;
+                if (pis == null || pis.Length < 1) return true;
 
                 foreach (PropertyInfo item in pis)
                 {
-                    Int32 m = callback(this, value, item, encodeInt, allowNull, isProperty, callback);
-                    if (m < 0) return m;
-
-                    num += m;
+                    if (!callback(this, value, item, encodeInt, allowNull, isProperty, callback)) return false;
                 }
             }
             else
             {
                 FieldInfo[] fis = FindFields(type);
-                if (fis == null || fis.Length < 1) return num;
+                if (fis == null || fis.Length < 1) return true;
 
                 foreach (FieldInfo item in fis)
                 {
@@ -221,13 +216,9 @@ namespace NewLife.IO
                     long p = BaseStream.Position;
                     Console.Write("{0,-16}：", item.Name);
 #endif
-                    Int32 m = callback(this, value, item, encodeInt, allowNull, isProperty, callback);
-                    if (m < 0) return m;
-
-                    num += m;
+                    if (!callback(this, value, item, encodeInt, allowNull, isProperty, callback)) return false;
 #if DEBUG
                     long p2 = BaseStream.Position;
-                    if (m != p2 - p) Console.WriteLine("写入字节数计算有问题！");
                     if (p2 > p)
                     {
                         BaseStream.Seek(p, SeekOrigin.Begin);
@@ -242,10 +233,10 @@ namespace NewLife.IO
             }
             #endregion
 
-            return num;
+            return true;
         }
 
-        private static Int32 WriteMember(BinaryWriterX writer, Object value, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, WriteCallback callback)
+        private static Boolean WriteMember(BinaryWriterX writer, Object value, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, WriteCallback callback)
         {
             // 使用自己作为处理成员的方法
             return writer.WriteObject(value, member, encodeInt, allowNull, isProperty, callback);
@@ -258,11 +249,11 @@ namespace NewLife.IO
         /// </summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="encodeInt">是否编码整数</param>
-        /// <returns>写入字节数</returns>
-        public Int32 WriteValue(Object value, Boolean encodeInt)
+        /// <returns>是否写入成功</returns>
+        public Boolean WriteValue(Object value, Boolean encodeInt)
         {
             // 值类型不会有空，写入器不知道该如何处理空，由外部决定吧
-            if (value == null) return -1;
+            if (value == null) return true;
 
             return WriteValue(value, value.GetType(), encodeInt);
         }
@@ -273,8 +264,8 @@ namespace NewLife.IO
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="encodeInt">是否编码整数</param>
-        /// <returns>写入字节数</returns>
-        public Int32 WriteValue(Object value, Type type, Boolean encodeInt)
+        /// <returns>是否写入成功</returns>
+        public Boolean WriteValue(Object value, Type type, Boolean encodeInt)
         {
             // 对象不为空时，使用对象实际类型
             if (value != null) type = value.GetType();
@@ -284,63 +275,68 @@ namespace NewLife.IO
             {
                 case TypeCode.Boolean:
                     Write(Convert.ToBoolean(value, CultureInfo.InvariantCulture));
-                    return sizeof(Boolean);
+                    return true;
                 case TypeCode.Byte:
                     Write(Convert.ToByte(value, CultureInfo.InvariantCulture));
-                    return sizeof(Byte);
+                    return true;
                 case TypeCode.Char:
                     Write(Convert.ToChar(value, CultureInfo.InvariantCulture));
-                    return sizeof(Char);
+                    return true;
                 case TypeCode.DBNull:
                     Write((Byte)0);
-                    return sizeof(Byte);
+                    return true;
                 case TypeCode.DateTime:
                     return WriteValue(Convert.ToDateTime(value, CultureInfo.InvariantCulture).Ticks, encodeInt);
                 case TypeCode.Decimal:
                     Write(Convert.ToDecimal(value, CultureInfo.InvariantCulture));
-                    return sizeof(Decimal);
+                    return true;
                 case TypeCode.Double:
                     Write(Convert.ToDouble(value, CultureInfo.InvariantCulture));
-                    return sizeof(Double);
+                    return true;
                 case TypeCode.Empty:
                     Write((Byte)0);
-                    return sizeof(Byte);
+                    return true;
                 case TypeCode.Int16:
                     Write(Convert.ToInt16(value, CultureInfo.InvariantCulture));
-                    return sizeof(Int16);
+                    return true;
                 case TypeCode.Int32:
-                    if (encodeInt) return WriteEncoded(Convert.ToInt32(value, CultureInfo.InvariantCulture));
-
-                    Write(Convert.ToInt32(value, CultureInfo.InvariantCulture));
-                    return sizeof(Int32);
+                    if (!encodeInt)
+                        Write(Convert.ToInt32(value, CultureInfo.InvariantCulture));
+                    else
+                        WriteEncoded(Convert.ToInt32(value, CultureInfo.InvariantCulture));
+                    return true;
                 case TypeCode.Int64:
-                    if (encodeInt) return WriteEncoded(Convert.ToInt64(value, CultureInfo.InvariantCulture));
-
-                    Write(Convert.ToInt64(value, CultureInfo.InvariantCulture));
-                    return sizeof(Int64);
+                    if (!encodeInt)
+                        Write(Convert.ToInt64(value, CultureInfo.InvariantCulture));
+                    else
+                        WriteEncoded(Convert.ToInt64(value, CultureInfo.InvariantCulture));
+                    return true;
                 case TypeCode.Object:
                     break;
                 case TypeCode.SByte:
                     Write(Convert.ToSByte(value, CultureInfo.InvariantCulture));
-                    return sizeof(SByte);
+                    return true;
                 case TypeCode.Single:
                     Write(Convert.ToSingle(value, CultureInfo.InvariantCulture));
-                    return sizeof(Single);
+                    return true;
                 case TypeCode.String:
-                    return WriteString(Convert.ToString(value, CultureInfo.InvariantCulture));
+                    Write(Convert.ToString(value, CultureInfo.InvariantCulture));
+                    return true;
                 case TypeCode.UInt16:
                     Write(Convert.ToUInt16(value, CultureInfo.InvariantCulture));
-                    return sizeof(UInt16);
+                    return true;
                 case TypeCode.UInt32:
-                    if (!encodeInt) return WriteEncoded(Convert.ToInt32(value, CultureInfo.InvariantCulture));
-
-                    Write(Convert.ToUInt32(value, CultureInfo.InvariantCulture));
-                    return sizeof(UInt32);
+                    if (!encodeInt)
+                        Write(Convert.ToUInt32(value, CultureInfo.InvariantCulture));
+                    else
+                        WriteEncoded(Convert.ToInt32(value, CultureInfo.InvariantCulture));
+                    return true;
                 case TypeCode.UInt64:
-                    if (!encodeInt) return WriteEncoded(Convert.ToInt64(value, CultureInfo.InvariantCulture));
-
-                    Write(Convert.ToUInt64(value, CultureInfo.InvariantCulture));
-                    return sizeof(UInt64);
+                    if (!encodeInt)
+                        Write(Convert.ToUInt64(value, CultureInfo.InvariantCulture));
+                    else
+                        WriteEncoded(Convert.ToInt64(value, CultureInfo.InvariantCulture));
+                    return true;
                 default:
                     break;
             }
@@ -349,64 +345,73 @@ namespace NewLife.IO
             {
                 Byte[] arr = (Byte[])value;
                 if (arr == null || arr.Length == 0)
-                    return WriteEncoded(0);
+                    WriteEncoded(0);
                 else
-                    return WriteEncoded(arr.Length) + WriteBytes(arr, 0, arr.Length);
+                {
+                    WriteEncoded(arr.Length);
+                    Write(arr);
+                }
+                return true;
             }
             if (type == typeof(Char[]))
             {
                 Char[] arr = (Char[])value;
                 if (arr == null || arr.Length == 0)
-                    return WriteEncoded(0);
+                    WriteEncoded(0);
                 else
-                    return WriteEncoded(arr.Length) + WriteChars(arr, 0, arr.Length);
+                {
+                    WriteEncoded(arr.Length);
+                    Write(arr);
+                }
+                return true;
             }
 
-            return -1;
+            return false;
         }
 
-        /// <summary>
-        /// 写入字符串，返回写入字节数
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns>写入字节数</returns>
-        public Int32 WriteString(String value)
-        {
-            Int64 p = BaseStream.Position;
-            Write(value);
-            return (Int32)(BaseStream.Position - p);
-        }
+        ///// <summary>
+        ///// 写入字符串，返回是否写入成功
+        ///// </summary>
+        ///// <param name="value"></param>
+        ///// <returns>是否写入成功</returns>
+        //public Int32 WriteString(String value)
+        //{
+        //    Int64 p = BaseStream.Position;
+        //    Write(value);
+        //    return (Int32)(BaseStream.Position - p);
+        //}
 
-        /// <summary>
-        /// 写入字节数组，返回写入字节数
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <param name="index"></param>
-        /// <param name="count"></param>
-        /// <returns>写入字节数</returns>
-        public Int32 WriteBytes(Byte[] buffer, Int32 index, Int32 count)
-        {
-            Write(buffer, index, count);
-            return count;
-        }
+        ///// <summary>
+        ///// 是否写入成功组，返回是否写入成功
+        ///// </summary>
+        ///// <param name="buffer"></param>
+        ///// <param name="index"></param>
+        ///// <param name="count"></param>
+        ///// <returns>是否写入成功</returns>
+        //public Int32 WriteBytes(Byte[] buffer, Int32 index, Int32 count)
+        //{
+        //    Write(buffer, index, count);
+        //    return count;
+        //}
 
-        /// <summary>
-        /// 写入字符数组，返回写入字符数
-        /// </summary>
-        /// <param name="chars"></param>
-        /// <param name="index"></param>
-        /// <param name="count"></param>
-        /// <returns>写入字符数</returns>
-        public Int32 WriteChars(Char[] chars, Int32 index, Int32 count)
-        {
-            Write(chars, index, count);
-            return count;
-        }
+        ///// <summary>
+        ///// 写入字符数组，返回写入字符数
+        ///// </summary>
+        ///// <param name="chars"></param>
+        ///// <param name="index"></param>
+        ///// <param name="count"></param>
+        ///// <returns>写入字符数</returns>
+        //public Int32 WriteChars(Char[] chars, Int32 index, Int32 count)
+        //{
+        //    Write(chars, index, count);
+        //    return count;
+        //}
+
         /// <summary>
         /// 写入结构体
         /// </summary>
         /// <param name="value"></param>
-        /// <returns>写入字节数</returns>
+        /// <returns>是否写入成功</returns>
         public Int32 WriteStruct(ValueType value)
         {
             if (value == null) return 0;
@@ -449,8 +454,8 @@ namespace NewLife.IO
         /// <param name="encodeInt">是否编码整数</param>
         /// <param name="allowNull">是否允许空</param>
         /// <param name="isProperty">是否处理属性</param>
-        /// <returns>写入字节数</returns>
-        public Int32 WriteEnumerable(IEnumerable value, Type type, Boolean encodeInt, Boolean allowNull, Boolean isProperty)
+        /// <returns>是否写入成功</returns>
+        public Boolean WriteEnumerable(IEnumerable value, Type type, Boolean encodeInt, Boolean allowNull, Boolean isProperty)
         {
             return WriteEnumerable(value, type, encodeInt, allowNull, isProperty, null);
         }
@@ -464,22 +469,20 @@ namespace NewLife.IO
         /// <param name="allowNull">是否允许空</param>
         /// <param name="isProperty">是否处理属性</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
-        /// <returns>写入字节数</returns>
-        public Int32 WriteEnumerable(IEnumerable value, Type type, Boolean encodeInt, Boolean allowNull, Boolean isProperty, WriteCallback callback)
+        /// <returns>是否写入成功</returns>
+        public Boolean WriteEnumerable(IEnumerable value, Type type, Boolean encodeInt, Boolean allowNull, Boolean isProperty, WriteCallback callback)
         {
             //if (!type.IsArray) throw new Exception("目标类型不是数组类型！");
 
             if (value == null)
             {
                 // 允许空，写入0字节
-                if (allowNull) return WriteEncoded(0);
-                return 0;
+                if (allowNull) WriteEncoded(0);
+                return true;
             }
 
-            Int32 num = 0;
-
             #region 特殊处理字节数组和字符数组
-            if ((num = WriteValue(value, type, encodeInt)) >= 0) return num;
+            if (WriteValue(value, type, encodeInt)) return true;
             #endregion
 
             #region 初始化数据
@@ -524,49 +527,37 @@ namespace NewLife.IO
                         else
                         {
                             // 可能是Object类型，无法支持
-                            return -1;
+                            return false;
                         }
                     }
                 }
                 count = list.Count;
                 value = list;
             }
-            if (count == 0) return WriteEncoded(0);
+            if (count == 0)
+            {
+                WriteEncoded(0);
+                return true;
+            }
 
             // 可能是Object类型，无法支持
-            if (elementType == null) return -1;
+            if (elementType == null) return false;
 
             // 如果不是基本类型和特殊类型，必须有委托方法
-            if (!Support(elementType) && callback == null) return -1;
+            if (!Support(elementType) && callback == null) return false;
             #endregion
 
             // 写入长度
-            num = WriteEncoded(count);
+            WriteEncoded(count);
 
             foreach (Object item in value)
             {
                 // 基本类型
-                Int32 m = WriteValue(item, encodeInt);
-                if (m >= 0)
-                {
-                    num += m;
-                    continue;
-                }
+                if (WriteValue(item, encodeInt)) continue;
                 // 特别支持的常用类型
-                m = WriteX(item);
-                if (m >= 0)
-                {
-                    num += m;
-                    continue;
-                }
-                m = callback(this, item, elementType, encodeInt, allowNull, isProperty, callback);
-                if (m >= 0)
-                {
-                    num += m;
-                    continue;
-                }
-                else
-                    return -1;
+                if (WriteX(item)) continue;
+
+                if (!callback(this, item, elementType, encodeInt, allowNull, isProperty, callback)) return false;
 
                 //// 允许空时，增加一个字节表示对象是否为空
                 //if (item == null)
@@ -582,7 +573,7 @@ namespace NewLife.IO
                 //Write(item, writer, encodeInt, allowNull, member.Member.MemberType == MemberTypes.Property);
             }
 
-            return num;
+            return true;
         }
         #endregion
 
@@ -591,11 +582,11 @@ namespace NewLife.IO
         /// 扩展写入，反射查找合适的写入方法
         /// </summary>
         /// <param name="value"></param>
-        /// <returns>写入字节数</returns>
-        public Int32 WriteX(Object value)
+        /// <returns></returns>
+        public Boolean WriteX(Object value)
         {
             // 对象为空，无法取得类型，无法写入
-            if (value == null) return -1;
+            if (value == null) return false;
 
             return WriteX(value, value.GetType());
         }
@@ -605,8 +596,8 @@ namespace NewLife.IO
         /// </summary>
         /// <param name="value"></param>
         /// <param name="type"></param>
-        /// <returns>写入字节数</returns>
-        public Int32 WriteX(Object value, Type type)
+        /// <returns></returns>
+        public Boolean WriteX(Object value, Type type)
         {
             if (type == null)
             {
@@ -615,11 +606,23 @@ namespace NewLife.IO
                 type = value.GetType();
             }
 
-            if (type == typeof(Guid)) return Write((Guid)value);
-            if (type == typeof(IPAddress)) return Write((IPAddress)value);
-            if (type == typeof(IPEndPoint)) return Write((IPEndPoint)value);
+            if (type == typeof(Guid))
+            {
+                Write((Guid)value);
+                return true;
+            }
+            if (type == typeof(IPAddress))
+            {
+                Write((IPAddress)value);
+                return true;
+            }
+            if (type == typeof(IPEndPoint))
+            {
+                Write((IPEndPoint)value);
+                return true;
+            }
 
-            return -1;
+            return false;
 
             //MethodInfo method = this.GetType().GetMethod("Write", new Type[] { type });
             //if (method == null) return false;
@@ -632,45 +635,42 @@ namespace NewLife.IO
         /// 写入Guid
         /// </summary>
         /// <param name="value"></param>
-        /// <returns>写入字节数</returns>
-        public Int32 Write(Guid value)
+        public void Write(Guid value)
         {
-            Byte[] buffer = ((Guid)value).ToByteArray();
-            return WriteBytes(buffer, 0, buffer.Length);
+            Write(((Guid)value).ToByteArray());
         }
 
         /// <summary>
         /// 写入IPAddress
         /// </summary>
         /// <param name="value"></param>
-        /// <returns>写入字节数</returns>
-        public Int32 Write(IPAddress value)
+        public void Write(IPAddress value)
         {
             if (value != null)
             {
                 Byte[] buffer = (value as IPAddress).GetAddressBytes();
-                return WriteEncoded(buffer.Length) + WriteBytes(buffer, 0, buffer.Length);
+                WriteEncoded(buffer.Length);
+                Write(buffer);
             }
             else
-                return WriteEncoded(0);
+                WriteEncoded(0);
         }
 
         /// <summary>
         /// 写入IPEndPoint
         /// </summary>
         /// <param name="value"></param>
-        /// <returns>写入字节数</returns>
-        public Int32 Write(IPEndPoint value)
+        public void Write(IPEndPoint value)
         {
             if (value != null)
             {
-                return Write(value.Address) + WriteEncoded(value.Port);
-                ////// 端口实际只占2字节
-                ////Write((UInt16)value.Port);
-                //WriteEncoded(value.Port);
+                Write(value.Address);
+                //// 端口实际只占2字节
+                //Write((UInt16)value.Port);
+                WriteEncoded(value.Port);
             }
             else
-                return WriteEncoded(0);
+                WriteEncoded(0);
         }
         #endregion
 
@@ -750,20 +750,6 @@ namespace NewLife.IO
         //{
         //    return sizeof(T);
         //}
-
-        /// <summary>
-        /// 如果value非零，则加到location上
-        /// </summary>
-        /// <param name="location"></param>
-        /// <param name="value"></param>
-        /// <returns>是否非零</returns>
-        static Boolean AddIfNonZero(ref Int32 location, Int32 value)
-        {
-            if (value < 0) return false;
-
-            location += value;
-            return true;
-        }
         #endregion
 
         #region 委托
@@ -777,8 +763,8 @@ namespace NewLife.IO
         /// <param name="allowNull">是否允许空</param>
         /// <param name="isProperty">是否处理属性</param>
         /// <param name="callback">处理成员的方法</param>
-        /// <returns>写入字节数</returns>
-        public delegate Int32 WriteCallback(BinaryWriterX writer, Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, WriteCallback callback);
+        /// <returns>是否写入成功</returns>
+        public delegate Boolean WriteCallback(BinaryWriterX writer, Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, WriteCallback callback);
         #endregion
     }
 }

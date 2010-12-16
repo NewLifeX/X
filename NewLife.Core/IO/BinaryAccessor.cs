@@ -19,7 +19,6 @@ namespace NewLife.IO
         /// 从读取器中读取数据到对象
         /// </summary>
         /// <param name="reader"></param>
-        /// <returns>读取字节数</returns>
         public virtual void Read(BinaryReaderX reader)
         {
             //Read(this, reader, true, true, false);
@@ -223,11 +222,10 @@ namespace NewLife.IO
         /// 把对象数据写入到写入器
         /// </summary>
         /// <param name="writer"></param>
-        /// <returns>写入字节数</returns>
-        public virtual Int32 Write(BinaryWriterX writer)
+        public virtual void Write(BinaryWriterX writer)
         {
             //Write(this, writer, true, true, false);
-            return writer.WriteObject(this, this.GetType(), true, false, false, WriteMember);
+            writer.WriteObject(this, this.GetType(), true, false, false, WriteMember);
         }
 
         /// <summary>
@@ -240,8 +238,8 @@ namespace NewLife.IO
         /// <param name="allowNull">是否允许空</param>
         /// <param name="isProperty">是否处理属性</param>
         /// <param name="callback">处理成员的方法</param>
-        /// <returns>写入字节数</returns>
-        protected virtual Int32 WriteMember(BinaryWriterX writer, Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, BinaryWriterX.WriteCallback callback)
+        /// <returns>是否写入成功</returns>
+        protected virtual Boolean WriteMember(BinaryWriterX writer, Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, BinaryWriterX.WriteCallback callback)
         {
             Type type = member.Type;
             Object value = member.IsType ? target : member.GetValue(target);
@@ -258,8 +256,8 @@ namespace NewLife.IO
             {
                 // 调用接口
                 IBinaryAccessor accessor = value as IBinaryAccessor;
-                return accessor.Write(writer);
-                //return true;
+                accessor.Write(writer);
+                return true;
             }
 
             return writer.WriteObject(target, member, encodeInt, true, isProperty, callback);

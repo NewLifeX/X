@@ -19,7 +19,6 @@ namespace NewLife.IO
         /// 把对象数据写入到写入器
         /// </summary>
         /// <param name="writer"></param>
-        /// <returns>写入字节数</returns>
-        Int32 Write(BinaryWriterX writer);
+        void Write(BinaryWriterX writer);
     }
 }

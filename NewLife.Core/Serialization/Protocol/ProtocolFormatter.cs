@@ -141,7 +141,7 @@ namespace NewLife.Serialization.Protocol
             }
 
             // 基础类型
-            if (writer.WriteValue(data, encodeInt) >= 0) return;
+            if (writer.WriteValue(data, encodeInt)) return;
 
             // 引用对象
             if (context.Config.UseRefObject)
