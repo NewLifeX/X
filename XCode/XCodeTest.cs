@@ -1,14 +1,13 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using NewLife.Log;
-using XCode.DataAccessLayer;
-using System.Data;
 using XCode.Code;
-using System.IO;
-using System.CodeDom.Compiler;
-using System.Diagnostics;
+using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -411,8 +410,8 @@ namespace XCode
             sw.Start();
 
             Console.WriteLine("预热");
-            DAL dal = DAL.Create("Center");
-            Int32 n = dal.SelectCount("select * from usermember", "");
+            DAL dal = DAL.Create("Common");
+            Int32 n = dal.SelectCount("select * from Administrator", "");
             Console.WriteLine(n);
 
             sw.Stop();
@@ -453,7 +452,7 @@ namespace XCode
             sw.Reset();
             sw.Start();
 
-            DynTest2("UserMember");
+            DynTest2("Administrator");
 
             sw.Stop();
             Console.WriteLine("耗时：{0}", sw.Elapsed);
@@ -464,7 +463,7 @@ namespace XCode
 
             for (int i = 0; i < 1000; i++)
             {
-                DynTest2("UserMember");
+                DynTest2("Administrator");
             }
 
             sw.Stop();
@@ -473,7 +472,7 @@ namespace XCode
 
         static void DynTest2(String tableName)
         {
-            DAL dal = DAL.Create("Center");
+            DAL dal = DAL.Create("Common");
             IEntityOperate factory = dal.CreateOperate(tableName);
             Int32 count = factory.FindCount();
             //Console.WriteLine(count);
