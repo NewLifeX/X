@@ -354,7 +354,9 @@ namespace NewLife.Reflection
             if (type == null) throw new ArgumentNullException("type");
 
             //为空、不是类、抽象类、泛型类 都不是实体类
-            if (!BaseType.IsClass || BaseType.IsAbstract || BaseType.IsGenericType) return false;
+            //if (!BaseType.IsClass || BaseType.IsAbstract || BaseType.IsGenericType) return false;
+            // 允许值类型，仅排除接口
+            if (BaseType.IsInterface || BaseType.IsAbstract || BaseType.IsGenericType) return false;
 
             if (type.IsInterface)
             {

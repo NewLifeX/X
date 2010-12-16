@@ -300,25 +300,65 @@ namespace NewLife.Reflection
         /// </summary>
         /// <typeparam name="TPlugin"></typeparam>
         /// <returns></returns>
-        public ListX<TypeX> FindPlugins<TPlugin>()
+        public ListX<Type> FindPlugins<TPlugin>()
         {
             return FindPlugins(typeof(TPlugin));
         }
 
+        private Dictionary<Type, ListX<Type>> _plugins = new Dictionary<Type, ListX<Type>>();
         /// <summary>
-        /// 查找插件
+        /// 查找插件，带缓存
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public ListX<TypeX> FindPlugins(Type type)
+        public ListX<Type> FindPlugins(Type type)
         {
-            ListX<TypeX> list = TypeXs;
-            if (list == null || list.Count < 1) return null;
-
-            return list.FindAll(delegate(TypeX item)
+            ListX<Type> list = null;
+            if (_plugins.TryGetValue(type, out list)) return list;
+            lock (_plugins)
             {
-                return item.IsPlugin(type);
-            });
+                if (_plugins.TryGetValue(type, out list)) return list;
+
+                ListX<TypeX> list2 = TypeXs;
+                if (list2 == null || list2.Count < 1)
+                {
+                    list = null;
+                }
+                else
+                {
+                    list = new ListX<Type>();
+                    foreach (TypeX item in list2)
+                    {
+                        if (item.IsPlugin(type)) list.Add(item.Type);
+                    }
+                    if (list.Count <= 0) list = null;
+                }
+
+                _plugins.Add(type, list);
+
+                return list;
+            }
+        }
+
+        /// <summary>
+        /// 查找所有非系统程序集中的所有插件
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static ListX<Type> FindAllPlugins(Type type)
+        {
+            if (type == null) throw new ArgumentNullException("type");
+
+            ListX<AssemblyX> asms = GetAssemblies();
+            ListX<Type> list = new ListX<Type>();
+            foreach (AssemblyX item in asms)
+            {
+                if (item.IsSystemAssembly) continue;
+
+                ListX<Type> ts = item.FindPlugins(type);
+                if (ts != null && ts.Count > 0) list.AddRange(ts);
+            }
+            return list.Count > 0 ? list : null;
         }
         #endregion
 
