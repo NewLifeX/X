@@ -145,31 +145,7 @@ namespace NewLife.CommonEntity
             set { if (OnPropertyChange("IsEnable", value)) _IsEnable = value; }
         }
 
-        private String _Tel;
-        /// <summary>
-        /// 联系电话
-        /// </summary>
-        [Description("联系电话")]
-        [DataObjectField(false, false, true, 50)]
-        [BindColumn("Tel", Description = "联系电话", DefaultValue = "", Order = 3)]
-        public String Tel
-        {
-            get { return _Tel; }
-            set { if (OnPropertyChange("Tel", value)) _Tel = value; }
-        }
-
-        private String _Email;
-        /// <summary>
-        /// 邮箱
-        /// </summary>
-        [Description("邮箱")]
-        [DataObjectField(false, false, true, 50)]
-        [BindColumn("Email", Description = "邮箱", DefaultValue = "", Order = 4)]
-        public String Email
-        {
-            get { return _Email; }
-            set { if (OnPropertyChange("Email", value)) _Email = value; }
-        }
+       
         #endregion
 
         #region 构造函数
@@ -205,8 +181,6 @@ namespace NewLife.CommonEntity
                     case "LastLoginIP": return LastLoginIP;
                     case "SSOUserID": return SSOUserID;
                     case "IsEnable": return IsEnable;
-                    case "Tel": return Tel;
-                    case "Email": return Email;
                     default: return base[name];
                 }
             }
@@ -224,8 +198,6 @@ namespace NewLife.CommonEntity
                     case "LastLoginIP": _LastLoginIP = Convert.ToString(value); break;
                     case "SSOUserID": _SSOUserID = Convert.ToInt32(value); break;
                     case "IsEnable": _IsEnable = Convert.ToBoolean(value); break;
-                    case "Tel": _Tel = Convert.ToString(value); break;
-                    case "Email": _Email = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -315,17 +287,6 @@ namespace NewLife.CommonEntity
             /// 是否使用
             /// </summary>
             public const String IsEnable = "IsEnable";
-
-            /// <summary>
-            /// 联系电话
-            /// </summary>
-            public const String Tel = "Tel";
-
-            /// <summary>
-            /// 邮箱
-            /// </summary>
-            public const String Email = "Email";
-
         }
         #endregion
     }
