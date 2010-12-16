@@ -6,13 +6,13 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Web;
+using System.Web.UI.WebControls;
 using NewLife.Configuration;
 using XCode;
-using System.Web.UI.WebControls;
-using System.Web;
-using System.Collections.Generic;
 
 namespace NewLife.CommonEntity
 {
@@ -340,8 +340,8 @@ namespace NewLife.CommonEntity
             try
             {
                 att.FileName = fileUpload.FileName;
-                att.Size = fileUpload.PostedFile.ContentLength / 1024;
-                att.Extension = System.IO.Path.GetExtension(fileUpload.FileName);
+                att.Size = fileUpload.PostedFile.ContentLength;// / 1024;
+                att.Extension = Path.GetExtension(fileUpload.FileName);
                 att.Category = category;
                 //att.FilePath = 
                 att.ContentType = fileUpload.PostedFile.ContentType;
@@ -354,10 +354,10 @@ namespace NewLife.CommonEntity
 
                 Meta.DBO.Commit();
             }
-            catch (Exception e)
+            catch //(Exception e)
             {
                 Meta.DBO.Rollback();
-                throw e;
+                throw;// e;
             }
             //att.Save();
 
@@ -381,9 +381,10 @@ namespace NewLife.CommonEntity
                     Attachment att = SaveFile(item, category, userName);
                     if (att != null) atts.Add(att);
                 }
-                catch (Exception e)
-                { 
-                   throw new Exception(String.Format("“{0}”上传出错！[{1}]",item.FileName,e.Message));
+                catch (Exception ex)
+                {
+                    // 原异常作为内部异常挂在新异常信息那里
+                    throw new Exception(String.Format("“{0}”上传出错！[{1}]", item.FileName, ex.Message), ex);
                 }
             }
 

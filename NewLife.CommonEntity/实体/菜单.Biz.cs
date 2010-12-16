@@ -37,6 +37,7 @@ namespace NewLife.CommonEntity
                 entity.AddChild("管理员管理", "../System/UserManage.aspx");
                 entity.AddChild("角色管理", "../System/Role.aspx");
                 entity.AddChild("权限管理", "../System/RoleMenu.aspx");
+                entity.AddChild("日志管理", "../System/Log.aspx");
 
                 if (XTrace.Debug) XTrace.WriteLine("完成初始化表单数据！");
             }
