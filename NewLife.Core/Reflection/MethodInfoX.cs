@@ -63,8 +63,25 @@ namespace NewLife.Reflection
         public static MethodInfoX Create(Type type, String name)
         {
             MethodInfo method = type.GetMethod(name);
-            if (method == null) method = type.GetMethod(name, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            if (method == null) method = type.GetMethod(name, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.IgnoreCase);
+            if (method == null) method = type.GetMethod(name, DefaultBinding);
+            if (method == null) method = type.GetMethod(name, DefaultBinding | BindingFlags.IgnoreCase);
+            if (method == null) return null;
+
+            return Create(method);
+        }
+
+        /// <summary>
+        /// 创建
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="name"></param>
+        /// <param name="paramTypes">参数类型</param>
+        /// <returns></returns>
+        public static MethodInfoX Create(Type type, String name, Type[] paramTypes)
+        {
+            MethodInfo method = type.GetMethod(name, paramTypes);
+            if (method == null) method = type.GetMethod(name, DefaultBinding, null, paramTypes, null);
+            if (method == null) method = type.GetMethod(name, DefaultBinding | BindingFlags.IgnoreCase, null, paramTypes, null);
             if (method == null) return null;
 
             return Create(method);
@@ -95,7 +112,8 @@ namespace NewLife.Reflection
             EmitHelper help = new EmitHelper(il);
             Type retType = method.ReturnType;
 
-            if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
+            //if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
+            if (!method.IsStatic) help.Ldarg(0).CastFromObject(method.DeclaringType);
 
             // 方法的参数数组放在动态方法的第二位，所以是1
             help.PushParams(1, method)

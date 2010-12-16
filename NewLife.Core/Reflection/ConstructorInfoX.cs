@@ -91,7 +91,7 @@ namespace NewLife.Reflection
         public static ConstructorInfoX Create(Type type, Type[] types)
         {
             ConstructorInfo constructor = type.GetConstructor(types);
-            if (constructor == null) constructor = type.GetConstructor(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, types, null);
+            if (constructor == null) constructor = type.GetConstructor(DefaultBinding, null, types, null);
             if (constructor != null) return Create(constructor);
 
             //ListX<ConstructorInfo> list = TypeX.Create(type).Constructors;
@@ -112,8 +112,10 @@ namespace NewLife.Reflection
             //    }
             //}
 
-            // 基本不可能的错误，因为每个类都会有构造函数
-            throw new Exception("无法找到构造函数！");
+            //// 基本不可能的错误，因为每个类都会有构造函数
+            //throw new Exception("无法找到构造函数！");
+
+            return null;
         }
 
         /// <summary>

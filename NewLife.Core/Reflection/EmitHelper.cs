@@ -159,6 +159,18 @@ namespace NewLife.Reflection
         }
 
         /// <summary>
+        /// 查找对象中其引用当前位于计算堆栈的字段的值。
+        /// </summary>
+        /// <param name="field"></param>
+        /// <returns></returns>
+        public EmitHelper Ldfld(FieldInfo field)
+        {
+            IL.Emit(OpCodes.Ldfld, field);
+
+            return this;
+        }
+
+        /// <summary>
         /// 将位于指定数组索引处的包含对象引用的元素作为 O 类型（对象引用）加载到计算堆栈的顶部。
         /// </summary>
         /// <returns></returns>

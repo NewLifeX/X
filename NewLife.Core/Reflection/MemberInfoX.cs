@@ -21,6 +21,11 @@ namespace NewLife.Reflection
             get { return _Member; }
             set { _Member = value; }
         }
+
+        /// <summary>
+        /// 默认查找标志
+        /// </summary>
+        public const BindingFlags DefaultBinding = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
         #endregion
 
         #region 扩展属性
@@ -55,6 +60,11 @@ namespace NewLife.Reflection
         /// 目标类型
         /// </summary>
         public Type TargetType { get { return Member.DeclaringType; } }
+
+        /// <summary>
+        /// 是否类型
+        /// </summary>
+        public Boolean IsType { get { return Member != null && Member.MemberType == MemberTypes.TypeInfo; } }
         #endregion
 
         #region 构造
@@ -66,75 +76,75 @@ namespace NewLife.Reflection
         #endregion
 
         #region 生成代码
-//        /// <summary>
-//        /// 创建委托
-//        /// </summary>
-//        /// <typeparam name="TDelegate"></typeparam>
-//        /// <param name="method"></param>
-//        /// <param name="retType"></param>
-//        /// <param name="paramTypes"></param>
-//        /// <returns></returns>
-//        internal protected static TDelegate CreateDelegate<TDelegate>(MethodBase method, Type retType, Type[] paramTypes)
-//        {
-//            if (!typeof(Delegate).IsAssignableFrom(typeof(TDelegate))) throw new ArgumentOutOfRangeException("TDelegate");
+        //        /// <summary>
+        //        /// 创建委托
+        //        /// </summary>
+        //        /// <typeparam name="TDelegate"></typeparam>
+        //        /// <param name="method"></param>
+        //        /// <param name="retType"></param>
+        //        /// <param name="paramTypes"></param>
+        //        /// <returns></returns>
+        //        internal protected static TDelegate CreateDelegate<TDelegate>(MethodBase method, Type retType, Type[] paramTypes)
+        //        {
+        //            if (!typeof(Delegate).IsAssignableFrom(typeof(TDelegate))) throw new ArgumentOutOfRangeException("TDelegate");
 
-//            //定义一个没有名字的动态方法
-//            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, retType, paramTypes, method.DeclaringType.Module, true);
-//            ILGenerator il = dynamicMethod.GetILGenerator();
+        //            //定义一个没有名字的动态方法
+        //            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, retType, paramTypes, method.DeclaringType.Module, true);
+        //            ILGenerator il = dynamicMethod.GetILGenerator();
 
-//            if (method is MethodInfo)
-//                GetMethodInvoker(il, dynamicMethod, method as MethodInfo);
-//            else if (method is ConstructorInfo)
-//                GetConstructorInvoker(il, method as ConstructorInfo);
+        //            if (method is MethodInfo)
+        //                GetMethodInvoker(il, dynamicMethod, method as MethodInfo);
+        //            else if (method is ConstructorInfo)
+        //                GetConstructorInvoker(il, method as ConstructorInfo);
 
-//#if DEBUG
-//            SaveIL(dynamicMethod, delegate(ILGenerator il2)
-//            {
-//                if (method is MethodInfo)
-//                    GetMethodInvoker(il2, dynamicMethod, method as MethodInfo);
-//                else if (method is ConstructorInfo)
-//                    GetConstructorInvoker(il2, method as ConstructorInfo);
-//            });
-//#endif
+        //#if DEBUG
+        //            SaveIL(dynamicMethod, delegate(ILGenerator il2)
+        //            {
+        //                if (method is MethodInfo)
+        //                    GetMethodInvoker(il2, dynamicMethod, method as MethodInfo);
+        //                else if (method is ConstructorInfo)
+        //                    GetConstructorInvoker(il2, method as ConstructorInfo);
+        //            });
+        //#endif
 
-//            return (TDelegate)(Object)dynamicMethod.CreateDelegate(typeof(TDelegate));
-//        }
+        //            return (TDelegate)(Object)dynamicMethod.CreateDelegate(typeof(TDelegate));
+        //        }
 
-//        /// <summary>
-//        /// 创建不需要目标方法的委托
-//        /// </summary>
-//        /// <typeparam name="TDelegate"></typeparam>
-//        /// <param name="targetType"></param>
-//        /// <param name="retType"></param>
-//        /// <param name="paramTypes"></param>
-//        /// <returns></returns>
-//        internal protected static TDelegate CreateDelegate<TDelegate>(Type targetType, Type retType, Type[] paramTypes)
-//        {
-//            if (!typeof(Delegate).IsAssignableFrom(typeof(TDelegate))) throw new ArgumentOutOfRangeException("TDelegate");
+        //        /// <summary>
+        //        /// 创建不需要目标方法的委托
+        //        /// </summary>
+        //        /// <typeparam name="TDelegate"></typeparam>
+        //        /// <param name="targetType"></param>
+        //        /// <param name="retType"></param>
+        //        /// <param name="paramTypes"></param>
+        //        /// <returns></returns>
+        //        internal protected static TDelegate CreateDelegate<TDelegate>(Type targetType, Type retType, Type[] paramTypes)
+        //        {
+        //            if (!typeof(Delegate).IsAssignableFrom(typeof(TDelegate))) throw new ArgumentOutOfRangeException("TDelegate");
 
-//            //定义一个没有名字的动态方法
-//            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, retType, paramTypes, targetType.Module, true);
-//            ILGenerator il = dynamicMethod.GetILGenerator();
+        //            //定义一个没有名字的动态方法
+        //            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, retType, paramTypes, targetType.Module, true);
+        //            ILGenerator il = dynamicMethod.GetILGenerator();
 
-//            if (targetType.IsValueType)
-//                GetValueTypeInvoker(il, targetType);
-//            else if (targetType.IsArray)
-//                GetCreateArrayInvoker(il, targetType.GetElementType());
-//            else
-//                throw new NotSupportedException();
+        //            if (targetType.IsValueType)
+        //                GetValueTypeInvoker(il, targetType);
+        //            else if (targetType.IsArray)
+        //                GetCreateArrayInvoker(il, targetType.GetElementType());
+        //            else
+        //                throw new NotSupportedException();
 
-//#if DEBUG
-//            SaveIL(dynamicMethod, delegate(ILGenerator il2)
-//            {
-//                if (targetType.IsValueType)
-//                    GetValueTypeInvoker(il2, targetType);
-//                else if (targetType.IsArray)
-//                    GetCreateArrayInvoker(il2, targetType.GetElementType());
-//            });
-//#endif
+        //#if DEBUG
+        //            SaveIL(dynamicMethod, delegate(ILGenerator il2)
+        //            {
+        //                if (targetType.IsValueType)
+        //                    GetValueTypeInvoker(il2, targetType);
+        //                else if (targetType.IsArray)
+        //                    GetCreateArrayInvoker(il2, targetType.GetElementType());
+        //            });
+        //#endif
 
-//            return (TDelegate)(Object)dynamicMethod.CreateDelegate(typeof(TDelegate));
-//        }
+        //            return (TDelegate)(Object)dynamicMethod.CreateDelegate(typeof(TDelegate));
+        //        }
 
 #if DEBUG
         //private static DynamicAssembly asm = null;
@@ -163,90 +173,90 @@ namespace NewLife.Reflection
         }
 #endif
 
-//        /// <summary>
-//        /// 获取方法的调用代码
-//        /// </summary>
-//        /// <param name="il"></param>
-//        /// <param name="method">要创建的方法</param>
-//        /// <param name="target">目标方法</param>
-//        private static void GetMethodInvoker(ILGenerator il, MethodInfo method, MethodInfo target)
-//        {
-//            // Object Method(Object, Object[] args)
-//            // Method(Object, Object[] args)
+        //        /// <summary>
+        //        /// 获取方法的调用代码
+        //        /// </summary>
+        //        /// <param name="il"></param>
+        //        /// <param name="method">要创建的方法</param>
+        //        /// <param name="target">目标方法</param>
+        //        private static void GetMethodInvoker(ILGenerator il, MethodInfo method, MethodInfo target)
+        //        {
+        //            // Object Method(Object, Object[] args)
+        //            // Method(Object, Object[] args)
 
-//            EmitHelper help = new EmitHelper(il);
+        //            EmitHelper help = new EmitHelper(il);
 
-//            if (!target.IsStatic) il.Emit(OpCodes.Ldarg_0);
+        //            if (!target.IsStatic) il.Emit(OpCodes.Ldarg_0);
 
-//            help.PushParams(target)
-//                .Call(target);
+        //            help.PushParams(target)
+        //                .Call(target);
 
-//            if (method.ReturnType != null && method.ReturnType != typeof(void))
-//            {
-//                if (target.ReturnType != typeof(void))
-//                    help.BoxIfValueType(target.ReturnType).Ret();
-//                else
-//                    help.Ldnull().Ret();
-//            }
-//            else
-//            {
-//                help.Ret();
-//            }
-//        }
+        //            if (method.ReturnType != null && method.ReturnType != typeof(void))
+        //            {
+        //                if (target.ReturnType != typeof(void))
+        //                    help.BoxIfValueType(target.ReturnType).Ret();
+        //                else
+        //                    help.Ldnull().Ret();
+        //            }
+        //            else
+        //            {
+        //                help.Ret();
+        //            }
+        //        }
 
-//        private static void GetValueTypeInvoker(ILGenerator il, Type targetType)
-//        {
-//            // 声明目标类型的本地变量
-//            il.DeclareLocal(targetType);
-//            // 加载地址
-//            il.Emit(OpCodes.Ldloca_S, 0);
-//            // 创建对象
-//            il.Emit(OpCodes.Initobj, targetType);
-//            // 加载对象
-//            il.Emit(OpCodes.Ldloc_0);
-//            il.Emit(OpCodes.Ret);
-//        }
+        //        private static void GetValueTypeInvoker(ILGenerator il, Type targetType)
+        //        {
+        //            // 声明目标类型的本地变量
+        //            il.DeclareLocal(targetType);
+        //            // 加载地址
+        //            il.Emit(OpCodes.Ldloca_S, 0);
+        //            // 创建对象
+        //            il.Emit(OpCodes.Initobj, targetType);
+        //            // 加载对象
+        //            il.Emit(OpCodes.Ldloc_0);
+        //            il.Emit(OpCodes.Ret);
+        //        }
 
-//        /// <summary>
-//        /// Object Method(Object[] args)
-//        /// </summary>
-//        /// <param name="il"></param>
-//        /// <param name="elementType"></param>
-//        private static void GetCreateArrayInvoker(ILGenerator il, Type elementType)
-//        {
-//            il.Emit(OpCodes.Ldarg_0);
-//            il.Emit(OpCodes.Ldc_I4_0);
-//            il.Emit(OpCodes.Ldelem_Ref);
-//            il.Emit(OpCodes.Unbox_Any, typeof(Int32));
-//            il.Emit(OpCodes.Newarr, elementType);
-//            il.Emit(OpCodes.Ret);
-//        }
+        //        /// <summary>
+        //        /// Object Method(Object[] args)
+        //        /// </summary>
+        //        /// <param name="il"></param>
+        //        /// <param name="elementType"></param>
+        //        private static void GetCreateArrayInvoker(ILGenerator il, Type elementType)
+        //        {
+        //            il.Emit(OpCodes.Ldarg_0);
+        //            il.Emit(OpCodes.Ldc_I4_0);
+        //            il.Emit(OpCodes.Ldelem_Ref);
+        //            il.Emit(OpCodes.Unbox_Any, typeof(Int32));
+        //            il.Emit(OpCodes.Newarr, elementType);
+        //            il.Emit(OpCodes.Ret);
+        //        }
 
-//        /// <summary>
-//        /// Object Method(Object[] args)
-//        /// </summary>
-//        /// <param name="il"></param>
-//        /// <param name="method"></param>
-//        internal protected static void GetConstructorInvoker(ILGenerator il, ConstructorInfo method)
-//        {
-//            EmitHelper help = new EmitHelper(il);
+        //        /// <summary>
+        //        /// Object Method(Object[] args)
+        //        /// </summary>
+        //        /// <param name="il"></param>
+        //        /// <param name="method"></param>
+        //        internal protected static void GetConstructorInvoker(ILGenerator il, ConstructorInfo method)
+        //        {
+        //            EmitHelper help = new EmitHelper(il);
 
-//            Type targetType = method.DeclaringType;
-//            if (targetType.IsValueType)
-//                GetValueTypeInvoker(il, targetType);
-//            else if (targetType.IsArray)
-//                GetCreateArrayInvoker(il, targetType.GetElementType());
-//            else
-//            {
-//                // 其它类型
-//                help.PushParams(0, method);
+        //            Type targetType = method.DeclaringType;
+        //            if (targetType.IsValueType)
+        //                GetValueTypeInvoker(il, targetType);
+        //            else if (targetType.IsArray)
+        //                GetCreateArrayInvoker(il, targetType.GetElementType());
+        //            else
+        //            {
+        //                // 其它类型
+        //                help.PushParams(0, method);
 
-//                // 创建对象
-//                il.Emit(OpCodes.Newobj, method);
-//            }
+        //                // 创建对象
+        //                il.Emit(OpCodes.Newobj, method);
+        //            }
 
-//            il.Emit(OpCodes.Ret);
-//        }
+        //            il.Emit(OpCodes.Ret);
+        //        }
         #endregion
 
         #region 调用

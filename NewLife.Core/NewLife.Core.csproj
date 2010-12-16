@@ -59,6 +59,7 @@
     <Compile Include="Common\DisposeBase.cs" />
     <Compile Include="Event\WeakAction.cs" />
     <Compile Include="Event\WeakEventHandler.cs" />
+    <Compile Include="IO\BinaryTest.cs" />
     <Compile Include="IO\StreamHttpHandler.cs" />
     <Compile Include="IO\IStreamHandler.cs" />
     <Compile Include="IO\ReadWriteStream.cs" />

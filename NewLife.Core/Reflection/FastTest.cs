@@ -67,6 +67,12 @@ namespace NewLife.Reflection
             v = (Int32)field.GetValue(obj);
             Debug.Assert(v == 888, "字段赋值出错！");
 
+            KeyValuePair<Int32, Int32> kv = new KeyValuePair<int, int>(123456, 222);
+            field = FieldInfoX.Create(kv.GetType(), "Key");
+            //field.SetValue(kv, 123456);
+            v = (Int32)field.GetValue(kv);
+            Debug.Assert(v == 123456, "字段取值出错！");
+
             field = FieldInfoX.Create(typeof(FastTest), "_Name");
             field.SetValue("动态赋值");
             String v2 = (String)field.GetValue();
@@ -197,6 +203,28 @@ namespace NewLife.Reflection
         static Object R10(Object obj, Object[] args) { (obj as FastTest).Test2(); return null; }
 
         static Object R11(Object obj, Object[] args) { return FastTest.GetFullName((Int32)args[0], (String)args[1]); }
+
+        static Object R12(Object obj) { return (obj as FastTest)._ID; }
+
+        static Object R13(Object obj) { return ((FastTest)obj)._ID; }
+
+        static Object R14(Object obj) { return ((KeyValuePair<Int32, Byte>)obj).Key; }
+
+        [Serializable]
+        struct STTest
+        {
+            public Int32 Key;
+        }
+
+        static void R15(Object obj, Object value)
+        {
+            STTest obj2 = new STTest();
+            obj2.Key = (Int32)value;
+        }
+
+        static void R16(ref Object obj, Object value) { (obj as FastTest)._ID = (Int32)value; }
+
+        //static void R17(ref Object obj, Object value) { ((STTest)obj).Key = (Int32)value; }
         #endregion
     }
 }

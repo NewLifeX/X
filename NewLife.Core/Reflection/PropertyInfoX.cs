@@ -143,8 +143,8 @@ namespace NewLife.Reflection
         public static PropertyInfoX Create(Type type, String name)
         {
             PropertyInfo property = type.GetProperty(name);
-            if (property == null) property = type.GetProperty(name, BindingFlags.GetProperty | BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            if (property == null) property = type.GetProperty(name, BindingFlags.GetProperty | BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.IgnoreCase);
+            if (property == null) property = type.GetProperty(name, DefaultBinding);
+            if (property == null) property = type.GetProperty(name, DefaultBinding | BindingFlags.IgnoreCase);
             if (property == null)
             {
                 PropertyInfo[] ps = type.GetProperties();
@@ -174,7 +174,8 @@ namespace NewLife.Reflection
             ILGenerator il = dynamicMethod.GetILGenerator();
 
             EmitHelper help = new EmitHelper(il);
-            if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
+            //if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
+            if (!method.IsStatic) help.Ldarg(0).CastFromObject(method.DeclaringType);
             // 目标方法没有参数
             help.Call(method)
                 .BoxIfValueType(method.ReturnType)
@@ -190,7 +191,8 @@ namespace NewLife.Reflection
             ILGenerator il = dynamicMethod.GetILGenerator();
 
             EmitHelper help = new EmitHelper(il);
-            if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
+            //if (!method.IsStatic) il.Emit(OpCodes.Ldarg_0);
+            if (!method.IsStatic) help.Ldarg(0).CastFromObject(method.DeclaringType);
             // 目标方法只有一个参数
             help.Ldarg(1)
                 .CastFromObject(method.GetParameters()[0].ParameterType)

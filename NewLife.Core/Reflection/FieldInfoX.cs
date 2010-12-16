@@ -92,8 +92,8 @@ namespace NewLife.Reflection
         public static FieldInfoX Create(Type type, String name)
         {
             FieldInfo field = type.GetField(name);
-            if (field == null) field = type.GetField(name, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            if (field == null) field = type.GetField(name, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.IgnoreCase);
+            if (field == null) field = type.GetField(name, DefaultBinding);
+            if (field == null) field = type.GetField(name, DefaultBinding | BindingFlags.IgnoreCase);
             if (field == null) return null;
 
             return Create(field);
@@ -106,12 +106,33 @@ namespace NewLife.Reflection
             //定义一个没有名字的动态方法
             DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, typeof(Object), new Type[] { typeof(Object) }, field.DeclaringType.Module, true);
             ILGenerator il = dynamicMethod.GetILGenerator();
+            EmitHelper help = new EmitHelper(il);
 
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldfld, field);
-            if (field.FieldType.IsValueType) il.Emit(OpCodes.Box, field.FieldType);
-            il.Emit(OpCodes.Ret);
+            // 必须考虑对象是值类型的情况，需要拆箱
+            // 其它地方看到的程序从来都没有人处理
+            help.Ldarg(0)
+                .CastFromObject(field.DeclaringType)
+                .Ldfld(field)
+                .BoxIfValueType(field.FieldType)
+                .Ret();
 
+            //il.Emit(OpCodes.Ldarg_0);
+            ////il.Emit(OpCodes.Isinst, field.DeclaringType);
+            ////il.Emit(OpCodes.Castclass, field.DeclaringType);
+
+            //il.Emit(OpCodes.Ldfld, field);
+            //if (field.FieldType.IsValueType) il.Emit(OpCodes.Box, field.FieldType);
+            //il.Emit(OpCodes.Ret);
+            //if (field.Name == "key")
+            //{
+            //    SaveIL(dynamicMethod, delegate(ILGenerator il2)
+            //    {
+            //        il2.Emit(OpCodes.Ldarg_0);
+            //        il2.Emit(OpCodes.Ldfld, field);
+            //        if (field.FieldType.IsValueType) il2.Emit(OpCodes.Box, field.FieldType);
+            //        il2.Emit(OpCodes.Ret);
+            //    });
+            //}
             return (FastGetValueHandler)dynamicMethod.CreateDelegate(typeof(FastGetValueHandler));
         }
 
@@ -120,22 +141,35 @@ namespace NewLife.Reflection
             //定义一个没有名字的动态方法
             DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, null, new Type[] { typeof(Object), typeof(Object) }, field.DeclaringType.Module, true);
             ILGenerator il = dynamicMethod.GetILGenerator();
+            EmitHelper help = new EmitHelper(il);
 
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldarg_1);
+            // 必须考虑对象是值类型的情况，需要拆箱
+            // 其它地方看到的程序从来都没有人处理
+            // 值类型是不支持这样子赋值的，暂时没有找到更好的替代方法
+            help.Ldarg(0)
+                .CastFromObject(field.DeclaringType)
+                .Ldarg(1);
+
+            //il.Emit(OpCodes.Ldarg_0);
+            //help.CastFromObject(field.DeclaringType);
+            //il.Emit(OpCodes.Ldarg_1);
 
             MethodInfo method = GetMethod(field.FieldType);
             if (method != null)
             {
-                // 使用Convert.ToInt32(value)
-                il.EmitCall(OpCodes.Call, method, null);
+                //// 使用Convert.ToInt32(value)
+                //il.EmitCall(OpCodes.Call, method, null);
+
+                help.Call(method);
             }
             else
             {
-                if (field.FieldType.IsValueType)
-                    il.Emit(OpCodes.Unbox_Any, field.FieldType);
-                else
-                    il.Emit(OpCodes.Castclass, field.FieldType);
+                //if (field.FieldType.IsValueType)
+                //    il.Emit(OpCodes.Unbox_Any, field.FieldType);
+                //else
+                //    il.Emit(OpCodes.Castclass, field.FieldType);
+
+                help.CastFromObject(field.FieldType);
             }
 
             il.Emit(OpCodes.Stfld, field);
@@ -169,7 +203,15 @@ namespace NewLife.Reflection
         /// <param name="value"></param>
         public override void SetValue(Object obj, Object value)
         {
-            SetHandler.Invoke(obj, value);
+            // SetHandler不支持值类型
+            if (Field.DeclaringType.IsValueType)
+            {
+                // 不相等才赋值
+                Object v = GetValue(obj);
+                if (!Object.Equals(value, v)) Field.SetValue(obj, value);
+            }
+            else
+                SetHandler.Invoke(obj, value);
         }
 
         delegate Object FastGetValueHandler(Object obj);

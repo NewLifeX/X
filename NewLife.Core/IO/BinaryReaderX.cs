@@ -3,6 +3,8 @@ using System.IO;
 using System.Reflection;
 using System.Net;
 using NewLife.Reflection;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace NewLife.IO
 {
@@ -11,12 +13,15 @@ namespace NewLife.IO
     /// </summary>
     public class BinaryReaderX : BinaryReader
     {
+        #region 构造
         /// <summary>
         /// 构造
         /// </summary>
         /// <param name="stream"></param>
         public BinaryReaderX(Stream stream) : base(stream) { }
+        #endregion
 
+        #region 压缩编码
         /// <summary>
         /// 以压缩格式读取32位整数
         /// </summary>
@@ -64,6 +69,166 @@ namespace NewLife.IO
             }
             return rs;
         }
+        #endregion
+
+        #region 类型支持
+        /// <summary>
+        /// 是否支持指定类型
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public Boolean Support(Type type)
+        {
+            TypeCode code = Type.GetTypeCode(type);
+            if (code != TypeCode.Object) return true;
+
+            if (type == typeof(Byte[])) return true;
+            if (type == typeof(Char[])) return true;
+
+            if (typeof(Guid).IsAssignableFrom(type)) return true;
+            if (typeof(IPAddress).IsAssignableFrom(type)) return true;
+            if (typeof(IPEndPoint).IsAssignableFrom(type)) return true;
+
+            return false;
+        }
+        #endregion
+
+        #region 读取对象
+        /// <summary>
+        /// 从数据流中读取指定类型的对象
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <returns>对象</returns>
+        public Object ReadObject(Type type)
+        {
+            Object value;
+            return TryReadObject(null, type, true, true, false, out value) ? value : null;
+        }
+
+        /// <summary>
+        /// 尝试读取目标对象指定成员的值，通过委托方法递归处理成员
+        /// </summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="encodeInt">是否编码整数</param>
+        /// <param name="allowNull">是否允许空</param>
+        /// <param name="isProperty">是否处理属性</param>
+        /// <param name="value">成员值</param>
+        /// <returns>是否读取成功</returns>
+        public Boolean TryReadObject(Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value)
+        {
+            // 使用自己作为处理成员的方法
+            return TryReadObject(target, member, encodeInt, allowNull, isProperty, out value, ReadMember);
+        }
+
+        /// <summary>
+        /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
+        /// </summary>
+        /// <remarks>
+        /// 简单类型在value中返回，复杂类型直接填充target；
+        /// </remarks>
+        /// <param name="target">目标对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="encodeInt">是否编码整数</param>
+        /// <param name="allowNull">是否允许空</param>
+        /// <param name="isProperty">是否处理属性</param>
+        /// <param name="value">成员值</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public Boolean TryReadObject(Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value, ReadCallback callback)
+        {
+            Type type = member.Type;
+            if (target != null && member.IsType) type = target.GetType();
+            if (callback == null) callback = ReadMember;
+
+            // 基本类型
+            if (TryReadValue(type, encodeInt, out value)) return true;
+
+            // 特殊类型
+            if (TryReadX(type, out value)) return true;
+
+            #region 枚举
+            if (typeof(IEnumerable).IsAssignableFrom(member.Type))
+            {
+                return TryReadEnumerable(target, member, encodeInt, allowNull, isProperty, out value, callback);
+            }
+            #endregion
+
+            #region 复杂对象
+            // 引用类型允许空时，先读取一个字节判断对象是否为空
+            if (!type.IsValueType && allowNull && !ReadBoolean()) return true;
+
+            // 成员对象
+            //if (member.Member.MemberType == MemberTypes.TypeInfo)
+            //    value = target;
+            //else
+            //    value = member.GetValue(target);
+            value = member.IsType ? target : member.GetValue(target);
+
+            // 如果为空，实例化并赋值。只有引用类型才会进来
+            if (value == null)
+            {
+                value = TypeX.CreateInstance(type);
+                //// 如果是成员，还需要赋值
+                //if (member.Member.MemberType != MemberTypes.TypeInfo && target != null) member.SetValue(target, value);
+            }
+
+            // 以下只负责填充value的各成员
+            Object obj = null;
+            if (isProperty)
+            {
+                PropertyInfo[] pis = BinaryWriterX.FindProperties(type);
+                if (pis == null || pis.Length < 1) return true;
+
+                foreach (PropertyInfo item in pis)
+                {
+                    //ReadMember(target, reader, item, encodeInt, allowNull);
+                    MemberInfoX member2 = item;
+                    if (!callback(this, value, member2, encodeInt, allowNull, isProperty, out obj, callback)) return false;
+                    member2.SetValue(value, obj);
+                }
+            }
+            else
+            {
+                FieldInfo[] fis = BinaryWriterX.FindFields(type);
+                if (fis == null || fis.Length < 1) return true;
+
+                foreach (FieldInfo item in fis)
+                {
+#if DEBUG
+                    long p = BaseStream.Position;
+                    Console.Write("{0,-16}：", item.Name);
+#endif
+                    //ReadMember(target, this, item, encodeInt, allowNull);
+                    MemberInfoX member2 = item;
+                    if (!callback(this, value, member2, encodeInt, allowNull, isProperty, out obj, callback)) return false;
+                    // 尽管有可能会二次赋值（如果callback调用这里的话），但是没办法保证用户的callback一定会给成员赋值，所以这里多赋值一次
+                    member2.SetValue(value, obj);
+#if DEBUG
+                    long p2 = BaseStream.Position;
+                    if (p2 > p)
+                    {
+                        BaseStream.Seek(p, SeekOrigin.Begin);
+                        Byte[] data = new Byte[p2 - p];
+                        BaseStream.Read(data, 0, data.Length);
+                        Console.WriteLine("[{0}] {1}", data.Length, BitConverter.ToString(data));
+                    }
+                    else
+                        Console.WriteLine();
+#endif
+                }
+            }
+            #endregion
+
+            return true;
+        }
+
+        private static Boolean ReadMember(BinaryReaderX reader, Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value, ReadCallback callback)
+        {
+            // 使用自己作为处理成员的方法
+            return reader.TryReadObject(target, member, encodeInt, allowNull, isProperty, out value, callback);
+        }
+        #endregion
 
         #region 读取值类型
         /// <summary>
@@ -164,34 +329,358 @@ namespace NewLife.IO
                     break;
             }
 
-            //if (type == typeof(Guid))
-            //{
-            //    value = new Guid(ReadBytes(16));
-            //    return true;
-            //}
+            if (type == typeof(Byte[]))
+            {
+                Int32 len = ReadEncodedInt32();
+                if (len < 0) throw new Exception("非法数据！字节数组长度不能为负数！");
+                value = null;
+                if (len > 0) value = ReadBytes(len);
+                return true;
+            }
+            if (type == typeof(Char[]))
+            {
+                Int32 len = ReadEncodedInt32();
+                if (len < 0) throw new Exception("非法数据！字符数组长度不能为负数！");
+                value = null;
+                if (len > 0) value = ReadChars(len);
+                return true;
+            }
 
-            if (ReadX(type, out value)) return true;
+            //// 尝试其它可能支持的类型
+            //if (ReadX(type, out value)) return true;
 
             value = null;
             return false;
         }
         #endregion
 
-        #region 扩展
+        #region 枚举
+        /// <summary>
+        /// 尝试读取枚举
+        /// </summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="encodeInt">是否编码整数</param>
+        /// <param name="allowNull">是否允许空</param>
+        /// <param name="isProperty">是否处理属性</param>
+        /// <param name="value">成员值</param>
+        /// <returns>是否读取成功</returns>
+        public Boolean TryReadEnumerable(Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value)
+        {
+            return TryReadEnumerable(target, member, encodeInt, allowNull, isProperty, out value, null);
+        }
+
+        /// <summary>
+        /// 尝试读取枚举
+        /// </summary>
+        /// <remarks>重点和难点在于如果得知枚举元素类型，这里假设所有元素类型一致，否则实在无法处理</remarks>
+        /// <param name="target">目标对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="encodeInt">是否编码整数</param>
+        /// <param name="allowNull">是否允许空</param>
+        /// <param name="isProperty">是否处理属性</param>
+        /// <param name="value">成员值</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public Boolean TryReadEnumerable(Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value, ReadCallback callback)
+        {
+            value = null;
+            if (member == null || !typeof(IEnumerable).IsAssignableFrom(member.Type)) return false;
+
+            //// 尝试计算元素类型，通过成员的第一个元素。这个办法实在丑陋，不仅要给成员赋值，还要加一个元素
+            //Type elmType = null;
+            //if (target != null && !member.IsType)
+            //{
+            //    IEnumerable en = member.GetValue(target) as IEnumerable;
+            //    if (en != null)
+            //    {
+            //        foreach (Object item in en)
+            //        {
+            //            if (item != null)
+            //            {
+            //                elmType = item.GetType();
+            //                break;
+            //            }
+            //        }
+            //    }
+            //}
+
+            if (!TryReadEnumerable(member.Type, Type.EmptyTypes, encodeInt, allowNull, isProperty, out value, callback)) return false;
+
+            if (!member.IsType) member.SetValue(target, value);
+
+            return true;
+        }
+
+        /// <summary>
+        /// 尝试读取枚举
+        /// </summary>
+        /// <remarks>重点和难点在于如果得知枚举元素类型，这里假设所有元素类型一致，否则实在无法处理</remarks>
+        /// <param name="type">类型</param>
+        /// <param name="elementTypes">元素类型数组</param>
+        /// <param name="encodeInt">是否编码整数</param>
+        /// <param name="allowNull">是否允许空</param>
+        /// <param name="isProperty">是否处理属性</param>
+        /// <param name="value">成员值</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public Boolean TryReadEnumerable(Type type, Type[] elementTypes, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value, ReadCallback callback)
+        {
+            value = null;
+            if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
+
+            Type elementType = null;
+            Type valueType = null;
+            if (elementTypes != null)
+            {
+                if (elementTypes.Length >= 1) elementType = elementTypes[0];
+                if (elementTypes.Length >= 2) valueType = elementTypes[1];
+            }
+
+            //// 列表
+            //if (typeof(IList).IsAssignableFrom(type))
+            //{
+            //    if (TryReadList(type, elementType, encodeInt, allowNull, isProperty, out value, callback)) return true;
+            //}
+
+            //// 字典
+            //if (typeof(IDictionary).IsAssignableFrom(type))
+            //{
+            //    if (TryReadDictionary(type, elementType, valueType, encodeInt, allowNull, isProperty, out value, callback)) return true;
+            //}
+
+            // 先读元素个数
+            Int32 count = ReadEncodedInt32();
+            if (count < 0) throw new InvalidOperationException("无效元素个数" + count + "！");
+
+            #region 计算元素类型
+            if (elementTypes == null || elementTypes.Length <= 0)
+            {
+                if (type.HasElementType)
+                    elementTypes = new Type[] { type.GetElementType() };
+                else if (type.IsGenericType)
+                {
+                    Type[] ts = type.GetGenericArguments();
+                    if (ts != null && ts.Length > 0)
+                    {
+                        if (ts.Length == 1)
+                            elementTypes = new Type[] { ts[0] };
+                        else if (ts.Length == 2)
+                            elementTypes = new Type[] { ts[0], ts[1] };
+                    }
+                }
+                if (elementTypes != null)
+                {
+                    if (elementTypes.Length >= 1) elementType = elementTypes[0];
+                    if (elementTypes.Length >= 2) valueType = elementTypes[1];
+                }
+            }
+
+            value = null;
+            // 如果不是基本类型和特殊类型，必须有委托方法
+            if (elementType == null || !Support(elementType) && callback == null) return false;
+            #endregion
+
+            #region 特殊处理字节数组和字符数组
+            if (TryReadValue(type, encodeInt, out value)) return true;
+            #endregion
+
+            #region 多数组取值
+            //Array arr = Array.CreateInstance(elementType, count);
+            //Array arr = TypeX.CreateInstance(elementType.MakeArrayType(), count) as Array;
+            Array[] arrs = new Array[elementTypes.Length];
+            for (int i = 0; i < count; i++)
+            {
+                //if (allowNull && ReadEncodedInt32() == 0) continue;
+
+                for (int j = 0; j < elementTypes.Length; j++)
+                {
+                    if (arrs[j] == null) arrs[j] = TypeX.CreateInstance(elementTypes[j].MakeArrayType(), count) as Array;
+
+                    Object obj = null;
+                    if (!TryReadValue(elementTypes[j], encodeInt, out obj) &&
+                        !TryReadX(elementTypes[j], out obj))
+                    {
+                        //obj = CreateInstance(elementType);
+                        //Read(obj, reader, encodeInt, allowNull, member.Member.MemberType == MemberTypes.Property);
+
+                        //obj = TypeX.CreateInstance(elementType);
+                        if (!callback(this, null, elementTypes[j], encodeInt, allowNull, isProperty, out obj, callback)) return false;
+                    }
+                    arrs[j].SetValue(obj, i);
+                }
+            }
+            #endregion
+
+            //value = arr;
+            //if (!type.IsArray) value = Activator.CreateInstance(type, arr);
+            //if (!type.IsArray) value = TypeX.CreateInstance(type, arr);
+
+            #region 结果处理
+            // 如果是数组，直接赋值
+            if (type.IsArray)
+            {
+                value = arrs[0];
+                return true;
+            }
+            else
+            {
+                if (arrs.Length == 1)
+                {
+                    // 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
+                    ConstructorInfoX ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable) });
+                    if (ci == null) ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable<>).MakeGenericType(elementType) });
+                    if (ci != null)
+                    {
+                        value = TypeX.CreateInstance(type, arrs[0]);
+                        return true;
+                    }
+
+                    // 添加方法
+                    MethodInfoX method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
+                    if (method != null)
+                    {
+                        value = TypeX.CreateInstance(type);
+                        for (int i = 0; i < count; i++)
+                        {
+                            method.Invoke(value, arrs[0].GetValue(i));
+                        }
+                        return true;
+                    }
+                }
+                else if (arrs.Length == 2)
+                {
+                    // 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
+                    ConstructorInfoX ci = ConstructorInfoX.Create(type, new Type[] { typeof(IDictionary<,>).MakeGenericType(elementType, valueType) });
+                    if (ci != null)
+                    {
+                        Type dicType = typeof(Dictionary<,>).MakeGenericType(elementType, valueType);
+                        IDictionary dic = TypeX.CreateInstance(dicType) as IDictionary;
+                        for (int i = 0; i < count; i++)
+                        {
+                            dic.Add(arrs[0].GetValue(i), arrs[1].GetValue(i));
+                        }
+                        value = TypeX.CreateInstance(type, dic);
+                        return true;
+                    }
+
+                    // 添加方法
+                    MethodInfoX method = MethodInfoX.Create(type, "Add", new Type[] { elementType, valueType });
+                    if (method != null)
+                    {
+                        value = TypeX.CreateInstance(type);
+                        for (int i = 0; i < count; i++)
+                        {
+                            method.Invoke(value, arrs[0].GetValue(i), arrs[1].GetValue(i));
+                        }
+                        return true;
+                    }
+                }
+            }
+            #endregion
+
+            return false;
+        }
+
+        //public Boolean TryReadList(Type type, Type elementType, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value, ReadCallback callback)
+        //{
+        //    value = null;
+        //    if (!typeof(IList).IsAssignableFrom(type)) return false;
+
+        //    // 先读元素个数
+        //    Int32 count = ReadEncodedInt32();
+        //    if (count < 0) throw new InvalidOperationException("无效元素个数" + count + "！");
+
+        //    if (elementType == null)
+        //    {
+        //        if (type.HasElementType)
+        //            elementType = type.GetElementType();
+        //        else if (type.IsGenericType)
+        //        {
+        //            Type[] ts = type.GetGenericArguments();
+        //            if (ts != null && ts.Length > 0)
+        //            {
+        //                if (ts.Length == 1)
+        //                    elementType = ts[0];
+        //                else if (ts.Length == 2)
+        //                    elementType = ts[0];
+        //            }
+        //        }
+        //    }
+
+        //    value = null;
+        //    // 如果不是基本类型和特殊类型，必须有委托方法
+        //    if (!Support(elementType) && callback == null) return false;
+
+        //    //Array arr = Array.CreateInstance(elementType, count);
+        //    Array arr = TypeX.CreateInstance(elementType.MakeArrayType(), count) as Array;
+        //    value = arr;
+        //    for (int i = 0; i < count; i++)
+        //    {
+        //        //if (allowNull && ReadEncodedInt32() == 0) continue;
+
+        //        Object obj = null;
+        //        if (!TryReadValue(elementType, encodeInt, out obj) &&
+        //            !TryReadX(elementType, out obj))
+        //        {
+        //            //obj = CreateInstance(elementType);
+        //            //Read(obj, reader, encodeInt, allowNull, member.Member.MemberType == MemberTypes.Property);
+
+        //            //obj = TypeX.CreateInstance(elementType);
+        //            if (!callback(this, null, elementType, encodeInt, allowNull, isProperty, out obj, callback)) return false;
+        //        }
+        //        arr.SetValue(obj, i);
+        //    }
+
+        //    //if (!type.IsArray) value = Activator.CreateInstance(type, arr);
+        //    if (!type.IsArray) value = TypeX.CreateInstance(type, arr);
+        //    return true;
+        //}
+
+        //public Boolean TryReadDictionary(Type type, Type keyType, Type valueType, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value, ReadCallback callback)
+        //{
+        //    value = null;
+        //    if (!typeof(IDictionary).IsAssignableFrom(type)) return false;
+
+        //    value = null;
+        //    return false;
+        //}
+        #endregion
+
+        #region 扩展处理类型
         /// <summary>
         /// 扩展读取，反射查找合适的读取方法
         /// </summary>
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        private Boolean ReadX(Type type, out Object value)
+        public Boolean TryReadX(Type type, out Object value)
         {
             value = null;
-            MethodInfo method = this.GetType().GetMethod("Read" + type.Name, new Type[0]);
-            if (method == null) return false;
 
-            value = MethodInfoX.Create(method).Invoke(this, new Object[0]);
-            return true;
+            if (type == typeof(Guid))
+            {
+                value = ReadGuid();
+                return true;
+            }
+            if (type == typeof(IPAddress))
+            {
+                value = ReadIPAddress();
+                return true;
+            }
+            if (type == typeof(IPEndPoint))
+            {
+                value = ReadIPEndPoint();
+                return true;
+            }
+
+            return false;
+
+            //MethodInfo method = this.GetType().GetMethod("Read" + type.Name, new Type[0]);
+            //if (method == null) return false;
+
+            //value = MethodInfoX.Create(method).Invoke(this, new Object[0]);
+            //return true;
         }
 
         /// <summary>
@@ -234,6 +723,22 @@ namespace NewLife.IO
             ep.Port = ReadEncodedInt32();
             return ep;
         }
+        #endregion
+
+        #region 委托
+        /// <summary>
+        /// 数据读取方法
+        /// </summary>
+        /// <param name="reader">读取器</param>
+        /// <param name="target">目标对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="encodeInt">是否编码整数</param>
+        /// <param name="allowNull">是否允许空</param>
+        /// <param name="isProperty">是否处理属性</param>
+        /// <param name="value">成员值</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        public delegate Boolean ReadCallback(BinaryReaderX reader, Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value, ReadCallback callback);
         #endregion
     }
 }

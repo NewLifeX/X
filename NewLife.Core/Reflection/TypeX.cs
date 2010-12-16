@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
-using NewLife.Collections;
 using System.ComponentModel;
+using System.Reflection;
 using System.Reflection.Emit;
+using NewLife.Collections;
 
 namespace NewLife.Reflection
 {
@@ -131,8 +130,9 @@ namespace NewLife.Reflection
         DictionaryCache<ConstructorInfo, FastHandler> _cache = new DictionaryCache<ConstructorInfo, FastHandler>();
         FastHandler GetHandler(Type[] paramTypes)
         {
-            ConstructorInfo constructor = BaseType.GetConstructor(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, paramTypes, null);
-            if (constructor == null) throw new Exception("没有找到匹配的构造函数！");
+            ConstructorInfo constructor = BaseType.GetConstructor(DefaultBinding, null, paramTypes, null);
+            //if (constructor == null) throw new Exception("没有找到匹配的构造函数！");
+            if (constructor == null) return null;
 
             return _cache.GetItem(constructor, delegate(ConstructorInfo key)
             {
@@ -151,6 +151,16 @@ namespace NewLife.Reflection
             if (type == null) throw new ArgumentNullException("type");
 
             return Create(type).CreateInstance(parameters);
+        }
+
+        /// <summary>
+        /// 取值，返回自己
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override Object GetValue(Object obj)
+        {
+            return obj;
         }
         #endregion
 
@@ -200,7 +210,7 @@ namespace NewLife.Reflection
             {
                 if (_Members == null && !hasLoad.Contains("Members"))
                 {
-                    _Members = new ListX<MemberInfo>(BaseType.GetMembers(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic));
+                    _Members = new ListX<MemberInfo>(BaseType.GetMembers(DefaultBinding));
                     hasLoad.Add("Members");
                 }
                 return _Members == null ? null : _Members.Clone();
