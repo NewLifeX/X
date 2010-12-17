@@ -127,7 +127,7 @@ namespace NewLife.IO
                 return true;
             }
 
-            return WriteObject(value, value.GetType(), true, true, false);
+            return WriteObject(value, TypeX.Create(value.GetType()), true, true, false);
         }
 
         /// <summary>

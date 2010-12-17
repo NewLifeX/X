@@ -1,10 +1,10 @@
 ﻿using System;
-using System.IO;
-using System.Reflection;
-using System.Net;
-using NewLife.Reflection;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Reflection;
+using NewLife.Reflection;
 
 namespace NewLife.IO
 {
@@ -102,7 +102,7 @@ namespace NewLife.IO
         public Object ReadObject(Type type)
         {
             Object value;
-            return TryReadObject(null, type, true, true, false, out value) ? value : null;
+            return TryReadObject(null, TypeX.Create(type), true, true, false, out value) ? value : null;
         }
 
         /// <summary>

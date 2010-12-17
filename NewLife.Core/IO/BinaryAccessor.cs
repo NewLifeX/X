@@ -23,7 +23,7 @@ namespace NewLife.IO
         {
             //Read(this, reader, true, true, false);
             Object value = null;
-            reader.TryReadObject(this, this.GetType(), true, false, false, out value, ReadMember);
+            reader.TryReadObject(this, TypeX.Create(this.GetType()), true, false, false, out value, ReadMember);
         }
 
         /// <summary>
@@ -225,7 +225,7 @@ namespace NewLife.IO
         public virtual void Write(BinaryWriterX writer)
         {
             //Write(this, writer, true, true, false);
-            writer.WriteObject(this, this.GetType(), true, false, false, WriteMember);
+            writer.WriteObject(this, TypeX.Create(this.GetType()), true, false, false, WriteMember);
         }
 
         /// <summary>
