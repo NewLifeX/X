@@ -65,7 +65,13 @@ namespace NewLife.Reflection
         /// <summary>
         /// 是否类型
         /// </summary>
-        public Boolean IsType { get { return Member != null && Member.MemberType == MemberTypes.TypeInfo; } }
+        public Boolean IsType
+        {
+            get
+            {
+                return Member != null && (Member.MemberType == MemberTypes.TypeInfo || Member.MemberType == MemberTypes.NestedType);
+            }
+        }
         #endregion
 
         #region 构造
