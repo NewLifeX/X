@@ -11,6 +11,9 @@ using NewLife.PeerToPeer.Messages;
 using NewLife.Reflection;
 using NewLife.IO;
 using XCode.DataAccessLayer;
+using XCode;
+using System.ComponentModel;
+using NewLife.CommonEntity;
 
 namespace Test
 {
@@ -27,7 +30,7 @@ namespace Test
                 try
                 {
 #endif
-                Test5();
+                Test7();
                 //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
@@ -246,57 +249,31 @@ namespace Test
 
         static void Test4()
         {
-#if DEBUG
-            FastTest.Test();
-#endif
+            //#if DEBUG
+            //            FastTest.Test();
+            //#endif
         }
 
-        static void Test5()
+        static void Test7()
         {
-            //MemoryStream ms = new MemoryStream();
-            //BinaryWriterX writer = new BinaryWriterX(ms);
-            ////writer.Write((Int32)0);
-            //writer.WriteEncoded(0);
-            //Console.WriteLine(BitConverter.ToString(ms.ToArray()));
+            DescriptionAttribute att = AttributeX.GetCustomAttribute<DescriptionAttribute>(typeof(Menu));
+            Console.WriteLine(att == null);
 
-            SelectBuilder sb = new SelectBuilder(DatabaseType.SqlServer2005);
-            sb.Table = "Test";
-            sb.Where = "1=1 Group by Category";
-            Console.WriteLine(sb.ToString());
+            String str = AttributeX.GetCustomAttributeValue<DescriptionAttribute, String>(typeof(Menu), false);
+            Console.WriteLine(str);
 
-            Int32[] ns = new Int32[123];
-            List<Int64?> list = new List<Int64?>();
+            Log log = Log.Create(typeof(Administrator), "Add");
+            Console.WriteLine(log.Category);
 
-            Console.WriteLine(ns.GetType().GetElementType());
-            Console.WriteLine(list.GetType().GetElementType());
+            Administrator admin = Administrator.Login("admin", "admin");
+            Console.WriteLine(admin == null);
 
-            //TypeX type = ns.GetType();
-            //Console.WriteLine(type);
+            XCodeTest.MulThread(5);
 
-            list.Add(123);
-            list.Add(null);
-            list.Add(123);
+            //XCodeTest.DynTest();
 
-            aa a = new aa();
-
-            Test5_0(a);
-
-#if DEBUG
-            BinaryTest.Test();
-#endif
-        }
-
-        static void Test5_0(Object value)
-        {
-            //ConsoleKeyInfo key = (ConsoleKeyInfo)value;
-            //Console.WriteLine(key == null);
-
-            //((aa)value).Key = new ConsoleKeyInfo('A', ConsoleKey.A, false, false, false);
-        }
-
-        struct aa
-        {
-            public ConsoleKeyInfo Key;
+            //Menu menu = Menu.Root.Childs[0];
+            //Console.WriteLine(menu.ToString());
         }
     }
 }

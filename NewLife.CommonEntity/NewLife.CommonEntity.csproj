@@ -41,16 +41,13 @@
     <DocumentationFile>..\..\生成\NewLife.CommonEntity.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NewLife.Core">
-      <HintPath>..\..\DLL\NewLife.Core.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
-    <Reference Include="XCode, Version=5.6.3904.24515, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="XCode, Version=6.4.4003.37697, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\DLL\XCode.dll</HintPath>
+      <HintPath>..\..\DLL\XCode.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -77,6 +74,12 @@
     <Compile Include="实体\附件.Biz.cs" />
     <Compile Include="实体\附件.cs" />
     <Compile Include="实体\默认后台.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
+      <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
+      <Name>NewLife.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

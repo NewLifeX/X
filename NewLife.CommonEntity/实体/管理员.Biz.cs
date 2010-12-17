@@ -65,6 +65,39 @@ namespace NewLife.CommonEntity
                 }
             }
         }
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override int Insert()
+        {
+            WriteLog("添加");
+
+            return base.Insert();
+        }
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override int Update()
+        {
+            WriteLog("修改");
+
+            return base.Update();
+        }
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override int Delete()
+        {
+            WriteLog("删除");
+
+            return base.Delete();
+        }
         #endregion
 
         /// <summary>角色</summary>

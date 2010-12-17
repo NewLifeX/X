@@ -177,12 +177,19 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static TEntity Create(Type type, String action)
         {
-            String name = type.Name;
+            String name = String.Empty;
             // 获取实体类的描述名
             if (typeof(IEntity).IsAssignableFrom(type))
             {
-                String str = AttributeX.GetCustomAttributeValue<DescriptionAttribute, String>(type, true);
-                if (!String.IsNullOrEmpty(str)) name = str;
+                BindColumnAttribute att = AttributeX.GetCustomAttribute<BindColumnAttribute>(type, true);
+                if (att != null && !String.IsNullOrEmpty(att.Description))
+                    name = att.Description;
+                else
+                {
+                    DescriptionAttribute att2 = AttributeX.GetCustomAttribute<DescriptionAttribute>(type, true);
+                    if (att2 != null && !String.IsNullOrEmpty(att2.Description))
+                        name = att2.Description;
+                }
             }
             if (String.IsNullOrEmpty(name)) name = type.Name;
 
