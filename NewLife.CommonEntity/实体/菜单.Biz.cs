@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Text;
 using System.Web;
 using System.Xml.Serialization;
 using NewLife.Log;
 using XCode;
-using System.Text;
 
 namespace NewLife.CommonEntity
 {
@@ -36,22 +36,23 @@ namespace NewLife.CommonEntity
                 {
                     if (XTrace.Debug) XTrace.WriteLine("开始初始化表单数据……");
 
-                    TEntity entity = Root;
-                    entity = entity.AddChild("控制台", null);
-                    entity = entity.AddChild("系统管理", null);
-                    entity.Sort = 9999;
-                    entity.Save();
-
-                    entity.AddChild("菜单管理", "../System/Menu.aspx");
-                    entity.AddChild("管理员管理", "../System/UserManage.aspx");
-                    entity.AddChild("角色管理", "../System/Role.aspx");
-                    entity.AddChild("权限管理", "../System/RoleMenu.aspx");
-                    entity.AddChild("日志管理", "../System/Log.aspx");
-
-                    // 准备增加Admin目录下的所有页面
-                    #region 扫描文件
+                    Meta.BeginTrans();
                     try
                     {
+                        TEntity entity = Root;
+                        entity = entity.AddChild("控制台", null);
+                        entity = entity.AddChild("系统管理", null);
+                        entity.Sort = 9999;
+                        entity.Save();
+
+                        entity.AddChild("菜单管理", "../System/Menu.aspx");
+                        entity.AddChild("管理员管理", "../System/UserManage.aspx");
+                        entity.AddChild("角色管理", "../System/Role.aspx");
+                        entity.AddChild("权限管理", "../System/RoleMenu.aspx");
+                        entity.AddChild("日志管理", "../System/Log.aspx");
+
+                        // 准备增加Admin目录下的所有页面
+                        #region 扫描文件
                         String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Admin");
                         if (Directory.Exists(p))
                         {
@@ -88,14 +89,16 @@ namespace NewLife.CommonEntity
                                 }
                             }
                         }
+                        #endregion
+
+                        Meta.Commit();
+                        if (XTrace.Debug) XTrace.WriteLine("完成初始化表单数据！");
                     }
                     catch (Exception ex)
                     {
+                        Meta.Rollback();
                         if (XTrace.Debug) XTrace.WriteLine(ex.ToString());
                     }
-                    #endregion
-
-                    if (XTrace.Debug) XTrace.WriteLine("完成初始化表单数据！");
                 }
             }
             catch (Exception ex)
