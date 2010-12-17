@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Data.OracleClient;
 using System.Reflection;
 using System.Text;
-using XCode.DataAccessLayer;
-using System.Configuration;
 using NewLife.Collections;
+using XCode.DataAccessLayer;
 
 namespace XCode.Configuration
 {
