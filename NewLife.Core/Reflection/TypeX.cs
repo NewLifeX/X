@@ -419,5 +419,27 @@ namespace NewLife.Reflection
             return AttributeX.GetCustomAttributeValue<TAttribute, TResult>(BaseType, true);
         }
         #endregion
+
+        #region 类型转换
+        /// <summary>
+        /// 类型转换
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static implicit operator Type(TypeX obj)
+        {
+            return obj != null ? obj.Type : null;
+        }
+
+        /// <summary>
+        /// 类型转换
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static implicit operator TypeX(Type obj)
+        {
+            return obj != null ? Create(obj) : null;
+        }
+        #endregion
     }
 }
