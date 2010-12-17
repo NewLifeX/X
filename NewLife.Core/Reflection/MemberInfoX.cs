@@ -48,6 +48,7 @@ namespace NewLife.Reflection
                     case MemberTypes.Property:
                         return (Member as PropertyInfo).PropertyType;
                     case MemberTypes.TypeInfo:
+                    case MemberTypes.NestedType:
                         return Member as Type;
                     default:
                         break;
