@@ -56,6 +56,7 @@
     <Compile Include="Connections\TcpConnection.cs" />
     <Compile Include="Connections\UdpConnection.cs" />
     <Compile Include="ExecutionState\CommandExecutionStateType.cs" />
+    <Compile Include="MessageProcess\ProcessBase.cs" />
     <Compile Include="Messages\FindTorrentMessage.cs" />
     <Compile Include="Messages\InviteMessage.cs" />
     <Compile Include="Messages\MessageServer.cs" />
