@@ -31,7 +31,7 @@ namespace NewLife.PeerToPeer.Server
         static CommandServer()
         {
             //注册消息处理方法
-            ProcessBase.Init();
+            //ProcessBase.Init();
         }
         #endregion
 
