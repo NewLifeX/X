@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Net.Sockets;
-using NewLife.Net.Application;
-using System.Net;
+﻿using System.Net;
 using NewLife.Collections;
+using NewLife.Net.Application;
 
 namespace NewLife.PeerToPeer.Client
 {
@@ -17,17 +13,17 @@ namespace NewLife.PeerToPeer.Client
     public class TrackerClient : UdpStreamServer
     {
         #region 属性
-        private IPEndPoint _Address;
-        /// <summary>地址</summary>
-        public IPEndPoint Address
-        {
-            get { return _Address; }
-            private set { _Address = value; }
-        }
+        //private IPEndPoint _Address;
+        ///// <summary>地址</summary>
+        //public IPEndPoint Address
+        //{
+        //    get { return _Address; }
+        //    private set { _Address = value; }
+        //}
         #endregion
 
         #region 构造
-        private TrackerClient(IPEndPoint address) { Address = address; }
+        private TrackerClient(IPEndPoint ep) { Address = ep.Address; Port = ep.Port; }
 
         static DictionaryCache<IPEndPoint, TrackerClient> cache = new DictionaryCache<IPEndPoint, TrackerClient>();
         /// <summary>

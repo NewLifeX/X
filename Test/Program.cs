@@ -1,20 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using NewLife.Log;
-using NewLife.PeerToPeer;
+using System.IO;
 using System.Reflection;
+using NewLife.Log;
+using NewLife.Messaging;
+using NewLife.Net.Sockets;
+using NewLife.Net.Udp;
 using NewLife.PeerToPeer.Messages;
 using NewLife.Reflection;
-using NewLife.Net.Udp;
-using NewLife.Net.Sockets;
-using System.IO;
-using NewLife.Messaging;
-using System.Web;
-using System.Collections.Generic;
-using System.Net;
-using NewLife.Collections;
-using XCode;
-using NewLife.CommonEntity;
+using NewLife.IO;
 
 namespace Test
 {
@@ -31,8 +26,8 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
-                    //ThreadPoolTest.Main2(args);
+                Test5();
+                //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -251,8 +246,51 @@ namespace Test
         static void Test4()
         {
 #if DEBUG
-           FastTest.Test();
+            FastTest.Test();
 #endif
+        }
+
+        static void Test5()
+        {
+            //MemoryStream ms = new MemoryStream();
+            //BinaryWriterX writer = new BinaryWriterX(ms);
+            ////writer.Write((Int32)0);
+            //writer.WriteEncoded(0);
+            //Console.WriteLine(BitConverter.ToString(ms.ToArray()));
+
+            Int32[] ns = new Int32[123];
+            List<Int64?> list = new List<Int64?>();
+
+            Console.WriteLine(ns.GetType().GetElementType());
+            Console.WriteLine(list.GetType().GetElementType());
+
+            TypeX type = ns.GetType();
+            Console.WriteLine(type);
+
+            list.Add(123);
+            list.Add(null);
+            list.Add(123);
+
+            aa a = new aa();
+
+            Test5_0(a);
+
+#if DEBUG
+            BinaryTest.Test();
+#endif
+        }
+
+        static void Test5_0(Object value)
+        {
+            //ConsoleKeyInfo key = (ConsoleKeyInfo)value;
+            //Console.WriteLine(key == null);
+
+            //((aa)value).Key = new ConsoleKeyInfo('A', ConsoleKey.A, false, false, false);
+        }
+
+        struct aa
+        {
+            public ConsoleKeyInfo Key;
         }
     }
 }
