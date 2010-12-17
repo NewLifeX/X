@@ -46,7 +46,7 @@ namespace NewLife.CommonEntity
                         entity.Save();
 
                         entity.AddChild("菜单管理", "../System/Menu.aspx");
-                        entity.AddChild("管理员管理", "../System/UserManage.aspx");
+                        entity.AddChild("管理员管理", "../System/Admin.aspx");
                         entity.AddChild("角色管理", "../System/Role.aspx");
                         entity.AddChild("权限管理", "../System/RoleMenu.aspx");
                         entity.AddChild("日志管理", "../System/Log.aspx");
