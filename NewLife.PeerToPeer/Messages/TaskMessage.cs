@@ -15,13 +15,13 @@ namespace NewLife.PeerToPeer.Messages
         /// <summary>消息类型</summary>
         public override MessageTypes MessageType { get { return MessageTypes.Task; } }
 
-        private Int32 _TaskID;
-        /// <summary>任务ID</summary>
-        public Int32 TaskID
-        {
-            get { return _TaskID; }
-            set { _TaskID = value; }
-        }
+        //private Int32 _TaskID;
+        ///// <summary>任务ID</summary>
+        //public Int32 TaskID
+        //{
+        //    get { return _TaskID; }
+        //    set { _TaskID = value; }
+        //}
 
         private Int32 _State;
         /// <summary>执行状态</summary>
@@ -29,6 +29,14 @@ namespace NewLife.PeerToPeer.Messages
         {
             get { return _State; }
             set { _State = value; }
+        }
+
+        private String _Remark;
+        /// <summary>备注</summary>
+        public String Remark
+        {
+            get { return _Remark; }
+            set { _Remark = value; }
         }
 
         #endregion
@@ -42,13 +50,13 @@ namespace NewLife.PeerToPeer.Messages
             /// <summary>消息类型</summary>
             public override MessageTypes MessageType { get { return MessageTypes.TaskResponse; } }
 
-            private Int32 _TaskID;
-            /// <summary>任务ID</summary>
-            public Int32 TaskID
-            {
-                get { return _TaskID; }
-                set { _TaskID = value; }
-            }
+            //private Int32 _TaskID;
+            ///// <summary>任务ID</summary>
+            //public Int32 TaskID
+            //{
+            //    get { return _TaskID; }
+            //    set { _TaskID = value; }
+            //}
 
             private Int32 _State;
             /// <summary>执行状态</summary>

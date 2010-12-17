@@ -34,6 +34,14 @@ namespace NewLife.PeerToPeer.Messages
             get { return _Token; }
             set { _Token = value; }
         }
+
+        private Int32 _TaskID;
+        /// <summary>任务ID</summary>
+        public Int32 TaskID
+        {
+            get { return _TaskID; }
+            set { _TaskID = value; }
+        }
         #endregion
 
         #region 构造
