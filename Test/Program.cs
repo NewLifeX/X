@@ -10,6 +10,7 @@ using NewLife.Net.Udp;
 using NewLife.PeerToPeer.Messages;
 using NewLife.Reflection;
 using NewLife.IO;
+using XCode.DataAccessLayer;
 
 namespace Test
 {
@@ -258,14 +259,19 @@ namespace Test
             //writer.WriteEncoded(0);
             //Console.WriteLine(BitConverter.ToString(ms.ToArray()));
 
+            SelectBuilder sb = new SelectBuilder(DatabaseType.SqlServer2005);
+            sb.Table = "Test";
+            sb.Where = "1=1 Group by Category";
+            Console.WriteLine(sb.ToString());
+
             Int32[] ns = new Int32[123];
             List<Int64?> list = new List<Int64?>();
 
             Console.WriteLine(ns.GetType().GetElementType());
             Console.WriteLine(list.GetType().GetElementType());
 
-            TypeX type = ns.GetType();
-            Console.WriteLine(type);
+            //TypeX type = ns.GetType();
+            //Console.WriteLine(type);
 
             list.Add(123);
             list.Add(null);

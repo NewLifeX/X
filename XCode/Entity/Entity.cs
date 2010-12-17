@@ -233,22 +233,26 @@ namespace XCode
         /// <returns></returns>
         private static List<FieldItem> CheckColumn(DataTable dt, String prefix)
         {
-            // 检查dr中是否有该属性的列。考虑到Select可能是不完整的，此时，只需要局部填充
-            //FieldItem[] allps = Meta.AllFields;
-            //if (allps == null || allps.Length < 1) return null;
+            //// 检查dr中是否有该属性的列。考虑到Select可能是不完整的，此时，只需要局部填充
+            //List<FieldItem> allps = Meta.AllFields;
+            //if (allps == null || allps.Count < 1) return null;
 
-            ////这里可千万不能删除allps中的项，那样会影响到全局的Fields缓存的
-            //List<FieldItem> ps = new List<FieldItem>();
+            //这里可千万不能删除allps中的项，那样会影响到全局的Fields缓存的
+            List<FieldItem> ps = new List<FieldItem>();
             //for (Int32 i = allps.Length - 1; i >= 0; i--)
             //{
             //    if (dt.Columns.Contains(prefix + allps[i].ColumnNameEx)) ps.Add(allps[i]);
             //}
-            //return ps;
-
-            return Meta.AllFields.FindAll(delegate(FieldItem item)
+            foreach (FieldItem item in Meta.AllFields)
             {
-                return dt.Columns.Contains(prefix + item.Column);
-            });
+                if (dt.Columns.Contains(prefix + item.ColumnNameEx)) ps.Add(item);
+            }
+            return ps;
+
+            //return Meta.AllFields.FindAll(delegate(FieldItem item)
+            //{
+            //    return dt.Columns.Contains(prefix + item.ColumnNameEx);
+            //});
         }
 
         ///// <summary>

@@ -191,7 +191,23 @@ namespace XCode.DataAccessLayer
         {
             //if (IsLock && !String.IsNullOrEmpty(_out)) return _out;
 
-            if (!String.IsNullOrEmpty(Where) && reg_gb.IsMatch(Where)) throw new Exception("请不要在Where中使用GroupBy！");
+            //if (!String.IsNullOrEmpty(Where) && reg_gb.IsMatch(Where)) throw new Exception("请不要在Where中使用GroupBy！");
+            if (!String.IsNullOrEmpty(Where))
+            {
+                Match match = reg_gb.Match(Where);
+                if (match != null && match.Success)
+                {
+                    String gb = Where.Substring(match.Index + match.Length).Trim();
+                    if (String.IsNullOrEmpty(GroupBy))
+                        GroupBy = gb;
+                    else
+                        GroupBy += ", " + gb;
+
+                    Where = Where.Substring(0, match.Index).Trim();
+                }
+            }
+
+            if (Where == "1=1") Where = null;
 
             StringBuilder sb = new StringBuilder();
             sb.Append("Select ");

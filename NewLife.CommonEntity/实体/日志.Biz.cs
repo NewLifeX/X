@@ -1,8 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Text;
+using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
+using XCode.Cache;
 
 namespace NewLife.CommonEntity
 {
@@ -55,7 +57,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>
-        /// 
+        /// 查询
         /// </summary>
         /// <param name="key"></param>
         /// <param name="adminid"></param>
@@ -74,7 +76,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>
-        /// 
+        /// 查询
         /// </summary>
         /// <param name="key"></param>
         /// <param name="adminid"></param>
@@ -92,15 +94,24 @@ namespace NewLife.CommonEntity
             return FindCount(where, null, null, 0, 0);
         }
 
-        private static String SearchWhere(String key, Int32 adminid, String category, DateTime start, DateTime end)
+        /// <summary>
+        /// 查询
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="adminid"></param>
+        /// <param name="category"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        public static String SearchWhere(String key, Int32 adminid, String category, DateTime start, DateTime end)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("1=1");
             if (!String.IsNullOrEmpty(key)) sb.AppendFormat(" And {0} like '%{1}%'", _.Remark, key.Replace("'", "''"));
             if (!String.IsNullOrEmpty(category) && category != "全部") sb.AppendFormat(" And {0}='{1}'", _.Category, category.Replace("'", "''"));
             if (adminid > 0) sb.AppendFormat(" And {0}={1}", _.UserID, adminid);
-            if (start > DateTime.MinValue) sb.AppendFormat(" And {0}>='{1:yyyy-MM-dd HH:mm:ss}'", _.OccurTime, start);
-            if (end > DateTime.MinValue) sb.AppendFormat(" And {0}<'{1:yyyy-MM-dd HH:mm:ss}'", _.OccurTime, end.Date.AddDays(1));
+            if (start > DateTime.MinValue) sb.AppendFormat(" And {0}>='{1:yyyy-MM-dd HH:mm:ss}'", _.OccurTime, Meta.FormatDateTime(start));
+            if (end > DateTime.MinValue) sb.AppendFormat(" And {0}<'{1:yyyy-MM-dd HH:mm:ss}'", _.OccurTime, Meta.FormatDateTime(end.Date.AddDays(1)));
 
             if (sb.ToString() == "1=1")
                 return null;
@@ -110,6 +121,35 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展操作
+        static EntityCache<TEntity> _categoryCache;
+        /// <summary>
+        /// 类别名实体缓存，异步，缓存10分钟
+        /// </summary>
+        static EntityCache<TEntity> CategoryCache
+        {
+            get
+            {
+                if (_categoryCache == null)
+                {
+                    // 缓存查询所有类别名，并缓存10分钟，缓存过期时将使用异步查询，不影响返回速度
+                    _categoryCache = new EntityCache<TEntity>();
+                    _categoryCache.Asynchronous = true;
+                    _categoryCache.Expriod = 10 * 60;
+                    _categoryCache.FillListMethod = delegate { return FindAll("1=1 Group By " + _.Category, null, _.Category, 0, 0); };
+                }
+                return _categoryCache;
+            }
+        }
+
+        /// <summary>
+        /// 查找所有类别名
+        /// </summary>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static EntityList<TEntity> FindAllCategory()
+        {
+            return CategoryCache.Entities;
+        }
         #endregion
 
         #region 业务
@@ -137,7 +177,16 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static TEntity Create(Type type, String action)
         {
-            return Create(type.Name, action);
+            String name = type.Name;
+            // 获取实体类的描述名
+            if (typeof(IEntity).IsAssignableFrom(type))
+            {
+                String str = AttributeX.GetCustomAttributeValue<DescriptionAttribute, String>(type, true);
+                if (!String.IsNullOrEmpty(str)) name = str;
+            }
+            if (String.IsNullOrEmpty(name)) name = type.Name;
+
+            return Create(name, action);
         }
         #endregion
     }

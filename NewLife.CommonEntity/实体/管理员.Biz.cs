@@ -3,9 +3,9 @@ using System.ComponentModel;
 using System.Web;
 using System.Xml.Serialization;
 using NewLife.Log;
+using NewLife.Security;
 using NewLife.Web;
 using XCode;
-using NewLife.Security;
 
 namespace NewLife.CommonEntity
 {
@@ -87,9 +87,25 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public override Boolean HasMenu(String name)
         {
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
             if (Role == null) return false;
 
-            return Role.HasMenu(name);
+            Boolean rs = Role.HasMenu(name);
+            // 没有权限，检查是否有这个权限项，如果没有，则写入日志提醒管理员
+            if (!rs)
+            {
+                TMenuEntity menu = Menu<TMenuEntity>.FindForPerssion(name);
+                if (menu == null)
+                {
+                    TLogEntity log = Log<TLogEntity>.Create(this.GetType(), "检查权限");
+                    log.Remark = String.Format("系统中没有[{0}]的权限项", name);
+                    log.UserID = ID;
+                    log.UserName = DisplayName;
+                    log.Save();
+                }
+            }
+            return rs;
         }
 
         /// <summary>
