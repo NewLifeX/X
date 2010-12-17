@@ -210,24 +210,32 @@ namespace NewLife.IO
                 FieldInfo[] fis = FindFields(type);
                 if (fis == null || fis.Length < 1) return true;
 
+                long p = 0;
+                long p2 = 0;
                 foreach (FieldInfo item in fis)
                 {
 #if DEBUG
-                    long p = BaseStream.Position;
-                    Console.Write("{0,-16}：", item.Name);
+                    if (BaseStream.CanSeek && BaseStream.CanRead)
+                    {
+                        p = BaseStream.Position;
+                        Console.Write("{0,-16}：", item.Name);
+                    }
 #endif
                     if (!callback(this, value, item, encodeInt, allowNull, isProperty, callback)) return false;
 #if DEBUG
-                    long p2 = BaseStream.Position;
-                    if (p2 > p)
+                    if (BaseStream.CanSeek && BaseStream.CanRead)
                     {
-                        BaseStream.Seek(p, SeekOrigin.Begin);
-                        Byte[] data = new Byte[p2 - p];
-                        BaseStream.Read(data, 0, data.Length);
-                        Console.WriteLine("[{0}] {1}", data.Length, BitConverter.ToString(data));
+                        p2 = BaseStream.Position;
+                        if (p2 > p)
+                        {
+                            BaseStream.Seek(p, SeekOrigin.Begin);
+                            Byte[] data = new Byte[p2 - p];
+                            BaseStream.Read(data, 0, data.Length);
+                            Console.WriteLine("[{0}] {1}", data.Length, BitConverter.ToString(data));
+                        }
+                        else
+                            Console.WriteLine();
                     }
-                    else
-                        Console.WriteLine();
 #endif
                 }
             }

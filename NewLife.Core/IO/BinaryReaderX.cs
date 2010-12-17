@@ -193,11 +193,16 @@ namespace NewLife.IO
                 FieldInfo[] fis = BinaryWriterX.FindFields(type);
                 if (fis == null || fis.Length < 1) return true;
 
+                long p = 0;
+                long p2 = 0;
                 foreach (FieldInfo item in fis)
                 {
 #if DEBUG
-                    long p = BaseStream.Position;
-                    Console.Write("{0,-16}：", item.Name);
+                    if (BaseStream.CanSeek && BaseStream.CanRead)
+                    {
+                        p = BaseStream.Position;
+                        Console.Write("{0,-16}：", item.Name);
+                    }
 #endif
                     //ReadMember(target, this, item, encodeInt, allowNull);
                     MemberInfoX member2 = item;
@@ -205,16 +210,19 @@ namespace NewLife.IO
                     // 尽管有可能会二次赋值（如果callback调用这里的话），但是没办法保证用户的callback一定会给成员赋值，所以这里多赋值一次
                     member2.SetValue(value, obj);
 #if DEBUG
-                    long p2 = BaseStream.Position;
-                    if (p2 > p)
+                    if (BaseStream.CanSeek && BaseStream.CanRead)
                     {
-                        BaseStream.Seek(p, SeekOrigin.Begin);
-                        Byte[] data = new Byte[p2 - p];
-                        BaseStream.Read(data, 0, data.Length);
-                        Console.WriteLine("[{0}] {1}", data.Length, BitConverter.ToString(data));
+                        p2 = BaseStream.Position;
+                        if (p2 > p)
+                        {
+                            BaseStream.Seek(p, SeekOrigin.Begin);
+                            Byte[] data = new Byte[p2 - p];
+                            BaseStream.Read(data, 0, data.Length);
+                            Console.WriteLine("[{0}] {1}", data.Length, BitConverter.ToString(data));
+                        }
+                        else
+                            Console.WriteLine();
                     }
-                    else
-                        Console.WriteLine();
 #endif
                 }
             }
@@ -453,6 +461,9 @@ namespace NewLife.IO
             Int32 count = ReadEncodedInt32();
             if (count < 0) throw new InvalidOperationException("无效元素个数" + count + "！");
 
+            // 没有元素
+            if (count == 0) return true;
+
             #region 计算元素类型
             if (elementTypes == null || elementTypes.Length <= 0)
             {
@@ -532,7 +543,8 @@ namespace NewLife.IO
                     if (ci == null) ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable<>).MakeGenericType(elementType) });
                     if (ci != null)
                     {
-                        value = TypeX.CreateInstance(type, arrs[0]);
+                        //value = TypeX.CreateInstance(type, arrs[0]);
+                        value = ci.CreateInstance(arrs[0]);
                         return true;
                     }
 
@@ -560,7 +572,8 @@ namespace NewLife.IO
                         {
                             dic.Add(arrs[0].GetValue(i), arrs[1].GetValue(i));
                         }
-                        value = TypeX.CreateInstance(type, dic);
+                        //value = TypeX.CreateInstance(type, dic);
+                        value = ci.CreateInstance(dic);
                         return true;
                     }
 
