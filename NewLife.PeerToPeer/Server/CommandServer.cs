@@ -24,6 +24,17 @@ namespace NewLife.PeerToPeer.Server
 
         #endregion
 
+        #region 构造函数
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        static CommandServer()
+        {
+            //注册消息处理方法
+            ProcessBase.Init();
+        }
+        #endregion
+
         #region 处理
         /// <summary>
         /// 已重载。
