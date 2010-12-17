@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("6.3.*")]
-[assembly: AssemblyFileVersion("6.3.2010.1209")]
+[assembly: AssemblyVersion("6.4.*")]
+[assembly: AssemblyFileVersion("6.4.2010.1217")]
 
 /*
  * XCode的重大改进
@@ -47,6 +47,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v6.4.2010.1217   修正Entity中CheckColumn无法正确计算选择字段的错误
+ *                  优化SelectBuilder，允许Where中使用GroupBy字句，ToString时自动分割到正确位置
+ * 
  * v6.3.2010.1209   修正实体工厂EntityFactory缓存实体导致无法识别后加载实体程序集的错误
  * 
  * v6.2.2010.1202   SQLite增加读写锁，限制同时只能指定一个Excute操作
