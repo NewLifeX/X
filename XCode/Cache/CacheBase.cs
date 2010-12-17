@@ -1,5 +1,7 @@
 ﻿using System;
 using NewLife.Reflection;
+using NewLife.Log;
+using NewLife.Configuration;
 
 namespace XCode.Cache
 {
@@ -40,6 +42,10 @@ namespace XCode.Cache
             try
             {
                 callback();
+            }
+            catch (Exception ex)
+            {
+                if (Config.GetConfig<Boolean>("XCode.Debug")) XTrace.WriteLine(ex.ToString());
             }
             finally
             {
