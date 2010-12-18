@@ -313,10 +313,11 @@ namespace XCode
         /// <summary>
         /// 取得全路径的实体，由上向下排序
         /// </summary>
-        /// <param name="includeSelf"></param>
-        /// <param name="func"></param>
+        /// <param name="includeSelf">是否包含自己</param>
+        /// <param name="separator">分隔符</param>
+        /// <param name="func">回调</param>
         /// <returns></returns>
-        public String GetFullPath(Boolean includeSelf, Func<TEntity, String> func)
+        public String GetFullPath(Boolean includeSelf, String separator, Func<TEntity, String> func)
         {
             EntityList<TEntity> list = GetFullPath(includeSelf);
 
