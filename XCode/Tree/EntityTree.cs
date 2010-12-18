@@ -157,6 +157,34 @@ namespace XCode
             }
             return list;
         }
+
+        /// <summary>
+        /// 查找指定键的所有子节点，以深度层次树结构输出
+        /// </summary>
+        /// <param name="parentKey"></param>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select)]
+        public static EntityList<TEntity> FindAllChildsByParent(Object parentKey)
+        {
+            TEntity entity = FindByKey(parentKey);
+            if (entity == null) entity = Root;
+
+            return FindAllChilds(entity);
+        }
+
+        /// <summary>
+        /// 查找指定键的所有父节点，从高到底以深度层次树结构输出
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select)]
+        public static EntityList<TEntity> FindAllParentsByKey(Object key)
+        {
+            TEntity entity = FindByKey(key);
+            if (entity == null) entity = Root;
+
+            return FindAllParents(entity);
+        }
         #endregion
 
         #region 树形计算
