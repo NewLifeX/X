@@ -5,6 +5,7 @@ using System.Web.UI.WebControls;
 using System.Xml.Serialization;
 using NewLife.Log;
 using NewLife.Reflection;
+using System.Text;
 
 namespace XCode
 {
@@ -300,10 +301,31 @@ namespace XCode
 
             if (!includeSelf) return list;
 
-            if (list == null) list = new EntityList<TEntity>();
-            list.Add(this as TEntity);
+            // 绝对不能让list直接等于AllParents，否则后面会加一项进去，导致改变它的值
 
-            return list;
+            EntityList<TEntity> list2 = new EntityList<TEntity>();
+            if (list != null && list.Count > 0) list2.AddRange(list);
+            list2.Add(this as TEntity);
+
+            return list2;
+        }
+
+        /// <summary>
+        /// 取得全路径的实体，由上向下排序
+        /// </summary>
+        /// <param name="includeSelf"></param>
+        /// <param name="func"></param>
+        /// <returns></returns>
+        public String GetFullPath(Boolean includeSelf, Func<TEntity, String> func)
+        {
+            EntityList<TEntity> list = GetFullPath(includeSelf);
+
+            StringBuilder sb = new StringBuilder();
+            foreach (TEntity item in list)
+            {
+                sb.Append(func(item));
+            }
+            return sb.ToString();
         }
 
         /// <summary>

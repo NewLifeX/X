@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Collections.Generic;
 using NewLife.Reflection;
+using NewLife.Threading;
 
 namespace XCode.DataAccessLayer
 {
