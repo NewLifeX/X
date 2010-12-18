@@ -53,16 +53,20 @@ namespace NewLife.CommonEntity
 			get { return _MenuID; }
 			set { if (OnPropertyChange("MenuID", value)) _MenuID = value; }
 		}
-		#endregion
 
-		#region 构造函数
-		/// <summary>
-		/// 初始化一个角色和菜单实例。
-		/// </summary>
-		public RoleMenu()
-		{
-		}
-		#endregion
+        private Int32 _Permission;
+        /// <summary>
+        /// 权限
+        /// </summary>
+        [Description("权限")]
+        [DataObjectField(false, false, true, 10)]
+        [BindColumn("Permission", Description = "权限", DefaultValue = "", Order = 4)]
+        public Int32 Permission
+        {
+            get { return _Permission; }
+            set { if (OnPropertyChange("Permission", value)) _Permission = value; }
+        }
+        #endregion
 
 		#region 获取/设置 字段值
 		/// <summary>
@@ -78,10 +82,11 @@ namespace NewLife.CommonEntity
 			{
 				switch (name)
 				{
-					case "ID": return ID;
-					case "RoleID": return RoleID;
-					case "MenuID": return MenuID;
-					default: return base[name];
+                    case "ID": return _ID;
+                    case "RoleID": return _RoleID;
+                    case "MenuID": return _MenuID;
+                    case "Permission": return _Permission;
+                    default: return base[name];
 				}
 			}
 			set
@@ -91,37 +96,10 @@ namespace NewLife.CommonEntity
 					case "ID": _ID = Convert.ToInt32(value); break;
 					case "RoleID": _RoleID = Convert.ToInt32(value); break;
 					case "MenuID": _MenuID = Convert.ToInt32(value); break;
-					default: base[name] = value; break;
+                    case "Permission": _Permission = Convert.ToInt32(value); break;
+                    default: base[name] = value; break;
 				}
 			}
-		}
-		#endregion
-
-		#region 主键
-		/// <summary>
-		/// 根据主键查询一个角色和菜单实体对象
-		/// </summary>
-		/// <param name="__ID">编号</param>
-		/// <returns>角色和菜单 实体对象</returns>
-		[DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity FindByKey(Int32 __ID)
-		{
-            IList<TEntity> list = FindAll(new String[] { "ID" }, new Object[] { __ID });
-			if (list!=null && list.Count>0) return list[0];
-			return null;
-		}
-		#endregion
-
-		#region 删除
-		/// <summary>
-		/// 根据唯一键ID从数据库中删除指定实体对象。
-		/// </summary>
-		/// <param name="__ID">唯一键</param>
-		/// <returns>角色和菜单 实体对象</returns>
-		[DataObjectMethod(DataObjectMethodType.Delete, false)]
-		public static Int32 DeleteByKey(Int32 __ID)
-		{
-			return Delete(new String[] { _.ID }, new Object[] { __ID });
 		}
 		#endregion
 
@@ -145,7 +123,12 @@ namespace NewLife.CommonEntity
 			/// 菜单编号
 			/// </summary>
 			public const String MenuID = "MenuID";
-		}
+
+            /// <summary>
+            /// 权限
+            /// </summary>
+            public const String Permission = "Permission";
+        }
 		#endregion
 	}
 }

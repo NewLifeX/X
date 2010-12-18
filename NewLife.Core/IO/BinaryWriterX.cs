@@ -210,11 +210,11 @@ namespace NewLife.IO
                 FieldInfo[] fis = FindFields(type);
                 if (fis == null || fis.Length < 1) return true;
 
-                long p = 0;
-                long p2 = 0;
                 foreach (FieldInfo item in fis)
                 {
 #if DEBUG
+                    long p = 0;
+                    long p2 = 0;
                     if (BaseStream.CanSeek && BaseStream.CanRead)
                     {
                         p = BaseStream.Position;

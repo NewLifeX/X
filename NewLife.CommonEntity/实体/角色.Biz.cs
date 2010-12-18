@@ -105,6 +105,28 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>
+        /// 申请指定菜单指定操作的权限
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public override bool Acquire(string name, PermissionFlags flag)
+        {
+            if (String.IsNullOrEmpty(name) || MenuList == null || MenuList.Count < 1) return false;
+
+            // 找到菜单
+            TMenuEntity entity = Menu<TMenuEntity>.FindByPath(MenuList, name, Menu<TMenuEntity>._.Permission);
+            if (entity == null) return false;
+
+            // 找到角色菜单对应关系
+            TRoleMenuEntity rm = RoleMenu<TRoleMenuEntity>.FindByRoleAndMenu(ID, entity.ID);
+            if (rm == null) return false;
+
+            // 申请权限
+            return rm.Acquire(flag);
+        }
+
+        /// <summary>
         /// 取得当前角色的子菜单，有权限、可显示、排序
         /// </summary>
         /// <param name="parentID"></param>
@@ -192,6 +214,14 @@ namespace NewLife.CommonEntity
         /// <param name="name"></param>
         /// <returns></returns>
         public virtual Boolean HasMenu(String name) { return false; }
+
+        /// <summary>
+        /// 申请指定菜单指定操作的权限
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public virtual Boolean Acquire(String name, PermissionFlags flag) { return false; }
         #endregion
     }
 }

@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using NewLife.Collections;
 
-namespace NewLife.Reflection
+namespace NewLife.Threading
 {
     /// <summary>
     /// 原子读写锁

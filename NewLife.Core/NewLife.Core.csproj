@@ -75,7 +75,7 @@
     <Compile Include="Reflection\EmitHelper.cs" />
     <Compile Include="Reflection\FastTest.cs" />
     <Compile Include="Reflection\DynamicAssembly.cs" />
-    <Compile Include="Reflection\ReadWriteLock.cs" />
+    <Compile Include="Threading\ReadWriteLock.cs" />
     <Compile Include="Reflection\TypeX.cs" />
     <Compile Include="Reflection\WeakReference.cs" />
     <Compile Include="Event\EventArgs.cs" />

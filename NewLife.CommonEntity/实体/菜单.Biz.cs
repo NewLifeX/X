@@ -40,7 +40,7 @@ namespace NewLife.CommonEntity
                     try
                     {
                         TEntity entity = Root;
-                        entity = entity.AddChild("控制台", null);
+                        entity = entity.AddChild("管理平台", null);
                         entity = entity.AddChild("系统管理", null);
                         entity.Sort = 9999;
                         entity.Save();
@@ -141,6 +141,23 @@ namespace NewLife.CommonEntity
                 String p = HttpContext.Current.Request.PhysicalPath;
                 String dirName = new DirectoryInfo(Path.GetDirectoryName(p)).Name;
                 String fileName = Path.GetFileName(p);
+
+                // 查找所有以该文件名结尾的菜单
+                EntityList<TEntity> list = Meta.Cache.Entities;
+                list = list.FindAll(delegate(TEntity item)
+                {
+                    return !String.IsNullOrEmpty(item.Url) && item.Url.EndsWith(fileName, StringComparison.OrdinalIgnoreCase);
+                });
+                if (list == null || list.Count < 1) return null;
+                if (list.Count == 1) return list[0];
+
+                // 查找所有以该文件名结尾的菜单
+                EntityList<TEntity> list2 = list.FindAll(delegate(TEntity item)
+                {
+                    return !String.IsNullOrEmpty(item.Url) && item.Url.EndsWith(@"/" + fileName, StringComparison.OrdinalIgnoreCase);
+                });
+                if (list2 == null || list2.Count < 1) return list[0];
+                if (list2.Count == 1) return list2[0];
 
                 String url = String.Format(@"../{0}/{1}", dirName, fileName);
                 return Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
@@ -375,24 +392,6 @@ namespace NewLife.CommonEntity
                 throw;
             }
         }
-
-        ///// <summary>
-        ///// 取得全路径的实体，由上向下排序
-        ///// </summary>
-        ///// <param name="includeSelf"></param>
-        ///// <returns></returns>
-        //public EntityList<TEntity> GetFullPath(Boolean includeSelf)
-        //{
-        //    EntityList<TEntity> list = null;
-        //    if (Parent != null) list = Parent.GetFullPath(true);
-
-        //    if (!includeSelf) return list;
-
-        //    if (list == null) list = new EntityList<TEntity>();
-        //    list.Add(this as TEntity);
-
-        //    return list;
-        //}
 
         ///// <summary>
         ///// 创建菜单树

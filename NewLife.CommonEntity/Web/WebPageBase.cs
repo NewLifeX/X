@@ -1,15 +1,76 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Web;
 using System.Web.UI;
+using XCode;
 using XCode.DataAccessLayer;
+using NewLife.Log;
 
 namespace NewLife.CommonEntity.Web
 {
     /// <summary>
     /// 页面基类
     /// </summary>
-    public class WebPageBase : WebPageBase<Administrator> { }
+    public class WebPageBase : WebPageBase<Administrator, Menu> { }
+
+    /// <summary>
+    /// 指定具体管理员类和菜单类的页面基类
+    /// </summary>
+    /// <typeparam name="TAdminEntity"></typeparam>
+    /// <typeparam name="TMenuEntity"></typeparam>
+    public class WebPageBase<TAdminEntity, TMenuEntity> : WebPageBase<TAdminEntity>
+        where TAdminEntity : Administrator<TAdminEntity>, new()
+        where TMenuEntity : Menu<TMenuEntity>, new()
+    {
+        #region 菜单
+        /// <summary>
+        /// 导航 分为三级：栏目－子栏目－页面
+        /// </summary>
+        public virtual String Navigation
+        {
+            get
+            {
+                if (MyMenu == null) return null;
+
+                // 无限路径
+                EntityList<TMenuEntity> list = MyMenu.GetFullPath(true);
+                //StringBuilder sb = new StringBuilder();
+                //foreach (TMenuEntity item in list)
+                //{
+                //    if (sb.Length > 0) sb.Append(" - ");
+                //    sb.AppendFormat("[{0}]", item.Name);
+                //}
+
+                //return sb.ToString();
+
+                return MyMenu.GetFullPath(true, " - ", delegate(TMenuEntity item)
+                {
+                    return String.Format("[{0}]", item.Name);
+                });
+            }
+        }
+
+        private List<String> hasLoaded = new List<String>();
+        private TMenuEntity _MyMenu;
+        /// <summary>本页菜单</summary>
+        public virtual TMenuEntity MyMenu
+        {
+            get
+            {
+                if (_MyMenu == null && !hasLoaded.Contains("MyMenu"))
+                {
+                    //_MyMenu = Menu.FindForPerssion(PermissionName);
+                    _MyMenu = Menu<TMenuEntity>.Current;
+                    hasLoaded.Add("MyMenu");
+                }
+                return _MyMenu;
+            }
+            set { _MyMenu = value; }
+        }
+        #endregion
+    }
 
     /// <summary>
     /// 指定具体管理员类的页面基类
@@ -18,6 +79,7 @@ namespace NewLife.CommonEntity.Web
     public class WebPageBase<TAdminEntity> : System.Web.UI.Page
         where TAdminEntity : Administrator<TAdminEntity>, new()
     {
+        #region 权限控制
         private Boolean _ValidatePermission = true;
         /// <summary>是否检查权限</summary>
         public virtual Boolean ValidatePermission
@@ -70,11 +132,30 @@ namespace NewLife.CommonEntity.Web
             String name = PermissionName;
             if (String.IsNullOrEmpty(name)) return false;
 
-            if (Administrator<TAdminEntity>.Current == null) return false;
+            TAdminEntity entity = Administrator<TAdminEntity>.Current;
+            if (entity == null) return false;
 
-            return Administrator<TAdminEntity>.Current.HasMenu(name);
+            return entity.HasMenu(name);
         }
 
+        /// <summary>
+        /// 申请指定操作的权限
+        /// </summary>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public virtual Boolean Acquire(PermissionFlags flag)
+        {
+            String name = PermissionName;
+            if (String.IsNullOrEmpty(name)) return false;
+
+            TAdminEntity entity = Administrator<TAdminEntity>.Current;
+            if (entity == null) return false;
+
+            return entity.Acquire(name, flag);
+        }
+        #endregion
+
+        #region 运行时输出
         private Int32 StartQueryTimes = DAL.QueryTimes;
         private Int32 StartExecuteTimes = DAL.ExecuteTimes;
 
@@ -86,7 +167,7 @@ namespace NewLife.CommonEntity.Web
             get
             {
                 if (!Request.PhysicalPath.EndsWith(".aspx", StringComparison.Ordinal)) return false;
-                return true;
+                return XTrace.Debug;
             }
         }
 
@@ -112,5 +193,6 @@ namespace NewLife.CommonEntity.Web
 
             Response.Write(String.Format(RunTimeString, DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds));
         }
+        #endregion
     }
 }

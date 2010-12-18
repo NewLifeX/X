@@ -67,25 +67,17 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>
-        /// 已重载。
+        /// 已重载。调用Save时写日志，而调用Insert和Update时不写日志
         /// </summary>
         /// <returns></returns>
-        public override int Insert()
+        public override int Save()
         {
-            WriteLog("添加");
+            if (ID == 0)
+                WriteLog("添加");
+            else
+                WriteLog("修改");
 
-            return base.Insert();
-        }
-
-        /// <summary>
-        /// 已重载。
-        /// </summary>
-        /// <returns></returns>
-        public override int Update()
-        {
-            WriteLog("修改");
-
-            return base.Update();
+            return base.Save();
         }
 
         /// <summary>
@@ -139,6 +131,23 @@ namespace NewLife.CommonEntity
                 }
             }
             return rs;
+        }
+
+        /// <summary>
+        /// 申请指定菜单指定操作的权限
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public override bool Acquire(string name, PermissionFlags flag)
+        {
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
+            TRoleEntity entity = Role;
+            if (entity == null) return false;
+
+            // 申请权限
+            return entity.Acquire(name, flag);
         }
 
         /// <summary>
@@ -382,6 +391,14 @@ namespace NewLife.CommonEntity
         /// <param name="name"></param>
         /// <returns></returns>
         public virtual Boolean HasMenu(String name) { return false; }
+
+        /// <summary>
+        /// 申请指定菜单指定操作的权限
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public virtual Boolean Acquire(String name, PermissionFlags flag) { return false; }
 
         /// <summary>
         /// 为当前管理员对象写日志

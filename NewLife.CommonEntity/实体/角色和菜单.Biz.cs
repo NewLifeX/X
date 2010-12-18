@@ -7,6 +7,93 @@ using XCode;
 namespace NewLife.CommonEntity
 {
     /// <summary>
+    /// 操作权限
+    /// </summary>
+    [Flags]
+    [Description("操作权限")]
+    public enum PermissionFlags
+    {
+        /// <summary>
+        /// 无权限
+        /// </summary>
+        [Description("无")]
+        None = 0,
+
+        /// <summary>
+        /// 所有权限
+        /// </summary>
+        [Description("所有")]
+        All = 1,
+
+        /// <summary>
+        /// 添加权限
+        /// </summary>
+        [Description("添加")]
+        Insert = 2,
+
+        /// <summary>
+        /// 修改权限
+        /// </summary>
+        [Description("修改")]
+        Update = 4,
+
+        /// <summary>
+        /// 删除权限
+        /// </summary>
+        [Description("删除")]
+        Delete = 8,
+
+        /// <summary>
+        /// 自定义1权限
+        /// </summary>
+        /// <remarks>这里没有接着排16，为了保留给上面使用</remarks>
+        [Description("自定义1")]
+        Custom1 = 0x20,
+
+        /// <summary>
+        /// 自定义2权限
+        /// </summary>
+        [Description("自定义2")]
+        Custom2 = Custom1 * 2,
+
+        /// <summary>
+        /// 自定义3权限
+        /// </summary>
+        [Description("自定义3")]
+        Custom3 = Custom2 * 2,
+
+        /// <summary>
+        /// 自定义4权限
+        /// </summary>
+        [Description("自定义4")]
+        Custom4 = Custom3 * 2,
+
+        /// <summary>
+        /// 自定义5权限
+        /// </summary>
+        [Description("自定义5")]
+        Custom5 = Custom4 * 2,
+
+        /// <summary>
+        /// 自定义6权限
+        /// </summary>
+        [Description("自定义6")]
+        Custom6 = Custom5 * 2,
+
+        /// <summary>
+        /// 自定义7权限
+        /// </summary>
+        [Description("自定义7")]
+        Custom7 = Custom6 * 2,
+
+        /// <summary>
+        /// 自定义8权限
+        /// </summary>
+        [Description("自定义8")]
+        Custom8 = Custom7 * 2
+    }
+
+    /// <summary>
     /// 角色和菜单
     /// </summary>
     public partial class RoleMenu<TEntity> : Entity<TEntity> where TEntity : RoleMenu<TEntity>, new()
@@ -47,6 +134,13 @@ namespace NewLife.CommonEntity
             set { _Category = value; }
         }
          * */
+
+        /// <summary>操作权限</summary>
+        public PermissionFlags PermissionFlag
+        {
+            get { return (PermissionFlags)Permission; }
+            set { Permission = (Int32)value; }
+        }
         #endregion
 
         #region 扩展查询
@@ -67,7 +161,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>
-        /// 根据角色编号查询一个角色和菜单实体对象
+        /// 根据角色编号查询所有角色和菜单实体对象
         /// </summary>
         /// <param name="roleID">编号</param>
         /// <returns>角色和菜单 实体对象</returns>
@@ -78,12 +172,67 @@ namespace NewLife.CommonEntity
 
             return Meta.Cache.Entities.FindAll(_.RoleID, roleID);
         }
+
+        /// <summary>
+        /// 根据角色编号和菜单查询一个角色和菜单实体对象
+        /// </summary>
+        /// <param name="roleID">编号</param>
+        /// <param name="menuID">编号</param>
+        /// <returns>角色和菜单 实体对象</returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static TEntity FindByRoleAndMenu(Int32 roleID, Int32 menuID)
+        {
+            if (roleID <= 0 || menuID <= 0 || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
+
+            // 分两次查询
+            EntityList<TEntity> list = FindAllByRoleID(roleID);
+            if (list == null || list.Count < 1) return null;
+
+            return list.Find(_.MenuID, menuID);
+        }
         #endregion
 
         #region 扩展操作
         #endregion
 
         #region 业务
+        /// <summary>
+        /// 检查是否有指定权限
+        /// </summary>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public Boolean Acquire(PermissionFlags flag)
+        {
+            if (PermissionFlag == PermissionFlags.None) return false;
+            if (PermissionFlag == PermissionFlags.All) return true;
+
+            return (PermissionFlag & flag) != flag;
+        }
+
+        /// <summary>
+        /// 添加权限
+        /// </summary>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public RoleMenu<TEntity> Add(PermissionFlags flag)
+        {
+            PermissionFlag |= flag;
+
+            return this;
+        }
+
+        /// <summary>
+        /// 删除权限
+        /// </summary>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public RoleMenu<TEntity> Remove(PermissionFlags flag)
+        {
+            // 必须先检查是否包含这个标识位，因为异或的操作仅仅是取反
+            if ((PermissionFlag & flag) == flag) PermissionFlag ^= flag;
+
+            return this;
+        }
         #endregion
     }
 }
