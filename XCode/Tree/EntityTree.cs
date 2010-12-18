@@ -352,6 +352,7 @@ namespace XCode
             StringBuilder sb = new StringBuilder();
             foreach (TEntity item in list)
             {
+                if (sb.Length > 0 && !String.IsNullOrEmpty(separator)) sb.Append(separator);
                 sb.Append(func(item));
             }
             return sb.ToString();
