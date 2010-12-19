@@ -12,7 +12,7 @@
             <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="370px" BoxWidth="440px" Url="<#=ClassName#>Form.aspx"
                 IconLeft="../images/icons/icon005a2.gif"><b>添加<#=ClassDescription#></b></XCL:LinkBox>
         </div>
-        <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
+        <asp:GridView ID="gv<#=ClassName#>" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
             DataSourceID="ObjectDataSource1" AllowPaging="True" AllowSorting="True" CssClass="table" PageSize="20">
             <Columns><#
 String PKName=null; 
