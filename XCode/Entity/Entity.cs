@@ -406,12 +406,49 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindByKey(Object key)
         {
-            if (Meta.Unique == null) throw new Exception("FindByKey方法要求该表有唯一主键！");
+            FieldItem field = Meta.Unique;
+            if (field == null) throw new Exception("FindByKey方法要求该表有唯一主键！");
 
             // 唯一键为自增且参数小于等于0时，返回空
-            if (Meta.Unique.DataObjectField.IsIdentity && (key is Int32) && ((Int32)key) <= 0) return null;
+            if (field.DataObjectField.IsIdentity && (key is Int32) && ((Int32)key) <= 0) return null;
 
-            return Find(Meta.Unique.Name, key);
+            return Find(field.Name, key);
+        }
+
+        /// <summary>
+        /// 根据主键查询一个实体对象用于表单编辑
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static TEntity FindByKeyForEdit(Object key)
+        {
+            FieldItem field = Meta.Unique;
+            if (field == null) throw new Exception("FindByKeyForEdit方法要求该表有唯一主键！");
+
+            // 参数为空时，返回新实例
+            if (key == null)
+            {
+                IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
+                return factory.Create() as TEntity;
+            }
+
+            // 唯一键为自增且参数小于等于0时，返回新实例
+            if (field.DataObjectField.IsIdentity && (key is Int32) && ((Int32)key) <= 0)
+            {
+                IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
+                return factory.Create() as TEntity;
+            }
+
+            // 唯一键是字符串且为空时，返回新实例
+            if (field.Property.PropertyType == typeof(String) && (key is String) && String.IsNullOrEmpty((String)key))
+            {
+                IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
+                return factory.Create() as TEntity;
+            }
+
+            // 此外，一律返回 查找值，即使可能是空。而绝不能在找不到数据的情况下给它返回空，因为可能是找不到数据而已，而返回新实例会导致前端以为这里是新增数据
+            return Find(field.Name, key);
         }
         #endregion
 
@@ -1241,7 +1278,9 @@ namespace XCode
         /// <summary>
         /// 获取/设置 字段值。
         /// 一个索引，反射实现。
-        /// 派生实体类可重写该索引，以避免发射带来的性能损耗
+        /// 派生实体类可重写该索引，以避免发射带来的性能损耗。
+        /// 基类已经实现了通用的快速访问，但是这里仍然重写，以增加控制，
+        /// 比如字段名是属性名前面加上_，并且要求是实体字段才允许这样访问，否则一律按属性处理。
         /// </summary>
         /// <param name="name">字段名</param>
         /// <returns></returns>
@@ -1285,6 +1324,7 @@ namespace XCode
 
                 foreach (FieldItem fi in Meta.AllFields)
                     if (fi.Name == name) { fi.Property.SetValue(this, value, null); return; }
+
                 throw new ArgumentException("类[" + this.GetType().FullName + "]中不存在[" + name + "]属性");
             }
         }

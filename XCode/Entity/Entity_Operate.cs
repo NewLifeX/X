@@ -16,6 +16,7 @@ namespace XCode
         internal override EntityBase FindInternal(String name, Object value) { return Find(name, value); }
         internal override EntityBase FindInternal(String whereClause) { return Find(whereClause); }
         internal override EntityBase FindByKeyInternal(Object key) { return FindByKey(key); }
+        internal override EntityBase FindByKeyForEditInternal(Object key) { return FindByKeyForEdit(key); }
         #endregion
 
         #region 静态查询

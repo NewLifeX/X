@@ -49,6 +49,13 @@ namespace XCode
         /// <param name="key"></param>
         /// <returns></returns>
         EntityBase FindByKey(Object key);
+
+        /// <summary>
+        /// 根据主键查询一个实体对象用于表单编辑
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        EntityBase FindByKeyForEdit(Object key);
         #endregion
 
         #region 静态查询

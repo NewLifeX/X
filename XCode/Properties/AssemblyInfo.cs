@@ -49,6 +49,12 @@ using System.Runtime.InteropServices;
 /*
  * v6.4.2010.1217   修正Entity中CheckColumn无法正确计算选择字段的错误
  *                  优化SelectBuilder，允许Where中使用GroupBy字句，ToString时自动分割到正确位置
+ *                  实体类增加静态方法FindByKeyForEdit，用于替代模版生成中的FindByKeyForEdit，为将要实现的表单基类（自定义表单）做准备
+ *                  ********************************
+ *                  实体基类继承自BinaryAccessor，IEntity增加IIndexAccessor接口和IBinaryAccessor接口，增加对快速索引访问和二进制访问的支持
+ *                  快速索引访问：实体类可以不必生成索引器代码，IIndexAccessor直接提供按名称访问属性
+ *                  二进制访问：支持把实体对象序列化成二进制或者反向操作
+ *                  这两个功能尚未经过严格测试，请不要用于正式系统使用！
  * 
  * v6.3.2010.1209   修正实体工厂EntityFactory缓存实体导致无法识别后加载实体程序集的错误
  * 

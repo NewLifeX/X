@@ -8,6 +8,7 @@ using System.Text;
 using System.Web.Services;
 using System.Xml.Serialization;
 using NewLife.Collections;
+using NewLife.IO;
 using NewLife.Reflection;
 using XCode.Configuration;
 
@@ -16,7 +17,7 @@ namespace XCode
     /// <summary>
     /// 数据实体基类的基类
     /// </summary>
-    public abstract class EntityBase : IEntity, IEntityOperate
+    public abstract class EntityBase : BinaryAccessor, IEntity, IEntityOperate
     {
         #region 创建实体
         /// <summary>
@@ -71,9 +72,17 @@ namespace XCode
         /// <returns></returns>
         EntityBase IEntityOperate.FindByKey(Object key) { return FindByKeyInternal(key); }
 
+        /// <summary>
+        /// 根据主键查询一个实体对象用于表单编辑
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        EntityBase IEntityOperate.FindByKeyForEdit(Object key) { return FindByKeyForEditInternal(key); }
+
         internal abstract EntityBase FindInternal(String name, Object value);
         internal abstract EntityBase FindInternal(String whereClause);
         internal abstract EntityBase FindByKeyInternal(Object key);
+        internal abstract EntityBase FindByKeyForEditInternal(Object key);
         #endregion
 
         #region 操作
@@ -289,12 +298,12 @@ namespace XCode
         #endregion
 
         #region 获取/设置 字段值
-        /// <summary>
-        /// 获取/设置 字段值。不影响脏数据。
-        /// </summary>
-        /// <param name="name">字段名</param>
-        /// <returns></returns>
-        public abstract Object this[String name] { get; set; }
+        ///// <summary>
+        ///// 获取/设置 字段值。不影响脏数据。
+        ///// </summary>
+        ///// <param name="name">字段名</param>
+        ///// <returns></returns>
+        //public abstract Object this[String name] { get; set; }
 
         /// <summary>
         /// 设置字段值，该方法影响脏数据。

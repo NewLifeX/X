@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Data;
-using System.Xml;
+using NewLife.IO;
+using NewLife.Reflection;
 
 namespace XCode
 {
     /// <summary>
     /// 数据实体接口
     /// </summary>
-    public interface IEntity
+    public interface IEntity : IIndexAccessor, IBinaryAccessor
     {
         #region 填充数据
         /// <summary>
@@ -44,12 +45,12 @@ namespace XCode
         #endregion
 
         #region 获取/设置 字段值
-        /// <summary>
-        /// 获取/设置 字段值。
-        /// </summary>
-        /// <param name="name">字段名</param>
-        /// <returns></returns>
-        Object this[String name] { get; set; }
+        ///// <summary>
+        ///// 获取/设置 字段值。
+        ///// </summary>
+        ///// <param name="name">字段名</param>
+        ///// <returns></returns>
+        //Object this[String name] { get; set; }
 
         /// <summary>
         /// 设置字段值
