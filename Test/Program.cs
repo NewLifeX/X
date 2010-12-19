@@ -256,8 +256,8 @@ namespace Test
 
         static void Test7()
         {
-            DescriptionAttribute att = AttributeX.GetCustomAttribute<DescriptionAttribute>(typeof(Menu));
-            Console.WriteLine(att == null);
+            //DescriptionAttribute att = AttributeX.GetCustomAttribute<DescriptionAttribute>(typeof(Menu));
+            //Console.WriteLine(att == null);
 
             String str = AttributeX.GetCustomAttributeValue<DescriptionAttribute, String>(typeof(Menu), false);
             Console.WriteLine(str);

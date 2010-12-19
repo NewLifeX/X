@@ -110,8 +110,8 @@ namespace NewLife.CommonEntity
             if (!String.IsNullOrEmpty(key)) sb.AppendFormat(" And {0} like '%{1}%'", _.Remark, key.Replace("'", "''"));
             if (!String.IsNullOrEmpty(category) && category != "全部") sb.AppendFormat(" And {0}='{1}'", _.Category, category.Replace("'", "''"));
             if (adminid > 0) sb.AppendFormat(" And {0}={1}", _.UserID, adminid);
-            if (start > DateTime.MinValue) sb.AppendFormat(" And {0}>='{1:yyyy-MM-dd HH:mm:ss}'", _.OccurTime, Meta.FormatDateTime(start));
-            if (end > DateTime.MinValue) sb.AppendFormat(" And {0}<'{1:yyyy-MM-dd HH:mm:ss}'", _.OccurTime, Meta.FormatDateTime(end.Date.AddDays(1)));
+            if (start > DateTime.MinValue) sb.AppendFormat(" And {0}>={1}", _.OccurTime, Meta.FormatDateTime(start));
+            if (end > DateTime.MinValue) sb.AppendFormat(" And {0}<{1}", _.OccurTime, Meta.FormatDateTime(end.Date.AddDays(1)));
 
             if (sb.ToString() == "1=1")
                 return null;
