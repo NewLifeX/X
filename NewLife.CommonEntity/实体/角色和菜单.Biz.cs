@@ -218,21 +218,6 @@ namespace NewLife.CommonEntity
             entity.PermissionFlag = PermissionFlags.All;
             return entity;
         }
-
-        /// <summary>
-        /// 设置权限，权限不相同时保存
-        /// </summary>
-        /// <param name="flag"></param>
-        /// <returns></returns>
-        public Int32 SetPermission(PermissionFlags flag)
-        {
-            if (PermissionFlag == flag) return 0;
-            PermissionFlag = flag;
-
-
-
-            return Save();
-        }
         #endregion
 
         #region 业务

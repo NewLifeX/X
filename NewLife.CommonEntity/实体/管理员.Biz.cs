@@ -51,9 +51,10 @@ namespace NewLife.CommonEntity
                         // 是否已存在
                         if (rms != null && rms.Find(RoleMenu<TRoleMenuEntity>._.MenuID, item.ID) != null) continue;
 
-                        TRoleMenuEntity entity = new TRoleMenuEntity();
-                        entity.RoleID = id;
-                        entity.MenuID = item.ID;
+                        //TRoleMenuEntity entity = new TRoleMenuEntity();
+                        //entity.RoleID = id;
+                        //entity.MenuID = item.ID;
+                        TRoleMenuEntity entity = RoleMenu<TRoleMenuEntity>.Create(id, item.ID);
                         entity.Save();
                     }
 
