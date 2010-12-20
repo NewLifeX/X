@@ -73,9 +73,9 @@ namespace NewLife.CommonEntity
         public override int Save()
         {
             if (ID == 0)
-                WriteLog("添加");
+                WriteLog("添加", Name);
             else
-                WriteLog("修改");
+                WriteLog("修改", Name);
 
             return base.Save();
         }
@@ -86,7 +86,7 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public override int Delete()
         {
-            WriteLog("删除");
+            WriteLog("删除", Name);
 
             return base.Delete();
         }
@@ -150,16 +150,31 @@ namespace NewLife.CommonEntity
             return entity.Acquire(name, flag);
         }
 
+        ///// <summary>
+        ///// 写日志
+        ///// </summary>
+        ///// <param name="action"></param>
+        //protected override void WriteLog(string action)
+        //{
+        //    Log<TLogEntity> log = Log<TLogEntity>.Create(this.GetType(), action);
+        //    log.UserID = ID;
+        //    log.UserName = DisplayName;
+        //    log.Save();
+        //}
+
         /// <summary>
-        /// 写日志
+        /// 创建当前管理员的日志实体
         /// </summary>
+        /// <param name="type"></param>
         /// <param name="action"></param>
-        protected override void WriteLog(string action)
+        /// <returns></returns>
+        protected internal override IEntity CreateLog(Type type, string action)
         {
             Log<TLogEntity> log = Log<TLogEntity>.Create(this.GetType(), action);
             log.UserID = ID;
-            log.UserName = DisplayName;
-            log.Save();
+            log.UserName = !String.IsNullOrEmpty(DisplayName) ? DisplayName : Name;
+
+            return log;
         }
     }
 
@@ -172,12 +187,16 @@ namespace NewLife.CommonEntity
     /// 也可以通过虚拟重载等手段让基类实现
     /// </remarks>
     /// <typeparam name="TEntity">管理员类型</typeparam>
-    public partial class Administrator<TEntity> : Entity<TEntity>
+    public partial class Administrator<TEntity> : CommonEntityBase<TEntity>, IAdministrator
         where TEntity : Administrator<TEntity>, new()
     {
         #region 对象操作
         static Administrator()
         {
+            // 给基类设置一个默认管理员对象，用于写日志
+            TEntity entity = new TEntity();
+            DefaultAdministrator = entity;
+
             //// 设置缓存时间为一个小时
             //Meta.Cache.Expriod = 60 * 60;
 
@@ -223,7 +242,11 @@ namespace NewLife.CommonEntity
                     {
                         return Login(user, pass, -1);
                     }
-                    catch { return null; }
+                    catch (Exception ex)
+                    {
+                        WriteLog("登录", user + "登录失败！" + ex.Message);
+                        return null;
+                    }
                 });
                 _httpState.EntityToCookie = new Converter<TEntity, HttpCookie>(delegate(TEntity entity)
                 {
@@ -277,6 +300,7 @@ namespace NewLife.CommonEntity
             if (entity == null)
             {
                 entity = new TEntity();
+                entity.IsEnable = true;
             }
             return entity;
         }
@@ -333,7 +357,15 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static TEntity Login(String username, String password)
         {
-            return Login(username, password, 1);
+            try
+            {
+                return Login(username, password, 1);
+            }
+            catch (Exception ex)
+            {
+                WriteLog("登录", username + "登录失败！" + ex.Message);
+                throw;
+            }
         }
 
         static TEntity Login(String username, String password, Int32 hashTimes)
@@ -371,7 +403,10 @@ namespace NewLife.CommonEntity
 
             Current = user;
 
-            user.WriteLog("登录");
+            if (hashTimes == -1)
+                WriteLog("自动登录", username);
+            else
+                WriteLog("登录", username);
 
             return user;
         }
@@ -381,7 +416,7 @@ namespace NewLife.CommonEntity
         /// </summary>
         public void Logout()
         {
-            WriteLog("注销");
+            WriteLog("注销", null);
             Current = null;
         }
 
@@ -400,11 +435,31 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public virtual Boolean Acquire(String name, PermissionFlags flag) { return false; }
 
+        ///// <summary>
+        ///// 为当前管理员对象写日志
+        ///// </summary>
+        ///// <param name="action"></param>
+        //protected void WriteLog(String action)
+        //{
+        //    IEntity log = CreateLog(this.GetType(), action);
+        //    if (log != null) log.Save();
+        //}
+
         /// <summary>
-        /// 为当前管理员对象写日志
+        /// 创建当前管理员的日志实体
         /// </summary>
+        /// <param name="type"></param>
         /// <param name="action"></param>
-        protected virtual void WriteLog(String action) { }
+        /// <returns></returns>
+        internal protected virtual IEntity CreateLog(Type type, String action) { return null; }
+
+        /// <summary>
+        /// 创建指定类型指定动作的日志实体
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        IEntity IAdministrator.CreateLog(Type type, String action) { return CreateLog(type, action); }
         #endregion
     }
 }

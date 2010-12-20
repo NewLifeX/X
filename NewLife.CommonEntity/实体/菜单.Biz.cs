@@ -6,6 +6,7 @@ using System.Text;
 using System.Web;
 using System.Xml.Serialization;
 using NewLife.Log;
+using NewLife.Web;
 using XCode;
 
 namespace NewLife.CommonEntity
@@ -105,6 +106,31 @@ namespace NewLife.CommonEntity
             {
                 if (XTrace.Debug) XTrace.WriteLine(ex.ToString());
             }
+        }
+
+        /// <summary>
+        /// 已重载。调用Save时写日志，而调用Insert和Update时不写日志
+        /// </summary>
+        /// <returns></returns>
+        public override int Save()
+        {
+            if (ID == 0)
+                WriteLog("添加", Name);
+            else
+                WriteLog("修改", Name);
+
+            return base.Save();
+        }
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override int Delete()
+        {
+            WriteLog("删除", Name);
+
+            return base.Delete();
         }
         #endregion
 
@@ -393,38 +419,6 @@ namespace NewLife.CommonEntity
             }
         }
 
-        ///// <summary>
-        ///// 创建菜单树
-        ///// </summary>
-        ///// <param name="nodes">父集合</param>
-        ///// <param name="list">菜单列表</param>
-        ///// <param name="url">格式化地址，可以使用{ID}和{Name}</param>
-        ///// <param name="func">由菜单项创建树节点的委托</param>
-        //public static void MakeTree(TreeNodeCollection nodes, EntityList<TEntity> list, String url, Func<TEntity, TreeNode> func)
-        //{
-        //    if (list == null || list.Count < 1) return;
-
-        //    foreach (TEntity item in list)
-        //    {
-        //        TreeNode node = null;
-        //        if (func == null)
-        //        {
-        //            node = new TreeNode(item.Name);
-        //            node.Value = item.ID.ToString();
-        //            if (!String.IsNullOrEmpty(url))
-        //                node.NavigateUrl = url.Replace("{ID}", item.ID.ToString()).Replace("{Name}", item.Name);
-        //        }
-        //        else
-        //        {
-        //            node = func(item);
-        //        }
-
-        //        if (item.Childs != null && item.Childs.Count > 0) MakeTree(node.ChildNodes, item.Childs, url, func);
-
-        //        if (node != null) nodes.Add(node);
-        //    }
-        //}
-
         /// <summary>
         /// 添加子菜单
         /// </summary>
@@ -442,6 +436,37 @@ namespace NewLife.CommonEntity
             entity.Save();
 
             return entity;
+        }
+        #endregion
+
+        #region 日志
+        static HttpState<IAdministrator> http = new HttpState<IAdministrator>("Admin_HttpStateKey");
+        /// <summary>
+        /// 创建指定动作的日志实体。通过Http状态访问当前管理员对象，创建日志实体
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public static IEntity CreateLog(String action)
+        {
+            IAdministrator admin = http.Current;
+            if (admin == null) return null;
+
+            return admin.CreateLog(typeof(TEntity), action);
+        }
+
+        /// <summary>
+        /// 写日志
+        /// </summary>
+        /// <param name="action">操作</param>
+        /// <param name="remark">备注</param>
+        public void WriteLog(String action, String remark)
+        {
+            IEntity log = CreateLog(action);
+            if (log != null)
+            {
+                log.SetItem("Remark", remark);
+                log.Save();
+            }
         }
         #endregion
     }

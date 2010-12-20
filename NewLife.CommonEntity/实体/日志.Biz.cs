@@ -23,12 +23,11 @@ namespace NewLife.CommonEntity
             if (String.IsNullOrEmpty(IP)) IP = WebHelper.UserHost;
             if (OccurTime <= DateTime.MinValue) OccurTime = DateTime.Now;
 
-            //Administrator user = Administrator.Current;
-            //if (user != null)
-            //{
-            //    if (UserID <= 0) UserID = user.ID;
-            //    if (String.IsNullOrEmpty(UserName)) UserName = user.Name;
-            //}
+            // 处理过长的备注
+            if (!String.IsNullOrEmpty(Remark) && Remark.Length > 500)
+            {
+                Remark = Remark.Substring(0, 500);
+            }
 
             return base.Insert();
         }

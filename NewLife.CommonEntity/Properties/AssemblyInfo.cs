@@ -32,10 +32,14 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.2.*")]
-[assembly: AssemblyFileVersion("1.2.2010.1018")]
+[assembly: AssemblyVersion("1.3.*")]
+[assembly: AssemblyFileVersion("1.3.2010.1220")]
 
 /*
+ * v1.3.2010.1220   增加统计和附件实体类
+ *                  修改角色和菜单实体，增加操作权限项，细分添加、修改、删除等权限
+ *                  优化各个实体类，增加写日志的功能（通过接口和HttpState调用管理员的写日志功能）
+ * 
  * v1.2.2010.1018   修改地区实体和菜单实体，增加实体树的操作
  * 
  * v1.1.2010.0909   再次抽象管理员实体和角色实体，各增加一层泛型基类

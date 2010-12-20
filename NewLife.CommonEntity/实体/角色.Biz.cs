@@ -150,7 +150,7 @@ namespace NewLife.CommonEntity
     /// 角色
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public partial class Role<TEntity> : Entity<TEntity>
+    public partial class Role<TEntity> : CommonEntityBase<TEntity>
           where TEntity : Role<TEntity>, new()
     {
         #region 对象操作
@@ -168,10 +168,30 @@ namespace NewLife.CommonEntity
             }
         }
 
-        //~Role()
-        //{
-        //    Console.WriteLine("Role {0} 被回收！", ID);
-        //}
+        /// <summary>
+        /// 已重载。调用Save时写日志，而调用Insert和Update时不写日志
+        /// </summary>
+        /// <returns></returns>
+        public override int Save()
+        {
+            if (ID == 0)
+                WriteLog("添加", Name);
+            else
+                WriteLog("修改", Name);
+
+            return base.Save();
+        }
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override int Delete()
+        {
+            WriteLog("删除", Name);
+
+            return base.Delete();
+        }
         #endregion
 
         #region 扩展查询

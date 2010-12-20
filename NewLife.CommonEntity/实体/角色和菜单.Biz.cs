@@ -96,22 +96,33 @@ namespace NewLife.CommonEntity
     /// <summary>
     /// 角色和菜单
     /// </summary>
-    public partial class RoleMenu<TEntity> : Entity<TEntity> where TEntity : RoleMenu<TEntity>, new()
+    public partial class RoleMenu<TEntity> : CommonEntityBase<TEntity> where TEntity : RoleMenu<TEntity>, new()
     {
         #region 对象操作
-        //基类Entity中包含三个对象操作：Insert、Update、Delete
-        //你可以重载它们，以改变它们的行为
-        //如：
-        /*
         /// <summary>
-        /// 已重载。把该对象插入到数据库。这里可以做数据插入前的检查
+        /// 已重载。调用Save时写日志，而调用Insert和Update时不写日志
         /// </summary>
-        /// <returns>影响的行数</returns>
-        public override Int32 Insert()
+        /// <returns></returns>
+        public override int Save()
         {
-            return base.Insert();
+            if (ID == 0)
+                WriteLog("添加", String.Format("Role={0},Menu={1},Permission={2}", RoleID, MenuID, PermissionFlag));
+            else
+                WriteLog("修改", String.Format("Role={0},Menu={1},Permission={2}", RoleID, MenuID, PermissionFlag));
+
+            return base.Save();
         }
-         * */
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override int Delete()
+        {
+            WriteLog("删除", String.Format("Role={0},Menu={1},Permission={2}", RoleID, MenuID, PermissionFlag));
+
+            return base.Delete();
+        }
         #endregion
 
         #region 扩展属性
@@ -193,6 +204,35 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展操作
+        /// <summary>
+        /// 根据角色编号和菜单编号创建一个角色菜单实体，默认授予完全控制权限
+        /// </summary>
+        /// <param name="roleID"></param>
+        /// <param name="menuID"></param>
+        /// <returns></returns>
+        public static TEntity Create(Int32 roleID, Int32 menuID)
+        {
+            TEntity entity = new TEntity();
+            entity.RoleID = roleID;
+            entity.MenuID = menuID;
+            entity.PermissionFlag = PermissionFlags.All;
+            return entity;
+        }
+
+        /// <summary>
+        /// 设置权限，权限不相同时保存
+        /// </summary>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public Int32 SetPermission(PermissionFlags flag)
+        {
+            if (PermissionFlag == flag) return 0;
+            PermissionFlag = flag;
+
+
+
+            return Save();
+        }
         #endregion
 
         #region 业务
@@ -204,9 +244,10 @@ namespace NewLife.CommonEntity
         public Boolean Acquire(PermissionFlags flag)
         {
             if (PermissionFlag == PermissionFlags.None) return false;
-            if (PermissionFlag == PermissionFlags.All) return true;
+            //if (PermissionFlag == PermissionFlags.All) return true;
+            if ((PermissionFlag & PermissionFlags.All) == PermissionFlags.All) return true;
 
-            return (PermissionFlag & flag) != flag;
+            return (PermissionFlag & flag) == flag;
         }
 
         /// <summary>
