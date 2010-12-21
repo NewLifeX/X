@@ -23,11 +23,7 @@ namespace NewLife.CommonEntity
         [XmlIgnore]
         public virtual EntityList<TRoleMenuEntity> Menus
         {
-            //get
-            //{
-            //    return RoleMenu<TRoleMenuEntity>.FindAllByRoleID(ID);
-            //}
-            get { return GetExtend<TMenuEntity, EntityList<TRoleMenuEntity>>("Menus", delegate { return RoleMenu<TRoleMenuEntity>.FindAllByRoleID(ID); }); }
+            get { return GetExtend<TRoleMenuEntity, EntityList<TRoleMenuEntity>>("Menus", delegate { return RoleMenu<TRoleMenuEntity>.FindAllByRoleID(ID); }); }
             set { Extends["Menus"] = value; }
         }
 
@@ -39,18 +35,6 @@ namespace NewLife.CommonEntity
         [XmlIgnore]
         public virtual EntityList<TMenuEntity> MenuList
         {
-            //get
-            //{
-            //    if (_MenuList == null && !Dirtys["MenuList"])
-            //    {
-            //        Dirtys["MenuList"] = true;
-            //        _MenuList = EntityList<TMenuEntity>.From<TRoleMenuEntity>(RoleMenu<TRoleMenuEntity>.FindAllByRoleID(ID), delegate(TRoleMenuEntity item)
-            //        {
-            //            return Menu<TMenuEntity>.FindByID(item.MenuID);
-            //        });
-            //    }
-            //    return _MenuList;
-            //}
             get
             {
                 return GetExtend<TMenuEntity, EntityList<TMenuEntity>>("MenuList", delegate
@@ -68,61 +52,90 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
-        /// <summary>
-        /// 拥有指定菜单的权限，支持路径查找
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public override Boolean HasMenu(String name)
-        {
-            if (String.IsNullOrEmpty(name) || MenuList == null || MenuList.Count < 1) return false;
+        ///// <summary>
+        ///// 拥有指定菜单的权限，支持路径查找
+        ///// </summary>
+        ///// <param name="name"></param>
+        ///// <returns></returns>
+        //public override Boolean HasMenu(String name)
+        //{
+        //    if (String.IsNullOrEmpty(name) || MenuList == null || MenuList.Count < 1) return false;
 
-            //String[] ss = name.Split(new Char[] { '.', '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
-            //if (ss == null || ss.Length < 1) return false;
+        //    //TMenuEntity entity = Menu<TMenuEntity>.FindByPath(MenuList, name, Menu<TMenuEntity>._.Permission);
+        //    TMenuEntity entity = Menu<TMenuEntity>.FindForPerssion(name);
 
-            //EntityList<TMenuEntity> list = MenuList;
-            //foreach (String item in ss)
-            //{
-            //    if (list == null || list.Count < 1) return false;
+        //    // 找不到的时候，修改当前页面
+        //    if (entity == null && Menu<TMenuEntity>.Current != null)
+        //    {
+        //        if (Menu<TMenuEntity>.Current.ResetName(name)) entity = Menu<TMenuEntity>.Current;
+        //    }
 
-            //    // 找到
-            //    Menu<TMenuEntity> entity = list.Find(Menu<TMenuEntity>._.Permission, item);
-            //    if (entity == null) return false;
+        //    //return entity != null;
 
-            //    list = entity.Childs;
-            //}
-            //return true;
+        //    if (entity == null) return false;
 
-            TMenuEntity entity = Menu<TMenuEntity>.FindByPath(MenuList, name, Menu<TMenuEntity>._.Permission);
+        //    return HasMenu(entity.ID);
+        //}
 
-            // 找不到的时候，修改当前页面
-            if (entity == null && Menu<TMenuEntity>.Current != null)
-            {
-                if (Menu<TMenuEntity>.Current.ResetName(name)) entity = Menu<TMenuEntity>.Current;
-            }
+        ///// <summary>
+        ///// 拥有指定菜单的权限
+        ///// </summary>
+        ///// <param name="menuID"></param>
+        ///// <returns></returns>
+        //public override Boolean HasMenu(Int32 menuID)
+        //{
+        //    //if (menu == null || MenuList == null || MenuList.Count < 1) return false;
+        //    if (menuID <= 0) return false;
 
-            return entity != null;
-        }
+        //    TMenuEntity menu = Menu<TMenuEntity>.FindByID(menuID);
+
+        //    // 当前菜单
+        //    Boolean b = false;
+        //    foreach (TMenuEntity item in MenuList)
+        //    {
+        //        if (item.ID == menu.ID)
+        //        {
+        //            b = true;
+        //            break;
+        //        }
+        //    }
+        //    if (!b) return false;
+
+        //    // 判断父菜单
+        //    if (menu.ParentID <= 0) return true;
+
+        //    return HasMenu(menu.ParentID);
+        //}
 
         /// <summary>
         /// 申请指定菜单指定操作的权限
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="menuID"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
-        public override bool Acquire(string name, PermissionFlags flag)
+        public override Boolean Acquire(Int32 menuID, PermissionFlags flag)
         {
-            if (String.IsNullOrEmpty(name) || MenuList == null || MenuList.Count < 1) return false;
+            //if (String.IsNullOrEmpty(name) || MenuList == null || MenuList.Count < 1) return false;
+            if (menuID <= 0 || MenuList == null || MenuList.Count < 1) return false;
 
-            // 找到菜单
-            TMenuEntity entity = Menu<TMenuEntity>.FindByPath(MenuList, name, Menu<TMenuEntity>._.Permission);
-            if (entity == null) return false;
+            // 找到菜单。自下而上递归查找，任意一级没有权限即视为无权限
+            Int32 id = menuID;
+            while (id > 0)
+            {
+                TMenuEntity entity = MenuList.Find(Menu<TMenuEntity>._.ID, id);
+                if (entity == null) return false;
 
-            // 找到角色菜单对应关系
-            TRoleMenuEntity rm = RoleMenu<TRoleMenuEntity>.FindByRoleAndMenu(ID, entity.ID);
-            if (rm == null) return false;
+                if (entity.Parent == null) break;
+
+                id = entity.ParentID;
+            }
 
             // 申请权限
+            if (flag == PermissionFlags.None) return true;
+
+            TRoleMenuEntity rm = Menus.Find(Menu<TMenuEntity>._.ID, id);
+            if (rm == null) return false;
+
             return rm.Acquire(flag);
         }
 
@@ -150,7 +163,7 @@ namespace NewLife.CommonEntity
     /// 角色
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public partial class Role<TEntity> : CommonEntityBase<TEntity>
+    public abstract partial class Role<TEntity> : CommonEntityBase<TEntity>
           where TEntity : Role<TEntity>, new()
     {
         #region 对象操作
@@ -228,20 +241,27 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
-        /// <summary>
-        /// 拥有指定菜单的权限，支持路径查找
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public virtual Boolean HasMenu(String name) { return false; }
+        ///// <summary>
+        ///// 拥有指定菜单的权限，支持路径查找
+        ///// </summary>
+        ///// <param name="name"></param>
+        ///// <returns></returns>
+        //public virtual Boolean HasMenu(String name) { return false; }
+
+        ///// <summary>
+        ///// 拥有指定菜单的权限
+        ///// </summary>
+        ///// <param name="menuID"></param>
+        ///// <returns></returns>
+        //public virtual Boolean HasMenu(Int32 menuID) { return false; }
 
         /// <summary>
         /// 申请指定菜单指定操作的权限
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="menuID"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
-        public virtual Boolean Acquire(String name, PermissionFlags flag) { return false; }
+        public abstract Boolean Acquire(Int32 menuID, PermissionFlags flag);
         #endregion
     }
 }

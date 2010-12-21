@@ -107,48 +107,94 @@ namespace NewLife.CommonEntity
         public virtual String RoleName { get { return Role == null ? null : Role.Name; } set { } }
 
         /// <summary>
-        /// 拥有指定菜单的权限
+        /// 根据权限名（权限路径）找到权限菜单实体
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public override Boolean HasMenu(String name)
+        public override IEntity FindPermissionMenu(string name)
         {
-            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
-
-            if (Role == null) return false;
-
-            Boolean rs = Role.HasMenu(name);
-            // 没有权限，检查是否有这个权限项，如果没有，则写入日志提醒管理员
-            if (!rs)
+            //return Menu<TMenuEntity>.FindForPerssion(name);
+            TMenuEntity menu = Menu<TMenuEntity>.FindForPerssion(name);
+            if (menu == null)
             {
-                TMenuEntity menu = Menu<TMenuEntity>.FindForPerssion(name);
-                if (menu == null)
-                {
-                    TLogEntity log = Log<TLogEntity>.Create(this.GetType(), "检查权限");
-                    log.Remark = String.Format("系统中没有[{0}]的权限项", name);
-                    log.UserID = ID;
-                    log.UserName = DisplayName;
-                    log.Save();
-                }
+                IEntity log = Menu<TMenuEntity>.CreateLog("检查权限");
+                log["Remark"] = String.Format("系统中没有[{0}]的权限项", name);
+                log.Save();
             }
-            return rs;
+
+            return menu;
         }
+
+        ///// <summary>
+        ///// 拥有指定菜单的权限
+        ///// </summary>
+        ///// <param name="name"></param>
+        ///// <returns></returns>
+        //public override Boolean HasMenu(String name)
+        //{
+        //    if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
+        //    if (Role == null) return false;
+
+        //    Boolean rs = Role.HasMenu(name);
+        //    // 没有权限，检查是否有这个权限项，如果没有，则写入日志提醒管理员
+        //    if (!rs)
+        //    {
+        //        TMenuEntity menu = Menu<TMenuEntity>.FindForPerssion(name);
+        //        if (menu == null)
+        //        {
+        //            IEntity log = CreateLog(this.GetType(), "检查权限");
+        //            log["Remark"] = String.Format("系统中没有[{0}]的权限项", name);
+        //            log.Save();
+        //        }
+        //    }
+        //    return rs;
+        //}
+
+        ///// <summary>
+        ///// 拥有指定菜单的权限
+        ///// </summary>
+        ///// <param name="menuID"></param>
+        ///// <returns></returns>
+        //public override Boolean HasMenu(Int32 menuID)
+        //{
+        //    return Role != null && Role.HasMenu(menuID);
+        //}
+
+        ///// <summary>
+        ///// 申请指定菜单指定操作的权限
+        ///// </summary>
+        ///// <param name="name"></param>
+        ///// <param name="flag"></param>
+        ///// <returns></returns>
+        //public override bool Acquire(String name, PermissionFlags flag)
+        //{
+        //    if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
+        //    if (Role == null) return false;
+
+        //    //TRoleEntity entity = Role;
+        //    //if (entity == null) return false;
+
+        //    // 申请权限
+        //    return entity.Acquire(menuID, flag);
+        //}
 
         /// <summary>
         /// 申请指定菜单指定操作的权限
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="menuID"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
-        public override bool Acquire(string name, PermissionFlags flag)
+        public override bool Acquire(Int32 menuID, PermissionFlags flag)
         {
-            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+            if (menuID <= 0) throw new ArgumentNullException("menuID");
 
             TRoleEntity entity = Role;
             if (entity == null) return false;
 
             // 申请权限
-            return entity.Acquire(name, flag);
+            return entity.Acquire(menuID, flag);
         }
 
         ///// <summary>
@@ -169,7 +215,7 @@ namespace NewLife.CommonEntity
         /// <param name="type"></param>
         /// <param name="action"></param>
         /// <returns></returns>
-        protected internal override IEntity CreateLog(Type type, string action)
+        public override IEntity CreateLog(Type type, string action)
         {
             Log<TLogEntity> log = Log<TLogEntity>.Create(this.GetType(), action);
             log.UserID = ID;
@@ -188,7 +234,7 @@ namespace NewLife.CommonEntity
     /// 也可以通过虚拟重载等手段让基类实现
     /// </remarks>
     /// <typeparam name="TEntity">管理员类型</typeparam>
-    public partial class Administrator<TEntity> : CommonEntityBase<TEntity>, IAdministrator
+    public abstract partial class Administrator<TEntity> : CommonEntityBase<TEntity>, IAdministrator
         where TEntity : Administrator<TEntity>, new()
     {
         #region 对象操作
@@ -422,19 +468,41 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>
-        /// 拥有指定菜单的权限
+        /// 根据权限名（权限路径）找到权限菜单实体
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public virtual Boolean HasMenu(String name) { return false; }
+        public abstract IEntity FindPermissionMenu(String name);
+
+        ///// <summary>
+        ///// 拥有指定菜单的权限
+        ///// </summary>
+        ///// <param name="name"></param>
+        ///// <returns></returns>
+        //public virtual Boolean HasMenu(String name) { return false; }
+
+        ///// <summary>
+        ///// 拥有指定菜单的权限
+        ///// </summary>
+        ///// <param name="menuID"></param>
+        ///// <returns></returns>
+        //public virtual Boolean HasMenu(Int32 menuID) { return false; }
+
+        ///// <summary>
+        ///// 申请指定菜单指定操作的权限
+        ///// </summary>
+        ///// <param name="name"></param>
+        ///// <param name="flag"></param>
+        ///// <returns></returns>
+        //public virtual Boolean Acquire(String name, PermissionFlags flag) { return false; }
 
         /// <summary>
         /// 申请指定菜单指定操作的权限
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="menuID"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
-        public virtual Boolean Acquire(String name, PermissionFlags flag) { return false; }
+        public abstract Boolean Acquire(Int32 menuID, PermissionFlags flag);
 
         ///// <summary>
         ///// 为当前管理员对象写日志
@@ -452,15 +520,15 @@ namespace NewLife.CommonEntity
         /// <param name="type"></param>
         /// <param name="action"></param>
         /// <returns></returns>
-        internal protected virtual IEntity CreateLog(Type type, String action) { return null; }
+        public abstract IEntity CreateLog(Type type, String action);
 
-        /// <summary>
-        /// 创建指定类型指定动作的日志实体
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        IEntity IAdministrator.CreateLog(Type type, String action) { return CreateLog(type, action); }
+        ///// <summary>
+        ///// 创建指定类型指定动作的日志实体
+        ///// </summary>
+        ///// <param name="type"></param>
+        ///// <param name="action"></param>
+        ///// <returns></returns>
+        //IEntity IAdministrator.CreateLog(Type type, String action) { return CreateLog(type, action); }
         #endregion
     }
 }

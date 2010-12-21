@@ -174,6 +174,18 @@ namespace NewLife.CommonEntity
                 {
                     return !String.IsNullOrEmpty(item.Url) && item.Url.EndsWith(fileName, StringComparison.OrdinalIgnoreCase);
                 });
+                if ((list == null || list.Count < 1) && Path.GetFileNameWithoutExtension(p).EndsWith("Form", StringComparison.OrdinalIgnoreCase))
+                {
+                    fileName = Path.GetFileNameWithoutExtension(p);
+                    fileName = fileName.Substring(0, fileName.Length - "Form".Length);
+                    fileName += Path.GetExtension(p);
+
+                    // 有可能是表单
+                    list = Meta.Cache.Entities.FindAll(delegate(TEntity item)
+                    {
+                        return !String.IsNullOrEmpty(item.Url) && item.Url.EndsWith(fileName, StringComparison.OrdinalIgnoreCase);
+                    });
+                }
                 if (list == null || list.Count < 1) return null;
                 if (list.Count == 1) return list[0];
 
@@ -459,7 +471,7 @@ namespace NewLife.CommonEntity
         /// </summary>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
-        public void WriteLog(String action, String remark)
+        public static void WriteLog(String action, String remark)
         {
             IEntity log = CreateLog(action);
             if (log != null)

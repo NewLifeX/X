@@ -120,15 +120,6 @@ namespace NewLife.CommonEntity
 		}
 		#endregion
 
-		#region 构造函数
-		/// <summary>
-		/// 初始化一个日志实例。
-		/// </summary>
-		public Log()
-		{
-		}
-		#endregion
-
 		#region 获取/设置 字段值
 		/// <summary>
 		/// 获取/设置 字段值。

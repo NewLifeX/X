@@ -61,13 +61,30 @@ namespace NewLife.CommonEntity.Web
             {
                 if (_MyMenu == null && !hasLoaded.Contains("MyMenu"))
                 {
-                    //_MyMenu = Menu.FindForPerssion(PermissionName);
                     _MyMenu = Menu<TMenuEntity>.Current;
+                    if (_MyMenu == null) _MyMenu = Menu<TMenuEntity>.FindForPerssion(PermissionName);
                     hasLoaded.Add("MyMenu");
                 }
                 return _MyMenu;
             }
             set { _MyMenu = value; }
+        }
+        #endregion
+
+        #region 权限控制
+        /// <summary>
+        /// 申请指定操作的权限
+        /// </summary>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public override Boolean Acquire(PermissionFlags flag)
+        {
+            if (MyMenu == null) return base.Acquire(flag);
+
+            TAdminEntity entity = Administrator<TAdminEntity>.Current;
+            if (entity == null) return false;
+
+            return entity.Acquire(MyMenu.ID, flag);
         }
         #endregion
     }
@@ -124,18 +141,12 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>
-        /// 检查权限
+        /// 检查权限，实际上就是Acquire(PermissionFlags.None)
         /// </summary>
         /// <returns></returns>
         public virtual Boolean CheckPermission()
         {
-            String name = PermissionName;
-            if (String.IsNullOrEmpty(name)) return false;
-
-            TAdminEntity entity = Administrator<TAdminEntity>.Current;
-            if (entity == null) return false;
-
-            return entity.HasMenu(name);
+            return Acquire(PermissionFlags.None);
         }
 
         /// <summary>
@@ -148,10 +159,15 @@ namespace NewLife.CommonEntity.Web
             String name = PermissionName;
             if (String.IsNullOrEmpty(name)) return false;
 
+            // 当前管理员
             TAdminEntity entity = Administrator<TAdminEntity>.Current;
             if (entity == null) return false;
 
-            return entity.Acquire(name, flag);
+            // 当前权限菜单
+            IEntity menu = entity.FindPermissionMenu(name);
+            if (menu == null) return false;
+
+            return entity.Acquire((Int32)menu["ID"], flag);
         }
         #endregion
 
