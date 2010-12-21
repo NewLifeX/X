@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Web.UI.WebControls;
-using System.ComponentModel;
-using System.Web.UI;
-using System.Drawing;
 using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Drawing;
+using System.Web.UI;
 using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
 
 // 特别要注意，这里得加上默认命名空间和目录名，因为vs2005编译的时候会给文件加上这些东东的
 [assembly: WebResource("XControl.Button.choose.gif", "image/gif")]
@@ -21,7 +19,6 @@ namespace XControl
     [Description("选择输入控件")]
     [ToolboxData("<{0}:ChooseButton runat=server></{0}:ChooseButton>")]
     [ToolboxBitmap(typeof(Button))]
-    //[SupportsEventValidation]
     [ControlValueProperty("Text")]
     [DefaultProperty("Text"), ValidationProperty("Text"), DefaultEvent("TextChanged")]
     public class ChooseButton : CompositeControl, IPostBackDataHandler, IEditableTextControl, ITextControl
