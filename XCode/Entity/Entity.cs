@@ -1060,12 +1060,27 @@ namespace XCode
                         // 标识列不需要插入，别的类型都需要
                         if (!fi.DataObjectField.IsIdentity)
                         {
+                            // 脏数据
+                            if (!obj.Dirtys[fi.Name])
+                            {
+                                // 有默认值，并且没有设置值时，不参与插入操作
+                                if (!String.IsNullOrEmpty(fi.Column.DefaultValue)) continue;
+
+                                //// 可空数据也不插入
+                                //if (fi.DataObjectField.IsNullable) continue;
+                            }
+
                             if (!isFirst) sbNames.Append(", "); // 加逗号
                             sbNames.Append(Meta.FormatKeyWord(fi.ColumnName));
                             if (!isFirst)
                                 sbValues.Append(", "); // 加逗号
                             else
                                 isFirst = false;
+
+                            //// 可空类型插入空
+                            //if (!obj.Dirtys[fi.Name] && fi.DataObjectField.IsNullable)
+                            //    sbValues.Append("null");
+                            //else
                             sbValues.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
                         }
                     }
