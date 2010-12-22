@@ -115,11 +115,17 @@ namespace NewLife.CommonEntity
         {
             //return Menu<TMenuEntity>.FindForPerssion(name);
             TMenuEntity menu = Menu<TMenuEntity>.FindForPerssion(name);
-            if (menu == null)
+            //if (menu == null)
+            //{
+            //    //IEntity log = Menu<TMenuEntity>.CreateLog("检查权限");
+            //    //log["Remark"] = String.Format("系统中没有[{0}]的权限项", name);
+            //    //log.Save();
+            //}
+
+            // 找不到的时候，修改当前页面
+            if (menu == null && Menu<TMenuEntity>.Current != null)
             {
-                IEntity log = Menu<TMenuEntity>.CreateLog("检查权限");
-                log["Remark"] = String.Format("系统中没有[{0}]的权限项", name);
-                log.Save();
+                if (Menu<TMenuEntity>.Current.ResetName(name)) menu = Menu<TMenuEntity>.Current;
             }
 
             return menu;
