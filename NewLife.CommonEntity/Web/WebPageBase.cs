@@ -7,6 +7,7 @@ using System.Web.UI;
 using XCode;
 using XCode.DataAccessLayer;
 using NewLife.Log;
+using NewLife.Web;
 
 namespace NewLife.CommonEntity.Web
 {
@@ -21,7 +22,7 @@ namespace NewLife.CommonEntity.Web
     /// <typeparam name="TAdminEntity"></typeparam>
     /// <typeparam name="TMenuEntity"></typeparam>
     public class WebPageBase<TAdminEntity, TMenuEntity> : WebPageBase<TAdminEntity>
-        where TAdminEntity : Administrator<TAdminEntity>, new()
+        where TAdminEntity : IAdministrator
         where TMenuEntity : Menu<TMenuEntity>, new()
     {
         #region 菜单
@@ -81,7 +82,8 @@ namespace NewLife.CommonEntity.Web
         {
             if (MyMenu == null) return base.Acquire(flag);
 
-            TAdminEntity entity = Administrator<TAdminEntity>.Current;
+            // 当前管理员
+            IAdministrator entity = Current;
             if (entity == null) return false;
 
             return entity.Acquire(MyMenu.ID, flag);
@@ -94,7 +96,7 @@ namespace NewLife.CommonEntity.Web
     /// </summary>
     /// <typeparam name="TAdminEntity"></typeparam>
     public class WebPageBase<TAdminEntity> : System.Web.UI.Page
-        where TAdminEntity : Administrator<TAdminEntity>, new()
+        where TAdminEntity : IAdministrator
     {
         #region 权限控制
         private Boolean _ValidatePermission = true;
@@ -149,6 +151,18 @@ namespace NewLife.CommonEntity.Web
             return Acquire(PermissionFlags.None);
         }
 
+        static HttpState<IAdministrator> http = new HttpState<IAdministrator>(typeof(TAdminEntity).Name + "_HttpStateKey");
+        /// <summary>
+        /// 当前管理员
+        /// </summary>
+        public virtual IAdministrator Current
+        {
+            get
+            {
+                return http == null ? null : http.Current;
+            }
+        }
+
         /// <summary>
         /// 申请指定操作的权限
         /// </summary>
@@ -160,8 +174,10 @@ namespace NewLife.CommonEntity.Web
             if (String.IsNullOrEmpty(name)) return false;
 
             // 当前管理员
-            TAdminEntity entity = Administrator<TAdminEntity>.Current;
+            IAdministrator entity = Current;
             if (entity == null) return false;
+
+            //return entity.HasMenu(name);
 
             // 当前权限菜单
             IEntity menu = entity.FindPermissionMenu(name);

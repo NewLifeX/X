@@ -130,25 +130,28 @@ namespace NewLife.CommonEntity
         ///// </summary>
         ///// <param name="name"></param>
         ///// <returns></returns>
-        //public override Boolean HasMenu(String name)
+        //public Boolean HasMenu(String name)
         //{
         //    if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-        //    if (Role == null) return false;
+        //    TMenuEntity menu = FindPermissionMenu(name) as TMenuEntity;
+        //    if (menu == null) return false;
 
-        //    Boolean rs = Role.HasMenu(name);
-        //    // 没有权限，检查是否有这个权限项，如果没有，则写入日志提醒管理员
-        //    if (!rs)
-        //    {
-        //        TMenuEntity menu = Menu<TMenuEntity>.FindForPerssion(name);
-        //        if (menu == null)
-        //        {
-        //            IEntity log = CreateLog(this.GetType(), "检查权限");
-        //            log["Remark"] = String.Format("系统中没有[{0}]的权限项", name);
-        //            log.Save();
-        //        }
-        //    }
-        //    return rs;
+        //    return Acquire(menu.ID, PermissionFlags.None);
+
+        //    //Boolean rs = Role.HasMenu(name);
+        //    //// 没有权限，检查是否有这个权限项，如果没有，则写入日志提醒管理员
+        //    //if (!rs)
+        //    //{
+        //    //    TMenuEntity menu = Menu<TMenuEntity>.FindForPerssion(name);
+        //    //    if (menu == null)
+        //    //    {
+        //    //        IEntity log = CreateLog(this.GetType(), "检查权限");
+        //    //        log["Remark"] = String.Format("系统中没有[{0}]的权限项", name);
+        //    //        log.Save();
+        //    //    }
+        //    //}
+        //    //return rs;
         //}
 
         ///// <summary>
@@ -186,7 +189,7 @@ namespace NewLife.CommonEntity
         /// <param name="menuID"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
-        public override bool Acquire(Int32 menuID, PermissionFlags flag)
+        public override Boolean Acquire(Int32 menuID, PermissionFlags flag)
         {
             if (menuID <= 0) throw new ArgumentNullException("menuID");
 
@@ -219,7 +222,7 @@ namespace NewLife.CommonEntity
         {
             Log<TLogEntity> log = Log<TLogEntity>.Create(this.GetType(), action);
             log.UserID = ID;
-            log.UserName = !String.IsNullOrEmpty(DisplayName) ? DisplayName : Name;
+            log.UserName = FriendName;
 
             return log;
         }
@@ -266,7 +269,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展属性
-        private const String CurrentKey = "Admin";
+        //private const String CurrentKey = "Admin";
         static HttpState<TEntity> _httpState;
         /// <summary>
         /// Http状态
@@ -297,7 +300,7 @@ namespace NewLife.CommonEntity
                 });
                 _httpState.EntityToCookie = new Converter<TEntity, HttpCookie>(delegate(TEntity entity)
                 {
-                    HttpCookie cookie = HttpContext.Current.Response.Cookies[CurrentKey];
+                    HttpCookie cookie = HttpContext.Current.Response.Cookies[_httpState.Key];
                     if (entity != null)
                     {
                         cookie["u"] = entity.Name;
@@ -376,23 +379,23 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展操作
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Update, false)]
-        public static Int32 UpdateRole(TEntity obj)
-        {
-            TEntity update = FindByKey(obj.ID);
-            if (!string.IsNullOrEmpty(obj.Password))
-            {
-                update.Password = DataHelper.Hash(obj.Password);
-            }
-            update.RoleID = obj.RoleID;
-            update.IsEnable = obj.IsEnable;
-            return update.Update();
-        }
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="obj"></param>
+        ///// <returns></returns>
+        //[DataObjectMethod(DataObjectMethodType.Update, false)]
+        //public static Int32 UpdateRole(TEntity obj)
+        //{
+        //    TEntity update = FindByKey(obj.ID);
+        //    if (!string.IsNullOrEmpty(obj.Password))
+        //    {
+        //        update.Password = DataHelper.Hash(obj.Password);
+        //    }
+        //    update.RoleID = obj.RoleID;
+        //    update.IsEnable = obj.IsEnable;
+        //    return update.Update();
+        //}
         #endregion
 
         #region 业务
@@ -474,12 +477,20 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public abstract IEntity FindPermissionMenu(String name);
 
-        ///// <summary>
-        ///// 拥有指定菜单的权限
-        ///// </summary>
-        ///// <param name="name"></param>
-        ///// <returns></returns>
-        //public virtual Boolean HasMenu(String name) { return false; }
+        /// <summary>
+        /// 拥有指定菜单的权限
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public virtual Boolean HasMenu(String name)
+        {
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
+            IEntity menu = FindPermissionMenu(name);
+            if (menu == null) return false;
+
+            return Acquire((Int32)menu["ID"], PermissionFlags.None);
+        }
 
         ///// <summary>
         ///// 拥有指定菜单的权限
