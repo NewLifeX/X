@@ -274,7 +274,13 @@ namespace NewLife.CommonEntity
             TEntity entity = FindByPerssion(name);
             if (entity != null) return entity;
 
-            return FindByPath(Meta.Cache.Entities, name, _.Permission);
+            entity = FindByPath(Meta.Cache.Entities, name, _.Permission);
+            // 找不到的时候，修改当前页面
+            if (entity == null && Current != null)
+            {
+                if (Current.ResetName(name)) entity = Current;
+            }
+            return entity;
         }
 
         /// <summary>

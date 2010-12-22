@@ -22,7 +22,7 @@ namespace NewLife.CommonEntity.Web
     /// <typeparam name="TAdminEntity"></typeparam>
     /// <typeparam name="TMenuEntity"></typeparam>
     public class WebPageBase<TAdminEntity, TMenuEntity> : WebPageBase<TAdminEntity>
-        where TAdminEntity : IAdministrator
+        where TAdminEntity : Administrator<TAdminEntity>, new()
         where TMenuEntity : Menu<TMenuEntity>, new()
     {
         #region 菜单
@@ -62,8 +62,8 @@ namespace NewLife.CommonEntity.Web
             {
                 if (_MyMenu == null && !hasLoaded.Contains("MyMenu"))
                 {
-                    _MyMenu = Menu<TMenuEntity>.Current;
-                    if (_MyMenu == null) _MyMenu = Menu<TMenuEntity>.FindForPerssion(PermissionName);
+                    _MyMenu = Menu<TMenuEntity>.FindForPerssion(PermissionName);
+                    if (_MyMenu == null) _MyMenu = Menu<TMenuEntity>.Current;
                     hasLoaded.Add("MyMenu");
                 }
                 return _MyMenu;
@@ -83,7 +83,7 @@ namespace NewLife.CommonEntity.Web
             if (MyMenu == null) return base.Acquire(flag);
 
             // 当前管理员
-            IAdministrator entity = Current;
+            IAdministrator entity = Administrator<TAdminEntity>.Current;
             if (entity == null) return false;
 
             return entity.Acquire(MyMenu.ID, flag);
@@ -96,7 +96,7 @@ namespace NewLife.CommonEntity.Web
     /// </summary>
     /// <typeparam name="TAdminEntity"></typeparam>
     public class WebPageBase<TAdminEntity> : System.Web.UI.Page
-        where TAdminEntity : IAdministrator
+        where TAdminEntity : Administrator<TAdminEntity>, new()
     {
         #region 权限控制
         private Boolean _ValidatePermission = true;
@@ -151,17 +151,17 @@ namespace NewLife.CommonEntity.Web
             return Acquire(PermissionFlags.None);
         }
 
-        static HttpState<IAdministrator> http = new HttpState<IAdministrator>(typeof(TAdminEntity).Name + "_HttpStateKey");
-        /// <summary>
-        /// 当前管理员
-        /// </summary>
-        public virtual IAdministrator Current
-        {
-            get
-            {
-                return http == null ? null : http.Current;
-            }
-        }
+        //static HttpState<IAdministrator> http = new HttpState<IAdministrator>(typeof(TAdminEntity).Name + "_HttpStateKey");
+        ///// <summary>
+        ///// 当前管理员
+        ///// </summary>
+        //public virtual IAdministrator Current
+        //{
+        //    get
+        //    {
+        //        return http == null ? null : http.Current;
+        //    }
+        //}
 
         /// <summary>
         /// 申请指定操作的权限
@@ -174,7 +174,7 @@ namespace NewLife.CommonEntity.Web
             if (String.IsNullOrEmpty(name)) return false;
 
             // 当前管理员
-            IAdministrator entity = Current;
+            IAdministrator entity = Administrator<TAdminEntity>.Current;
             if (entity == null) return false;
 
             //return entity.HasMenu(name);

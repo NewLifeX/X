@@ -8,7 +8,7 @@ namespace NewLife.CommonEntity
     /// <summary>
     /// 管理员接口
     /// </summary>
-    public interface IAdministrator
+    interface IAdministrator
     {
         /// <summary>
         /// 根据权限名（权限路径）找到权限菜单实体
