@@ -17,7 +17,7 @@ namespace XCode
     /// <summary>
     /// 数据实体基类的基类
     /// </summary>
-    public abstract class EntityBase : BinaryAccessor, IEntity, IEntityOperate
+    public abstract class EntityBase : BinaryAccessor, IEntity, IEntityOperate, ICloneable
     {
         #region 创建实体
         /// <summary>
@@ -391,6 +391,44 @@ namespace XCode
         internal abstract Int32 RollbackInternal();
         #endregion
 
+        #region 克隆
+        /// <summary>
+        /// 创建当前对象的克隆对象，仅拷贝基本字段
+        /// </summary>
+        /// <returns></returns>
+        public abstract Object Clone();
+
+        /// <summary>
+        /// 复制来自指定实体的成员，可以是不同类型的实体，只复制共有的基本字段，影响脏数据
+        /// </summary>
+        /// <param name="entity">来源实体对象</param>
+        /// <param name="setDirty">是否设置脏数据</param>
+        /// <returns>实际复制成员数</returns>
+        public virtual Int32 CopyFrom(IEntity entity, Boolean setDirty)
+        {
+            IEntity src = this;
+            List<String> names1 = src.FieldNames;
+            if (names1 == null || names1.Count < 1) return 0;
+            List<String> names2 = entity.FieldNames;
+            if (names2 == null || names2.Count < 1) return 0;
+
+            Int32 n = 0;
+            foreach (String item in names1)
+            {
+                if (names2.Contains(item))
+                {
+                    if (setDirty)
+                        src.SetItem(item, entity[item]);
+                    else
+                        src[item] = entity[item];
+
+                    n++;
+                }
+            }
+            return n;
+        }
+        #endregion
+
         #region 脏数据
         [NonSerialized]
         private DirtyCollection _Dirtys;
@@ -650,6 +688,16 @@ namespace XCode
         /// 字段名列表
         /// </summary>
         List<String> IEntityOperate.FieldNames { get { return FieldNamesInternal; } }
+
+        /// <summary>
+        /// 所有绑定到数据表的属性
+        /// </summary>
+        List<FieldItem> IEntity.Fields { get { return FieldsInternal; } }
+
+        /// <summary>
+        /// 字段名列表
+        /// </summary>
+        List<String> IEntity.FieldNames { get { return FieldNamesInternal; } }
 
         internal abstract List<FieldItem> FieldsInternal { get; }
         internal abstract List<String> FieldNamesInternal { get; }

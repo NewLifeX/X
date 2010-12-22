@@ -19,7 +19,7 @@ namespace XCode
     /// 数据实体类基类。所有数据实体类都必须继承该类。
     /// </summary>
     [Serializable]
-    public partial class Entity<TEntity> : EntityBase, ICloneable where TEntity : Entity<TEntity>, new()
+    public partial class Entity<TEntity> : EntityBase where TEntity : Entity<TEntity>, new()
     {
         #region 构造函数
         /// <summary>
@@ -1450,7 +1450,7 @@ namespace XCode
         /// 创建当前对象的克隆对象，仅拷贝基本字段
         /// </summary>
         /// <returns></returns>
-        public virtual Object Clone()
+        public override Object Clone()
         {
             return CloneEntity();
         }
