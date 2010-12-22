@@ -305,7 +305,7 @@ namespace NewLife.CommonEntity
                 file = String.Format("{0}_{1}{2}", Path.GetFileNameWithoutExtension(FileName), n++, Path.GetExtension(FileName));
             }
 
-            FilePath = file;
+            FilePath = Path.Combine(path, file);
         }
         #endregion
 
@@ -350,6 +350,10 @@ namespace NewLife.CommonEntity
                 //att.Save();
                 att.GetFilePath();
                 att.Save();
+                String path=att.FilePath.Substring(0,att.FilePath.Length-att.FileName.Length);
+                if(!Directory.Exists(path)){
+                    Directory.CreateDirectory(path);
+                }
                 fileUpload.SaveAs(att.FilePath);
 
                 Meta.DBO.Commit();
