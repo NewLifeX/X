@@ -8,6 +8,7 @@ using System.Text;
 using System.Collections.Generic;
 using NewLife.Reflection;
 using NewLife.Threading;
+using System.Web;
 
 namespace XCode.DataAccessLayer
 {
@@ -45,7 +46,11 @@ namespace XCode.DataAccessLayer
                     String file = "System.Data.SQLite.dll";
                     //if (machine != ImageFileMachine.I386) file = "System.Data.SQLite64.dll";
 
-                    file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
+                    if (String.IsNullOrEmpty(HttpRuntime.AppDomainId))
+                        file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
+                    else
+                        file = Path.Combine(HttpRuntime.BinDirectory, file);
+
                     //if (!File.Exists(file) && machine == ImageFileMachine.I386)
                     //{
                     //    file = "System.Data.SQLite32.dll";
@@ -512,12 +517,12 @@ namespace XCode.DataAccessLayer
                     break;
                 case TypeCode.Int16:
                 case TypeCode.UInt16:
-                    //sb.Append("smallint");
-                    //break;
+                //sb.Append("smallint");
+                //break;
                 case TypeCode.Int32:
                 case TypeCode.UInt32:
-                    //sb.Append("interger");
-                    //break;
+                //sb.Append("interger");
+                //break;
                 case TypeCode.Int64:
                 case TypeCode.UInt64:
                     sb.Append("INTEGER");
@@ -587,7 +592,7 @@ namespace XCode.DataAccessLayer
         {
             // 提前创建目录，SQLite不会自己创建目录
             if (!Directory.Exists(Path.GetDirectoryName(FileName))) Directory.CreateDirectory(Path.GetDirectoryName(FileName));
-            
+
             File.Create(FileName);
         }
         #endregion
