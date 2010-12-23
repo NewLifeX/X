@@ -274,7 +274,10 @@ namespace NewLife.Messaging
                     {
                         ProcessInternal(stream);
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        if (XTrace.Debug) XTrace.WriteLine(ex.ToString());
+                    }
                     break;
                 case MessageExceptionOption.Throw:
                     ProcessInternal(stream);

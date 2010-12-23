@@ -107,7 +107,30 @@ namespace NewLife.PeerToPeer.Client
         /// <param name="e"></param>
         protected override void OnReceived(object sender, EventArgs<Message, Stream> e)
         {
+            P2PMessage msg = e.Arg1 as P2PMessage;
+            if (msg == null) return;
 
+            switch (msg.MessageType)
+            {
+                case MessageTypes.Unkown:
+                    break;
+                //case MessageTypes.Test:
+                //    OnTest(e.Arg1 as TestMessage, e.Arg2);
+                //    break;
+                //case MessageTypes.Ping:
+                //    OnPing(e.Arg1 as PingMessage, e.Arg2);
+                //    break;
+                //case MessageTypes.Track:
+                //    OnTrack(e.Arg1 as TrackMessage, e.Arg2);
+                //    break;
+                default:
+                    //TestMessage.Response response = new TestMessage.Response();
+                    //response.Str = "无法识别该消息！";
+                    //response.WritePacket(e.Arg2);
+
+                    WriteLog("未处理的消息：{0}", msg.MessageType);
+                    break;
+            }
         }
         #endregion
 

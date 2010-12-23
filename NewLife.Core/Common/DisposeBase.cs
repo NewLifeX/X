@@ -52,7 +52,7 @@ namespace NewLife
             }
 
             // 只有基类的OnDispose被调用，才有可能是2
-            if (Interlocked.CompareExchange(ref disposed, 3, 2) != 2) throw new Exception("设计错误，OnDispose应该只被调用一次！代码不应该直接调用OnDispose，而应该调用Dispose。");
+            if (Interlocked.CompareExchange(ref disposed, 3, 2) != 2) throw new Exception("设计错误，OnDispose应该只被调用一次！代码不应该直接调用OnDispose，而应该调用Dispose。子类重载OnDispose时必须首先调用基类方法！");
         }
 
         /// <summary>

@@ -97,7 +97,7 @@ namespace NewLife.Net.Sockets
             }
             else
             {
-                socketStream.Reset(AcceptSocket, Offset, BytesTransferred);
+                socketStream.Reset(AcceptSocket, Offset, BytesTransferred, RemoteEndPoint);
             }
 
             return socketStream;

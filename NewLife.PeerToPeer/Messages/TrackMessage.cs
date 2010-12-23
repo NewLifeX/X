@@ -8,7 +8,7 @@ namespace NewLife.PeerToPeer.Messages
     /// <summary>
     /// 跟踪消息
     /// </summary>
-    public class TrackMessage : Message<TestMessage>
+    public class TrackMessage : Message<TrackMessage>
     {
         /// <summary>消息类型</summary>
         public override MessageTypes MessageType { get { return MessageTypes.Track; } }

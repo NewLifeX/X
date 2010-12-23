@@ -8,7 +8,7 @@ namespace NewLife.PeerToPeer.Messages
     /// <summary>
     /// 消息服务器
     /// </summary>
-    public abstract class MessageServer
+    public abstract class MessageServer : DisposeBase
     {
         #region 构造
         static MessageServer()
@@ -24,11 +24,22 @@ namespace NewLife.PeerToPeer.Messages
             P2PMessage.Received += new EventHandler<EventArgs<Message, Stream>>(OnReceived);
         }
 
+        ///// <summary>
+        ///// 析构，取消事件注册
+        ///// </summary>
+        //~MessageServer()
+        //{
+        //    P2PMessage.Received -= new EventHandler<EventArgs<Message, Stream>>(OnReceived);
+        //}
+
         /// <summary>
-        /// 析构，取消事件注册
+        /// 取消事件注册
         /// </summary>
-        ~MessageServer()
+        /// <param name="disposing"></param>
+        protected override void OnDispose(bool disposing)
         {
+            base.OnDispose(disposing);
+
             P2PMessage.Received -= new EventHandler<EventArgs<Message, Stream>>(OnReceived);
         }
         #endregion

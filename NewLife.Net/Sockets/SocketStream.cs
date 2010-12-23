@@ -25,7 +25,7 @@ namespace NewLife.Net.Sockets
         public IPEndPoint RemoteEndPoint
         {
             get { return _RemoteEndPoint; }
-            set { _RemoteEndPoint = value; }
+            private set { _RemoteEndPoint = value; }
         }
         #endregion
 
@@ -106,9 +106,12 @@ namespace NewLife.Net.Sockets
         /// <param name="socket"></param>
         /// <param name="offset"></param>
         /// <param name="length"></param>
-        public void Reset(Socket socket, Int32 offset, Int32 length)
+        /// <param name="remote"></param>
+        public void Reset(Socket socket, Int32 offset, Int32 length, EndPoint remote)
         {
             Socket = socket;
+            RemoteEndPoint = remote as IPEndPoint;
+            
             InputStream.Position = offset;
             InputStream.SetLength(length);
         }

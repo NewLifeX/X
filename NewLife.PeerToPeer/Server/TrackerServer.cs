@@ -35,6 +35,9 @@ namespace NewLife.PeerToPeer.Server
 
             MessageHandler.Error += new EventHandler<EventArgs<Message, Stream>>(MessageHandler_Error);
             MessageHandler.Null += new EventHandler<EventArgs<Message, Stream>>(MessageHandler_Null);
+
+            //// 调用基类静态方法，为了触发基类的静态构造函数
+            //WriteLog("实例化跟踪服务器：" + token);
         }
 
         /// <summary>
@@ -84,7 +87,6 @@ namespace NewLife.PeerToPeer.Server
         /// <param name="e"></param>
         protected override void OnReceived(object sender, EventArgs<Message, Stream> e)
         {
-
             P2PMessage msg = e.Arg1 as P2PMessage;
             if (msg == null) return;
 
@@ -95,30 +97,16 @@ namespace NewLife.PeerToPeer.Server
                 case MessageTypes.Test:
                     OnTest(e.Arg1 as TestMessage, e.Arg2);
                     break;
-                case MessageTypes.TestResponse:
-                    break;
-                case MessageTypes.Invite:
-                    break;
-                case MessageTypes.InviteResponse:
-                    break;
                 case MessageTypes.Ping:
                     OnPing(e.Arg1 as PingMessage, e.Arg2);
                     break;
-                case MessageTypes.PingResponse:
-                    break;
-                case MessageTypes.FindTorrent:
-                    break;
-                case MessageTypes.FindTorrentResponse:
-                    break;
-                case MessageTypes.TranFile:
-                    break;
-                case MessageTypes.TranFileResponse:
-                    break;
-                case MessageTypes.Text:
-                    break;
-                case MessageTypes.TextResponse:
+                case MessageTypes.Track:
+                    OnTrack(e.Arg1 as TrackMessage, e.Arg2);
                     break;
                 default:
+                    TestMessage.Response response = new TestMessage.Response();
+                    response.Str = "无法识别该消息！";
+                    response.WritePacket(e.Arg2);
                     break;
             }
         }
@@ -136,6 +124,18 @@ namespace NewLife.PeerToPeer.Server
             //response.Serialize(stream);
             Byte[] buffer = response.ToArray();
             stream.Write(buffer, 0, buffer.Length);
+        }
+        #endregion
+
+        #region 跟踪消息
+        void OnTrack(TrackMessage msg, Stream stream)
+        {
+            WriteLog("收到{0}的跟踪消息，种子：{1}", GetEndPoint(stream), msg.TorrentToken);
+
+            TestMessage.Response response = new TestMessage.Response();
+            response.Token = Token;
+            response.Str = "消息收到！";
+            response.WritePacket(stream);
         }
         #endregion
 
