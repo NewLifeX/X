@@ -16,7 +16,7 @@ namespace NewLife.CommonEntity
 
             if (Meta.Count <= 0)
             {
-                if (XTrace.Debug) XTrace.WriteLine("开始初始化地区数据……");
+                if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}地区数据……", typeof(TEntity).Name);
 
                 Dictionary<Int32, String> data = new Dictionary<Int32, String>();
                 #region 数据
@@ -3574,7 +3574,7 @@ namespace NewLife.CommonEntity
                 }
                 catch { Meta.Rollback(); throw; }
 
-                if (XTrace.Debug) XTrace.WriteLine("完成初始化地区数据！");
+                if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}地区数据！", typeof(TEntity).Name);
             }
         }
         #endregion

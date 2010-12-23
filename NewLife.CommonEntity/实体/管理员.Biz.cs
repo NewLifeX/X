@@ -31,7 +31,7 @@ namespace NewLife.CommonEntity
             Int32 count = RoleMenu<TRoleMenuEntity>.Meta.Count;
             if (count <= 1)
             {
-                if (XTrace.Debug) XTrace.WriteLine("开始初始化授权数据……");
+                if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}授权数据……", typeof(TEntity).Name);
 
                 try
                 {
@@ -58,11 +58,11 @@ namespace NewLife.CommonEntity
                         entity.Save();
                     }
 
-                    if (XTrace.Debug) XTrace.WriteLine("完成初始化授权数据！");
+                    if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}授权数据！", typeof(TEntity).Name);
                 }
                 catch (Exception ex)
                 {
-                    if (XTrace.Debug) XTrace.WriteLine("初始化授权数据失败！" + ex.ToString());
+                    if (XTrace.Debug) XTrace.WriteLine("初始化{0}授权数据失败！{1}", typeof(TEntity).Name, ex.ToString());
                 }
             }
         }
@@ -259,7 +259,7 @@ namespace NewLife.CommonEntity
             // 初始化数据
             if (Meta.Count < 1)
             {
-                if (XTrace.Debug) XTrace.WriteLine("开始初始化管理员数据……");
+                if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}管理员数据……", typeof(TEntity).Name);
 
                 TEntity user = new TEntity();
                 user.Name = "admin";
@@ -269,7 +269,7 @@ namespace NewLife.CommonEntity
                 user.IsEnable = true;
                 user.Insert();
 
-                if (XTrace.Debug) XTrace.WriteLine("完成初始化管理员数据！");
+                if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}管理员数据！", typeof(TEntity).Name);
             }
         }
         #endregion

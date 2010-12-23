@@ -35,7 +35,7 @@ namespace NewLife.CommonEntity
             {
                 if (Meta.Count <= 0)
                 {
-                    if (XTrace.Debug) XTrace.WriteLine("开始初始化表单数据……");
+                    if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}表单数据……", typeof(TEntity).Name);
 
                     Meta.BeginTrans();
                     try
@@ -53,47 +53,10 @@ namespace NewLife.CommonEntity
                         entity.AddChild("日志管理", "../System/Log.aspx");
 
                         // 准备增加Admin目录下的所有页面
-                        #region 扫描文件
-                        String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Admin");
-                        if (Directory.Exists(p))
-                        {
-                            String[] dis = Directory.GetDirectories(p);
-                            if (dis != null && dis.Length > 0)
-                            {
-                                foreach (String item in dis)
-                                {
-                                    String dirName = new DirectoryInfo(item).Name;
-                                    if (dirName.Equals("Frame", StringComparison.OrdinalIgnoreCase)) continue;
-                                    if (dirName.Equals("System", StringComparison.OrdinalIgnoreCase)) continue;
-                                    if (dirName.StartsWith("img", StringComparison.OrdinalIgnoreCase)) continue;
-
-                                    String[] fs = Directory.GetFiles(item, "*.aspx", SearchOption.TopDirectoryOnly);
-                                    if (fs == null || fs.Length < 1) continue;
-
-                                    List<String> files = new List<String>();
-                                    foreach (String elm in fs)
-                                    {
-                                        // 过滤掉表单页面
-                                        if (Path.GetFileNameWithoutExtension(elm).EndsWith("Form", StringComparison.OrdinalIgnoreCase)) continue;
-
-                                        files.Add(elm);
-                                    }
-                                    if (files.Count < 1) continue;
-
-                                    // 添加
-                                    TEntity parent = Root.Childs[0].AddChild(dirName, null);
-                                    foreach (String elm in files)
-                                    {
-                                        String url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
-                                        parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
-                                    }
-                                }
-                            }
-                        }
-                        #endregion
+                        ScanAndAdd("Admin");
 
                         Meta.Commit();
-                        if (XTrace.Debug) XTrace.WriteLine("完成初始化表单数据！");
+                        if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}表单数据！", typeof(TEntity).Name);
                     }
                     catch (Exception ex)
                     {
@@ -454,6 +417,54 @@ namespace NewLife.CommonEntity
             entity.Save();
 
             return entity;
+        }
+
+        /// <summary>
+        /// 扫描指定目录并添加文件到第一个顶级菜单之下
+        /// </summary>
+        /// <param name="dir"></param>
+        /// <returns></returns>
+        public static Int32 ScanAndAdd(String dir)
+        {
+            String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dir);
+            if (!Directory.Exists(p)) return 0;
+
+            String[] dis = Directory.GetDirectories(p);
+            if (dis == null || dis.Length <= 0) return 0;
+
+            Int32 num = 0;
+            foreach (String item in dis)
+            {
+                String dirName = new DirectoryInfo(item).Name;
+                if (dirName.Equals("Frame", StringComparison.OrdinalIgnoreCase)) continue;
+                if (dirName.Equals("System", StringComparison.OrdinalIgnoreCase)) continue;
+                if (dirName.StartsWith("img", StringComparison.OrdinalIgnoreCase)) continue;
+
+                String[] fs = Directory.GetFiles(item, "*.aspx", SearchOption.TopDirectoryOnly);
+                if (fs == null || fs.Length < 1) continue;
+
+                List<String> files = new List<String>();
+                foreach (String elm in fs)
+                {
+                    // 过滤掉表单页面
+                    if (Path.GetFileNameWithoutExtension(elm).EndsWith("Form", StringComparison.OrdinalIgnoreCase)) continue;
+
+                    files.Add(elm);
+                }
+                if (files.Count < 1) continue;
+
+                // 添加
+                TEntity parent = Root.Childs[0].AddChild(dirName, null);
+                num++;
+                foreach (String elm in files)
+                {
+                    String url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
+                    parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
+                    num++;
+                }
+            }
+
+            return num;
         }
         #endregion
 
