@@ -283,6 +283,7 @@ namespace XCode.DataAccessLayer
                 case "varbinary":
                 case "binary":
                 case "systemname":
+                    return typeof(Byte[]);
                 default:
                     return typeof(String);
             }

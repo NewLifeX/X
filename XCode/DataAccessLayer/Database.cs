@@ -1159,6 +1159,7 @@ namespace XCode.DataAccessLayer
                 case 128:// adBinary
                 case 204:// adVarBinary
                 case 205:// adLongVarBinary 
+                    return typeof(Byte[]);
                 case 0:// adEmpty
                 case 10:// adError
                 case 132:// adUserDefined

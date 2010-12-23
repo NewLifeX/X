@@ -123,7 +123,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected override List<XField> GetFields(XTable xt)
         {
-            DataColumnCollection columns = GetColumns(xt.Name);
+            //DataColumnCollection columns = GetColumns(xt.Name);
             DataTable dt = GetSchema("Columns", new String[] { xt.Owner, xt.Name });
 
             List<XField> list = new List<XField>();
@@ -134,14 +134,14 @@ namespace XCode.DataAccessLayer
                 XField xf = xt.CreateField();
                 xf.ID = Int32.Parse(dr["ID"].ToString());
                 xf.Name = dr["COLUMN_NAME"].ToString();
-                //xf.DataType = FieldTypeToClassType(dr["DATATYPE"].ToString());
+                xf.DataType = FieldTypeToClassType(dr["DATATYPE"].ToString());
                 xf.Identity = false;
 
-                if (columns != null && columns.Contains(xf.Name))
-                {
-                    DataColumn dc = columns[xf.Name];
-                    xf.DataType = dc.DataType;
-                }
+                //if (columns != null && columns.Contains(xf.Name))
+                //{
+                //    DataColumn dc = columns[xf.Name];
+                //    xf.DataType = dc.DataType;
+                //}
                 
                 xf.Length = dr["LENGTH"] == DBNull.Value ? 0 : Int32.Parse(dr["LENGTH"].ToString());
                 xf.Digit = dr["SCALE"] == DBNull.Value ? 0 : Int32.Parse(dr["SCALE"].ToString());
@@ -189,36 +189,37 @@ namespace XCode.DataAccessLayer
         }
 
         #region 字段类型到数据类型对照表
-        ///// <summary>
-        ///// 字段类型到数据类型对照表
-        ///// </summary>
-        ///// <param name="type"></param>
-        ///// <returns></returns>
-        //public override Type FieldTypeToClassType(String type)
-        //{
-        //    switch (type)
-        //    {
-        //        case "CHAR":
-        //        case "VARCHAR2":
-        //        case "NCHAR":
-        //        case "NVARCHAR2":
-        //        case "LONG":
-        //        case "LOB":
-        //        case "BLOB":
-        //        case "CLOB":
-        //        case "NCLOB":
-        //            return typeof(String);
-        //        case "NUMBER":
-        //            return typeof(Int32);
-        //        case "FLOAT":
-        //            return typeof(Double);
-        //        case "DATE":
-        //        case "TIMESTAMP(6)":
-        //            return typeof(DateTime);
-        //        default:
-        //            return typeof(String);
-        //    }
-        //}
+        /// <summary>
+        /// 字段类型到数据类型对照表
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public override Type FieldTypeToClassType(String type)
+        {
+            switch (type)
+            {
+                case "CHAR":
+                case "VARCHAR2":
+                case "NCHAR":
+                case "NVARCHAR2":
+                    return typeof(String);
+                case "NUMBER":
+                    return typeof(Int32);
+                case "FLOAT":
+                    return typeof(Double);
+                case "DATE":
+                case "TIMESTAMP(6)":
+                    return typeof(DateTime);
+                case "LONG":
+                case "LOB":
+                case "BLOB":
+                case "CLOB":
+                case "NCLOB":
+                    return typeof(Byte[]);
+                default:
+                    return typeof(String);
+            }
+        }
         #endregion
 
         #region 数据库特性

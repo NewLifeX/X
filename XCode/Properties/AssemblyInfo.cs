@@ -49,6 +49,7 @@ using System.Runtime.InteropServices;
 /*
  * v6.5.2010.1223   修正SQLite已知的一些问题，查找dll文件路径不正确，执行插入语句不正确
  *                  IEntity增加CopyFrom方法，用于从指定实体对象复制成员数据
+ *                  增加对二进制字段的支持，表现为Byte[]
  * 
  * v6.4.2010.1217   修正Entity中CheckColumn无法正确计算选择字段的错误
  *                  优化SelectBuilder，允许Where中使用GroupBy字句，ToString时自动分割到正确位置

@@ -1022,6 +1022,13 @@ namespace XCode
                 else
                     return Convert.ToBoolean(obj) ? "1" : "0";
             }
+            else if (field.Property.PropertyType == typeof(Byte[]))
+            {
+                Byte[] bts = (Byte[])obj;
+                if (bts == null || bts.Length < 1) return "0x0";
+
+                return "0x" + BitConverter.ToString(bts).Replace("-", null);
+            }
             else
             {
                 if (obj == null) return isNullable ? "null" : "";
