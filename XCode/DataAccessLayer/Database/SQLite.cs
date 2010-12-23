@@ -585,6 +585,9 @@ namespace XCode.DataAccessLayer
         #region 创建数据库
         private void CreateDatabase()
         {
+            // 提前创建目录，SQLite不会自己创建目录
+            if (!Directory.Exists(Path.GetDirectoryName(FileName))) Directory.CreateDirectory(Path.GetDirectoryName(FileName));
+            
             File.Create(FileName);
         }
         #endregion
