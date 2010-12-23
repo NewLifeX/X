@@ -151,6 +151,18 @@ namespace NewLife.CommonEntity
 			get { return _StatID; }
 			set { if (OnPropertyChange("StatID", value)) _StatID = value; }
 		}
+        private Boolean _IsEnable;
+        /// <summary>
+        /// 是否启用
+        /// </summary>
+        [Description("是否启用")]
+        [DataObjectField(false, false, true, 1)]
+        [BindColumn("IsEnable", Description = "是否启用", DefaultValue = "", Order = 6)]
+        public Boolean IsEnable
+        {
+            get { return _IsEnable; }
+            set { if (OnPropertyChange("IsEnable", value)) _IsEnable = value; }
+        }
 		#endregion
 
 		#region 获取/设置 字段值
@@ -177,6 +189,7 @@ namespace NewLife.CommonEntity
 					case "UploadTime" : return UploadTime;
 					case "ContentType" : return ContentType;
 					case "StatID" : return StatID;
+                    case "IsEnable": return IsEnable;
 					default: return base[name];
 				}
 			}
@@ -194,6 +207,7 @@ namespace NewLife.CommonEntity
 					case "UploadTime" : _UploadTime = Convert.ToDateTime(value); break;
 					case "ContentType" : _ContentType = Convert.ToString(value); break;
 					case "StatID" : _StatID = Convert.ToInt32(value); break;
+                    case "IsEnable": _IsEnable = Convert.ToBoolean(value); break;
 					default: base[name] = value; break;
 				}
 			}
@@ -255,6 +269,11 @@ namespace NewLife.CommonEntity
 			/// 访问统计
 			///</summary>
 			public const String StatID = "StatID";
+
+            ///<summary>
+            /// 是否过期
+            ///</summary>
+            public const String IsEnable = "IsEnable";
 		}
 		#endregion
 	}
