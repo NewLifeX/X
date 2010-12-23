@@ -1067,15 +1067,8 @@ namespace XCode
                         // 标识列不需要插入，别的类型都需要
                         if (!fi.DataObjectField.IsIdentity)
                         {
-                            // 脏数据
-                            if (!obj.Dirtys[fi.Name])
-                            {
-                                // 有默认值，并且没有设置值时，不参与插入操作
-                                if (!String.IsNullOrEmpty(fi.Column.DefaultValue)) continue;
-
-                                //// 可空数据也不插入
-                                //if (fi.DataObjectField.IsNullable) continue;
-                            }
+                            // 有默认值，并且没有设置值时，不参与插入操作
+                            if (!String.IsNullOrEmpty(fi.Column.DefaultValue) && !obj.Dirtys[fi.Name]) continue;
 
                             if (!isFirst) sbNames.Append(", "); // 加逗号
                             sbNames.Append(Meta.FormatKeyWord(fi.ColumnName));

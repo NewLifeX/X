@@ -134,11 +134,19 @@ namespace NewLife.CommonEntity.Web
         {
             base.OnPreLoad(e);
 
-            if (ValidatePermission && !CheckPermission())
+            try
             {
-                Response.StatusCode = 403;
-                Response.Write("没有权限访问该页！");
-                Response.End();
+                if (ValidatePermission && !CheckPermission())
+                {
+                    Response.StatusCode = 403;
+                    Response.StatusDescription = "没有权限访问该页！";
+                    Response.Write("没有权限访问该页！");
+                    Response.End();
+                }
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteLine(ex.ToString());
             }
         }
 

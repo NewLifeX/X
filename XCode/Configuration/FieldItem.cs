@@ -16,7 +16,7 @@ namespace XCode.Configuration
         public PropertyInfo Property
         {
             get { return _Property; }
-            set { _Property = value; }
+            internal set { _Property = value; }
         }
 
         private BindColumnAttribute _Column;
@@ -24,7 +24,7 @@ namespace XCode.Configuration
         public BindColumnAttribute Column
         {
             get { return _Column; }
-            set { _Column = value; }
+            internal set { _Column = value; }
         }
 
         private DataObjectFieldAttribute _DataObjectField;
@@ -32,9 +32,10 @@ namespace XCode.Configuration
         public DataObjectFieldAttribute DataObjectField
         {
             get { return _DataObjectField; }
-            set { _DataObjectField = value; }
+            internal set { _DataObjectField = value; }
         }
 
+        private String _Name;
         /// <summary>
         /// 属性名
         /// </summary>
@@ -42,13 +43,18 @@ namespace XCode.Configuration
         {
             get
             {
-                if (Property != null)
-                    return Property.Name;
-                else
-                    return null;
+                if (_Name == null)
+                {
+                    if (Property != null)
+                        _Name = Property.Name;
+                    else
+                        _Name = String.Empty;
+                }
+                return _Name;
             }
         }
 
+        private String _ColumnName;
         /// <summary>
         /// 绑定的字段名
         /// 默认使用BindColumn特性中指定的字段名，如果没有指定，则使用属性名。
@@ -57,10 +63,14 @@ namespace XCode.Configuration
         {
             get
             {
-                if (Column != null && !String.IsNullOrEmpty(Column.Name))
-                    return Column.Name;
-                else
-                    return Property.Name;
+                if (_ColumnName == null)
+                {
+                    if (Column != null && !String.IsNullOrEmpty(Column.Name))
+                        _ColumnName = Column.Name;
+                    else
+                        _ColumnName = Property.Name;
+                }
+                return _ColumnName;
             }
         }
 

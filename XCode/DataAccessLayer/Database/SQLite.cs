@@ -198,8 +198,10 @@ namespace XCode.DataAccessLayer
                 {
                     DbCommand cmd = PrepareCommand();
                     cmd.CommandText = sql;
-                    Int32 rs = Int32.Parse(cmd.ExecuteScalar().ToString());
-                    AutoClose();
+                    Object obj = cmd.ExecuteScalar();
+                    if (obj == null) return 0;
+
+                    Int32 rs = Convert.ToInt32(obj);
                     return rs;
                 }
                 catch (Exception ex)
@@ -209,6 +211,7 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
+                AutoClose();
                 _lock.ReleaseWrite();
             }
         }
