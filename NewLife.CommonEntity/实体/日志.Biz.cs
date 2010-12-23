@@ -1,12 +1,11 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Text;
+using NewLife.Collections;
 using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
 using XCode.Cache;
-using System.Collections.Generic;
-using NewLife.Collections;
 
 namespace NewLife.CommonEntity
 {

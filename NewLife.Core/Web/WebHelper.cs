@@ -158,11 +158,18 @@ namespace NewLife.Web
         {
             get
             {
-                if (HttpContext.Current != null && HttpContext.Current.Request != null)
+                if (HttpContext.Current != null)
                 {
-                    String str = HttpContext.Current.Request.UserHostName;
-                    if (String.IsNullOrEmpty(str)) str = HttpContext.Current.Request.UserHostAddress;
-                    return str;
+                    String str = (String)HttpContext.Current.Items["UserHostAddress"];
+                    if (!String.IsNullOrEmpty(str)) return str;
+
+                    if (HttpContext.Current.Request != null)
+                    {
+                        str = HttpContext.Current.Request.UserHostName;
+                        if (String.IsNullOrEmpty(str)) str = HttpContext.Current.Request.UserHostAddress;
+                        HttpContext.Current.Items["UserHostAddress"] = str;
+                        return str;
+                    }
                 }
                 return null;
             }

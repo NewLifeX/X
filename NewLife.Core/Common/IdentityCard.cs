@@ -99,10 +99,12 @@ namespace NewLife.Common
 
             //转为小写，18位身份证后面有个字母x
             card = card.ToLower();
-            if (cache.ContainsKey(card)) return cache[card];
+
+            IdentityCard ic = null;
+            if (cache.TryGetValue(card, out ic)) return ic;
             lock (cache)
             {
-                if (cache.ContainsKey(card)) return cache[card];
+                if (cache.TryGetValue(card, out ic)) return ic;
 
                 IdentityCard idc = Parse2(card);
                 cache.Add(card, idc);
