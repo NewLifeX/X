@@ -146,6 +146,7 @@ namespace XCode.DataAccessLayer
         protected override List<XField> GetFields(XTable xt)
         {
             List<XField> list = base.GetFields(xt);
+            if (list == null || list.Count < 1) return null;
 
             Dictionary<String, XField> dic = new Dictionary<String, XField>();
             foreach (XField xf in list)

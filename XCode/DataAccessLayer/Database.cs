@@ -870,20 +870,30 @@ namespace XCode.DataAccessLayer
         {
             if (!Opened) Open();
 
-            DataTable dt;
-            if (restrictionValues == null || restrictionValues.Length < 1)
+            try
             {
-                if (String.IsNullOrEmpty(collectionName))
-                    dt = Conn.GetSchema();
+                DataTable dt;
+                if (restrictionValues == null || restrictionValues.Length < 1)
+                {
+                    if (String.IsNullOrEmpty(collectionName))
+                        dt = Conn.GetSchema();
+                    else
+                        dt = Conn.GetSchema(collectionName);
+                }
                 else
-                    dt = Conn.GetSchema(collectionName);
+                    dt = Conn.GetSchema(collectionName, restrictionValues);
+
+                return dt;
             }
-            else
-                dt = Conn.GetSchema(collectionName, restrictionValues);
-
-            AutoClose();
-
-            return dt;
+            catch (Exception ex)
+            {
+                if (Debug) WriteLog(ex.ToString());
+                return null;
+            }
+            finally
+            {
+                AutoClose();
+            }
         }
 
         /// <summary>
@@ -911,7 +921,14 @@ namespace XCode.DataAccessLayer
                         xt.Description = drTable["DESCRIPTION"].ToString();
                         xt.IsView = i > 0;
 
-                        xt.Fields = GetFields(xt);
+                        try
+                        {
+                            xt.Fields = GetFields(xt);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (Debug) WriteLog(ex.ToString());
+                        }
 
                         list.Add(xt);
                     }
@@ -1071,7 +1088,7 @@ namespace XCode.DataAccessLayer
             }
             catch (Exception ex)
             {
-                WriteLog(ex.ToString());
+                if (Debug) WriteLog(ex.ToString());
                 return null;
             }
         }
