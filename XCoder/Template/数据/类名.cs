@@ -51,7 +51,7 @@ namespace <#=Config.NameSpace#>
 	foreach(XField Field in Table.Fields)
 	{
 #>
-					case "<#=GetPropertyName(Field)#>" : return <#=GetPropertyName(Field)#>;<#
+					case "<#=GetPropertyName(Field)#>" : return _<#=GetPropertyName(Field)#>;<#
 	}
 #>
 					default: return base[name];
@@ -61,11 +61,17 @@ namespace <#=Config.NameSpace#>
 			{
 				switch (name)
 				{<#
+Type conv=typeof(Convert);
 	foreach(XField Field in Table.Fields)
 	{ 
+if(conv.GetMethod("To"+Field.FieldType, new Type[]{typeof(Object)})!=null){
 #>
 					case "<#=GetPropertyName(Field)#>" : _<#=GetPropertyName(Field)#> = Convert.To<#=Field.FieldType#>(value); break;<#
+}else{
+#>
+					case "<#=GetPropertyName(Field)#>" : _<#=GetPropertyName(Field)#> = (<#=Field.FieldType#>)value; break;<#
 	}
+}
 #>
 					default: base[name] = value; break;
 				}
