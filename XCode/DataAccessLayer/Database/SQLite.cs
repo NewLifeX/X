@@ -125,7 +125,13 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public override void Open()
         {
-            if (!File.Exists(FileName)) CreateDatabase();
+            if (!File.Exists(FileName))
+            {
+                // 提前创建目录，SQLite不会自己创建目录
+                if (!Directory.Exists(Path.GetDirectoryName(FileName))) Directory.CreateDirectory(Path.GetDirectoryName(FileName));
+
+                CreateDatabase();
+            }
 
             base.Open();
 
