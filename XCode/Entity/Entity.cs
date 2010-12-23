@@ -283,9 +283,9 @@ namespace XCode
             String sql = SQL(this, DataObjectMethodType.Insert);
 
             //AC和SqlServer支持获取自增字段的最新编号
-            if (Meta.DbType == DatabaseType.Access ||
-                Meta.DbType == DatabaseType.SqlServer ||
-                Meta.DbType == DatabaseType.SqlServer2005)
+            //if (Meta.DbType == DatabaseType.Access ||
+            //    Meta.DbType == DatabaseType.SqlServer ||
+            //    Meta.DbType == DatabaseType.SqlServer2005)
             {
                 //检查是否有标识列，标识列需要特殊处理
                 //FieldItem[] ps = Meta.Uniques;

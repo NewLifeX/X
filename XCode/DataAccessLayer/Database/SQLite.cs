@@ -46,7 +46,7 @@ namespace XCode.DataAccessLayer
                     String file = "System.Data.SQLite.dll";
                     //if (machine != ImageFileMachine.I386) file = "System.Data.SQLite64.dll";
 
-                    if (String.IsNullOrEmpty(HttpRuntime.AppDomainId))
+                    if (String.IsNullOrEmpty(HttpRuntime.AppDomainAppId))
                         file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
                     else
                         file = Path.Combine(HttpRuntime.BinDirectory, file);
@@ -193,7 +193,7 @@ namespace XCode.DataAccessLayer
             try
             {
                 ExecuteTimes++;
-                sql = "SET NOCOUNT ON;" + sql + ";Select last_insert_rowid() newid";
+                sql = sql + ";Select last_insert_rowid() newid";
                 if (Debug) WriteLog(sql);
                 try
                 {

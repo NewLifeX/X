@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("6.4.*")]
-[assembly: AssemblyFileVersion("6.4.2010.1217")]
+[assembly: AssemblyVersion("6.5.*")]
+[assembly: AssemblyFileVersion("6.5.2010.1223")]
 
 /*
  * XCode的重大改进
@@ -47,10 +47,12 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v6.5.2010.1223   修正SQLite已知的一些问题，查找dll文件路径不正确，执行插入语句不正确
+ *                  IEntity增加CopyFrom方法，用于从指定实体对象复制成员数据
+ * 
  * v6.4.2010.1217   修正Entity中CheckColumn无法正确计算选择字段的错误
  *                  优化SelectBuilder，允许Where中使用GroupBy字句，ToString时自动分割到正确位置
  *                  实体类增加静态方法FindByKeyForEdit，用于替代模版生成中的FindByKeyForEdit，为将要实现的表单基类（自定义表单）做准备
- *                  IEntity增加CopyFrom方法，用于从指定实体对象复制成员数据
  *                  ********************************
  *                  实体基类继承自BinaryAccessor，IEntity增加IIndexAccessor接口和IBinaryAccessor接口，增加对快速索引访问和二进制访问的支持
  *                  快速索引访问：实体类可以不必生成索引器代码，IIndexAccessor直接提供按名称访问属性
