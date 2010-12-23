@@ -343,6 +343,7 @@ namespace NewLife.CommonEntity
                 att.Size = fileUpload.PostedFile.ContentLength;// / 1024;
                 att.Extension = Path.GetExtension(fileUpload.FileName);
                 att.Category = category;
+                att.IsEnable = true;
                 //att.FilePath = 
                 att.ContentType = fileUpload.PostedFile.ContentType;
                 att.UploadTime = DateTime.Now;
