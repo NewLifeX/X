@@ -5,6 +5,8 @@ using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
 using XCode.Cache;
+using System.Collections.Generic;
+using NewLife.Collections;
 
 namespace NewLife.CommonEntity
 {
@@ -176,23 +178,36 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static TEntity Create(Type type, String action)
         {
-            String name = String.Empty;
-            // 获取实体类的描述名
-            if (typeof(IEntity).IsAssignableFrom(type))
+            String name = GetDescription(type);
+            if (String.IsNullOrEmpty(name)) name = type.Name;
+
+            return Create(name, action);
+        }
+
+        static DictionaryCache<Type, String> desCache = new DictionaryCache<Type, string>();
+        /// <summary>
+        /// 获取实体类的描述名
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        static String GetDescription(Type type)
+        {
+            return desCache.GetItem(type, delegate(Type key)
             {
+                if (!typeof(IEntity).IsAssignableFrom(type)) return null;
+
                 BindColumnAttribute att = AttributeX.GetCustomAttribute<BindColumnAttribute>(type, true);
                 if (att != null && !String.IsNullOrEmpty(att.Description))
-                    name = att.Description;
+                    return att.Description;
                 else
                 {
                     DescriptionAttribute att2 = AttributeX.GetCustomAttribute<DescriptionAttribute>(type, true);
                     if (att2 != null && !String.IsNullOrEmpty(att2.Description))
-                        name = att2.Description;
+                        return att2.Description;
                 }
-            }
-            if (String.IsNullOrEmpty(name)) name = type.Name;
 
-            return Create(name, action);
+                return null;
+            });
         }
         #endregion
     }

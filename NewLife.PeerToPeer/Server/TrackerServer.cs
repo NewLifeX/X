@@ -230,11 +230,13 @@ namespace NewLife.PeerToPeer.Server
             IPAddress address = IPAddress.Any;
             if (stream is HttpStream)
             {
-                String ip = (stream as HttpStream).Context.Request.UserHostAddress;
+                //String ip = (stream as HttpStream).Context.Request.UserHostAddress;
 
-                IPAddress.TryParse(ip, out address);
+                //IPAddress.TryParse(ip, out address);
 
-                return new IPEndPoint(address, 0);
+                //return new IPEndPoint(address, 0);
+
+                return (stream as HttpStream).RemoteEndPoint;
             }
             else if (stream is SocketStream)
             {

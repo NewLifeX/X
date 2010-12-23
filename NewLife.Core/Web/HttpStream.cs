@@ -1,5 +1,8 @@
 ﻿using System.Web;
 using NewLife.IO;
+using System.Net;
+using System;
+using NewLife.Reflection;
 
 namespace NewLife.Web
 {
@@ -15,6 +18,41 @@ namespace NewLife.Web
         {
             get { return _Context; }
             private set { _Context = value; }
+        }
+
+        private IPEndPoint _RemoteEndPoint;
+        /// <summary>远程地址</summary>
+        public IPEndPoint RemoteEndPoint
+        {
+            get
+            {
+                if (_RemoteEndPoint == null && Context != null)
+                {
+                    IPAddress ip = IPAddress.Any;
+                    Int32 port = 0;
+                    if (IPAddress.TryParse(Context.Request.UserHostAddress, out ip))
+                    {
+                        // 尝试获取端口
+                        //TypeX tx = TypeX.Create(typeof(HttpContext));
+                        PropertyInfoX pi = PropertyInfoX.Create(typeof(HttpContext), "WorkerRequest");
+                        if (pi != null)
+                        {
+                            try
+                            {
+                                HttpWorkerRequest wr = pi.GetValue(Context) as HttpWorkerRequest;
+                                if (wr != null)
+                                {
+                                    port = wr.GetRemotePort();
+                                }
+                            }
+                            catch { }
+                        }
+                    }
+                    _RemoteEndPoint = new IPEndPoint(ip, port);
+                }
+                return _RemoteEndPoint;
+            }
+            //set { _RemoteEndPoint = value; }
         }
         #endregion
 
