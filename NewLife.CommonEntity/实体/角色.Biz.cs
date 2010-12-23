@@ -133,7 +133,7 @@ namespace NewLife.CommonEntity
             // 申请权限
             if (flag == PermissionFlags.None) return true;
 
-            TRoleMenuEntity rm = Menus.Find(Menu<TMenuEntity>._.ID, id);
+            TRoleMenuEntity rm = Menus.Find(Menu<TMenuEntity>._.ID, menuID);
             if (rm == null) return false;
 
             return rm.Acquire(flag);
