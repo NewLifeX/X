@@ -53,22 +53,22 @@ namespace XCode.DataAccessLayer
             //当connName为null时，_dals里面并没有包含null的项，所以需要提前处理
             if (String.IsNullOrEmpty(connName)) return new DAL(null);
 
-            if (_dals.ContainsKey(connName)) return _dals[connName];
-            DAL d;
+            DAL dal = null;
+            if (_dals.TryGetValue(connName, out dal)) return dal;
             lock (_dals)
             {
-                if (_dals.ContainsKey(connName)) return _dals[connName];
+                if (_dals.TryGetValue(connName, out dal)) return dal;
 
                 ////检查数据库最大连接数授权。
                 //if (License.DbConnectCount != _dals.Count + 1)
                 //    License.DbConnectCount = _dals.Count + 1;
 
-                d = new DAL(connName);
+                dal = new DAL(connName);
                 // 不用connName，因为可能在创建过程中自动识别了ConnName
-                _dals.Add(d.ConnName, d);
+                _dals.Add(dal.ConnName, dal);
             }
 
-            return d;
+            return dal;
         }
 
         private static Object _connStrs_lock = new Object();
@@ -306,16 +306,17 @@ namespace XCode.DataAccessLayer
         private IDatabase CreateForNotWeb()
         {
             if (_DBs == null) _DBs = new Dictionary<String, IDatabase>();
-            if (_DBs.ContainsKey(ConnName)) return _DBs[ConnName];
+
+            IDatabase _DB;
+            if (_DBs.TryGetValue(ConnName, out _DB)) return _DB;
             lock (_DBs)
             {
-                if (_DBs.ContainsKey(ConnName)) return _DBs[ConnName];
+                if (_DBs.TryGetValue(ConnName, out _DB)) return _DB;
 
                 //// 创建对象，先取得程序集，再创建实例，是为了防止在本程序集创建外部DAL类的实例而出错
                 ////检查授权
                 //if (!License.Check()) return null;
 
-                IDatabase _DB;
                 if (DALType == typeof(Access))
                     _DB = new Access();
                 else if (DALType == typeof(SqlServer))
@@ -566,10 +567,13 @@ namespace XCode.DataAccessLayer
         {
             String cacheKey = String.Format("{0}_{1}_{2}_{3}_", sql, startRowIndex, maximumRows, ConnName);
             if (!String.IsNullOrEmpty(keyColumn)) cacheKey += keyColumn;
-            if (_PageSplitCache.ContainsKey(cacheKey)) return _PageSplitCache[cacheKey];
+
+            String rs = String.Empty;
+            if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
             lock (_PageSplitCache)
             {
-                if (_PageSplitCache.ContainsKey(cacheKey)) return _PageSplitCache[cacheKey];
+                if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
+
                 String s = DB.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
                 _PageSplitCache.Add(cacheKey, s);
                 return s;
@@ -592,10 +596,13 @@ namespace XCode.DataAccessLayer
         {
             String cacheKey = String.Format("{0}_{1}_{2}_{3}_", builder.ToString(), startRowIndex, maximumRows, ConnName);
             if (!String.IsNullOrEmpty(keyColumn)) cacheKey += keyColumn;
-            if (_PageSplitCache.ContainsKey(cacheKey)) return _PageSplitCache[cacheKey];
+
+            String rs = String.Empty;
+            if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
             lock (_PageSplitCache)
             {
-                if (_PageSplitCache.ContainsKey(cacheKey)) return _PageSplitCache[cacheKey];
+                if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
+
                 String s = DB.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
                 _PageSplitCache.Add(cacheKey, s);
                 return s;
