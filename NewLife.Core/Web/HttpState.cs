@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Web;
 using System.Web.Caching;
+using NewLife.Reflection;
 
 namespace NewLife.Web
 {
@@ -43,13 +44,13 @@ namespace NewLife.Web
             set { _EnableCache = value; }
         }
 
-        private TimeSpan _CacheTime;
-        /// <summary>Cache缓存的时间</summary>
-        public TimeSpan CacheTime
-        {
-            get { return _CacheTime; }
-            set { _CacheTime = value; }
-        }
+        //private TimeSpan _CacheTime;
+        ///// <summary>Cache缓存的时间</summary>
+        //public TimeSpan CacheTime
+        //{
+        //    get { return _CacheTime; }
+        //    set { _CacheTime = value; }
+        //}
 
         private Boolean _EnableCookie = true;
         /// <summary>使用Cookie</summary>
@@ -68,6 +69,16 @@ namespace NewLife.Web
         /// Cookie转为实体的方法
         /// </summary>
         public Converter<HttpCookie, T> CookieToEntity;
+
+        /// <summary>
+        /// 自定义保存
+        /// </summary>
+        public Converter<T, Boolean> Save;
+
+        /// <summary>
+        /// 自定义加载
+        /// </summary>
+        public Converter<HttpState<T>, T> Load;
         #endregion
 
         #region 扩展属性
@@ -96,8 +107,8 @@ namespace NewLife.Web
         /// </summary>
         public T Current
         {
-            get { return Get(CookieToEntity); }
-            set { Set(value, EntityToCookie); }
+            get { return Get(CookieToEntity, null); }
+            set { Set(value, EntityToCookie, null); }
         }
         #endregion
 
@@ -107,7 +118,19 @@ namespace NewLife.Web
         /// </summary>
         /// <param name="conv">把Cookie转为实体的转换器</param>
         /// <returns></returns>
+        [Obsolete("该方法在将来版本中将不再支持，请使用T Get(Converter<HttpCookie, T> conv, Converter<HttpState<T>, T> load)")]
         public T Get(Converter<HttpCookie, T> conv)
+        {
+            return Get(conv, null);
+        }
+
+        /// <summary>
+        /// 获取Http状态
+        /// </summary>
+        /// <param name="conv">把Cookie转为实体的转换器</param>
+        /// <param name="load">自定义加载方法</param>
+        /// <returns></returns>
+        public T Get(Converter<HttpCookie, T> conv, Converter<HttpState<T>, T> load)
         {
             T entity = default(T);
 
@@ -141,7 +164,7 @@ namespace NewLife.Web
                 entity = GetCache(sessionID);
                 if (entity != null)
                 {
-                    Set(entity, null);
+                    //Set(entity, null, null);
                     return entity;
                 }
             }
@@ -170,6 +193,11 @@ namespace NewLife.Web
                     entity = conv(http.Request.Cookies[key]);
                 }
             }
+            // 自定义加载
+            if (load != null)
+            {
+                entity = load(this);
+            }
             return entity;
         }
 
@@ -178,7 +206,19 @@ namespace NewLife.Web
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="conv">把实体转换为Cookie的转换器</param>
+        [Obsolete("该方法在将来版本中将不再支持，请使用void Set(T entity, Converter<T, HttpCookie> conv, Converter<T, Boolean> save)")]
         public void Set(T entity, Converter<T, HttpCookie> conv)
+        {
+            Set(entity, conv, null);
+        }
+
+        /// <summary>
+        /// 设置Http状态
+        /// </summary>
+        /// <param name="entity">实体</param>
+        /// <param name="conv">把实体转换为Cookie的转换器</param>
+        /// <param name="save">自定义保存</param>
+        public void Set(T entity, Converter<T, HttpCookie> conv, Converter<T, Boolean> save)
         {
             HttpContext http = Http;
             if (http == null) return;
@@ -317,6 +357,11 @@ namespace NewLife.Web
             //    }
             //}
             #endregion
+            // 自定义保存
+            if (save != null)
+            {
+                save(entity);
+            }
         }
         #endregion
 
@@ -334,7 +379,7 @@ namespace NewLife.Web
             T entity = Http.Cache[sessionID] as T;
             if (entity != null)
             {
-                Set(entity, null);
+                //Set(entity, null, null);
                 return entity;
             }
 
