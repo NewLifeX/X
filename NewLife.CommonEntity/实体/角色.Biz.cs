@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using NewLife.Log;
 using XCode;
+using System.Collections.Generic;
+using System.Text;
 
 namespace NewLife.CommonEntity
 {
@@ -14,6 +16,55 @@ namespace NewLife.CommonEntity
         where TMenuEntity : Menu<TMenuEntity>, new()
         where TRoleMenuEntity : RoleMenu<TRoleMenuEntity>, new()
     {
+        #region 静态操作
+        static Role()
+        {
+            // 删除RoleMenu中无效的RoleID和无效的MenuID
+            ClearRoleMenu();
+        }
+
+        /// <summary>
+        /// 删除RoleMenu中无效的RoleID和无效的MenuID
+        /// </summary>
+        public static void ClearRoleMenu()
+        {
+            // 统计所有RoleID和MenuID
+            List<TEntity> list1 = Meta.Cache.Entities;
+            List<TMenuEntity> list2 = Menu<TMenuEntity>.Meta.Cache.Entities;
+
+            StringBuilder sb = new StringBuilder();
+            if (list1 != null && list1.Count > 0)
+            {
+                sb.Append("RoleID Not in(");
+                for (int i = 0; i < list1.Count; i++)
+                {
+                    if (i > 0) sb.Append(",");
+                    sb.Append(list1[i].ID);
+                }
+                sb.Append(")");
+            }
+            if (list2 != null && list2.Count > 0)
+            {
+                if (sb.Length > 0) sb.Append(" Or ");
+
+                sb.Append("MenuID Not in(");
+                for (int i = 0; i < list2.Count; i++)
+                {
+                    if (i > 0) sb.Append(",");
+                    sb.Append(list2[i].ID);
+                }
+                sb.Append(")");
+            }
+            if (sb.Length < 1) return;
+
+            // 查询所有。之所以不是调用Delete删除，是为了引发RoleMenu里面的Delete写日志
+            EntityList<TRoleMenuEntity> rms = RoleMenu<TRoleMenuEntity>.FindAll(sb.ToString(), null, null, 0, 0);
+            if (rms == null || rms.Count < 1) return;
+
+            rms.Delete();
+        }
+        #endregion
+
         #region 扩展属性
         //private List<String> hasLoaded = new List<string>();
 
