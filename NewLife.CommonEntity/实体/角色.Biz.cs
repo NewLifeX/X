@@ -16,7 +16,7 @@ namespace NewLife.CommonEntity
         where TMenuEntity : Menu<TMenuEntity>, new()
         where TRoleMenuEntity : RoleMenu<TRoleMenuEntity>, new()
     {
-        #region 静态操作
+        #region 对象操作
         static Role()
         {
             // 删除RoleMenu中无效的RoleID和无效的MenuID
@@ -62,6 +62,29 @@ namespace NewLife.CommonEntity
             if (rms == null || rms.Count < 1) return;
 
             rms.Delete();
+        }
+
+        /// <summary>
+        /// 已重载。关联删除权限项。
+        /// </summary>
+        /// <returns></returns>
+        public override int Delete()
+        {
+            Meta.BeginTrans();
+            try
+            {
+                if (Menus != null) Menus.Delete();
+                Int32 rs = base.Delete();
+
+                Meta.Commit();
+
+                return rs;
+            }
+            catch
+            {
+                Meta.Rollback();
+                throw;
+            }
         }
         #endregion
 
