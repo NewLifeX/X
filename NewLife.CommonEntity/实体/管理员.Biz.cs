@@ -275,10 +275,9 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展属性
-        //private const String CurrentKey = "Admin";
         static HttpState<TEntity> _httpState;
         /// <summary>
-        /// Http状态
+        /// Http状态，子类可以重新给HttpState赋值，以控制保存Http状态的过程
         /// </summary>
         public static HttpState<TEntity> HttpState
         {
@@ -322,6 +321,7 @@ namespace NewLife.CommonEntity
 
                 return _httpState;
             }
+            set { _httpState = value; }
         }
 
         /// <summary>当前登录用户</summary>
