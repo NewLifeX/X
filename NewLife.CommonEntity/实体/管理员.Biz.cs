@@ -12,11 +12,11 @@ namespace NewLife.CommonEntity
     /// <summary>
     /// 管理员
     /// </summary>
-    /// <typeparam name="TEntity"></typeparam>
-    /// <typeparam name="TRoleEntity"></typeparam>
-    /// <typeparam name="TMenuEntity"></typeparam>
-    /// <typeparam name="TRoleMenuEntity"></typeparam>
-    /// <typeparam name="TLogEntity"></typeparam>
+    /// <typeparam name="TEntity">管理员实体类</typeparam>
+    /// <typeparam name="TRoleEntity">角色实体类</typeparam>
+    /// <typeparam name="TMenuEntity">菜单实体类</typeparam>
+    /// <typeparam name="TRoleMenuEntity">角色菜单实体类</typeparam>
+    /// <typeparam name="TLogEntity">日志实体类</typeparam>
     public partial class Administrator<TEntity, TRoleEntity, TMenuEntity, TRoleMenuEntity, TLogEntity> : Administrator<TEntity>
         where TEntity : Administrator<TEntity, TRoleEntity, TMenuEntity, TRoleMenuEntity, TLogEntity>, new()
         where TRoleEntity : Role<TRoleEntity, TMenuEntity, TRoleMenuEntity>, new()
