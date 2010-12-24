@@ -382,6 +382,16 @@ namespace NewLife.CommonEntity
         {
             return Meta.Cache.Entities.Find(_.SSOUserID, id);
         }
+
+        /// <summary>
+        /// 根据SSOUserID查找所有帐户
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public static EntityList<TEntity> FindAllBySSOUserID(Int32 id)
+        {
+            return Meta.Cache.Entities.FindAll(_.SSOUserID, id);
+        }
         #endregion
 
         #region 扩展操作
