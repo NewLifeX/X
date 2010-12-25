@@ -1509,12 +1509,12 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 当前时间函数
         /// </summary>
-        public virtual String DateTimeNow { get { throw new NotImplementedException("数据库实体不支持该操作！"); } }
+        public virtual String DateTimeNow { get { return "now()"; } }
 
         /// <summary>
         /// 最小时间
         /// </summary>
-        public virtual DateTime DateTimeMin { get { throw new NotImplementedException("数据库实体不支持该操作！"); } }
+        public virtual DateTime DateTimeMin { get { return DateTime.MinValue; } }
 
         /// <summary>
         /// 格式化时间为SQL字符串
@@ -1533,7 +1533,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String FormatKeyWord(String keyWord)
         {
-            throw new NotImplementedException("数据库实体不支持该操作！");
+            return keyWord;
         }
         #endregion
 

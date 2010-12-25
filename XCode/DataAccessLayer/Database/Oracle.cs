@@ -142,7 +142,7 @@ namespace XCode.DataAccessLayer
                 //    DataColumn dc = columns[xf.Name];
                 //    xf.DataType = dc.DataType;
                 //}
-                
+
                 xf.Length = dr["LENGTH"] == DBNull.Value ? 0 : Int32.Parse(dr["LENGTH"].ToString());
                 xf.Digit = dr["SCALE"] == DBNull.Value ? 0 : Int32.Parse(dr["SCALE"].ToString());
 
@@ -181,7 +181,7 @@ namespace XCode.DataAccessLayer
                 {
                     xf.Nullable = dr["NULLABLE"].ToString() == "Y";
                 }
-                
+
                 list.Add(xf);
             }
 
@@ -231,6 +231,18 @@ namespace XCode.DataAccessLayer
         public override string FormatDateTime(DateTime dateTime)
         {
             return String.Format("To_Date('{0}', 'YYYYMMDDHH24MISS')", dateTime.ToString("yyyyMMddhhmmss"));
+        }
+
+        /// <summary>
+        /// 格式化关键字
+        /// </summary>
+        /// <param name="keyWord">表名</param>
+        /// <returns></returns>
+        public override String FormatKeyWord(String keyWord)
+        {
+            //return String.Format("\"{0}\"", keyWord);
+
+            return "\"" + keyWord + "\"";
         }
         #endregion
     }
