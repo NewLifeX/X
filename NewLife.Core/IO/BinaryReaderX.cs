@@ -195,35 +195,35 @@ namespace NewLife.IO
 
                 foreach (FieldInfo item in fis)
                 {
-#if DEBUG
-                    long p = 0;
-                    long p2 = 0;
-                    if (BaseStream.CanSeek && BaseStream.CanRead)
-                    {
-                        p = BaseStream.Position;
-                        Console.Write("{0,-16}：", item.Name);
-                    }
-#endif
+//#if DEBUG
+//                    long p = 0;
+//                    long p2 = 0;
+//                    if (BaseStream.CanSeek && BaseStream.CanRead)
+//                    {
+//                        p = BaseStream.Position;
+//                        Console.Write("{0,-16}：", item.Name);
+//                    }
+//#endif
                     //ReadMember(target, this, item, encodeInt, allowNull);
                     MemberInfoX member2 = item;
                     if (!callback(this, value, member2, encodeInt, allowNull, isProperty, out obj, callback)) return false;
                     // 尽管有可能会二次赋值（如果callback调用这里的话），但是没办法保证用户的callback一定会给成员赋值，所以这里多赋值一次
                     member2.SetValue(value, obj);
-#if DEBUG
-                    if (BaseStream.CanSeek && BaseStream.CanRead)
-                    {
-                        p2 = BaseStream.Position;
-                        if (p2 > p)
-                        {
-                            BaseStream.Seek(p, SeekOrigin.Begin);
-                            Byte[] data = new Byte[p2 - p];
-                            BaseStream.Read(data, 0, data.Length);
-                            Console.WriteLine("[{0}] {1}", data.Length, BitConverter.ToString(data));
-                        }
-                        else
-                            Console.WriteLine();
-                    }
-#endif
+//#if DEBUG
+//                    if (BaseStream.CanSeek && BaseStream.CanRead)
+//                    {
+//                        p2 = BaseStream.Position;
+//                        if (p2 > p)
+//                        {
+//                            BaseStream.Seek(p, SeekOrigin.Begin);
+//                            Byte[] data = new Byte[p2 - p];
+//                            BaseStream.Read(data, 0, data.Length);
+//                            Console.WriteLine("[{0}] {1}", data.Length, BitConverter.ToString(data));
+//                        }
+//                        else
+//                            Console.WriteLine();
+//                    }
+//#endif
                 }
             }
             #endregion

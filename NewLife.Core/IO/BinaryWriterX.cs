@@ -212,31 +212,31 @@ namespace NewLife.IO
 
                 foreach (FieldInfo item in fis)
                 {
-#if DEBUG
-                    long p = 0;
-                    long p2 = 0;
-                    if (BaseStream.CanSeek && BaseStream.CanRead)
-                    {
-                        p = BaseStream.Position;
-                        Console.Write("{0,-16}：", item.Name);
-                    }
-#endif
+//#if DEBUG
+//                    long p = 0;
+//                    long p2 = 0;
+//                    if (BaseStream.CanSeek && BaseStream.CanRead)
+//                    {
+//                        p = BaseStream.Position;
+//                        Console.Write("{0,-16}：", item.Name);
+//                    }
+//#endif
                     if (!callback(this, value, item, encodeInt, allowNull, isProperty, callback)) return false;
-#if DEBUG
-                    if (BaseStream.CanSeek && BaseStream.CanRead)
-                    {
-                        p2 = BaseStream.Position;
-                        if (p2 > p)
-                        {
-                            BaseStream.Seek(p, SeekOrigin.Begin);
-                            Byte[] data = new Byte[p2 - p];
-                            BaseStream.Read(data, 0, data.Length);
-                            Console.WriteLine("[{0}] {1}", data.Length, BitConverter.ToString(data));
-                        }
-                        else
-                            Console.WriteLine();
-                    }
-#endif
+//#if DEBUG
+//                    if (BaseStream.CanSeek && BaseStream.CanRead)
+//                    {
+//                        p2 = BaseStream.Position;
+//                        if (p2 > p)
+//                        {
+//                            BaseStream.Seek(p, SeekOrigin.Begin);
+//                            Byte[] data = new Byte[p2 - p];
+//                            BaseStream.Read(data, 0, data.Length);
+//                            Console.WriteLine("[{0}] {1}", data.Length, BitConverter.ToString(data));
+//                        }
+//                        else
+//                            Console.WriteLine();
+//                    }
+//#endif
                 }
             }
             #endregion
