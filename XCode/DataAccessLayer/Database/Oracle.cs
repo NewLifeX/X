@@ -242,7 +242,16 @@ namespace XCode.DataAccessLayer
         {
             //return String.Format("\"{0}\"", keyWord);
 
-            return "\"" + keyWord + "\"";
+            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
+
+            Int32 pos = keyWord.LastIndexOf(".");
+
+            if (pos < 0) return "\"" + keyWord + "\"";
+
+            String tn = keyWord.Substring(pos + 1);
+            if (tn.StartsWith("\"")) return keyWord;
+
+            return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
         }
         #endregion
     }
