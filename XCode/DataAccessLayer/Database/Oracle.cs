@@ -211,10 +211,12 @@ namespace XCode.DataAccessLayer
                 case "FLOAT":
                     return typeof(Double);
                 case "DATE":
+                case "TIMESTAMP":
                 case "TIMESTAMP(6)":
                     return typeof(DateTime);
                 case "LONG":
                 case "LOB":
+                case "RAW":
                 case "BLOB":
                     return typeof(Byte[]);
                 default:
