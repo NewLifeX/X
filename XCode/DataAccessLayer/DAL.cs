@@ -9,7 +9,7 @@ using System.Threading;
 using System.Xml.Serialization;
 using XCode.Cache;
 using XCode.Code;
-using XCode.XLicense;
+using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
@@ -35,7 +35,7 @@ namespace XCode.DataAccessLayer
         {
             _ConnName = connName;
 
-            if (!ConnStrs.ContainsKey(connName)) throw new Exception("请在使用数据库前设置[" + connName + "]连接字符串");
+            if (!ConnStrs.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
 
             ConnStr = ConnStrs[connName].ConnectionString;
 
@@ -292,7 +292,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (String.IsNullOrEmpty(ConnStr)) throw new Exception("请在使用数据库前设置[" + ConnName + "]连接字符串");
+                if (String.IsNullOrEmpty(ConnStr)) throw new XCodeException("请在使用数据库前设置[" + ConnName + "]连接字符串");
 
                 //if (HttpContext.Current == null) // 非Web程序，使用线程级缓存
                 return CreateForNotWeb();

@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using XCode.DataAccessLayer;
 using System.CodeDom;
 using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using NewLife.Collections;
+using XCode.DataAccessLayer;
+using XCode.Exceptions;
 
 namespace XCode.Code
 {
@@ -220,7 +220,7 @@ namespace XCode.Code
             CompilerResults rs = Compile(null);
             if (rs.Errors == null || !rs.Errors.HasErrors) return rs.CompiledAssembly;
 
-            throw new Exception(rs.Errors[0].ErrorText);
+            throw new XCodeException(rs.Errors[0].ErrorText);
         }
         #endregion
     }

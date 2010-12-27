@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.OracleClient;
 using System.Text.RegularExpressions;
+using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
@@ -108,9 +109,9 @@ namespace XCode.DataAccessLayer
                     }
                 }
             }
-            catch (Exception ex)
+            catch (DbException ex)
             {
-                throw new Exception("取得所有表构架出错！", ex);
+                throw new XDbException(this, "取得所有表构架出错！", ex);
             }
 
             return list;
@@ -202,6 +203,8 @@ namespace XCode.DataAccessLayer
                 case "VARCHAR2":
                 case "NCHAR":
                 case "NVARCHAR2":
+                case "CLOB":
+                case "NCLOB":
                     return typeof(String);
                 case "NUMBER":
                     return typeof(Int32);
@@ -213,8 +216,6 @@ namespace XCode.DataAccessLayer
                 case "LONG":
                 case "LOB":
                 case "BLOB":
-                case "CLOB":
-                case "NCLOB":
                     return typeof(Byte[]);
                 default:
                     return typeof(String);

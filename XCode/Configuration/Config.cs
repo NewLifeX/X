@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using NewLife.Collections;
 using XCode.DataAccessLayer;
+using XCode.Exceptions;
 
 namespace XCode.Configuration
 {
@@ -72,7 +73,7 @@ namespace XCode.Configuration
                     field.DataObjectField = DataObjectAttribute.GetCustomAttribute(item, typeof(DataObjectFieldAttribute)) as DataObjectFieldAttribute;
                     list.Add(field);
 
-                    if (names.Contains(item.Name)) throw new Exception(String.Format("{0}类中出现重复属性{1}", t.Name, item.Name));
+                    if (names.Contains(item.Name)) throw new XCodeException(String.Format("{0}类中出现重复属性{1}", t.Name, item.Name));
                     names.Add(item.Name);
                 }
                 ReadOnlyList<FieldItem> list2 = new ReadOnlyList<FieldItem>(list);

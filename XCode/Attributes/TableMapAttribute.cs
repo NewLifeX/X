@@ -76,9 +76,9 @@ namespace XCode
         /// <returns></returns>
         public Boolean CheckValid()
         {
-            if (String.IsNullOrEmpty(LocalColumn)) throw new Exception("必须指定多表映射的本地关联字段！");
-            if (MapEntity == null) throw new Exception("必须指定多表映射的关联实体！");
-            if (String.IsNullOrEmpty(MapColumn)) throw new Exception("必须指定多表映射的关联表的关联字段！");
+            if (String.IsNullOrEmpty(LocalColumn)) throw new ArgumentNullException("LocalColumn", "必须指定多表映射的本地关联字段！");
+            if (MapEntity == null) throw new ArgumentNullException("MapEntity", "必须指定多表映射的关联实体！");
+            if (String.IsNullOrEmpty(MapColumn)) throw new ArgumentNullException("MapColumn", "必须指定多表映射的关联表的关联字段！");
             return true;
         }
 

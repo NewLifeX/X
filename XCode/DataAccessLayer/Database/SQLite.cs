@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Web;
 using NewLife.Threading;
+using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
@@ -106,9 +107,9 @@ namespace XCode.DataAccessLayer
                         value = csb.ConnectionString;
                     }
                 }
-                catch (Exception ex)
+                catch (DbException ex)
                 {
-                    throw new Exception("分析SQLite连接字符串时出错", ex);
+                    throw new XDbException(this, "分析SQLite连接字符串时出错", ex);
                 }
                 base.ConnectionString = value;
             }
@@ -204,7 +205,7 @@ namespace XCode.DataAccessLayer
                     Int32 rs = Convert.ToInt32(obj);
                     return rs;
                 }
-                catch (Exception ex)
+                catch (DbException ex)
                 {
                     throw OnException(ex, sql);
                 }

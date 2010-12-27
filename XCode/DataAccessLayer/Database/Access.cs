@@ -11,6 +11,7 @@ using ADOX;
 using DAO;
 using NewLife.Log;
 using XCode.Common;
+using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
@@ -71,9 +72,9 @@ namespace XCode.DataAccessLayer
                         value = csb.ConnectionString;
                     }
                 }
-                catch (Exception ex)
+                catch (DbException ex)
                 {
-                    throw new Exception("分析OLEDB连接字符串时出错", ex);
+                    throw new XDbException(this, "分析OLEDB连接字符串时出错", ex);
                 }
                 base.ConnectionString = value;
             }
@@ -135,7 +136,7 @@ namespace XCode.DataAccessLayer
                 AutoClose();
                 return rs;
             }
-            catch (Exception ex)
+            catch (DbException ex)
             {
                 throw OnException(ex, sql);
             }
@@ -376,7 +377,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
         {
-            return String.Format("[{0}]", keyWord);
+            //return String.Format("[{0}]", keyWord);
+            return keyWord;
         }
         #endregion
 

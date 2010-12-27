@@ -7,6 +7,7 @@ using System.Data.SqlTypes;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
@@ -51,7 +52,7 @@ namespace XCode.DataAccessLayer
                 //AutoClose();
                 return rs;
             }
-            catch (Exception ex)
+            catch (DbException ex)
             {
                 throw OnException(ex, cmd.CommandText);
             }
@@ -169,9 +170,9 @@ namespace XCode.DataAccessLayer
                     }
                 }
             }
-            catch (Exception ex)
+            catch (DbException ex)
             {
-                throw new Exception("取得所有表构架出错！", ex);
+                throw new XDbException(this, "取得所有表构架出错！", ex);
             }
 
             if (list == null || list.Count < 1) return null;

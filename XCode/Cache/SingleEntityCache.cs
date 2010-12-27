@@ -61,7 +61,7 @@ namespace XCode.Cache
                     //    _FindKeyMethod = Delegate.CreateDelegate(typeof(FindKeyDelegate<TKey, TEntity>), method) as FindKeyDelegate<TKey, TEntity>;
                     _FindKeyMethod = delegate(TKey key) { return Entity<TEntity>.FindByKey(key); };
 
-                    if (_FindKeyMethod == null) throw new Exception("没有找到FindByKey方法，请先设置查找数据的方法！");
+                    if (_FindKeyMethod == null) throw new ArgumentNullException("FindKeyMethod", "没有找到FindByKey方法，请先设置查找数据的方法！");
                 }
                 return _FindKeyMethod;
             }

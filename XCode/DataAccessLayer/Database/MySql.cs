@@ -68,7 +68,7 @@ namespace XCode.DataAccessLayer
                 AutoClose();
                 return rs;
             }
-            catch (Exception ex)
+            catch (DbException ex)
             {
                 throw OnException(ex, sql);
             }

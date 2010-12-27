@@ -407,7 +407,7 @@ namespace XCode
         public static TEntity FindByKey(Object key)
         {
             FieldItem field = Meta.Unique;
-            if (field == null) throw new Exception("FindByKey方法要求该表有唯一主键！");
+            if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKey方法要求该表有唯一主键！");
 
             // 唯一键为自增且参数小于等于0时，返回空
             if (field.DataObjectField.IsIdentity && (key is Int32) && ((Int32)key) <= 0) return null;
@@ -424,7 +424,7 @@ namespace XCode
         public static TEntity FindByKeyForEdit(Object key)
         {
             FieldItem field = Meta.Unique;
-            if (field == null) throw new Exception("FindByKeyForEdit方法要求该表有唯一主键！");
+            if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKeyForEdit方法要求该表有唯一主键！");
 
             // 参数为空时，返回新实例
             if (key == null)
@@ -852,8 +852,7 @@ namespace XCode
                 sbn.Append(fs[names[i]].Name);
                 sbv.Append(SqlDataFormat(values[i], fs[names[i]]));
             }
-            String tablename = Meta.TableName;
-            return Meta.Execute(String.Format("Insert Into {2}({0}) values({1})", sbn.ToString(), sbv.ToString(), tablename));
+            return Meta.Execute(String.Format("Insert Into {2}({0}) values({1})", sbn.ToString(), sbv.ToString(), Meta.FormatKeyWord(Meta.TableName)));
         }
 
         /// <summary>
@@ -877,7 +876,7 @@ namespace XCode
         public static Int32 Update(String setClause, String whereClause)
         {
             if (String.IsNullOrEmpty(setClause) || !setClause.Contains("=")) throw new ArgumentException("非法参数");
-            String sql = String.Format("Update {0} Set {1}", Meta.TableName, setClause);
+            String sql = String.Format("Update {0} Set {1}", Meta.FormatKeyWord(Meta.TableName), setClause);
             if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
             return Meta.Execute(sql);
         }
@@ -917,7 +916,7 @@ namespace XCode
         /// <returns></returns>
         public static Int32 Delete(String whereClause)
         {
-            String sql = String.Format("Delete From {0}", Meta.TableName);
+            String sql = String.Format("Delete From {0}", Meta.FormatKeyWord(Meta.TableName));
             if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
             return Meta.Execute(sql);
         }

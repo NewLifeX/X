@@ -85,6 +85,9 @@
     <Compile Include="Code\EntityClass.cs" />
     <Compile Include="Code\EntityClassBiz.cs" />
     <Compile Include="Common\FileSource.cs" />
+    <Compile Include="Exceptions\XDbException.cs" />
+    <Compile Include="Exceptions\XCodeException.cs" />
+    <Compile Include="Exceptions\XSqlException.cs" />
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Configuration\FieldItem.cs" />
     <Compile Include="DataAccessLayer\DatabaseSchema.cs" />

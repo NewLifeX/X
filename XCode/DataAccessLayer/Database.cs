@@ -7,6 +7,7 @@ using System.Data.SqlTypes;
 using System.Text;
 using System.Text.RegularExpressions;
 using NewLife.Log;
+using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
@@ -77,7 +78,7 @@ namespace XCode.DataAccessLayer
             }
             catch (Exception ex)
             {
-                WriteLog("执行" + this.GetType().FullName + "的Dispose时出错：" + ex.ToString());
+                WriteLog("执行" + DbType.ToString() + "的Dispose时出错：" + ex.ToString());
             }
         }
 
@@ -242,7 +243,7 @@ namespace XCode.DataAccessLayer
                 try { Conn.Close(); }
                 catch (Exception ex)
                 {
-                    WriteLog("执行" + this.GetType().FullName + "的Close时出错：" + ex.ToString());
+                    WriteLog("执行" + DbType.ToString() + "的Close时出错：" + ex.ToString());
                 }
             }
         }
@@ -288,15 +289,15 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="ex"></param>
         /// <returns></returns>
-        protected virtual Exception OnException(Exception ex)
+        protected virtual XDbException OnException(Exception ex)
         {
             if (Trans == null && Opened) Close(); // 强制关闭数据库
             //return new XException("内部数据库实体" + this.GetType().FullName + "异常，执行" + Environment.StackTrace + "方法出错！", ex);
-            String err = "内部数据库实体" + DbType.ToString() + "异常，执行方法出错！" + Environment.NewLine + ex.Message;
+            //String err = "内部数据库实体" + DbType.ToString() + "异常，执行方法出错！" + Environment.NewLine + ex.Message;
             if (ex != null)
-                return new Exception(err, ex);
+                return new XDbException(this, ex);
             else
-                return new Exception(err);
+                return new XDbException(this);
         }
 
         /// <summary>
@@ -305,17 +306,17 @@ namespace XCode.DataAccessLayer
         /// <param name="ex"></param>
         /// <param name="sql"></param>
         /// <returns></returns>
-        protected virtual Exception OnException(Exception ex, String sql)
+        protected virtual XSqlException OnException(Exception ex, String sql)
         {
             if (Trans == null && Opened) Close(); // 强制关闭数据库
             //return new XException("内部数据库实体" + this.GetType().FullName + "异常，执行" + Environment.StackTrace + "方法出错！", ex);
-            String err = "内部数据库实体" + DbType.ToString() + "异常，执行方法出错！" + Environment.NewLine;
-            if (!String.IsNullOrEmpty(sql)) err += "SQL语句：" + sql + Environment.NewLine;
-            err += ex.Message;
+            //String err = "内部数据库实体" + DbType.ToString() + "异常，执行方法出错！" + Environment.NewLine;
+            //if (!String.IsNullOrEmpty(sql)) err += "SQL语句：" + sql + Environment.NewLine;
+            //err += ex.Message;
             if (ex != null)
-                return new Exception(err, ex);
+                return new XSqlException(sql, this, ex);
             else
-                return new Exception(err);
+                return new XSqlException(sql, this);
         }
         #endregion
 
@@ -354,7 +355,7 @@ namespace XCode.DataAccessLayer
                 TransactionCount = 1;
                 return TransactionCount;
             }
-            catch (Exception ex)
+            catch (DbException ex)
             {
                 throw OnException(ex);
             }
@@ -377,7 +378,7 @@ namespace XCode.DataAccessLayer
                 Trans = null;
                 if (IsAutoClose) Close();
             }
-            catch (Exception ex)
+            catch (DbException ex)
             {
                 throw OnException(ex);
             }
@@ -402,7 +403,7 @@ namespace XCode.DataAccessLayer
                 Trans = null;
                 if (IsAutoClose) Close();
             }
-            catch (Exception ex)
+            catch (DbException ex)
             {
                 throw OnException(ex);
             }
@@ -434,7 +435,7 @@ namespace XCode.DataAccessLayer
                     return ds;
                 }
             }
-            catch (Exception ex)
+            catch (DbException ex)
             {
                 throw OnException(ex, sql);
             }
@@ -478,7 +479,7 @@ namespace XCode.DataAccessLayer
                     //AutoClose();
                     return ds;
                 }
-                catch (Exception ex)
+                catch (DbException ex)
                 {
                     throw OnException(ex, cmd.CommandText);
                 }
@@ -523,7 +524,7 @@ namespace XCode.DataAccessLayer
             {
                 return Convert.ToInt32(cmd.ExecuteScalar());
             }
-            catch (Exception ex)
+            catch (DbException ex)
             {
                 throw OnException(ex, cmd.CommandText);
             }
@@ -548,7 +549,7 @@ namespace XCode.DataAccessLayer
             {
                 return Convert.ToInt32(cmd.ExecuteScalar());
             }
-            catch (Exception ex)
+            catch (DbException ex)
             {
                 throw OnException(ex, cmd.CommandText);
             }
@@ -585,7 +586,7 @@ namespace XCode.DataAccessLayer
                 //AutoClose();
                 return rs;
             }
-            catch (Exception ex)
+            catch (DbException ex)
             {
                 throw OnException(ex, sql);
             }
@@ -612,7 +613,7 @@ namespace XCode.DataAccessLayer
                 //AutoClose();
                 return rs;
             }
-            catch (Exception ex)
+            catch (DbException ex)
             {
                 throw OnException(ex, cmd.CommandText);
             }
@@ -641,7 +642,7 @@ namespace XCode.DataAccessLayer
                 //AutoClose();
                 return rs;
             }
-            catch (Exception ex)
+            catch (DbException ex)
             {
                 throw OnException(ex, sql);
             }
@@ -806,7 +807,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">待检查SQL语句</param>
         /// <returns>如果是简单SQL语句则返回表名，否则返回子查询(sql) XCode_Temp_a</returns>
-        protected static String CheckSimpleSQL(String sql)
+        protected String CheckSimpleSQL(String sql)
         {
             if (String.IsNullOrEmpty(sql)) return sql;
 
@@ -814,7 +815,7 @@ namespace XCode.DataAccessLayer
             MatchCollection ms = reg.Matches(sql);
             if (ms == null || ms.Count < 1 || ms[0].Groups.Count < 2 ||
                 String.IsNullOrEmpty(ms[0].Groups[1].Value)) return String.Format("({0}) XCode_Temp_a", sql);
-            return ms[0].Groups[1].Value;
+            return FormatKeyWord(ms[0].Groups[1].Value);
         }
 
         /// <summary>
@@ -1205,13 +1206,13 @@ namespace XCode.DataAccessLayer
                 case DDLSchema.CreateDatabase:
                     return CreateDatabaseSQL((String)values[0], (String)values[1]);
                 case DDLSchema.DropDatabase:
-                    return String.Format("Drop Database [{0}]", (String)values[0]);
+                    return String.Format("Drop Database [{0}]", FormatKeyWord((String)values[0]));
                 case DDLSchema.DatabaseExist:
                     return DatabaseExistSQL(values == null || values.Length < 1 ? null : (String)values[0]);
                 case DDLSchema.CreateTable:
                     return CreateTableSQL((XTable)values[0]);
                 case DDLSchema.DropTable:
-                    return String.Format("Drop Table [{0}]", (String)values[0]);
+                    return String.Format("Drop Table [{0}]", FormatKeyWord((String)values[0]));
                 case DDLSchema.TableExist:
                     return TableExistSQL((String)values[0]);
                 case DDLSchema.AddTableDescription:
@@ -1288,7 +1289,7 @@ namespace XCode.DataAccessLayer
 
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendFormat("CREATE TABLE [{0}](", table.Name);
+            sb.AppendFormat("CREATE TABLE {0}(", FormatKeyWord(table.Name));
             List<String> keys = new List<string>();
             for (Int32 i = 0; i < Fields.Count; i++)
             {
@@ -1383,6 +1384,11 @@ namespace XCode.DataAccessLayer
                         sb.Append("Long");
                     break;
                 case TypeCode.Object:
+                    if (field.DataType == typeof(Byte[]))
+                    {
+                        sb.Append("Binary");
+                        break;
+                    }
                     break;
                 case TypeCode.SByte:
                     sb.Append("byte");
