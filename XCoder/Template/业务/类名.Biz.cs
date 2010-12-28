@@ -104,37 +104,38 @@ Int32 n=0;
 		}     
 <#
 foreach (XField Field in Table.Fields){
-    if (Field.Name.Equals("ID", StringComparison.OrdinalIgnoreCase)){
+    String pname=GetPropertyName(Field);
+    if (pname.Equals("ID", StringComparison.OrdinalIgnoreCase)){
 #>
 		/// <summary>
 		/// 根据<#=GetPropertyDescription(Field)#>查找
 		/// </summary>
-		/// <param name="__<#=Field.Name#>"></param>
+		/// <param name="__<#=pname#>"></param>
 		/// <returns></returns>
-		public static <#=ClassName#> FindByID(Int32 __<#=Field.Name#>)
+		public static <#=ClassName#> FindByID(Int32 __<#=pname#>)
 		{
-			return Find(_.<#=Field.Name#>, __<#=Field.Name#>);
+			return Find(_.<#=pname#>, __<#=pname#>);
 			// 实体缓存
-			//return Meta.Cache.Entities.Find(_.<#=Field.Name#>, __<#=Field.Name#>);
+			//return Meta.Cache.Entities.Find(_.<#=pname#>, __<#=pname#>);
 			// 单对象缓存
-			//return Meta.SingleCache[__<#=Field.Name#>];
+			//return Meta.SingleCache[__<#=pname#>];
 		}
 <#
     }
-    else if(Field.Name.Equals("Name", StringComparison.OrdinalIgnoreCase)){
+    else if(pname.Equals("Name", StringComparison.OrdinalIgnoreCase)){
 #>
 		/// <summary>
 		/// 根据<#=GetPropertyDescription(Field)#>查找
 		/// </summary>
-		/// <param name="__<#=Field.Name#>"></param>
+		/// <param name="__<#=pname#>"></param>
 		/// <returns></returns>
-		public static <#=ClassName#> FindByName(String __<#=Field.Name#>)
+		public static <#=ClassName#> FindByName(String __<#=pname#>)
 		{
-			return Find(_.<#=Field.Name#>, __<#=Field.Name#>);
+			return Find(_.<#=pname#>, __<#=pname#>);
 			// 实体缓存
-			//return Meta.Cache.Entities.Find(_.<#=Field.Name#>, __<#=Field.Name#>);
+			//return Meta.Cache.Entities.Find(_.<#=pname#>, __<#=pname#>);
 			// 单对象缓存
-			//return Meta.SingleCache[__<#=Field.Name#>];
+			//return Meta.SingleCache[__<#=pname#>];
 		}
 <#
     }
