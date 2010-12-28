@@ -209,5 +209,28 @@ namespace XUrlRewrite.Configuration
                 _Configuration.SaveAs(filename);
             }
         }
+        private static bool? _Debug;
+        /// <summary>
+        /// 是否调试状态的开关
+        /// </summary>
+        public static bool Debug
+        {
+            get
+            {
+                if (_Debug != null) return _Debug.Value;
+                String str = ConfigurationManager.AppSettings["XUrlRewrite.Debug"];
+                if (String.IsNullOrEmpty(str)) str = ConfigurationManager.AppSettings["Debug"];
+                if (String.IsNullOrEmpty(str)) return false;
+                if (str == "1") return true;
+                if (str == "0") return false;
+                if (str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase)) return false;
+                if (str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase)) return true;
+                return false;
+            }
+            set
+            {
+                _Debug = value;
+            }
+        }
     }
 }

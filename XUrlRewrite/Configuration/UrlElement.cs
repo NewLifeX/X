@@ -277,13 +277,13 @@ namespace XUrlRewrite.Configuration
                     }
                     app.Context.RewritePath(cfg.Directory + filePath, String.Empty, queryString, false);
 #if DEBUG
-                    if (XTrace.Debug) XTrace.WriteLine("[XTemplate] Rewrite url:{0} to {1}.", path, cfg.Directory + filePath);
+                    if (Manager.Debug) XTrace.WriteLine("Rewrite url:{0} to {1}.", path, cfg.Directory + filePath);
 #endif
                 }
 #if DEBUG
                 else
                 {
-                    if (XTrace.Debug) XTrace.WriteLine("[XTemplate] Fail rewrite url:{0} to {1}, {1} not found.", path, cfg.Directory + filePath);
+                    if (Manager.Debug) XTrace.WriteLine("Fail rewrite url:{0} to {1}, {1} not found.", path, cfg.Directory + filePath);
                 }
 #endif
                 return true;

@@ -72,7 +72,7 @@ namespace XUrlRewrite.Helper
 #if DEBUG
                 if (debugInt==cfg.Urls.Count)
                 {
-                    if (XTrace.Debug) XTrace.WriteLine("[XTemplate] Not found any matched:{0}", path);
+                    if (Manager.Debug) XTrace.WriteLine("Not found any matched:{0}", path);
                 }
 #endif
             }
