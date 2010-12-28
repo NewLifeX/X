@@ -57,6 +57,7 @@
     <Compile Include="Connections\UdpConnection.cs" />
     <Compile Include="ExecutionState\CommandExecutionStateType.cs" />
     <Compile Include="MessageProcess\ProcessBase.cs" />
+    <Compile Include="Messages\CommandMessage\CommandMessageBase.cs" />
     <Compile Include="Messages\FindTorrentMessage.cs" />
     <Compile Include="Messages\PeerMessage\InviteMessage.cs" />
     <Compile Include="Messages\MessageServer.cs" />
@@ -64,13 +65,13 @@
     <Compile Include="Messages\MessageHandler.cs" />
     <Compile Include="Messages\MessageTypes.cs" />
     <Compile Include="Messages\PeerMessage\PeerMessageBase.cs" />
-    <Compile Include="Messages\PingMessage.cs" />
+    <Compile Include="Messages\CommandMessage\PingMessage.cs" />
     <Compile Include="Messages\TestMessage.cs" />
     <Compile Include="Messages\TextMessage.cs" />
     <Compile Include="Messages\TrackMessage\TrackMessageBase.cs" />
     <Compile Include="Messages\TrackMessage\TrackMessage.cs" />
     <Compile Include="Messages\PeerMessage\TranFileMessage.cs" />
-    <Compile Include="Messages\TaskMessage.cs" />
+    <Compile Include="Messages\CommandMessage\TaskMessage.cs" />
     <Compile Include="Online\PeerOnline.cs" />
     <Compile Include="P2PTest.cs" />
     <Compile Include="Common\Peer.cs" />

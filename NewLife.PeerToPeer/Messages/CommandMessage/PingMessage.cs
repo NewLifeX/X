@@ -12,7 +12,7 @@ namespace NewLife.PeerToPeer.Messages
     /// <summary>
     /// Ping消息
     /// </summary>
-    public class PingMessage : Message<PingMessage>
+    public class PingMessage : CommandMessageBase<PingMessage>
     {
         /// <summary>消息类型</summary>
         public override MessageTypes MessageType { get { return MessageTypes.Ping; } }
@@ -33,7 +33,7 @@ namespace NewLife.PeerToPeer.Messages
         /// <summary>
         /// 邀请响应
         /// </summary>
-        public class Response : Message<Response>
+        public class Response : CommandMessageBase<Response>
         {
             /// <summary>消息类型</summary>
             public override MessageTypes MessageType { get { return MessageTypes.PingResponse; } }

@@ -8,7 +8,7 @@ namespace NewLife.PeerToPeer.Messages
     /// <summary>
     /// 找种子
     /// </summary>
-    public class FindTorrentMessage : Message<FindTorrentMessage>
+    public class FindTorrentMessage : CommandMessageBase<FindTorrentMessage>
     {
         #region 属性
         /// <summary>消息类型</summary>
@@ -38,7 +38,7 @@ namespace NewLife.PeerToPeer.Messages
         /// <summary>
         /// 响应
         /// </summary>
-        public class Response : Message<Response>
+        public class Response : CommandMessageBase<Response>
         {
             /// <summary>消息类型</summary>
             public override MessageTypes MessageType { get { return MessageTypes.FindTorrentResponse; } }
