@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.IO;
 using NewLife.Net.Udp;
+using System.Net;
 
 namespace NewLife.Net.Sockets
 {
@@ -90,14 +91,14 @@ namespace NewLife.Net.Sockets
         {
             if (Buffer == null || Buffer.Length < 1 || BytesTransferred < 1) return null;
 
+            Stream ms = new MemoryStream(Buffer, Offset, BytesTransferred);
             if (socketStream == null)
             {
-                Stream ms = new MemoryStream(Buffer, Offset, BytesTransferred);
                 socketStream = new SocketStream(AcceptSocket, ms, RemoteEndPoint);
             }
             else
             {
-                socketStream.Reset(AcceptSocket, Offset, BytesTransferred, RemoteEndPoint);
+                socketStream.Reset(AcceptSocket, ms, RemoteEndPoint);
             }
 
             return socketStream;

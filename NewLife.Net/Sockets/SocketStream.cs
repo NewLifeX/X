@@ -104,16 +104,14 @@ namespace NewLife.Net.Sockets
         /// 重新设置流
         /// </summary>
         /// <param name="socket"></param>
-        /// <param name="offset"></param>
-        /// <param name="length"></param>
+        /// <param name="input"></param>
         /// <param name="remote"></param>
-        public void Reset(Socket socket, Int32 offset, Int32 length, EndPoint remote)
+        public void Reset(Socket socket, Stream input, EndPoint remote)
         {
             Socket = socket;
             RemoteEndPoint = remote as IPEndPoint;
-            
-            InputStream.Position = offset;
-            InputStream.SetLength(length);
+
+            InputStream = input;
         }
         #endregion
     }
