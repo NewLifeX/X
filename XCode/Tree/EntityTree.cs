@@ -146,7 +146,7 @@ namespace XCode
             if (IsNull(parentKey))
             {
                 EntityList<TEntity> noParents = FindAllNoParent();
-                if (noParents.Count > 0)
+                if (noParents != null && noParents.Count > 0)
                 {
                     if (list == null || list.Count < 1)
                         list = noParents;

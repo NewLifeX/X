@@ -93,7 +93,8 @@ namespace NewLife.Log
             {
                 try
                 {
-                    LogWriter = new StreamWriter(logfile, true, Encoding.UTF8);
+                    FileStream stream = new FileStream(logfile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+                    LogWriter = new StreamWriter(stream, Encoding.UTF8);
                     LogWriter.AutoFlush = true;
                     break;
                 }
