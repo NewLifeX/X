@@ -377,8 +377,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
         {
-            //return String.Format("[{0}]", keyWord);
-            return keyWord;
+            return String.Format("[{0}]", keyWord);
+            //return keyWord;
         }
         #endregion
 
