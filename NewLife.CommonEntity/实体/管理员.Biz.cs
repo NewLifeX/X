@@ -230,7 +230,7 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public override IEntity CreateLog(Type type, string action)
         {
-            Log<TLogEntity> log = Log<TLogEntity>.Create(this.GetType(), action);
+            Log<TLogEntity> log = Log<TLogEntity>.Create(type, action);
             log.UserID = ID;
             log.UserName = FriendName;
 
