@@ -158,6 +158,8 @@ namespace NewLife.CommonEntity
             // 判断是否所有实体都是None权限
             if (list2 != null && list2.Count == list.Count)
             {
+                WriteLog("授权检查", String.Format("没有任何角色拥有菜单{0}的权限，准备授权所有角色拥有该菜单的所有权限！", menuID));
+
                 // 授权所有实体为All权限
                 list.SetItem(_.Permission, (Int32)PermissionFlags.All);
                 list.Save();
