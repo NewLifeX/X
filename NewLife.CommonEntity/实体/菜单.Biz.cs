@@ -97,7 +97,13 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public override int Delete()
         {
-            WriteLog("删除", Name);
+            String name = Name;
+            if (String.IsNullOrEmpty(name))
+            {
+                TEntity entity = FindByID(ID);
+                if (entity != null) name = entity.Name;
+            }
+            WriteLog("删除", name);
 
             return base.Delete();
         }

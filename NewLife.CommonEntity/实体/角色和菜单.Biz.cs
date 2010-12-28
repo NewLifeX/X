@@ -121,7 +121,14 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public override int Delete()
         {
-            WriteLog("删除", String.Format("Role={0},Menu={1},Permission={2}", RoleID, MenuID, PermissionFlag));
+            String remark = String.Format("Role={0},Menu={1},Permission={2}", RoleID, MenuID, PermissionFlag);
+            if (RoleID <= 0 && MenuID <= 0)
+            {
+                TEntity entity = Find(_.ID, ID);
+                if (entity != null) remark = String.Format("Role={0},Menu={1},Permission={2}", RoleID, MenuID, PermissionFlag);
+            }
+            WriteLog("删除", remark);
+            //WriteLog("删除", String.Format("Role={0},Menu={1},Permission={2}", RoleID, MenuID, PermissionFlag));
 
             return base.Delete();
         }
