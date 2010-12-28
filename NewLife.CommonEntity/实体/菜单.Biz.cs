@@ -141,7 +141,7 @@ namespace NewLife.CommonEntity
                 EntityList<TEntity> list = Meta.Cache.Entities;
                 list = list.FindAll(delegate(TEntity item)
                 {
-                    return !String.IsNullOrEmpty(item.Url) && item.Url.EndsWith(fileName, StringComparison.OrdinalIgnoreCase);
+                    return !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWith(fileName, StringComparison.OrdinalIgnoreCase);
                 });
                 if ((list == null || list.Count < 1) && Path.GetFileNameWithoutExtension(p).EndsWith("Form", StringComparison.OrdinalIgnoreCase))
                 {
