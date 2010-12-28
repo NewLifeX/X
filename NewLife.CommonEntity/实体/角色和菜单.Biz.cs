@@ -143,12 +143,12 @@ namespace NewLife.CommonEntity
             if (menuID > 0) list = list.FindAll(_.MenuID, menuID);
             if (list == null || list.Count < 1) return;
 
-            EntityList<TEntity> list2 = list.FindAll(_.Permission, PermissionFlags.None);
+            EntityList<TEntity> list2 = list.FindAll(_.Permission, (Int32)PermissionFlags.None);
             // 判断是否所有实体都是None权限
             if (list2 != null && list2.Count == list.Count)
             {
                 // 授权所有实体为All权限
-                list.SetItem(_.Permission, PermissionFlags.All);
+                list.SetItem(_.Permission, (Int32)PermissionFlags.All);
                 list.Save();
             }
         }
