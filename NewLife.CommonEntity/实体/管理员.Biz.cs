@@ -65,6 +65,10 @@ namespace NewLife.CommonEntity
                     if (XTrace.Debug) XTrace.WriteLine("初始化{0}授权数据失败！{1}", typeof(TEntity).Name, ex.ToString());
                 }
             }
+
+            // 给菜单类设置一个默认管理员对象，用于写日志
+            if (DefaultAdministrator == null) DefaultAdministrator = new TEntity();
+            Menu<TMenuEntity>.DefaultAdministrator = DefaultAdministrator;
         }
 
         /// <summary>
@@ -284,7 +288,7 @@ namespace NewLife.CommonEntity
             get
             {
                 if (_httpState != null) return _httpState;
-                _httpState = new HttpState<TEntity>();
+                _httpState = new HttpState<TEntity>("Admin");
                 _httpState.CookieToEntity = new Converter<HttpCookie, TEntity>(delegate(HttpCookie cookie)
                 {
                     if (cookie == null) return null;

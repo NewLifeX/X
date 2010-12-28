@@ -489,7 +489,11 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 日志
-        static HttpState<IAdministrator> http = new HttpState<IAdministrator>("Admin_HttpStateKey");
+        /// <summary>
+        /// Http状态，名称必须和管理员类中一致
+        /// </summary>
+        static HttpState<IAdministrator> http = new HttpState<IAdministrator>("Admin");
+        internal static IAdministrator DefaultAdministrator;
         /// <summary>
         /// 创建指定动作的日志实体。通过Http状态访问当前管理员对象，创建日志实体
         /// </summary>
@@ -498,6 +502,7 @@ namespace NewLife.CommonEntity
         public static IEntity CreateLog(String action)
         {
             IAdministrator admin = http.Current;
+            if (admin == null) admin = DefaultAdministrator;
             if (admin == null) return null;
 
             return admin.CreateLog(typeof(TEntity), action);

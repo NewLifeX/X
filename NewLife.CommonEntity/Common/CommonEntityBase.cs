@@ -11,7 +11,10 @@ namespace NewLife.CommonEntity
     public class CommonEntityBase<TEntity> : Entity<TEntity> where TEntity : CommonEntityBase<TEntity>, new()
     {
         #region 日志
-        static HttpState<IAdministrator> http = new HttpState<IAdministrator>("Admin_HttpStateKey");
+        /// <summary>
+        /// Http状态，名称必须和管理员类中一致
+        /// </summary>
+        static HttpState<IAdministrator> http = new HttpState<IAdministrator>("Admin");
         internal static IAdministrator DefaultAdministrator;
 
         /// <summary>
