@@ -50,7 +50,7 @@ namespace NewLife.CommonEntity
                         entity.AddChild("管理员管理", "../System/Admin.aspx");
                         entity.AddChild("角色管理", "../System/Role.aspx");
                         entity.AddChild("权限管理", "../System/RoleMenu.aspx");
-                        entity.AddChild("日志管理", "../System/Log.aspx");
+                        entity.AddChild("日志查看", "../System/Log.aspx");
 
                         // 准备增加Admin目录下的所有页面
                         ScanAndAdd("Admin");
@@ -454,11 +454,15 @@ namespace NewLife.CommonEntity
                 if (files.Count < 1) continue;
 
                 // 添加
-                TEntity parent = Root.Childs[0].AddChild(dirName, null);
+                TEntity parent = FindByName(dirName);
+                if (parent == null) parent = Root.Childs[0].AddChild(dirName, null);
                 num++;
                 foreach (String elm in files)
                 {
                     String url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
+                    TEntity entity = Meta.Cache.Entities.Find(_.Url, url);
+                    if (entity != null) continue;
+
                     parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
                     num++;
                 }
