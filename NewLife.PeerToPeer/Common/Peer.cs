@@ -39,6 +39,14 @@ namespace NewLife.PeerToPeer
         #endregion
 
         #region 属性
+        private Double _Complete;
+        /// <summary>完成度</summary>
+        public Double Complete
+        {
+            get { return _Complete; }
+            set { _Complete = value; }
+        }
+        
         private DateTime _InviteTime;
         /// <summary>邀请时间</summary>
         public DateTime InviteTime
