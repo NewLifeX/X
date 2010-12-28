@@ -331,6 +331,13 @@ namespace NewLife.CommonEntity
             set { HttpState.Current = value; }
         }
 
+        /// <summary>当前登录用户，不带自动登录</summary>
+        public static TEntity CurrentNoAutoLogin
+        {
+            get { return HttpState.Get(null, null); }
+            //set { HttpState.Current = value; }
+        }
+
         /// <summary>
         /// 友好名字
         /// </summary>
