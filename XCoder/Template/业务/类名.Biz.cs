@@ -109,15 +109,15 @@ foreach (XField Field in Table.Fields){
 		/// <summary>
 		/// 根据<#=GetPropertyDescription(Field)#>查找
 		/// </summary>
-		/// <param name="id"></param>
+		/// <param name="__<#=Field.Name#>"></param>
 		/// <returns></returns>
-		public static <#=ClassName#> FindByID(Int32 id)
+		public static <#=ClassName#> FindByID(Int32 __<#=Field.Name#>)
 		{
-			return Find(_.ID, id);
+			return Find(_.<#=Field.Name#>, __<#=Field.Name#>);
 			// 实体缓存
-			//return Meta.Cache.Entities.Find(_.ID, id);
+			//return Meta.Cache.Entities.Find(_.<#=Field.Name#>, __<#=Field.Name#>);
 			// 单对象缓存
-			//return Meta.SingleCache[id];
+			//return Meta.SingleCache[__<#=Field.Name#>];
 		}
 <#
     }
@@ -126,15 +126,15 @@ foreach (XField Field in Table.Fields){
 		/// <summary>
 		/// 根据<#=GetPropertyDescription(Field)#>查找
 		/// </summary>
-		/// <param name="name"></param>
+		/// <param name="__<#=Field.Name#>"></param>
 		/// <returns></returns>
-		public static <#=ClassName#> FindByName(String name)
+		public static <#=ClassName#> FindByName(String __<#=Field.Name#>)
 		{
-			return Find(_.<#=Field.Name#>, name);
+			return Find(_.<#=Field.Name#>, __<#=Field.Name#>);
 			// 实体缓存
-			//return Meta.Cache.Entities.Find(_.<#=Field.Name#>, name);
+			//return Meta.Cache.Entities.Find(_.<#=Field.Name#>, __<#=Field.Name#>);
 			// 单对象缓存
-			//return Meta.SingleCache[name];
+			//return Meta.SingleCache[__<#=Field.Name#>];
 		}
 <#
     }
