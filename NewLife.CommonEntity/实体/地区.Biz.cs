@@ -109,16 +109,16 @@ namespace NewLife.CommonEntity
             return Meta.Cache.Entities.Find(_.Code, code);
         }
 
-        /// <summary>
-        /// 找到下一级
-        /// </summary>
-        /// <param name="parentcode"></param>
-        /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select)]
-        public static EntityList<TEntity> FindAllByParent(Int32 parentcode)
-        {
-            return Meta.Cache.Entities.FindAll(_.ParentCode, parentcode);
-        }
+        ///// <summary>
+        ///// 找到下一级
+        ///// </summary>
+        ///// <param name="parentcode"></param>
+        ///// <returns></returns>
+        //[DataObjectMethod(DataObjectMethodType.Select)]
+        //public static EntityList<TEntity> FindAllByParent(Int32 parentcode)
+        //{
+        //    return Meta.Cache.Entities.FindAll(_.ParentCode, parentcode);
+        //}
 
         /// <summary>
         /// 查找指定名称的父菜单下一级的子菜单
