@@ -68,7 +68,7 @@ namespace XCode
         /// <summary>子节点</summary>
         protected virtual EntityList<TEntity> FindChilds()
         {
-            return FindAllByParent(this[KeyName]);
+            return FindAllByParent((TKey)this[KeyName]);
         }
 
         /// <summary>父节点</summary>
@@ -137,11 +137,23 @@ namespace XCode
         /// <param name="parentKey"></param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select)]
-        public static EntityList<TEntity> FindAllByParent(Object parentKey)
+        public static EntityList<TEntity> FindAllByParent(TKey parentKey)
         {
             TEntity entity = EntityFactory.CreateOperate(typeof(TEntity)) as TEntity;
 
             EntityList<TEntity> list = Meta.Cache.Entities.FindAll(entity.ParentKeyName, parentKey);
+            // 如果是顶级，那么包含所有无头节点
+            if (IsNull(parentKey))
+            {
+                EntityList<TEntity> noParents = FindAllNoParent();
+                if (noParents.Count > 0)
+                {
+                    if (list == null || list.Count < 1)
+                        list = noParents;
+                    else
+                        list.AddRange(noParents);
+                }
+            }
             if (list == null || list.Count < 1) return null;
 
             String sort = entity.SortingKeyName;
@@ -159,12 +171,33 @@ namespace XCode
         }
 
         /// <summary>
+        /// 查找所有没有父节点的节点集合
+        /// </summary>
+        /// <returns></returns>
+        public static EntityList<TEntity> FindAllNoParent()
+        {
+            TEntity entity = EntityFactory.CreateOperate(typeof(TEntity)) as TEntity;
+
+            EntityList<TEntity> noParents = new EntityList<TEntity>();
+            foreach (TEntity item in Meta.Cache.Entities)
+            {
+                // 有父节点的跳过
+                if (item.Parent != null) continue;
+                // 父节点为空的跳过
+                if (IsNull((TKey)item[entity.ParentKeyName])) continue;
+
+                noParents.Add(item);
+            }
+            return noParents.Count > 0 ? noParents : null;
+        }
+
+        /// <summary>
         /// 查找指定键的所有子节点，以深度层次树结构输出
         /// </summary>
         /// <param name="parentKey"></param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select)]
-        public static EntityList<TEntity> FindAllChildsByParent(Object parentKey)
+        public static EntityList<TEntity> FindAllChildsByParent(TKey parentKey)
         {
             TEntity entity = FindByKey(parentKey);
             if (entity == null) entity = Root;
@@ -178,7 +211,7 @@ namespace XCode
         /// <param name="key"></param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select)]
-        public static EntityList<TEntity> FindAllParentsByKey(Object key)
+        public static EntityList<TEntity> FindAllParentsByKey(TKey key)
         {
             TEntity entity = FindByKey(key);
             if (entity == null) entity = Root;

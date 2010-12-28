@@ -17,17 +17,17 @@ namespace NewLife.CommonEntity
     public partial class Menu<TEntity> : EntityTree<TEntity> where TEntity : Menu<TEntity>, new()
     {
         #region 对象操作
-        /// <summary>已重载。</summary>
-        protected override EntityList<TEntity> FindChilds()
-        {
-            return FindAllByParentID(ID);
-        }
+        ///// <summary>已重载。</summary>
+        //protected override EntityList<TEntity> FindChilds()
+        //{
+        //    return FindAllByParentID(ID);
+        //}
 
-        /// <summary>已重载。</summary>
-        protected override TEntity FindParent()
-        {
-            return FindByID(ParentID);
-        }
+        ///// <summary>已重载。</summary>
+        //protected override TEntity FindParent()
+        //{
+        //    return FindByID(ParentID);
+        //}
 
         static Menu()
         {
@@ -325,19 +325,6 @@ namespace NewLife.CommonEntity
             EntityList<TEntity> list = Meta.Cache.Entities.FindAll(_.ParentID, id);
             if (list != null && list.Count > 0) list.Sort(new String[] { _.Sort, _.ID }, new Boolean[] { true, false });
             return list;
-        }
-
-        /// <summary>
-        /// 查找所有没有父节点的节点集合
-        /// </summary>
-        /// <returns></returns>
-        public static EntityList<TEntity> FindAllNoParent()
-        {
-            return Meta.Cache.Entities.FindAll(delegate(TEntity item)
-            {
-                return item.ParentID > 0 && item.Parent == null;
-            });
-            //return EntityList<TEntity>.From(list);
         }
         #endregion
 
