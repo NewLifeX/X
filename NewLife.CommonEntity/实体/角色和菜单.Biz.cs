@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Text;
 using XCode;
 using System.Threading;
+using NewLife.Log;
 
 namespace NewLife.CommonEntity
 {
@@ -128,7 +129,17 @@ namespace NewLife.CommonEntity
         static RoleMenu()
         {
             // 检查是否所有人都没有权限
-            ThreadPool.QueueUserWorkItem(delegate { CheckNonePerssion(0); });
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                try
+                {
+                    CheckNonePerssion(0);
+                }
+                catch (Exception ex)
+                {
+                    if (XTrace.Debug) XTrace.WriteLine(ex.ToString());
+                }
+            });
         }
 
         /// <summary>
