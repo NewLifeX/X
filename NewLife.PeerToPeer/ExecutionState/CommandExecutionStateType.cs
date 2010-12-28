@@ -32,7 +32,12 @@ namespace NewLife.PeerToPeer.Messages
         /// <summary>
         /// 未知错误
         /// </summary>
-        未知错误 = 999
+        未知错误 = 999,
+
+        /// <summary>
+        /// 删除指令
+        /// </summary>
+        删除指令 = 888
     }
 
 }
