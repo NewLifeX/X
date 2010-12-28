@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using XCode;
+using System.Threading;
 
 namespace NewLife.CommonEntity
 {
@@ -123,6 +124,34 @@ namespace NewLife.CommonEntity
 
             return base.Delete();
         }
+
+        static RoleMenu()
+        {
+            // 检查是否所有人都没有权限
+            ThreadPool.QueueUserWorkItem(delegate { CheckNonePerssion(0); });
+        }
+
+        /// <summary>
+        /// 检查指定菜单编号的权限，保证至少有一个角色有权限控制该菜单
+        /// </summary>
+        /// <param name="menuID"></param>
+        internal static void CheckNonePerssion(Int32 menuID)
+        {
+            if (Meta.Cache.Entities.Count < 1) return;
+
+            EntityList<TEntity> list = Meta.Cache.Entities;
+            if (menuID > 0) list = list.FindAll(_.MenuID, menuID);
+            if (list == null || list.Count < 1) return;
+
+            EntityList<TEntity> list2 = list.FindAll(_.Permission, PermissionFlags.None);
+            // 判断是否所有实体都是None权限
+            if (list2 != null && list2.Count == list.Count)
+            {
+                // 授权所有实体为All权限
+                list.SetItem(_.Permission, PermissionFlags.All);
+                list.Save();
+            }
+        }
         #endregion
 
         #region 扩展属性
@@ -182,6 +211,19 @@ namespace NewLife.CommonEntity
             if (roleID <= 0 || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
 
             return Meta.Cache.Entities.FindAll(_.RoleID, roleID);
+        }
+
+        /// <summary>
+        /// 根据菜单编号查询所有角色和菜单实体对象
+        /// </summary>
+        /// <param name="menuID">编号</param>
+        /// <returns>角色和菜单 实体对象</returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static EntityList<TEntity> FindAllByMenuID(Int32 menuID)
+        {
+            if (menuID <= 0 || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
+
+            return Meta.Cache.Entities.FindAll(_.MenuID, menuID);
         }
 
         /// <summary>

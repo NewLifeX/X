@@ -5,6 +5,7 @@ using NewLife.Log;
 using XCode;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace NewLife.CommonEntity
 {
@@ -20,7 +21,8 @@ namespace NewLife.CommonEntity
         static Role()
         {
             // 删除RoleMenu中无效的RoleID和无效的MenuID
-            ClearRoleMenu();
+            //ClearRoleMenu();
+            ThreadPool.QueueUserWorkItem(delegate { ClearRoleMenu(); });
         }
 
         /// <summary>
@@ -62,6 +64,15 @@ namespace NewLife.CommonEntity
             if (rms == null || rms.Count < 1) return;
 
             rms.Delete();
+        }
+
+        /// <summary>
+        /// 检查是否所有人都没有权限
+        /// </summary>
+        static void CheckNonePerssion()
+        {
+            TMenuEntity entity = Menu<TMenuEntity>.FindByName("权限管理");
+            if (entity != null) RoleMenu<TRoleMenuEntity>.CheckNonePerssion(entity.ID);
         }
 
         /// <summary>
