@@ -77,6 +77,12 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public override int Save()
         {
+            if (!String.IsNullOrEmpty(Url))
+            {
+                // 删除两端空白
+                if (Url != Url.Trim()) Url = Url.Trim();
+            }
+
             if (ID == 0)
                 WriteLog("添加", Name);
             else
@@ -146,7 +152,7 @@ namespace NewLife.CommonEntity
                     // 有可能是表单
                     list = Meta.Cache.Entities.FindAll(delegate(TEntity item)
                     {
-                        return !String.IsNullOrEmpty(item.Url) && item.Url.EndsWith(fileName, StringComparison.OrdinalIgnoreCase);
+                        return !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWith(fileName, StringComparison.OrdinalIgnoreCase);
                     });
                 }
                 if (list == null || list.Count < 1) return null;
@@ -155,7 +161,7 @@ namespace NewLife.CommonEntity
                 // 查找所有以该文件名结尾的菜单
                 EntityList<TEntity> list2 = list.FindAll(delegate(TEntity item)
                 {
-                    return !String.IsNullOrEmpty(item.Url) && item.Url.EndsWith(@"/" + fileName, StringComparison.OrdinalIgnoreCase);
+                    return !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWith(@"/" + fileName, StringComparison.OrdinalIgnoreCase);
                 });
                 if (list2 == null || list2.Count < 1) return list[0];
                 if (list2.Count == 1) return list2[0];
@@ -202,6 +208,16 @@ namespace NewLife.CommonEntity
         public static TEntity FindByName(String name)
         {
             return Meta.Cache.Entities.Find(_.Name, name);
+        }
+
+        /// <summary>
+        /// 根据Url查找
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public static TEntity FindByUrl(String url)
+        {
+            return Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
         }
 
         /// <summary>
@@ -460,7 +476,7 @@ namespace NewLife.CommonEntity
                 foreach (String elm in files)
                 {
                     String url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
-                    TEntity entity = Meta.Cache.Entities.Find(_.Url, url);
+                    TEntity entity = FindByUrl(url);
                     if (entity != null) continue;
 
                     parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
