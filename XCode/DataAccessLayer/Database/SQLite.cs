@@ -706,6 +706,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
         {
+            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
+
+            if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
+
             return String.Format("[{0}]", keyWord);
             //return keyWord;
         }

@@ -807,15 +807,15 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">待检查SQL语句</param>
         /// <returns>如果是简单SQL语句则返回表名，否则返回子查询(sql) XCode_Temp_a</returns>
-        protected String CheckSimpleSQL(String sql)
+        protected static String CheckSimpleSQL(String sql)
         {
             if (String.IsNullOrEmpty(sql)) return sql;
 
-            Regex reg = new Regex(@"^\s*select\s+\*\s+from\s+([\w\[\]]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            Regex reg = new Regex(@"^\s*select\s+\*\s+from\s+([\w\[\]\""\""\']+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             MatchCollection ms = reg.Matches(sql);
             if (ms == null || ms.Count < 1 || ms[0].Groups.Count < 2 ||
                 String.IsNullOrEmpty(ms[0].Groups[1].Value)) return String.Format("({0}) XCode_Temp_a", sql);
-            return FormatKeyWord(ms[0].Groups[1].Value);
+            return ms[0].Groups[1].Value;
         }
 
         /// <summary>
@@ -1206,13 +1206,13 @@ namespace XCode.DataAccessLayer
                 case DDLSchema.CreateDatabase:
                     return CreateDatabaseSQL((String)values[0], (String)values[1]);
                 case DDLSchema.DropDatabase:
-                    return String.Format("Drop Database [{0}]", FormatKeyWord((String)values[0]));
+                    return String.Format("Drop Database {0}", FormatKeyWord((String)values[0]));
                 case DDLSchema.DatabaseExist:
                     return DatabaseExistSQL(values == null || values.Length < 1 ? null : (String)values[0]);
                 case DDLSchema.CreateTable:
                     return CreateTableSQL((XTable)values[0]);
                 case DDLSchema.DropTable:
-                    return String.Format("Drop Table [{0}]", FormatKeyWord((String)values[0]));
+                    return String.Format("Drop Table {0}", FormatKeyWord((String)values[0]));
                 case DDLSchema.TableExist:
                     return TableExistSQL((String)values[0]);
                 case DDLSchema.AddTableDescription:

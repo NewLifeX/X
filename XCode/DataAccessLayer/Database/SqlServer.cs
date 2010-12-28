@@ -425,7 +425,7 @@ namespace XCode.DataAccessLayer
                     Int32 count = 0;
                     try { count = Execute(sb.ToString()); }
                     catch { }
-                    obj = Execute(String.Format("Drop Database [{0}]", dbname)) > 0;
+                    obj = Execute(String.Format("Drop Database {0}", FormatKeyWord(dbname))) > 0;
                     //sb.AppendFormat("Drop Database [{0}]", dbname);
 
                     DatabaseName = dbname;
@@ -626,7 +626,7 @@ namespace XCode.DataAccessLayer
                 {
                     sb.AppendLine();
                     sb.Append("\t\t");
-                    sb.AppendFormat("[{0}] ASC", keys[i]);
+                    sb.AppendFormat("{0} ASC", FormatKeyWord(keys[i]));
                     if (i < keys.Count - 1) sb.Append(",");
                 }
                 sb.AppendLine();
@@ -803,7 +803,7 @@ namespace XCode.DataAccessLayer
             sb.AppendLine("close   #spid");
             sb.AppendLine("deallocate   #spid");
             sb.AppendLine(";");
-            sb.AppendFormat("Drop Database [{0}]", dbname);
+            sb.AppendFormat("Drop Database {0}", FormatKeyWord(dbname));
             return sb.ToString();
         }
         #endregion
@@ -837,6 +837,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
         {
+            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
+
+            if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
+
             return String.Format("[{0}]", keyWord);
         }
         #endregion
