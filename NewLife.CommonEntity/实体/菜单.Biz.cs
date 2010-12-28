@@ -453,7 +453,7 @@ namespace NewLife.CommonEntity
             {
                 String dirName = new DirectoryInfo(item).Name;
                 if (dirName.Equals("Frame", StringComparison.OrdinalIgnoreCase)) continue;
-                if (dirName.Equals("System", StringComparison.OrdinalIgnoreCase)) continue;
+                //if (dirName.Equals("System", StringComparison.OrdinalIgnoreCase)) continue;
                 if (dirName.StartsWith("img", StringComparison.OrdinalIgnoreCase)) continue;
 
                 String[] fs = Directory.GetFiles(item, "*.aspx", SearchOption.TopDirectoryOnly);
