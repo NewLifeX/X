@@ -342,7 +342,7 @@ namespace NewLife.CommonEntity
             get
             {
                 TEntity entity = HttpState.Current;
-                if (HttpState.Get(null, null) != null) HttpState.Current = entity;
+                if (HttpState.Get(null, null) != entity) HttpState.Current = entity;
                 return entity;
             }
             set { HttpState.Current = value; }
