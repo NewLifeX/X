@@ -107,8 +107,8 @@ namespace NewLife.Web
         /// </summary>
         public T Current
         {
-            get { return Get(CookieToEntity, null); }
-            set { Set(value, EntityToCookie, null); }
+            get { return Get(CookieToEntity, Load); }
+            set { Set(value, EntityToCookie, Save); }
         }
         #endregion
 
