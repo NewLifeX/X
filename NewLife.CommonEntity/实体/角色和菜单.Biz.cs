@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
-using XCode;
 using System.Threading;
 using NewLife.Log;
+using XCode;
 
 namespace NewLife.CommonEntity
 {
@@ -171,6 +169,15 @@ namespace NewLife.CommonEntity
                 list.SetItem(_.Permission, (Int32)PermissionFlags.All);
                 list.Save();
             }
+        }
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return String.Format("ID={0},RoleID={1},MenuID={2},PerssionFlag={3}", ID, RoleID, MenuID, PermissionFlag);
         }
         #endregion
 
