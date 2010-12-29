@@ -339,7 +339,12 @@ namespace NewLife.CommonEntity
         /// <summary>当前登录用户</summary>
         public static TEntity Current
         {
-            get { return HttpState.Current; }
+            get
+            {
+                TEntity entity = HttpState.Current;
+                if (HttpState.Get(null, null) != null) HttpState.Current = entity;
+                return entity;
+            }
             set { HttpState.Current = value; }
         }
 
