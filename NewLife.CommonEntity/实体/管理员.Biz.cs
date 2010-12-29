@@ -426,9 +426,9 @@ namespace NewLife.CommonEntity
         /// <param name="maximumRows">最大返回行数</param>
         /// <returns>实体集</returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        public static EntityList<TEntity> Search(String key,Int32 roleId, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         {
-            return FindAll(SearchWhere(key), orderClause, null, startRowIndex, maximumRows);
+            return FindAll(SearchWhere(key,roleId), orderClause, null, startRowIndex, maximumRows);
         }
 
         /// <summary>
@@ -439,9 +439,9 @@ namespace NewLife.CommonEntity
         /// <param name="startRowIndex">开始行，0开始</param>
         /// <param name="maximumRows">最大返回行数</param>
         /// <returns>记录数</returns>
-        public static Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        public static Int32 SearchCount(String key, Int32 roleId, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         {
-            return FindCount(SearchWhere(key), null, null, 0, 0);
+            return FindCount(SearchWhere(key,roleId), null, null, 0, 0);
         }
 
         /// <summary>
@@ -449,7 +449,7 @@ namespace NewLife.CommonEntity
         /// </summary>
         /// <param name="key">关键字</param>
         /// <returns></returns>
-        private static String SearchWhere(String key)
+        private static String SearchWhere(String key, Int32 roleId)
         {
             if (String.IsNullOrEmpty(key)) return null;
             key = key.Replace("'", "''");
@@ -459,6 +459,8 @@ namespace NewLife.CommonEntity
             sb.Append("1=1");
 
             //if (!String.IsNullOrEmpty(name)) sb.AppendFormat(" And {0} like '%{1}%'", _.Name, name.Replace("'", "''"));
+
+            if (roleId > 0) sb.AppendFormat(" And {0} ={1}", _.RoleID, roleId);
 
             for (int i = 0; i < keys.Length; i++)
             {
