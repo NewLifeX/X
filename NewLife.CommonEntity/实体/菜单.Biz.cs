@@ -338,8 +338,8 @@ namespace NewLife.CommonEntity
         {
             if (name.Contains(@".") || name.Contains(@"/") || name.Contains(@"\")) return false;
 
-            // 没有设置权限项或者权限项和名字相同时
-            if (String.IsNullOrEmpty(Permission) || IsEnglish(Permission)) Permission = name;
+            // 没有设置权限项或者权限项和名字不相同时
+            if (String.IsNullOrEmpty(Permission) || IsEnglish(Permission)||!String.Equals(Permission,name,StringComparison.OrdinalIgnoreCase)) Permission = name;
             if (String.IsNullOrEmpty(Name) || IsEnglish(Name)) Name = name;
 
             return Save() > 0;
