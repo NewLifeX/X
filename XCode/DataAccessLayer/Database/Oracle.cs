@@ -135,6 +135,7 @@ namespace XCode.DataAccessLayer
                 XField xf = xt.CreateField();
                 xf.ID = Int32.Parse(dr["ID"].ToString());
                 xf.Name = dr["COLUMN_NAME"].ToString();
+                xf.RawType = dr["DATA_TYPE"].ToString();
                 xf.DataType = FieldTypeToClassType(dr["DATATYPE"].ToString());
                 xf.Identity = false;
 

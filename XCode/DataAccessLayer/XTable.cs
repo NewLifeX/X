@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Xml;
 using System.Xml.Serialization;
 using System.IO;
+using System.ComponentModel;
 
 namespace XCode.DataAccessLayer
 {
@@ -24,6 +25,7 @@ namespace XCode.DataAccessLayer
         /// 编号
         /// </summary>
         [XmlAttribute]
+        [Description("编号")]
         public Int32 ID { get { return _ID; } set { _ID = value; } }
 
         private String _Name;
@@ -31,6 +33,7 @@ namespace XCode.DataAccessLayer
         /// 表名
         /// </summary>
         [XmlAttribute]
+        [Description("表名")]
         public String Name { get { return _Name; } set { _Name = value; } }
 
         private String _Description;
@@ -38,6 +41,7 @@ namespace XCode.DataAccessLayer
         /// 表说明
         /// </summary>
         [XmlAttribute]
+        [Description("表说明")]
         public String Description { get { return _Description; } set { _Description = value; } }
 
         private Boolean _IsView = false;
@@ -45,11 +49,13 @@ namespace XCode.DataAccessLayer
         /// 是否视图
         /// </summary>
         [XmlAttribute]
+        [Description("是否视图")]
         public Boolean IsView { get { return _IsView; } set { _IsView = value; } }
 
         private String _Owner;
         /// <summary>所有者</summary>
         [XmlAttribute]
+        [Description("所有者")]
         public String Owner
         {
             get { return _Owner; }
@@ -59,9 +65,10 @@ namespace XCode.DataAccessLayer
 
         private List<XField> _Fields;
         /// <summary>
-        /// 字段构架集合。首次使用时才加载。
+        /// 字段集合。
         /// </summary>
         [XmlArray]
+        [Description("字段集合")]
         public List<XField> Fields { get { return _Fields; } set { _Fields = value; } }
         #endregion
 
@@ -92,6 +99,15 @@ namespace XCode.DataAccessLayer
         //{
         //    return Description;
         //}
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return String.Format("{0}({1})", Description, Name);
+        }
         #endregion
 
         #region 比较

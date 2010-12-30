@@ -965,6 +965,7 @@ namespace XCode.DataAccessLayer
 
                 xf.ID = Int32.Parse(dr["ORDINAL_POSITION"].ToString());
                 xf.Name = dr["COLUMN_NAME"].ToString();
+                xf.RawType = dr["DATA_TYPE"].ToString();
                 //xf.DataType = FieldTypeToClassType(dr["DATA_TYPE"].ToString());
                 xf.Identity = dr["DATA_TYPE"].ToString() == "3" && (dr["COLUMN_FLAGS"].ToString() == "16" || dr["COLUMN_FLAGS"].ToString() == "90");
 

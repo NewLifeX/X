@@ -303,6 +303,7 @@ namespace XCode.DataAccessLayer
 
                 xf.ID = Int32.Parse(dr["ORDINAL_POSITION"].ToString());
                 xf.Name = dr["COLUMN_NAME"].ToString();
+                xf.RawType = dr["DATA_TYPE"].ToString();
                 xf.Identity = Convert.ToBoolean(dr["AUTOINCREMENT"]);
                 xf.PrimaryKey = Convert.ToBoolean(dr["PRIMARY_KEY"]);
 

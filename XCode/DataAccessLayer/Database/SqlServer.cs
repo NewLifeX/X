@@ -201,6 +201,7 @@ namespace XCode.DataAccessLayer
                 XField xf = xt.CreateField();
                 xf.ID = Int32.Parse(dr["字段序号"].ToString());
                 xf.Name = dr["字段名"].ToString();
+                xf.RawType = dr["类型"].ToString();
                 xf.DataType = FieldTypeToClassType(dr["类型"].ToString());
                 xf.Identity = Boolean.Parse(dr["标识"].ToString());
 

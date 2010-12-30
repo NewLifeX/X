@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Xml;
 using System.Xml.Serialization;
 using System.IO;
+using System.ComponentModel;
 
 namespace XCode.DataAccessLayer
 {
@@ -22,6 +23,7 @@ namespace XCode.DataAccessLayer
         /// 顺序编号
         /// </summary>
         [XmlAttribute]
+        [Description("编号")]
         public Int32 ID { get { return _ID; } set { _ID = value; } }
 
         private String _Name;
@@ -29,6 +31,7 @@ namespace XCode.DataAccessLayer
         /// 名称
         /// </summary>
         [XmlAttribute]
+        [Description("名称")]
         public String Name { get { return _Name; } set { _Name = value; } }
 
         private Type _DataType;
@@ -36,18 +39,29 @@ namespace XCode.DataAccessLayer
         /// 数据类型
         /// </summary>
         [XmlAttribute]
+        [Description("数据类型")]
         public Type DataType { get { return _DataType; } set { _DataType = value; } }
 
         /// <summary>
         /// 字段类型
         /// </summary>
+        [Description("字段类型")]
         public String FieldType { get { return DataType == null ? null : DataType.Name; } }
+
+        private String _RawType;
+        /// <summary>
+        /// 原始数据类型
+        /// </summary>
+        [XmlAttribute]
+        [Description("原始数据类型")]
+        public String RawType { get { return _RawType; } set { _RawType = value; } }
 
         private Boolean _Identity;
         /// <summary>
         /// 标识
         /// </summary>
         [XmlAttribute]
+        [Description("标识")]
         public Boolean Identity { get { return _Identity; } set { _Identity = value; } }
 
         private Boolean _PrimaryKey;
@@ -55,6 +69,7 @@ namespace XCode.DataAccessLayer
         /// 主键
         /// </summary>
         [XmlAttribute]
+        [Description("主键")]
         public Boolean PrimaryKey { get { return _PrimaryKey; } set { _PrimaryKey = value; } }
 
         private Int32 _Length;
@@ -62,6 +77,7 @@ namespace XCode.DataAccessLayer
         /// 长度
         /// </summary>
         [XmlAttribute]
+        [Description("长度")]
         public Int32 Length { get { return _Length; } set { _Length = value; } }
 
         private Int32 _NumOfByte;
@@ -69,6 +85,7 @@ namespace XCode.DataAccessLayer
         /// 字节数
         /// </summary>
         [XmlAttribute]
+        [Description("字节数")]
         public Int32 NumOfByte { get { return _NumOfByte; } set { _NumOfByte = value; } }
 
         private Int32 _Digit;
@@ -76,6 +93,7 @@ namespace XCode.DataAccessLayer
         /// 位数
         /// </summary>
         [XmlAttribute]
+        [Description("位数")]
         public Int32 Digit { get { return _Digit; } set { _Digit = value; } }
 
         private Boolean _Nullable;
@@ -83,6 +101,7 @@ namespace XCode.DataAccessLayer
         /// 允许空
         /// </summary>
         [XmlAttribute]
+        [Description("允许空")]
         public Boolean Nullable { get { return _Nullable; } set { _Nullable = value; } }
 
         private String _Default;
@@ -90,6 +109,7 @@ namespace XCode.DataAccessLayer
         /// 默认值
         /// </summary>
         [XmlAttribute]
+        [Description("默认值")]
         public String Default { get { return _Default; } set { _Default = value; } }
 
         private String _Description;
@@ -97,6 +117,7 @@ namespace XCode.DataAccessLayer
         /// 说明
         /// </summary>
         [XmlAttribute]
+        [Description("说明")]
         public String Description { get { return _Description; } set { _Description = value; } }
         #endregion
 
@@ -153,12 +174,12 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 英文名
         /// </summary>
-        public static readonly String[] ENames = new String[] { "ID", "Name", "DataType", "FieldType", "Identity", "PrimaryKey", "Length", "NumOfByte", "Digit", "Nullable", "Default", "Description" };
-        
+        public static readonly String[] ENames = new String[] { "ID", "Name", "DataType", "FieldType", "RawType", "Identity", "PrimaryKey", "Length", "NumOfByte", "Digit", "Nullable", "Default", "Description" };
+
         /// <summary>
         /// 中文名
         /// </summary>
-        public static readonly String[] CNames = new String[] { "字段序号", "字段名", "数据类型", "类型", "标识", "主键", "长度", "占用字节数", "小数位数", "允许空", "默认值", "字段说明" };
+        public static readonly String[] CNames = new String[] { "字段序号", "字段名", "数据类型", "类型", "原始数据类型", "标识", "主键", "长度", "占用字节数", "小数位数", "允许空", "默认值", "字段说明" };
         #endregion
 
         #region 属性信息
@@ -267,7 +288,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("ID={0} Name={1} FieldType={2} Description={3}", ID, Name, FieldType, Description);
+            return String.Format("ID={0} Name={1} FieldType={2} RawType={3} Description={4}", ID, Name, FieldType, RawType, Description);
         }
         #endregion
     }
