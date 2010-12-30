@@ -421,6 +421,7 @@ namespace NewLife.CommonEntity
         /// 查询满足条件的记录集，分页、排序
         /// </summary>
         /// <param name="key">关键字</param>
+        ///<param name="roleId">角色ID</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="startRowIndex">开始行，0开始</param>
         /// <param name="maximumRows">最大返回行数</param>
@@ -435,6 +436,7 @@ namespace NewLife.CommonEntity
         /// 查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一
         /// </summary>
         /// <param name="key">关键字</param>
+        ///<param name="roleId">角色ID</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="startRowIndex">开始行，0开始</param>
         /// <param name="maximumRows">最大返回行数</param>
@@ -448,6 +450,7 @@ namespace NewLife.CommonEntity
         /// 构造搜索条件
         /// </summary>
         /// <param name="key">关键字</param>
+        /// <param name="roleId">角色ID</param>
         /// <returns></returns>
         private static String SearchWhere(String key, Int32 roleId)
         {
