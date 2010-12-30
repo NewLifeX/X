@@ -1,9 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Web.UI.WebControls;
 using System.ComponentModel;
+using System.Drawing;
 using System.Web.UI;
+using System.Web.UI.WebControls;
+using AttributeCollection = System.Web.UI.AttributeCollection;
+using Image = System.Web.UI.WebControls.Image;
 
 [assembly: WebResource("XControl.TextBox.VerifyCode.js", "text/javascript")]
 
@@ -14,7 +15,7 @@ namespace XControl
     /// </summary>
     [Description("验证码图片控件")]
     [ToolboxData("<{0}:VerifyCodeBox runat=server></{0}:VerifyCodeBox>")]
-    [System.Drawing.ToolboxBitmap(typeof(Image))]
+    [ToolboxBitmap(typeof(Image))]
     public class VerifyCodeBox : BaseValidator
     {
         /// <summary>
@@ -26,6 +27,7 @@ namespace XControl
             ToolTip = "看不清? 点击另换一个.";
             ContainerTag = HtmlTextWriterTag.Span;
         }
+
         /// <summary>
         /// 验证
         /// </summary>
@@ -38,6 +40,10 @@ namespace XControl
             return IsValid;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
@@ -56,6 +62,7 @@ namespace XControl
                 return HtmlTextWriterTag.Img;
             }
         }
+
         /// <summary>
         /// 容器标签名,如果设置有,则将整个图片和提示信息包含到这个标签内
         /// </summary>
@@ -63,6 +70,7 @@ namespace XControl
         [Category(" 专用属性")]
         [DefaultValue(0)]
         public HtmlTextWriterTag ContainerTag { get; set; }
+
         /// <summary>
         /// 已重载
         /// </summary>
@@ -84,6 +92,7 @@ namespace XControl
 
             base.OnPreRender(e);
         }
+
         /// <summary>
         /// 已重载
         /// </summary>
@@ -92,7 +101,8 @@ namespace XControl
         {
             base.AddAttributesToRender(writer);
         }
-        private System.Web.UI.AttributeCollection origAttr;
+
+        private AttributeCollection origAttr;
         /// <summary>
         /// 已重载
         /// </summary>
@@ -101,23 +111,24 @@ namespace XControl
         {
             if (origAttr == null) // 保存标签属性的旧值,用于输出容器标签
             {
-                origAttr = new System.Web.UI.AttributeCollection(new StateBag());
+                origAttr = new AttributeCollection(new StateBag());
             }
 
-            CopyCollection(Attributes, origAttr ,
-                new GetItemByKey<System.Web.UI.AttributeCollection,string>(GetAttributeCollectionItem),
-                new SetItemByKey<System.Web.UI.AttributeCollection,string>(SetAttributeCollectionItem), 
-                new CopyFilter<System.Web.UI.AttributeCollection,System.Web.UI.AttributeCollection,string>(FilterStyleAttribute),
+            CopyCollection(Attributes, origAttr,
+                new GetItemByKey<AttributeCollection, string>(GetAttributeCollectionItem),
+                new SetItemByKey<AttributeCollection, string>(SetAttributeCollectionItem),
+                new CopyFilter<AttributeCollection, AttributeCollection, string>(FilterStyleAttribute),
                 Attributes.Keys);
-            CopyCollection(Style, origAttr.CssStyle, 
-                new GetItemByKey<CssStyleCollection,string>(GetCssStyleCollectionItem),
-                new SetItemByKey<CssStyleCollection,string>(SetCssStyleCollectionItem),
-                null, 
+            CopyCollection(Style, origAttr.CssStyle,
+                new GetItemByKey<CssStyleCollection, string>(GetCssStyleCollectionItem),
+                new SetItemByKey<CssStyleCollection, string>(SetCssStyleCollectionItem),
+                null,
                 Style.Keys);
 
             base.Render(writer);
 
         }
+
         private string oldErrorMessage;
         private string[] ErrorMessagePacks = { "<span class=\"error-message-text\">", "", "</span>" };
         /// <summary>
@@ -126,7 +137,7 @@ namespace XControl
         /// <param name="writer"></param>
         public override void RenderBeginTag(HtmlTextWriter writer)
         {
-            writer.AddAttribute(HtmlTextWriterAttribute.Id,this.ClientID);
+            writer.AddAttribute(HtmlTextWriterAttribute.Id, this.ClientID);
             writer.AddStyleAttribute(HtmlTextWriterStyle.Color, ForeColor.Name);
             origAttr.AddAttributes(writer);
             writer.RenderBeginTag(ContainerTag);
@@ -146,7 +157,7 @@ namespace XControl
                     VerifyGUID,
                     DateTime.Now.TimeOfDay.TotalMilliseconds
                     );
-                
+
                 writer.AddAttribute(HtmlTextWriterAttribute.Src, src, false);
                 writer.AddAttribute(HtmlTextWriterAttribute.Onclick, "VerifyCodeBox_Refresh(this);");
                 writer.AddStyleAttribute(HtmlTextWriterStyle.Cursor, "pointer");
@@ -155,7 +166,7 @@ namespace XControl
 
             base.RenderBeginTag(writer);
 
-           
+
             if (!DesignMode && !string.IsNullOrEmpty(ErrorMessage) && (!Page.IsPostBack || IsValid)) // 第一次访问和通过效验的情况下隐藏错误信息
             {
                 oldErrorMessage = ErrorMessage;
@@ -168,6 +179,7 @@ namespace XControl
             }
 
         }
+
         /// <summary>
         /// 已重载
         /// </summary>
@@ -176,6 +188,7 @@ namespace XControl
         {
             base.RenderContents(writer);
         }
+
         /// <summary>
         /// 已重载
         /// </summary>
@@ -265,7 +278,7 @@ namespace XControl
         [Category(" 专用属性")]
         [DefaultValue("")]
         public string ImageHandlerUrl { get; set; }
-        
+
         /// <summary>
         /// 需要效验的效验码文本框
         /// </summary>
@@ -281,90 +294,101 @@ namespace XControl
         /// 根据key从集合获取元素的委托
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="getcoll"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        public delegate TValue GetItemByKey<T,TValue>(T getcoll, object key);
+        public delegate TValue GetItemByKey<T, TValue>(T getcoll, object key);
+
         /// <summary>
         /// 根据key向集合写入元素的委托
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="setcoll"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        public delegate void SetItemByKey<T,TValue>(T setcoll, object key, TValue value);
+        public delegate void SetItemByKey<T, TValue>(T setcoll, object key, TValue value);
+
         /// <summary>
         /// 复制集合的过滤器,返回是否不过滤掉,即返回true保留,返回false不保留
         /// </summary>
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TDest"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="source"></param>
         /// <param name="dest"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public delegate bool CopyFilter<TSource, TDest,TValue>(TSource source, TDest dest, object key, TValue value);
+        public delegate bool CopyFilter<TSource, TDest, TValue>(TSource source, TDest dest, object key, TValue value);
 
         /// <summary>
         /// 复制集合,根据ICollection接口的key
         /// </summary>
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TDest"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="source">复制来源</param>
         /// <param name="dest">复制目标</param>
         /// <param name="getItem">复制来源的元素获取方法</param>
         /// <param name="setItem">复制目标的元素获取方法</param>
         /// <param name="filter">复制数据过滤器</param>
         /// <param name="keys">需要赋值的键</param>
-        public static void CopyCollection<TSource, TDest,TValue>(TSource source, TDest dest, GetItemByKey<TSource,TValue> getItem, SetItemByKey<TDest,TValue> setItem, CopyFilter<TSource, TDest,TValue> filter, System.Collections.ICollection keys)
+        public static void CopyCollection<TSource, TDest, TValue>(TSource source, TDest dest, GetItemByKey<TSource, TValue> getItem, SetItemByKey<TDest, TValue> setItem, CopyFilter<TSource, TDest, TValue> filter, System.Collections.ICollection keys)
         {
             object[] ary = new object[keys.Count];
             keys.CopyTo(ary, 0);
             CopyCollection(source, dest, getItem, setItem, filter, ary);
         }
+
         /// <summary>
         /// 复制集合,根据传递的keys键
         /// </summary>
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TDest"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="source">复制来源</param>
         /// <param name="dest">复制目标</param>
         /// <param name="getItem">复制来源的元素获取方法</param>
         /// <param name="setItem">复制目标的元素获取方法</param>
         /// <param name="filter">复制数据过滤器</param>
         /// <param name="keys">需要赋值的键</param>
-        public static void CopyCollection<TSource, TDest,TValue>(TSource source, TDest dest, GetItemByKey<TSource,TValue> getItem, SetItemByKey<TDest,TValue> setItem, CopyFilter<TSource, TDest,TValue> filter, params object[] keys)
+        public static void CopyCollection<TSource, TDest, TValue>(TSource source, TDest dest, GetItemByKey<TSource, TValue> getItem, SetItemByKey<TDest, TValue> setItem, CopyFilter<TSource, TDest, TValue> filter, params object[] keys)
         {
             TValue v;
             foreach (object k in keys)
             {
-                v=getItem(source, k);
-                if (filter==null || filter(source, dest, k, v))
+                v = getItem(source, k);
+                if (filter == null || filter(source, dest, k, v))
                 {
                     setItem(dest, k, v);
                 }
             }
         }
+
         /// <summary>
-        /// System.Web.UI.AttributeCollection的get方法
+        /// AttributeCollection的get方法
         /// </summary>
         /// <param name="coll"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        public static string GetAttributeCollectionItem(System.Web.UI.AttributeCollection coll, object key)
+        public static string GetAttributeCollectionItem(AttributeCollection coll, object key)
         {
             return coll[key.ToString()];
         }
+
         /// <summary>
-        /// System.Web.UI.AttributeCollection的set方法
+        /// AttributeCollection的set方法
         /// </summary>
         /// <param name="coll"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        public static void SetAttributeCollectionItem(System.Web.UI.AttributeCollection coll, object key, string value)
+        public static void SetAttributeCollectionItem(AttributeCollection coll, object key, string value)
         {
             coll[key.ToString()] = value;
         }
+
         /// <summary>
         /// 过滤掉html属性中的style属性
         /// </summary>
@@ -373,7 +397,7 @@ namespace XControl
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static bool FilterStyleAttribute(System.Web.UI.AttributeCollection s, System.Web.UI.AttributeCollection d, object key, string value)
+        public static bool FilterStyleAttribute(AttributeCollection s, AttributeCollection d, object key, string value)
         {
             if (key != null)
             {
@@ -385,6 +409,7 @@ namespace XControl
             }
             return true;
         }
+
         /// <summary>
         /// CssStyleCollection的Get方法
         /// </summary>
@@ -402,6 +427,7 @@ namespace XControl
                 return coll[key.ToString()];
             }
         }
+
         /// <summary>
         /// CssStyleCollection的Set方法
         /// </summary>
@@ -419,8 +445,6 @@ namespace XControl
                 coll[key.ToString()] = value;
             }
         }
-
-        
         #endregion
     }
 }

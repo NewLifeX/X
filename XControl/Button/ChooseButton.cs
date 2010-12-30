@@ -251,6 +251,7 @@ namespace XControl
             if (_BtnControl == null)
             {
                 _BtnControl = new Button();
+                //_BtnControl = new LinkBox();
                 ////BackColor = Color.FromArgb(0xE7, 0xE7, 0xE7);
                 //_BtnControl.Style.Add(HtmlTextWriterStyle.BackgroundColor, "0xE7E7E7");
                 ////_BtnControl.Style.Add(HtmlTextWriterStyle.BackgroundImage, Page.ClientScript.GetWebResourceUrl(this.GetType(), "XControl.Button.choose.gif"));
