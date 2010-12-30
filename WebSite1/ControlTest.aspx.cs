@@ -51,7 +51,7 @@ public partial class ControlTest : System.Web.UI.Page
     }
     protected void DataPager2_PageCommand(object sender, CommandEventArgs e)
     {
-        Label3.Text = String.Format("PageCommand {0}={1}", e.CommandName, e.CommandArgument);
+        //Label3.Text = String.Format("PageCommand {0}={1}", e.CommandName, e.CommandArgument);
     }
     protected void Label4_DataBinding(object sender, EventArgs e)
     {
