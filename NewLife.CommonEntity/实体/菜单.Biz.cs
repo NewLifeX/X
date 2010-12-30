@@ -338,7 +338,9 @@ namespace NewLife.CommonEntity
         {
             if (name.Contains(@".") || name.Contains(@"/") || name.Contains(@"\")) return false;
 
-            // 没有设置权限项或者权限项和名字不相同时
+            // 没有设置权限项或者权限项和名字相同时
+            //注意比较添加权限名称是否跟页面上所写Title相同（包括中文，英文）
+            //如果权限名称与页面中的Title不相同时修改权限名称为页面Title名称，疏漏可能造成日志重复写入
             if (String.IsNullOrEmpty(Permission) || IsEnglish(Permission)||!String.Equals(Permission,name,StringComparison.OrdinalIgnoreCase)) Permission = name;
             if (String.IsNullOrEmpty(Name) || IsEnglish(Name)) Name = name;
 
