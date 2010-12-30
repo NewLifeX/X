@@ -612,7 +612,7 @@ Dialog.CloseSelfDialog = function (frameElement) {
 Dialog.CloseAndRefresh = function (frameElement) {
     try {
         Dialog.CloseSelfDialog(frameElement);
-        document.main.location.reload();
+        window.frames["main"].location.reload()
     } catch (e) {
         //alert(e);
     }
@@ -824,7 +824,9 @@ PageOnLoad = function()
             {
                 d.onLoad();
             }
-        } catch (ex) { alert("DialogOnLoad:" + ex.message + "\t(" + ex.fileName + " " + ex.lineNumber + ")"); }
+        } catch (ex) { 
+           //alert("DialogOnLoad:" + ex.message + "\t(" + ex.fileName + " " + ex.lineNumber + ")"); 
+        }
     }
 }
 
