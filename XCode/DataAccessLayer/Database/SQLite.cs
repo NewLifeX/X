@@ -261,160 +261,142 @@ namespace XCode.DataAccessLayer
         #region 构架
         public override List<XTable> GetTables()
         {
-            List<XTable> list = null;
-            DataTable[] dts = new DataTable[2];
-            dts[0] = GetSchema("Tables", new String[] { null, null, null, "TABLE" });
-            dts[1] = GetSchema("Tables", new String[] { null, null, null, "VIEW" });
-            list = new List<XTable>();
-            for (Int32 i = 0; i < dts.Length; i++)
-            {
-                if (dts[i] != null && dts[i].Rows != null && dts[i].Rows.Count > 0)
-                {
-                    foreach (DataRow drTable in dts[i].Rows)
-                    {
-                        XTable xt = new XTable();
-                        xt.ID = list.Count + 1;
-                        xt.Name = drTable["TABLE_NAME"].ToString();
-                        xt.IsView = i > 0;
+            DataTable dt = GetSchema("Tables", null);
+            if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
-                        xt.Fields = GetFields(xt);
-
-                        list.Add(xt);
-                    }
-                }
-            }
-
-            return list;
+            // 默认列出所有字段
+            DataRow[] rows = dt.Select("TABLE_TYPE='table'");
+            return GetTables(rows);
         }
 
-        protected override List<XField> GetFields(XTable xt)
-        {
-            DataColumnCollection columns = GetColumns(xt.Name);
+        //protected override List<XField> GetFields(XTable xt)
+        //{
+        //    DataColumnCollection columns = GetColumns(xt.Name);
 
-            DataTable dt = GetSchema("Columns", new String[] { null, null, xt.Name });
+        //    DataTable dt = GetSchema("Columns", new String[] { null, null, xt.Name });
 
-            List<XField> list = new List<XField>();
-            DataRow[] drs = dt.Select("", "ORDINAL_POSITION");
-            //List<String> pks = GetPrimaryKeys(xt);
-            Int32 IDCount = 0;
-            foreach (DataRow dr in drs)
-            {
-                XField xf = xt.CreateField();
+        //    List<XField> list = new List<XField>();
+        //    DataRow[] drs = dt.Select("", "ORDINAL_POSITION");
+        //    //List<String> pks = GetPrimaryKeys(xt);
+        //    Int32 IDCount = 0;
+        //    foreach (DataRow dr in drs)
+        //    {
+        //        XField xf = xt.CreateField();
 
-                xf.ID = Int32.Parse(dr["ORDINAL_POSITION"].ToString());
-                xf.Name = dr["COLUMN_NAME"].ToString();
-                xf.RawType = dr["DATA_TYPE"].ToString();
-                xf.Identity = Convert.ToBoolean(dr["AUTOINCREMENT"]);
-                xf.PrimaryKey = Convert.ToBoolean(dr["PRIMARY_KEY"]);
+        //        xf.ID = Int32.Parse(dr["ORDINAL_POSITION"].ToString());
+        //        xf.Name = dr["COLUMN_NAME"].ToString();
+        //        xf.RawType = dr["DATA_TYPE"].ToString();
+        //        xf.Identity = Convert.ToBoolean(dr["AUTOINCREMENT"]);
+        //        xf.PrimaryKey = Convert.ToBoolean(dr["PRIMARY_KEY"]);
 
-                if (columns != null && columns.Contains(xf.Name))
-                {
-                    DataColumn dc = columns[xf.Name];
-                    xf.DataType = dc.DataType;
-                }
+        //        if (columns != null && columns.Contains(xf.Name))
+        //        {
+        //            DataColumn dc = columns[xf.Name];
+        //            xf.DataType = dc.DataType;
+        //        }
 
-                if (Type.GetTypeCode(xf.DataType) == TypeCode.Int32 || Type.GetTypeCode(xf.DataType) == TypeCode.Double)
-                {
-                    xf.Length = dr["NUMERIC_PRECISION"] == DBNull.Value ? 0 : Int32.Parse(dr["NUMERIC_PRECISION"].ToString());
-                    xf.NumOfByte = 0;
-                    xf.Digit = dr["NUMERIC_SCALE"] == DBNull.Value ? 0 : Int32.Parse(dr["NUMERIC_SCALE"].ToString());
-                }
-                else if (Type.GetTypeCode(xf.DataType) == TypeCode.DateTime)
-                {
-                    xf.Length = dr["DATETIME_PRECISION"] == DBNull.Value ? 0 : Int32.Parse(dr["DATETIME_PRECISION"].ToString());
-                    xf.NumOfByte = 0;
-                    xf.Digit = 0;
-                }
-                else
-                {
-                    if (dr["DATA_TYPE"].ToString() == "130" && dr["COLUMN_FLAGS"].ToString() == "234") //备注类型
-                    {
-                        xf.Length = Int32.MaxValue;
-                        xf.NumOfByte = Int32.MaxValue;
-                    }
-                    else
-                    {
-                        xf.Length = dr["CHARACTER_MAXIMUM_LENGTH"] == DBNull.Value ? 0 : Int32.Parse(dr["CHARACTER_MAXIMUM_LENGTH"].ToString());
-                        xf.NumOfByte = dr["CHARACTER_OCTET_LENGTH"] == DBNull.Value ? 0 : Int32.Parse(dr["CHARACTER_OCTET_LENGTH"].ToString());
-                    }
-                    xf.Digit = 0;
-                }
+        //        if (Type.GetTypeCode(xf.DataType) == TypeCode.Int32 || Type.GetTypeCode(xf.DataType) == TypeCode.Double)
+        //        {
+        //            xf.Length = dr["NUMERIC_PRECISION"] == DBNull.Value ? 0 : Int32.Parse(dr["NUMERIC_PRECISION"].ToString());
+        //            xf.NumOfByte = 0;
+        //            xf.Digit = dr["NUMERIC_SCALE"] == DBNull.Value ? 0 : Int32.Parse(dr["NUMERIC_SCALE"].ToString());
+        //        }
+        //        else if (Type.GetTypeCode(xf.DataType) == TypeCode.DateTime)
+        //        {
+        //            xf.Length = dr["DATETIME_PRECISION"] == DBNull.Value ? 0 : Int32.Parse(dr["DATETIME_PRECISION"].ToString());
+        //            xf.NumOfByte = 0;
+        //            xf.Digit = 0;
+        //        }
+        //        else
+        //        {
+        //            if (dr["DATA_TYPE"].ToString() == "130" && dr["COLUMN_FLAGS"].ToString() == "234") //备注类型
+        //            {
+        //                xf.Length = Int32.MaxValue;
+        //                xf.NumOfByte = Int32.MaxValue;
+        //            }
+        //            else
+        //            {
+        //                xf.Length = dr["CHARACTER_MAXIMUM_LENGTH"] == DBNull.Value ? 0 : Int32.Parse(dr["CHARACTER_MAXIMUM_LENGTH"].ToString());
+        //                xf.NumOfByte = dr["CHARACTER_OCTET_LENGTH"] == DBNull.Value ? 0 : Int32.Parse(dr["CHARACTER_OCTET_LENGTH"].ToString());
+        //            }
+        //            xf.Digit = 0;
+        //        }
 
-                try
-                {
-                    xf.Nullable = Boolean.Parse(dr["IS_NULLABLE"].ToString());
-                }
-                catch
-                {
-                    xf.Nullable = dr["IS_NULLABLE"].ToString() == "YES";
-                }
-                try
-                {
-                    xf.Default = dr["COLUMN_HASDEFAULT"].ToString() == "False" ? "" : dr["COLUMN_DEFAULT"].ToString();
-                }
-                catch
-                {
-                    xf.Default = dr["COLUMN_DEFAULT"].ToString();
-                }
-                try
-                {
-                    xf.Description = dr["DESCRIPTION"] == DBNull.Value ? "" : dr["DESCRIPTION"].ToString();
-                }
-                catch
-                {
-                    xf.Description = "";
-                }
+        //        try
+        //        {
+        //            xf.Nullable = Boolean.Parse(dr["IS_NULLABLE"].ToString());
+        //        }
+        //        catch
+        //        {
+        //            xf.Nullable = dr["IS_NULLABLE"].ToString() == "YES";
+        //        }
+        //        try
+        //        {
+        //            xf.Default = dr["COLUMN_HASDEFAULT"].ToString() == "False" ? "" : dr["COLUMN_DEFAULT"].ToString();
+        //        }
+        //        catch
+        //        {
+        //            xf.Default = dr["COLUMN_DEFAULT"].ToString();
+        //        }
+        //        try
+        //        {
+        //            xf.Description = dr["DESCRIPTION"] == DBNull.Value ? "" : dr["DESCRIPTION"].ToString();
+        //        }
+        //        catch
+        //        {
+        //            xf.Description = "";
+        //        }
 
-                //处理默认值
-                while (!String.IsNullOrEmpty(xf.Default) && xf.Default[0] == '(' && xf.Default[xf.Default.Length - 1] == ')')
-                {
-                    xf.Default = xf.Default.Substring(1, xf.Default.Length - 2);
-                }
-                if (!String.IsNullOrEmpty(xf.Default)) xf.Default = xf.Default.Trim(new Char[] { '"', '\'' });
+        //        //处理默认值
+        //        while (!String.IsNullOrEmpty(xf.Default) && xf.Default[0] == '(' && xf.Default[xf.Default.Length - 1] == ')')
+        //        {
+        //            xf.Default = xf.Default.Substring(1, xf.Default.Length - 2);
+        //        }
+        //        if (!String.IsNullOrEmpty(xf.Default)) xf.Default = xf.Default.Trim(new Char[] { '"', '\'' });
 
-                //修正自增字段属性
-                if (xf.Identity)
-                {
-                    if (xf.Nullable)
-                        xf.Identity = false;
-                    else if (!String.IsNullOrEmpty(xf.Default))
-                        xf.Identity = false;
-                }
-                if (xf.Identity) IDCount++;
+        //        //修正自增字段属性
+        //        if (xf.Identity)
+        //        {
+        //            if (xf.Nullable)
+        //                xf.Identity = false;
+        //            else if (!String.IsNullOrEmpty(xf.Default))
+        //                xf.Identity = false;
+        //        }
+        //        if (xf.Identity) IDCount++;
 
-                list.Add(xf);
-            }
+        //        list.Add(xf);
+        //    }
 
-            //再次修正自增字段
-            if (IDCount > 1)
-            {
-                foreach (XField xf in list)
-                {
-                    if (!xf.Identity) continue;
+        //    //再次修正自增字段
+        //    if (IDCount > 1)
+        //    {
+        //        foreach (XField xf in list)
+        //        {
+        //            if (!xf.Identity) continue;
 
-                    if (!String.Equals(xf.Name, "ID", StringComparison.OrdinalIgnoreCase))
-                    {
-                        xf.Identity = false;
-                        IDCount--;
-                    }
-                }
-            }
-            if (IDCount > 1)
-            {
-                foreach (XField xf in list)
-                {
-                    if (!xf.Identity) continue;
+        //            if (!String.Equals(xf.Name, "ID", StringComparison.OrdinalIgnoreCase))
+        //            {
+        //                xf.Identity = false;
+        //                IDCount--;
+        //            }
+        //        }
+        //    }
+        //    if (IDCount > 1)
+        //    {
+        //        foreach (XField xf in list)
+        //        {
+        //            if (!xf.Identity) continue;
 
-                    if (xf.ID > 1)
-                    {
-                        xf.Identity = false;
-                        IDCount--;
-                    }
-                }
-            }
+        //            if (xf.ID > 1)
+        //            {
+        //                xf.Identity = false;
+        //                IDCount--;
+        //            }
+        //        }
+        //    }
 
-            return list;
-        }
+        //    return list;
+        //}
         #endregion
 
         #region 数据定义

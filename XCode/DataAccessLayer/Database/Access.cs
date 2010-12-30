@@ -12,6 +12,7 @@ using DAO;
 using NewLife.Log;
 using XCode.Common;
 using XCode.Exceptions;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -144,6 +145,89 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 构架
+        //static TypeX oledbSchema;
+        ///// <summary>
+        ///// 已重载。特殊情况下使用OleDb引擎的GetOleDbSchemaTable
+        ///// </summary>
+        ///// <param name="collectionName"></param>
+        ///// <param name="restrictionValues"></param>
+        ///// <returns></returns>
+        //public override DataTable GetSchema(string collectionName, string[] restrictionValues)
+        //{
+        //    if (oledbSchema == null) oledbSchema = TypeX.Create(typeof(OleDbSchemaGuid));
+
+        //    if (String.IsNullOrEmpty(collectionName))
+        //    {
+        //        DataTable dt = base.GetSchema(collectionName, restrictionValues);
+        //        foreach (FieldInfoX item in oledbSchema.Fields)
+        //        {
+        //            DataRow dr = dt.NewRow();
+        //            dr[0] = item.Field.Name;
+        //            dt.Rows.Add(dr);
+        //        }
+        //        return dt;
+        //    }
+
+        //    if (oledbSchema.Fields != null && oledbSchema.Fields.Count > 0)
+        //    {
+        //        foreach (FieldInfoX item in oledbSchema.Fields)
+        //        {
+        //            if (!String.Equals(item.Field.Name, collectionName, StringComparison.OrdinalIgnoreCase)) continue;
+
+        //            Guid guid = (Guid)item.GetValue();
+        //            if (guid != Guid.Empty)
+        //            {
+        //                Object[] pms = null;
+        //                if (restrictionValues != null)
+        //                {
+        //                    pms = new Object[restrictionValues.Length];
+        //                    for (int i = 0; i < restrictionValues.Length; i++)
+        //                    {
+        //                        pms[i] = restrictionValues[i];
+        //                    }
+        //                }
+        //                //return (Conn as OleDbConnection).GetOleDbSchemaTable(guid, pms);
+        //                return GetOleDbSchemaTable(guid, pms);
+        //            }
+        //        }
+        //    }
+
+        //    return base.GetSchema(collectionName, restrictionValues);
+        //}
+
+        //private DataTable GetOleDbSchemaTable(Guid schema, object[] restrictions)
+        //{
+        //    if (!Opened) Open();
+
+        //    try
+        //    {
+        //        return (Conn as OleDbConnection).GetOleDbSchemaTable(schema, restrictions);
+        //    }
+        //    //catch (Exception ex)
+        //    //{
+        //    //    if (Debug) WriteLog(ex.ToString());
+        //    //    return null;
+        //    //}
+        //    catch (DbException ex)
+        //    {
+        //        throw new XDbException(this, "取得所有表构架出错！", ex);
+        //    }
+        //    finally
+        //    {
+        //        AutoClose();
+        //    }
+        //}
+
+        public override List<XTable> GetTables()
+        {
+            DataTable dt = GetSchema("Tables", null);
+            if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
+
+            // 默认列出所有字段
+            DataRow[] rows = dt.Select(String.Format("{0}='Table' Or {0}='View'", "TABLE_TYPE"));
+            return GetTables(rows);
+        }
+
         protected override List<XField> GetFields(XTable xt)
         {
             List<XField> list = base.GetFields(xt);
@@ -176,23 +260,103 @@ namespace XCode.DataAccessLayer
             return list;
         }
 
-        /// <summary>
-        /// 已重载。主键构架
-        /// </summary>
-        protected override DataTable PrimaryKeys
+        protected override void FixField(XField field, DataRow dr)
         {
-            get
+            base.FixField(field, dr);
+
+            // 字段标识
+            Int64 flag = GetDataRowValue<Int64>(dr, "COLUMN_FLAGS");
+
+            Boolean? isLong = null;
+
+            Int32 id = 0;
+            if (Int32.TryParse(GetDataRowValue<String>(dr, "DATA_TYPE"), out id))
             {
-                if (_PrimaryKeys != null) return _PrimaryKeys;
+                DataRow[] drs = FindDataType(id, isLong);
+                if (drs != null && drs.Length > 0)
+                {
+                    String typeName = GetDataRowValue<String>(drs[0], "TypeName");
+                    field.RawType = typeName;
 
-                if (!Opened) Open();
+                    if (TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) field.DataType = Type.GetType(typeName);
 
-                _PrimaryKeys = (Conn as OleDbConnection).GetOleDbSchemaTable(OleDbSchemaGuid.Primary_Keys, new String[] { null, null, null });
-
-                AutoClose();
-
-                return _PrimaryKeys;
+                    // 修正备注类型
+                    if (field.DataType == typeof(String) && drs.Length > 1)
+                    {
+                        isLong = (flag & 0x80) == 0x80;
+                        drs = FindDataType(id, isLong);
+                        if (drs != null && drs.Length > 0)
+                        {
+                            typeName = GetDataRowValue<String>(drs[0], "TypeName");
+                            field.RawType = typeName;
+                        }
+                    }
+                }
             }
+
+            //// 处理自增
+            //if (field.DataType == typeof(Int32))
+            //{
+            //    //field.Identity = (flag & 0x20) != 0x20;
+            //}
+        }
+
+        protected override Dictionary<DataRow, String> GetPrimaryKeys(string tableName)
+        {
+            Dictionary<DataRow, String> pks = base.GetPrimaryKeys(tableName);
+            if (pks == null || pks.Count < 1) return null;
+            if (pks.Count == 1) return pks;
+
+            // 避免把索引错当成主键
+            List<DataRow> list = new List<DataRow>();
+            foreach (DataRow item in pks.Keys)
+            {
+                if (!GetDataRowValue<Boolean>(item, "PRIMARY_KEY")) list.Add(item);
+            }
+            if (list.Count == pks.Count) return pks;
+
+            foreach (DataRow item in list)
+            {
+                pks.Remove(item);
+            }
+            return pks;
+        }
+        #endregion
+
+        #region 数据类型
+        //public override Type FieldTypeToClassType(String typeName)
+        //{
+        //    Int32 id = 0;
+        //    if (Int32.TryParse(typeName, out id))
+        //    {
+        //        DataRow[] drs = FindDataType(id, null);
+        //        if (drs != null && drs.Length > 0)
+        //        {
+        //            if (!TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) return null;
+        //            return Type.GetType(typeName);
+        //        }
+        //    }
+
+        //    return base.FieldTypeToClassType(typeName);
+        //}
+
+        DataRow[] FindDataType(Int32 typeID, Boolean? isLong)
+        {
+            DataTable dt = DataTypes;
+            if (dt == null) return null;
+
+            DataRow[] drs = null;
+            if (isLong == null)
+            {
+                drs = dt.Select(String.Format("NativeDataType={0}", typeID));
+                if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0}", typeID));
+            }
+            else
+            {
+                drs = dt.Select(String.Format("NativeDataType={0} And IsLong={1}", typeID, isLong.Value));
+                if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0} And IsLong={1}", typeID, isLong.Value));
+            }
+            return drs;
         }
         #endregion
 

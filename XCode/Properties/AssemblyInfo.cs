@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("6.5.*")]
-[assembly: AssemblyFileVersion("6.5.2010.1223")]
+[assembly: AssemblyVersion("6.6.*")]
+[assembly: AssemblyFileVersion("6.6.2010.1230")]
 
 /*
  * XCode的重大改进
@@ -47,6 +47,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v6.6.2010.1230   修改XCode类型映射模型，统一使用Schema信息，不再人为指定类型映射，全部交由数据库提供者处理
+ *                  由C#类型反向到数据类型的映射尚未完成
+ * 
  * v6.5.2010.1223   修正SQLite已知的一些问题，查找dll文件路径不正确，执行插入语句不正确
  *                  IEntity增加CopyFrom方法，用于从指定实体对象复制成员数据
  *                  增加对二进制字段的支持，表现为Byte[]

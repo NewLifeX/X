@@ -134,104 +134,152 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override List<XTable> GetTables()
         {
-            List<XTable> list = null;
             try
             {
-                DataTable dt = GetSchema("Tables", null);
-
                 //一次性把所有的表说明查出来
                 DataSet ds = Query(DescriptionSql);
                 DataTable DescriptionTable = ds == null || ds.Tables == null || ds.Tables.Count < 1 ? null : ds.Tables[0];
 
-                list = new List<XTable>();
-                if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
+                DataTable dt = GetSchema("Tables", null);
+                if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
+
+                AllFields = Query(SchemaSql).Tables[0];
+
+                // 列出用户表
+                DataRow[] rows = dt.Select(String.Format("{0}='BASE TABLE' Or {0}='VIEW'", "TABLE_TYPE"));
+                List<XTable> list = GetTables(rows);
+                if (list == null || list.Count < 1) return list;
+
+                // 修正备注
+                foreach (XTable item in list)
                 {
-                    AllFields = Query(SchemaSql).Tables[0];
-
-                    foreach (DataRow drTable in dt.Rows)
-                    {
-                        if (drTable["TABLE_NAME"].ToString() != "dtproperties" &&
-                            drTable["TABLE_NAME"].ToString() != "sysconstraints" &&
-                            drTable["TABLE_NAME"].ToString() != "syssegments" &&
-                           (drTable["TABLE_TYPE"].ToString() == "BASE TABLE" || drTable["TABLE_TYPE"].ToString() == "VIEW"))
-                        {
-                            XTable xt = new XTable();
-                            xt.ID = list.Count + 1;
-                            xt.Name = drTable["TABLE_NAME"].ToString();
-
-                            DataRow[] drs = DescriptionTable == null ? null : DescriptionTable.Select("n='" + xt.Name + "'");
-                            xt.Description = drs == null || drs.Length < 1 ? "" : drs[0][1].ToString();
-
-                            xt.IsView = drTable["TABLE_TYPE"].ToString() == "VIEW";
-                            xt.Fields = GetFields(xt);
-
-                            list.Add(xt);
-                        }
-                    }
+                    DataRow[] drs = DescriptionTable == null ? null : DescriptionTable.Select("n='" + item.Name + "'");
+                    item.Description = drs == null || drs.Length < 1 ? "" : drs[0][1].ToString();
                 }
+
+                return list;
             }
             catch (DbException ex)
             {
                 throw new XDbException(this, "取得所有表构架出错！", ex);
             }
 
-            if (list == null || list.Count < 1) return null;
+            //List<XTable> list = null;
+            //try
+            //{
+            //    DataTable dt = GetSchema("Tables", null);
 
-            return list;
+            //    //一次性把所有的表说明查出来
+            //    DataSet ds = Query(DescriptionSql);
+            //    DataTable DescriptionTable = ds == null || ds.Tables == null || ds.Tables.Count < 1 ? null : ds.Tables[0];
+
+            //    list = new List<XTable>();
+            //    if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
+            //    {
+            //        AllFields = Query(SchemaSql).Tables[0];
+
+            //        foreach (DataRow drTable in dt.Rows)
+            //        {
+            //            if (drTable["TABLE_NAME"].ToString() != "dtproperties" &&
+            //                drTable["TABLE_NAME"].ToString() != "sysconstraints" &&
+            //                drTable["TABLE_NAME"].ToString() != "syssegments" &&
+            //               (drTable["TABLE_TYPE"].ToString() == "BASE TABLE" || drTable["TABLE_TYPE"].ToString() == "VIEW"))
+            //            {
+            //                XTable xt = new XTable();
+            //                xt.ID = list.Count + 1;
+            //                xt.Name = drTable["TABLE_NAME"].ToString();
+
+            //                DataRow[] drs = DescriptionTable == null ? null : DescriptionTable.Select("n='" + xt.Name + "'");
+            //                xt.Description = drs == null || drs.Length < 1 ? "" : drs[0][1].ToString();
+
+            //                xt.IsView = drTable["TABLE_TYPE"].ToString() == "VIEW";
+            //                xt.DbType = DbType;
+            //                xt.Fields = GetFields(xt);
+
+            //                list.Add(xt);
+            //            }
+            //        }
+            //    }
+            //}
+            //catch (DbException ex)
+            //{
+            //    throw new XDbException(this, "取得所有表构架出错！", ex);
+            //}
+
+            //if (list == null || list.Count < 1) return null;
+
+            //return list;
         }
 
         private DataTable AllFields = null;
 
-        /// <summary>
-        /// 取得指定表的所有列构架
-        /// </summary>
-        /// <param name="xt"></param>
-        /// <returns></returns>
-        protected override List<XField> GetFields(XTable xt)
+        ///// <summary>
+        ///// 取得指定表的所有列构架
+        ///// </summary>
+        ///// <param name="table"></param>
+        ///// <returns></returns>
+        //protected override List<XField> GetFields(XTable table)
+        //{
+        //    if (AllFields == null) return base.GetFields(table);
+
+        //    DataRow[] rows = AllFields.Select("表名='" + table.Name + "'", null);
+        //    if (rows == null || rows.Length < 1) return base.GetFields(table);
+
+        //    List<XField> list = new List<XField>();
+        //    //DataColumnCollection columns = GetColumns(xt.Name);
+        //    foreach (DataRow dr in rows)
+        //    {
+        //        XField field = table.CreateField();
+        //        field.ID = Int32.Parse(dr["字段序号"].ToString());
+        //        field.Name = dr["字段名"].ToString();
+        //        field.RawType = dr["类型"].ToString();
+        //        //xf.DataType = FieldTypeToClassType(dr["类型"].ToString());
+        //        //field.DataType = FieldTypeToClassType(field);
+        //        field.Identity = Boolean.Parse(dr["标识"].ToString());
+
+        //        //if (columns != null && columns.Contains(xf.Name))
+        //        //{
+        //        //    DataColumn dc = columns[xf.Name];
+        //        //    xf.DataType = dc.DataType;
+        //        //}
+
+        //        field.PrimaryKey = Boolean.Parse(dr["主键"].ToString());
+
+        //        field.Length = Int32.Parse(dr["长度"].ToString());
+        //        field.NumOfByte = Int32.Parse(dr["占用字节数"].ToString());
+        //        field.Digit = Int32.Parse(dr["小数位数"].ToString());
+
+        //        field.Nullable = Boolean.Parse(dr["允许空"].ToString());
+        //        field.Default = dr["默认值"].ToString();
+        //        field.Description = dr["字段说明"].ToString();
+
+        //        //处理默认值
+        //        while (!String.IsNullOrEmpty(field.Default) && field.Default[0] == '(' && field.Default[field.Default.Length - 1] == ')')
+        //        {
+        //            field.Default = field.Default.Substring(1, field.Default.Length - 2);
+        //        }
+        //        if (!String.IsNullOrEmpty(field.Default)) field.Default = field.Default.Trim(new Char[] { '"', '\'' });
+
+        //        list.Add(field);
+        //    }
+
+        //    return list;
+        //}
+
+        protected override void FixField(XField field, DataRow dr)
         {
-            if (AllFields == null) return base.GetFields(xt);
+            base.FixField(field, dr);
 
-            DataRow[] rows = AllFields.Select("表名='" + xt.Name + "'", null);
-            if (rows == null || rows.Length < 1) return base.GetFields(xt);
-
-            List<XField> list = new List<XField>();
-            //DataColumnCollection columns = GetColumns(xt.Name);
-            foreach (DataRow dr in rows)
+            DataRow[] rows = AllFields.Select("表名='" + field.Table.Name + "' And 字段名='" + field.Name + "'", null);
+            if (rows != null && rows.Length > 0)
             {
-                XField xf = xt.CreateField();
-                xf.ID = Int32.Parse(dr["字段序号"].ToString());
-                xf.Name = dr["字段名"].ToString();
-                xf.RawType = dr["类型"].ToString();
-                xf.DataType = FieldTypeToClassType(dr["类型"].ToString());
-                xf.Identity = Boolean.Parse(dr["标识"].ToString());
+                DataRow dr2 = rows[0];
 
-                //if (columns != null && columns.Contains(xf.Name))
-                //{
-                //    DataColumn dc = columns[xf.Name];
-                //    xf.DataType = dc.DataType;
-                //}
-
-                xf.PrimaryKey = Boolean.Parse(dr["主键"].ToString());
-
-                xf.Length = Int32.Parse(dr["长度"].ToString());
-                xf.NumOfByte = Int32.Parse(dr["占用字节数"].ToString());
-                xf.Digit = Int32.Parse(dr["小数位数"].ToString());
-
-                xf.Nullable = Boolean.Parse(dr["允许空"].ToString());
-                xf.Default = dr["默认值"].ToString();
-                xf.Description = dr["字段说明"].ToString();
-
-                //处理默认值
-                while (!String.IsNullOrEmpty(xf.Default) && xf.Default[0] == '(' && xf.Default[xf.Default.Length - 1] == ')')
-                {
-                    xf.Default = xf.Default.Substring(1, xf.Default.Length - 2);
-                }
-                if (!String.IsNullOrEmpty(xf.Default)) xf.Default = xf.Default.Trim(new Char[] { '"', '\'' });
-
-                list.Add(xf);
+                field.Identity = GetDataRowValue<Boolean>(dr2, "标识");
+                field.PrimaryKey = GetDataRowValue<Boolean>(dr2, "主键");
+                field.NumOfByte = GetDataRowValue<Int32>(dr2, "占用字节数");
+                field.Description = GetDataRowValue<String>(dr2, "字段说明");
             }
-
-            return list;
         }
 
         /// <summary>
@@ -241,63 +289,84 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_PrimaryKeys == null) _PrimaryKeys = GetSchema("IndexColumns", new String[] { null, null, null });
+                if (_PrimaryKeys == null)
+                {
+                    DataTable pks = GetSchema("IndexColumns", new String[] { null, null, null });
+                    if (pks == null) return null;
+
+                    //// 取得所有索引
+                    //DataTable dt = GetSchema("Indexes", new String[] { null, null, null });
+                    //// 取得所有拥有索引的表名
+                    //Dictionary<String, Int32> dic = new Dictionary<string, int>();
+                    //foreach (DataRow item in dt.Rows)
+                    //{
+                    //    String name = GetDataRowValue<String>(item, "table_name");
+                    //}
+
+                    //DataRow[] drs = dt.Select("type_desc='NONCLUSTERED'");
+                    //if (drs != null && drs.Length > 0)
+                    //{
+
+                    //}
+
+                    _PrimaryKeys = pks;
+                }
                 return _PrimaryKeys;
             }
         }
 
         #region 字段类型到数据类型对照表
-        public override Type FieldTypeToClassType(String type)
-        {
-            switch (type)
-            {
-                case "text":
-                case "uniqueidentifier":
-                case "ntext":
-                case "varchar":
-                case "char":
-                case "timestamp":
-                case "nvarchar":
-                case "nchar":
-                    return typeof(String);
-                case "bit":
-                    return typeof(Boolean);
-                case "tinyint":
-                case "smallint":
-                    return typeof(Int16);
-                case "int":
-                case "numeric":
-                    return typeof(Int32);
-                case "bigint":
-                    return typeof(Int64);
-                case "decimal":
-                case "money":
-                case "smallmoney":
-                    return typeof(Decimal);
-                case "smallldatetime":
-                case "datetime":
-                    return typeof(DateTime);
-                case "real":
-                case "float":
-                    return typeof(Double);
-                case "image":
-                case "sql_variant":
-                case "varbinary":
-                case "binary":
-                case "systemname":
-                    return typeof(Byte[]);
-                default:
-                    return typeof(String);
-            }
-            //if (type.Equals("Int32", StringComparison.OrdinalIgnoreCase)) return "Int32";
-            //if (type.Equals("varchar", StringComparison.OrdinalIgnoreCase)) return "String";
-            //if (type.Equals("text", StringComparison.OrdinalIgnoreCase)) return "String";
-            //if (type.Equals("double", StringComparison.OrdinalIgnoreCase)) return "Double";
-            //if (type.Equals("datetime", StringComparison.OrdinalIgnoreCase)) return "DateTime";
-            //if (type.Equals("Int32", StringComparison.OrdinalIgnoreCase)) return "Int32";
-            //if (type.Equals("Int32", StringComparison.OrdinalIgnoreCase)) return "Int32";
-            //throw new Exception("Error");
-        }
+        //public override Type FieldTypeToClassType(String type)
+        //{
+        //    switch (type)
+        //    {
+        //        case "text":
+        //        case "uniqueidentifier":
+        //        case "ntext":
+        //        case "varchar":
+        //        case "char":
+        //        case "timestamp":
+        //        case "nvarchar":
+        //        case "nchar":
+        //            return typeof(String);
+        //        case "bit":
+        //            return typeof(Boolean);
+        //        case "tinyint":
+        //        case "smallint":
+        //            return typeof(Int16);
+        //        case "int":
+        //        case "numeric":
+        //            return typeof(Int32);
+        //        case "bigint":
+        //            return typeof(Int64);
+        //        case "decimal":
+        //        case "money":
+        //        case "smallmoney":
+        //            return typeof(Decimal);
+        //        case "smallldatetime":
+        //        case "datetime":
+        //            return typeof(DateTime);
+        //        case "real":
+        //        case "float":
+        //            return typeof(Double);
+        //        case "image":
+        //        case "sql_variant":
+        //        case "varbinary":
+        //        case "binary":
+        //        case "systemname":
+        //            return typeof(Byte[]);
+        //        default:
+        //            return typeof(String);
+        //    }
+        //    //if (type.Equals("Int32", StringComparison.OrdinalIgnoreCase)) return "Int32";
+        //    //if (type.Equals("varchar", StringComparison.OrdinalIgnoreCase)) return "String";
+        //    //if (type.Equals("text", StringComparison.OrdinalIgnoreCase)) return "String";
+        //    //if (type.Equals("double", StringComparison.OrdinalIgnoreCase)) return "Double";
+        //    //if (type.Equals("datetime", StringComparison.OrdinalIgnoreCase)) return "DateTime";
+        //    //if (type.Equals("Int32", StringComparison.OrdinalIgnoreCase)) return "Int32";
+        //    //if (type.Equals("Int32", StringComparison.OrdinalIgnoreCase)) return "Int32";
+        //    //throw new Exception("Error");
+        //}
         #endregion
 
         #region 取得字段信息的SQL模版
@@ -318,7 +387,7 @@ namespace XCode.DataAccessLayer
                     sb.Append("字段名=a.name,");
                     sb.Append("标识=case when COLUMNPROPERTY( a.id,a.name,'IsIdentity')=1 then Convert(Bit,1) else Convert(Bit,0) end,");
                     sb.Append("主键=case when exists(SELECT 1 FROM sysobjects where xtype='PK' and name in (");
-                    sb.Append("SELECT name FROM sysindexes WHERE indid in(");
+                    sb.Append("SELECT name FROM sysindexes WHERE id = a.id AND indid in(");
                     sb.Append("SELECT indid FROM sysindexkeys WHERE id = a.id AND colid=a.colid");
                     sb.Append("))) then Convert(Bit,1) else Convert(Bit,0) end,");
                     sb.Append("类型=b.name,");

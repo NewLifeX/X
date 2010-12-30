@@ -823,13 +823,13 @@ namespace XCode.DataAccessLayer
         //    return DB.PrepareCommand();
         //}
 
-        private IList<XTable> _Tables;
+        private List<XTable> _Tables;
         /// <summary>
         /// 取得所有表和视图的构架信息
         /// </summary>
         /// <remarks>如果不存在缓存，则获取后返回；否则使用线程池线程获取，而主线程返回缓存</remarks>
         /// <returns></returns>
-        public IList<XTable> Tables
+        public List<XTable> Tables
         {
             get
             {
@@ -843,7 +843,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private IList<XTable> GetTables()
+        private List<XTable> GetTables()
         {
             List<XTable> list = DB.GetTables();
             if (list != null && list.Count > 0) list.Sort(delegate(XTable item1, XTable item2) { return item1.Name.CompareTo(item2.Name); });

@@ -61,6 +61,16 @@ namespace XCode.DataAccessLayer
             get { return _Owner; }
             set { _Owner = value; }
         }
+
+        private DatabaseType _DbType;
+        /// <summary>数据库类型</summary>
+        [XmlAttribute]
+        [Description("数据库类型")]
+        public DatabaseType DbType
+        {
+            get { return _DbType; }
+            set { _DbType = value; }
+        }
         #endregion
 
         private List<XField> _Fields;

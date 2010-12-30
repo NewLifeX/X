@@ -77,7 +77,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override List<XTable> GetTables()
         {
-            List<XTable> list = null;
+            //List<XTable> list = null;
             try
             {
                 String user = Owner;
@@ -92,138 +92,146 @@ namespace XCode.DataAccessLayer
                 if (String.Equals(user, "system")) user = null;
 
                 DataTable dt = GetSchema("Tables", new String[] { user });
-                list = new List<XTable>();
-                if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
-                {
-                    foreach (DataRow drTable in dt.Rows)
-                    {
-                        if (drTable["TYPE"].ToString() != "User") continue;
 
-                        XTable xt = new XTable();
-                        xt.ID = list.Count + 1;
-                        xt.Name = drTable["TABLE_NAME"].ToString();
-                        xt.Owner = drTable["OWNER"].ToString();
-                        xt.Fields = GetFields(xt);
+                // 默认列出所有字段
+                DataRow[] rows = new DataRow[dt.Rows.Count];
+                dt.Rows.CopyTo(rows, 0);
+                return GetTables(rows);
 
-                        list.Add(xt);
-                    }
-                }
+                //list = new List<XTable>();
+                //if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
+                //{
+                //    foreach (DataRow drTable in dt.Rows)
+                //    {
+                //        if (drTable["TYPE"].ToString() != "User") continue;
+
+                //        XTable xt = new XTable();
+                //        xt.ID = list.Count + 1;
+                //        xt.Name = drTable["TABLE_NAME"].ToString();
+                //        xt.Owner = drTable["OWNER"].ToString();
+                //        xt.Fields = GetFields(xt);
+                //        xt.DbType = DbType;
+
+                //        list.Add(xt);
+                //    }
+                //}
             }
             catch (DbException ex)
             {
                 throw new XDbException(this, "取得所有表构架出错！", ex);
             }
 
-            return list;
+            //return list;
         }
 
-        /// <summary>
-        /// 取得指定表的所有列构架
-        /// </summary>
-        /// <param name="xt"></param>
-        /// <returns></returns>
-        protected override List<XField> GetFields(XTable xt)
-        {
-            //DataColumnCollection columns = GetColumns(xt.Name);
-            DataTable dt = GetSchema("Columns", new String[] { xt.Owner, xt.Name });
+        ///// <summary>
+        ///// 取得指定表的所有列构架
+        ///// </summary>
+        ///// <param name="table"></param>
+        ///// <returns></returns>
+        //protected override List<XField> GetFields(XTable table)
+        //{
+        //    //DataColumnCollection columns = GetColumns(xt.Name);
+        //    DataTable dt = GetSchema("Columns", new String[] { table.Owner, table.Name });
 
-            List<XField> list = new List<XField>();
-            DataRow[] drs = dt.Select("", "ID");
-            List<String> pks = GetPrimaryKeys(xt);
-            foreach (DataRow dr in drs)
-            {
-                XField xf = xt.CreateField();
-                xf.ID = Int32.Parse(dr["ID"].ToString());
-                xf.Name = dr["COLUMN_NAME"].ToString();
-                xf.RawType = dr["DATA_TYPE"].ToString();
-                xf.DataType = FieldTypeToClassType(dr["DATATYPE"].ToString());
-                xf.Identity = false;
+        //    List<XField> list = new List<XField>();
+        //    DataRow[] drs = dt.Select("", "ID");
+        //    List<String> pks = GetPrimaryKeys(table);
+        //    foreach (DataRow dr in drs)
+        //    {
+        //        XField field = table.CreateField();
+        //        field.ID = Int32.Parse(dr["ID"].ToString());
+        //        field.Name = dr["COLUMN_NAME"].ToString();
+        //        field.RawType = dr["DATA_TYPE"].ToString();
+        //        //xf.DataType = FieldTypeToClassType(dr["DATATYPE"].ToString());
+        //        //field.DataType = FieldTypeToClassType(field);
+        //        field.Identity = false;
 
-                //if (columns != null && columns.Contains(xf.Name))
-                //{
-                //    DataColumn dc = columns[xf.Name];
-                //    xf.DataType = dc.DataType;
-                //}
+        //        //if (columns != null && columns.Contains(xf.Name))
+        //        //{
+        //        //    DataColumn dc = columns[xf.Name];
+        //        //    xf.DataType = dc.DataType;
+        //        //}
 
-                xf.Length = dr["LENGTH"] == DBNull.Value ? 0 : Int32.Parse(dr["LENGTH"].ToString());
-                xf.Digit = dr["SCALE"] == DBNull.Value ? 0 : Int32.Parse(dr["SCALE"].ToString());
+        //        field.Length = dr["LENGTH"] == DBNull.Value ? 0 : Int32.Parse(dr["LENGTH"].ToString());
+        //        field.Digit = dr["SCALE"] == DBNull.Value ? 0 : Int32.Parse(dr["SCALE"].ToString());
 
-                xf.PrimaryKey = pks != null && pks.Contains(xf.Name);
+        //        field.PrimaryKey = pks != null && pks.Contains(field.Name);
 
-                if (Type.GetTypeCode(xf.DataType) == TypeCode.Int32 && xf.Digit > 0)
-                {
-                    xf.DataType = typeof(Double);
-                }
-                else if (Type.GetTypeCode(xf.DataType) == TypeCode.DateTime)
-                {
-                    //xf.Length = dr["DATETIME_PRECISION"] == DBNull.Value ? 0 : Int32.Parse(dr["DATETIME_PRECISION"].ToString());
-                    xf.NumOfByte = 0;
-                    xf.Digit = 0;
-                }
-                else
-                {
-                    //if (dr["DATA_TYPE"].ToString() == "130" && dr["COLUMN_FLAGS"].ToString() == "234") //备注类型
-                    //{
-                    //    xf.Length = Int32.MaxValue;
-                    //    xf.NumOfByte = Int32.MaxValue;
-                    //}
-                    //else
-                    {
-                        xf.Length = dr["LENGTH"] == DBNull.Value ? 0 : Int32.Parse(dr["LENGTH"].ToString());
-                        xf.NumOfByte = 0;
-                    }
-                    xf.Digit = 0;
-                }
+        //        if (Type.GetTypeCode(field.DataType) == TypeCode.Int32 && field.Digit > 0)
+        //        {
+        //            field.DataType = typeof(Double);
+        //        }
+        //        else if (Type.GetTypeCode(field.DataType) == TypeCode.DateTime)
+        //        {
+        //            //xf.Length = dr["DATETIME_PRECISION"] == DBNull.Value ? 0 : Int32.Parse(dr["DATETIME_PRECISION"].ToString());
+        //            field.NumOfByte = 0;
+        //            field.Digit = 0;
+        //        }
+        //        else
+        //        {
+        //            //if (dr["DATA_TYPE"].ToString() == "130" && dr["COLUMN_FLAGS"].ToString() == "234") //备注类型
+        //            //{
+        //            //    xf.Length = Int32.MaxValue;
+        //            //    xf.NumOfByte = Int32.MaxValue;
+        //            //}
+        //            //else
+        //            {
+        //                field.Length = dr["LENGTH"] == DBNull.Value ? 0 : Int32.Parse(dr["LENGTH"].ToString());
+        //                field.NumOfByte = 0;
+        //            }
+        //            field.Digit = 0;
+        //        }
 
-                try
-                {
-                    xf.Nullable = Boolean.Parse(dr["NULLABLE"].ToString());
-                }
-                catch
-                {
-                    xf.Nullable = dr["NULLABLE"].ToString() == "Y";
-                }
+        //        try
+        //        {
+        //            field.Nullable = Boolean.Parse(dr["NULLABLE"].ToString());
+        //        }
+        //        catch
+        //        {
+        //            field.Nullable = dr["NULLABLE"].ToString() == "Y";
+        //        }
 
-                list.Add(xf);
-            }
+        //        list.Add(field);
+        //    }
 
-            return list;
-        }
+        //    return list;
+        //}
 
         #region 字段类型到数据类型对照表
-        /// <summary>
-        /// 字段类型到数据类型对照表
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public override Type FieldTypeToClassType(String type)
-        {
-            switch (type)
-            {
-                case "CHAR":
-                case "VARCHAR2":
-                case "NCHAR":
-                case "NVARCHAR2":
-                case "CLOB":
-                case "NCLOB":
-                    return typeof(String);
-                case "NUMBER":
-                    return typeof(Int32);
-                case "FLOAT":
-                    return typeof(Double);
-                case "DATE":
-                case "TIMESTAMP":
-                case "TIMESTAMP(6)":
-                    return typeof(DateTime);
-                case "LONG":
-                case "LOB":
-                case "RAW":
-                case "BLOB":
-                    return typeof(Byte[]);
-                default:
-                    return typeof(String);
-            }
-        }
+        ///// <summary>
+        ///// 字段类型到数据类型对照表
+        ///// </summary>
+        ///// <param name="type"></param>
+        ///// <returns></returns>
+        //public override Type FieldTypeToClassType(String type)
+        //{
+        //    switch (type)
+        //    {
+        //        case "CHAR":
+        //        case "VARCHAR2":
+        //        case "NCHAR":
+        //        case "NVARCHAR2":
+        //        case "CLOB":
+        //        case "NCLOB":
+        //            return typeof(String);
+        //        case "NUMBER":
+        //            return typeof(Int32);
+        //        case "FLOAT":
+        //            return typeof(Double);
+        //        case "DATE":
+        //        case "TIMESTAMP":
+        //        case "TIMESTAMP(6)":
+        //            return typeof(DateTime);
+        //        case "LONG":
+        //        case "LOB":
+        //        case "RAW":
+        //        case "BLOB":
+        //            return typeof(Byte[]);
+        //        default:
+        //            return typeof(String);
+        //    }
+        //}
         #endregion
 
         #region 数据库特性

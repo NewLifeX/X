@@ -88,7 +88,7 @@ namespace XCode.DataAccessLayer
                     sb.Append("字段名=a.name,");
                     sb.Append("标识=case when COLUMNPROPERTY( a.id,a.name,'IsIdentity')=1 then Convert(Bit,1) else Convert(Bit,0) end,");
                     sb.Append("主键=case when exists(SELECT 1 FROM sysobjects where xtype='PK' and name in (");
-                    sb.Append("SELECT name FROM sysindexes WHERE indid in(");
+                    sb.Append("SELECT name FROM sysindexes WHERE id = a.id AND indid in(");
                     sb.Append("SELECT indid FROM sysindexkeys WHERE id = a.id AND colid=a.colid");
                     sb.Append("))) then Convert(Bit,1) else Convert(Bit,0) end,");
                     sb.Append("类型=b.name,");
