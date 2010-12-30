@@ -1,0 +1,130 @@
+﻿body
+{
+    margin-left: 0px;
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+    font-size: 12px;
+}
+td
+{
+    font-size: 12px;
+}
+.m_table, .m_table_border
+{
+    width: 100%;
+}
+
+.m_table_border
+{
+    border-top: solid 1px #c6c6c6;
+}
+
+.m_table td, .m_table_border td
+{
+    background-color: #FFFFFF;
+    font-size: 12px;
+    line-height: 25px;
+    padding: 0px 3px;
+    border-bottom: solid 1px #dddddd;
+}
+.m_table td a, .m_table_border td a
+{
+    color: #0066aa;
+    text-decoration: none;
+}
+.m_table th, .m_table_border th
+{
+    text-align: center;
+    font-size: 12px;
+    line-height: 27px;
+    background: url(../images/nbg.gif) right;
+    color: #445055;
+}
+.m_table th a, .m_table_border th a
+{
+    color: #445055;
+    text-decoration: none;
+}
+.m_table .btr td, .m_table_border .btr td
+{
+    background-color: #f9f9f9;
+}
+
+
+.tabtable
+{
+    width: 100%;
+    margin-top: 5px;
+}
+.tabtable .tabtitle
+{
+    width: 120px;
+    background-image: url(../images/tab.gif);
+    height: 28px;
+    cursor: pointer;
+}
+.tabtable .titlemouseover
+{
+    width: 120px;
+    background-image: url(../images/tab2.gif);
+    height: 28px;
+    cursor: pointer;
+    color: White;
+    font-weight: bold;
+}
+
+.key
+{
+    background: url(../images/nbg.gif) right;
+    text-align:center;
+}
+
+.toolbar
+{
+    background-image: url(../images/toolbar.gif);
+    line-height: 25px;
+    height: 25px;
+    padding: 3px;
+}
+.toolbar a
+{
+    -moz-user-select: none;
+    background: url(../images/btnout_bg_left.gif) no-repeat scroll left center transparent;
+    float: left;
+    height: 24px;
+    margin: 0 5px 0 0;
+    text-decoration: none;
+    color: #666666;
+}
+
+.toolbar a b
+{
+    background: url(../images/btnout_bg_right.gif) no-repeat scroll right center transparent;
+    color: #666666;
+    cursor: pointer;
+    display: inline-block;
+    font-weight: normal;
+    height: 25px;
+    line-height: 28px;
+    padding: 0 4px 0 3px;
+    white-space: nowrap;
+}
+
+.toolbar a:hover
+{
+    background: url(../images/btnover_bg_left.gif) no-repeat scroll left center transparent;
+}
+
+.toolbar a:hover b
+{
+    background: url(../images/btnover_bg_right.gif) no-repeat scroll right center transparent;
+    color: #333333;
+}
+
+.toolbar a img
+{
+    float: left;
+    margin: 2px 0 4px 4px;
+    border: 0px;
+}

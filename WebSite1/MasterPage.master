@@ -1,0 +1,23 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="MasterPage.master.cs" Inherits="Admin_MasterPage" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>月无声电子设备有限公司</title>
+    <script type="text/javascript" src="<%= ResolveUrl("~/Scripts/jquery-1.4.1.min.js")%>"></script>
+    <script type="text/javascript" src="<%= ResolveUrl("~/Scripts/adminstyle.js")%>"></script>
+    <asp:ContentPlaceHolder ID="head" runat="server">
+    </asp:ContentPlaceHolder>
+    <link href="<%= ResolveUrl("~/images/css.css")%>" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div class="toolbar">
+        <img src="<%= ResolveUrl("~/images/tb.gif") %>" width="16" height="16" />
+        你当前的位置：<asp:Literal ID="Navigation" runat="server"></asp:Literal>
+    </div>
+    <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+    </asp:ContentPlaceHolder>
+    </form>
+</body>
+</html>
