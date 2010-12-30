@@ -51,11 +51,11 @@ namespace NewLife.Reflection
         /// <summary>
         /// 创建类型辅助对象
         /// </summary>
-        /// <param name="asm"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
-        public static TypeX Create(Type asm)
+        public static TypeX Create(Type type)
         {
-            return cache.GetItem(asm, delegate(Type key)
+            return cache.GetItem(type, delegate(Type key)
             {
                 return new TypeX(key);
             });
