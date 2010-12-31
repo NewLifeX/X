@@ -18,14 +18,9 @@ namespace XCode.DataAccessLayer
         Int32 ID { get; }
 
         /// <summary>
-        /// 数据库类型
+        /// 数据库元数据
         /// </summary>
-        DatabaseType DbType { get; }
-
-        /// <summary>
-        /// 工厂
-        /// </summary>
-        DbProviderFactory Factory { get; }
+        IDatabaseMeta Meta { get; }
 
         /// <summary>
         /// 链接字符串
@@ -186,28 +181,6 @@ namespace XCode.DataAccessLayer
         DbCommand PrepareCommand();
         #endregion
 
-        #region 分页
-        /// <summary>
-        /// 构造分页SQL
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
-        /// <param name="keyColumn">唯一键。用于not in分页</param>
-        /// <returns>分页SQL</returns>
-        String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn);
-
-        /// <summary>
-        /// 构造分页SQL
-        /// </summary>
-        /// <param name="builder">查询生成器</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
-        /// <param name="keyColumn">唯一键。用于not in分页</param>
-        /// <returns>分页SQL</returns>
-        String PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, String keyColumn);
-        #endregion
-
         #region 构架
         /// <summary>
         /// 返回数据源的架构信息
@@ -238,32 +211,6 @@ namespace XCode.DataAccessLayer
         /// <param name="values">其它信息</param>
         /// <returns></returns>
         Object SetSchema(DDLSchema schema, params Object[] values);
-        #endregion
-
-        #region 数据库特性
-        /// <summary>
-        /// 当前时间函数
-        /// </summary>
-        String DateTimeNow { get; }
-
-        /// <summary>
-        /// 最小时间
-        /// </summary>
-        DateTime DateTimeMin { get; }
-
-        /// <summary>
-        /// 格式化时间为SQL字符串
-        /// </summary>
-        /// <param name="dateTime">时间值</param>
-        /// <returns></returns>
-        String FormatDateTime(DateTime dateTime);
-
-        /// <summary>
-        /// 格式化关键字
-        /// </summary>
-        /// <param name="keyWord">关键字</param>
-        /// <returns></returns>
-        String FormatKeyWord(String keyWord);
         #endregion
     }
 }

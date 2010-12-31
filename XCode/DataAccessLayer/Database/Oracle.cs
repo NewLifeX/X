@@ -13,51 +13,6 @@ namespace XCode.DataAccessLayer
     /// </summary>
     internal class Oracle : Database
     {
-        /// <summary>工厂</summary>
-        public override DbProviderFactory Factory
-        {
-            get { return OracleClientFactory.Instance; }
-        }
-
-        /// <summary>
-        /// 已重写。获取分页
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
-        /// <param name="keyColumn">主键列。用于not in分页</param>
-        /// <returns></returns>
-        public override String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
-        {
-            // return base.Query(sql, startRowIndex, maximumRows, key);
-            // 从第一行开始，不需要分页
-            if (startRowIndex <= 0)
-            {
-                if (maximumRows < 1)
-                    return sql;
-                else
-                    return String.Format("Select * From ({1}) XCode_Temp_a Where rownum<={0}", maximumRows + 1, sql);
-            }
-            if (maximumRows < 1)
-                sql = String.Format("Select * From ({1}) XCode_Temp_a Where rownum>={0}", startRowIndex + 1, sql);
-            else
-                sql = String.Format("Select * From (Select XCode_Temp_a.*, rownum as my_rownum From ({1}) XCode_Temp_a Where rownum<={2}) XCode_Temp_b Where my_rownum>={0}", startRowIndex + 1, sql, startRowIndex + maximumRows);
-            //sql = String.Format("Select * From ({1}) a Where rownum>={0} and rownum<={2}", startRowIndex, sql, startRowIndex + maximumRows - 1);
-            return sql;
-        }
-
-        public override string PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows, string keyColumn)
-        {
-            return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
-        }
-
-        /// <summary>
-        /// 返回数据库类型。外部DAL数据库类请使用Other
-        /// </summary>
-        public override DatabaseType DbType
-        {
-            get { return DatabaseType.Oracle; }
-        }
 
         #region 基本方法 查询/执行
         /// <summary>
@@ -233,6 +188,55 @@ namespace XCode.DataAccessLayer
         //    }
         //}
         #endregion
+    }
+
+    class OracleMeta : DatabaseMeta
+    {
+        /// <summary>工厂</summary>
+        public override DbProviderFactory Factory
+        {
+            get { return OracleClientFactory.Instance; }
+        }
+
+        /// <summary>
+        /// 已重写。获取分页
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0开始</param>
+        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="keyColumn">主键列。用于not in分页</param>
+        /// <returns></returns>
+        public override String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
+        {
+            // return base.Query(sql, startRowIndex, maximumRows, key);
+            // 从第一行开始，不需要分页
+            if (startRowIndex <= 0)
+            {
+                if (maximumRows < 1)
+                    return sql;
+                else
+                    return String.Format("Select * From ({1}) XCode_Temp_a Where rownum<={0}", maximumRows + 1, sql);
+            }
+            if (maximumRows < 1)
+                sql = String.Format("Select * From ({1}) XCode_Temp_a Where rownum>={0}", startRowIndex + 1, sql);
+            else
+                sql = String.Format("Select * From (Select XCode_Temp_a.*, rownum as my_rownum From ({1}) XCode_Temp_a Where rownum<={2}) XCode_Temp_b Where my_rownum>={0}", startRowIndex + 1, sql, startRowIndex + maximumRows);
+            //sql = String.Format("Select * From ({1}) a Where rownum>={0} and rownum<={2}", startRowIndex, sql, startRowIndex + maximumRows - 1);
+            return sql;
+        }
+
+        public override string PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows, string keyColumn)
+        {
+            return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
+        }
+
+        /// <summary>
+        /// 返回数据库类型。外部DAL数据库类请使用Other
+        /// </summary>
+        public override DatabaseType DbType
+        {
+            get { return DatabaseType.Oracle; }
+        }
 
         #region 数据库特性
         /// <summary>

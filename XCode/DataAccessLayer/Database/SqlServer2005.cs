@@ -10,65 +10,6 @@ namespace XCode.DataAccessLayer
     /// </summary>
     internal class SqlServer2005 : SqlServer
     {
-        #region 属性
-        /// <summary>
-        /// 返回数据库类型。外部DAL数据库类请使用Other
-        /// </summary>
-        public override DatabaseType DbType
-        {
-            get { return DatabaseType.SqlServer2005; }
-        }
-        #endregion
-
-        #region 分页
-        /// <summary>
-        /// 已重写。获取分页
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
-        /// <param name="keyColumn">主键列。用于not in分页</param>
-        /// <returns></returns>
-        public override String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
-        {
-            // 从第一行开始，不需要分页
-            if (startRowIndex <= 0)
-            {
-                if (maximumRows < 1)
-                    return sql;
-                else
-                    return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
-            }
-
-            String orderBy = String.Empty;
-            if (sql.ToLower().Contains(" order "))
-            {
-                // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
-                MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                if (ms != null && ms.Count > 0 && ms[0].Index > 0)
-                {
-                    // 已确定该sql最外层含有order by，再检查最外层是否有top。因为没有top的order by是不允许作为子查询的
-                    if (!Regex.IsMatch(sql, @"^[^(]+\btop\b", RegexOptions.Compiled | RegexOptions.IgnoreCase))
-                    {
-                        orderBy = sql.Substring(ms[0].Index).Trim();
-                        sql = sql.Substring(0, ms[0].Index).Trim();
-                    }
-                }
-            }
-
-            if (String.IsNullOrEmpty(orderBy)) orderBy = "Order By " + keyColumn;
-            sql = CheckSimpleSQL(sql);
-
-            //row_number()从1开始
-            if (maximumRows < 1)
-                sql = String.Format("Select * From (Select row_number() over({2}) as row_number, * From {1}) XCode_Temp_b Where row_Number>={0}", startRowIndex + 1, sql, orderBy);
-            else
-                sql = String.Format("Select * From (Select row_number() over({3}) as row_number, * From {1}) XCode_Temp_b Where row_Number Between {0} And {2}", startRowIndex + 1, sql, startRowIndex + maximumRows, orderBy);
-
-            return sql;
-        }
-        #endregion
-
         #region 构架
         #region 取得字段信息的SQL模版
         private String _SchemaSql = "";
@@ -273,6 +214,68 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
         #endregion
+        #endregion
+    }
+
+    class SqlServer2005Meta : SqlServerMeta
+    {
+        #region 属性
+        /// <summary>
+        /// 返回数据库类型。外部DAL数据库类请使用Other
+        /// </summary>
+        public override DatabaseType DbType
+        {
+            get { return DatabaseType.SqlServer2005; }
+        }
+        #endregion
+
+        #region 分页
+        /// <summary>
+        /// 已重写。获取分页
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0开始</param>
+        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="keyColumn">主键列。用于not in分页</param>
+        /// <returns></returns>
+        public override String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
+        {
+            // 从第一行开始，不需要分页
+            if (startRowIndex <= 0)
+            {
+                if (maximumRows < 1)
+                    return sql;
+                else
+                    return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
+            }
+
+            String orderBy = String.Empty;
+            if (sql.ToLower().Contains(" order "))
+            {
+                // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
+                MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                if (ms != null && ms.Count > 0 && ms[0].Index > 0)
+                {
+                    // 已确定该sql最外层含有order by，再检查最外层是否有top。因为没有top的order by是不允许作为子查询的
+                    if (!Regex.IsMatch(sql, @"^[^(]+\btop\b", RegexOptions.Compiled | RegexOptions.IgnoreCase))
+                    {
+                        orderBy = sql.Substring(ms[0].Index).Trim();
+                        sql = sql.Substring(0, ms[0].Index).Trim();
+                    }
+                }
+            }
+
+            if (String.IsNullOrEmpty(orderBy)) orderBy = "Order By " + keyColumn;
+            sql = CheckSimpleSQL(sql);
+
+            //row_number()从1开始
+            if (maximumRows < 1)
+                sql = String.Format("Select * From (Select row_number() over({2}) as row_number, * From {1}) XCode_Temp_b Where row_Number>={0}", startRowIndex + 1, sql, orderBy);
+            else
+                sql = String.Format("Select * From (Select row_number() over({3}) as row_number, * From {1}) XCode_Temp_b Where row_Number Between {0} And {2}", startRowIndex + 1, sql, startRowIndex + maximumRows, orderBy);
+
+            return sql;
+        }
         #endregion
     }
 }

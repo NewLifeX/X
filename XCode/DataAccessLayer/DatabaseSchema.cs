@@ -439,12 +439,12 @@ namespace XCode.DataAccessLayer
                 //特殊处理时间
                 if (!b && Type.GetTypeCode(item.DataType) == TypeCode.DateTime && !String.IsNullOrEmpty(item.Default) && !String.IsNullOrEmpty(dbf.Default))
                 {
-                    //Access数据库，实体默认值是getdate()，数据库默认值是now()，有效
-                    if (Database.DbType == DatabaseType.Access && item.Default.Equals(sq.DateTimeNow, StringComparison.OrdinalIgnoreCase) && dbf.Default.Equals(ac.DateTimeNow, StringComparison.OrdinalIgnoreCase))
-                        b = true;
-                    //SqlServer数据库，实体默认值是now()，数据库默认值是getdate()，有效
-                    else if ((Database.DbType == DatabaseType.SqlServer || Database.DbType == DatabaseType.SqlServer2005) && item.Default.Equals(ac.DateTimeNow, StringComparison.OrdinalIgnoreCase) && dbf.Default.Equals(sq.DateTimeNow, StringComparison.OrdinalIgnoreCase))
-                        b = true;
+                    ////Access数据库，实体默认值是getdate()，数据库默认值是now()，有效
+                    //if (Database.DbType == DatabaseType.Access && item.Default.Equals(sq.DateTimeNow, StringComparison.OrdinalIgnoreCase) && dbf.Default.Equals(ac.DateTimeNow, StringComparison.OrdinalIgnoreCase))
+                    //    b = true;
+                    ////SqlServer数据库，实体默认值是now()，数据库默认值是getdate()，有效
+                    //else if ((Database.DbType == DatabaseType.SqlServer || Database.DbType == DatabaseType.SqlServer2005) && item.Default.Equals(ac.DateTimeNow, StringComparison.OrdinalIgnoreCase) && dbf.Default.Equals(sq.DateTimeNow, StringComparison.OrdinalIgnoreCase))
+                    //    b = true;
                 }
 
                 if (!b)

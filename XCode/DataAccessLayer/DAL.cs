@@ -263,7 +263,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public DatabaseType DbType
         {
-            get { return DB.DbType; }
+            get { return Db.DbType; }
         }
 
         private String _ConnStr;
@@ -275,6 +275,8 @@ namespace XCode.DataAccessLayer
             get { return _ConnStr; }
             private set { _ConnStr = value; }
         }
+
+        public IDatabaseMeta Db;
 
         /// <summary>
         /// ThreadStatic 指示静态字段的值对于每个线程都是唯一的。
@@ -443,7 +445,7 @@ namespace XCode.DataAccessLayer
         private Boolean CheckSql2005(IDatabase db)
         {
             //检查是否SqlServer2005
-            if (db.DbType != DatabaseType.SqlServer) return false;
+            if (db.Meta.DbType != DatabaseType.SqlServer) return false;
 
             //切换到master库
             Database d = db as Database;
@@ -574,7 +576,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
 
-                String s = DB.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
+                String s = DB.Meta.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
                 _PageSplitCache.Add(cacheKey, s);
                 return s;
             }
@@ -603,7 +605,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
 
-                String s = DB.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
+                String s = DB.Meta.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
                 _PageSplitCache.Add(cacheKey, s);
                 return s;
             }

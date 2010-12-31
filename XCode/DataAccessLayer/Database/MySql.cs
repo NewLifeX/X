@@ -13,6 +13,72 @@ namespace XCode.DataAccessLayer
     internal class MySql : Database
     {
         #region 属性
+        ///// <summary>
+        ///// 返回数据库类型。
+        ///// </summary>
+        //public override DatabaseType DbType
+        //{
+        //    get { return DatabaseType.MySql; }
+        //}
+
+        //private static DbProviderFactory _dbProviderFactory;
+        ///// <summary>
+        ///// 静态构造函数
+        ///// </summary>
+        //static DbProviderFactory dbProviderFactory
+        //{
+        //    get
+        //    {
+        //        if (_dbProviderFactory == null)
+        //        {
+        //            //反射实现获取数据库工厂
+        //            Assembly asm = Assembly.LoadFile("MySql.Data.dll");
+        //            Type type = asm.GetType("MySqlClientFactory");
+        //            FieldInfo field = type.GetField("Instance");
+        //            _dbProviderFactory = field.GetValue(null) as DbProviderFactory;
+        //        }
+        //        return _dbProviderFactory;
+        //    }
+        //}
+
+        ///// <summary>工厂</summary>
+        //public override DbProviderFactory Factory
+        //{
+        //    get { return _dbProviderFactory; }
+        //}
+        #endregion
+
+        #region 基本方法 查询/执行
+        /// <summary>
+        /// 执行插入语句并返回新增行的自动编号
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>新增行的自动编号</returns>
+        public override Int32 InsertAndGetIdentity(string sql)
+        {
+            ExecuteTimes++;
+            //SQLServer写法
+            sql = "SET NOCOUNT ON;" + sql + ";Select LAST_INSERT_ID()";
+            if (Debug) WriteLog(sql);
+            try
+            {
+                DbCommand cmd = PrepareCommand();
+                cmd.CommandText = sql;
+                Int32 rs = Int32.Parse(cmd.ExecuteScalar().ToString());
+                AutoClose();
+                return rs;
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, sql);
+            }
+        }
+        #endregion
+    }
+
+    class MySqlMeta : DatabaseMeta
+    {
+        #region 属性
         /// <summary>
         /// 返回数据库类型。
         /// </summary>
@@ -45,33 +111,6 @@ namespace XCode.DataAccessLayer
         public override DbProviderFactory Factory
         {
             get { return _dbProviderFactory; }
-        }
-        #endregion
-
-        #region 基本方法 查询/执行
-        /// <summary>
-        /// 执行插入语句并返回新增行的自动编号
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns>新增行的自动编号</returns>
-        public override Int32 InsertAndGetIdentity(string sql)
-        {
-            ExecuteTimes++;
-            //SQLServer写法
-            sql = "SET NOCOUNT ON;" + sql + ";Select LAST_INSERT_ID()";
-            if (Debug) WriteLog(sql);
-            try
-            {
-                DbCommand cmd = PrepareCommand();
-                cmd.CommandText = sql;
-                Int32 rs = Int32.Parse(cmd.ExecuteScalar().ToString());
-                AutoClose();
-                return rs;
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, sql);
-            }
         }
         #endregion
 

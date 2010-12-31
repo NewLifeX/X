@@ -18,60 +18,60 @@ namespace XCode.DataAccessLayer
     internal class SQLite : Database
     {
         #region 属性
-        /// <summary>
-        /// 返回数据库类型。
-        /// </summary>
-        public override DatabaseType DbType
-        {
-            get { return DatabaseType.SQLite; }
-        }
+        ///// <summary>
+        ///// 返回数据库类型。
+        ///// </summary>
+        //public override DatabaseType DbType
+        //{
+        //    get { return DatabaseType.SQLite; }
+        //}
 
-        private static DbProviderFactory _dbProviderFactory;
-        /// <summary>
-        /// 静态构造函数
-        /// </summary>
-        static DbProviderFactory dbProviderFactory
-        {
-            get
-            {
-                if (_dbProviderFactory == null)
-                {
-                    Module module = typeof(Object).Module;
+        //private static DbProviderFactory _dbProviderFactory;
+        ///// <summary>
+        ///// 静态构造函数
+        ///// </summary>
+        //static DbProviderFactory dbProviderFactory
+        //{
+        //    get
+        //    {
+        //        if (_dbProviderFactory == null)
+        //        {
+        //            Module module = typeof(Object).Module;
 
-                    PortableExecutableKinds kind;
-                    ImageFileMachine machine;
-                    module.GetPEKind(out kind, out machine);
+        //            PortableExecutableKinds kind;
+        //            ImageFileMachine machine;
+        //            module.GetPEKind(out kind, out machine);
 
-                    //反射实现获取数据库工厂
-                    String file = "System.Data.SQLite.dll";
-                    //if (machine != ImageFileMachine.I386) file = "System.Data.SQLite64.dll";
+        //            //反射实现获取数据库工厂
+        //            String file = "System.Data.SQLite.dll";
+        //            //if (machine != ImageFileMachine.I386) file = "System.Data.SQLite64.dll";
 
-                    if (String.IsNullOrEmpty(HttpRuntime.AppDomainAppId))
-                        file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
-                    else
-                        file = Path.Combine(HttpRuntime.BinDirectory, file);
+        //            if (String.IsNullOrEmpty(HttpRuntime.AppDomainAppId))
+        //                file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
+        //            else
+        //                file = Path.Combine(HttpRuntime.BinDirectory, file);
 
-                    //if (!File.Exists(file) && machine == ImageFileMachine.I386)
-                    //{
-                    //    file = "System.Data.SQLite32.dll";
-                    //    file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
-                    //}
-                    if (!File.Exists(file)) throw new InvalidOperationException("缺少文件" + file + "！");
+        //            //if (!File.Exists(file) && machine == ImageFileMachine.I386)
+        //            //{
+        //            //    file = "System.Data.SQLite32.dll";
+        //            //    file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
+        //            //}
+        //            if (!File.Exists(file)) throw new InvalidOperationException("缺少文件" + file + "！");
 
-                    Assembly asm = Assembly.LoadFile(file);
-                    Type type = asm.GetType("System.Data.SQLite.SQLiteFactory");
-                    FieldInfo field = type.GetField("Instance");
-                    _dbProviderFactory = field.GetValue(null) as DbProviderFactory;
-                }
-                return _dbProviderFactory;
-            }
-        }
+        //            Assembly asm = Assembly.LoadFile(file);
+        //            Type type = asm.GetType("System.Data.SQLite.SQLiteFactory");
+        //            FieldInfo field = type.GetField("Instance");
+        //            _dbProviderFactory = field.GetValue(null) as DbProviderFactory;
+        //        }
+        //        return _dbProviderFactory;
+        //    }
+        //}
 
-        /// <summary>工厂</summary>
-        public override DbProviderFactory Factory
-        {
-            get { return dbProviderFactory; }
-        }
+        ///// <summary>工厂</summary>
+        //public override DbProviderFactory Factory
+        //{
+        //    get { return dbProviderFactory; }
+        //}
 
         /// <summary>链接字符串</summary>
         public override string ConnectionString
@@ -215,46 +215,6 @@ namespace XCode.DataAccessLayer
                 AutoClose();
                 _lock.ReleaseWrite();
             }
-        }
-        #endregion
-
-        #region 分页
-        /// <summary>
-        /// 已重写。获取分页
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
-        /// <param name="keyColumn">主键列。用于not in分页</param>
-        /// <returns></returns>
-        public override string PageSplit(string sql, Int32 startRowIndex, Int32 maximumRows, string keyColumn)
-        {
-            // 从第一行开始，不需要分页
-            if (startRowIndex <= 0)
-            {
-                if (maximumRows < 1)
-                    return sql;
-                else
-                    return String.Format("{0} limit {1}", sql, maximumRows);
-            }
-            if (maximumRows < 1)
-                throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
-            else
-                sql = String.Format("{0} limit {1}, {2}", sql, startRowIndex, maximumRows);
-            return sql;
-        }
-
-        /// <summary>
-        /// 已重写。获取分页
-        /// </summary>
-        /// <param name="builder"></param>
-        /// <param name="startRowIndex"></param>
-        /// <param name="maximumRows"></param>
-        /// <param name="keyColumn"></param>
-        /// <returns></returns>
-        public override string PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows, string keyColumn)
-        {
-            return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
         }
         #endregion
 
@@ -561,8 +521,8 @@ namespace XCode.DataAccessLayer
                 {
                     String d = field.Default;
                     //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = "now()";
-                    if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = DateTimeNow;
-                    if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = DateTimeNow;
+                    if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = Meta.DateTimeNow;
+                    if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = Meta.DateTimeNow;
                     sb.AppendFormat(" DEFAULT {0}", d);
                 }
                 else
@@ -659,6 +619,106 @@ namespace XCode.DataAccessLayer
         //{
         //    return AddDefault(tablename, columnname, null);
         //}
+        #endregion
+    }
+
+    class SQLiteMeta : DatabaseMeta
+    {
+        #region 属性
+        /// <summary>
+        /// 返回数据库类型。
+        /// </summary>
+        public override DatabaseType DbType
+        {
+            get { return DatabaseType.SQLite; }
+        }
+
+        private static DbProviderFactory _dbProviderFactory;
+        /// <summary>
+        /// 静态构造函数
+        /// </summary>
+        static DbProviderFactory dbProviderFactory
+        {
+            get
+            {
+                if (_dbProviderFactory == null)
+                {
+                    Module module = typeof(Object).Module;
+
+                    PortableExecutableKinds kind;
+                    ImageFileMachine machine;
+                    module.GetPEKind(out kind, out machine);
+
+                    //反射实现获取数据库工厂
+                    String file = "System.Data.SQLite.dll";
+                    //if (machine != ImageFileMachine.I386) file = "System.Data.SQLite64.dll";
+
+                    if (String.IsNullOrEmpty(HttpRuntime.AppDomainAppId))
+                        file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
+                    else
+                        file = Path.Combine(HttpRuntime.BinDirectory, file);
+
+                    //if (!File.Exists(file) && machine == ImageFileMachine.I386)
+                    //{
+                    //    file = "System.Data.SQLite32.dll";
+                    //    file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
+                    //}
+                    if (!File.Exists(file)) throw new InvalidOperationException("缺少文件" + file + "！");
+
+                    Assembly asm = Assembly.LoadFile(file);
+                    Type type = asm.GetType("System.Data.SQLite.SQLiteFactory");
+                    FieldInfo field = type.GetField("Instance");
+                    _dbProviderFactory = field.GetValue(null) as DbProviderFactory;
+                }
+                return _dbProviderFactory;
+            }
+        }
+
+        /// <summary>工厂</summary>
+        public override DbProviderFactory Factory
+        {
+            get { return dbProviderFactory; }
+        }
+        #endregion
+
+        #region 分页
+        /// <summary>
+        /// 已重写。获取分页
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0开始</param>
+        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="keyColumn">主键列。用于not in分页</param>
+        /// <returns></returns>
+        public override string PageSplit(string sql, Int32 startRowIndex, Int32 maximumRows, string keyColumn)
+        {
+            // 从第一行开始，不需要分页
+            if (startRowIndex <= 0)
+            {
+                if (maximumRows < 1)
+                    return sql;
+                else
+                    return String.Format("{0} limit {1}", sql, maximumRows);
+            }
+            if (maximumRows < 1)
+                throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
+            else
+                sql = String.Format("{0} limit {1}, {2}", sql, startRowIndex, maximumRows);
+            return sql;
+        }
+
+        /// <summary>
+        /// 已重写。获取分页
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="startRowIndex"></param>
+        /// <param name="maximumRows"></param>
+        /// <param name="keyColumn"></param>
+        /// <returns></returns>
+        public override string PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows, string keyColumn)
+        {
+            return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
+        }
         #endregion
 
         #region 数据库特性

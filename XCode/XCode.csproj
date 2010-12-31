@@ -85,6 +85,12 @@
     <Compile Include="Code\EntityClass.cs" />
     <Compile Include="Code\EntityClassBiz.cs" />
     <Compile Include="Common\FileSource.cs" />
+    <Compile Include="DataAccessLayer\DatabaseType.cs" />
+    <Compile Include="DataAccessLayer\Database_DDL.cs" />
+    <Compile Include="DataAccessLayer\DatabaseMeta.cs" />
+    <Compile Include="DataAccessLayer\Database_Schema.cs" />
+    <Compile Include="DataAccessLayer\DbFactory.cs" />
+    <Compile Include="DataAccessLayer\IDatabaseMeta.cs" />
     <Compile Include="Exceptions\XDbException.cs" />
     <Compile Include="Exceptions\XCodeException.cs" />
     <Compile Include="Exceptions\XSqlException.cs" />

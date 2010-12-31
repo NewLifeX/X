@@ -22,23 +22,23 @@ namespace XCode.DataAccessLayer
     internal class Access : Database
     {
         #region 属性
-        /// <summary>
-        /// 返回数据库类型。外部DAL数据库类请使用Other
-        /// </summary>
-        public override DatabaseType DbType
-        {
-            get { return DatabaseType.Access; }
-        }
+        ///// <summary>
+        ///// 返回数据库类型。外部DAL数据库类请使用Other
+        ///// </summary>
+        //public override DatabaseType DbType
+        //{
+        //    get { return DatabaseType.Access; }
+        //}
 
-        /// <summary>工厂</summary>
-        public override DbProviderFactory Factory
-        {
-            get
-            {
+        ///// <summary>工厂</summary>
+        //public override DbProviderFactory Factory
+        //{
+        //    get
+        //    {
 
-                return OleDbFactory.Instance;
-            }
-        }
+        //        return OleDbFactory.Instance;
+        //    }
+        //}
 
         /// <summary>链接字符串</summary>
         public override string ConnectionString
@@ -323,43 +323,6 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region 数据类型
-        //public override Type FieldTypeToClassType(String typeName)
-        //{
-        //    Int32 id = 0;
-        //    if (Int32.TryParse(typeName, out id))
-        //    {
-        //        DataRow[] drs = FindDataType(id, null);
-        //        if (drs != null && drs.Length > 0)
-        //        {
-        //            if (!TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) return null;
-        //            return Type.GetType(typeName);
-        //        }
-        //    }
-
-        //    return base.FieldTypeToClassType(typeName);
-        //}
-
-        DataRow[] FindDataType(Int32 typeID, Boolean? isLong)
-        {
-            DataTable dt = DataTypes;
-            if (dt == null) return null;
-
-            DataRow[] drs = null;
-            if (isLong == null)
-            {
-                drs = dt.Select(String.Format("NativeDataType={0}", typeID));
-                if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0}", typeID));
-            }
-            else
-            {
-                drs = dt.Select(String.Format("NativeDataType={0} And IsLong={1}", typeID, isLong.Value));
-                if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0} And IsLong={1}", typeID, isLong.Value));
-            }
-            return drs;
-        }
-        #endregion
-
         #region 数据定义
         /// <summary>
         /// 设置数据定义模式
@@ -513,40 +476,40 @@ namespace XCode.DataAccessLayer
         #endregion
         #endregion
 
-        #region 数据库特性
-        /// <summary>
-        /// 当前时间函数
-        /// </summary>
-        public override String DateTimeNow { get { return "now()"; } }
+        #region 数据类型
+        //public override Type FieldTypeToClassType(String typeName)
+        //{
+        //    Int32 id = 0;
+        //    if (Int32.TryParse(typeName, out id))
+        //    {
+        //        DataRow[] drs = FindDataType(id, null);
+        //        if (drs != null && drs.Length > 0)
+        //        {
+        //            if (!TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) return null;
+        //            return Type.GetType(typeName);
+        //        }
+        //    }
 
-        /// <summary>
-        /// 最小时间
-        /// </summary>
-        public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
+        //    return base.FieldTypeToClassType(typeName);
+        //}
 
-        /// <summary>
-        /// 格式化时间为SQL字符串
-        /// </summary>
-        /// <param name="dateTime">时间值</param>
-        /// <returns></returns>
-        public override String FormatDateTime(DateTime dateTime)
+        DataRow[] FindDataType(Int32 typeID, Boolean? isLong)
         {
-            return String.Format("#{0:yyyy-MM-dd HH:mm:ss}#", dateTime);
-        }
+            DataTable dt = DataTypes;
+            if (dt == null) return null;
 
-        /// <summary>
-        /// 格式化关键字
-        /// </summary>
-        /// <param name="keyWord">关键字</param>
-        /// <returns></returns>
-        public override String FormatKeyWord(String keyWord)
-        {
-            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
-
-            if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
-
-            return String.Format("[{0}]", keyWord);
-            //return keyWord;
+            DataRow[] drs = null;
+            if (isLong == null)
+            {
+                drs = dt.Select(String.Format("NativeDataType={0}", typeID));
+                if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0}", typeID));
+            }
+            else
+            {
+                drs = dt.Select(String.Format("NativeDataType={0} And IsLong={1}", typeID, isLong.Value));
+                if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0} And IsLong={1}", typeID, isLong.Value));
+            }
+            return drs;
         }
         #endregion
 
@@ -614,6 +577,62 @@ namespace XCode.DataAccessLayer
 
                 return true;
             }
+        }
+        #endregion
+    }
+
+    class AccessMeta : DatabaseMeta
+    {
+        #region 属性
+        /// <summary>
+        /// 返回数据库类型。外部DAL数据库类请使用Other
+        /// </summary>
+        public override DatabaseType DbType
+        {
+            get { return DatabaseType.Access; }
+        }
+
+        /// <summary>工厂</summary>
+        public override DbProviderFactory Factory
+        {
+            get { return OleDbFactory.Instance; }
+        }
+        #endregion
+
+        #region 数据库特性
+        /// <summary>
+        /// 当前时间函数
+        /// </summary>
+        public override String DateTimeNow { get { return "now()"; } }
+
+        /// <summary>
+        /// 最小时间
+        /// </summary>
+        public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
+
+        /// <summary>
+        /// 格式化时间为SQL字符串
+        /// </summary>
+        /// <param name="dateTime">时间值</param>
+        /// <returns></returns>
+        public override String FormatDateTime(DateTime dateTime)
+        {
+            return String.Format("#{0:yyyy-MM-dd HH:mm:ss}#", dateTime);
+        }
+
+        /// <summary>
+        /// 格式化关键字
+        /// </summary>
+        /// <param name="keyWord">关键字</param>
+        /// <returns></returns>
+        public override String FormatKeyWord(String keyWord)
+        {
+            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
+
+            if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
+
+            return String.Format("[{0}]", keyWord);
+            //return keyWord;
         }
         #endregion
     }

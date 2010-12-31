@@ -16,22 +16,6 @@ namespace XCode.DataAccessLayer
     /// </summary>
     internal class SqlServer : Database
     {
-        #region 属性
-        /// <summary>
-        /// 返回数据库类型。外部DAL数据库类请使用Other
-        /// </summary>
-        public override DatabaseType DbType
-        {
-            get { return DatabaseType.SqlServer; }
-        }
-
-        /// <summary>工厂</summary>
-        public override DbProviderFactory Factory
-        {
-            get { return SqlClientFactory.Instance; }
-        }
-        #endregion
-
         #region 查询
         /// <summary>
         /// 快速查询单表记录数，稍有偏差
@@ -60,70 +44,6 @@ namespace XCode.DataAccessLayer
             {
                 AutoClose();
             }
-        }
-        #endregion
-
-        #region 分页
-        /// <summary>
-        /// 执行SQL查询，返回分页记录集
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
-        /// <param name="keyColumn">主键列。用于not in分页</param>
-        /// <returns></returns>
-        public override String PageSplit(string sql, Int32 startRowIndex, Int32 maximumRows, string keyColumn)
-        {
-            // 从第一行开始，不需要分页
-            if (startRowIndex <= 0 && maximumRows < 1) return sql;
-
-            // 如果没有Order By，直接调用基类方法
-            // 先用字符串判断，命中率高，这样可以提高处理效率
-            if (!sql.Contains(" Order "))
-            {
-                if (!sql.ToLower().Contains(" order ")) return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
-            }
-            // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
-            MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            if (ms == null || ms.Count < 1 || ms[0].Index < 1)
-            {
-                return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
-            }
-            // 已确定该sql最外层含有order by，再检查最外层是否有top。因为没有top的order by是不允许作为子查询的
-            if (Regex.IsMatch(sql, @"^[^(]+\btop\b", RegexOptions.Compiled | RegexOptions.IgnoreCase))
-            {
-                return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
-            }
-            String orderBy = sql.Substring(ms[0].Index);
-
-            // 从第一行开始，不需要分页
-            if (startRowIndex <= 0)
-            {
-                if (maximumRows < 1)
-                    return sql;
-                else
-                    return String.Format("Select Top {0} * From {1} {2}", maximumRows, CheckSimpleSQL(sql.Substring(0, ms[0].Index)), orderBy);
-            }
-
-            #region Max/Min分页
-            // 如果要使用max/min分页法，首先keyColumn必须有asc或者desc
-            if (keyColumn.ToLower().EndsWith(" desc") || keyColumn.ToLower().EndsWith(" asc") || keyColumn.ToLower().EndsWith(" unknown"))
-            {
-                String str = PageSplitMaxMin(sql, startRowIndex, maximumRows, keyColumn);
-                if (!String.IsNullOrEmpty(str)) return str;
-                keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
-            }
-            #endregion
-
-            sql = CheckSimpleSQL(sql.Substring(0, ms[0].Index));
-
-            if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "这里用的not in分页算法要求指定主键列！");
-
-            if (maximumRows < 1)
-                sql = String.Format("Select * From {1} Where {2} Not In(Select Top {0} {2} From {1} {3}) {3}", startRowIndex, sql, keyColumn, orderBy);
-            else
-                sql = String.Format("Select Top {0} * From {1} Where {2} Not In(Select Top {3} {2} From {1} {4}) {4}", maximumRows, sql, keyColumn, startRowIndex, orderBy);
-            return sql;
         }
         #endregion
 
@@ -602,7 +522,7 @@ namespace XCode.DataAccessLayer
                 {
                     String d = field.Default;
                     //if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = "getdate()";
-                    if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = DateTimeNow;
+                    if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = Meta.DateTimeNow;
                     sb.AppendFormat(" DEFAULT {0}", d);
                 }
                 else
@@ -854,7 +774,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public virtual String DropDatabaseSQL(String dbname)
+        public override String DropDatabaseSQL(String dbname)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("use master");
@@ -877,6 +797,89 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
         #endregion
+        #endregion
+    }
+
+    class SqlServerMeta : DatabaseMeta
+    {
+        #region 属性
+        /// <summary>
+        /// 返回数据库类型。外部DAL数据库类请使用Other
+        /// </summary>
+        public override DatabaseType DbType
+        {
+            get { return DatabaseType.SqlServer; }
+        }
+
+        /// <summary>工厂</summary>
+        public override DbProviderFactory Factory
+        {
+            get { return SqlClientFactory.Instance; }
+        }
+        #endregion
+
+        #region 分页
+        /// <summary>
+        /// 执行SQL查询，返回分页记录集
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0开始</param>
+        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="keyColumn">主键列。用于not in分页</param>
+        /// <returns></returns>
+        public override String PageSplit(string sql, Int32 startRowIndex, Int32 maximumRows, string keyColumn)
+        {
+            // 从第一行开始，不需要分页
+            if (startRowIndex <= 0 && maximumRows < 1) return sql;
+
+            // 如果没有Order By，直接调用基类方法
+            // 先用字符串判断，命中率高，这样可以提高处理效率
+            if (!sql.Contains(" Order "))
+            {
+                if (!sql.ToLower().Contains(" order ")) return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
+            }
+            // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
+            MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            if (ms == null || ms.Count < 1 || ms[0].Index < 1)
+            {
+                return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
+            }
+            // 已确定该sql最外层含有order by，再检查最外层是否有top。因为没有top的order by是不允许作为子查询的
+            if (Regex.IsMatch(sql, @"^[^(]+\btop\b", RegexOptions.Compiled | RegexOptions.IgnoreCase))
+            {
+                return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
+            }
+            String orderBy = sql.Substring(ms[0].Index);
+
+            // 从第一行开始，不需要分页
+            if (startRowIndex <= 0)
+            {
+                if (maximumRows < 1)
+                    return sql;
+                else
+                    return String.Format("Select Top {0} * From {1} {2}", maximumRows, CheckSimpleSQL(sql.Substring(0, ms[0].Index)), orderBy);
+            }
+
+            #region Max/Min分页
+            // 如果要使用max/min分页法，首先keyColumn必须有asc或者desc
+            if (keyColumn.ToLower().EndsWith(" desc") || keyColumn.ToLower().EndsWith(" asc") || keyColumn.ToLower().EndsWith(" unknown"))
+            {
+                String str = PageSplitMaxMin(sql, startRowIndex, maximumRows, keyColumn);
+                if (!String.IsNullOrEmpty(str)) return str;
+                keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
+            }
+            #endregion
+
+            sql = CheckSimpleSQL(sql.Substring(0, ms[0].Index));
+
+            if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "这里用的not in分页算法要求指定主键列！");
+
+            if (maximumRows < 1)
+                sql = String.Format("Select * From {1} Where {2} Not In(Select Top {0} {2} From {1} {3}) {3}", startRowIndex, sql, keyColumn, orderBy);
+            else
+                sql = String.Format("Select Top {0} * From {1} Where {2} Not In(Select Top {3} {2} From {1} {4}) {4}", maximumRows, sql, keyColumn, startRowIndex, orderBy);
+            return sql;
+        }
         #endregion
 
         #region 数据库特性
