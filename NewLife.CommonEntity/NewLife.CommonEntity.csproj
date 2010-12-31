@@ -45,10 +45,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
-    <Reference Include="XCode, Version=6.4.4003.37697, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\DLL\XCode.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\CommonEntityBase.cs" />
@@ -81,6 +77,10 @@
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
       <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
       <Name>NewLife.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\XCode\XCode.csproj">
+      <Project>{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}</Project>
+      <Name>XCode</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

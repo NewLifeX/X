@@ -32,7 +32,7 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebSite1", "WebSite1", "{BF
 		SccLocalPath = ""
 		SccProvider = ""
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv2.0"
-		ProjectReferences = "{5813C22E-EEB3-4DEE-A45C-BB218041193A}|NewLife.Core.dll;{A82E3AA8-6181-460D-A6EE-CC453B83D340}|XControl.dll;{50D7FAE5-2304-4395-A6FA-7D35279D9D84}|NewLife.CommonEntity.dll;{44ADA6A8-427A-4802-976C-48F93622E0A8}|XCommon.dll;"
+		ProjectReferences = "{5813C22E-EEB3-4DEE-A45C-BB218041193A}|NewLife.Core.dll;{A82E3AA8-6181-460D-A6EE-CC453B83D340}|XControl.dll;{50D7FAE5-2304-4395-A6FA-7D35279D9D84}|NewLife.CommonEntity.dll;{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}|XCode.dll;"
 		Debug.AspNetCompiler.VirtualPath = "/WebSite1"
 		Debug.AspNetCompiler.PhysicalPath = "WebSite1\"
 		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\WebSite1\"
@@ -47,7 +47,7 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebSite1", "WebSite1", "{BF
 		Release.AspNetCompiler.ForceOverwrite = "true"
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "53179"
+		VWDPort = "36716"
 	EndProjectSection
 EndProject
 Global

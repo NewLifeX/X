@@ -14,10 +14,8 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// SqlServer数据库
     /// </summary>
-    internal class SqlServerSession : DbSession
+    internal class SqlServerSession : DbSession<SqlServerSession>
     {
-        public SqlServerSession(SqlServer db) : base(db) { }
-
         #region 查询
         /// <summary>
         /// 快速查询单表记录数，稍有偏差
@@ -332,11 +330,12 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private String _DescriptionSql = "select b.name n, a.value v from sysproperties a inner join sysobjects b on a.id=b.id where a.smallid=0";
+        private readonly String _DescriptionSql2000 = "select b.name n, a.value v from sysproperties a inner join sysobjects b on a.id=b.id where a.smallid=0";
+        private readonly String _DescriptionSql2005 = "select b.name n, a.value v from sys.extended_properties a inner join sysobjects b on a.major_id=b.id and a.minor_id=0 and a.name = 'MS_Description'";
         /// <summary>
         /// 取表说明SQL
         /// </summary>
-        public virtual String DescriptionSql { get { return _DescriptionSql; } }
+        public virtual String DescriptionSql { get { return (Db as SqlServer).IsSQL2005 ? _DescriptionSql2005 : _DescriptionSql2000; } }
         #endregion
 
         #region 数据定义
@@ -802,14 +801,8 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    class SqlServer : Database
+    class SqlServer : Database<SqlServer, SqlServerSession>
     {
-        #region 构造
-        protected SqlServer() { }
-
-        public static SqlServer Instance = new SqlServer();
-        #endregion
-
         #region 属性
         /// <summary>
         /// 返回数据库类型。外部DAL数据库类请使用Other
@@ -824,28 +817,32 @@ namespace XCode.DataAccessLayer
         {
             get { return SqlClientFactory.Instance; }
         }
-        #endregion
 
-        #region 方法
-        public override IDbSession CreateSession()
+        private Boolean _IsSQL2005;
+        /// <summary>是否SQL2005及以上</summary>
+        public Boolean IsSQL2005
         {
-            return new SqlServerSession(this);
+            get { return _IsSQL2005; }
+            set { _IsSQL2005 = value; }
         }
         #endregion
 
         #region 分页
         /// <summary>
-        /// 执行SQL查询，返回分页记录集
+        /// 构造分页SQL
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="startRowIndex">开始行，0开始</param>
         /// <param name="maximumRows">最大返回行数</param>
-        /// <param name="keyColumn">主键列。用于not in分页</param>
-        /// <returns></returns>
+        /// <param name="keyColumn">唯一键。用于not in分页</param>
+        /// <returns>分页SQL</returns>
         public override String PageSplit(string sql, Int32 startRowIndex, Int32 maximumRows, string keyColumn)
         {
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0 && maximumRows < 1) return sql;
+
+            // 指定了起始行，并且是SQL2005及以上版本，使用RowNumber算法
+            if (startRowIndex > 0 && IsSQL2005) return PageSplitRowNumber(sql, startRowIndex, maximumRows, keyColumn);
 
             // 如果没有Order By，直接调用基类方法
             // 先用字符串判断，命中率高，这样可以提高处理效率
@@ -853,9 +850,12 @@ namespace XCode.DataAccessLayer
             {
                 if (!sql.ToLower().Contains(" order ")) return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
             }
-            // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
-            MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            if (ms == null || ms.Count < 1 || ms[0].Index < 1)
+            //// 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
+            //MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            //if (ms == null || ms.Count < 1 || ms[0].Index < 1)
+            String sql2 = sql;
+            String orderBy = CheckOrderClause(ref sql2);
+            if (String.IsNullOrEmpty(orderBy))
             {
                 return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
             }
@@ -864,7 +864,7 @@ namespace XCode.DataAccessLayer
             {
                 return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
             }
-            String orderBy = sql.Substring(ms[0].Index);
+            //String orderBy = sql.Substring(ms[0].Index);
 
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
@@ -872,7 +872,8 @@ namespace XCode.DataAccessLayer
                 if (maximumRows < 1)
                     return sql;
                 else
-                    return String.Format("Select Top {0} * From {1} {2}", maximumRows, CheckSimpleSQL(sql.Substring(0, ms[0].Index)), orderBy);
+                    return String.Format("Select Top {0} * From {1} {2}", maximumRows, CheckSimpleSQL(sql2), orderBy);
+                //return String.Format("Select Top {0} * From {1} {2}", maximumRows, CheckSimpleSQL(sql.Substring(0, ms[0].Index)), orderBy);
             }
 
             #region Max/Min分页
@@ -885,7 +886,7 @@ namespace XCode.DataAccessLayer
             }
             #endregion
 
-            sql = CheckSimpleSQL(sql.Substring(0, ms[0].Index));
+            sql = CheckSimpleSQL(sql2);
 
             if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "这里用的not in分页算法要求指定主键列！");
 
@@ -893,6 +894,58 @@ namespace XCode.DataAccessLayer
                 sql = String.Format("Select * From {1} Where {2} Not In(Select Top {0} {2} From {1} {3}) {3}", startRowIndex, sql, keyColumn, orderBy);
             else
                 sql = String.Format("Select Top {0} * From {1} Where {2} Not In(Select Top {3} {2} From {1} {4}) {4}", maximumRows, sql, keyColumn, startRowIndex, orderBy);
+            return sql;
+        }
+
+        /// <summary>
+        /// 已重写。获取分页
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0开始</param>
+        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="keyColumn">主键列。用于not in分页</param>
+        /// <returns></returns>
+        public String PageSplitRowNumber(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
+        {
+            // 从第一行开始，不需要分页
+            if (startRowIndex <= 0)
+            {
+                if (maximumRows < 1)
+                    return sql;
+                else
+                    return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
+            }
+
+            String orderBy = String.Empty;
+            if (sql.ToLower().Contains(" order "))
+            {
+                // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
+                //MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                //if (ms != null && ms.Count > 0 && ms[0].Index > 0)
+                String sql2 = sql;
+                String orderBy2 = CheckOrderClause(ref sql2);
+                if (String.IsNullOrEmpty(orderBy))
+                {
+                    // 已确定该sql最外层含有order by，再检查最外层是否有top。因为没有top的order by是不允许作为子查询的
+                    if (!Regex.IsMatch(sql, @"^[^(]+\btop\b", RegexOptions.Compiled | RegexOptions.IgnoreCase))
+                    {
+                        //orderBy = sql.Substring(ms[0].Index).Trim();
+                        //sql = sql.Substring(0, ms[0].Index).Trim();
+                        orderBy = orderBy2.Trim();
+                        sql = sql2.Trim();
+                    }
+                }
+            }
+
+            if (String.IsNullOrEmpty(orderBy)) orderBy = "Order By " + keyColumn;
+            sql = CheckSimpleSQL(sql);
+
+            //row_number()从1开始
+            if (maximumRows < 1)
+                sql = String.Format("Select * From (Select row_number() over({2}) as row_number, * From {1}) XCode_Temp_b Where row_Number>={0}", startRowIndex + 1, sql, orderBy);
+            else
+                sql = String.Format("Select * From (Select row_number() over({3}) as row_number, * From {1}) XCode_Temp_b Where row_Number Between {0} And {2}", startRowIndex + 1, sql, startRowIndex + maximumRows, orderBy);
+
             return sql;
         }
         #endregion

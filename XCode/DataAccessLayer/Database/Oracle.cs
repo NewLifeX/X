@@ -11,10 +11,8 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// Oracle数据库
     /// </summary>
-    internal class OracleSession : DbSession
+    internal class OracleSession : DbSession<OracleSession>
     {
-        public OracleSession(Oracle db) : base(db) { }
-
         #region 基本方法 查询/执行
         /// <summary>
         /// 执行插入语句并返回新增行的自动编号
@@ -191,20 +189,25 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    class Oracle : Database
+    class Oracle : Database<Oracle, OracleSession>
     {
-        #region 构造
-        private Oracle() { }
-
-        public static Oracle Instance = new Oracle();
-        #endregion
+        #region 属性
+        /// <summary>
+        /// 返回数据库类型。外部DAL数据库类请使用Other
+        /// </summary>
+        public override DatabaseType DbType
+        {
+            get { return DatabaseType.Oracle; }
+        }
 
         /// <summary>工厂</summary>
         public override DbProviderFactory Factory
         {
             get { return OracleClientFactory.Instance; }
         }
+        #endregion
 
+        #region 分页
         /// <summary>
         /// 已重写。获取分页
         /// </summary>
@@ -235,20 +238,6 @@ namespace XCode.DataAccessLayer
         public override string PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows, string keyColumn)
         {
             return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
-        }
-
-        /// <summary>
-        /// 返回数据库类型。外部DAL数据库类请使用Other
-        /// </summary>
-        public override DatabaseType DbType
-        {
-            get { return DatabaseType.Oracle; }
-        }
-
-        #region 方法
-        public override IDbSession CreateSession()
-        {
-            return new OracleSession(this);
         }
         #endregion
 

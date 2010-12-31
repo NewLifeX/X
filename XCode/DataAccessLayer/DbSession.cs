@@ -9,14 +9,18 @@ using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
+    abstract class DbSession<TDbSession> : DbSession where TDbSession : DbSession<TDbSession>
+    {
+        #region 数据库
+        #endregion
+    }
+
     /// <summary>
     /// 数据库会话基类。
     /// </summary>
-    internal abstract partial class DbSession : DisposeBase, IDbSession
+    abstract partial class DbSession : DisposeBase, IDbSession
     {
         #region 构造函数
-        public DbSession(IDatabase db) { _Db = db; }
-
         /// <summary>
         /// 销毁资源时，回滚未提交事务，并关闭数据库连接
         /// </summary>
@@ -42,17 +46,13 @@ namespace XCode.DataAccessLayer
 
         #region 属性
         private static Int32 gid = 0;
-        private Int32? _ID;
+        private Int32 _ID = ++gid;
         /// <summary>
         /// 标识
         /// </summary>
         public Int32 ID
         {
-            get
-            {
-                if (_ID == null) _ID = ++gid;
-                return _ID.Value;
-            }
+            get { return _ID; }
         }
 
         /// <summary>
@@ -63,15 +63,9 @@ namespace XCode.DataAccessLayer
         /// <summary>工厂</summary>
         public DbProviderFactory Factory { get { return Db.Factory; } }
 
-        ///// <summary>数据库元数据</summary>
-        //public abstract IDatabaseMeta Meta { get; }
         private IDatabase _Db;
         /// <summary>数据库</summary>
-        public IDatabase Db
-        {
-            get { return _Db; }
-            //set { _Meta = value; }
-        }
+        public virtual IDatabase Db { get { return _Db; } set { _Db = value; } }
 
         private String _ConnectionString;
         /// <summary>链接字符串</summary>

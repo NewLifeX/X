@@ -15,10 +15,8 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// SQLite数据库
     /// </summary>
-    internal class SQLiteSession : DbSession
+    internal class SQLiteSession : DbSession<SQLiteSession>
     {
-        public SQLiteSession(SQLite db) : base(db) { }
-
         #region 属性
         ///// <summary>
         ///// 返回数据库类型。
@@ -624,14 +622,8 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    class SQLite : Database
+    class SQLite : Database<SQLite, SQLiteSession>
     {
-        #region 构造
-        private SQLite() { }
-
-        public static SQLite Instance = new SQLite();
-        #endregion
-
         #region 属性
         /// <summary>
         /// 返回数据库类型。
@@ -686,13 +678,6 @@ namespace XCode.DataAccessLayer
         public override DbProviderFactory Factory
         {
             get { return dbProviderFactory; }
-        }
-        #endregion
-
-        #region 方法
-        public override IDbSession CreateSession()
-        {
-            return new SQLiteSession(this);
         }
         #endregion
 

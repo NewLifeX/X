@@ -10,11 +10,9 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// MySql数据库
     /// </summary>
-    internal class MySqlSession : DbSession
+    internal class MySqlSession : DbSession<MySqlSession>
     {
-        public MySqlSession(MySql db) : base(db) { }
-
-       #region 属性
+        #region 属性
         ///// <summary>
         ///// 返回数据库类型。
         ///// </summary>
@@ -78,14 +76,8 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    class MySql : Database
+    class MySql : Database<MySql, MySqlSession>
     {
-        #region 构造
-        private MySql() { }
-
-        public static MySql Instance = new MySql();
-        #endregion
-
         #region 属性
         /// <summary>
         /// 返回数据库类型。
@@ -119,13 +111,6 @@ namespace XCode.DataAccessLayer
         public override DbProviderFactory Factory
         {
             get { return _dbProviderFactory; }
-        }
-        #endregion
-
-        #region 方法
-        public override IDbSession CreateSession()
-        {
-            return new MySqlSession(this);
         }
         #endregion
 

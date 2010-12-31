@@ -6,6 +6,27 @@ using System.Data.Common;
 
 namespace XCode.DataAccessLayer
 {
+    abstract class Database<TDatabase, TDbSession> : Database
+        where TDatabase : Database<TDatabase, TDbSession>, new()
+        where TDbSession : DbSession<TDbSession>, new()
+    {
+        #region 构造
+        public static TDatabase Instance = new TDatabase();
+        #endregion
+
+        #region 方法
+        public override IDbSession CreateSession()
+        {
+            TDbSession sessoin = new TDbSession();
+            sessoin.Db = this;
+            return sessoin;
+        }
+        #endregion
+    }
+
+    /// <summary>
+    /// 数据库基类。数据库类的职责是抽象不同数据库的共同点，理应最小化，保证原汁原味，因此不做缓存等实现。
+    /// </summary>
     abstract class Database : IDatabase
     {
         #region 属性
@@ -19,6 +40,33 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
+        ///// <summary>
+        ///// 保证数据库在每一个线程都有唯一的一个实例
+        ///// </summary>
+        //[ThreadStatic]
+        //private static Dictionary<Database, IDbSession> _sessions;
+
+        ///// <summary>
+        ///// 创建数据库会话
+        ///// </summary>
+        ///// <returns></returns>
+        //public IDbSession CreateSession()
+        //{
+        //    if (_sessions == null) _sessions = new Dictionary<Database, IDbSession>();
+
+        //    IDbSession session = null;
+        //    if (_sessions.TryGetValue(this, out session)) return session;
+        //    lock (_sessions)
+        //    {
+        //        if (_sessions.TryGetValue(this, out session)) return session;
+
+        //        session = OnCreateSession();
+        //        _sessions.Add(this, session);
+
+        //        return session;
+        //    }
+        //}
+
         /// <summary>
         /// 创建数据库会话
         /// </summary>
@@ -28,7 +76,7 @@ namespace XCode.DataAccessLayer
 
         #region 分页
         /// <summary>
-        /// 构造分页SQL
+        /// 构造分页SQL，优先选择max/min，然后选择not in
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="startRowIndex">开始行，0开始</param>
@@ -159,6 +207,7 @@ namespace XCode.DataAccessLayer
             return null;
         }
 
+        private static Regex reg_SimpleSQL = new Regex(@"^\s*select\s+\*\s+from\s+([\w\[\]\""\""\']+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>
         /// 检查简单SQL语句，比如Select * From table
         /// </summary>
@@ -168,11 +217,29 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(sql)) return sql;
 
-            Regex reg = new Regex(@"^\s*select\s+\*\s+from\s+([\w\[\]\""\""\']+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            MatchCollection ms = reg.Matches(sql);
+            MatchCollection ms = reg_SimpleSQL.Matches(sql);
             if (ms == null || ms.Count < 1 || ms[0].Groups.Count < 2 ||
                 String.IsNullOrEmpty(ms[0].Groups[1].Value)) return String.Format("({0}) XCode_Temp_a", sql);
             return ms[0].Groups[1].Value;
+        }
+
+        private static Regex reg_Order = new Regex(@"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        /// <summary>
+        /// 检查是否以Order子句结尾，如果是，分割sql为前后两部分
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <returns></returns>
+        protected static String CheckOrderClause(ref String sql)
+        {
+            if (!sql.ToLower().Contains("order")) return null;
+
+            // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
+            MatchCollection ms = reg_Order.Matches(sql);
+            if (ms == null || ms.Count < 1 || ms[0].Index < 1) return null;
+            String orderBy = sql.Substring(ms[0].Index).Trim();
+            sql = sql.Substring(0, ms[0].Index).Trim();
+
+            return orderBy;
         }
 
         /// <summary>

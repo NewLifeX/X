@@ -10,8 +10,6 @@ namespace XCode.DataAccessLayer
     /// </summary>
     internal class SqlServer2005Session : SqlServerSession
     {
-        public SqlServer2005Session(SqlServer2005 db) : base(db) { }
-
         #region 构架
         #region 取得字段信息的SQL模版
         private String _SchemaSql = "";
@@ -221,12 +219,6 @@ namespace XCode.DataAccessLayer
 
     class SqlServer2005 : SqlServer
     {
-        #region 构造
-        private SqlServer2005() { }
-
-        public new static SqlServer2005 Instance = new SqlServer2005();
-        #endregion
-
         #region 属性
         /// <summary>
         /// 返回数据库类型。外部DAL数据库类请使用Other
@@ -234,13 +226,6 @@ namespace XCode.DataAccessLayer
         public override DatabaseType DbType
         {
             get { return DatabaseType.SqlServer2005; }
-        }
-        #endregion
-
-        #region 方法
-        public override IDbSession CreateSession()
-        {
-            return new SqlServer2005Session(this);
         }
         #endregion
 

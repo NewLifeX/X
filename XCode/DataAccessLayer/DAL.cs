@@ -15,6 +15,7 @@ namespace XCode.DataAccessLayer
 {
     /// <summary>
     /// 数据访问层。
+    /// </summary>
     /// <remarks>
     /// 主要用于选择不同的数据库，不同的数据库的操作有所差别。
     /// 每一个数据库链接字符串，对应唯一的一个DAL实例。
@@ -23,7 +24,6 @@ namespace XCode.DataAccessLayer
     /// 每一个DAL实例，会为每一个线程初始化一个DataBase实例。
     /// 每一个数据库操作都必须指定表名以用于管理缓存，空表名或*将匹配所有缓存
     /// </remarks>
-    /// </summary>
     public class DAL
     {
         #region 创建函数
@@ -233,8 +233,8 @@ namespace XCode.DataAccessLayer
         private Type _DALType;
         /// <summary>
         /// 数据访问层基层类型。
-        /// <remarks>改变数据访问层数据库实体会断开当前链接，建议在任何数据库操作之前改变</remarks>
         /// </summary>
+        /// <remarks>改变数据访问层数据库实体会断开当前链接，建议在任何数据库操作之前改变</remarks>
         public Type DALType
         {
             get
@@ -246,7 +246,7 @@ namespace XCode.DataAccessLayer
             {
                 IDbSession idb;
                 //if (HttpContext.Current == null)
-                idb = _DBs != null && _DBs.ContainsKey(ConnName) ? _DBs[ConnName] : null;
+                idb = _Sessions != null && _Sessions.ContainsKey(ConnName) ? _Sessions[ConnName] : null;
                 //else
                 //    idb = HttpContext.Current.Items[ConnName + "_DB"] as IDataBase;
                 if (idb != null)
@@ -276,20 +276,32 @@ namespace XCode.DataAccessLayer
             private set { _ConnStr = value; }
         }
 
-        public IDatabase Db;
+        private IDatabase _Db;
+        /// <summary>
+        /// 数据库
+        /// </summary>
+        public IDatabase Db
+        {
+            get
+            {
+                if (_Db != null) return _Db;
+
+                return _Db;
+            }
+        }
 
         /// <summary>
         /// ThreadStatic 指示静态字段的值对于每个线程都是唯一的。
         /// </summary>
         [ThreadStatic]
-        private static IDictionary<String, IDbSession> _DBs;
+        private static IDictionary<String, IDbSession> _Sessions;
         /// <summary>
         /// DAL对象。
+        /// </summary>
         /// <remarks>
         /// 这里使用线程级缓存或请求级缓存，保证所有数据库操作线程安全。
         /// 使用外部数据库驱动会使得性能稍有下降。
         /// </remarks>
-        /// </summary>
         public IDbSession DB
         {
             get
@@ -307,34 +319,35 @@ namespace XCode.DataAccessLayer
 
         private IDbSession CreateForNotWeb()
         {
-            if (_DBs == null) _DBs = new Dictionary<String, IDbSession>();
+            if (_Sessions == null) _Sessions = new Dictionary<String, IDbSession>();
 
-            IDbSession _DB;
-            if (_DBs.TryGetValue(ConnName, out _DB)) return _DB;
-            lock (_DBs)
+            IDbSession session;
+            if (_Sessions.TryGetValue(ConnName, out session)) return session;
+            lock (_Sessions)
             {
-                if (_DBs.TryGetValue(ConnName, out _DB)) return _DB;
+                if (_Sessions.TryGetValue(ConnName, out session)) return session;
 
                 //// 创建对象，先取得程序集，再创建实例，是为了防止在本程序集创建外部DAL类的实例而出错
                 ////检查授权
                 //if (!License.Check()) return null;
 
                 //if (DALType == typeof(AccessSession))
-                //    _DB = new AccessSession();
+                //    session = new AccessSession();
                 //else if (DALType == typeof(SqlServerSession))
-                //    _DB = new SqlServerSession();
+                //    session = new SqlServerSession();
                 //else if (DALType == typeof(SqlServer2005Session))
-                //    _DB = new SqlServer2005Session();
+                //    session = new SqlServer2005Session();
                 //else if (DALType == typeof(OracleSession))
-                //    _DB = new OracleSession();
+                //    session = new OracleSession();
                 //else if (DALType == typeof(MySqlSession))
-                //    _DB = new MySqlSession();
+                //    session = new MySqlSession();
                 //else if (DALType == typeof(SQLiteSession))
-                //    _DB = new SQLiteSession();
+                //    session = new SQLiteSession();
                 //else
-                    _DB = DALType.Assembly.CreateInstance(DALType.FullName, false, BindingFlags.Default, null, new Object[] { ConnStr }, null, null) as IDbSession;
+                //    session = DALType.Assembly.CreateInstance(DALType.FullName, false, BindingFlags.Default, null, new Object[] { ConnStr }, null, null) as IDbSession;
 
-                _DB.ConnectionString = ConnStr;
+                session = Db.CreateSession();
+                session.ConnectionString = ConnStr;
 
                 //检查是否SqlServer2005
                 //_DB = CheckSql2005(_DB);
@@ -345,7 +358,7 @@ namespace XCode.DataAccessLayer
                     {
                         if (!IsSql2005.ContainsKey(ConnName))
                         {
-                            IsSql2005.Add(ConnName, CheckSql2005(_DB));
+                            IsSql2005.Add(ConnName, CheckSql2005(session));
                         }
                     }
                 }
@@ -353,16 +366,16 @@ namespace XCode.DataAccessLayer
                 if (DALType != typeof(SqlServer2005Session) && IsSql2005.ContainsKey(ConnName) && IsSql2005[ConnName])
                 {
                     _DALType = typeof(SqlServer2005Session);
-                    _DB.Dispose();
+                    session.Dispose();
                     //_DB = new SqlServer2005Session();
-                    _DB.ConnectionString = ConnStr;
+                    session.ConnectionString = ConnStr;
                 }
 
-                _DBs.Add(ConnName, _DB);
+                _Sessions.Add(ConnName, session);
 
-                if (DbSession.Debug) DbSession.WriteLog("创建DB（NotWeb）：{0}", _DB.ID);
+                if (DbSession.Debug) DbSession.WriteLog("创建DB（NotWeb）：{0}", session.ID);
 
-                return _DB;
+                return session;
             }
         }
 
@@ -488,7 +501,7 @@ namespace XCode.DataAccessLayer
             {
                 //if (HttpContext.Current == null || HttpContext.Current.Items == null)
                 //{
-                if (_DBs != null && !_DBs.ContainsKey(ConnName)) return true;
+                if (_Sessions != null && !_Sessions.ContainsKey(ConnName)) return true;
                 return false;
                 //}
                 //else

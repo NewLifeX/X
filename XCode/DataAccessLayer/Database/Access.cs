@@ -18,10 +18,8 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// Access数据库
     /// </summary>
-    internal class AccessSession : DbSession
+    internal class AccessSession : DbSession<AccessSession>
     {
-        public AccessSession(Access db) : base(db) { }
-
         #region 属性
         ///// <summary>
         ///// 返回数据库类型。外部DAL数据库类请使用Other
@@ -582,14 +580,8 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    class Access : Database
+    class Access : Database<Access, AccessSession>
     {
-        #region 构造
-        private Access() { }
-
-        public static Access Instance = new Access();
-        #endregion
-
         #region 属性
         /// <summary>
         /// 返回数据库类型。外部DAL数据库类请使用Other
@@ -603,13 +595,6 @@ namespace XCode.DataAccessLayer
         public override DbProviderFactory Factory
         {
             get { return OleDbFactory.Instance; }
-        }
-        #endregion
-
-        #region 方法
-        public override IDbSession CreateSession()
-        {
-            return new AccessSession(this);
         }
         #endregion
 

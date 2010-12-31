@@ -89,7 +89,12 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
 
         // 计算约束条件
         String[] pms = null;
-        DataTable rdt = dal.DB.GetSchema(DbMetaDataCollectionNames.Restrictions, null);
+        DataTable rdt = null;
+        try
+        {
+            rdt = dal.DB.GetSchema(DbMetaDataCollectionNames.Restrictions, null);
+        }
+        catch { }
         if (rdt != null)
         {
             DataRow[] drs = rdt.Select(String.Format("{0}='{1}'", DbMetaDataColumnNames.CollectionName, name));
@@ -123,7 +128,12 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         if (String.IsNullOrEmpty(name)) return;
 
         // 计算约束条件
-        DataTable rdt = dal.DB.GetSchema(DbMetaDataCollectionNames.Restrictions, null);
+        DataTable rdt = null;
+        try
+        {
+            rdt = dal.DB.GetSchema(DbMetaDataCollectionNames.Restrictions, null);
+        }
+        catch { }
         if (rdt != null)
         {
             DataRow[] drs = rdt.Select(String.Format("{0}='{1}'", DbMetaDataColumnNames.CollectionName, name));
