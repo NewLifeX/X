@@ -15,34 +15,7 @@ namespace XCode.DataAccessLayer
     internal abstract partial class DbSession : DisposeBase, IDbSession
     {
         #region 构造函数
-        ///// <summary>
-        ///// 是否已经释放
-        ///// </summary>
-        //private Boolean IsDisposed = false;
-        ///// <summary>
-        ///// 释放资源
-        ///// </summary>
-        //public virtual void Dispose()
-        //{
-        //    if (IsDisposed) return;
-        //    try
-        //    {
-        //        // 注意，没有Commit的数据，在这里将会被回滚
-        //        //if (Trans != null) Rollback();
-        //        if (_Trans != null && Opened) _Trans.Rollback();
-        //        if (_Conn != null) Close();
-        //        IsDisposed = true;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        WriteLog("执行" + DbType.ToString() + "的Dispose时出错：" + ex.ToString());
-        //    }
-        //}
-
-        //~Database()
-        //{
-        //    Dispose();
-        //}
+        public DbSession(IDatabase db) { _Db = db; }
 
         /// <summary>
         /// 销毁资源时，回滚未提交事务，并关闭数据库连接
@@ -85,19 +58,19 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 返回数据库类型。外部DAL数据库类请使用Other
         /// </summary>
-        public DatabaseType DbType { get { return Meta.DbType; } }
+        public DatabaseType DbType { get { return Db.DbType; } }
 
         /// <summary>工厂</summary>
-        public DbProviderFactory Factory { get { return Meta.Factory; } }
+        public DbProviderFactory Factory { get { return Db.Factory; } }
 
         ///// <summary>数据库元数据</summary>
         //public abstract IDatabaseMeta Meta { get; }
-        private IDatabase _Meta;
+        private IDatabase _Db;
         /// <summary>数据库</summary>
-        public IDatabase Meta
+        public IDatabase Db
         {
-            get { return _Meta; }
-            set { _Meta = value; }
+            get { return _Db; }
+            //set { _Meta = value; }
         }
 
         private String _ConnectionString;
@@ -475,7 +448,7 @@ namespace XCode.DataAccessLayer
         /// <returns>记录集</returns>
         public virtual DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
-            return Query(Meta.PageSplit(builder, startRowIndex, maximumRows, keyColumn));
+            return Query(Db.PageSplit(builder, startRowIndex, maximumRows, keyColumn));
         }
 
         /// <summary>
@@ -691,7 +664,7 @@ namespace XCode.DataAccessLayer
         #region 辅助函数
         protected String FormatKeyWord(String keyWord)
         {
-            return Meta.FormatKeyWord(keyWord);
+            return Db.FormatKeyWord(keyWord);
         }
 
         /// <summary>

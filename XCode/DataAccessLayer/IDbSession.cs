@@ -20,7 +20,7 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 数据库
         /// </summary>
-        IDatabase Meta { get; }
+        IDatabase Db { get; }
 
         /// <summary>
         /// 链接字符串

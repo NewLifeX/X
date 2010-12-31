@@ -196,7 +196,7 @@ namespace XCode.DataAccessLayer
                 {
                     String d = field.Default;
                     //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = "now()";
-                    if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d =Meta.DateTimeNow;
+                    if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d =Db.DateTimeNow;
                     sb.AppendFormat(" DEFAULT {0}", d);
                 }
                 else

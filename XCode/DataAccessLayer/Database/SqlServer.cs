@@ -16,6 +16,8 @@ namespace XCode.DataAccessLayer
     /// </summary>
     internal class SqlServerSession : DbSession
     {
+        public SqlServerSession(SqlServer db) : base(db) { }
+
         #region 查询
         /// <summary>
         /// 快速查询单表记录数，稍有偏差
@@ -522,7 +524,7 @@ namespace XCode.DataAccessLayer
                 {
                     String d = field.Default;
                     //if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = "getdate()";
-                    if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = Meta.DateTimeNow;
+                    if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = Db.DateTimeNow;
                     sb.AppendFormat(" DEFAULT {0}", d);
                 }
                 else
@@ -827,7 +829,7 @@ namespace XCode.DataAccessLayer
         #region 方法
         public override IDbSession CreateSession()
         {
-            return new SqlServerSession();
+            return new SqlServerSession(this);
         }
         #endregion
 

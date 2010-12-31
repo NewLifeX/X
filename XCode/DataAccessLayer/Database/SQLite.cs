@@ -17,6 +17,8 @@ namespace XCode.DataAccessLayer
     /// </summary>
     internal class SQLiteSession : DbSession
     {
+        public SQLiteSession(SQLite db) : base(db) { }
+
         #region 属性
         ///// <summary>
         ///// 返回数据库类型。
@@ -521,8 +523,8 @@ namespace XCode.DataAccessLayer
                 {
                     String d = field.Default;
                     //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = "now()";
-                    if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = Meta.DateTimeNow;
-                    if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = Meta.DateTimeNow;
+                    if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = Db.DateTimeNow;
+                    if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = Db.DateTimeNow;
                     sb.AppendFormat(" DEFAULT {0}", d);
                 }
                 else
@@ -690,7 +692,7 @@ namespace XCode.DataAccessLayer
         #region 方法
         public override IDbSession CreateSession()
         {
-            return new SQLiteSession();
+            return new SQLiteSession(this);
         }
         #endregion
 

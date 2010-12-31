@@ -527,8 +527,8 @@ namespace XCode.DataAccessLayer
             return table;
         }
 
-        private static AccessSession ac = new AccessSession();
-        private static SqlServerSession sq = new SqlServerSession();
+        private static AccessSession ac ;//= new AccessSession();
+        private static SqlServerSession sq ;//= new SqlServerSession();
 
         private void GetSchemaSQL(StringBuilder sb, DDLSchema schema, Object[] values, Boolean onlySql)
         {

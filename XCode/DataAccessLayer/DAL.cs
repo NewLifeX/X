@@ -319,19 +319,19 @@ namespace XCode.DataAccessLayer
                 ////检查授权
                 //if (!License.Check()) return null;
 
-                if (DALType == typeof(AccessSession))
-                    _DB = new AccessSession();
-                else if (DALType == typeof(SqlServerSession))
-                    _DB = new SqlServerSession();
-                else if (DALType == typeof(SqlServer2005Session))
-                    _DB = new SqlServer2005Session();
-                else if (DALType == typeof(OracleSession))
-                    _DB = new OracleSession();
-                else if (DALType == typeof(MySqlSession))
-                    _DB = new MySqlSession();
-                else if (DALType == typeof(SQLiteSession))
-                    _DB = new SQLiteSession();
-                else
+                //if (DALType == typeof(AccessSession))
+                //    _DB = new AccessSession();
+                //else if (DALType == typeof(SqlServerSession))
+                //    _DB = new SqlServerSession();
+                //else if (DALType == typeof(SqlServer2005Session))
+                //    _DB = new SqlServer2005Session();
+                //else if (DALType == typeof(OracleSession))
+                //    _DB = new OracleSession();
+                //else if (DALType == typeof(MySqlSession))
+                //    _DB = new MySqlSession();
+                //else if (DALType == typeof(SQLiteSession))
+                //    _DB = new SQLiteSession();
+                //else
                     _DB = DALType.Assembly.CreateInstance(DALType.FullName, false, BindingFlags.Default, null, new Object[] { ConnStr }, null, null) as IDbSession;
 
                 _DB.ConnectionString = ConnStr;
@@ -354,7 +354,7 @@ namespace XCode.DataAccessLayer
                 {
                     _DALType = typeof(SqlServer2005Session);
                     _DB.Dispose();
-                    _DB = new SqlServer2005Session();
+                    //_DB = new SqlServer2005Session();
                     _DB.ConnectionString = ConnStr;
                 }
 
@@ -445,7 +445,7 @@ namespace XCode.DataAccessLayer
         private Boolean CheckSql2005(IDbSession db)
         {
             //检查是否SqlServer2005
-            if (db.Meta.DbType != DatabaseType.SqlServer) return false;
+            if (db.Db.DbType != DatabaseType.SqlServer) return false;
 
             //切换到master库
             DbSession d = db as DbSession;
@@ -576,7 +576,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
 
-                String s = DB.Meta.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
+                String s = DB.Db.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
                 _PageSplitCache.Add(cacheKey, s);
                 return s;
             }
@@ -605,7 +605,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
 
-                String s = DB.Meta.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
+                String s = DB.Db.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
                 _PageSplitCache.Add(cacheKey, s);
                 return s;
             }

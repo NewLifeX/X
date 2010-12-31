@@ -39,7 +39,7 @@ namespace XCode.Exceptions
         /// <param name="message"></param>
         /// <param name="innerException"></param>
         public XDbException(IDbSession db, String message, Exception innerException)
-            : base(message + (db != null ? "[DB:" + db.Meta.DbType.ToString() + "]" : null), innerException)
+            : base(message + (db != null ? "[DB:" + db.Db.DbType.ToString() + "]" : null), innerException)
         {
             _Database = db;
         }
@@ -50,7 +50,7 @@ namespace XCode.Exceptions
         /// <param name="db"></param>
         /// <param name="innerException"></param>
         public XDbException(IDbSession db, Exception innerException)
-            : base((innerException != null ? innerException.Message : null) + (db != null ? "[DB:" + db.Meta.DbType.ToString() + "]" : null), innerException)
+            : base((innerException != null ? innerException.Message : null) + (db != null ? "[DB:" + db.Db.DbType.ToString() + "]" : null), innerException)
         {
             _Database = db;
         }

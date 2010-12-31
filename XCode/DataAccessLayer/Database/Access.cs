@@ -20,6 +20,8 @@ namespace XCode.DataAccessLayer
     /// </summary>
     internal class AccessSession : DbSession
     {
+        public AccessSession(Access db) : base(db) { }
+
         #region 属性
         ///// <summary>
         ///// 返回数据库类型。外部DAL数据库类请使用Other
@@ -607,7 +609,7 @@ namespace XCode.DataAccessLayer
         #region 方法
         public override IDbSession CreateSession()
         {
-            return new AccessSession();
+            return new AccessSession(this);
         }
         #endregion
 

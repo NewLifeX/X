@@ -12,7 +12,9 @@ namespace XCode.DataAccessLayer
     /// </summary>
     internal class MySqlSession : DbSession
     {
-        #region 属性
+        public MySqlSession(MySql db) : base(db) { }
+
+       #region 属性
         ///// <summary>
         ///// 返回数据库类型。
         ///// </summary>
@@ -123,7 +125,7 @@ namespace XCode.DataAccessLayer
         #region 方法
         public override IDbSession CreateSession()
         {
-            return new MySqlSession();
+            return new MySqlSession(this);
         }
         #endregion
 
