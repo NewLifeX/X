@@ -12,14 +12,13 @@ using DAO;
 using NewLife.Log;
 using XCode.Common;
 using XCode.Exceptions;
-using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
     /// <summary>
     /// Access数据库
     /// </summary>
-    internal class Access : Database
+    internal class AccessSession : DbSession
     {
         #region 属性
         ///// <summary>
@@ -581,8 +580,14 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    class AccessMeta : DatabaseMeta
+    class Access : Database
     {
+        #region 构造
+        private Access() { }
+
+        public static Access Instance = new Access();
+        #endregion
+
         #region 属性
         /// <summary>
         /// 返回数据库类型。外部DAL数据库类请使用Other
@@ -596,6 +601,13 @@ namespace XCode.DataAccessLayer
         public override DbProviderFactory Factory
         {
             get { return OleDbFactory.Instance; }
+        }
+        #endregion
+
+        #region 方法
+        public override IDbSession CreateSession()
+        {
+            return new AccessSession();
         }
         #endregion
 

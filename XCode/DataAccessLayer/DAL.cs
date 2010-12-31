@@ -145,25 +145,25 @@ namespace XCode.DataAccessLayer
             {
                 provider = provider.ToLower();
                 if (provider.Contains("sqlclient"))
-                    type = typeof(SqlServer);
+                    type = typeof(SqlServerSession);
                 else if (provider.Contains("oracleclient"))
-                    type = typeof(Oracle);
+                    type = typeof(OracleSession);
                 else if (provider.Contains("microsoft.jet.oledb"))
-                    type = typeof(Access);
+                    type = typeof(AccessSession);
                 else if (provider.Contains("access"))
-                    type = typeof(Access);
+                    type = typeof(AccessSession);
                 else if (provider.Contains("mysql"))
-                    type = typeof(MySql);
+                    type = typeof(MySqlSession);
                 else if (provider.Contains("sqlite"))
-                    type = typeof(SQLite);
+                    type = typeof(SQLiteSession);
                 else if (provider.Contains("sql2008"))
-                    type = typeof(SqlServer2005);
+                    type = typeof(SqlServer2005Session);
                 else if (provider.Contains("sql2005"))
-                    type = typeof(SqlServer2005);
+                    type = typeof(SqlServer2005Session);
                 else if (provider.Contains("sql2000"))
-                    type = typeof(SqlServer);
+                    type = typeof(SqlServerSession);
                 else if (provider.Contains("sql"))
-                    type = typeof(SqlServer);
+                    type = typeof(SqlServerSession);
                 else
                 {
                     if (provider.Contains(",")) // 带有程序集名称，加载程序集
@@ -177,15 +177,15 @@ namespace XCode.DataAccessLayer
                 // 分析类型
                 String str = connStr.ToLower();
                 if (str.Contains("mssql") || str.Contains("sqloledb"))
-                    type = typeof(SqlServer);
+                    type = typeof(SqlServerSession);
                 else if (str.Contains("oracle"))
-                    type = typeof(Oracle);
+                    type = typeof(OracleSession);
                 else if (str.Contains("microsoft.jet.oledb"))
-                    type = typeof(Access);
+                    type = typeof(AccessSession);
                 else if (str.Contains("sql"))
-                    type = typeof(SqlServer);
+                    type = typeof(SqlServerSession);
                 else
-                    type = typeof(Access);
+                    type = typeof(AccessSession);
             }
             return type;
         }
@@ -244,7 +244,7 @@ namespace XCode.DataAccessLayer
             }
             set	// 如果外部需要改变数据访问层数据库实体
             {
-                IDatabase idb;
+                IDbSession idb;
                 //if (HttpContext.Current == null)
                 idb = _DBs != null && _DBs.ContainsKey(ConnName) ? _DBs[ConnName] : null;
                 //else
@@ -276,13 +276,13 @@ namespace XCode.DataAccessLayer
             private set { _ConnStr = value; }
         }
 
-        public IDatabaseMeta Db;
+        public IDatabase Db;
 
         /// <summary>
         /// ThreadStatic 指示静态字段的值对于每个线程都是唯一的。
         /// </summary>
         [ThreadStatic]
-        private static IDictionary<String, IDatabase> _DBs;
+        private static IDictionary<String, IDbSession> _DBs;
         /// <summary>
         /// DAL对象。
         /// <remarks>
@@ -290,7 +290,7 @@ namespace XCode.DataAccessLayer
         /// 使用外部数据库驱动会使得性能稍有下降。
         /// </remarks>
         /// </summary>
-        public IDatabase DB
+        public IDbSession DB
         {
             get
             {
@@ -305,11 +305,11 @@ namespace XCode.DataAccessLayer
 
         private static Dictionary<String, Boolean> IsSql2005 = new Dictionary<String, Boolean>();
 
-        private IDatabase CreateForNotWeb()
+        private IDbSession CreateForNotWeb()
         {
-            if (_DBs == null) _DBs = new Dictionary<String, IDatabase>();
+            if (_DBs == null) _DBs = new Dictionary<String, IDbSession>();
 
-            IDatabase _DB;
+            IDbSession _DB;
             if (_DBs.TryGetValue(ConnName, out _DB)) return _DB;
             lock (_DBs)
             {
@@ -319,20 +319,20 @@ namespace XCode.DataAccessLayer
                 ////检查授权
                 //if (!License.Check()) return null;
 
-                if (DALType == typeof(Access))
-                    _DB = new Access();
-                else if (DALType == typeof(SqlServer))
-                    _DB = new SqlServer();
-                else if (DALType == typeof(SqlServer2005))
-                    _DB = new SqlServer2005();
-                else if (DALType == typeof(Oracle))
-                    _DB = new Oracle();
-                else if (DALType == typeof(MySql))
-                    _DB = new MySql();
-                else if (DALType == typeof(SQLite))
-                    _DB = new SQLite();
+                if (DALType == typeof(AccessSession))
+                    _DB = new AccessSession();
+                else if (DALType == typeof(SqlServerSession))
+                    _DB = new SqlServerSession();
+                else if (DALType == typeof(SqlServer2005Session))
+                    _DB = new SqlServer2005Session();
+                else if (DALType == typeof(OracleSession))
+                    _DB = new OracleSession();
+                else if (DALType == typeof(MySqlSession))
+                    _DB = new MySqlSession();
+                else if (DALType == typeof(SQLiteSession))
+                    _DB = new SQLiteSession();
                 else
-                    _DB = DALType.Assembly.CreateInstance(DALType.FullName, false, BindingFlags.Default, null, new Object[] { ConnStr }, null, null) as IDatabase;
+                    _DB = DALType.Assembly.CreateInstance(DALType.FullName, false, BindingFlags.Default, null, new Object[] { ConnStr }, null, null) as IDbSession;
 
                 _DB.ConnectionString = ConnStr;
 
@@ -350,17 +350,17 @@ namespace XCode.DataAccessLayer
                     }
                 }
 
-                if (DALType != typeof(SqlServer2005) && IsSql2005.ContainsKey(ConnName) && IsSql2005[ConnName])
+                if (DALType != typeof(SqlServer2005Session) && IsSql2005.ContainsKey(ConnName) && IsSql2005[ConnName])
                 {
-                    _DALType = typeof(SqlServer2005);
+                    _DALType = typeof(SqlServer2005Session);
                     _DB.Dispose();
-                    _DB = new SqlServer2005();
+                    _DB = new SqlServer2005Session();
                     _DB.ConnectionString = ConnStr;
                 }
 
                 _DBs.Add(ConnName, _DB);
 
-                if (Database.Debug) Database.WriteLog("创建DB（NotWeb）：{0}", _DB.ID);
+                if (DbSession.Debug) DbSession.WriteLog("创建DB（NotWeb）：{0}", _DB.ID);
 
                 return _DB;
             }
@@ -442,13 +442,13 @@ namespace XCode.DataAccessLayer
         //    return db;
         //}
 
-        private Boolean CheckSql2005(IDatabase db)
+        private Boolean CheckSql2005(IDbSession db)
         {
             //检查是否SqlServer2005
             if (db.Meta.DbType != DatabaseType.SqlServer) return false;
 
             //切换到master库
-            Database d = db as Database;
+            DbSession d = db as DbSession;
             String dbname = d.DatabaseName;
             //如果指定了数据库名，并且不是master，则切换到master
             if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))

@@ -527,8 +527,8 @@ namespace XCode.DataAccessLayer
             return table;
         }
 
-        private static Access ac = new Access();
-        private static SqlServer sq = new SqlServer();
+        private static AccessSession ac = new AccessSession();
+        private static SqlServerSession sq = new SqlServerSession();
 
         private void GetSchemaSQL(StringBuilder sb, DDLSchema schema, Object[] values, Boolean onlySql)
         {
@@ -636,7 +636,7 @@ namespace XCode.DataAccessLayer
         #region 调试输出
         private static void WriteLog(String msg)
         {
-            if (XCode.DataAccessLayer.Database.Debug) XCode.DataAccessLayer.Database.WriteLog(msg);
+            if (XCode.DataAccessLayer.DbSession.Debug) XCode.DataAccessLayer.DbSession.WriteLog(msg);
         }
         #endregion
     }

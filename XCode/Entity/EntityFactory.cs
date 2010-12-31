@@ -277,12 +277,12 @@ namespace XCode
         #region 调试输出
         private static void WriteLog(String msg)
         {
-            if (XCode.DataAccessLayer.Database.Debug) XCode.DataAccessLayer.Database.WriteLog(msg);
+            if (XCode.DataAccessLayer.DbSession.Debug) XCode.DataAccessLayer.DbSession.WriteLog(msg);
         }
 
         private static void WriteLog(String format, params Object[] args)
         {
-            if (XCode.DataAccessLayer.Database.Debug) XCode.DataAccessLayer.Database.WriteLog(format, args);
+            if (XCode.DataAccessLayer.DbSession.Debug) XCode.DataAccessLayer.DbSession.WriteLog(format, args);
         }
         #endregion
     }

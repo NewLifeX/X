@@ -86,11 +86,11 @@
     <Compile Include="Code\EntityClassBiz.cs" />
     <Compile Include="Common\FileSource.cs" />
     <Compile Include="DataAccessLayer\DatabaseType.cs" />
-    <Compile Include="DataAccessLayer\Database_DDL.cs" />
-    <Compile Include="DataAccessLayer\DatabaseMeta.cs" />
-    <Compile Include="DataAccessLayer\Database_Schema.cs" />
+    <Compile Include="DataAccessLayer\DbSession_DDL.cs" />
+    <Compile Include="DataAccessLayer\Database.cs" />
+    <Compile Include="DataAccessLayer\DbSession_Schema.cs" />
     <Compile Include="DataAccessLayer\DbFactory.cs" />
-    <Compile Include="DataAccessLayer\IDatabaseMeta.cs" />
+    <Compile Include="DataAccessLayer\IDatabase.cs" />
     <Compile Include="Exceptions\XDbException.cs" />
     <Compile Include="Exceptions\XCodeException.cs" />
     <Compile Include="Exceptions\XSqlException.cs" />
@@ -99,8 +99,8 @@
     <Compile Include="DataAccessLayer\DatabaseSchema.cs" />
     <Compile Include="DataAccessLayer\Database\Access.cs" />
     <Compile Include="DataAccessLayer\DAL.cs" />
-    <Compile Include="DataAccessLayer\Database.cs" />
-    <Compile Include="DataAccessLayer\IDatabase.cs" />
+    <Compile Include="DataAccessLayer\DbSession.cs" />
+    <Compile Include="DataAccessLayer\IDbSession.cs" />
     <Compile Include="DataAccessLayer\Database\MySql.cs" />
     <Compile Include="DataAccessLayer\Database\Oracle.cs" />
     <Compile Include="DataAccessLayer\SelectBuilder.cs" />

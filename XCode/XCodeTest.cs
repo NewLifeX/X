@@ -196,8 +196,8 @@ namespace XCode
                 Dal.BeginTransaction();
             }
             StringBuilder sb = new StringBuilder();
-            Boolean debug_old = Database.Debug;
-            Database.Debug = false;
+            Boolean debug_old = DbSession.Debug;
+            DbSession.Debug = false;
             for (int i = 0; i < dataMax; i++)
             {
                 String name = "测试" + i.ToString("0000");
@@ -221,7 +221,7 @@ namespace XCode
                 n = Dal.InsertAndGetIdentity(sql, table.Name);
                 if (i + 1 != n) throw new Exception("插入返回编号不匹配！");
             }
-            Database.Debug = debug_old;
+            DbSession.Debug = debug_old;
             if (EnableTran) Dal.Commit();
 
             //查询
@@ -350,7 +350,7 @@ namespace XCode
             set { _Dal = value; }
         }
 
-        private Database DB { get { return Dal.DB as Database; } }
+        private DbSession DB { get { return Dal.DB as DbSession; } }
         #endregion
 
         #region 生成代码测试

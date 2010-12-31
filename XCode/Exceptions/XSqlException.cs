@@ -29,7 +29,7 @@ namespace XCode.Exceptions
         /// </summary>
         /// <param name="sql"></param>
         /// <param name="db"></param>
-        public XSqlException(String sql, IDatabase db) : base(db) { Sql = sql; }
+        public XSqlException(String sql, IDbSession db) : base(db) { Sql = sql; }
 
         /// <summary>
         /// 初始化
@@ -37,7 +37,7 @@ namespace XCode.Exceptions
         /// <param name="sql"></param>
         /// <param name="db"></param>
         /// <param name="message"></param>
-        public XSqlException(String sql, IDatabase db, String message) : base(db, message + "[SQL:" + sql + "]") { Sql = sql; }
+        public XSqlException(String sql, IDbSession db, String message) : base(db, message + "[SQL:" + sql + "]") { Sql = sql; }
 
         /// <summary>
         /// 初始化
@@ -46,7 +46,7 @@ namespace XCode.Exceptions
         /// <param name="db"></param>
         /// <param name="message"></param>
         /// <param name="innerException"></param>
-        public XSqlException(String sql, IDatabase db, String message, Exception innerException)
+        public XSqlException(String sql, IDbSession db, String message, Exception innerException)
             : base(db, message + "[SQL:" + sql + "]", innerException)
         {
             Sql = sql;
@@ -58,7 +58,7 @@ namespace XCode.Exceptions
         /// <param name="sql"></param>
         /// <param name="db"></param>
         /// <param name="innerException"></param>
-        public XSqlException(String sql, IDatabase db, Exception innerException)
+        public XSqlException(String sql, IDbSession db, Exception innerException)
             : base(db, (innerException != null ? innerException.Message : "") + "[SQL:" + sql + "]", innerException)
         {
             Sql = sql;

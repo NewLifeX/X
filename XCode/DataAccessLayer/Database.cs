@@ -1,710 +1,169 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Data.Common;
-using System.Data.SqlTypes;
 using System.Text;
 using System.Text.RegularExpressions;
-using NewLife.Log;
-using XCode.Exceptions;
-using NewLife;
+using System.Data.Common;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>
-    /// Êı¾İ¿â»ùÀà¡£
-    /// ÉùÃ÷Îªpublic£¬³ÌĞò¼¯ÒÔÍâ¶ÔÏó¿ÉÒÔ¼¯³É£¬·½±ã±àĞ´±ğµÄÊı¾İ¿â×ÓÀà¡£
-    /// »ùÀàÎª¸÷Êı¾İ¿âÀà¶¨ÖÆÁËÒ»¸ö¿ò¼Ü£¬Ä¬ÈÏÊ¹ÓÃAccess¡£
-    /// SqlServerºÍOracle¿ÉÖØĞ´ÒÔÌá¸ßĞÔÄÜ
-    /// </summary>
-    internal abstract partial class Database : DisposeBase, IDatabase
+    abstract class Database : IDatabase
     {
-        #region ¹¹Ôìº¯Êı
-        ///// <summary>
-        ///// ÊÇ·ñÒÑ¾­ÊÍ·Å
-        ///// </summary>
-        //private Boolean IsDisposed = false;
-        ///// <summary>
-        ///// ÊÍ·Å×ÊÔ´
-        ///// </summary>
-        //public virtual void Dispose()
-        //{
-        //    if (IsDisposed) return;
-        //    try
-        //    {
-        //        // ×¢Òâ£¬Ã»ÓĞCommitµÄÊı¾İ£¬ÔÚÕâÀï½«»á±»»Ø¹ö
-        //        //if (Trans != null) Rollback();
-        //        if (_Trans != null && Opened) _Trans.Rollback();
-        //        if (_Conn != null) Close();
-        //        IsDisposed = true;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        WriteLog("Ö´ĞĞ" + DbType.ToString() + "µÄDisposeÊ±³ö´í£º" + ex.ToString());
-        //    }
-        //}
-
-        //~Database()
-        //{
-        //    Dispose();
-        //}
-
+        #region å±æ€§
         /// <summary>
-        /// Ïú»Ù×ÊÔ´Ê±£¬»Ø¹öÎ´Ìá½»ÊÂÎñ£¬²¢¹Ø±ÕÊı¾İ¿âÁ¬½Ó
+        /// è¿”å›æ•°æ®åº“ç±»å‹ã€‚å¤–éƒ¨DALæ•°æ®åº“ç±»è¯·ä½¿ç”¨Other
         /// </summary>
-        /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
-        {
-            base.OnDispose(disposing);
+        public abstract DatabaseType DbType { get; }
 
-            try
-            {
-                // ×¢Òâ£¬Ã»ÓĞCommitµÄÊı¾İ£¬ÔÚÕâÀï½«»á±»»Ø¹ö
-                //if (Trans != null) Rollback();
-                // ÔÚÇ¶Ì×ÊÂÎñÖĞ£¬RollbackÖ»ÄÜ¼õÉÙÇ¶Ì×²ãÊı£¬¶ø_Trans.RollbackÄÜÈÃÊÂÎñÂíÉÏ»Ø¹ö
-                if (_Trans != null && Opened) _Trans.Rollback();
-                if (_Conn != null) Close();
-            }
-            catch (Exception ex)
-            {
-                WriteLog("Ö´ĞĞ" + DbType.ToString() + "µÄDisposeÊ±³ö´í£º" + ex.ToString());
-            }
-        }
+        /// <summary>å·¥å‚</summary>
+        public abstract DbProviderFactory Factory { get; }
         #endregion
 
-        #region ÊôĞÔ
-        private static Int32 gid = 0;
-        private Int32? _ID;
+        #region æ–¹æ³•
         /// <summary>
-        /// ±êÊ¶
+        /// åˆ›å»ºæ•°æ®åº“ä¼šè¯
         /// </summary>
-        public Int32 ID
-        {
-            get
-            {
-                if (_ID == null) _ID = ++gid;
-                return _ID.Value;
-            }
-        }
+        /// <returns></returns>
+        public abstract IDbSession CreateSession();
+        #endregion
 
+        #region åˆ†é¡µ
         /// <summary>
-        /// ·µ»ØÊı¾İ¿âÀàĞÍ¡£Íâ²¿DALÊı¾İ¿âÀàÇëÊ¹ÓÃOther
+        /// æ„é€ åˆ†é¡µSQL
         /// </summary>
-        public DatabaseType DbType { get { return Meta.DbType; } }
-
-        /// <summary>¹¤³§</summary>
-        public DbProviderFactory Factory { get { return Meta.Factory; } }
-
-        ///// <summary>Êı¾İ¿âÔªÊı¾İ</summary>
-        //public abstract IDatabaseMeta Meta { get; }
-        private IDatabaseMeta _Meta;
-        /// <summary>Êı¾İ¿â</summary>
-        public IDatabaseMeta Meta
+        /// <param name="sql">SQLè¯­å¥</param>
+        /// <param name="startRowIndex">å¼€å§‹è¡Œï¼Œ0å¼€å§‹</param>
+        /// <param name="maximumRows">æœ€å¤§è¿”å›è¡Œæ•°</param>
+        /// <param name="keyColumn">å”¯ä¸€é”®ã€‚ç”¨äºnot inåˆ†é¡µ</param>
+        /// <returns>åˆ†é¡µSQL</returns>
+        public virtual String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
-            get { return _Meta; }
-            set { _Meta = value; }
-        }
+            // ä»ç¬¬ä¸€è¡Œå¼€å§‹ï¼Œä¸éœ€è¦åˆ†é¡µ
+            if (startRowIndex <= 0 && maximumRows < 1) return sql;
 
-        private String _ConnectionString;
-        /// <summary>Á´½Ó×Ö·û´®</summary>
-        public virtual String ConnectionString
-        {
-            get { return _ConnectionString; }
-            set
+            #region Max/Minåˆ†é¡µ
+            // å¦‚æœè¦ä½¿ç”¨max/minåˆ†é¡µæ³•ï¼Œé¦–å…ˆkeyColumnå¿…é¡»æœ‰ascæˆ–è€…desc
+            if (!String.IsNullOrEmpty(keyColumn))
             {
-                _ConnectionString = value;
-                if (!String.IsNullOrEmpty(_ConnectionString))
+                String kc = keyColumn.ToLower();
+                if (kc.EndsWith(" desc") || kc.EndsWith(" asc") || kc.EndsWith(" unknown"))
                 {
-                    DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
-                    builder.ConnectionString = _ConnectionString;
-                    if (builder.ContainsKey("owner"))
+                    String str = PageSplitMaxMin(sql, startRowIndex, maximumRows, keyColumn);
+                    if (!String.IsNullOrEmpty(str)) return str;
+                    keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
+                }
+            }
+            #endregion
+
+            //æ£€æŸ¥ç®€å•SQLã€‚ä¸ºäº†è®©ç”Ÿæˆåˆ†é¡µSQLæ›´çŸ­
+            String tablename = CheckSimpleSQL(sql);
+            if (tablename != sql)
+                sql = tablename;
+            else
+                sql = String.Format("({0}) XCode_Temp_a", sql);
+
+            // å–ç¬¬ä¸€é¡µä¹Ÿä¸ç”¨åˆ†é¡µã€‚æŠŠè¿™ä»£ç æ”¾åˆ°è¿™é‡Œï¼Œä¸»è¦æ˜¯æ•°å­—åˆ†é¡µä¸­è¦è‡ªå·±å¤„ç†è¿™ç§æƒ…å†µ
+            if (startRowIndex <= 0 && maximumRows > 0)
+                return String.Format("Select Top {0} * From {1}", maximumRows, sql);
+
+            if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "è¿™é‡Œç”¨çš„not inåˆ†é¡µç®—æ³•è¦æ±‚æŒ‡å®šä¸»é”®åˆ—ï¼");
+
+            if (maximumRows < 1)
+                sql = String.Format("Select * From {1} Where {2} Not In(Select Top {0} {2} From {1})", startRowIndex, sql, keyColumn);
+            else
+                sql = String.Format("Select Top {0} * From {1} Where {2} Not In(Select Top {3} {2} From {1})", maximumRows, sql, keyColumn, startRowIndex);
+            return sql;
+        }
+
+        protected String PageSplitMaxMin(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
+        {
+            // å”¯ä¸€é”®çš„é¡ºåºã€‚é»˜è®¤ä¸ºEmptyï¼Œå¯ä»¥ä¸ºascæˆ–descï¼Œå¦‚æœæœ‰ï¼Œåˆ™è¡¨æ˜ä¸»é”®åˆ—æ˜¯æ•°å­—å”¯ä¸€åˆ—ï¼Œå¯ä»¥ä½¿ç”¨max/minåˆ†é¡µæ³•
+            Boolean isAscOrder = keyColumn.ToLower().EndsWith(" asc");
+            // æ˜¯å¦ä½¿ç”¨max/minåˆ†é¡µæ³•
+            Boolean canMaxMin = false;
+
+            // å¦‚æœsqlæœ€å¤–å±‚æœ‰æ’åºï¼Œä¸”å”¯ä¸€çš„ä¸€ä¸ªæ’åºå­—æ®µå°±æ˜¯keyColumnæ—¶ï¼Œå¯ç”¨max/minåˆ†é¡µæ³•
+            // å¦‚æœsqlæœ€å¤–å±‚æ²¡æœ‰æ’åºï¼Œå…¶æ’åºä¸æ˜¯unknownï¼Œå¯ç”¨max/minåˆ†é¡µæ³•
+            MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            if (ms != null && ms.Count > 0 && ms[0].Index > 0)
+            {
+                // å–ç¬¬ä¸€é¡µä¹Ÿä¸ç”¨åˆ†é¡µã€‚æŠŠè¿™ä»£ç æ”¾åˆ°è¿™é‡Œï¼Œä¸»è¦æ˜¯æ•°å­—åˆ†é¡µä¸­è¦è‡ªå·±å¤„ç†è¿™ç§æƒ…å†µ
+                if (startRowIndex <= 0 && maximumRows > 0)
+                    return String.Format("Select Top {0} * From {1}", maximumRows, CheckSimpleSQL(sql));
+
+                keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
+                sql = sql.Substring(0, ms[0].Index);
+
+                String strOrderBy = ms[0].Groups[1].Value.Trim();
+                // åªæœ‰ä¸€ä¸ªæ’åºå­—æ®µ
+                if (!String.IsNullOrEmpty(strOrderBy) && !strOrderBy.Contains(","))
+                {
+                    // æœ‰ascæˆ–è€…descã€‚æ²¡æœ‰æ—¶ï¼Œé»˜è®¤ä¸ºasc
+                    if (strOrderBy.ToLower().EndsWith(" desc"))
                     {
-                        if (builder["owner"] != null) Owner = builder["owner"].ToString();
-                        builder.Remove("owner");
+                        String str = strOrderBy.Substring(0, strOrderBy.Length - " desc".Length).Trim();
+                        // æ’åºå­—æ®µç­‰äºkeyColumn
+                        if (str.ToLower() == keyColumn.ToLower())
+                        {
+                            isAscOrder = false;
+                            canMaxMin = true;
+                        }
                     }
-                    _ConnectionString = builder.ToString();
+                    else if (strOrderBy.ToLower().EndsWith(" asc"))
+                    {
+                        String str = strOrderBy.Substring(0, strOrderBy.Length - " asc".Length).Trim();
+                        // æ’åºå­—æ®µç­‰äºkeyColumn
+                        if (str.ToLower() == keyColumn.ToLower())
+                        {
+                            isAscOrder = true;
+                            canMaxMin = true;
+                        }
+                    }
+                    else if (!strOrderBy.Contains(" ")) // ä¸å«ç©ºæ ¼ï¼Œæ˜¯å”¯ä¸€æ’åºå­—æ®µ
+                    {
+                        // æ’åºå­—æ®µç­‰äºkeyColumn
+                        if (strOrderBy.ToLower() == keyColumn.ToLower())
+                        {
+                            isAscOrder = true;
+                            canMaxMin = true;
+                        }
+                    }
                 }
             }
-        }
-
-        private DbConnection _Conn;
-        /// <summary>
-        /// Êı¾İÁ¬½Ó¶ÔÏó¡£
-        /// </summary>
-        public virtual DbConnection Conn
-        {
-            get
+            else
             {
-                if (_Conn == null)
+                // å–ç¬¬ä¸€é¡µä¹Ÿä¸ç”¨åˆ†é¡µã€‚æŠŠè¿™ä»£ç æ”¾åˆ°è¿™é‡Œï¼Œä¸»è¦æ˜¯æ•°å­—åˆ†é¡µä¸­è¦è‡ªå·±å¤„ç†è¿™ç§æƒ…å†µ
+                if (startRowIndex <= 0 && maximumRows > 0)
                 {
-                    _Conn = Factory.CreateConnection();
-                    _Conn.ConnectionString = ConnectionString;
+                    //æ•°å­—åˆ†é¡µä¸­ï¼Œä¸šåŠ¡ä¸Šä¸€èˆ¬ä½¿ç”¨é™åºï¼ŒEntityç±»ä¼šç»™keyColumnæŒ‡å®šé™åºçš„
+                    //ä½†æ˜¯ï¼Œåœ¨ç¬¬ä¸€é¡µçš„æ—¶å€™ï¼Œæ²¡æœ‰ç”¨åˆ°keyColumnï¼Œè€Œæ•°æ®åº“ä¸€èˆ¬é»˜è®¤æ˜¯å‡åº
+                    //è¿™æ—¶å€™å°±ä¼šå‡ºç°ç¬¬ä¸€é¡µæ˜¯å‡åºï¼Œåé¢é¡µæ˜¯é™åºçš„æƒ…å†µäº†ã€‚è¿™é‡Œæ”¹æ­£è¿™ä¸ªBUG
+                    if (keyColumn.ToLower().EndsWith(" desc") || keyColumn.ToLower().EndsWith(" asc"))
+                        return String.Format("Select Top {0} * From {1} Order By {2}", maximumRows, CheckSimpleSQL(sql), keyColumn);
+                    else
+                        return String.Format("Select Top {0} * From {1}", maximumRows, CheckSimpleSQL(sql));
                 }
-                return _Conn;
+
+                if (!keyColumn.ToLower().EndsWith(" unknown")) canMaxMin = true;
+
+                keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
             }
-            set { _Conn = value; }
-        }
 
-        private String _Owner;
-        /// <summary>ÓµÓĞÕß</summary>
-        public String Owner
-        {
-            get { return _Owner; }
-            set { _Owner = value; }
-        }
-
-        private Int32 _QueryTimes;
-        /// <summary>
-        /// ²éÑ¯´ÎÊı
-        /// </summary>
-        public Int32 QueryTimes
-        {
-            get { return _QueryTimes; }
-            set { _QueryTimes = value; }
-        }
-
-        private Int32 _ExecuteTimes;
-        /// <summary>
-        /// Ö´ĞĞ´ÎÊı
-        /// </summary>
-        public Int32 ExecuteTimes
-        {
-            get { return _ExecuteTimes; }
-            set { _ExecuteTimes = value; }
-        }
-
-        /// <summary>
-        /// Êı¾İ¿â·şÎñÆ÷°æ±¾
-        /// </summary>
-        public String ServerVersion
-        {
-            get
+            if (canMaxMin)
             {
-                if (!Opened) Open();
-                String ver = Conn.ServerVersion;
-                AutoClose();
-                return ver;
-            }
-        }
-        #endregion
-
-        #region ´ò¿ª/¹Ø±Õ
-        private Boolean _IsAutoClose = true;
-        /// <summary>
-        /// ÊÇ·ñ×Ô¶¯¹Ø±Õ¡£
-        /// ÆôÓÃÊÂÎñºó£¬¸ÃÉèÖÃÎŞĞ§¡£
-        /// ÔÚÌá½»»ò»Ø¹öÊÂÎñÊ±£¬Èç¹ûIsAutoCloseÎªtrue£¬Ôò»á×Ô¶¯¹Ø±Õ
-        /// </summary>
-        public Boolean IsAutoClose
-        {
-            get { return _IsAutoClose; }
-            set { _IsAutoClose = value; }
-        }
-
-        /// <summary>
-        /// Á¬½ÓÊÇ·ñÒÑ¾­´ò¿ª
-        /// </summary>
-        public Boolean Opened
-        {
-            get { return _Conn != null && _Conn.State != ConnectionState.Closed; }
-        }
-
-        /// <summary>
-        /// ´ò¿ª
-        /// </summary>
-        public virtual void Open()
-        {
-            if (Conn != null && Conn.State == ConnectionState.Closed)
-            {
-                //try { 
-                Conn.Open();
-                //}
-                //catch (Exception ex)
-                //{
-                //    WriteLog("Ö´ĞĞ" + this.GetType().FullName + "µÄOpenÊ±³ö´í£º" + ex.ToString());
-                //    throw;
-                //}
-            }
-        }
-
-        /// <summary>
-        /// ¹Ø±Õ
-        /// </summary>
-        public virtual void Close()
-        {
-            if (_Conn != null && Conn.State != ConnectionState.Closed)
-            {
-                try { Conn.Close(); }
-                catch (Exception ex)
-                {
-                    WriteLog("Ö´ĞĞ" + DbType.ToString() + "µÄCloseÊ±³ö´í£º" + ex.ToString());
-                }
-            }
-        }
-
-        /// <summary>
-        /// ×Ô¶¯¹Ø±Õ¡£
-        /// ÆôÓÃÊÂÎñºó£¬²»¹Ø±ÕÁ¬½Ó¡£
-        /// ÔÚÌá½»»ò»Ø¹öÊÂÎñÊ±£¬Èç¹ûIsAutoCloseÎªtrue£¬Ôò»á×Ô¶¯¹Ø±Õ
-        /// </summary>
-        public void AutoClose()
-        {
-            if (IsAutoClose && Trans == null && Opened) Close();
-        }
-
-        /// <summary>Êı¾İ¿âÃû</summary>
-        public String DatabaseName
-        {
-            get
-            {
-                return Conn == null ? null : Conn.Database;
-            }
-            set
-            {
-                if (Opened)
-                {
-                    //Èç¹ûÒÑ´ò¿ª£¬Ôòµ÷ÓÃÁ´½ÓÀ´ÇĞ»»
-                    Conn.ChangeDatabase(value);
-                }
+                if (maximumRows < 1)
+                    sql = String.Format("Select * From {1} Where {2}{3}(Select {4}({2}) From (Select Top {0} {2} From {1} Order By {2} {5}) XCode_Temp_a) Order By {2} {5}", startRowIndex, CheckSimpleSQL(sql), keyColumn, isAscOrder ? ">" : "<", isAscOrder ? "max" : "min", isAscOrder ? "Asc" : "Desc");
                 else
-                {
-                    //Èç¹ûÃ»ÓĞ´ò¿ª£¬Ôò¸Ä±äÁ´½Ó×Ö·û´®
-                    DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
-                    builder.ConnectionString = ConnectionString;
-                    builder["Database"] = value;
-                    ConnectionString = builder.ToString();
-                    Conn.ConnectionString = ConnectionString;
-                }
+                    sql = String.Format("Select Top {0} * From {1} Where {2}{4}(Select {5}({2}) From (Select Top {3} {2} From {1} Order By {2} {6}) XCode_Temp_a) Order By {2} {6}", maximumRows, CheckSimpleSQL(sql), keyColumn, startRowIndex, isAscOrder ? ">" : "<", isAscOrder ? "max" : "min", isAscOrder ? "Asc" : "Desc");
+                return sql;
             }
+            return null;
         }
 
         /// <summary>
-        /// µ±Òì³£·¢ÉúÊ±´¥·¢¡£¹Ø±ÕÊı¾İ¿âÁ¬½Ó£¬»òÕß·µ»¹Á¬½Óµ½Á¬½Ó³Ø¡£
+        /// æ£€æŸ¥ç®€å•SQLè¯­å¥ï¼Œæ¯”å¦‚Select * From table
         /// </summary>
-        /// <param name="ex"></param>
-        /// <returns></returns>
-        protected virtual XDbException OnException(Exception ex)
-        {
-            if (Trans == null && Opened) Close(); // Ç¿ÖÆ¹Ø±ÕÊı¾İ¿â
-            //return new XException("ÄÚ²¿Êı¾İ¿âÊµÌå" + this.GetType().FullName + "Òì³££¬Ö´ĞĞ" + Environment.StackTrace + "·½·¨³ö´í£¡", ex);
-            //String err = "ÄÚ²¿Êı¾İ¿âÊµÌå" + DbType.ToString() + "Òì³££¬Ö´ĞĞ·½·¨³ö´í£¡" + Environment.NewLine + ex.Message;
-            if (ex != null)
-                return new XDbException(this, ex);
-            else
-                return new XDbException(this);
-        }
-
-        /// <summary>
-        /// µ±Òì³£·¢ÉúÊ±´¥·¢¡£¹Ø±ÕÊı¾İ¿âÁ¬½Ó£¬»òÕß·µ»¹Á¬½Óµ½Á¬½Ó³Ø¡£
-        /// </summary>
-        /// <param name="ex"></param>
-        /// <param name="sql"></param>
-        /// <returns></returns>
-        protected virtual XSqlException OnException(Exception ex, String sql)
-        {
-            if (Trans == null && Opened) Close(); // Ç¿ÖÆ¹Ø±ÕÊı¾İ¿â
-            //return new XException("ÄÚ²¿Êı¾İ¿âÊµÌå" + this.GetType().FullName + "Òì³££¬Ö´ĞĞ" + Environment.StackTrace + "·½·¨³ö´í£¡", ex);
-            //String err = "ÄÚ²¿Êı¾İ¿âÊµÌå" + DbType.ToString() + "Òì³££¬Ö´ĞĞ·½·¨³ö´í£¡" + Environment.NewLine;
-            //if (!String.IsNullOrEmpty(sql)) err += "SQLÓï¾ä£º" + sql + Environment.NewLine;
-            //err += ex.Message;
-            if (ex != null)
-                return new XSqlException(sql, this, ex);
-            else
-                return new XSqlException(sql, this);
-        }
-        #endregion
-
-        #region ÊÂÎñ
-        private DbTransaction _Trans;
-        /// <summary>
-        /// Êı¾İ¿âÊÂÎñ
-        /// </summary>
-        protected DbTransaction Trans
-        {
-            get { return _Trans; }
-            set { _Trans = value; }
-        }
-
-        /// <summary>
-        /// ÊÂÎñ¼ÆÊı¡£
-        /// µ±ÇÒ½öµ±ÊÂÎñ¼ÆÊıµÈÓÚ1Ê±£¬²ÅÌá½»»ò»Ø¹ö¡£
-        /// </summary>
-        private Int32 TransactionCount = 0;
-
-        /// <summary>
-        /// ¿ªÊ¼ÊÂÎñ
-        /// </summary>
-        /// <returns></returns>
-        public Int32 BeginTransaction()
-        {
-            if (Debug) WriteLog("¿ªÊ¼ÊÂÎñ£º{0}", ID);
-
-            TransactionCount++;
-            if (TransactionCount > 1) return TransactionCount;
-
-            try
-            {
-                if (!Opened) Open();
-                Trans = Conn.BeginTransaction();
-                TransactionCount = 1;
-                return TransactionCount;
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex);
-            }
-        }
-
-        /// <summary>
-        /// Ìá½»ÊÂÎñ
-        /// </summary>
-        public Int32 Commit()
-        {
-            if (Debug) WriteLog("Ìá½»ÊÂÎñ£º{0}", ID);
-
-            TransactionCount--;
-            if (TransactionCount > 0) return TransactionCount;
-
-            if (Trans == null) throw new InvalidOperationException("µ±Ç°²¢Î´¿ªÊ¼ÊÂÎñ£¬ÇëÓÃBeginTransaction·½·¨¿ªÊ¼ĞÂÊÂÎñ£¡ID=" + ID);
-            try
-            {
-                Trans.Commit();
-                Trans = null;
-                if (IsAutoClose) Close();
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex);
-            }
-
-            return TransactionCount;
-        }
-
-        /// <summary>
-        /// »Ø¹öÊÂÎñ
-        /// </summary>
-        public Int32 Rollback()
-        {
-            if (Debug) WriteLog("»Ø¹öÊÂÎñ£º{0}", ID);
-
-            TransactionCount--;
-            if (TransactionCount > 0) return TransactionCount;
-
-            if (Trans == null) throw new InvalidOperationException("µ±Ç°²¢Î´¿ªÊ¼ÊÂÎñ£¬ÇëÓÃBeginTransaction·½·¨¿ªÊ¼ĞÂÊÂÎñ£¡ID=" + ID);
-            try
-            {
-                Trans.Rollback();
-                Trans = null;
-                if (IsAutoClose) Close();
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex);
-            }
-
-            return TransactionCount;
-        }
-        #endregion
-
-        #region »ù±¾·½·¨ ²éÑ¯/Ö´ĞĞ
-        /// <summary>
-        /// Ö´ĞĞSQL²éÑ¯£¬·µ»Ø¼ÇÂ¼¼¯
-        /// </summary>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <returns></returns>
-        public virtual DataSet Query(String sql)
-        {
-            QueryTimes++;
-            if (Debug) WriteLog(sql);
-            try
-            {
-                DbCommand cmd = PrepareCommand();
-                cmd.CommandText = sql;
-                using (DbDataAdapter da = Factory.CreateDataAdapter())
-                {
-                    da.SelectCommand = cmd;
-                    DataSet ds = new DataSet();
-                    da.Fill(ds);
-                    return ds;
-                }
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, sql);
-            }
-            finally
-            {
-                AutoClose();
-            }
-        }
-
-        /// <summary>
-        /// Ö´ĞĞSQL²éÑ¯£¬·µ»Ø¸½¼ÓÁËÖ÷¼üµÈ¼Ü¹¹ĞÅÏ¢µÄ¼ÇÂ¼¼¯¡£ĞÔÄÜÉÔ²îÓÚÆÕÍ¨²éÑ¯
-        /// </summary>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <returns></returns>
-        public virtual DataSet QueryWithKey(String sql)
-        {
-            QueryTimes++;
-            if (Debug) WriteLog(sql);
-            try
-            {
-                DbCommand cmd = PrepareCommand();
-                cmd.CommandText = sql;
-                using (DbDataAdapter da = Factory.CreateDataAdapter())
-                {
-                    da.MissingSchemaAction = MissingSchemaAction.AddWithKey;
-                    da.SelectCommand = cmd;
-                    DataSet ds = new DataSet();
-                    da.Fill(ds);
-                    return ds;
-                }
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, sql);
-            }
-            finally
-            {
-                AutoClose();
-            }
-        }
-
-        /// <summary>
-        /// Ö´ĞĞSQL²éÑ¯£¬·µ»Ø¼ÇÂ¼¼¯
-        /// </summary>
-        /// <param name="builder">²éÑ¯Éú³ÉÆ÷</param>
-        /// <param name="startRowIndex">¿ªÊ¼ĞĞ£¬0¿ªÊ¼</param>
-        /// <param name="maximumRows">×î´ó·µ»ØĞĞÊı</param>
-        /// <param name="keyColumn">Î¨Ò»¼ü¡£ÓÃÓÚnot in·ÖÒ³</param>
-        /// <returns>¼ÇÂ¼¼¯</returns>
-        public virtual DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
-        {
-            return Query(Meta.PageSplit(builder, startRowIndex, maximumRows, keyColumn));
-        }
-
-        /// <summary>
-        /// Ö´ĞĞDbCommand£¬·µ»Ø¼ÇÂ¼¼¯
-        /// </summary>
-        /// <param name="cmd">DbCommand</param>
-        /// <returns></returns>
-        public virtual DataSet Query(DbCommand cmd)
-        {
-            QueryTimes++;
-            using (DbDataAdapter da = Factory.CreateDataAdapter())
-            {
-                try
-                {
-                    if (!Opened) Open();
-                    cmd.Connection = Conn;
-                    if (Trans != null) cmd.Transaction = Trans;
-                    da.SelectCommand = cmd;
-                    DataSet ds = new DataSet();
-                    da.Fill(ds);
-                    return ds;
-                }
-                catch (DbException ex)
-                {
-                    throw OnException(ex, cmd.CommandText);
-                }
-                finally
-                {
-                    AutoClose();
-                }
-            }
-        }
-
-        private static Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        /// <summary>
-        /// Ö´ĞĞSQL²éÑ¯£¬·µ»Ø×Ü¼ÇÂ¼Êı
-        /// </summary>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <returns></returns>
-        public virtual Int32 QueryCount(String sql)
-        {
-            if (sql.Contains(" "))
-            {
-                String orderBy = CheckOrderClause(ref sql);
-                //sql = String.Format("Select Count(*) From {0}", CheckSimpleSQL(sql));
-                //Match m = reg_QueryCount.Match(sql);
-                MatchCollection ms = reg_QueryCount.Matches(sql);
-                if (ms != null && ms.Count > 0)
-                {
-                    sql = String.Format("Select Count(*) From {0}", ms[0].Groups[1].Value);
-                }
-                else
-                {
-                    sql = String.Format("Select Count(*) From {0}", CheckSimpleSQL(sql));
-                }
-            }
-            else
-                sql = String.Format("Select Count(*) From {0}", FormatKeyWord(sql));
-
-            QueryTimes++;
-            DbCommand cmd = PrepareCommand();
-            cmd.CommandText = sql;
-            if (Debug) WriteLog(cmd.CommandText);
-            try
-            {
-                return Convert.ToInt32(cmd.ExecuteScalar());
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, cmd.CommandText);
-            }
-            finally
-            {
-                AutoClose();
-            }
-        }
-
-        /// <summary>
-        /// Ö´ĞĞSQL²éÑ¯£¬·µ»Ø×Ü¼ÇÂ¼Êı
-        /// </summary>
-        /// <param name="builder">²éÑ¯Éú³ÉÆ÷</param>
-        /// <returns>×Ü¼ÇÂ¼Êı</returns>
-        public virtual Int32 QueryCount(SelectBuilder builder)
-        {
-            QueryTimes++;
-            DbCommand cmd = PrepareCommand();
-            cmd.CommandText = builder.SelectCount().ToString();
-            if (Debug) WriteLog(cmd.CommandText);
-            try
-            {
-                return Convert.ToInt32(cmd.ExecuteScalar());
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, cmd.CommandText);
-            }
-            finally
-            {
-                AutoClose();
-            }
-        }
-
-        /// <summary>
-        /// ¿ìËÙ²éÑ¯µ¥±í¼ÇÂ¼Êı£¬ÉÔÓĞÆ«²î
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        public virtual Int32 QueryCountFast(String tableName)
-        {
-            return QueryCount(tableName);
-        }
-
-        /// <summary>
-        /// Ö´ĞĞSQLÓï¾ä£¬·µ»ØÊÜÓ°ÏìµÄĞĞÊı
-        /// </summary>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <returns></returns>
-        public virtual Int32 Execute(String sql)
-        {
-            ExecuteTimes++;
-            if (Debug) WriteLog(sql);
-            try
-            {
-                DbCommand cmd = PrepareCommand();
-                cmd.CommandText = sql;
-                Int32 rs = cmd.ExecuteNonQuery();
-                //AutoClose();
-                return rs;
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, sql);
-            }
-            finally
-            {
-                AutoClose();
-            }
-        }
-
-        /// <summary>
-        /// Ö´ĞĞDbCommand£¬·µ»ØÊÜÓ°ÏìµÄĞĞÊı
-        /// </summary>
-        /// <param name="cmd">DbCommand</param>
-        /// <returns></returns>
-        public virtual Int32 Execute(DbCommand cmd)
-        {
-            ExecuteTimes++;
-            try
-            {
-                if (!Opened) Open();
-                cmd.Connection = Conn;
-                if (Trans != null) cmd.Transaction = Trans;
-                Int32 rs = cmd.ExecuteNonQuery();
-                //AutoClose();
-                return rs;
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, cmd.CommandText);
-            }
-            finally
-            {
-                AutoClose();
-            }
-        }
-
-        /// <summary>
-        /// Ö´ĞĞ²åÈëÓï¾ä²¢·µ»ØĞÂÔöĞĞµÄ×Ô¶¯±àºÅ
-        /// </summary>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <returns>ĞÂÔöĞĞµÄ×Ô¶¯±àºÅ</returns>
-        public virtual Int32 InsertAndGetIdentity(String sql)
-        {
-            ExecuteTimes++;
-            //SQLServerĞ´·¨
-            sql = "SET NOCOUNT ON;" + sql + ";Select SCOPE_IDENTITY()";
-            if (Debug) WriteLog(sql);
-            try
-            {
-                DbCommand cmd = PrepareCommand();
-                cmd.CommandText = sql;
-                Int32 rs = Int32.Parse(cmd.ExecuteScalar().ToString());
-                //AutoClose();
-                return rs;
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, sql);
-            }
-            finally
-            {
-                AutoClose();
-            }
-        }
-
-        /// <summary>
-        /// »ñÈ¡Ò»¸öDbCommand¡£
-        /// ÅäÖÃÁËÁ¬½Ó£¬²¢¹ØÁªÁËÊÂÎñ¡£
-        /// Á¬½ÓÒÑ´ò¿ª¡£
-        /// Ê¹ÓÃÍê±Ïºó£¬±ØĞëµ÷ÓÃAutoClose·½·¨£¬ÒÔÊ¹µÃÔÚ·ÇÊÂÎñ¼°ÉèÖÃÁË×Ô¶¯¹Ø±ÕµÄÇé¿öÏÂ¹Ø±ÕÁ¬½Ó
-        /// </summary>
-        /// <returns></returns>
-        public virtual DbCommand PrepareCommand()
-        {
-            DbCommand cmd = Factory.CreateCommand();
-            if (!Opened) Open();
-            cmd.Connection = Conn;
-            if (Trans != null) cmd.Transaction = Trans;
-            return cmd;
-        }
-        #endregion
-
-        #region ¸¨Öúº¯Êı
-        protected String FormatKeyWord(String keyWord)
-        {
-            return Meta.FormatKeyWord(keyWord);
-        }
-
-        /// <summary>
-        /// ¼ì²é¼òµ¥SQLÓï¾ä£¬±ÈÈçSelect * From table
-        /// </summary>
-        /// <param name="sql">´ı¼ì²éSQLÓï¾ä</param>
-        /// <returns>Èç¹ûÊÇ¼òµ¥SQLÓï¾äÔò·µ»Ø±íÃû£¬·ñÔò·µ»Ø×Ó²éÑ¯(sql) XCode_Temp_a</returns>
+        /// <param name="sql">å¾…æ£€æŸ¥SQLè¯­å¥</param>
+        /// <returns>å¦‚æœæ˜¯ç®€å•SQLè¯­å¥åˆ™è¿”å›è¡¨åï¼Œå¦åˆ™è¿”å›å­æŸ¥è¯¢(sql) XCode_Temp_a</returns>
         protected static String CheckSimpleSQL(String sql)
         {
             if (String.IsNullOrEmpty(sql)) return sql;
@@ -717,67 +176,58 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>
-        /// ¼ì²éÊÇ·ñÒÔOrder×Ó¾ä½áÎ²£¬Èç¹ûÊÇ£¬·Ö¸îsqlÎªÇ°ºóÁ½²¿·Ö
+        /// æ„é€ åˆ†é¡µSQL
         /// </summary>
-        /// <param name="sql"></param>
-        /// <returns></returns>
-        private static String CheckOrderClause(ref String sql)
+        /// <param name="builder">æŸ¥è¯¢ç”Ÿæˆå™¨</param>
+        /// <param name="startRowIndex">å¼€å§‹è¡Œï¼Œ0å¼€å§‹</param>
+        /// <param name="maximumRows">æœ€å¤§è¿”å›è¡Œæ•°</param>
+        /// <param name="keyColumn">å”¯ä¸€é”®ã€‚ç”¨äºnot inåˆ†é¡µ</param>
+        /// <returns>åˆ†é¡µSQL</returns>
+        public virtual String PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
-            if (!sql.ToLower().Contains("order")) return null;
+            if (String.IsNullOrEmpty(builder.GroupBy) && startRowIndex <= 0 && maximumRows > 0) return PageSplit(builder, maximumRows);
 
-            // Ê¹ÓÃÕıÔò½øĞĞÑÏ¸ñÅĞ¶Ï¡£±ØĞë°üº¬Order By£¬²¢ÇÒËüÓÒ±ßÃ»ÓĞÓÒÀ¨ºÅ)£¬±íÃ÷ÓĞorder by£¬ÇÒ²»ÊÇ×Ó²éÑ¯µÄ£¬²ÅĞèÒªÌØÊâ´¦Àí
-            MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            if (ms == null || ms.Count < 1 || ms[0].Index < 1) return null;
-            String orderBy = sql.Substring(ms[0].Index).Trim();
-            sql = sql.Substring(0, ms[0].Index).Trim();
+            return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
+        }
 
-            return orderBy;
+        protected virtual String PageSplit(SelectBuilder builder, Int32 maximumRows)
+        {
+            SelectBuilder sb = builder.Clone();
+            if (String.IsNullOrEmpty(builder.Column)) builder.Column = "*";
+            builder.Column = String.Format("Top {0} {1}", maximumRows, builder.Column);
+            return builder.ToString();
         }
         #endregion
 
-        #region SqlÈÕÖ¾Êä³ö
-        private static Boolean? _Debug;
+        #region æ•°æ®åº“ç‰¹æ€§
         /// <summary>
-        /// ÊÇ·ñµ÷ÊÔ
+        /// å½“å‰æ—¶é—´å‡½æ•°
         /// </summary>
-        public static Boolean Debug
-        {
-            get
-            {
-                if (_Debug != null) return _Debug.Value;
+        public virtual String DateTimeNow { get { return "now()"; } }
 
-                String str = ConfigurationManager.AppSettings["XCode.Debug"];
-                if (String.IsNullOrEmpty(str)) str = ConfigurationManager.AppSettings["OrmDebug"];
-                if (String.IsNullOrEmpty(str))
-                    _Debug = false;
-                else if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
-                    _Debug = true;
-                else if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
-                    _Debug = false;
-                else
-                    _Debug = Convert.ToBoolean(str);
-                return _Debug.Value;
-            }
-            set { _Debug = value; }
+        /// <summary>
+        /// æœ€å°æ—¶é—´
+        /// </summary>
+        public virtual DateTime DateTimeMin { get { return DateTime.MinValue; } }
+
+        /// <summary>
+        /// æ ¼å¼åŒ–æ—¶é—´ä¸ºSQLå­—ç¬¦ä¸²
+        /// </summary>
+        /// <param name="dateTime">æ—¶é—´å€¼</param>
+        /// <returns></returns>
+        public virtual String FormatDateTime(DateTime dateTime)
+        {
+            return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime);
         }
 
         /// <summary>
-        /// Êä³öÈÕÖ¾
+        /// æ ¼å¼åŒ–å…³é”®å­—
         /// </summary>
-        /// <param name="msg"></param>
-        public static void WriteLog(String msg)
+        /// <param name="keyWord">è¡¨å</param>
+        /// <returns></returns>
+        public virtual String FormatKeyWord(String keyWord)
         {
-            XTrace.WriteLine(msg);
-        }
-
-        /// <summary>
-        /// Êä³öÈÕÖ¾
-        /// </summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public static void WriteLog(String format, params Object[] args)
-        {
-            XTrace.WriteLine(format, args);
+            return keyWord;
         }
         #endregion
     }

@@ -11,9 +11,8 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// Oracle数据库
     /// </summary>
-    internal class Oracle : Database
+    internal class OracleSession : DbSession
     {
-
         #region 基本方法 查询/执行
         /// <summary>
         /// 执行插入语句并返回新增行的自动编号
@@ -190,9 +189,15 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    class OracleMeta : DatabaseMeta
+    class Oracle : Database
     {
-        /// <summary>工厂</summary>
+         #region 构造
+        private Oracle() { }
+
+        public static Oracle Instance = new Oracle();
+        #endregion
+
+       /// <summary>工厂</summary>
         public override DbProviderFactory Factory
         {
             get { return OracleClientFactory.Instance; }
@@ -237,6 +242,13 @@ namespace XCode.DataAccessLayer
         {
             get { return DatabaseType.Oracle; }
         }
+
+        #region 方法
+        public override IDbSession CreateSession()
+        {
+            return new OracleSession();
+        }
+        #endregion
 
         #region 数据库特性
         /// <summary>

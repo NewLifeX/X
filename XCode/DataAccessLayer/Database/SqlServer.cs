@@ -14,7 +14,7 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// SqlServer数据库
     /// </summary>
-    internal class SqlServer : Database
+    internal class SqlServerSession : DbSession
     {
         #region 查询
         /// <summary>
@@ -800,8 +800,14 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    class SqlServerMeta : DatabaseMeta
+    class SqlServer : Database
     {
+        #region 构造
+        protected SqlServer() { }
+
+        public static SqlServer Instance = new SqlServer();
+        #endregion
+
         #region 属性
         /// <summary>
         /// 返回数据库类型。外部DAL数据库类请使用Other
@@ -815,6 +821,13 @@ namespace XCode.DataAccessLayer
         public override DbProviderFactory Factory
         {
             get { return SqlClientFactory.Instance; }
+        }
+        #endregion
+
+        #region 方法
+        public override IDbSession CreateSession()
+        {
+            return new SqlServerSession();
         }
         #endregion
 

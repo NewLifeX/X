@@ -4,7 +4,7 @@ using System.Text;
 
 namespace XCode.DataAccessLayer
 {
-    partial class Database
+    partial class DbSession
     {
         #region 数据定义
         /// <summary>

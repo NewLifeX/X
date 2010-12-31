@@ -7,7 +7,7 @@ using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
-    partial class Database
+    partial class DbSession
     {
         #region 构架
         /// <summary>

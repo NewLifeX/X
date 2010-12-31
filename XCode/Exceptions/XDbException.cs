@@ -10,9 +10,9 @@ namespace XCode.Exceptions
     /// </summary>
     public class XDbException : XCodeException
     {
-        private IDatabase _Database;
+        private IDbSession _Database;
         /// <summary>数据访问层</summary>
-        public IDatabase Database
+        public IDbSession Database
         {
             get { return _Database; }
             //set { _Database = value; }
@@ -23,14 +23,14 @@ namespace XCode.Exceptions
         /// 初始化
         /// </summary>
         /// <param name="db"></param>
-        public XDbException(IDatabase db) { _Database = db; }
+        public XDbException(IDbSession db) { _Database = db; }
 
         /// <summary>
         /// 初始化
         /// </summary>
         /// <param name="db"></param>
         /// <param name="message"></param>
-        public XDbException(IDatabase db, String message) : base(message) { _Database = db; }
+        public XDbException(IDbSession db, String message) : base(message) { _Database = db; }
 
         /// <summary>
         /// 初始化
@@ -38,7 +38,7 @@ namespace XCode.Exceptions
         /// <param name="db"></param>
         /// <param name="message"></param>
         /// <param name="innerException"></param>
-        public XDbException(IDatabase db, String message, Exception innerException)
+        public XDbException(IDbSession db, String message, Exception innerException)
             : base(message + (db != null ? "[DB:" + db.Meta.DbType.ToString() + "]" : null), innerException)
         {
             _Database = db;
@@ -49,7 +49,7 @@ namespace XCode.Exceptions
         /// </summary>
         /// <param name="db"></param>
         /// <param name="innerException"></param>
-        public XDbException(IDatabase db, Exception innerException)
+        public XDbException(IDbSession db, Exception innerException)
             : base((innerException != null ? innerException.Message : null) + (db != null ? "[DB:" + db.Meta.DbType.ToString() + "]" : null), innerException)
         {
             _Database = db;
