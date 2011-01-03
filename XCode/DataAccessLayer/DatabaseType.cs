@@ -30,13 +30,13 @@ namespace XCode.DataAccessLayer
         MySql = 3,
 
         /// <summary>
-        /// MS的SqlServer2005数据库
-        /// </summary>
-        SqlServer2005 = 4,
-
-        /// <summary>
         /// SQLite数据库
         /// </summary>
-        SQLite = 5
+        SQLite = 5,
+
+        /// <summary>
+        /// 外部数据库
+        /// </summary>
+        Other = 999
     }
 }

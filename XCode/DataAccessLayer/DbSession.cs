@@ -9,6 +9,10 @@ using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
+    /// <summary>
+    /// 泛型数据库会话基类
+    /// </summary>
+    /// <typeparam name="TDbSession"></typeparam>
     abstract class DbSession<TDbSession> : DbSession where TDbSession : DbSession<TDbSession>
     {
         #region 数据库
@@ -58,14 +62,14 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 返回数据库类型。外部DAL数据库类请使用Other
         /// </summary>
-        public DatabaseType DbType { get { return Db.DbType; } }
+        public DatabaseType DbType { get { return Database.DbType; } }
 
         /// <summary>工厂</summary>
-        public DbProviderFactory Factory { get { return Db.Factory; } }
+        public DbProviderFactory Factory { get { return Database.Factory; } }
 
-        private IDatabase _Db;
+        private IDatabase _Database;
         /// <summary>数据库</summary>
-        public virtual IDatabase Db { get { return _Db; } set { _Db = value; } }
+        public virtual IDatabase Database { get { return _Database; } set { _Database = value; } }
 
         private String _ConnectionString;
         /// <summary>链接字符串</summary>
@@ -176,17 +180,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public virtual void Open()
         {
-            if (Conn != null && Conn.State == ConnectionState.Closed)
-            {
-                //try { 
-                Conn.Open();
-                //}
-                //catch (Exception ex)
-                //{
-                //    WriteLog("执行" + this.GetType().FullName + "的Open时出错：" + ex.ToString());
-                //    throw;
-                //}
-            }
+            if (Conn != null && Conn.State == ConnectionState.Closed) Conn.Open();
         }
 
         /// <summary>
@@ -442,7 +436,7 @@ namespace XCode.DataAccessLayer
         /// <returns>记录集</returns>
         public virtual DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
-            return Query(Db.PageSplit(builder, startRowIndex, maximumRows, keyColumn));
+            return Query(Database.PageSplit(builder, startRowIndex, maximumRows, keyColumn));
         }
 
         /// <summary>
@@ -486,7 +480,7 @@ namespace XCode.DataAccessLayer
         {
             if (sql.Contains(" "))
             {
-                String orderBy = CheckOrderClause(ref sql);
+                String orderBy = XCode.DataAccessLayer.Database.CheckOrderClause(ref sql);
                 //sql = String.Format("Select Count(*) From {0}", CheckSimpleSQL(sql));
                 //Match m = reg_QueryCount.Match(sql);
                 MatchCollection ms = reg_QueryCount.Matches(sql);
@@ -496,7 +490,7 @@ namespace XCode.DataAccessLayer
                 }
                 else
                 {
-                    sql = String.Format("Select Count(*) From {0}", CheckSimpleSQL(sql));
+                    sql = String.Format("Select Count(*) From {0}", XCode.DataAccessLayer.Database.CheckSimpleSQL(sql));
                 }
             }
             else
@@ -658,42 +652,42 @@ namespace XCode.DataAccessLayer
         #region 辅助函数
         protected String FormatKeyWord(String keyWord)
         {
-            return Db.FormatKeyWord(keyWord);
+            return Database.FormatKeyWord(keyWord);
         }
 
-        /// <summary>
-        /// 检查简单SQL语句，比如Select * From table
-        /// </summary>
-        /// <param name="sql">待检查SQL语句</param>
-        /// <returns>如果是简单SQL语句则返回表名，否则返回子查询(sql) XCode_Temp_a</returns>
-        protected static String CheckSimpleSQL(String sql)
-        {
-            if (String.IsNullOrEmpty(sql)) return sql;
+        ///// <summary>
+        ///// 检查简单SQL语句，比如Select * From table
+        ///// </summary>
+        ///// <param name="sql">待检查SQL语句</param>
+        ///// <returns>如果是简单SQL语句则返回表名，否则返回子查询(sql) XCode_Temp_a</returns>
+        //protected static String CheckSimpleSQL(String sql)
+        //{
+        //    if (String.IsNullOrEmpty(sql)) return sql;
 
-            Regex reg = new Regex(@"^\s*select\s+\*\s+from\s+([\w\[\]\""\""\']+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            MatchCollection ms = reg.Matches(sql);
-            if (ms == null || ms.Count < 1 || ms[0].Groups.Count < 2 ||
-                String.IsNullOrEmpty(ms[0].Groups[1].Value)) return String.Format("({0}) XCode_Temp_a", sql);
-            return ms[0].Groups[1].Value;
-        }
+        //    Regex reg = new Regex(@"^\s*select\s+\*\s+from\s+([\w\[\]\""\""\']+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        //    MatchCollection ms = reg.Matches(sql);
+        //    if (ms == null || ms.Count < 1 || ms[0].Groups.Count < 2 ||
+        //        String.IsNullOrEmpty(ms[0].Groups[1].Value)) return String.Format("({0}) XCode_Temp_a", sql);
+        //    return ms[0].Groups[1].Value;
+        //}
 
-        /// <summary>
-        /// 检查是否以Order子句结尾，如果是，分割sql为前后两部分
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <returns></returns>
-        private static String CheckOrderClause(ref String sql)
-        {
-            if (!sql.ToLower().Contains("order")) return null;
+        ///// <summary>
+        ///// 检查是否以Order子句结尾，如果是，分割sql为前后两部分
+        ///// </summary>
+        ///// <param name="sql"></param>
+        ///// <returns></returns>
+        //private static String CheckOrderClause(ref String sql)
+        //{
+        //    if (!sql.ToLower().Contains("order")) return null;
 
-            // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
-            MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            if (ms == null || ms.Count < 1 || ms[0].Index < 1) return null;
-            String orderBy = sql.Substring(ms[0].Index).Trim();
-            sql = sql.Substring(0, ms[0].Index).Trim();
+        //    // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
+        //    MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        //    if (ms == null || ms.Count < 1 || ms[0].Index < 1) return null;
+        //    String orderBy = sql.Substring(ms[0].Index).Trim();
+        //    sql = sql.Substring(0, ms[0].Index).Trim();
 
-            return orderBy;
-        }
+        //    return orderBy;
+        //}
         #endregion
 
         #region Sql日志输出

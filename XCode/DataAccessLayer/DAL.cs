@@ -10,6 +10,7 @@ using System.Xml.Serialization;
 using XCode.Cache;
 using XCode.Code;
 using XCode.Exceptions;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -51,7 +52,8 @@ namespace XCode.DataAccessLayer
         public static DAL Create(String connName)
         {
             //当connName为null时，_dals里面并没有包含null的项，所以需要提前处理
-            if (String.IsNullOrEmpty(connName)) return new DAL(null);
+            //if (String.IsNullOrEmpty(connName)) return new DAL(null);
+            if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
 
             DAL dal = null;
             if (_dals.TryGetValue(connName, out dal)) return dal;
@@ -96,13 +98,14 @@ namespace XCode.DataAccessLayer
                             if (set.Name == "LocalSqlServer") continue;
 
                             Type type = GetTypeFromConn(set.ConnectionString, set.ProviderName);
+                            if (type == null) throw new XCodeException("无法识别的提供者" + set.ProviderName + "！");
 
                             cs.Add(set.Name, set);
                             _connTypes.Add(set.Name, type);
 
-#if DEBUG
-                            NewLife.Log.XTrace.WriteLine("新增数据库链接{0}：{1}", set.Name, set.ConnectionString);
-#endif
+                            //#if DEBUG
+                            //                            NewLife.Log.XTrace.WriteLine("新增数据库链接{0}：{1}", set.Name, set.ConnectionString);
+                            //#endif
                         }
                     }
                     _connStrs = cs;
@@ -122,22 +125,30 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
 
+            // ConnStrs对象不可能为null，但可能没有元素
             if (ConnStrs.ContainsKey(connName)) return;
             lock (ConnStrs)
             {
                 if (ConnStrs.ContainsKey(connName)) return;
 
                 if (type == null) type = GetTypeFromConn(connStr, provider);
+                if (type == null) throw new XCodeException("无法识别的提供者" + provider + "！");
 
                 ConnectionStringSettings set = new ConnectionStringSettings(connName, connStr, provider);
                 ConnStrs.Add(connName, set);
                 _connTypes.Add(connName, type);
-#if DEBUG
-                NewLife.Log.XTrace.WriteLine("新增数据库链接{0}：{1}", set.Name, set.ConnectionString);
-#endif
+                //#if DEBUG
+                //                NewLife.Log.XTrace.WriteLine("新增数据库链接{0}：{1}", set.Name, set.ConnectionString);
+                //#endif
             }
         }
 
+        /// <summary>
+        /// 从提供者和连接字符串猜测数据库处理器
+        /// </summary>
+        /// <param name="connStr"></param>
+        /// <param name="provider"></param>
+        /// <returns></returns>
         private static Type GetTypeFromConn(String connStr, String provider)
         {
             Type type = null;
@@ -145,31 +156,31 @@ namespace XCode.DataAccessLayer
             {
                 provider = provider.ToLower();
                 if (provider.Contains("sqlclient"))
-                    type = typeof(SqlServerSession);
+                    type = typeof(SqlServer);
                 else if (provider.Contains("oracleclient"))
-                    type = typeof(OracleSession);
+                    type = typeof(Oracle);
                 else if (provider.Contains("microsoft.jet.oledb"))
-                    type = typeof(AccessSession);
+                    type = typeof(Access);
                 else if (provider.Contains("access"))
-                    type = typeof(AccessSession);
+                    type = typeof(Access);
                 else if (provider.Contains("mysql"))
-                    type = typeof(MySqlSession);
+                    type = typeof(MySql);
                 else if (provider.Contains("sqlite"))
-                    type = typeof(SQLiteSession);
+                    type = typeof(SQLite);
                 else if (provider.Contains("sql2008"))
-                    type = typeof(SqlServer2005Session);
+                    type = typeof(SqlServer);
                 else if (provider.Contains("sql2005"))
-                    type = typeof(SqlServer2005Session);
+                    type = typeof(SqlServer);
                 else if (provider.Contains("sql2000"))
-                    type = typeof(SqlServerSession);
+                    type = typeof(SqlServer);
                 else if (provider.Contains("sql"))
-                    type = typeof(SqlServerSession);
+                    type = typeof(SqlServer);
                 else
                 {
-                    if (provider.Contains(",")) // 带有程序集名称，加载程序集
-                        type = Assembly.Load(provider.Substring(0, provider.IndexOf(","))).GetType(provider.Substring(provider.IndexOf(",") + 1, provider.Length), true, false);
-                    else // 没有程序集名称，则使用本程序集
-                        type = Type.GetType(provider, true, true);
+                    //if (provider.Contains(",")) // 带有程序集名称，加载程序集
+                    //    type = Assembly.Load(provider.Substring(0, provider.IndexOf(","))).GetType(provider.Substring(provider.IndexOf(",") + 1), true, false);
+                    //else // 没有程序集名称，则使用本程序集
+                    type = Type.GetType(provider, true, true);
                 }
             }
             else
@@ -177,15 +188,15 @@ namespace XCode.DataAccessLayer
                 // 分析类型
                 String str = connStr.ToLower();
                 if (str.Contains("mssql") || str.Contains("sqloledb"))
-                    type = typeof(SqlServerSession);
+                    type = typeof(SqlServer);
                 else if (str.Contains("oracle"))
-                    type = typeof(OracleSession);
+                    type = typeof(Oracle);
                 else if (str.Contains("microsoft.jet.oledb"))
-                    type = typeof(AccessSession);
+                    type = typeof(Access);
                 else if (str.Contains("sql"))
-                    type = typeof(SqlServerSession);
+                    type = typeof(SqlServer);
                 else
-                    type = typeof(AccessSession);
+                    type = typeof(Access);
             }
             return type;
         }
@@ -242,20 +253,21 @@ namespace XCode.DataAccessLayer
                 if (_DALType == null && _connTypes.ContainsKey(ConnName)) _DALType = _connTypes[ConnName];
                 return _DALType;
             }
-            set	// 如果外部需要改变数据访问层数据库实体
-            {
-                IDbSession idb;
-                //if (HttpContext.Current == null)
-                idb = _Sessions != null && _Sessions.ContainsKey(ConnName) ? _Sessions[ConnName] : null;
-                //else
-                //    idb = HttpContext.Current.Items[ConnName + "_DB"] as IDataBase;
-                if (idb != null)
-                {
-                    idb.Dispose();
-                    idb = null;
-                }
-                _DALType = value;
-            }
+            // 多年来从未使用，注释！
+            //set	// 如果外部需要改变数据访问层数据库实体
+            //{
+            //    IDbSession idb;
+            //    //if (HttpContext.Current == null)
+            //    idb = _Sessions != null && _Sessions.ContainsKey(ConnName) ? _Sessions[ConnName] : null;
+            //    //else
+            //    //    idb = HttpContext.Current.Items[ConnName + "_DB"] as IDataBase;
+            //    if (idb != null)
+            //    {
+            //        idb.Dispose();
+            //        idb = null;
+            //    }
+            //    _DALType = value;
+            //}
         }
 
         /// <summary>
@@ -286,6 +298,12 @@ namespace XCode.DataAccessLayer
             {
                 if (_Db != null) return _Db;
 
+                Type type = DALType;
+                if (type != null)
+                {
+                    _Db = TypeX.CreateInstance(type) as IDatabase;
+                }
+
                 return _Db;
             }
         }
@@ -315,7 +333,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private static Dictionary<String, Boolean> IsSql2005 = new Dictionary<String, Boolean>();
+        //private static Dictionary<String, Boolean> IsSql2005 = new Dictionary<String, Boolean>();
 
         private IDbSession CreateForNotWeb()
         {
@@ -349,27 +367,27 @@ namespace XCode.DataAccessLayer
                 session = Db.CreateSession();
                 session.ConnectionString = ConnStr;
 
-                //检查是否SqlServer2005
-                //_DB = CheckSql2005(_DB);
+                ////检查是否SqlServer2005
+                ////_DB = CheckSql2005(_DB);
 
-                if (!IsSql2005.ContainsKey(ConnName))
-                {
-                    lock (IsSql2005)
-                    {
-                        if (!IsSql2005.ContainsKey(ConnName))
-                        {
-                            IsSql2005.Add(ConnName, CheckSql2005(session));
-                        }
-                    }
-                }
+                //if (!IsSql2005.ContainsKey(ConnName))
+                //{
+                //    lock (IsSql2005)
+                //    {
+                //        if (!IsSql2005.ContainsKey(ConnName))
+                //        {
+                //            IsSql2005.Add(ConnName, CheckSql2005(session));
+                //        }
+                //    }
+                //}
 
-                if (DALType != typeof(SqlServer2005Session) && IsSql2005.ContainsKey(ConnName) && IsSql2005[ConnName])
-                {
-                    _DALType = typeof(SqlServer2005Session);
-                    session.Dispose();
-                    //_DB = new SqlServer2005Session();
-                    session.ConnectionString = ConnStr;
-                }
+                //if (DALType != typeof(SqlServer2005Session) && IsSql2005.ContainsKey(ConnName) && IsSql2005[ConnName])
+                //{
+                //    _DALType = typeof(SqlServer2005Session);
+                //    session.Dispose();
+                //    //_DB = new SqlServer2005Session();
+                //    session.ConnectionString = ConnStr;
+                //}
 
                 _Sessions.Add(ConnName, session);
 
@@ -455,63 +473,63 @@ namespace XCode.DataAccessLayer
         //    return db;
         //}
 
-        private Boolean CheckSql2005(IDbSession db)
-        {
-            //检查是否SqlServer2005
-            if (db.Db.DbType != DatabaseType.SqlServer) return false;
+        //private Boolean CheckSql2005(IDbSession db)
+        //{
+        //    //检查是否SqlServer2005
+        //    if (db.Db.DbType != DatabaseType.SqlServer) return false;
 
-            //切换到master库
-            DbSession d = db as DbSession;
-            String dbname = d.DatabaseName;
-            //如果指定了数据库名，并且不是master，则切换到master
-            if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
-            {
-                d.DatabaseName = "master";
-            }
+        //    //切换到master库
+        //    DbSession d = db as DbSession;
+        //    String dbname = d.DatabaseName;
+        //    //如果指定了数据库名，并且不是master，则切换到master
+        //    if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
+        //    {
+        //        d.DatabaseName = "master";
+        //    }
 
-            //取数据库版本
-            Boolean b = false;
-            //DataSet ds = db.Query("Select @@Version");
-            //if (ds.Tables != null && ds.Tables.Count > 0 && ds.Tables[0].Rows != null && ds.Tables[0].Rows.Count > 0)
-            //{
-            //    String ver = ds.Tables[0].Rows[0][0].ToString();
-            //    if (!String.IsNullOrEmpty(ver) && ver.StartsWith("Microsoft SQL Server 2005"))
-            //    {
-            //        b = true;
-            //    }
-            //}
-            String ver = db.ServerVersion;
-            b = !ver.StartsWith("08");
+        //    //取数据库版本
+        //    Boolean b = false;
+        //    //DataSet ds = db.Query("Select @@Version");
+        //    //if (ds.Tables != null && ds.Tables.Count > 0 && ds.Tables[0].Rows != null && ds.Tables[0].Rows.Count > 0)
+        //    //{
+        //    //    String ver = ds.Tables[0].Rows[0][0].ToString();
+        //    //    if (!String.IsNullOrEmpty(ver) && ver.StartsWith("Microsoft SQL Server 2005"))
+        //    //    {
+        //    //        b = true;
+        //    //    }
+        //    //}
+        //    String ver = db.ServerVersion;
+        //    b = !ver.StartsWith("08");
 
-            if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
-            {
-                d.DatabaseName = dbname;
-            }
+        //    if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
+        //    {
+        //        d.DatabaseName = dbname;
+        //    }
 
-            return b;
-        }
+        //    return b;
+        //}
 
-        /// <summary>
-        /// 是否存在DB实例。
-        /// 如果直接使用DB属性判断是否存在，它将会创建一个实例。
-        /// </summary>
-        private Boolean ExistDB
-        {
-            get
-            {
-                //if (HttpContext.Current == null || HttpContext.Current.Items == null)
-                //{
-                if (_Sessions != null && !_Sessions.ContainsKey(ConnName)) return true;
-                return false;
-                //}
-                //else
-                //{
-                //    String key = ConnName + "_DB";
-                //    if (HttpContext.Current.Items[key] != null && HttpContext.Current.Items[key] is IDataBase) return true;
-                //    return false;
-                //}
-            }
-        }
+        ///// <summary>
+        ///// 是否存在DB实例。
+        ///// 如果直接使用DB属性判断是否存在，它将会创建一个实例。
+        ///// </summary>
+        //private Boolean ExistDB
+        //{
+        //    get
+        //    {
+        //        //if (HttpContext.Current == null || HttpContext.Current.Items == null)
+        //        //{
+        //        if (_Sessions != null && !_Sessions.ContainsKey(ConnName)) return true;
+        //        return false;
+        //        //}
+        //        //else
+        //        //{
+        //        //    String key = ConnName + "_DB";
+        //        //    if (HttpContext.Current.Items[key] != null && HttpContext.Current.Items[key] is IDataBase) return true;
+        //        //    return false;
+        //        //}
+        //    }
+        //}
         #endregion
 
         #region 使用缓存后的数据操作方法
@@ -589,7 +607,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
 
-                String s = DB.Db.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
+                String s = DB.Database.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
                 _PageSplitCache.Add(cacheKey, s);
                 return s;
             }
@@ -618,7 +636,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
 
-                String s = DB.Db.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
+                String s = DB.Database.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
                 _PageSplitCache.Add(cacheKey, s);
                 return s;
             }
@@ -713,33 +731,33 @@ namespace XCode.DataAccessLayer
             return SelectCount(sql, new String[] { tableName });
         }
 
-        /// <summary>
-        /// 执行SQL查询，返回总记录数
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
-        /// <param name="keyColumn">唯一键。用于not in分页</param>
-        /// <param name="tableNames">所依赖的表的表名</param>
-        /// <returns></returns>
-        public Int32 SelectCount(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn, String[] tableNames)
-        {
-            return SelectCount(PageSplit(sql, startRowIndex, maximumRows, keyColumn), tableNames);
-        }
+        ///// <summary>
+        ///// 执行SQL查询，返回总记录数
+        ///// </summary>
+        ///// <param name="sql">SQL语句</param>
+        ///// <param name="startRowIndex">开始行，0开始</param>
+        ///// <param name="maximumRows">最大返回行数</param>
+        ///// <param name="keyColumn">唯一键。用于not in分页</param>
+        ///// <param name="tableNames">所依赖的表的表名</param>
+        ///// <returns></returns>
+        //public Int32 SelectCount(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn, String[] tableNames)
+        //{
+        //    return SelectCount(PageSplit(sql, startRowIndex, maximumRows, keyColumn), tableNames);
+        //}
 
-        /// <summary>
-        /// 执行SQL查询，返回总记录数
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
-        /// <param name="keyColumn">唯一键。用于not in分页</param>
-        /// <param name="tableName">所依赖的表的表名</param>
-        /// <returns></returns>
-        public Int32 SelectCount(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn, String tableName)
-        {
-            return SelectCount(sql, startRowIndex, maximumRows, keyColumn, new String[] { tableName });
-        }
+        ///// <summary>
+        ///// 执行SQL查询，返回总记录数
+        ///// </summary>
+        ///// <param name="sql">SQL语句</param>
+        ///// <param name="startRowIndex">开始行，0开始</param>
+        ///// <param name="maximumRows">最大返回行数</param>
+        ///// <param name="keyColumn">唯一键。用于not in分页</param>
+        ///// <param name="tableName">所依赖的表的表名</param>
+        ///// <returns></returns>
+        //public Int32 SelectCount(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn, String tableName)
+        //{
+        //    return SelectCount(sql, startRowIndex, maximumRows, keyColumn, new String[] { tableName });
+        //}
 
         /// <summary>
         /// 执行SQL语句，返回受影响的行数

@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Web;
-using System.Web.UI;
+using System.Data;
+using System.Data.Common;
 using System.Web.UI.WebControls;
 using XCode.DataAccessLayer;
-using System.Data;
-using NewLife.Web;
-using System.Data.Common;
 
 public partial class Admin_System_WebDb : System.Web.UI.Page
 {
@@ -76,7 +73,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         gvTable.DataSource = table.Fields;
         gvTable.DataBind();
 
-        txtSql.Text = String.Format("Select * From {0}", dal.DB.FormatKeyWord(table.Name));
+        txtSql.Text = String.Format("Select * From {0}", dal.DB.Database.FormatKeyWord(table.Name));
     }
 
     protected void ddlSchema_SelectedIndexChanged(object sender, EventArgs e)

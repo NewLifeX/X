@@ -521,8 +521,8 @@ namespace XCode.DataAccessLayer
                 {
                     String d = field.Default;
                     //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = "now()";
-                    if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = Db.DateTimeNow;
-                    if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = Db.DateTimeNow;
+                    if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
+                    if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
                     sb.AppendFormat(" DEFAULT {0}", d);
                 }
                 else

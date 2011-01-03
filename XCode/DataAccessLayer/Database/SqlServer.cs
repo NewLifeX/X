@@ -16,6 +16,18 @@ namespace XCode.DataAccessLayer
     /// </summary>
     internal class SqlServerSession : DbSession<SqlServerSession>
     {
+        #region 属性
+        /// <summary>
+        /// 是否SQL2005
+        /// </summary>
+        public Boolean IsSQL2005 { get { return (Database as SqlServer).IsSQL2005; } }
+
+        /// <summary>
+        /// 0级类型
+        /// </summary>
+        public String level0type { get { return IsSQL2005 ? "SCHEMA" : "USER"; } }
+        #endregion
+
         #region 查询
         /// <summary>
         /// 快速查询单表记录数，稍有偏差
@@ -321,8 +333,56 @@ namespace XCode.DataAccessLayer
                     sb.Append("left join systypes b on a.xtype=b.xusertype ");
                     sb.Append("inner join sysobjects d on a.id=d.id  and d.xtype='U' ");
                     sb.Append("left join syscomments e on a.cdefault=e.id ");
-                    sb.Append("left join sysproperties g on a.id=g.id and a.colid=g.smallid  ");
-                    //sb.Append("where d.name='{0}' ");
+                    if (IsSQL2005)
+                    {
+                        //sb.Append("SELECT ");
+                        //sb.Append("表名=d.name,");
+                        //sb.Append("字段序号=a.colorder,");
+                        //sb.Append("字段名=a.name,");
+                        //sb.Append("标识=case when COLUMNPROPERTY( a.id,a.name,'IsIdentity')=1 then Convert(Bit,1) else Convert(Bit,0) end,");
+                        //sb.Append("主键=case when exists(SELECT 1 FROM sysobjects where xtype='PK' and name in (");
+                        //sb.Append("SELECT name FROM sysindexes WHERE id = a.id AND indid in(");
+                        //sb.Append("SELECT indid FROM sysindexkeys WHERE id = a.id AND colid=a.colid");
+                        //sb.Append("))) then Convert(Bit,1) else Convert(Bit,0) end,");
+                        //sb.Append("类型=b.name,");
+                        //sb.Append("占用字节数=a.length,");
+                        //sb.Append("长度=COLUMNPROPERTY(a.id,a.name,'PRECISION'),");
+                        //sb.Append("小数位数=isnull(COLUMNPROPERTY(a.id,a.name,'Scale'),0),");
+                        //sb.Append("允许空=case when a.isnullable=1 then Convert(Bit,1)else Convert(Bit,0) end,");
+                        //sb.Append("默认值=isnull(e.text,''),");
+                        //sb.Append("字段说明=isnull(g.[value],'')");
+                        //sb.Append("FROM syscolumns a ");
+                        //sb.Append("left join systypes b on a.xtype=b.xusertype ");
+                        //sb.Append("inner join sysobjects d on a.id=d.id  and d.xtype='U' ");
+                        //sb.Append("left join syscomments e on a.cdefault=e.id ");
+                        sb.Append("left join sys.extended_properties g on a.id=g.major_id and a.colid=g.minor_id and g.name = 'MS_Description'  ");
+                        //sb.Append("order by a.id,a.colorder");
+                    }
+                    else
+                    {
+                        //sb.Append("SELECT ");
+                        //sb.Append("表名=d.name,");
+                        //sb.Append("字段序号=a.colorder,");
+                        //sb.Append("字段名=a.name,");
+                        //sb.Append("标识=case when COLUMNPROPERTY( a.id,a.name,'IsIdentity')=1 then Convert(Bit,1) else Convert(Bit,0) end,");
+                        //sb.Append("主键=case when exists(SELECT 1 FROM sysobjects where xtype='PK' and name in (");
+                        //sb.Append("SELECT name FROM sysindexes WHERE id = a.id AND indid in(");
+                        //sb.Append("SELECT indid FROM sysindexkeys WHERE id = a.id AND colid=a.colid");
+                        //sb.Append("))) then Convert(Bit,1) else Convert(Bit,0) end,");
+                        //sb.Append("类型=b.name,");
+                        //sb.Append("占用字节数=a.length,");
+                        //sb.Append("长度=COLUMNPROPERTY(a.id,a.name,'PRECISION'),");
+                        //sb.Append("小数位数=isnull(COLUMNPROPERTY(a.id,a.name,'Scale'),0),");
+                        //sb.Append("允许空=case when a.isnullable=1 then Convert(Bit,1)else Convert(Bit,0) end,");
+                        //sb.Append("默认值=isnull(e.text,''),");
+                        //sb.Append("字段说明=isnull(g.[value],'')");
+                        //sb.Append("FROM syscolumns a ");
+                        //sb.Append("left join systypes b on a.xtype=b.xusertype ");
+                        //sb.Append("inner join sysobjects d on a.id=d.id  and d.xtype='U' ");
+                        //sb.Append("left join syscomments e on a.cdefault=e.id ");
+                        sb.Append("left join sysproperties g on a.id=g.id and a.colid=g.smallid  ");
+                        //sb.Append("order by a.id,a.colorder");
+                    }
                     sb.Append("order by a.id,a.colorder");
                     _SchemaSql = sb.ToString();
                 }
@@ -335,7 +395,7 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 取表说明SQL
         /// </summary>
-        public virtual String DescriptionSql { get { return (Db as SqlServer).IsSQL2005 ? _DescriptionSql2005 : _DescriptionSql2000; } }
+        public virtual String DescriptionSql { get { return IsSQL2005 ? _DescriptionSql2005 : _DescriptionSql2000; } }
         #endregion
 
         #region 数据定义
@@ -523,7 +583,7 @@ namespace XCode.DataAccessLayer
                 {
                     String d = field.Default;
                     //if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = "getdate()";
-                    if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = Db.DateTimeNow;
+                    if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
                     sb.AppendFormat(" DEFAULT {0}", d);
                 }
                 else
@@ -591,7 +651,7 @@ namespace XCode.DataAccessLayer
 
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendFormat("CREATE TABLE [dbo].{0}(", FormatKeyWord(table.Name));
+            sb.AppendFormat("CREATE TABLE {0}(", FormatKeyWord(table.Name));
             List<String> keys = new List<string>();
             for (Int32 i = 0; i < Fields.Count; i++)
             {
@@ -653,17 +713,20 @@ namespace XCode.DataAccessLayer
 
         public override string TableExistSQL(String tablename)
         {
-            return String.Format("SELECT * FROM sysobjects WHERE id = OBJECT_ID(N'[dbo].{0}') AND OBJECTPROPERTY(id, N'IsUserTable') = 1", FormatKeyWord(tablename));
+            if (IsSQL2005)
+                return String.Format("select * from sysobjects where xtype='U' and name='{0}'", tablename);
+            else
+                return String.Format("SELECT * FROM sysobjects WHERE id = OBJECT_ID(N'[dbo].{0}') AND OBJECTPROPERTY(id, N'IsUserTable') = 1", FormatKeyWord(tablename));
         }
 
         public override string AddTableDescriptionSQL(String tablename, String description)
         {
-            return String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'USER',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", tablename, description);
+            return String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", tablename, description, level0type);
         }
 
         public override string DropTableDescriptionSQL(String tablename)
         {
-            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'USER',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", tablename);
+            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{1}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", tablename, level0type);
         }
 
         public override string AddColumnSQL(string tablename, XField field)
@@ -705,7 +768,7 @@ namespace XCode.DataAccessLayer
         {
             String sql = DropColumnDescriptionSQL(tablename, columnname);
             if (!String.IsNullOrEmpty(sql)) sql += ";" + Environment.NewLine;
-            sql += String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'USER',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{2}'", tablename, description, columnname);
+            sql += String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{3}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{2}'", tablename, description, columnname, level0type);
             return sql;
         }
 
@@ -725,7 +788,7 @@ namespace XCode.DataAccessLayer
             Int32 count = QueryCount(sql);
             if (count <= 0) return null;
 
-            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'USER',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{1}'", tablename, columnname);
+            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{1}'", tablename, columnname, level0type);
         }
 
         public override string AddDefaultSQL(string tablename, XField field)
@@ -759,7 +822,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual String DeleteConstraintsSQL(String tablename, String columnname, String type)
         {
-            String sql = String.Format("select b.name from syscolumns a inner join sysobjects b on a.cdefault=b.id inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}'", tablename, columnname);
+            String sql = null;
+            if (IsSQL2005)
+                sql = String.Format("select b.name from sys.tables a inner join sys.default_constraints b on a.object_id=b.parent_object_id inner join sys.columns c on a.object_id=c.object_id and b.parent_column_id=c.column_id where a.name='{0}' and c.name='{1}'", tablename, columnname);
+            else
+                sql = String.Format("select b.name from syscolumns a inner join sysobjects b on a.cdefault=b.id inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}'", tablename, columnname);
             if (!String.IsNullOrEmpty(type)) sql += String.Format(" and b.xtype='{0}'", type);
             if (type == "PK") sql = String.Format("select c.name from sysobjects a inner join syscolumns b on a.id=b.id  inner join sysobjects c on c.parent_obj=a.id where a.name='{0}' and b.name='{1}' and c.xtype='PK'", tablename, columnname);
             DataSet ds = Query(sql);
@@ -818,11 +885,34 @@ namespace XCode.DataAccessLayer
             get { return SqlClientFactory.Instance; }
         }
 
-        private Boolean _IsSQL2005;
+        private Boolean? _IsSQL2005;
         /// <summary>是否SQL2005及以上</summary>
         public Boolean IsSQL2005
         {
-            get { return _IsSQL2005; }
+            get
+            {
+                if (_IsSQL2005 == null)
+                {
+                    //切换到master库
+                    DbSession session = CreateSession() as DbSession;
+                    String dbname = session.DatabaseName;
+                    //如果指定了数据库名，并且不是master，则切换到master
+                    if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
+                    {
+                        session.DatabaseName = "master";
+                    }
+
+                    //取数据库版本
+                    String ver = session.ServerVersion;
+                    _IsSQL2005 = !ver.StartsWith("08");
+
+                    if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
+                    {
+                        session.DatabaseName = dbname;
+                    }
+                }
+                return _IsSQL2005.Value;
+            }
             set { _IsSQL2005 = value; }
         }
         #endregion

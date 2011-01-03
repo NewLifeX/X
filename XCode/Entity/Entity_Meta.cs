@@ -353,7 +353,7 @@ namespace XCode
             /// <returns></returns>
             public static String FormatKeyWord(String name)
             {
-                return DBO.DB.Db.FormatKeyWord(name);
+                return DBO.DB.Database.FormatKeyWord(name);
             }
 
             /// <summary>
@@ -363,7 +363,7 @@ namespace XCode
             /// <returns></returns>
             public static String FormatDateTime(DateTime dateTime)
             {
-                return DBO.DB.Db.FormatDateTime(dateTime);
+                return DBO.DB.Database.FormatDateTime(dateTime);
             }
             #endregion
 

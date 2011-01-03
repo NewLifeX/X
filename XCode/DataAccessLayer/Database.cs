@@ -1,24 +1,35 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Data.Common;
+using System.Data.OleDb;
+using System.Text.RegularExpressions;
 
 namespace XCode.DataAccessLayer
 {
+    /// <summary>
+    /// 泛型数据库基类，通过泛型指定数据库会话类型，从而实现创建会话的方法
+    /// </summary>
+    /// <typeparam name="TDatabase"></typeparam>
+    /// <typeparam name="TDbSession"></typeparam>
     abstract class Database<TDatabase, TDbSession> : Database
         where TDatabase : Database<TDatabase, TDbSession>, new()
         where TDbSession : DbSession<TDbSession>, new()
     {
         #region 构造
-        public static TDatabase Instance = new TDatabase();
+        ///// <summary>
+        ///// 实例
+        ///// </summary>
+        //public static TDatabase Instance = new TDatabase();
         #endregion
 
         #region 方法
+        /// <summary>
+        /// 创建数据库会话
+        /// </summary>
+        /// <returns></returns>
         public override IDbSession CreateSession()
         {
             TDbSession sessoin = new TDbSession();
-            sessoin.Db = this;
+            sessoin.Database = this;
             return sessoin;
         }
         #endregion
@@ -33,10 +44,10 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 返回数据库类型。外部DAL数据库类请使用Other
         /// </summary>
-        public abstract DatabaseType DbType { get; }
+        public virtual DatabaseType DbType { get { return DatabaseType.Other; } }
 
         /// <summary>工厂</summary>
-        public abstract DbProviderFactory Factory { get; }
+        public virtual DbProviderFactory Factory { get { return OleDbFactory.Instance; } }
         #endregion
 
         #region 方法
@@ -213,7 +224,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">待检查SQL语句</param>
         /// <returns>如果是简单SQL语句则返回表名，否则返回子查询(sql) XCode_Temp_a</returns>
-        protected static String CheckSimpleSQL(String sql)
+        internal protected static String CheckSimpleSQL(String sql)
         {
             if (String.IsNullOrEmpty(sql)) return sql;
 
@@ -229,7 +240,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql"></param>
         /// <returns></returns>
-        protected static String CheckOrderClause(ref String sql)
+        internal protected static String CheckOrderClause(ref String sql)
         {
             if (!sql.ToLower().Contains("order")) return null;
 

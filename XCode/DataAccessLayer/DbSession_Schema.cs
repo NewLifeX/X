@@ -427,7 +427,7 @@ namespace XCode.DataAccessLayer
             //return Query(PageSplit("Select * from " + tableName, 0, 1, null)).Tables[0].Columns;
             try
             {
-                return QueryWithKey(Db.PageSplit("Select * from " + FormatKeyWord(tableName), 0, 1, null)).Tables[0].Columns;
+                return QueryWithKey(Database.PageSplit("Select * from " + FormatKeyWord(tableName), 0, 1, null)).Tables[0].Columns;
             }
             catch (Exception ex)
             {

@@ -425,7 +425,7 @@ namespace XCode.DataAccessLayer
                     //如果是大文本类型，长度可能不等
                     if (Database.DbType == DatabaseType.Access && item.Length > 255 && dbf.Length > 255) b = false;
                     if (Database.DbType == DatabaseType.SqlServer && item.Length > 4000 && dbf.Length > 4000) b = false;
-                    if (Database.DbType == DatabaseType.SqlServer2005 && item.Length > 4000 && dbf.Length > 4000) b = false;
+                    //if (Database.DbType == DatabaseType.SqlServer2005 && item.Length > 4000 && dbf.Length > 4000) b = false;
                 }
 
                 if (b)

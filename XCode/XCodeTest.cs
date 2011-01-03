@@ -269,8 +269,8 @@ namespace XCode
             if ((String)ds.Tables[0].Rows[0]["name"] != "测试" + (33).ToString("0000")) throw new Exception("查询返回记录不匹配！");
             if ((String)ds.Tables[0].Rows[43]["name"] != "测试" + (33 + 44 - 1).ToString("0000")) throw new Exception("查询返回记录不匹配！");
 
-            n = Dal.SelectCount("select * from xtest", 33, 44, "ID desc", "test");
-            if (n != 44) throw new Exception("查询返回记录数不匹配！");
+            //n = Dal.SelectCount("select * from xtest", 33, 44, "ID desc", "test");
+            //if (n != 44) throw new Exception("查询返回记录数不匹配！");
 
             //更新
             XTrace.WriteLine("更新测试！");

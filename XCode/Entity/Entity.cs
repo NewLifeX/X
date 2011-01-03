@@ -999,7 +999,7 @@ namespace XCode
                 //if (Meta.DbType == DatabaseType.Oracle)
                 //    return String.Format("To_Date('{0}', 'YYYYMMDDHH24MISS')", dt.ToString("yyyyMMddhhmmss"));
                 // SqlServer拒绝所有其不能识别为 1753 年到 9999 年间的日期的值
-                if (Meta.DbType == DatabaseType.SqlServer || Meta.DbType == DatabaseType.SqlServer2005)
+                if (Meta.DbType == DatabaseType.SqlServer)// || Meta.DbType == DatabaseType.SqlServer2005)
                 {
                     if (dt < year1753 || dt > year9999) return isNullable ? "null" : "''";
                 }
