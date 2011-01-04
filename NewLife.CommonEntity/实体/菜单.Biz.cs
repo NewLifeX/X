@@ -466,8 +466,11 @@ namespace NewLife.CommonEntity
 
                 // 添加
                 TEntity parent = FindByName(dirName);
-                if (parent == null) parent = Root.Childs[0].AddChild(dirName, null);
-                num++;
+                if (parent == null)
+                {
+                    parent = Root.Childs[0].AddChild(dirName, null);
+                    num++;
+                }
                 foreach (String elm in files)
                 {
                     String url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
