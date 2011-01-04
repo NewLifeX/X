@@ -102,6 +102,35 @@ namespace NewLife.Reflection
         }
 
         /// <summary>
+        /// 获取目标对象指定属性字段的值
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public T GetValue<T>(String name)
+        {
+            return (T)GetValue(this, name);
+        }
+
+        /// <summary>
+        /// 尝试获取目标对象指定属性字段的值，返回是否成功
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Boolean TryGetValue<T>(String name, out T value)
+        {
+            value = default(T);
+            Object obj = null;
+            if (!TryGetValue(this, name, out obj)) return false;
+
+            value = (T)obj;
+
+            return true;
+        }
+
+        /// <summary>
         /// 设置目标对象指定属性字段的值
         /// </summary>
         /// <param name="target">目标对象</param>
