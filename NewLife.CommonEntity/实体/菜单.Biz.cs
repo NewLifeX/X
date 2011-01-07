@@ -40,20 +40,17 @@ namespace NewLife.CommonEntity
                     Meta.BeginTrans();
                     try
                     {
-                        TEntity entity = Root;
-                        entity = entity.AddChild("管理平台", null);
-                        entity = entity.AddChild("系统管理", null);
-                        entity.Sort = 9999;
-                        entity.Save();
-
-                        entity.AddChild("菜单管理", "../System/Menu.aspx");
-                        entity.AddChild("管理员管理", "../System/Admin.aspx");
-                        entity.AddChild("角色管理", "../System/Role.aspx");
-                        entity.AddChild("权限管理", "../System/RoleMenu.aspx");
-                        entity.AddChild("日志查看", "../System/Log.aspx");
+                        Int32 sort = 1000;
+                        TEntity top = Root.AddChild("管理平台", null, sort -= 10, null);
+                        TEntity entity = top.AddChild("系统管理", null, sort -= 10, "System");
+                        entity.AddChild("菜单管理", "../System/Menu.aspx", sort -= 10, "菜单管理");
+                        entity.AddChild("管理员管理", "../System/Admin.aspx", sort -= 10, "管理员管理");
+                        entity.AddChild("角色管理", "../System/Role.aspx", sort -= 10, "角色管理");
+                        entity.AddChild("权限管理", "../System/RoleMenu.aspx", sort -= 10, "权限管理");
+                        entity.AddChild("日志查看", "../System/Log.aspx", sort -= 10, "日志查看");
 
                         // 准备增加Admin目录下的所有页面
-                        ScanAndAdd("Admin");
+                        ScanAndAdd("Admin", top);
 
                         Meta.Commit();
                         if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}表单数据！", typeof(TEntity).Name);
@@ -341,7 +338,7 @@ namespace NewLife.CommonEntity
             // 没有设置权限项或者权限项和名字相同时
             //注意比较添加权限名称是否跟页面上所写Title相同（包括中文，英文）
             //如果权限名称与页面中的Title不相同时修改权限名称为页面Title名称，疏漏可能造成日志重复写入
-            if (String.IsNullOrEmpty(Permission) || IsEnglish(Permission)||!String.Equals(Permission,name,StringComparison.OrdinalIgnoreCase)) Permission = name;
+            if (String.IsNullOrEmpty(Permission) || IsEnglish(Permission) || !String.Equals(Permission, name, StringComparison.OrdinalIgnoreCase)) Permission = name;
             if (String.IsNullOrEmpty(Name) || IsEnglish(Name)) Name = name;
 
             return Save() > 0;
@@ -425,6 +422,30 @@ namespace NewLife.CommonEntity
             entity.Permission = name;
             entity.Url = url;
             entity.IsShow = true;
+            entity.Remark = name;
+            entity.Save();
+
+            return entity;
+        }
+
+        /// <summary>
+        /// 添加子菜单
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="url"></param>
+        /// <param name="sort"></param>
+        /// <param name="reamark"></param>
+        /// <returns></returns>
+        public virtual TEntity AddChild(String name, String url, Int32 sort, String reamark)
+        {
+            TEntity entity = new TEntity();
+            entity.ParentID = ID;
+            entity.Name = name;
+            entity.Permission = name;
+            entity.Url = url;
+            entity.Sort = sort;
+            entity.IsShow = true;
+            entity.Remark = reamark;
             entity.Save();
 
             return entity;
@@ -437,6 +458,29 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static Int32 ScanAndAdd(String dir)
         {
+            TEntity top = Root;
+            if (Root.Childs != null && Root.Childs.Count > 0)
+                top = Root.Childs[0];
+            else
+            {
+                EntityList<TEntity> list = FindAllByName(_.ParentID, 0, _.ID + " Desc", 0, 1);
+                if (list != null && list.Count > 1) top = list[0];
+            }
+
+            return ScanAndAdd(dir, top);
+        }
+
+        /// <summary>
+        /// 扫描指定目录并添加文件到顶级菜单之下
+        /// </summary>
+        /// <param name="dir"></param>
+        /// <param name="top"></param>
+        /// <returns></returns>
+        public static Int32 ScanAndAdd(String dir, TEntity top)
+        {
+            if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("dir");
+            if (top == null) throw new ArgumentNullException("top");
+
             String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dir);
             if (!Directory.Exists(p)) return 0;
 
@@ -465,16 +509,17 @@ namespace NewLife.CommonEntity
                 if (files.Count < 1) continue;
 
                 // 添加
-                TEntity parent = FindByName(dirName);
+                TEntity parent = Find(_.Name, dirName);
+                if (parent == null) parent = Find(_.Remark, dirName);
                 if (parent == null)
                 {
-                    parent = Root.Childs[0].AddChild(dirName, null);
+                    parent = top.AddChild(dirName, null);
                     num++;
                 }
                 foreach (String elm in files)
                 {
                     String url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
-                    TEntity entity = FindByUrl(url);
+                    TEntity entity = Find(_.Url, url);
                     if (entity != null) continue;
 
                     parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
