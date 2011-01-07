@@ -47,17 +47,20 @@ namespace NewLife.CommonEntity
                     // 授权访问所有菜单
                     //EntityList<TMenuEntity> ms = Menu<TMenuEntity>.Meta.Cache.Entities;
                     EntityList<TMenuEntity> ms = Menu<TMenuEntity>.FindAll();
-                    EntityList<TRoleMenuEntity> rms = RoleMenu<TRoleMenuEntity>.FindAllByRoleID(id);
-                    foreach (TMenuEntity item in ms)
+                    if (ms != null && ms.Count > 0)
                     {
-                        // 是否已存在
-                        if (rms != null && rms.Find(RoleMenu<TRoleMenuEntity>._.MenuID, item.ID) != null) continue;
+                        EntityList<TRoleMenuEntity> rms = RoleMenu<TRoleMenuEntity>.FindAllByRoleID(id);
+                        foreach (TMenuEntity item in ms)
+                        {
+                            // 是否已存在
+                            if (rms != null && rms.Find(RoleMenu<TRoleMenuEntity>._.MenuID, item.ID) != null) continue;
 
-                        //TRoleMenuEntity entity = new TRoleMenuEntity();
-                        //entity.RoleID = id;
-                        //entity.MenuID = item.ID;
-                        TRoleMenuEntity entity = RoleMenu<TRoleMenuEntity>.Create(id, item.ID);
-                        entity.Save();
+                            //TRoleMenuEntity entity = new TRoleMenuEntity();
+                            //entity.RoleID = id;
+                            //entity.MenuID = item.ID;
+                            TRoleMenuEntity entity = RoleMenu<TRoleMenuEntity>.Create(id, item.ID);
+                            entity.Save();
+                        }
                     }
 
                     if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}授权数据！", typeof(TEntity).Name);
@@ -427,9 +430,9 @@ namespace NewLife.CommonEntity
         /// <param name="maximumRows">最大返回行数</param>
         /// <returns>实体集</returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> Search(String key,Int32 roleId, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        public static EntityList<TEntity> Search(String key, Int32 roleId, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         {
-            return FindAll(SearchWhere(key,roleId), orderClause, null, startRowIndex, maximumRows);
+            return FindAll(SearchWhere(key, roleId), orderClause, null, startRowIndex, maximumRows);
         }
 
         /// <summary>
@@ -443,7 +446,7 @@ namespace NewLife.CommonEntity
         /// <returns>记录数</returns>
         public static Int32 SearchCount(String key, Int32 roleId, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         {
-            return FindCount(SearchWhere(key,roleId), null, null, 0, 0);
+            return FindCount(SearchWhere(key, roleId), null, null, 0, 0);
         }
 
         /// <summary>
