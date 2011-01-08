@@ -85,7 +85,7 @@ namespace NewLife.Configuration
             if (AppSettings == null || AppSettings.Count < 1) return defaultValue;
 
             String str = AppSettings[name];
-            if (String.IsNullOrEmpty(name)) return defaultValue;
+            if (String.IsNullOrEmpty(str)) return defaultValue;
 
             Type type = typeof(T);
             TypeCode code = Type.GetTypeCode(type);
@@ -99,9 +99,9 @@ namespace NewLife.Configuration
 
             if (code == TypeCode.Boolean)
             {
-                if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
+                if (str == "1" || String.Equals(str, Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
                     return (T)(Object)true;
-                else if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
+                else if (str == "0" || String.Equals(str, Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
                     return (T)(Object)false;
 
                 Boolean b = false;
