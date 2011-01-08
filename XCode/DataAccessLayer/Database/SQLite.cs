@@ -140,11 +140,19 @@ namespace XCode.DataAccessLayer
 
             base.Open();
 
-            // 以文件名为键创建读写锁，表示多线程将会争夺文件的写入操作
-            _lock = ReadWriteLock.Create(FileName);
+            //// 以文件名为键创建读写锁，表示多线程将会争夺文件的写入操作
+            //_lock = ReadWriteLock.Create(FileName);
         }
 
-        private ReadWriteLock _lock = null;
+        private ReadWriteLock __lock = null;
+        private ReadWriteLock _lock
+        {
+            get
+            {
+                // 以文件名为键创建读写锁，表示多线程将会争夺文件的写入操作
+                return __lock ?? (__lock = ReadWriteLock.Create(FileName));
+            }
+        }
 
         /// <summary>
         /// 已重载。增加锁
