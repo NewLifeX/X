@@ -65,10 +65,12 @@
     <Compile Include="Box\LinkBox.cs" />
     <Compile Include="Box\LinkBoxField.cs" />
     <Compile Include="Button\LinkButtonField.cs" />
+    <Compile Include="扩展\ExtenderControl.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Button\ChooseButton.cs" />
     <Compile Include="TextBox\VerifyCodeBox.cs" />
     <Compile Include="TextBox\VerifyCodeImageHttpHandler.cs" />
+    <Compile Include="View\GridViewExtender.cs" />
     <Compile Include="分页\DataControlImageButton.cs" />
     <Compile Include="分页\DataControlLinkButtoncs.cs" />
     <Compile Include="分页\DataControlPagerLinkButton.cs" />
@@ -98,6 +100,9 @@
     <Compile Include="列表\CheckBoxList.cs" />
     <Compile Include="TextBox\DateTimePicker.cs" />
     <Compile Include="列表\DropDownList.cs" />
+    <Compile Include="扩展\ExtenderControlDesigner.cs" />
+    <Compile Include="扩展\TargetControlTypeAttribute.cs" />
+    <Compile Include="数据源\ObjectDataSourceExtender.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="TextBox\DateBox\SelectDate.js" />
@@ -140,9 +145,7 @@
     <EmbeddedResource Include="TextBox\VerifyCode.js" />
     <Content Include="说明.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="数据源\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
