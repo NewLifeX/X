@@ -101,6 +101,7 @@ namespace NewLife.CommonEntity.Web
         #region 权限控制
         private Boolean _ValidatePermission = true;
         /// <summary>是否检查权限</summary>
+        [Obsolete("后续版本将不再支持该属性，请重写CheckPermission来判断是否验证授权！")]
         public virtual Boolean ValidatePermission
         {
             get { return _ValidatePermission; }
@@ -136,7 +137,14 @@ namespace NewLife.CommonEntity.Web
 
             try
             {
-                if (ValidatePermission && !CheckPermission())
+                if (!CheckLogin())
+                {
+                    Response.StatusCode = 403;
+                    Response.StatusDescription = "没有登录！";
+                    Response.Write("没有登录！");
+                    Response.End();
+                }
+                else if (!CheckPermission())
                 {
                     Response.StatusCode = 403;
                     Response.StatusDescription = "没有权限访问该页！";
@@ -148,6 +156,19 @@ namespace NewLife.CommonEntity.Web
             {
                 XTrace.WriteLine(ex.ToString());
             }
+        }
+
+        /// <summary>
+        /// 检查是否已登录
+        /// </summary>
+        /// <returns></returns>
+        public virtual Boolean CheckLogin()
+        {
+            // 当前管理员
+            IAdministrator entity = Administrator<TAdminEntity>.Current;
+            if (entity == null) return false;
+
+            return true;
         }
 
         /// <summary>
@@ -202,6 +223,7 @@ namespace NewLife.CommonEntity.Web
         /// <summary>
         /// 是否输出执行时间
         /// </summary>
+        [Obsolete("后续版本将不再支持该属性，请重写CheckPermission来判断是否验证授权！")]
         protected virtual Boolean IsWriteRunTime
         {
             get
@@ -214,6 +236,7 @@ namespace NewLife.CommonEntity.Web
         /// <summary>
         /// 执行时间字符串
         /// </summary>
+        [Obsolete("后续版本将不再支持该属性，请重写CheckPermission来判断是否验证授权！")]
         protected virtual String RunTimeString { get { return "查询{0}次，执行{1}次，耗时{2}毫秒！"; } }
 
         /// <summary>
@@ -224,14 +247,27 @@ namespace NewLife.CommonEntity.Web
         {
             base.Render(writer);
 
-            if (!IsWriteRunTime) return;
+            //if (IsWriteRunTime)
+            WriteRunTime();
+        }
+
+        /// <summary>
+        /// 输出运行时间
+        /// </summary>
+        protected virtual void WriteRunTime()
+        {
+            if (!Request.PhysicalPath.EndsWith(".aspx", StringComparison.Ordinal)) return;
+            if (!XTrace.Debug) return;
 
             TimeSpan ts = DateTime.Now - HttpContext.Current.Timestamp;
 
-            //String str = "<!--查询{0}次，执行{1}次，耗时{2}毫秒！-->";
-            //String str = "查询{0}次，执行{1}次，耗时{2}毫秒！";
+            String str = String.Format("查询{0}次，执行{1}次，耗时{2}毫秒！", DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds);
 
-            Response.Write(String.Format(RunTimeString, DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds));
+            LiteralControl lt = FindControl("RunTime") as LiteralControl;
+            if (lt != null)
+                lt.Text = str;
+            else
+                Response.Write(str);
         }
         #endregion
     }
