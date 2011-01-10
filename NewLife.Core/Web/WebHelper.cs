@@ -55,13 +55,25 @@ namespace NewLife.Web
         #endregion
 
         #region 弹出信息
+        static String JsFormat(String str)
+        {
+            if (String.IsNullOrEmpty(str)) return null;
+
+            str = str.Replace("'", @"\'");
+            str = str.Replace(Environment.NewLine, @"\n");
+            str = str.Replace("\r", @"\n");
+            str = str.Replace("\n", @"\n");
+
+            return str;
+        }
+
         /// <summary>
         /// 弹出页面提示
         /// </summary>
         /// <param name="msg"></param>
         public static void Alert(String msg)
         {
-            Page.ClientScript.RegisterStartupScript(Page.GetType(), "alert", "alert('" + msg + "');", true);
+            Page.ClientScript.RegisterStartupScript(Page.GetType(), "alert", "alert('" + JsFormat(msg) + "');", true);
         }
 
         /// <summary>
@@ -70,7 +82,7 @@ namespace NewLife.Web
         /// <param name="msg"></param>
         public static void AlertAndEnd(String msg)
         {
-            WriteScript("alert('" + msg + "');history.go(-1);");
+            WriteScript("alert('" + JsFormat(msg) + "');history.go(-1);");
             HttpContext.Current.Response.End();
         }
 
@@ -82,7 +94,7 @@ namespace NewLife.Web
         {
             //Page.ClientScript.RegisterStartupScript(Page.GetType(), "alert", "alert('" + msg + "');location.href = location.href;", true);
 
-            WriteScript("alert('" + msg + "');location.href = location.href;");
+            WriteScript("alert('" + JsFormat(msg) + "');location.href = location.href;");
             HttpContext.Current.Response.End();
         }
 
@@ -103,7 +115,7 @@ namespace NewLife.Web
 
             //Page.ClientScript.RegisterStartupScript(Page.GetType(), "alert", "alert('" + msg + "');location.href = '" + url + "';", true);
 
-            WriteScript("alert('" + msg + "');location.href = '" + url + "';");
+            WriteScript("alert('" + JsFormat(msg) + "');location.href = '" + url + "';");
             HttpContext.Current.Response.End();
         }
 
@@ -113,7 +125,7 @@ namespace NewLife.Web
         /// <param name="msg"></param>
         public static void AlertAndClose(String msg)
         {
-            WriteScript("alert('" + msg + "');window.close();");
+            WriteScript("alert('" + JsFormat(msg) + "');window.close();");
             HttpContext.Current.Response.End();
         }
         #endregion
