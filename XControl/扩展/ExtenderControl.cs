@@ -10,34 +10,45 @@ namespace XControl
     /// 泛型扩展控件基类，泛型指定目标控件类型
     /// </summary>
     /// <typeparam name="TTargetControl"></typeparam>
-    public abstract class ExtenderControl<TTargetControl> : ExtenderControl where TTargetControl : Control
-    {
-        #region 属性
-        //private TTargetControl _TargetControl;
-        /// <summary>目标控件</summary>
-        public TTargetControl TargetControl
-        {
-            get { return FindControl(TargetControlID) as TTargetControl; }
-            //set { _TargetControl = value; }
-        }
-        #endregion
-    }
-
-    /// <summary>
-    /// 扩展控件基类
-    /// </summary>
-    public abstract class ExtenderControl : Control
+    public abstract class ExtenderControl<TTargetControl> : Control where TTargetControl : Control
     {
         #region 属性
         private String _TargetControlID;
         /// <summary>目标控件ID</summary>
-        [IDReferenceProperty]
+        [IDReferenceProperty(typeof(Control))]
         [WebCategory("Behavior")]
         [Description("目标控件ID")]
         public String TargetControlID
         {
             get { return _TargetControlID; }
             set { _TargetControlID = value; }
+        }
+
+        /// <summary>是否启用</summary>
+        [Description("是否启用")]
+        [DefaultValue(true)]
+        public Boolean Enabled
+        {
+            get { return GetPropertyValue<Boolean>("Enabled", true); }
+            set { SetPropertyValue<Boolean>("Enabled", value); }
+        }
+
+        /// <summary>是否自动附属该类型的目标控件</summary>
+        [Description("是否自动附属该类型的目标控件")]
+        [DefaultValue(true)]
+        public Boolean AutoAttach
+        {
+            get { return GetPropertyValue<Boolean>("AutoAttach", true); }
+            set { SetPropertyValue<Boolean>("AutoAttach", value); }
+        }
+        #endregion
+
+        #region 扩展属性
+        /// <summary>目标控件</summary>
+        public TTargetControl TargetControl
+        {
+            get { return FindTargetControl(); }
+            //set { _TargetControl = value; }
         }
 
         /// <summary>
@@ -48,13 +59,6 @@ namespace XControl
         {
             get { return base.Visible; }
             set { throw new NotImplementedException(); }
-        }
-
-        /// <summary>启用</summary>
-        public Boolean Enabled
-        {
-            get { return GetPropertyValue<Boolean>("Enabled", true); }
-            set { SetPropertyValue<Boolean>("Enabled", value); }
         }
         #endregion
 
@@ -74,6 +78,46 @@ namespace XControl
             {
                 control = container.FindControl(id);
                 if (control != null) return control;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 查找目标控件
+        /// </summary>
+        /// <returns></returns>
+        public virtual TTargetControl FindTargetControl()
+        {
+            if (String.IsNullOrEmpty(TargetControlID))
+                return FindControl<TTargetControl>(Page);
+            else
+                return FindControl(TargetControlID) as TTargetControl;
+        }
+
+        /// <summary>
+        /// 查找指定类型的控件
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parent"></param>
+        /// <returns></returns>
+        public static T FindControl<T>(Control parent) where T : Control
+        {
+            if (parent == null) return null;
+            if (parent is T) return parent as T;
+
+            if (parent.Controls != null && parent.Controls.Count > 0)
+            {
+                foreach (Control item in parent.Controls)
+                {
+                    if (item is T) return item as T;
+                }
+
+                foreach (Control item in parent.Controls)
+                {
+                    T tc = FindControl<T>(item);
+                    if (tc != null) return tc;
+                }
             }
 
             return null;
