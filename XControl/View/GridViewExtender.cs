@@ -81,7 +81,7 @@ namespace XControl
 
                 if (SelectedRowBackColor != Color.Empty)
                 {
-                    String js = String.Format("style.backgroundColor=!style.backgroundColor?'#ffcccc':'';", SelectedRowBackColor);
+                    String js = String.Format("style.backgroundColor=!style.backgroundColor?'{0}':'';", SelectedRowBackColor);
                     onclick = js + onclick;
 
                     if (HttpContext.Current != null && HttpContext.Current.Request != null)
