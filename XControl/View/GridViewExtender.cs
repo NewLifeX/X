@@ -359,7 +359,7 @@ namespace XControl
                 case DataControlRowType.DataRow:
                     cell = new TableCell();
                     cb = new CheckBox();
-                    cb.ToolTip = TargetControl.DataKeys[e.Row.RowIndex].ToString();
+                    cb.ToolTip = TargetControl.DataKeys[e.Row.RowIndex].Value.ToString();
                     cell.Controls.Add(cb);
                     e.Row.Cells.AddAt(0, cell);
                     break;
@@ -371,6 +371,16 @@ namespace XControl
                     cell.Controls.Add(cb);
                     e.Row.Cells.AddAt(0, cell);
                     break;
+            }
+        }
+
+        void CreateMutliSelect()
+        {
+            if (!EnableMultiSelect) return;
+
+            foreach (GridViewRow row in TargetControl.Rows)
+            {
+
             }
         }
         #endregion
