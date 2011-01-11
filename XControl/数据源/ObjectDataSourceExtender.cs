@@ -9,7 +9,7 @@ namespace XControl
     /// ObjectDataSource控件扩展
     /// </summary>
     [TargetControlType(typeof(ObjectDataSource))]
-    public class ObjectDataSourceExtender : ExtenderControl
+    public class ObjectDataSourceExtender : ExtenderControl<ObjectDataSource>
     {
     }
 }

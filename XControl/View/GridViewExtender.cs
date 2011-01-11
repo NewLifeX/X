@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Web.UI;
 using System.Web;
 
-namespace XControl.View
+namespace XControl
 {
     /// <summary>
     /// GridView控件扩展
@@ -53,38 +53,54 @@ namespace XControl.View
         {
             base.OnPreRender(e);
 
+            if (!Enabled) return;
             GridView gv = TargetControl;
-            if (gv == null) return;
+            if (gv == null || gv.Rows.Count <= 0 || !gv.Visible) return;
 
-            if (Enabled && gv.Visible)
+            foreach (GridViewRow item in gv.Rows)
             {
-                if (gv.Rows.Count > 0)
+                if (item.RowType != DataControlRowType.DataRow) continue;
+
+                String onclick = OnRowClientClick;
+                String ondblclick = OnRowDoubleClientClick;
+
+                Object keyValue = gv.DataKeys[item.RowIndex].Value;
+
+                if (SelectedRowBackColor != Color.Empty)
                 {
-                    foreach (GridViewRow item in gv.Rows)
+                    String js = String.Format("style.backgroundColor=!style.backgroundColor?'#ffcccc':''", SelectedRowBackColor);
+                    onclick = js + onclick;
+
+                    if (HttpContext.Current != null && HttpContext.Current.Request != null)
                     {
-                        if (item.RowType != DataControlRowType.DataRow) continue;
-
-                        Object keyValue = gv.DataKeys[item.RowIndex].Value;
-
-                        if (SelectedRowBackColor != Color.Empty)
+                        if (keyValue != null && String.Equals(keyValue.ToString(), HttpContext.Current.Request[RequestKeyName]))
                         {
-                            item.Attributes["onclick"] = String.Format("style.backgroundColor=!style.backgroundColor?'#ffcccc':''", SelectedRowBackColor.ToString());
-
-                            if (HttpContext.Current != null && HttpContext.Current.Request != null)
-                            {
-                                if (keyValue != null && String.Equals(keyValue.ToString(), HttpContext.Current.Request[RequestKeyName]))
-                                {
-                                    //item.Style[HtmlTextWriterStyle.BackgroundColor] = SelectedRowBackColor.ToString();
-                                    item.BackColor = SelectedRowBackColor;
-                                }
-                            }
+                            //item.Style[HtmlTextWriterStyle.BackgroundColor] = SelectedRowBackColor.ToString();
+                            item.BackColor = SelectedRowBackColor;
                         }
-
-                        //String ret = String.Format("{0}|||{1}", id, e.Row.Cells[1].Text);
-                        //item.Attributes["ondblclick"] = String.Format("window.returnValue='{0}';window.close();", ret.Replace("'", "\\'"));
                     }
                 }
+                Format(item, "onclick", onclick);
+                Format(item, "ondblclick", ondblclick);
             }
+        }
+
+        private void Format(GridViewRow row, string att, string value)
+        {
+            GridView gv = row.NamingContainer as GridView;
+            object keyValue = gv.DataKeys[row.RowIndex].Value;
+            if (keyValue != null)
+                value = value.Replace("{datakey}", keyValue.ToString());
+            else
+                value = value.Replace("{datakey}", null);
+
+            for (int i = 0; i < row.Cells.Count; i++)
+            {
+                value = value.Replace("{cell" + i + "}", row.Cells[i].Text);
+            }
+
+            if (!value.EndsWith(";")) value = value + ";";
+            row.Attributes[att] = value + row.Attributes[att];
         }
         #endregion
     }
