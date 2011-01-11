@@ -91,6 +91,8 @@ namespace XControl
                 //TemplateBuilder tb = new TemplateBuilder2();
                 //tb.Text = pagerTemplate.Replace("TotalCountStr", String.Format("{0}.TotalCount.ToString(\"n0\")", ID));
                 gv.PagerTemplate = new CompiledTemplateBuilder(BuilderPagerTemplate);
+
+                if (Page.EnableEventValidation) Page.EnableEventValidation = false;
             }
         }
 
@@ -199,13 +201,9 @@ namespace XControl
                 .Add("页/共").AddLabel("lbPageCount", delegate { return TargetControl.PageCount; }).Add("页")
                 .Add("&nbsp;")
                 .AddLinkButton("btnFirst", "首页", "First", delegate { return TargetControl.PageIndex != 0; })
-                .Add("&nbsp;")
                 .AddLinkButton("btnPrev", "上一页", "Prev", delegate { return TargetControl.PageIndex != 0; })
-                .Add("&nbsp;")
                 .AddLinkButton("btnNext", "下一页", "Next", delegate { return TargetControl.PageIndex != TargetControl.PageCount - 1; })
-                .Add("&nbsp;")
                 .AddLinkButton("btnLast", "尾页", "Last", delegate { return TargetControl.PageIndex != TargetControl.PageCount - 1; })
-                .Add("&nbsp;")
                 .Add("转到第").AddTextBox("txtNewPageIndex", delegate { return TargetControl.PageIndex + 1; }).Add("页")
                 .AddButton("btnGo", "GO", delegate { return String.Format("javascript:__doPostBack('{0}','Page$'+previousSibling.previousSibling.value)", TargetControl.UniqueID); });
         }
@@ -240,7 +238,7 @@ namespace XControl
             public ParserHelper AddLabel(String id, Func<Int32> handler, String format)
             {
                 Label lb = new Label();
-                lb.ID = id;
+                //lb.ID = id;
                 Init(lb);
 
                 if (handler != null)
@@ -255,17 +253,32 @@ namespace XControl
             public ParserHelper AddLinkButton(String id, String text, String arg, Func<Boolean> handler)
             {
                 LinkButton btn = new LinkButton();
-                btn.ID = id;
+                //btn.ID = id;
                 Init(btn);
 
                 btn.Text = text;
                 btn.CommandName = "Page";
                 btn.CommandArgument = arg;
                 if (handler != null)
+                {
                     btn.DataBinding += delegate(Object sender, EventArgs e)
                     {
                         (sender as LinkButton).Visible = handler();
+
+                        // 呈现时在后面加一个空格
+                        GridView gv = (parser as Control).NamingContainer.NamingContainer as GridView;
+                        if (gv != null) gv.DataBound += delegate(Object sender2, EventArgs e2)
+                           {
+                               LinkButton btn2 = sender as LinkButton;
+                               if (btn2.Visible)
+                               {
+                                   LiteralControl lc = new LiteralControl();
+                                   lc.Text = "&nbsp;";
+                                   btn2.Parent.Controls.AddAt(btn2.Parent.Controls.IndexOf(btn2) + 1, lc);
+                               }
+                           };
                     };
+                }
                 parser.AddParsedSubObject(btn);
                 return this;
             }
@@ -273,9 +286,11 @@ namespace XControl
             public ParserHelper AddTextBox(String id, Func<Int32> handler)
             {
                 TextBox box = new TextBox();
-                box.ID = id;
+                //box.ID = id;
                 Init(box);
 
+                box.Width = 40;
+                box.Style[HtmlTextWriterStyle.TextAlign] = "right";
                 if (handler != null)
                     box.DataBinding += delegate(Object sender, EventArgs e)
                     {
@@ -288,10 +303,11 @@ namespace XControl
             public ParserHelper AddButton(String id, String text, Func<String> handler)
             {
                 Button btn = new Button();
-                btn.ID = id;
+                //btn.ID = id;
                 Init(btn);
 
                 btn.Text = text;
+                btn.UseSubmitBehavior = false;
                 if (handler != null)
                     btn.DataBinding += delegate(Object sender, EventArgs e)
                     {
