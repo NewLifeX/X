@@ -54,6 +54,15 @@ namespace XControl
             get { return GetPropertyValue<String>("OnRowDoubleClientClick", String.Empty); }
             set { SetPropertyValue<String>("OnRowDoubleClientClick", value); }
         }
+
+        /// <summary>是否启用多选</summary>
+        [Description("是否启用多选")]
+        [DefaultValue(false)]
+        public Boolean EnableMultiSelect
+        {
+            get { return GetPropertyValue<Boolean>("EnableMultiSelect", false); }
+            set { SetPropertyValue<Boolean>("EnableMultiSelect", value); }
+        }
         #endregion
 
         #region 扩展属性
@@ -75,10 +84,11 @@ namespace XControl
         {
             base.OnInit(e);
 
+            if (!Enabled) return;
             GridView gv = TargetControl;
             if (gv == null) return;
 
-            // 挂接ObjectDataSource的时间，记录总记录数
+            // 挂接ObjectDataSource的事件，记录总记录数
             if (!String.IsNullOrEmpty(gv.DataSourceID))
             {
                 ObjectDataSource ds = FindControl(gv.DataSourceID) as ObjectDataSource;
@@ -93,6 +103,12 @@ namespace XControl
                 gv.PagerTemplate = new CompiledTemplateBuilder(BuilderPagerTemplate);
 
                 if (!DesignMode && Page.EnableEventValidation) Page.EnableEventValidation = false;
+            }
+
+            // 多选框
+            if (EnableMultiSelect)
+            {
+                gv.RowCreated += new GridViewRowEventHandler(gv_RowCreated);
             }
         }
 
@@ -124,8 +140,13 @@ namespace XControl
 
                 if (SelectedRowBackColor != Color.Empty)
                 {
-                    String js = String.Format("style.backgroundColor=!style.backgroundColor?'{0}':'';", (new WebColorConverter().ConvertToString(SelectedRowBackColor)));
-                    onclick = js + onclick;
+                    //String name = String.Format("{0}_RowClick", ID);
+                    String name = "rowClick";
+                    String color = (new WebColorConverter().ConvertToString(SelectedRowBackColor));
+                    String js = "function " + name + "(elm){ elm.style.backgroundColor=!elm.style.backgroundColor?'" + color + "':''; }";
+
+                    Page.ClientScript.RegisterClientScriptBlock(this.GetType(), name, js, true);
+                    onclick = name + "(this);" + onclick;
 
                     if (HttpContext.Current != null && HttpContext.Current.Request != null)
                     {
@@ -143,6 +164,8 @@ namespace XControl
 
         private void Format(GridViewRow row, string att, string value)
         {
+            if (row == null || String.IsNullOrEmpty(value)) return;
+
             GridView gv = row.NamingContainer as GridView;
 
             value = value.Replace("{rowindex}", row.RowIndex.ToString());
@@ -157,6 +180,8 @@ namespace XControl
             {
                 value = value.Replace("{cell" + i + "}", row.Cells[i].Text);
             }
+
+            if (String.IsNullOrEmpty(value)) return;
 
             if (!value.EndsWith(";")) value = value + ";";
             row.Attributes[att] = value + row.Attributes[att];
@@ -206,6 +231,9 @@ namespace XControl
                 .AddLinkButton("btnLast", "尾页", "Last", delegate { return TargetControl.PageIndex != TargetControl.PageCount - 1; })
                 .Add("转到第").AddTextBox("txtNewPageIndex", delegate { return TargetControl.PageIndex + 1; }).Add("页")
                 .AddButton("btnGo", "GO", delegate { return String.Format("javascript:__doPostBack('{0}','Page$'+previousSibling.previousSibling.value)", TargetControl.UniqueID); });
+
+            WebControl wc = ctl as WebControl;
+            if (wc != null && String.IsNullOrEmpty(wc.CssClass)) wc.CssClass = "page";
         }
 
         class ParserHelper
@@ -315,6 +343,34 @@ namespace XControl
                     };
                 parser.AddParsedSubObject(btn);
                 return this;
+            }
+        }
+        #endregion
+
+        #region 多选
+        void gv_RowCreated(object sender, GridViewRowEventArgs e)
+        {
+            if (!EnableMultiSelect) return;
+
+            TableCell cell = null;
+            CheckBox cb = null;
+            switch (e.Row.RowType)
+            {
+                case DataControlRowType.DataRow:
+                    cell = new TableCell();
+                    cb = new CheckBox();
+                    cb.ToolTip = TargetControl.DataKeys[e.Row.RowIndex].ToString();
+                    cell.Controls.Add(cb);
+                    e.Row.Cells.AddAt(0, cell);
+                    break;
+                case DataControlRowType.Footer:
+                case DataControlRowType.Header:
+                    cell = new TableCell();
+                    cb = new CheckBox();
+                    cb.ToolTip = "全选";
+                    cell.Controls.Add(cb);
+                    e.Row.Cells.AddAt(0, cell);
+                    break;
             }
         }
         #endregion
