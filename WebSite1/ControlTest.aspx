@@ -28,6 +28,11 @@
         <br />
         <br />
         <asp:Button ID="Button1" runat="server" Text="Button" />
+        <XCL:GridViewExtender ID="GridViewExtender1" runat="server" 
+            onrowclientclick="alert('单击{datakey}{cell2}')" 
+            onrowdoubleclientclick="alert('双击{datakey}{cell2}')" 
+            SelectedRowBackColor="Cornsilk">
+        </XCL:GridViewExtender>
         <br />
         <br />
         <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
@@ -74,10 +79,9 @@
         <br />
         <asp:Label ID="Label4" runat="server" Text="Label"></asp:Label>
         <br />
-        <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" DataObjectTypeName="XSite.Entities.Area"
-            DeleteMethod="Delete" EnablePaging="True" InsertMethod="Insert" OldValuesParameterFormatString="original_{0}"
-            SelectCountMethod="FindCountByName" SelectMethod="FindAllByName" TypeName="XSite.Entities.Area"
-            UpdateMethod="Save">
+        <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" EnablePaging="True" OldValuesParameterFormatString="original_{0}"
+            SelectCountMethod="FindCountByName" SelectMethod="FindAllByName" 
+            TypeName="NewLife.CommonEntity.Area">
             <SelectParameters>
                 <asp:Parameter Name="name" Type="String" />
                 <asp:Parameter Name="value" Type="Object" />

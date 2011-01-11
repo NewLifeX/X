@@ -92,7 +92,7 @@ namespace XControl
                 //tb.Text = pagerTemplate.Replace("TotalCountStr", String.Format("{0}.TotalCount.ToString(\"n0\")", ID));
                 gv.PagerTemplate = new CompiledTemplateBuilder(BuilderPagerTemplate);
 
-                if (Page.EnableEventValidation) Page.EnableEventValidation = false;
+                if (!DesignMode && Page.EnableEventValidation) Page.EnableEventValidation = false;
             }
         }
 
@@ -195,7 +195,7 @@ namespace XControl
         {
             ParserHelper page = new ParserHelper(ctl);
 
-            page.Add("共").AddLabel("lbTotalCount", delegate { return TotalCount; }, "n2").Add("条")
+            page.Add("共").AddLabel("lbTotalCount", delegate { return TotalCount; }, "n0").Add("条")
                 .Add("&nbsp;每页").AddLabel("lbPageSize", delegate { return TargetControl.PageSize; }).Add("条")
                 .Add("&nbsp;当前第").AddLabel("lbCurrentPage", delegate { return TargetControl.PageIndex + 1; })
                 .Add("页/共").AddLabel("lbPageCount", delegate { return TargetControl.PageCount; }).Add("页")
