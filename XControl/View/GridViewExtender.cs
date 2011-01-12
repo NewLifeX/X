@@ -55,13 +55,22 @@ namespace XControl
             set { SetPropertyValue<String>("OnRowDoubleClientClick", value); }
         }
 
-        /// <summary>是否启用多选</summary>
-        [Description("是否启用多选")]
-        [DefaultValue(false)]
-        public Boolean EnableMultiSelect
+        ///// <summary>是否启用多选</summary>
+        //[Description("是否启用多选")]
+        //[DefaultValue(false)]
+        //public Boolean EnableMultiSelect
+        //{
+        //    get { return GetPropertyValue<Boolean>("EnableMultiSelect", false); }
+        //    set { SetPropertyValue<Boolean>("EnableMultiSelect", value); }
+        //}
+
+        /// <summary>选择框位置</summary>
+        [Description("选择框位置")]
+        [DefaultValue(0)]
+        public Int32 CheckBoxIndex
         {
-            get { return GetPropertyValue<Boolean>("EnableMultiSelect", false); }
-            set { SetPropertyValue<Boolean>("EnableMultiSelect", value); }
+            get { return GetPropertyValue<Int32>("CheckBoxIndex", 0); }
+            set { SetPropertyValue<Int32>("CheckBoxIndex", value); }
         }
         #endregion
 
@@ -72,6 +81,88 @@ namespace XControl
         {
             get { return _TotalCount; }
             set { _TotalCount = value; }
+        }
+
+        /// <summary>被选择行的索引</summary>
+        public Int32[] SelectedIndexes
+        {
+            get
+            {
+                GridView gv = TargetControl;
+                if (gv == null || gv.Rows == null || gv.Rows.Count < 1 || CheckBoxIndex >= gv.Columns.Count) return null;
+
+                Int32 index = CheckBoxIndex;
+                List<Int32> list = new List<Int32>();
+                foreach (GridViewRow row in gv.Rows)
+                {
+                    if (row.RowType != DataControlRowType.DataRow) continue;
+
+                    TableCell cell = row.Cells[index];
+                    if (cell == null || cell.Controls.Count < 1) continue;
+
+                    CheckBox cb = FindControl<CheckBox>(cell);
+                    if (cb == null) continue;
+
+                    if (cb.Checked) list.Add(row.RowIndex);
+                }
+
+                return list.Count > 0 ? list.ToArray() : null;
+            }
+        }
+
+        /// <summary>被选择行的索引</summary>
+        public String SelectedIndexesString
+        {
+            get
+            {
+                Int32[] indexes = SelectedIndexes;
+                if (indexes == null || indexes.Length < 1) return null;
+
+                StringBuilder sb = new StringBuilder();
+                foreach (Int32 item in indexes)
+                {
+                    if (sb.Length > 0) sb.Append(",");
+                    sb.Append(item);
+                }
+                return sb.ToString();
+            }
+        }
+
+        /// <summary>被选择行的键值</summary>
+        public Object[] SelectedValues
+        {
+            get
+            {
+                Int32[] indexes = SelectedIndexes;
+                if (indexes == null || indexes.Length < 1) return null;
+
+                GridView gv = TargetControl;
+                List<Object> list = new List<object>();
+                foreach (Int32 item in indexes)
+                {
+                    list.Add(gv.DataKeys[item].Value);
+                }
+
+                return list.Count > 0 ? list.ToArray() : null;
+            }
+        }
+
+        /// <summary>被选择行的键值</summary>
+        public String SelectedValuesString
+        {
+            get
+            {
+                Object[] values = SelectedValues;
+                if (values == null || values.Length < 1) return null;
+
+                StringBuilder sb = new StringBuilder();
+                foreach (Object item in values)
+                {
+                    if (sb.Length > 0) sb.Append(",");
+                    sb.Append(item);
+                }
+                return sb.ToString();
+            }
         }
         #endregion
 
@@ -105,11 +196,11 @@ namespace XControl
                 if (!DesignMode && Page.EnableEventValidation) Page.EnableEventValidation = false;
             }
 
-            // 多选框
-            if (EnableMultiSelect)
-            {
-                gv.RowCreated += new GridViewRowEventHandler(gv_RowCreated);
-            }
+            //// 多选框
+            //if (EnableMultiSelect)
+            //{
+            //    gv.RowCreated += new GridViewRowEventHandler(gv_RowCreated);
+            //}
         }
 
         void ds_Selected(object sender, ObjectDataSourceStatusEventArgs e)
@@ -133,6 +224,7 @@ namespace XControl
             RenderOnClick(gv);
 
             //if (EnableMultiSelect) CreateMutliSelect(TargetControl);
+            SetSelectAll(gv);
         }
 
         ///// <summary>
@@ -369,51 +461,92 @@ namespace XControl
         #endregion
 
         #region 多选
-        void gv_RowCreated(object sender, GridViewRowEventArgs e)
+        void SetSelectAll(GridView gv)
         {
-            //if (EnableMultiSelect) CreateMutliSelect(e.Row);
-        }
+            if (gv == null || gv.HeaderRow == null || gv.HeaderRow.Cells.Count <= CheckBoxIndex) return;
 
-        void CreateMutliSelect(GridView gv)
-        {
-            if (!EnableMultiSelect) return;
+            Int32 index = CheckBoxIndex;
+            TableCell cell = gv.HeaderRow.Cells[index];
+            if (cell == null) return;
 
+            CheckBox header = FindControl<CheckBox>(cell);
+            if (header == null)
+            {
+                header = new CheckBox();
+                cell.Controls.Add(header);
+            }
+            if (header == null) return;
+
+            // 列出该列的CheckBox
+            List<CheckBox> list = new List<CheckBox>();
             foreach (GridViewRow row in gv.Rows)
             {
-                CreateMutliSelect(row);
+                if (row.RowType != DataControlRowType.DataRow) continue;
+
+                cell = row.Cells[index];
+                if (cell == null || cell.Controls.Count < 1) continue;
+
+                CheckBox cb = FindControl<CheckBox>(cell);
+                if (cb == null) continue;
+
+                list.Add(cb);
             }
+
+            // 构造赋值语句
+            StringBuilder sb = new StringBuilder();
+            foreach (CheckBox cb in list)
+            {
+                sb.AppendFormat("{0}.checked=", cb.UniqueID);
+            }
+
+            header.Attributes["onclick"] = String.Format("{1}{0}.checked;", header.UniqueID, sb.ToString());
         }
 
-        void CreateMutliSelect(GridViewRow row)
-        {
-            TableCell cell = null;
-            CheckBox cb = null;
-            switch (row.RowType)
-            {
-                case DataControlRowType.DataRow:
-                    cell = new TableCell();
-                    cb = new CheckBox();
-                    cb.ID = "s";
-                    cb.ToolTip = TargetControl.DataKeys[row.RowIndex].Value.ToString();
-                    cell.Controls.Add(cb);
-                    row.Cells.AddAt(0, cell);
-                    break;
-                case DataControlRowType.Footer:
-                case DataControlRowType.Header:
-                    cell = new TableCell();
-                    if (row.RowType == DataControlRowType.Header) cell.Width = 40;
-                    cb = new CheckBox();
-                    cb.ID = "s";
-                    cb.ToolTip = "全选";
-                    cell.Controls.Add(cb);
-                    row.Cells.AddAt(0, cell);
-                    break;
-                default:
-                    cell = new TableCell();
-                    row.Cells.AddAt(0, cell);
-                    break;
-            }
-        }
+        //void gv_RowCreated(object sender, GridViewRowEventArgs e)
+        //{
+        //    //if (EnableMultiSelect) CreateMutliSelect(e.Row);
+        //}
+
+        //void CreateMutliSelect(GridView gv)
+        //{
+        //    //if (!EnableMultiSelect) return;
+
+        //    foreach (GridViewRow row in gv.Rows)
+        //    {
+        //        CreateMutliSelect(row);
+        //    }
+        //}
+
+        //void CreateMutliSelect(GridViewRow row)
+        //{
+        //    TableCell cell = null;
+        //    CheckBox cb = null;
+        //    switch (row.RowType)
+        //    {
+        //        case DataControlRowType.DataRow:
+        //            cell = new TableCell();
+        //            cb = new CheckBox();
+        //            cb.ID = "s";
+        //            cb.ToolTip = TargetControl.DataKeys[row.RowIndex].Value.ToString();
+        //            cell.Controls.Add(cb);
+        //            row.Cells.AddAt(0, cell);
+        //            break;
+        //        case DataControlRowType.Footer:
+        //        case DataControlRowType.Header:
+        //            cell = new TableCell();
+        //            if (row.RowType == DataControlRowType.Header) cell.Width = 40;
+        //            cb = new CheckBox();
+        //            cb.ID = "s";
+        //            cb.ToolTip = "全选";
+        //            cell.Controls.Add(cb);
+        //            row.Cells.AddAt(0, cell);
+        //            break;
+        //        default:
+        //            cell = new TableCell();
+        //            row.Cells.AddAt(0, cell);
+        //            break;
+        //    }
+        //}
         #endregion
     }
 
