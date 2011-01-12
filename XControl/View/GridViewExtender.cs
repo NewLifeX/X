@@ -126,9 +126,30 @@ namespace XControl
             base.OnPreRender(e);
 
             if (!Enabled) return;
+
             GridView gv = TargetControl;
             if (gv == null || gv.Rows.Count <= 0 || !gv.Visible) return;
 
+            RenderOnClick(gv);
+
+            //if (EnableMultiSelect) CreateMutliSelect(TargetControl);
+        }
+
+        ///// <summary>
+        ///// 已重载。
+        ///// </summary>
+        ///// <param name="writer"></param>
+        //protected override void Render(HtmlTextWriter writer)
+        //{
+        //    if (EnableMultiSelect) CreateMutliSelect(TargetControl);
+
+        //    base.Render(writer);
+        //}
+        #endregion
+
+        #region 点击
+        void RenderOnClick(GridView gv)
+        {
             foreach (GridViewRow item in gv.Rows)
             {
                 if (item.RowType != DataControlRowType.DataRow) continue;
@@ -350,37 +371,47 @@ namespace XControl
         #region 多选
         void gv_RowCreated(object sender, GridViewRowEventArgs e)
         {
+            //if (EnableMultiSelect) CreateMutliSelect(e.Row);
+        }
+
+        void CreateMutliSelect(GridView gv)
+        {
             if (!EnableMultiSelect) return;
 
+            foreach (GridViewRow row in gv.Rows)
+            {
+                CreateMutliSelect(row);
+            }
+        }
+
+        void CreateMutliSelect(GridViewRow row)
+        {
             TableCell cell = null;
             CheckBox cb = null;
-            switch (e.Row.RowType)
+            switch (row.RowType)
             {
                 case DataControlRowType.DataRow:
                     cell = new TableCell();
                     cb = new CheckBox();
-                    cb.ToolTip = TargetControl.DataKeys[e.Row.RowIndex].Value.ToString();
+                    cb.ID = "s";
+                    cb.ToolTip = TargetControl.DataKeys[row.RowIndex].Value.ToString();
                     cell.Controls.Add(cb);
-                    e.Row.Cells.AddAt(0, cell);
+                    row.Cells.AddAt(0, cell);
                     break;
                 case DataControlRowType.Footer:
                 case DataControlRowType.Header:
                     cell = new TableCell();
+                    if (row.RowType == DataControlRowType.Header) cell.Width = 40;
                     cb = new CheckBox();
+                    cb.ID = "s";
                     cb.ToolTip = "全选";
                     cell.Controls.Add(cb);
-                    e.Row.Cells.AddAt(0, cell);
+                    row.Cells.AddAt(0, cell);
                     break;
-            }
-        }
-
-        void CreateMutliSelect()
-        {
-            if (!EnableMultiSelect) return;
-
-            foreach (GridViewRow row in TargetControl.Rows)
-            {
-
+                default:
+                    cell = new TableCell();
+                    row.Cells.AddAt(0, cell);
+                    break;
             }
         }
         #endregion
