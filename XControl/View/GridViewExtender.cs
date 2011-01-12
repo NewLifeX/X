@@ -64,8 +64,8 @@ namespace XControl
         //    set { SetPropertyValue<Boolean>("EnableMultiSelect", value); }
         //}
 
-        /// <summary>选择框位置</summary>
-        [Description("选择框位置")]
+        /// <summary>选择框位置，需要自己创建CheckBox模版列，这里只是指定而已</summary>
+        [Description("选择框位置，需要自己创建CheckBox模版列，这里只是指定而已")]
         [DefaultValue(0)]
         public Int32 CheckBoxIndex
         {
