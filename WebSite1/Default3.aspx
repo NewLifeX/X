@@ -19,7 +19,6 @@
                 <asp:BoundField DataField="ParentCode" HeaderText="ParentCode" SortExpression="ParentCode" />
                 <asp:BoundField DataField="Description" HeaderText="Description" SortExpression="Description" />
             </Columns>
-            <PagerTemplate></PagerTemplate>
         </asp:GridView>
         <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" EnablePaging="True" OldValuesParameterFormatString="original_{0}"
             SelectCountMethod="FindCountByName" SelectMethod="FindAllByName" TypeName="NewLife.CommonEntity.Area">
@@ -31,7 +30,8 @@
                 <asp:Parameter Name="maximumRows" Type="Int32" />
             </SelectParameters>
         </asp:ObjectDataSource>
-        <XCL:GridViewExtender ID="GridViewExtender1" runat="server" SelectedRowBackColor="Cornsilk">
+        <XCL:GridViewExtender ID="GridViewExtender1" runat="server" 
+            SelectedRowBackColor="Cornsilk" EnableMultiSelect="True">
         </XCL:GridViewExtender>
     </div>
     </form>
