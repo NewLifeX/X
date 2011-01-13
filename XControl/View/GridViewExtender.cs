@@ -73,15 +73,20 @@ namespace XControl
         #endregion
 
         #region 扩展属性
-        private Int32 _TotalCount;
+        //private Int32 _TotalCount;
         /// <summary>总记录数</summary>
+        [Browsable(false)]
         public Int32 TotalCount
         {
-            get { return _TotalCount; }
-            set { _TotalCount = value; }
+            get
+            {
+                return PropertyInfoX.GetValue<DataSourceSelectArguments>(TargetControl, "SelectArguments").TotalRowCount;
+            }
+            //set { _TotalCount = value; }
         }
 
         /// <summary>被选择行的索引</summary>
+        [Browsable(false)]
         public Int32[] SelectedIndexes
         {
             get
@@ -109,6 +114,7 @@ namespace XControl
         }
 
         /// <summary>被选择行的索引</summary>
+        [Browsable(false)]
         public String SelectedIndexesString
         {
             get
@@ -127,6 +133,7 @@ namespace XControl
         }
 
         /// <summary>被选择行的键值</summary>
+        [Browsable(false)]
         public Object[] SelectedValues
         {
             get
@@ -146,6 +153,7 @@ namespace XControl
         }
 
         /// <summary>被选择行的键值</summary>
+        [Browsable(false)]
         public String SelectedValuesString
         {
             get
@@ -177,12 +185,12 @@ namespace XControl
             GridView gv = TargetControl;
             if (gv == null) return;
 
-            // 挂接ObjectDataSource的事件，记录总记录数
-            if (!String.IsNullOrEmpty(gv.DataSourceID))
-            {
-                ObjectDataSource ds = FindControl(gv.DataSourceID) as ObjectDataSource;
-                ds.Selected += new ObjectDataSourceStatusEventHandler(ds_Selected);
-            }
+            //// 挂接ObjectDataSource的事件，记录总记录数
+            //if (!String.IsNullOrEmpty(gv.DataSourceID))
+            //{
+            //    ObjectDataSource ds = FindControl(gv.DataSourceID) as ObjectDataSource;
+            //    ds.Selected += new ObjectDataSourceStatusEventHandler(ds_Selected);
+            //}
 
             // 挂接分页模版
             if (gv.AllowPaging && gv.PagerTemplate == null)
@@ -201,10 +209,10 @@ namespace XControl
             //}
         }
 
-        void ds_Selected(object sender, ObjectDataSourceStatusEventArgs e)
-        {
-            if (e.ReturnValue is Int32) TotalCount = (Int32)e.ReturnValue;
-        }
+        //void ds_Selected(object sender, ObjectDataSourceStatusEventArgs e)
+        //{
+        //    if (e.ReturnValue is Int32) TotalCount = (Int32)e.ReturnValue;
+        //}
 
         /// <summary>
         /// 已重载。
@@ -311,16 +319,16 @@ namespace XControl
                 if (!String.IsNullOrEmpty(_pagerTemplate)) return _pagerTemplate;
 
                 StringBuilder sb = new StringBuilder();
-                sb.AppendLine("共<asp:Label ID=\"lbTotalCount\" runat=\"server\" Text=\"<%# TotalCountStr %>\"></asp:Label>条");
-                sb.AppendLine("每页<asp:Label ID=\"lbPageSize\" runat=\"server\" Text=\"<%# ((GridView)Container.NamingContainer).PageSize %>\"></asp:Label>条");
-                sb.Append("当前第<asp:Label ID=\"lbCurrentPage\" runat=\"server\" Text=\"<%# ((GridView)Container.NamingContainer).PageIndex + 1 %>\"></asp:Label>页/共");
-                sb.AppendLine("<asp:Label ID=\"lbPageCount\" runat=\"server\" Text=\"<%# ((GridView)Container.NamingContainer).PageCount %>\"></asp:Label>页");
-                sb.AppendLine("<asp:LinkButton ID=\"LinkButtonFirstPage\" runat=\"server\" CommandArgument=\"First\" CommandName=\"Page\" Visible='<%#((GridView)Container.NamingContainer).PageIndex != 0 %>'>首页</asp:LinkButton>");
-                sb.AppendLine("<asp:LinkButton ID=\"LinkButtonPreviousPage\" runat=\"server\" CommandArgument=\"Prev\" CommandName=\"Page\" Visible='<%# ((GridView)Container.NamingContainer).PageIndex != 0 %>'>上一页</asp:LinkButton>");
-                sb.AppendLine("<asp:LinkButton ID=\"LinkButtonNextPage\" runat=\"server\" CommandArgument=\"Next\" CommandName=\"Page\" Visible='<%# ((GridView)Container.NamingContainer).PageIndex != ((GridView)Container.NamingContainer).PageCount - 1 %>'>下一页</asp:LinkButton>");
-                sb.AppendLine("<asp:LinkButton ID=\"LinkButtonLastPage\" runat=\"server\" CommandArgument=\"Last\" CommandName=\"Page\" Visible='<%# ((GridView)Container.NamingContainer).PageIndex != ((GridView)Container.NamingContainer).PageCount - 1 %>'>尾页</asp:LinkButton>");
-                sb.AppendLine("转到第<input type=\"textbox\" id=\"txtNewPageIndex\" style=\"width: 40px;\" value='<%# ((GridView)Container.Parent.Parent).PageIndex + 1 %>' />页");
-                sb.AppendLine("<input type=\"button\" id=\"btnGo\" value=\"GO\" onclick=\"javascript:__doPostBack('<%# ((GridView)Container.NamingContainer).UniqueID %>','Page$'+document.getElementById('txtNewPageIndex').value)\" />");
+                sb.AppendLine("共<asp:Label runat=\"server\" Text='<%# NewLife.Reflection.PropertyInfoX.GetValue<DataSourceSelectArguments>(Container.NamingContainer, \"SelectArguments\").TotalRowCount.ToString(\"n0\") %>'></asp:Label>条");
+                sb.AppendLine("每页<asp:Label runat=\"server\" Text=\"<%# ((GridView)Container.NamingContainer).PageSize %>\"></asp:Label>条");
+                sb.Append("当前第<asp:Label runat=\"server\" Text=\"<%# ((GridView)Container.NamingContainer).PageIndex + 1 %>\"></asp:Label>页/共");
+                sb.AppendLine("<asp:Label runat=\"server\" Text=\"<%# ((GridView)Container.NamingContainer).PageCount %>\"></asp:Label>页");
+                sb.AppendLine("<asp:LinkButton runat=\"server\" CommandArgument=\"First\" CommandName=\"Page\" Visible='<%#((GridView)Container.NamingContainer).PageIndex != 0 %>'>首页</asp:LinkButton>");
+                sb.AppendLine("<asp:LinkButton runat=\"server\" CommandArgument=\"Prev\" CommandName=\"Page\" Visible='<%# ((GridView)Container.NamingContainer).PageIndex != 0 %>'>上一页</asp:LinkButton>");
+                sb.AppendLine("<asp:LinkButton runat=\"server\" CommandArgument=\"Next\" CommandName=\"Page\" Visible='<%# ((GridView)Container.NamingContainer).PageIndex != ((GridView)Container.NamingContainer).PageCount - 1 %>'>下一页</asp:LinkButton>");
+                sb.AppendLine("<asp:LinkButton runat=\"server\" CommandArgument=\"Last\" CommandName=\"Page\" Visible='<%# ((GridView)Container.NamingContainer).PageIndex != ((GridView)Container.NamingContainer).PageCount - 1 %>'>尾页</asp:LinkButton>");
+                sb.AppendLine("转到第<input type=\"textbox\" style=\"width: 40px; text-align: right;\" value='<%# ((GridView)Container.Parent.Parent).PageIndex + 1 %>' />页");
+                sb.AppendLine("<input type=\"button\" value=\"GO\" onclick=\"javascript:__doPostBack('<%# ((GridView)Container.NamingContainer).UniqueID %>','Page$'+previousSibling.previousSibling.value)\" />");
                 _pagerTemplate = sb.ToString();
 
                 return _pagerTemplate;
@@ -471,6 +479,7 @@ namespace XControl
             if (header == null)
             {
                 header = new CheckBox();
+                header.ToolTip = "全选/取消";
                 cell.Controls.Add(header);
             }
             if (header == null) return;

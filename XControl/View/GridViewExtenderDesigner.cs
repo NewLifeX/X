@@ -45,11 +45,11 @@ namespace XControl
             {
                 DesignerActionItemCollection items = new DesignerActionItemCollection();
                 //if (_parent.CanConfigure)
-                {
-                    DesignerActionMethodItem item = new DesignerActionMethodItem(this, "SetPagerTemplate", "设置分页模版", null, "给目标GridView设置一个默认分页模版", true);
-                    item.AllowAssociate = true;
-                    items.Add(item);
-                }
+                //{
+                //    DesignerActionMethodItem item = new DesignerActionMethodItem(this, "SetPagerTemplate", "设置分页模版", null, "给目标GridView设置一个默认分页模版", true);
+                //    item.AllowAssociate = true;
+                //    items.Add(item);
+                //}
                 return items;
             }
 
