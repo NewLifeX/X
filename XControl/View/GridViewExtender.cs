@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Web.UI.WebControls;
-using System.Drawing;
-using System.Web.UI;
-using System.Web;
 using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Web.UI.Design;
+using System.Drawing;
+using System.Text;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
 using NewLife.Reflection;
 
 namespace XControl
@@ -306,7 +304,7 @@ namespace XControl
         /// <summary>
         /// 分页模版
         /// </summary>
-        static String pagerTemplate
+        public static String PagerTemplateString
         {
             get
             {
@@ -547,60 +545,6 @@ namespace XControl
         //            break;
         //    }
         //}
-        #endregion
-    }
-
-    /// <summary>
-    /// GridView扩展控件设计时
-    /// </summary>
-    public class GridViewExtenderDesigner : ExtenderControlDesigner<GridViewExtender, GridView>
-    {
-        #region 智能标记
-        /// <summary>
-        /// 已重载。
-        /// </summary>
-        public override DesignerActionListCollection ActionLists
-        {
-            get
-            {
-                DesignerActionListCollection lists = new DesignerActionListCollection();
-                lists.AddRange(base.ActionLists);
-                lists.Add(new GridViewExtenderActionList(this));
-                return lists;
-            }
-        }
-
-        class GridViewExtenderActionList : DesignerActionList
-        {
-            private GridViewExtenderDesigner _parent;
-
-            public GridViewExtenderActionList(GridViewExtenderDesigner parent)
-                : base(parent.Component)
-            {
-                _parent = parent;
-            }
-
-            /// <summary>
-            /// 已重载。
-            /// </summary>
-            /// <returns></returns>
-            public override DesignerActionItemCollection GetSortedActionItems()
-            {
-                DesignerActionItemCollection items = new DesignerActionItemCollection();
-                //if (_parent.CanConfigure)
-                {
-                    DesignerActionMethodItem item = new DesignerActionMethodItem(this, "Configure", SR.GetString("DataSourceDesigner_ConfigureDataSourceVerb"), SR.GetString("DataSourceDesigner_DataActionGroup"), SR.GetString("DataSourceDesigner_ConfigureDataSourceVerbDesc"), true);
-                    item.AllowAssociate = true;
-                    items.Add(item);
-                }
-                return items;
-            }
-
-            /// <summary>
-            /// 是否自动显示
-            /// </summary>
-            public override bool AutoShow { get { return true; } set { } }
-        }
         #endregion
     }
 }
