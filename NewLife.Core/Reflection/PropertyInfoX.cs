@@ -225,6 +225,39 @@ namespace NewLife.Reflection
             if (SetHandler == null) throw new InvalidOperationException("不支持SetValue操作！");
             SetHandler.Invoke(obj, value);
         }
+
+        /// <summary>
+        /// 静态快速取值
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="target"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static TResult GetValue<TResult>(Object target, String name)
+        {
+            if (target == null || String.IsNullOrEmpty(name)) return default(TResult);
+
+            PropertyInfoX pix = Create(target.GetType(), name);
+            if (pix == null) return default(TResult);
+
+            return (TResult)pix.GetValue(target);
+        }
+
+        /// <summary>
+        /// 静态快速赋值
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public static void SetValue(Object target, String name, Object value)
+        {
+            if (target == null || String.IsNullOrEmpty(name)) return;
+
+            PropertyInfoX pix = Create(target.GetType(), name);
+            if (pix == null) return;
+
+            pix.SetValue(target, value);
+        }
         #endregion
 
         #region 类型转换

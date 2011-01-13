@@ -164,6 +164,24 @@ namespace NewLife.Reflection
             else
                 return Handler.Invoke(obj, parameters);
         }
+
+        /// <summary>
+        /// 快速调用方法成员
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="target"></param>
+        /// <param name="name"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public static TResult Invoke<TResult>(Object target, String name, params  Object[] parameters)
+        {
+            if (target == null || String.IsNullOrEmpty(name)) return default(TResult);
+
+            MethodInfoX mix = Create(target.GetType(), name);
+            if (mix == null) return default(TResult);
+
+            return (TResult)mix.Invoke(target, parameters);
+        }
         #endregion
 
         #region 类型转换

@@ -214,6 +214,39 @@ namespace NewLife.Reflection
                 SetHandler.Invoke(obj, value);
         }
 
+        /// <summary>
+        /// 静态快速取值
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="target"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static T GetValue<T>(Object target, String name)
+        {
+            if (target == null || String.IsNullOrEmpty(name)) return default(T);
+
+            FieldInfoX fix = Create(target.GetType(), name);
+            if (fix == null) return default(T);
+
+            return (T)fix.GetValue(target);
+        }
+
+        /// <summary>
+        /// 静态快速赋值
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public static void SetValue(Object target, String name, Object value)
+        {
+            if (target == null || String.IsNullOrEmpty(name)) return;
+
+            FieldInfoX fix = Create(target.GetType(), name);
+            if (fix == null) return;
+
+            fix.SetValue(target, value);
+        }
+
         delegate Object FastGetValueHandler(Object obj);
         delegate void FastSetValueHandler(Object obj, Object value);
         #endregion
