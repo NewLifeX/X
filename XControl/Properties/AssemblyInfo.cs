@@ -38,10 +38,12 @@ using System.Web.UI;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("1.7.*")]
-[assembly: AssemblyFileVersion("1.7.2010.1015")]
+[assembly: AssemblyVersion("1.8.*")]
+[assembly: AssemblyFileVersion("1.8.2011.0116")]
 
 /*
+ * v1.8.2011.0116   Add：GridView扩展控件增加分页模版、多选
+ * 
  * v1.7.2010.1015   增加对话框控件
  * 
  * v1.6.2010.0830   修正时间日期选择控件回发后失效的问题
