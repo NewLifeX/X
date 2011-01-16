@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Web.UI;
 using System.ComponentModel;
+using NewLife.Web;
 
 namespace XControl
 {
@@ -90,37 +91,9 @@ namespace XControl
         public virtual TTargetControl FindTargetControl()
         {
             if (String.IsNullOrEmpty(TargetControlID))
-                return FindControl<TTargetControl>(Page);
+                return ControlHelper.FindControl<TTargetControl>(Page, null);
             else
                 return FindControl(TargetControlID) as TTargetControl;
-        }
-
-        /// <summary>
-        /// 查找指定类型的控件
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="parent"></param>
-        /// <returns></returns>
-        public static T FindControl<T>(Control parent) where T : Control
-        {
-            if (parent == null) return null;
-            if (parent is T) return parent as T;
-
-            if (parent.Controls != null && parent.Controls.Count > 0)
-            {
-                foreach (Control item in parent.Controls)
-                {
-                    if (item is T) return item as T;
-                }
-
-                foreach (Control item in parent.Controls)
-                {
-                    T tc = FindControl<T>(item);
-                    if (tc != null) return tc;
-                }
-            }
-
-            return null;
         }
         #endregion
 

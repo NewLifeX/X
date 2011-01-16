@@ -7,6 +7,7 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Reflection;
+using NewLife.Web;
 
 namespace XControl
 {
@@ -103,7 +104,7 @@ namespace XControl
                     TableCell cell = row.Cells[index];
                     if (cell == null || cell.Controls.Count < 1) continue;
 
-                    CheckBox cb = FindControl<CheckBox>(cell);
+                    CheckBox cb = ControlHelper.FindControl<CheckBox>(cell, null);
                     if (cb == null) continue;
 
                     if (cb.Checked) list.Add(row.RowIndex);
@@ -475,7 +476,7 @@ namespace XControl
             TableCell cell = gv.HeaderRow.Cells[index];
             if (cell == null) return;
 
-            CheckBox header = FindControl<CheckBox>(cell);
+            CheckBox header = ControlHelper.FindControl<CheckBox>(cell, null);
             if (header == null)
             {
                 header = new CheckBox();
@@ -493,7 +494,7 @@ namespace XControl
                 cell = row.Cells[index];
                 if (cell == null || cell.Controls.Count < 1) continue;
 
-                CheckBox cb = FindControl<CheckBox>(cell);
+                CheckBox cb = ControlHelper.FindControl<CheckBox>(cell, null);
                 if (cb == null) continue;
 
                 list.Add(cb);
