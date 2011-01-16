@@ -37,6 +37,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v1.4.2011.0113   快速反射中增加静态的（指定目标对象和成员名称即可）快速赋值取值和快速调用等方法
+ *                  增加控件助手类ControlHelper
  * 
  * v1.3.2010.1215   修正FieldInfoX处理值类型时没有考虑拆箱的问题
  * 

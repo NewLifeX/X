@@ -126,6 +126,7 @@
     <Compile Include="Threading\ThreadPoolX.cs" />
     <Compile Include="Threading\ThreadTask.cs" />
     <Compile Include="Threading\ThreadX.cs" />
+    <Compile Include="Web\ControlHelper.cs" />
     <Compile Include="Web\HttpState.cs" />
     <Compile Include="Web\HttpStream.cs" />
     <Compile Include="Log\WriteLogEventArgs.cs" />
