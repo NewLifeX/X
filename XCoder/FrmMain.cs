@@ -255,7 +255,10 @@ namespace XCoder
                 {
                     IList<XTable> tables = DAL.Create(name).Tables;
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.ToString(), this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             });
         }
         #endregion
@@ -509,7 +512,10 @@ namespace XCoder
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         Int32 articleIndex = 0;

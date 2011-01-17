@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Windows.Forms;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
 
@@ -40,7 +41,10 @@ namespace XCoder
                     {
                         _Tables = DAL.Create(Config.ConnName).Tables as List<XTable>;
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.ToString());
+                    }
                 }
                 return _Tables;
             }

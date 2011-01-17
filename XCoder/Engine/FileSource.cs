@@ -83,7 +83,10 @@ namespace XCoder
 
                 File.WriteAllBytes(fileName, buffer);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
     }
 }
