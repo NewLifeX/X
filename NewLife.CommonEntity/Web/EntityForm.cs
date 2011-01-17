@@ -145,6 +145,8 @@ namespace NewLife.CommonEntity.Web
 
                     if (btn is IButtonControl) (btn as IButtonControl).Text = IsNullKey ? "新增" : "更新";
                 }
+
+                SetForm();
             }
             else
             {
