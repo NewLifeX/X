@@ -1,0 +1,145 @@
+﻿<?xml version='1.0' encoding='UTF-8' ?>
+<rt>
+  <r>pass</r>
+  <msg>认证通过！</msg>
+  <li>
+    <id_url>516496</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;q=%22Blood+Analyzer%22++%2DChina+mail&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516497</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;start=100&amp;q=%22Blood+Analyzer%22++%2DChina+mail&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516498</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;start=200&amp;q=%22Blood+Analyzer%22++%2DChina+mail&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516499</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;start=300&amp;q=%22Blood+Analyzer%22++%2DChina+mail&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516500</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;q=Blood+Analyzer+%2DChina+%22mail%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516501</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;start=100&amp;q=Blood+Analyzer+%2DChina+%22mail%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516502</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;start=200&amp;q=Blood+Analyzer+%2DChina+%22mail%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516503</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;start=300&amp;q=Blood+Analyzer+%2DChina+%22mail%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516504</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;q=Blood+Analyzer+%2DChina+%22gmail%2Ecom%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516505</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;start=100&amp;q=Blood+Analyzer+%2DChina+%22gmail%2Ecom%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516506</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;start=200&amp;q=Blood+Analyzer+%2DChina+%22gmail%2Ecom%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516507</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;start=300&amp;q=Blood+Analyzer+%2DChina+%22gmail%2Ecom%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516508</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;q=Blood+Analyzer+%2DChina+%22hotmail%2Ecom%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516509</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;start=100&amp;q=Blood+Analyzer+%2DChina+%22hotmail%2Ecom%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516510</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;start=200&amp;q=Blood+Analyzer+%2DChina+%22hotmail%2Ecom%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516511</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;start=300&amp;q=Blood+Analyzer+%2DChina+%22hotmail%2Ecom%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516512</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;q=Blood+Analyzer+%2DChina+%22yahoo%2Ecom%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516513</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;start=100&amp;q=Blood+Analyzer+%2DChina+%22yahoo%2Ecom%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516514</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;start=200&amp;q=Blood+Analyzer+%2DChina+%22yahoo%2Ecom%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+  <li>
+    <id_url>516515</id_url>
+    <id_kws>35461</id_kws>
+    <url>http://www.google.com.hk/search?hl=en&amp;cr=countryGB&amp;start=300&amp;q=Blood+Analyzer+%2DChina+%22yahoo%2Ecom%22&amp;num=100</url>
+    <pattern>&lt;li .+?&lt;h3 class=(r|"r")&gt;&lt;a href="(.+?)".*?&gt;(.+?)&lt;/a&gt;.*?&lt;div class="s"&gt;(.+?)&lt;br&gt;.+?&lt;/div&gt;</pattern>
+    <s></s>
+  </li>
+</rt>

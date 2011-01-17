@@ -14,6 +14,8 @@ using XCode.DataAccessLayer;
 using XCode;
 using System.ComponentModel;
 using NewLife.CommonEntity;
+using System.Data;
+using System.Xml;
 
 namespace Test
 {
@@ -30,8 +32,8 @@ namespace Test
                 try
                 {
 #endif
-                Test7();
-                //ThreadPoolTest.Main2(args);
+                    Test9();
+                    //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -249,9 +251,9 @@ namespace Test
 
         static void Test4()
         {
-            //#if DEBUG
-            //            FastTest.Test();
-            //#endif
+#if DEBUG
+            FastTest.Test();
+#endif
         }
 
         static void Test7()
@@ -259,11 +261,29 @@ namespace Test
             //DescriptionAttribute att = AttributeX.GetCustomAttribute<DescriptionAttribute>(typeof(Menu));
             //Console.WriteLine(att == null);
 
+            Log log = new Log();
+            log.Action = "test";
+            log.Save();
+
+            log = Log.FindByKey(log.ID);
+
+            Console.WriteLine(log.Action);
+            Console.WriteLine(log.OccurTime);
+
+            TypeX type = typeof(PermissionFlags);
+            foreach (FieldInfoX item in type.Fields)
+            {
+                Console.WriteLine(item.Field.IsStatic + " " + item.Field.Name);
+            }
+
+            Dictionary<PermissionFlags, String> flags = GetDescriptions();
+            Console.WriteLine(flags == null);
+
             String str = AttributeX.GetCustomAttributeValue<DescriptionAttribute, String>(typeof(Menu), false);
             Console.WriteLine(str);
 
-            Log log = Log.Create(typeof(Administrator), "Add");
-            Console.WriteLine(log.Category);
+            //Log log = Log.Create(typeof(Administrator), "Add");
+            //Console.WriteLine(log.Category);
 
             Administrator admin = Administrator.Login("admin", "admin");
             Console.WriteLine(admin == null);
@@ -274,6 +294,89 @@ namespace Test
 
             //Menu menu = Menu.Root.Childs[0];
             //Console.WriteLine(menu.ToString());
+        }
+
+        static Dictionary<PermissionFlags, String> flagCache;
+        static Dictionary<PermissionFlags, String> GetDescriptions()
+        {
+            if (flagCache != null) return flagCache;
+
+            flagCache = new Dictionary<PermissionFlags, string>();
+
+            TypeX type = typeof(PermissionFlags);
+            foreach (FieldInfoX item in type.Fields)
+            {
+                if (!item.Field.IsStatic) continue;
+
+                PermissionFlags value = (PermissionFlags)item.GetValue();
+
+                String des = item.Field.Name;
+                DescriptionAttribute att = AttributeX.GetCustomAttribute<DescriptionAttribute>(item.Member, false);
+                if (att != null && !String.IsNullOrEmpty(att.Description)) des = att.Description;
+                flagCache.Add(value, des);
+            }
+
+            return flagCache;
+        }
+
+        static void Test8()
+        {
+            DAL dal = DAL.Create("Common");
+            DataSet ds = dal.Select("select * from Test", "");
+            Console.WriteLine(ds.Tables[0].Columns[2].DataType);
+
+            Object data = ds.Tables[0].Rows[0][2];
+            Console.WriteLine(data.GetType());
+            Byte[] buffer = (Byte[])data;
+            Console.WriteLine(BitConverter.ToString(buffer));
+
+            Random rnd = new Random((Int32)DateTime.Now.Ticks);
+            buffer = new Byte[16];
+            rnd.NextBytes(buffer);
+
+            String sql = String.Format("update Test set des=0x{0}", BitConverter.ToString(buffer).Replace("-", null));
+            Console.WriteLine(dal.Execute(sql, ""));
+        }
+
+        static void Test9()
+        {
+            //Test02 entity = Test02.Find(Test02._.ID, 1);
+
+            //String str = "ws.config";
+            //str = FormatKeyWord(str);
+            //Console.WriteLine(str);
+
+            String xml = File.ReadAllText("XMLFile.xml");
+            XmlDocument doc = new XmlDocument();
+            doc.Load("XMLFile.xml");
+            XmlNodeList list = doc.SelectNodes(@"rt/li");
+            foreach (XmlNode item in list)
+            {
+                Console.WriteLine();
+                Console.WriteLine(item.ChildNodes[2].InnerText);
+                Console.WriteLine(item.ChildNodes[3].InnerText);
+            }
+        }
+
+        /// <summary>
+        /// 格式化关键字
+        /// </summary>
+        /// <param name="keyWord">表名</param>
+        /// <returns></returns>
+        public static String FormatKeyWord(String keyWord)
+        {
+            //return String.Format("\"{0}\"", keyWord);
+
+            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
+
+            Int32 pos = keyWord.LastIndexOf(".");
+
+            if (pos < 0) return "\"" + keyWord + "\"";
+
+            String tn = keyWord.Substring(pos + 1);
+            if (tn.StartsWith("\"")) return keyWord;
+
+            return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
         }
     }
 }

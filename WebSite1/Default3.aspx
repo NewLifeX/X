@@ -12,6 +12,11 @@
             DataSourceID="ObjectDataSource1" EnableModelValidation="True" EnableViewState="False"
             AllowPaging="True">
             <Columns>
+                <asp:TemplateField>
+                    <ItemTemplate>
+                        <asp:CheckBox ID="CheckBox1" runat="server" />
+                    </ItemTemplate>
+                </asp:TemplateField>
                 <asp:BoundField DataField="ID" HeaderText="ID" InsertVisible="False" ReadOnly="True"
                     SortExpression="ID" />
                 <asp:BoundField DataField="Code" HeaderText="Code" SortExpression="Code" />
