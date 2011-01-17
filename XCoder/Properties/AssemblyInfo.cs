@@ -29,10 +29,13 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("3.2.*")]
-[assembly: AssemblyFileVersion("3.2.2010.1014")]
+[assembly: AssemblyVersion("3.3.*")]
+[assembly: AssemblyFileVersion("3.3.2011.0117")]
 
 /*
+ * v3.3.2011.0117   增加实体模版和页面模版，改变以前的生成模式（由一个表四次改为两次）
+ *                  使用新的控件GridViewExtend和自定义表单EntityForm
+ * 
  * v3.2.2010.1014   增加是否使用文件模版头的设置
  *                  更新模版引擎到v1.3，取消对模版的换行优化处理
  *                  增加第二套表单模版
