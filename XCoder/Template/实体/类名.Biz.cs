@@ -182,13 +182,10 @@ foreach (XField Field in Table.Fields){
             String[] keys = key.Split(new Char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
 		    StringBuilder sb = new StringBuilder();
-		    sb.Append("1=1");
-
-            //if (!String.IsNullOrEmpty(name)) sb.AppendFormat(" And {0} like '%{1}%'", _.Name, name.Replace("'", "''"));
 
             for (int i = 0; i < keys.Length; i++)
             {
-                sb.Append(" And ");
+                if (sb.Length > 0) sb.Append(" And ");
 
                 if (keys.Length > 1) sb.Append("(");
                 Int32 n = 0;
@@ -199,15 +196,12 @@ foreach (XField Field in Table.Fields){
                     if (++n > 5) break;
 
                     if (n > 1) sb.Append(" Or ");
-                    sb.AppendFormat("{0} like '%{1}%'", item.Name, keys[i]);
+                    sb.AppendFormat("{0} like '%{1}%'", Meta.FormatKeyWord(item.Name), keys[i]);
                 }
                 if (keys.Length > 1) sb.Append(")");
             }
 
-            if (sb.Length == "1=1".Length)
-                return null;
-            else
-                return sb.ToString();
+            return sb.ToString();
 		}
 		#endregion
 
