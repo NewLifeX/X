@@ -10,4 +10,8 @@ using <#=Config.NameSpace#>;
 
 public partial class Pages_<#=ClassName#>Form : EntityForm<Int32, <#=ClassName#>>
 {
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        
+    }
 }
