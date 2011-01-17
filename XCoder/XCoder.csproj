@@ -95,14 +95,20 @@
     <Compile Include="Engine\XCoder.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Template\实体\类名.Biz.cs" />
-    <Compile Include="Template\实体\类名.cs" />
-    <Compile Include="Template\页面\类名.aspx.cs">
+    <EmbeddedResource Include="Template\实体\类名.Biz.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Template\实体\类名.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Template\页面\类名.aspx.cs">
       <DependentUpon>类名.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="Template\页面\类名Form.aspx.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Template\页面\类名Form.aspx.cs">
       <DependentUpon>类名Form.aspx</DependentUpon>
-    </Compile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Template\表单2\类名Form.aspx.cs">
       <DependentUpon>类名Form.aspx</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -134,12 +140,14 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="leaf.ico" />
-    <Content Include="Template\页面\类名.aspx">
+    <EmbeddedResource Include="Template\页面\类名.aspx">
       <SubType>ASPXCodeBehind</SubType>
-    </Content>
-    <Content Include="Template\页面\类名Form.aspx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Template\页面\类名Form.aspx">
       <SubType>ASPXCodeBehind</SubType>
-    </Content>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Template\表单2\类名Form.aspx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>ASPXCodeBehind</SubType>
