@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using XCode;
 using System.Web.UI;
-using NewLife.Web;
 using System.Web.UI.WebControls;
+using NewLife.Web;
+using XCode;
 using XCode.Configuration;
+using System.Collections.Generic;
+using NewLife.Reflection;
 
 namespace NewLife.CommonEntity.Web
 {
@@ -46,7 +46,7 @@ namespace NewLife.CommonEntity.Web
         {
             get
             {
-                String str = Request["KeyName"];
+                String str = Request[EntityKeyName];
                 if (String.IsNullOrEmpty(str)) return default(TKey);
 
                 Type type = typeof(TKey);
@@ -67,7 +67,7 @@ namespace NewLife.CommonEntity.Web
 
         private TEntity _Entity;
         /// <summary>数据实体</summary>
-        public TEntity Entity
+        public virtual TEntity Entity
         {
             get { return _Entity ?? (_Entity = Entity<TEntity>.FindByKeyForEdit(EntityID)); }
             set { _Entity = value; }
@@ -123,7 +123,7 @@ namespace NewLife.CommonEntity.Web
         }
         #endregion
 
-        #region 加载
+        #region 事件
         /// <summary>
         /// 已重载。
         /// </summary>
@@ -132,11 +132,9 @@ namespace NewLife.CommonEntity.Web
         {
             base.OnPreLoad(e);
 
+            Control btn = SaveButton;
             if (!Page.IsPostBack)
             {
-                DataBind();
-
-                Control btn = SaveButton;
                 if (btn != null)
                 {
                     // 添加/编辑 按钮需要添加/编辑权限
@@ -146,8 +144,23 @@ namespace NewLife.CommonEntity.Web
                         btn.Visible = Acquire(PermissionFlags.Update);
                 }
             }
+            else
+            {
+                if (btn != null)
+                {
+                    if (btn is IButtonControl)
+                        (btn as IButtonControl).Click += delegate { GetForm(); if (ValidForm()) SaveForm(); };
+                    else if (Page.AutoPostBackControl == null)
+                    {
+                        GetForm();
+                        if (ValidForm()) SaveForm();
+                    }
+                }
+            }
         }
+        #endregion
 
+        #region 加载
         /// <summary>
         /// 把实体的属性设置到控件上
         /// </summary>
@@ -182,8 +195,12 @@ namespace NewLife.CommonEntity.Web
                 // 设置ToolTip
                 if (String.IsNullOrEmpty(wc.ToolTip))
                 {
-                    wc.ToolTip = String.Format("请填写{0}！", field.Column.Description);
+                    String des = String.IsNullOrEmpty(field.Column.Description) ? field.Name : field.Column.Description;
+                    wc.ToolTip = String.Format("请填写{0}！", des);
                 }
+
+                // 必填项
+                if (!field.DataObjectField.IsNullable) SetNotAllowNull(field, control, canSave);
 
                 // 设置只读
                 if (wc is TextBox)
@@ -192,19 +209,365 @@ namespace NewLife.CommonEntity.Web
                     wc.Enabled = canSave;
 
                 // 分控件处理
+                if (wc is TextBox)
+                    SetFormItemTextBox(field, wc as TextBox, canSave);
+                else if (wc is Label)
+                    SetFormItemLabel(field, wc as Label, canSave);
+                else if (wc is CheckBox)
+                    SetFormItemCheckBox(field, wc as CheckBox, canSave);
+                else if (wc is DropDownList)
+                    SetFormItemDropDownList(field, wc as DropDownList, canSave);
+                else if (wc is RadioButton)
+                    SetFormItemRadioButton(field, wc as RadioButton, canSave);
+                else
+                {
+                    PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Text");
+                    if (pix != null) pix.SetValue(control, Entity[field.Name]);
+                }
             }
         }
 
+        /// <summary>
+        /// 文本框
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        /// <param name="canSave"></param>
         protected virtual void SetFormItemTextBox(FieldItem field, TextBox control, Boolean canSave)
         {
+            Type type = field.Property.PropertyType;
+            if (type == typeof(DateTime))
+            {
+                DateTime d = (DateTime)Entity[field.Name];
+                //if (d > DateTime.Now.AddYears(-10))
+                control.Text = d.ToString("yyyy-MM-dd HH:mm:ss");
+                //else
+                //    control.Text = null;
+            }
+            else
+                control.Text = String.Empty + Entity[field.Name];
+        }
 
+        /// <summary>
+        /// 标签
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        /// <param name="canSave"></param>
+        protected virtual void SetFormItemLabel(FieldItem field, Label control, Boolean canSave)
+        {
+            control.Text = String.Empty + Entity[field.Name];
+        }
+
+        /// <summary>
+        /// 复选框
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        /// <param name="canSave"></param>
+        protected virtual void SetFormItemCheckBox(FieldItem field, CheckBox control, Boolean canSave)
+        {
+            Type type = field.Property.PropertyType;
+            if (type == typeof(Boolean))
+                control.Checked = (Boolean)Entity[field.Name];
+            else if (type == typeof(Int32))
+                control.Checked = (Int32)Entity[field.Name] != 0;
+            else
+                control.Checked = Entity[field.Name] != null;
+        }
+
+        /// <summary>
+        /// 下拉框
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        /// <param name="canSave"></param>
+        protected virtual void SetFormItemDropDownList(FieldItem field, DropDownList control, Boolean canSave)
+        {
+            if (control.Items.Count < 1) control.DataBind();
+            if (control.Items.Count < 1) return;
+
+            String value = String.Empty + Entity[field.Name];
+
+            ListItem li = control.Items.FindByValue(value);
+            if (li != null)
+                li.Selected = true;
+            else
+            {
+                li = new ListItem(value, value);
+                control.Items.Add(li);
+                li.Selected = true;
+            }
+        }
+
+        /// <summary>
+        /// 单选框
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        /// <param name="canSave"></param>
+        protected virtual void SetFormItemRadioButton(FieldItem field, RadioButton control, Boolean canSave)
+        {
+            List<RadioButton> list = new List<RadioButton>();
+            // 找到同一级同组名的所有单选
+            foreach (Control item in control.Parent.Controls)
+            {
+                if (!(item is RadioButton)) continue;
+
+                RadioButton rb = item as RadioButton;
+                if (rb.GroupName != control.GroupName) continue;
+
+                list.Add(rb);
+            }
+            if (list.Count < 1) return;
+
+            String value = String.Empty + Entity[field.Name];
+
+            foreach (RadioButton item in list)
+            {
+                item.Checked = item.Text == value;
+            }
+        }
+
+        /// <summary>
+        /// 设置控件的不允许空
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        /// <param name="canSave"></param>
+        protected virtual void SetNotAllowNull(FieldItem field, Control control, Boolean canSave)
+        {
+            if (field.DataObjectField.IsNullable) return;
+
+            LiteralControl lc = new LiteralControl();
+            lc.Text = "<font colore='red'>*</font>";
+
+            Int32 p = control.Parent.Controls.IndexOf(control);
+            control.Parent.Controls.AddAt(p + 1, lc);
+        }
+        #endregion
+
+        #region 读取
+        /// <summary>
+        /// 读取控件的数据保存到实体中去
+        /// </summary>
+        protected virtual void GetForm()
+        {
+            foreach (FieldItem item in Entity<TEntity>.Meta.Fields)
+            {
+                Control control = Page.FindControl(FormItemPrefix + item.Name);
+                if (control == null) continue;
+
+                GetFormItem(item, control);
+            }
+        }
+
+        /// <summary>
+        /// 把控件的值设置到实体属性上
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        protected virtual void GetFormItem(FieldItem field, Control control)
+        {
+            if (field == null || control == null) return;
+
+            if (control is WebControl)
+            {
+                WebControl wc = control as WebControl;
+
+                // 分控件处理
+                if (wc is TextBox)
+                    GetFormItemTextBox(field, wc as TextBox);
+                else if (wc is Label)
+                    GetFormItemLabel(field, wc as Label);
+                else if (wc is CheckBox)
+                    GetFormItemCheckBox(field, wc as CheckBox);
+                else if (wc is DropDownList)
+                    GetFormItemDropDownList(field, wc as DropDownList);
+                else if (wc is RadioButton)
+                    GetFormItemRadioButton(field, wc as RadioButton);
+                else
+                {
+                    PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Text");
+                    if (pix != null)
+                    {
+                        Object v = pix.GetValue(control);
+                        if (Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 文本框
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        protected virtual void GetFormItemTextBox(FieldItem field, TextBox control)
+        {
+            String v = control.Text;
+            if (Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
+        }
+
+        /// <summary>
+        /// 标签，不做任何操作
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        protected virtual void GetFormItemLabel(FieldItem field, Label control)
+        {
+
+        }
+
+        /// <summary>
+        /// 复选框
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        protected virtual void GetFormItemCheckBox(FieldItem field, CheckBox control)
+        {
+            Type type = field.Property.PropertyType;
+            Object v;
+            if (type == typeof(Boolean))
+                v = control.Checked;
+            else if (type == typeof(Int32))
+                v = control.Checked ? 1 : 0;
+            else
+                v = control.Checked;
+
+            if (Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
+        }
+
+        /// <summary>
+        /// 下拉列表
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        protected virtual void GetFormItemDropDownList(FieldItem field, DropDownList control)
+        {
+            //if (String.IsNullOrEmpty(control.SelectedValue)) return;
+
+            String v = control.SelectedValue;
+            if (Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
+        }
+
+        /// <summary>
+        /// 单选框
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        protected virtual void GetFormItemRadioButton(FieldItem field, RadioButton control)
+        {
+            List<RadioButton> list = new List<RadioButton>();
+            // 找到同一级同组名的所有单选
+            foreach (Control item in control.Parent.Controls)
+            {
+                if (!(item is RadioButton)) continue;
+
+                RadioButton rb = item as RadioButton;
+                if (rb.GroupName != control.GroupName) continue;
+
+                list.Add(rb);
+            }
+            if (list.Count < 1) return;
+
+            foreach (RadioButton item in list)
+            {
+                if (item.Checked)
+                {
+                    if (Object.Equals(Entity[field.Name], item.Text)) Entity.SetItem(field.Name, item.Text);
+                }
+            }
         }
         #endregion
 
         #region 验证
+        /// <summary>
+        /// 验证表单，返回是否有效数据
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Boolean ValidForm()
+        {
+            foreach (FieldItem item in Entity<TEntity>.Meta.Fields)
+            {
+                Control control = Page.FindControl(FormItemPrefix + item.Name);
+                if (control == null) continue;
+
+                if (!ValidFormItem(item, control)) return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// 验证表单项
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        /// <returns></returns>
+        protected virtual Boolean ValidFormItem(FieldItem field, Control control)
+        {
+            // 必填项
+            if (field.DataObjectField.IsNullable)
+            {
+                if (field.Property.PropertyType == typeof(String))
+                {
+                    if (String.IsNullOrEmpty((String)Entity[field.Name]))
+                    {
+                        WebHelper.Alert(String.Format("{0}不能为空！", String.IsNullOrEmpty(field.Column.Description) ? field.Name : field.Column.Description));
+                        control.Focus();
+                        return false;
+                    }
+                }
+                else if (field.Property.PropertyType == typeof(DateTime))
+                {
+                    DateTime d = (DateTime)Entity[field.Name];
+                    if (d == DateTime.MinValue || d == DateTime.MaxValue)
+                    {
+                        WebHelper.Alert(String.Format("{0}不能为空！", String.IsNullOrEmpty(field.Column.Description) ? field.Name : field.Column.Description));
+                        control.Focus();
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
         #endregion
 
         #region 保存
+        /// <summary>
+        /// 保存表单，把实体保存到数据库
+        /// </summary>
+        protected virtual void SaveForm()
+        {
+            try
+            {
+                Entity.Save();
+
+                SaveFormSuccess();
+            }
+            catch (Exception ex)
+            {
+                SaveFormUnsuccess(ex);
+            }
+        }
+
+        /// <summary>
+        /// 保存成功
+        /// </summary>
+        protected virtual void SaveFormSuccess()
+        {
+            ClientScript.RegisterStartupScript(this.GetType(), "alert", "alert('成功！');parent.Dialog.CloseAndRefresh(frameElement);", true);
+        }
+
+        /// <summary>
+        /// 保存失败
+        /// </summary>
+        /// <param name="ex"></param>
+        protected virtual void SaveFormUnsuccess(Exception ex)
+        {
+            WebHelper.Alert("失败！" + ex.Message);
+        }
         #endregion
     }
 }

@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Web;
 using System.Web.UI;
+using NewLife.Log;
 using XCode;
 using XCode.DataAccessLayer;
-using NewLife.Log;
-using NewLife.Web;
 
 namespace NewLife.CommonEntity.Web
 {
