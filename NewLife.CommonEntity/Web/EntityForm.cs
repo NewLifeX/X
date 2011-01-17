@@ -104,7 +104,7 @@ namespace NewLife.CommonEntity.Web
         /// <summary>
         /// 是否空主键
         /// </summary>
-        private Boolean IsNullKey
+        protected virtual Boolean IsNullKey
         {
             get
             {
@@ -142,19 +142,18 @@ namespace NewLife.CommonEntity.Web
                         btn.Visible = Acquire(PermissionFlags.Insert);
                     else
                         btn.Visible = Acquire(PermissionFlags.Update);
+
+                    if (btn is IButtonControl) (btn as IButtonControl).Text = IsNullKey ? "新增" : "更新";
                 }
             }
             else
             {
-                if (btn != null)
+                if (btn != null && btn is IButtonControl)
+                    (btn as IButtonControl).Click += delegate { GetForm(); if (ValidForm()) SaveForm(); };
+                else if (Page.AutoPostBackControl == null)
                 {
-                    if (btn is IButtonControl)
-                        (btn as IButtonControl).Click += delegate { GetForm(); if (ValidForm()) SaveForm(); };
-                    else if (Page.AutoPostBackControl == null)
-                    {
-                        GetForm();
-                        if (ValidForm()) SaveForm();
-                    }
+                    GetForm();
+                    if (ValidForm()) SaveForm();
                 }
             }
         }
