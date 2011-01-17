@@ -129,5 +129,16 @@ namespace XControl
             ViewState[propertyName] = value;
         }
         #endregion
+
+        #region 更新目标设计时
+        /// <summary>
+        /// 更新目标设计时
+        /// </summary>
+        public void UpdateTargetDesignTimeHtml()
+        {
+            TTargetControl tc = TargetControl;
+            if (tc != null) ExtenderControlDesigner.UpdateTargetDesignTimeHtml(tc);
+        }
+        #endregion
     }
 }

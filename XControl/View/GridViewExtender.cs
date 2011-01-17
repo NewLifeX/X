@@ -30,8 +30,8 @@ namespace XControl
         }
 
         /// <summary>请求字符串中作为键值的参数</summary>
-        [Description("启用")]
-        [DefaultValue("请求字符串中作为键值的参数")]
+        [Description("请求字符串中作为键值的参数")]
+        [DefaultValue("ID")]
         public String RequestKeyName
         {
             get { return GetPropertyValue<String>("RequestKeyName", "ID"); }
@@ -194,10 +194,8 @@ namespace XControl
             //}
 
             // 挂接分页模版
-            if (gv.AllowPaging && gv.PagerTemplate == null)
+            if (!DesignMode && gv.AllowPaging && gv.PagerTemplate == null)
             {
-                //TemplateBuilder tb = new TemplateBuilder2();
-                //tb.Text = pagerTemplate.Replace("TotalCountStr", String.Format("{0}.TotalCount.ToString(\"n0\")", ID));
                 gv.PagerTemplate = new CompiledTemplateBuilder(BuilderPagerTemplate);
 
                 if (!DesignMode && Page.EnableEventValidation) Page.EnableEventValidation = false;
@@ -231,7 +229,7 @@ namespace XControl
             RenderOnClick(gv);
 
             //if (EnableMultiSelect) CreateMutliSelect(TargetControl);
-            SetSelectAll(gv);
+            if (!DesignMode) SetSelectAll(gv);
         }
 
         ///// <summary>
@@ -473,17 +471,8 @@ namespace XControl
             if (gv == null || gv.HeaderRow == null || gv.HeaderRow.Cells.Count <= CheckBoxIndex) return;
 
             Int32 index = CheckBoxIndex;
-            TableCell cell = gv.HeaderRow.Cells[index];
-            if (cell == null) return;
-
-            CheckBox header = ControlHelper.FindControl<CheckBox>(cell, null);
-            if (header == null)
-            {
-                header = new CheckBox();
-                header.ToolTip = "全选/取消";
-                cell.Controls.Add(header);
-            }
-            if (header == null) return;
+            TableCell cellHeader = gv.HeaderRow.Cells[index];
+            if (cellHeader == null) return;
 
             // 列出该列的CheckBox
             List<CheckBox> list = new List<CheckBox>();
@@ -491,14 +480,24 @@ namespace XControl
             {
                 if (row.RowType != DataControlRowType.DataRow) continue;
 
-                cell = row.Cells[index];
+                TableCell cell = row.Cells[index];
                 if (cell == null || cell.Controls.Count < 1) continue;
 
                 CheckBox cb = ControlHelper.FindControl<CheckBox>(cell, null);
-                if (cb == null) continue;
+                if (cb == null) return;
 
                 list.Add(cb);
             }
+            if (list.Count < 1) return;
+
+            CheckBox header = ControlHelper.FindControl<CheckBox>(cellHeader, null);
+            if (header == null)
+            {
+                header = new CheckBox();
+                header.ToolTip = "全选/取消";
+                cellHeader.Controls.Add(header);
+            }
+            if (header == null) return;
 
             // 构造赋值语句
             StringBuilder sb = new StringBuilder();
