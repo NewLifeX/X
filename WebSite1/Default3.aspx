@@ -12,11 +12,6 @@
             DataSourceID="ObjectDataSource1" EnableModelValidation="True" EnableViewState="False"
             AllowPaging="True">
             <Columns>
-                <asp:TemplateField>
-                    <ItemTemplate>
-                        <asp:CheckBox ID="CheckBox1" runat="server" />
-                    </ItemTemplate>
-                </asp:TemplateField>
                 <asp:BoundField DataField="ID" HeaderText="ID" InsertVisible="False" ReadOnly="True"
                     SortExpression="ID" />
                 <asp:BoundField DataField="Code" HeaderText="Code" SortExpression="Code" />
@@ -24,18 +19,6 @@
                 <asp:BoundField DataField="ParentCode" HeaderText="ParentCode" SortExpression="ParentCode" />
                 <asp:BoundField DataField="Description" HeaderText="Description" SortExpression="Description" />
             </Columns>
-            <PagerTemplate>
-                共<asp:Label runat="server"></asp:Label>
-                条&nbsp;每页<asp:Label runat="server"></asp:Label>
-                条&nbsp;当前第<asp:Label runat="server"></asp:Label>
-                页/共<asp:Label runat="server"></asp:Label>
-                页&nbsp;<asp:LinkButton runat="server" CommandArgument="First" CommandName="Page">首页</asp:LinkButton>
-                <asp:LinkButton runat="server" CommandArgument="Prev" CommandName="Page">上一页</asp:LinkButton>
-                <asp:LinkButton runat="server" CommandArgument="Next" CommandName="Page">下一页</asp:LinkButton>
-                <asp:LinkButton runat="server" CommandArgument="Last" CommandName="Page">尾页</asp:LinkButton>
-                转到第<asp:TextBox runat="server" style="text-align:right;" Width="40px"></asp:TextBox>
-                页<asp:Button runat="server" Text="GO" UseSubmitBehavior="False" />
-            </PagerTemplate>
         </asp:GridView>
         <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" EnablePaging="True" OldValuesParameterFormatString="original_{0}"
             SelectCountMethod="FindCountByName" SelectMethod="FindAllByName" TypeName="NewLife.CommonEntity.Area">
@@ -49,7 +32,7 @@
         </asp:ObjectDataSource>
         <XCL:GridViewExtender ID="GridViewExtender1" runat="server" SelectedRowBackColor="Cornsilk">
         </XCL:GridViewExtender>
-        <asp:Button ID="Button1" runat="server" onclick="Button1_Click" Text="Button" />
+        <asp:Button ID="Button1" runat="server" OnClick="Button1_Click" Text="Button" />
         <br />
         <asp:Label ID="Label1" runat="server" Text="Label"></asp:Label>
         <br />
