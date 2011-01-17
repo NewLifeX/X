@@ -13,6 +13,7 @@ td
 .m_table, .m_table_border
 {
     width: 100%;
+    background-color: #FFFFFF;
 }
 
 .m_table_border
@@ -22,7 +23,6 @@ td
 
 .m_table td, .m_table_border td
 {
-    background-color: #FFFFFF;
     font-size: 12px;
     line-height: 25px;
     padding: 0px 3px;
