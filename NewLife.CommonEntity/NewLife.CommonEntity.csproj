@@ -51,6 +51,9 @@
     <Compile Include="Common\IAdministrator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Web\DownloadFile.cs" />
+    <Compile Include="Web\EntityForm.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Web\WebPageBase.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
