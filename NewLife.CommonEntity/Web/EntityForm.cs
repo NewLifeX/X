@@ -151,11 +151,11 @@ namespace NewLife.CommonEntity.Web
             else
             {
                 if (btn != null && btn is IButtonControl)
-                    (btn as IButtonControl).Click += delegate { GetForm(); if (ValidForm()) SaveForm(); };
+                    (btn as IButtonControl).Click += delegate { GetForm(); if (ValidForm()) SaveFormWithTrans(); };
                 else if (Page.AutoPostBackControl == null)
                 {
                     GetForm();
-                    if (ValidForm()) SaveForm();
+                    if (ValidForm()) SaveFormWithTrans();
                 }
             }
         }
@@ -406,7 +406,7 @@ namespace NewLife.CommonEntity.Web
                     if (pix != null)
                     {
                         Object v = pix.GetValue(control);
-                        if (Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
+                        if (!Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
                     }
                 }
             }
@@ -420,7 +420,7 @@ namespace NewLife.CommonEntity.Web
         protected virtual void GetFormItemTextBox(FieldItem field, TextBox control)
         {
             String v = control.Text;
-            if (Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
+            if (!Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
         }
 
         /// <summary>
@@ -449,7 +449,7 @@ namespace NewLife.CommonEntity.Web
             else
                 v = control.Checked;
 
-            if (Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
+            if (!Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
         }
 
         /// <summary>
@@ -462,7 +462,7 @@ namespace NewLife.CommonEntity.Web
             //if (String.IsNullOrEmpty(control.SelectedValue)) return;
 
             String v = control.SelectedValue;
-            if (Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
+            if (!Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
         }
 
         /// <summary>
@@ -489,7 +489,7 @@ namespace NewLife.CommonEntity.Web
             {
                 if (item.Checked)
                 {
-                    if (Object.Equals(Entity[field.Name], item.Text)) Entity.SetItem(field.Name, item.Text);
+                    if (!Object.Equals(Entity[field.Name], item.Text)) Entity.SetItem(field.Name, item.Text);
                 }
             }
         }
@@ -521,7 +521,7 @@ namespace NewLife.CommonEntity.Web
         protected virtual Boolean ValidFormItem(FieldItem field, Control control)
         {
             // 必填项
-            if (field.DataObjectField.IsNullable)
+            if (!field.DataObjectField.IsNullable)
             {
                 if (field.Property.PropertyType == typeof(String))
                 {
@@ -549,21 +549,31 @@ namespace NewLife.CommonEntity.Web
         #endregion
 
         #region 保存
-        /// <summary>
-        /// 保存表单，把实体保存到数据库
-        /// </summary>
-        protected virtual void SaveForm()
+        private void SaveFormWithTrans()
         {
+            Entity<TEntity>.Meta.BeginTrans();
             try
             {
-                Entity.Save();
+                SaveForm();
+
+                Entity<TEntity>.Meta.Commit();
 
                 SaveFormSuccess();
             }
             catch (Exception ex)
             {
+                Entity<TEntity>.Meta.Rollback();
+
                 SaveFormUnsuccess(ex);
             }
+        }
+
+        /// <summary>
+        /// 保存表单，把实体保存到数据库，当前方法处于事务保护之中
+        /// </summary>
+        protected virtual void SaveForm()
+        {
+            Entity.Save();
         }
 
         /// <summary>
