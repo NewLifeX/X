@@ -159,6 +159,19 @@ namespace NewLife.CommonEntity.Web
                 }
             }
         }
+
+        /// <summary>
+        /// 查找表单控件
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public override Control FindControl(string id)
+        {
+            Control control = base.FindControl(id);
+            if (control != null) return control;
+
+            return ControlHelper.FindControl<Control>(Page.Form, id);
+        }
         #endregion
 
         #region 加载
