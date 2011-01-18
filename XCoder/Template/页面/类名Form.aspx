@@ -1,6 +1,6 @@
 ﻿<%@ Page Language="C#" MasterPageFile="~/Admin/MasterPage.master" AutoEventWireup="true" CodeFile="<#=ClassName#>Form.aspx.cs" Inherits="Pages_<#=ClassName#>Form"  Title="<#=ClassDescription#>管理"%>
 
-<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+<asp:Content ID="Content1" runat="server" ContentPlaceHolderID="ContentPlaceHolder1">
     <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
         <tr>
             <th colspan="2"><#=ClassDescription#></th>
@@ -13,8 +13,8 @@
             String frmName = "frm" + pname;
             TypeCode code = Type.GetTypeCode(Field.DataType);
         #><tr>
-            <td width="15%" align="right"><#=GetPropertyDescription(Field)#>：</td>
-            <td width="75%"><#
+            <td align="right"><#=GetPropertyDescription(Field)#>：</td>
+            <td><#
                 if(code == TypeCode.String){
                     if(pname.Equals("Password", StringComparison.OrdinalIgnoreCase) || pname.Equals("Pass", StringComparison.OrdinalIgnoreCase)){
                 #><asp:TextBox ID="<#=frmName#>" runat="server" TextMode="Password"></asp:TextBox><#
