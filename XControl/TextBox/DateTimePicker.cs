@@ -207,7 +207,7 @@ namespace XControl
         {
             base.OnInit(e);
             if (LongTime)
-                Width = new Unit(138);
+                Width = new Unit(152);
             else
                 Width = new Unit(86);
         }
