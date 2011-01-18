@@ -5,13 +5,13 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
+using System.Xml;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
-using System.Xml;
-using System.Net;
 
 namespace XCoder
 {
@@ -106,7 +106,7 @@ namespace XCoder
             DAL.AddConnStr("localhost", "server=.;Integrated Security=SSPI;Database=master", null, "sql2000");
             foreach (String item in DAL.ConnStrs.Keys)
             {
-                list.Add(item);
+                if (!String.IsNullOrEmpty(DAL.ConnStrs[item].ConnectionString)) list.Add(item);
             }
 
             String[] sysdbnames = new String[] { "master", "tempdb", "model", "msdb" };
@@ -257,7 +257,8 @@ namespace XCoder
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.ToString(), this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    //MessageBox.Show(ex.ToString(), this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    lb_Status.Text = ex.Message;
                 }
             });
         }
