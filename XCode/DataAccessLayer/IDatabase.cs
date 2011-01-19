@@ -8,7 +8,7 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// 数据库接口。抽象数据库的功能特点。
     /// </summary>
-    public interface IDatabase
+    public interface IDatabase : IDisposable
     {
         #region 属性
         /// <summary>
@@ -20,6 +20,21 @@ namespace XCode.DataAccessLayer
         /// 工厂
         /// </summary>
         DbProviderFactory Factory { get; }
+
+        /// <summary>
+        /// 链接名
+        /// </summary>
+        String ConnName { get; set; }
+
+        /// <summary>
+        /// 链接字符串
+        /// </summary>
+        String ConnectionString { get; set; }
+
+        /// <summary>
+        /// 拥有者
+        /// </summary>
+        String Owner { get; set; }
         #endregion
 
         #region 方法

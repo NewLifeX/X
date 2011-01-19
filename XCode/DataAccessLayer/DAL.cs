@@ -95,7 +95,8 @@ namespace XCode.DataAccessLayer
                     {
                         foreach (ConnectionStringSettings set in css)
                         {
-                            if (set.Name == "LocalSqlServer") continue;
+                            //if (set.Name == "LocalSqlServer") continue;
+                            if (String.IsNullOrEmpty(set.ConnectionString)) continue;
 
                             Type type = GetTypeFromConn(set.ConnectionString, set.ProviderName);
                             if (type == null) throw new XCodeException("无法识别的提供者" + set.ProviderName + "！");
@@ -365,7 +366,7 @@ namespace XCode.DataAccessLayer
                 //    session = DALType.Assembly.CreateInstance(DALType.FullName, false, BindingFlags.Default, null, new Object[] { ConnStr }, null, null) as IDbSession;
 
                 session = Db.CreateSession();
-                session.ConnectionString = ConnStr;
+                //session.ConnectionString = ConnStr;
 
                 ////检查是否SqlServer2005
                 ////_DB = CheckSql2005(_DB);
@@ -391,7 +392,7 @@ namespace XCode.DataAccessLayer
 
                 _Sessions.Add(ConnName, session);
 
-                if (DbSession.Debug) DbSession.WriteLog("创建DB（NotWeb）：{0}", session.ID);
+                //if (DbSession.Debug) DbSession.WriteLog("创建DB（NotWeb）：{0}", session.ID);
 
                 return session;
             }

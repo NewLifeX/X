@@ -2,6 +2,7 @@
 using System.Data.Common;
 using System.Data.OleDb;
 using System.Text.RegularExpressions;
+using NewLife;
 
 namespace XCode.DataAccessLayer
 {
@@ -38,8 +39,32 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// 数据库基类。数据库类的职责是抽象不同数据库的共同点，理应最小化，保证原汁原味，因此不做缓存等实现。
     /// </summary>
-    abstract class Database : IDatabase
+    abstract class Database : DisposeBase, IDatabase
     {
+        #region 构造函数
+        /// <summary>
+        /// 销毁资源时，回滚未提交事务，并关闭数据库连接
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            //try
+            //{
+            //    // 注意，没有Commit的数据，在这里将会被回滚
+            //    //if (Trans != null) Rollback();
+            //    // 在嵌套事务中，Rollback只能减少嵌套层数，而_Trans.Rollback能让事务马上回滚
+            //    if (_Trans != null && Opened) _Trans.Rollback();
+            //    if (_Conn != null) Close();
+            //}
+            //catch (Exception ex)
+            //{
+            //    WriteLog("执行" + DbType.ToString() + "的Dispose时出错：" + ex.ToString());
+            //}
+        }
+        #endregion
+
         #region 属性
         /// <summary>
         /// 返回数据库类型。外部DAL数据库类请使用Other
@@ -48,6 +73,44 @@ namespace XCode.DataAccessLayer
 
         /// <summary>工厂</summary>
         public virtual DbProviderFactory Factory { get { return OleDbFactory.Instance; } }
+
+        private String _ConnName;
+        /// <summary>连接名</summary>
+        public String ConnName
+        {
+            get { return _ConnName; }
+            set { _ConnName = value; }
+        }
+
+        private String _ConnectionString;
+        /// <summary>链接字符串</summary>
+        public virtual String ConnectionString
+        {
+            get { return _ConnectionString; }
+            set
+            {
+                _ConnectionString = value;
+                if (!String.IsNullOrEmpty(_ConnectionString))
+                {
+                    DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
+                    builder.ConnectionString = _ConnectionString;
+                    if (builder.ContainsKey("owner"))
+                    {
+                        if (builder["owner"] != null) Owner = builder["owner"].ToString();
+                        builder.Remove("owner");
+                    }
+                    _ConnectionString = builder.ToString();
+                }
+            }
+        }
+
+        private String _Owner;
+        /// <summary>拥有者</summary>
+        public String Owner
+        {
+            get { return _Owner; }
+            set { _Owner = value; }
+        }
         #endregion
 
         #region 方法

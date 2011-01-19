@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using NewLife;
 using NewLife.Log;
 using XCode.Exceptions;
+using System.Threading;
 
 namespace XCode.DataAccessLayer
 {
@@ -49,15 +50,15 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 属性
-        private static Int32 gid = 0;
-        private Int32 _ID = ++gid;
-        /// <summary>
-        /// 标识
-        /// </summary>
-        public Int32 ID
-        {
-            get { return _ID; }
-        }
+        //private static Int32 gid = 0;
+        //private Int32 _ID = ++gid;
+        ///// <summary>
+        ///// 标识
+        ///// </summary>
+        //public Int32 ID
+        //{
+        //    get { return _ID; }
+        //}
 
         /// <summary>
         /// 返回数据库类型。外部DAL数据库类请使用Other
@@ -73,24 +74,10 @@ namespace XCode.DataAccessLayer
 
         private String _ConnectionString;
         /// <summary>链接字符串</summary>
-        public virtual String ConnectionString
+        public String ConnectionString
         {
             get { return _ConnectionString; }
-            set
-            {
-                _ConnectionString = value;
-                if (!String.IsNullOrEmpty(_ConnectionString))
-                {
-                    DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
-                    builder.ConnectionString = _ConnectionString;
-                    if (builder.ContainsKey("owner"))
-                    {
-                        if (builder["owner"] != null) Owner = builder["owner"].ToString();
-                        builder.Remove("owner");
-                    }
-                    _ConnectionString = builder.ToString();
-                }
-            }
+            set { _ConnectionString = value; }
         }
 
         private DbConnection _Conn;
@@ -104,19 +91,11 @@ namespace XCode.DataAccessLayer
                 if (_Conn == null)
                 {
                     _Conn = Factory.CreateConnection();
-                    _Conn.ConnectionString = ConnectionString;
+                    _Conn.ConnectionString = Database.ConnectionString;
                 }
                 return _Conn;
             }
             set { _Conn = value; }
-        }
-
-        private String _Owner;
-        /// <summary>拥有者</summary>
-        public String Owner
-        {
-            get { return _Owner; }
-            set { _Owner = value; }
         }
 
         private Int32 _QueryTimes;
@@ -293,7 +272,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 BeginTransaction()
         {
-            if (Debug) WriteLog("开始事务：{0}", ID);
+            //if (Debug) WriteLog("开始事务：{0}", ID);
 
             TransactionCount++;
             if (TransactionCount > 1) return TransactionCount;
@@ -316,12 +295,12 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public Int32 Commit()
         {
-            if (Debug) WriteLog("提交事务：{0}", ID);
+            //if (Debug) WriteLog("提交事务：{0}", ID);
 
             TransactionCount--;
             if (TransactionCount > 0) return TransactionCount;
 
-            if (Trans == null) throw new InvalidOperationException("当前并未开始事务，请用BeginTransaction方法开始新事务！ID=" + ID);
+            if (Trans == null) throw new InvalidOperationException("当前并未开始事务，请用BeginTransaction方法开始新事务！ThreadID=" + Thread.CurrentThread.ManagedThreadId);
             try
             {
                 Trans.Commit();
@@ -341,12 +320,12 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public Int32 Rollback()
         {
-            if (Debug) WriteLog("回滚事务：{0}", ID);
+            //if (Debug) WriteLog("回滚事务：{0}", ID);
 
             TransactionCount--;
             if (TransactionCount > 0) return TransactionCount;
 
-            if (Trans == null) throw new InvalidOperationException("当前并未开始事务，请用BeginTransaction方法开始新事务！ID=" + ID);
+            if (Trans == null) throw new InvalidOperationException("当前并未开始事务，请用BeginTransaction方法开始新事务！ThreadID=" + Thread.CurrentThread.ManagedThreadId);
             try
             {
                 Trans.Rollback();

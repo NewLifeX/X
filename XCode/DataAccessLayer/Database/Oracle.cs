@@ -34,7 +34,7 @@ namespace XCode.DataAccessLayer
             //List<XTable> list = null;
             try
             {
-                String user = Owner;
+                String user = Database.Owner;
                 if (String.IsNullOrEmpty(user))
                 {
                     Regex reg = new Regex(@";user id=\b(\w+)\b;", RegexOptions.Compiled | RegexOptions.IgnoreCase);
