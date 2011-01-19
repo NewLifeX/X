@@ -7,10 +7,10 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Xml.Serialization;
+using NewLife.Reflection;
 using XCode.Cache;
 using XCode.Code;
 using XCode.Exceptions;
-using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {

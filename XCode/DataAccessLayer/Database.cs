@@ -3,6 +3,7 @@ using System.Data.Common;
 using System.Data.OleDb;
 using System.Text.RegularExpressions;
 using NewLife;
+using System.Collections.Generic;
 
 namespace XCode.DataAccessLayer
 {
@@ -24,14 +25,28 @@ namespace XCode.DataAccessLayer
 
         #region 方法
         /// <summary>
+        /// ThreadStatic 指示静态字段的值对于每个线程都是唯一的。
+        /// </summary>
+        [ThreadStatic]
+        private static Dictionary<String, IDbSession> _Sessions;
+        /// <summary>
         /// 创建数据库会话
         /// </summary>
         /// <returns></returns>
         public override IDbSession CreateSession()
         {
-            TDbSession sessoin = new TDbSession();
-            sessoin.Database = this;
-            return sessoin;
+             if (_Sessions == null) _Sessions = new Dictionary<String, IDbSession>();
+
+            IDbSession session;
+            if (_Sessions.TryGetValue(ConnName, out session)) return session;
+            lock (_Sessions)
+            {
+                if (_Sessions.TryGetValue(ConnName, out session)) return session;
+                TDbSession sessoin = new TDbSession();
+                sessoin.Database = this;
+                sessoin.ConnectionString = ConnectionString;
+                return sessoin;
+            }
         }
         #endregion
     }
