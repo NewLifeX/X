@@ -4,6 +4,7 @@ using System.Web.UI;
 using System.Text;
 using System.IO;
 using System.Web.UI.WebControls;
+using System.Web.UI.HtmlControls;
 
 namespace NewLife.Web
 {
@@ -197,6 +198,18 @@ namespace NewLife.Web
         /// <param name="max"></param>
         public static void ExportExcel(GridView gv, String filename, Int32 max)
         {
+            ExportExcel(gv, filename, max, Encoding.Default);
+        }
+
+        /// <summary>
+        /// 导出Excel
+        /// </summary>
+        /// <param name="gv"></param>
+        /// <param name="filename"></param>
+        /// <param name="max"></param>
+        /// <param name="encoding"></param>
+        public static void ExportExcel(GridView gv, String filename, Int32 max, Encoding encoding)
+        {
             HttpResponse Response = HttpContext.Current.Response;
 
             //去掉所有列的排序
@@ -207,19 +220,31 @@ namespace NewLife.Web
             if (max > 0) gv.PageSize = max;
             gv.DataBind();
 
+            // 新建页面
+            Page page = new Page();
+            HtmlForm form = new HtmlForm();
+
+            page.EnableEventValidation = false;
+            page.Controls.Add(form);
+            form.Controls.Add(gv);
+
             Response.Clear();
             Response.Buffer = true;
-            Response.Charset = "GB2312";
-            // 如果设置为 GetEncoding("GB2312");导出的文件将会出现乱码！！！
-            Response.ContentEncoding = Encoding.Default;
-            Response.AppendHeader("Content-Disposition", "attachment;filename=" + filename);
-            Response.ContentType = "application/ms-excel";//设置输出文件类型为excel文件。 
-            StringWriter oStringWriter = new StringWriter();
-            HtmlTextWriter oHtmlTextWriter = new HtmlTextWriter(oStringWriter);
-            gv.RenderControl(oHtmlTextWriter);
-            String html = oStringWriter.ToString();
+            Response.Charset = encoding.WebName;
+            Response.ContentEncoding = encoding;
+            Response.AppendHeader("Content-Disposition", "attachment;filename=" + HttpUtility.UrlEncode(filename, encoding));
+            Response.ContentType = "application/ms-excel";
+
+            StringWriter sw = new StringWriter();
+            HtmlTextWriter htw = new HtmlTextWriter(sw);
+            page.RenderControl(htw);
+
+            String html = sw.ToString();
             //if (html.StartsWith("<div>")) html = html.SubString("<div>".Length);
             //if (html.EndsWith("</div>")) html = html.SubString(0, html.Length - "</div>".Length);
+
+            html = String.Format("<meta http-equiv=\"content-type\" content=\"application/ms-excel; charset={0}\"/>", encoding.WebName) + Environment.NewLine + html;
+
             Response.Output.Write(html);
             Response.Flush();
             Response.End();
