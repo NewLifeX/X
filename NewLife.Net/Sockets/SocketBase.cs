@@ -87,11 +87,11 @@ namespace NewLife.Net.Sockets
             }
         }
 
-        private IDictionary _Data;
+        private IDictionary _Items;
         /// <summary>数据字典</summary>
-        public IDictionary Data
+        public IDictionary Items
         {
-            get { return _Data ?? (_Data = new Dictionary<Object, Object>()); }
+            get { return _Items ?? (_Items = new Dictionary<Object, Object>()); }
             //set { _Data = value; }
         }
         #endregion

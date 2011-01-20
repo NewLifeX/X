@@ -71,14 +71,14 @@ namespace NewLife.Net.UPnP
         /// <returns></returns>
         private static String Command(CommandEnumTXT commandEnum, object[] parameter)
         {
-            //如果IGD没有信息,触发Search
-            if (UPnPClient.IGD == null)
-                UPnPClient.Search();
+            ////如果IGD没有信息,触发Search
+            //if (UPnPClient.IGD == null)
+            //    UPnPClient.Search();
                 //UPnPClient.Test_DownLoadAndSerializer();
             StringBuilder SB = new StringBuilder();
-            String Xmlns = UPnPClient.IGD.device.deviceList[0].deviceList[0].serviceList[0].serviceType;
-            String ControlURL = UPnPClient.IGD.device.deviceList[0].deviceList[0].serviceList[0].controlURL;
-            String Host = UPnPClient.IGD.ServerHOST;
+            String Xmlns = null;//= UPnPClient.IGD.device.deviceList[0].deviceList[0].serviceList[0].serviceType;
+            String ControlURL = null;// = UPnPClient.IGD.device.deviceList[0].deviceList[0].serviceList[0].controlURL;
+            String Host = null;//= UPnPClient.IGD.ServerHOST;
             String CommandStr = null;
             switch (commandEnum)
             {
@@ -175,23 +175,6 @@ namespace NewLife.Net.UPnP
             Head.Append(XMLStr);
 
             return Head.ToString();
-        }
-
-        /// <summary>
-        /// UPnPClient请求头
-        /// </summary>
-        public static String UPnPSearch()
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("M-SEARCH * HTTP/1.1");
-            sb.AppendLine("HOST: 239.255.255.250:1900");
-            sb.AppendLine("MAN: \"ssdp:discover\"");
-            sb.AppendLine("MX: 3");
-            sb.AppendLine("ST: UPnPClient:rootdevice");
-            sb.AppendLine();
-            sb.AppendLine();
-
-            return sb.ToString();
         }
     }
 }

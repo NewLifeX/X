@@ -42,6 +42,16 @@ namespace NewLife.Net.Udp
         /// <summary>
         /// 发送数据
         /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="endPoint"></param>
+        public void Send(Byte[] buffer, IPEndPoint endPoint)
+        {
+            Client.SendTo(buffer, buffer.Length, SocketFlags.None, endPoint);
+        }
+
+        /// <summary>
+        /// 发送数据
+        /// </summary>
         /// <param name="msg"></param>
         /// <param name="endPoint"></param>
         public void Send(String msg, IPEndPoint endPoint)

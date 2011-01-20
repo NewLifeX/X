@@ -55,14 +55,14 @@ namespace NewLife.Net.IO
                 TcpClientX tc = sender as TcpClientX;
 
                 Stream stream = null;
-                if (!tc.Data.Contains("Stream"))
+                if (!tc.Items.Contains("Stream"))
                 {
                     stream = new MemoryStream();
-                    tc.Data["Stream"] = stream;
+                    tc.Items["Stream"] = stream;
                 }
                 else
                 {
-                    stream = tc.Data["Stream"] as Stream;
+                    stream = tc.Items["Stream"] as Stream;
                 }
                 
                 // 把数据写入流
