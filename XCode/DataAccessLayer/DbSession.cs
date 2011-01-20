@@ -7,6 +7,7 @@ using System.Threading;
 using NewLife;
 using NewLife.Log;
 using XCode.Exceptions;
+using NewLife.Configuration;
 
 namespace XCode.DataAccessLayer
 {
@@ -449,7 +450,7 @@ namespace XCode.DataAccessLayer
         {
             if (sql.Contains(" "))
             {
-                String orderBy = XCode.DataAccessLayer.DbBase.CheckOrderClause(ref sql);
+                String orderBy = DbBase.CheckOrderClause(ref sql);
                 //sql = String.Format("Select Count(*) From {0}", CheckSimpleSQL(sql));
                 //Match m = reg_QueryCount.Match(sql);
                 MatchCollection ms = reg_QueryCount.Matches(sql);
@@ -459,7 +460,7 @@ namespace XCode.DataAccessLayer
                 }
                 else
                 {
-                    sql = String.Format("Select Count(*) From {0}", XCode.DataAccessLayer.DbBase.CheckSimpleSQL(sql));
+                    sql = String.Format("Select Count(*) From {0}", DbBase.CheckSimpleSQL(sql));
                 }
             }
             else
@@ -670,16 +671,19 @@ namespace XCode.DataAccessLayer
             {
                 if (_Debug != null) return _Debug.Value;
 
-                String str = ConfigurationManager.AppSettings["XCode.Debug"];
-                if (String.IsNullOrEmpty(str)) str = ConfigurationManager.AppSettings["OrmDebug"];
-                if (String.IsNullOrEmpty(str))
-                    _Debug = false;
-                else if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
-                    _Debug = true;
-                else if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
-                    _Debug = false;
-                else
-                    _Debug = Convert.ToBoolean(str);
+                //String str = ConfigurationManager.AppSettings["XCode.Debug"];
+                //if (String.IsNullOrEmpty(str)) str = ConfigurationManager.AppSettings["OrmDebug"];
+                //if (String.IsNullOrEmpty(str))
+                //    _Debug = false;
+                //else if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
+                //    _Debug = true;
+                //else if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
+                //    _Debug = false;
+                //else
+                //    _Debug = Convert.ToBoolean(str);
+
+                _Debug = Config.GetConfig<Boolean>("XCode.Debug", Config.GetConfig<Boolean>("OrmDebug"));
+
                 return _Debug.Value;
             }
             set { _Debug = value; }
