@@ -74,6 +74,15 @@
     <Compile Include="Udp\UdpServer.cs" />
     <Compile Include="Udp\UdpStream.cs" />
     <Compile Include="Udp\UdpTest.cs" />
+    <Compile Include="UPnP\Entities\Device.cs" />
+    <Compile Include="UPnP\Entities\DeviceListDevice.cs" />
+    <Compile Include="UPnP\Entities\Envelope.cs" />
+    <Compile Include="UPnP\Entities\IGD.cs" />
+    <Compile Include="UPnP\Entities\PortMappingEntry.cs" />
+    <Compile Include="UPnP\Entities\Service.cs" />
+    <Compile Include="UPnP\Entities\SpecVersion.cs" />
+    <Compile Include="UPnP\UPnPClient.cs" />
+    <Compile Include="UPnP\XMLCommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="App.config" />
@@ -91,6 +100,7 @@
     <Content Include="架构设计\NewLife_TCP状态变迁.jpg" />
     <Content Include="架构设计\NewLife_UdpServer.jpg" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
