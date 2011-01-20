@@ -6,34 +6,39 @@ using System.Xml.Serialization;
 
 namespace NewLife.Net.UPnP
 {
-    [XmlRoot("GetGenericPortMappingEntry")]
-    public class GetGenericPortMappingEntry : XmlEntity<GetGenericPortMappingEntry>
+    public class PortMappingEntryClient : PortMappingEntry2
     {
         private Int32 _NewPortMappingIndex;
         /// <summary>索引</summary>
+        [XmlElement(IsNullable = false, Namespace = null)]
         public Int32 NewPortMappingIndex
         {
             get { return _NewPortMappingIndex; }
             set { _NewPortMappingIndex = value; }
         }
+    }
 
-        private String _NewRemoteHost;
+    [XmlRoot("GetGenericPortMappingEntry", Namespace = "urn:schemas-upnp-org:service:WANIPConnection:1")]
+    public class PortMappingEntry2
+    {
+        private String _NewRemoteHost = String.Empty;
         /// <summary>主机</summary>
+        [XmlElement(IsNullable = false, Namespace = null)]
         public String NewRemoteHost
         {
             get { return _NewRemoteHost; }
             set { _NewRemoteHost = value; }
         }
 
-        private Int32 _NewExternalPort;
+        private String _NewExternalPort;
         /// <summary>端口</summary>
-        public Int32 NewExternalPort
+        public String NewExternalPort
         {
             get { return _NewExternalPort; }
             set { _NewExternalPort = value; }
         }
 
-        private String _NewProtocol;
+        private String _NewProtocol = String.Empty;
         /// <summary>协议</summary>
         public String NewProtocol
         {
@@ -41,15 +46,15 @@ namespace NewLife.Net.UPnP
             set { _NewProtocol = value; }
         }
 
-        private Int32 _NewInternalPort;
+        private String _NewInternalPort;
         /// <summary>内部端口</summary>
-        public Int32 NewInternalPort
+        public String NewInternalPort
         {
             get { return _NewInternalPort; }
             set { _NewInternalPort = value; }
         }
 
-        private String _NewInternalClient;
+        private String _NewInternalClient = String.Empty;
         /// <summary>内部客户端</summary>
         public String NewInternalClient
         {
@@ -57,15 +62,15 @@ namespace NewLife.Net.UPnP
             set { _NewInternalClient = value; }
         }
 
-        private Boolean _NewEnabled;
+        private String _NewEnabled;
         /// <summary>是否启用</summary>
-        public Boolean NewEnabled
+        public String NewEnabled
         {
             get { return _NewEnabled; }
             set { _NewEnabled = value; }
         }
 
-        private String _NewPortMappingDescription;
+        private String _NewPortMappingDescription = String.Empty;
         /// <summary>描述</summary>
         public String NewPortMappingDescription
         {
@@ -73,7 +78,7 @@ namespace NewLife.Net.UPnP
             set { _NewPortMappingDescription = value; }
         }
 
-        private String _NewLeaseDuration;
+        private String _NewLeaseDuration = String.Empty;
         /// <summary>属性说明</summary>
         public String NewLeaseDuration
         {

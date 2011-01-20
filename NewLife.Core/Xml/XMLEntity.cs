@@ -111,11 +111,13 @@ namespace NewLife.Xml
             XmlSerializer serial = new XmlSerializer(typeof(TEntity));
             using (MemoryStream stream = new MemoryStream())
             {
-                using (XmlTextWriter writer = new XmlTextWriter(stream, Encoding.UTF8))
-                {
-                    // 去掉开头 <?xml version="1.0" encoding="utf-8"?>
-                    writer.Settings.OmitXmlDeclaration = true;
+                XmlWriterSettings setting = new XmlWriterSettings();
+                setting.Encoding = Encoding.UTF8;
+                // 去掉开头 <?xml version="1.0" encoding="utf-8"?>
+                setting.OmitXmlDeclaration = true;
 
+                using (XmlWriter writer = XmlWriter.Create(stream, setting))
+                {
                     // 去掉默认命名空间xmlns:xsd和xmlns:xsi
                     XmlSerializerNamespaces xsns = new XmlSerializerNamespaces();
                     xsns.Add("", "");

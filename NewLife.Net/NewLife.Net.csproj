@@ -44,6 +44,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Web.Services" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -83,6 +84,9 @@
     <Compile Include="UPnP\Entities\Service.cs" />
     <Compile Include="UPnP\Entities\SpecVersion.cs" />
     <Compile Include="UPnP\UPnPClient.cs" />
+    <Compile Include="UPnP\UPnPCommand.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="UPnP\XMLCommand.cs" />
   </ItemGroup>
   <ItemGroup>

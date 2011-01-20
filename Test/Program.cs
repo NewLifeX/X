@@ -16,6 +16,9 @@ using System.ComponentModel;
 using NewLife.CommonEntity;
 using System.Data;
 using System.Xml;
+using System.Text;
+using NewLife.Net.UPnP;
+using System.Web.Services.Protocols;
 
 namespace Test
 {
@@ -32,8 +35,8 @@ namespace Test
                 try
                 {
 #endif
-                    Test9();
-                    //ThreadPoolTest.Main2(args);
+                Test9();
+                //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -346,16 +349,36 @@ namespace Test
             //str = FormatKeyWord(str);
             //Console.WriteLine(str);
 
-            String xml = File.ReadAllText("XMLFile.xml");
-            XmlDocument doc = new XmlDocument();
-            doc.Load("XMLFile.xml");
-            XmlNodeList list = doc.SelectNodes(@"rt/li");
-            foreach (XmlNode item in list)
-            {
-                Console.WriteLine();
-                Console.WriteLine(item.ChildNodes[2].InnerText);
-                Console.WriteLine(item.ChildNodes[3].InnerText);
-            }
+            PortMappingEntryClient entry = new PortMappingEntryClient();
+            entry.NewPortMappingIndex = 0;
+
+            UPnPCommand cp = new UPnPCommand();
+            cp.Url = "http://192.168.1.1:1900/ipc";
+            //MethodInfoX.Invoke<String>(cp, "Invoke", new Object[] { "GetGenericPortMappingEntry", cp.Url, new Object[] { entry } });
+            //cp.Discover();
+            PortMappingEntry2 obj = cp.GetGenericPortMappingEntry(entry);
+
+            String Command = UPnPClient.SerialRequest(entry, "u", "Xmlns");
+            Console.WriteLine(Command);
+
+            UPnPClient client = new UPnPClient();
+            client.Discover();
+            //client.GetMapByIndexAll();
+            PortMappingEntry pm = client.GetMapByIndex(0);
+            Console.WriteLine(pm != null);
+
+            //Console.WriteLine(Encoding.Default.EncodingName);
+
+            //String xml = File.ReadAllText("XMLFile.xml");
+            //XmlDocument doc = new XmlDocument();
+            //doc.Load("XMLFile.xml");
+            //XmlNodeList list = doc.SelectNodes(@"rt/li");
+            //foreach (XmlNode item in list)
+            //{
+            //    Console.WriteLine();
+            //    Console.WriteLine(item.ChildNodes[2].InnerText);
+            //    Console.WriteLine(item.ChildNodes[3].InnerText);
+            //}
         }
 
         /// <summary>

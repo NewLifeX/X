@@ -11,6 +11,7 @@ using NewLife.Log;
 using NewLife.Net.Udp;
 using NewLife.Net.Sockets;
 using NewLife.Net.Common;
+using NewLife.Reflection;
 
 namespace NewLife.Net.UPnP
 {
@@ -44,7 +45,7 @@ namespace NewLife.Net.UPnP
         /// <summary>
         /// 开始
         /// </summary>
-        public void Search()
+        public void Discover()
         {
             UdpClientX Udp = new UdpClientX();
 
@@ -265,9 +266,9 @@ namespace NewLife.Net.UPnP
             //sb.AppendLine("<NewLeaseDuration></NewLeaseDuration>");
             //sb.AppendLine("</u:GetGenericPortMappingEntry>");
 
-            GetGenericPortMappingEntry entry = new GetGenericPortMappingEntry();
+            PortMappingEntryClient entry = new PortMappingEntryClient();
             entry.NewPortMappingIndex = index;
-            String Command = entry.ToXml("u", Xmlns);
+            String Command = SerialRequest(entry, "u", Xmlns);
 
             if (!SOAPRequest(Command, out Header, out Document)) return null;
 
@@ -385,6 +386,81 @@ namespace NewLife.Net.UPnP
 
             //超时
             return false;
+        }
+        #endregion
+
+        #region 辅助函数
+        /// <summary>
+        /// 序列化请求
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="prefix"></param>
+        /// <param name="ns"></param>
+        /// <returns></returns>
+        public static String SerialRequest(Object obj, String prefix, String ns)
+        {
+            XmlDocument doc = new XmlDocument();
+            XmlElement root = doc.CreateElement(prefix, obj.GetType().Name, ns);
+            doc.AppendChild(root);
+
+            TypeX tx = TypeX.Create(obj.GetType());
+            foreach (PropertyInfoX item in tx.Properties)
+            {
+                XmlElement elm = doc.CreateElement(item.Property.Name);
+                Object v = item.GetValue(obj);
+                String str = v == null ? "" : v.ToString();
+
+                XmlText text = doc.CreateTextNode(str);
+                elm.AppendChild(text);
+
+                root.AppendChild(elm);
+            }
+
+            return doc.InnerXml;
+
+            //XmlRootAttribute att = new XmlRootAttribute();
+            //att.Namespace = ns;
+
+            //XmlAttributes atts = new XmlAttributes();
+            //atts.XmlRoot = att;
+
+            //XmlAttributeOverrides ovs = new XmlAttributeOverrides();
+            //ovs.Add(obj.GetType(), atts);
+
+            ////atts = new XmlAttributes();
+            ////XmlElementAttribute att2 = new XmlElementAttribute();
+            ////att2.Namespace = null;
+            ////atts.XmlElements.Add(att2);
+            ////ovs.Add(typeof(Int32), atts);
+
+            ////atts = new XmlAttributes();
+            ////att2 = new XmlElementAttribute();
+            ////att2.Namespace = null;
+            ////atts.XmlElements.Add(att2);
+            ////ovs.Add(typeof(String), atts);
+
+            //XmlSerializer serial = new XmlSerializer(obj.GetType(), ovs);
+            //using (MemoryStream stream = new MemoryStream())
+            //{
+            //    XmlWriterSettings setting = new XmlWriterSettings();
+            //    setting.Encoding = Encoding.UTF8;
+            //    // 去掉开头 <?xml version="1.0" encoding="utf-8"?>
+            //    setting.OmitXmlDeclaration = true;
+
+            //    using (XmlWriter writer = XmlWriter.Create(stream, setting))
+            //    {
+            //        XmlSerializerNamespaces xsns = new XmlSerializerNamespaces();
+            //        xsns.Add(prefix, ns);
+            //        serial.Serialize(writer, obj, xsns);
+
+            //        byte[] bts = stream.ToArray();
+            //        String xml = Encoding.UTF8.GetString(bts);
+
+            //        if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
+
+            //        return xml;
+            //    }
+            //}
         }
         #endregion
     }
