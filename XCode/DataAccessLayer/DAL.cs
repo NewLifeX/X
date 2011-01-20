@@ -303,6 +303,8 @@ namespace XCode.DataAccessLayer
                 if (type != null)
                 {
                     _Db = TypeX.CreateInstance(type) as IDatabase;
+                    _Db.ConnName = ConnName;
+                    _Db.ConnectionString = ConnStr;
                 }
 
                 return _Db;
