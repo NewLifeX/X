@@ -1,8 +1,0 @@
-D:\项目管理\核心组件\UPNP\bin\Debug\UDP.dll
-D:\项目管理\核心组件\UPNP\bin\Debug\UDP.pdb
-D:\项目管理\核心组件\UPNP\obj\Debug\ResolveAssemblyReference.cache
-D:\项目管理\核心组件\UPNP\obj\Debug\UDP.dll
-D:\项目管理\核心组件\UPNP\obj\Debug\UDP.pdb
-D:\项目管理\核心组件\UPNP\bin\Debug\NewLife.Core.dll
-D:\项目管理\核心组件\UPNP\bin\Debug\NewLife.Core.pdb
-D:\项目管理\核心组件\UPNP\bin\Debug\NewLife.Core.xml
