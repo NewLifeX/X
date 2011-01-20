@@ -586,7 +586,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    class SQLite : Database<SQLite, SQLiteSession>
+    class SQLite : DbBase<SQLite, SQLiteSession>
     {
         #region 属性
         /// <summary>

@@ -12,8 +12,8 @@ namespace XCode.DataAccessLayer
     /// </summary>
     /// <typeparam name="TDatabase"></typeparam>
     /// <typeparam name="TDbSession"></typeparam>
-    abstract class Database<TDatabase, TDbSession> : Database
-        where TDatabase : Database<TDatabase, TDbSession>, new()
+    abstract class DbBase<TDatabase, TDbSession> : DbBase
+        where TDatabase : DbBase<TDatabase, TDbSession>, new()
         where TDbSession : DbSession<TDbSession>, new()
     {
         #region 构造
@@ -42,7 +42,7 @@ namespace XCode.DataAccessLayer
     /// 数据库基类。数据库类的职责是抽象不同数据库的共同点，理应最小化，保证原汁原味，因此不做缓存等实现。
     /// 对于每一个连接字符串配置，都有一个数据库实例，而不是每个数据库类型一个实例，因为同类型数据库不同版本行为不同。
     /// </summary>
-    abstract class Database : DisposeBase, IDatabase
+    abstract class DbBase : DisposeBase, IDatabase
     {
         #region 构造函数
         /// <summary>
@@ -110,7 +110,7 @@ namespace XCode.DataAccessLayer
         /// 保证数据库在每一个线程都有唯一的一个实例
         /// </summary>
         [ThreadStatic]
-        private static Dictionary<Database, IDbSession> _sessions;
+        private static Dictionary<DbBase, IDbSession> _sessions;
 
         /// <summary>
         /// 创建数据库会话，数据库在每一个线程都有唯一的一个实例
@@ -118,7 +118,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IDbSession CreateSession()
         {
-            if (_sessions == null) _sessions = new Dictionary<Database, IDbSession>();
+            if (_sessions == null) _sessions = new Dictionary<DbBase, IDbSession>();
 
             IDbSession session = null;
             if (_sessions.TryGetValue(this, out session)) return session;

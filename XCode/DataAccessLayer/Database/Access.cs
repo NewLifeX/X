@@ -537,7 +537,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    class Access : Database<Access, AccessSession>
+    class Access : DbBase<Access, AccessSession>
     {
         #region  Ù–‘
         /// <summary>

@@ -87,12 +87,13 @@
     <Compile Include="Common\FileSource.cs" />
     <Compile Include="DataAccessLayer\DatabaseType.cs" />
     <Compile Include="DataAccessLayer\DbSession_DDL.cs" />
-    <Compile Include="DataAccessLayer\Database.cs" />
+    <Compile Include="DataAccessLayer\DbBase.cs" />
     <Compile Include="DataAccessLayer\DbSession_Schema.cs" />
     <Compile Include="DataAccessLayer\DbFactory.cs" />
     <Compile Include="DataAccessLayer\IDatabase.cs" />
     <Compile Include="Exceptions\XDbException.cs" />
     <Compile Include="Exceptions\XCodeException.cs" />
+    <Compile Include="Exceptions\XDbSessionException.cs" />
     <Compile Include="Exceptions\XSqlException.cs" />
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Configuration\FieldItem.cs" />

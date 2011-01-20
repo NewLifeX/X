@@ -76,7 +76,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    class MySql : Database<MySql, MySqlSession>
+    class MySql : DbBase<MySql, MySqlSession>
     {
         #region 属性
         /// <summary>

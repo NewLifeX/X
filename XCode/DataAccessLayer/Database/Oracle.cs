@@ -72,7 +72,7 @@ namespace XCode.DataAccessLayer
             }
             catch (DbException ex)
             {
-                throw new XDbException(this, "取得所有表构架出错！", ex);
+                throw new XDbSessionException(this, "取得所有表构架出错！", ex);
             }
 
             //return list;
@@ -189,7 +189,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    class Oracle : Database<Oracle, OracleSession>
+    class Oracle : DbBase<Oracle, OracleSession>
     {
         #region 属性
         /// <summary>

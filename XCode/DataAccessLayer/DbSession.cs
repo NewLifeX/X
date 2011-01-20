@@ -214,9 +214,9 @@ namespace XCode.DataAccessLayer
             //return new XException("内部数据库实体" + this.GetType().FullName + "异常，执行" + Environment.StackTrace + "方法出错！", ex);
             //String err = "内部数据库实体" + DbType.ToString() + "异常，执行方法出错！" + Environment.NewLine + ex.Message;
             if (ex != null)
-                return new XDbException(this, ex);
+                return new XDbSessionException(this, ex);
             else
-                return new XDbException(this);
+                return new XDbSessionException(this);
         }
 
         /// <summary>
@@ -290,7 +290,7 @@ namespace XCode.DataAccessLayer
             TransactionCount--;
             if (TransactionCount > 0) return TransactionCount;
 
-            if (Trans == null) throw new XDbException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
+            if (Trans == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
             try
             {
                 Trans.Commit();
@@ -315,7 +315,7 @@ namespace XCode.DataAccessLayer
             TransactionCount--;
             if (TransactionCount > 0) return TransactionCount;
 
-            if (Trans == null) throw new XDbException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
+            if (Trans == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
             try
             {
                 Trans.Rollback();
@@ -449,7 +449,7 @@ namespace XCode.DataAccessLayer
         {
             if (sql.Contains(" "))
             {
-                String orderBy = XCode.DataAccessLayer.Database.CheckOrderClause(ref sql);
+                String orderBy = XCode.DataAccessLayer.DbBase.CheckOrderClause(ref sql);
                 //sql = String.Format("Select Count(*) From {0}", CheckSimpleSQL(sql));
                 //Match m = reg_QueryCount.Match(sql);
                 MatchCollection ms = reg_QueryCount.Matches(sql);
@@ -459,7 +459,7 @@ namespace XCode.DataAccessLayer
                 }
                 else
                 {
-                    sql = String.Format("Select Count(*) From {0}", XCode.DataAccessLayer.Database.CheckSimpleSQL(sql));
+                    sql = String.Format("Select Count(*) From {0}", XCode.DataAccessLayer.DbBase.CheckSimpleSQL(sql));
                 }
             }
             else

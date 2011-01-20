@@ -93,7 +93,7 @@ namespace XCode.DataAccessLayer
             }
             catch (DbException ex)
             {
-                throw new XDbException(this, "取得所有表构架出错！", ex);
+                throw new XDbSessionException(this, "取得所有表构架出错！", ex);
             }
 
             //List<XTable> list = null;
@@ -868,7 +868,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    class SqlServer : Database<SqlServer, SqlServerSession>
+    class SqlServer : DbBase<SqlServer, SqlServerSession>
     {
         #region 属性
         /// <summary>

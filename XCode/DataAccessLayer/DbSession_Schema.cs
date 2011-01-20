@@ -42,7 +42,7 @@ namespace XCode.DataAccessLayer
             //}
             catch (DbException ex)
             {
-                throw new XDbException(this, "取得所有表构架出错！", ex);
+                throw new XDbSessionException(this, "取得所有表构架出错！", ex);
             }
             finally
             {
@@ -68,7 +68,7 @@ namespace XCode.DataAccessLayer
             }
             catch (DbException ex)
             {
-                throw new XDbException(this, "取得所有表构架出错！", ex);
+                throw new XDbSessionException(this, "取得所有表构架出错！", ex);
             }
         }
 
@@ -121,7 +121,7 @@ namespace XCode.DataAccessLayer
             }
             catch (DbException ex)
             {
-                throw new XDbException(this, "取得所有表构架出错！", ex);
+                throw new XDbSessionException(this, "取得所有表构架出错！", ex);
             }
         }
 
