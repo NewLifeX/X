@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.OleDb;
 using System.Text.RegularExpressions;
 using NewLife;
-using System.Collections.Generic;
 
 namespace XCode.DataAccessLayer
 {
@@ -25,34 +25,22 @@ namespace XCode.DataAccessLayer
 
         #region 方法
         /// <summary>
-        /// ThreadStatic 指示静态字段的值对于每个线程都是唯一的。
-        /// </summary>
-        [ThreadStatic]
-        private static Dictionary<String, IDbSession> _Sessions;
-        /// <summary>
         /// 创建数据库会话
         /// </summary>
         /// <returns></returns>
-        public override IDbSession CreateSession()
+        protected override IDbSession OnCreateSession()
         {
-             if (_Sessions == null) _Sessions = new Dictionary<String, IDbSession>();
-
-            IDbSession session;
-            if (_Sessions.TryGetValue(ConnName, out session)) return session;
-            lock (_Sessions)
-            {
-                if (_Sessions.TryGetValue(ConnName, out session)) return session;
-                TDbSession sessoin = new TDbSession();
-                sessoin.Database = this;
-                sessoin.ConnectionString = ConnectionString;
-                return sessoin;
-            }
+            TDbSession sessoin = new TDbSession();
+            sessoin.Database = this;
+            sessoin.ConnectionString = ConnectionString;
+            return sessoin;
         }
         #endregion
     }
 
     /// <summary>
     /// 数据库基类。数据库类的职责是抽象不同数据库的共同点，理应最小化，保证原汁原味，因此不做缓存等实现。
+    /// 对于每一个连接字符串配置，都有一个数据库实例，而不是每个数据库类型一个实例，因为同类型数据库不同版本行为不同。
     /// </summary>
     abstract class Database : DisposeBase, IDatabase
     {
@@ -65,18 +53,7 @@ namespace XCode.DataAccessLayer
         {
             base.OnDispose(disposing);
 
-            //try
-            //{
-            //    // 注意，没有Commit的数据，在这里将会被回滚
-            //    //if (Trans != null) Rollback();
-            //    // 在嵌套事务中，Rollback只能减少嵌套层数，而_Trans.Rollback能让事务马上回滚
-            //    if (_Trans != null && Opened) _Trans.Rollback();
-            //    if (_Conn != null) Close();
-            //}
-            //catch (Exception ex)
-            //{
-            //    WriteLog("执行" + DbType.ToString() + "的Dispose时出错：" + ex.ToString());
-            //}
+            if (_sessions != null && _sessions.ContainsKey(this)) _sessions.Remove(this);
         }
         #endregion
 
@@ -129,38 +106,38 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        ///// <summary>
-        ///// 保证数据库在每一个线程都有唯一的一个实例
-        ///// </summary>
-        //[ThreadStatic]
-        //private static Dictionary<Database, IDbSession> _sessions;
+        /// <summary>
+        /// 保证数据库在每一个线程都有唯一的一个实例
+        /// </summary>
+        [ThreadStatic]
+        private static Dictionary<Database, IDbSession> _sessions;
 
-        ///// <summary>
-        ///// 创建数据库会话
-        ///// </summary>
-        ///// <returns></returns>
-        //public IDbSession CreateSession()
-        //{
-        //    if (_sessions == null) _sessions = new Dictionary<Database, IDbSession>();
+        /// <summary>
+        /// 创建数据库会话，数据库在每一个线程都有唯一的一个实例
+        /// </summary>
+        /// <returns></returns>
+        public IDbSession CreateSession()
+        {
+            if (_sessions == null) _sessions = new Dictionary<Database, IDbSession>();
 
-        //    IDbSession session = null;
-        //    if (_sessions.TryGetValue(this, out session)) return session;
-        //    lock (_sessions)
-        //    {
-        //        if (_sessions.TryGetValue(this, out session)) return session;
+            IDbSession session = null;
+            if (_sessions.TryGetValue(this, out session)) return session;
+            lock (_sessions)
+            {
+                if (_sessions.TryGetValue(this, out session)) return session;
 
-        //        session = OnCreateSession();
-        //        _sessions.Add(this, session);
+                session = OnCreateSession();
+                _sessions.Add(this, session);
 
-        //        return session;
-        //    }
-        //}
+                return session;
+            }
+        }
 
         /// <summary>
         /// 创建数据库会话
         /// </summary>
         /// <returns></returns>
-        public abstract IDbSession CreateSession();
+        protected abstract IDbSession OnCreateSession();
         #endregion
 
         #region 分页

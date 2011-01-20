@@ -3,10 +3,10 @@ using System.Configuration;
 using System.Data;
 using System.Data.Common;
 using System.Text.RegularExpressions;
+using System.Threading;
 using NewLife;
 using NewLife.Log;
 using XCode.Exceptions;
-using System.Threading;
 
 namespace XCode.DataAccessLayer
 {
@@ -50,15 +50,9 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 属性
-        //private static Int32 gid = 0;
-        //private Int32 _ID = ++gid;
-        ///// <summary>
-        ///// 标识
-        ///// </summary>
-        //public Int32 ID
-        //{
-        //    get { return _ID; }
-        //}
+        private IDatabase _Database;
+        /// <summary>数据库</summary>
+        public virtual IDatabase Database { get { return _Database; } set { _Database = value; } }
 
         /// <summary>
         /// 返回数据库类型。外部DAL数据库类请使用Other
@@ -67,10 +61,6 @@ namespace XCode.DataAccessLayer
 
         /// <summary>工厂</summary>
         public DbProviderFactory Factory { get { return Database.Factory; } }
-
-        private IDatabase _Database;
-        /// <summary>数据库</summary>
-        public virtual IDatabase Database { get { return _Database; } set { _Database = value; } }
 
         private String _ConnectionString;
         /// <summary>链接字符串</summary>
@@ -300,7 +290,7 @@ namespace XCode.DataAccessLayer
             TransactionCount--;
             if (TransactionCount > 0) return TransactionCount;
 
-            if (Trans == null) throw new InvalidOperationException("当前并未开始事务，请用BeginTransaction方法开始新事务！ThreadID=" + Thread.CurrentThread.ManagedThreadId);
+            if (Trans == null) throw new XDbException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
             try
             {
                 Trans.Commit();
@@ -325,7 +315,7 @@ namespace XCode.DataAccessLayer
             TransactionCount--;
             if (TransactionCount > 0) return TransactionCount;
 
-            if (Trans == null) throw new InvalidOperationException("当前并未开始事务，请用BeginTransaction方法开始新事务！ThreadID=" + Thread.CurrentThread.ManagedThreadId);
+            if (Trans == null) throw new XDbException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
             try
             {
                 Trans.Rollback();

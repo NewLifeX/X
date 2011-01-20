@@ -7,6 +7,7 @@ namespace XCode.DataAccessLayer
 {
     /// <summary>
     /// 数据库接口。抽象数据库的功能特点。
+    /// 对于每一个连接字符串配置，都有一个数据库实例，而不是每个数据库类型一个实例，因为同类型数据库不同版本行为不同。
     /// </summary>
     public interface IDatabase : IDisposable
     {

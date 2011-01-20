@@ -12,11 +12,6 @@ namespace XCode.DataAccessLayer
     public interface IDbSession : IDisposable
     {
         #region 属性
-        ///// <summary>
-        ///// 唯一标识
-        ///// </summary>
-        //Int32 ID { get; }
-
         /// <summary>
         /// 数据库
         /// </summary>
