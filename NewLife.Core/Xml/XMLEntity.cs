@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml.Serialization;
 using System.IO;
+using System.Xml;
 
 namespace NewLife.Xml
 {
@@ -62,6 +63,64 @@ namespace NewLife.Xml
                 using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8))
                 {
                     serial.Serialize((TextWriter)writer, this);
+                    byte[] bts = stream.ToArray();
+                    String xml = Encoding.UTF8.GetString(bts);
+
+                    if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
+
+                    return xml;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 输出Xml
+        /// </summary>
+        /// <returns></returns>
+        public virtual String ToXml(String prefix, String ns)
+        {
+            XmlSerializer serial = new XmlSerializer(typeof(TEntity));
+            using (MemoryStream stream = new MemoryStream())
+            {
+                using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8))
+                {
+                    if (String.IsNullOrEmpty(ns))
+                        serial.Serialize((TextWriter)writer, this);
+                    else
+                    {
+                        XmlSerializerNamespaces xsns = new XmlSerializerNamespaces();
+                        xsns.Add(prefix, ns);
+                        serial.Serialize((TextWriter)writer, this, xsns);
+                    }
+                    byte[] bts = stream.ToArray();
+                    String xml = Encoding.UTF8.GetString(bts);
+
+                    if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
+
+                    return xml;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 输出内部XML
+        /// </summary>
+        /// <returns></returns>
+        public virtual String ToInnerXml()
+        {
+            XmlSerializer serial = new XmlSerializer(typeof(TEntity));
+            using (MemoryStream stream = new MemoryStream())
+            {
+                using (XmlTextWriter writer = new XmlTextWriter(stream, Encoding.UTF8))
+                {
+                    // 去掉开头 <?xml version="1.0" encoding="utf-8"?>
+                    writer.Settings.OmitXmlDeclaration = true;
+
+                    // 去掉默认命名空间xmlns:xsd和xmlns:xsi
+                    XmlSerializerNamespaces xsns = new XmlSerializerNamespaces();
+                    xsns.Add("", "");
+
+                    serial.Serialize(writer, this, xsns);
                     byte[] bts = stream.ToArray();
                     String xml = Encoding.UTF8.GetString(bts);
 
