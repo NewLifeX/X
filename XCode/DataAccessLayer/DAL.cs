@@ -95,7 +95,8 @@ namespace XCode.DataAccessLayer
                     {
                         foreach (ConnectionStringSettings set in css)
                         {
-                            //if (set.Name == "LocalSqlServer") continue;
+                            if (set.Name == "LocalSqlServer") continue;
+                            if (set.Name == "LocalMySqlServer") continue;
                             if (String.IsNullOrEmpty(set.ConnectionString)) continue;
 
                             Type type = GetTypeFromConn(set.ConnectionString, set.ProviderName);
@@ -103,10 +104,6 @@ namespace XCode.DataAccessLayer
 
                             cs.Add(set.Name, set);
                             _connTypes.Add(set.Name, type);
-
-                            //#if DEBUG
-                            //                            NewLife.Log.XTrace.WriteLine("新增数据库链接{0}：{1}", set.Name, set.ConnectionString);
-                            //#endif
                         }
                     }
                     _connStrs = cs;
@@ -312,227 +309,37 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>
-        /// ThreadStatic 指示静态字段的值对于每个线程都是唯一的。
-        /// </summary>
-        [ThreadStatic]
-        private static IDictionary<String, IDbSession> _Sessions;
-        /// <summary>
-        /// DAL对象。
+        /// 数据库会话
         /// </summary>
         /// <remarks>
         /// 这里使用线程级缓存或请求级缓存，保证所有数据库操作线程安全。
         /// 使用外部数据库驱动会使得性能稍有下降。
         /// </remarks>
+        [Obsolete("请改为使用Session属性！")]
         public IDbSession DB
+        {
+            get
+            {
+                return Session;
+            }
+        }
+
+        /// <summary>
+        /// 数据库会话
+        /// </summary>
+        /// <remarks>
+        /// 这里使用线程级缓存或请求级缓存，保证所有数据库操作线程安全。
+        /// 使用外部数据库驱动会使得性能稍有下降。
+        /// </remarks>
+        public IDbSession Session
         {
             get
             {
                 if (String.IsNullOrEmpty(ConnStr)) throw new XCodeException("请在使用数据库前设置[" + ConnName + "]连接字符串");
 
-                //if (HttpContext.Current == null) // 非Web程序，使用线程级缓存
-                return CreateForNotWeb();
-                //else
-                //    return CreateForWeb();
+                return Db.CreateSession();
             }
         }
-
-        //private static Dictionary<String, Boolean> IsSql2005 = new Dictionary<String, Boolean>();
-
-        private IDbSession CreateForNotWeb()
-        {
-            if (_Sessions == null) _Sessions = new Dictionary<String, IDbSession>();
-
-            IDbSession session;
-            if (_Sessions.TryGetValue(ConnName, out session)) return session;
-            lock (_Sessions)
-            {
-                if (_Sessions.TryGetValue(ConnName, out session)) return session;
-
-                //// 创建对象，先取得程序集，再创建实例，是为了防止在本程序集创建外部DAL类的实例而出错
-                ////检查授权
-                //if (!License.Check()) return null;
-
-                //if (DALType == typeof(AccessSession))
-                //    session = new AccessSession();
-                //else if (DALType == typeof(SqlServerSession))
-                //    session = new SqlServerSession();
-                //else if (DALType == typeof(SqlServer2005Session))
-                //    session = new SqlServer2005Session();
-                //else if (DALType == typeof(OracleSession))
-                //    session = new OracleSession();
-                //else if (DALType == typeof(MySqlSession))
-                //    session = new MySqlSession();
-                //else if (DALType == typeof(SQLiteSession))
-                //    session = new SQLiteSession();
-                //else
-                //    session = DALType.Assembly.CreateInstance(DALType.FullName, false, BindingFlags.Default, null, new Object[] { ConnStr }, null, null) as IDbSession;
-
-                session = Db.CreateSession();
-                //session.ConnectionString = ConnStr;
-
-                ////检查是否SqlServer2005
-                ////_DB = CheckSql2005(_DB);
-
-                //if (!IsSql2005.ContainsKey(ConnName))
-                //{
-                //    lock (IsSql2005)
-                //    {
-                //        if (!IsSql2005.ContainsKey(ConnName))
-                //        {
-                //            IsSql2005.Add(ConnName, CheckSql2005(session));
-                //        }
-                //    }
-                //}
-
-                //if (DALType != typeof(SqlServer2005Session) && IsSql2005.ContainsKey(ConnName) && IsSql2005[ConnName])
-                //{
-                //    _DALType = typeof(SqlServer2005Session);
-                //    session.Dispose();
-                //    //_DB = new SqlServer2005Session();
-                //    session.ConnectionString = ConnStr;
-                //}
-
-                _Sessions.Add(ConnName, session);
-
-                //if (DbSession.Debug) DbSession.WriteLog("创建DB（NotWeb）：{0}", session.ID);
-
-                return session;
-            }
-        }
-
-        //private IDataBase CreateForWeb()
-        //{
-        //    String key = ConnName + "_DB";
-        //    IDataBase d;
-
-        //    if (HttpContext.Current.Items[key] != null && HttpContext.Current.Items[key] is IDataBase)
-        //        d = HttpContext.Current.Items[key] as IDataBase;
-        //    else
-        //    {
-        //        //检查授权
-        //        if (!License.Check()) return null;
-
-        //        if (DALType == typeof(Access))
-        //            d = new Access();
-        //        else if (DALType == typeof(SqlServer))
-        //            d = new SqlServer();
-        //        else if (DALType == typeof(Oracle))
-        //            d = new Oracle();
-        //        else if (DALType == typeof(MySql))
-        //            d = new MySql();
-        //        else if (DALType == typeof(SQLite))
-        //            d = new SQLite();
-        //        else
-        //            d = DALType.Assembly.CreateInstance(DALType.FullName, false, BindingFlags.Default, null, new Object[] { ConnStr }, null, null) as IDataBase;
-
-        //        d.ConnectionString = ConnStr;
-
-        //        if (DataBase.Debug) DataBase.WriteLog("创建DB（Web）：{0}", d.ID);
-
-        //        HttpContext.Current.Items.Add(key, d);
-        //    }
-        //    //检查是否SqlServer2005
-        //    //_DB = CheckSql2005(_DB);
-
-        //    if (!IsSql2005.ContainsKey(ConnName))
-        //    {
-        //        lock (IsSql2005)
-        //        {
-        //            if (!IsSql2005.ContainsKey(ConnName))
-        //            {
-        //                IsSql2005.Add(ConnName, CheckSql2005(d));
-        //            }
-        //        }
-        //    }
-
-        //    if (IsSql2005.ContainsKey(ConnName) && IsSql2005[ConnName])
-        //    {
-        //        _DALType = typeof(SqlServer2005);
-        //        d.Dispose();
-        //        d = new SqlServer2005();
-        //        d.ConnectionString = ConnStr;
-        //    }
-
-        //    return d;
-        //}
-
-        //private IDataBase CheckSql2005(IDataBase db)
-        //{
-        //    //检查是否SqlServer2005
-        //    if (db.DbType != DatabaseType.SqlServer) return db;
-
-        //    //取数据库版本
-        //    DataSet ds = db.Query("Select @@Version");
-        //    if (ds.Tables != null && ds.Tables.Count > 0 && ds.Tables[0].Rows != null && ds.Tables[0].Rows.Count > 0)
-        //    {
-        //        String ver = ds.Tables[0].Rows[0][0].ToString();
-        //        if (!String.IsNullOrEmpty(ver) && ver.StartsWith("Microsoft SQL Server 2005"))
-        //        {
-        //            _DALType = typeof(SqlServer2005);
-        //            db.Dispose();
-        //            db = new SqlServer2005(ConnStr);
-        //        }
-        //    }
-        //    return db;
-        //}
-
-        //private Boolean CheckSql2005(IDbSession db)
-        //{
-        //    //检查是否SqlServer2005
-        //    if (db.Db.DbType != DatabaseType.SqlServer) return false;
-
-        //    //切换到master库
-        //    DbSession d = db as DbSession;
-        //    String dbname = d.DatabaseName;
-        //    //如果指定了数据库名，并且不是master，则切换到master
-        //    if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
-        //    {
-        //        d.DatabaseName = "master";
-        //    }
-
-        //    //取数据库版本
-        //    Boolean b = false;
-        //    //DataSet ds = db.Query("Select @@Version");
-        //    //if (ds.Tables != null && ds.Tables.Count > 0 && ds.Tables[0].Rows != null && ds.Tables[0].Rows.Count > 0)
-        //    //{
-        //    //    String ver = ds.Tables[0].Rows[0][0].ToString();
-        //    //    if (!String.IsNullOrEmpty(ver) && ver.StartsWith("Microsoft SQL Server 2005"))
-        //    //    {
-        //    //        b = true;
-        //    //    }
-        //    //}
-        //    String ver = db.ServerVersion;
-        //    b = !ver.StartsWith("08");
-
-        //    if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
-        //    {
-        //        d.DatabaseName = dbname;
-        //    }
-
-        //    return b;
-        //}
-
-        ///// <summary>
-        ///// 是否存在DB实例。
-        ///// 如果直接使用DB属性判断是否存在，它将会创建一个实例。
-        ///// </summary>
-        //private Boolean ExistDB
-        //{
-        //    get
-        //    {
-        //        //if (HttpContext.Current == null || HttpContext.Current.Items == null)
-        //        //{
-        //        if (_Sessions != null && !_Sessions.ContainsKey(ConnName)) return true;
-        //        return false;
-        //        //}
-        //        //else
-        //        //{
-        //        //    String key = ConnName + "_DB";
-        //        //    if (HttpContext.Current.Items[key] != null && HttpContext.Current.Items[key] is IDataBase) return true;
-        //        //    return false;
-        //        //}
-        //    }
-        //}
         #endregion
 
         #region 使用缓存后的数据操作方法
