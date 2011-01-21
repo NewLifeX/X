@@ -26,6 +26,14 @@ namespace NewLife.Net.UPnP
         //public String IGDXML;
         //映射前是否检查端口
         public static bool IsPortCheck = true;
+
+        private Dictionary<IPEndPoint, InternetGatewayDevice> _Gateways;
+        /// <summary>网关设备</summary>
+        public Dictionary<IPEndPoint, InternetGatewayDevice> Gateways
+        {
+            get { return _Gateways ?? (_Gateways = new Dictionary<IPEndPoint, InternetGatewayDevice>()); }
+            //set { _Gateways = value; }
+        }
         #endregion
 
         #region 构造
@@ -48,6 +56,9 @@ namespace NewLife.Net.UPnP
         public void Discover()
         {
             UdpClientX Udp = new UdpClientX();
+            Udp.Received += new EventHandler<NetEventArgs>(Udp_Received);
+            Udp.ReceiveAsync();
+
             IPAddress address = NetHelper.ParseAddress("239.255.255.250");
             IPEndPoint remoteEP = new IPEndPoint(address, 1900);
 
@@ -80,32 +91,44 @@ namespace NewLife.Net.UPnP
             Udp.Send(data, remoteEP);
 
             socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DropMembership, optionValue);
+        }
 
-            String xml = Udp.ReceiveString();
+        void Udp_Received(object sender, NetEventArgs e)
+        {
+            String xml = e.GetString();
             if (String.IsNullOrEmpty(xml)) return;
 
             //分析数据并反序列化
-            DownLoadAndSerializer(xml);
+            InternetGatewayDevice device = DownLoadAndSerializer(xml);
+            if (device == null) return;
+
+            IPEndPoint remote = e.RemoteEndPoint as IPEndPoint;
+            if (Gateways.ContainsKey(remote))
+                Gateways[remote] = device;
+            else
+                Gateways.Add(remote, device);
+
+            Console.WriteLine("在{0}上发现设备{1}", remote, device.device.friendlyName);
         }
 
         /// <summary>
         /// 返回信息分析,反序列化IGD.XML
         /// </summary>
         /// <param name="html"></param>
-        void DownLoadAndSerializer(String html)
+        static InternetGatewayDevice DownLoadAndSerializer(String html)
         {
             //取Location
             String sp = "LOCATION:";
             Int32 p = html.IndexOf(sp);
-            if (p <= 0) return;
+            if (p <= 0) return null;
 
             String url = html.Substring(p + sp.Length);
             p = url.IndexOf(Environment.NewLine);
-            if (p <= 0) return;
+            if (p <= 0) return null;
 
             url = url.Substring(0, p);
             url = url.Trim();
-            if (String.IsNullOrEmpty(url)) return;
+            if (String.IsNullOrEmpty(url)) return null;
 
             try
             {
@@ -116,9 +139,11 @@ namespace NewLife.Net.UPnP
                 //反序列化
                 XmlSerializer serial = new XmlSerializer(typeof(InternetGatewayDevice));
                 StringReader reader = new StringReader(xml);
-                IGD = serial.Deserialize(reader) as InternetGatewayDevice;
+                InternetGatewayDevice device = serial.Deserialize(reader) as InternetGatewayDevice;
                 //如果
-                if (String.IsNullOrEmpty(IGD.URLBase)) IGD.URLBase = url;
+                if (String.IsNullOrEmpty(device.URLBase)) device.URLBase = url;
+
+                return device;
             }
             catch (Exception e)
             {
