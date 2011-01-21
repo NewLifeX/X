@@ -356,16 +356,16 @@ namespace Test
             cp.Url = "http://192.168.1.1:1900/ipc";
             //MethodInfoX.Invoke<String>(cp, "Invoke", new Object[] { "GetGenericPortMappingEntry", cp.Url, new Object[] { entry } });
             //cp.Discover();
-            PortMappingEntry2 obj = cp.GetGenericPortMappingEntry(entry);
+            //PortMappingEntry2 obj = cp.GetGenericPortMappingEntry(entry);
 
-            String Command = UPnPClient.SerialRequest(entry, "u", "Xmlns");
-            Console.WriteLine(Command);
+            //String Command = UPnPClient.SerialRequest(entry, "u", "Xmlns");
+            //Console.WriteLine(Command);
 
             UPnPClient client = new UPnPClient();
-            client.Discover();
+            client.StartDiscover();
             //client.GetMapByIndexAll();
-            PortMappingEntry pm = client.GetMapByIndex(0);
-            Console.WriteLine(pm != null);
+            //PortMappingEntry pm = client.GetMapByIndex(0);
+            //Console.WriteLine(pm != null);
 
             //Console.WriteLine(Encoding.Default.EncodingName);
 

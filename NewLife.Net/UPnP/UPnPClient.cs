@@ -12,6 +12,7 @@ using NewLife.Net.Udp;
 using NewLife.Net.Sockets;
 using NewLife.Net.Common;
 using NewLife.Reflection;
+using NewLife.Configuration;
 
 namespace NewLife.Net.UPnP
 {
@@ -27,11 +28,19 @@ namespace NewLife.Net.UPnP
         //映射前是否检查端口
         public static bool IsPortCheck = true;
 
-        private Dictionary<IPEndPoint, InternetGatewayDevice> _Gateways;
-        /// <summary>网关设备</summary>
-        public Dictionary<IPEndPoint, InternetGatewayDevice> Gateways
+        private UdpClientX _Udp;
+        /// <summary>Udp客户端，用于发现网关设备</summary>
+        private UdpClientX Udp
         {
-            get { return _Gateways ?? (_Gateways = new Dictionary<IPEndPoint, InternetGatewayDevice>()); }
+            get { return _Udp; }
+            set { _Udp = value; }
+        }
+
+        private Dictionary<IPAddress, InternetGatewayDevice> _Gateways;
+        /// <summary>网关设备</summary>
+        public Dictionary<IPAddress, InternetGatewayDevice> Gateways
+        {
+            get { return _Gateways ?? (_Gateways = new Dictionary<IPAddress, InternetGatewayDevice>()); }
             //set { _Gateways = value; }
         }
         #endregion
@@ -45,7 +54,11 @@ namespace NewLife.Net.UPnP
         {
             base.OnDispose(disposing);
 
-
+            try
+            {
+                if (Udp != null) Udp.Dispose();
+            }
+            catch { }
         }
         #endregion
 
@@ -53,9 +66,9 @@ namespace NewLife.Net.UPnP
         /// <summary>
         /// 开始
         /// </summary>
-        public void Discover()
+        public void StartDiscover()
         {
-            UdpClientX Udp = new UdpClientX();
+            Udp = new UdpClientX();
             Udp.Received += new EventHandler<NetEventArgs>(Udp_Received);
             Udp.ReceiveAsync();
 
@@ -64,18 +77,18 @@ namespace NewLife.Net.UPnP
 
             // 设置多播
             Socket socket = Udp.Client;
-            socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, 4);
-            socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastLoopback, 1);
-            MulticastOption optionValue = new MulticastOption(remoteEP.Address);
-            try
-            {
-                socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, optionValue);
-                //socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastInterface, (int)this.boundto.Address.Address);
-            }
-            catch (Exception)
-            {
-                return;
-            }
+            //socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, 4);
+            //socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastLoopback, 1);
+            //MulticastOption optionValue = new MulticastOption(remoteEP.Address);
+            //try
+            //{
+            //    socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, optionValue);
+            //    //socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastInterface, (int)this.boundto.Address.Address);
+            //}
+            //catch (Exception)
+            //{
+            //    return;
+            //}
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("M-SEARCH * HTTP/1.1");
@@ -90,25 +103,27 @@ namespace NewLife.Net.UPnP
             Udp.Client.EnableBroadcast = true;
             Udp.Send(data, remoteEP);
 
-            socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DropMembership, optionValue);
+            //socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DropMembership, optionValue);
+
+            if (CacheGateway) CheckCacheGateway();
         }
 
         void Udp_Received(object sender, NetEventArgs e)
         {
-            String xml = e.GetString();
-            if (String.IsNullOrEmpty(xml)) return;
-
-            //分析数据并反序列化
-            InternetGatewayDevice device = DownLoadAndSerializer(xml);
-            if (device == null) return;
+            String content = e.GetString();
+            if (String.IsNullOrEmpty(content)) return;
 
             IPEndPoint remote = e.RemoteEndPoint as IPEndPoint;
-            if (Gateways.ContainsKey(remote))
-                Gateways[remote] = device;
-            else
-                Gateways.Add(remote, device);
+            IPAddress address = remote.Address;
 
-            Console.WriteLine("在{0}上发现设备{1}", remote, device.device.friendlyName);
+            //分析数据并反序列化
+            InternetGatewayDevice device = DownLoadAndSerializer(content);
+            if (device == null) return;
+
+            if (Gateways.ContainsKey(address))
+                Gateways[address] = device;
+            else
+                Gateways.Add(address, device);
         }
 
         /// <summary>
@@ -143,6 +158,8 @@ namespace NewLife.Net.UPnP
                 //如果
                 if (String.IsNullOrEmpty(device.URLBase)) device.URLBase = url;
 
+                if (CacheGateway) File.WriteAllText(GetCacheFile(device.ServerHost), xml);
+
                 return device;
             }
             catch (Exception e)
@@ -151,45 +168,56 @@ namespace NewLife.Net.UPnP
                 throw;
             }
         }
+
+        const String cacheKey = "InternetGatewayDevice_";
+
+        /// <summary>
+        /// 检查缓存的网关
+        /// </summary>
+        void CheckCacheGateway()
+        {
+            String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XCache");
+            if (!Directory.Exists(p)) return;
+
+            String[] ss = Directory.GetFiles(p, cacheKey + "*.xml", SearchOption.TopDirectoryOnly);
+            if (ss == null || ss.Length < 1) return;
+
+            foreach (String item in ss)
+            {
+                String ip = Path.GetFileNameWithoutExtension(item).Substring(cacheKey.Length).Trim(new Char[] { '_' });
+                IPAddress address = IPAddress.Any;
+                try
+                {
+                    address = NetHelper.ParseAddress(ip);
+                }
+                catch { continue; }
+                if (address == IPAddress.Any) continue;
+
+                //反序列化
+                XmlSerializer serial = new XmlSerializer(typeof(InternetGatewayDevice));
+                using (StreamReader reader = File.OpenText(item))
+                {
+                    InternetGatewayDevice device = serial.Deserialize(reader) as InternetGatewayDevice;
+                    if (device == null) continue;
+
+                    if (Gateways.ContainsKey(address))
+                        Gateways[address] = device;
+                    else
+                        Gateways.Add(address, device);
+                }
+            }
+        }
+
+        static String GetCacheFile(String address)
+        {
+            String fileName = String.Format(@"XCache\{0}{1}.xml", cacheKey, address);
+            fileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+
+            if (!Directory.Exists(Path.GetDirectoryName(fileName))) Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+
+            return fileName;
+        }
         #endregion
-
-        ///// <summary>
-        ///// 查找UPNP
-        ///// </summary>
-        ///// <returns></returns>
-        //public static void Search()
-        //{
-        //    if (IGD != null) return;
-
-        //    byte[] data = Encoding.ASCII.GetBytes(XMLCommand.UPnPSearch());
-        //    byte[] buffer = null;
-        //    UdpClient Client = new UdpClient(0);
-        //    Client.EnableBroadcast = true;
-        //    Client.Send(data, data.Length, "239.255.255.250", 1900);
-        //    IPEndPoint ip = new IPEndPoint(IPAddress.Any, 0);
-        //    for (Int32 i = 1; i <= 10; i++)
-        //    {
-        //        if (Client.Available > 0)
-        //        {
-        //            buffer = Client.Receive(ref ip);
-        //            break;
-        //        }
-        //        //等待10毫秒
-        //        Thread.Sleep(10);
-        //    }
-
-        //    Client.Close();
-
-        //    if (buffer == null)
-        //    {
-        //        //XLog.XTrace.WriteLine("获取UPNP失败,没有接收到返回信息!");
-        //        throw new Exception("获取UPNP失败,没有接收到返回信息!");
-        //    }
-
-        //    //分析数据并反序列化
-        //    DownLoadAndSerializer(Encoding.UTF8.GetString(buffer));
-
-        //}
 
         #region 操作
         /// <summary>
@@ -397,7 +425,7 @@ namespace NewLife.Net.UPnP
         /// <returns></returns>
         public bool SOAPRequest(String Command, out String Header, out String Document)
         {
-            TcpClient Client = new TcpClient(IGD.ServerHOST, IGD.ServerPort);
+            TcpClient Client = new TcpClient(IGD.ServerHost, IGD.ServerPort);
             NetworkStream Stream = Client.GetStream();
             byte[] data = Encoding.ASCII.GetBytes(Command);
             Stream.Write(data, 0, data.Length);
@@ -433,6 +461,17 @@ namespace NewLife.Net.UPnP
         #endregion
 
         #region 辅助函数
+        /// <summary>
+        /// 是否缓存网关。缓存网关可以加速UPnP的发现过程
+        /// </summary>
+        public static Boolean CacheGateway
+        {
+            get
+            {
+                return Config.GetConfig<Boolean>("NewLife.Net.UPnP.CacheGateway");
+            }
+        }
+
         /// <summary>
         /// 序列化请求
         /// </summary>

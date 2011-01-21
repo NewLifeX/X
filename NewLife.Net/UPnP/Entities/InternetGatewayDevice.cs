@@ -42,30 +42,28 @@ namespace NewLife.Net.UPnP
         #endregion
 
         #region 扩展属性
-        private String _ServerHOST;
+        private String _ServerHost;
         /// <summary>UPNP设备IP</summary>
         [XmlIgnore]
-        public String ServerHOST
+        public String ServerHost
         {
             get
             {
-                if (String.IsNullOrEmpty(_ServerHOST))
-                    GetHOSTAndPort();
-                return _ServerHOST;
+                if (String.IsNullOrEmpty(_ServerHost)) GetHOSTAndPort();
+                return _ServerHost;
 
             }
-            set { _ServerHOST = value; }
+            set { _ServerHost = value; }
         }
 
         private Int32 _ServerPort;
-        /// <summary>UPNP设备端品</summary>
+        /// <summary>UPNP设备端口</summary>
         [XmlIgnore]
         public Int32 ServerPort
         {
             get
             {
-                if (_ServerPort == 0)
-                    GetHOSTAndPort();
+                if (_ServerPort == 0) GetHOSTAndPort();
                 return _ServerPort;
             }
             set { _ServerPort = value; }
@@ -78,17 +76,22 @@ namespace NewLife.Net.UPnP
         /// </summary>
         public void GetHOSTAndPort()
         {
-            Regex Regex = new Regex(@"\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}:\d{1,5}");
-            String HostAndPortStr = Regex.Match(URLBase).Value;
-            if (!String.IsNullOrEmpty(HostAndPortStr))
-            {
-                String[] Arr = HostAndPortStr.Split(new Char[] { ':' });
-                ServerHOST = Arr[0];
-                ServerPort = Convert.ToInt32(Arr[1]);
-            }
-            else
-                throw new Exception("UPNP设备IP与端口获取出错!");
+            //Regex Regex = new Regex(@"\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}:\d{1,5}");
+            //String HostAndPortStr = Regex.Match(URLBase).Value;
+            //if (!String.IsNullOrEmpty(HostAndPortStr))
+            //{
+            //    String[] Arr = HostAndPortStr.Split(new Char[] { ':' });
+            //    ServerHOST = Arr[0];
+            //    ServerPort = Convert.ToInt32(Arr[1]);
+            //}
+            //else
+            //    throw new Exception("UPNP设备IP与端口获取出错!");
 
+            if (String.IsNullOrEmpty(URLBase)) return;
+
+            Uri uri = new Uri(URLBase);
+            ServerHost = uri.Host;
+            ServerPort = uri.Port;
         }
         #endregion
     }
