@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Web.UI.WebControls;
 using XCode.DataAccessLayer;
+using NewLife.Web;
 
 public partial class Admin_System_WebDb : System.Web.UI.Page
 {
@@ -22,42 +23,64 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         }
     }
 
+    DAL GetDAL()
+    {
+        if (String.IsNullOrEmpty(ddlConn.SelectedValue)) return null;
+
+        try
+        {
+            return DAL.Create(ddlConn.SelectedValue);
+        }
+        catch { return null; }
+    }
+
     protected void ddlConn_SelectedIndexChanged(object sender, EventArgs e)
     {
-        DAL dal = DAL.Create(ddlConn.SelectedValue);
-        txtConnStr.Text = dal.ConnStr;
+        DAL dal = GetDAL();
+        if (dal == null) return;
 
-        // 数据表
-        ddlTable.Items.Clear();
-        IList<XTable> tables = dal.Tables;
-        if (tables != null && tables.Count > 0)
+        try
         {
-            foreach (XTable item in tables)
+            txtConnStr.Text = dal.ConnStr;
+
+            // 数据表
+            ddlTable.Items.Clear();
+            IList<XTable> tables = dal.Tables;
+            if (tables != null && tables.Count > 0)
             {
-                String des = String.Format("{1}({0})", item.Name, item.Description);
-                ddlTable.Items.Add(new ListItem(des, item.Name));
+                foreach (XTable item in tables)
+                {
+                    String des = String.Format("{1}({0})", item.Name, item.Description);
+                    ddlTable.Items.Add(new ListItem(des, item.Name));
+                }
+
+                ddlTable.Items.Insert(0, "--请选择--");
             }
 
-            ddlTable.Items.Insert(0, "--请选择--");
+            // 数据架构
+            ddlSchema.Items.Clear();
+            DataTable dt = dal.DB.GetSchema(null, null);
+            if (dt != null)
+            {
+                foreach (DataRow dr in dt.Rows)
+                {
+                    ddlSchema.Items.Add(dr[0].ToString());
+                }
+
+                ddlSchema.Items.Insert(0, "--请选择--");
+            }
         }
-
-        // 数据架构
-        ddlSchema.Items.Clear();
-        DataTable dt = dal.DB.GetSchema(null, null);
-        if (dt != null)
+        catch (Exception ex)
         {
-            foreach (DataRow dr in dt.Rows)
-            {
-                ddlSchema.Items.Add(dr[0].ToString());
-            }
-
-            ddlSchema.Items.Insert(0, "--请选择--");
+            WebHelper.Alert(ex.Message);
         }
     }
 
     protected void ddlTable_SelectedIndexChanged(object sender, EventArgs e)
     {
-        DAL dal = DAL.Create(ddlConn.SelectedValue);
+        DAL dal = GetDAL();
+        if (dal == null) return;
+
         IList<XTable> tables = dal.Tables;
         XTable table = null;
         foreach (XTable item in tables)
@@ -73,14 +96,16 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         gvTable.DataSource = table.Fields;
         gvTable.DataBind();
 
-        txtSql.Text = String.Format("Select * From {0}", dal.DB.Database.FormatKeyWord(table.Name));
+        txtSql.Text = String.Format("Select * From {0}", dal.Db.FormatKeyWord(table.Name));
     }
 
     protected void ddlSchema_SelectedIndexChanged(object sender, EventArgs e)
     {
         if (String.IsNullOrEmpty(ddlConn.SelectedValue)) return;
 
-        DAL dal = DAL.Create(ddlConn.SelectedValue);
+        DAL dal = GetDAL();
+        if (dal == null) return;
+
         String name = ddlSchema.SelectedValue;
         if (String.IsNullOrEmpty(name)) return;
 
@@ -91,7 +116,11 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         {
             rdt = dal.DB.GetSchema(DbMetaDataCollectionNames.Restrictions, null);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            lbResult.Text = ex.Message;
+        }
+
         if (rdt != null)
         {
             DataRow[] drs = rdt.Select(String.Format("{0}='{1}'", DbMetaDataColumnNames.CollectionName, name));
@@ -120,7 +149,9 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
     {
         if (String.IsNullOrEmpty(ddlConn.SelectedValue)) return;
 
-        DAL dal = DAL.Create(ddlConn.SelectedValue);
+        DAL dal = GetDAL();
+        if (dal == null) return;
+
         String name = ddlSchema.SelectedValue;
         if (String.IsNullOrEmpty(name)) return;
 
@@ -130,7 +161,11 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         {
             rdt = dal.DB.GetSchema(DbMetaDataCollectionNames.Restrictions, null);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            lbResult.Text = ex.Message;
+        }
+
         if (rdt != null)
         {
             DataRow[] drs = rdt.Select(String.Format("{0}='{1}'", DbMetaDataColumnNames.CollectionName, name));
@@ -174,7 +209,8 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         sql = sql.Trim();
         if (String.IsNullOrEmpty(sql)) return;
 
-        DAL dal = DAL.Create(ddlConn.SelectedValue);
+        DAL dal = GetDAL();
+        if (dal == null) return;
 
         lbResult.Text = null;
         gvResult.DataSource = null;
@@ -197,7 +233,6 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         }
         catch (Exception ex)
         {
-            //WebHelper.Alert("出错！" + ex.Message);
             lbResult.Text = ex.Message;
         }
     }
@@ -210,7 +245,8 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         sql = sql.Trim();
         if (String.IsNullOrEmpty(sql)) return;
 
-        DAL dal = DAL.Create(ddlConn.SelectedValue);
+        DAL dal = GetDAL();
+        if (dal == null) return;
 
         // 总行数
         Int32 count = dal.SelectCount(sql, "");
