@@ -117,33 +117,17 @@ namespace NewLife.Net.UPnP
             IPAddress address = remote.Address;
 
             //分析数据并反序列化
-            InternetGatewayDevice device = DownLoadAndSerializer(content);
-            if (device == null) return;
-
-            if (Gateways.ContainsKey(address))
-                Gateways[address] = device;
-            else
-                Gateways.Add(address, device);
-        }
-
-        /// <summary>
-        /// 返回信息分析,反序列化IGD.XML
-        /// </summary>
-        /// <param name="html"></param>
-        static InternetGatewayDevice DownLoadAndSerializer(String html)
-        {
-            //取Location
             String sp = "LOCATION:";
-            Int32 p = html.IndexOf(sp);
-            if (p <= 0) return null;
+            Int32 p = content.IndexOf(sp);
+            if (p <= 0) return;
 
-            String url = html.Substring(p + sp.Length);
+            String url = content.Substring(p + sp.Length);
             p = url.IndexOf(Environment.NewLine);
-            if (p <= 0) return null;
+            if (p <= 0) return;
 
             url = url.Substring(0, p);
             url = url.Trim();
-            if (String.IsNullOrEmpty(url)) return null;
+            if (String.IsNullOrEmpty(url)) return;
 
             try
             {
@@ -151,23 +135,43 @@ namespace NewLife.Net.UPnP
                 WebClient client = new WebClient();
                 String xml = client.DownloadString(url);
 
-                //反序列化
-                XmlSerializer serial = new XmlSerializer(typeof(InternetGatewayDevice));
-                StringReader reader = new StringReader(xml);
-                InternetGatewayDevice device = serial.Deserialize(reader) as InternetGatewayDevice;
-                //如果
-                if (String.IsNullOrEmpty(device.URLBase)) device.URLBase = url;
+                Uri uri = new Uri(url);
+                AddGateway(NetHelper.ParseAddress(uri.Host), xml, false);
 
-                if (CacheGateway) File.WriteAllText(GetCacheFile(device.ServerHost), xml);
-
-                return device;
+                if (CacheGateway) File.WriteAllText(GetCacheFile(uri.Host), xml);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                XTrace.WriteLine(e.Message + " 路径[" + url + "]");
+                XTrace.WriteLine(ex.Message + " 路径[" + url + "]");
                 throw;
             }
         }
+
+        void AddGateway(IPAddress address, String content, Boolean isCache)
+        {
+            //反序列化
+            XmlSerializer serial = new XmlSerializer(typeof(InternetGatewayDevice));
+            InternetGatewayDevice device = null;
+            using (StringReader reader = new StringReader(content))
+            {
+                device = serial.Deserialize(reader) as InternetGatewayDevice;
+                if (device == null) return;
+
+                if (String.IsNullOrEmpty(device.URLBase)) device.URLBase = String.Format("http://{0}:1900", address);
+
+                if (Gateways.ContainsKey(address))
+                    Gateways[address] = device;
+                else
+                    Gateways.Add(address, device);
+            }
+
+            if (OnNewDevice != null) OnNewDevice(this, new EventArgs<InternetGatewayDevice, bool>(device, isCache));
+        }
+
+        /// <summary>
+        /// 发现新设备时触发。参数（设备，是否来自缓存）
+        /// </summary>
+        public event EventHandler<EventArgs<InternetGatewayDevice, Boolean>> OnNewDevice;
 
         const String cacheKey = "InternetGatewayDevice_";
 
@@ -193,18 +197,7 @@ namespace NewLife.Net.UPnP
                 catch { continue; }
                 if (address == IPAddress.Any) continue;
 
-                //反序列化
-                XmlSerializer serial = new XmlSerializer(typeof(InternetGatewayDevice));
-                using (StreamReader reader = File.OpenText(item))
-                {
-                    InternetGatewayDevice device = serial.Deserialize(reader) as InternetGatewayDevice;
-                    if (device == null) continue;
-
-                    if (Gateways.ContainsKey(address))
-                        Gateways[address] = device;
-                    else
-                        Gateways.Add(address, device);
-                }
+                AddGateway(address, File.ReadAllText(item), true);
             }
         }
 
