@@ -6,36 +6,13 @@ using System.Text.RegularExpressions;
 
 namespace NewLife.Net.UPnP
 {
+    /// <summary>
+    /// 因特网网关设备
+    /// </summary>
     [Serializable, XmlRoot("root", Namespace = "urn:schemas-upnp-org:device-1-0")]
-    public class IGD
+    public class InternetGatewayDevice
     {
-        private String _ServerHOST;
-        /// <summary>UPNP设备IP</summary>
-        public String ServerHOST
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_ServerHOST))
-                    GetHOSTAndPort();
-                return _ServerHOST;
-
-            }
-            set { _ServerHOST = value; }
-        }
-
-        private Int32 _ServerPort;
-        /// <summary>UPNP设备端品</summary>
-        public Int32 ServerPort
-        {
-            get
-            {
-                if (_ServerPort == 0)
-                    GetHOSTAndPort();
-                return _ServerPort;
-            }
-            set { _ServerPort = value; }
-        }
-
+        #region 属性
         private SpecVersion _specVersion;
         /// <summary>UPnP 设备架构版本</summary>
         [XmlElement("specVersion")]
@@ -62,7 +39,40 @@ namespace NewLife.Net.UPnP
             get { return _device; }
             set { _device = value; }
         }
+        #endregion
 
+        #region 扩展属性
+        private String _ServerHOST;
+        /// <summary>UPNP设备IP</summary>
+        [XmlIgnore]
+        public String ServerHOST
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_ServerHOST))
+                    GetHOSTAndPort();
+                return _ServerHOST;
+
+            }
+            set { _ServerHOST = value; }
+        }
+
+        private Int32 _ServerPort;
+        /// <summary>UPNP设备端品</summary>
+        [XmlIgnore]
+        public Int32 ServerPort
+        {
+            get
+            {
+                if (_ServerPort == 0)
+                    GetHOSTAndPort();
+                return _ServerPort;
+            }
+            set { _ServerPort = value; }
+        }
+        #endregion
+
+        #region 方法
         /// <summary>
         /// 分析URLBase 并赋值HOST和Port
         /// </summary>
@@ -80,6 +90,6 @@ namespace NewLife.Net.UPnP
                 throw new Exception("UPNP设备IP与端口获取出错!");
 
         }
-
+        #endregion
     }
 }

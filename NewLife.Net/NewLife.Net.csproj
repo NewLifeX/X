@@ -76,10 +76,9 @@
     <Compile Include="Udp\UdpStream.cs" />
     <Compile Include="Udp\UdpTest.cs" />
     <Compile Include="UPnP\Entities\Device.cs" />
-    <Compile Include="UPnP\Entities\DeviceListDevice.cs" />
     <Compile Include="UPnP\Entities\Envelope.cs" />
     <Compile Include="UPnP\Entities\GetGenericPortMappingEntry.cs" />
-    <Compile Include="UPnP\Entities\IGD.cs" />
+    <Compile Include="UPnP\Entities\InternetGatewayDevice.cs" />
     <Compile Include="UPnP\Entities\PortMappingEntry.cs" />
     <Compile Include="UPnP\Entities\Service.cs" />
     <Compile Include="UPnP\Entities\SpecVersion.cs" />

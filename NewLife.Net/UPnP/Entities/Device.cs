@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 namespace NewLife.Net.UPnP
 {
     /// <summary>
-    /// Device
+    /// 设备
     /// </summary>
     public class Device
     {
@@ -100,11 +100,11 @@ namespace NewLife.Net.UPnP
             set { _serviceList = value; }
         }
 
-        private List<DeviceListDevice> _deviceList;
+        private List<Device> _deviceList;
         /// <summary>设备 仅当根设备带有嵌入式设备时要求</summary>
         [XmlArray("deviceList")]
         [XmlArrayItem("device")]
-        public List<DeviceListDevice> deviceList
+        public List<Device> deviceList
         {
             get { return _deviceList; }
             set { _deviceList = value; }

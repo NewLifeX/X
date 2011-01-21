@@ -22,7 +22,7 @@ namespace NewLife.Net.UPnP
     {
         #region 属性
         //public String Location = null;
-        public IGD IGD = null;
+        public InternetGatewayDevice IGD = null;
         //public String IGDXML;
         //映射前是否检查端口
         public static bool IsPortCheck = true;
@@ -48,6 +48,23 @@ namespace NewLife.Net.UPnP
         public void Discover()
         {
             UdpClientX Udp = new UdpClientX();
+            IPAddress address = NetHelper.ParseAddress("239.255.255.250");
+            IPEndPoint remoteEP = new IPEndPoint(address, 1900);
+
+            // 设置多播
+            Socket socket = Udp.Client;
+            socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, 4);
+            socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastLoopback, 1);
+            MulticastOption optionValue = new MulticastOption(remoteEP.Address);
+            try
+            {
+                socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, optionValue);
+                //socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastInterface, (int)this.boundto.Address.Address);
+            }
+            catch (Exception)
+            {
+                return;
+            }
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("M-SEARCH * HTTP/1.1");
@@ -60,8 +77,9 @@ namespace NewLife.Net.UPnP
 
             byte[] data = Encoding.ASCII.GetBytes(sb.ToString());
             Udp.Client.EnableBroadcast = true;
-            IPAddress address = NetHelper.ParseAddress("239.255.255.250");
-            Udp.Send(data, new IPEndPoint(address, 1900));
+            Udp.Send(data, remoteEP);
+
+            socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DropMembership, optionValue);
 
             String xml = Udp.ReceiveString();
             if (String.IsNullOrEmpty(xml)) return;
@@ -96,9 +114,9 @@ namespace NewLife.Net.UPnP
                 String xml = client.DownloadString(url);
 
                 //反序列化
-                XmlSerializer serial = new XmlSerializer(typeof(IGD));
+                XmlSerializer serial = new XmlSerializer(typeof(InternetGatewayDevice));
                 StringReader reader = new StringReader(xml);
-                IGD = serial.Deserialize(reader) as IGD;
+                IGD = serial.Deserialize(reader) as InternetGatewayDevice;
                 //如果
                 if (String.IsNullOrEmpty(IGD.URLBase)) IGD.URLBase = url;
             }
