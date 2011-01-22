@@ -206,41 +206,41 @@ namespace NewLife.Net.UPnP
         #endregion
 
         #region 操作
-        ///// <summary>
-        ///// 添加映射端口
-        ///// </summary>
-        ///// <param name="RemoteHost">远程主机</param>
-        ///// <param name="ExternalPort">外部端口</param>
-        ///// <param name="Protocol">TCP或UDP</param>
-        ///// <param name="InternalPort">内部端口</param>
-        ///// <param name="InternalClient">本地IP地址</param>
-        ///// <param name="Enabled">是否启用[0,1]</param>
-        ///// <param name="Description">端口映射的描述</param>
-        ///// <param name="Duration">映射的持续时间，用0表示不永久</param>
-        ///// <returns>bool</returns>
-        //public bool Add(String RemoteHost, Int32 ExternalPort, String Protocol, Int32 InternalPort, String InternalClient, Int32 Enabled, String Description, int? Duration)
-        //{
-        //    if (IsPortCheck == true && GetMapByPortAndProtocol(null, ExternalPort, Protocol) != null)
-        //    {
-        //        XTrace.WriteLine(ExternalPort + "端口被占用");
-        //        return false;
-        //    }
-        //    String Command = XMLCommand.Add(RemoteHost, ExternalPort, Protocol, InternalPort, InternalClient, Enabled, Description, Duration);
-        //    return SOAPRequest(Command);
-        //}
+        /// <summary>
+        /// 添加映射端口
+        /// </summary>
+        /// <param name="RemoteHost">远程主机</param>
+        /// <param name="ExternalPort">外部端口</param>
+        /// <param name="Protocol">TCP或UDP</param>
+        /// <param name="InternalPort">内部端口</param>
+        /// <param name="InternalClient">本地IP地址</param>
+        /// <param name="Enabled">是否启用[0,1]</param>
+        /// <param name="Description">端口映射的描述</param>
+        /// <param name="Duration">映射的持续时间，用0表示不永久</param>
+        /// <returns>bool</returns>
+        public static bool Add(InternetGatewayDevice device, String RemoteHost, Int32 ExternalPort, String Protocol, Int32 InternalPort, String InternalClient, Int32 Enabled, String Description, int? Duration)
+        {
+            if (IsPortCheck == true && GetMapByPortAndProtocol(device, null, ExternalPort, Protocol) != null)
+            {
+                XTrace.WriteLine(ExternalPort + "端口被占用");
+                return false;
+            }
+            String Command = XMLCommand.Add(RemoteHost, ExternalPort, Protocol, InternalPort, InternalClient, Enabled, Description, Duration);
+            return SOAPRequest(Command);
+        }
 
-        ///// <summary>
-        ///// 删除端口映射
-        ///// </summary>
-        ///// <param name="RemoteHost">远程主机</param>
-        ///// <param name="ExternalPort">外部端口</param>
-        ///// <param name="Protocol">TCP或UDP</param>
-        ///// <returns></returns>
-        //public bool Del(String RemoteHost, Int32 ExternalPort, String Protocol)
-        //{
-        //    String Command = XMLCommand.Del(RemoteHost, ExternalPort, Protocol);
-        //    return SOAPRequest(Command);
-        //}
+        /// <summary>
+        /// 删除端口映射
+        /// </summary>
+        /// <param name="RemoteHost">远程主机</param>
+        /// <param name="ExternalPort">外部端口</param>
+        /// <param name="Protocol">TCP或UDP</param>
+        /// <returns></returns>
+        public static bool Del(InternetGatewayDevice device, String RemoteHost, Int32 ExternalPort, String Protocol)
+        {
+            String Command = XMLCommand.Del(RemoteHost, ExternalPort, Protocol);
+            return SOAPRequest(Command);
+        }
         #endregion
 
         #region 查找

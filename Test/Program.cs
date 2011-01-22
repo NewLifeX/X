@@ -349,11 +349,11 @@ namespace Test
             //str = FormatKeyWord(str);
             //Console.WriteLine(str);
 
-            PortMappingEntryClient entry = new PortMappingEntryClient();
+            PortMappingEntryRequest entry = new PortMappingEntryRequest();
             entry.NewPortMappingIndex = 0;
 
-            UPnPCommand cp = new UPnPCommand();
-            cp.Url = "http://192.168.1.1:1900/ipc";
+            //UPnPCommand cp = new UPnPCommand();
+            //cp.Url = "http://192.168.1.1:1900/ipc";
             //MethodInfoX.Invoke<String>(cp, "Invoke", new Object[] { "GetGenericPortMappingEntry", cp.Url, new Object[] { entry } });
             //cp.Discover();
             //PortMappingEntry2 obj = cp.GetGenericPortMappingEntry(entry);
@@ -363,6 +363,8 @@ namespace Test
 
             UPnPClient client = new UPnPClient();
             client.StartDiscover();
+            UPnPClient.GetMapByIndex(client.Gateways.Values[0], 0);
+
             //client.GetMapByIndexAll();
             //PortMappingEntry pm = client.GetMapByIndex(0);
             //Console.WriteLine(pm != null);
