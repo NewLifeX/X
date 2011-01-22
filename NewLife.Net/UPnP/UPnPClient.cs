@@ -13,6 +13,7 @@ using NewLife.Net.Sockets;
 using NewLife.Net.Common;
 using NewLife.Reflection;
 using NewLife.Configuration;
+using NewLife.Net.Tcp;
 
 namespace NewLife.Net.UPnP
 {
@@ -36,11 +37,11 @@ namespace NewLife.Net.UPnP
             set { _Udp = value; }
         }
 
-        private Dictionary<IPAddress, InternetGatewayDevice> _Gateways;
+        private SortedList<String, InternetGatewayDevice> _Gateways;
         /// <summary>网关设备</summary>
-        public Dictionary<IPAddress, InternetGatewayDevice> Gateways
+        public SortedList<String, InternetGatewayDevice> Gateways
         {
-            get { return _Gateways ?? (_Gateways = new Dictionary<IPAddress, InternetGatewayDevice>()); }
+            get { return _Gateways ?? (_Gateways = new SortedList<String, InternetGatewayDevice>()); }
             //set { _Gateways = value; }
         }
         #endregion
@@ -63,6 +64,14 @@ namespace NewLife.Net.UPnP
         #endregion
 
         #region 发现
+        const String UPNP_DISCOVER = "" +
+            "M-SEARCH * HTTP/1.1\r\n" +
+            "HOST: 239.255.255.250:1900\r\n" +
+            "MAN: \"ssdp:discover\"\r\n" +
+            "MX: 3\r\n" +
+            "ST: UPnPClient:rootdevice\r\n" +
+            "\r\n\r\n";
+
         /// <summary>
         /// 开始
         /// </summary>
@@ -90,16 +99,7 @@ namespace NewLife.Net.UPnP
             //    return;
             //}
 
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("M-SEARCH * HTTP/1.1");
-            sb.AppendLine("HOST: 239.255.255.250:1900");
-            sb.AppendLine("MAN: \"ssdp:discover\"");
-            sb.AppendLine("MX: 3");
-            sb.AppendLine("ST: UPnPClient:rootdevice");
-            sb.AppendLine();
-            sb.AppendLine();
-
-            byte[] data = Encoding.ASCII.GetBytes(sb.ToString());
+            byte[] data = Encoding.ASCII.GetBytes(UPNP_DISCOVER);
             Udp.Client.EnableBroadcast = true;
             Udp.Send(data, remoteEP);
 
@@ -136,7 +136,7 @@ namespace NewLife.Net.UPnP
                 String xml = client.DownloadString(url);
 
                 Uri uri = new Uri(url);
-                AddGateway(NetHelper.ParseAddress(uri.Host), xml, false);
+                AddGateway(uri.Host, xml, false);
 
                 if (CacheGateway) File.WriteAllText(GetCacheFile(uri.Host), xml);
             }
@@ -147,7 +147,7 @@ namespace NewLife.Net.UPnP
             }
         }
 
-        void AddGateway(IPAddress address, String content, Boolean isCache)
+        void AddGateway(String address, String content, Boolean isCache)
         {
             //反序列化
             XmlSerializer serial = new XmlSerializer(typeof(InternetGatewayDevice));
@@ -189,15 +189,8 @@ namespace NewLife.Net.UPnP
             foreach (String item in ss)
             {
                 String ip = Path.GetFileNameWithoutExtension(item).Substring(cacheKey.Length).Trim(new Char[] { '_' });
-                IPAddress address = IPAddress.Any;
-                try
-                {
-                    address = NetHelper.ParseAddress(ip);
-                }
-                catch { continue; }
-                if (address == IPAddress.Any) continue;
 
-                AddGateway(address, File.ReadAllText(item), true);
+                AddGateway(ip, File.ReadAllText(item), true);
             }
         }
 
@@ -213,41 +206,41 @@ namespace NewLife.Net.UPnP
         #endregion
 
         #region 操作
-        /// <summary>
-        /// 添加映射端口
-        /// </summary>
-        /// <param name="RemoteHost">远程主机</param>
-        /// <param name="ExternalPort">外部端口</param>
-        /// <param name="Protocol">TCP或UDP</param>
-        /// <param name="InternalPort">内部端口</param>
-        /// <param name="InternalClient">本地IP地址</param>
-        /// <param name="Enabled">是否启用[0,1]</param>
-        /// <param name="Description">端口映射的描述</param>
-        /// <param name="Duration">映射的持续时间，用0表示不永久</param>
-        /// <returns>bool</returns>
-        public bool Add(String RemoteHost, Int32 ExternalPort, String Protocol, Int32 InternalPort, String InternalClient, Int32 Enabled, String Description, int? Duration)
-        {
-            if (IsPortCheck == true && GetMapByPortAndProtocol(null, ExternalPort, Protocol) != null)
-            {
-                XTrace.WriteLine(ExternalPort + "端口被占用");
-                return false;
-            }
-            String Command = XMLCommand.Add(RemoteHost, ExternalPort, Protocol, InternalPort, InternalClient, Enabled, Description, Duration);
-            return SOAPRequest(Command);
-        }
+        ///// <summary>
+        ///// 添加映射端口
+        ///// </summary>
+        ///// <param name="RemoteHost">远程主机</param>
+        ///// <param name="ExternalPort">外部端口</param>
+        ///// <param name="Protocol">TCP或UDP</param>
+        ///// <param name="InternalPort">内部端口</param>
+        ///// <param name="InternalClient">本地IP地址</param>
+        ///// <param name="Enabled">是否启用[0,1]</param>
+        ///// <param name="Description">端口映射的描述</param>
+        ///// <param name="Duration">映射的持续时间，用0表示不永久</param>
+        ///// <returns>bool</returns>
+        //public bool Add(String RemoteHost, Int32 ExternalPort, String Protocol, Int32 InternalPort, String InternalClient, Int32 Enabled, String Description, int? Duration)
+        //{
+        //    if (IsPortCheck == true && GetMapByPortAndProtocol(null, ExternalPort, Protocol) != null)
+        //    {
+        //        XTrace.WriteLine(ExternalPort + "端口被占用");
+        //        return false;
+        //    }
+        //    String Command = XMLCommand.Add(RemoteHost, ExternalPort, Protocol, InternalPort, InternalClient, Enabled, Description, Duration);
+        //    return SOAPRequest(Command);
+        //}
 
-        /// <summary>
-        /// 删除端口映射
-        /// </summary>
-        /// <param name="RemoteHost">远程主机</param>
-        /// <param name="ExternalPort">外部端口</param>
-        /// <param name="Protocol">TCP或UDP</param>
-        /// <returns></returns>
-        public bool Del(String RemoteHost, Int32 ExternalPort, String Protocol)
-        {
-            String Command = XMLCommand.Del(RemoteHost, ExternalPort, Protocol);
-            return SOAPRequest(Command);
-        }
+        ///// <summary>
+        ///// 删除端口映射
+        ///// </summary>
+        ///// <param name="RemoteHost">远程主机</param>
+        ///// <param name="ExternalPort">外部端口</param>
+        ///// <param name="Protocol">TCP或UDP</param>
+        ///// <returns></returns>
+        //public bool Del(String RemoteHost, Int32 ExternalPort, String Protocol)
+        //{
+        //    String Command = XMLCommand.Del(RemoteHost, ExternalPort, Protocol);
+        //    return SOAPRequest(Command);
+        //}
         #endregion
 
         #region 查找
@@ -258,51 +251,16 @@ namespace NewLife.Net.UPnP
         /// <param name="ExternalPort">外部端口</param>
         /// <param name="Protocol">TCP/UDP</param>
         /// <returns></returns>
-        public PortMappingEntry GetMapByPortAndProtocol(String RemoteHost, Int32 ExternalPort, String Protocol)
+        public static PortMappingEntry GetMapByPortAndProtocol(InternetGatewayDevice device, String RemoteHost, Int32 ExternalPort, String Protocol)
         {
-            String header = null;
-            String xml = null;
-            String cmd = XMLCommand.GetMapByPortAndProtocol(RemoteHost, ExternalPort, Protocol);
-
-            if (!SOAPRequest(cmd, out header, out xml)) return null;
-
-            //转为XML
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml(xml);
-
-            //设置命名空间
-            XmlNamespaceManager nsmgr = new XmlNamespaceManager(doc.NameTable);
-            nsmgr.AddNamespace("B", "http://schemas.xmlsoap.org/soap/envelope/");
-
-            //查询Body节点
-            XmlNode body = doc.SelectSingleNode("//B:Body", nsmgr);
-            if (body == null) return null;
-
-            Int32 ConvertInt;
             PortMappingEntry entity = new PortMappingEntry();
+            entity.Name = "GetSpecificPortMappingEntry";
             entity.NewRemoteHost = RemoteHost;
             entity.NewExternalPort = ExternalPort;
             entity.NewProtocol = Protocol;
 
-            XmlNode node = body.SelectSingleNode("//NewInternalPort");
-            if (node != null && Int32.TryParse(node.InnerText, out ConvertInt)) entity.NewInternalPort = ConvertInt;
-
-            node = body.SelectSingleNode("//NewInternalClient");
-            if (node != null) entity.NewInternalClient = node.InnerText;
-
-            node = body.SelectSingleNode("//NewEnabled");
-            if (node != null && Int32.TryParse(node.InnerText, out ConvertInt)) entity.NewEnabled = ConvertInt;
-
-            node = body.SelectSingleNode("//NewPortMappingDescription");
-            if (node != null) entity.NewPortMappingDescription = node.InnerText;
-
-            node = body.SelectSingleNode("//NewLeaseDuration");
-            if (node != null && Int32.TryParse(node.InnerText, out ConvertInt)) entity.NewLeaseDuration = ConvertInt;
-
-            //XmlSerializer serial = new XmlSerializer(typeof(Envelope));
-            //StringReader reader = new StringReader(Document);
-            //Envelope PME = serial.Deserialize(reader) as Envelope;
-            return entity;
+            PortMappingEntry response = Request<PortMappingEntry>(device, entity);
+            return response;
         }
 
         /// <summary>
@@ -310,146 +268,154 @@ namespace NewLife.Net.UPnP
         /// </summary>
         /// <param name="index">索引</param>
         /// <returns></returns>
-        public PortMappingEntry GetMapByIndex(Int32 index)
+        public static PortMappingEntry GetMapByIndex(InternetGatewayDevice device, Int32 index)
         {
-            String Header = null;
-            String Document = null;
+            PortMappingEntryRequest entity = new PortMappingEntryRequest();
+            entity.Name = "GetGenericPortMappingEntry";
+            entity.NewPortMappingIndex = index;
 
-            //String Command = XMLCommand.GetMapByIndex(PortMappingIndex);
-            String Xmlns = IGD.device.deviceList[0].deviceList[0].serviceList[0].serviceType;
-            //StringBuilder sb = new StringBuilder();
-            //sb.AppendLine("<u:GetGenericPortMappingEntry xmlns:u= \"" + Xmlns + "\">");
-            //sb.AppendLine("<NewPortMappingIndex>" + index + "</NewPortMappingIndex>");
-            //sb.AppendLine("<NewRemoteHost></NewRemoteHost>");
-            //sb.AppendLine("<NewExternalPort></NewExternalPort>");
-            //sb.AppendLine("<NewProtocol></NewProtocol>");
-            //sb.AppendLine("<NewInternalPort></NewInternalPort>");
-            //sb.AppendLine("<NewInternalClient></NewInternalClient>");
-            //sb.AppendLine("<NewEnabled></NewEnabled>");
-            //sb.AppendLine("<NewPortMappingDescription></NewPortMappingDescription>");
-            //sb.AppendLine("<NewLeaseDuration></NewLeaseDuration>");
-            //sb.AppendLine("</u:GetGenericPortMappingEntry>");
-
-            PortMappingEntryClient entry = new PortMappingEntryClient();
-            entry.NewPortMappingIndex = index;
-            String Command = SerialRequest(entry, "u", Xmlns);
-
-            if (!SOAPRequest(Command, out Header, out Document)) return null;
-
-            //转为XML
-            XmlDocument xml = new XmlDocument();
-            xml.LoadXml(Document);
-
-            //设置命名空间
-            XmlNamespaceManager nsmgr = new XmlNamespaceManager(xml.NameTable);
-            nsmgr.AddNamespace("B", "http://schemas.xmlsoap.org/soap/envelope/");
-
-            //查询Body节点
-            XmlNodeList BodyNode = xml.SelectNodes("//B:Body", nsmgr);
-
-            if (BodyNode.Count == 0) return null;
-
-            Int32 ConvertInt;
-            XmlNodeList Child;
-            PortMappingEntry PM = new PortMappingEntry();
-            Child = BodyNode[0].SelectNodes("//NewRemoteHost");
-            if (Child.Count > 0) PM.NewRemoteHost = Child[0].InnerText;
-            Child = BodyNode[0].SelectNodes("//NewExternalPort");
-            if (Child.Count > 0 && Int32.TryParse(Child[0].InnerText, out ConvertInt)) PM.NewExternalPort = ConvertInt;
-            Child = BodyNode[0].SelectNodes("//NewProtocol");
-            if (Child.Count > 0) PM.NewProtocol = Child[0].InnerText;
-            Child = BodyNode[0].SelectNodes("//NewInternalPort");
-            if (Child.Count > 0 && Int32.TryParse(Child[0].InnerText, out ConvertInt)) PM.NewInternalPort = ConvertInt;
-            Child = BodyNode[0].SelectNodes("//NewInternalClient");
-            if (Child.Count > 0) PM.NewInternalClient = Child[0].InnerText;
-            Child = BodyNode[0].SelectNodes("//NewEnabled");
-            if (Child.Count > 0 && Int32.TryParse(Child[0].InnerText, out ConvertInt)) PM.NewEnabled = ConvertInt;
-            Child = BodyNode[0].SelectNodes("//NewPortMappingDescription");
-            if (Child.Count > 0) PM.NewPortMappingDescription = Child[0].InnerText;
-            Child = BodyNode[0].SelectNodes("//NewLeaseDuration");
-            if (Child.Count > 0 && Int32.TryParse(Child[0].InnerText, out ConvertInt)) PM.NewLeaseDuration = ConvertInt;
-
-            //XmlSerializer serial = new XmlSerializer(typeof(Envelope));
-            //StringReader reader = new StringReader(Document);
-            //Envelope PME = serial.Deserialize(reader) as Envelope;
-            return PM;
+            PortMappingEntry response = Request<PortMappingEntry>(device, entity);
+            return response;
         }
-
-        //上次获取的时间
-        private static DateTime GetAllMapDate;
-        private static Int32 GetAllMaxSeconds = 60;
-        private static List<PortMappingEntry> _GetMapByIndexAll;
 
         /// <summary>
         /// 获取所有端口映射信息
         /// </summary>
         /// <returns></returns>
-        public List<PortMappingEntry> GetMapByIndexAll()
+        public static List<PortMappingEntry> GetMapByIndexAll(InternetGatewayDevice device)
         {
-            if (GetAllMapDate.AddSeconds(GetAllMaxSeconds) >= DateTime.Now) return _GetMapByIndexAll;
-            GetAllMapDate = DateTime.Now;
-            Int32 i = 0;
-            List<PortMappingEntry> Return = new List<PortMappingEntry>();
-            PortMappingEntry Item;
+            List<PortMappingEntry> list = new List<PortMappingEntry>();
+            PortMappingEntry item;
             while (true)
             {
-                Item = GetMapByIndex(i);
-                if (Item == null) break;
-                Return.Add(Item);
-                i++;
+                item = GetMapByIndex(device, list.Count);
+                if (item == null) break;
+                list.Add(item);
             }
-            _GetMapByIndexAll = Return;
-            return _GetMapByIndexAll;
+            return list;
         }
+        #endregion
 
-        public bool SOAPRequest(String Command)
+        #region 设备/服务
+        /// <summary>
+        /// 获取指定设备指定类型的服务
+        /// </summary>
+        /// <param name="device"></param>
+        /// <param name="serviceType"></param>
+        /// <returns></returns>
+        public static Service GetService(Device device, String serviceType)
         {
-            String Header = null;
-            String Document = null;
-            return SOAPRequest(Command, out Header, out Document);
+            if (device == null || device.serviceList == null || device.serviceList.Count < 1) return null;
+
+            foreach (Service item in device.serviceList)
+            {
+                if (String.Equals(item.serviceType, serviceType, StringComparison.OrdinalIgnoreCase))
+                {
+                    return item;
+                }
+            }
+
+            if (device.deviceList == null || device.deviceList.Count < 1) return null;
+
+            foreach (Device item in device.deviceList)
+            {
+                Service service = GetService(item, serviceType);
+                if (service != null) return service;
+            }
+
+            return null;
         }
 
         /// <summary>
-        /// 发送请求
+        /// 取得广域网IP连接设备
         /// </summary>
-        /// <param name="Command">请求</param>
-        /// <param name="Header">返回Header</param>
-        /// <param name="Document">返回正文</param>
+        /// <param name="device"></param>
         /// <returns></returns>
-        public bool SOAPRequest(String Command, out String Header, out String Document)
+        public static Service GetWANIPService(Device device)
         {
-            TcpClient Client = new TcpClient(IGD.ServerHost, IGD.ServerPort);
-            NetworkStream Stream = Client.GetStream();
-            byte[] data = Encoding.ASCII.GetBytes(Command);
-            Stream.Write(data, 0, data.Length);
-            byte[] buffer = new byte[1024];
-            Int32 Count;
-            String Read;
-            Header = null;
-            Document = null;
-            for (Int32 i = 1; i <= 10; i++)
-            {
-                if (Stream.DataAvailable == true)
-                {
-                    Count = Stream.Read(buffer, 0, buffer.Length);
-                    Read = Encoding.ASCII.GetString(buffer, 0, Count);
-                    if (Read.IndexOf("200 OK") > -1)
-                    {
-                        //out
-                        Int32 IndexOf = Read.IndexOf("\r\n\r\n");
-                        Header = Read.Substring(0, IndexOf);
-                        Document = Read.Substring(IndexOf + 4, Read.Length - IndexOf - 4);
-                        return true;
-                    }
-                    else
-                        return false;
-                }
-                //等待数据
-                Thread.Sleep(100);
-            }
+            return GetService(device, "urn:schemas-upnp-org:service:WANIPConnection:1");
+        }
+        #endregion
 
-            //超时
-            return false;
+        #region SOAP
+        static TResponse Request<TResponse>(InternetGatewayDevice device, UPnPAction action) where TResponse : UPnPAction<TResponse>, new()
+        {
+            if (device == null || device.device == null || action == null) return null;
+
+            Service service = GetWANIPService(device.device);
+            if (service == null) return null;
+
+            Uri uri = new Uri(String.Format("http://{0}:{1}{2}", device.ServerHost, device.ServerPort, service.controlURL));
+
+            String xml = action.ToSoap(service.serviceType);
+            xml = SOAPRequest(uri, service.serviceType + "#" + action.Name, xml);
+
+            TResponse response = UPnPAction<TResponse>.FromXml(xml);
+
+            return response;
+        }
+
+        /// <summary>
+        /// SOAP头部
+        /// </summary>
+        const String SOAP_HEADER = "" +
+            "POST {0} HTTP/1.1\r\n" +
+            "HOST: {1}\r\n" +
+            "SOAPACTION: \"{2}\"\r\n" +
+            "CONTENT-TYPE: text/xml ; charset=\"utf-8\"\r\n" +
+            "Content-Length: {3}" +
+            "\r\n\r\n";
+        ///// <summary>
+        ///// SOAP主体
+        ///// </summary>
+        //const String SOAP_BODY = "" +
+        //    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
+        //    "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">\r\n" +
+        //    "<s:Body>\r\n" +
+        //    "{0}\r\n" +
+        //    "</s:Body>\r\n" +
+        //    "</s:Envelope>\r\n";
+
+        /// <summary>
+        /// 发送SOAP请求，发送xml，返回xml
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="action"></param>
+        /// <param name="xml"></param>
+        /// <returns></returns>
+        static String SOAPRequest(Uri uri, String action, String xml)
+        {
+            //String body = String.Format(SOAP_BODY, xml);
+            String header = String.Format(SOAP_HEADER, uri.PathAndQuery, uri.Host + ":" + uri.Port, action, Encoding.UTF8.GetByteCount(xml));
+
+            TcpClientX client = new TcpClientX();
+            try
+            {
+                client.Connect(uri.Host, uri.Port);
+                client.Send(header + xml);
+
+                String response = client.ReceiveString();
+                if (String.IsNullOrEmpty(response)) return null;
+
+                Int32 p = response.IndexOf("\r\n\r\n");
+                if (p < 0) return null;
+
+                response = response.Substring(p).Trim();
+                if (String.IsNullOrEmpty(response)) response = client.ReceiveString();
+
+                Envelope env = null;
+                XmlSerializer serial = new XmlSerializer(typeof(Envelope));
+                using (StringReader reader = new StringReader(response))
+                {
+                    env = serial.Deserialize(reader) as Envelope;
+                }
+                if (env == null || env.Body == null) return null;
+
+                if (!String.IsNullOrEmpty(env.Body.Fault)) throw env.Body.ThrowException();
+
+                return env.Body.Xml;
+            }
+            finally { client.Dispose(); }
         }
         #endregion
 

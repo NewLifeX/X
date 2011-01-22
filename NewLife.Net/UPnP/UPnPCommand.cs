@@ -10,9 +10,9 @@ namespace NewLife.Net.UPnP
     public class UPnPCommand : SoapHttpClientProtocol
     {
         [SoapDocumentMethod("urn:schemas-upnp-org:service:WANIPConnection:1#GetGenericPortMappingEntry", RequestNamespace = "urn:schemas-upnp-org:service:WANIPConnection:1", ParameterStyle = SoapParameterStyle.Bare)]
-        public PortMappingEntry2 GetGenericPortMappingEntry(PortMappingEntryClient entry)
+        public PortMappingEntry GetGenericPortMappingEntry(PortMappingEntryRequest entry)
         {
-            return Invoke("GetGenericPortMappingEntry", new Object[] { entry })[0] as PortMappingEntry2;
+            return Invoke("GetGenericPortMappingEntry", new Object[] { entry })[0] as PortMappingEntry;
         }
     }
 }

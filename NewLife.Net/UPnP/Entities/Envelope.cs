@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Xml.Serialization;
+using System.Xml.Schema;
+using System.Xml;
+using NewLife.Exceptions;
 
 namespace NewLife.Net.UPnP
 {
@@ -11,16 +14,80 @@ namespace NewLife.Net.UPnP
     [Serializable, XmlRoot("Envelope", Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
     public class Envelope
     {
+        //private String _encodingStyle = "http://schemas.xmlsoap.org/soap/encoding/";
+        ///// <summary>属性说明</summary>
+        //[XmlAttribute("encodingStyle", Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
+        //public String encodingStyle
+        //{
+        //    get { return _encodingStyle; }
+        //    set { _encodingStyle = value; }
+        //}
 
-        private List<PortMappingEntry> _Body;
+        private EnvelopeBody _Body;
         /// <summary>属性说明</summary>
-        [XmlArray("Body", Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
-        [XmlArrayItem("GetGenericPortMappingEntryResponse",Namespace="urn:schemas-upnp-org:service:WANIPConnection:1")]
-        public List<PortMappingEntry> Body
+        [XmlElement("Body", Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
+        public EnvelopeBody Body
         {
             get { return _Body; }
             set { _Body = value; }
         }
-        
+
+        public class EnvelopeBody : IXmlSerializable
+        {
+            private String _Xml;
+            /// <summary>Xml文档</summary>
+            public String Xml
+            {
+                get { return _Xml; }
+                set { _Xml = value; }
+            }
+
+            private String _Fault;
+            /// <summary>失败</summary>
+            public String Fault
+            {
+                get { return _Fault; }
+                set { _Fault = value; }
+            }
+
+            public XmlSchema GetSchema()
+            {
+                return null;
+            }
+
+            public void ReadXml(XmlReader reader)
+            {
+                String prefix = reader.Prefix;
+
+                String xml = reader.ReadInnerXml();
+                if (xml.StartsWith("<Fault") || xml.StartsWith("<" + prefix + ":Fault"))
+                    Fault = xml;
+                else
+                    Xml = xml;
+            }
+
+            public void WriteXml(XmlWriter writer)
+            {
+                writer.WriteRaw(Xml);
+            }
+
+            public Exception ThrowException()
+            {
+                if (String.IsNullOrEmpty(Fault)) return null;
+
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(Fault);
+
+                String msg = "UPnP Error";
+
+                //XmlNamespaceManager mgr = new XmlNamespaceManager(doc.NameTable);
+                //mgr.AddNamespace(doc.DocumentElement.Prefix, doc.DocumentElement.NamespaceURI);
+                //XmlNode node = doc.SelectSingleNode("//errordescription", mgr);
+                XmlNode node = doc.SelectSingleNode("/*/*/*/*[last()]");
+                if (node != null) msg = node.InnerText;
+
+                throw new XException(msg);
+            }
+        }
     }
 }

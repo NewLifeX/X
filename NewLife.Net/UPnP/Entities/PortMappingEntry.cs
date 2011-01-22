@@ -6,14 +6,27 @@ using System.Xml.Serialization;
 namespace NewLife.Net.UPnP
 {
     /// <summary>
-    /// PortMappingEntry
+    /// 端口映射实体
     /// </summary>
-    public class PortMappingEntry
+    public class PortMappingEntryRequest : PortMappingEntry
+    {
+        private Int32 _NewPortMappingIndex;
+        /// <summary>索引</summary>
+        public Int32 NewPortMappingIndex
+        {
+            get { return _NewPortMappingIndex; }
+            set { _NewPortMappingIndex = value; }
+        }
+    }
+
+    /// <summary>
+    /// 端口映射实体
+    /// </summary>
+    public class PortMappingEntry : UPnPAction<PortMappingEntry>
     {
 
         private String _NewRemoteHost;
         /// <summary>远程主机</summary>
-        [XmlElement(Namespace = "")]
         public String NewRemoteHost
         {
             get { return _NewRemoteHost; }
@@ -22,7 +35,6 @@ namespace NewLife.Net.UPnP
 
         private Int32 _NewExternalPort;
         /// <summary>外部端口</summary>
-        [XmlElement(Namespace = "")]
         public Int32 NewExternalPort
         {
             get { return _NewExternalPort; }
@@ -31,7 +43,6 @@ namespace NewLife.Net.UPnP
 
         private String _NewProtocol;
         /// <summary>TCP/UDP</summary>
-        [XmlElement(Namespace = "")]
         public String NewProtocol
         {
             get { return _NewProtocol; }
@@ -40,7 +51,6 @@ namespace NewLife.Net.UPnP
 
         private Int32 _NewInternalPort;
         /// <summary>内部端口</summary>
-        [XmlElement(Namespace = "")]
         public Int32 NewInternalPort
         {
             get { return _NewInternalPort; }
@@ -49,7 +59,6 @@ namespace NewLife.Net.UPnP
 
         private String _NewInternalClient;
         /// <summary>主机IP</summary>
-        [XmlElement(Namespace = "")]
         public String NewInternalClient
         {
             get { return _NewInternalClient; }
@@ -58,7 +67,6 @@ namespace NewLife.Net.UPnP
 
         private Int32 _NewEnabled;
         /// <summary>是否启用</summary>
-        [XmlElement(Namespace = "")]
         public Int32 NewEnabled
         {
             get { return _NewEnabled; }
@@ -67,7 +75,6 @@ namespace NewLife.Net.UPnP
 
         private String _NewPortMappingDescription;
         /// <summary>描述</summary>
-        [XmlElement(Namespace = "")]
         public String NewPortMappingDescription
         {
             get { return _NewPortMappingDescription; }
@@ -76,7 +83,6 @@ namespace NewLife.Net.UPnP
 
         private Int32 _NewLeaseDuration;
         /// <summary>有效期</summary>
-        [XmlElement(Namespace = "")]
         public Int32 NewLeaseDuration
         {
             get { return _NewLeaseDuration; }
