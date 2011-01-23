@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using NewLife.CommonEntity;
 
 public partial class window_SelectArea : System.Web.UI.Page
 {
@@ -27,16 +28,16 @@ public partial class window_SelectArea : System.Web.UI.Page
         if (!IsPostBack)
         {
 
-            //List<Area> list = Area.FindAllByParent(0);
-            //if (list == null) list = new List<Area>();
-            //Area entity = new Area();
-            //entity.Name = "--请选择--";
-            //list.Insert(0, entity);
-            //DropDownList1.DataSource = list;
-            //DropDownList1.DataTextField = "Name";
-            //DropDownList1.DataValueField = "Code";
-            //DropDownList1.DataBind();
-            //DropDownList1.SelectedIndex = 0;
+            List<Area> list = Area.FindAllByParent(0);
+            if (list == null) list = new List<Area>();
+            Area entity = new Area();
+            entity.Name = "--请选择--";
+            list.Insert(0, entity);
+            DropDownList1.DataSource = list;
+            DropDownList1.DataTextField = "Name";
+            DropDownList1.DataValueField = "Code";
+            DropDownList1.DataBind();
+            DropDownList1.SelectedIndex = 0;
 
             //if (areacode > 1)
             //{
@@ -76,9 +77,9 @@ public partial class window_SelectArea : System.Web.UI.Page
 
     private void DropDownList2_DataBind(int code)
     {
-        //DropDownList2.DataSource = Area.FindAllByParent(code, "--请选择--");
-        //DropDownList2.DataTextField = "Name";
-        //DropDownList2.DataValueField = "Code";
-        //DropDownList2.DataBind();
+        DropDownList2.DataSource = Area.FindAllByParent(code);
+        DropDownList2.DataTextField = "Name";
+        DropDownList2.DataValueField = "Code";
+        DropDownList2.DataBind();
     }
 }

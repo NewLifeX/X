@@ -12,7 +12,7 @@
 
         function onsel() {
             //debugger;
-            var ret = $('<%= DropDownList2.ClientID %>').value + '|||' + $('<%= DropDownList2.ClientID %>').value;
+            var ret = $('<%= DropDownList2.ClientID %>').value + '|||' + $('<%= DropDownList2.ClientID %>').text;
             alert(ret);
             window.returnValue = ret;
             window.close();
