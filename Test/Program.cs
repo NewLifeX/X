@@ -19,6 +19,7 @@ using System.Xml;
 using System.Text;
 using NewLife.Net.UPnP;
 using System.Web.Services.Protocols;
+using NewLife;
 
 namespace Test
 {
@@ -362,8 +363,23 @@ namespace Test
             //Console.WriteLine(Command);
 
             UPnPClient client = new UPnPClient();
+            client.OnNewDevice += delegate(object sender, EventArgs<InternetGatewayDevice, bool> e)
+            {
+                PortMappingEntry entity = null;
+                for (int i = 0; i < 100; i++)
+                {
+                    try
+                    {
+                        entity = UPnPClient.GetMapByIndex(e.Arg1, i);
+                    }
+                    catch { break; }
+                    if (entity == null) break;
+
+                    Console.WriteLine("{0} {1} {2} {3} {4} {5}", entity.NewPortMappingDescription, entity.NewExternalPort, entity.NewProtocol, entity.NewInternalClient, entity.NewInternalPort, entity.NewEnabled);
+                }
+            };
             client.StartDiscover();
-            UPnPClient.GetMapByIndex(client.Gateways.Values[0], 0);
+            //UPnPClient.GetMapByIndex(client.Gateways.Values[0], 0);
 
             //client.GetMapByIndexAll();
             //PortMappingEntry pm = client.GetMapByIndex(0);
