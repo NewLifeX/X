@@ -10,6 +10,8 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
 {
     protected void Page_Load(object sender, EventArgs e)
     {
+        lbResult.Text = null;
+
         if (!IsPostBack)
         {
             if (DAL.ConnStrs != null && DAL.ConnStrs.Count > 0)
@@ -81,16 +83,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         DAL dal = GetDAL();
         if (dal == null) return;
 
-        IList<XTable> tables = dal.Tables;
-        XTable table = null;
-        foreach (XTable item in tables)
-        {
-            if (item.Name == ddlTable.SelectedValue)
-            {
-                table = item;
-                break;
-            }
-        }
+        XTable table = dal.Tables.Find(delegate(XTable item) { return item.Name == ddlTable.SelectedValue; });
         if (table == null) return;
 
         gvTable.DataSource = table.Fields;
@@ -114,12 +107,10 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         DataTable rdt = null;
         try
         {
+            // SQLite不支持该集合
             rdt = dal.DB.GetSchema(DbMetaDataCollectionNames.Restrictions, null);
         }
-        catch (Exception ex)
-        {
-            lbResult.Text = ex.Message;
-        }
+        catch { }
 
         if (rdt != null)
         {
@@ -140,8 +131,6 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         {
             gvTable.DataSource = dt;
             gvTable.DataBind();
-
-            // 自动增加约束条件
         }
     }
 
@@ -161,10 +150,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         {
             rdt = dal.DB.GetSchema(DbMetaDataCollectionNames.Restrictions, null);
         }
-        catch (Exception ex)
-        {
-            lbResult.Text = ex.Message;
-        }
+        catch { }
 
         if (rdt != null)
         {
