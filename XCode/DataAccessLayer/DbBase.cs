@@ -103,6 +103,25 @@ namespace XCode.DataAccessLayer
             get { return _Owner; }
             set { _Owner = value; }
         }
+
+        //private String _ServerVersion;
+        ///// <summary>
+        ///// 数据库服务器版本
+        ///// </summary>
+        //public String ServerVersion
+        //{
+        //    get
+        //    {
+        //        if (_ServerVersion != null) return _ServerVersion;
+        //        _ServerVersion = "";
+
+        //        IDbSession session = CreateSession();
+        //        if (!session.Opened) session.Open();
+        //        _ServerVersion = session.Conn.ServerVersion;
+        //        session.AutoClose();
+        //        return _ServerVersion;
+        //    }
+        //}
         #endregion
 
         #region 方法

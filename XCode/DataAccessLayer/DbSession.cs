@@ -58,10 +58,10 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 返回数据库类型。外部DAL数据库类请使用Other
         /// </summary>
-        public DatabaseType DbType { get { return Database.DbType; } }
+        private DatabaseType DbType { get { return Database.DbType; } }
 
         /// <summary>工厂</summary>
-        public DbProviderFactory Factory { get { return Database.Factory; } }
+        private DbProviderFactory Factory { get { return Database.Factory; } }
 
         private String _ConnectionString;
         /// <summary>链接字符串</summary>
@@ -109,19 +109,19 @@ namespace XCode.DataAccessLayer
             set { _ExecuteTimes = value; }
         }
 
-        /// <summary>
-        /// 数据库服务器版本
-        /// </summary>
-        public String ServerVersion
-        {
-            get
-            {
-                if (!Opened) Open();
-                String ver = Conn.ServerVersion;
-                AutoClose();
-                return ver;
-            }
-        }
+        ///// <summary>
+        ///// 数据库服务器版本
+        ///// </summary>
+        //public String ServerVersion
+        //{
+        //    get
+        //    {
+        //        if (!Opened) Open();
+        //        String ver = Conn.ServerVersion;
+        //        AutoClose();
+        //        return ver;
+        //    }
+        //}
         #endregion
 
         #region 打开/关闭

@@ -36,20 +36,15 @@ namespace XCode.DataAccessLayer
         /// 执行次数
         /// </summary>
         Int32 ExecuteTimes { get; set; }
-
-        /// <summary>
-        /// 数据库服务器版本
-        /// </summary>
-        String ServerVersion { get; }
         #endregion
 
         #region 打开/关闭
-        /// <summary>
-        /// 是否自动关闭。
-        /// 启用事务后，该设置无效。
-        /// 在提交或回滚事务时，如果IsAutoClose为true，则会自动关闭
-        /// </summary>
-        bool IsAutoClose { get; set; }
+        ///// <summary>
+        ///// 是否自动关闭。
+        ///// 启用事务后，该设置无效。
+        ///// 在提交或回滚事务时，如果IsAutoClose为true，则会自动关闭
+        ///// </summary>
+        //bool IsAutoClose { get; set; }
 
         /// <summary>
         /// 连接是否已经打开

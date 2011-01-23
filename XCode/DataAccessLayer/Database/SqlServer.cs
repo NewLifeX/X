@@ -903,7 +903,10 @@ namespace XCode.DataAccessLayer
                     }
 
                     //取数据库版本
-                    String ver = session.ServerVersion;
+                    if (!session.Opened) session.Open();
+                    String ver = session.Conn.ServerVersion;
+                    session.AutoClose();
+
                     _IsSQL2005 = !ver.StartsWith("08");
 
                     if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
