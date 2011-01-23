@@ -246,59 +246,6 @@ namespace XCode.DataAccessLayer
                 return _PrimaryKeys;
             }
         }
-
-        #region 字段类型到数据类型对照表
-        //public override Type FieldTypeToClassType(String type)
-        //{
-        //    switch (type)
-        //    {
-        //        case "text":
-        //        case "uniqueidentifier":
-        //        case "ntext":
-        //        case "varchar":
-        //        case "char":
-        //        case "timestamp":
-        //        case "nvarchar":
-        //        case "nchar":
-        //            return typeof(String);
-        //        case "bit":
-        //            return typeof(Boolean);
-        //        case "tinyint":
-        //        case "smallint":
-        //            return typeof(Int16);
-        //        case "int":
-        //        case "numeric":
-        //            return typeof(Int32);
-        //        case "bigint":
-        //            return typeof(Int64);
-        //        case "decimal":
-        //        case "money":
-        //        case "smallmoney":
-        //            return typeof(Decimal);
-        //        case "smallldatetime":
-        //        case "datetime":
-        //            return typeof(DateTime);
-        //        case "real":
-        //        case "float":
-        //            return typeof(Double);
-        //        case "image":
-        //        case "sql_variant":
-        //        case "varbinary":
-        //        case "binary":
-        //        case "systemname":
-        //            return typeof(Byte[]);
-        //        default:
-        //            return typeof(String);
-        //    }
-        //    //if (type.Equals("Int32", StringComparison.OrdinalIgnoreCase)) return "Int32";
-        //    //if (type.Equals("varchar", StringComparison.OrdinalIgnoreCase)) return "String";
-        //    //if (type.Equals("text", StringComparison.OrdinalIgnoreCase)) return "String";
-        //    //if (type.Equals("double", StringComparison.OrdinalIgnoreCase)) return "Double";
-        //    //if (type.Equals("datetime", StringComparison.OrdinalIgnoreCase)) return "DateTime";
-        //    //if (type.Equals("Int32", StringComparison.OrdinalIgnoreCase)) return "Int32";
-        //    //if (type.Equals("Int32", StringComparison.OrdinalIgnoreCase)) return "Int32";
-        //    //throw new Exception("Error");
-        //}
         #endregion
 
         #region 取得字段信息的SQL模版
@@ -865,7 +812,6 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
         #endregion
-        #endregion
     }
 
     class SqlServer : DbBase<SqlServer, SqlServerSession>
@@ -929,7 +875,7 @@ namespace XCode.DataAccessLayer
         /// <param name="maximumRows">最大返回行数</param>
         /// <param name="keyColumn">唯一键。用于not in分页</param>
         /// <returns>分页SQL</returns>
-        public override String PageSplit(string sql, Int32 startRowIndex, Int32 maximumRows, string keyColumn)
+        public override String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0 && maximumRows < 1) return sql;
