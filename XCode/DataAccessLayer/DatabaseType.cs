@@ -30,6 +30,11 @@ namespace XCode.DataAccessLayer
         MySql = 3,
 
         /// <summary>
+        /// SqlCe数据库
+        /// </summary>
+        SqlCe = 4,
+
+        /// <summary>
         /// SQLite数据库
         /// </summary>
         SQLite = 5,

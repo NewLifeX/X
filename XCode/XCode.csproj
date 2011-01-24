@@ -86,6 +86,7 @@
     <Compile Include="Code\EntityClassBiz.cs" />
     <Compile Include="Common\FileSource.cs" />
     <Compile Include="DataAccessLayer\DatabaseType.cs" />
+    <Compile Include="DataAccessLayer\Database\SqlCe.cs" />
     <Compile Include="DataAccessLayer\DbSession_DDL.cs" />
     <Compile Include="DataAccessLayer\DbBase.cs" />
     <Compile Include="DataAccessLayer\DbSession_Schema.cs" />
