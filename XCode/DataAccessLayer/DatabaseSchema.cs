@@ -23,6 +23,14 @@ namespace XCode.DataAccessLayer
             private set { _Database = value; }
         }
 
+        private IDbSession _Session;
+        /// <summary>数据库会话</summary>
+        public IDbSession Session
+        {
+            get { return _Session ?? (_Session = Database.Session); }
+            //set { _Session = value; }
+        }
+
         private List<Type> _Entities;
         /// <summary>实体集合</summary>
         public List<Type> Entities
@@ -84,7 +92,7 @@ namespace XCode.DataAccessLayer
                 {
                     if (_DBTables != null) return _DBTables;
 
-                    List<XTable> list = Database.DB.GetTables();
+                    List<XTable> list = Session.GetTables();
 
                     _DBTables = new Dictionary<String, XTable>();
                     if (list != null && list.Count > 0)
@@ -202,12 +210,12 @@ namespace XCode.DataAccessLayer
             WriteLog("开始检查数据架构：" + Database.ConnName);
 
             //数据库检查
-            Boolean dbExist = (Boolean)Database.DB.SetSchema(DDLSchema.DatabaseExist, null);
+            Boolean dbExist = (Boolean)Session.SetSchema(DDLSchema.DatabaseExist, null);
 
             if (!dbExist)
             {
                 XTrace.WriteLine("创建数据库：{0}", Database.ConnName);
-                Database.DB.SetSchema(DDLSchema.CreateDatabase, null, null);
+                Session.SetSchema(DDLSchema.CreateDatabase, null, null);
             }
 
             if (Entities == null || Entities.Count < 1)
@@ -286,12 +294,12 @@ namespace XCode.DataAccessLayer
                     {
                         XTrace.WriteLine("创建表：" + entitytable.Name);
                         //建表
-                        Database.DB.SetSchema(DDLSchema.CreateTable, new Object[] { entitytable });
+                        Session.SetSchema(DDLSchema.CreateTable, new Object[] { entitytable });
                     }
                     else
                     {
                         StringBuilder sb = new StringBuilder();
-                        sb.AppendLine(Database.DB.GetSchemaSQL(DDLSchema.CreateTable, new Object[] { entitytable }) + ";");
+                        sb.AppendLine(Session.GetSchemaSQL(DDLSchema.CreateTable, new Object[] { entitytable }) + ";");
 
                         sql = sb.ToString();
                         XTrace.WriteLine("DatabaseSchema_Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sql);
@@ -527,12 +535,12 @@ namespace XCode.DataAccessLayer
             return table;
         }
 
-        private static AccessSession ac ;//= new AccessSession();
-        private static SqlServerSession sq ;//= new SqlServerSession();
+        private static AccessSession ac;//= new AccessSession();
+        private static SqlServerSession sq;//= new SqlServerSession();
 
         private void GetSchemaSQL(StringBuilder sb, DDLSchema schema, Object[] values, Boolean onlySql)
         {
-            String sql = Database.DB.GetSchemaSQL(schema, values);
+            String sql = Session.GetSchemaSQL(schema, values);
             if (!String.IsNullOrEmpty(sql))
             {
                 if (sb.Length > 0) sb.AppendLine(";");
@@ -558,7 +566,7 @@ namespace XCode.DataAccessLayer
             {
                 try
                 {
-                    Database.DB.SetSchema(schema, values);
+                    Session.SetSchema(schema, values);
                 }
                 catch (Exception ex)
                 {

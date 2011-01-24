@@ -353,7 +353,7 @@ namespace XCode
             /// <returns></returns>
             public static String FormatKeyWord(String name)
             {
-                return DBO.DB.Database.FormatKeyWord(name);
+                return DBO.Db.FormatKeyWord(name);
             }
 
             /// <summary>
@@ -363,7 +363,7 @@ namespace XCode
             /// <returns></returns>
             public static String FormatDateTime(DateTime dateTime)
             {
-                return DBO.DB.Database.FormatDateTime(dateTime);
+                return DBO.Db.FormatDateTime(dateTime);
             }
             #endregion
 
@@ -483,7 +483,7 @@ namespace XCode
                     //if (_Count <= 1000)
                     //    _Count = QueryCount(SQL(null, DataObjectMethodType.Fill));
                     //else
-                    _Count = DBO.DB.QueryCountFast(TableName);
+                    _Count = DBO.Session.QueryCountFast(TableName);
                     return _Count.Value;
                 }
             }

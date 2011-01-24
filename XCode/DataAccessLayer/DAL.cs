@@ -417,7 +417,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
 
-                String s = DB.Database.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
+                String s = Db.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
                 _PageSplitCache.Add(cacheKey, s);
                 return s;
             }
@@ -446,7 +446,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
 
-                String s = DB.Database.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
+                String s = Db.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
                 _PageSplitCache.Add(cacheKey, s);
                 return s;
             }
@@ -463,7 +463,7 @@ namespace XCode.DataAccessLayer
             String cacheKey = sql + "_" + ConnName;
             if (EnableCache && XCache.Contain(cacheKey)) return XCache.Item(cacheKey);
             Interlocked.Increment(ref _QueryTimes);
-            DataSet ds = DB.Query(sql);
+            DataSet ds = Session.Query(sql);
             if (EnableCache) XCache.Add(cacheKey, ds, tableNames);
             return ds;
         }
@@ -525,7 +525,7 @@ namespace XCode.DataAccessLayer
             String cacheKey = sql + "_SelectCount" + "_" + ConnName;
             if (EnableCache && XCache.IntContain(cacheKey)) return XCache.IntItem(cacheKey);
             Interlocked.Increment(ref _QueryTimes);
-            Int32 rs = DB.QueryCount(sql);
+            Int32 rs = Session.QueryCount(sql);
             if (EnableCache) XCache.Add(cacheKey, rs, tableNames);
             return rs;
         }
@@ -580,7 +580,7 @@ namespace XCode.DataAccessLayer
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
             Interlocked.Increment(ref _ExecuteTimes);
-            return DB.Execute(sql);
+            return Session.Execute(sql);
         }
 
         /// <summary>
@@ -605,7 +605,7 @@ namespace XCode.DataAccessLayer
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
             Interlocked.Increment(ref _ExecuteTimes);
-            return DB.InsertAndGetIdentity(sql);
+            return Session.InsertAndGetIdentity(sql);
         }
 
         /// <summary>
@@ -630,9 +630,9 @@ namespace XCode.DataAccessLayer
             String cacheKey = cmd.CommandText + "_" + ConnName;
             if (EnableCache && XCache.Contain(cacheKey)) return XCache.Item(cacheKey);
             Interlocked.Increment(ref _QueryTimes);
-            DataSet ds = DB.Query(cmd);
+            DataSet ds = Session.Query(cmd);
             if (EnableCache) XCache.Add(cacheKey, ds, tableNames);
-            DB.AutoClose();
+            Session.AutoClose();
             return ds;
         }
 
@@ -647,8 +647,8 @@ namespace XCode.DataAccessLayer
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
             Interlocked.Increment(ref _ExecuteTimes);
-            Int32 ret = DB.Execute(cmd);
-            DB.AutoClose();
+            Int32 ret = Session.Execute(cmd);
+            Session.AutoClose();
             return ret;
         }
 
@@ -688,7 +688,7 @@ namespace XCode.DataAccessLayer
 
         private List<XTable> GetTables()
         {
-            List<XTable> list = DB.GetTables();
+            List<XTable> list = Session.GetTables();
             if (list != null && list.Count > 0) list.Sort(delegate(XTable item1, XTable item2) { return item1.Name.CompareTo(item2.Name); });
             return list;
         }
@@ -702,7 +702,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 BeginTransaction()
         {
-            return DB.BeginTransaction();
+            return Session.BeginTransaction();
         }
 
         /// <summary>
@@ -711,7 +711,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Commit()
         {
-            return DB.Commit();
+            return Session.Commit();
         }
 
         /// <summary>
@@ -720,7 +720,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Rollback()
         {
-            return DB.Rollback();
+            return Session.Rollback();
         }
         #endregion
 

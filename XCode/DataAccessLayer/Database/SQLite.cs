@@ -469,7 +469,7 @@ namespace XCode.DataAccessLayer
             }
             set
             {
-                base.ConnectionString = value;
+                //base.ConnectionString = value;
                 try
                 {
                     OleDbConnectionStringBuilder csb = new OleDbConnectionStringBuilder(value);
@@ -496,7 +496,7 @@ namespace XCode.DataAccessLayer
                 }
                 catch (DbException ex)
                 {
-                    //throw new XDbException(this, "分析SQLite连接字符串时出错", ex);
+                    throw new XDbException(this, "分析SQLite连接字符串时出错", ex);
                 }
                 base.ConnectionString = value;
             }
