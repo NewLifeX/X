@@ -624,40 +624,6 @@ namespace XCode.DataAccessLayer
         {
             return Database.FormatKeyWord(keyWord);
         }
-
-        ///// <summary>
-        ///// 检查简单SQL语句，比如Select * From table
-        ///// </summary>
-        ///// <param name="sql">待检查SQL语句</param>
-        ///// <returns>如果是简单SQL语句则返回表名，否则返回子查询(sql) XCode_Temp_a</returns>
-        //protected static String CheckSimpleSQL(String sql)
-        //{
-        //    if (String.IsNullOrEmpty(sql)) return sql;
-
-        //    Regex reg = new Regex(@"^\s*select\s+\*\s+from\s+([\w\[\]\""\""\']+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        //    MatchCollection ms = reg.Matches(sql);
-        //    if (ms == null || ms.Count < 1 || ms[0].Groups.Count < 2 ||
-        //        String.IsNullOrEmpty(ms[0].Groups[1].Value)) return String.Format("({0}) XCode_Temp_a", sql);
-        //    return ms[0].Groups[1].Value;
-        //}
-
-        ///// <summary>
-        ///// 检查是否以Order子句结尾，如果是，分割sql为前后两部分
-        ///// </summary>
-        ///// <param name="sql"></param>
-        ///// <returns></returns>
-        //private static String CheckOrderClause(ref String sql)
-        //{
-        //    if (!sql.ToLower().Contains("order")) return null;
-
-        //    // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
-        //    MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        //    if (ms == null || ms.Count < 1 || ms[0].Index < 1) return null;
-        //    String orderBy = sql.Substring(ms[0].Index).Trim();
-        //    sql = sql.Substring(0, ms[0].Index).Trim();
-
-        //    return orderBy;
-        //}
         #endregion
 
         #region Sql日志输出

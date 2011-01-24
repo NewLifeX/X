@@ -246,7 +246,7 @@ namespace XCode.DataAccessLayer
 
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendFormat("CREATE TABLE {0}(", FormatKeyWord(table.Name));
+            sb.AppendFormat("Create Table {0}(", FormatKeyWord(table.Name));
             //List<String> keys = new List<string>();
             for (Int32 i = 0; i < Fields.Count; i++)
             {

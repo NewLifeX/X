@@ -35,11 +35,6 @@ namespace XCode.DataAccessLayer
 
                 return dt;
             }
-            //catch (Exception ex)
-            //{
-            //    if (Debug) WriteLog(ex.ToString());
-            //    return null;
-            //}
             catch (DbException ex)
             {
                 throw new XDbSessionException(this, "取得所有表构架出错！", ex);
@@ -105,6 +100,7 @@ namespace XCode.DataAccessLayer
 
                     table.DbType = DbType;
 
+                    // 字段的获取可能有异常，但不应该影响整体架构的获取
                     try
                     {
                         table.Fields = GetFields(table);
@@ -136,133 +132,9 @@ namespace XCode.DataAccessLayer
 
             DataTable dt = GetSchema("Columns", new String[] { null, null, table.Name });
 
-            //List<XField> list = new List<XField>();
             DataRow[] drs = dt.Select("", "ORDINAL_POSITION");
 
             List<XField> list = GetFields(table, drs);
-
-            #region 处理
-            //List<String> pks = GetPrimaryKeys(table);
-            //Int32 IDCount = 0;
-            //foreach (DataRow dr in drs)
-            //{
-            //    XField xf = table.CreateField(); ;
-
-            //    xf.ID = Int32.Parse(dr["ORDINAL_POSITION"].ToString());
-            //    xf.Name = dr["COLUMN_NAME"].ToString();
-            //    xf.RawType = dr["DATA_TYPE"].ToString();
-            //    //xf.DataType = FieldTypeToClassType(dr["DATA_TYPE"].ToString());
-            //    xf.Identity = dr["DATA_TYPE"].ToString() == "3" && (dr["COLUMN_FLAGS"].ToString() == "16" || dr["COLUMN_FLAGS"].ToString() == "90");
-
-            //    // 使用这种方式获取类型，非常精确，因为类型映射是由ADO.Net实现的，但是速度非常慢，建议每个具体数据库类重写，自己建立映射表
-            //    if (columns != null && columns.Contains(xf.Name))
-            //    {
-            //        DataColumn dc = columns[xf.Name];
-            //        xf.DataType = dc.DataType;
-            //    }
-
-            //    xf.PrimaryKey = pks != null && pks.Contains(xf.Name);
-
-            //    if (Type.GetTypeCode(xf.DataType) == TypeCode.Int32 || Type.GetTypeCode(xf.DataType) == TypeCode.Double)
-            //    {
-            //        xf.Length = dr["NUMERIC_PRECISION"] == DBNull.Value ? 0 : Int32.Parse(dr["NUMERIC_PRECISION"].ToString());
-            //        xf.NumOfByte = 0;
-            //        xf.Digit = dr["NUMERIC_SCALE"] == DBNull.Value ? 0 : Int32.Parse(dr["NUMERIC_SCALE"].ToString());
-            //    }
-            //    else if (Type.GetTypeCode(xf.DataType) == TypeCode.DateTime)
-            //    {
-            //        xf.Length = dr["DATETIME_PRECISION"] == DBNull.Value ? 0 : Int32.Parse(dr["DATETIME_PRECISION"].ToString());
-            //        xf.NumOfByte = 0;
-            //        xf.Digit = 0;
-            //    }
-            //    else
-            //    {
-            //        if (dr["DATA_TYPE"].ToString() == "130" && dr["COLUMN_FLAGS"].ToString() == "234") //备注类型
-            //        {
-            //            xf.Length = Int32.MaxValue;
-            //            xf.NumOfByte = Int32.MaxValue;
-            //        }
-            //        else
-            //        {
-            //            xf.Length = dr["CHARACTER_MAXIMUM_LENGTH"] == DBNull.Value ? 0 : Int32.Parse(dr["CHARACTER_MAXIMUM_LENGTH"].ToString());
-            //            xf.NumOfByte = dr["CHARACTER_OCTET_LENGTH"] == DBNull.Value ? 0 : Int32.Parse(dr["CHARACTER_OCTET_LENGTH"].ToString());
-            //        }
-            //        xf.Digit = 0;
-            //    }
-
-            //    try
-            //    {
-            //        xf.Nullable = Boolean.Parse(dr["IS_NULLABLE"].ToString());
-            //    }
-            //    catch
-            //    {
-            //        xf.Nullable = dr["IS_NULLABLE"].ToString() == "YES";
-            //    }
-            //    try
-            //    {
-            //        xf.Default = dr["COLUMN_HASDEFAULT"].ToString() == "False" ? "" : dr["COLUMN_DEFAULT"].ToString();
-            //    }
-            //    catch
-            //    {
-            //        xf.Default = dr["COLUMN_DEFAULT"].ToString();
-            //    }
-            //    try
-            //    {
-            //        xf.Description = dr["DESCRIPTION"] == DBNull.Value ? "" : dr["DESCRIPTION"].ToString();
-            //    }
-            //    catch
-            //    {
-            //        xf.Description = "";
-            //    }
-
-            //    //处理默认值
-            //    while (!String.IsNullOrEmpty(xf.Default) && xf.Default[0] == '(' && xf.Default[xf.Default.Length - 1] == ')')
-            //    {
-            //        xf.Default = xf.Default.Substring(1, xf.Default.Length - 2);
-            //    }
-            //    if (!String.IsNullOrEmpty(xf.Default)) xf.Default = xf.Default.Trim(new Char[] { '"', '\'' });
-
-            //    //修正自增字段属性
-            //    if (xf.Identity)
-            //    {
-            //        if (xf.Nullable)
-            //            xf.Identity = false;
-            //        else if (!String.IsNullOrEmpty(xf.Default))
-            //            xf.Identity = false;
-            //    }
-            //    if (xf.Identity) IDCount++;
-
-            //    list.Add(xf);
-            //}
-
-            ////再次修正自增字段
-            //if (IDCount > 1)
-            //{
-            //    foreach (XField xf in list)
-            //    {
-            //        if (!xf.Identity) continue;
-
-            //        if (!String.Equals(xf.Name, "ID", StringComparison.OrdinalIgnoreCase))
-            //        {
-            //            xf.Identity = false;
-            //            IDCount--;
-            //        }
-            //    }
-            //}
-            //if (IDCount > 1)
-            //{
-            //    foreach (XField xf in list)
-            //    {
-            //        if (!xf.Identity) continue;
-
-            //        if (xf.ID > 1)
-            //        {
-            //            xf.Identity = false;
-            //            IDCount--;
-            //        }
-            //    }
-            //}
-            #endregion
 
             return list;
         }
@@ -422,6 +294,11 @@ namespace XCode.DataAccessLayer
             return default(T);
         }
 
+        /// <summary>
+        /// 使用DataTable获取架构信息
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
         protected DataColumnCollection GetColumns(String tableName)
         {
             //return Query(PageSplit("Select * from " + tableName, 0, 1, null)).Tables[0].Columns;
@@ -502,56 +379,25 @@ namespace XCode.DataAccessLayer
 
             if (!TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) return null;
             return Type.GetType(typeName);
+        }
 
-            //Int32 t = Int32.Parse(type);
-            //switch (t)
-            //{
-            //    case 16:// adTinyInt
-            //    case 2:// adSmallInt
-            //    case 17:// adUnsignedTinyInt
-            //    case 18:// adUnsignedSmallInt
-            //        return typeof(Int16);
-            //    case 3:// adInteger
-            //    case 19:// adUnsignedInt
-            //    case 14:// adDecimal
-            //    case 131:// adNumeric
-            //        return typeof(Int32);
-            //    case 20:// adBigInt
-            //    case 21:// adUnsignedBigInt
-            //        return typeof(Int64);
-            //    case 4:// adSingle
-            //    case 5:// adDouble
-            //    case 6:// adCurrency
-            //        return typeof(Double);
-            //    case 11:// adBoolean
-            //        return typeof(Boolean);
-            //    case 7:// adDate
-            //    case 133:// adDBDate
-            //    case 134:// adDBTime
-            //    case 135:// adDBTimeStamp
-            //        return typeof(DateTime);
-            //    case 8:// adBSTR
-            //    case 129:// adChar
-            //    case 200:// adVarChar
-            //    case 201:// adLongVarChar
-            //    case 130:// adWChar
-            //    case 202:// adVarWChar
-            //    case 203:// adLongVarWChar
-            //        return typeof(String);
-            //    case 128:// adBinary
-            //    case 204:// adVarBinary
-            //    case 205:// adLongVarBinary 
-            //        return typeof(Byte[]);
-            //    case 0:// adEmpty
-            //    case 10:// adError
-            //    case 132:// adUserDefined
-            //    case 12:// adVariant
-            //    case 9:// adIDispatch
-            //    case 13:// adIUnknown
-            //    case 72:// adGUID
-            //    default:
-            //        return typeof(String);
-            //}
+        /// <summary>
+        /// 数据类型到数据库类型
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public virtual String ClassTypeToFieldType(Type type)
+        {
+            DataTable dt = DataTypes;
+            if (dt == null) return null;
+
+            String typeName = type.Name;
+
+            DataRow[] drs = dt.Select(String.Format("DataType='{0}'", typeName));
+            if (drs == null || drs.Length < 1) return null;
+
+            if (!TryGetDataRowValue<String>(drs[0], "TypeName", out typeName)) return null;
+            return typeName;
         }
         #endregion
     }
