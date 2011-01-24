@@ -87,19 +87,21 @@ namespace XCode
             }
 
             //测试数据库
-            Boolean dbExist = (Boolean)Session.SetSchema(DDLSchema.DatabaseExist, Dal.ConnName);
+            String dbName = Session.DatabaseName;
+
+            Boolean dbExist = (Boolean)Session.SetSchema(DDLSchema.DatabaseExist, dbName);
 
             if (dbExist)
             {
-                XTrace.WriteLine("删除数据库：{0}", Dal.ConnName);
-                Session.SetSchema(DDLSchema.DropDatabase, Dal.ConnName);
+                XTrace.WriteLine("删除数据库：{0}", dbName);
+                Session.SetSchema(DDLSchema.DropDatabase, dbName);
             }
 
             //创建数据库
             //if (!dbExist)
             {
-                XTrace.WriteLine("创建数据库：{0}", Dal.ConnName);
-                Session.SetSchema(DDLSchema.CreateDatabase, Dal.ConnName, null);
+                XTrace.WriteLine("创建数据库：{0}", dbName);
+                Session.SetSchema(DDLSchema.CreateDatabase, dbName, null);
             }
 
             //创建数据表

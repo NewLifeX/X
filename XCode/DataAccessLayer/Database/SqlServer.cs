@@ -246,6 +246,15 @@ namespace XCode.DataAccessLayer
                 return _PrimaryKeys;
             }
         }
+
+        protected override string GetFieldType(XField field)
+        {
+            String typeName = base.GetFieldType(field);
+
+            if (field.Identity) typeName += " IDENTITY(1,1)";
+
+            return typeName;
+        }
         #endregion
 
         #region 取得字段信息的SQL模版
@@ -434,128 +443,128 @@ namespace XCode.DataAccessLayer
             return base.SetSchema(schema, values);
         }
 
-        /// <summary>
-        /// 字段片段
-        /// </summary>
-        /// <param name="field"></param>
-        /// <param name="onlyDefine">仅仅定义。定义操作才允许设置自增和使用默认值</param>
-        /// <returns></returns>
-        public override String FieldClause(XField field, Boolean onlyDefine)
-        {
-            StringBuilder sb = new StringBuilder();
+        ///// <summary>
+        ///// 字段片段
+        ///// </summary>
+        ///// <param name="field"></param>
+        ///// <param name="onlyDefine">仅仅定义。定义操作才允许设置自增和使用默认值</param>
+        ///// <returns></returns>
+        //public override String FieldClause(XField field, Boolean onlyDefine)
+        //{
+        //    StringBuilder sb = new StringBuilder();
 
-            //字段名
-            //sb.AppendFormat("[{0}] ", field.Name);
-            sb.AppendFormat("{0} ", FormatKeyWord(field.Name));
+        //    //字段名
+        //    //sb.AppendFormat("[{0}] ", field.Name);
+        //    sb.AppendFormat("{0} ", FormatKeyWord(field.Name));
 
-            //类型
-            TypeCode tc = Type.GetTypeCode(field.DataType);
-            switch (tc)
-            {
-                case TypeCode.Boolean:
-                    sb.Append("[bit]");
-                    break;
-                case TypeCode.Byte:
-                    sb.Append("[byte]");
-                    break;
-                case TypeCode.Char:
-                    sb.Append("[char]");
-                    break;
-                case TypeCode.DBNull:
-                    break;
-                case TypeCode.DateTime:
-                    sb.Append("[datetime]");
-                    break;
-                case TypeCode.Decimal:
-                    sb.Append("[money]");
-                    if (onlyDefine && field.Identity) sb.Append(" IDENTITY(1,1)");
-                    break;
-                case TypeCode.Double:
-                    sb.Append("[float]");
-                    break;
-                case TypeCode.Empty:
-                    break;
-                case TypeCode.Int16:
-                case TypeCode.UInt16:
-                    sb.Append("[smallint]");
-                    if (onlyDefine && field.Identity) sb.Append(" IDENTITY(1,1)");
-                    break;
-                case TypeCode.Int32:
-                case TypeCode.UInt32:
-                    sb.Append("[int]");
-                    if (onlyDefine && field.Identity) sb.Append(" IDENTITY(1,1)");
-                    break;
-                case TypeCode.Int64:
-                case TypeCode.UInt64:
-                    sb.Append("[bigint]");
-                    if (onlyDefine && field.Identity) sb.Append(" IDENTITY(1,1)");
-                    break;
-                case TypeCode.Object:
-                    break;
-                case TypeCode.SByte:
-                    sb.Append("[byte]");
-                    break;
-                case TypeCode.Single:
-                    sb.Append("[float]");
-                    break;
-                case TypeCode.String:
-                    Int32 len = field.Length;
-                    if (len < 1) len = 50;
-                    if (len > 4000)
-                        sb.Append("[ntext]");
-                    else
-                        sb.AppendFormat("[nvarchar]({0})", len);
-                    break;
-                default:
-                    break;
-            }
+        //    //类型
+        //    TypeCode tc = Type.GetTypeCode(field.DataType);
+        //    switch (tc)
+        //    {
+        //        case TypeCode.Boolean:
+        //            sb.Append("[bit]");
+        //            break;
+        //        case TypeCode.Byte:
+        //            sb.Append("[byte]");
+        //            break;
+        //        case TypeCode.Char:
+        //            sb.Append("[char]");
+        //            break;
+        //        case TypeCode.DBNull:
+        //            break;
+        //        case TypeCode.DateTime:
+        //            sb.Append("[datetime]");
+        //            break;
+        //        case TypeCode.Decimal:
+        //            sb.Append("[money]");
+        //            if (onlyDefine && field.Identity) sb.Append(" IDENTITY(1,1)");
+        //            break;
+        //        case TypeCode.Double:
+        //            sb.Append("[float]");
+        //            break;
+        //        case TypeCode.Empty:
+        //            break;
+        //        case TypeCode.Int16:
+        //        case TypeCode.UInt16:
+        //            sb.Append("[smallint]");
+        //            if (onlyDefine && field.Identity) sb.Append(" IDENTITY(1,1)");
+        //            break;
+        //        case TypeCode.Int32:
+        //        case TypeCode.UInt32:
+        //            sb.Append("[int]");
+        //            if (onlyDefine && field.Identity) sb.Append(" IDENTITY(1,1)");
+        //            break;
+        //        case TypeCode.Int64:
+        //        case TypeCode.UInt64:
+        //            sb.Append("[bigint]");
+        //            if (onlyDefine && field.Identity) sb.Append(" IDENTITY(1,1)");
+        //            break;
+        //        case TypeCode.Object:
+        //            break;
+        //        case TypeCode.SByte:
+        //            sb.Append("[byte]");
+        //            break;
+        //        case TypeCode.Single:
+        //            sb.Append("[float]");
+        //            break;
+        //        case TypeCode.String:
+        //            Int32 len = field.Length;
+        //            if (len < 1) len = 50;
+        //            if (len > 4000)
+        //                sb.Append("[ntext]");
+        //            else
+        //                sb.AppendFormat("[nvarchar]({0})", len);
+        //            break;
+        //        default:
+        //            break;
+        //    }
 
-            //是否为空
-            if (!field.PrimaryKey && !field.Identity)
-            {
-                if (field.Nullable)
-                    sb.Append(" NULL");
-                else
-                {
-                    sb.Append(" NOT NULL");
-                }
-            }
+        //    //是否为空
+        //    if (!field.PrimaryKey && !field.Identity)
+        //    {
+        //        if (field.Nullable)
+        //            sb.Append(" NULL");
+        //        else
+        //        {
+        //            sb.Append(" NOT NULL");
+        //        }
+        //    }
 
-            //默认值
-            if (onlyDefine && !String.IsNullOrEmpty(field.Default))
-            {
-                if (tc == TypeCode.String)
-                    sb.AppendFormat(" DEFAULT ('{0}')", field.Default);
-                else if (tc == TypeCode.DateTime)
-                {
-                    String d = field.Default;
-                    //if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = "getdate()";
-                    if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
-                    sb.AppendFormat(" DEFAULT {0}", d);
-                }
-                else
-                    sb.AppendFormat(" DEFAULT {0}", field.Default);
-            }
-            //else if (!onlyDefine && !field.PrimaryKey && !field.Nullable)
-            //{
-            //    //在定义语句中，该字段不允许空，而又没有默认值时，设置默认值
-            //    if (!includeDefault || String.IsNullOrEmpty(field.Default))
-            //    {
-            //        if (tc == TypeCode.String)
-            //            sb.AppendFormat(" DEFAULT ('{0}')", "");
-            //        else if (tc == TypeCode.DateTime)
-            //        {
-            //            String d = SqlDateTime.MinValue.Value.ToString("yyyy-MM-dd HH:mm:ss");
-            //            //d = "1900-01-01";
-            //            sb.AppendFormat(" DEFAULT '{0}'", d);
-            //        }
-            //        else
-            //            sb.AppendFormat(" DEFAULT {0}", "''");
-            //    }
-            //}
+        //    //默认值
+        //    if (onlyDefine && !String.IsNullOrEmpty(field.Default))
+        //    {
+        //        if (tc == TypeCode.String)
+        //            sb.AppendFormat(" DEFAULT ('{0}')", field.Default);
+        //        else if (tc == TypeCode.DateTime)
+        //        {
+        //            String d = field.Default;
+        //            //if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = "getdate()";
+        //            if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
+        //            sb.AppendFormat(" DEFAULT {0}", d);
+        //        }
+        //        else
+        //            sb.AppendFormat(" DEFAULT {0}", field.Default);
+        //    }
+        //    //else if (!onlyDefine && !field.PrimaryKey && !field.Nullable)
+        //    //{
+        //    //    //在定义语句中，该字段不允许空，而又没有默认值时，设置默认值
+        //    //    if (!includeDefault || String.IsNullOrEmpty(field.Default))
+        //    //    {
+        //    //        if (tc == TypeCode.String)
+        //    //            sb.AppendFormat(" DEFAULT ('{0}')", "");
+        //    //        else if (tc == TypeCode.DateTime)
+        //    //        {
+        //    //            String d = SqlDateTime.MinValue.Value.ToString("yyyy-MM-dd HH:mm:ss");
+        //    //            //d = "1900-01-01";
+        //    //            sb.AppendFormat(" DEFAULT '{0}'", d);
+        //    //        }
+        //    //        else
+        //    //            sb.AppendFormat(" DEFAULT {0}", "''");
+        //    //    }
+        //    //}
 
-            return sb.ToString();
-        }
+        //    return sb.ToString();
+        //}
 
         public override string CreateDatabaseSQL(string dbname, string file)
         {
@@ -598,7 +607,7 @@ namespace XCode.DataAccessLayer
 
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendFormat("CREATE TABLE {0}(", FormatKeyWord(table.Name));
+            sb.AppendFormat("Create Table {0}(", FormatKeyWord(table.Name));
             List<String> keys = new List<string>();
             for (Int32 i = 0; i < Fields.Count; i++)
             {
@@ -731,7 +740,11 @@ namespace XCode.DataAccessLayer
             //sb.Append("END");
             //return sb.ToString();
 
-            String sql = String.Format("select * from syscolumns a inner join sysproperties g on a.id=g.id and a.colid=g.smallid and g.name='MS_Description' inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}'", tablename, columnname);
+            String sql = String.Empty;
+            if (!IsSQL2005)
+                sql = String.Format("select * from syscolumns a inner join sysproperties g on a.id=g.id and a.colid=g.smallid and g.name='MS_Description' inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}'", tablename, columnname);
+            else
+                sql = String.Format("select * from syscolumns a inner join sys.extended_properties g on a.id=g.major_id and a.colid=g.minor_id and g.name = 'MS_Description' inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}'", tablename, columnname);
             Int32 count = QueryCount(sql);
             if (count <= 0) return null;
 

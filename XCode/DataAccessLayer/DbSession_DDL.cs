@@ -103,73 +103,9 @@ namespace XCode.DataAccessLayer
             // 如果还是原来的数据库类型，则直接使用
             if (DbType == field.Table.DbType) typeName = field.RawType;
 
-            #region 类型
-            TypeCode tc = Type.GetTypeCode(field.DataType);
-            //switch (tc)
-            //{
-            //    case TypeCode.Boolean:
-            //        sb.Append("bit");
-            //        break;
-            //    case TypeCode.Byte:
-            //        sb.Append("byte");
-            //        break;
-            //    case TypeCode.Char:
-            //        sb.Append("bit");
-            //        break;
-            //    case TypeCode.DBNull:
-            //        break;
-            //    case TypeCode.DateTime:
-            //        sb.Append("datetime");
-            //        break;
-            //    case TypeCode.Decimal:
-            //        sb.AppendFormat("NUMERIC({0},{1})", field.Length, field.Digit);
-            //        break;
-            //    case TypeCode.Double:
-            //        sb.Append("double");
-            //        break;
-            //    case TypeCode.Empty:
-            //        break;
-            //    case TypeCode.Int16:
-            //    case TypeCode.UInt16:
-            //        if (onlyDefine && field.Identity)
-            //            sb.Append("AUTOINCREMENT(1,1)");
-            //        else
-            //            sb.Append("short");
-            //        break;
-            //    case TypeCode.Int32:
-            //    case TypeCode.Int64:
-            //    case TypeCode.UInt32:
-            //    case TypeCode.UInt64:
-            //        if (onlyDefine && field.Identity)
-            //            sb.Append("AUTOINCREMENT(1,1)");
-            //        else
-            //            sb.Append("Long");
-            //        break;
-            //    case TypeCode.Object:
-            //        if (field.DataType == typeof(Byte[]))
-            //        {
-            //            sb.Append("Binary");
-            //            break;
-            //        }
-            //        break;
-            //    case TypeCode.SByte:
-            //        sb.Append("byte");
-            //        break;
-            //    case TypeCode.Single:
-            //        sb.Append("real");
-            //        break;
-            //    case TypeCode.String:
-            //        Int32 len = field.Length;
-            //        if (len < 1) len = 50;
-            //        if (len > 255)
-            //            sb.Append("Memo ");
-            //        else
-            //            sb.AppendFormat("Text({0}) ", len);
-            //        break;
-            //    default:
-            //        break;
-            //}
-            #endregion
+            if (String.IsNullOrEmpty(typeName)) typeName = GetFieldType(field);
+
+            sb.Append(typeName);
 
             if (field.PrimaryKey)
             {
@@ -190,6 +126,7 @@ namespace XCode.DataAccessLayer
             //默认值
             if (onlyDefine && !String.IsNullOrEmpty(field.Default))
             {
+                TypeCode tc = Type.GetTypeCode(field.DataType);
                 if (tc == TypeCode.String)
                     sb.AppendFormat(" DEFAULT '{0}'", field.Default);
                 else if (tc == TypeCode.DateTime)

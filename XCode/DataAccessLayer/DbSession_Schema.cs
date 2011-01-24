@@ -229,7 +229,8 @@ namespace XCode.DataAccessLayer
         /// <param name="dr"></param>
         protected virtual void FixField(XField field, DataRow dr)
         {
-            field.DataType = FieldTypeToClassType(field.RawType);
+            String typeName = GetDataRowValue<String>(dr, "DATA_TYPE");
+            field.DataType = FieldTypeToClassType(typeName);
         }
 
         /// <summary>
@@ -381,23 +382,71 @@ namespace XCode.DataAccessLayer
             return Type.GetType(typeName);
         }
 
+        ///// <summary>
+        ///// 数据类型到数据库类型
+        ///// </summary>
+        ///// <param name="type"></param>
+        ///// <returns></returns>
+        //public virtual String ClassTypeToFieldType(Type type)
+        //{
+        //    DataTable dt = DataTypes;
+        //    if (dt == null) return null;
+
+        //    String typeName = type.Name;
+
+        //    DataRow[] drs = dt.Select(String.Format("DataType='{0}'", typeName));
+        //    if (drs == null || drs.Length < 1) return null;
+
+        //    if (!TryGetDataRowValue<String>(drs[0], "TypeName", out typeName)) return null;
+        //    return typeName;
+        //}
+
         /// <summary>
-        /// 数据类型到数据库类型
+        /// 取字段类型
         /// </summary>
-        /// <param name="type"></param>
+        /// <param name="field"></param>
         /// <returns></returns>
-        public virtual String ClassTypeToFieldType(Type type)
+        protected virtual String GetFieldType(XField field)
         {
             DataTable dt = DataTypes;
             if (dt == null) return null;
 
-            String typeName = type.Name;
+            String typeName = field.DataType.FullName;
 
-            DataRow[] drs = dt.Select(String.Format("DataType='{0}'", typeName));
+            DataRow[] drs = dt.Select(String.Format("DataType='{0}' And ColumnSize>={1}", typeName, field.Length), "ColumnSize asc");
             if (drs == null || drs.Length < 1) return null;
 
-            if (!TryGetDataRowValue<String>(drs[0], "TypeName", out typeName)) return null;
-            return typeName;
+            //if (TryGetDataRowValue<String>(drs[0], "CreateFormat", out typeName))
+            if (TryGetDataRowValue<String>(drs[0], "TypeName", out typeName))
+            {
+                // 处理格式参数
+                String param = null;
+                if (TryGetDataRowValue<String>(drs[0], "CreateParameters", out param))
+                {
+                    typeName += "(";
+                    String[] pms = param.Split(new Char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    for (int i = 0; i < pms.Length; i++)
+                    {
+                        if (pms[i].Contains("length") || pms[i].Contains("precision"))
+                        {
+                            if (!typeName.EndsWith("(")) typeName += ",";
+                            typeName += field.Length;
+                            continue;
+                        }
+                        if (pms[i].Contains("scale") || pms[i].Contains("bits"))
+                        {
+                            if (!typeName.EndsWith("(")) typeName += ",";
+                            typeName += field.Digit;
+                            continue;
+                        }
+                    }
+                    typeName += ")";
+                }
+                return typeName;
+            }
+
+            //if (TryGetDataRowValue<String>(drs[0], "TypeName", out typeName)) return typeName;
+            return null;
         }
         #endregion
     }

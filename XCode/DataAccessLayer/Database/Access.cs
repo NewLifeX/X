@@ -186,6 +186,15 @@ namespace XCode.DataAccessLayer
             }
             return pks;
         }
+
+        protected override string GetFieldType(XField field)
+        {
+            String typeName = base.GetFieldType(field);
+
+            if (field.Identity) typeName += " AUTOINCREMENT(1,1)";
+
+            return typeName;
+        }
         #endregion
 
         #region 数据定义

@@ -28,6 +28,11 @@ namespace XCode.DataAccessLayer
         DbConnection Conn { get; set; }
 
         /// <summary>
+        /// 数据库名
+        /// </summary>
+        String DatabaseName { get; set; }
+
+        /// <summary>
         /// 查询次数
         /// </summary>
         Int32 QueryTimes { get; set; }
