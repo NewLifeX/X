@@ -254,8 +254,6 @@ namespace XControl
                 String onclick = OnRowClientClick;
                 String ondblclick = OnRowDoubleClientClick;
 
-                Object keyValue = gv.DataKeys[item.RowIndex].Value;
-
                 if (SelectedRowBackColor != Color.Empty)
                 {
                     //String name = String.Format("{0}_RowClick", ID);
@@ -268,6 +266,10 @@ namespace XControl
 
                     if (HttpContext.Current != null && HttpContext.Current.Request != null)
                     {
+                        Object keyValue = null;
+                        if (gv.DataKeys != null && gv.DataKeys.Count > item.RowIndex)
+                            keyValue = gv.DataKeys[item.RowIndex].Value;
+
                         if (keyValue != null && String.Equals(keyValue.ToString(), HttpContext.Current.Request[RequestKeyName]))
                         {
                             //item.Style[HtmlTextWriterStyle.BackgroundColor] = SelectedRowBackColor.ToString();
@@ -288,7 +290,9 @@ namespace XControl
 
             value = value.Replace("{rowindex}", row.RowIndex.ToString());
 
-            object keyValue = gv.DataKeys[row.RowIndex].Value;
+            Object keyValue = null;
+            if (gv.DataKeys != null && gv.DataKeys.Count > row.RowIndex)
+                keyValue = gv.DataKeys[row.RowIndex].Value;
             if (keyValue != null)
                 value = value.Replace("{datakey}", keyValue.ToString());
             else
