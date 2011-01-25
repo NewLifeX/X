@@ -230,7 +230,7 @@ namespace XCode.DataAccessLayer
         protected virtual void FixField(XField field, DataRow dr)
         {
             String typeName = GetDataRowValue<String>(dr, "DATA_TYPE");
-            field.DataType = FieldTypeToClassType(typeName);
+            SetFieldType(field, typeName);
         }
 
         /// <summary>
@@ -364,23 +364,23 @@ namespace XCode.DataAccessLayer
             get { return _DataTypes ?? (_DataTypes = GetSchema(DbMetaDataCollectionNames.DataTypes, null)); }
         }
 
-        /// <summary>
-        /// 字段类型到数据类型对照表
-        /// </summary>
-        /// <param name="typeName"></param>
-        /// <returns></returns>
-        public virtual Type FieldTypeToClassType(String typeName)
-        {
-            DataTable dt = DataTypes;
-            if (dt == null) return null;
+        ///// <summary>
+        ///// 字段类型到数据类型对照表
+        ///// </summary>
+        ///// <param name="typeName"></param>
+        ///// <returns></returns>
+        //public virtual Type FieldTypeToClassType(String typeName)
+        //{
+        //    DataTable dt = DataTypes;
+        //    if (dt == null) return null;
 
-            DataRow[] drs = dt.Select(String.Format("TypeName='{0}'", typeName));
-            //if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0}", type));
-            if (drs == null || drs.Length < 1) return null;
+        //    DataRow[] drs = dt.Select(String.Format("TypeName='{0}'", typeName));
+        //    //if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0}", type));
+        //    if (drs == null || drs.Length < 1) return null;
 
-            if (!TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) return null;
-            return Type.GetType(typeName);
-        }
+        //    if (!TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) return null;
+        //    return Type.GetType(typeName);
+        //}
 
         ///// <summary>
         ///// 数据类型到数据库类型
@@ -402,21 +402,77 @@ namespace XCode.DataAccessLayer
         //}
 
         /// <summary>
+        /// 查找指定字段指定类型的数据类型
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="typeName"></param>
+        /// <param name="isLong"></param>
+        /// <returns></returns>
+        protected virtual DataRow[] FindDataType(XField field, String typeName, Boolean? isLong)
+        {
+            if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
+            // 去掉类型中，长度等限制条件
+            if (typeName.Contains("(")) typeName = typeName.Substring(0, typeName.IndexOf("("));
+
+            DataTable dt = DataTypes;
+            if (dt == null) return null;
+
+            DataRow[] drs = null;
+
+            // 匹配TypeName，TypeName具有唯一性
+            drs = dt.Select(String.Format("TypeName='{0}'", typeName));
+            if (drs != null && drs.Length > 0)
+            {
+                if (drs.Length > 1) throw new XDbSessionException(this, "TypeName具有唯一性！");
+                return drs;
+            }
+            // 匹配DataType，重复的可能性很大
+            DataRow[] drs2 = null;
+            drs = dt.Select(String.Format("DataType='{0}'", typeName));
+            if (drs != null && drs.Length > 0)
+            {
+                if (drs.Length == 1) return drs;
+                
+                drs2 = dt.Select(String.Format("DataType='{0}' And ColumnSize>={1}", typeName, field.Length), "IsBestMatch Desc, ColumnSize Asc");
+                if (drs2 == null || drs2.Length < 1) return drs;
+                if (drs2.Length == 1) return drs2;
+
+                // 开始排除
+                if (drs2.Length > 1) throw new XDbSessionException(this, "无法唯一识别类型！");
+                return drs2;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 设置字段类型
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="typeName"></param>
+        protected virtual void SetFieldType(XField field, String typeName)
+        {
+            DataTable dt = DataTypes;
+            if (dt == null) return;
+
+            DataRow[] drs = FindDataType(field, typeName, null);
+            if (drs == null || drs.Length < 1) return;
+
+            if (!TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) return;
+            field.DataType = Type.GetType(typeName);
+        }
+
+        /// <summary>
         /// 取字段类型
         /// </summary>
         /// <param name="field"></param>
         /// <returns></returns>
         protected virtual String GetFieldType(XField field)
         {
-            DataTable dt = DataTypes;
-            if (dt == null) return null;
-
             String typeName = field.DataType.FullName;
 
-            DataRow[] drs = dt.Select(String.Format("DataType='{0}' And ColumnSize>={1}", typeName, field.Length), "ColumnSize asc");
+            DataRow[] drs = FindDataType(field, typeName, null);
             if (drs == null || drs.Length < 1) return null;
 
-            //if (TryGetDataRowValue<String>(drs[0], "CreateFormat", out typeName))
             if (TryGetDataRowValue<String>(drs[0], "TypeName", out typeName))
             {
                 // 处理格式参数
@@ -445,7 +501,6 @@ namespace XCode.DataAccessLayer
                 return typeName;
             }
 
-            //if (TryGetDataRowValue<String>(drs[0], "TypeName", out typeName)) return typeName;
             return null;
         }
         #endregion

@@ -184,39 +184,26 @@ namespace XCode.DataAccessLayer
             StringBuilder sb = new StringBuilder();
 
             sb.AppendFormat("Create Table {0}(", FormatKeyWord(table.Name));
-            //List<String> keys = new List<string>();
             for (Int32 i = 0; i < Fields.Count; i++)
             {
                 sb.AppendLine();
                 sb.Append("\t");
                 sb.Append(FieldClause(Fields[i], true));
                 if (i < Fields.Count - 1) sb.Append(",");
-
-                //if (Fields[i].PrimaryKey) keys.Add(Fields[i].Name);
             }
             sb.AppendLine();
             sb.Append(")");
 
-            ////默认值
-            //foreach (XField item in Fields)
+            ////注释
+            //if (!String.IsNullOrEmpty(table.Description))
             //{
-            //    if (!String.IsNullOrEmpty(item.Default))
+            //    String sql = AddTableDescriptionSQL(table.Name, table.Description);
+            //    if (!String.IsNullOrEmpty(sql))
             //    {
             //        sb.AppendLine(";");
-            //        sb.Append(AlterColumnSQL(table.Name, item));
+            //        sb.Append(sql);
             //    }
             //}
-
-            //注释
-            if (!String.IsNullOrEmpty(table.Description))
-            {
-                String sql = AddTableDescriptionSQL(table.Name, table.Description);
-                if (!String.IsNullOrEmpty(sql))
-                {
-                    sb.AppendLine(";");
-                    sb.Append(sql);
-                }
-            }
 
             return sb.ToString();
         }

@@ -644,25 +644,25 @@ namespace XCode.DataAccessLayer
             sb.AppendLine();
             sb.Append(") ON [PRIMARY]");
 
-            //×¢ÊÍ
-            if (!String.IsNullOrEmpty(table.Description))
-            {
-                String sql = AddTableDescriptionSQL(table.Name, table.Description);
-                if (!String.IsNullOrEmpty(sql))
-                {
-                    sb.AppendLine(";");
-                    sb.Append(sql);
-                }
-            }
-            //×Ö¶Î×¢ÊÍ
-            foreach (XField item in table.Fields)
-            {
-                if (!String.IsNullOrEmpty(item.Description))
-                {
-                    sb.AppendLine(";");
-                    sb.Append(AddColumnDescriptionSQL(table.Name, item.Name, item.Description));
-                }
-            }
+            ////×¢ÊÍ
+            //if (!String.IsNullOrEmpty(table.Description))
+            //{
+            //    String sql = AddTableDescriptionSQL(table.Name, table.Description);
+            //    if (!String.IsNullOrEmpty(sql))
+            //    {
+            //        sb.AppendLine(";");
+            //        sb.Append(sql);
+            //    }
+            //}
+            ////×Ö¶Î×¢ÊÍ
+            //foreach (XField item in table.Fields)
+            //{
+            //    if (!String.IsNullOrEmpty(item.Description))
+            //    {
+            //        sb.AppendLine(";");
+            //        sb.Append(AddColumnDescriptionSQL(table.Name, item.Name, item.Description));
+            //    }
+            //}
 
             return sb.ToString();
         }

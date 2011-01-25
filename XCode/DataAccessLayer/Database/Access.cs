@@ -137,7 +137,7 @@ namespace XCode.DataAccessLayer
             Int32 id = 0;
             if (Int32.TryParse(GetDataRowValue<String>(dr, "DATA_TYPE"), out id))
             {
-                DataRow[] drs = FindDataType(id, isLong);
+                DataRow[] drs = FindDataType(field, "" + id, isLong);
                 if (drs != null && drs.Length > 0)
                 {
                     String typeName = GetDataRowValue<String>(drs[0], "TypeName");
@@ -149,7 +149,7 @@ namespace XCode.DataAccessLayer
                     if (field.DataType == typeof(String) && drs.Length > 1)
                     {
                         isLong = (flag & 0x80) == 0x80;
-                        drs = FindDataType(id, isLong);
+                        drs = FindDataType(field, "" + id, isLong);
                         if (drs != null && drs.Length > 0)
                         {
                             typeName = GetDataRowValue<String>(drs[0], "TypeName");
@@ -351,21 +351,42 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据类型
-        DataRow[] FindDataType(Int32 typeID, Boolean? isLong)
+        //DataRow[] FindDataType(Int32 typeID, Boolean? isLong)
+        //{
+        //    DataTable dt = DataTypes;
+        //    if (dt == null) return null;
+
+        //    DataRow[] drs = null;
+        //    if (isLong == null)
+        //    {
+        //        drs = dt.Select(String.Format("NativeDataType={0}", typeID));
+        //        if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0}", typeID));
+        //    }
+        //    else
+        //    {
+        //        drs = dt.Select(String.Format("NativeDataType={0} And IsLong={1}", typeID, isLong.Value));
+        //        if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0} And IsLong={1}", typeID, isLong.Value));
+        //    }
+        //    return drs;
+        //}
+
+        protected override DataRow[] FindDataType(XField field, string typeName, bool? isLong)
         {
+            DataRow[] drs = base.FindDataType(field, typeName, isLong);
+            if (drs == null || drs.Length <= 1) return drs;
+
             DataTable dt = DataTypes;
             if (dt == null) return null;
 
-            DataRow[] drs = null;
             if (isLong == null)
             {
-                drs = dt.Select(String.Format("NativeDataType={0}", typeID));
-                if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0}", typeID));
+                drs = dt.Select(String.Format("NativeDataType={0}", typeName));
+                if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0}", typeName));
             }
             else
             {
-                drs = dt.Select(String.Format("NativeDataType={0} And IsLong={1}", typeID, isLong.Value));
-                if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0} And IsLong={1}", typeID, isLong.Value));
+                drs = dt.Select(String.Format("NativeDataType={0} And IsLong={1}", typeName, isLong.Value));
+                if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0} And IsLong={1}", typeName, isLong.Value));
             }
             return drs;
         }
