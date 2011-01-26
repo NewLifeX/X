@@ -432,13 +432,22 @@ namespace XCode.DataAccessLayer
             if (drs != null && drs.Length > 0)
             {
                 if (drs.Length == 1) return drs;
-                
-                drs2 = dt.Select(String.Format("DataType='{0}' And ColumnSize>={1}", typeName, field.Length), "IsBestMatch Desc, ColumnSize Asc");
+
+                drs2 = dt.Select(String.Format("DataType='{0}' And ColumnSize>={1}", typeName, field.Length), "IsBestMatch Desc, ColumnSize Asc, IsFixedLength Asc, IsLong Asc");
                 if (drs2 == null || drs2.Length < 1) return drs;
                 if (drs2.Length == 1) return drs2;
 
-                // 开始排除
-                if (drs2.Length > 1) throw new XDbSessionException(this, "无法唯一识别类型！");
+                //// 开始排除
+                //List<DataRow> list = new List<DataRow>(drs2);
+                //// 排除非最佳匹配
+                //if (list.Count > 1) list.RemoveAll(delegate(DataRow dr) { return !GetDataRowValue<Boolean>(dr, "IsBestMatch"); });
+                //// 排除非最佳匹配
+                //if (list.Count > 1) list.RemoveAll(delegate(DataRow dr) { return !GetDataRowValue<Boolean>(dr, "IsBestMatch"); });
+                //// 排除非最佳匹配
+                //if (list.Count > 1) list.RemoveAll(delegate(DataRow dr) { return !GetDataRowValue<Boolean>(dr, "IsBestMatch"); });
+                //// 排除非最佳匹配
+                //if (list.Count > 1) list.RemoveAll(delegate(DataRow dr) { return !GetDataRowValue<Boolean>(dr, "IsBestMatch"); });
+                //if (drs2.Length > 1) throw new XDbSessionException(this, "无法唯一识别类型！");
                 return drs2;
             }
             return null;
@@ -492,7 +501,13 @@ namespace XCode.DataAccessLayer
                         if (pms[i].Contains("scale") || pms[i].Contains("bits"))
                         {
                             if (!typeName.EndsWith("(")) typeName += ",";
-                            typeName += field.Digit;
+                            // 如果没有设置位数，则使用最大位数
+                            Int32 d = field.Digit;
+                            if (d <= 0)
+                            {
+                                if (!TryGetDataRowValue<Int32>(drs[0], "MaximumScale", out d)) d = field.Digit;
+                            }
+                            typeName += d;
                             continue;
                         }
                     }

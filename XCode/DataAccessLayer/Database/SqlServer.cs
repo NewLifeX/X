@@ -852,26 +852,31 @@ namespace XCode.DataAccessLayer
             {
                 if (_IsSQL2005 == null)
                 {
-                    //切换到master库
-                    DbSession session = CreateSession() as DbSession;
-                    String dbname = session.DatabaseName;
-                    //如果指定了数据库名，并且不是master，则切换到master
-                    if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
+                    if (String.IsNullOrEmpty(ConnectionString)) return false;
+                    try
                     {
-                        session.DatabaseName = "master";
+                        //切换到master库
+                        DbSession session = CreateSession() as DbSession;
+                        String dbname = session.DatabaseName;
+                        //如果指定了数据库名，并且不是master，则切换到master
+                        if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
+                        {
+                            session.DatabaseName = "master";
+                        }
+
+                        //取数据库版本
+                        if (!session.Opened) session.Open();
+                        String ver = session.Conn.ServerVersion;
+                        session.AutoClose();
+
+                        _IsSQL2005 = !ver.StartsWith("08");
+
+                        if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
+                        {
+                            session.DatabaseName = dbname;
+                        }
                     }
-
-                    //取数据库版本
-                    if (!session.Opened) session.Open();
-                    String ver = session.Conn.ServerVersion;
-                    session.AutoClose();
-
-                    _IsSQL2005 = !ver.StartsWith("08");
-
-                    if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
-                    {
-                        session.DatabaseName = dbname;
-                    }
+                    catch { _IsSQL2005 = false; }
                 }
                 return _IsSQL2005.Value;
             }

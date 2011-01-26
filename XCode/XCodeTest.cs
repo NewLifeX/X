@@ -107,6 +107,7 @@ namespace XCode
             //创建数据表
             XTable table = new XTable();
             table.Name = "xtest";
+            table.DbType = DatabaseType.Access;
             table.Fields = new List<XField>();
             table.Description = "测试表";
 
@@ -132,6 +133,7 @@ namespace XCode
             field.ID = table.Fields.Count + 1;
             field.Name = "Name";
             field.DataType = typeof(String);
+            field.Length = 55;
             field.Nullable = false;
             field.Description = "名称";
             table.Fields.Add(field);
@@ -149,6 +151,7 @@ namespace XCode
             field.ID = table.Fields.Count + 1;
             field.Name = "Value";
             field.DataType = typeof(Double);
+            field.Digit = 10;
             field.Nullable = false;
             field.Default = "1.8";
             field.Description = "值";
