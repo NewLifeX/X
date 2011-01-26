@@ -293,9 +293,9 @@ namespace XCode
                 //if (ps != null && ps.Length > 0 && ps[0].DataObjectField != null && ps[0].DataObjectField.IsIdentity)
                 if (field != null && field.DataObjectField != null && field.DataObjectField.IsIdentity)
                 {
-                    Int32 res = Meta.InsertAndGetIdentity(sql);
+                    Int64 res = Meta.InsertAndGetIdentity(sql);
                     if (res > 0) this[field.Name] = res;
-                    return res;
+                    return res > 0 ? 1 : 0;
                 }
             }
             return Meta.Execute(sql);

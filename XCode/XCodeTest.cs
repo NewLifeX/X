@@ -223,8 +223,8 @@ namespace XCode
                     sql = String.Format("Insert into {3}(Name, ParentID, Description) values('{0}',{1},'{2}')", name, pid, des, table.Name);
                 }
 
-                n = Dal.InsertAndGetIdentity(sql, table.Name);
-                if (i + 1 != n) throw new Exception("插入返回编号不匹配！");
+                Int64 n2 = Dal.InsertAndGetIdentity(sql, table.Name);
+                if (i + 1 != n2) throw new Exception("插入返回编号不匹配！");
             }
             DbSession.Debug = debug_old;
             if (EnableTran) Dal.Commit();

@@ -253,9 +253,9 @@ namespace XCode
             /// </summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>新增行的自动编号</returns>
-            public static Int32 InsertAndGetIdentity(String sql)
+            public static Int64 InsertAndGetIdentity(String sql)
             {
-                Int32 rs = DBO.InsertAndGetIdentity(sql, Meta.TableName);
+                Int64 rs = DBO.InsertAndGetIdentity(sql, Meta.TableName);
                 if (rs > 0) DataChange();
                 return rs;
             }

@@ -600,7 +600,7 @@ namespace XCode.DataAccessLayer
         /// <param name="sql"></param>
         /// <param name="tableNames">受影响的表的表名</param>
         /// <returns>新增行的自动编号</returns>
-        public Int32 InsertAndGetIdentity(String sql, String[] tableNames)
+        public Int64 InsertAndGetIdentity(String sql, String[] tableNames)
         {
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
@@ -614,7 +614,7 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">SQL语句</param>
         /// <param name="tableName">受影响的表的表名</param>
         /// <returns>新增行的自动编号</returns>
-        public Int32 InsertAndGetIdentity(String sql, String tableName)
+        public Int64 InsertAndGetIdentity(String sql, String tableName)
         {
             return InsertAndGetIdentity(sql, new String[] { tableName });
         }
