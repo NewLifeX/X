@@ -96,7 +96,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>新增行的自动编号</returns>
-        public override Int32 InsertAndGetIdentity(string sql)
+        public override Int64 InsertAndGetIdentity(string sql)
         {
             _lock.AcquireWrite();
             try
@@ -111,8 +111,7 @@ namespace XCode.DataAccessLayer
                     Object obj = cmd.ExecuteScalar();
                     if (obj == null) return 0;
 
-                    Int32 rs = Convert.ToInt32(obj);
-                    return rs;
+                    return Int64.Parse(obj.ToString());
                 }
                 catch (DbException ex)
                 {

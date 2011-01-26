@@ -159,7 +159,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
-        Int32 InsertAndGetIdentity(String sql);
+        Int64 InsertAndGetIdentity(String sql);
 
         /// <summary>
         /// 获取一个DbCommand。

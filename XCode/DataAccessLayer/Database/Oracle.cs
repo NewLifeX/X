@@ -19,7 +19,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>新增行的自动编号</returns>
-        public override Int32 InsertAndGetIdentity(String sql)
+        public override Int64 InsertAndGetIdentity(String sql)
         {
             throw new NotSupportedException("Oracle数据库不支持插入后返回新增行的自动编号！");
         }
