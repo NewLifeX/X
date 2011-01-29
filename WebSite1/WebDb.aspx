@@ -28,6 +28,8 @@
     <asp:GridView ID="gvResult" runat="server" CssClass="m_table" CellPadding="0" CellSpacing="1"
         GridLines="None">
     </asp:GridView>
+    <XCL:GridViewExtender ID="GridViewExtender1" runat="server" SelectedRowBackColor="Red">
+    </XCL:GridViewExtender>
     <XCL:DataPager ID="DataPager1" runat="server" OnPageIndexChanging="DataPager2_PageIndexChanging"
         DataSourceID="ObjectDataSource1" PageIndex2="1">
         <PagerSettings Mode="NumericFirstLast" />
