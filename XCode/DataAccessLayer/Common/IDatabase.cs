@@ -49,6 +49,12 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <returns></returns>
         IDbSession CreateSession();
+
+        /// <summary>
+        /// 获取元数据对象
+        /// </summary>
+        /// <returns></returns>
+        IMetaData GetMetaData();
         #endregion
 
         #region 分页

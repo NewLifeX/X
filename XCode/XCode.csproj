@@ -85,13 +85,15 @@
     <Compile Include="Code\EntityClass.cs" />
     <Compile Include="Code\EntityClassBiz.cs" />
     <Compile Include="Common\FileSource.cs" />
-    <Compile Include="DataAccessLayer\DatabaseType.cs" />
+    <Compile Include="DataAccessLayer\Common\DatabaseType.cs" />
     <Compile Include="DataAccessLayer\Database\SqlCe.cs" />
-    <Compile Include="DataAccessLayer\DbSession_DDL.cs" />
-    <Compile Include="DataAccessLayer\DbBase.cs" />
-    <Compile Include="DataAccessLayer\DbSession_Schema.cs" />
-    <Compile Include="DataAccessLayer\DbFactory.cs" />
-    <Compile Include="DataAccessLayer\IDatabase.cs" />
+    <Compile Include="DataAccessLayer\MetaData\DbSession_DDL.cs" />
+    <Compile Include="DataAccessLayer\Common\DbBase.cs" />
+    <Compile Include="DataAccessLayer\MetaData\DbSession_Schema.cs" />
+    <Compile Include="DataAccessLayer\Common\DbFactory.cs" />
+    <Compile Include="DataAccessLayer\Common\IDatabase.cs" />
+    <Compile Include="DataAccessLayer\MetaData\DbMetaData.cs" />
+    <Compile Include="DataAccessLayer\MetaData\IMetaData.cs" />
     <Compile Include="Exceptions\XDbException.cs" />
     <Compile Include="Exceptions\XCodeException.cs" />
     <Compile Include="Exceptions\XDbSessionException.cs" />
@@ -101,15 +103,15 @@
     <Compile Include="DataAccessLayer\DatabaseSchema.cs" />
     <Compile Include="DataAccessLayer\Database\Access.cs" />
     <Compile Include="DataAccessLayer\DAL.cs" />
-    <Compile Include="DataAccessLayer\DbSession.cs" />
-    <Compile Include="DataAccessLayer\IDbSession.cs" />
+    <Compile Include="DataAccessLayer\Common\DbSession.cs" />
+    <Compile Include="DataAccessLayer\Common\IDbSession.cs" />
     <Compile Include="DataAccessLayer\Database\MySql.cs" />
     <Compile Include="DataAccessLayer\Database\Oracle.cs" />
     <Compile Include="DataAccessLayer\SelectBuilder.cs" />
     <Compile Include="DataAccessLayer\Database\SQLite.cs" />
     <Compile Include="DataAccessLayer\Database\SqlServer.cs" />
     <Compile Include="DataAccessLayer\Database\SqlServer2005.cs" />
-    <Compile Include="DataAccessLayer\DDLSchema.cs" />
+    <Compile Include="DataAccessLayer\Common\DDLSchema.cs" />
     <Compile Include="DataAccessLayer\XField.cs" />
     <Compile Include="DataAccessLayer\XTable.cs" />
     <Compile Include="Cache\CacheItem.cs" />
@@ -202,6 +204,9 @@
       <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
       <Name>NewLife.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="说明.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
