@@ -35,6 +35,14 @@ namespace XCode
             set { _DefaultValue = value; }
         }
 
+        private String _RawType;
+        /// <summary>原始数据类型</summary>
+        public String RawType
+        {
+            get { return _RawType; }
+            set { _RawType = value; }
+        }
+
         private Int32 _Order;
         /// <summary>顺序</summary>
         public Int32 Order

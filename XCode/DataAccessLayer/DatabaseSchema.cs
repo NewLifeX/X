@@ -569,15 +569,7 @@ namespace XCode.DataAccessLayer
             foreach (FieldItem fi in fis)
             {
                 XField f = table.CreateField();
-                f.ID = fi.Column.Order;
-                f.Name = fi.ColumnName;
-                f.DataType = fi.Property.PropertyType;
-                f.Description = fi.Column.Description;
-                f.Length = fi.DataObjectField.Length;
-                f.Identity = fi.DataObjectField.IsIdentity;
-                f.PrimaryKey = fi.DataObjectField.PrimaryKey;
-                f.Nullable = fi.DataObjectField.IsNullable;
-                f.Default = fi.Column.DefaultValue;
+                fi.Fill(f);
 
                 //while (!String.IsNullOrEmpty(f.Default) && f.Default[0] == '(' && f.Default[f.Default.Length - 1] == ')')
                 //{

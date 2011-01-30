@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
 using System.ComponentModel;
+using XCode.DataAccessLayer;
 
 namespace XCode.Configuration
 {
@@ -137,6 +138,24 @@ namespace XCode.Configuration
         public override string ToString()
         {
             return Name;
+        }
+
+        /// <summary>
+        /// 填充到XField中去
+        /// </summary>
+        /// <param name="field"></param>
+        public void Fill(XField field)
+        {
+            field.ID = Column.Order;
+            field.Name = ColumnName;
+            field.RawType = Column.RawType;
+            field.DataType = Property.PropertyType;
+            field.Description = Column.Description;
+            field.Length = DataObjectField.Length;
+            field.Identity = DataObjectField.IsIdentity;
+            field.PrimaryKey = DataObjectField.PrimaryKey;
+            field.Nullable = DataObjectField.IsNullable;
+            field.Default = Column.DefaultValue;
         }
     }
 }
