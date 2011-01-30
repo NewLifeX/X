@@ -3,7 +3,6 @@ using System.Data.Common;
 using System.Data.OleDb;
 using System.IO;
 using XCode.Exceptions;
-using System.Data;
 
 namespace XCode.DataAccessLayer
 {
@@ -73,7 +72,7 @@ namespace XCode.DataAccessLayer
         /// <summary>文件</summary>
         public String FileName
         {
-            get { return (Database as Access).FileName; }
+            get { return Database is FileDbBase ? (Database as FileDbBase).FileName : null; }
         }
         #endregion
 

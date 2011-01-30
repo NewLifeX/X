@@ -365,6 +365,15 @@ namespace XCode.DataAccessLayer
                 field.NumOfByte = GetDataRowValue<Int32>(dr2, "占用字节数");
                 field.Description = GetDataRowValue<String>(dr2, "字段说明");
             }
+
+            // 整理默认值
+            if (!String.IsNullOrEmpty(field.Default))
+            {
+                //field.Default = field.Default.Trim(new Char[] { '(', ')' });
+                field.Default = DbBase.Trim(field.Default, "\"", "\"");
+                field.Default = DbBase.Trim(field.Default, "\'", "\'");
+                field.Default = DbBase.Trim(field.Default, "(", ")");
+            }
         }
 
         /// <summary>

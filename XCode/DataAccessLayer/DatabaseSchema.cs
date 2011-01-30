@@ -531,7 +531,13 @@ namespace XCode.DataAccessLayer
                 //{
                 //    f.Default = f.Default.Substring(1, f.Default.Length - 2);
                 //}
-                if (!String.IsNullOrEmpty(f.Default)) f.Default = f.Default.Trim(new Char[] { '"', '\'', '(', ')' });
+                //if (!String.IsNullOrEmpty(f.Default)) f.Default = f.Default.Trim(new Char[] { '"', '\'', '(', ')' });
+                if (!String.IsNullOrEmpty(f.Default))
+                {
+                    f.Default = DbBase.Trim(f.Default, "\"", "\"");
+                    f.Default = DbBase.Trim(f.Default, "\'", "\'");
+                    f.Default = DbBase.Trim(f.Default, "(", ")");
+                }
 
                 fields.Add(f);
             }

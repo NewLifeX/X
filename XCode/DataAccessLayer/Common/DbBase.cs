@@ -481,6 +481,25 @@ namespace XCode.DataAccessLayer
         {
             return ConnName;
         }
+
+        /// <summary>
+        /// 除去字符串两端成对出现的符号
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="prefix1"></param>
+        /// <param name="prefix2"></param>
+        /// <returns></returns>
+        public static String Trim(String str, String prefix1, String prefix2)
+        {
+            while (!String.IsNullOrEmpty(str))
+            {
+                if (!str.StartsWith(prefix1)) return str;
+                if (!str.EndsWith(prefix2)) return str;
+
+                str = str.Substring(prefix1.Length, str.Length - prefix2.Length - prefix1.Length);
+            }
+            return str;
+        }
         #endregion
 
         #region Sql日志输出
