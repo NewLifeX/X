@@ -16,9 +16,10 @@
         </asp:Panel>
     </div>
     <asp:GridView ID="gvTable" runat="server" CssClass="m_table" CellPadding="0" CellSpacing="1"
-        GridLines="None">
+        GridLines="None" OnRowDataBound="gvTable_RowDataBound">
     </asp:GridView>
-    SQL语句：（主键，分页时用）<asp:TextBox ID="txtKey" runat="server" Width="48px">ID</asp:TextBox>
+    SQL语句：（主键，分页时用）<asp:TextBox ID="txtKey" runat="server" Width="48px">ID</asp:TextBox>&nbsp;<asp:CheckBox
+        ID="cbEntity" runat="server" Text="实体查询" />
     &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" OnClick="Button1_Click" />
     <br />
     <asp:TextBox ID="txtSql" runat="server" Height="138px" Width="738px" TextMode="MultiLine"></asp:TextBox>
@@ -26,7 +27,7 @@
     结果：<asp:Label ID="lbResult" runat="server" ForeColor="Red"></asp:Label>
     <br />
     <asp:GridView ID="gvResult" runat="server" CssClass="m_table" CellPadding="0" CellSpacing="1"
-        GridLines="None">
+        GridLines="None" OnRowDataBound="gvTable_RowDataBound">
     </asp:GridView>
     <XCL:GridViewExtender ID="GridViewExtender1" runat="server" SelectedRowBackColor="Red">
     </XCL:GridViewExtender>

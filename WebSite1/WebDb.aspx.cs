@@ -5,6 +5,12 @@ using System.Data.Common;
 using System.Web.UI.WebControls;
 using XCode.DataAccessLayer;
 using NewLife.Web;
+using NewLife.Reflection;
+using System.Reflection;
+using System.ComponentModel;
+using System.Web.UI;
+using System.Collections;
+using XCode;
 
 public partial class Admin_System_WebDb : System.Web.UI.Page
 {
@@ -219,7 +225,8 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         }
         catch (Exception ex)
         {
-            lbResult.Text = ex.Message;
+            //lbResult.Text = ex.Message;
+            WebHelper.Alert(ex.ToString());
         }
     }
 
@@ -239,7 +246,19 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         DataPager1.TotalRowCount = count;
         lbResult.Text = String.Format("总记录数：{0}", count);
 
-        // 只显示前1000行
+        //String tableName = ddlTable.SelectedValue;
+        //String fsql = String.Format("Select * From {0}", dal.Db.FormatKeyWord(tableName));
+        //if (sql.ToLower().StartsWith(fsql.ToLower()))
+        //{
+        //    IEntityOperate factory = dal.CreateOperate(tableName);
+        //    if (factory != null)
+        //    {
+        //        gvResult.DataSource = factory.FindAll(sql.Substring(fsql.Length), null, null, index * gvResult.PageSize, gvResult.PageSize);
+        //        gvResult.DataBind();
+        //        return;
+        //    }
+        //}
+
         String key = txtKey.Text;
         if (String.IsNullOrEmpty(key)) key = "ID";
 
@@ -253,5 +272,68 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
     protected void DataPager2_PageIndexChanging(object sender, GridViewPageEventArgs e)
     {
         Search(e.NewPageIndex);
+    }
+
+    protected void gvTable_RowDataBound(object sender, GridViewRowEventArgs e)
+    {
+        if (e.Row.RowType == DataControlRowType.Header)
+        {
+            GridView gv = sender as GridView;
+            Type type = null;
+
+            if (gv.DataSource is DataSet || gv.DataSource is DataTable)
+            {
+                String sql = txtSql.Text;
+                if (String.IsNullOrEmpty(sql)) return;
+
+                sql = sql.Trim();
+                if (String.IsNullOrEmpty(sql)) return;
+
+                DAL dal = GetDAL();
+                if (dal == null) return;
+
+                String tableName = ddlTable.SelectedValue;
+                String fsql = String.Format("Select * From {0}", dal.Db.FormatKeyWord(tableName));
+                if (!sql.ToLower().StartsWith(fsql.ToLower())) return;
+
+                XTable table = dal.Tables.Find(delegate(XTable item) { return item.Name == ddlTable.SelectedValue; });
+                if (table == null) return;
+
+                // 更新表头
+                foreach (TableCell item in e.Row.Cells)
+                {
+                    String name = item.Text;
+                    if (String.IsNullOrEmpty(name)) continue;
+
+                    XField field = table.Fields.Find(delegate(XField elm) { return elm.Name == name; });
+                    if (field == null) continue;
+
+                    if (!String.IsNullOrEmpty(field.Description)) item.Text = field.Description;
+                }
+            }
+            else
+            {
+                IEnumerable ie = gv.DataSource as IEnumerable;
+                if (ie == null) return;
+                IEnumerator iet = ie.GetEnumerator();
+                if (!iet.MoveNext()) return;
+
+                type = iet.Current.GetType();
+
+                // 更新表头
+                foreach (TableCell item in e.Row.Cells)
+                {
+                    String name = item.Text;
+                    if (String.IsNullOrEmpty(name)) continue;
+                    PropertyInfo pi = type.GetProperty(name);
+                    if (pi == null) continue;
+
+                    DescriptionAttribute att = AttributeX.GetCustomAttribute<DescriptionAttribute>(pi, false);
+                    if (att == null) continue;
+
+                    if (!String.IsNullOrEmpty(att.Description)) item.Text = att.Description;
+                }
+            }
+        }
     }
 }
