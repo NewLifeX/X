@@ -67,7 +67,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
 
             // 数据架构
             ddlSchema.Items.Clear();
-            DataTable dt = dal.DB.GetSchema(null, null);
+            DataTable dt = dal.Session.GetSchema(null, null);
             if (dt != null)
             {
                 foreach (DataRow dr in dt.Rows)
@@ -114,7 +114,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         try
         {
             // SQLite不支持该集合
-            rdt = dal.DB.GetSchema(DbMetaDataCollectionNames.Restrictions, null);
+            rdt = dal.Session.GetSchema(DbMetaDataCollectionNames.Restrictions, null);
         }
         catch { }
 
@@ -132,7 +132,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
             }
         }
 
-        DataTable dt = dal.DB.GetSchema(name, pms);
+        DataTable dt = dal.Session.GetSchema(name, pms);
         if (dt != null)
         {
             gvTable.DataSource = dt;
@@ -154,7 +154,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         DataTable rdt = null;
         try
         {
-            rdt = dal.DB.GetSchema(DbMetaDataCollectionNames.Restrictions, null);
+            rdt = dal.Session.GetSchema(DbMetaDataCollectionNames.Restrictions, null);
         }
         catch { }
 
