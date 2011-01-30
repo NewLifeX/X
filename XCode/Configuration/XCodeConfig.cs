@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
-using System.Data.OracleClient;
 using System.Reflection;
 using System.Text;
 using NewLife.Collections;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
+using System.Data.Common;
 
 namespace XCode.Configuration
 {
@@ -183,9 +183,11 @@ namespace XCode.Configuration
             {
                 if (dal.DbType == DatabaseType.Oracle)
                 {
-                    OracleConnectionStringBuilder ocsb = new OracleConnectionStringBuilder(dal.ConnStr);
+                    DbConnectionStringBuilder ocsb = new DbConnectionStringBuilder();
+                    ocsb.ConnectionString = dal.ConnStr;
                     // 加上用户名
-                    if (!String.IsNullOrEmpty(ocsb.UserID)) str = ocsb.UserID + "." + str;
+                    String UserID = (String)ocsb["User ID"];
+                    if (!String.IsNullOrEmpty(UserID)) str = UserID + "." + str;
                 }
             }
             return str;

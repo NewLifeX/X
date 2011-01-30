@@ -4,6 +4,9 @@ using System.Data.Common;
 using System.Data.OleDb;
 using System.Text.RegularExpressions;
 using NewLife;
+using System.IO;
+using System.Web;
+using System.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -200,6 +203,36 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <returns></returns>
         protected abstract IMetaData OnCreateMetaData();
+
+        /// <summary>
+        /// 获取提供者工厂
+        /// </summary>
+        /// <param name="assemblyFile"></param>
+        /// <param name="className"></param>
+        /// <returns></returns>
+        protected static DbProviderFactory GetProviderFactory(String assemblyFile, String className)
+        {
+            //反射实现获取数据库工厂
+            String file = assemblyFile;
+
+            if (String.IsNullOrEmpty(HttpRuntime.AppDomainAppId))
+                file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
+            else
+                file = Path.Combine(HttpRuntime.BinDirectory, file);
+
+            if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
+
+            Assembly asm = Assembly.LoadFile(file);
+            if (asm == null) return null;
+
+            Type type = asm.GetType(className);
+            if (type == null) return null;
+
+            FieldInfo field = type.GetField("Instance");
+            if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;
+
+            return field.GetValue(null) as DbProviderFactory;
+        }
         #endregion
 
         #region 分页

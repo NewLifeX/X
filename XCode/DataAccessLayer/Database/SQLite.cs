@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.OleDb;
 using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Web;
 using NewLife.Threading;
-using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
@@ -25,41 +23,14 @@ namespace XCode.DataAccessLayer
 
         private static DbProviderFactory _dbProviderFactory;
         /// <summary>
-        /// 静态构造函数
+        /// 提供者工厂
         /// </summary>
         static DbProviderFactory dbProviderFactory
         {
             get
             {
-                if (_dbProviderFactory == null)
-                {
-                    Module module = typeof(Object).Module;
+                if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.SQLite.dll", "System.Data.SQLite.SQLiteFactory");
 
-                    PortableExecutableKinds kind;
-                    ImageFileMachine machine;
-                    module.GetPEKind(out kind, out machine);
-
-                    //反射实现获取数据库工厂
-                    String file = "System.Data.SQLite.dll";
-                    //if (machine != ImageFileMachine.I386) file = "System.Data.SQLite64.dll";
-
-                    if (String.IsNullOrEmpty(HttpRuntime.AppDomainAppId))
-                        file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
-                    else
-                        file = Path.Combine(HttpRuntime.BinDirectory, file);
-
-                    //if (!File.Exists(file) && machine == ImageFileMachine.I386)
-                    //{
-                    //    file = "System.Data.SQLite32.dll";
-                    //    file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
-                    //}
-                    if (!File.Exists(file)) throw new InvalidOperationException("缺少文件" + file + "！");
-
-                    Assembly asm = Assembly.LoadFile(file);
-                    Type type = asm.GetType("System.Data.SQLite.SQLiteFactory");
-                    FieldInfo field = type.GetField("Instance");
-                    _dbProviderFactory = field.GetValue(null) as DbProviderFactory;
-                }
                 return _dbProviderFactory;
             }
         }
@@ -175,13 +146,13 @@ namespace XCode.DataAccessLayer
     internal class SQLiteSession : FileDbSession
     {
         #region 基本方法 查询/执行
-        private ReadWriteLock __lock = null;
-        private ReadWriteLock _lock
+        private ReadWriteLock _lock = null;
+        private ReadWriteLock rwLock
         {
             get
             {
                 // 以文件名为键创建读写锁，表示多线程将会争夺文件的写入操作
-                return __lock ?? (__lock = ReadWriteLock.Create(FileName));
+                return _lock ?? (_lock = ReadWriteLock.Create(FileName));
             }
         }
 
@@ -192,14 +163,14 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override int Execute(string sql)
         {
-            _lock.AcquireWrite();
+            rwLock.AcquireWrite();
             try
             {
                 return base.Execute(sql);
             }
             finally
             {
-                _lock.ReleaseWrite();
+                rwLock.ReleaseWrite();
             }
         }
 
@@ -210,14 +181,14 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override int Execute(DbCommand cmd)
         {
-            _lock.AcquireWrite();
+            rwLock.AcquireWrite();
             try
             {
                 return base.Execute(cmd);
             }
             finally
             {
-                _lock.ReleaseWrite();
+                rwLock.ReleaseWrite();
             }
         }
 
@@ -228,7 +199,7 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public override Int64 InsertAndGetIdentity(string sql)
         {
-            _lock.AcquireWrite();
+            rwLock.AcquireWrite();
             try
             {
                 ExecuteTimes++;
@@ -251,7 +222,7 @@ namespace XCode.DataAccessLayer
             finally
             {
                 AutoClose();
-                _lock.ReleaseWrite();
+                rwLock.ReleaseWrite();
             }
         }
         #endregion
@@ -275,177 +246,177 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据定义
-        /// <summary>
-        /// 设置数据定义模式
-        /// </summary>
-        /// <param name="schema"></param>
-        /// <param name="values"></param>
-        /// <returns></returns>
-        public override object SetSchema(DDLSchema schema, object[] values)
-        {
-            Object obj = null;
-            switch (schema)
-            {
-                case DDLSchema.CreateDatabase:
-                    CreateDatabase();
-                    return null;
-                case DDLSchema.DropDatabase:
-                    //首先关闭数据库
-                    Database.CreateSession().Close();
+        ///// <summary>
+        ///// 设置数据定义模式
+        ///// </summary>
+        ///// <param name="schema"></param>
+        ///// <param name="values"></param>
+        ///// <returns></returns>
+        //public override object SetSchema(DDLSchema schema, object[] values)
+        //{
+        //    Object obj = null;
+        //    switch (schema)
+        //    {
+        //        //case DDLSchema.CreateDatabase:
+        //        //    CreateDatabase();
+        //        //    return null;
+        //        //case DDLSchema.DropDatabase:
+        //        //    //首先关闭数据库
+        //        //    Database.CreateSession().Close();
 
-                    if (File.Exists(FileName)) File.Delete(FileName);
-                    return null;
-                case DDLSchema.DatabaseExist:
-                    return File.Exists(FileName);
-                case DDLSchema.CreateTable:
-                    obj = base.SetSchema(DDLSchema.CreateTable, values);
-                    //XTable table = values[0] as XTable;
-                    //if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(table.Name, table.Description);
-                    //foreach (XField item in table.Fields)
-                    //{
-                    //    if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(table.Name, item.Name, item.Description);
-                    //}
-                    return obj;
-                case DDLSchema.DropTable:
-                    break;
-                case DDLSchema.TableExist:
-                    DataTable dt = GetSchema("Tables", new String[] { null, null, (String)values[0], "TABLE" });
-                    if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
-                    return true;
-                //case DDLSchema.AddTableDescription:
-                //    return AddTableDescription((String)values[0], (String)values[1]);
-                //case DDLSchema.DropTableDescription:
-                //    return DropTableDescription((String)values[0]);
-                case DDLSchema.AddColumn:
-                    obj = base.SetSchema(DDLSchema.AddColumn, values);
-                    //AddColumnDescription((String)values[0], ((XField)values[1]).Name, ((XField)values[1]).Description);
-                    return obj;
-                case DDLSchema.AlterColumn:
-                    break;
-                case DDLSchema.DropColumn:
-                    break;
-                //case DDLSchema.AddColumnDescription:
-                //    return AddColumnDescription((String)values[0], (String)values[1], (String)values[2]);
-                //case DDLSchema.DropColumnDescription:
-                //    return DropColumnDescription((String)values[0], (String)values[1]);
-                //case DDLSchema.AddDefault:
-                //    return AddDefault((String)values[0], (String)values[1], (String)values[2]);
-                //case DDLSchema.DropDefault:
-                //    return DropDefault((String)values[0], (String)values[1]);
-                default:
-                    break;
-            }
-            return base.SetSchema(schema, values);
-        }
+        //        //    if (File.Exists(FileName)) File.Delete(FileName);
+        //        //    return null;
+        //        //case DDLSchema.DatabaseExist:
+        //        //    return File.Exists(FileName);
+        //        //case DDLSchema.CreateTable:
+        //        //    obj = base.SetSchema(DDLSchema.CreateTable, values);
+        //        //    //XTable table = values[0] as XTable;
+        //        //    //if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(table.Name, table.Description);
+        //        //    //foreach (XField item in table.Fields)
+        //        //    //{
+        //        //    //    if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(table.Name, item.Name, item.Description);
+        //        //    //}
+        //        //    return obj;
+        //        //case DDLSchema.DropTable:
+        //        //    break;
+        //        //case DDLSchema.TableExist:
+        //        //    DataTable dt = GetSchema("Tables", new String[] { null, null, (String)values[0], "TABLE" });
+        //        //    if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
+        //        //    return true;
+        //        //case DDLSchema.AddTableDescription:
+        //        //    return AddTableDescription((String)values[0], (String)values[1]);
+        //        //case DDLSchema.DropTableDescription:
+        //        //    return DropTableDescription((String)values[0]);
+        //        case DDLSchema.AddColumn:
+        //            obj = base.SetSchema(DDLSchema.AddColumn, values);
+        //            //AddColumnDescription((String)values[0], ((XField)values[1]).Name, ((XField)values[1]).Description);
+        //            return obj;
+        //        case DDLSchema.AlterColumn:
+        //            break;
+        //        case DDLSchema.DropColumn:
+        //            break;
+        //        //case DDLSchema.AddColumnDescription:
+        //        //    return AddColumnDescription((String)values[0], (String)values[1], (String)values[2]);
+        //        //case DDLSchema.DropColumnDescription:
+        //        //    return DropColumnDescription((String)values[0], (String)values[1]);
+        //        //case DDLSchema.AddDefault:
+        //        //    return AddDefault((String)values[0], (String)values[1], (String)values[2]);
+        //        //case DDLSchema.DropDefault:
+        //        //    return DropDefault((String)values[0], (String)values[1]);
+        //        default:
+        //            break;
+        //    }
+        //    return base.SetSchema(schema, values);
+        //}
 
         public override string AlterColumnSQL(string tablename, XField field)
         {
             return null;
         }
 
-        public override string FieldClause(XField field, bool onlyDefine)
-        {
-            StringBuilder sb = new StringBuilder();
+        //public override string FieldClause(XField field, bool onlyDefine)
+        //{
+        //    StringBuilder sb = new StringBuilder();
 
-            //字段名
-            sb.AppendFormat("{0} ", FormatKeyWord(field.Name));
+        //    //字段名
+        //    sb.AppendFormat("{0} ", FormatKeyWord(field.Name));
 
-            //类型
-            TypeCode tc = Type.GetTypeCode(field.DataType);
-            switch (tc)
-            {
-                case TypeCode.Boolean:
-                    sb.Append("BOOLEAN");
-                    break;
-                case TypeCode.Byte:
-                    sb.Append("byte");
-                    break;
-                case TypeCode.Char:
-                    sb.Append("bit");
-                    break;
-                case TypeCode.DBNull:
-                    break;
-                case TypeCode.DateTime:
-                    sb.Append("datetime");
-                    break;
-                case TypeCode.Decimal:
-                    sb.AppendFormat("decimal");
-                    break;
-                case TypeCode.Double:
-                    sb.Append("double");
-                    break;
-                case TypeCode.Empty:
-                    break;
-                case TypeCode.Int16:
-                case TypeCode.UInt16:
-                //sb.Append("smallint");
-                //break;
-                case TypeCode.Int32:
-                case TypeCode.UInt32:
-                //sb.Append("interger");
-                //break;
-                case TypeCode.Int64:
-                case TypeCode.UInt64:
-                    sb.Append("INTEGER");
-                    break;
-                case TypeCode.Object:
-                    break;
-                case TypeCode.SByte:
-                    sb.Append("byte");
-                    break;
-                case TypeCode.Single:
-                    sb.Append("float");
-                    break;
-                case TypeCode.String:
-                    Int32 len = field.Length;
-                    if (len < 1) len = 50;
-                    if (len > 4000)
-                        sb.Append("TEXT");
-                    else
-                        sb.AppendFormat("nvarchar({0})", len);
-                    break;
-                default:
-                    break;
-            }
+        //    //类型
+        //    TypeCode tc = Type.GetTypeCode(field.DataType);
+        //    switch (tc)
+        //    {
+        //        case TypeCode.Boolean:
+        //            sb.Append("BOOLEAN");
+        //            break;
+        //        case TypeCode.Byte:
+        //            sb.Append("byte");
+        //            break;
+        //        case TypeCode.Char:
+        //            sb.Append("bit");
+        //            break;
+        //        case TypeCode.DBNull:
+        //            break;
+        //        case TypeCode.DateTime:
+        //            sb.Append("datetime");
+        //            break;
+        //        case TypeCode.Decimal:
+        //            sb.AppendFormat("decimal");
+        //            break;
+        //        case TypeCode.Double:
+        //            sb.Append("double");
+        //            break;
+        //        case TypeCode.Empty:
+        //            break;
+        //        case TypeCode.Int16:
+        //        case TypeCode.UInt16:
+        //        //sb.Append("smallint");
+        //        //break;
+        //        case TypeCode.Int32:
+        //        case TypeCode.UInt32:
+        //        //sb.Append("interger");
+        //        //break;
+        //        case TypeCode.Int64:
+        //        case TypeCode.UInt64:
+        //            sb.Append("INTEGER");
+        //            break;
+        //        case TypeCode.Object:
+        //            break;
+        //        case TypeCode.SByte:
+        //            sb.Append("byte");
+        //            break;
+        //        case TypeCode.Single:
+        //            sb.Append("float");
+        //            break;
+        //        case TypeCode.String:
+        //            Int32 len = field.Length;
+        //            if (len < 1) len = 50;
+        //            if (len > 4000)
+        //                sb.Append("TEXT");
+        //            else
+        //                sb.AppendFormat("nvarchar({0})", len);
+        //            break;
+        //        default:
+        //            break;
+        //    }
 
-            if (field.PrimaryKey)
-            {
-                sb.Append(" primary key");
+        //    if (field.PrimaryKey)
+        //    {
+        //        sb.Append(" primary key");
 
-                // 如果不加这个关键字，SQLite会利用最大值加1的方式，所以，最大行被删除后，它的编号将会被重用
-                if (onlyDefine && field.Identity) sb.Append(" autoincrement");
-            }
-            else
-            {
-                //是否为空
-                //if (!field.Nullable) sb.Append(" NOT NULL");
-                if (field.Nullable)
-                    sb.Append(" NULL");
-                else
-                {
-                    sb.Append(" NOT NULL");
-                }
-            }
+        //        // 如果不加这个关键字，SQLite会利用最大值加1的方式，所以，最大行被删除后，它的编号将会被重用
+        //        if (onlyDefine && field.Identity) sb.Append(" autoincrement");
+        //    }
+        //    else
+        //    {
+        //        //是否为空
+        //        //if (!field.Nullable) sb.Append(" NOT NULL");
+        //        if (field.Nullable)
+        //            sb.Append(" NULL");
+        //        else
+        //        {
+        //            sb.Append(" NOT NULL");
+        //        }
+        //    }
 
-            //默认值
-            if (onlyDefine && !String.IsNullOrEmpty(field.Default))
-            {
-                if (tc == TypeCode.String)
-                    sb.AppendFormat(" DEFAULT '{0}'", field.Default);
-                else if (tc == TypeCode.DateTime)
-                {
-                    String d = field.Default;
-                    //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = "now()";
-                    if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
-                    if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
-                    sb.AppendFormat(" DEFAULT {0}", d);
-                }
-                else
-                    sb.AppendFormat(" DEFAULT {0}", field.Default);
-            }
+        //    //默认值
+        //    if (onlyDefine && !String.IsNullOrEmpty(field.Default))
+        //    {
+        //        if (tc == TypeCode.String)
+        //            sb.AppendFormat(" DEFAULT '{0}'", field.Default);
+        //        else if (tc == TypeCode.DateTime)
+        //        {
+        //            String d = field.Default;
+        //            //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = "now()";
+        //            if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
+        //            if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
+        //            sb.AppendFormat(" DEFAULT {0}", d);
+        //        }
+        //        else
+        //            sb.AppendFormat(" DEFAULT {0}", field.Default);
+        //    }
 
-            return sb.ToString();
-        }
+        //    return sb.ToString();
+        //}
         #endregion
 
         #region 表和字段备注

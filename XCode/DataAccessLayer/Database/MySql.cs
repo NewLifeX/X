@@ -20,29 +20,14 @@ namespace XCode.DataAccessLayer
 
         private static DbProviderFactory _dbProviderFactory;
         /// <summary>
-        /// 静态构造函数
+        /// 提供者工厂
         /// </summary>
         static DbProviderFactory dbProviderFactory
         {
             get
             {
-                if (_dbProviderFactory == null)
-                {
-                    //反射实现获取数据库工厂
-                    String file = "MySql.Data.dll";
+                if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("MySql.Data.dll", "MySql.Data.MySqlClient.MySqlClientFactory");
 
-                    if (String.IsNullOrEmpty(HttpRuntime.AppDomainAppId))
-                        file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
-                    else
-                        file = Path.Combine(HttpRuntime.BinDirectory, file);
-
-                    if (!File.Exists(file)) throw new InvalidOperationException("缺少文件" + file + "！");
-
-                    Assembly asm = Assembly.LoadFile(file);
-                    Type type = asm.GetType("MySql.Data.MySqlClient.MySqlClientFactory");
-                    FieldInfo field = type.GetField("Instance");
-                    _dbProviderFactory = field.GetValue(null) as DbProviderFactory;
-                }
                 return _dbProviderFactory;
             }
         }

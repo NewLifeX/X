@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.OracleClient;
 using System.Text.RegularExpressions;
 using XCode.Exceptions;
 
@@ -19,10 +18,25 @@ namespace XCode.DataAccessLayer
             get { return DatabaseType.Oracle; }
         }
 
+        private static DbProviderFactory _dbProviderFactory;
+        /// <summary>
+        /// 提供者工厂
+        /// </summary>
+        static DbProviderFactory dbProviderFactory
+        {
+            get
+            {
+                if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.OracleClient.dll", "System.Data.OracleClient.OracleClientFactory");
+
+                return _dbProviderFactory;
+            }
+        }
+
         /// <summary>工厂</summary>
         public override DbProviderFactory Factory
         {
-            get { return OracleClientFactory.Instance; }
+            //get { return OracleClientFactory.Instance; }
+            get { return dbProviderFactory; }
         }
         #endregion
 
