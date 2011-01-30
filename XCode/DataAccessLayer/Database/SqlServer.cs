@@ -269,18 +269,13 @@ namespace XCode.DataAccessLayer
             if (Debug) WriteLog(cmd.CommandText);
             try
             {
-                Int32 rs = Convert.ToInt32(cmd.ExecuteScalar());
-                //AutoClose();
-                return rs;
+                return Convert.ToInt32(cmd.ExecuteScalar());
             }
             catch (DbException ex)
             {
                 throw OnException(ex, cmd.CommandText);
             }
-            finally
-            {
-                AutoClose();
-            }
+            finally { AutoClose(); }
         }
         #endregion
     }
@@ -350,59 +345,6 @@ namespace XCode.DataAccessLayer
         }
 
         private DataTable AllFields = null;
-
-        ///// <summary>
-        ///// 取得指定表的所有列构架
-        ///// </summary>
-        ///// <param name="table"></param>
-        ///// <returns></returns>
-        //protected override List<XField> GetFields(XTable table)
-        //{
-        //    if (AllFields == null) return base.GetFields(table);
-
-        //    DataRow[] rows = AllFields.Select("表名='" + table.Name + "'", null);
-        //    if (rows == null || rows.Length < 1) return base.GetFields(table);
-
-        //    List<XField> list = new List<XField>();
-        //    //DataColumnCollection columns = GetColumns(xt.Name);
-        //    foreach (DataRow dr in rows)
-        //    {
-        //        XField field = table.CreateField();
-        //        field.ID = Int32.Parse(dr["字段序号"].ToString());
-        //        field.Name = dr["字段名"].ToString();
-        //        field.RawType = dr["类型"].ToString();
-        //        //xf.DataType = FieldTypeToClassType(dr["类型"].ToString());
-        //        //field.DataType = FieldTypeToClassType(field);
-        //        field.Identity = Boolean.Parse(dr["标识"].ToString());
-
-        //        //if (columns != null && columns.Contains(xf.Name))
-        //        //{
-        //        //    DataColumn dc = columns[xf.Name];
-        //        //    xf.DataType = dc.DataType;
-        //        //}
-
-        //        field.PrimaryKey = Boolean.Parse(dr["主键"].ToString());
-
-        //        field.Length = Int32.Parse(dr["长度"].ToString());
-        //        field.NumOfByte = Int32.Parse(dr["占用字节数"].ToString());
-        //        field.Digit = Int32.Parse(dr["小数位数"].ToString());
-
-        //        field.Nullable = Boolean.Parse(dr["允许空"].ToString());
-        //        field.Default = dr["默认值"].ToString();
-        //        field.Description = dr["字段说明"].ToString();
-
-        //        //处理默认值
-        //        while (!String.IsNullOrEmpty(field.Default) && field.Default[0] == '(' && field.Default[field.Default.Length - 1] == ')')
-        //        {
-        //            field.Default = field.Default.Substring(1, field.Default.Length - 2);
-        //        }
-        //        if (!String.IsNullOrEmpty(field.Default)) field.Default = field.Default.Trim(new Char[] { '"', '\'' });
-
-        //        list.Add(field);
-        //    }
-
-        //    return list;
-        //}
 
         protected override void FixField(XField field, DataRow dr)
         {
@@ -497,53 +439,11 @@ namespace XCode.DataAccessLayer
                     sb.Append("left join syscomments e on a.cdefault=e.id ");
                     if (IsSQL2005)
                     {
-                        //sb.Append("SELECT ");
-                        //sb.Append("表名=d.name,");
-                        //sb.Append("字段序号=a.colorder,");
-                        //sb.Append("字段名=a.name,");
-                        //sb.Append("标识=case when COLUMNPROPERTY( a.id,a.name,'IsIdentity')=1 then Convert(Bit,1) else Convert(Bit,0) end,");
-                        //sb.Append("主键=case when exists(SELECT 1 FROM sysobjects where xtype='PK' and name in (");
-                        //sb.Append("SELECT name FROM sysindexes WHERE id = a.id AND indid in(");
-                        //sb.Append("SELECT indid FROM sysindexkeys WHERE id = a.id AND colid=a.colid");
-                        //sb.Append("))) then Convert(Bit,1) else Convert(Bit,0) end,");
-                        //sb.Append("类型=b.name,");
-                        //sb.Append("占用字节数=a.length,");
-                        //sb.Append("长度=COLUMNPROPERTY(a.id,a.name,'PRECISION'),");
-                        //sb.Append("小数位数=isnull(COLUMNPROPERTY(a.id,a.name,'Scale'),0),");
-                        //sb.Append("允许空=case when a.isnullable=1 then Convert(Bit,1)else Convert(Bit,0) end,");
-                        //sb.Append("默认值=isnull(e.text,''),");
-                        //sb.Append("字段说明=isnull(g.[value],'')");
-                        //sb.Append("FROM syscolumns a ");
-                        //sb.Append("left join systypes b on a.xtype=b.xusertype ");
-                        //sb.Append("inner join sysobjects d on a.id=d.id  and d.xtype='U' ");
-                        //sb.Append("left join syscomments e on a.cdefault=e.id ");
                         sb.Append("left join sys.extended_properties g on a.id=g.major_id and a.colid=g.minor_id and g.name = 'MS_Description'  ");
-                        //sb.Append("order by a.id,a.colorder");
                     }
                     else
                     {
-                        //sb.Append("SELECT ");
-                        //sb.Append("表名=d.name,");
-                        //sb.Append("字段序号=a.colorder,");
-                        //sb.Append("字段名=a.name,");
-                        //sb.Append("标识=case when COLUMNPROPERTY( a.id,a.name,'IsIdentity')=1 then Convert(Bit,1) else Convert(Bit,0) end,");
-                        //sb.Append("主键=case when exists(SELECT 1 FROM sysobjects where xtype='PK' and name in (");
-                        //sb.Append("SELECT name FROM sysindexes WHERE id = a.id AND indid in(");
-                        //sb.Append("SELECT indid FROM sysindexkeys WHERE id = a.id AND colid=a.colid");
-                        //sb.Append("))) then Convert(Bit,1) else Convert(Bit,0) end,");
-                        //sb.Append("类型=b.name,");
-                        //sb.Append("占用字节数=a.length,");
-                        //sb.Append("长度=COLUMNPROPERTY(a.id,a.name,'PRECISION'),");
-                        //sb.Append("小数位数=isnull(COLUMNPROPERTY(a.id,a.name,'Scale'),0),");
-                        //sb.Append("允许空=case when a.isnullable=1 then Convert(Bit,1)else Convert(Bit,0) end,");
-                        //sb.Append("默认值=isnull(e.text,''),");
-                        //sb.Append("字段说明=isnull(g.[value],'')");
-                        //sb.Append("FROM syscolumns a ");
-                        //sb.Append("left join systypes b on a.xtype=b.xusertype ");
-                        //sb.Append("inner join sysobjects d on a.id=d.id  and d.xtype='U' ");
-                        //sb.Append("left join syscomments e on a.cdefault=e.id ");
                         sb.Append("left join sysproperties g on a.id=g.id and a.colid=g.smallid  ");
-                        //sb.Append("order by a.id,a.colorder");
                     }
                     sb.Append("order by a.id,a.colorder");
                     _SchemaSql = sb.ToString();
@@ -561,13 +461,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据定义
-        //public override string GetSchemaSQL(DDLSchema schema, params object[] values)
-        //{
-        //    if (schema == DDLSchema.DropDatabase) return DropDatabaseSQL((String)values[0]);
-
-        //    return base.GetSchemaSQL(schema, values);
-        //}
-
         public override object SetSchema(DDLSchema schema, params object[] values)
         {
             IDbSession session = Database.CreateSession();
@@ -650,129 +543,6 @@ namespace XCode.DataAccessLayer
             }
             return base.SetSchema(schema, values);
         }
-
-        ///// <summary>
-        ///// 字段片段
-        ///// </summary>
-        ///// <param name="field"></param>
-        ///// <param name="onlyDefine">仅仅定义。定义操作才允许设置自增和使用默认值</param>
-        ///// <returns></returns>
-        //public override String FieldClause(XField field, Boolean onlyDefine)
-        //{
-        //    StringBuilder sb = new StringBuilder();
-
-        //    //字段名
-        //    //sb.AppendFormat("[{0}] ", field.Name);
-        //    sb.AppendFormat("{0} ", FormatKeyWord(field.Name));
-
-        //    //类型
-        //    TypeCode tc = Type.GetTypeCode(field.DataType);
-        //    switch (tc)
-        //    {
-        //        case TypeCode.Boolean:
-        //            sb.Append("[bit]");
-        //            break;
-        //        case TypeCode.Byte:
-        //            sb.Append("[byte]");
-        //            break;
-        //        case TypeCode.Char:
-        //            sb.Append("[char]");
-        //            break;
-        //        case TypeCode.DBNull:
-        //            break;
-        //        case TypeCode.DateTime:
-        //            sb.Append("[datetime]");
-        //            break;
-        //        case TypeCode.Decimal:
-        //            sb.Append("[money]");
-        //            if (onlyDefine && field.Identity) sb.Append(" IDENTITY(1,1)");
-        //            break;
-        //        case TypeCode.Double:
-        //            sb.Append("[float]");
-        //            break;
-        //        case TypeCode.Empty:
-        //            break;
-        //        case TypeCode.Int16:
-        //        case TypeCode.UInt16:
-        //            sb.Append("[smallint]");
-        //            if (onlyDefine && field.Identity) sb.Append(" IDENTITY(1,1)");
-        //            break;
-        //        case TypeCode.Int32:
-        //        case TypeCode.UInt32:
-        //            sb.Append("[int]");
-        //            if (onlyDefine && field.Identity) sb.Append(" IDENTITY(1,1)");
-        //            break;
-        //        case TypeCode.Int64:
-        //        case TypeCode.UInt64:
-        //            sb.Append("[bigint]");
-        //            if (onlyDefine && field.Identity) sb.Append(" IDENTITY(1,1)");
-        //            break;
-        //        case TypeCode.Object:
-        //            break;
-        //        case TypeCode.SByte:
-        //            sb.Append("[byte]");
-        //            break;
-        //        case TypeCode.Single:
-        //            sb.Append("[float]");
-        //            break;
-        //        case TypeCode.String:
-        //            Int32 len = field.Length;
-        //            if (len < 1) len = 50;
-        //            if (len > 4000)
-        //                sb.Append("[ntext]");
-        //            else
-        //                sb.AppendFormat("[nvarchar]({0})", len);
-        //            break;
-        //        default:
-        //            break;
-        //    }
-
-        //    //是否为空
-        //    if (!field.PrimaryKey && !field.Identity)
-        //    {
-        //        if (field.Nullable)
-        //            sb.Append(" NULL");
-        //        else
-        //        {
-        //            sb.Append(" NOT NULL");
-        //        }
-        //    }
-
-        //    //默认值
-        //    if (onlyDefine && !String.IsNullOrEmpty(field.Default))
-        //    {
-        //        if (tc == TypeCode.String)
-        //            sb.AppendFormat(" DEFAULT ('{0}')", field.Default);
-        //        else if (tc == TypeCode.DateTime)
-        //        {
-        //            String d = field.Default;
-        //            //if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = "getdate()";
-        //            if (String.Equals(d, "now()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
-        //            sb.AppendFormat(" DEFAULT {0}", d);
-        //        }
-        //        else
-        //            sb.AppendFormat(" DEFAULT {0}", field.Default);
-        //    }
-        //    //else if (!onlyDefine && !field.PrimaryKey && !field.Nullable)
-        //    //{
-        //    //    //在定义语句中，该字段不允许空，而又没有默认值时，设置默认值
-        //    //    if (!includeDefault || String.IsNullOrEmpty(field.Default))
-        //    //    {
-        //    //        if (tc == TypeCode.String)
-        //    //            sb.AppendFormat(" DEFAULT ('{0}')", "");
-        //    //        else if (tc == TypeCode.DateTime)
-        //    //        {
-        //    //            String d = SqlDateTime.MinValue.Value.ToString("yyyy-MM-dd HH:mm:ss");
-        //    //            //d = "1900-01-01";
-        //    //            sb.AppendFormat(" DEFAULT '{0}'", d);
-        //    //        }
-        //    //        else
-        //    //            sb.AppendFormat(" DEFAULT {0}", "''");
-        //    //    }
-        //    //}
-
-        //    return sb.ToString();
-        //}
 
         public override string CreateDatabaseSQL(string dbname, string file)
         {
@@ -895,22 +665,22 @@ namespace XCode.DataAccessLayer
 
         public override string AddColumnSQL(string tablename, XField field)
         {
-            String sql = String.Format("Alter TABLE {0} Add {1}", FormatKeyWord(tablename), FieldClause(field, true));
-            //if (!String.IsNullOrEmpty(field.Default)) sql += ";" + AddDefaultSQL(tablename, field.Name, field.Description);
-            if (!String.IsNullOrEmpty(field.Description))
-            {
-                //AddColumnDescriptionSQL中会调用DropColumnDescriptionSQL，这里不需要了
-                //sql += ";" + Environment.NewLine + DropColumnDescriptionSQL(tablename, field.Name);
-                sql += ";" + Environment.NewLine + AddColumnDescriptionSQL(tablename, field.Name, field.Description);
-            }
+            String sql = String.Format("Alter Table {0} Add {1}", FormatKeyWord(tablename), FieldClause(field, true));
+            ////if (!String.IsNullOrEmpty(field.Default)) sql += ";" + AddDefaultSQL(tablename, field.Name, field.Description);
+            //if (!String.IsNullOrEmpty(field.Description))
+            //{
+            //    //AddColumnDescriptionSQL中会调用DropColumnDescriptionSQL，这里不需要了
+            //    //sql += ";" + Environment.NewLine + DropColumnDescriptionSQL(tablename, field.Name);
+            //    sql += ";" + Environment.NewLine + AddColumnDescriptionSQL(tablename, field.Name, field.Description);
+            //}
             return sql;
         }
 
         public override string AlterColumnSQL(string tablename, XField field)
         {
             String sql = String.Format("Alter Table {0} Alter Column {1}", FormatKeyWord(tablename), FieldClause(field, false));
-            if (!String.IsNullOrEmpty(field.Default)) sql += ";" + Environment.NewLine + AddDefaultSQL(tablename, field);
-            if (!String.IsNullOrEmpty(field.Description)) sql += ";" + Environment.NewLine + AddColumnDescriptionSQL(tablename, field.Name, field.Description);
+            //if (!String.IsNullOrEmpty(field.Default)) sql += ";" + Environment.NewLine + AddDefaultSQL(tablename, field);
+            //if (!String.IsNullOrEmpty(field.Description)) sql += ";" + Environment.NewLine + AddColumnDescriptionSQL(tablename, field.Name, field.Description);
             return sql;
         }
 
@@ -938,16 +708,6 @@ namespace XCode.DataAccessLayer
 
         public override string DropColumnDescriptionSQL(String tablename, String columnname)
         {
-            //StringBuilder sb = new StringBuilder();
-            //sb.Append("IF EXISTS (");
-            //sb.AppendFormat("select * from syscolumns a inner join sysproperties g on a.id=g.id and a.colid=g.smallid and g.name='MS_Description' inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}'", tablename, columnname);
-            //sb.AppendLine(")");
-            //sb.AppendLine("BEGIN");
-            //sb.AppendFormat("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'USER',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{1}'", tablename, columnname);
-            //sb.AppendLine();
-            //sb.Append("END");
-            //return sb.ToString();
-
             String sql = String.Empty;
             if (!IsSQL2005)
                 sql = String.Format("select * from syscolumns a inner join sysproperties g on a.id=g.id and a.colid=g.smallid and g.name='MS_Description' inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}'", tablename, columnname);
