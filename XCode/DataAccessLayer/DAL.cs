@@ -24,7 +24,6 @@ namespace XCode.DataAccessLayer
     /// 每一个数据库链接字符串，对应唯一的一个DAL实例。
     /// 数据库链接字符串可以写在配置文件中，然后在Create时指定名字；
     /// 也可以直接把链接字符串作为AddConnStr的参数传入。
-    /// 每一个DAL实例，会为每一个线程初始化一个DataBase实例。
     /// 每一个数据库操作都必须指定表名以用于管理缓存，空表名或*将匹配所有缓存
     /// </remarks>
     public class DAL
@@ -53,8 +52,6 @@ namespace XCode.DataAccessLayer
         /// <returns>对应于指定链接的全局唯一的数据访问层对象</returns>
         public static DAL Create(String connName)
         {
-            //当connName为null时，_dals里面并没有包含null的项，所以需要提前处理
-            //if (String.IsNullOrEmpty(connName)) return new DAL(null);
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
 
             DAL dal = null;
@@ -91,7 +88,7 @@ namespace XCode.DataAccessLayer
                     if (_connStrs != null) return _connStrs;
                     Dictionary<String, ConnectionStringSettings> cs = new Dictionary<String, ConnectionStringSettings>();
 
-                    //读取配置文件
+                    // 读取配置文件
                     ConnectionStringSettingsCollection css = ConfigurationManager.ConnectionStrings;
                     if (css != null && css.Count > 0)
                     {
@@ -117,10 +114,10 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 添加连接字符串
         /// </summary>
-        /// <param name="connName"></param>
-        /// <param name="connStr"></param>
-        /// <param name="type"></param>
-        /// <param name="provider"></param>
+        /// <param name="connName">连接名</param>
+        /// <param name="connStr">连接字符串</param>
+        /// <param name="type">实现了IDatabase接口的数据库类型</param>
+        /// <param name="provider">数据库提供者，如果没有指定数据库类型，则有提供者判断使用哪一种内置类型</param>
         public static void AddConnStr(String connName, String connStr, Type type, String provider)
         {
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
@@ -137,9 +134,6 @@ namespace XCode.DataAccessLayer
                 ConnectionStringSettings set = new ConnectionStringSettings(connName, connStr, provider);
                 ConnStrs.Add(connName, set);
                 _connTypes.Add(connName, type);
-                //#if DEBUG
-                //                NewLife.Log.XTrace.WriteLine("新增数据库链接{0}：{1}", set.Name, set.ConnectionString);
-                //#endif
             }
         }
 
@@ -167,6 +161,8 @@ namespace XCode.DataAccessLayer
                     type = typeof(MySql);
                 else if (provider.Contains("sqlite"))
                     type = typeof(SQLite);
+                else if (provider.Contains("sqlce"))
+                    type = typeof(SqlCe);
                 else if (provider.Contains("sql2008"))
                     type = typeof(SqlServer);
                 else if (provider.Contains("sql2005"))
@@ -177,9 +173,6 @@ namespace XCode.DataAccessLayer
                     type = typeof(SqlServer);
                 else
                 {
-                    //if (provider.Contains(",")) // 带有程序集名称，加载程序集
-                    //    type = Assembly.Load(provider.Substring(0, provider.IndexOf(","))).GetType(provider.Substring(provider.IndexOf(",") + 1), true, false);
-                    //else // 没有程序集名称，则使用本程序集
                     type = Type.GetType(provider, true, true);
                 }
             }
@@ -202,72 +195,27 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region 静态属性
-        [ThreadStatic]
-        private static DAL _Default;
-        /// <summary>
-        /// 当前数据访问对象
-        /// </summary>
-        public static DAL Default
-        {
-            get
-            {
-                if (_Default == null && ConnStrs != null && ConnStrs.Count > 0)
-                {
-                    String name = null;
-                    foreach (String item in ConnStrs.Keys)
-                    {
-                        if (!String.IsNullOrEmpty(item))
-                        {
-                            name = item;
-                            break;
-                        }
-                    }
-                    if (!String.IsNullOrEmpty(name)) _Default = Create(name);
-                }
-
-                return _Default;
-            }
-        }
-        #endregion
-
         #region 属性
         private String _ConnName;
         /// <summary>
-        /// 配置名。只读，若要设置，请重新声明一个DAL对象。
+        /// 连接名
         /// </summary>
         public String ConnName
         {
             get { return _ConnName; }
         }
 
-        private Type _DALType;
+        private Type _ProviderType;
         /// <summary>
-        /// 数据访问层基层类型。
+        /// 实现了IDatabase接口的数据库类型
         /// </summary>
-        /// <remarks>改变数据访问层数据库实体会断开当前链接，建议在任何数据库操作之前改变</remarks>
-        public Type DALType
+        private Type ProviderType
         {
             get
             {
-                if (_DALType == null && _connTypes.ContainsKey(ConnName)) _DALType = _connTypes[ConnName];
-                return _DALType;
+                if (_ProviderType == null && _connTypes.ContainsKey(ConnName)) _ProviderType = _connTypes[ConnName];
+                return _ProviderType;
             }
-            // 多年来从未使用，注释！
-            //set	// 如果外部需要改变数据访问层数据库实体
-            //{
-            //    IDbSession idb;
-            //    //if (HttpContext.Current == null)
-            //    idb = _Sessions != null && _Sessions.ContainsKey(ConnName) ? _Sessions[ConnName] : null;
-            //    //else
-            //    //    idb = HttpContext.Current.Items[ConnName + "_DB"] as IDataBase;
-            //    if (idb != null)
-            //    {
-            //        idb.Dispose();
-            //        idb = null;
-            //    }
-            //    _DALType = value;
-            //}
         }
 
         /// <summary>
@@ -280,7 +228,7 @@ namespace XCode.DataAccessLayer
 
         private String _ConnStr;
         /// <summary>
-        /// 默认连接字符串，第一个ConnectionString就是
+        /// 连接字符串
         /// </summary>
         public String ConnStr
         {
@@ -290,7 +238,7 @@ namespace XCode.DataAccessLayer
 
         private IDatabase _Db;
         /// <summary>
-        /// 数据库
+        /// 数据库。所有数据库操作在此统一管理，强烈建议不要直接使用该数据，在不同版本中IDatabase可能有较大改变
         /// </summary>
         public IDatabase Db
         {
@@ -298,7 +246,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_Db != null) return _Db;
 
-                Type type = DALType;
+                Type type = ProviderType;
                 if (type != null)
                 {
                     _Db = TypeX.CreateInstance(type) as IDatabase;
@@ -313,10 +261,6 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 数据库会话
         /// </summary>
-        /// <remarks>
-        /// 这里使用线程级缓存或请求级缓存，保证所有数据库操作线程安全。
-        /// 使用外部数据库驱动会使得性能稍有下降。
-        /// </remarks>
         [Obsolete("请改为使用Session属性！")]
         public IDbSession DB
         {
@@ -329,10 +273,6 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 数据库会话
         /// </summary>
-        /// <remarks>
-        /// 这里使用线程级缓存或请求级缓存，保证所有数据库操作线程安全。
-        /// 使用外部数据库驱动会使得性能稍有下降。
-        /// </remarks>
         public IDbSession Session
         {
             get
@@ -492,13 +432,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DataSet Select(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn, String[] tableNames)
         {
-            //String cacheKey = sql + "_" + startRowIndex + "_" + maximumRows + "_" + ConnName;
-            //if (EnableCache && XCache.Contain(cacheKey)) return XCache.Item(cacheKey);
-            //Interlocked.Increment(ref _QueryTimes);
-            //DataSet ds = DB.Query(PageSplit(sql, startRowIndex, maximumRows, keyColumn));
-            //if (EnableCache) XCache.Add(cacheKey, ds, tableNames);
-            //return ds;
-
             return Select(PageSplit(sql, startRowIndex, maximumRows, keyColumn), tableNames);
         }
 
@@ -542,34 +475,6 @@ namespace XCode.DataAccessLayer
         {
             return SelectCount(sql, new String[] { tableName });
         }
-
-        ///// <summary>
-        ///// 执行SQL查询，返回总记录数
-        ///// </summary>
-        ///// <param name="sql">SQL语句</param>
-        ///// <param name="startRowIndex">开始行，0开始</param>
-        ///// <param name="maximumRows">最大返回行数</param>
-        ///// <param name="keyColumn">唯一键。用于not in分页</param>
-        ///// <param name="tableNames">所依赖的表的表名</param>
-        ///// <returns></returns>
-        //public Int32 SelectCount(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn, String[] tableNames)
-        //{
-        //    return SelectCount(PageSplit(sql, startRowIndex, maximumRows, keyColumn), tableNames);
-        //}
-
-        ///// <summary>
-        ///// 执行SQL查询，返回总记录数
-        ///// </summary>
-        ///// <param name="sql">SQL语句</param>
-        ///// <param name="startRowIndex">开始行，0开始</param>
-        ///// <param name="maximumRows">最大返回行数</param>
-        ///// <param name="keyColumn">唯一键。用于not in分页</param>
-        ///// <param name="tableName">所依赖的表的表名</param>
-        ///// <returns></returns>
-        //public Int32 SelectCount(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn, String tableName)
-        //{
-        //    return SelectCount(sql, startRowIndex, maximumRows, keyColumn, new String[] { tableName });
-        //}
 
         /// <summary>
         /// 执行SQL语句，返回受影响的行数
@@ -653,20 +558,6 @@ namespace XCode.DataAccessLayer
             Session.AutoClose();
             return ret;
         }
-
-        ///// <summary>
-        ///// 获取一个DbCommand。
-        ///// 配置了连接，并关联了事务。
-        ///// 连接已打开。
-        ///// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接。
-        ///// 除非迫不得已，否则，请不要使用该方法，可以考虑用Select(cmd)和Execute(cmd)来代替。
-        ///// 非法使用会使得资源失去控制。极度危险！
-        ///// </summary>
-        ///// <returns></returns>
-        //private DbCommand PrepareCommand()
-        //{
-        //    return DB.PrepareCommand();
-        //}
 
         private List<XTable> _Tables;
         /// <summary>
