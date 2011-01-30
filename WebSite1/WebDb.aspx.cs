@@ -52,7 +52,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
             {
                 foreach (XTable item in tables)
                 {
-                    String des = String.Format("{1}({0})", item.Name, item.Description);
+                    String des = String.IsNullOrEmpty(item.Description) ? item.Name : String.Format("{1}({0})", item.Name, item.Description);
                     ddlTable.Items.Add(new ListItem(des, item.Name));
                 }
 
@@ -74,7 +74,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         }
         catch (Exception ex)
         {
-            WebHelper.Alert(ex.Message);
+            WebHelper.Alert(ex.ToString());
         }
     }
 
