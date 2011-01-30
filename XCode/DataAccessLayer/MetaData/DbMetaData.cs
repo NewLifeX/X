@@ -222,89 +222,6 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region 辅助函数
-        /// <summary>
-        /// 尝试从指定数据行中读取指定名称列的数据
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="dr"></param>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        protected static Boolean TryGetDataRowValue<T>(DataRow dr, String name, out T value)
-        {
-            value = default(T);
-            if (!dr.Table.Columns.Contains(name) || dr.IsNull(name)) return false;
-
-            Object obj = dr[name];
-
-            // 特殊处理布尔类型
-            if (Type.GetTypeCode(typeof(T)) == TypeCode.Boolean && obj != null)
-            {
-                if (obj is Boolean)
-                {
-                    value = (T)obj;
-                    return true;
-                }
-
-                if (String.Equals("YES", obj.ToString(), StringComparison.OrdinalIgnoreCase))
-                {
-                    value = (T)(Object)true;
-                    return true;
-                }
-                if (String.Equals("NO", obj.ToString(), StringComparison.OrdinalIgnoreCase))
-                {
-                    value = (T)(Object)false;
-                    return true;
-                }
-            }
-
-            try
-            {
-                if (obj is T)
-                    value = (T)obj;
-                else
-                    value = (T)Convert.ChangeType(obj, typeof(T));
-            }
-            catch { return false; }
-
-            return true;
-        }
-
-        /// <summary>
-        /// 获取指定数据行指定字段的值，不存在时返回空
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="dr"></param>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        protected static T GetDataRowValue<T>(DataRow dr, String name)
-        {
-            T value = default(T);
-            if (TryGetDataRowValue<T>(dr, name, out value)) return value;
-            return default(T);
-        }
-
-        /// <summary>
-        /// 使用DataTable获取架构信息
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        protected DataColumnCollection GetColumns(String tableName)
-        {
-            //return Query(PageSplit("Select * from " + tableName, 0, 1, null)).Tables[0].Columns;
-            try
-            {
-                return (Database.CreateSession() as DbSession).QueryWithKey(Database.PageSplit("Select * from " + FormatKeyWord(tableName), 0, 1, null)).Tables[0].Columns;
-            }
-            catch (Exception ex)
-            {
-                if (Debug) WriteLog(ex.ToString());
-                return null;
-            }
-        }
-        #endregion
-
         #region 主键构架
         /// <summary>
         /// 取得指定表的所有主键构架
@@ -588,6 +505,20 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual Object SetSchema(DDLSchema schema, params Object[] values)
         {
+            //Object obj = null;
+            switch (schema)
+            {
+                //case DDLSchema.CreateTable:
+                //    CreateTable((XTable)values[0]);
+                //    return true;
+                case DDLSchema.TableExist:
+                    DataTable dt = GetSchema("Tables", new String[] { null, null, (String)values[0], "TABLE" });
+                    if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
+                    return true;
+                default:
+                    break;
+            }
+
             String sql = GetSchemaSQL(schema, values);
             if (String.IsNullOrEmpty(sql)) return null;
 
@@ -791,7 +722,91 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
+        #region 数据定义操作
+        #endregion
+
         #region 辅助函数
+        /// <summary>
+        /// 尝试从指定数据行中读取指定名称列的数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="dr"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        protected static Boolean TryGetDataRowValue<T>(DataRow dr, String name, out T value)
+        {
+            value = default(T);
+            if (!dr.Table.Columns.Contains(name) || dr.IsNull(name)) return false;
+
+            Object obj = dr[name];
+
+            // 特殊处理布尔类型
+            if (Type.GetTypeCode(typeof(T)) == TypeCode.Boolean && obj != null)
+            {
+                if (obj is Boolean)
+                {
+                    value = (T)obj;
+                    return true;
+                }
+
+                if (String.Equals("YES", obj.ToString(), StringComparison.OrdinalIgnoreCase))
+                {
+                    value = (T)(Object)true;
+                    return true;
+                }
+                if (String.Equals("NO", obj.ToString(), StringComparison.OrdinalIgnoreCase))
+                {
+                    value = (T)(Object)false;
+                    return true;
+                }
+            }
+
+            try
+            {
+                if (obj is T)
+                    value = (T)obj;
+                else
+                    value = (T)Convert.ChangeType(obj, typeof(T));
+            }
+            catch { return false; }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 获取指定数据行指定字段的值，不存在时返回空
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="dr"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        protected static T GetDataRowValue<T>(DataRow dr, String name)
+        {
+            T value = default(T);
+            if (TryGetDataRowValue<T>(dr, name, out value)) return value;
+            return default(T);
+        }
+
+        /// <summary>
+        /// 使用DataTable获取架构信息
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        protected DataColumnCollection GetColumns(String tableName)
+        {
+            //return Query(PageSplit("Select * from " + tableName, 0, 1, null)).Tables[0].Columns;
+            try
+            {
+                return (Database.CreateSession() as DbSession).QueryWithKey(Database.PageSplit("Select * from " + FormatKeyWord(tableName), 0, 1, null)).Tables[0].Columns;
+            }
+            catch (Exception ex)
+            {
+                if (Debug) WriteLog(ex.ToString());
+                return null;
+            }
+        }
+
         /// <summary>
         /// 格式化关键字
         /// </summary>

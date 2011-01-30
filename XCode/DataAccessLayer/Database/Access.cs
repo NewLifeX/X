@@ -12,6 +12,7 @@ using DAO;
 using NewLife.Log;
 using XCode.Common;
 using XCode.Exceptions;
+using NewLife;
 
 namespace XCode.DataAccessLayer
 {
@@ -187,7 +188,7 @@ namespace XCode.DataAccessLayer
 
             try
             {
-                using (ADOTabe table = new ADOTabe(Database.ConnectionString, FileName, xt.Name))
+                using (ADOTabe table = GetTable(xt.Name))
                 {
                     if (table.Supported && table.Columns != null)
                     {
@@ -287,50 +288,43 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override object SetSchema(DDLSchema schema, object[] values)
         {
-            Object obj = null;
+            //Object obj = null;
             switch (schema)
             {
-                case DDLSchema.CreateDatabase:
-                    CreateDatabase();
-                    return null;
-                case DDLSchema.DropDatabase:
-                    //首先关闭数据库
-                    Database.CreateSession().Close();
-
-                    OleDbConnection.ReleaseObjectPool();
-                    GC.Collect();
-
-                    if (File.Exists(FileName)) File.Delete(FileName);
-                    return null;
-                case DDLSchema.DatabaseExist:
-                    return File.Exists(FileName);
-                case DDLSchema.CreateTable:
-                    obj = base.SetSchema(DDLSchema.CreateTable, values);
-                    XTable table = values[0] as XTable;
-                    if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(table.Name, table.Description);
-                    foreach (XField item in table.Fields)
-                    {
-                        if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(table.Name, item.Name, item.Description);
-                    }
-                    return obj;
-                case DDLSchema.DropTable:
-                    break;
-                case DDLSchema.TableExist:
-                    DataTable dt = GetSchema("Tables", new String[] { null, null, (String)values[0], "TABLE" });
-                    if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
-                    return true;
+                //case DDLSchema.CreateDatabase:
+                //    CreateDatabase();
+                //    return null;
+                //case DDLSchema.DropDatabase:
+                //    return null;
+                //case DDLSchema.DatabaseExist:
+                //    return File.Exists(FileName);
+                //case DDLSchema.CreateTable:
+                //    obj = base.SetSchema(DDLSchema.CreateTable, values);
+                //    XTable table = values[0] as XTable;
+                //    if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(table.Name, table.Description);
+                //    foreach (XField item in table.Fields)
+                //    {
+                //        if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(table.Name, item.Name, item.Description);
+                //    }
+                //    return obj;
+                //case DDLSchema.DropTable:
+                //    break;
+                //case DDLSchema.TableExist:
+                //    DataTable dt = GetSchema("Tables", new String[] { null, null, (String)values[0], "TABLE" });
+                //    if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
+                //    return true;
                 case DDLSchema.AddTableDescription:
                     return AddTableDescription((String)values[0], (String)values[1]);
                 case DDLSchema.DropTableDescription:
                     return DropTableDescription((String)values[0]);
-                case DDLSchema.AddColumn:
-                    obj = base.SetSchema(DDLSchema.AddColumn, values);
-                    AddColumnDescription((String)values[0], ((XField)values[1]).Name, ((XField)values[1]).Description);
-                    return obj;
-                case DDLSchema.AlterColumn:
-                    break;
-                case DDLSchema.DropColumn:
-                    break;
+                //case DDLSchema.AddColumn:
+                //    obj = base.SetSchema(DDLSchema.AddColumn, values);
+                //    AddColumnDescription((String)values[0], ((XField)values[1]).Name, ((XField)values[1]).Description);
+                //    return obj;
+                //case DDLSchema.AlterColumn:
+                //    break;
+                //case DDLSchema.DropColumn:
+                //    break;
                 case DDLSchema.AddColumnDescription:
                     return AddColumnDescription((String)values[0], (String)values[1], (String)values[2]);
                 case DDLSchema.DropColumnDescription:
@@ -344,6 +338,7 @@ namespace XCode.DataAccessLayer
             }
             return base.SetSchema(schema, values);
         }
+        #endregion
 
         #region 创建数据库
         /// <summary>
@@ -360,7 +355,7 @@ namespace XCode.DataAccessLayer
         {
             try
             {
-                using (ADOTabe table = new ADOTabe(Database.ConnectionString, FileName, tablename))
+                using (ADOTabe table = GetTable(tablename))
                 {
                     table.Description = description;
                     return true;
@@ -378,7 +373,7 @@ namespace XCode.DataAccessLayer
         {
             try
             {
-                using (ADOTabe table = new ADOTabe(Database.ConnectionString, FileName, tablename))
+                using (ADOTabe table = GetTable(tablename))
                 {
                     if (table.Supported && table.Columns != null)
                     {
@@ -408,7 +403,7 @@ namespace XCode.DataAccessLayer
         {
             try
             {
-                using (ADOTabe table = new ADOTabe(Database.ConnectionString, FileName, tablename))
+                using (ADOTabe table = GetTable(tablename))
                 {
                     if (table.Supported && table.Columns != null)
                     {
@@ -431,7 +426,6 @@ namespace XCode.DataAccessLayer
         {
             return AddDefault(tablename, columnname, null);
         }
-        #endregion
         #endregion
 
         #region 数据类型
@@ -490,10 +484,17 @@ namespace XCode.DataAccessLayer
             base.SetFieldType(field, typeName);
         }
         #endregion
+
+        #region 辅助函数
+        ADOTabe GetTable(String tableName)
+        {
+            return new ADOTabe(Database.ConnectionString, FileName, tableName);
+        }
+        #endregion
     }
 
     #region ADOX封装
-    internal class ADOTabe : IDisposable
+    internal class ADOTabe : DisposeBase
     {
         #region ADOX属性
         private Table _Table;
@@ -693,16 +694,9 @@ namespace XCode.DataAccessLayer
             TableName = tablename;
         }
 
-        ~ADOTabe()
+        protected override void OnDispose(bool disposing)
         {
-            Dispose();
-        }
-
-        private Boolean disposed = false;
-        public void Dispose()
-        {
-            if (disposed) return;
-            disposed = true;
+            base.OnDispose(disposing);
 
             if (_Columns != null && _Columns.Count > 0)
             {
@@ -730,7 +724,7 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    internal class ADOColumn : IDisposable
+    internal class ADOColumn : DisposeBase
     {
         #region 属性
         private Column _Column;
@@ -867,22 +861,9 @@ namespace XCode.DataAccessLayer
             Field = field;
         }
 
-        //public ADOColumn(ADOTabe table, Column column)
-        //{
-        //    Table = table;
-        //    Column = column;
-        //}
-
-        ~ADOColumn()
+        protected override void OnDispose(bool disposing)
         {
-            Dispose();
-        }
-
-        private Boolean disposed = false;
-        public void Dispose()
-        {
-            if (disposed) return;
-            disposed = true;
+            base.OnDispose(disposing);
 
             if (Column != null) Marshal.ReleaseComObject(Column);
         }

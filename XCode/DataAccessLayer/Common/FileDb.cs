@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Data.Common;
 using System.Data.OleDb;
 using System.IO;
-using System.Data.Common;
 using XCode.Exceptions;
+using System.Data;
 
 namespace XCode.DataAccessLayer
 {
@@ -84,7 +83,14 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public override void Open()
         {
+            CreateDatabase();
+
             base.Open();
+        }
+
+        protected void CreateDatabase()
+        {
+            if (!File.Exists(FileName)) Database.CreateMetaData().SetSchema(DDLSchema.CreateDatabase, null);
         }
         #endregion
     }
@@ -102,7 +108,47 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region 创建数据库
+        #region 数据定义
+        /// <summary>
+        /// 设置数据定义模式
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public override object SetSchema(DDLSchema schema, object[] values)
+        {
+            //Object obj = null;
+            switch (schema)
+            {
+                case DDLSchema.CreateDatabase:
+                    CreateDatabase();
+                    return null;
+                case DDLSchema.DropDatabase:
+                    DropDatabase();
+                    return null;
+                case DDLSchema.DatabaseExist:
+                    return File.Exists(FileName);
+                //case DDLSchema.CreateTable:
+                //    obj = base.SetSchema(DDLSchema.CreateTable, values);
+                //    XTable table = values[0] as XTable;
+                //    if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(table.Name, table.Description);
+                //    foreach (XField item in table.Fields)
+                //    {
+                //        if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(table.Name, item.Name, item.Description);
+                //    }
+                //    return obj;
+                //case DDLSchema.DropTable:
+                //    break;
+                //case DDLSchema.TableExist:
+                //    DataTable dt = GetSchema("Tables", new String[] { null, null, (String)values[0], "TABLE" });
+                //    if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
+                //    return true;
+                default:
+                    break;
+            }
+            return base.SetSchema(schema, values);
+        }
+
         /// <summary>
         /// 创建数据库
         /// </summary>
@@ -114,7 +160,21 @@ namespace XCode.DataAccessLayer
 
             if (!File.Exists(FileName)) File.Create(FileName);
         }
-        #endregion
 
+        protected void DropDatabase()
+        {
+            //首先关闭数据库
+            DbBase db = Database as DbBase;
+            if (db != null)
+                db.ReleaseSession();
+            else
+                Database.CreateSession().Dispose();
+
+            OleDbConnection.ReleaseObjectPool();
+            GC.Collect();
+
+            if (File.Exists(FileName)) File.Delete(FileName);
+        }
+        #endregion
     }
 }

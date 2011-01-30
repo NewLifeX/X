@@ -28,6 +28,25 @@ namespace XCode.DataAccessLayer
                 if (_sessions.ContainsKey(this)) _sessions.Remove(this);
             }
 
+            if (_MySessions != null) ReleaseSession();
+
+            if (_metadata != null)
+            {
+                // 销毁本数据库的元数据对象
+                try
+                {
+                    _metadata.Dispose();
+                }
+                catch { }
+                _metadata = null;
+            }
+        }
+
+        /// <summary>
+        /// 释放所有会话
+        /// </summary>
+        internal void ReleaseSession()
+        {
             if (_MySessions != null)
             {
                 // 销毁本数据库的所有数据库会话
@@ -41,17 +60,6 @@ namespace XCode.DataAccessLayer
                 }
                 _MySessions.Clear();
                 _MySessions = null;
-            }
-
-            if (_metadata != null)
-            {
-                // 销毁本数据库的元数据对象
-                try
-                {
-                    _metadata.Dispose();
-                }
-                catch { }
-                _metadata = null;
             }
         }
         #endregion
@@ -423,6 +431,17 @@ namespace XCode.DataAccessLayer
         public virtual String FormatKeyWord(String keyWord)
         {
             return keyWord;
+        }
+        #endregion
+
+        #region 辅助函数
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return ConnName;
         }
         #endregion
 
