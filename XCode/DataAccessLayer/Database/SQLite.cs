@@ -243,6 +243,15 @@ namespace XCode.DataAccessLayer
             DataRow[] rows = dt.Select("TABLE_TYPE='table'");
             return GetTables(rows);
         }
+
+        protected override string GetFieldType(XField field)
+        {
+            String typeName = base.GetFieldType(field);
+
+            if (field.Identity) typeName += " autoincrement";
+
+            return typeName;
+        }
         #endregion
 
         #region 数据定义

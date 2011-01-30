@@ -38,6 +38,29 @@ namespace XCode.DataAccessLayer
             //get { return OracleClientFactory.Instance; }
             get { return dbProviderFactory; }
         }
+
+        private String _UserID;
+        /// <summary>
+        /// 用户名UserID
+        /// </summary>
+        public String UserID
+        {
+            get
+            {
+                if (_UserID != null) return _UserID;
+                _UserID = String.Empty;
+
+                String connStr = ConnectionString;
+                if (String.IsNullOrEmpty(connStr)) return null;
+
+                DbConnectionStringBuilder ocsb = Factory.CreateConnectionStringBuilder();
+                ocsb.ConnectionString = connStr;
+
+                _UserID = (String)ocsb["User ID"];
+
+                return _UserID;
+            }
+        }
         #endregion
 
         #region 方法
@@ -144,7 +167,6 @@ namespace XCode.DataAccessLayer
             throw new NotSupportedException("Oracle数据库不支持插入后返回新增行的自动编号！");
         }
         #endregion
-
 
         ///// <summary>
         ///// 取得指定表的所有列构架
@@ -268,16 +290,17 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override List<XTable> GetTables()
         {
-            //List<XTable> list = null;
             try
             {
                 String user = Database.Owner;
                 if (String.IsNullOrEmpty(user))
                 {
-                    Regex reg = new Regex(@";user id=\b(\w+)\b;", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                    //Regex reg = new Regex(@";user id=\b(\w+)\b;", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-                    Match m = reg.Match(Database.ConnectionString);
-                    if (m != null) user = m.Groups[1].Value;
+                    //Match m = reg.Match(Database.ConnectionString);
+                    //if (m != null) user = m.Groups[1].Value;
+
+                    user = (Database as Oracle).UserID;
                 }
 
                 if (String.Equals(user, "system")) user = null;
@@ -289,30 +312,11 @@ namespace XCode.DataAccessLayer
                 dt.Rows.CopyTo(rows, 0);
                 return GetTables(rows);
 
-                //list = new List<XTable>();
-                //if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
-                //{
-                //    foreach (DataRow drTable in dt.Rows)
-                //    {
-                //        if (drTable["TYPE"].ToString() != "User") continue;
-
-                //        XTable xt = new XTable();
-                //        xt.ID = list.Count + 1;
-                //        xt.Name = drTable["TABLE_NAME"].ToString();
-                //        xt.Owner = drTable["OWNER"].ToString();
-                //        xt.Fields = GetFields(xt);
-                //        xt.DbType = DbType;
-
-                //        list.Add(xt);
-                //    }
-                //}
             }
             catch (DbException ex)
             {
                 throw new XDbMetaDataException(this, "取得所有表构架出错！", ex);
             }
-
-            //return list;
         }
     }
 }
