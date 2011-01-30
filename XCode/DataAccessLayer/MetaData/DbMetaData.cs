@@ -413,7 +413,7 @@ namespace XCode.DataAccessLayer
             drs = dt.Select(String.Format("TypeName='{0}'", typeName));
             if (drs != null && drs.Length > 0)
             {
-                if (drs.Length > 1) throw new XDbMetaDataException(this, "TypeName具有唯一性！");
+                //if (drs.Length > 1) throw new XDbMetaDataException(this, "TypeName具有唯一性！");
                 return drs;
             }
             // 匹配DataType，重复的可能性很大
@@ -457,8 +457,11 @@ namespace XCode.DataAccessLayer
             if (drs == null || drs.Length < 1) return;
 
             // 处理格式参数
-            String param = GetFormatParam(field, drs[0]);
-            if (!String.IsNullOrEmpty(param)) field.RawType += param;
+            if (!String.IsNullOrEmpty(field.RawType) && !field.RawType.EndsWith(")"))
+            {
+                String param = GetFormatParam(field, drs[0]);
+                if (!String.IsNullOrEmpty(param)) field.RawType += param;
+            }
 
             if (!TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) return;
             field.DataType = Type.GetType(typeName);
@@ -504,7 +507,7 @@ namespace XCode.DataAccessLayer
             String[] pms = ps.Split(new Char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < pms.Length; i++)
             {
-                if (pms[i].Contains("length") || pms[i].Contains("precision"))
+                if (pms[i].Contains("length") || pms[i].Contains("size") || pms[i].Contains("precision"))
                 {
                     if (!param.EndsWith("(")) param += ",";
                     param += field.Length;

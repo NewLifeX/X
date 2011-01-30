@@ -149,7 +149,7 @@ namespace XCode.DataAccessLayer
             if (!String.IsNullOrEmpty(provider))
             {
                 provider = provider.ToLower();
-                if (provider.Contains("sqlclient"))
+                if (provider.Contains("system.data.sqlclient"))
                     type = typeof(SqlServer);
                 else if (provider.Contains("oracleclient"))
                     type = typeof(Oracle);

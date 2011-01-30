@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Data.Common;
+using System.IO;
 using System.Reflection;
-using NewLife.Log;
+using System.Web;
+using System.Data;
 
 namespace XCode.DataAccessLayer
 {
@@ -29,8 +29,17 @@ namespace XCode.DataAccessLayer
                 if (_dbProviderFactory == null)
                 {
                     //反射实现获取数据库工厂
-                    Assembly asm = Assembly.LoadFile("MySql.Data.dll");
-                    Type type = asm.GetType("MySqlClientFactory");
+                    String file = "MySql.Data.dll";
+
+                    if (String.IsNullOrEmpty(HttpRuntime.AppDomainAppId))
+                        file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
+                    else
+                        file = Path.Combine(HttpRuntime.BinDirectory, file);
+
+                    if (!File.Exists(file)) throw new InvalidOperationException("缺少文件" + file + "！");
+
+                    Assembly asm = Assembly.LoadFile(file);
+                    Type type = asm.GetType("MySql.Data.MySqlClient.MySqlClientFactory");
                     FieldInfo field = type.GetField("Instance");
                     _dbProviderFactory = field.GetValue(null) as DbProviderFactory;
                 }
@@ -41,7 +50,7 @@ namespace XCode.DataAccessLayer
         /// <summary>工厂</summary>
         public override DbProviderFactory Factory
         {
-            get { return _dbProviderFactory; }
+            get { return dbProviderFactory; }
         }
         #endregion
 
@@ -171,6 +180,56 @@ namespace XCode.DataAccessLayer
     /// </summary>
     class MySqlMetaData : DbMetaData
     {
+        protected override void FixField(XField field, DataRow dr)
+        {
+            // 修正原始类型
+            String rawType = null;
+            if (TryGetDataRowValue<String>(dr, "COLUMN_TYPE", out rawType)) field.RawType = rawType;
 
+            // 修正自增字段
+            String extra = null;
+            if (TryGetDataRowValue<String>(dr, "EXTRA", out extra) && extra == "auto_increment") field.Identity = true;
+
+            base.FixField(field, dr);
+        }
+
+        protected override DataRow[] FindDataType(XField field, string typeName, bool? isLong)
+        {
+            DataRow[] drs = base.FindDataType(field, typeName, isLong);
+            if (drs != null && drs.Length > 1)
+            {
+                // 无符号/有符号
+                if (!String.IsNullOrEmpty(field.RawType))
+                {
+                    Boolean IsUnsigned = field.RawType.ToLower().Contains("unsigned");
+
+                    foreach (DataRow dr in drs)
+                    {
+                        String format = GetDataRowValue<String>(dr, "CreateFormat");
+
+                        if (IsUnsigned && format.ToLower().Contains("unsigned"))
+                            return new DataRow[] { dr };
+                        else if (!IsUnsigned && !format.ToLower().Contains("unsigned"))
+                            return new DataRow[] { dr };
+                    }
+                }
+            }
+            return drs;
+        }
+
+        //protected override void SetFieldType(XField field, string typeName)
+        //{
+        //    DataTable dt = DataTypes;
+        //    if (dt == null) return;
+
+        //    DataRow[] drs = FindDataType(field, typeName, null);
+        //    if (drs == null || drs.Length < 1) return;
+
+        //    // 修正原始类型
+        //    String rawType = null;
+        //    if (TryGetDataRowValue<String>(drs[0], "COLUMN_TYPE", out rawType)) field.RawType = rawType;
+
+        //    base.SetFieldType(field, typeName);
+        //}
     }
 }
