@@ -6,6 +6,7 @@ using System.Threading;
 using NewLife.Collections;
 using NewLife.Log;
 using XCode.Configuration;
+using NewLife.Configuration;
 
 namespace XCode.DataAccessLayer
 {
@@ -594,14 +595,17 @@ namespace XCode.DataAccessLayer
             {
                 if (_Enable != null) return _Enable.Value;
 
-                String str = ConfigurationManager.AppSettings["DatabaseSchema_Enable"];
-                if (String.IsNullOrEmpty(str)) return null;
-                if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
-                    _Enable = true;
-                else if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
-                    _Enable = false;
-                else
-                    _Enable = Convert.ToBoolean(str);
+                //String str = ConfigurationManager.AppSettings["DatabaseSchema_Enable"];
+                //if (String.IsNullOrEmpty(str)) return null;
+                //if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
+                //    _Enable = true;
+                //else if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
+                //    _Enable = false;
+                //else
+                //    _Enable = Convert.ToBoolean(str);
+
+                _Enable = Config.GetConfig<Boolean>("XCode.Schema.Enable", Config.GetConfig<Boolean>("DatabaseSchema_Enable"));
+                
                 return _Enable.Value;
             }
             set { _Enable = value; }
@@ -617,11 +621,14 @@ namespace XCode.DataAccessLayer
             {
                 if (_NoDelete != null) return _Enable.Value;
 
-                String str = ConfigurationManager.AppSettings["DatabaseSchema_NoDelete"];
-                if (String.IsNullOrEmpty(str)) return false;
-                if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase)) return true;
-                if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase)) return false;
-                _NoDelete = Convert.ToBoolean(str);
+                //String str = ConfigurationManager.AppSettings["DatabaseSchema_NoDelete"];
+                //if (String.IsNullOrEmpty(str)) return false;
+                //if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase)) return true;
+                //if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase)) return false;
+                //_NoDelete = Convert.ToBoolean(str);
+
+                _Enable = Config.GetConfig<Boolean>("XCode.Schema.NoDelete", Config.GetConfig<Boolean>("DatabaseSchema_NoDelete"));
+
                 return _NoDelete.Value;
             }
             set { _NoDelete = value; }
@@ -637,7 +644,9 @@ namespace XCode.DataAccessLayer
             {
                 if (_Exclude != null) return _Exclude;
 
-                String str = ConfigurationManager.AppSettings["DatabaseSchema_Exclude"];
+                //String str = ConfigurationManager.AppSettings["DatabaseSchema_Exclude"];
+                String str = Config.GetConfig<String>("XCode.Schema.Exclude", Config.GetConfig<String>("DatabaseSchema_Exclude"));
+                
                 if (String.IsNullOrEmpty(str))
                     _Exclude = new List<String>();
                 else
@@ -651,7 +660,7 @@ namespace XCode.DataAccessLayer
         #region 调试输出
         private static void WriteLog(String msg)
         {
-            if (XCode.DataAccessLayer.DbSession.Debug) XCode.DataAccessLayer.DbSession.WriteLog(msg);
+            if (DAL.Debug) DAL.WriteLog(msg);
         }
         #endregion
     }

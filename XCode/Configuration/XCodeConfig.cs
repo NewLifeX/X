@@ -8,6 +8,7 @@ using System.Text;
 using NewLife.Collections;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
+using NewLife.Configuration;
 
 namespace XCode.Configuration
 {
@@ -222,7 +223,8 @@ namespace XCode.Configuration
             {
                 if (_ConnMaps != null) return _ConnMaps;
                 _ConnMaps = new List<String>();
-                String str = ConfigurationManager.AppSettings["XCodeConnMaps"];
+                //String str = ConfigurationManager.AppSettings["XCodeConnMaps"];
+                String str = Config.GetConfig<String>("XCode.ConnMaps", Config.GetConfig<String>("XCodeConnMaps"));
                 if (String.IsNullOrEmpty(str)) return _ConnMaps;
                 String[] ss = str.Split(',');
                 foreach (String item in ss)
