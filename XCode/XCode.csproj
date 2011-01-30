@@ -110,7 +110,7 @@
     <Compile Include="DataAccessLayer\Database\SQLite.cs" />
     <Compile Include="DataAccessLayer\Database\SqlServer.cs" />
     <Compile Include="DataAccessLayer\Database\SqlServer2005.cs" />
-    <Compile Include="DataAccessLayer\Common\DDLSchema.cs" />
+    <Compile Include="DataAccessLayer\MetaData\DDLSchema.cs" />
     <Compile Include="DataAccessLayer\XField.cs" />
     <Compile Include="DataAccessLayer\XTable.cs" />
     <Compile Include="Cache\CacheItem.cs" />
