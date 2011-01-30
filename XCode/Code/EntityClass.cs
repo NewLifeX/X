@@ -185,10 +185,28 @@ namespace XCode.Code
                 cond = new CodeConditionStatement();
                 p.SetStatements.Add(cond);
                 cond.Condition = new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("name"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(item.Name));
-                CodeMethodInvokeExpression mie = new CodeMethodInvokeExpression();
-                mie.Method = new CodeMethodReferenceExpression(new CodeTypeReferenceExpression(typeof(Convert)), "To" + item.DataType.Name);
-                mie.Parameters.Add(new CodeArgumentReferenceExpression("value"));
-                cond.TrueStatements.Add(new CodeAssignStatement(new CodeFieldReferenceExpression(null, "_" + item.Name), mie));
+
+                Type type = typeof(Convert);
+                MethodInfo mi = type.GetMethod("To" + item.DataType.Name, new Type[] { typeof(Object) });
+                CodeExpression ce = null;
+                if (mi != null)
+                {
+                    CodeMethodInvokeExpression mie = new CodeMethodInvokeExpression();
+                    mie.Method = new CodeMethodReferenceExpression(new CodeTypeReferenceExpression(typeof(Convert)), "To" + item.DataType.Name);
+                    mie.Parameters.Add(new CodeArgumentReferenceExpression("value"));
+                    // _Name = Convert.ToString(value);
+                    ce = mie;
+                }
+                else
+                {
+                    CodeCastExpression cce = new CodeCastExpression();
+                    cce.TargetType = new CodeTypeReference(item.DataType);
+                    cce.Expression = new CodeArgumentReferenceExpression("value");
+                    ce = cce;
+                }
+                cond.TrueStatements.Add(new CodeAssignStatement(new CodeFieldReferenceExpression(null, "_" + item.Name), ce));
+
+                // return;
                 cond.TrueStatements.Add(new CodeMethodReturnStatement());
             }
             // 取值

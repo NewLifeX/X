@@ -201,10 +201,35 @@ namespace XCode.Code
 #endif
             }
 
-            String[] refs = new String[] { "System.dll", "XCode.dll", "XLog.dll" };
-            foreach (String item in refs)
+            String[] refs = new String[] { "System.dll", "XCode.dll", "NewLife.Core.dll" };
+            //foreach (String item in refs)
+            //{
+            //    if (!options.ReferencedAssemblies.Contains(item)) options.ReferencedAssemblies.Add(item);
+            //}
+            Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (Assembly item in asms)
             {
-                if (!options.ReferencedAssemblies.Contains(item)) options.ReferencedAssemblies.Add(item);
+                String name = null;
+                try
+                {
+                    name = item.Location;
+                }
+                catch { }
+                if (String.IsNullOrEmpty(name)) continue;
+
+                String fileName = Path.GetFileName(name);
+                Boolean b = false;
+                foreach (String elm in refs)
+                {
+                    if (String.Equals(fileName, elm, StringComparison.OrdinalIgnoreCase))
+                    {
+                        b = true;
+                        break;
+                    }
+                }
+                if (!b) continue;
+
+                if (!options.ReferencedAssemblies.Contains(name)) options.ReferencedAssemblies.Add(name);
             }
 
             CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
@@ -220,7 +245,22 @@ namespace XCode.Code
             CompilerResults rs = Compile(null);
             if (rs.Errors == null || !rs.Errors.HasErrors) return rs.CompiledAssembly;
 
-            throw new XCodeException(rs.Errors[0].ErrorText);
+            //throw new XCodeException(rs.Errors[0].ErrorText);
+
+            CompilerError err = rs.Errors[0];
+            String msg = String.Format("{0} {1} {2}({3},{4})", err.ErrorNumber, err.ErrorText, err.FileName, err.Line, err.Column);
+            throw new XCodeException(msg);
+        }
+        #endregion
+
+        #region 辅助函数
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return Dal.ToString();
         }
         #endregion
     }

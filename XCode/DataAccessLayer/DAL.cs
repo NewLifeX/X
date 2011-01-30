@@ -720,5 +720,16 @@ namespace XCode.DataAccessLayer
             XTrace.WriteLine(format, args);
         }
         #endregion
+
+        #region ¸¨Öúº¯Êý
+        /// <summary>
+        /// ÒÑÖØÔØ¡£
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return ConnName;
+        }
+        #endregion
     }
 }
