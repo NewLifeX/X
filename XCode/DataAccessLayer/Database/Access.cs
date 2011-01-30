@@ -15,40 +15,112 @@ using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>
-    /// Access数据库
-    /// </summary>
-    internal class AccessSession : DbSession<AccessSession>
+    class Access : FileDbBase
     {
         #region 属性
-        /// <summary>文件</summary>
-        public String FileName
+        /// <summary>
+        /// 返回数据库类型。外部DAL数据库类请使用Other
+        /// </summary>
+        public override DatabaseType DbType
         {
-            get { return (Database as Access).FileName; }
+            get { return DatabaseType.Access; }
+        }
+
+        /// <summary>工厂</summary>
+        public override DbProviderFactory Factory
+        {
+            get { return OleDbFactory.Instance; }
         }
         #endregion
 
+        #region 方法
+        /// <summary>
+        /// 创建数据库会话
+        /// </summary>
+        /// <returns></returns>
+        protected override IDbSession OnCreateSession()
+        {
+            return new AccessSession();
+        }
+
+        /// <summary>
+        /// 创建元数据对象
+        /// </summary>
+        /// <returns></returns>
+        protected override IMetaData OnCreateMetaData()
+        {
+            return new AccessMetaData();
+        }
+        #endregion
+
+        #region 数据库特性
+        /// <summary>
+        /// 当前时间函数
+        /// </summary>
+        public override String DateTimeNow { get { return "now()"; } }
+
+        /// <summary>
+        /// 最小时间
+        /// </summary>
+        public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
+
+        /// <summary>
+        /// 格式化时间为SQL字符串
+        /// </summary>
+        /// <param name="dateTime">时间值</param>
+        /// <returns></returns>
+        public override String FormatDateTime(DateTime dateTime)
+        {
+            return String.Format("#{0:yyyy-MM-dd HH:mm:ss}#", dateTime);
+        }
+
+        /// <summary>
+        /// 格式化关键字
+        /// </summary>
+        /// <param name="keyWord">关键字</param>
+        /// <returns></returns>
+        public override String FormatKeyWord(String keyWord)
+        {
+            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
+
+            if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
+
+            return String.Format("[{0}]", keyWord);
+            //return keyWord;
+        }
+        #endregion
+
+        #region 平台检查
+        /// <summary>
+        /// 是否支持
+        /// </summary>
+        public static void CheckSupport()
+        {
+            Module module = typeof(Object).Module;
+
+            PortableExecutableKinds kind;
+            ImageFileMachine machine;
+            module.GetPEKind(out kind, out machine);
+
+            if (machine != ImageFileMachine.I386) throw new NotSupportedException("64位平台不支持OLEDB驱动！");
+        }
+        #endregion
+    }
+
+    /// <summary>
+    /// Access数据库
+    /// </summary>
+    internal class AccessSession : FileDbSession
+    {
         #region 重载使用连接池
         /// <summary>
         /// 打开。已重写，为了建立数据库
         /// </summary>
         public override void Open()
         {
-            if (!Access.Supported) return;
+            Access.CheckSupport();
 
-            if (!File.Exists(FileName)) CreateDatabase();
-
-            //try
-            //{
             base.Open();
-            //}
-            //catch (InvalidOperationException ex)
-            //{
-            //    if (ex.Message.Contains("Microsoft.Jet.OLEDB.4.0"))
-            //        throw new InvalidOperationException("64位系统不支持OLEDB，请把编译平台改为x86。", ex);
-
-            //    throw;
-            //}
         }
         #endregion
 
@@ -84,7 +156,13 @@ namespace XCode.DataAccessLayer
             }
         }
         #endregion
+    }
 
+    /// <summary>
+    /// Access元数据
+    /// </summary>
+    class AccessMetaData : FileDbMetaData
+    {
         #region 构架
         public override List<XTable> GetTables()
         {
@@ -109,7 +187,7 @@ namespace XCode.DataAccessLayer
 
             try
             {
-                using (ADOTabe table = new ADOTabe(ConnectionString, FileName, xt.Name))
+                using (ADOTabe table = new ADOTabe(Database.ConnectionString, FileName, xt.Name))
                 {
                     if (table.Supported && table.Columns != null)
                     {
@@ -217,7 +295,7 @@ namespace XCode.DataAccessLayer
                     return null;
                 case DDLSchema.DropDatabase:
                     //首先关闭数据库
-                    Close();
+                    Database.CreateSession().Close();
 
                     OleDbConnection.ReleaseObjectPool();
                     GC.Collect();
@@ -268,7 +346,10 @@ namespace XCode.DataAccessLayer
         }
 
         #region 创建数据库
-        private void CreateDatabase()
+        /// <summary>
+        /// 创建数据库
+        /// </summary>
+        protected override void CreateDatabase()
         {
             FileSource.ReleaseFile("Database.mdb", FileName, true);
         }
@@ -279,7 +360,7 @@ namespace XCode.DataAccessLayer
         {
             try
             {
-                using (ADOTabe table = new ADOTabe(ConnectionString, FileName, tablename))
+                using (ADOTabe table = new ADOTabe(Database.ConnectionString, FileName, tablename))
                 {
                     table.Description = description;
                     return true;
@@ -297,7 +378,7 @@ namespace XCode.DataAccessLayer
         {
             try
             {
-                using (ADOTabe table = new ADOTabe(ConnectionString, FileName, tablename))
+                using (ADOTabe table = new ADOTabe(Database.ConnectionString, FileName, tablename))
                 {
                     if (table.Supported && table.Columns != null)
                     {
@@ -327,7 +408,7 @@ namespace XCode.DataAccessLayer
         {
             try
             {
-                using (ADOTabe table = new ADOTabe(ConnectionString, FileName, tablename))
+                using (ADOTabe table = new ADOTabe(Database.ConnectionString, FileName, tablename))
                 {
                     if (table.Supported && table.Columns != null)
                     {
@@ -392,137 +473,6 @@ namespace XCode.DataAccessLayer
                 if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0} And IsLong={1}", typeName, isLong.Value));
             }
             return drs;
-        }
-        #endregion
-    }
-
-    class Access : DbBase<Access, AccessSession>
-    {
-        #region 属性
-        /// <summary>
-        /// 返回数据库类型。外部DAL数据库类请使用Other
-        /// </summary>
-        public override DatabaseType DbType
-        {
-            get { return DatabaseType.Access; }
-        }
-
-        /// <summary>工厂</summary>
-        public override DbProviderFactory Factory
-        {
-            get { return OleDbFactory.Instance; }
-        }
-
-        /// <summary>链接字符串</summary>
-        public override string ConnectionString
-        {
-            get
-            {
-                return base.ConnectionString;
-            }
-            set
-            {
-                try
-                {
-                    OleDbConnectionStringBuilder csb = new OleDbConnectionStringBuilder(value);
-                    // 不是绝对路径
-                    if (!String.IsNullOrEmpty(csb.DataSource) && csb.DataSource.Length > 1 && csb.DataSource.Substring(1, 1) != ":")
-                    {
-                        String mdbPath = csb.DataSource;
-                        if (mdbPath.StartsWith("~/") || mdbPath.StartsWith("~\\"))
-                        {
-                            mdbPath = mdbPath.Replace("/", "\\").Replace("~\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-                        }
-                        else if (mdbPath.StartsWith("./") || mdbPath.StartsWith(".\\"))
-                        {
-                            mdbPath = mdbPath.Replace("/", "\\").Replace(".\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-                        }
-                        else
-                        {
-                            mdbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, mdbPath.Replace("/", "\\"));
-                        }
-                        csb.DataSource = mdbPath;
-                        FileName = mdbPath;
-                        value = csb.ConnectionString;
-                    }
-                }
-                catch (DbException ex)
-                {
-                    throw new XDbException(this, "分析OLEDB连接字符串时出错", ex);
-                }
-                base.ConnectionString = value;
-            }
-        }
-
-        private String _FileName;
-        /// <summary>文件</summary>
-        public String FileName
-        {
-            get { return _FileName; }
-            private set { _FileName = value; }
-        }
-        #endregion
-
-        #region 数据库特性
-        /// <summary>
-        /// 当前时间函数
-        /// </summary>
-        public override String DateTimeNow { get { return "now()"; } }
-
-        /// <summary>
-        /// 最小时间
-        /// </summary>
-        public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
-
-        /// <summary>
-        /// 格式化时间为SQL字符串
-        /// </summary>
-        /// <param name="dateTime">时间值</param>
-        /// <returns></returns>
-        public override String FormatDateTime(DateTime dateTime)
-        {
-            return String.Format("#{0:yyyy-MM-dd HH:mm:ss}#", dateTime);
-        }
-
-        /// <summary>
-        /// 格式化关键字
-        /// </summary>
-        /// <param name="keyWord">关键字</param>
-        /// <returns></returns>
-        public override String FormatKeyWord(String keyWord)
-        {
-            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
-
-            if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
-
-            return String.Format("[{0}]", keyWord);
-            //return keyWord;
-        }
-        #endregion
-
-        #region 平台检查
-        private static Boolean? _Supported;
-        /// <summary>
-        /// 是否支持
-        /// </summary>
-        public static Boolean Supported
-        {
-            get
-            {
-                if (_Supported != null) return _Supported.Value;
-
-                Module module = typeof(Object).Module;
-
-                PortableExecutableKinds kind;
-                ImageFileMachine machine;
-                module.GetPEKind(out kind, out machine);
-
-                if (machine != ImageFileMachine.I386) throw new NotSupportedException("64位平台不支持OLEDB驱动！");
-
-                _Supported = true;
-
-                return true;
-            }
         }
         #endregion
     }

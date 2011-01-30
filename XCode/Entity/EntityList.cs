@@ -301,7 +301,7 @@ namespace XCode
             if (useTransition)
             {
                 //DAL dal = Entity<T>.Meta.DBO;
-                DAL dal = DAL.Create(Config.ConnName(this[0].GetType()));
+                DAL dal = DAL.Create(XCodeConfig.ConnName(this[0].GetType()));
                 dal.BeginTransaction();
                 try
                 {
@@ -352,7 +352,7 @@ namespace XCode
             if (useTransition)
             {
                 //DAL dal = Entity<T>.Meta.DBO;
-                DAL dal = DAL.Create(Config.ConnName(this[0].GetType()));
+                DAL dal = DAL.Create(XCodeConfig.ConnName(this[0].GetType()));
                 dal.BeginTransaction();
                 try
                 {
@@ -403,7 +403,7 @@ namespace XCode
             if (useTransition)
             {
                 //DAL dal = Entity<T>.Meta.DBO;
-                DAL dal = DAL.Create(Config.ConnName(this[0].GetType()));
+                DAL dal = DAL.Create(XCodeConfig.ConnName(this[0].GetType()));
                 dal.BeginTransaction();
                 try
                 {
@@ -453,7 +453,7 @@ namespace XCode
 
             if (useTransition)
             {                //DAL dal = Entity<T>.Meta.DBO;
-                DAL dal = DAL.Create(Config.ConnName(this[0].GetType()));
+                DAL dal = DAL.Create(XCodeConfig.ConnName(this[0].GetType()));
 
                 dal.BeginTransaction();
                 try

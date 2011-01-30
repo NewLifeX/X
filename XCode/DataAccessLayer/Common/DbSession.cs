@@ -12,16 +12,6 @@ using NewLife.Configuration;
 namespace XCode.DataAccessLayer
 {
     /// <summary>
-    /// 泛型数据库会话基类
-    /// </summary>
-    /// <typeparam name="TDbSession"></typeparam>
-    abstract class DbSession<TDbSession> : DbSession where TDbSession : DbSession<TDbSession>
-    {
-        #region 数据库
-        #endregion
-    }
-
-    /// <summary>
     /// 数据库会话基类。
     /// </summary>
     abstract partial class DbSession : DisposeBase, IDbSession
@@ -617,7 +607,49 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
+        #region 架构
+        /// <summary>
+        /// 返回数据源的架构信息
+        /// </summary>
+        /// <param name="collectionName">指定要返回的架构的名称。</param>
+        /// <param name="restrictionValues">为请求的架构指定一组限制值。</param>
+        /// <returns></returns>
+        public virtual DataTable GetSchema(string collectionName, string[] restrictionValues)
+        {
+            if (!Opened) Open();
+
+            try
+            {
+                DataTable dt;
+                if (restrictionValues == null || restrictionValues.Length < 1)
+                {
+                    if (String.IsNullOrEmpty(collectionName))
+                        dt = Conn.GetSchema();
+                    else
+                        dt = Conn.GetSchema(collectionName);
+                }
+                else
+                    dt = Conn.GetSchema(collectionName, restrictionValues);
+
+                return dt;
+            }
+            catch (DbException ex)
+            {
+                throw new XDbSessionException(this, "取得所有表构架出错！", ex);
+            }
+            finally
+            {
+                AutoClose();
+            }
+        }
+        #endregion
+
         #region 辅助函数
+        /// <summary>
+        /// 格式化关键字
+        /// </summary>
+        /// <param name="keyWord"></param>
+        /// <returns></returns>
         protected String FormatKeyWord(String keyWord)
         {
             return Database.FormatKeyWord(keyWord);
@@ -625,52 +657,23 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region Sql日志输出
-        private static Boolean? _Debug;
         /// <summary>
         /// 是否调试
         /// </summary>
-        public static Boolean Debug
-        {
-            get
-            {
-                if (_Debug != null) return _Debug.Value;
-
-                //String str = ConfigurationManager.AppSettings["XCode.Debug"];
-                //if (String.IsNullOrEmpty(str)) str = ConfigurationManager.AppSettings["OrmDebug"];
-                //if (String.IsNullOrEmpty(str))
-                //    _Debug = false;
-                //else if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
-                //    _Debug = true;
-                //else if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
-                //    _Debug = false;
-                //else
-                //    _Debug = Convert.ToBoolean(str);
-
-                _Debug = Config.GetConfig<Boolean>("XCode.Debug", Config.GetConfig<Boolean>("OrmDebug"));
-
-                return _Debug.Value;
-            }
-            set { _Debug = value; }
-        }
+        public static Boolean Debug { get { return DAL.Debug; } }
 
         /// <summary>
         /// 输出日志
         /// </summary>
         /// <param name="msg"></param>
-        public static void WriteLog(String msg)
-        {
-            XTrace.WriteLine(msg);
-        }
+        public static void WriteLog(String msg) { DAL.WriteLog(msg); }
 
         /// <summary>
         /// 输出日志
         /// </summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public static void WriteLog(String format, params Object[] args)
-        {
-            XTrace.WriteLine(format, args);
-        }
+        public static void WriteLog(String format, params Object[] args) { DAL.WriteLog(format, args); }
         #endregion
     }
 }

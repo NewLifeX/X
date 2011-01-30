@@ -11,12 +11,7 @@ using System.Web;
 
 namespace XCode.DataAccessLayer
 {
-    class SqlCeSession : DbSession<SqlCeSession>
-    {
-
-    }
-
-    class SqlCe : DbBase<SqlCe, SqlCeSession>
+    class SqlCe : DbBase
     {
         #region 属性
         /// <summary>
@@ -118,6 +113,26 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
+        #region 方法
+        /// <summary>
+        /// 创建数据库会话
+        /// </summary>
+        /// <returns></returns>
+        protected override IDbSession OnCreateSession()
+        {
+            return new SqlCeSession();
+        }
+
+        /// <summary>
+        /// 创建元数据对象
+        /// </summary>
+        /// <returns></returns>
+        protected override IMetaData OnCreateMetaData()
+        {
+            return new SqlCeMetaData();
+        }
+        #endregion
+
         #region 数据库特性
         /// <summary>
         /// 当前时间函数
@@ -153,5 +168,21 @@ namespace XCode.DataAccessLayer
             return String.Format("[{0}]", keyWord);
         }
         #endregion
+    }
+
+    /// <summary>
+    /// SqlCe会话
+    /// </summary>
+    class SqlCeSession : FileDbSession
+    {
+
+    }
+
+    /// <summary>
+    /// SqlCe元数据
+    /// </summary>
+    class SqlCeMetaData : FileDbMetaData
+    {
+
     }
 }

@@ -14,7 +14,7 @@ namespace XCode.Configuration
     /// <summary>
     /// 实体类配置管理类
     /// </summary>
-    internal class Config
+    internal class XCodeConfig
     {
         private static Dictionary<Type, ReadOnlyList<FieldItem>> _Fields = new Dictionary<Type, ReadOnlyList<FieldItem>>();
         /// <summary>
@@ -357,7 +357,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public static String ColumnPrefix(Type t)
         {
-            return String.Format("XCode_Map_{0}_", Config.TableName(t));
+            return String.Format("XCode_Map_{0}_", XCodeConfig.TableName(t));
         }
     }
 }

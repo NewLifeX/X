@@ -7,6 +7,8 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Xml.Serialization;
+using NewLife.Configuration;
+using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Cache;
 using XCode.Code;
@@ -688,7 +690,7 @@ namespace XCode.DataAccessLayer
 
         private List<XTable> GetTables()
         {
-            List<XTable> list = Session.GetTables();
+            List<XTable> list = Db.CreateMetaData().GetTables();
             if (list != null && list.Count > 0) list.Sort(delegate(XTable item1, XTable item2) { return item1.Name.CompareTo(item2.Name); });
             return list;
         }
@@ -787,6 +789,44 @@ namespace XCode.DataAccessLayer
             }
 
             return EntityFactory.CreateOperate(type);
+        }
+        #endregion
+
+        #region Sql日志输出
+        private static Boolean? _Debug;
+        /// <summary>
+        /// 是否调试
+        /// </summary>
+        public static Boolean Debug
+        {
+            get
+            {
+                if (_Debug != null) return _Debug.Value;
+
+                _Debug = Config.GetConfig<Boolean>("XCode.Debug", Config.GetConfig<Boolean>("OrmDebug"));
+
+                return _Debug.Value;
+            }
+            set { _Debug = value; }
+        }
+
+        /// <summary>
+        /// 输出日志
+        /// </summary>
+        /// <param name="msg"></param>
+        public static void WriteLog(String msg)
+        {
+            XTrace.WriteLine(msg);
+        }
+
+        /// <summary>
+        /// 输出日志
+        /// </summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public static void WriteLog(String format, params Object[] args)
+        {
+            XTrace.WriteLine(format, args);
         }
         #endregion
     }

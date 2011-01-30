@@ -64,6 +64,28 @@ namespace XCode
         }
         #endregion
 
+        #region 属性
+        private Int32 _ID;
+        /// <summary>编号</summary>
+        public Int32 ID
+        {
+            get { return _ID; }
+            set { _ID = value; }
+        }
+
+        private DAL _Dal;
+        /// <summary>数据层</summary>
+        private DAL Dal
+        {
+            get { return _Dal; }
+            set { _Dal = value; }
+        }
+
+        private IDbSession Session { get { return Dal.Session as DbSession; } }
+
+        private IMetaData MetaData { get { return Dal.Db.CreateMetaData() as IMetaData; } }
+        #endregion
+
         #region 测试
         /// <summary>
         /// 单线程
@@ -89,19 +111,19 @@ namespace XCode
             //测试数据库
             String dbName = Session.DatabaseName;
 
-            Boolean dbExist = (Boolean)Session.SetSchema(DDLSchema.DatabaseExist, dbName);
+            Boolean dbExist = (Boolean)MetaData.SetSchema(DDLSchema.DatabaseExist, dbName);
 
             if (dbExist)
             {
                 XTrace.WriteLine("删除数据库：{0}", dbName);
-                Session.SetSchema(DDLSchema.DropDatabase, dbName);
+                MetaData.SetSchema(DDLSchema.DropDatabase, dbName);
             }
 
             //创建数据库
             //if (!dbExist)
             {
                 XTrace.WriteLine("创建数据库：{0}", dbName);
-                Session.SetSchema(DDLSchema.CreateDatabase, dbName, null);
+                MetaData.SetSchema(DDLSchema.CreateDatabase, dbName, null);
             }
 
             //创建数据表
@@ -112,10 +134,10 @@ namespace XCode
             table.Description = "测试表";
 
             //检查数据表
-            if ((Boolean)Session.SetSchema(DDLSchema.TableExist, table.Name))
+            if ((Boolean)MetaData.SetSchema(DDLSchema.TableExist, table.Name))
             {
                 XTrace.WriteLine("删除数据表：{0}", table.Name);
-                Session.SetSchema(DDLSchema.DropTable, table.Name);
+                MetaData.SetSchema(DDLSchema.DropTable, table.Name);
             }
 
             //创建字段
@@ -186,7 +208,7 @@ namespace XCode
             table.Fields.Add(field);
 
             XTrace.WriteLine("创建数据表：{0}", table.Name);
-            Session.SetSchema(DDLSchema.CreateTable, table);
+            MetaData.SetSchema(DDLSchema.CreateTable, table);
             #endregion
 
             //插入数据
@@ -202,7 +224,7 @@ namespace XCode
             }
             StringBuilder sb = new StringBuilder();
             Boolean debug_old = DbSession.Debug;
-            DbSession.Debug = false;
+            DAL.Debug = false;
             for (int i = 0; i < dataMax; i++)
             {
                 String name = "测试" + i.ToString("0000");
@@ -226,7 +248,7 @@ namespace XCode
                 Int64 n2 = Dal.InsertAndGetIdentity(sql, table.Name);
                 if (i + 1 != n2) throw new Exception("插入返回编号不匹配！");
             }
-            DbSession.Debug = debug_old;
+            DAL.Debug = debug_old;
             if (EnableTran) Dal.Commit();
 
             //查询
@@ -313,49 +335,29 @@ namespace XCode
             field.Description = "扩展";
 
             XTrace.WriteLine("新增字段：{0}", field);
-            Session.SetSchema(DDLSchema.AddColumn, table.Name, field);
+            MetaData.SetSchema(DDLSchema.AddColumn, table.Name, field);
 
             //修改字段
             field.Length = 555;
             XTrace.WriteLine("修改字段：{0}", field);
-            Session.SetSchema(DDLSchema.AlterColumn, table.Name, field);
+            MetaData.SetSchema(DDLSchema.AlterColumn, table.Name, field);
 
             //删除字段
             XTrace.WriteLine("删除字段：{0}", field);
-            Session.SetSchema(DDLSchema.DropColumn, table.Name, field.Name);
+            MetaData.SetSchema(DDLSchema.DropColumn, table.Name, field.Name);
 
             //删除数据表
             XTrace.WriteLine("删除数据表：{0}", table.Name);
-            Session.SetSchema(DDLSchema.DropTable, table.Name);
-            if ((Boolean)Session.SetSchema(DDLSchema.TableExist, table.Name)) throw new Exception("删除表失败！");
+            MetaData.SetSchema(DDLSchema.DropTable, table.Name);
+            if ((Boolean)MetaData.SetSchema(DDLSchema.TableExist, table.Name)) throw new Exception("删除表失败！");
 
             //删除数据库
             //if (!dbExist)
             {
                 XTrace.WriteLine("删除数据库：{0}", Dal.ConnName);
-                Session.SetSchema(DDLSchema.DropDatabase, Dal.ConnName);
+                MetaData.SetSchema(DDLSchema.DropDatabase, Dal.ConnName);
             }
         }
-        #endregion
-
-        #region 属性
-        private Int32 _ID;
-        /// <summary>编号</summary>
-        public Int32 ID
-        {
-            get { return _ID; }
-            set { _ID = value; }
-        }
-
-        private DAL _Dal;
-        /// <summary>数据层</summary>
-        private DAL Dal
-        {
-            get { return _Dal; }
-            set { _Dal = value; }
-        }
-
-        private DbSession Session { get { return Dal.Session as DbSession; } }
         #endregion
 
         #region 生成代码测试

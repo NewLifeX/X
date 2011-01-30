@@ -12,39 +12,169 @@ using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>
-    /// SQLite数据库
-    /// </summary>
-    internal class SQLiteSession : DbSession<SQLiteSession>
+    class SQLite : FileDbBase
     {
         #region 属性
-        /// <summary>文件</summary>
-        public String FileName
+        /// <summary>
+        /// 返回数据库类型。
+        /// </summary>
+        public override DatabaseType DbType
         {
-            get { return (Database as SQLite).FileName; }
+            get { return DatabaseType.SQLite; }
+        }
+
+        private static DbProviderFactory _dbProviderFactory;
+        /// <summary>
+        /// 静态构造函数
+        /// </summary>
+        static DbProviderFactory dbProviderFactory
+        {
+            get
+            {
+                if (_dbProviderFactory == null)
+                {
+                    Module module = typeof(Object).Module;
+
+                    PortableExecutableKinds kind;
+                    ImageFileMachine machine;
+                    module.GetPEKind(out kind, out machine);
+
+                    //反射实现获取数据库工厂
+                    String file = "System.Data.SQLite.dll";
+                    //if (machine != ImageFileMachine.I386) file = "System.Data.SQLite64.dll";
+
+                    if (String.IsNullOrEmpty(HttpRuntime.AppDomainAppId))
+                        file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
+                    else
+                        file = Path.Combine(HttpRuntime.BinDirectory, file);
+
+                    //if (!File.Exists(file) && machine == ImageFileMachine.I386)
+                    //{
+                    //    file = "System.Data.SQLite32.dll";
+                    //    file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
+                    //}
+                    if (!File.Exists(file)) throw new InvalidOperationException("缺少文件" + file + "！");
+
+                    Assembly asm = Assembly.LoadFile(file);
+                    Type type = asm.GetType("System.Data.SQLite.SQLiteFactory");
+                    FieldInfo field = type.GetField("Instance");
+                    _dbProviderFactory = field.GetValue(null) as DbProviderFactory;
+                }
+                return _dbProviderFactory;
+            }
+        }
+
+        /// <summary>工厂</summary>
+        public override DbProviderFactory Factory
+        {
+            get { return dbProviderFactory; }
         }
         #endregion
 
-        #region 基本方法 查询/执行
+        #region 方法
         /// <summary>
-        /// 已重载。在没有数据库时创建数据库
+        /// 创建数据库会话
         /// </summary>
-        public override void Open()
+        /// <returns></returns>
+        protected override IDbSession OnCreateSession()
         {
-            if (!File.Exists(FileName))
-            {
-                // 提前创建目录，SQLite不会自己创建目录
-                if (!Directory.Exists(Path.GetDirectoryName(FileName))) Directory.CreateDirectory(Path.GetDirectoryName(FileName));
-
-                CreateDatabase();
-            }
-
-            base.Open();
-
-            //// 以文件名为键创建读写锁，表示多线程将会争夺文件的写入操作
-            //_lock = ReadWriteLock.Create(FileName);
+            return new SQLiteSession();
         }
 
+        /// <summary>
+        /// 创建元数据对象
+        /// </summary>
+        /// <returns></returns>
+        protected override IMetaData OnCreateMetaData()
+        {
+            return new SQLiteMetaData();
+        }
+        #endregion
+
+        #region 分页
+        /// <summary>
+        /// 已重写。获取分页
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0开始</param>
+        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="keyColumn">主键列。用于not in分页</param>
+        /// <returns></returns>
+        public override string PageSplit(string sql, Int32 startRowIndex, Int32 maximumRows, string keyColumn)
+        {
+            // 从第一行开始，不需要分页
+            if (startRowIndex <= 0)
+            {
+                if (maximumRows < 1)
+                    return sql;
+                else
+                    return String.Format("{0} limit {1}", sql, maximumRows);
+            }
+            if (maximumRows < 1)
+                throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
+            else
+                sql = String.Format("{0} limit {1}, {2}", sql, startRowIndex, maximumRows);
+            return sql;
+        }
+
+        /// <summary>
+        /// 已重写。获取分页
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="startRowIndex"></param>
+        /// <param name="maximumRows"></param>
+        /// <param name="keyColumn"></param>
+        /// <returns></returns>
+        public override string PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows, string keyColumn)
+        {
+            return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
+        }
+        #endregion
+
+        #region 数据库特性
+        /// <summary>
+        /// 当前时间函数
+        /// </summary>
+        public override String DateTimeNow { get { return "CURRENT_TIMESTAMP"; } }
+
+        /// <summary>
+        /// 最小时间
+        /// </summary>
+        public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
+
+        /// <summary>
+        /// 格式化时间为SQL字符串
+        /// </summary>
+        /// <param name="dateTime">时间值</param>
+        /// <returns></returns>
+        public override String FormatDateTime(DateTime dateTime)
+        {
+            return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime);
+        }
+
+        /// <summary>
+        /// 格式化关键字
+        /// </summary>
+        /// <param name="keyWord">关键字</param>
+        /// <returns></returns>
+        public override String FormatKeyWord(String keyWord)
+        {
+            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
+
+            if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
+
+            return String.Format("[{0}]", keyWord);
+            //return keyWord;
+        }
+        #endregion
+    }
+
+    /// <summary>
+    /// SQLite数据库
+    /// </summary>
+    internal class SQLiteSession : FileDbSession
+    {
+        #region 基本方法 查询/执行
         private ReadWriteLock __lock = null;
         private ReadWriteLock _lock
         {
@@ -125,7 +255,13 @@ namespace XCode.DataAccessLayer
             }
         }
         #endregion
+    }
 
+    /// <summary>
+    /// SQLite元数据
+    /// </summary>
+    class SQLiteMetaData : FileDbMetaData
+    {
         #region 构架
         public override List<XTable> GetTables()
         {
@@ -155,7 +291,7 @@ namespace XCode.DataAccessLayer
                     return null;
                 case DDLSchema.DropDatabase:
                     //首先关闭数据库
-                    Close();
+                    Database.CreateSession().Close();
 
                     if (File.Exists(FileName)) File.Delete(FileName);
                     return null;
@@ -312,16 +448,6 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region 创建数据库
-        private void CreateDatabase()
-        {
-            // 提前创建目录，SQLite不会自己创建目录
-            if (!Directory.Exists(Path.GetDirectoryName(FileName))) Directory.CreateDirectory(Path.GetDirectoryName(FileName));
-
-            File.Create(FileName);
-        }
-        #endregion
-
         #region 表和字段备注
         //public Boolean AddTableDescription(String tablename, String description)
         //{
@@ -398,193 +524,6 @@ namespace XCode.DataAccessLayer
         //{
         //    return AddDefault(tablename, columnname, null);
         //}
-        #endregion
-    }
-
-    class SQLite : DbBase<SQLite, SQLiteSession>
-    {
-        #region 属性
-        /// <summary>
-        /// 返回数据库类型。
-        /// </summary>
-        public override DatabaseType DbType
-        {
-            get { return DatabaseType.SQLite; }
-        }
-
-        private static DbProviderFactory _dbProviderFactory;
-        /// <summary>
-        /// 静态构造函数
-        /// </summary>
-        static DbProviderFactory dbProviderFactory
-        {
-            get
-            {
-                if (_dbProviderFactory == null)
-                {
-                    Module module = typeof(Object).Module;
-
-                    PortableExecutableKinds kind;
-                    ImageFileMachine machine;
-                    module.GetPEKind(out kind, out machine);
-
-                    //反射实现获取数据库工厂
-                    String file = "System.Data.SQLite.dll";
-                    //if (machine != ImageFileMachine.I386) file = "System.Data.SQLite64.dll";
-
-                    if (String.IsNullOrEmpty(HttpRuntime.AppDomainAppId))
-                        file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
-                    else
-                        file = Path.Combine(HttpRuntime.BinDirectory, file);
-
-                    //if (!File.Exists(file) && machine == ImageFileMachine.I386)
-                    //{
-                    //    file = "System.Data.SQLite32.dll";
-                    //    file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
-                    //}
-                    if (!File.Exists(file)) throw new InvalidOperationException("缺少文件" + file + "！");
-
-                    Assembly asm = Assembly.LoadFile(file);
-                    Type type = asm.GetType("System.Data.SQLite.SQLiteFactory");
-                    FieldInfo field = type.GetField("Instance");
-                    _dbProviderFactory = field.GetValue(null) as DbProviderFactory;
-                }
-                return _dbProviderFactory;
-            }
-        }
-
-        /// <summary>工厂</summary>
-        public override DbProviderFactory Factory
-        {
-            get { return dbProviderFactory; }
-        }
-
-        /// <summary>链接字符串</summary>
-        public override string ConnectionString
-        {
-            get
-            {
-                return base.ConnectionString;
-            }
-            set
-            {
-                //base.ConnectionString = value;
-                try
-                {
-                    OleDbConnectionStringBuilder csb = new OleDbConnectionStringBuilder(value);
-                    // 不是绝对路径
-                    if (!String.IsNullOrEmpty(csb.DataSource) && csb.DataSource.Length > 1 && csb.DataSource.Substring(1, 1) != ":")
-                    {
-                        String mdbPath = csb.DataSource;
-                        if (mdbPath.StartsWith("~/") || mdbPath.StartsWith("~\\"))
-                        {
-                            mdbPath = mdbPath.Replace("/", "\\").Replace("~\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-                        }
-                        else if (mdbPath.StartsWith("./") || mdbPath.StartsWith(".\\"))
-                        {
-                            mdbPath = mdbPath.Replace("/", "\\").Replace(".\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-                        }
-                        else
-                        {
-                            mdbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, mdbPath.Replace("/", "\\"));
-                        }
-                        csb.DataSource = mdbPath;
-                        FileName = mdbPath;
-                        value = csb.ConnectionString;
-                    }
-                }
-                catch (DbException ex)
-                {
-                    throw new XDbException(this, "分析SQLite连接字符串时出错", ex);
-                }
-                base.ConnectionString = value;
-            }
-        }
-
-        private String _FileName;
-        /// <summary>文件</summary>
-        public String FileName
-        {
-            get { return _FileName; }
-            private set { _FileName = value; }
-        }
-        #endregion
-
-        #region 分页
-        /// <summary>
-        /// 已重写。获取分页
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
-        /// <param name="keyColumn">主键列。用于not in分页</param>
-        /// <returns></returns>
-        public override string PageSplit(string sql, Int32 startRowIndex, Int32 maximumRows, string keyColumn)
-        {
-            // 从第一行开始，不需要分页
-            if (startRowIndex <= 0)
-            {
-                if (maximumRows < 1)
-                    return sql;
-                else
-                    return String.Format("{0} limit {1}", sql, maximumRows);
-            }
-            if (maximumRows < 1)
-                throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
-            else
-                sql = String.Format("{0} limit {1}, {2}", sql, startRowIndex, maximumRows);
-            return sql;
-        }
-
-        /// <summary>
-        /// 已重写。获取分页
-        /// </summary>
-        /// <param name="builder"></param>
-        /// <param name="startRowIndex"></param>
-        /// <param name="maximumRows"></param>
-        /// <param name="keyColumn"></param>
-        /// <returns></returns>
-        public override string PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows, string keyColumn)
-        {
-            return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
-        }
-        #endregion
-
-        #region 数据库特性
-        /// <summary>
-        /// 当前时间函数
-        /// </summary>
-        public override String DateTimeNow { get { return "CURRENT_TIMESTAMP"; } }
-
-        /// <summary>
-        /// 最小时间
-        /// </summary>
-        public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
-
-        /// <summary>
-        /// 格式化时间为SQL字符串
-        /// </summary>
-        /// <param name="dateTime">时间值</param>
-        /// <returns></returns>
-        public override String FormatDateTime(DateTime dateTime)
-        {
-            return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime);
-        }
-
-        /// <summary>
-        /// 格式化关键字
-        /// </summary>
-        /// <param name="keyWord">关键字</param>
-        /// <returns></returns>
-        public override String FormatKeyWord(String keyWord)
-        {
-            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
-
-            if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
-
-            return String.Format("[{0}]", keyWord);
-            //return keyWord;
-        }
         #endregion
     }
 }

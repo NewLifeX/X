@@ -31,6 +31,13 @@ namespace XCode.DataAccessLayer
             //set { _Session = value; }
         }
 
+        private IMetaData _MetaData;
+        /// <summary>数据库元数据</summary>
+        public IMetaData MetaData
+        {
+            get { return _MetaData ?? (_MetaData = Database.Db.CreateMetaData()); }
+        }
+
         private List<Type> _Entities;
         /// <summary>实体集合</summary>
         public List<Type> Entities
@@ -49,7 +56,7 @@ namespace XCode.DataAccessLayer
                         {
                             //BindTableAttribute bt = Config.Table(item);
                             //if (bt == null || bt.ConnName != Database.ConnName) continue;
-                            String connName = Config.ConnName(item);
+                            String connName = XCodeConfig.ConnName(item);
                             if (connName != Database.ConnName) continue;
 
                             _Entities.Add(item);
@@ -92,7 +99,7 @@ namespace XCode.DataAccessLayer
                 {
                     if (_DBTables != null) return _DBTables;
 
-                    List<XTable> list = Session.GetTables();
+                    List<XTable> list = MetaData.GetTables();
 
                     _DBTables = new Dictionary<String, XTable>();
                     if (list != null && list.Count > 0)
@@ -210,12 +217,12 @@ namespace XCode.DataAccessLayer
             WriteLog("开始检查数据架构：" + Database.ConnName);
 
             //数据库检查
-            Boolean dbExist = (Boolean)Session.SetSchema(DDLSchema.DatabaseExist, null);
+            Boolean dbExist = (Boolean)MetaData.SetSchema(DDLSchema.DatabaseExist, null);
 
             if (!dbExist)
             {
                 XTrace.WriteLine("创建数据库：{0}", Database.ConnName);
-                Session.SetSchema(DDLSchema.CreateDatabase, null, null);
+                MetaData.SetSchema(DDLSchema.CreateDatabase, null, null);
             }
 
             if (Entities == null || Entities.Count < 1)
@@ -294,12 +301,12 @@ namespace XCode.DataAccessLayer
                     {
                         XTrace.WriteLine("创建表：" + entitytable.Name);
                         //建表
-                        Session.SetSchema(DDLSchema.CreateTable, new Object[] { entitytable });
+                        MetaData.SetSchema(DDLSchema.CreateTable, new Object[] { entitytable });
                     }
                     else
                     {
                         StringBuilder sb = new StringBuilder();
-                        sb.AppendLine(Session.GetSchemaSQL(DDLSchema.CreateTable, new Object[] { entitytable }) + ";");
+                        sb.AppendLine(MetaData.GetSchemaSQL(DDLSchema.CreateTable, new Object[] { entitytable }) + ";");
 
                         sql = sb.ToString();
                         XTrace.WriteLine("DatabaseSchema_Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sql);
@@ -499,7 +506,7 @@ namespace XCode.DataAccessLayer
         public static XTable Create(Type type, String tablename)
         {
             XTable table = new XTable();
-            BindTableAttribute bt = Config.Table(type);
+            BindTableAttribute bt = XCodeConfig.Table(type);
 
             if (String.IsNullOrEmpty(tablename)) tablename = bt.Name;
             table.Name = tablename;
@@ -507,7 +514,7 @@ namespace XCode.DataAccessLayer
             table.Description = bt.Description;
 
             List<XField> fields = new List<XField>();
-            List<FieldItem> fis = new List<FieldItem>(Config.Fields(type));
+            List<FieldItem> fis = new List<FieldItem>(XCodeConfig.Fields(type));
             foreach (FieldItem fi in fis)
             {
                 XField f = table.CreateField();
@@ -540,7 +547,7 @@ namespace XCode.DataAccessLayer
 
         private void GetSchemaSQL(StringBuilder sb, DDLSchema schema, Object[] values, Boolean onlySql)
         {
-            String sql = Session.GetSchemaSQL(schema, values);
+            String sql = MetaData.GetSchemaSQL(schema, values);
             if (!String.IsNullOrEmpty(sql))
             {
                 if (sb.Length > 0) sb.AppendLine(";");
@@ -566,7 +573,7 @@ namespace XCode.DataAccessLayer
             {
                 try
                 {
-                    Session.SetSchema(schema, values);
+                    MetaData.SetSchema(schema, values);
                 }
                 catch (Exception ex)
                 {

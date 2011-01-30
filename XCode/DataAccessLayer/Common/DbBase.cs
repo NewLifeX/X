@@ -8,37 +8,6 @@ using NewLife;
 namespace XCode.DataAccessLayer
 {
     /// <summary>
-    /// 泛型数据库基类，通过泛型指定数据库会话类型，从而实现创建会话的方法
-    /// </summary>
-    /// <typeparam name="TDatabase"></typeparam>
-    /// <typeparam name="TDbSession"></typeparam>
-    abstract class DbBase<TDatabase, TDbSession> : DbBase
-        where TDatabase : DbBase<TDatabase, TDbSession>, new()
-        where TDbSession : DbSession<TDbSession>, new()
-    {
-        #region 构造
-        ///// <summary>
-        ///// 实例
-        ///// </summary>
-        //public static TDatabase Instance = new TDatabase();
-        #endregion
-
-        #region 方法
-        /// <summary>
-        /// 创建数据库会话
-        /// </summary>
-        /// <returns></returns>
-        protected override IDbSession OnCreateSession()
-        {
-            TDbSession sessoin = new TDbSession();
-            sessoin.Database = this;
-            sessoin.ConnectionString = ConnectionString;
-            return sessoin;
-        }
-        #endregion
-    }
-
-    /// <summary>
     /// 数据库基类。数据库类的职责是抽象不同数据库的共同点，理应最小化，保证原汁原味，因此不做缓存等实现。
     /// 对于每一个连接字符串配置，都有一个数据库实例，而不是每个数据库类型一个实例，因为同类型数据库不同版本行为不同。
     /// </summary>
@@ -140,13 +109,29 @@ namespace XCode.DataAccessLayer
             if (_sessions == null) _sessions = new Dictionary<DbBase, IDbSession>();
 
             IDbSession session = null;
-            if (_sessions.TryGetValue(this, out session)) return session;
+            if (_sessions.TryGetValue(this, out session))
+            {
+                // 会话可能已经被销毁
+                if (!(session is DbSession) || !(session as DbSession).Disposed) return session;
+            }
             lock (_sessions)
             {
-                if (_sessions.TryGetValue(this, out session)) return session;
+                if (_sessions.TryGetValue(this, out session))
+                {
+                    // 会话可能已经被销毁
+                    if (!(session is DbSession) || !(session as DbSession).Disposed) return session;
+                }
+
+                Boolean isNew = session == null;
 
                 session = OnCreateSession();
-                _sessions.Add(this, session);
+                session.ConnectionString = ConnectionString;
+                if (session is DbSession) (session as DbSession).Database = this;
+
+                if (isNew)
+                    _sessions.Add(this, session);
+                else
+                    _sessions[this] = session;
 
                 return session;
             }
@@ -157,6 +142,35 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <returns></returns>
         protected abstract IDbSession OnCreateSession();
+
+        /// <summary>
+        /// 唯一实例
+        /// </summary>
+        private IMetaData _metadata;
+
+        /// <summary>
+        /// 创建元数据对象，唯一实例
+        /// </summary>
+        /// <returns></returns>
+        public IMetaData CreateMetaData()
+        {
+            if (_metadata != null)
+            {
+                // 实例可能已经被销毁
+                if (!(_metadata is DbMetaData) || !(_metadata as DbMetaData).Disposed) return _metadata;
+            }
+
+            _metadata = OnCreateMetaData();
+            if (_metadata is DbMetaData) (_metadata as DbMetaData).Database = this;
+
+            return _metadata;
+        }
+
+        /// <summary>
+        /// 创建元数据对象
+        /// </summary>
+        /// <returns></returns>
+        protected abstract IMetaData OnCreateMetaData();
         #endregion
 
         #region 分页
@@ -381,6 +395,26 @@ namespace XCode.DataAccessLayer
         {
             return keyWord;
         }
+        #endregion
+
+        #region Sql日志输出
+        /// <summary>
+        /// 是否调试
+        /// </summary>
+        public static Boolean Debug { get { return DAL.Debug; } }
+
+        /// <summary>
+        /// 输出日志
+        /// </summary>
+        /// <param name="msg"></param>
+        public static void WriteLog(String msg) { DAL.WriteLog(msg); }
+
+        /// <summary>
+        /// 输出日志
+        /// </summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public static void WriteLog(String format, params Object[] args) { DAL.WriteLog(format, args); }
         #endregion
     }
 }

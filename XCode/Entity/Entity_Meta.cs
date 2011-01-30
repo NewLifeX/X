@@ -31,7 +31,7 @@ namespace XCode
             /// <summary>
             /// 实体链接名
             /// </summary>
-            public static String DefaultConnName { get { return Config.ConnName(ThisType); } }
+            public static String DefaultConnName { get { return XCodeConfig.ConnName(ThisType); } }
 
             [ThreadStatic]
             private static String _ConnName;
@@ -78,7 +78,7 @@ namespace XCode
             /// <summary>
             /// 表名
             /// </summary>
-            public static String DefaultTableName { get { return Config.TableName(ThisType); } }
+            public static String DefaultTableName { get { return XCodeConfig.TableName(ThisType); } }
 
             [ThreadStatic]
             private static String _TableName;
@@ -123,12 +123,12 @@ namespace XCode
             /// <summary>
             /// 所有数据属性
             /// </summary>
-            public static List<FieldItem> AllFields { get { return Config.AllFields(ThisType); } }
+            public static List<FieldItem> AllFields { get { return XCodeConfig.AllFields(ThisType); } }
 
             /// <summary>
             /// 所有绑定到数据表的属性
             /// </summary>
-            public static List<FieldItem> Fields { get { return Config.Fields(ThisType); } }
+            public static List<FieldItem> Fields { get { return XCodeConfig.Fields(ThisType); } }
 
             private static ReadOnlyList<String> _FieldNames;
             /// <summary>
@@ -163,7 +163,7 @@ namespace XCode
             /// <summary>
             /// 唯一键集合，返回标识列集合或主键集合
             /// </summary>
-            public static List<FieldItem> Uniques { get { return Config.Unique(ThisType); } }
+            public static List<FieldItem> Uniques { get { return XCodeConfig.Unique(ThisType); } }
 
             /// <summary>
             /// 唯一键，返回第一个标识列或者唯一的主键
@@ -186,12 +186,12 @@ namespace XCode
             /// <summary>
             /// 取得字段前缀
             /// </summary>
-            public static String ColumnPrefix { get { return Config.ColumnPrefix(ThisType); } }
+            public static String ColumnPrefix { get { return XCodeConfig.ColumnPrefix(ThisType); } }
 
             /// <summary>
             /// 取得指定类对应的Select字句字符串。
             /// </summary>
-            public static String Selects { get { return Config.Selects(ThisType); } }
+            public static String Selects { get { return XCodeConfig.Selects(ThisType); } }
             #endregion
 
             #region 数据库操作

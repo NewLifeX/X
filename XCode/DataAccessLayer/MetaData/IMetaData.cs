@@ -10,15 +10,14 @@ namespace XCode.DataAccessLayer
     /// </summary>
     public interface IMetaData
     {
-        #region 构架
+        #region 属性
         /// <summary>
-        /// 返回数据源的架构信息
+        /// 数据库
         /// </summary>
-        /// <param name="collectionName">指定要返回的架构的名称。</param>
-        /// <param name="restrictionValues">为请求的架构指定一组限制值。</param>
-        /// <returns></returns>
-        DataTable GetSchema(string collectionName, string[] restrictionValues);
+        IDatabase Database { get; }
+        #endregion
 
+        #region 构架
         /// <summary>
         /// 取得所有表构架
         /// </summary>

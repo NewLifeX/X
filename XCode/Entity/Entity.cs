@@ -91,7 +91,7 @@ namespace XCode
             Boolean hasprefix = false;
             if (jointypes != null && jointypes.Length > 0)
             {
-                maps = Config.TableMaps(Meta.ThisType, jointypes);
+                maps = XCodeConfig.TableMaps(Meta.ThisType, jointypes);
                 prefix = Meta.ColumnPrefix;
                 hasprefix = true;
             }
@@ -130,7 +130,7 @@ namespace XCode
             Boolean hasprefix = false;
             if (jointypes != null && jointypes.Length > 0)
             {
-                maps = Config.TableMaps(Meta.ThisType, jointypes);
+                maps = XCodeConfig.TableMaps(Meta.ThisType, jointypes);
                 prefix = Meta.ColumnPrefix;
                 hasprefix = true;
             }
@@ -641,7 +641,7 @@ namespace XCode
             if (jointypes == null || jointypes.Length < 1) return FindAll(whereClause, orderClause, selects, startRowIndex, maximumRows);
 
             //根据传入的实体类型列表来决定处理哪些多表关联
-            TableMapAttribute[] maps = Config.TableMaps(Meta.ThisType, jointypes);
+            TableMapAttribute[] maps = XCodeConfig.TableMaps(Meta.ThisType, jointypes);
             //没有找到带有映射特性的字段
             if (maps == null || maps.Length < 1) return FindAll(whereClause, orderClause, selects, startRowIndex, maximumRows);
 
@@ -652,7 +652,7 @@ namespace XCode
             //sb.Append(selects);
             if (String.IsNullOrEmpty(selects) || selects == "*" || selects.Trim() == "*")
             {
-                sb.Append(Config.SelectsEx(Meta.ThisType));
+                sb.Append(XCodeConfig.SelectsEx(Meta.ThisType));
             }
             else
             {
@@ -673,7 +673,7 @@ namespace XCode
             foreach (TableMapAttribute item in maps)
             {
                 sb.Append(", ");
-                sb.Append(Config.SelectsEx(item.MapEntity));
+                sb.Append(XCodeConfig.SelectsEx(item.MapEntity));
             }
             sb.Append(" From ");
             sb.Append(LocalTableName);
@@ -683,7 +683,7 @@ namespace XCode
             //对于每一个关联的实体类型表进行处理
             foreach (TableMapAttribute item in maps)
             {
-                String tablename = Config.TableName(item.MapEntity);
+                String tablename = XCodeConfig.TableName(item.MapEntity);
                 tables.Add(tablename);
                 sb.Append(" ");
                 //关联类型

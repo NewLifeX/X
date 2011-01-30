@@ -11,23 +11,248 @@ using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>
-    /// SqlServer数据库
-    /// </summary>
-    internal class SqlServerSession : DbSession<SqlServerSession>
+    class SqlServer : DbBase
     {
         #region 属性
         /// <summary>
-        /// 是否SQL2005
+        /// 返回数据库类型。外部DAL数据库类请使用Other
         /// </summary>
-        public Boolean IsSQL2005 { get { return (Database as SqlServer).IsSQL2005; } }
+        public override DatabaseType DbType
+        {
+            get { return DatabaseType.SqlServer; }
+        }
 
-        /// <summary>
-        /// 0级类型
-        /// </summary>
-        public String level0type { get { return IsSQL2005 ? "SCHEMA" : "USER"; } }
+        /// <summary>工厂</summary>
+        public override DbProviderFactory Factory
+        {
+            get { return SqlClientFactory.Instance; }
+        }
+
+        private Boolean? _IsSQL2005;
+        /// <summary>是否SQL2005及以上</summary>
+        public Boolean IsSQL2005
+        {
+            get
+            {
+                if (_IsSQL2005 == null)
+                {
+                    if (String.IsNullOrEmpty(ConnectionString)) return false;
+                    try
+                    {
+                        //切换到master库
+                        DbSession session = CreateSession() as DbSession;
+                        String dbname = session.DatabaseName;
+                        //如果指定了数据库名，并且不是master，则切换到master
+                        if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
+                        {
+                            session.DatabaseName = "master";
+                        }
+
+                        //取数据库版本
+                        if (!session.Opened) session.Open();
+                        String ver = session.Conn.ServerVersion;
+                        session.AutoClose();
+
+                        _IsSQL2005 = !ver.StartsWith("08");
+
+                        if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
+                        {
+                            session.DatabaseName = dbname;
+                        }
+                    }
+                    catch { _IsSQL2005 = false; }
+                }
+                return _IsSQL2005.Value;
+            }
+            set { _IsSQL2005 = value; }
+        }
         #endregion
 
+        #region 方法
+        /// <summary>
+        /// 创建数据库会话
+        /// </summary>
+        /// <returns></returns>
+        protected override IDbSession OnCreateSession()
+        {
+            return new SqlServerSession();
+        }
+
+        /// <summary>
+        /// 创建元数据对象
+        /// </summary>
+        /// <returns></returns>
+        protected override IMetaData OnCreateMetaData()
+        {
+            return new SqlServerMetaData();
+        }
+        #endregion
+
+        #region 分页
+        /// <summary>
+        /// 构造分页SQL
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0开始</param>
+        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="keyColumn">唯一键。用于not in分页</param>
+        /// <returns>分页SQL</returns>
+        public override String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
+        {
+            // 从第一行开始，不需要分页
+            if (startRowIndex <= 0 && maximumRows < 1) return sql;
+
+            // 指定了起始行，并且是SQL2005及以上版本，使用RowNumber算法
+            if (startRowIndex > 0 && IsSQL2005) return PageSplitRowNumber(sql, startRowIndex, maximumRows, keyColumn);
+
+            // 如果没有Order By，直接调用基类方法
+            // 先用字符串判断，命中率高，这样可以提高处理效率
+            if (!sql.Contains(" Order "))
+            {
+                if (!sql.ToLower().Contains(" order ")) return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
+            }
+            //// 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
+            //MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            //if (ms == null || ms.Count < 1 || ms[0].Index < 1)
+            String sql2 = sql;
+            String orderBy = CheckOrderClause(ref sql2);
+            if (String.IsNullOrEmpty(orderBy))
+            {
+                return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
+            }
+            // 已确定该sql最外层含有order by，再检查最外层是否有top。因为没有top的order by是不允许作为子查询的
+            if (Regex.IsMatch(sql, @"^[^(]+\btop\b", RegexOptions.Compiled | RegexOptions.IgnoreCase))
+            {
+                return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
+            }
+            //String orderBy = sql.Substring(ms[0].Index);
+
+            // 从第一行开始，不需要分页
+            if (startRowIndex <= 0)
+            {
+                if (maximumRows < 1)
+                    return sql;
+                else
+                    return String.Format("Select Top {0} * From {1} {2}", maximumRows, CheckSimpleSQL(sql2), orderBy);
+                //return String.Format("Select Top {0} * From {1} {2}", maximumRows, CheckSimpleSQL(sql.Substring(0, ms[0].Index)), orderBy);
+            }
+
+            #region Max/Min分页
+            // 如果要使用max/min分页法，首先keyColumn必须有asc或者desc
+            if (keyColumn.ToLower().EndsWith(" desc") || keyColumn.ToLower().EndsWith(" asc") || keyColumn.ToLower().EndsWith(" unknown"))
+            {
+                String str = PageSplitMaxMin(sql, startRowIndex, maximumRows, keyColumn);
+                if (!String.IsNullOrEmpty(str)) return str;
+                keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
+            }
+            #endregion
+
+            sql = CheckSimpleSQL(sql2);
+
+            if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "这里用的not in分页算法要求指定主键列！");
+
+            if (maximumRows < 1)
+                sql = String.Format("Select * From {1} Where {2} Not In(Select Top {0} {2} From {1} {3}) {3}", startRowIndex, sql, keyColumn, orderBy);
+            else
+                sql = String.Format("Select Top {0} * From {1} Where {2} Not In(Select Top {3} {2} From {1} {4}) {4}", maximumRows, sql, keyColumn, startRowIndex, orderBy);
+            return sql;
+        }
+
+        /// <summary>
+        /// 已重写。获取分页
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0开始</param>
+        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="keyColumn">主键列。用于not in分页</param>
+        /// <returns></returns>
+        public String PageSplitRowNumber(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
+        {
+            // 从第一行开始，不需要分页
+            if (startRowIndex <= 0)
+            {
+                if (maximumRows < 1)
+                    return sql;
+                else
+                    return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
+            }
+
+            String orderBy = String.Empty;
+            if (sql.ToLower().Contains(" order "))
+            {
+                // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
+                //MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                //if (ms != null && ms.Count > 0 && ms[0].Index > 0)
+                String sql2 = sql;
+                String orderBy2 = CheckOrderClause(ref sql2);
+                if (String.IsNullOrEmpty(orderBy))
+                {
+                    // 已确定该sql最外层含有order by，再检查最外层是否有top。因为没有top的order by是不允许作为子查询的
+                    if (!Regex.IsMatch(sql, @"^[^(]+\btop\b", RegexOptions.Compiled | RegexOptions.IgnoreCase))
+                    {
+                        //orderBy = sql.Substring(ms[0].Index).Trim();
+                        //sql = sql.Substring(0, ms[0].Index).Trim();
+                        orderBy = orderBy2.Trim();
+                        sql = sql2.Trim();
+                    }
+                }
+            }
+
+            if (String.IsNullOrEmpty(orderBy)) orderBy = "Order By " + keyColumn;
+            sql = CheckSimpleSQL(sql);
+
+            //row_number()从1开始
+            if (maximumRows < 1)
+                sql = String.Format("Select * From (Select row_number() over({2}) as row_number, * From {1}) XCode_Temp_b Where row_Number>={0}", startRowIndex + 1, sql, orderBy);
+            else
+                sql = String.Format("Select * From (Select row_number() over({3}) as row_number, * From {1}) XCode_Temp_b Where row_Number Between {0} And {2}", startRowIndex + 1, sql, startRowIndex + maximumRows, orderBy);
+
+            return sql;
+        }
+        #endregion
+
+        #region 数据库特性
+        /// <summary>
+        /// 当前时间函数
+        /// </summary>
+        public override String DateTimeNow { get { return "getdate()"; } }
+
+        /// <summary>
+        /// 最小时间
+        /// </summary>
+        public override DateTime DateTimeMin { get { return SqlDateTime.MinValue.Value; } }
+
+        /// <summary>
+        /// 格式化时间为SQL字符串
+        /// </summary>
+        /// <param name="dateTime">时间值</param>
+        /// <returns></returns>
+        public override String FormatDateTime(DateTime dateTime)
+        {
+            return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime);
+        }
+
+        /// <summary>
+        /// 格式化关键字
+        /// </summary>
+        /// <param name="keyWord">关键字</param>
+        /// <returns></returns>
+        public override String FormatKeyWord(String keyWord)
+        {
+            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
+
+            if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
+
+            return String.Format("[{0}]", keyWord);
+        }
+        #endregion
+    }
+
+    /// <summary>
+    /// SqlServer数据库
+    /// </summary>
+    internal class SqlServerSession : DbSession
+    {
         #region 查询
         /// <summary>
         /// 快速查询单表记录数，稍有偏差
@@ -58,6 +283,31 @@ namespace XCode.DataAccessLayer
             }
         }
         #endregion
+    }
+
+    /// <summary>
+    /// SqlServer元数据
+    /// </summary>
+    class SqlServerMetaData : DbMetaData
+    {
+        #region 属性
+        /// <summary>
+        /// 是否SQL2005
+        /// </summary>
+        public Boolean IsSQL2005 { get { return (Database as SqlServer).IsSQL2005; } }
+
+        /// <summary>
+        /// 0级类型
+        /// </summary>
+        public String level0type { get { return IsSQL2005 ? "SCHEMA" : "USER"; } }
+
+        /// <summary>数据库名</summary>
+        public String DatabaseName
+        {
+            get { return Database.CreateSession().DatabaseName; }
+            set { Database.CreateSession().DatabaseName = value; }
+        }
+        #endregion
 
         #region 构架
         /// <summary>
@@ -68,14 +318,16 @@ namespace XCode.DataAccessLayer
         {
             try
             {
+                IDbSession session = Database.CreateSession();
+
                 //一次性把所有的表说明查出来
-                DataSet ds = Query(DescriptionSql);
+                DataSet ds = session.Query(DescriptionSql);
                 DataTable DescriptionTable = ds == null || ds.Tables == null || ds.Tables.Count < 1 ? null : ds.Tables[0];
 
                 DataTable dt = GetSchema("Tables", null);
                 if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
-                AllFields = Query(SchemaSql).Tables[0];
+                AllFields = session.Query(SchemaSql).Tables[0];
 
                 // 列出用户表
                 DataRow[] rows = dt.Select(String.Format("{0}='BASE TABLE' Or {0}='VIEW'", "TABLE_TYPE"));
@@ -93,54 +345,8 @@ namespace XCode.DataAccessLayer
             }
             catch (DbException ex)
             {
-                throw new XDbSessionException(this, "取得所有表构架出错！", ex);
+                throw new XDbMetaDataException(this, "取得所有表构架出错！", ex);
             }
-
-            //List<XTable> list = null;
-            //try
-            //{
-            //    DataTable dt = GetSchema("Tables", null);
-
-            //    //一次性把所有的表说明查出来
-            //    DataSet ds = Query(DescriptionSql);
-            //    DataTable DescriptionTable = ds == null || ds.Tables == null || ds.Tables.Count < 1 ? null : ds.Tables[0];
-
-            //    list = new List<XTable>();
-            //    if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
-            //    {
-            //        AllFields = Query(SchemaSql).Tables[0];
-
-            //        foreach (DataRow drTable in dt.Rows)
-            //        {
-            //            if (drTable["TABLE_NAME"].ToString() != "dtproperties" &&
-            //                drTable["TABLE_NAME"].ToString() != "sysconstraints" &&
-            //                drTable["TABLE_NAME"].ToString() != "syssegments" &&
-            //               (drTable["TABLE_TYPE"].ToString() == "BASE TABLE" || drTable["TABLE_TYPE"].ToString() == "VIEW"))
-            //            {
-            //                XTable xt = new XTable();
-            //                xt.ID = list.Count + 1;
-            //                xt.Name = drTable["TABLE_NAME"].ToString();
-
-            //                DataRow[] drs = DescriptionTable == null ? null : DescriptionTable.Select("n='" + xt.Name + "'");
-            //                xt.Description = drs == null || drs.Length < 1 ? "" : drs[0][1].ToString();
-
-            //                xt.IsView = drTable["TABLE_TYPE"].ToString() == "VIEW";
-            //                xt.DbType = DbType;
-            //                xt.Fields = GetFields(xt);
-
-            //                list.Add(xt);
-            //            }
-            //        }
-            //    }
-            //}
-            //catch (DbException ex)
-            //{
-            //    throw new XDbException(this, "取得所有表构架出错！", ex);
-            //}
-
-            //if (list == null || list.Count < 1) return null;
-
-            //return list;
         }
 
         private DataTable AllFields = null;
@@ -364,6 +570,8 @@ namespace XCode.DataAccessLayer
 
         public override object SetSchema(DDLSchema schema, params object[] values)
         {
+            IDbSession session = Database.CreateSession();
+
             Object obj = null;
             String dbname = String.Empty;
             String databaseName = String.Empty;
@@ -380,16 +588,16 @@ namespace XCode.DataAccessLayer
                     if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
                     {
                         DatabaseName = "master";
-                        obj = QueryCount(GetSchemaSQL(schema, values)) > 0;
+                        obj = session.QueryCount(GetSchemaSQL(schema, values)) > 0;
                         DatabaseName = dbname;
                         return obj;
                     }
                     else
                     {
-                        return QueryCount(GetSchemaSQL(schema, values)) > 0;
+                        return session.QueryCount(GetSchemaSQL(schema, values)) > 0;
                     }
                 case DDLSchema.TableExist:
-                    return QueryCount(GetSchemaSQL(schema, values)) > 0;
+                    return session.QueryCount(GetSchemaSQL(schema, values)) > 0;
                 case DDLSchema.CreateDatabase:
                     databaseName = values == null || values.Length < 1 ? null : (String)values[0];
                     if (String.IsNullOrEmpty(databaseName)) databaseName = DatabaseName;
@@ -430,9 +638,9 @@ namespace XCode.DataAccessLayer
                     sb.AppendLine("deallocate   #spid");
 
                     Int32 count = 0;
-                    try { count = Execute(sb.ToString()); }
+                    try { count = session.Execute(sb.ToString()); }
                     catch { }
-                    obj = Execute(String.Format("Drop Database {0}", FormatKeyWord(dbname))) > 0;
+                    obj = session.Execute(String.Format("Drop Database {0}", FormatKeyWord(dbname))) > 0;
                     //sb.AppendFormat("Drop Database [{0}]", dbname);
 
                     DatabaseName = dbname;
@@ -745,7 +953,7 @@ namespace XCode.DataAccessLayer
                 sql = String.Format("select * from syscolumns a inner join sysproperties g on a.id=g.id and a.colid=g.smallid and g.name='MS_Description' inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}'", tablename, columnname);
             else
                 sql = String.Format("select * from syscolumns a inner join sys.extended_properties g on a.id=g.major_id and a.colid=g.minor_id and g.name = 'MS_Description' inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}'", tablename, columnname);
-            Int32 count = QueryCount(sql);
+            Int32 count = Database.CreateSession().QueryCount(sql);
             if (count <= 0) return null;
 
             return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{1}'", tablename, columnname, level0type);
@@ -789,7 +997,7 @@ namespace XCode.DataAccessLayer
                 sql = String.Format("select b.name from syscolumns a inner join sysobjects b on a.cdefault=b.id inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}'", tablename, columnname);
             if (!String.IsNullOrEmpty(type)) sql += String.Format(" and b.xtype='{0}'", type);
             if (type == "PK") sql = String.Format("select c.name from sysobjects a inner join syscolumns b on a.id=b.id  inner join sysobjects c on c.parent_obj=a.id where a.name='{0}' and b.name='{1}' and c.xtype='PK'", tablename, columnname);
-            DataSet ds = Query(sql);
+            DataSet ds = Database.CreateSession().Query(sql);
             if (ds == null || ds.Tables == null || ds.Tables[0].Rows.Count < 1) return null;
 
             StringBuilder sb = new StringBuilder();
@@ -823,223 +1031,6 @@ namespace XCode.DataAccessLayer
             sb.AppendLine(";");
             sb.AppendFormat("Drop Database {0}", FormatKeyWord(dbname));
             return sb.ToString();
-        }
-        #endregion
-    }
-
-    class SqlServer : DbBase<SqlServer, SqlServerSession>
-    {
-        #region 属性
-        /// <summary>
-        /// 返回数据库类型。外部DAL数据库类请使用Other
-        /// </summary>
-        public override DatabaseType DbType
-        {
-            get { return DatabaseType.SqlServer; }
-        }
-
-        /// <summary>工厂</summary>
-        public override DbProviderFactory Factory
-        {
-            get { return SqlClientFactory.Instance; }
-        }
-
-        private Boolean? _IsSQL2005;
-        /// <summary>是否SQL2005及以上</summary>
-        public Boolean IsSQL2005
-        {
-            get
-            {
-                if (_IsSQL2005 == null)
-                {
-                    if (String.IsNullOrEmpty(ConnectionString)) return false;
-                    try
-                    {
-                        //切换到master库
-                        DbSession session = CreateSession() as DbSession;
-                        String dbname = session.DatabaseName;
-                        //如果指定了数据库名，并且不是master，则切换到master
-                        if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
-                        {
-                            session.DatabaseName = "master";
-                        }
-
-                        //取数据库版本
-                        if (!session.Opened) session.Open();
-                        String ver = session.Conn.ServerVersion;
-                        session.AutoClose();
-
-                        _IsSQL2005 = !ver.StartsWith("08");
-
-                        if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
-                        {
-                            session.DatabaseName = dbname;
-                        }
-                    }
-                    catch { _IsSQL2005 = false; }
-                }
-                return _IsSQL2005.Value;
-            }
-            set { _IsSQL2005 = value; }
-        }
-        #endregion
-
-        #region 分页
-        /// <summary>
-        /// 构造分页SQL
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
-        /// <param name="keyColumn">唯一键。用于not in分页</param>
-        /// <returns>分页SQL</returns>
-        public override String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
-        {
-            // 从第一行开始，不需要分页
-            if (startRowIndex <= 0 && maximumRows < 1) return sql;
-
-            // 指定了起始行，并且是SQL2005及以上版本，使用RowNumber算法
-            if (startRowIndex > 0 && IsSQL2005) return PageSplitRowNumber(sql, startRowIndex, maximumRows, keyColumn);
-
-            // 如果没有Order By，直接调用基类方法
-            // 先用字符串判断，命中率高，这样可以提高处理效率
-            if (!sql.Contains(" Order "))
-            {
-                if (!sql.ToLower().Contains(" order ")) return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
-            }
-            //// 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
-            //MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            //if (ms == null || ms.Count < 1 || ms[0].Index < 1)
-            String sql2 = sql;
-            String orderBy = CheckOrderClause(ref sql2);
-            if (String.IsNullOrEmpty(orderBy))
-            {
-                return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
-            }
-            // 已确定该sql最外层含有order by，再检查最外层是否有top。因为没有top的order by是不允许作为子查询的
-            if (Regex.IsMatch(sql, @"^[^(]+\btop\b", RegexOptions.Compiled | RegexOptions.IgnoreCase))
-            {
-                return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
-            }
-            //String orderBy = sql.Substring(ms[0].Index);
-
-            // 从第一行开始，不需要分页
-            if (startRowIndex <= 0)
-            {
-                if (maximumRows < 1)
-                    return sql;
-                else
-                    return String.Format("Select Top {0} * From {1} {2}", maximumRows, CheckSimpleSQL(sql2), orderBy);
-                //return String.Format("Select Top {0} * From {1} {2}", maximumRows, CheckSimpleSQL(sql.Substring(0, ms[0].Index)), orderBy);
-            }
-
-            #region Max/Min分页
-            // 如果要使用max/min分页法，首先keyColumn必须有asc或者desc
-            if (keyColumn.ToLower().EndsWith(" desc") || keyColumn.ToLower().EndsWith(" asc") || keyColumn.ToLower().EndsWith(" unknown"))
-            {
-                String str = PageSplitMaxMin(sql, startRowIndex, maximumRows, keyColumn);
-                if (!String.IsNullOrEmpty(str)) return str;
-                keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
-            }
-            #endregion
-
-            sql = CheckSimpleSQL(sql2);
-
-            if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "这里用的not in分页算法要求指定主键列！");
-
-            if (maximumRows < 1)
-                sql = String.Format("Select * From {1} Where {2} Not In(Select Top {0} {2} From {1} {3}) {3}", startRowIndex, sql, keyColumn, orderBy);
-            else
-                sql = String.Format("Select Top {0} * From {1} Where {2} Not In(Select Top {3} {2} From {1} {4}) {4}", maximumRows, sql, keyColumn, startRowIndex, orderBy);
-            return sql;
-        }
-
-        /// <summary>
-        /// 已重写。获取分页
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
-        /// <param name="keyColumn">主键列。用于not in分页</param>
-        /// <returns></returns>
-        public String PageSplitRowNumber(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
-        {
-            // 从第一行开始，不需要分页
-            if (startRowIndex <= 0)
-            {
-                if (maximumRows < 1)
-                    return sql;
-                else
-                    return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
-            }
-
-            String orderBy = String.Empty;
-            if (sql.ToLower().Contains(" order "))
-            {
-                // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
-                //MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                //if (ms != null && ms.Count > 0 && ms[0].Index > 0)
-                String sql2 = sql;
-                String orderBy2 = CheckOrderClause(ref sql2);
-                if (String.IsNullOrEmpty(orderBy))
-                {
-                    // 已确定该sql最外层含有order by，再检查最外层是否有top。因为没有top的order by是不允许作为子查询的
-                    if (!Regex.IsMatch(sql, @"^[^(]+\btop\b", RegexOptions.Compiled | RegexOptions.IgnoreCase))
-                    {
-                        //orderBy = sql.Substring(ms[0].Index).Trim();
-                        //sql = sql.Substring(0, ms[0].Index).Trim();
-                        orderBy = orderBy2.Trim();
-                        sql = sql2.Trim();
-                    }
-                }
-            }
-
-            if (String.IsNullOrEmpty(orderBy)) orderBy = "Order By " + keyColumn;
-            sql = CheckSimpleSQL(sql);
-
-            //row_number()从1开始
-            if (maximumRows < 1)
-                sql = String.Format("Select * From (Select row_number() over({2}) as row_number, * From {1}) XCode_Temp_b Where row_Number>={0}", startRowIndex + 1, sql, orderBy);
-            else
-                sql = String.Format("Select * From (Select row_number() over({3}) as row_number, * From {1}) XCode_Temp_b Where row_Number Between {0} And {2}", startRowIndex + 1, sql, startRowIndex + maximumRows, orderBy);
-
-            return sql;
-        }
-        #endregion
-
-        #region 数据库特性
-        /// <summary>
-        /// 当前时间函数
-        /// </summary>
-        public override String DateTimeNow { get { return "getdate()"; } }
-
-        /// <summary>
-        /// 最小时间
-        /// </summary>
-        public override DateTime DateTimeMin { get { return SqlDateTime.MinValue.Value; } }
-
-        /// <summary>
-        /// 格式化时间为SQL字符串
-        /// </summary>
-        /// <param name="dateTime">时间值</param>
-        /// <returns></returns>
-        public override String FormatDateTime(DateTime dateTime)
-        {
-            return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime);
-        }
-
-        /// <summary>
-        /// 格式化关键字
-        /// </summary>
-        /// <param name="keyWord">关键字</param>
-        /// <returns></returns>
-        public override String FormatKeyWord(String keyWord)
-        {
-            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
-
-            if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
-
-            return String.Format("[{0}]", keyWord);
         }
         #endregion
     }

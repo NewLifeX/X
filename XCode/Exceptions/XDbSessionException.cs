@@ -11,7 +11,7 @@ namespace XCode.Exceptions
     public class XDbSessionException : XDbException
     {
         private IDbSession _Session;
-        /// <summary>数据访问层</summary>
+        /// <summary>数据库会话</summary>
         public IDbSession Session
         {
             get { return _Session; }
