@@ -727,8 +727,10 @@ namespace XCode.DataAccessLayer
                 sql += String.Format("ALTER TABLE {0} ADD CONSTRAINT DF_{0}_{1} DEFAULT N'{2}' FOR {1}", tablename, field.Name, field.Default);
             else if (Type.GetTypeCode(field.DataType) == TypeCode.DateTime)
             {
-                String dv = field.Default;
-                if (!String.IsNullOrEmpty(dv) && dv.Equals("now()", StringComparison.OrdinalIgnoreCase)) dv = "getdate()";
+                //String dv = field.Default;
+                //if (!String.IsNullOrEmpty(dv) && dv.Equals("now()", StringComparison.OrdinalIgnoreCase)) dv = "getdate()";
+                String dv = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
+
                 sql += String.Format("ALTER TABLE {0} ADD CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", tablename, field.Name, dv);
             }
             else

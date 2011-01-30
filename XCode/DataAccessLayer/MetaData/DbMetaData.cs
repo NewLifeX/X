@@ -816,6 +816,24 @@ namespace XCode.DataAccessLayer
         {
             return Database.FormatKeyWord(keyWord);
         }
+
+        /// <summary>
+        /// 检查并获取当前数据库的默认时间
+        /// </summary>
+        /// <param name="oriDbType"></param>
+        /// <param name="oriDefault"></param>
+        /// <returns></returns>
+        protected virtual String CheckAndGetDefaultDateTimeNow(DatabaseType oriDbType, String oriDefault)
+        {
+            // 原始数据库类型
+            IDatabase db = DbFactory.Create(oriDbType);
+            if (db == null) return oriDefault;
+
+            // 原始默认值是否是原始时间
+            if (!oriDefault.Equals(db.DateTimeNow, StringComparison.OrdinalIgnoreCase)) return oriDefault;
+
+            return Database.DateTimeNow;
+        }
         #endregion
 
         #region Sql日志输出
