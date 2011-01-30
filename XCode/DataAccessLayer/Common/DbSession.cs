@@ -1,13 +1,9 @@
 using System;
-using System.Configuration;
 using System.Data;
 using System.Data.Common;
 using System.Text.RegularExpressions;
-using System.Threading;
 using NewLife;
-using NewLife.Log;
 using XCode.Exceptions;
-using NewLife.Configuration;
 
 namespace XCode.DataAccessLayer
 {
@@ -43,7 +39,7 @@ namespace XCode.DataAccessLayer
         #region 属性
         private IDatabase _Database;
         /// <summary>数据库</summary>
-        public virtual IDatabase Database { get { return _Database; } set { _Database = value; } }
+        public IDatabase Database { get { return _Database; } set { _Database = value; } }
 
         /// <summary>
         /// 返回数据库类型。外部DAL数据库类请使用Other
@@ -54,7 +50,7 @@ namespace XCode.DataAccessLayer
         private DbProviderFactory Factory { get { return Database.Factory; } }
 
         private String _ConnectionString;
-        /// <summary>链接字符串</summary>
+        /// <summary>链接字符串，会话单独保存，允许修改，修改不会影响数据库中的连接字符串</summary>
         public String ConnectionString
         {
             get { return _ConnectionString; }
@@ -65,7 +61,7 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 数据连接对象。
         /// </summary>
-        public virtual DbConnection Conn
+        public DbConnection Conn
         {
             get
             {
@@ -76,7 +72,7 @@ namespace XCode.DataAccessLayer
                 }
                 return _Conn;
             }
-            set { _Conn = value; }
+            //set { _Conn = value; }
         }
 
         private Int32 _QueryTimes;
@@ -253,8 +249,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 BeginTransaction()
         {
-            //if (Debug) WriteLog("开始事务：{0}", ID);
-
             TransactionCount++;
             if (TransactionCount > 1) return TransactionCount;
 
@@ -276,8 +270,6 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public Int32 Commit()
         {
-            //if (Debug) WriteLog("提交事务：{0}", ID);
-
             TransactionCount--;
             if (TransactionCount > 0) return TransactionCount;
 
@@ -301,8 +293,6 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public Int32 Rollback()
         {
-            //if (Debug) WriteLog("回滚事务：{0}", ID);
-
             TransactionCount--;
             if (TransactionCount > 0) return TransactionCount;
 
@@ -454,7 +444,7 @@ namespace XCode.DataAccessLayer
                 }
             }
             else
-                sql = String.Format("Select Count(*) From {0}", FormatKeyWord(sql));
+                sql = String.Format("Select Count(*) From {0}", Database.FormatKeyWord(sql));
 
             QueryTimes++;
             DbCommand cmd = PrepareCommand();
@@ -522,18 +512,13 @@ namespace XCode.DataAccessLayer
             {
                 DbCommand cmd = PrepareCommand();
                 cmd.CommandText = sql;
-                Int32 rs = cmd.ExecuteNonQuery();
-                //AutoClose();
-                return rs;
+                return cmd.ExecuteNonQuery();
             }
             catch (DbException ex)
             {
                 throw OnException(ex, sql);
             }
-            finally
-            {
-                AutoClose();
-            }
+            finally { AutoClose(); }
         }
 
         /// <summary>
@@ -549,18 +534,13 @@ namespace XCode.DataAccessLayer
                 if (!Opened) Open();
                 cmd.Connection = Conn;
                 if (Trans != null) cmd.Transaction = Trans;
-                Int32 rs = cmd.ExecuteNonQuery();
-                //AutoClose();
-                return rs;
+                return cmd.ExecuteNonQuery();
             }
             catch (DbException ex)
             {
                 throw OnException(ex, cmd.CommandText);
             }
-            finally
-            {
-                AutoClose();
-            }
+            finally { AutoClose(); }
         }
 
         /// <summary>
@@ -641,18 +621,6 @@ namespace XCode.DataAccessLayer
             {
                 AutoClose();
             }
-        }
-        #endregion
-
-        #region 辅助函数
-        /// <summary>
-        /// 格式化关键字
-        /// </summary>
-        /// <param name="keyWord"></param>
-        /// <returns></returns>
-        protected String FormatKeyWord(String keyWord)
-        {
-            return Database.FormatKeyWord(keyWord);
         }
         #endregion
 

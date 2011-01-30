@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Text;
 using NewLife;
-using System.Data.Common;
 using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
@@ -118,7 +118,11 @@ namespace XCode.DataAccessLayer
 
             DataTable dt = GetSchema("Columns", new String[] { null, null, table.Name });
 
-            DataRow[] drs = dt.Select("", "ORDINAL_POSITION");
+            DataRow[] drs = null;
+            if (dt.Columns.Contains("ORDINAL_POSITION"))
+                drs = dt.Select("", "ORDINAL_POSITION");
+            else
+                drs = dt.Select("");
 
             List<XField> list = GetFields(table, drs);
 
@@ -150,7 +154,7 @@ namespace XCode.DataAccessLayer
                     startIndex++;
                     field.ID = startIndex;
                 }
-                if (startIndex > 0) field.ID += startIndex;
+                //if (startIndex > 0) field.ID += startIndex;
 
                 // 名称
                 field.Name = GetDataRowValue<String>(dr, "COLUMN_NAME");
@@ -163,9 +167,7 @@ namespace XCode.DataAccessLayer
                 if (TryGetDataRowValue<Boolean>(dr, "PRIMARY_KEY", out  b))
                     field.PrimaryKey = b;
                 else
-                {
                     field.PrimaryKey = pks != null && pks.ContainsValue(field.Name);
-                }
 
                 // 原始数据类型
                 field.RawType = GetDataRowValue<String>(dr, "DATA_TYPE");
@@ -218,7 +220,9 @@ namespace XCode.DataAccessLayer
             String typeName = GetDataRowValue<String>(dr, "DATA_TYPE");
             SetFieldType(field, typeName);
         }
+        #endregion
 
+        #region 辅助函数
         /// <summary>
         /// 尝试从指定数据行中读取指定名称列的数据
         /// </summary>
@@ -452,6 +456,10 @@ namespace XCode.DataAccessLayer
             DataRow[] drs = FindDataType(field, typeName, null);
             if (drs == null || drs.Length < 1) return;
 
+            // 处理格式参数
+            String param = GetFormatParam(field, drs[0]);
+            if (!String.IsNullOrEmpty(param)) field.RawType += param;
+
             if (!TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) return;
             field.DataType = Type.GetType(typeName);
         }
@@ -471,38 +479,47 @@ namespace XCode.DataAccessLayer
             if (TryGetDataRowValue<String>(drs[0], "TypeName", out typeName))
             {
                 // 处理格式参数
-                String param = null;
-                if (TryGetDataRowValue<String>(drs[0], "CreateParameters", out param))
-                {
-                    typeName += "(";
-                    String[] pms = param.Split(new Char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                    for (int i = 0; i < pms.Length; i++)
-                    {
-                        if (pms[i].Contains("length") || pms[i].Contains("precision"))
-                        {
-                            if (!typeName.EndsWith("(")) typeName += ",";
-                            typeName += field.Length;
-                            continue;
-                        }
-                        if (pms[i].Contains("scale") || pms[i].Contains("bits"))
-                        {
-                            if (!typeName.EndsWith("(")) typeName += ",";
-                            // 如果没有设置位数，则使用最大位数
-                            Int32 d = field.Digit;
-                            if (d <= 0)
-                            {
-                                if (!TryGetDataRowValue<Int32>(drs[0], "MaximumScale", out d)) d = field.Digit;
-                            }
-                            typeName += d;
-                            continue;
-                        }
-                    }
-                    typeName += ")";
-                }
+                String param = GetFormatParam(field, drs[0]);
+                if (!String.IsNullOrEmpty(param)) typeName += param;
+
                 return typeName;
             }
 
             return null;
+        }
+
+        protected virtual String GetFormatParam(XField field, DataRow dr)
+        {
+            String ps = null;
+            if (!TryGetDataRowValue<String>(dr, "CreateParameters", out ps)) return null;
+
+            String param = String.Empty;
+            param += "(";
+            String[] pms = ps.Split(new Char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < pms.Length; i++)
+            {
+                if (pms[i].Contains("length") || pms[i].Contains("precision"))
+                {
+                    if (!param.EndsWith("(")) param += ",";
+                    param += field.Length;
+                    continue;
+                }
+                if (pms[i].Contains("scale") || pms[i].Contains("bits"))
+                {
+                    if (!param.EndsWith("(")) param += ",";
+                    // 如果没有设置位数，则使用最大位数
+                    Int32 d = field.Digit;
+                    if (d <= 0)
+                    {
+                        if (!TryGetDataRowValue<Int32>(dr, "MaximumScale", out d)) d = field.Digit;
+                    }
+                    param += d;
+                    continue;
+                }
+            }
+            param += ")";
+
+            return param;
         }
         #endregion
 
@@ -598,8 +615,7 @@ namespace XCode.DataAccessLayer
             StringBuilder sb = new StringBuilder();
 
             //字段名
-            //sb.AppendFormat("[{0}] ", field.Name);
-            sb.AppendFormat("{0} ", Database.FormatKeyWord(field.Name));
+            sb.AppendFormat("{0} ", FormatKeyWord(field.Name));
 
             String typeName = null;
             // 如果还是原来的数据库类型，则直接使用

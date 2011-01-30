@@ -25,7 +25,7 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 数据库链接
         /// </summary>
-        DbConnection Conn { get; set; }
+        DbConnection Conn { get; }
 
         /// <summary>
         /// 数据库名

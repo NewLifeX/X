@@ -37,6 +37,7 @@ using System.Runtime.InteropServices;
 /*
  * XCode的重大改进
  * 
+ * v7.0 增强数据库架构的支持，支持更多数据库
  * v6.0 增强的缓存和扩展属性支持
  * v5.0 弱类型支持
  * v4.0 实体集合和缓存
