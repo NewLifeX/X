@@ -272,13 +272,13 @@ namespace XCode.DataAccessLayer
             return pks;
         }
 
-        protected override string GetFieldType(XField field)
+        protected override string GetFieldConstraints(XField field, Boolean onlyDefine)
         {
-            String typeName = base.GetFieldType(field);
+            String str = base.GetFieldConstraints(field, onlyDefine);
 
-            if (field.Identity) typeName += " AUTOINCREMENT(1,1)";
+            if (field.Identity) str = " AUTOINCREMENT(1,1)" + str;
 
-            return typeName;
+            return str;
         }
         #endregion
 

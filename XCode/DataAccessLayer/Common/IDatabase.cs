@@ -108,6 +108,14 @@ namespace XCode.DataAccessLayer
         /// <param name="keyWord">关键字</param>
         /// <returns></returns>
         String FormatKeyWord(String keyWord);
+
+        /// <summary>
+        /// 格式化数据为SQL数据
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        String FormatValue(XField field, Object value);
         #endregion
     }
 }

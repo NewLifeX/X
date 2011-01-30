@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Text;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Log;
 using XCode.Configuration;
-using System.Configuration;
 
 namespace XCode.DataAccessLayer
 {
@@ -561,7 +561,7 @@ namespace XCode.DataAccessLayer
 
             if (String.IsNullOrEmpty(tablename)) tablename = bt.Name;
             table.Name = tablename;
-
+            table.DbType = bt.DbType;
             table.Description = bt.Description;
 
             List<XField> fields = new List<XField>();

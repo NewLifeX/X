@@ -248,9 +248,19 @@ namespace XCode.DataAccessLayer
         {
             String typeName = base.GetFieldType(field);
 
-            if (field.Identity) typeName += " autoincrement";
+            // 自增字段必须是integer
+            if (field.Identity && typeName == "int") return "integer";
 
             return typeName;
+        }
+
+        protected override string GetFieldConstraints(XField field, Boolean onlyDefine)
+        {
+            String str = base.GetFieldConstraints(field, onlyDefine);
+
+            if (field.Identity) str += " AUTOINCREMENT";
+
+            return str;
         }
         #endregion
 

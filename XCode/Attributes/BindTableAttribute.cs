@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
+using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -33,6 +34,14 @@ namespace XCode
         {
             get { return _ConnName; }
             set { _ConnName = value; }
+        }
+
+        private DatabaseType _DbType;
+        /// <summary>数据库类型</summary>
+        public DatabaseType DbType
+        {
+            get { return _DbType; }
+            set { _DbType = value; }
         }
 
 		/// <summary>

@@ -470,6 +470,19 @@ namespace XCode.DataAccessLayer
         {
             return keyWord;
         }
+
+        /// <summary>
+        /// 格式化数据为SQL数据
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public virtual String FormatValue(XField field, Object value)
+        {
+            if (field.DataType == typeof(DateTime)) return FormatDateTime(Convert.ToDateTime(value));
+
+            return value == null ? null : value.ToString();
+        }
         #endregion
 
         #region 辅助函数

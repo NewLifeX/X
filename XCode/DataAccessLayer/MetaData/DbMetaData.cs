@@ -569,56 +569,60 @@ namespace XCode.DataAccessLayer
 
             sb.Append(typeName);
 
+            // 约束
+            sb.Append(GetFieldConstraints(field, onlyDefine));
+
+            //默认值
+            sb.Append(GetFieldDefault(field, onlyDefine));
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 取得字段约束
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="onlyDefine">仅仅定义</param>
+        /// <returns></returns>
+        protected virtual String GetFieldConstraints(XField field, Boolean onlyDefine)
+        {
             if (field.PrimaryKey)
             {
-                sb.Append(" Primary Key");
+                return " Primary Key";
             }
             else
             {
                 //是否为空
                 //if (!field.Nullable) sb.Append(" NOT NULL");
                 if (field.Nullable)
-                    sb.Append(" NULL");
+                    return " NULL";
                 else
-                {
-                    sb.Append(" NOT NULL");
-                }
+                    return " NOT NULL";
             }
+        }
 
-            //默认值
-            if (onlyDefine && !String.IsNullOrEmpty(field.Default))
+        /// <summary>
+        /// 取得字段默认值
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="onlyDefine">仅仅定义</param>
+        /// <returns></returns>
+        protected virtual String GetFieldDefault(XField field, Boolean onlyDefine)
+        {
+            if (String.IsNullOrEmpty(field.Default)) return null;
+
+            TypeCode tc = Type.GetTypeCode(field.DataType);
+            if (tc == TypeCode.String)
+                return String.Format(" DEFAULT '{0}'", field.Default);
+            else if (tc == TypeCode.DateTime)
             {
-                TypeCode tc = Type.GetTypeCode(field.DataType);
-                if (tc == TypeCode.String)
-                    sb.AppendFormat(" DEFAULT '{0}'", field.Default);
-                else if (tc == TypeCode.DateTime)
-                {
-                    String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
-                    //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = "now()";
-                    //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
-                    sb.AppendFormat(" DEFAULT {0}", d);
-                }
-                else
-                    sb.AppendFormat(" DEFAULT {0}", field.Default);
+                String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
+                //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = "now()";
+                //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
+                return String.Format(" DEFAULT {0}", d);
             }
-            //else if (onlyDefine && !field.PrimaryKey && !field.Nullable)
-            //{
-            //    //该字段不允许空，而又没有默认值时，设置默认值
-            //    if (!includeDefault || String.IsNullOrEmpty(field.Default))
-            //    {
-            //        if (tc == TypeCode.String)
-            //            sb.AppendFormat(" DEFAULT ('{0}')", "");
-            //        else if (tc == TypeCode.DateTime)
-            //        {
-            //            String d = SqlDateTime.MinValue.Value.ToString("yyyy-MM-dd HH:mm:ss");
-            //            sb.AppendFormat(" DEFAULT {0}", d);
-            //        }
-            //        else
-            //            sb.AppendFormat(" DEFAULT {0}", "''");
-            //    }
-            //}
-
-            return sb.ToString();
+            else
+                return String.Format(" DEFAULT {0}", field.Default);
         }
         #endregion
 

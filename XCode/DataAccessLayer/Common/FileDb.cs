@@ -103,7 +103,7 @@ namespace XCode.DataAccessLayer
         /// <summary>文件</summary>
         public String FileName
         {
-            get { return (Database as Access).FileName; }
+            get { return (Database as FileDbBase).FileName; }
         }
         #endregion
 
@@ -157,7 +157,7 @@ namespace XCode.DataAccessLayer
             String dir = Path.GetDirectoryName(FileName);
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
-            if (!File.Exists(FileName)) File.Create(FileName);
+            if (!File.Exists(FileName)) File.Create(FileName).Dispose();
         }
 
         protected void DropDatabase()
