@@ -592,72 +592,72 @@ namespace XCode.DataAccessLayer
             return String.Format("SELECT * FROM sysdatabases WHERE name = N'{0}'", dbname);
         }
 
-        public override string CreateTableSQL(XTable table)
-        {
-            List<XField> Fields = new List<XField>(table.Fields);
-            Fields.Sort(delegate(XField item1, XField item2) { return item1.ID.CompareTo(item2.ID); });
+        //public override string CreateTableSQL(XTable table)
+        //{
+        //    List<XField> Fields = new List<XField>(table.Fields);
+        //    Fields.Sort(delegate(XField item1, XField item2) { return item1.ID.CompareTo(item2.ID); });
 
-            StringBuilder sb = new StringBuilder();
+        //    StringBuilder sb = new StringBuilder();
 
-            sb.AppendFormat("Create Table {0}(", FormatKeyWord(table.Name));
-            List<String> keys = new List<string>();
-            for (Int32 i = 0; i < Fields.Count; i++)
-            {
-                sb.AppendLine();
-                sb.Append("\t");
-                sb.Append(FieldClause(Fields[i], true));
-                if (i < Fields.Count - 1) sb.Append(",");
+        //    sb.AppendFormat("Create Table {0}(", FormatKeyWord(table.Name));
+        //    List<String> keys = new List<string>();
+        //    for (Int32 i = 0; i < Fields.Count; i++)
+        //    {
+        //        sb.AppendLine();
+        //        sb.Append("\t");
+        //        sb.Append(FieldClause(Fields[i], true));
+        //        if (i < Fields.Count - 1) sb.Append(",");
 
-                if (Fields[i].PrimaryKey) keys.Add(Fields[i].Name);
-            }
+        //        if (Fields[i].PrimaryKey) keys.Add(Fields[i].Name);
+        //    }
 
-            //Ö÷¼ü
-            if (keys.Count > 0)
-            {
-                sb.Append(",");
-                sb.AppendLine();
-                sb.Append("\t");
-                sb.AppendFormat("CONSTRAINT [PK_{0}] PRIMARY KEY CLUSTERED", table.Name);
-                sb.AppendLine();
-                sb.Append("\t");
-                sb.Append("(");
-                for (Int32 i = 0; i < keys.Count; i++)
-                {
-                    sb.AppendLine();
-                    sb.Append("\t\t");
-                    sb.AppendFormat("{0} ASC", FormatKeyWord(keys[i]));
-                    if (i < keys.Count - 1) sb.Append(",");
-                }
-                sb.AppendLine();
-                sb.Append("\t");
-                sb.Append(") ON [PRIMARY]");
-            }
+        //    //Ö÷¼ü
+        //    if (keys.Count > 0)
+        //    {
+        //        sb.Append(",");
+        //        sb.AppendLine();
+        //        sb.Append("\t");
+        //        sb.AppendFormat("CONSTRAINT [PK_{0}] PRIMARY KEY CLUSTERED", table.Name);
+        //        sb.AppendLine();
+        //        sb.Append("\t");
+        //        sb.Append("(");
+        //        for (Int32 i = 0; i < keys.Count; i++)
+        //        {
+        //            sb.AppendLine();
+        //            sb.Append("\t\t");
+        //            sb.AppendFormat("{0} ASC", FormatKeyWord(keys[i]));
+        //            if (i < keys.Count - 1) sb.Append(",");
+        //        }
+        //        sb.AppendLine();
+        //        sb.Append("\t");
+        //        sb.Append(") ON [PRIMARY]");
+        //    }
 
-            sb.AppendLine();
-            sb.Append(") ON [PRIMARY]");
+        //    sb.AppendLine();
+        //    sb.Append(") ON [PRIMARY]");
 
-            ////×¢ÊÍ
-            //if (!String.IsNullOrEmpty(table.Description))
-            //{
-            //    String sql = AddTableDescriptionSQL(table.Name, table.Description);
-            //    if (!String.IsNullOrEmpty(sql))
-            //    {
-            //        sb.AppendLine(";");
-            //        sb.Append(sql);
-            //    }
-            //}
-            ////×Ö¶Î×¢ÊÍ
-            //foreach (XField item in table.Fields)
-            //{
-            //    if (!String.IsNullOrEmpty(item.Description))
-            //    {
-            //        sb.AppendLine(";");
-            //        sb.Append(AddColumnDescriptionSQL(table.Name, item.Name, item.Description));
-            //    }
-            //}
+        //    ////×¢ÊÍ
+        //    //if (!String.IsNullOrEmpty(table.Description))
+        //    //{
+        //    //    String sql = AddTableDescriptionSQL(table.Name, table.Description);
+        //    //    if (!String.IsNullOrEmpty(sql))
+        //    //    {
+        //    //        sb.AppendLine(";");
+        //    //        sb.Append(sql);
+        //    //    }
+        //    //}
+        //    ////×Ö¶Î×¢ÊÍ
+        //    //foreach (XField item in table.Fields)
+        //    //{
+        //    //    if (!String.IsNullOrEmpty(item.Description))
+        //    //    {
+        //    //        sb.AppendLine(";");
+        //    //        sb.Append(AddColumnDescriptionSQL(table.Name, item.Name, item.Description));
+        //    //    }
+        //    //}
 
-            return sb.ToString();
-        }
+        //    return sb.ToString();
+        //}
 
         public override string TableExistSQL(String tablename)
         {

@@ -340,7 +340,11 @@ namespace XCode.DataAccessLayer
             {
                 if (drs.Length == 1) return drs;
 
-                drs2 = dt.Select(String.Format("DataType='{0}' And ColumnSize>={1}", typeName, field.Length), "IsBestMatch Desc, ColumnSize Asc, IsFixedLength Asc, IsLong Asc");
+                StringBuilder sb = new StringBuilder();
+                sb.AppendFormat("DataType='{0}' And ColumnSize>={1}", typeName, field.Length);
+                if (field.DataType == typeof(String) && field.Length > Database.LongTextLength) sb.AppendFormat(" And IsLong=1");
+
+                drs2 = dt.Select(sb.ToString(), "IsBestMatch Desc, ColumnSize Asc, IsFixedLength Asc, IsLong Asc");
                 if (drs2 == null || drs2.Length < 1) return drs;
                 if (drs2.Length == 1) return drs2;
 
@@ -589,9 +593,9 @@ namespace XCode.DataAccessLayer
                     sb.AppendFormat(" DEFAULT '{0}'", field.Default);
                 else if (tc == TypeCode.DateTime)
                 {
-                    String d = field.Default;
+                    String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
                     //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = "now()";
-                    if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
+                    //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
                     sb.AppendFormat(" DEFAULT {0}", d);
                 }
                 else

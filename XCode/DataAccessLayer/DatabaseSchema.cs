@@ -249,6 +249,25 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>
+        /// 检查表
+        /// </summary>
+        /// <param name="tableName"></param>
+        public void CheckTable(String tableName)
+        {
+            List<XTable> list = EntityTables;
+            if (list == null || list.Count < 1) return;
+
+            foreach (XTable item in list)
+            {
+                if (String.Equals(tableName, item.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    CheckTable(item);
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
         /// 检查实体表
         /// </summary>
         /// <param name="table"></param>
@@ -302,11 +321,39 @@ namespace XCode.DataAccessLayer
                     XTrace.WriteLine("创建表：" + entitytable.Name);
                     // 建表
                     MetaData.SetSchema(DDLSchema.CreateTable, new Object[] { entitytable });
+                    // 加上表注释
+                    if (!String.IsNullOrEmpty(entitytable.Description))
+                    {
+                        MetaData.SetSchema(DDLSchema.AddTableDescription, new Object[] { entitytable.Name, entitytable.Description });
+                    }
+                    // 加上字段注释
+                    foreach (XField item in entitytable.Fields)
+                    {
+                        if (!String.IsNullOrEmpty(item.Description))
+                        {
+                            MetaData.SetSchema(DDLSchema.AddColumnDescription, new Object[] { entitytable.Name, item.Name, item.Description });
+                        }
+                    }
                 }
                 else
                 {
                     StringBuilder sb = new StringBuilder();
-                    sb.AppendLine(MetaData.GetSchemaSQL(DDLSchema.CreateTable, new Object[] { entitytable }));
+                    sb.AppendLine(MetaData.GetSchemaSQL(DDLSchema.CreateTable, new Object[] { entitytable }) + ";");
+                    // 加上表注释
+                    if (!String.IsNullOrEmpty(entitytable.Description))
+                    {
+                        sql = MetaData.GetSchemaSQL(DDLSchema.AddTableDescription, new Object[] { entitytable.Name, entitytable.Description });
+                        if (!String.IsNullOrEmpty(sql)) sb.AppendLine(sql + ";");
+                    }
+                    // 加上字段注释
+                    foreach (XField item in entitytable.Fields)
+                    {
+                        if (!String.IsNullOrEmpty(item.Description))
+                        {
+                            sql = MetaData.GetSchemaSQL(DDLSchema.AddColumnDescription, new Object[] { entitytable.Name, item.Name, item.Description });
+                            if (!String.IsNullOrEmpty(sql)) sb.AppendLine(sql + ";");
+                        }
+                    }
 
                     sql = sb.ToString();
                     XTrace.WriteLine("XCode.Schema.Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sql);
@@ -489,7 +536,12 @@ namespace XCode.DataAccessLayer
                 if (String.IsNullOrEmpty(entitytable.Description))
                     GetSchemaSQL(sb, DDLSchema.DropTableDescription, new Object[] { entitytable.Name }, onlySql);
                 else
+                {
+                    // 先删除旧注释
+                    GetSchemaSQL(sb, DDLSchema.DropTableDescription, new Object[] { dbtable.Name }, onlySql);
+
                     GetSchemaSQL(sb, DDLSchema.AddTableDescription, new Object[] { entitytable.Name, entitytable.Description }, onlySql);
+                }
             }
             #endregion
 
