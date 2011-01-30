@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Text;
 using System.Threading;
 using NewLife.Collections;
+using NewLife.Configuration;
 using NewLife.Log;
 using XCode.Configuration;
-using NewLife.Configuration;
+using System.Configuration;
 
 namespace XCode.DataAccessLayer
 {
@@ -23,6 +23,9 @@ namespace XCode.DataAccessLayer
             get { return _Database; }
             private set { _Database = value; }
         }
+
+        /// <summary>连接名</summary>
+        public String ConnName { get { return Database.ConnName; } }
 
         private IDbSession _Session;
         /// <summary>数据库会话</summary>
@@ -58,7 +61,7 @@ namespace XCode.DataAccessLayer
                             //BindTableAttribute bt = Config.Table(item);
                             //if (bt == null || bt.ConnName != Database.ConnName) continue;
                             String connName = XCodeConfig.ConnName(item);
-                            if (connName != Database.ConnName) continue;
+                            if (connName != ConnName) continue;
 
                             _Entities.Add(item);
                         }
@@ -190,7 +193,7 @@ namespace XCode.DataAccessLayer
             if (Exclude.Count > 0)
             {
                 //检查是否被排除的链接
-                if (Exclude.Exists(delegate(String item) { return String.Equals(item, Database.ConnName); })) return;
+                if (Exclude.Exists(delegate(String item) { return String.Equals(item, ConnName); })) return;
             }
 
             ThreadPool.QueueUserWorkItem(new WaitCallback(CheckWrap));
@@ -215,24 +218,24 @@ namespace XCode.DataAccessLayer
         {
             if (Enable == null) return;
 
-            WriteLog("开始检查数据架构：" + Database.ConnName);
+            WriteLog("开始检查数据架构：" + ConnName);
 
             //数据库检查
             Boolean dbExist = (Boolean)MetaData.SetSchema(DDLSchema.DatabaseExist, null);
 
             if (!dbExist)
             {
-                XTrace.WriteLine("创建数据库：{0}", Database.ConnName);
+                XTrace.WriteLine("创建数据库：{0}", ConnName);
                 MetaData.SetSchema(DDLSchema.CreateDatabase, null, null);
             }
 
             if (Entities == null || Entities.Count < 1)
             {
-                WriteLog(Database.ConnName + "没有找到实体类。");
+                WriteLog(ConnName + "没有找到实体类。");
                 return;
             }
 
-            WriteLog(Database.ConnName + "实体个数：" + Entities.Count);
+            WriteLog(ConnName + "实体个数：" + Entities.Count);
 
             if (EntityTables == null || EntityTables.Count < 1) return;
 
@@ -290,70 +293,58 @@ namespace XCode.DataAccessLayer
 
         private void CheckTable(XTable entitytable, XTable dbtable)
         {
-#if !DEBUG
-            try
-#endif
+            String sql = String.Empty;
+            if (dbtable == null)
             {
-                String sql = String.Empty;
-                if (dbtable == null)
+                #region 创建表
+                if (Enable != null && Enable.Value)
                 {
-                    #region 创建表
-                    if (Enable != null && Enable.Value)
-                    {
-                        XTrace.WriteLine("创建表：" + entitytable.Name);
-                        //建表
-                        MetaData.SetSchema(DDLSchema.CreateTable, new Object[] { entitytable });
-                    }
-                    else
-                    {
-                        StringBuilder sb = new StringBuilder();
-                        sb.AppendLine(MetaData.GetSchemaSQL(DDLSchema.CreateTable, new Object[] { entitytable }) + ";");
-
-                        sql = sb.ToString();
-                        XTrace.WriteLine("DatabaseSchema_Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sql);
-                    }
-                    #endregion
+                    XTrace.WriteLine("创建表：" + entitytable.Name);
+                    // 建表
+                    MetaData.SetSchema(DDLSchema.CreateTable, new Object[] { entitytable });
                 }
                 else
                 {
-                    #region 修改表
-                    if (Enable != null && Enable.Value)
-                    {
-                        AlterTable(entitytable, dbtable, false);
-                    }
-                    else
-                    {
-                        sql = AlterTable(entitytable, dbtable, true);
-                        if (!String.IsNullOrEmpty(sql))
-                        {
-                            if (Enable != null && Enable.Value)
-                            {
-                                XTrace.WriteLine("修改表：" + Environment.NewLine + sql);
-                                //拆分成多条执行
-                                String[] sqls = sql.Split(new String[] { ";" + Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-                                foreach (String item in sqls)
-                                {
-                                    try
-                                    {
-                                        Database.Execute(item, "");
-                                    }
-                                    catch { }
-                                }
-                            }
-                            else
-                                XTrace.WriteLine("DatabaseSchema_Enable没有设置为True，请手工使用以下语句修改表：" + Environment.NewLine + sql);
-                        }
-                    }
-                    #endregion
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine(MetaData.GetSchemaSQL(DDLSchema.CreateTable, new Object[] { entitytable }));
+
+                    sql = sb.ToString();
+                    XTrace.WriteLine("XCode.Schema.Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sql);
                 }
+                #endregion
             }
-#if !DEBUG
-            catch (Exception ex)
+            else
             {
-                XTrace.WriteLine("检查构架信息错误！" + Environment.NewLine + ex.ToString());
-                throw;
+                #region 修改表
+                if (Enable != null && Enable.Value)
+                {
+                    AlterTable(entitytable, dbtable, false);
+                }
+                else
+                {
+                    sql = AlterTable(entitytable, dbtable, true);
+                    if (!String.IsNullOrEmpty(sql))
+                    {
+                        if (Enable != null && Enable.Value)
+                        {
+                            XTrace.WriteLine("修改表：" + Environment.NewLine + sql);
+                            //拆分成多条执行
+                            String[] sqls = sql.Split(new String[] { ";" + Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                            foreach (String item in sqls)
+                            {
+                                try
+                                {
+                                    Database.Execute(item, "");
+                                }
+                                catch { }
+                            }
+                        }
+                        else
+                            XTrace.WriteLine("XCode.Schema.Enable没有设置为True，请手工使用以下语句修改表：" + Environment.NewLine + sql);
+                    }
+                }
+                #endregion
             }
-#endif
         }
 
         private String AlterTable(XTable entitytable, XTable dbtable, Boolean onlySql)
@@ -385,38 +376,40 @@ namespace XCode.DataAccessLayer
                 GetSchemaSQL(sb, DDLSchema.AddColumn, new Object[] { entitytable.Name, item }, onlySql);
 
                 //if (!String.IsNullOrEmpty(item.Default)) GetSchemaSQL(sb, DDLSchema.AddDefault, new Object[] { entitytable.Name, item.Name, item.Default });
-                //if (!String.IsNullOrEmpty(item.Description)) GetSchemaSQL(sb, DDLSchema.AddColumnDescription, new Object[] { entitytable.Name, item.Name, item.Description });
+                if (!String.IsNullOrEmpty(item.Description)) GetSchemaSQL(sb, DDLSchema.AddColumnDescription, new Object[] { entitytable.Name, item.Name, item.Description }, true);
             }
             #endregion
 
             #region 删除列
-            StringBuilder sb2 = new StringBuilder();
+            StringBuilder sbDelete = new StringBuilder();
             Dictionary<String, FieldItem> names = new Dictionary<String, FieldItem>();
             foreach (XField item in dbtable.Fields)
             {
                 if (entitydic.ContainsKey(item.Name.ToLower())) continue;
 
                 //if (!String.IsNullOrEmpty(item.Default)) GetSchemaSQL(sb2, DDLSchema.DropDefault, new Object[] { entitytable.Name, item.Name });
-                //if (!String.IsNullOrEmpty(item.Description)) GetSchemaSQL(sb2, DDLSchema.DropColumnDescription, new Object[] { entitytable.Name, item.Name });
+                if (!String.IsNullOrEmpty(item.Description)) GetSchemaSQL(sbDelete, DDLSchema.DropColumnDescription, new Object[] { entitytable.Name, item.Name }, true);
 
-                GetSchemaSQL(sb2, DDLSchema.DropColumn, new Object[] { entitytable.Name, item.Name }, onlySql);
+                GetSchemaSQL(sbDelete, DDLSchema.DropColumn, new Object[] { entitytable.Name, item.Name }, onlySql);
             }
-            if (sb2.Length > 0)
+            if (sbDelete.Length > 0)
             {
                 if (NoDelete)
                 {
                     //不许删除列，显示日志
-                    XTrace.WriteLine("数据表中发现有多余字段，DatabaseSchema_NoDelete被设置为True，请手工执行以下语句删除：" + Environment.NewLine + sb2.ToString());
+                    XTrace.WriteLine("数据表中发现有多余字段，XCode.Schema.NoDelete被设置为True，请手工执行以下语句删除：" + Environment.NewLine + sbDelete.ToString());
                 }
                 else
                 {
                     if (sb.Length > 0) sb.AppendLine(";");
-                    sb.Append(sb2.ToString());
+                    sb.Append(sbDelete.ToString());
                 }
             }
             #endregion
 
             #region 修改列
+            IDatabase dbDb = DbFactory.Create(dbtable.DbType);
+
             foreach (XField item in entitytable.Fields)
             {
                 if (!dbdic.ContainsKey(item.Name.ToLower())) continue;
@@ -439,9 +432,12 @@ namespace XCode.DataAccessLayer
                     b = true;
 
                     //如果是大文本类型，长度可能不等
-                    if (Database.DbType == DatabaseType.Access && item.Length > 255 && dbf.Length > 255) b = false;
-                    if (Database.DbType == DatabaseType.SqlServer && item.Length > 4000 && dbf.Length > 4000) b = false;
+                    //if (Database.DbType == DatabaseType.Access && item.Length > 255 && dbf.Length > 255) b = false;
+                    //if (Database.DbType == DatabaseType.SqlServer && item.Length > 4000 && dbf.Length > 4000) b = false;
                     //if (Database.DbType == DatabaseType.SqlServer2005 && item.Length > 4000 && dbf.Length > 4000) b = false;
+                    if (item.Length > Database.Db.LongTextLength &&
+                        dbf.Length > dbDb.LongTextLength)
+                        b = false;
                 }
 
                 if (b)
@@ -461,6 +457,8 @@ namespace XCode.DataAccessLayer
                     ////SqlServer数据库，实体默认值是now()，数据库默认值是getdate()，有效
                     //else if ((Database.DbType == DatabaseType.SqlServer || Database.DbType == DatabaseType.SqlServer2005) && item.Default.Equals(ac.DateTimeNow, StringComparison.OrdinalIgnoreCase) && dbf.Default.Equals(sq.DateTimeNow, StringComparison.OrdinalIgnoreCase))
                     //    b = true;
+
+                    if (Database.Db.DateTimeNow == item.Default && dbDb.DateTimeNow != dbf.Default) b = true;
                 }
 
                 if (!b)
@@ -529,11 +527,11 @@ namespace XCode.DataAccessLayer
                 f.Nullable = fi.DataObjectField.IsNullable;
                 f.Default = fi.Column.DefaultValue;
 
-                while (!String.IsNullOrEmpty(f.Default) && f.Default[0] == '(' && f.Default[f.Default.Length - 1] == ')')
-                {
-                    f.Default = f.Default.Substring(1, f.Default.Length - 2);
-                }
-                if (!String.IsNullOrEmpty(f.Default)) f.Default = f.Default.Trim(new Char[] { '"', '\'' });
+                //while (!String.IsNullOrEmpty(f.Default) && f.Default[0] == '(' && f.Default[f.Default.Length - 1] == ')')
+                //{
+                //    f.Default = f.Default.Substring(1, f.Default.Length - 2);
+                //}
+                if (!String.IsNullOrEmpty(f.Default)) f.Default = f.Default.Trim(new Char[] { '"', '\'', '(', ')' });
 
                 fields.Add(f);
             }
@@ -595,17 +593,18 @@ namespace XCode.DataAccessLayer
             {
                 if (_Enable != null) return _Enable.Value;
 
-                //String str = ConfigurationManager.AppSettings["DatabaseSchema_Enable"];
-                //if (String.IsNullOrEmpty(str)) return null;
-                //if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
-                //    _Enable = true;
-                //else if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
-                //    _Enable = false;
-                //else
-                //    _Enable = Convert.ToBoolean(str);
+                String str = ConfigurationManager.AppSettings["XCode.Schema.Enable"];
+                if (String.IsNullOrEmpty(str)) str = ConfigurationManager.AppSettings["DatabaseSchema_Enable"];
+                if (String.IsNullOrEmpty(str)) return null;
+                if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
+                    _Enable = true;
+                else if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
+                    _Enable = false;
+                else
+                    _Enable = Convert.ToBoolean(str);
 
-                _Enable = Config.GetConfig<Boolean>("XCode.Schema.Enable", Config.GetConfig<Boolean>("DatabaseSchema_Enable"));
-                
+                //_Enable = Config.GetConfig<Boolean>("XCode.Schema.Enable", Config.GetConfig<Boolean>("DatabaseSchema_Enable"));
+
                 return _Enable.Value;
             }
             set { _Enable = value; }
@@ -646,7 +645,7 @@ namespace XCode.DataAccessLayer
 
                 //String str = ConfigurationManager.AppSettings["DatabaseSchema_Exclude"];
                 String str = Config.GetConfig<String>("XCode.Schema.Exclude", Config.GetConfig<String>("DatabaseSchema_Exclude"));
-                
+
                 if (String.IsNullOrEmpty(str))
                     _Exclude = new List<String>();
                 else
@@ -658,6 +657,15 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 调试输出
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return Database.ToString();
+        }
+
         private static void WriteLog(String msg)
         {
             if (DAL.Debug) DAL.WriteLog(msg);

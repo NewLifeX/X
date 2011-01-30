@@ -91,6 +91,11 @@ namespace XCode.DataAccessLayer
         DateTime DateTimeMin { get; }
 
         /// <summary>
+        /// 长文本长度
+        /// </summary>
+        Int32 LongTextLength { get; }
+
+        /// <summary>
         /// 格式化时间为SQL字符串
         /// </summary>
         /// <param name="dateTime">时间值</param>

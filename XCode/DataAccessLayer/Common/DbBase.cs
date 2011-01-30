@@ -447,6 +447,11 @@ namespace XCode.DataAccessLayer
         public virtual DateTime DateTimeMin { get { return DateTime.MinValue; } }
 
         /// <summary>
+        /// 长文本长度
+        /// </summary>
+        public virtual Int32 LongTextLength { get { return 4000; } }
+
+        /// <summary>
         /// 格式化时间为SQL字符串
         /// </summary>
         /// <param name="dateTime">时间值</param>

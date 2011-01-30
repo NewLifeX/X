@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.OleDb;
-using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using ADODB;
 using ADOX;
 using DAO;
+using NewLife;
 using NewLife.Log;
 using XCode.Common;
-using XCode.Exceptions;
-using NewLife;
 
 namespace XCode.DataAccessLayer
 {
@@ -64,6 +62,11 @@ namespace XCode.DataAccessLayer
         /// 最小时间
         /// </summary>
         public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
+
+        /// <summary>
+        /// 长文本长度
+        /// </summary>
+        public override Int32 LongTextLength { get { return 255; } }
 
         /// <summary>
         /// 格式化时间为SQL字符串
