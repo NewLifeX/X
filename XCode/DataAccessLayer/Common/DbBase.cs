@@ -479,9 +479,67 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String FormatValue(XField field, Object value)
         {
-            if (field.DataType == typeof(DateTime)) return FormatDateTime(Convert.ToDateTime(value));
+            //if (field.DataType == typeof(DateTime)) return FormatDateTime(Convert.ToDateTime(value));
 
-            return value == null ? null : value.ToString();
+            //return value == null ? null : value.ToString();
+
+            TypeCode code = Type.GetTypeCode(field.DataType);
+            Boolean isNullable = field.Nullable;
+
+            //// 类型处理。如果数据不是目标字段类型，则先转为目标字段类型
+            //if (value != null && value.GetType() != field.DataType) value = Convert.ChangeType(value, field.DataType);
+
+            if (code == TypeCode.String)
+            {
+                if (value == null) return isNullable ? "null" : "''";
+                if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
+                return "'" + value.ToString().Replace("'", "''") + "'";
+            }
+            else if (code == TypeCode.DateTime)
+            {
+                if (value == null) return isNullable ? "null" : "''";
+                DateTime dt = Convert.ToDateTime(value);
+
+                //if (Meta.DbType == DatabaseType.Access) return "#" + dt.ToString("yyyy-MM-dd HH:mm:ss") + "#";
+                //if (Meta.DbType == DatabaseType.Access) return Meta.FormatDateTime(dt);
+
+                //if (Meta.DbType == DatabaseType.Oracle)
+                //    return String.Format("To_Date('{0}', 'YYYYMMDDHH24MISS')", dt.ToString("yyyyMMddhhmmss"));
+                // SqlServer拒绝所有其不能识别为 1753 年到 9999 年间的日期的值
+                //if (Meta.DbType == DatabaseType.SqlServer)// || Meta.DbType == DatabaseType.SqlServer2005)
+                {
+                    if (dt < DateTimeMin || dt > DateTime.MaxValue) return isNullable ? "null" : "''";
+                }
+                if ((dt == DateTime.MinValue || dt == DateTimeMin) && isNullable) return "null";
+                //return "'" + dt.ToString("yyyy-MM-dd HH:mm:ss") + "'";
+                return FormatDateTime(dt);
+            }
+            //else if (typeName.Contains("Boolean"))
+            else if (code == TypeCode.Boolean)
+            {
+                if (value == null) return isNullable ? "null" : "";
+                //if (Meta.DbType == DatabaseType.SqlServer || Meta.DbType == DatabaseType.SqlServer2005)
+                //    return Convert.ToBoolean(obj) ? "1" : "0";
+                //else
+                //    return obj.ToString();
+
+                //if (Meta.DbType == DatabaseType.Access)
+                //    return obj.ToString();
+                //else
+                return Convert.ToBoolean(value) ? "1" : "0";
+            }
+            else if (field.DataType == typeof(Byte[]))
+            {
+                Byte[] bts = (Byte[])value;
+                if (bts == null || bts.Length < 1) return "0x0";
+
+                return "0x" + BitConverter.ToString(bts).Replace("-", null);
+            }
+            else
+            {
+                if (value == null) return isNullable ? "null" : "";
+                return value.ToString();
+            }
         }
         #endregion
 

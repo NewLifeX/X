@@ -138,9 +138,9 @@ namespace XCode.Configuration
         /// 取得指定类的数据表。
         /// 静态缓存。
         /// </summary>
-        /// <param name="t">实体类型</param>
+        /// <param name="type">实体类型</param>
         /// <returns>实体类绑定的数据表</returns>
-        public static BindTableAttribute Table(Type t)
+        public static BindTableAttribute Table(Type type)
         {
             //if (_Tables.ContainsKey(t)) return _Tables[t];
             //lock (_Tables)
@@ -158,7 +158,54 @@ namespace XCode.Configuration
             //    return table;
             //}
 
-            return _Tables.GetItem(t, delegate(Type key) { return BindTableAttribute.GetCustomAttribute(key); });
+            return _Tables.GetItem(type, delegate(Type key) { return BindTableAttribute.GetCustomAttribute(key); });
+        }
+
+        private static DictionaryCache<Type, XTable> _XTables = new DictionaryCache<Type, XTable>();
+        /// <summary>
+        /// 获取类型对应的XTable
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static XTable GetTable(Type type)
+        {
+            return _XTables.GetItem(type, delegate(Type key)
+            {
+                BindTableAttribute bt = Table(key);
+                XTable table = new XTable();
+                table.Name = bt.Name;
+                table.DbType = bt.DbType;
+                table.Description = bt.Description;
+
+                table.Fields = new List<XField>();
+                foreach (FieldItem fi in Fields(key))
+                {
+                    XField f = table.CreateField();
+                    fi.Fill(f);
+
+                    table.Fields.Add(f);
+                }
+
+                return table;
+            });
+        }
+
+        /// <summary>
+        /// 获取类型指定名称的字段
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static XField GetField(Type type, String name)
+        {
+            XTable table = GetTable(type);
+            if (table == null || table.Fields == null) return null;
+
+            foreach (XField item in table.Fields)
+            {
+                if (item.Name == name) return item;
+            }
+            return null;
         }
 
         /// <summary>

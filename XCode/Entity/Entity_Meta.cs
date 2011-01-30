@@ -365,6 +365,20 @@ namespace XCode
             {
                 return DBO.Db.FormatDateTime(dateTime);
             }
+
+            /// <summary>
+            /// 格式化数据为SQL数据
+            /// </summary>
+            /// <param name="name"></param>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            public static String FormatValue(String name, Object value)
+            {
+                XField field = XCodeConfig.GetField(Meta.ThisType, name);
+                if (field == null) return null;
+
+                return DBO.Db.FormatValue(field, value);
+            }
             #endregion
 
             #region 缓存

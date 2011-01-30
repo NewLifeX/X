@@ -17,7 +17,7 @@ namespace XCode.Expressions
 
         public FieldExpression(FieldItem field) { Field = field; }
 
-        private String SqlDataFormat(Object obj, FieldItem item) { return Entity<TEntity>.SqlDataFormat(obj, Field); }
+        private String SqlDataFormat(String name, Object value) { return Entity<TEntity>.Meta.FormatValue(name, value); }
 
         //WhereExpression Equal(Object obj)
         //{

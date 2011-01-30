@@ -97,9 +97,9 @@ namespace XCode
         #endregion
 
         #region 辅助方法
-        internal override String SqlDataFormatInternal(Object obj, String field)
+        internal override String FormatValueInternal(String name, Object value)
         {
-            return SqlDataFormat(obj, field);
+            return Meta.FormatValue(name, value);
         }
 
         internal override String MakeConditionInternal(String[] names, Object[] values, String action)

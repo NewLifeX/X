@@ -92,6 +92,24 @@ namespace XCode.DataAccessLayer
             return String.Format("[{0}]", keyWord);
             //return keyWord;
         }
+
+        /// <summary>
+        /// 格式化数据为SQL数据
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public override string FormatValue(XField field, object value)
+        {
+            if (field.DataType == typeof(Boolean))
+            {
+                if (value == null) return field.Nullable ? "null" : "";
+
+                return value.ToString();
+            }
+
+            return base.FormatValue(field, value);
+        }
         #endregion
 
         #region 平台检查

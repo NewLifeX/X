@@ -850,7 +850,8 @@ namespace XCode
                     sbv.Append(", ");
                 }
                 sbn.Append(fs[names[i]].Name);
-                sbv.Append(SqlDataFormat(values[i], fs[names[i]]));
+                //sbv.Append(SqlDataFormat(values[i], fs[names[i]]));
+                sbv.Append(Meta.FormatValue(names[i], values[i]));
             }
             return Meta.Execute(String.Format("Insert Into {2}({0}) values({1})", sbn.ToString(), sbv.ToString(), Meta.FormatKeyWord(Meta.TableName)));
         }
@@ -957,15 +958,18 @@ namespace XCode
         /// <param name="obj">对象</param>
         /// <param name="field">字段特性</param>
         /// <returns>Sql值的字符串形式</returns>
+        [Obsolete("请改为使用Meta.FormatValue")]
         public static String SqlDataFormat(Object obj, String field)
         {
-            foreach (FieldItem item in Meta.Fields)
-            {
-                if (!String.Equals(item.Name, field, StringComparison.OrdinalIgnoreCase)) continue;
+            //foreach (FieldItem item in Meta.Fields)
+            //{
+            //    if (!String.Equals(item.Name, field, StringComparison.OrdinalIgnoreCase)) continue;
 
-                return SqlDataFormat(obj, item);
-            }
-            return null;
+            //    return SqlDataFormat(obj, item);
+            //}
+            //return null;
+
+            return Meta.FormatValue(field, obj);
         }
 
         /// <summary>
@@ -975,64 +979,67 @@ namespace XCode
         /// <param name="obj">对象</param>
         /// <param name="field">字段特性</param>
         /// <returns>Sql值的字符串形式</returns>
+        [Obsolete("请改为使用Meta.FormatValue")]
         public static String SqlDataFormat(Object obj, FieldItem field)
         {
-            Boolean isNullable = field.DataObjectField.IsNullable;
-            //String typeName = field.Property.PropertyType.FullName;
-            TypeCode code = Type.GetTypeCode(field.Property.PropertyType);
-            //if (typeName.Contains("String"))
-            if (code == TypeCode.String)
-            {
-                if (obj == null) return isNullable ? "null" : "''";
-                if (String.IsNullOrEmpty(obj.ToString()) && isNullable) return "null";
-                return "'" + obj.ToString().Replace("'", "''") + "'";
-            }
-            //else if (typeName.Contains("DateTime"))
-            else if (code == TypeCode.DateTime)
-            {
-                if (obj == null) return isNullable ? "null" : "''";
-                DateTime dt = Convert.ToDateTime(obj);
+            return Meta.FormatValue(field.Name, obj);
 
-                //if (Meta.DbType == DatabaseType.Access) return "#" + dt.ToString("yyyy-MM-dd HH:mm:ss") + "#";
-                //if (Meta.DbType == DatabaseType.Access) return Meta.FormatDateTime(dt);
+            //Boolean isNullable = field.DataObjectField.IsNullable;
+            ////String typeName = field.Property.PropertyType.FullName;
+            //TypeCode code = Type.GetTypeCode(field.Property.PropertyType);
+            ////if (typeName.Contains("String"))
+            //if (code == TypeCode.String)
+            //{
+            //    if (obj == null) return isNullable ? "null" : "''";
+            //    if (String.IsNullOrEmpty(obj.ToString()) && isNullable) return "null";
+            //    return "'" + obj.ToString().Replace("'", "''") + "'";
+            //}
+            ////else if (typeName.Contains("DateTime"))
+            //else if (code == TypeCode.DateTime)
+            //{
+            //    if (obj == null) return isNullable ? "null" : "''";
+            //    DateTime dt = Convert.ToDateTime(obj);
 
-                //if (Meta.DbType == DatabaseType.Oracle)
-                //    return String.Format("To_Date('{0}', 'YYYYMMDDHH24MISS')", dt.ToString("yyyyMMddhhmmss"));
-                // SqlServer拒绝所有其不能识别为 1753 年到 9999 年间的日期的值
-                if (Meta.DbType == DatabaseType.SqlServer)// || Meta.DbType == DatabaseType.SqlServer2005)
-                {
-                    if (dt < year1753 || dt > year9999) return isNullable ? "null" : "''";
-                }
-                if ((dt == DateTime.MinValue || dt == year1900) && isNullable) return "null";
-                //return "'" + dt.ToString("yyyy-MM-dd HH:mm:ss") + "'";
-                return Meta.FormatDateTime(dt);
-            }
-            //else if (typeName.Contains("Boolean"))
-            else if (code == TypeCode.Boolean)
-            {
-                if (obj == null) return isNullable ? "null" : "";
-                //if (Meta.DbType == DatabaseType.SqlServer || Meta.DbType == DatabaseType.SqlServer2005)
-                //    return Convert.ToBoolean(obj) ? "1" : "0";
-                //else
-                //    return obj.ToString();
+            //    //if (Meta.DbType == DatabaseType.Access) return "#" + dt.ToString("yyyy-MM-dd HH:mm:ss") + "#";
+            //    //if (Meta.DbType == DatabaseType.Access) return Meta.FormatDateTime(dt);
 
-                if (Meta.DbType == DatabaseType.Access)
-                    return obj.ToString();
-                else
-                    return Convert.ToBoolean(obj) ? "1" : "0";
-            }
-            else if (field.Property.PropertyType == typeof(Byte[]))
-            {
-                Byte[] bts = (Byte[])obj;
-                if (bts == null || bts.Length < 1) return "0x0";
+            //    //if (Meta.DbType == DatabaseType.Oracle)
+            //    //    return String.Format("To_Date('{0}', 'YYYYMMDDHH24MISS')", dt.ToString("yyyyMMddhhmmss"));
+            //    // SqlServer拒绝所有其不能识别为 1753 年到 9999 年间的日期的值
+            //    if (Meta.DbType == DatabaseType.SqlServer)// || Meta.DbType == DatabaseType.SqlServer2005)
+            //    {
+            //        if (dt < year1753 || dt > year9999) return isNullable ? "null" : "''";
+            //    }
+            //    if ((dt == DateTime.MinValue || dt == year1900) && isNullable) return "null";
+            //    //return "'" + dt.ToString("yyyy-MM-dd HH:mm:ss") + "'";
+            //    return Meta.FormatDateTime(dt);
+            //}
+            ////else if (typeName.Contains("Boolean"))
+            //else if (code == TypeCode.Boolean)
+            //{
+            //    if (obj == null) return isNullable ? "null" : "";
+            //    //if (Meta.DbType == DatabaseType.SqlServer || Meta.DbType == DatabaseType.SqlServer2005)
+            //    //    return Convert.ToBoolean(obj) ? "1" : "0";
+            //    //else
+            //    //    return obj.ToString();
 
-                return "0x" + BitConverter.ToString(bts).Replace("-", null);
-            }
-            else
-            {
-                if (obj == null) return isNullable ? "null" : "";
-                return obj.ToString();
-            }
+            //    if (Meta.DbType == DatabaseType.Access)
+            //        return obj.ToString();
+            //    else
+            //        return Convert.ToBoolean(obj) ? "1" : "0";
+            //}
+            //else if (field.Property.PropertyType == typeof(Byte[]))
+            //{
+            //    Byte[] bts = (Byte[])obj;
+            //    if (bts == null || bts.Length < 1) return "0x0";
+
+            //    return "0x" + BitConverter.ToString(bts).Replace("-", null);
+            //}
+            //else
+            //{
+            //    if (obj == null) return isNullable ? "null" : "";
+            //    return obj.ToString();
+            //}
         }
 
         /// <summary>
@@ -1080,7 +1087,8 @@ namespace XCode
                             //if (!obj.Dirtys[fi.Name] && fi.DataObjectField.IsNullable)
                             //    sbValues.Append("null");
                             //else
-                            sbValues.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
+                            //sbValues.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
+                            sbValues.Append(Meta.FormatValue(fi.Name, obj[fi.Name])); // 数据
                         }
                     }
                     return String.Format("Insert Into {0}({1}) Values({2})", Meta.FormatKeyWord(Meta.TableName), sbNames.ToString(), sbValues.ToString());
@@ -1100,7 +1108,8 @@ namespace XCode
                             isFirst = false;
                         sbNames.Append(Meta.FormatKeyWord(fi.ColumnName));
                         sbNames.Append("=");
-                        sbNames.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
+                        //sbNames.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
+                        sbNames.Append(Meta.FormatValue(fi.Name, obj[fi.Name])); // 数据
                     }
 
                     if (sbNames.Length <= 0) return null;
@@ -1145,7 +1154,7 @@ namespace XCode
 
                 // 同时构造SQL语句。names是属性列表，必须转换成对应的字段列表
                 if (i > 0) sb.AppendFormat(" {0} ", action);
-                sb.AppendFormat("{0}={1}", Meta.FormatKeyWord(fi.ColumnName), SqlDataFormat(values[i], fi));
+                sb.AppendFormat("{0}={1}", Meta.FormatKeyWord(fi.ColumnName), Meta.FormatValue(fi.Name, values[i]));
             }
             return sb.ToString();
         }
@@ -1159,13 +1168,15 @@ namespace XCode
         /// <returns></returns>
         public static String MakeCondition(String name, Object value, String action)
         {
-            foreach (FieldItem item in Meta.Fields)
-            {
-                if (item.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
-                {
-                    return String.Format("{0}{1}{2}", item.Name, action, SqlDataFormat(value, item));
-                }
-            }
+            //foreach (FieldItem item in Meta.Fields)
+            //{
+            //    if (item.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+            //    {
+            //        return String.Format("{0}{1}{2}", item.Name, action, SqlDataFormat(value, item));
+            //    }
+            //}
+
+            return String.Format("{0}{1}{2}", name, action, Meta.FormatValue(name, value));
 
             throw new Exception("找不到[" + name + "]属性！");
         }
@@ -1187,7 +1198,7 @@ namespace XCode
             // 标识列作为查询关键字
             if (ps[0].DataObjectField.IsIdentity)
             {
-                return String.Format("{0}={1}", Meta.FormatKeyWord(ps[0].ColumnName), SqlDataFormat((obj as TEntity)[ps[0].Name], ps[0]));
+                return String.Format("{0}={1}", Meta.FormatKeyWord(ps[0].ColumnName), Meta.FormatValue(ps[0].Name, obj[ps[0].Name]));
             }
             // 主键作为查询关键字
             StringBuilder sb = new StringBuilder();
@@ -1196,7 +1207,8 @@ namespace XCode
                 if (sb.Length > 0) sb.Append(" And ");
                 sb.Append(Meta.FormatKeyWord(fi.ColumnName));
                 sb.Append("=");
-                sb.Append(SqlDataFormat(obj[fi.Name], fi));
+                //sb.Append(SqlDataFormat(obj[fi.Name], fi));
+                sb.Append(Meta.FormatValue(fi.Name, obj[fi.Name]));
             }
             return sb.ToString();
         }

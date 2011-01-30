@@ -627,10 +627,10 @@ namespace XCode
         /// 取得一个值的Sql值。
         /// 当这个值是字符串类型时，会在该值前后加单引号；
         /// </summary>
-        /// <param name="obj">对象</param>
-        /// <param name="field">字段特性</param>
+        /// <param name="name">字段</param>
+        /// <param name="value">对象</param>
         /// <returns>Sql值的字符串形式</returns>
-        String IEntityOperate.SqlDataFormat(Object obj, String field) { return SqlDataFormatInternal(obj, field); }
+        String IEntityOperate.FormatValue(String name, Object value) { return FormatValueInternal(name, value); }
 
         /// <summary>
         /// 根据属性列表和值列表，构造查询条件。
@@ -657,7 +657,7 @@ namespace XCode
             return MakeConditionInternal(name, value, action);
         }
 
-        internal abstract String SqlDataFormatInternal(Object obj, String field);
+        internal abstract String FormatValueInternal(String name, Object value);
         internal abstract String MakeConditionInternal(String[] names, Object[] values, String action);
         internal abstract String MakeConditionInternal(String name, Object value, String action);
 

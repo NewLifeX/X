@@ -556,37 +556,19 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static XTable Create(Type type, String tablename)
         {
-            XTable table = new XTable();
-            BindTableAttribute bt = XCodeConfig.Table(type);
+            XTable table = XCodeConfig.GetTable(type);
 
-            if (String.IsNullOrEmpty(tablename)) tablename = bt.Name;
-            table.Name = tablename;
-            table.DbType = bt.DbType;
-            table.Description = bt.Description;
+            if (!String.IsNullOrEmpty(tablename)) table.Name = tablename;
 
-            List<XField> fields = new List<XField>();
-            List<FieldItem> fis = new List<FieldItem>(XCodeConfig.Fields(type));
-            foreach (FieldItem fi in fis)
+            foreach (XField f in table.Fields)
             {
-                XField f = table.CreateField();
-                fi.Fill(f);
-
-                //while (!String.IsNullOrEmpty(f.Default) && f.Default[0] == '(' && f.Default[f.Default.Length - 1] == ')')
-                //{
-                //    f.Default = f.Default.Substring(1, f.Default.Length - 2);
-                //}
-                //if (!String.IsNullOrEmpty(f.Default)) f.Default = f.Default.Trim(new Char[] { '"', '\'', '(', ')' });
                 if (!String.IsNullOrEmpty(f.Default))
                 {
                     f.Default = DbBase.Trim(f.Default, "\"", "\"");
                     f.Default = DbBase.Trim(f.Default, "\'", "\'");
                     f.Default = DbBase.Trim(f.Default, "(", ")");
                 }
-
-                fields.Add(f);
             }
-
-            table.Fields = fields;
 
             return table;
         }
