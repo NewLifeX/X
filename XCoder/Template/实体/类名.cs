@@ -11,7 +11,7 @@ namespace <#=Config.NameSpace#>
 	[Serializable]
 	[DataObject]
 	[Description("<#=ClassDescription#>")]
-	[BindTable("<#=Table.Name#>", Description = "<#=ClassDescription#>", ConnName = "<#=Config.EntityConnName#>")]
+	[BindTable("<#=Table.Name#>", Description = "<#=ClassDescription#>", ConnName = "<#=Config.EntityConnName#>", DbType = <#=Table.DbType#>)]
 	public partial class <#=ClassName#>
 	{
 		#region 属性<#
@@ -24,7 +24,7 @@ namespace <#=Config.NameSpace#>
 		/// </summary>
 		[Description("<#=GetPropertyDescription(Field)#>")]
 		[DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
-		[BindColumn("<#=Field.Name#>", Description = "<#=GetPropertyDescription(Field)#>", DefaultValue = "<#=Field.Default#>", Order = <#=Field.ID#>)]
+		[BindColumn("<#=Field.Name#>", Description = "<#=GetPropertyDescription(Field)#>", DefaultValue = "<#=Field.Default#>", RawType = "<#=Field.RawType#>", Order = <#=Field.ID#>)]
 		public <#=Field.FieldType#> <#=GetPropertyName(Field)#>
 		{
 			get { return _<#=GetPropertyName(Field)#>; }
