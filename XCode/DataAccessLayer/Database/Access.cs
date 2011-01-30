@@ -504,6 +504,16 @@ namespace XCode.DataAccessLayer
 
             base.SetFieldType(field, typeName);
         }
+
+        protected override string GetFieldType(XField field)
+        {
+            String typeName = base.GetFieldType(field);
+
+            //if (typeName.StartsWith("VarChar")) return typeName.Replace("VarChar", "Text");
+            if (field.Identity) return null;
+
+            return typeName;
+        }
         #endregion
 
         #region ¸¨Öúº¯Êý
