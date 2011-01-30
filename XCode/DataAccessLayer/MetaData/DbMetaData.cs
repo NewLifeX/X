@@ -488,6 +488,12 @@ namespace XCode.DataAccessLayer
             return null;
         }
 
+        /// <summary>
+        /// 取得格式化的类型参数
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="dr"></param>
+        /// <returns></returns>
         protected virtual String GetFormatParam(XField field, DataRow dr)
         {
             String ps = null;

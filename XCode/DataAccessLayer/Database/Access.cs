@@ -457,7 +457,7 @@ namespace XCode.DataAccessLayer
         protected override DataRow[] FindDataType(XField field, string typeName, bool? isLong)
         {
             DataRow[] drs = base.FindDataType(field, typeName, isLong);
-            if (drs == null || drs.Length <= 1) return drs;
+            if (drs != null && drs.Length > 0) return drs;
 
             DataTable dt = DataTypes;
             if (dt == null) return null;
@@ -472,7 +472,22 @@ namespace XCode.DataAccessLayer
                 drs = dt.Select(String.Format("NativeDataType={0} And IsLong={1}", typeName, isLong.Value));
                 if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0} And IsLong={1}", typeName, isLong.Value));
             }
+
             return drs;
+        }
+
+        protected override void SetFieldType(XField field, string typeName)
+        {
+            DataTable dt = DataTypes;
+            if (dt == null) return;
+
+            DataRow[] drs = FindDataType(field, typeName, null);
+            if (drs == null || drs.Length < 1) return;
+
+            // 修正原始类型
+            if (TryGetDataRowValue<String>(drs[0], "TypeName", out typeName)) field.RawType = typeName;
+
+            base.SetFieldType(field, typeName);
         }
         #endregion
     }
