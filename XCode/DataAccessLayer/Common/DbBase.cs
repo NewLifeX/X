@@ -22,7 +22,37 @@ namespace XCode.DataAccessLayer
         {
             base.OnDispose(disposing);
 
-            if (_sessions != null && _sessions.ContainsKey(this)) _sessions.Remove(this);
+            if (_sessions != null)
+            {
+                // 销毁本线程的数据库会话，似乎无法销毁别的线程的数据库会话
+                if (_sessions.ContainsKey(this)) _sessions.Remove(this);
+            }
+
+            if (_MySessions != null)
+            {
+                // 销毁本数据库的所有数据库会话
+                foreach (IDbSession session in _MySessions)
+                {
+                    try
+                    {
+                        session.Dispose();
+                    }
+                    catch { }
+                }
+                _MySessions.Clear();
+                _MySessions = null;
+            }
+
+            if (_metadata != null)
+            {
+                // 销毁本数据库的元数据对象
+                try
+                {
+                    _metadata.Dispose();
+                }
+                catch { }
+                _metadata = null;
+            }
         }
         #endregion
 
@@ -72,25 +102,6 @@ namespace XCode.DataAccessLayer
             get { return _Owner; }
             set { _Owner = value; }
         }
-
-        //private String _ServerVersion;
-        ///// <summary>
-        ///// 数据库服务器版本
-        ///// </summary>
-        //public String ServerVersion
-        //{
-        //    get
-        //    {
-        //        if (_ServerVersion != null) return _ServerVersion;
-        //        _ServerVersion = "";
-
-        //        IDbSession session = CreateSession();
-        //        if (!session.Opened) session.Open();
-        //        _ServerVersion = session.Conn.ServerVersion;
-        //        session.AutoClose();
-        //        return _ServerVersion;
-        //    }
-        //}
         #endregion
 
         #region 方法
@@ -99,6 +110,11 @@ namespace XCode.DataAccessLayer
         /// </summary>
         [ThreadStatic]
         private static Dictionary<DbBase, IDbSession> _sessions;
+
+        /// <summary>
+        /// 保存当前数据库的所有会话
+        /// </summary>
+        private List<IDbSession> _MySessions;
 
         /// <summary>
         /// 创建数据库会话，数据库在每一个线程都有唯一的一个实例
@@ -122,6 +138,9 @@ namespace XCode.DataAccessLayer
                     if (!(session is DbSession) || !(session as DbSession).Disposed) return session;
                 }
 
+                if (_MySessions == null) _MySessions = new List<IDbSession>();
+                if (session != null && _MySessions.Contains(session)) _MySessions.Remove(session);
+
                 Boolean isNew = session == null;
 
                 session = OnCreateSession();
@@ -132,6 +151,8 @@ namespace XCode.DataAccessLayer
                     _sessions.Add(this, session);
                 else
                     _sessions[this] = session;
+
+                _MySessions.Add(session);
 
                 return session;
             }
@@ -221,7 +242,15 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        protected String PageSplitMaxMin(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
+        /// <summary>
+        /// 按唯一数字最大最小分析
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0开始</param>
+        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="keyColumn">唯一键。用于not in分页</param>
+        /// <returns>分页SQL</returns>
+        public static String PageSplitMaxMin(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
             // 唯一键的顺序。默认为Empty，可以为asc或desc，如果有，则表明主键列是数字唯一列，可以使用max/min分页法
             Boolean isAscOrder = keyColumn.ToLower().EndsWith(" asc");
@@ -230,7 +259,7 @@ namespace XCode.DataAccessLayer
 
             // 如果sql最外层有排序，且唯一的一个排序字段就是keyColumn时，可用max/min分页法
             // 如果sql最外层没有排序，其排序不是unknown，可用max/min分页法
-            MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            MatchCollection ms = reg_Order.Matches(sql);
             if (ms != null && ms.Count > 0 && ms[0].Index > 0)
             {
                 // 取第一页也不用分页。把这代码放到这里，主要是数字分页中要自己处理这种情况

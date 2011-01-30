@@ -8,7 +8,7 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// 数据库元数据接口
     /// </summary>
-    public interface IMetaData
+    public interface IMetaData : IDisposable
     {
         #region 属性
         /// <summary>
