@@ -7,7 +7,7 @@ using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
-    class Oracle : DbBase
+    class Oracle : NetDb
     {
         #region 属性
         /// <summary>
@@ -159,7 +159,7 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// Oracle数据库
     /// </summary>
-    internal class OracleSession : DbSession
+    internal class OracleSession : NetDbSession
     {
         #region 基本方法 查询/执行
         /// <summary>
@@ -287,7 +287,7 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// Oracle元数据
     /// </summary>
-    class OracleMeta : DbMetaData
+    class OracleMeta : NetDbMetaData
     {
         /// <summary>
         /// 取得所有表构架

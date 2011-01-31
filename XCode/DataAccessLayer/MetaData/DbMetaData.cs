@@ -581,7 +581,7 @@ namespace XCode.DataAccessLayer
         #region 数据定义语句
         public virtual String CreateDatabaseSQL(String dbname, String file)
         {
-            return String.Format("Create Database {0}", dbname);
+            return String.Format("Create Database {0}", FormatKeyWord(dbname));
         }
 
         public virtual String DropDatabaseSQL(String dbname)

@@ -86,6 +86,7 @@
     <Compile Include="Common\FileSource.cs" />
     <Compile Include="DataAccessLayer\Common\DatabaseType.cs" />
     <Compile Include="DataAccessLayer\Common\FileDb.cs" />
+    <Compile Include="DataAccessLayer\Common\NetDb.cs" />
     <Compile Include="DataAccessLayer\Database\SqlCe.cs" />
     <Compile Include="DataAccessLayer\Common\DbBase.cs" />
     <Compile Include="DataAccessLayer\Common\DbFactory.cs" />

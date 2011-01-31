@@ -11,7 +11,7 @@ using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
-    class SqlServer : DbBase
+    class SqlServer : NetDb
     {
         #region 属性
         /// <summary>
@@ -43,9 +43,9 @@ namespace XCode.DataAccessLayer
                         DbSession session = CreateSession() as DbSession;
                         String dbname = session.DatabaseName;
                         //如果指定了数据库名，并且不是master，则切换到master
-                        if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
+                        if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, SystemDatabaseName, StringComparison.OrdinalIgnoreCase))
                         {
-                            session.DatabaseName = "master";
+                            session.DatabaseName = SystemDatabaseName;
                         }
 
                         //取数据库版本
@@ -55,7 +55,7 @@ namespace XCode.DataAccessLayer
 
                         _IsSQL2005 = !ver.StartsWith("08");
 
-                        if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
+                        if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, SystemDatabaseName, StringComparison.OrdinalIgnoreCase))
                         {
                             session.DatabaseName = dbname;
                         }
@@ -250,13 +250,16 @@ namespace XCode.DataAccessLayer
 
             return String.Format("[{0}]", keyWord);
         }
+
+        /// <summary>系统数据库名</summary>
+        public override String SystemDatabaseName { get { return "master"; } }
         #endregion
     }
 
     /// <summary>
     /// SqlServer数据库
     /// </summary>
-    internal class SqlServerSession : DbSession
+    internal class SqlServerSession : NetDbSession
     {
         #region 查询
         /// <summary>
@@ -288,7 +291,7 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// SqlServer元数据
     /// </summary>
-    class SqlServerMetaData : DbMetaData
+    class SqlServerMetaData : NetDbMetaData
     {
         #region 属性
         /// <summary>
@@ -301,12 +304,12 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public String level0type { get { return IsSQL2005 ? "SCHEMA" : "USER"; } }
 
-        /// <summary>数据库名</summary>
-        public String DatabaseName
-        {
-            get { return Database.CreateSession().DatabaseName; }
-            set { Database.CreateSession().DatabaseName = value; }
-        }
+        ///// <summary>数据库名</summary>
+        //public String DatabaseName
+        //{
+        //    get { return Database.CreateSession().DatabaseName; }
+        //    set { Database.CreateSession().DatabaseName = value; }
+        //}
         #endregion
 
         #region 构架
@@ -493,44 +496,13 @@ namespace XCode.DataAccessLayer
             String databaseName = String.Empty;
             switch (schema)
             {
-                case DDLSchema.DatabaseExist:
-                    databaseName = values == null || values.Length < 1 ? null : (String)values[0];
-                    if (String.IsNullOrEmpty(databaseName)) databaseName = DatabaseName;
-                    values = new Object[] { databaseName };
-
-                    dbname = DatabaseName;
-
-                    //如果指定了数据库名，并且不是master，则切换到master
-                    if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, "master", StringComparison.OrdinalIgnoreCase))
-                    {
-                        DatabaseName = "master";
-                        obj = session.QueryCount(GetSchemaSQL(schema, values)) > 0;
-                        DatabaseName = dbname;
-                        return obj;
-                    }
-                    else
-                    {
-                        return session.QueryCount(GetSchemaSQL(schema, values)) > 0;
-                    }
-                case DDLSchema.TableExist:
-                    return session.QueryCount(GetSchemaSQL(schema, values)) > 0;
-                case DDLSchema.CreateDatabase:
-                    databaseName = values == null || values.Length < 1 ? null : (String)values[0];
-                    if (String.IsNullOrEmpty(databaseName)) databaseName = DatabaseName;
-                    values = new Object[] { databaseName, values == null || values.Length < 2 ? null : values[1] };
-
-                    dbname = DatabaseName;
-                    DatabaseName = "master";
-                    obj = base.SetSchema(schema, values);
-                    DatabaseName = dbname;
-                    return obj;
                 case DDLSchema.DropDatabase:
                     databaseName = values == null || values.Length < 1 ? null : (String)values[0];
-                    if (String.IsNullOrEmpty(databaseName)) databaseName = DatabaseName;
+                    if (String.IsNullOrEmpty(databaseName)) databaseName = session.DatabaseName;
                     values = new Object[] { databaseName, values == null || values.Length < 2 ? null : values[1] };
 
-                    dbname = DatabaseName;
-                    DatabaseName = "master";
+                    dbname = session.DatabaseName;
+                    session.DatabaseName = SystemDatabaseName;
                     //obj = base.SetSchema(schema, values);
                     //if (Execute(String.Format("Drop Database [{0}]", dbname)) < 1)
                     //{
@@ -559,7 +531,7 @@ namespace XCode.DataAccessLayer
                     obj = session.Execute(String.Format("Drop Database {0}", FormatKeyWord(dbname))) > 0;
                     //sb.AppendFormat("Drop Database [{0}]", dbname);
 
-                    DatabaseName = dbname;
+                    session.DatabaseName = dbname;
                     return obj;
                 default:
                     break;

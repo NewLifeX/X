@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace XCode.DataAccessLayer
 {
-    class MySql : DbBase
+    class MySql : NetDb
     {
         #region 属性
         /// <summary>
@@ -97,7 +97,7 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 当前时间函数
         /// </summary>
-        public override String DateTimeNow { get { return "getdate()"; } }
+        public override String DateTimeNow { get { return "now()"; } }
 
         /// <summary>
         /// 格式化时间为SQL字符串
@@ -118,17 +118,43 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
 
-            if (keyWord.StartsWith("'") && keyWord.EndsWith("'")) return keyWord;
+            if (keyWord.StartsWith("`") && keyWord.EndsWith("`")) return keyWord;
 
-            return String.Format("'{0}'", keyWord);
+            return String.Format("`{0}`", keyWord);
         }
+
+        /// <summary>
+        /// 格式化数据为SQL数据
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public override string FormatValue(XField field, object value)
+        {
+            if (field.DataType == typeof(String))
+            {
+                if (value == null) return field.Nullable ? "null" : "``";
+                if (String.IsNullOrEmpty(value.ToString()) && field.Nullable) return "null";
+                return "`" + value + "`";
+            }
+
+            return base.FormatValue(field, value);
+        }
+
+        /// <summary>
+        /// 长文本长度
+        /// </summary>
+        public override int LongTextLength { get { return 255; } }
+
+        /// <summary>系统数据库名</summary>
+        public override String SystemDatabaseName { get { return "mysql"; } }
         #endregion
     }
 
     /// <summary>
     /// MySql数据库
     /// </summary>
-    internal class MySqlSession : DbSession
+    internal class MySqlSession : NetDbSession
     {
         #region 基本方法 查询/执行
         /// <summary>
@@ -160,7 +186,7 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// MySql元数据
     /// </summary>
-    class MySqlMetaData : DbMetaData
+    class MySqlMetaData : NetDbMetaData
     {
         protected override void FixField(XField field, DataRow dr)
         {
@@ -199,9 +225,18 @@ namespace XCode.DataAccessLayer
             return drs;
         }
 
+        public override string FieldClause(XField field, bool onlyDefine)
+        {
+            String sql = base.FieldClause(field, onlyDefine);
+            // 加上注释
+            if (!String.IsNullOrEmpty(field.Description)) sql = String.Format("{0} COMMENT '{1}'", sql, field.Description);
+            return sql;
+        }
+
         protected override string GetFieldConstraints(XField field, Boolean onlyDefine)
         {
-            String str = base.GetFieldConstraints(field, onlyDefine);
+            String str = null;
+            if (!field.Nullable) str = "NOT NULL";
 
             if (field.Identity) str = " NOT NULL AUTO_INCREMENT";
 
@@ -224,6 +259,30 @@ namespace XCode.DataAccessLayer
         //}
 
         #region 架构定义
+        public override object SetSchema(DDLSchema schema, params object[] values)
+        {
+            if (schema == DDLSchema.DatabaseExist)
+            {
+                IDbSession session = Database.CreateSession();
+
+                DataTable dt = GetSchema("Databases", new String[] { values != null && values.Length > 0 ? (String)values[0] : session.DatabaseName });
+                if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
+                return true;
+            }
+
+            return base.SetSchema(schema, values);
+        }
+
+        public override string DropDatabaseSQL(string dbname)
+        {
+            return String.Format("Drop Database If Exists {0}", FormatKeyWord(dbname));
+        }
+
+        //public override string DatabaseExistSQL(string dbname)
+        //{
+        //    return String.Format("Select * From db Where 1=0", dbname);
+        //}
+
         public override String CreateTableSQL(XTable table)
         {
             List<XField> Fields = new List<XField>(table.Fields);
@@ -232,7 +291,7 @@ namespace XCode.DataAccessLayer
             StringBuilder sb = new StringBuilder();
             String key = null;
 
-            sb.AppendFormat("Create Table {0}(", FormatKeyWord(table.Name));
+            sb.AppendFormat("Create Table If Not Exists {0}(", FormatKeyWord(table.Name));
             for (Int32 i = 0; i < Fields.Count; i++)
             {
                 sb.AppendLine();
@@ -251,6 +310,20 @@ namespace XCode.DataAccessLayer
             sb.Append(")");
 
             return sb.ToString();
+        }
+
+        public override string AddTableDescriptionSQL(XTable table)
+        {
+            if (String.IsNullOrEmpty(table.Description)) return null;
+
+            return String.Format("Alter Table {0} Comment '{1}'", FormatKeyWord(table.Name), table.Description);
+        }
+
+        public override string AddColumnDescriptionSQL(XField field)
+        {
+            if (String.IsNullOrEmpty(field.Description)) return null;
+
+            return String.Format("Alter Table {0} Modify {1} Comment '{2}'", FormatKeyWord(field.Table.Name), FormatKeyWord(field.Name), field.Description);
         }
         #endregion
     }
