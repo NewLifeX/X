@@ -115,11 +115,11 @@ namespace NewLife.CommonEntity
 
 		private Int32 _LastMonth;
 		/// <summary>
-		/// 
+        /// 上月
 		/// </summary>
-		[Description("")]
+		[Description("上月")]
 		[DataObjectField(false, false, true, 10)]
-		[BindColumn("LastMonth", Description = "", DefaultValue = "", Order = 8)]
+        [BindColumn("LastMonth", Description = "上月", DefaultValue = "", Order = 8)]
 		public Int32 LastMonth
 		{
 			get { return _LastMonth; }
@@ -141,11 +141,11 @@ namespace NewLife.CommonEntity
 
 		private Int32 _LastYear;
 		/// <summary>
-		/// 
+        /// 去年
 		/// </summary>
-		[Description("")]
+		[Description("去年")]
 		[DataObjectField(false, false, true, 10)]
-		[BindColumn("LastYear", Description = "", DefaultValue = "", Order = 10)]
+        [BindColumn("LastYear", Description = "去年", DefaultValue = "", Order = 10)]
 		public Int32 LastYear
 		{
 			get { return _LastYear; }
@@ -287,7 +287,7 @@ namespace NewLife.CommonEntity
 			public const String ThisMonth = "ThisMonth";
 
 			///<summary>
-			/// 
+            /// 上月
 			///</summary>
 			public const String LastMonth = "LastMonth";
 
@@ -297,7 +297,7 @@ namespace NewLife.CommonEntity
 			public const String ThisYear = "ThisYear";
 
 			///<summary>
-			/// 
+            /// 去年
 			///</summary>
 			public const String LastYear = "LastYear";
 
