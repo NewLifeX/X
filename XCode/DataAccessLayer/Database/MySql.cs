@@ -4,6 +4,8 @@ using System.IO;
 using System.Reflection;
 using System.Web;
 using System.Data;
+using System.Text;
+using System.Collections.Generic;
 
 namespace XCode.DataAccessLayer
 {
@@ -90,6 +92,37 @@ namespace XCode.DataAccessLayer
             return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
         }
         #endregion
+
+        #region 数据库特性
+        /// <summary>
+        /// 当前时间函数
+        /// </summary>
+        public override String DateTimeNow { get { return "getdate()"; } }
+
+        /// <summary>
+        /// 格式化时间为SQL字符串
+        /// </summary>
+        /// <param name="dateTime">时间值</param>
+        /// <returns></returns>
+        public override String FormatDateTime(DateTime dateTime)
+        {
+            return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime);
+        }
+
+        /// <summary>
+        /// 格式化关键字
+        /// </summary>
+        /// <param name="keyWord">关键字</param>
+        /// <returns></returns>
+        public override String FormatKeyWord(String keyWord)
+        {
+            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
+
+            if (keyWord.StartsWith("'") && keyWord.EndsWith("'")) return keyWord;
+
+            return String.Format("'{0}'", keyWord);
+        }
+        #endregion
     }
 
     /// <summary>
@@ -166,6 +199,15 @@ namespace XCode.DataAccessLayer
             return drs;
         }
 
+        protected override string GetFieldConstraints(XField field, Boolean onlyDefine)
+        {
+            String str = base.GetFieldConstraints(field, onlyDefine);
+
+            if (field.Identity) str = " NOT NULL AUTO_INCREMENT";
+
+            return str;
+        }
+
         //protected override void SetFieldType(XField field, string typeName)
         //{
         //    DataTable dt = DataTypes;
@@ -180,5 +222,36 @@ namespace XCode.DataAccessLayer
 
         //    base.SetFieldType(field, typeName);
         //}
+
+        #region 架构定义
+        public override String CreateTableSQL(XTable table)
+        {
+            List<XField> Fields = new List<XField>(table.Fields);
+            Fields.Sort(delegate(XField item1, XField item2) { return item1.ID.CompareTo(item2.ID); });
+
+            StringBuilder sb = new StringBuilder();
+            String key = null;
+
+            sb.AppendFormat("Create Table {0}(", FormatKeyWord(table.Name));
+            for (Int32 i = 0; i < Fields.Count; i++)
+            {
+                sb.AppendLine();
+                sb.Append("\t");
+                sb.Append(FieldClause(Fields[i], true));
+                if (i < Fields.Count - 1) sb.Append(",");
+
+                if (Fields[i].PrimaryKey) key = Fields[i].Name;
+            }
+            if (!String.IsNullOrEmpty(key))
+            {
+                sb.AppendLine(",");
+                sb.AppendFormat("Primary Key ({0})", FormatKeyWord(key));
+            }
+            sb.AppendLine();
+            sb.Append(")");
+
+            return sb.ToString();
+        }
+        #endregion
     }
 }

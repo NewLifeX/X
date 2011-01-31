@@ -119,6 +119,11 @@ namespace XCode.DataAccessLayer
 
         #region 数据库特性
         /// <summary>
+        /// 当前时间函数
+        /// </summary>
+        public override string DateTimeNow { get { return "sysdate"; } }
+
+        /// <summary>
         /// 已重载。格式化时间
         /// </summary>
         /// <param name="dateTime"></param>
