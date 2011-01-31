@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Web;
 using System.Web.UI;
+using System.Web.UI.WebControls;
 using NewLife.Log;
 using XCode;
 using XCode.DataAccessLayer;
@@ -243,10 +244,12 @@ namespace NewLife.CommonEntity.Web
         /// <param name="writer"></param>
         protected override void Render(HtmlTextWriter writer)
         {
+            Literal lt = FindControl("RunTime") as Literal;
+            if (lt != null) WriteRunTime();
+
             base.Render(writer);
 
-            //if (IsWriteRunTime)
-            WriteRunTime();
+            if (lt == null) WriteRunTime();
         }
 
         /// <summary>
@@ -261,7 +264,7 @@ namespace NewLife.CommonEntity.Web
 
             String str = String.Format("查询{0}次，执行{1}次，耗时{2}毫秒！", DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds);
 
-            LiteralControl lt = FindControl("RunTime") as LiteralControl;
+            Literal lt = FindControl("RunTime") as Literal;
             if (lt != null)
                 lt.Text = str;
             else
