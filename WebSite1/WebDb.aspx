@@ -55,4 +55,5 @@
             <input type="button" id="btnGo" value="GO" onclick="javascript:__doPostBack('<%# ((DataPager)Container.NamingContainer).UniqueID %>','Page$'+document.getElementById('txtNewPageIndex').value)" />
         </PagerTemplate>
     </XCL:DataPager>
+    <asp:Literal ID="RunTime" runat="server"></asp:Literal>
 </asp:Content>

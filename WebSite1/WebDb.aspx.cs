@@ -1,16 +1,17 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
-using System.Web.UI.WebControls;
-using XCode.DataAccessLayer;
-using NewLife.Web;
-using NewLife.Reflection;
 using System.Reflection;
-using System.ComponentModel;
+using System.Web.UI.WebControls;
+using NewLife.Reflection;
+using NewLife.Web;
+using XCode.DataAccessLayer;
+using NewLife.Log;
 using System.Web.UI;
-using System.Collections;
-using XCode;
+using System.Web;
 
 public partial class Admin_System_WebDb : System.Web.UI.Page
 {
@@ -39,7 +40,11 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         {
             return DAL.Create(ddlConn.SelectedValue);
         }
-        catch { return null; }
+        catch (Exception ex)
+        {
+            WebHelper.Alert(ex.ToString());
+            return null;
+        }
     }
 
     protected void ddlConn_SelectedIndexChanged(object sender, EventArgs e)
@@ -336,4 +341,31 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
             }
         }
     }
+
+    #region 运行时输出
+    private Int32 StartQueryTimes = DAL.QueryTimes;
+    private Int32 StartExecuteTimes = DAL.ExecuteTimes;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="writer"></param>
+    protected override void Render(HtmlTextWriter writer)
+    {
+        WriteRunTime();
+        base.Render(writer);
+    }
+
+    /// <summary>
+    /// 输出运行时间
+    /// </summary>
+    protected virtual void WriteRunTime()
+    {
+        TimeSpan ts = DateTime.Now - HttpContext.Current.Timestamp;
+
+        String str = String.Format("查询{0}次，执行{1}次，耗时{2}毫秒！", DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds);
+
+        RunTime.Text = str;
+    }
+    #endregion
 }
