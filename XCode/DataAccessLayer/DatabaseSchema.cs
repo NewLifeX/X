@@ -399,7 +399,8 @@ namespace XCode.DataAccessLayer
             #endregion
 
             #region 修改列
-            IDatabase dbDb = DbFactory.Create(dbtable.DbType);
+            // 开发时的实体数据库
+            IDatabase entityDb = DbFactory.Create(entitytable.DbType);
 
             foreach (XField item in entitytable.Fields)
             {
@@ -423,18 +424,20 @@ namespace XCode.DataAccessLayer
                     b = true;
 
                     //如果是大文本类型，长度可能不等
-                    if (item.Length > Database.Db.LongTextLength && dbf.Length > dbDb.LongTextLength) b = false;
+                    if ((item.Length > Database.Db.LongTextLength || item.Length <= 0) &&
+                        (entityDb != null && dbf.Length > entityDb.LongTextLength || dbf.Length <= 0)) b = false;
                 }
 
                 if (b) AlterColumn(sb, item, onlySql);
 
                 //比较默认值
-                b = String.Equals(item.Default, dbf.Default, StringComparison.OrdinalIgnoreCase);
+                b = String.Equals(item.Default + "", dbf.Default + "", StringComparison.OrdinalIgnoreCase);
 
                 //特殊处理时间
                 if (!b && Type.GetTypeCode(item.DataType) == TypeCode.DateTime && !String.IsNullOrEmpty(item.Default) && !String.IsNullOrEmpty(dbf.Default))
                 {
-                    if (Database.Db.DateTimeNow == item.Default && dbDb.DateTimeNow != dbf.Default) b = true;
+                    // 如果当前默认值是开发数据库的时间默认值，则判断当前数据库的时间默认值
+                    if (entityDb.DateTimeNow == item.Default && Database.Db.DateTimeNow != dbf.Default) b = true;
                 }
 
                 if (!b)
@@ -442,10 +445,25 @@ namespace XCode.DataAccessLayer
                     if (!String.IsNullOrEmpty(dbf.Default))
                         GetSchemaSQL(sb, onlySql, DDLSchema.DropDefault, dbf);
                     if (!String.IsNullOrEmpty(item.Default))
-                        GetSchemaSQL(sb, onlySql, DDLSchema.AddDefault, item);
+                    {
+                        if (Type.GetTypeCode(item.DataType) == TypeCode.DateTime)
+                        {
+                            // 特殊处理时间
+                            String dv = item.Default;
+                            // 如果当前默认值是开发数据库的时间默认值，则修改为当前数据库的时间默认值
+                            if (entityDb.DateTimeNow == item.Default) item.Default = Database.Db.DateTimeNow;
+
+                            GetSchemaSQL(sb, onlySql, DDLSchema.AddDefault, item);
+
+                            // 还原
+                            item.Default = dv;
+                        }
+                        else
+                            GetSchemaSQL(sb, onlySql, DDLSchema.AddDefault, item);
+                    }
                 }
 
-                if (item.Description != dbf.Description)
+                if (item.Description + "" != dbf.Description + "")
                 {
                     // 先删除旧注释
                     if (!String.IsNullOrEmpty(dbf.Description)) DropColumnDescription(sb, dbf, onlySql);
@@ -516,7 +534,7 @@ namespace XCode.DataAccessLayer
 
                 //if (!onlySql) XTrace.WriteLine("修改表：" + sql);
             }
-            else if (!onlySql)
+            else //if (!onlySql)
             {
                 // 没办法形成SQL，输出日志信息
                 StringBuilder s = new StringBuilder();
@@ -528,8 +546,8 @@ namespace XCode.DataAccessLayer
                         s.Append(item);
                     }
                 }
-                //XTrace.WriteLine("修改表：{0} {1}", schema.ToString(), s.ToString());
-                sb.AppendFormat("修改表：{0} {1}", schema.ToString(), s.ToString());
+                XTrace.WriteLine("修改表：{0} {1}", schema.ToString(), s.ToString());
+                //sb.AppendFormat("修改表：{0} {1}", schema.ToString(), s.ToString());
             }
 
             if (!onlySql)
