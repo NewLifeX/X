@@ -271,43 +271,6 @@ namespace XCode.DataAccessLayer
             get { return _DataTypes ?? (_DataTypes = GetSchema(DbMetaDataCollectionNames.DataTypes, null)); }
         }
 
-        ///// <summary>
-        ///// 字段类型到数据类型对照表
-        ///// </summary>
-        ///// <param name="typeName"></param>
-        ///// <returns></returns>
-        //public virtual Type FieldTypeToClassType(String typeName)
-        //{
-        //    DataTable dt = DataTypes;
-        //    if (dt == null) return null;
-
-        //    DataRow[] drs = dt.Select(String.Format("TypeName='{0}'", typeName));
-        //    //if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0}", type));
-        //    if (drs == null || drs.Length < 1) return null;
-
-        //    if (!TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) return null;
-        //    return Type.GetType(typeName);
-        //}
-
-        ///// <summary>
-        ///// 数据类型到数据库类型
-        ///// </summary>
-        ///// <param name="type"></param>
-        ///// <returns></returns>
-        //public virtual String ClassTypeToFieldType(Type type)
-        //{
-        //    DataTable dt = DataTypes;
-        //    if (dt == null) return null;
-
-        //    String typeName = type.Name;
-
-        //    DataRow[] drs = dt.Select(String.Format("DataType='{0}'", typeName));
-        //    if (drs == null || drs.Length < 1) return null;
-
-        //    if (!TryGetDataRowValue<String>(drs[0], "TypeName", out typeName)) return null;
-        //    return typeName;
-        //}
-
         /// <summary>
         /// 查找指定字段指定类型的数据类型
         /// </summary>
@@ -348,17 +311,6 @@ namespace XCode.DataAccessLayer
                 if (drs2 == null || drs2.Length < 1) return drs;
                 if (drs2.Length == 1) return drs2;
 
-                //// 开始排除
-                //List<DataRow> list = new List<DataRow>(drs2);
-                //// 排除非最佳匹配
-                //if (list.Count > 1) list.RemoveAll(delegate(DataRow dr) { return !GetDataRowValue<Boolean>(dr, "IsBestMatch"); });
-                //// 排除非最佳匹配
-                //if (list.Count > 1) list.RemoveAll(delegate(DataRow dr) { return !GetDataRowValue<Boolean>(dr, "IsBestMatch"); });
-                //// 排除非最佳匹配
-                //if (list.Count > 1) list.RemoveAll(delegate(DataRow dr) { return !GetDataRowValue<Boolean>(dr, "IsBestMatch"); });
-                //// 排除非最佳匹配
-                //if (list.Count > 1) list.RemoveAll(delegate(DataRow dr) { return !GetDataRowValue<Boolean>(dr, "IsBestMatch"); });
-                //if (drs2.Length > 1) throw new XDbSessionException(this, "无法唯一识别类型！");
                 return drs2;
             }
             return null;
@@ -473,27 +425,27 @@ namespace XCode.DataAccessLayer
                 case DDLSchema.CreateTable:
                     return CreateTableSQL((XTable)values[0]);
                 case DDLSchema.DropTable:
-                    return DropTableSQL((String)values[0]);
+                    return DropTableSQL((XTable)values[0]);
                 case DDLSchema.TableExist:
-                    return TableExistSQL((String)values[0]);
+                    return TableExistSQL((XTable)values[0]);
                 case DDLSchema.AddTableDescription:
-                    return AddTableDescriptionSQL((String)values[0], (String)values[1]);
+                    return AddTableDescriptionSQL((XTable)values[0]);
                 case DDLSchema.DropTableDescription:
-                    return DropTableDescriptionSQL((String)values[0]);
+                    return DropTableDescriptionSQL((XTable)values[0]);
                 case DDLSchema.AddColumn:
-                    return AddColumnSQL((String)values[0], (XField)values[1]);
+                    return AddColumnSQL((XField)values[0]);
                 case DDLSchema.AlterColumn:
-                    return AlterColumnSQL((String)values[0], (XField)values[1]);
+                    return AlterColumnSQL((XField)values[0]);
                 case DDLSchema.DropColumn:
-                    return DropColumnSQL((String)values[0], (String)values[1]);
+                    return DropColumnSQL((XField)values[0]);
                 case DDLSchema.AddColumnDescription:
-                    return AddColumnDescriptionSQL((String)values[0], (String)values[1], (String)values[2]);
+                    return AddColumnDescriptionSQL((XField)values[0]);
                 case DDLSchema.DropColumnDescription:
-                    return DropColumnDescriptionSQL((String)values[0], (String)values[1]);
+                    return DropColumnDescriptionSQL((XField)values[0]);
                 case DDLSchema.AddDefault:
-                    return AddDefaultSQL((String)values[0], (XField)values[1]);
+                    return AddDefaultSQL((XField)values[0]);
                 case DDLSchema.DropDefault:
-                    return DropDefaultSQL((String)values[0], (String)values[1]);
+                    return DropDefaultSQL((XField)values[0]);
                 default:
                     break;
             }
@@ -660,71 +612,60 @@ namespace XCode.DataAccessLayer
             sb.AppendLine();
             sb.Append(")");
 
-            ////注释
-            //if (!String.IsNullOrEmpty(table.Description))
-            //{
-            //    String sql = AddTableDescriptionSQL(table.Name, table.Description);
-            //    if (!String.IsNullOrEmpty(sql))
-            //    {
-            //        sb.AppendLine(";");
-            //        sb.Append(sql);
-            //    }
-            //}
-
             return sb.ToString();
         }
 
-        public virtual String DropTableSQL(String tablename)
+        public virtual String DropTableSQL(XTable table)
         {
-            return String.Format("Drop Table {0}", FormatKeyWord(tablename));
+            return String.Format("Drop Table {0}", FormatKeyWord(table.Name));
         }
 
-        public virtual String TableExistSQL(String tablename)
+        public virtual String TableExistSQL(XTable table)
         {
             throw new NotSupportedException("该功能未实现！");
         }
 
-        public virtual String AddTableDescriptionSQL(String tablename, String description)
+        public virtual String AddTableDescriptionSQL(XTable table)
         {
             return null;
         }
 
-        public virtual String DropTableDescriptionSQL(String tablename)
+        public virtual String DropTableDescriptionSQL(XTable table)
         {
             return null;
         }
 
-        public virtual String AddColumnSQL(String tablename, XField field)
+        public virtual String AddColumnSQL(XField field)
         {
-            return String.Format("Alter Table {0} Add {1}", FormatKeyWord(tablename), FieldClause(field, true));
+            return String.Format("Alter Table {0} Add {1}", FormatKeyWord(field.Table.Name), FieldClause(field, true));
         }
 
-        public virtual String AlterColumnSQL(String tablename, XField field)
+        public virtual String AlterColumnSQL(XField field)
         {
-            return String.Format("Alter Table {0} Alter Column {1}", FormatKeyWord(tablename), FieldClause(field, false));
+            return String.Format("Alter Table {0} Alter Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
         }
 
-        public virtual String DropColumnSQL(String tablename, String columnname)
+        public virtual String DropColumnSQL(XField field)
         {
-            return String.Format("Alter Table {0} Drop Column {1}", FormatKeyWord(tablename), columnname);
+            return String.Format("Alter Table {0} Drop Column {1}", FormatKeyWord(field.Table.Name), field.Name);
         }
 
-        public virtual String AddColumnDescriptionSQL(String tablename, String columnname, String description)
-        {
-            return null;
-        }
-
-        public virtual String DropColumnDescriptionSQL(String tablename, String columnname)
+        public virtual String AddColumnDescriptionSQL(XField field)
         {
             return null;
         }
 
-        public virtual String AddDefaultSQL(String tablename, XField field)
+        public virtual String DropColumnDescriptionSQL(XField field)
         {
             return null;
         }
 
-        public virtual String DropDefaultSQL(String tablename, String columnname)
+        public virtual String AddDefaultSQL(XField field)
+        {
+            return null;
+        }
+
+        public virtual String DropDefaultSQL(XField field)
         {
             return null;
         }

@@ -328,7 +328,7 @@ namespace XCode.DataAccessLayer
         //    return base.SetSchema(schema, values);
         //}
 
-        public override string AlterColumnSQL(string tablename, XField field)
+        public override string AlterColumnSQL(XField field)
         {
             return null;
         }

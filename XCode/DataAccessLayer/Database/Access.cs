@@ -335,9 +335,9 @@ namespace XCode.DataAccessLayer
                 //    if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
                 //    return true;
                 case DDLSchema.AddTableDescription:
-                    return AddTableDescription((String)values[0], (String)values[1]);
+                    return AddTableDescription((XTable)values[0], ((XTable)values[0]).Description);
                 case DDLSchema.DropTableDescription:
-                    return DropTableDescription((String)values[0]);
+                    return DropTableDescription((XTable)values[0]);
                 //case DDLSchema.AddColumn:
                 //    obj = base.SetSchema(DDLSchema.AddColumn, values);
                 //    AddColumnDescription((String)values[0], ((XField)values[1]).Name, ((XField)values[1]).Description);
@@ -347,13 +347,13 @@ namespace XCode.DataAccessLayer
                 //case DDLSchema.DropColumn:
                 //    break;
                 case DDLSchema.AddColumnDescription:
-                    return AddColumnDescription((String)values[0], (String)values[1], (String)values[2]);
+                    return AddColumnDescription((XField)values[0], ((XField)values[0]).Description);
                 case DDLSchema.DropColumnDescription:
-                    return DropColumnDescription((String)values[0], (String)values[1]);
+                    return DropColumnDescription((XField)values[0]);
                 case DDLSchema.AddDefault:
-                    return AddDefault((String)values[0], (String)values[1], (String)values[2]);
+                    return AddDefault((XField)values[0], ((XField)values[0]).Default);
                 case DDLSchema.DropDefault:
-                    return DropDefault((String)values[0], (String)values[1]);
+                    return DropDefault((XField)values[0]);
                 default:
                     break;
             }
@@ -372,37 +372,37 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 表和字段备注
-        public Boolean AddTableDescription(String tablename, String description)
+        public Boolean AddTableDescription(XTable table, String value)
         {
             try
             {
-                using (ADOTabe table = GetTable(tablename))
+                using (ADOTabe tb = GetTable(table.Name))
                 {
-                    table.Description = description;
+                    tb.Description = value;
                     return true;
                 }
             }
             catch { return false; }
         }
 
-        public Boolean DropTableDescription(String tablename)
+        public Boolean DropTableDescription(XTable table)
         {
-            return AddTableDescription(tablename, null);
+            return AddTableDescription(table, null);
         }
 
-        public Boolean AddColumnDescription(String tablename, String columnname, String description)
+        public Boolean AddColumnDescription(XField field, String value)
         {
             try
             {
-                using (ADOTabe table = GetTable(tablename))
+                using (ADOTabe table = GetTable(field.Table.Name))
                 {
                     if (table.Supported && table.Columns != null)
                     {
                         foreach (ADOColumn item in table.Columns)
                         {
-                            if (item.Name == columnname)
+                            if (item.Name == field.Name)
                             {
-                                item.Description = description;
+                                item.Description = value;
                                 return true;
                             }
                         }
@@ -413,24 +413,24 @@ namespace XCode.DataAccessLayer
             catch { return false; }
         }
 
-        public Boolean DropColumnDescription(String tablename, String columnname)
+        public Boolean DropColumnDescription(XField field)
         {
-            return AddColumnDescription(tablename, columnname, null);
+            return AddColumnDescription(field, null);
         }
         #endregion
 
         #region 默认值
-        public virtual Boolean AddDefault(String tablename, String columnname, String value)
+        public virtual Boolean AddDefault(XField field, String value)
         {
             try
             {
-                using (ADOTabe table = GetTable(tablename))
+                using (ADOTabe table = GetTable(field.Table.Name))
                 {
                     if (table.Supported && table.Columns != null)
                     {
                         foreach (ADOColumn item in table.Columns)
                         {
-                            if (item.Name == columnname)
+                            if (item.Name == field.Name)
                             {
                                 item.Default = value;
                                 return true;
@@ -443,9 +443,9 @@ namespace XCode.DataAccessLayer
             catch { return false; }
         }
 
-        public virtual Boolean DropDefault(String tablename, String columnname)
+        public virtual Boolean DropDefault(XField field)
         {
-            return AddDefault(tablename, columnname, null);
+            return AddDefault(field, null);
         }
         #endregion
 

@@ -312,90 +312,43 @@ namespace XCode.DataAccessLayer
 
         private void CheckTable(XTable entitytable, XTable dbtable)
         {
-            String sql = String.Empty;
+            Boolean onlySql = !(Enable != null && Enable.Value);
+
             if (dbtable == null)
             {
                 #region 创建表
-                if (Enable != null && Enable.Value)
-                {
-                    XTrace.WriteLine("创建表：" + entitytable.Name);
-                    // 建表
-                    MetaData.SetSchema(DDLSchema.CreateTable, new Object[] { entitytable });
-                    // 加上表注释
-                    if (!String.IsNullOrEmpty(entitytable.Description))
-                    {
-                        MetaData.SetSchema(DDLSchema.AddTableDescription, new Object[] { entitytable.Name, entitytable.Description });
-                    }
-                    // 加上字段注释
-                    foreach (XField item in entitytable.Fields)
-                    {
-                        if (!String.IsNullOrEmpty(item.Description))
-                        {
-                            MetaData.SetSchema(DDLSchema.AddColumnDescription, new Object[] { entitytable.Name, item.Name, item.Description });
-                        }
-                    }
-                }
-                else
-                {
-                    StringBuilder sb = new StringBuilder();
-                    sb.AppendLine(MetaData.GetSchemaSQL(DDLSchema.CreateTable, new Object[] { entitytable }) + ";");
-                    // 加上表注释
-                    if (!String.IsNullOrEmpty(entitytable.Description))
-                    {
-                        sql = MetaData.GetSchemaSQL(DDLSchema.AddTableDescription, new Object[] { entitytable.Name, entitytable.Description });
-                        if (!String.IsNullOrEmpty(sql)) sb.AppendLine(sql + ";");
-                    }
-                    // 加上字段注释
-                    foreach (XField item in entitytable.Fields)
-                    {
-                        if (!String.IsNullOrEmpty(item.Description))
-                        {
-                            sql = MetaData.GetSchemaSQL(DDLSchema.AddColumnDescription, new Object[] { entitytable.Name, item.Name, item.Description });
-                            if (!String.IsNullOrEmpty(sql)) sb.AppendLine(sql + ";");
-                        }
-                    }
+                XTrace.WriteLine("创建表：" + entitytable.Name);
 
-                    sql = sb.ToString();
-                    XTrace.WriteLine("XCode.Schema.Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sql);
-                }
+                StringBuilder sb = new StringBuilder();
+                // 建表，如果不是onlySql，执行时DAL会输出SQL日志
+                CreateTable(sb, entitytable, onlySql);
+
+                // 仅获取语句
+                if (onlySql) XTrace.WriteLine("XCode.Schema.Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sb.ToString());
                 #endregion
             }
             else
             {
                 #region 修改表
-                if (Enable != null && Enable.Value)
+                String sql = AlterTable(entitytable, dbtable, onlySql);
+                if (!String.IsNullOrEmpty(sql) && onlySql)
                 {
-                    AlterTable(entitytable, dbtable, false);
-                }
-                else
-                {
-                    sql = AlterTable(entitytable, dbtable, true);
-                    if (!String.IsNullOrEmpty(sql))
-                    {
-                        if (Enable != null && Enable.Value)
-                        {
-                            XTrace.WriteLine("修改表：" + Environment.NewLine + sql);
-                            //拆分成多条执行
-                            String[] sqls = sql.Split(new String[] { ";" + Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-                            foreach (String item in sqls)
-                            {
-                                try
-                                {
-                                    Database.Execute(item, "");
-                                }
-                                catch { }
-                            }
-                        }
-                        else
-                            XTrace.WriteLine("XCode.Schema.Enable没有设置为True，请手工使用以下语句修改表：" + Environment.NewLine + sql);
-                    }
+                    XTrace.WriteLine("XCode.Schema.Enable没有设置为True，请手工使用以下语句修改表：" + Environment.NewLine + sql);
                 }
                 #endregion
             }
         }
 
+        /// <summary>
+        /// 该执行的已经执行
+        /// </summary>
+        /// <param name="entitytable"></param>
+        /// <param name="dbtable"></param>
+        /// <param name="onlySql"></param>
+        /// <returns></returns>
         private String AlterTable(XTable entitytable, XTable dbtable, Boolean onlySql)
         {
+            #region 准备工作
             String sql = String.Empty;
             StringBuilder sb = new StringBuilder();
             Dictionary<String, XField> entitydic = new Dictionary<String, XField>();
@@ -414,16 +367,12 @@ namespace XCode.DataAccessLayer
                     dbdic.Add(item.Name.ToLower(), item);
                 }
             }
+            #endregion
 
             #region 新增列
             foreach (XField item in entitytable.Fields)
             {
-                if (dbdic.ContainsKey(item.Name.ToLower())) continue;
-
-                GetSchemaSQL(sb, DDLSchema.AddColumn, new Object[] { entitytable.Name, item }, onlySql);
-
-                //if (!String.IsNullOrEmpty(item.Default)) GetSchemaSQL(sb, DDLSchema.AddDefault, new Object[] { entitytable.Name, item.Name, item.Default });
-                if (!String.IsNullOrEmpty(item.Description)) GetSchemaSQL(sb, DDLSchema.AddColumnDescription, new Object[] { entitytable.Name, item.Name, item.Description }, true);
+                if (!dbdic.ContainsKey(item.Name.ToLower())) AddColumn(sb, item, onlySql);
             }
             #endregion
 
@@ -432,12 +381,7 @@ namespace XCode.DataAccessLayer
             Dictionary<String, FieldItem> names = new Dictionary<String, FieldItem>();
             foreach (XField item in dbtable.Fields)
             {
-                if (entitydic.ContainsKey(item.Name.ToLower())) continue;
-
-                //if (!String.IsNullOrEmpty(item.Default)) GetSchemaSQL(sb2, DDLSchema.DropDefault, new Object[] { entitytable.Name, item.Name });
-                if (!String.IsNullOrEmpty(item.Description)) GetSchemaSQL(sbDelete, DDLSchema.DropColumnDescription, new Object[] { entitytable.Name, item.Name }, true);
-
-                GetSchemaSQL(sbDelete, DDLSchema.DropColumn, new Object[] { entitytable.Name, item.Name }, onlySql);
+                if (!entitydic.ContainsKey(item.Name.ToLower())) DropColumn(sbDelete, item, onlySql);
             }
             if (sbDelete.Length > 0)
             {
@@ -479,18 +423,10 @@ namespace XCode.DataAccessLayer
                     b = true;
 
                     //如果是大文本类型，长度可能不等
-                    //if (Database.DbType == DatabaseType.Access && item.Length > 255 && dbf.Length > 255) b = false;
-                    //if (Database.DbType == DatabaseType.SqlServer && item.Length > 4000 && dbf.Length > 4000) b = false;
-                    //if (Database.DbType == DatabaseType.SqlServer2005 && item.Length > 4000 && dbf.Length > 4000) b = false;
-                    if (item.Length > Database.Db.LongTextLength &&
-                        dbf.Length > dbDb.LongTextLength)
-                        b = false;
+                    if (item.Length > Database.Db.LongTextLength && dbf.Length > dbDb.LongTextLength) b = false;
                 }
 
-                if (b)
-                {
-                    GetSchemaSQL(sb, DDLSchema.AlterColumn, new Object[] { entitytable.Name, item }, onlySql);
-                }
+                if (b) AlterColumn(sb, item, onlySql);
 
                 //比较默认值
                 b = String.Equals(item.Default, dbf.Default, StringComparison.OrdinalIgnoreCase);
@@ -498,34 +434,24 @@ namespace XCode.DataAccessLayer
                 //特殊处理时间
                 if (!b && Type.GetTypeCode(item.DataType) == TypeCode.DateTime && !String.IsNullOrEmpty(item.Default) && !String.IsNullOrEmpty(dbf.Default))
                 {
-                    ////Access数据库，实体默认值是getdate()，数据库默认值是now()，有效
-                    //if (Database.DbType == DatabaseType.Access && item.Default.Equals(sq.DateTimeNow, StringComparison.OrdinalIgnoreCase) && dbf.Default.Equals(ac.DateTimeNow, StringComparison.OrdinalIgnoreCase))
-                    //    b = true;
-                    ////SqlServer数据库，实体默认值是now()，数据库默认值是getdate()，有效
-                    //else if ((Database.DbType == DatabaseType.SqlServer || Database.DbType == DatabaseType.SqlServer2005) && item.Default.Equals(ac.DateTimeNow, StringComparison.OrdinalIgnoreCase) && dbf.Default.Equals(sq.DateTimeNow, StringComparison.OrdinalIgnoreCase))
-                    //    b = true;
-
                     if (Database.Db.DateTimeNow == item.Default && dbDb.DateTimeNow != dbf.Default) b = true;
                 }
 
                 if (!b)
                 {
                     if (!String.IsNullOrEmpty(dbf.Default))
-                    {
-                        //XTrace.WriteLine("请手工删除{0}表{1}字段的默认值！", dbtable.Name, dbf.Name);
-                        GetSchemaSQL(sb, DDLSchema.DropDefault, new Object[] { entitytable.Name, dbf.Name }, onlySql);
-                    }
+                        GetSchemaSQL(sb, onlySql, DDLSchema.DropDefault, dbf);
                     if (!String.IsNullOrEmpty(item.Default))
-                    {
-                        //XTrace.WriteLine("请手工添加{0}表{1}字段的默认值（{2}）！", entitytable.Name, item.Name, item.Default);
-                        GetSchemaSQL(sb, DDLSchema.AddDefault, new Object[] { entitytable.Name, item }, onlySql);
-                    }
+                        GetSchemaSQL(sb, onlySql, DDLSchema.AddDefault, item);
                 }
 
                 if (item.Description != dbf.Description)
                 {
-                    if (!String.IsNullOrEmpty(dbf.Description)) GetSchemaSQL(sb, DDLSchema.DropColumnDescription, new Object[] { entitytable.Name, dbf.Name }, onlySql);
-                    if (!String.IsNullOrEmpty(item.Description)) GetSchemaSQL(sb, DDLSchema.AddColumnDescription, new Object[] { entitytable.Name, item.Name, item.Description }, onlySql);
+                    // 先删除旧注释
+                    if (!String.IsNullOrEmpty(dbf.Description)) DropColumnDescription(sb, dbf, onlySql);
+
+                    // 加上新注释
+                    if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(sb, item, onlySql);
                 }
             }
             #endregion
@@ -533,15 +459,11 @@ namespace XCode.DataAccessLayer
             #region 表说明
             if (entitytable.Description != dbtable.Description)
             {
-                if (String.IsNullOrEmpty(entitytable.Description))
-                    GetSchemaSQL(sb, DDLSchema.DropTableDescription, new Object[] { entitytable.Name }, onlySql);
-                else
-                {
-                    // 先删除旧注释
-                    GetSchemaSQL(sb, DDLSchema.DropTableDescription, new Object[] { dbtable.Name }, onlySql);
+                // 先删除旧注释
+                if (!String.IsNullOrEmpty(dbtable.Description)) DropTableDescription(sb, dbtable, onlySql);
 
-                    GetSchemaSQL(sb, DDLSchema.AddTableDescription, new Object[] { entitytable.Name, entitytable.Description }, onlySql);
-                }
+                // 加上新注释
+                if (!String.IsNullOrEmpty(entitytable.Description)) AddTableDescription(sb, entitytable, onlySql);
             }
             #endregion
 
@@ -572,11 +494,19 @@ namespace XCode.DataAccessLayer
 
             return table;
         }
+        #endregion
 
-        //private static AccessSession ac;//= new AccessSession();
-        //private static SqlServerSession sq;//= new SqlServerSession();
-
-        private void GetSchemaSQL(StringBuilder sb, DDLSchema schema, Object[] values, Boolean onlySql)
+        #region 架构定义
+        /// <summary>
+        /// 获取架构语句，该执行的已经执行。
+        /// 如果取不到语句，则输出日志信息；
+        /// 如果不是纯语句，则执行；
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <param name="onlySql"></param>
+        /// <param name="schema"></param>
+        /// <param name="values"></param>
+        private void GetSchemaSQL(StringBuilder sb, Boolean onlySql, DDLSchema schema, params Object[] values)
         {
             String sql = MetaData.GetSchemaSQL(schema, values);
             if (!String.IsNullOrEmpty(sql))
@@ -584,10 +514,11 @@ namespace XCode.DataAccessLayer
                 if (sb.Length > 0) sb.AppendLine(";");
                 sb.Append(sql);
 
-                if (!onlySql) XTrace.WriteLine("修改表：" + sql);
+                //if (!onlySql) XTrace.WriteLine("修改表：" + sql);
             }
             else if (!onlySql)
             {
+                // 没办法形成SQL，输出日志信息
                 StringBuilder s = new StringBuilder();
                 if (values != null && values.Length > 0)
                 {
@@ -597,7 +528,8 @@ namespace XCode.DataAccessLayer
                         s.Append(item);
                     }
                 }
-                XTrace.WriteLine("修改表：{0} {1}", schema.ToString(), s.ToString());
+                //XTrace.WriteLine("修改表：{0} {1}", schema.ToString(), s.ToString());
+                sb.AppendFormat("修改表：{0} {1}", schema.ToString(), s.ToString());
             }
 
             if (!onlySql)
@@ -611,6 +543,59 @@ namespace XCode.DataAccessLayer
                     XTrace.WriteLine("修改表{0}失败！{1}", schema.ToString(), ex.Message);
                 }
             }
+        }
+
+        void CreateTable(StringBuilder sb, XTable table, Boolean onlySql)
+        {
+            GetSchemaSQL(sb, onlySql, DDLSchema.CreateTable, table);
+
+            // 加上表注释
+            if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(sb, table, onlySql);
+
+            // 加上字段注释
+            foreach (XField item in table.Fields)
+            {
+                if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(sb, item, onlySql);
+            }
+        }
+
+        void AddTableDescription(StringBuilder sb, XTable table, Boolean onlySql)
+        {
+            GetSchemaSQL(sb, onlySql, DDLSchema.AddTableDescription, table);
+        }
+
+        void DropTableDescription(StringBuilder sb, XTable table, Boolean onlySql)
+        {
+            GetSchemaSQL(sb, onlySql, DDLSchema.DropTableDescription, table);
+        }
+
+        void AddColumn(StringBuilder sb, XField field, Boolean onlySql)
+        {
+            GetSchemaSQL(sb, onlySql, DDLSchema.AddColumn, field);
+
+            if (!String.IsNullOrEmpty(field.Description)) AddColumnDescription(sb, field, onlySql);
+        }
+
+        void AddColumnDescription(StringBuilder sb, XField field, Boolean onlySql)
+        {
+            GetSchemaSQL(sb, onlySql, DDLSchema.AddColumnDescription, field);
+        }
+
+        void DropColumn(StringBuilder sb, XField field, Boolean onlySql)
+        {
+            if (!String.IsNullOrEmpty(field.Description)) DropColumnDescription(sb, field, onlySql);
+
+            GetSchemaSQL(sb, onlySql, DDLSchema.DropColumn, field);
+        }
+
+        void DropColumnDescription(StringBuilder sb, XField field, Boolean onlySql)
+        {
+            GetSchemaSQL(sb, onlySql, DDLSchema.DropColumnDescription, field);
+        }
+
+        void AlterColumn(StringBuilder sb, XField field, Boolean onlySql)
+        {
+            GetSchemaSQL(sb, onlySql, DDLSchema.AlterColumn, field);
         }
         #endregion
 
