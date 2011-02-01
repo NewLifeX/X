@@ -145,8 +145,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Template\页面\类名Form.aspx">
-      <SubType>ASPXCodeBehind</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>ASPXCodeBehind</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Template\表单2\类名Form.aspx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
