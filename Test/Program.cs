@@ -1,25 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using NewLife;
+using NewLife.CommonEntity;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
+using NewLife.Net.UPnP;
 using NewLife.PeerToPeer.Messages;
 using NewLife.Reflection;
-using NewLife.IO;
-using XCode.DataAccessLayer;
 using XCode;
-using System.ComponentModel;
-using NewLife.CommonEntity;
-using System.Data;
-using System.Xml;
-using System.Text;
-using NewLife.Net.UPnP;
-using System.Web.Services.Protocols;
-using NewLife;
+using XCode.DataAccessLayer;
 
 namespace Test
 {
@@ -36,7 +32,7 @@ namespace Test
                 try
                 {
 #endif
-                Test9();
+                Test7();
                 //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
@@ -262,42 +258,10 @@ namespace Test
 
         static void Test7()
         {
-            //DescriptionAttribute att = AttributeX.GetCustomAttribute<DescriptionAttribute>(typeof(Menu));
-            //Console.WriteLine(att == null);
+            DAL dal = Administrator.Meta.DBO;
+            DatabaseSchema.Create(dal).CheckTable("Area");
 
-            Log log = new Log();
-            log.Action = "test";
-            log.Save();
-
-            log = Log.FindByKey(log.ID);
-
-            Console.WriteLine(log.Action);
-            Console.WriteLine(log.OccurTime);
-
-            TypeX type = typeof(PermissionFlags);
-            foreach (FieldInfoX item in type.Fields)
-            {
-                Console.WriteLine(item.Field.IsStatic + " " + item.Field.Name);
-            }
-
-            Dictionary<PermissionFlags, String> flags = GetDescriptions();
-            Console.WriteLine(flags == null);
-
-            String str = AttributeX.GetCustomAttributeValue<DescriptionAttribute, String>(typeof(Menu), false);
-            Console.WriteLine(str);
-
-            //Log log = Log.Create(typeof(Administrator), "Add");
-            //Console.WriteLine(log.Category);
-
-            Administrator admin = Administrator.Login("admin", "admin");
-            Console.WriteLine(admin == null);
-
-            XCodeTest.MulThread(5);
-
-            //XCodeTest.DynTest();
-
-            //Menu menu = Menu.Root.Childs[0];
-            //Console.WriteLine(menu.ToString());
+            //XCodeTest.MulThread(1);
         }
 
         static Dictionary<PermissionFlags, String> flagCache;
