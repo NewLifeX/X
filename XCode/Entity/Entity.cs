@@ -342,7 +342,7 @@ namespace XCode
             FieldItem fi = Meta.Unique;
             if (fi != null && fi.DataObjectField.IsIdentity || fi.Property.PropertyType == typeof(Int32))
             {
-                Int64 id = (Int64)this[Meta.Unique.Name];
+                Int64 id = Convert.ToInt64(this[Meta.Unique.Name]);
                 if (id > 0)
                     return Update();
                 else
