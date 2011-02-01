@@ -130,7 +130,7 @@ namespace NewLife.Reflection
         DictionaryCache<ConstructorInfo, FastHandler> _cache = new DictionaryCache<ConstructorInfo, FastHandler>();
         FastHandler GetHandler(Type[] paramTypes)
         {
-            ConstructorInfo constructor = BaseType.GetConstructor(DefaultBinding, null, paramTypes, null);
+            ConstructorInfo constructor = BaseType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, paramTypes, null);
             //if (constructor == null) throw new Exception("没有找到匹配的构造函数！");
             if (constructor == null) return null;
 
