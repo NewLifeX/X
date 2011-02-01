@@ -137,6 +137,10 @@ namespace XCode.DataAccessLayer
                 if (String.IsNullOrEmpty(value.ToString()) && field.Nullable) return "null";
                 return "`" + value + "`";
             }
+            else if (field.DataType == typeof(Boolean))
+            {
+                return (Boolean)value ? "'Y'" : "'N'";
+            }
 
             return base.FormatValue(field, value);
         }
@@ -188,6 +192,15 @@ namespace XCode.DataAccessLayer
     /// </summary>
     class MySqlMetaData : NetDbMetaData
     {
+        protected override void FixTable(XTable table, DataRow dr)
+        {
+            // 注释
+            String comment = null;
+            if (TryGetDataRowValue<String>(dr, "TABLE_COMMENT", out comment)) table.Description = comment;
+
+            base.FixTable(table, dr);
+        }
+
         protected override void FixField(XField field, DataRow dr)
         {
             // 修正原始类型
@@ -197,6 +210,10 @@ namespace XCode.DataAccessLayer
             // 修正自增字段
             String extra = null;
             if (TryGetDataRowValue<String>(dr, "EXTRA", out extra) && extra == "auto_increment") field.Identity = true;
+
+            // 注释
+            String comment = null;
+            if (TryGetDataRowValue<String>(dr, "COLUMN_COMMENT", out comment)) field.Description = comment;
 
             base.FixField(field, dr);
         }
@@ -221,8 +238,51 @@ namespace XCode.DataAccessLayer
                             return new DataRow[] { dr };
                     }
                 }
+
+                // 字符串
+                if (typeName == typeof(String).FullName)
+                {
+                    foreach (DataRow dr in drs)
+                    {
+                        String name = GetDataRowValue<String>(dr, "TypeName");
+                        if (name == "NVARCHAR" && field.Length <= Database.LongTextLength)
+                            return new DataRow[] { dr };
+                        else if (name == "LONGTEXT" && field.Length > Database.LongTextLength)
+                            return new DataRow[] { dr };
+                    }
+                }
             }
             return drs;
+        }
+
+        protected override void SetFieldType(XField field, string typeName)
+        {
+            if (typeName == "enum")
+            {
+                // MySql中没有布尔型，这里处理YN枚举作为布尔型
+                if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
+                {
+                    field.DataType = typeof(Boolean);
+                    // 处理默认值
+                    if (!String.IsNullOrEmpty(field.Default))
+                    {
+                        if (field.Default == "Y")
+                            field.Default = "true";
+                        else if (field.Default == "N")
+                            field.Default = "false";
+                    }
+                    return;
+                }
+            }
+
+            base.SetFieldType(field, typeName);
+        }
+
+        protected override string GetFieldType(XField field)
+        {
+            if (field.DataType == typeof(Boolean)) return "enum('N','Y')";
+
+            return base.GetFieldType(field);
         }
 
         public override string FieldClause(XField field, bool onlyDefine)
@@ -236,11 +296,26 @@ namespace XCode.DataAccessLayer
         protected override string GetFieldConstraints(XField field, Boolean onlyDefine)
         {
             String str = null;
-            if (!field.Nullable) str = "NOT NULL";
+            if (!field.Nullable) str = " NOT NULL";
 
             if (field.Identity) str = " NOT NULL AUTO_INCREMENT";
 
             return str;
+        }
+
+        protected override string GetFieldDefault(XField field, bool onlyDefine)
+        {
+            if (String.IsNullOrEmpty(field.Default)) return null;
+
+            if (field.DataType == typeof(Boolean))
+            {
+                if (field.Default == "true")
+                    return " Default 'Y'";
+                else if (field.Default == "false")
+                    return " Default 'N'";
+            }
+
+            return base.GetFieldDefault(field, onlyDefine);
         }
 
         //protected override void SetFieldType(XField field, string typeName)
@@ -304,7 +379,7 @@ namespace XCode.DataAccessLayer
             if (!String.IsNullOrEmpty(key))
             {
                 sb.AppendLine(",");
-                sb.AppendFormat("Primary Key ({0})", FormatKeyWord(key));
+                sb.AppendFormat("\tPrimary Key ({0})", FormatKeyWord(key));
             }
             sb.AppendLine();
             sb.Append(")");
@@ -319,12 +394,17 @@ namespace XCode.DataAccessLayer
             return String.Format("Alter Table {0} Comment '{1}'", FormatKeyWord(table.Name), table.Description);
         }
 
-        public override string AddColumnDescriptionSQL(XField field)
+        public override string AlterColumnSQL(XField field)
         {
-            if (String.IsNullOrEmpty(field.Description)) return null;
-
-            return String.Format("Alter Table {0} Modify {1} Comment '{2}'", FormatKeyWord(field.Table.Name), FormatKeyWord(field.Name), field.Description);
+            return String.Format("Alter Table {0} Modify Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
         }
+
+        //public override string AddColumnDescriptionSQL(XField field)
+        //{
+        //    if (String.IsNullOrEmpty(field.Description)) return null;
+
+        //    return String.Format("Alter Table {0} Modify {1} Comment '{2}'", FormatKeyWord(field.Table.Name), FormatKeyWord(field.Name), field.Description);
+        //}
         #endregion
     }
 }

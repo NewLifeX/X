@@ -96,6 +96,8 @@ namespace XCode.DataAccessLayer
                         if (Debug) WriteLog(ex.ToString());
                     }
 
+                    FixTable(table, dr);
+
                     list.Add(table);
                 }
 
@@ -105,6 +107,15 @@ namespace XCode.DataAccessLayer
             {
                 throw new XDbMetaDataException(this, "取得所有表构架出错！", ex);
             }
+        }
+
+        /// <summary>
+        /// 修正表
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="dr"></param>
+        protected virtual void FixTable(XTable table, DataRow dr)
+        {
         }
 
         /// <summary>
@@ -565,16 +576,16 @@ namespace XCode.DataAccessLayer
 
             TypeCode tc = Type.GetTypeCode(field.DataType);
             if (tc == TypeCode.String)
-                return String.Format(" DEFAULT '{0}'", field.Default);
+                return String.Format(" Default '{0}'", field.Default);
             else if (tc == TypeCode.DateTime)
             {
                 String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
                 //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = "now()";
                 //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
-                return String.Format(" DEFAULT {0}", d);
+                return String.Format(" Default {0}", d);
             }
             else
-                return String.Format(" DEFAULT {0}", field.Default);
+                return String.Format(" Default {0}", field.Default);
         }
         #endregion
 
