@@ -5,13 +5,12 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Reflection;
+using System.Web;
+using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Reflection;
 using NewLife.Web;
 using XCode.DataAccessLayer;
-using NewLife.Log;
-using System.Web.UI;
-using System.Web;
 
 public partial class Admin_System_WebDb : System.Web.UI.Page
 {
