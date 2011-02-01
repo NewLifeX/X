@@ -534,8 +534,10 @@ namespace XCode.DataAccessLayer
 
                 //if (!onlySql) XTrace.WriteLine("修改表：" + sql);
             }
-            else //if (!onlySql)
+            else if (sql == null)
             {
+                // 只有null才表示通过非SQL的方式处理，而String.Empty表示已经通过别的SQL处理，这里不用输出日志
+
                 // 没办法形成SQL，输出日志信息
                 StringBuilder s = new StringBuilder();
                 if (values != null && values.Length > 0)

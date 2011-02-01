@@ -211,6 +211,10 @@ namespace XCode.DataAccessLayer
             String extra = null;
             if (TryGetDataRowValue<String>(dr, "EXTRA", out extra) && extra == "auto_increment") field.Identity = true;
 
+            // 修正主键
+            String key = null;
+            if (TryGetDataRowValue<String>(dr, "COLUMN_KEY", out key)) field.PrimaryKey = key == "PRI";
+
             // 注释
             String comment = null;
             if (TryGetDataRowValue<String>(dr, "COLUMN_COMMENT", out comment)) field.Description = comment;
@@ -248,6 +252,22 @@ namespace XCode.DataAccessLayer
                         if (name == "NVARCHAR" && field.Length <= Database.LongTextLength)
                             return new DataRow[] { dr };
                         else if (name == "LONGTEXT" && field.Length > Database.LongTextLength)
+                            return new DataRow[] { dr };
+                    }
+                }
+
+                // 时间日期
+                if (typeName == typeof(DateTime).FullName)
+                {
+                    // DateTime的范围是0001到9999
+                    // Timestamp的范围是1970到2038
+                    String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
+                    foreach (DataRow dr in drs)
+                    {
+                        String name = GetDataRowValue<String>(dr, "TypeName");
+                        if (name == "DATETIME" && String.IsNullOrEmpty(field.Default))
+                            return new DataRow[] { dr };
+                        else if (name == "TIMESTAMP" && (d == "now()" || field.Default == "CURRENT_TIMESTAMP"))
                             return new DataRow[] { dr };
                     }
                 }
@@ -314,6 +334,12 @@ namespace XCode.DataAccessLayer
                 else if (field.Default == "false")
                     return " Default 'N'";
             }
+            //else if (field.DataType == typeof(DateTime))
+            //{
+            //    String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
+            //    if (d == "now()") d = "CURRENT_TIMESTAMP";
+            //    return String.Format(" Default {0}", d);
+            //}
 
             return base.GetFieldDefault(field, onlyDefine);
         }
@@ -348,15 +374,15 @@ namespace XCode.DataAccessLayer
             return base.SetSchema(schema, values);
         }
 
+        //public override string CreateDatabaseSQL(string dbname, string file)
+        //{
+        //    return String.Format("Create Database Binary {0}", FormatKeyWord(dbname));
+        //}
+
         public override string DropDatabaseSQL(string dbname)
         {
             return String.Format("Drop Database If Exists {0}", FormatKeyWord(dbname));
         }
-
-        //public override string DatabaseExistSQL(string dbname)
-        //{
-        //    return String.Format("Select * From db Where 1=0", dbname);
-        //}
 
         public override String CreateTableSQL(XTable table)
         {
@@ -399,12 +425,19 @@ namespace XCode.DataAccessLayer
             return String.Format("Alter Table {0} Modify Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
         }
 
-        //public override string AddColumnDescriptionSQL(XField field)
-        //{
-        //    if (String.IsNullOrEmpty(field.Description)) return null;
+        public override string AddColumnDescriptionSQL(XField field)
+        {
+            // 返回String.Empty表示已经在别的SQL中处理
+            return String.Empty;
 
-        //    return String.Format("Alter Table {0} Modify {1} Comment '{2}'", FormatKeyWord(field.Table.Name), FormatKeyWord(field.Name), field.Description);
-        //}
+            //if (String.IsNullOrEmpty(field.Description)) return null;
+
+            //return String.Format("Alter Table {0} Modify {1} Comment '{2}'", FormatKeyWord(field.Table.Name), FormatKeyWord(field.Name), field.Description);
+        }
+        #endregion
+
+        #region 辅助函数
+
         #endregion
     }
 }

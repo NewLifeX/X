@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("6.6.*")]
-[assembly: AssemblyFileVersion("6.6.2010.1230")]
+[assembly: AssemblyVersion("7.0.*")]
+[assembly: AssemblyFileVersion("7.0.2011.0201")]
 
 /*
  * XCode的重大改进
@@ -48,6 +48,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.0.2011.0201   重写数据访问层，便于功能扩展
+ *                  重写数据架构（反向工程），完善SQLite和MySql的反向工程支持
+ * 
  * v6.6.2010.1230   修改XCode类型映射模型，统一使用Schema信息，不再人为指定类型映射，全部交由数据库提供者处理
  *                  由C#类型反向到数据类型的映射尚未完成
  * 
