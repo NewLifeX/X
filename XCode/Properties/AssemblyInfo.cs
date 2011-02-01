@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("XCode")]
-[assembly: AssemblyCopyright("版权所有 (C) 新生命开发团队 2009")]
+[assembly: AssemblyCopyright("版权所有 (C) 新生命开发团队 2002~2011")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

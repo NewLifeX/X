@@ -13,6 +13,35 @@ namespace XCode.DataAccessLayer
         #region 属性
         /// <summary>系统数据库名</summary>
         public virtual String SystemDatabaseName { get { return "master"; } }
+
+        private String _ServerVersion;
+        /// <summary>
+        /// 数据库服务器版本
+        /// </summary>
+        public override String ServerVersion
+        {
+            get
+            {
+                if (_ServerVersion != null) return _ServerVersion;
+                _ServerVersion = String.Empty;
+
+                IDbSession session = CreateSession();
+                String dbname = session.DatabaseName;
+                if (dbname != SystemDatabaseName) session.DatabaseName = SystemDatabaseName;
+                if (!session.Opened) session.Open();
+                try
+                {
+                    _ServerVersion = session.Conn.ServerVersion;
+
+                    return _ServerVersion;
+                }
+                finally
+                {
+                    if (dbname != SystemDatabaseName) session.DatabaseName = dbname;
+                    session.AutoClose();
+                }
+            }
+        }
         #endregion
     }
 

@@ -103,7 +103,7 @@ namespace XCoder
         {
             List<String> list = new List<String>();
             // 加上本机
-            DAL.AddConnStr("localhost", "server=.;Integrated Security=SSPI;Database=master", null, "sql2000");
+            DAL.AddConnStr("localhost", "server=.;Integrated Security=SSPI;Database=master", null, "sqlclient");
             foreach (String item in DAL.ConnStrs.Keys)
             {
                 if (!String.IsNullOrEmpty(DAL.ConnStrs[item].ConnectionString)) list.Add(item);
@@ -121,11 +121,10 @@ namespace XCoder
                     // 列出所有数据库
                     if (dal.DbType == DatabaseType.SqlServer)
                     {
-                        ds = dal.Select("SELECT name FROM sysdatabases", "");
-                    }
-                    else if (dal.DbType == DatabaseType.SqlServer2005)
-                    {
-                        ds = dal.Select("SELECT name FROM sys.databases", "");
+                        if (dal.Db.ServerVersion.StartsWith("08"))
+                            ds = dal.Select("SELECT name FROM sysdatabases", "");
+                        else
+                            ds = dal.Select("SELECT name FROM sys.databases", "");
                     }
                     else
                         continue;
@@ -146,7 +145,7 @@ namespace XCoder
 
                         try
                         {
-                            String ver = dal.DB.ServerVersion;
+                            String ver = dal.Db.ServerVersion;
                             names.Add(connName);
                         }
                         catch

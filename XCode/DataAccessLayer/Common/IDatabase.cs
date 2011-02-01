@@ -37,10 +37,10 @@ namespace XCode.DataAccessLayer
         /// </summary>
         String Owner { get; set; }
 
-        ///// <summary>
-        ///// 数据库服务器版本
-        ///// </summary>
-        //String ServerVersion { get; }
+        /// <summary>
+        /// 数据库服务器版本
+        /// </summary>
+        String ServerVersion { get; }
         #endregion
 
         #region 方法
