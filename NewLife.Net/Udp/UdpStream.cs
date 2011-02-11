@@ -32,7 +32,7 @@
 //        public UdpStream(Socket socket, EndPoint remote) : this(socket, Stream.Null, remote) { }
 
 //        /// <summary>
-//        /// 使用Socket和输入流初始化一个Socket流，该流讲从输入流中读取数据，并把输出的数据写入到Socket中
+//        /// 使用Socket和输入流初始化一个Socket流，该流将从输入流中读取数据，并把输出的数据写入到Socket中
 //        /// </summary>
 //        /// <param name="socket"></param>
 //        /// <param name="inputStream"></param>

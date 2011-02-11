@@ -105,7 +105,7 @@ namespace NewLife.Net.Sockets
         }
 
         /// <summary>
-        /// 讲接收缓冲区中的数据写入流
+        /// 将接收缓冲区中的数据写入流
         /// </summary>
         /// <param name="stream"></param>
         public void WriteTo(Stream stream)
