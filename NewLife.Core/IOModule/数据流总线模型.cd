@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="NewLife.IO.StreamHttpHandler" BaseTypeListCollapsed="true">
+    <Position X="6.25" Y="0.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAABgAAAAAAAFAAIAAAAQAAAAAAAAAAAAAABAA=</HashCode>
+      <FileName>IOModule\StreamHttpHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="NewLife.IO.StreamHandler" BaseTypeListCollapsed="true">
+    <Position X="4.25" Y="0.75" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AIAAAAAABAAAAAAIAgAAAACAAAABAAAQCAACAAAAAAA=</HashCode>
+      <FileName>IOModule\IStreamHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Interface Name="NewLife.IO.IStreamHandler">
+    <Position X="2.25" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAABAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IOModule\IStreamHandler.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="微软雅黑" Size="9" />
+</ClassDiagram>

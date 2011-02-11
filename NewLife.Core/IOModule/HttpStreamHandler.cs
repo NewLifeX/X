@@ -8,7 +8,7 @@ namespace NewLife.IO
     /// <summary>
     /// 数据流Http处理器。可以在web.config中配置一个处理器指向该类。
     /// </summary>
-    public class StreamHttpHandler : IHttpHandler
+    public class HttpStreamHandler : IHttpHandler
     {
         /// <summary>
         /// 处理请求

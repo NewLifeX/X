@@ -61,9 +61,11 @@
     <Compile Include="Event\WeakEventHandler.cs" />
     <Compile Include="Exceptions\XException.cs" />
     <Compile Include="IO\BinaryTest.cs" />
-    <Compile Include="IO\StreamHttpHandler.cs" />
-    <Compile Include="IO\IStreamHandler.cs" />
+    <Compile Include="IOModule\HttpStreamHandler.cs" />
+    <Compile Include="IOModule\IStreamHandler.cs" />
     <Compile Include="IO\ReadWriteStream.cs" />
+    <Compile Include="IOModule\StreamClient.cs" />
+    <Compile Include="IOModule\HttpStreamClient.cs" />
     <Compile Include="Messaging\ExceptionMessage.cs" />
     <Compile Include="Messaging\IMessageHandler.cs" />
     <Compile Include="Messaging\Message.cs" />
@@ -76,6 +78,12 @@
     <Compile Include="Reflection\EmitHelper.cs" />
     <Compile Include="Reflection\FastTest.cs" />
     <Compile Include="Reflection\DynamicAssembly.cs" />
+    <Compile Include="Remoting\EntityMessage.cs" />
+    <Compile Include="Remoting\MethodMessage.cs" />
+    <Compile Include="Remoting\RemotingClient.cs" />
+    <Compile Include="Remoting\RemotingMessage.cs" />
+    <Compile Include="Remoting\RemotingMessageType.cs" />
+    <Compile Include="Remoting\RemotingStreamHandler.cs" />
     <Compile Include="Threading\ReadWriteLock.cs" />
     <Compile Include="Reflection\TypeX.cs" />
     <Compile Include="Reflection\WeakReference.cs" />
@@ -142,12 +150,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="IO\数据流总线模型.cd" />
+    <None Include="IOModule\数据流总线模型.cd" />
     <None Include="Messaging\消息总线模型.cd" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Remoting\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
