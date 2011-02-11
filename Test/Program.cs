@@ -32,8 +32,8 @@ namespace Test
                 try
                 {
 #endif
-                Test7();
-                //ThreadPoolTest.Main2(args);
+                    Test7();
+                    //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -258,10 +258,37 @@ namespace Test
 
         static void Test7()
         {
-            DAL dal = Administrator.Meta.DBO;
-            DatabaseSchema.Create(dal).CheckTable("Area");
+            //DAL dal = Administrator.Meta.DBO;
+            //DatabaseSchema.Create(dal).CheckTable("Area");
 
             //XCodeTest.MulThread(1);
+
+            Uri uri = new Uri("http://192.168.0.8:8080/aaa");
+            ShowObj(uri);
+
+            uri = new Uri("tcp://192.168.0.8:8080/aaa");
+            ShowObj(uri);
+
+            uri = new Uri("udp://192.168.0.8:8080/aaa");
+            ShowObj(uri);
+        }
+
+        static void ShowObj(Object obj)
+        {
+            Console.WriteLine();
+            Console.WriteLine("显示对象成员{0}：", obj.GetType().FullName);
+            //TypeX tx = TypeX.Create(obj.GetType());
+            //foreach (PropertyInfoX pi in tx.Properties)
+            PropertyInfo[] pis = obj.GetType().GetProperties();
+            foreach (PropertyInfo pi in pis)
+            {
+                Console.Write("{0,15}=", pi.Name);
+                ConsoleColor color = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write(pi.GetValue(obj, null));
+                Console.ForegroundColor = color;
+                Console.WriteLine();
+            }
         }
 
         static Dictionary<PermissionFlags, String> flagCache;
