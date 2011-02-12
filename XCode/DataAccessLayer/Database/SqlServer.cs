@@ -11,7 +11,7 @@ using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
-    class SqlServer : NetDb
+    class SqlServer : RemoteDb
     {
         #region 属性
         /// <summary>
@@ -259,7 +259,7 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// SqlServer数据库
     /// </summary>
-    internal class SqlServerSession : NetDbSession
+    internal class SqlServerSession : RemoteDbSession
     {
         #region 查询
         /// <summary>
@@ -291,7 +291,7 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// SqlServer元数据
     /// </summary>
-    class SqlServerMetaData : NetDbMetaData
+    class SqlServerMetaData : RemoteDbMetaData
     {
         #region 属性
         /// <summary>

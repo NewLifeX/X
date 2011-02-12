@@ -6,9 +6,9 @@ using System.Data;
 namespace XCode.DataAccessLayer
 {
     /// <summary>
-    /// 网络数据库。一般是分为客户端服务器的中大型数据库，该类数据库支持完整的SQL92
+    /// 远程数据库。一般是分为客户端服务器的中大型数据库，该类数据库支持完整的SQL92
     /// </summary>
-    abstract class NetDb : DbBase
+    abstract class RemoteDb : DbBase
     {
         #region 属性
         /// <summary>系统数据库名</summary>
@@ -46,13 +46,13 @@ namespace XCode.DataAccessLayer
     }
 
     /// <summary>
-    /// 网络数据库会话
+    /// 远程数据库会话
     /// </summary>
-    abstract class NetDbSession : DbSession
+    abstract class RemoteDbSession : DbSession
     {
         #region 属性
         /// <summary>系统数据库名</summary>
-        public String SystemDatabaseName { get { return Database is NetDb ? (Database as NetDb).SystemDatabaseName : null; } }
+        public String SystemDatabaseName { get { return Database is RemoteDb ? (Database as RemoteDb).SystemDatabaseName : null; } }
         #endregion
 
         #region 架构
@@ -75,13 +75,13 @@ namespace XCode.DataAccessLayer
     }
 
     /// <summary>
-    /// 网络数据库元数据
+    /// 远程数据库元数据
     /// </summary>
-    abstract class NetDbMetaData : DbMetaData
+    abstract class RemoteDbMetaData : DbMetaData
     {
         #region 属性
         /// <summary>系统数据库名</summary>
-        public String SystemDatabaseName { get { return Database is NetDb ? (Database as NetDb).SystemDatabaseName : null; } }
+        public String SystemDatabaseName { get { return Database is RemoteDb ? (Database as RemoteDb).SystemDatabaseName : null; } }
         #endregion
 
         #region 架构定义

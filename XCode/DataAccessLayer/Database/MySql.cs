@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace XCode.DataAccessLayer
 {
-    class MySql : NetDb
+    class MySql : RemoteDb
     {
         #region 属性
         /// <summary>
@@ -158,7 +158,7 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// MySql数据库
     /// </summary>
-    internal class MySqlSession : NetDbSession
+    internal class MySqlSession : RemoteDbSession
     {
         #region 基本方法 查询/执行
         /// <summary>
@@ -190,7 +190,7 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// MySql元数据
     /// </summary>
-    class MySqlMetaData : NetDbMetaData
+    class MySqlMetaData : RemoteDbMetaData
     {
         protected override void FixTable(XTable table, DataRow dr)
         {

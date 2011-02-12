@@ -420,6 +420,31 @@ namespace XCode.DataAccessLayer
             }
         }
 
+        /// <summary>
+        /// 执行SQL查询，返回总记录数
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns></returns>
+        protected virtual Int32 QueryCountInternal(String sql)
+        {
+            QueryTimes++;
+            DbCommand cmd = PrepareCommand();
+            cmd.CommandText = sql;
+            if (Debug) WriteLog(cmd.CommandText);
+            try
+            {
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd.CommandText);
+            }
+            finally
+            {
+                AutoClose();
+            }
+        }
+
         private static Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>
         /// 执行SQL查询，返回总记录数
@@ -446,22 +471,7 @@ namespace XCode.DataAccessLayer
             else
                 sql = String.Format("Select Count(*) From {0}", Database.FormatKeyWord(sql));
 
-            QueryTimes++;
-            DbCommand cmd = PrepareCommand();
-            cmd.CommandText = sql;
-            if (Debug) WriteLog(cmd.CommandText);
-            try
-            {
-                return Convert.ToInt32(cmd.ExecuteScalar());
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, cmd.CommandText);
-            }
-            finally
-            {
-                AutoClose();
-            }
+            return QueryCountInternal(sql);
         }
 
         /// <summary>
@@ -471,22 +481,7 @@ namespace XCode.DataAccessLayer
         /// <returns>总记录数</returns>
         public virtual Int32 QueryCount(SelectBuilder builder)
         {
-            QueryTimes++;
-            DbCommand cmd = PrepareCommand();
-            cmd.CommandText = builder.SelectCount().ToString();
-            if (Debug) WriteLog(cmd.CommandText);
-            try
-            {
-                return Convert.ToInt32(cmd.ExecuteScalar());
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, cmd.CommandText);
-            }
-            finally
-            {
-                AutoClose();
-            }
+            return QueryCountInternal(builder.SelectCount().ToString());
         }
 
         /// <summary>

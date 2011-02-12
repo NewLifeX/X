@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("7.0.*")]
-[assembly: AssemblyFileVersion("7.0.2011.0201")]
+[assembly: AssemblyVersion("7.1.*")]
+[assembly: AssemblyFileVersion("7.1.2011.0212")]
 
 /*
  * XCode的重大改进
@@ -48,6 +48,12 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.1.2011.0212   增加网络数据库提供者Network，把各种操作直接路由给远端
+ *                  增加分布式数据库提供者Distributed，同时读写多个数据库
+ *                  设计方案最佳实践：
+ *                  1，使用MySql自身的集群，一主多从，XCode配置使用分布式提供者，更新写入主库，从各从库读取数据，实现负载均衡
+ *                  2，使用网络数据库提供者实现路由中转，实现故障转移
+ * 
  * v7.0.2011.0201   重写数据访问层，便于功能扩展
  *                  重写数据架构（反向工程），完善SQLite和MySql的反向工程支持
  * 
@@ -73,7 +79,7 @@ using System.Runtime.InteropServices;
  *                  Entity的PageSplitSQL方法修正表名没有进行格式化的BUG
  * 
  * v6.1.2010.1119   取消依赖XLog，升级为依赖NewLife.Core，部分公共类库移植到NewLife.Core
- *                  修正EntityTree中FindChilds错误，增加排序字段的支持，如果指定排序字段，查询子级的时候讲按排序字段降序排序
+ *                  修正EntityTree中FindChilds错误，增加排序字段的支持，如果指定排序字段，查询子级的时候将按排序字段降序排序
  *                  取消授权限制，但仍然混淆代码
  * 
  * v6.0.2010.1021   增加字典缓存DictionaryCache
