@@ -452,10 +452,14 @@ namespace NewLife.Reflection
                         return item.Equals(elm.Asm.Location, StringComparison.OrdinalIgnoreCase);
                     })) continue;
 
-                    //Assembly asm = Assembly.ReflectionOnlyLoad(File.ReadAllBytes(item));
-                    Assembly asm = Assembly.ReflectionOnlyLoadFrom(item);
+                    try
+                    {
+                        //Assembly asm = Assembly.ReflectionOnlyLoad(File.ReadAllBytes(item));
+                        Assembly asm = Assembly.ReflectionOnlyLoadFrom(item);
 
-                    list.Add(AssemblyX.Create(asm));
+                        list.Add(AssemblyX.Create(asm));
+                    }
+                    catch { }
                 }
 
                 return list;

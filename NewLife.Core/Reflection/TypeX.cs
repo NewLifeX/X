@@ -123,6 +123,7 @@ namespace NewLife.Reflection
                     }
                     paramTypes = list.ToArray();
                 }
+                //Type[] paramTypes = Type.GetTypeArray(parameters);
                 return GetHandler(paramTypes).Invoke(parameters);
             }
         }
@@ -378,6 +379,65 @@ namespace NewLife.Reflection
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// 根据名称获取类型
+        /// </summary>
+        /// <param name="typeName">类型名</param>
+        /// <returns></returns>
+        public static Type GetType(String typeName)
+        {
+            if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
+
+            // 基本获取
+            Type type = Type.GetType(typeName);
+            if (type != null) return type;
+
+            // 尝试本程序集
+            Assembly[] asms = new[] { 
+                Assembly.GetExecutingAssembly(),
+                Assembly.GetCallingAssembly(), 
+                Assembly.GetEntryAssembly() };
+
+            foreach (Assembly asm in asms)
+            {
+                type = asm.GetType(typeName);
+                if (type != null) return type;
+            }
+
+            // 尝试所有程序集
+            ListX<AssemblyX> list = AssemblyX.GetAssemblies();
+            if (list != null && list.Count > 0)
+            {
+                foreach (AssemblyX asm in list)
+                {
+                    type = asm.Asm.GetType(typeName);
+                    if (type != null) return type;
+                }
+            }
+
+            // 尝试加载程序集
+            AssemblyX.ReflectionOnlyLoad();
+            list = AssemblyX.ReflectionOnlyGetAssemblies();
+            if (list != null && list.Count > 0)
+            {
+                foreach (AssemblyX asm in list)
+                {
+                    type = asm.Asm.GetType(typeName);
+                    if (type != null)
+                    {
+                        // 真实加载
+                        Assembly asm2 = Assembly.LoadFile(asm.Asm.Location);
+                        Type type2 = asm2.GetType(typeName);
+                        if (type2 != null) type = type2;
+
+                        return type;
+                    }
+                }
+            }
+
+            return null;
         }
         #endregion
 
