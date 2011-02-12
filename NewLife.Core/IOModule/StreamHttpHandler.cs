@@ -2,14 +2,16 @@
 using System.IO;
 using System.Web;
 using NewLife.Web;
+using System.Text;
 
 namespace NewLife.IO
 {
     /// <summary>
     /// 数据流Http处理器。可以在web.config中配置一个处理器指向该类。
     /// </summary>
-    public class HttpStreamHandler : IHttpHandler
+    public class StreamHttpHandler : IHttpHandler
     {
+        #region 方法
         /// <summary>
         /// 处理请求
         /// </summary>
@@ -32,7 +34,16 @@ namespace NewLife.IO
             if (stream != null)
                 StreamHandler.Process(name, stream);
             else
-                context.Response.Write("不支持的HTTP数据传输方法！");
+            {
+                //context.Response.Write("不支持的HTTP数据传输方法！");
+                StringBuilder sb = new StringBuilder();
+                sb.Append("请使用POST方式提交二进制数据到：");
+                sb.AppendFormat("<font color='red'>{0}</font>", context.Request.Url);
+                sb.Append("<br />");
+                sb.Append("或者把二进制数据转为十六进制字符串，使用GET方式提交，比如：");
+                sb.AppendFormat("<font color='red'>{0}?0123456789ABCDEF</font>", context.Request.Url);
+                context.Response.Write(sb.ToString());
+            }
         }
 
         /// <summary>
@@ -56,9 +67,13 @@ namespace NewLife.IO
             String method = context.Request.HttpMethod;
             if (method == "POST")
             {
-                stream = new HttpStream(context);
+                if (context.Request.ContentLength > 0)
+                {
+                    stream = new HttpStream(context);
+                    return stream;
+                }
             }
-            else if (method == "GET")
+            //else if (method == "GET")
             {
                 if (context.Request.QueryString != null && context.Request.QueryString.Count == 1)
                 {
@@ -87,6 +102,7 @@ namespace NewLife.IO
                 return true;
             }
         }
+        #endregion
 
         #region 编码
         /// <summary>

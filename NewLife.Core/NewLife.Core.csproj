@@ -61,7 +61,7 @@
     <Compile Include="Event\WeakEventHandler.cs" />
     <Compile Include="Exceptions\XException.cs" />
     <Compile Include="IO\BinaryTest.cs" />
-    <Compile Include="IOModule\HttpStreamHandler.cs" />
+    <Compile Include="IOModule\StreamHttpHandler.cs" />
     <Compile Include="IOModule\IStreamHandler.cs" />
     <Compile Include="IO\ReadWriteStream.cs" />
     <Compile Include="IOModule\StreamClient.cs" />
@@ -82,6 +82,7 @@
     <Compile Include="Remoting\MethodMessage.cs" />
     <Compile Include="Remoting\RemotingClient.cs" />
     <Compile Include="Remoting\RemotingMessage.cs" />
+    <Compile Include="Remoting\RemotingMessageHandler.cs" />
     <Compile Include="Remoting\RemotingMessageType.cs" />
     <Compile Include="Remoting\RemotingStreamHandler.cs" />
     <Compile Include="Threading\ReadWriteLock.cs" />
@@ -149,7 +150,9 @@
     <Content Include="架构设计\消息模型_数据处理流程.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="IOModule\数据流总线模型.cd" />
     <None Include="Messaging\消息总线模型.cd" />
   </ItemGroup>

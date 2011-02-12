@@ -57,7 +57,7 @@ namespace NewLife.IO
         /// </summary>
         /// <param name="data">待发送数据</param>
         /// <returns>服务端响应数据</returns>
-        public override byte[] Send(byte[] data)
+        protected override byte[] Send(byte[] data)
         {
             if (data == null || data.Length < 1) throw new ArgumentNullException("data");
 
@@ -77,7 +77,7 @@ namespace NewLife.IO
         /// 异步发送数据，服务端响应数据将由数据流总线处理
         /// </summary>
         /// <param name="data">待发送数据</param>
-        public override void SendAsync(byte[] data)
+        protected override void SendAsync(byte[] data)
         {
             if (data == null || data.Length < 1) throw new ArgumentNullException("data");
 

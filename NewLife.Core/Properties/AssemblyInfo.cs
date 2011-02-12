@@ -38,6 +38,7 @@ using System.Runtime.InteropServices;
 /*
  * v1.5.2011.0212   TypeX增加GetType方法，用于根据类型名获取类型，可自动加载未加载程序集
  *                  二进制读写器BinaryReaderX和BinaryWriterX支持对Type的读写，以FullName的方式存在以节省空间
+ *                  调整数据流总线模型，增加数据流客户端，用于向远端数据流处理器发送数据
  * 
  * v1.4.2011.0113   快速反射中增加静态的（指定目标对象和成员名称即可）快速赋值取值和快速调用等方法
  *                  增加控件助手类ControlHelper

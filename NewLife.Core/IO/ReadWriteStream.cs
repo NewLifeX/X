@@ -4,7 +4,7 @@ using System;
 namespace NewLife.IO
 {
     /// <summary>
-    /// 读写流。读写不在一起。
+    /// 读写流。内部包含输入流和输出流两个流，实际读取从输入流读取，写入则写入到输出流
     /// </summary>
     public abstract class ReadWriteStream : Stream
     {
@@ -40,7 +40,6 @@ namespace NewLife.IO
         #endregion
 
         #region 抽象实现
-
         /// <summary>
         /// 输入流是否可读
         /// </summary>
@@ -99,6 +98,8 @@ namespace NewLife.IO
         /// <returns></returns>
         public override int Read(byte[] buffer, int offset, int count)
         {
+            CheckArgument(buffer, offset, count);
+
             return InputStream.Read(buffer, offset, count);
         }
 
@@ -130,7 +131,62 @@ namespace NewLife.IO
         /// <param name="count"></param>
         public override void Write(byte[] buffer, int offset, int count)
         {
+            CheckArgument(buffer, offset, count);
+
             OutputStream.Write(buffer, offset, count);
+        }
+        #endregion
+
+        #region 异步
+        /// <summary>
+        /// 开始异步读操作
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <param name="callback"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
+        {
+            CheckArgument(buffer, offset, count);
+
+            return InputStream.BeginRead(buffer, offset, count, callback, state);
+        }
+
+        /// <summary>
+        /// 等待挂起的异步读完成
+        /// </summary>
+        /// <param name="asyncResult"></param>
+        /// <returns></returns>
+        public override int EndRead(IAsyncResult asyncResult)
+        {
+            return InputStream.EndRead(asyncResult);
+        }
+
+        /// <summary>
+        /// 开始异步写操作
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <param name="callback"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
+        {
+            CheckArgument(buffer, offset, count);
+
+            return OutputStream.BeginWrite(buffer, offset, count, callback, state);
+        }
+
+        /// <summary>
+        /// 等待挂起的异步写完成
+        /// </summary>
+        /// <param name="asyncResult"></param>
+        public override void EndWrite(IAsyncResult asyncResult)
+        {
+            OutputStream.EndWrite(asyncResult);
         }
         #endregion
 
@@ -144,6 +200,21 @@ namespace NewLife.IO
             Byte b = (Byte)ReadByte();
             Seek(-1, SeekOrigin.Current);
             return b;
+        }
+        #endregion
+
+        #region 辅助函数
+        /// <summary>
+        /// 检查参数
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        protected static void CheckArgument(byte[] buffer, int offset, int count)
+        {
+            if (buffer == null || buffer.Length < 1) throw new ArgumentNullException("buffer");
+            if (offset < 0 || offset >= buffer.Length) throw new ArgumentOutOfRangeException("offset");
+            if (count < 0 || offset + count > buffer.Length) throw new ArgumentOutOfRangeException("count");
         }
         #endregion
     }
