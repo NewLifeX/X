@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using NewLife.Reflection;
+using NewLife.Exceptions;
 
 namespace NewLife.IO
 {
@@ -195,35 +196,35 @@ namespace NewLife.IO
 
                 foreach (FieldInfo item in fis)
                 {
-//#if DEBUG
-//                    long p = 0;
-//                    long p2 = 0;
-//                    if (BaseStream.CanSeek && BaseStream.CanRead)
-//                    {
-//                        p = BaseStream.Position;
-//                        Console.Write("{0,-16}：", item.Name);
-//                    }
-//#endif
+                    //#if DEBUG
+                    //                    long p = 0;
+                    //                    long p2 = 0;
+                    //                    if (BaseStream.CanSeek && BaseStream.CanRead)
+                    //                    {
+                    //                        p = BaseStream.Position;
+                    //                        Console.Write("{0,-16}：", item.Name);
+                    //                    }
+                    //#endif
                     //ReadMember(target, this, item, encodeInt, allowNull);
                     MemberInfoX member2 = item;
                     if (!callback(this, value, member2, encodeInt, allowNull, isProperty, out obj, callback)) return false;
                     // 尽管有可能会二次赋值（如果callback调用这里的话），但是没办法保证用户的callback一定会给成员赋值，所以这里多赋值一次
                     member2.SetValue(value, obj);
-//#if DEBUG
-//                    if (BaseStream.CanSeek && BaseStream.CanRead)
-//                    {
-//                        p2 = BaseStream.Position;
-//                        if (p2 > p)
-//                        {
-//                            BaseStream.Seek(p, SeekOrigin.Begin);
-//                            Byte[] data = new Byte[p2 - p];
-//                            BaseStream.Read(data, 0, data.Length);
-//                            Console.WriteLine("[{0}] {1}", data.Length, BitConverter.ToString(data));
-//                        }
-//                        else
-//                            Console.WriteLine();
-//                    }
-//#endif
+                    //#if DEBUG
+                    //                    if (BaseStream.CanSeek && BaseStream.CanRead)
+                    //                    {
+                    //                        p2 = BaseStream.Position;
+                    //                        if (p2 > p)
+                    //                        {
+                    //                            BaseStream.Seek(p, SeekOrigin.Begin);
+                    //                            Byte[] data = new Byte[p2 - p];
+                    //                            BaseStream.Read(data, 0, data.Length);
+                    //                            Console.WriteLine("[{0}] {1}", data.Length, BitConverter.ToString(data));
+                    //                        }
+                    //                        else
+                    //                            Console.WriteLine();
+                    //                    }
+                    //#endif
                 }
             }
             #endregion
@@ -686,6 +687,11 @@ namespace NewLife.IO
                 value = ReadIPEndPoint();
                 return true;
             }
+            if (typeof(Type).IsAssignableFrom(type))
+            {
+                value = ReadType();
+                return true;
+            }
 
             return false;
 
@@ -735,6 +741,24 @@ namespace NewLife.IO
             //ep.Port = ReadUInt16();
             ep.Port = ReadEncodedInt32();
             return ep;
+        }
+
+        /// <summary>
+        /// 读取Type
+        /// </summary>
+        /// <returns></returns>
+        public Type ReadType()
+        {
+            if (ReadByte() == 0) return null;
+            BaseStream.Seek(-1, SeekOrigin.Current);
+
+            String typeName = ReadString();
+            if (String.IsNullOrEmpty(typeName)) return null;
+
+            Type type = TypeX.GetType(typeName);
+            if (type != null) return type;
+
+            throw new XException("无法找到名为{0}的类型！", typeName);
         }
         #endregion
 

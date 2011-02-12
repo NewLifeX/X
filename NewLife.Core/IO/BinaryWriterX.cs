@@ -212,31 +212,31 @@ namespace NewLife.IO
 
                 foreach (FieldInfo item in fis)
                 {
-//#if DEBUG
-//                    long p = 0;
-//                    long p2 = 0;
-//                    if (BaseStream.CanSeek && BaseStream.CanRead)
-//                    {
-//                        p = BaseStream.Position;
-//                        Console.Write("{0,-16}：", item.Name);
-//                    }
-//#endif
+                    //#if DEBUG
+                    //                    long p = 0;
+                    //                    long p2 = 0;
+                    //                    if (BaseStream.CanSeek && BaseStream.CanRead)
+                    //                    {
+                    //                        p = BaseStream.Position;
+                    //                        Console.Write("{0,-16}：", item.Name);
+                    //                    }
+                    //#endif
                     if (!callback(this, value, item, encodeInt, allowNull, isProperty, callback)) return false;
-//#if DEBUG
-//                    if (BaseStream.CanSeek && BaseStream.CanRead)
-//                    {
-//                        p2 = BaseStream.Position;
-//                        if (p2 > p)
-//                        {
-//                            BaseStream.Seek(p, SeekOrigin.Begin);
-//                            Byte[] data = new Byte[p2 - p];
-//                            BaseStream.Read(data, 0, data.Length);
-//                            Console.WriteLine("[{0}] {1}", data.Length, BitConverter.ToString(data));
-//                        }
-//                        else
-//                            Console.WriteLine();
-//                    }
-//#endif
+                    //#if DEBUG
+                    //                    if (BaseStream.CanSeek && BaseStream.CanRead)
+                    //                    {
+                    //                        p2 = BaseStream.Position;
+                    //                        if (p2 > p)
+                    //                        {
+                    //                            BaseStream.Seek(p, SeekOrigin.Begin);
+                    //                            Byte[] data = new Byte[p2 - p];
+                    //                            BaseStream.Read(data, 0, data.Length);
+                    //                            Console.WriteLine("[{0}] {1}", data.Length, BitConverter.ToString(data));
+                    //                        }
+                    //                        else
+                    //                            Console.WriteLine();
+                    //                    }
+                    //#endif
                 }
             }
             #endregion
@@ -629,6 +629,11 @@ namespace NewLife.IO
                 Write((IPEndPoint)value);
                 return true;
             }
+            if (typeof(Type).IsAssignableFrom(type))
+            {
+                Write((Type)value);
+                return true;
+            }
 
             return false;
 
@@ -677,6 +682,19 @@ namespace NewLife.IO
                 //Write((UInt16)value.Port);
                 WriteEncoded(value.Port);
             }
+            else
+                WriteEncoded(0);
+        }
+
+        /// <summary>
+        /// 写入Type
+        /// </summary>
+        /// <param name="value"></param>
+        public void Write(Type value)
+        {
+            // 尽管使用AssemblyQualifiedName更精确，但是它的长度实在太大了
+            if (value != null)
+                Write(value.FullName);
             else
                 WriteEncoded(0);
         }
