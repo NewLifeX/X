@@ -14,7 +14,7 @@ namespace NewLife.Remoting
         /// 方法消息
         /// </summary>
         [Description("方法消息")]
-        Method = 0,
+        Method = 0xE0,
 
         /// <summary>
         /// 实体消息

@@ -68,6 +68,8 @@ namespace NewLife.Messaging
         #region 构造
         static MessageHandler()
         {
+            Message.Init();
+
             LoadConfig();
 
             ExceptionMessage msg = new ExceptionMessage();
@@ -193,11 +195,12 @@ namespace NewLife.Messaging
                 {
                     Type type = Type.GetType(item);
                     list.Add(type);
-                } foreach (String item in ss)
-                {
-                    Type type = Type.GetType(item);
-                    list.Add(type);
-                }
+                } 
+                //foreach (String item in ss)
+                //{
+                //    Type type = Type.GetType(item);
+                //    list.Add(type);
+                //}
             }
             return dic.Count > 0 ? dic : null; ;
         }

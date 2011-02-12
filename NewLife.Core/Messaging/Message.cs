@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 using NewLife.IO;
+using System.Threading;
 
 namespace NewLife.Messaging
 {
@@ -20,6 +21,18 @@ namespace NewLife.Messaging
         #region 构造
         static Message()
         {
+            Init();
+        }
+
+        private static Int32 _Inited = 0;
+        /// <summary>
+        /// 初始化
+        /// </summary>
+        public static void Init()
+        {
+            // 只执行一次，防止多线程冲突
+            if (Interlocked.CompareExchange(ref _Inited, 1, 0) != 0) return;
+
             // 注册消息的数据流处理器
             StreamHandler.Register(StreamHandlerName, new MessageStreamHandler(), false);
         }
@@ -114,7 +127,7 @@ namespace NewLife.Messaging
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("ID={0}", ID);
+            return String.Format("ID={0} {1}", ID, GetType().Name);
         }
         #endregion
     }
