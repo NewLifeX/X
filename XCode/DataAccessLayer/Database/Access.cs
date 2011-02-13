@@ -10,6 +10,7 @@ using ADOX;
 using DAO;
 using NewLife;
 using NewLife.Log;
+using NewLife.Reflection;
 using XCode.Common;
 
 namespace XCode.DataAccessLayer
@@ -246,7 +247,7 @@ namespace XCode.DataAccessLayer
                     String typeName = GetDataRowValue<String>(drs[0], "TypeName");
                     field.RawType = typeName;
 
-                    if (TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) field.DataType = Type.GetType(typeName);
+                    if (TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) field.DataType = TypeX.GetType(typeName);
 
                     // 修正备注类型
                     if (field.DataType == typeof(String) && drs.Length > 1)

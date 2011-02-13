@@ -173,7 +173,7 @@ namespace XCode.DataAccessLayer
                     type = typeof(SqlServer);
                 else
                 {
-                    type = Type.GetType(provider, true, true);
+                    type = TypeX.GetType(provider, true);
                 }
             }
             else

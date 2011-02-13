@@ -388,6 +388,17 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Type GetType(String typeName)
         {
+            return GetType(typeName, false);
+        }
+
+        /// <summary>
+        /// 根据名称获取类型
+        /// </summary>
+        /// <param name="typeName">类型名</param>
+        /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
+        /// <returns></returns>
+        public static Type GetType(String typeName, Boolean isLoadAssembly)
+        {
             if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
 
             // 基本获取

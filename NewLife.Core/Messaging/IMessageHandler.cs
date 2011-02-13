@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Configuration;
 using System.IO;
 using NewLife.Log;
+using NewLife.Reflection;
 
 namespace NewLife.Messaging
 {
@@ -193,9 +194,9 @@ namespace NewLife.Messaging
                 }
                 foreach (String item in ss)
                 {
-                    Type type = Type.GetType(item);
+                    Type type = TypeX.GetType(item, true);
                     list.Add(type);
-                } 
+                }
                 //foreach (String item in ss)
                 //{
                 //    Type type = Type.GetType(item);

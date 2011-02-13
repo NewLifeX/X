@@ -258,7 +258,7 @@ namespace XCode
 
         private static Type GetType(String typeName)
         {
-            Type type = Type.GetType(typeName);
+            Type type = TypeX.GetType(typeName, true);
             if (type == null)
             {
                 List<Type> entities = LoadEntities();

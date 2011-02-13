@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Text;
 using NewLife;
+using NewLife.Reflection;
 using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
@@ -348,7 +349,7 @@ namespace XCode.DataAccessLayer
             }
 
             if (!TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) return;
-            field.DataType = Type.GetType(typeName);
+            field.DataType = TypeX.GetType(typeName);
         }
 
         /// <summary>

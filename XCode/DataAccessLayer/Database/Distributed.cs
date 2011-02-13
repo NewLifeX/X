@@ -136,7 +136,7 @@ namespace XCode.DataAccessLayer.Database
         }
 
         #region 服务器配置
-        class Server
+        public class Server
         {
             private String _ConnName;
             /// <summary>连接名</summary>

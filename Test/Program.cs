@@ -16,6 +16,11 @@ using NewLife.PeerToPeer.Messages;
 using NewLife.Reflection;
 using XCode;
 using XCode.DataAccessLayer;
+using NewLife.IO;
+using NewLife.Remoting;
+using System.Net;
+using NewLife.Net.Common;
+using NewLife.Exceptions;
 
 namespace Test
 {
@@ -32,8 +37,8 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
-                    //ThreadPoolTest.Main2(args);
+                Test10();
+                //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -263,14 +268,16 @@ namespace Test
 
             //XCodeTest.MulThread(1);
 
-            Uri uri = new Uri("http://192.168.0.8:8080/aaa");
+            Uri uri = new Uri("http://192.168.0.8:8080/aaa.ashx?a=b");
             ShowObj(uri);
 
-            uri = new Uri("tcp://192.168.0.8:8080/aaa");
+            uri = new Uri("tcp://192.168.0.8:8080/aaa.ashx?a=b");
             ShowObj(uri);
 
-            uri = new Uri("udp://192.168.0.8:8080/aaa");
+            uri = new Uri("udp://192.168.0.8:8080/aaa.ashx?a=b");
             ShowObj(uri);
+
+            Console.WriteLine(Path.GetFileNameWithoutExtension(uri.AbsolutePath));
         }
 
         static void ShowObj(Object obj)
@@ -409,6 +416,43 @@ namespace Test
             if (tn.StartsWith("\"")) return keyWord;
 
             return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
+        }
+
+        static void Test10()
+        {
+            //XException ex = new XException("DT {0}", DateTime.Now);
+            //XException ex2 = new XException("aaa", ex);
+            //Console.WriteLine(ex2.Message);
+
+            String url = "http://localhost:36716/WebSite1/Message2.ashx";
+            HttpStreamClient client = new HttpStreamClient(url);
+            Stream stream = client.GetStream();
+
+            //IPAddress address = NetHelper.ParseAddress("www.qq.com");
+            Administrator admin = new Administrator();
+            admin.Name = "nnhy";
+
+            EntityMessage message = new EntityMessage(admin);
+
+            MemoryStream ms = new MemoryStream();
+            message.WritePacket(ms);
+            ms.Position = 0;
+
+            EntityMessage msg = new EntityMessage();
+            BinaryReaderX reader2 = new BinaryReaderX(ms);
+            Console.WriteLine(reader2.ReadByte());
+            msg.Read(reader2);
+            Console.WriteLine(msg.Entity);
+
+            String name = "System.Data.SQLite.SQLiteFactory";
+            Type type = TypeX.GetType(name);
+            Console.WriteLine(type.FullName);
+
+            message.WritePacket(stream);
+
+            BinaryReader reader = new BinaryReader(stream);
+            String str = reader.ReadString();
+            Console.WriteLine(str);
         }
     }
 }
