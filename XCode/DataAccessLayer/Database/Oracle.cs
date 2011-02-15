@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Text.RegularExpressions;
 using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
@@ -26,7 +25,20 @@ namespace XCode.DataAccessLayer
         {
             get
             {
+                // 首先尝试使用Oracle.DataAccess
+                if (_dbProviderFactory == null)
+                {
+                    try
+                    {
+                        _dbProviderFactory = GetProviderFactory("Oracle.DataAccess.dll", "Oracle.DataAccess.Client.OracleClientFactory");
+                    }
+                    catch { }
+                }
+
+                // 以下三种方式都可以加载，前两种只是为了减少对程序集的引用，第二种是为了避免第一种中没有注册
+                if (_dbProviderFactory == null) _dbProviderFactory = DbProviderFactories.GetFactory("System.Data.OracleClient");
                 if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.OracleClient.dll", "System.Data.OracleClient.OracleClientFactory");
+                //if (_dbProviderFactory == null) _dbProviderFactory = OracleClientFactory.Instance;
 
                 return _dbProviderFactory;
             }
@@ -56,7 +68,7 @@ namespace XCode.DataAccessLayer
                 DbConnectionStringBuilder ocsb = Factory.CreateConnectionStringBuilder();
                 ocsb.ConnectionString = connStr;
 
-                _UserID = (String)ocsb["User ID"];
+                if (ocsb.ContainsKey("User ID")) _UserID = (String)ocsb["User ID"];
 
                 return _UserID;
             }

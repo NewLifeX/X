@@ -97,6 +97,7 @@ namespace XCode.DataAccessLayer
                             if (set.Name == "LocalSqlServer") continue;
                             if (set.Name == "LocalMySqlServer") continue;
                             if (String.IsNullOrEmpty(set.ConnectionString)) continue;
+                            if (String.IsNullOrEmpty(set.ConnectionString.Trim())) continue;
 
                             Type type = GetTypeFromConn(set.ConnectionString, set.ProviderName);
                             if (type == null) throw new XCodeException("无法识别的提供者" + set.ProviderName + "！");

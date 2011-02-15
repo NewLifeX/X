@@ -183,9 +183,12 @@ namespace XCode.DataAccessLayer
                     //如果没有打开，则改变链接字符串
                     DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
                     builder.ConnectionString = ConnectionString;
-                    builder["Database"] = value;
-                    ConnectionString = builder.ToString();
-                    Conn.ConnectionString = ConnectionString;
+                    if (builder.ContainsKey("Database"))
+                    {
+                        builder["Database"] = value;
+                        ConnectionString = builder.ToString();
+                        Conn.ConnectionString = ConnectionString;
+                    }
                 }
             }
         }

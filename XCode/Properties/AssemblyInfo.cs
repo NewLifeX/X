@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.1.*")]
-[assembly: AssemblyFileVersion("7.1.2011.0212")]
+[assembly: AssemblyFileVersion("7.1.2011.0215")]
 
 /*
  * XCode的重大改进
@@ -48,6 +48,10 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.1.2011.0215   热心网友 Hannibal 在处理日文网站时发现插入的日文为乱码（MSSQL），这里加上N前缀，同时给时间日期加上ts前缀
+ *                  SQLite数据库处理字节数组时，加上X前缀
+ *                  把实体类中的SQL方法，设为共有，便于外部获取SQL语句
+ * 
  * v7.1.2011.0212   增加网络数据库提供者Network，把各种操作直接路由给远端
  *                  增加分布式数据库提供者Distributed，同时读写多个数据库
  *                  设计方案最佳实践：

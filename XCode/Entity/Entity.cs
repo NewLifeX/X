@@ -1048,7 +1048,7 @@ namespace XCode
         /// <param name="obj">实体对象</param>
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
-        protected static String SQL(Entity<TEntity> obj, DataObjectMethodType methodType)
+        public static String SQL(Entity<TEntity> obj, DataObjectMethodType methodType)
         {
             String sql;
             StringBuilder sbNames;

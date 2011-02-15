@@ -29,6 +29,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
+                //if (_dbProviderFactory == null) _dbProviderFactory = DbProviderFactories.GetFactory("System.Data.OracleClient");
                 if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.SQLite.dll", "System.Data.SQLite.SQLiteFactory");
 
                 return _dbProviderFactory;
@@ -136,6 +137,19 @@ namespace XCode.DataAccessLayer
 
             return String.Format("[{0}]", keyWord);
             //return keyWord;
+        }
+
+        public override string FormatValue(XField field, object value)
+        {
+            if (field.DataType == typeof(Byte[]))
+            {
+                Byte[] bts = (Byte[])value;
+                if (bts == null || bts.Length < 1) return "0x0";
+
+                return "X'" + BitConverter.ToString(bts).Replace("-", null) + "'";
+            }
+
+            return base.FormatValue(field, value);
         }
         #endregion
     }

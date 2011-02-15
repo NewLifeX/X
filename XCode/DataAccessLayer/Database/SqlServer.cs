@@ -234,7 +234,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String FormatDateTime(DateTime dateTime)
         {
-            return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime);
+            return "{ts" + String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime) + "}";
         }
 
         /// <summary>
@@ -253,6 +253,22 @@ namespace XCode.DataAccessLayer
 
         /// <summary>系统数据库名</summary>
         public override String SystemDatabaseName { get { return "master"; } }
+
+        public override string FormatValue(XField field, object value)
+        {
+            TypeCode code = Type.GetTypeCode(field.DataType);
+            Boolean isNullable = field.Nullable;
+
+            if (code == TypeCode.String)
+            {
+                // 热心网友 Hannibal 在处理日文网站时发现插入的日文为乱码，这里加上N前缀
+                if (value == null) return isNullable ? "null" : "''";
+                if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
+                return "N'" + value.ToString().Replace("'", "''") + "'";
+            }
+
+            return base.FormatValue(field, value);
+        }
         #endregion
     }
 

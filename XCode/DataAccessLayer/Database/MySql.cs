@@ -28,6 +28,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
+                if (_dbProviderFactory == null) _dbProviderFactory = DbProviderFactories.GetFactory("MySql.Data.MySqlClient");
                 if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("MySql.Data.dll", "MySql.Data.MySqlClient.MySqlClientFactory");
 
                 return _dbProviderFactory;
