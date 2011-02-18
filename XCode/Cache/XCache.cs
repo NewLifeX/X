@@ -48,7 +48,7 @@ namespace XCode.Cache
             //读取配置
             //读取缓存有效期
             //String str = ConfigurationManager.AppSettings["XCacheExpiration"];
-            Expiration = Config.GetConfig<Int32>("XCode.Cache.Expiration", Config.GetConfig<Int32>("XCacheExpiration"));
+            Expiration = Config.GetConfig<Int32>("XCode.Cache.Expiration", Config.GetConfig<Int32>("XCacheExpiration", -2));
             //if (!String.IsNullOrEmpty(str))
             //{
             //    Int32 k = 0;
