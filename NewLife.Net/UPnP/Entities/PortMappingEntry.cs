@@ -24,69 +24,85 @@ namespace NewLife.Net.UPnP
     /// </summary>
     public class PortMappingEntry : UPnPAction<PortMappingEntry>
     {
-
-        private String _NewRemoteHost;
+        private String _RemoteHost;
         /// <summary>远程主机</summary>
-        public String NewRemoteHost
+        [XmlElement("NewRemoteHost")]
+        public String RemoteHost
         {
-            get { return _NewRemoteHost; }
-            set { _NewRemoteHost = value; }
+            get { return _RemoteHost; }
+            set { _RemoteHost = value; }
         }
 
-        private Int32 _NewExternalPort;
+        private Int32 _ExternalPort;
         /// <summary>外部端口</summary>
-        public Int32 NewExternalPort
+        [XmlElement("NewExternalPort")]
+        public Int32 ExternalPort
         {
-            get { return _NewExternalPort; }
-            set { _NewExternalPort = value; }
+            get { return _ExternalPort; }
+            set { _ExternalPort = value; }
         }
 
-        private String _NewProtocol;
+        private String _Protocol;
         /// <summary>TCP/UDP</summary>
-        public String NewProtocol
+        [XmlElement("NewProtocol")]
+        public String Protocol
         {
-            get { return _NewProtocol; }
-            set { _NewProtocol = value; }
+            get { return _Protocol; }
+            set { _Protocol = value; }
         }
 
-        private Int32 _NewInternalPort;
+        private Int32 _InternalPort;
         /// <summary>内部端口</summary>
-        public Int32 NewInternalPort
+        [XmlElement("NewInternalPort")]
+        public Int32 InternalPort
         {
-            get { return _NewInternalPort; }
-            set { _NewInternalPort = value; }
+            get { return _InternalPort; }
+            set { _InternalPort = value; }
         }
 
-        private String _NewInternalClient;
+        private String _InternalClient;
         /// <summary>主机IP</summary>
-        public String NewInternalClient
+        [XmlElement("NewInternalClient")]
+        public String InternalClient
         {
-            get { return _NewInternalClient; }
-            set { _NewInternalClient = value; }
+            get { return _InternalClient; }
+            set { _InternalClient = value; }
         }
 
-        private Int32 _NewEnabled;
+        private Int32 _Enabled;
         /// <summary>是否启用</summary>
-        public Int32 NewEnabled
+        [XmlElement("NewEnabled")]
+        public Int32 Enabled
         {
-            get { return _NewEnabled; }
-            set { _NewEnabled = value; }
+            get { return _Enabled; }
+            set { _Enabled = value; }
         }
 
-        private String _NewPortMappingDescription;
+        private String _Description;
         /// <summary>描述</summary>
-        public String NewPortMappingDescription
+        [XmlElement("NewPortMappingDescription")]
+        public String Description
         {
-            get { return _NewPortMappingDescription; }
-            set { _NewPortMappingDescription = value; }
+            get { return _Description; }
+            set { _Description = value; }
         }
 
-        private Int32 _NewLeaseDuration;
+        private Int32 _LeaseDuration;
         /// <summary>有效期</summary>
-        public Int32 NewLeaseDuration
+        [XmlElement("NewLeaseDuration")]
+        public Int32 LeaseDuration
         {
-            get { return _NewLeaseDuration; }
-            set { _NewLeaseDuration = value; }
+            get { return _LeaseDuration; }
+            set { _LeaseDuration = value; }
+        }
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return Description;
         }
     }
 }

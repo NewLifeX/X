@@ -14,6 +14,11 @@ namespace NewLife.Net.UPnP
     /// <typeparam name="TEntity"></typeparam>
     public class UPnPAction<TEntity> : UPnPAction where TEntity : UPnPAction<TEntity>, new()
     {
+        /// <summary>
+        /// XML反序列化为实体
+        /// </summary>
+        /// <param name="xml"></param>
+        /// <returns></returns>
         public static TEntity FromXml(String xml)
         {
             XmlDocument doc = new XmlDocument();
@@ -26,7 +31,11 @@ namespace NewLife.Net.UPnP
             {
                 if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, true) != null) continue;
 
-                XmlNode node = doc.SelectSingleNode("//" + item.Property.Name);
+                String elmName = item.Property.Name;
+                XmlElementAttribute att = AttributeX.GetCustomAttribute<XmlElementAttribute>(item.Member, true);
+                if (att != null && !String.IsNullOrEmpty(att.ElementName)) elmName = att.ElementName;
+
+                XmlNode node = doc.SelectSingleNode("//" + elmName);
                 if (node == null) continue;
 
                 item.SetValue(entity, Convert.ChangeType(node.InnerText, item.Property.PropertyType));
@@ -55,6 +64,11 @@ namespace NewLife.Net.UPnP
             set { _Name = value; }
         }
 
+        /// <summary>
+        /// 序列化实体为Xml
+        /// </summary>
+        /// <param name="xmlns"></param>
+        /// <returns></returns>
         public virtual String ToXml(String xmlns)
         {
             XmlDocument doc = new XmlDocument();
@@ -66,7 +80,11 @@ namespace NewLife.Net.UPnP
             {
                 if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, true) != null) continue;
 
-                XmlElement elm = doc.CreateElement(item.Property.Name);
+                String elmName = item.Property.Name;
+                XmlElementAttribute att = AttributeX.GetCustomAttribute<XmlElementAttribute>(item.Member, true);
+                if (att != null && !String.IsNullOrEmpty(att.ElementName)) elmName = att.ElementName;
+
+                XmlElement elm = doc.CreateElement(elmName);
                 Object v = item.GetValue(this);
                 String str = v == null ? "" : v.ToString();
 
@@ -103,6 +121,11 @@ namespace NewLife.Net.UPnP
             //}
         }
 
+        /// <summary>
+        /// 序列化实体为Soap
+        /// </summary>
+        /// <param name="xmlns"></param>
+        /// <returns></returns>
         public virtual String ToSoap(String xmlns)
         {
             String xml = ToXml(xmlns);

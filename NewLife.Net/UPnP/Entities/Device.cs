@@ -11,84 +11,84 @@ namespace NewLife.Net.UPnP
     public class Device
     {
         private String _deviceType;
-		/// <summary>设备类型</summary>
-		public String deviceType 
-		{ 
-			get{return _deviceType;} 
-			set{_deviceType=value;} 
-		}
+        /// <summary>设备类型</summary>
+        public String deviceType
+        {
+            get { return _deviceType; }
+            set { _deviceType = value; }
+        }
 
         private String _presentationURL;
-		/// <summary>管理网址</summary>
-		public String presentationURL 
-		{ 
-			get{return _presentationURL;} 
-			set{_presentationURL=value;} 
-		}
+        /// <summary>管理网址</summary>
+        public String presentationURL
+        {
+            get { return _presentationURL; }
+            set { _presentationURL = value; }
+        }
 
         private String _friendlyName;
         /// <summary>对于用户的简短描述</summary>
-		public String friendlyName 
-		{ 
-			get{return _friendlyName;} 
-			set{_friendlyName=value;} 
-		}
+        public String friendlyName
+        {
+            get { return _friendlyName; }
+            set { _friendlyName = value; }
+        }
 
         private String _manufacturer;
-		/// <summary>生产厂家</summary>
-		public String manufacturer 
-		{ 
-			get{return _manufacturer;} 
-			set{_manufacturer=value;} 
-		}
+        /// <summary>生产厂家</summary>
+        public String manufacturer
+        {
+            get { return _manufacturer; }
+            set { _manufacturer = value; }
+        }
 
         private String _manufacturerURL;
-		/// <summary>制造商的网址</summary>
-		public String manufacturerURL 
-		{ 
-			get{return _manufacturerURL;} 
-			set{_manufacturerURL=value;} 
-		}
+        /// <summary>制造商的网址</summary>
+        public String manufacturerURL
+        {
+            get { return _manufacturerURL; }
+            set { _manufacturerURL = value; }
+        }
 
         private String _modelDescription;
-		/// <summary>描述</summary>
-		public String modelDescription 
-		{ 
-			get{return _modelDescription;} 
-			set{_modelDescription=value;} 
-		}
+        /// <summary>描述</summary>
+        public String modelDescription
+        {
+            get { return _modelDescription; }
+            set { _modelDescription = value; }
+        }
 
         private String _modelName;
-		/// <summary>产品名称</summary>
-		public String modelName 
-		{ 
-			get{return _modelName;} 
-			set{_modelName=value;} 
-		}
+        /// <summary>产品名称</summary>
+        public String modelName
+        {
+            get { return _modelName; }
+            set { _modelName = value; }
+        }
 
         private String _modelNumber;
-		/// <summary>产品型号</summary>
-		public String modelNumber 
-		{ 
-			get{return _modelNumber;} 
-			set{_modelNumber=value;} 
-		}
+        /// <summary>产品型号</summary>
+        public String modelNumber
+        {
+            get { return _modelNumber; }
+            set { _modelNumber = value; }
+        }
 
         private String _UDN;
         /// <summary>唯一设备名称</summary>
-		public String UDN 
-		{ 
-			get{return _UDN;} 
-			set{_UDN=value;} 
-		}
+        public String UDN
+        {
+            get { return _UDN; }
+            set { _UDN = value; }
+        }
 
         private String _UPC;
-		/// <summary>通用产品编码缩写</summary>
-		public String UPC 
-		{ 
-			get{return _UPC;} 
-			set{_UPC=value;} 
-		}
+        /// <summary>通用产品编码缩写</summary>
+        public String UPC
+        {
+            get { return _UPC; }
+            set { _UPC = value; }
+        }
 
         private List<Service> _serviceList;
         /// <summary>服务项目</summary>
@@ -110,5 +110,14 @@ namespace NewLife.Net.UPnP
             set { _deviceList = value; }
         }
 
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            //return String.Format("{0} {1}", friendlyName, manufacturer);
+            return friendlyName;
+        }
     }
 }

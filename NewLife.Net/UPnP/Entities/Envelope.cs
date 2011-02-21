@@ -32,6 +32,9 @@ namespace NewLife.Net.UPnP
             set { _Body = value; }
         }
 
+        /// <summary>
+        /// 信封主体
+        /// </summary>
         public class EnvelopeBody : IXmlSerializable
         {
             private String _Xml;
@@ -50,11 +53,19 @@ namespace NewLife.Net.UPnP
                 set { _Fault = value; }
             }
 
+            /// <summary>
+            /// 获取架构
+            /// </summary>
+            /// <returns></returns>
             public XmlSchema GetSchema()
             {
                 return null;
             }
 
+            /// <summary>
+            /// 读取Xml
+            /// </summary>
+            /// <param name="reader"></param>
             public void ReadXml(XmlReader reader)
             {
                 String prefix = reader.Prefix;
@@ -66,11 +77,19 @@ namespace NewLife.Net.UPnP
                     Xml = xml;
             }
 
+            /// <summary>
+            /// 写入Xml
+            /// </summary>
+            /// <param name="writer"></param>
             public void WriteXml(XmlWriter writer)
             {
                 writer.WriteRaw(Xml);
             }
 
+            /// <summary>
+            /// 抛出异常
+            /// </summary>
+            /// <returns></returns>
             public Exception ThrowException()
             {
                 if (String.IsNullOrEmpty(Fault)) return null;

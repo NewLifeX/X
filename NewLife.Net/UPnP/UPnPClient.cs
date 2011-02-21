@@ -4,16 +4,16 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using System.Xml;
 using System.Xml.Serialization;
-using NewLife.Log;
-using NewLife.Net.Udp;
-using NewLife.Net.Sockets;
-using NewLife.Net.Common;
-using NewLife.Reflection;
 using NewLife.Configuration;
+using NewLife.Log;
+using NewLife.Net.Common;
+using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
+using NewLife.Net.Udp;
+using NewLife.Reflection;
+using System.Threading;
 
 namespace NewLife.Net.UPnP
 {
@@ -23,17 +23,20 @@ namespace NewLife.Net.UPnP
     public class UPnPClient : DisposeBase
     {
         #region 属性
-        //public String Location = null;
-        public InternetGatewayDevice IGD = null;
-        //public String IGDXML;
-        //映射前是否检查端口
-        public static bool IsPortCheck = true;
-
         private UdpClientX _Udp;
         /// <summary>Udp客户端，用于发现网关设备</summary>
         private UdpClientX Udp
         {
-            get { return _Udp; }
+            get
+            {
+                if (_Udp == null)
+                {
+                    _Udp = new UdpClientX();
+                    _Udp.Received += new EventHandler<NetEventArgs>(Udp_Received);
+                    _Udp.ReceiveAsync();
+                }
+                return _Udp;
+            }
             set { _Udp = value; }
         }
 
@@ -77,15 +80,13 @@ namespace NewLife.Net.UPnP
         /// </summary>
         public void StartDiscover()
         {
-            Udp = new UdpClientX();
-            Udp.Received += new EventHandler<NetEventArgs>(Udp_Received);
-            Udp.ReceiveAsync();
+            if (CacheGateway) ThreadPool.QueueUserWorkItem(delegate(Object state) { CheckCacheGateway(); });
 
             IPAddress address = NetHelper.ParseAddress("239.255.255.250");
             IPEndPoint remoteEP = new IPEndPoint(address, 1900);
 
             // 设置多播
-            Socket socket = Udp.Client;
+            //Socket socket = Udp.Client;
             //socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, 4);
             //socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastLoopback, 1);
             //MulticastOption optionValue = new MulticastOption(remoteEP.Address);
@@ -104,8 +105,6 @@ namespace NewLife.Net.UPnP
             Udp.Send(data, remoteEP);
 
             //socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DropMembership, optionValue);
-
-            if (CacheGateway) CheckCacheGateway();
         }
 
         void Udp_Received(object sender, NetEventArgs e)
@@ -167,7 +166,7 @@ namespace NewLife.Net.UPnP
 
             if (OnNewDevice != null) OnNewDevice(this, new EventArgs<InternetGatewayDevice, bool>(device, isCache));
 
-            if (NetHelper.Debug) XTrace.WriteLine("在{0}上发现UPnP设备{1}", address, device.device.friendlyName);
+            //if (NetHelper.Debug) XTrace.WriteLine("在{0}上发现UPnP设备{1}", address, device.device.friendlyName);
         }
 
         /// <summary>
@@ -208,66 +207,95 @@ namespace NewLife.Net.UPnP
         #endregion
 
         #region 操作
-        ///// <summary>
-        ///// 添加映射端口
-        ///// </summary>
-        ///// <param name="RemoteHost">远程主机</param>
-        ///// <param name="ExternalPort">外部端口</param>
-        ///// <param name="Protocol">TCP或UDP</param>
-        ///// <param name="InternalPort">内部端口</param>
-        ///// <param name="InternalClient">本地IP地址</param>
-        ///// <param name="Enabled">是否启用[0,1]</param>
-        ///// <param name="Description">端口映射的描述</param>
-        ///// <param name="Duration">映射的持续时间，用0表示不永久</param>
-        ///// <returns>bool</returns>
-        //public static bool Add(InternetGatewayDevice device, String RemoteHost, Int32 ExternalPort, String Protocol, Int32 InternalPort, String InternalClient, Int32 Enabled, String Description, int? Duration)
-        //{
-        //    if (IsPortCheck == true && GetMapByPortAndProtocol(device, null, ExternalPort, Protocol) != null)
-        //    {
-        //        XTrace.WriteLine(ExternalPort + "端口被占用");
-        //        return false;
-        //    }
-        //    String Command = XMLCommand.Add(RemoteHost, ExternalPort, Protocol, InternalPort, InternalClient, Enabled, Description, Duration);
-        //    return SOAPRequest(Command);
-        //}
+        /// <summary>
+        /// 添加映射端口
+        /// </summary>
+        /// <param name="device">网关设备</param>
+        /// <param name="remoteHost">远程主机</param>
+        /// <param name="externalPort">外部端口</param>
+        /// <param name="protocol">TCP或UDP</param>
+        /// <param name="internalPort">内部端口</param>
+        /// <param name="internalClient">本地IP地址</param>
+        /// <param name="enabled">是否启用[0,1]</param>
+        /// <param name="description">端口映射的描述</param>
+        /// <param name="duration">映射的持续时间，用0表示永久</param>
+        /// <returns>bool</returns>
+        public static Boolean Add(InternetGatewayDevice device, String remoteHost, Int32 externalPort, String protocol, Int32 internalPort, String internalClient, Int32 enabled, String description, Int32 duration)
+        {
+            PortMappingEntry entity = new PortMappingEntry();
+            entity.Name = "AddPortMapping";
+            entity.RemoteHost = remoteHost;
+            entity.ExternalPort = externalPort;
+            entity.Protocol = protocol;
+            entity.InternalClient = internalClient;
+            entity.InternalPort = internalPort;
+            entity.Enabled = enabled;
+            entity.Description = description;
+            entity.LeaseDuration = duration;
 
-        ///// <summary>
-        ///// 删除端口映射
-        ///// </summary>
-        ///// <param name="RemoteHost">远程主机</param>
-        ///// <param name="ExternalPort">外部端口</param>
-        ///// <param name="Protocol">TCP或UDP</param>
-        ///// <returns></returns>
-        //public static bool Del(InternetGatewayDevice device, String RemoteHost, Int32 ExternalPort, String Protocol)
-        //{
-        //    String Command = XMLCommand.Del(RemoteHost, ExternalPort, Protocol);
-        //    return SOAPRequest(Command);
-        //}
+            PortMappingEntry response = Request<PortMappingEntry>(device, entity);
+            return response != null;
+        }
+
+        /// <summary>
+        /// 添加映射端口
+        /// </summary>
+        /// <param name="device">网关设备</param>
+        /// <param name="host">本地主机</param>
+        /// <param name="port">端口（内外一致）</param>
+        /// <param name="protocol">协议</param>
+        /// <param name="description">描述</param>
+        /// <returns></returns>
+        public static Boolean Add(InternetGatewayDevice device, String host, Int32 port, String protocol, String description)
+        {
+            return Add(device, null, port, protocol, port, host, 1, description, 0);
+        }
+
+        /// <summary>
+        /// 删除端口映射
+        /// </summary>
+        /// <param name="remoteHost">远程主机</param>
+        /// <param name="externalPort">外部端口</param>
+        /// <param name="protocol">TCP或UDP</param>
+        /// <returns></returns>
+        public static Boolean Delete(InternetGatewayDevice device, String remoteHost, Int32 externalPort, String protocol)
+        {
+            PortMappingEntry entity = new PortMappingEntry();
+            entity.Name = "DeletePortMapping";
+            entity.RemoteHost = remoteHost;
+            entity.ExternalPort = externalPort;
+            entity.Protocol = protocol;
+
+            PortMappingEntry response = Request<PortMappingEntry>(device, entity);
+            return response != null;
+        }
         #endregion
 
         #region 查找
         /// <summary>
-        /// 获取端口映射信息
+        /// 获取指定设备的端口映射信息
         /// </summary>
-        /// <param name="RemoteHost">远程主机</param>
-        /// <param name="ExternalPort">外部端口</param>
-        /// <param name="Protocol">TCP/UDP</param>
+        /// <param name="device">网关设备</param>
+        /// <param name="remoteHost">远程主机</param>
+        /// <param name="externalPort">外部端口</param>
+        /// <param name="protocol">TCP/UDP</param>
         /// <returns></returns>
-        public static PortMappingEntry GetMapByPortAndProtocol(InternetGatewayDevice device, String RemoteHost, Int32 ExternalPort, String Protocol)
+        public static PortMappingEntry GetMapByPortAndProtocol(InternetGatewayDevice device, String remoteHost, Int32 externalPort, String protocol)
         {
             PortMappingEntry entity = new PortMappingEntry();
             entity.Name = "GetSpecificPortMappingEntry";
-            entity.NewRemoteHost = RemoteHost;
-            entity.NewExternalPort = ExternalPort;
-            entity.NewProtocol = Protocol;
+            entity.RemoteHost = remoteHost;
+            entity.ExternalPort = externalPort;
+            entity.Protocol = protocol;
 
             PortMappingEntry response = Request<PortMappingEntry>(device, entity);
             return response;
         }
 
         /// <summary>
-        /// 获取端口映射信息
+        /// 获取指定设备的端口映射信息
         /// </summary>
+        /// <param name="device">网关设备</param>
         /// <param name="index">索引</param>
         /// <returns></returns>
         public static PortMappingEntry GetMapByIndex(InternetGatewayDevice device, Int32 index)
@@ -281,8 +309,9 @@ namespace NewLife.Net.UPnP
         }
 
         /// <summary>
-        /// 获取所有端口映射信息
+        /// 获取指定设备的所有端口映射信息
         /// </summary>
+        /// <param name="device">网关设备</param>
         /// <returns></returns>
         public static List<PortMappingEntry> GetMapByIndexAll(InternetGatewayDevice device)
         {
@@ -340,6 +369,13 @@ namespace NewLife.Net.UPnP
         #endregion
 
         #region SOAP
+        /// <summary>
+        /// 向设备发送指令
+        /// </summary>
+        /// <typeparam name="TResponse"></typeparam>
+        /// <param name="device"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
         static TResponse Request<TResponse>(InternetGatewayDevice device, UPnPAction action) where TResponse : UPnPAction<TResponse>, new()
         {
             if (device == null || device.device == null || action == null) return null;
@@ -433,78 +469,78 @@ namespace NewLife.Net.UPnP
             }
         }
 
-        /// <summary>
-        /// 序列化请求
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="prefix"></param>
-        /// <param name="ns"></param>
-        /// <returns></returns>
-        public static String SerialRequest(Object obj, String prefix, String ns)
-        {
-            XmlDocument doc = new XmlDocument();
-            XmlElement root = doc.CreateElement(prefix, obj.GetType().Name, ns);
-            doc.AppendChild(root);
+        ///// <summary>
+        ///// 序列化请求
+        ///// </summary>
+        ///// <param name="obj"></param>
+        ///// <param name="prefix"></param>
+        ///// <param name="ns"></param>
+        ///// <returns></returns>
+        //public static String SerialRequest(Object obj, String prefix, String ns)
+        //{
+        //    XmlDocument doc = new XmlDocument();
+        //    XmlElement root = doc.CreateElement(prefix, obj.GetType().Name, ns);
+        //    doc.AppendChild(root);
 
-            TypeX tx = TypeX.Create(obj.GetType());
-            foreach (PropertyInfoX item in tx.Properties)
-            {
-                XmlElement elm = doc.CreateElement(item.Property.Name);
-                Object v = item.GetValue(obj);
-                String str = v == null ? "" : v.ToString();
+        //    TypeX tx = TypeX.Create(obj.GetType());
+        //    foreach (PropertyInfoX item in tx.Properties)
+        //    {
+        //        XmlElement elm = doc.CreateElement(item.Property.Name);
+        //        Object v = item.GetValue(obj);
+        //        String str = v == null ? "" : v.ToString();
 
-                XmlText text = doc.CreateTextNode(str);
-                elm.AppendChild(text);
+        //        XmlText text = doc.CreateTextNode(str);
+        //        elm.AppendChild(text);
 
-                root.AppendChild(elm);
-            }
+        //        root.AppendChild(elm);
+        //    }
 
-            return doc.InnerXml;
+        //    return doc.InnerXml;
 
-            //XmlRootAttribute att = new XmlRootAttribute();
-            //att.Namespace = ns;
+        //    //XmlRootAttribute att = new XmlRootAttribute();
+        //    //att.Namespace = ns;
 
-            //XmlAttributes atts = new XmlAttributes();
-            //atts.XmlRoot = att;
+        //    //XmlAttributes atts = new XmlAttributes();
+        //    //atts.XmlRoot = att;
 
-            //XmlAttributeOverrides ovs = new XmlAttributeOverrides();
-            //ovs.Add(obj.GetType(), atts);
+        //    //XmlAttributeOverrides ovs = new XmlAttributeOverrides();
+        //    //ovs.Add(obj.GetType(), atts);
 
-            ////atts = new XmlAttributes();
-            ////XmlElementAttribute att2 = new XmlElementAttribute();
-            ////att2.Namespace = null;
-            ////atts.XmlElements.Add(att2);
-            ////ovs.Add(typeof(Int32), atts);
+        //    ////atts = new XmlAttributes();
+        //    ////XmlElementAttribute att2 = new XmlElementAttribute();
+        //    ////att2.Namespace = null;
+        //    ////atts.XmlElements.Add(att2);
+        //    ////ovs.Add(typeof(Int32), atts);
 
-            ////atts = new XmlAttributes();
-            ////att2 = new XmlElementAttribute();
-            ////att2.Namespace = null;
-            ////atts.XmlElements.Add(att2);
-            ////ovs.Add(typeof(String), atts);
+        //    ////atts = new XmlAttributes();
+        //    ////att2 = new XmlElementAttribute();
+        //    ////att2.Namespace = null;
+        //    ////atts.XmlElements.Add(att2);
+        //    ////ovs.Add(typeof(String), atts);
 
-            //XmlSerializer serial = new XmlSerializer(obj.GetType(), ovs);
-            //using (MemoryStream stream = new MemoryStream())
-            //{
-            //    XmlWriterSettings setting = new XmlWriterSettings();
-            //    setting.Encoding = Encoding.UTF8;
-            //    // 去掉开头 <?xml version="1.0" encoding="utf-8"?>
-            //    setting.OmitXmlDeclaration = true;
+        //    //XmlSerializer serial = new XmlSerializer(obj.GetType(), ovs);
+        //    //using (MemoryStream stream = new MemoryStream())
+        //    //{
+        //    //    XmlWriterSettings setting = new XmlWriterSettings();
+        //    //    setting.Encoding = Encoding.UTF8;
+        //    //    // 去掉开头 <?xml version="1.0" encoding="utf-8"?>
+        //    //    setting.OmitXmlDeclaration = true;
 
-            //    using (XmlWriter writer = XmlWriter.Create(stream, setting))
-            //    {
-            //        XmlSerializerNamespaces xsns = new XmlSerializerNamespaces();
-            //        xsns.Add(prefix, ns);
-            //        serial.Serialize(writer, obj, xsns);
+        //    //    using (XmlWriter writer = XmlWriter.Create(stream, setting))
+        //    //    {
+        //    //        XmlSerializerNamespaces xsns = new XmlSerializerNamespaces();
+        //    //        xsns.Add(prefix, ns);
+        //    //        serial.Serialize(writer, obj, xsns);
 
-            //        byte[] bts = stream.ToArray();
-            //        String xml = Encoding.UTF8.GetString(bts);
+        //    //        byte[] bts = stream.ToArray();
+        //    //        String xml = Encoding.UTF8.GetString(bts);
 
-            //        if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
+        //    //        if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
 
-            //        return xml;
-            //    }
-            //}
-        }
+        //    //        return xml;
+        //    //    }
+        //    //}
+        //}
         #endregion
     }
 }

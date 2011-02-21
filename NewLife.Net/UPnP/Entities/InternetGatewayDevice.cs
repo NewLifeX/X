@@ -93,6 +93,19 @@ namespace NewLife.Net.UPnP
             ServerHost = uri.Host;
             ServerPort = uri.Port;
         }
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            Device d = device;
+            if (d != null)
+                return String.Format("{0} {1}", d, ServerHost);
+            else
+                return ServerHost;
+        }
         #endregion
     }
 }
