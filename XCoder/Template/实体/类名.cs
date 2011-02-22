@@ -11,7 +11,7 @@ namespace <#=Config.NameSpace#>
 	[Serializable]
 	[DataObject]
 	[Description("<#=ClassDescription#>")]
-	[BindTable("<#=Table.Name#>", Description = "<#=ClassDescription#>", ConnName = "<#=Config.EntityConnName#>", DbType = <#=Table.DbType#>)]
+	[BindTable("<#=Table.Name#>", Description = "<#=ClassDescription#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#>)]
 	public partial class <#=ClassName#>
 	{
 		#region 属性<#
