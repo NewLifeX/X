@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using NewLife.Collections;
+using NewLife.Exceptions;
 
 namespace NewLife.Threading
 {
@@ -34,15 +35,15 @@ namespace NewLife.Threading
         /// </summary>
         private Int32 _lock = 0;
 
-        /// <summary>
-        /// 写入线程的ID。用于多次调用识别
-        /// </summary>
-        private Int32 _threadID = 0;
+        ///// <summary>
+        ///// 写入线程的ID。用于多次调用识别
+        ///// </summary>
+        //private Int32 _threadID = 0;
 
-        /// <summary>
-        /// 循环计数。多次调用时，实现递加或递减
-        /// </summary>
-        private Int32 _recursionCount = 0;
+        ///// <summary>
+        ///// 循环计数。多次调用时，实现递加或递减
+        ///// </summary>
+        //private Int32 _recursionCount = 0;
         #endregion
 
         #region 构造
@@ -65,6 +66,8 @@ namespace NewLife.Threading
         /// <returns></returns>
         public static ReadWriteLock Create(Object key)
         {
+            if (key == null) throw new ArgumentNullException("key");
+
             return _cache.GetItem(key, delegate { return new ReadWriteLock(); });
         }
         #endregion
@@ -75,19 +78,21 @@ namespace NewLife.Threading
         /// </summary>
         public void AcquireRead()
         {
-            Int32 currentThreadID = Thread.CurrentThread.ManagedThreadId;
-            if (currentThreadID == _threadID)
-            {
-                Interlocked.Increment(ref _recursionCount);
-                return;
-            }
+            //Int32 currentThreadID = Thread.CurrentThread.ManagedThreadId;
+            //if (currentThreadID == _threadID)
+            //{
+            //    Interlocked.Increment(ref _recursionCount);
+            //    return;
+            //}
 
             Int32 oldLock = 0;
+            Int32 times = 0;
 
             // 读锁使得锁计数递加
             do
             {
                 oldLock = _lock;
+                if (times++ > 100) throw new XException("原子读写锁实在太忙，无法取得读取锁！");
 
                 // 负数表示写锁
                 if (oldLock < 0)
@@ -106,12 +111,12 @@ namespace NewLife.Threading
         /// </summary>
         public void ReleaseRead()
         {
-            Int32 currentThreadID = Thread.CurrentThread.ManagedThreadId;
-            if (currentThreadID == _threadID)
-            {
-                Interlocked.Decrement(ref _recursionCount);
-                return;
-            }
+            //Int32 currentThreadID = Thread.CurrentThread.ManagedThreadId;
+            //if (currentThreadID == _threadID)
+            //{
+            //    Interlocked.Decrement(ref _recursionCount);
+            //    return;
+            //}
 
             if (_lock <= 0) throw new InvalidOperationException("当前未处于读取锁定状态！");
 
@@ -123,19 +128,21 @@ namespace NewLife.Threading
         /// </summary>
         public void AcquireWrite()
         {
-            Int32 currentThreadID = Thread.CurrentThread.ManagedThreadId;
-            if (currentThreadID == _threadID)
-            {
-                Interlocked.Increment(ref _recursionCount);
-                return;
-            }
+            //Int32 currentThreadID = Thread.CurrentThread.ManagedThreadId;
+            //if (currentThreadID == _threadID)
+            //{
+            //    Interlocked.Increment(ref _recursionCount);
+            //    return;
+            //}
 
             Int32 oldLock = 0;
+            Int32 times = 0;
 
             // 读锁使得锁计数递加
             do
             {
                 oldLock = _lock;
+                if (times++ > 100) throw new XException("原子读写锁实在太忙，无法取得写入锁！");
 
                 //// 正数表示读锁，负数且不能大于最大可请求资源
                 //if (oldLock > 0 || -1 * oldLock < Max)
@@ -150,8 +157,8 @@ namespace NewLife.Threading
                 // 是否拿到了锁
             } while (Interlocked.CompareExchange(ref _lock, oldLock - 1, oldLock) != oldLock);
 
-            _threadID = currentThreadID;
-            _recursionCount = 1;
+            //_threadID = currentThreadID;
+            //_recursionCount = 1;
         }
 
         /// <summary>
@@ -159,10 +166,10 @@ namespace NewLife.Threading
         /// </summary>
         public void ReleaseWrite()
         {
-            Int32 currentThreadID = Thread.CurrentThread.ManagedThreadId;
-            if (currentThreadID == _threadID && --_recursionCount == 0)
+            //Int32 currentThreadID = Thread.CurrentThread.ManagedThreadId;
+            //if (currentThreadID == _threadID && --_recursionCount == 0)
             {
-                _threadID = 0;
+                //_threadID = 0;
 
                 if (_lock >= 0) throw new InvalidOperationException("当前未处于写入锁定状态！");
 
