@@ -57,17 +57,17 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
 
             // 数据表
             ddlTable.Items.Clear();
-            IList<XTable> tables = dal.Tables;
-            if (tables != null && tables.Count > 0)
-            {
-                foreach (XTable item in tables)
-                {
-                    String des = String.IsNullOrEmpty(item.Description) ? item.Name : String.Format("{1}({0})", item.Name, item.Description);
-                    ddlTable.Items.Add(new ListItem(des, item.Name));
-                }
+            //IList<XTable> tables = dal.Tables;
+            //if (tables != null && tables.Count > 0)
+            //{
+            //    foreach (XTable item in tables)
+            //    {
+            //        String des = String.IsNullOrEmpty(item.Description) ? item.Name : String.Format("{1}({0})", item.Name, item.Description);
+            //        ddlTable.Items.Add(new ListItem(des, item.Name));
+            //    }
 
-                ddlTable.Items.Insert(0, "--请选择--");
-            }
+            //    ddlTable.Items.Insert(0, "--请选择--");
+            //}
 
             // 数据架构
             ddlSchema.Items.Clear();
