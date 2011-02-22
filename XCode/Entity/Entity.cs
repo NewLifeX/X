@@ -470,8 +470,8 @@ namespace XCode
         /// <param name="whereClause">条件，不带Where</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="selects">查询列</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
         [WebMethod(Description = "查询并返回实体对象集合")]
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -587,8 +587,8 @@ namespace XCode
         /// </summary>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
-        /// <param name="startRowIndex">起始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows)
@@ -602,8 +602,8 @@ namespace XCode
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="startRowIndex">起始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
         public static EntityList<TEntity> FindAllByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows)
@@ -632,8 +632,8 @@ namespace XCode
         /// <param name="whereClause">条件，不带Where</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="selects">查询列</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="jointypes">要关联的实体类型列表</param>
         /// <returns>实体数组</returns>
         public static EntityList<TEntity> FindAllMultiple(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows, Type[] jointypes)
@@ -743,8 +743,8 @@ namespace XCode
         /// <param name="whereClause">条件，不带Where</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="selects">查询列</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>总行数</returns>
         [WebMethod(Description = "查询并返回总记录数")]
         public static Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
@@ -783,8 +783,8 @@ namespace XCode
         /// </summary>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>总行数</returns>
         public static Int32 FindCount(String name, Object value, Int32 startRowIndex, Int32 maximumRows)
         {
@@ -797,8 +797,8 @@ namespace XCode
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>总行数</returns>
         public static Int32 FindCountByName(String name, Object value, String orderClause, int startRowIndex, int maximumRows)
         {
@@ -1236,8 +1236,8 @@ namespace XCode
         /// <param name="whereClause">条件，不带Where</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="selects">查询列</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
         protected static String PageSplitSQL(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
@@ -1281,8 +1281,8 @@ namespace XCode
         /// 取得指定实体类型的分页SQL
         /// </summary>
         /// <param name="builder">查询生成器</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
         protected static String PageSplitSQL(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {

@@ -100,8 +100,8 @@ namespace NewLife.CommonEntity
         ///// </summary>
         ///// <param name="name"></param>
         ///// <param name="orderClause">排序，不带Order By</param>
-        ///// <param name="startRowIndex">开始行，0开始</param>
-        ///// <param name="maximumRows">最大返回行数</param>
+        ///// <param name="startRowIndex">开始行，0表示第一行</param>
+        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
         ///// <returns>实体集</returns>
         //[DataObjectMethod(DataObjectMethodType.Select, true)]
         //public static EntityList<Statistics> Search(String name, String orderClause, Int32 startRowIndex, Int32 maximumRows)
@@ -114,8 +114,8 @@ namespace NewLife.CommonEntity
         ///// </summary>
         ///// <param name="name"></param>
         ///// <param name="orderClause">排序，不带Order By</param>
-        ///// <param name="startRowIndex">开始行，0开始</param>
-        ///// <param name="maximumRows">最大返回行数</param>
+        ///// <param name="startRowIndex">开始行，0表示第一行</param>
+        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
         ///// <returns>记录数</returns>
         //public static Int32 SearchCount(String name, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         //{

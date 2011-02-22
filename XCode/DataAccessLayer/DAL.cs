@@ -352,8 +352,8 @@ namespace XCode.DataAccessLayer
         /// 所以在这里做缓存。
         /// </remarks>
         /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="keyColumn">唯一键。用于not in分页</param>
         /// <returns>分页SQL</returns>
         public String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
@@ -381,8 +381,8 @@ namespace XCode.DataAccessLayer
         /// 所以在这里做缓存。
         /// </remarks>
         /// <param name="builder">查询生成器</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="keyColumn">唯一键。用于not in分页</param>
         /// <returns>分页SQL</returns>
         public String PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
@@ -433,8 +433,8 @@ namespace XCode.DataAccessLayer
         /// 执行SQL查询，返回分页记录集
         /// </summary>
         /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="keyColumn">唯一键。用于not in分页</param>
         /// <param name="tableNames">所依赖的表的表名</param>
         /// <returns></returns>
@@ -447,8 +447,8 @@ namespace XCode.DataAccessLayer
         /// 执行SQL查询，返回分页记录集
         /// </summary>
         /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="keyColumn">唯一键。用于not in分页</param>
         /// <param name="tableName">所依赖的表的表名</param>
         /// <returns></returns>

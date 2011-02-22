@@ -72,8 +72,8 @@ namespace XCode
         /// <param name="whereClause">条件，不带Where</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="selects">查询列</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
         EntityList<IEntity> FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows);
 
@@ -98,8 +98,8 @@ namespace XCode
         /// </summary>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
-        /// <param name="startRowIndex">起始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
         EntityList<IEntity> FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows);
 
@@ -109,8 +109,8 @@ namespace XCode
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="startRowIndex">起始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
         EntityList<IEntity> FindAllByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows);
         #endregion
@@ -128,8 +128,8 @@ namespace XCode
         /// <param name="whereClause">条件，不带Where</param>
         /// <param name="orderClause">排序，不带Order By</param>
         /// <param name="selects">查询列</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>总行数</returns>
         Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows);
 
@@ -154,8 +154,8 @@ namespace XCode
         /// </summary>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>总行数</returns>
         Int32 FindCount(String name, Object value, Int32 startRowIndex, Int32 maximumRows);
 
@@ -165,8 +165,8 @@ namespace XCode
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0开始</param>
-        /// <param name="maximumRows">最大返回行数</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>总行数</returns>
         Int32 FindCountByName(String name, Object value, String orderClause, int startRowIndex, int maximumRows);
         #endregion
