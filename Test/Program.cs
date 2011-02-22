@@ -21,6 +21,7 @@ using NewLife.Remoting;
 using System.Net;
 using NewLife.Net.Common;
 using NewLife.Exceptions;
+using System.Threading;
 
 namespace Test
 {
@@ -37,8 +38,8 @@ namespace Test
                 try
                 {
 #endif
-                Test10();
-                //ThreadPoolTest.Main2(args);
+                    Test9();
+                    //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -360,9 +361,14 @@ namespace Test
             //String Command = UPnPClient.SerialRequest(entry, "u", "Xmlns");
             //Console.WriteLine(Command);
 
+            String ip = NetHelper.GetIPV4()[0].ToString();
+            
             UPnPClient client = new UPnPClient();
             client.OnNewDevice += delegate(object sender, EventArgs<InternetGatewayDevice, bool> e)
             {
+                InternetGatewayDevice device = e.Arg1;
+                Console.WriteLine("{0}网关：{1} {2}", e.Arg2 ? "[缓存]" : "", device.device.friendlyName, device.ServerHost);
+
                 PortMappingEntry entity = null;
                 for (int i = 0; i < 100; i++)
                 {
@@ -373,28 +379,23 @@ namespace Test
                     catch { break; }
                     if (entity == null) break;
 
-                    Console.WriteLine("{0} {1} {2} {3} {4} {5}", entity.NewPortMappingDescription, entity.NewExternalPort, entity.NewProtocol, entity.NewInternalClient, entity.NewInternalPort, entity.NewEnabled);
+                    Console.WriteLine("[{6}] {0} {1} {2} {3} {4} {5}", entity.Description, entity.ExternalPort, entity.Protocol, entity.InternalClient, entity.InternalPort, entity.Enabled, device.ServerHost);
+
+                    if (entity.InternalClient == ip) UPnPClient.Delete(device, entity.RemoteHost, entity.ExternalPort, entity.Protocol);
                 }
             };
             client.StartDiscover();
-            //UPnPClient.GetMapByIndex(client.Gateways.Values[0], 0);
 
-            //client.GetMapByIndexAll();
-            //PortMappingEntry pm = client.GetMapByIndex(0);
-            //Console.WriteLine(pm != null);
+            Thread.Sleep(1000);
 
-            //Console.WriteLine(Encoding.Default.EncodingName);
+            InternetGatewayDevice device2 = client.Gateways.Values[0];
+            PortMappingEntry entity2 = UPnPClient.GetMapByPortAndProtocol(device2, "", 20019, "TCP");
+            Console.WriteLine(entity2.Description);
 
-            //String xml = File.ReadAllText("XMLFile.xml");
-            //XmlDocument doc = new XmlDocument();
-            //doc.Load("XMLFile.xml");
-            //XmlNodeList list = doc.SelectNodes(@"rt/li");
-            //foreach (XmlNode item in list)
-            //{
-            //    Console.WriteLine();
-            //    Console.WriteLine(item.ChildNodes[2].InnerText);
-            //    Console.WriteLine(item.ChildNodes[3].InnerText);
-            //}
+            Random rnd = new Random((Int32)DateTime.Now.Ticks);
+            //Boolean b = UPnPClient.Add(device2, ip, rnd.Next(1000, 9999), "TCP", "UPNP测试");
+
+            client.Dispose();
         }
 
         /// <summary>
