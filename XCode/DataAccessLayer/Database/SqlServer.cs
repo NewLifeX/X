@@ -266,6 +266,12 @@ namespace XCode.DataAccessLayer
                 if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
                 return "N'" + value.ToString().Replace("'", "''") + "'";
             }
+            else if (field.DataType == typeof(Guid))
+            {
+                if (value == null) return isNullable ? "null" : "''";
+
+                return String.Format("'{0}'", value);
+            }
 
             return base.FormatValue(field, value);
         }

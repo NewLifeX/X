@@ -142,7 +142,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string FormatDateTime(DateTime dateTime)
         {
-            return String.Format("To_Date('{0}', 'YYYYMMDDHH24MISS')", dateTime.ToString("yyyyMMddhhmmss"));
+            return String.Format("To_Date('{0}', 'YYYY-MM-DD HH24:MI:SS')", dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
         }
 
         /// <summary>
