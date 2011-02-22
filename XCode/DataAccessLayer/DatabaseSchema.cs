@@ -221,7 +221,16 @@ namespace XCode.DataAccessLayer
             WriteLog("开始检查数据架构：" + ConnName);
 
             //数据库检查
-            Boolean dbExist = (Boolean)MetaData.SetSchema(DDLSchema.DatabaseExist, null);
+            Boolean dbExist = true;
+            try
+            {
+                dbExist = (Boolean)MetaData.SetSchema(DDLSchema.DatabaseExist, null);
+            }
+            catch
+            {
+                // 如果异常，默认认为数据库存在
+                dbExist = true;
+            }
 
             if (!dbExist)
             {

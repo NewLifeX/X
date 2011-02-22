@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.1.*")]
-[assembly: AssemblyFileVersion("7.1.2011.0215")]
+[assembly: AssemblyFileVersion("7.1.2011.0222")]
 
 /*
  * XCode的重大改进
@@ -48,6 +48,11 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.1.2011.0222   SQLite使用完整读写锁，避免读取时有写入操作然后报文件锁定
+ *                  SQLite写入操作允许重试两次，以解决高并发时文件锁定的小概率事件
+ *                  修改数据库架构，在获取数据库是否存在出现异常时，默认数据库已存在，因为一般来说都是没有管理员权限造成的错误，并且大多数时候数据库都是存在的
+ *                  修改DAL的构造函数，检查数据库架构的异常不应该影响DAL的正常使用
+ * 
  * v7.1.2011.0215   热心网友 Hannibal 在处理日文网站时发现插入的日文为乱码（MSSQL），这里加上N前缀，同时给时间日期加上ts前缀
  *                  SQLite数据库处理字节数组时，加上X前缀
  *                  把实体类中的SQL方法，设为共有，便于外部获取SQL语句

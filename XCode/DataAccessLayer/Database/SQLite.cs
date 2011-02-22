@@ -170,6 +170,37 @@ namespace XCode.DataAccessLayer
             }
         }
 
+        public override DataSet Query(string sql)
+        {
+            rwLock.AcquireRead();
+            try
+            {
+                return base.Query(sql);
+            }
+            finally
+            {
+                rwLock.ReleaseRead();
+            }
+        }
+
+        public override DataSet Query(DbCommand cmd)
+        {
+            rwLock.AcquireRead();
+            try
+            {
+                return base.Query(cmd);
+            }
+            finally
+            {
+                rwLock.ReleaseRead();
+            }
+        }
+
+        /// <summary>
+        /// 文件锁定重试次数
+        /// </summary>
+        const Int32 RetryTimes = 2;
+
         /// <summary>
         /// 已重载。增加锁
         /// </summary>
@@ -177,15 +208,28 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override int Execute(string sql)
         {
-            rwLock.AcquireWrite();
-            try
+            //! 如果异常是文件锁定，则重试
+            for (int i = 0; i < RetryTimes; i++)
             {
-                return base.Execute(sql);
+                rwLock.AcquireWrite();
+                try
+                {
+                    return base.Execute(sql);
+                }
+                catch (Exception ex)
+                {
+                    if (i >= RetryTimes - 1) throw;
+
+                    if (ex.Message == "The database file is locked") continue;
+
+                    throw;
+                }
+                finally
+                {
+                    rwLock.ReleaseWrite();
+                }
             }
-            finally
-            {
-                rwLock.ReleaseWrite();
-            }
+            return -1;
         }
 
         /// <summary>
@@ -195,15 +239,28 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override int Execute(DbCommand cmd)
         {
-            rwLock.AcquireWrite();
-            try
+            //! 如果异常是文件锁定，则重试
+            for (int i = 0; i < RetryTimes; i++)
             {
-                return base.Execute(cmd);
+                rwLock.AcquireWrite();
+                try
+                {
+                    return base.Execute(cmd);
+                }
+                catch (Exception ex)
+                {
+                    if (i >= RetryTimes - 1) throw;
+
+                    if (ex.Message == "The database file is locked") continue;
+
+                    throw;
+                }
+                finally
+                {
+                    rwLock.ReleaseWrite();
+                }
             }
-            finally
-            {
-                rwLock.ReleaseWrite();
-            }
+            return -1;
         }
 
         /// <summary>
@@ -213,31 +270,44 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public override Int64 InsertAndGetIdentity(string sql)
         {
-            rwLock.AcquireWrite();
-            try
+            //! 如果异常是文件锁定，则重试
+            for (int i = 0; i < RetryTimes; i++)
             {
-                ExecuteTimes++;
-                sql = sql + ";Select last_insert_rowid() newid";
-                if (Debug) WriteLog(sql);
+                rwLock.AcquireWrite();
                 try
                 {
-                    DbCommand cmd = PrepareCommand();
-                    cmd.CommandText = sql;
-                    Object obj = cmd.ExecuteScalar();
-                    if (obj == null) return 0;
+                    ExecuteTimes++;
+                    sql = sql + ";Select last_insert_rowid() newid";
+                    if (Debug) WriteLog(sql);
+                    try
+                    {
+                        DbCommand cmd = PrepareCommand();
+                        cmd.CommandText = sql;
+                        Object obj = cmd.ExecuteScalar();
+                        if (obj == null) return 0;
 
-                    return Int64.Parse(obj.ToString());
+                        return Int64.Parse(obj.ToString());
+                    }
+                    catch (DbException ex)
+                    {
+                        throw OnException(ex, sql);
+                    }
                 }
-                catch (DbException ex)
+                catch (Exception ex)
                 {
-                    throw OnException(ex, sql);
+                    if (i >= RetryTimes - 1) throw;
+
+                    if (ex.Message == "The database file is locked") continue;
+
+                    throw;
+                }
+                finally
+                {
+                    AutoClose();
+                    rwLock.ReleaseWrite();
                 }
             }
-            finally
-            {
-                AutoClose();
-                rwLock.ReleaseWrite();
-            }
+            return -1;
         }
         #endregion
     }
