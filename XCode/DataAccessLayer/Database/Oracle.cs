@@ -73,6 +73,22 @@ namespace XCode.DataAccessLayer
                 return _UserID;
             }
         }
+
+        /// <summary>拥有者</summary>
+        public override String Owner
+        {
+            get
+            {
+                // 利用null和Empty的区别来判断是否已计算
+                if (base.Owner == null)
+                {
+                    base.Owner = UserID;
+                    if (String.IsNullOrEmpty(base.Owner)) base.Owner = String.Empty;
+                }
+                return base.Owner;
+            }
+            set { base.Owner = value; }
+        }
         #endregion
 
         #region 方法
@@ -154,7 +170,8 @@ namespace XCode.DataAccessLayer
         {
             //return String.Format("\"{0}\"", keyWord);
 
-            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
+            //if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
+            if (String.IsNullOrEmpty(keyWord)) return keyWord;
 
             Int32 pos = keyWord.LastIndexOf(".");
 
@@ -174,6 +191,30 @@ namespace XCode.DataAccessLayer
     internal class OracleSession : RemoteDbSession
     {
         #region 基本方法 查询/执行
+        /// <summary>
+        /// 快速查询单表记录数，稍有偏差
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public override int QueryCountFast(string tableName)
+        {
+            String sql = String.Format("select NUM_ROWS from sys.all_indexes where TABLE_OWNER='{0}' and TABLE_NAME='{1}'", (Database as Oracle).Owner.ToUpper(), tableName);
+
+            QueryTimes++;
+            DbCommand cmd = PrepareCommand();
+            cmd.CommandText = sql;
+            if (Debug) WriteLog(cmd.CommandText);
+            try
+            {
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd.CommandText);
+            }
+            finally { AutoClose(); }
+        }
+
         /// <summary>
         /// 执行插入语句并返回新增行的自动编号
         /// </summary>
@@ -301,6 +342,9 @@ namespace XCode.DataAccessLayer
     /// </summary>
     class OracleMeta : RemoteDbMetaData
     {
+        /// <summary>拥有者</summary>
+        public String Owner { get { return (Database as Oracle).Owner.ToUpper(); } }
+
         /// <summary>
         /// 取得所有表构架
         /// </summary>
@@ -309,20 +353,10 @@ namespace XCode.DataAccessLayer
         {
             try
             {
-                String user = Database.Owner;
-                if (String.IsNullOrEmpty(user))
-                {
-                    //Regex reg = new Regex(@";user id=\b(\w+)\b;", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                //- 不要空，否则会死得很惨，列表所有数据表，实在太多了
+                //if (String.Equals(user, "system")) user = null;
 
-                    //Match m = reg.Match(Database.ConnectionString);
-                    //if (m != null) user = m.Groups[1].Value;
-
-                    user = (Database as Oracle).UserID;
-                }
-
-                if (String.Equals(user, "system")) user = null;
-
-                DataTable dt = GetSchema("Tables", new String[] { user });
+                DataTable dt = GetSchema("Tables", new String[] { Owner });
 
                 // 默认列出所有字段
                 DataRow[] rows = new DataRow[dt.Rows.Count];
@@ -333,6 +367,44 @@ namespace XCode.DataAccessLayer
             catch (DbException ex)
             {
                 throw new XDbMetaDataException(this, "取得所有表构架出错！", ex);
+            }
+        }
+
+        /// <summary>
+        /// 取得指定表的所有列构架
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        protected override List<XField> GetFields(XTable table)
+        {
+            DataTable dt = GetSchema("Columns", new String[] { Owner, table.Name, null });
+
+            DataRow[] drs = null;
+            if (dt.Columns.Contains("ID"))
+                drs = dt.Select("", "ID");
+            else
+                drs = dt.Select("");
+
+            List<XField> list = GetFields(table, drs);
+
+            return list;
+        }
+
+        /// <summary>
+        /// 已重载。主键构架
+        /// </summary>
+        protected override DataTable PrimaryKeys
+        {
+            get
+            {
+                if (_PrimaryKeys == null)
+                {
+                    DataTable pks = GetSchema("IndexColumns", new String[] { Owner, null, null, null, null });
+                    if (pks == null) return null;
+
+                    _PrimaryKeys = pks;
+                }
+                return _PrimaryKeys;
             }
         }
     }

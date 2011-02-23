@@ -86,7 +86,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
         {
-            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
+            //if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
+            if (String.IsNullOrEmpty(keyWord)) return keyWord;
 
             if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
 
@@ -229,17 +230,17 @@ namespace XCode.DataAccessLayer
             return list;
         }
 
-        protected override void FixField(XField field, DataRow dr)
+        protected override void FixField(XField field, DataRow drColumn)
         {
-            base.FixField(field, dr);
+            base.FixField(field, drColumn);
 
             // 字段标识
-            Int64 flag = GetDataRowValue<Int64>(dr, "COLUMN_FLAGS");
+            Int64 flag = GetDataRowValue<Int64>(drColumn, "COLUMN_FLAGS");
 
             Boolean? isLong = null;
 
             Int32 id = 0;
-            if (Int32.TryParse(GetDataRowValue<String>(dr, "DATA_TYPE"), out id))
+            if (Int32.TryParse(GetDataRowValue<String>(drColumn, "DATA_TYPE"), out id))
             {
                 DataRow[] drs = FindDataType(field, "" + id, isLong);
                 if (drs != null && drs.Length > 0)
@@ -268,6 +269,15 @@ namespace XCode.DataAccessLayer
             //{
             //    //field.Identity = (flag & 0x20) != 0x20;
             //}
+        }
+
+        protected override void FixField(XField field, DataRow drColumn, DataRow drDataType)
+        {
+            base.FixField(field, drColumn, drDataType);
+
+            // 修正原始类型
+            String typeName = null;
+            if (TryGetDataRowValue<String>(drDataType, "TypeName", out typeName)) field.RawType = typeName;
         }
 
         protected override Dictionary<DataRow, String> GetPrimaryKeys(string tableName)
@@ -492,19 +502,19 @@ namespace XCode.DataAccessLayer
             return drs;
         }
 
-        protected override void SetFieldType(XField field, string typeName)
-        {
-            DataTable dt = DataTypes;
-            if (dt == null) return;
+        //protected override void SetFieldType(XField field, string typeName)
+        //{
+        //    DataTable dt = DataTypes;
+        //    if (dt == null) return;
 
-            DataRow[] drs = FindDataType(field, typeName, null);
-            if (drs == null || drs.Length < 1) return;
+        //    DataRow[] drs = FindDataType(field, typeName, null);
+        //    if (drs == null || drs.Length < 1) return;
 
-            // 修正原始类型
-            if (TryGetDataRowValue<String>(drs[0], "TypeName", out typeName)) field.RawType = typeName;
+        //    // 修正原始类型
+        //    if (TryGetDataRowValue<String>(drs[0], "TypeName", out typeName)) field.RawType = typeName;
 
-            base.SetFieldType(field, typeName);
-        }
+        //    base.SetFieldType(field, typeName);
+        //}
 
         protected override string GetFieldType(XField field)
         {

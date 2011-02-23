@@ -173,7 +173,7 @@ namespace XCode
             field.ID = table.Fields.Count + 1;
             field.Name = "Value";
             field.DataType = typeof(Double);
-            field.Digit = 10;
+            field.Scale = 10;
             field.Nullable = false;
             field.Default = "1.8";
             field.Description = "值";

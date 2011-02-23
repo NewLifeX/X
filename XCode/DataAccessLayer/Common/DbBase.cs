@@ -108,7 +108,7 @@ namespace XCode.DataAccessLayer
 
         private String _Owner;
         /// <summary>拥有者</summary>
-        public String Owner
+        public virtual String Owner
         {
             get { return _Owner; }
             set { _Owner = value; }

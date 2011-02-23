@@ -159,7 +159,11 @@ namespace XCode.DataAccessLayer
                 XField field = table.CreateField();
 
                 // 序号
-                field.ID = GetDataRowValue<Int32>(dr, "ORDINAL_POSITION");
+                Int32 n = 0;
+                if (TryGetDataRowValue<Int32>(dr, "ORDINAL_POSITION", out n))
+                    field.ID = n;
+                else if (TryGetDataRowValue<Int32>(dr, "ID", out n))
+                    field.ID = n;
                 // 如果从0开始，则所有需要同步增加；如果所有字段序号都是0，则按照先后顺序
                 if (field.ID == 0)
                 {
@@ -182,30 +186,53 @@ namespace XCode.DataAccessLayer
                     field.PrimaryKey = pks != null && pks.ContainsValue(field.Name);
 
                 // 原始数据类型
-                field.RawType = GetDataRowValue<String>(dr, "DATA_TYPE");
+                //field.RawType = GetDataRowValue<String>(dr, "DATA_TYPE");
+                String str;
+                if (TryGetDataRowValue<String>(dr, "DATA_TYPE", out str))
+                    field.RawType = str;
+                else if (TryGetDataRowValue<String>(dr, "DATATYPE", out str))
+                    field.RawType = str;
 
-                // 长度
-                Int32 n = 0;
+                // 精度
                 if (TryGetDataRowValue<Int32>(dr, "NUMERIC_PRECISION", out n))
-                    field.Length = n;
+                    field.Precision = n;
                 else if (TryGetDataRowValue<Int32>(dr, "DATETIME_PRECISION", out n))
-                    field.Length = n;
-                else if (TryGetDataRowValue<Int32>(dr, "CHARACTER_MAXIMUM_LENGTH", out n))
-                    field.Length = n;
+                    field.Precision = n;
+                else if (TryGetDataRowValue<Int32>(dr, "PRECISION", out n))
+                    field.Precision = n;
 
                 // 位数
-                field.Digit = GetDataRowValue<Int32>(dr, "NUMERIC_SCALE");
+                //field.Digit = GetDataRowValue<Int32>(dr, "NUMERIC_SCALE");
+                if (TryGetDataRowValue<Int32>(dr, "NUMERIC_SCALE", out n))
+                    field.Scale = n;
+                else if (TryGetDataRowValue<Int32>(dr, "SCALE", out n))
+                    field.Scale = n;
+
+                // 长度
+                if (TryGetDataRowValue<Int32>(dr, "CHARACTER_MAXIMUM_LENGTH", out n))
+                    field.Length = n;
+                else if (TryGetDataRowValue<Int32>(dr, "LENGTH", out n))
+                    field.Length = n;
+                else
+                    field.Length = field.Precision;
 
                 // 字节数
-                field.NumOfByte = GetDataRowValue<Int32>(dr, "CHARACTER_OCTET_LENGTH");
+                //field.NumOfByte = GetDataRowValue<Int32>(dr, "CHARACTER_OCTET_LENGTH");
+                if (TryGetDataRowValue<Int32>(dr, "CHARACTER_OCTET_LENGTH", out n))
+                    field.NumOfByte = n;
+                else
+                    field.NumOfByte = field.Length;
 
                 // 允许空
                 if (TryGetDataRowValue<Boolean>(dr, "IS_NULLABLE", out  b))
                     field.Nullable = b;
-                else
+                else if (TryGetDataRowValue<String>(dr, "IS_NULLABLE", out  str))
                 {
-                    String str = GetDataRowValue<String>(dr, "IS_NULLABLE");
                     if (!String.IsNullOrEmpty(str)) field.Nullable = String.Equals("YES", str, StringComparison.OrdinalIgnoreCase);
+                }
+                else if (TryGetDataRowValue<String>(dr, "NULLABLE", out  str))
+                {
+                    if (!String.IsNullOrEmpty(str)) field.Nullable = String.Equals("Y", str, StringComparison.OrdinalIgnoreCase);
                 }
 
                 // 默认值
@@ -229,8 +256,52 @@ namespace XCode.DataAccessLayer
         /// <param name="dr"></param>
         protected virtual void FixField(XField field, DataRow dr)
         {
-            String typeName = GetDataRowValue<String>(dr, "DATA_TYPE");
-            SetFieldType(field, typeName);
+            ////String typeName = GetDataRowValue<String>(dr, "DATA_TYPE");
+            //SetFieldType(field, field.RawType);
+
+            DataTable dt = DataTypes;
+            if (dt == null) return;
+
+            DataRow[] drs = FindDataType(field, field.RawType, null);
+            if (drs == null || drs.Length < 1)
+                FixField(field, dr, null);
+            else
+                FixField(field, dr, drs[0]);
+        }
+
+        /// <summary>
+        /// 修正指定字段
+        /// </summary>
+        /// <param name="field">字段</param>
+        /// <param name="drColumn">字段元数据</param>
+        /// <param name="drDataType">字段匹配的数据类型</param>
+        protected virtual void FixField(XField field, DataRow drColumn, DataRow drDataType)
+        {
+            String typeName = field.RawType;
+
+            // 修正数据类型 +++重点+++
+            if (TryGetDataRowValue<String>(drDataType, "DataType", out typeName))
+            {
+                field.DataType = TypeX.GetType(typeName);
+            }
+
+            // 修正长度为最大长度
+            if (field.Length == 0)
+            {
+                Int32 n = 0;
+                if (TryGetDataRowValue<Int32>(drDataType, "ColumnSize", out n))
+                {
+                    field.Length = n;
+                    if (field.NumOfByte == 0) field.NumOfByte = field.Length;
+                }
+            }
+
+            // 处理格式参数
+            if (!String.IsNullOrEmpty(field.RawType) && !field.RawType.EndsWith(")"))
+            {
+                String param = GetFormatParam(field, drDataType);
+                if (!String.IsNullOrEmpty(param)) field.RawType += param;
+            }
         }
         #endregion
 
@@ -328,29 +399,29 @@ namespace XCode.DataAccessLayer
             return null;
         }
 
-        /// <summary>
-        /// 设置字段类型
-        /// </summary>
-        /// <param name="field"></param>
-        /// <param name="typeName"></param>
-        protected virtual void SetFieldType(XField field, String typeName)
-        {
-            DataTable dt = DataTypes;
-            if (dt == null) return;
+        ///// <summary>
+        ///// 设置字段类型
+        ///// </summary>
+        ///// <param name="field"></param>
+        ///// <param name="typeName"></param>
+        //protected virtual void SetFieldType(XField field, String typeName)
+        //{
+        //    DataTable dt = DataTypes;
+        //    if (dt == null) return;
 
-            DataRow[] drs = FindDataType(field, typeName, null);
-            if (drs == null || drs.Length < 1) return;
+        //    DataRow[] drs = FindDataType(field, typeName, null);
+        //    if (drs == null || drs.Length < 1) return;
 
-            // 处理格式参数
-            if (!String.IsNullOrEmpty(field.RawType) && !field.RawType.EndsWith(")"))
-            {
-                String param = GetFormatParam(field, drs[0]);
-                if (!String.IsNullOrEmpty(param)) field.RawType += param;
-            }
+        //    // 处理格式参数
+        //    if (!String.IsNullOrEmpty(field.RawType) && !field.RawType.EndsWith(")"))
+        //    {
+        //        String param = GetFormatParam(field, drs[0]);
+        //        if (!String.IsNullOrEmpty(param)) field.RawType += param;
+        //    }
 
-            if (!TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) return;
-            field.DataType = TypeX.GetType(typeName);
-        }
+        //    if (!TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) return;
+        //    field.DataType = TypeX.GetType(typeName);
+        //}
 
         /// <summary>
         /// 取字段类型
@@ -392,21 +463,27 @@ namespace XCode.DataAccessLayer
             String[] pms = ps.Split(new Char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < pms.Length; i++)
             {
-                if (pms[i].Contains("length") || pms[i].Contains("size") || pms[i].Contains("precision"))
+                if (pms[i].Contains("length") || pms[i].Contains("size"))
                 {
                     if (!param.EndsWith("(")) param += ",";
                     param += field.Length;
+                    continue;
+                }
+                if (pms[i].Contains("precision"))
+                {
+                    if (!param.EndsWith("(")) param += ",";
+                    param += field.Precision;
                     continue;
                 }
                 if (pms[i].Contains("scale") || pms[i].Contains("bits"))
                 {
                     if (!param.EndsWith("(")) param += ",";
                     // 如果没有设置位数，则使用最大位数
-                    Int32 d = field.Digit;
-                    if (d <= 0)
-                    {
-                        if (!TryGetDataRowValue<Int32>(dr, "MaximumScale", out d)) d = field.Digit;
-                    }
+                    Int32 d = field.Scale;
+                    //if (d < 0)
+                    //{
+                    //    if (!TryGetDataRowValue<Int32>(dr, "MaximumScale", out d)) d = field.Scale;
+                    //}
                     param += d;
                     continue;
                 }

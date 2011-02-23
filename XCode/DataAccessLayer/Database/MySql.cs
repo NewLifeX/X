@@ -117,7 +117,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
         {
-            if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
+            //if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
+            if (String.IsNullOrEmpty(keyWord)) return keyWord;
 
             if (keyWord.StartsWith("`") && keyWord.EndsWith("`")) return keyWord;
 
@@ -220,6 +221,25 @@ namespace XCode.DataAccessLayer
             String comment = null;
             if (TryGetDataRowValue<String>(dr, "COLUMN_COMMENT", out comment)) field.Description = comment;
 
+            // 布尔类型
+            if (field.RawType == "enum")
+            {
+                // MySql中没有布尔型，这里处理YN枚举作为布尔型
+                if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
+                {
+                    field.DataType = typeof(Boolean);
+                    // 处理默认值
+                    if (!String.IsNullOrEmpty(field.Default))
+                    {
+                        if (field.Default == "Y")
+                            field.Default = "true";
+                        else if (field.Default == "N")
+                            field.Default = "false";
+                    }
+                    return;
+                }
+            }
+
             base.FixField(field, dr);
         }
 
@@ -276,28 +296,28 @@ namespace XCode.DataAccessLayer
             return drs;
         }
 
-        protected override void SetFieldType(XField field, string typeName)
-        {
-            if (typeName == "enum")
-            {
-                // MySql中没有布尔型，这里处理YN枚举作为布尔型
-                if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
-                {
-                    field.DataType = typeof(Boolean);
-                    // 处理默认值
-                    if (!String.IsNullOrEmpty(field.Default))
-                    {
-                        if (field.Default == "Y")
-                            field.Default = "true";
-                        else if (field.Default == "N")
-                            field.Default = "false";
-                    }
-                    return;
-                }
-            }
+        //protected override void SetFieldType(XField field, string typeName)
+        //{
+        //    if (typeName == "enum")
+        //    {
+        //        // MySql中没有布尔型，这里处理YN枚举作为布尔型
+        //        if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
+        //        {
+        //            field.DataType = typeof(Boolean);
+        //            // 处理默认值
+        //            if (!String.IsNullOrEmpty(field.Default))
+        //            {
+        //                if (field.Default == "Y")
+        //                    field.Default = "true";
+        //                else if (field.Default == "N")
+        //                    field.Default = "false";
+        //            }
+        //            return;
+        //        }
+        //    }
 
-            base.SetFieldType(field, typeName);
-        }
+        //    base.SetFieldType(field, typeName);
+        //}
 
         protected override string GetFieldType(XField field)
         {

@@ -88,13 +88,21 @@ namespace XCode.DataAccessLayer
         [Description("字节数")]
         public Int32 NumOfByte { get { return _NumOfByte; } set { _NumOfByte = value; } }
 
-        private Int32 _Digit;
+        private Int32 _Precision;
+        /// <summary>
+        /// 精度
+        /// </summary>
+        [XmlAttribute]
+        [Description("精度")]
+        public Int32 Precision { get { return _Precision; } set { _Precision = value; } }
+
+        private Int32 _Scale;
         /// <summary>
         /// 位数
         /// </summary>
         [XmlAttribute]
         [Description("位数")]
-        public Int32 Digit { get { return _Digit; } set { _Digit = value; } }
+        public Int32 Scale { get { return _Scale; } set { _Scale = value; } }
 
         private Boolean _Nullable;
         /// <summary>
@@ -272,7 +280,7 @@ namespace XCode.DataAccessLayer
             if (this.PrimaryKey != field.PrimaryKey) return false;
             if (this.Length != field.Length) return false;
             if (this.NumOfByte != field.NumOfByte) return false;
-            if (this.Digit != field.Digit) return false;
+            if (this.Scale != field.Scale) return false;
             if (this.Nullable != field.Nullable) return false;
             if (this.Default != field.Default) return false;
             if (this.Description != field.Description) return false;
