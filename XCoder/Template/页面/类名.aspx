@@ -71,6 +71,6 @@ foreach(XField Field in Table.Fields){
             <asp:Parameter Name="maximumRows" Type="Int32" />
         </SelectParameters>
     </asp:ObjectDataSource>
-    <XCL:GridViewExtender ID="gvExt" runat="server" SelectedRowBackColor="Cornsilk">
+    <XCL:GridViewExtender ID="gvExt" runat="server">
     </XCL:GridViewExtender>
 </asp:Content>
