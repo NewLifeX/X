@@ -14,6 +14,15 @@ namespace NewLife.CommonEntity.Web
     /// </summary>
     /// <typeparam name="TKey">主键类型</typeparam>
     /// <typeparam name="TEntity">表单实体类</typeparam>
+    public class EntityForm<TKey, TEntity> : EntityForm<TKey, TEntity, Administrator, Menu>
+        where TEntity : Entity<TEntity>, new()
+    { }
+
+    /// <summary>
+    /// 实体表单基类
+    /// </summary>
+    /// <typeparam name="TKey">主键类型</typeparam>
+    /// <typeparam name="TEntity">表单实体类</typeparam>
     /// <typeparam name="TAdminEntity">管理员类</typeparam>
     /// <typeparam name="TMenuEntity">菜单类</typeparam>
     public class EntityForm<TKey, TEntity, TAdminEntity, TMenuEntity> : WebPageBase<TAdminEntity, TMenuEntity>

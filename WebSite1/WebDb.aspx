@@ -16,8 +16,7 @@
         </asp:Panel>
     </div>
     <asp:GridView ID="gvTable" runat="server" CssClass="m_table" CellPadding="0" CellSpacing="1"
-        GridLines="None" OnRowDataBound="gvTable_RowDataBound" 
-        EnableModelValidation="True">
+        GridLines="None" OnRowDataBound="gvTable_RowDataBound" EnableModelValidation="True">
     </asp:GridView>
     SQL语句：（主键，分页时用）<asp:TextBox ID="txtKey" runat="server" Width="48px">ID</asp:TextBox>
     &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" OnClick="Button1_Click" />
@@ -29,8 +28,7 @@
     <asp:GridView ID="gvResult" runat="server" CssClass="m_table" CellPadding="0" CellSpacing="1"
         GridLines="None" OnRowDataBound="gvTable_RowDataBound">
     </asp:GridView>
-    <XCL:GridViewExtender ID="GridViewExtender1" runat="server" 
-        SelectedRowBackColor="Pink">
+    <XCL:GridViewExtender ID="GridViewExtender1" runat="server">
     </XCL:GridViewExtender>
     <XCL:DataPager ID="DataPager1" runat="server" OnPageIndexChanging="DataPager2_PageIndexChanging"
         DataSourceID="ObjectDataSource1" PageIndex2="1">
