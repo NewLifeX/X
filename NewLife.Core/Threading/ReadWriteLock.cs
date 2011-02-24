@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Exceptions;
+using NewLife.Log;
 
 namespace NewLife.Threading
 {
@@ -22,18 +23,34 @@ namespace NewLife.Threading
     public sealed class ReadWriteLock //: DisposeBase
     {
         #region 属性
-        //private Int32 _Max = 1;
-        ///// <summary>最大可独占资源数，默认1</summary>
-        //public Int32 Max
-        //{
-        //    get { return _Max; }
-        //    set { _Max = value; }
-        //}
+        private Int32 _Max = 1;
+        /// <summary>最大可独占资源数，默认1</summary>
+        public Int32 Max
+        {
+            get { return _Max; }
+            set { _Max = value; }
+        }
 
         /// <summary>
         /// 锁计数
         /// </summary>
         private Int32 _lock = 0;
+
+        private Int32 _ReadTimeout = 1000;
+        /// <summary>读取锁等待超时时间，默认1秒</summary>
+        public Int32 ReadTimeout
+        {
+            get { return _ReadTimeout; }
+            set { _ReadTimeout = value; }
+        }
+
+        private Int32 _WriteTimeout = 5000;
+        /// <summary>写入锁等待超时时间，默认5秒</summary>
+        public Int32 WriteTimeout
+        {
+            get { return _WriteTimeout; }
+            set { _WriteTimeout = value; }
+        }
 
         ///// <summary>
         ///// 写入线程的ID。用于多次调用识别
@@ -78,6 +95,17 @@ namespace NewLife.Threading
         /// </summary>
         public void AcquireRead()
         {
+            // 1秒
+            if (!AcquireRead(ReadTimeout)) throw new XException("原子读写锁实在太忙，无法取得读取锁！");
+        }
+
+        /// <summary>
+        /// 请求读取锁，等待指定秒
+        /// </summary>
+        /// <param name="millisecondsTimeout"></param>
+        /// <returns>是否取得锁</returns>
+        public Boolean AcquireRead(Int32 millisecondsTimeout)
+        {
             //Int32 currentThreadID = Thread.CurrentThread.ManagedThreadId;
             //if (currentThreadID == _threadID)
             //{
@@ -86,24 +114,29 @@ namespace NewLife.Threading
             //}
 
             Int32 oldLock = 0;
-            Int32 times = 0;
+            Double times = DateTime.Now.TimeOfDay.TotalMilliseconds + millisecondsTimeout;
 
             // 读锁使得锁计数递加
-            do
+            while (true)
             {
                 oldLock = _lock;
-                if (times++ > 100) throw new XException("原子读写锁实在太忙，无法取得读取锁！");
 
                 // 负数表示写锁
-                if (oldLock < 0)
+                if (oldLock < 0 || _lock < 0)
                 {
+                    if (DateTime.Now.TimeOfDay.TotalMilliseconds > times) return false;
+
                     // 空转一下
                     Thread.SpinWait(1);
                     continue;
                 }
 
                 // 是否拿到了锁
-            } while (Interlocked.CompareExchange(ref _lock, oldLock + 1, oldLock) != oldLock);
+                if (Interlocked.CompareExchange(ref _lock, oldLock + 1, oldLock) == oldLock) break;
+            }
+
+            Write("AcquireRead");
+            return true;
         }
 
         /// <summary>
@@ -121,12 +154,24 @@ namespace NewLife.Threading
             if (_lock <= 0) throw new InvalidOperationException("当前未处于读取锁定状态！");
 
             Interlocked.Decrement(ref _lock);
+            Write("ReleaseRead");
         }
 
         /// <summary>
         /// 请求写入锁
         /// </summary>
         public void AcquireWrite()
+        {
+            // 10秒
+            if (!AcquireWrite(WriteTimeout)) throw new XException("原子读写锁实在太忙，无法取得写入锁！");
+        }
+
+        /// <summary>
+        /// 请求写入锁，等待指定秒
+        /// </summary>
+        /// <param name="millisecondsTimeout"></param>
+        /// <returns>是否取得锁</returns>
+        public Boolean AcquireWrite(Int32 millisecondsTimeout)
         {
             //Int32 currentThreadID = Thread.CurrentThread.ManagedThreadId;
             //if (currentThreadID == _threadID)
@@ -136,29 +181,35 @@ namespace NewLife.Threading
             //}
 
             Int32 oldLock = 0;
-            Int32 times = 0;
+            Int32 m = -1 * Max;
+            Double times = DateTime.Now.TimeOfDay.TotalMilliseconds + millisecondsTimeout;
 
             // 读锁使得锁计数递加
-            do
+            while (true)
             {
                 oldLock = _lock;
-                if (times++ > 100) throw new XException("原子读写锁实在太忙，无法取得写入锁！");
 
-                //// 正数表示读锁，负数且不能大于最大可请求资源
-                //if (oldLock > 0 || -1 * oldLock < Max)
-                // 只能一个写操作进来
-                if (oldLock != 0)
+                // 正数表示读锁，负数且不能大于最大可请求资源
+                if (oldLock > 0 || oldLock <= m)
+                //// 只能一个写操作进来
+                //if (oldLock != 0 || _lock != 0)
                 {
+                    if (DateTime.Now.TimeOfDay.TotalMilliseconds > times) return false;
+
                     // 空转一下
                     Thread.SpinWait(1);
                     continue;
                 }
 
                 // 是否拿到了锁
-            } while (Interlocked.CompareExchange(ref _lock, oldLock - 1, oldLock) != oldLock);
+                if (Interlocked.CompareExchange(ref _lock, oldLock - 1, oldLock) == oldLock) break;
+            }
 
             //_threadID = currentThreadID;
             //_recursionCount = 1;
+
+            Write("AcquireWrite");
+            return true;
         }
 
         /// <summary>
@@ -174,7 +225,15 @@ namespace NewLife.Threading
                 if (_lock >= 0) throw new InvalidOperationException("当前未处于写入锁定状态！");
 
                 Interlocked.Increment(ref _lock);
+                Write("ReleaseWrite");
             }
+        }
+        #endregion
+
+        #region 辅助
+        void Write(String msg)
+        {
+            if (XTrace.Debug) XTrace.WriteLine(msg);
         }
         #endregion
 
