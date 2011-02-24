@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using XCode.Exceptions;
+using System.IO;
 
 namespace XCode.DataAccessLayer
 {
@@ -32,7 +33,11 @@ namespace XCode.DataAccessLayer
                     {
                         _dbProviderFactory = GetProviderFactory("Oracle.DataAccess.dll", "Oracle.DataAccess.Client.OracleClientFactory");
                     }
-                    catch { }
+                    catch (FileNotFoundException) { }
+                    catch (Exception ex)
+                    {
+                        if (Debug) WriteLog(ex.ToString());
+                    }
                 }
 
                 // 以下三种方式都可以加载，前两种只是为了减少对程序集的引用，第二种是为了避免第一种中没有注册
@@ -181,6 +186,26 @@ namespace XCode.DataAccessLayer
             if (tn.StartsWith("\"")) return keyWord;
 
             return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
+        }
+
+        public override string FormatValue(XField field, object value)
+        {
+            TypeCode code = Type.GetTypeCode(field.DataType);
+            Boolean isNullable = field.Nullable;
+
+            if (code == TypeCode.String)
+            {
+                // 热心网友 Hannibal 在处理日文网站时发现插入的日文为乱码，这里加上N前缀
+                if (value == null) return isNullable ? "null" : "''";
+                if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
+
+                if (field.RawType == "NCLOB" || field.RawType.StartsWith("NCHAR") || field.RawType.StartsWith("NVARCHAR2"))
+                    return "N'" + value.ToString().Replace("'", "''") + "'";
+                else
+                    return "'" + value.ToString().Replace("'", "''") + "'";
+            }
+
+            return base.FormatValue(field, value);
         }
         #endregion
     }

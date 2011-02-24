@@ -265,7 +265,11 @@ namespace XCode.DataAccessLayer
                 // 热心网友 Hannibal 在处理日文网站时发现插入的日文为乱码，这里加上N前缀
                 if (value == null) return isNullable ? "null" : "''";
                 if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
-                return "N'" + value.ToString().Replace("'", "''") + "'";
+
+                if (field.RawType == "ntext" || field.RawType.StartsWith("nchar") || field.RawType.StartsWith("nvarchar"))
+                    return "N'" + value.ToString().Replace("'", "''") + "'";
+                else
+                    return "'" + value.ToString().Replace("'", "''") + "'";
             }
             else if (field.DataType == typeof(Guid))
             {
