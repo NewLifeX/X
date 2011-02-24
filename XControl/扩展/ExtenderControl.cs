@@ -4,6 +4,9 @@ using System.Text;
 using System.Web.UI;
 using System.ComponentModel;
 using NewLife.Web;
+using NewLife.Configuration;
+using System.Drawing;
+using System.Web.UI.WebControls;
 
 namespace XControl
 {
@@ -111,6 +114,27 @@ namespace XControl
         {
             if (ViewState[propertyName] == null)
             {
+                //+ 控件状态没有设置时，使用配置文件的全局设置
+                String name = this.GetType().FullName + "." + propertyName;
+                if (typeof(V) == typeof(String) ||
+                    typeof(V) == typeof(Int32) ||
+                    typeof(V) == typeof(Boolean))
+                    return Config.GetConfig<V>(name, nullValue);
+
+                if (typeof(V) == typeof(Color))
+                {
+                    String str = Config.GetConfig<String>(name, null);
+                    if (!String.IsNullOrEmpty(str))
+                    {
+                        TypeConverter convert = new WebColorConverter();
+                        try
+                        {
+                            return (V)convert.ConvertFromString(str);
+                        }
+                        catch { }
+                    }
+                }
+
                 return nullValue;
             }
             return (V)ViewState[propertyName];
