@@ -202,7 +202,7 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 文件锁定重试次数
         /// </summary>
-        const Int32 RetryTimes = 2;
+        const Int32 RetryTimes = 5;
 
         TResult Retry<TArg, TResult>(Func<TArg, TResult> func, TArg arg)
         {
