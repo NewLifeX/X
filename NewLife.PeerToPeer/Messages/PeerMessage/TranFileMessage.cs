@@ -106,7 +106,9 @@ namespace NewLife.PeerToPeer.Messages
         {
             Unkown = 0,
             NotFound = -1,
-            ClientLimit = -2
+            RemoteLimit = -2,
+            RemoteError = -3,
+            RemoteListenError = -4
         }
         #endregion
     }
