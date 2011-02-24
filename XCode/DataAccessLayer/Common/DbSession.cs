@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Text.RegularExpressions;
 using NewLife;
 using XCode.Exceptions;
+using System.Threading;
 
 namespace XCode.DataAccessLayer
 {
@@ -108,6 +109,14 @@ namespace XCode.DataAccessLayer
         //        return ver;
         //    }
         //}
+
+        private Int32 _ThreadID = Thread.CurrentThread.ManagedThreadId;
+        /// <summary>线程编号，每个数据库会话应该只属于一个线程，该属性用于检查错误的跨线程操作</summary>
+        public Int32 ThreadID
+        {
+            get { return _ThreadID; }
+            set { _ThreadID = value; }
+        }
         #endregion
 
         #region 打开/关闭
@@ -136,6 +145,8 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public virtual void Open()
         {
+            if (Debug && ThreadID != Thread.CurrentThread.ManagedThreadId) WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！");
+
             if (Conn != null && Conn.State == ConnectionState.Closed) Conn.Open();
         }
 
@@ -542,21 +553,20 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>
-        /// 执行插入语句并返回新增行的自动编号
+        /// 执行SQL语句，返回结果中的第一行第一列
         /// </summary>
         /// <param name="sql">SQL语句</param>
-        /// <returns>新增行的自动编号</returns>
-        public virtual Int64 InsertAndGetIdentity(String sql)
+        /// <returns></returns>
+        public virtual Object ExecuteScalar(String sql)
         {
             ExecuteTimes++;
-            //SQLServer写法
-            sql = "SET NOCOUNT ON;" + sql + ";Select SCOPE_IDENTITY()";
+
             if (Debug) WriteLog(sql);
             try
             {
                 DbCommand cmd = PrepareCommand();
                 cmd.CommandText = sql;
-                return Int64.Parse(cmd.ExecuteScalar().ToString());
+                return cmd.ExecuteScalar();
             }
             catch (DbException ex)
             {
@@ -566,6 +576,18 @@ namespace XCode.DataAccessLayer
             {
                 AutoClose();
             }
+        }
+
+        /// <summary>
+        /// 执行插入语句并返回新增行的自动编号
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>新增行的自动编号</returns>
+        public virtual Int64 InsertAndGetIdentity(String sql)
+        {
+            Execute(sql);
+
+            return 0;
         }
 
         /// <summary>

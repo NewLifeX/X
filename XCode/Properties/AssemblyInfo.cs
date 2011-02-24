@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.1.*")]
-[assembly: AssemblyFileVersion("7.1.2011.0223")]
+[assembly: AssemblyFileVersion("7.1.2011.0224")]
 
 /*
  * XCode的重大改进
@@ -48,6 +48,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.1.2011.0224   调整方法InsertAndGetIdentity
+ *                  SQLite中去掉读写锁，改为写入时判断数据库是否锁定，如果已锁定则重试
+ * 
  * v7.1.2011.0223   调整Oracle的数据架构功能
  *                  Oracle增加快速查找表记录数方法
  *                  XField调整，规范化长度、字节数、精度和位数

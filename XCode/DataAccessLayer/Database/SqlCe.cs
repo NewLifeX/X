@@ -155,7 +155,18 @@ namespace XCode.DataAccessLayer
     /// </summary>
     class SqlCeSession : FileDbSession
     {
+        /// <summary>
+        /// 执行插入语句并返回新增行的自动编号
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>新增行的自动编号</returns>
+        public override long InsertAndGetIdentity(string sql)
+        {
+            //SQLServer写法
+            sql = "SET NOCOUNT ON;" + sql + ";Select SCOPE_IDENTITY()";
 
+            return Int64.Parse(ExecuteScalar(sql).ToString());
+        }
     }
 
     /// <summary>

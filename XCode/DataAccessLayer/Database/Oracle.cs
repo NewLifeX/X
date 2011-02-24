@@ -240,15 +240,15 @@ namespace XCode.DataAccessLayer
             finally { AutoClose(); }
         }
 
-        /// <summary>
-        /// 执行插入语句并返回新增行的自动编号
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns>新增行的自动编号</returns>
-        public override Int64 InsertAndGetIdentity(String sql)
-        {
-            throw new NotSupportedException("Oracle数据库不支持插入后返回新增行的自动编号！");
-        }
+        ///// <summary>
+        ///// 执行插入语句并返回新增行的自动编号
+        ///// </summary>
+        ///// <param name="sql">SQL语句</param>
+        ///// <returns>新增行的自动编号</returns>
+        //public override Int64 InsertAndGetIdentity(String sql)
+        //{
+        //    throw new NotSupportedException("Oracle数据库不支持插入后返回新增行的自动编号！");
+        //}
         #endregion
 
         ///// <summary>

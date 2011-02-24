@@ -156,28 +156,33 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public override Int64 InsertAndGetIdentity(String sql)
         {
-            ExecuteTimes++;
-            if (Debug) WriteLog(sql);
-            try
-            {
-                DbCommand cmd = PrepareCommand();
-                cmd.CommandText = sql;
-                Int64 rs = cmd.ExecuteNonQuery();
-                if (rs > 0)
-                {
-                    cmd.CommandText = "Select @@Identity";
-                    rs = Int64.Parse(cmd.ExecuteScalar().ToString());
-                }
-                return rs;
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, sql);
-            }
-            finally
-            {
-                AutoClose();
-            }
+            Int32 rs = Execute(sql);
+            if (rs <= 0) return rs;
+
+            return Int64.Parse(ExecuteScalar("Select @@Identity").ToString());
+
+            //ExecuteTimes++;
+            //if (Debug) WriteLog(sql);
+            //try
+            //{
+            //    DbCommand cmd = PrepareCommand();
+            //    cmd.CommandText = sql;
+            //    Int64 rs = cmd.ExecuteNonQuery();
+            //    if (rs > 0)
+            //    {
+            //        cmd.CommandText = "Select @@Identity";
+            //        rs = Int64.Parse(cmd.ExecuteScalar().ToString());
+            //    }
+            //    return rs;
+            //}
+            //catch (DbException ex)
+            //{
+            //    throw OnException(ex, sql);
+            //}
+            //finally
+            //{
+            //    AutoClose();
+            //}
         }
         #endregion
     }
