@@ -203,9 +203,9 @@ namespace XCode.DataAccessLayer
 
             //row_number()´Ó1¿ªÊ¼
             if (maximumRows < 1)
-                sql = String.Format("Select * From (Select row_number() over({2}) as rowNumber, * From {1}) XCode_Temp_b Where rowNumber>={0}", startRowIndex + 1, sql, orderBy);
+                sql = String.Format("Select * From (Select *, row_number() over({2}) as rowNumber From {1}) XCode_Temp_b Where rowNumber>={0}", startRowIndex + 1, sql, orderBy);
             else
-                sql = String.Format("Select * From (Select row_number() over({3}) as rowNumber, * From {1}) XCode_Temp_b Where rowNumber Between {0} And {2}", startRowIndex + 1, sql, startRowIndex + maximumRows, orderBy);
+                sql = String.Format("Select * From (Select *, row_number() over({3}) as rowNumber From {1}) XCode_Temp_b Where rowNumber Between {0} And {2}", startRowIndex + 1, sql, startRowIndex + maximumRows, orderBy);
 
             return sql;
         }

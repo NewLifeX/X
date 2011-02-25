@@ -139,7 +139,7 @@ namespace XCode.DataAccessLayer
             if (maximumRows < 1)
                 sql = String.Format("Select * From ({1}) XCode_Temp_a Where rownum>={0}", startRowIndex + 1, sql);
             else
-                sql = String.Format("Select * From (Select XCode_Temp_a.*, rownum as my_rownum From ({1}) XCode_Temp_a Where rownum<={2}) XCode_Temp_b Where my_rownum>={0}", startRowIndex + 1, sql, startRowIndex + maximumRows);
+                sql = String.Format("Select * From (Select XCode_Temp_a.*, rownum as rowNumber From ({1}) XCode_Temp_a Where rownum<={2}) XCode_Temp_b Where rowNumber>={0}", startRowIndex + 1, sql, startRowIndex + maximumRows);
             //sql = String.Format("Select * From ({1}) a Where rownum>={0} and rownum<={2}", startRowIndex, sql, startRowIndex + maximumRows - 1);
             return sql;
         }
@@ -395,6 +395,16 @@ namespace XCode.DataAccessLayer
             }
         }
 
+        protected override void FixTable(XTable table, DataRow dr)
+        {
+            base.FixTable(table, dr);
+
+            // 表注释 USER_TAB_COMMENTS
+            String sql = String.Format("Select COMMENTS From USER_TAB_COMMENTS Where TABLE_NAME='{0}'", table.Name);
+            String comment = (String)Database.CreateSession().ExecuteScalar(sql);
+            if (!String.IsNullOrEmpty(comment)) table.Description = comment;
+        }
+
         /// <summary>
         /// 取得指定表的所有列构架
         /// </summary>
@@ -411,6 +421,18 @@ namespace XCode.DataAccessLayer
                 drs = dt.Select("");
 
             List<XField> list = GetFields(table, drs);
+
+            // 字段注释
+            if (list != null && list.Count > 0)
+            {
+                String sql = String.Format("Select COLUMN_NAME, COMMENTS From USER_COL_COMMENTS Where TABLE_NAME='{0}'", table.Name);
+                dt = Database.CreateSession().Query(sql).Tables[0];
+                foreach (XField field in list)
+                {
+                    drs = dt.Select(String.Format("COLUMN_NAME='{0}'", field.Name));
+                    if (drs != null && drs.Length > 0) field.Description = GetDataRowValue<String>(drs[0], "COMMENTS");
+                }
+            }
 
             return list;
         }

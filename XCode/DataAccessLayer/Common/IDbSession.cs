@@ -162,6 +162,13 @@ namespace XCode.DataAccessLayer
         Int64 InsertAndGetIdentity(String sql);
 
         /// <summary>
+        /// 执行SQL语句，返回结果中的第一行第一列
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns></returns>
+        Object ExecuteScalar(String sql);
+
+        /// <summary>
         /// 获取一个DbCommand。
         /// 配置了连接，并关联了事务。
         /// 连接已打开。

@@ -566,7 +566,8 @@ namespace XCode.DataAccessLayer
             {
                 DbCommand cmd = PrepareCommand();
                 cmd.CommandText = sql;
-                return cmd.ExecuteScalar();
+                Object rs = cmd.ExecuteScalar();
+                return rs == DBNull.Value ? null : rs;
             }
             catch (DbException ex)
             {
