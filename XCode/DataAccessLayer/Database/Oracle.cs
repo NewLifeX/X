@@ -403,6 +403,49 @@ namespace XCode.DataAccessLayer
             String sql = String.Format("Select COMMENTS From USER_TAB_COMMENTS Where TABLE_NAME='{0}'", table.Name);
             String comment = (String)Database.CreateSession().ExecuteScalar(sql);
             if (!String.IsNullOrEmpty(comment)) table.Description = comment;
+
+            // 自增
+            Boolean exists = false;
+            foreach (XField field in table.Fields)
+            {
+                // 不管是否主键
+                if (field.DataType != typeof(Int16) &&
+                    field.DataType != typeof(Int32) &&
+                    field.DataType != typeof(Int64)) continue;
+
+                String name = String.Format("SEQ_{0}_{1}", table.Name, field.Name);
+                if (CheckSeqExists(name))
+                {
+                    field.Identity = true;
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists)
+            {
+                // 检查该表是否有序列，如有，让主键成为自增
+                String name = String.Format("SEQ_{0}", table.Name);
+                if (CheckSeqExists(name))
+                {
+                    foreach (XField field in table.Fields)
+                    {
+                        if (!field.PrimaryKey ||
+                            (field.DataType != typeof(Int16) &&
+                            field.DataType != typeof(Int32) &&
+                            field.DataType != typeof(Int64))) continue;
+
+                        field.Identity = true;
+                        exists = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        Boolean CheckSeqExists(String name)
+        {
+            String sql = String.Format("SELECT Count(*) FROM ALL_SEQUENCES Where SEQUENCE_NAME='{0}' And SEQUENCE_OWNER='{1}'", name, Owner);
+            return Convert.ToInt32(Database.CreateSession().ExecuteScalar(sql)) > 0;
         }
 
         /// <summary>
@@ -435,6 +478,39 @@ namespace XCode.DataAccessLayer
             }
 
             return list;
+        }
+
+        protected override void FixField(XField field, DataRow drColumn, DataRow drDataType)
+        {
+            base.FixField(field, drColumn, drDataType);
+
+            // 处理数字类型
+            if (field.RawType.StartsWith("NUMBER"))
+            {
+                if (field.Scale == 0)
+                {
+                    // 0表示长度不限制，为了方便使用，转为最常见的Int32
+                    if (field.Precision == 0)
+                        field.DataType = typeof(Int32);
+                    else if (field.Precision == 1)
+                        field.DataType = typeof(Boolean);
+                    else if (field.Precision <= 5)
+                        field.DataType = typeof(Int16);
+                    else if (field.Precision <= 10)
+                        field.DataType = typeof(Int32);
+                    else
+                        field.DataType = typeof(Int64);
+                }
+                else
+                {
+                    if (field.Precision == 0)
+                        field.DataType = typeof(Decimal);
+                    else if (field.Precision <= 5)
+                        field.DataType = typeof(Single);
+                    else if (field.Precision <= 10)
+                        field.DataType = typeof(Double);
+                }
+            }
         }
 
         /// <summary>
