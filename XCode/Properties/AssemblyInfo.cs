@@ -49,6 +49,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v7.1.2011.0228   MSSQL中使用架构信息判断数据库和数据表是否存在，避免某些情况下没有权限使用系统视图而出错
+ *                  IDatabase接口增加保留字和FormatName方法，只有关键字才进行格式化
  * 
  * v7.1.2011.0224   调整方法InsertAndGetIdentity
  *                  SQLite中去掉读写锁，改为写入时判断数据库是否锁定，如果已锁定则重试

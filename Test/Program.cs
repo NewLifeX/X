@@ -22,6 +22,7 @@ using System.Net;
 using NewLife.Net.Common;
 using NewLife.Exceptions;
 using System.Threading;
+using NewLife.Threading;
 
 namespace Test
 {
@@ -38,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test9();
+                    Test11();
                     //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
@@ -93,20 +94,6 @@ namespace Test
             {
                 Console.WriteLine(item.Name);
             }
-        }
-
-        static void Test11()
-        {
-            //FastTest.Test();
-
-            //UdpTest.Test();
-            //TcpTest.Test();
-
-            //ProtocolTest.Test();
-
-            //P2PTest.TestTracker();
-            //P2PTest.TestClient();
-            //P2PTest.TestMessage();
         }
 
         static void Test2()
@@ -454,6 +441,44 @@ namespace Test
             BinaryReader reader = new BinaryReader(stream);
             String str = reader.ReadString();
             Console.WriteLine(str);
+        }
+
+        static void Test11()
+        {
+            ThreadPool.QueueUserWorkItem(Test11_1);
+            ThreadPool.QueueUserWorkItem(Test11_2);
+        }
+
+        static void Test11_1(Object state)
+        {
+            ReadWriteLock rw = ReadWriteLock.Create("Test");
+
+            for (int i = 0; i < 10; i++)
+            {
+                rw.AcquireRead();
+
+                Console.WriteLine("Test1: {0}", i);
+
+                Thread.Sleep(2000);
+
+                rw.ReleaseRead();
+            }
+        }
+
+        static void Test11_2(Object state)
+        {
+            ReadWriteLock rw = ReadWriteLock.Create("Test");
+
+            for (int i = 0; i < 10; i++)
+            {
+                rw.AcquireWrite();
+
+                Console.WriteLine("Test2: {0}", i);
+
+                Thread.Sleep(3000);
+
+                rw.ReleaseWrite();
+            }
         }
     }
 }

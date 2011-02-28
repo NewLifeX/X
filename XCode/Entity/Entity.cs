@@ -853,7 +853,7 @@ namespace XCode
                 //sbv.Append(SqlDataFormat(values[i], fs[names[i]]));
                 sbv.Append(Meta.FormatValue(names[i], values[i]));
             }
-            return Meta.Execute(String.Format("Insert Into {2}({0}) values({1})", sbn.ToString(), sbv.ToString(), Meta.FormatKeyWord(Meta.TableName)));
+            return Meta.Execute(String.Format("Insert Into {2}({0}) values({1})", sbn.ToString(), sbv.ToString(), Meta.FormatName(Meta.TableName)));
         }
 
         /// <summary>
@@ -877,7 +877,7 @@ namespace XCode
         public static Int32 Update(String setClause, String whereClause)
         {
             if (String.IsNullOrEmpty(setClause) || !setClause.Contains("=")) throw new ArgumentException("非法参数");
-            String sql = String.Format("Update {0} Set {1}", Meta.FormatKeyWord(Meta.TableName), setClause);
+            String sql = String.Format("Update {0} Set {1}", Meta.FormatName(Meta.TableName), setClause);
             if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
             return Meta.Execute(sql);
         }
@@ -917,7 +917,7 @@ namespace XCode
         /// <returns></returns>
         public static Int32 Delete(String whereClause)
         {
-            String sql = String.Format("Delete From {0}", Meta.FormatKeyWord(Meta.TableName));
+            String sql = String.Format("Delete From {0}", Meta.FormatName(Meta.TableName));
             if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
             return Meta.Execute(sql);
         }
@@ -1058,12 +1058,12 @@ namespace XCode
             {
                 case DataObjectMethodType.Fill:
                     //return String.Format("Select {0} From {1}", Meta.Selects, Meta.TableName);
-                    return String.Format("Select * From {0}", Meta.FormatKeyWord(Meta.TableName));
+                    return String.Format("Select * From {0}", Meta.FormatName(Meta.TableName));
                 case DataObjectMethodType.Select:
                     sql = DefaultCondition(obj);
                     // 没有标识列和主键，返回取所有数据的语句
                     if (String.IsNullOrEmpty(sql)) throw new Exception("实体类缺少主键！");
-                    return String.Format("Select * From {0} Where {1}", Meta.FormatKeyWord(Meta.TableName), sql);
+                    return String.Format("Select * From {0} Where {1}", Meta.FormatName(Meta.TableName), sql);
                 case DataObjectMethodType.Insert:
                     sbNames = new StringBuilder();
                     sbValues = new StringBuilder();
@@ -1077,7 +1077,7 @@ namespace XCode
                             if (!String.IsNullOrEmpty(fi.Column.DefaultValue) && !obj.Dirtys[fi.Name]) continue;
 
                             if (!isFirst) sbNames.Append(", "); // 加逗号
-                            sbNames.Append(Meta.FormatKeyWord(fi.ColumnName));
+                            sbNames.Append(Meta.FormatName(fi.ColumnName));
                             if (!isFirst)
                                 sbValues.Append(", "); // 加逗号
                             else
@@ -1091,7 +1091,7 @@ namespace XCode
                             sbValues.Append(Meta.FormatValue(fi.Name, obj[fi.Name])); // 数据
                         }
                     }
-                    return String.Format("Insert Into {0}({1}) Values({2})", Meta.FormatKeyWord(Meta.TableName), sbNames.ToString(), sbValues.ToString());
+                    return String.Format("Insert Into {0}({1}) Values({2})", Meta.FormatName(Meta.TableName), sbNames.ToString(), sbValues.ToString());
                 case DataObjectMethodType.Update:
                     sbNames = new StringBuilder();
                     // 只读列没有更新操作
@@ -1106,7 +1106,7 @@ namespace XCode
                             sbNames.Append(", "); // 加逗号
                         else
                             isFirst = false;
-                        sbNames.Append(Meta.FormatKeyWord(fi.ColumnName));
+                        sbNames.Append(Meta.FormatName(fi.ColumnName));
                         sbNames.Append("=");
                         //sbNames.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
                         sbNames.Append(Meta.FormatValue(fi.Name, obj[fi.Name])); // 数据
@@ -1116,13 +1116,13 @@ namespace XCode
 
                     sql = DefaultCondition(obj);
                     if (String.IsNullOrEmpty(sql)) return null;
-                    return String.Format("Update {0} Set {1} Where {2}", Meta.FormatKeyWord(Meta.TableName), sbNames.ToString(), sql);
+                    return String.Format("Update {0} Set {1} Where {2}", Meta.FormatName(Meta.TableName), sbNames.ToString(), sql);
                 case DataObjectMethodType.Delete:
                     // 标识列作为删除关键字
                     sql = DefaultCondition(obj);
                     if (String.IsNullOrEmpty(sql))
                         return null;
-                    return String.Format("Delete From {0} Where {1}", Meta.FormatKeyWord(Meta.TableName), sql);
+                    return String.Format("Delete From {0} Where {1}", Meta.FormatName(Meta.TableName), sql);
             }
             return null;
         }
@@ -1154,7 +1154,7 @@ namespace XCode
 
                 // 同时构造SQL语句。names是属性列表，必须转换成对应的字段列表
                 if (i > 0) sb.AppendFormat(" {0} ", action);
-                sb.AppendFormat("{0}={1}", Meta.FormatKeyWord(fi.ColumnName), Meta.FormatValue(fi.Name, values[i]));
+                sb.AppendFormat("{0}={1}", Meta.FormatName(fi.ColumnName), Meta.FormatValue(fi.Name, values[i]));
             }
             return sb.ToString();
         }
@@ -1198,14 +1198,14 @@ namespace XCode
             // 标识列作为查询关键字
             if (ps[0].DataObjectField.IsIdentity)
             {
-                return String.Format("{0}={1}", Meta.FormatKeyWord(ps[0].ColumnName), Meta.FormatValue(ps[0].Name, obj[ps[0].Name]));
+                return String.Format("{0}={1}", Meta.FormatName(ps[0].ColumnName), Meta.FormatValue(ps[0].Name, obj[ps[0].Name]));
             }
             // 主键作为查询关键字
             StringBuilder sb = new StringBuilder();
             foreach (FieldItem fi in ps)
             {
                 if (sb.Length > 0) sb.Append(" And ");
-                sb.Append(Meta.FormatKeyWord(fi.ColumnName));
+                sb.Append(Meta.FormatName(fi.ColumnName));
                 sb.Append("=");
                 //sb.Append(SqlDataFormat(obj[fi.Name], fi));
                 sb.Append(Meta.FormatValue(fi.Name, obj[fi.Name]));
@@ -1266,7 +1266,7 @@ namespace XCode
             SelectBuilder builder = new SelectBuilder();
             builder.Column = selects;
             //builder.Table = Meta.TableName;
-            builder.Table = Meta.FormatKeyWord(Meta.TableName);
+            builder.Table = Meta.FormatName(Meta.TableName);
             builder.OrderBy = orderClause;
             // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
             builder.Where = whereClause;

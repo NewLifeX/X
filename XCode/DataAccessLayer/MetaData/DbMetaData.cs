@@ -852,7 +852,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected String FormatKeyWord(String keyWord)
         {
-            return Database.FormatKeyWord(keyWord);
+            //return Database.FormatKeyWord(keyWord);
+            return Database.FormatName(keyWord);
         }
 
         /// <summary>

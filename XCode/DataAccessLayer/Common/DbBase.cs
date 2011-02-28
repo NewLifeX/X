@@ -474,6 +474,24 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public virtual Int32 LongTextLength { get { return 4000; } }
 
+        protected virtual String ReservedWordsStr { get { return null; } }
+
+        private List<String> _ReservedWords = null;
+        /// <summary>
+        /// 保留字
+        /// </summary>
+        public virtual List<String> ReservedWords
+        {
+            get
+            {
+                if (_ReservedWords == null)
+                {
+                    _ReservedWords = new List<String>((ReservedWordsStr + "").Split(','));
+                }
+                return _ReservedWords;
+            }
+        }
+
         /// <summary>
         /// 格式化时间为SQL字符串
         /// </summary>
@@ -492,6 +510,21 @@ namespace XCode.DataAccessLayer
         public virtual String FormatKeyWord(String keyWord)
         {
             return keyWord;
+        }
+
+        /// <summary>
+        /// 格式化名称，如果是关键字，则原样返回
+        /// </summary>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        public virtual String FormatName(String name)
+        {
+            if (String.IsNullOrEmpty(name)) return name;
+
+            if (ReservedWords.Contains(name))
+                return FormatKeyWord(name);
+
+            return name;
         }
 
         /// <summary>

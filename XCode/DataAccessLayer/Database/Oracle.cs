@@ -166,6 +166,33 @@ namespace XCode.DataAccessLayer
             return String.Format("To_Date('{0}', 'YYYY-MM-DD HH24:MI:SS')", dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
         }
 
+        public override string FormatValue(XField field, object value)
+        {
+            TypeCode code = Type.GetTypeCode(field.DataType);
+            Boolean isNullable = field.Nullable;
+
+            if (code == TypeCode.String)
+            {
+                // 热心网友 Hannibal 在处理日文网站时发现插入的日文为乱码，这里加上N前缀
+                if (value == null) return isNullable ? "null" : "''";
+                if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
+
+                if (field.RawType == "NCLOB" || field.RawType.StartsWith("NCHAR") || field.RawType.StartsWith("NVARCHAR2"))
+                    return "N'" + value.ToString().Replace("'", "''") + "'";
+                else
+                    return "'" + value.ToString().Replace("'", "''") + "'";
+            }
+
+            return base.FormatValue(field, value);
+        }
+        #endregion
+
+        #region 关键字
+        protected override string ReservedWordsStr
+        {
+            get { return "ALL,ALTER,AND,ANY,AS,ASC,BETWEEN,BY,CHAR,CHECK,CLUSTER,COMPRESS,CONNECT,CREATE,DATE,DECIMAL,DEFAULT,DELETE,DESC,DISTINCT,DROP,ELSE,EXCLUSIVE,EXISTS,FLOAT,FOR,FROM,GRANT,GROUP,HAVING,IDENTIFIED,IN,INDEX,INSERT,INTEGER,INTERSECT,INTO,IS,LIKE,LOCK,LONG,MINUS,MODE,NOCOMPRESS,NOT,NOWAIT,NULL,NUMBER,OF,ON,OPTION,OR,ORDER,PCTFREE,PRIOR,PUBLIC,RAW,RENAME,RESOURCE,REVOKE,SELECT,SET,SHARE,SIZE,SMALLINT,START,SYNONYM,TABLE,THEN,TO,TRIGGER,UNION,UNIQUE,UPDATE,VALUES,VARCHAR,VARCHAR2,VIEW,WHERE,WITH"; }
+        }
+
         /// <summary>
         /// 格式化关键字
         /// </summary>
@@ -186,26 +213,6 @@ namespace XCode.DataAccessLayer
             if (tn.StartsWith("\"")) return keyWord;
 
             return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
-        }
-
-        public override string FormatValue(XField field, object value)
-        {
-            TypeCode code = Type.GetTypeCode(field.DataType);
-            Boolean isNullable = field.Nullable;
-
-            if (code == TypeCode.String)
-            {
-                // 热心网友 Hannibal 在处理日文网站时发现插入的日文为乱码，这里加上N前缀
-                if (value == null) return isNullable ? "null" : "''";
-                if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
-
-                if (field.RawType == "NCLOB" || field.RawType.StartsWith("NCHAR") || field.RawType.StartsWith("NVARCHAR2"))
-                    return "N'" + value.ToString().Replace("'", "''") + "'";
-                else
-                    return "'" + value.ToString().Replace("'", "''") + "'";
-            }
-
-            return base.FormatValue(field, value);
         }
         #endregion
     }
@@ -403,6 +410,8 @@ namespace XCode.DataAccessLayer
             String sql = String.Format("Select COMMENTS From USER_TAB_COMMENTS Where TABLE_NAME='{0}'", table.Name);
             String comment = (String)Database.CreateSession().ExecuteScalar(sql);
             if (!String.IsNullOrEmpty(comment)) table.Description = comment;
+
+            if (table == null || table.Fields == null || table.Fields.Count < 1) return;
 
             // 自增
             Boolean exists = false;

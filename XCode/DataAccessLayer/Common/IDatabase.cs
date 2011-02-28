@@ -96,6 +96,11 @@ namespace XCode.DataAccessLayer
         Int32 LongTextLength { get; }
 
         /// <summary>
+        /// 保留字
+        /// </summary>
+        List<String> ReservedWords { get; }
+
+        /// <summary>
         /// 格式化时间为SQL字符串
         /// </summary>
         /// <param name="dateTime">时间值</param>
@@ -108,6 +113,13 @@ namespace XCode.DataAccessLayer
         /// <param name="keyWord">关键字</param>
         /// <returns></returns>
         String FormatKeyWord(String keyWord);
+
+        /// <summary>
+        /// 格式化名称，如果是关键字，则原样返回
+        /// </summary>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        String FormatName(String name);
 
         /// <summary>
         /// 格式化数据为SQL数据

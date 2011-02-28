@@ -66,7 +66,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
                     ddlTable.Items.Add(new ListItem(des, item.Name));
                 }
 
-                ddlTable.Items.Insert(0, "--请选择--");
+                ddlTable.Items.Insert(0, new ListItem("--请选择--", ""));
             }
 
             // 数据架构
@@ -79,7 +79,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
                     ddlSchema.Items.Add(dr[0].ToString());
                 }
 
-                ddlSchema.Items.Insert(0, "--请选择--");
+                ddlSchema.Items.Insert(0, new ListItem("--请选择--", ""));
             }
         }
         catch (Exception ex)
@@ -90,6 +90,8 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
 
     protected void ddlTable_SelectedIndexChanged(object sender, EventArgs e)
     {
+        if (String.IsNullOrEmpty(ddlTable.SelectedValue)) return;
+
         DAL dal = GetDAL();
         if (dal == null) return;
 
@@ -105,6 +107,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
     protected void ddlSchema_SelectedIndexChanged(object sender, EventArgs e)
     {
         if (String.IsNullOrEmpty(ddlConn.SelectedValue)) return;
+        if (String.IsNullOrEmpty(ddlSchema.SelectedValue)) return;
 
         DAL dal = GetDAL();
         if (dal == null) return;
@@ -147,6 +150,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
     void CreateRestrictions()
     {
         if (String.IsNullOrEmpty(ddlConn.SelectedValue)) return;
+        if (String.IsNullOrEmpty(ddlSchema.SelectedValue)) return;
 
         DAL dal = GetDAL();
         if (dal == null) return;
@@ -280,6 +284,8 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
 
     protected void gvTable_RowDataBound(object sender, GridViewRowEventArgs e)
     {
+        if (String.IsNullOrEmpty(ddlTable.SelectedValue)) return;
+
         if (e.Row.RowType == DataControlRowType.Header)
         {
             GridView gv = sender as GridView;
@@ -299,6 +305,8 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
                 String tableName = ddlTable.SelectedValue;
                 String fsql = String.Format("Select * From {0}", dal.Db.FormatKeyWord(tableName));
                 if (!sql.ToLower().StartsWith(fsql.ToLower())) return;
+
+                if (dal.Tables == null || dal.Tables.Count < 1) return;
 
                 XTable table = dal.Tables.Find(delegate(XTable item) { return item.Name == ddlTable.SelectedValue; });
                 if (table == null) return;

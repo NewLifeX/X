@@ -416,7 +416,8 @@ namespace XCode.DataAccessLayer
                 if (!dbdic.ContainsKey(item.Name.ToLower())) continue;
                 XField dbf = dbdic[item.Name.ToLower()];
 
-                Boolean b = false;
+                // 是否已改变
+                Boolean isChanged = false;
 
                 //比较类型/允许空/主键
                 if (item.DataType != dbf.DataType ||
@@ -424,32 +425,32 @@ namespace XCode.DataAccessLayer
                     item.PrimaryKey != dbf.PrimaryKey ||
                     item.Nullable != dbf.Nullable && !item.Identity && !item.PrimaryKey)
                 {
-                    b = true;
+                    isChanged = true;
                 }
 
                 //仅针对字符串类型比较长度
-                if (!b && Type.GetTypeCode(item.DataType) == TypeCode.String && item.Length != dbf.Length)
+                if (!isChanged && Type.GetTypeCode(item.DataType) == TypeCode.String && item.Length != dbf.Length)
                 {
-                    b = true;
+                    isChanged = true;
 
                     //如果是大文本类型，长度可能不等
                     if ((item.Length > Database.Db.LongTextLength || item.Length <= 0) &&
-                        (entityDb != null && dbf.Length > entityDb.LongTextLength || dbf.Length <= 0)) b = false;
+                        (entityDb != null && dbf.Length > entityDb.LongTextLength || dbf.Length <= 0)) isChanged = false;
                 }
 
-                if (b) AlterColumn(sb, item, onlySql);
+                if (isChanged) AlterColumn(sb, item, onlySql);
 
                 //比较默认值
-                b = String.Equals(item.Default + "", dbf.Default + "", StringComparison.OrdinalIgnoreCase);
+                isChanged = !String.Equals(item.Default + "", dbf.Default + "", StringComparison.OrdinalIgnoreCase);
 
                 //特殊处理时间
-                if (!b && Type.GetTypeCode(item.DataType) == TypeCode.DateTime && !String.IsNullOrEmpty(item.Default) && !String.IsNullOrEmpty(dbf.Default))
+                if (isChanged && Type.GetTypeCode(item.DataType) == TypeCode.DateTime && !String.IsNullOrEmpty(item.Default) && !String.IsNullOrEmpty(dbf.Default))
                 {
                     // 如果当前默认值是开发数据库的时间默认值，则判断当前数据库的时间默认值
-                    if (entityDb.DateTimeNow == item.Default && Database.Db.DateTimeNow != dbf.Default) b = true;
+                    if (entityDb.DateTimeNow == item.Default && Database.Db.DateTimeNow == dbf.Default) isChanged = false;
                 }
 
-                if (!b)
+                if (isChanged)
                 {
                     if (!String.IsNullOrEmpty(dbf.Default))
                         GetSchemaSQL(sb, onlySql, DDLSchema.DropDefault, dbf);

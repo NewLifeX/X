@@ -351,6 +351,16 @@ namespace XCode
             /// </summary>
             /// <param name="name"></param>
             /// <returns></returns>
+            public static String FormatName(String name)
+            {
+                return DBO.Db.FormatName(name);
+            }
+
+            /// <summary>
+            /// 格式化关键字
+            /// </summary>
+            /// <param name="name"></param>
+            /// <returns></returns>
             public static String FormatKeyWord(String name)
             {
                 return DBO.Db.FormatKeyWord(name);
