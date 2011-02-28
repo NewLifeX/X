@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.1.*")]
-[assembly: AssemblyFileVersion("7.1.2011.0224")]
+[assembly: AssemblyFileVersion("7.1.2011.0228")]
 
 /*
  * XCode的重大改进
@@ -48,6 +48,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.1.2011.0228   MSSQL中使用架构信息判断数据库和数据表是否存在，避免某些情况下没有权限使用系统视图而出错
+ * 
  * v7.1.2011.0224   调整方法InsertAndGetIdentity
  *                  SQLite中去掉读写锁，改为写入时判断数据库是否锁定，如果已锁定则重试
  * 

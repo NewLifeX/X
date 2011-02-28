@@ -536,6 +536,8 @@ namespace XCode.DataAccessLayer
             String databaseName = String.Empty;
             switch (schema)
             {
+                case DDLSchema.DatabaseExist:
+                    return DatabaseExist((String)values[0]);
                 case DDLSchema.DropDatabase:
                     databaseName = values == null || values.Length < 1 ? null : (String)values[0];
                     if (String.IsNullOrEmpty(databaseName)) databaseName = session.DatabaseName;
@@ -573,6 +575,8 @@ namespace XCode.DataAccessLayer
 
                     session.DatabaseName = dbname;
                     return obj;
+                case DDLSchema.TableExist:
+                    return TableExist((XTable)values[0]);
                 default:
                     break;
             }
@@ -611,6 +615,17 @@ namespace XCode.DataAccessLayer
         public override string DatabaseExistSQL(string dbname)
         {
             return String.Format("SELECT * FROM sysdatabases WHERE name = N'{0}'", dbname);
+        }
+
+        /// <summary>
+        /// 使用数据架构确定数据库是否存在，因为使用系统视图可能没有权限
+        /// </summary>
+        /// <param name="dbname"></param>
+        /// <returns></returns>
+        public Boolean DatabaseExist(string dbname)
+        {
+            DataTable dt = GetSchema("Databases", new String[] { dbname });
+            return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
         //public override string CreateTableSQL(XTable table)
@@ -686,6 +701,17 @@ namespace XCode.DataAccessLayer
                 return String.Format("select * from sysobjects where xtype='U' and name='{0}'", table.Name);
             else
                 return String.Format("SELECT * FROM sysobjects WHERE id = OBJECT_ID(N'[dbo].{0}') AND OBJECTPROPERTY(id, N'IsUserTable') = 1", FormatKeyWord(table.Name));
+        }
+
+        /// <summary>
+        /// 使用数据架构确定数据表是否存在，因为使用系统视图可能没有权限
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        public Boolean TableExist(XTable table)
+        {
+            DataTable dt = GetSchema("Tables", new String[] { null, null, table.Name, null });
+            return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
         public override string AddTableDescriptionSQL(XTable table)
