@@ -271,7 +271,8 @@ namespace XCode.DataAccessLayer
                 if (value == null) return isNullable ? "null" : "''";
                 if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
 
-                if (field.RawType == "ntext" || field.RawType.StartsWith("nchar") || field.RawType.StartsWith("nvarchar"))
+                if (field.RawType == "ntext" || 
+                    !String.IsNullOrEmpty(field.RawType) && (field.RawType.StartsWith("nchar") || field.RawType.StartsWith("nvarchar")))
                     return "N'" + value.ToString().Replace("'", "''") + "'";
                 else
                     return "'" + value.ToString().Replace("'", "''") + "'";
