@@ -271,6 +271,9 @@ namespace XCode.DataAccessLayer
                 if (value == null) return isNullable ? "null" : "''";
                 if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
 
+                // 这里直接判断原始数据类型有所不妥，如果原始数据库不是当前数据库，那么这里的判断将会失效
+                // 一个可行的办法就是给XField增加一个IsUnicode属性，但如此一来，XField就稍微变大了
+                // 目前暂时影响不大，后面看情况决定是否增加吧
                 if (field.RawType == "ntext" || 
                     !String.IsNullOrEmpty(field.RawType) && (field.RawType.StartsWith("nchar") || field.RawType.StartsWith("nvarchar")))
                     return "N'" + value.ToString().Replace("'", "''") + "'";
