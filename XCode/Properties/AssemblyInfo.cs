@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("7.1.*")]
-[assembly: AssemblyFileVersion("7.1.2011.0303")]
+[assembly: AssemblyVersion("7.2.*")]
+[assembly: AssemblyFileVersion("7.2.2011.0303")]
 
 /*
  * XCode的重大改进
@@ -48,7 +48,7 @@ using System.Runtime.InteropServices;
  * /
 
 /*
- * v7.1.2011.0303   实体操作接口增加InitData方法，实体类可以重载，用于在第一次使用数据库时初始化数据
+ * v7.2.2011.0303   实体操作接口增加InitData方法，实体类可以重载，用于在第一次使用数据库时初始化数据
  * 
  * v7.1.2011.0228   MSSQL中使用架构信息判断数据库和数据表是否存在，避免某些情况下没有权限使用系统视图而出错
  *                  IDatabase接口增加保留字和FormatName方法，只有关键字才进行格式化

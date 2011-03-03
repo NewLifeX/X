@@ -131,20 +131,36 @@ namespace NewLife.CommonEntity
             return base.Delete();
         }
 
-        static RoleMenu()
+        //static RoleMenu()
+        //{
+        //    // 检查是否所有人都没有权限
+        //    ThreadPool.QueueUserWorkItem(delegate
+        //    {
+        //        try
+        //        {
+        //            CheckNonePerssion(0);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            if (XTrace.Debug) XTrace.WriteLine(ex.ToString());
+        //        }
+        //    });
+        //}
+
+        /// <summary>
+        /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        protected override void InitData()
         {
-            // 检查是否所有人都没有权限
-            ThreadPool.QueueUserWorkItem(delegate
+            base.InitData();
+
+            if (Meta.Count > 0)
             {
-                try
-                {
-                    CheckNonePerssion(0);
-                }
-                catch (Exception ex)
-                {
-                    if (XTrace.Debug) XTrace.WriteLine(ex.ToString());
-                }
-            });
+                // 检查是否所有人都没有权限
+                CheckNonePerssion(0);
+                return;
+            }
         }
 
         /// <summary>

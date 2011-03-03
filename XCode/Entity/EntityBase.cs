@@ -33,6 +33,7 @@ namespace XCode
         /// <summary>
         /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void InitData() { }
         #endregion
 

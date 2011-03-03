@@ -39,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test11();
+                    Test10();
                     //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }

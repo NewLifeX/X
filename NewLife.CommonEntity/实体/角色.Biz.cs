@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text;
+using System.Threading;
 using System.Xml.Serialization;
 using NewLife.Log;
 using XCode;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 
 namespace NewLife.CommonEntity
 {
@@ -18,11 +18,61 @@ namespace NewLife.CommonEntity
         where TRoleMenuEntity : RoleMenu<TRoleMenuEntity>, new()
     {
         #region 对象操作
-        static Role()
+        //static Role()
+        //{
+        //    // 删除RoleMenu中无效的RoleID和无效的MenuID
+        //    //ClearRoleMenu();
+        //    ThreadPool.QueueUserWorkItem(delegate { ClearRoleMenu(); });
+        //}
+
+        /// <summary>
+        /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        protected override void InitData()
         {
-            // 删除RoleMenu中无效的RoleID和无效的MenuID
-            //ClearRoleMenu();
-            ThreadPool.QueueUserWorkItem(delegate { ClearRoleMenu(); });
+            base.InitData();
+
+            ClearRoleMenu();
+
+            // 如果角色菜单对应关系为空或者只有一个，则授权第一个角色访问所有菜单
+            if (RoleMenu<TRoleMenuEntity>.Meta.Count > 1) return;
+
+            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}授权数据……", typeof(TEntity).Name);
+
+            Meta.BeginTrans();
+            try
+            {
+                Int32 id = 1;
+                EntityList<TEntity> rs = Role<TEntity>.Meta.Cache.Entities;
+                if (rs != null && rs.Count > 0)
+                {
+                    id = rs[0].ID;
+                }
+
+                // 授权访问所有菜单
+                //EntityList<TMenuEntity> ms = Menu<TMenuEntity>.Meta.Cache.Entities;
+                EntityList<TMenuEntity> ms = Menu<TMenuEntity>.FindAll();
+                if (ms != null && ms.Count > 0)
+                {
+                    EntityList<TRoleMenuEntity> rms = RoleMenu<TRoleMenuEntity>.FindAllByRoleID(id);
+                    foreach (TMenuEntity item in ms)
+                    {
+                        // 是否已存在
+                        if (rms != null && rms.Find(RoleMenu<TRoleMenuEntity>._.MenuID, item.ID) != null) continue;
+
+                        //TRoleMenuEntity entity = new TRoleMenuEntity();
+                        //entity.RoleID = id;
+                        //entity.MenuID = item.ID;
+                        TRoleMenuEntity entity = RoleMenu<TRoleMenuEntity>.Create(id, item.ID);
+                        entity.Save();
+                    }
+                }
+
+                Meta.Commit();
+                if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}授权数据！", typeof(TEntity).Name);
+            }
+            catch { Meta.Rollback(); throw; }
         }
 
         /// <summary>
@@ -252,18 +302,37 @@ namespace NewLife.CommonEntity
           where TEntity : Role<TEntity>, new()
     {
         #region 对象操作
-        static Role()
+        //static Role()
+        //{
+        //    if (Meta.Count < 1)
+        //    {
+        //        if (XTrace.Debug) XTrace.WriteLine("开始初始化角色数据……");
+
+        //        TEntity entity = new TEntity();
+        //        entity.Name = "管理员";
+        //        entity.Save();
+
+        //        if (XTrace.Debug) XTrace.WriteLine("完成初始化角色数据！");
+        //    }
+        //}
+
+        /// <summary>
+        /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        protected override void InitData()
         {
-            if (Meta.Count < 1)
-            {
-                if (XTrace.Debug) XTrace.WriteLine("开始初始化角色数据……");
+            base.InitData();
 
-                TEntity entity = new TEntity();
-                entity.Name = "管理员";
-                entity.Save();
+            if (Meta.Count > 0) return;
 
-                if (XTrace.Debug) XTrace.WriteLine("完成初始化角色数据！");
-            }
+            if (XTrace.Debug) XTrace.WriteLine("开始初始化角色数据……");
+
+            TEntity entity = new TEntity();
+            entity.Name = "管理员";
+            entity.Save();
+
+            if (XTrace.Debug) XTrace.WriteLine("完成初始化角色数据！");
         }
 
         /// <summary>

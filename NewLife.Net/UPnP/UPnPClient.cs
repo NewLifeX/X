@@ -254,6 +254,7 @@ namespace NewLife.Net.UPnP
         /// <summary>
         /// 删除端口映射
         /// </summary>
+        /// <param name="device">网关设备</param>
         /// <param name="remoteHost">远程主机</param>
         /// <param name="externalPort">外部端口</param>
         /// <param name="protocol">TCP或UDP</param>

@@ -12,10 +12,10 @@ namespace NewLife.CommonEntity
     public partial class Area<TEntity> : EntityTree<TEntity> where TEntity : Area<TEntity>, new()
     {
         #region 对象操作
-        static Area()
-        {
-            InitData();
-        }
+        //static Area()
+        //{
+        //    InitData();
+        //}
 
         /// <summary>
         /// 已重载。

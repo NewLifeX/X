@@ -6,6 +6,9 @@ using NewLife.Collections;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using NewLife.Log;
+using System.Threading;
+using NewLife.Configuration;
 
 namespace XCode
 {
@@ -336,8 +339,32 @@ namespace XCode
                 if (hasCheckInitData.Contains(key)) return;
                 hasCheckInitData.Add(key);
 
-                IEntityOperate factory = EntityFactory.CreateOperate(ThisType);
-                factory.InitData();
+                // 异步执行，并捕获错误日志
+                if (Config.GetConfig<Boolean>("XCode.InitDataAsync", true))
+                {
+                    ThreadPool.QueueUserWorkItem(delegate
+                    {
+                        try
+                        {
+                            EntityFactory.CreateOperate(ThisType).InitData();
+                        }
+                        catch (Exception ex)
+                        {
+                            if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+                        }
+                    });
+                }
+                else
+                {
+                    try
+                    {
+                        EntityFactory.CreateOperate(ThisType).InitData();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+                    }
+                }
             }
             #endregion
 

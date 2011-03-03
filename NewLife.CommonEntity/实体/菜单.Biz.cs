@@ -29,43 +29,41 @@ namespace NewLife.CommonEntity
         //    return FindByID(ParentID);
         //}
 
-        static Menu()
+        //static Menu()
+        //{
+        //}
+
+        /// <summary>
+        /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        protected override void InitData()
         {
+            base.InitData();
+
+            if (Meta.Count > 0) return;
+
+            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}菜单数据……", typeof(TEntity).Name);
+
+            Meta.BeginTrans();
             try
             {
-                if (Meta.Count <= 0)
-                {
-                    if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}表单数据……", typeof(TEntity).Name);
+                Int32 sort = 1000;
+                TEntity top = Root.AddChild("管理平台", null, sort -= 10, null);
+                TEntity entity = top.AddChild("系统管理", null, sort -= 10, "System");
+                entity.AddChild("菜单管理", "../System/Menu.aspx", sort -= 10, "菜单管理");
+                entity.AddChild("管理员管理", "../System/Admin.aspx", sort -= 10, "管理员管理");
+                entity.AddChild("角色管理", "../System/Role.aspx", sort -= 10, "角色管理");
+                entity.AddChild("权限管理", "../System/RoleMenu.aspx", sort -= 10, "权限管理");
+                entity.AddChild("日志查看", "../System/Log.aspx", sort -= 10, "日志查看");
 
-                    Meta.BeginTrans();
-                    try
-                    {
-                        Int32 sort = 1000;
-                        TEntity top = Root.AddChild("管理平台", null, sort -= 10, null);
-                        TEntity entity = top.AddChild("系统管理", null, sort -= 10, "System");
-                        entity.AddChild("菜单管理", "../System/Menu.aspx", sort -= 10, "菜单管理");
-                        entity.AddChild("管理员管理", "../System/Admin.aspx", sort -= 10, "管理员管理");
-                        entity.AddChild("角色管理", "../System/Role.aspx", sort -= 10, "角色管理");
-                        entity.AddChild("权限管理", "../System/RoleMenu.aspx", sort -= 10, "权限管理");
-                        entity.AddChild("日志查看", "../System/Log.aspx", sort -= 10, "日志查看");
+                // 准备增加Admin目录下的所有页面
+                ScanAndAdd("Admin", top);
 
-                        // 准备增加Admin目录下的所有页面
-                        ScanAndAdd("Admin", top);
-
-                        Meta.Commit();
-                        if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}表单数据！", typeof(TEntity).Name);
-                    }
-                    catch (Exception ex)
-                    {
-                        Meta.Rollback();
-                        if (XTrace.Debug) XTrace.WriteLine(ex.ToString());
-                    }
-                }
+                Meta.Commit();
+                if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}菜单数据！", typeof(TEntity).Name);
             }
-            catch (Exception ex)
-            {
-                if (XTrace.Debug) XTrace.WriteLine(ex.ToString());
-            }
+            catch { Meta.Rollback(); throw; }
         }
 
         /// <summary>

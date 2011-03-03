@@ -29,60 +29,65 @@ namespace NewLife.CommonEntity
         #region 对象操作
         static Administrator()
         {
-            // 实体类静态构造函数负担太重，考虑使用异步操作
-            try
-            {
-                // 初始化数据
-                Int32 count = RoleMenu<TRoleMenuEntity>.Meta.Count;
-                if (count <= 1)
-                {
-                    if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}授权数据……", typeof(TEntity).Name);
-
-                    try
-                    {
-                        Int32 id = 1;
-                        EntityList<TRoleEntity> rs = Role<TRoleEntity>.Meta.Cache.Entities;
-                        if (rs != null && rs.Count > 0)
-                        {
-                            id = rs[0].ID;
-                        }
-
-                        // 授权访问所有菜单
-                        //EntityList<TMenuEntity> ms = Menu<TMenuEntity>.Meta.Cache.Entities;
-                        EntityList<TMenuEntity> ms = Menu<TMenuEntity>.FindAll();
-                        if (ms != null && ms.Count > 0)
-                        {
-                            EntityList<TRoleMenuEntity> rms = RoleMenu<TRoleMenuEntity>.FindAllByRoleID(id);
-                            foreach (TMenuEntity item in ms)
-                            {
-                                // 是否已存在
-                                if (rms != null && rms.Find(RoleMenu<TRoleMenuEntity>._.MenuID, item.ID) != null) continue;
-
-                                //TRoleMenuEntity entity = new TRoleMenuEntity();
-                                //entity.RoleID = id;
-                                //entity.MenuID = item.ID;
-                                TRoleMenuEntity entity = RoleMenu<TRoleMenuEntity>.Create(id, item.ID);
-                                entity.Save();
-                            }
-                        }
-
-                        if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}授权数据！", typeof(TEntity).Name);
-                    }
-                    catch (Exception ex)
-                    {
-                        if (XTrace.Debug) XTrace.WriteLine("初始化{0}授权数据失败！{1}", typeof(TEntity).Name, ex.ToString());
-                    }
-                }
-
-                // 给菜单类设置一个默认管理员对象，用于写日志
-                if (DefaultAdministrator == null) DefaultAdministrator = new TEntity();
-                Menu<TMenuEntity>.DefaultAdministrator = DefaultAdministrator;
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteLine(ex.ToString());
-            }
+            // 给菜单类设置一个默认管理员对象，用于写日志
+            if (DefaultAdministrator == null) DefaultAdministrator = new TEntity();
+            Menu<TMenuEntity>.DefaultAdministrator = DefaultAdministrator;
         }
+
+        ///// <summary>
+        ///// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
+        ///// </summary>
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //protected override void InitData()
+        //{
+        //    base.InitData();
+
+        //    if (Meta.Count > 0) return;
+
+        //    // 实体类静态构造函数负担太重，考虑使用异步操作
+
+        //    // 初始化数据
+        //    //Int32 count = RoleMenu<TRoleMenuEntity>.Meta.Count;
+        //    //if (count <= 1)
+        //    //{
+        //    //    if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}授权数据……", typeof(TEntity).Name);
+
+        //    //    try
+        //    //    {
+        //    //        Int32 id = 1;
+        //    //        EntityList<TRoleEntity> rs = Role<TRoleEntity>.Meta.Cache.Entities;
+        //    //        if (rs != null && rs.Count > 0)
+        //    //        {
+        //    //            id = rs[0].ID;
+        //    //        }
+
+        //    //        // 授权访问所有菜单
+        //    //        //EntityList<TMenuEntity> ms = Menu<TMenuEntity>.Meta.Cache.Entities;
+        //    //        EntityList<TMenuEntity> ms = Menu<TMenuEntity>.FindAll();
+        //    //        if (ms != null && ms.Count > 0)
+        //    //        {
+        //    //            EntityList<TRoleMenuEntity> rms = RoleMenu<TRoleMenuEntity>.FindAllByRoleID(id);
+        //    //            foreach (TMenuEntity item in ms)
+        //    //            {
+        //    //                // 是否已存在
+        //    //                if (rms != null && rms.Find(RoleMenu<TRoleMenuEntity>._.MenuID, item.ID) != null) continue;
+
+        //    //                //TRoleMenuEntity entity = new TRoleMenuEntity();
+        //    //                //entity.RoleID = id;
+        //    //                //entity.MenuID = item.ID;
+        //    //                TRoleMenuEntity entity = RoleMenu<TRoleMenuEntity>.Create(id, item.ID);
+        //    //                entity.Save();
+        //    //            }
+        //    //        }
+
+        //    //        if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}授权数据！", typeof(TEntity).Name);
+        //    //    }
+        //    //    catch (Exception ex)
+        //    //    {
+        //    //        if (XTrace.Debug) XTrace.WriteLine("初始化{0}授权数据失败！{1}", typeof(TEntity).Name, ex.ToString());
+        //    //    }
+        //    //}
+        //}
 
         /// <summary>
         /// 已重载。调用Save时写日志，而调用Insert和Update时不写日志
@@ -116,6 +121,7 @@ namespace NewLife.CommonEntity
         }
         #endregion
 
+        #region 权限日志
         /// <summary>角色</summary>
         [XmlIgnore]
         public virtual TRoleEntity Role
@@ -255,6 +261,7 @@ namespace NewLife.CommonEntity
 
             return log;
         }
+        #endregion
     }
 
     /// <summary>
@@ -279,28 +286,51 @@ namespace NewLife.CommonEntity
             //// 设置缓存时间为一个小时
             //Meta.Cache.Expriod = 60 * 60;
 
-            // 初始化数据
-            try
-            {
-                if (Meta.Count < 1)
-                {
-                    if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}管理员数据……", typeof(TEntity).Name);
+            //// 初始化数据
+            //try
+            //{
+            //    if (Meta.Count < 1)
+            //    {
+            //        if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}管理员数据……", typeof(TEntity).Name);
 
-                    TEntity user = new TEntity();
-                    user.Name = "admin";
-                    user.Password = DataHelper.Hash("admin");
-                    user.DisplayName = "管理员";
-                    user.RoleID = 1;
-                    user.IsEnable = true;
-                    user.Insert();
+            //        TEntity user = new TEntity();
+            //        user.Name = "admin";
+            //        user.Password = DataHelper.Hash("admin");
+            //        user.DisplayName = "管理员";
+            //        user.RoleID = 1;
+            //        user.IsEnable = true;
+            //        user.Insert();
 
-                    if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}管理员数据！", typeof(TEntity).Name);
-                }
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteLine(ex.ToString());
-            }
+            //        if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}管理员数据！", typeof(TEntity).Name);
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    XTrace.WriteLine(ex.ToString());
+            //}
+        }
+
+        /// <summary>
+        /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        protected override void InitData()
+        {
+            base.InitData();
+
+            if (Meta.Count > 0) return;
+
+            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}管理员数据……", typeof(TEntity).Name);
+
+            TEntity user = new TEntity();
+            user.Name = "admin";
+            user.Password = DataHelper.Hash("admin");
+            user.DisplayName = "管理员";
+            user.RoleID = 1;
+            user.IsEnable = true;
+            user.Insert();
+
+            if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}管理员数据！", typeof(TEntity).Name);
         }
         #endregion
 
