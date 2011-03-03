@@ -69,6 +69,30 @@ namespace NewLife.CommonEntity
             }
             set { _FriendName = value; }
         }
+
+        [NonSerialized]
+        private String _AllChildAreaCode;
+        /// <summary>所有子地区编号（不包括自己）</summary>
+        [XmlIgnore]
+        public virtual String AllChildAreaCode
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_AllChildAreaCode))
+                {
+                    EntityList<Area> list = Area.FindAllChildsByParent(ID);
+                    if (list != null && list.Count > 0)
+                    {
+                        foreach (Area item in list)
+                        {
+                            _AllChildAreaCode += String.IsNullOrEmpty(_AllChildAreaCode) ? "" + item.Code : "," + item.Code;
+                        }
+                    }
+                }
+                return _AllChildAreaCode;
+            }
+            set { _AllChildAreaCode = value; }
+        }
         #endregion
 
         #region 扩展查询
