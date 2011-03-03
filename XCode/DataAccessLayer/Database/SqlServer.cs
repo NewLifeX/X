@@ -274,8 +274,11 @@ namespace XCode.DataAccessLayer
                 // 这里直接判断原始数据类型有所不妥，如果原始数据库不是当前数据库，那么这里的判断将会失效
                 // 一个可行的办法就是给XField增加一个IsUnicode属性，但如此一来，XField就稍微变大了
                 // 目前暂时影响不大，后面看情况决定是否增加吧
-                if (field.RawType == "ntext" ||
-                    !String.IsNullOrEmpty(field.RawType) && (field.RawType.StartsWith("nchar") || field.RawType.StartsWith("nvarchar")))
+                //if (field.RawType == "ntext" ||
+                //    !String.IsNullOrEmpty(field.RawType) && (field.RawType.StartsWith("nchar") || field.RawType.StartsWith("nvarchar")))
+
+                // 为了兼容旧版本实体类
+                if (field.IsUnicode || IsUnicode(field.RawType))
                     return "N'" + value.ToString().Replace("'", "''") + "'";
                 else
                     return "'" + value.ToString().Replace("'", "''") + "'";
@@ -478,6 +481,34 @@ namespace XCode.DataAccessLayer
 
             return str;
         }
+
+        protected override string GetFormatParam(XField field, DataRow dr)
+        {
+            String str = base.GetFormatParam(field, dr);
+            if (str == "(0)") return null;
+            return str;
+        }
+
+        //protected override int GetFormatParamItem(XField field, DataRow dr, string item)
+        //{
+        //    Int32 n = base.GetFormatParamItem(field, dr, item);
+        //    if (n <= 0)
+        //    {
+        //        if (item.Contains("scale") || item.Contains("bits"))
+        //        {
+        //            // 如果没有设置位数，则使用最大位数
+        //            Int32 d = field.Scale;
+        //            if (d < 0)
+        //            {
+        //                if (!TryGetDataRowValue<Int32>(dr, "MaximumScale", out d)) d = field.Scale;
+        //            }
+        //            return d;
+        //        }
+
+        //        if (field.Length > 0) return field.Length;
+        //    }
+        //    return n;
+        //}
         #endregion
 
         #region 取得字段信息的SQL模版

@@ -152,6 +152,9 @@ namespace XCode.Configuration
             field.DataType = Property.PropertyType;
             field.Description = Column.Description;
             field.Length = DataObjectField.Length;
+            field.Precision = Column.Precision;
+            field.Scale = Column.Scale;
+            field.IsUnicode = Column.IsUnicode;
             field.Identity = DataObjectField.IsIdentity;
             field.PrimaryKey = DataObjectField.PrimaryKey;
             field.Nullable = DataObjectField.IsNullable;

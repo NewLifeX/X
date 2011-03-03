@@ -173,12 +173,10 @@ namespace XCode.DataAccessLayer
 
             if (code == TypeCode.String)
             {
-                // 热心网友 Hannibal 在处理日文网站时发现插入的日文为乱码，这里加上N前缀
                 if (value == null) return isNullable ? "null" : "''";
                 if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
 
-                if (field.RawType == "NCLOB" || 
-                    !String.IsNullOrEmpty(field.RawType) && (field.RawType.StartsWith("NCHAR") || field.RawType.StartsWith("NVARCHAR2")))
+                if (field.IsUnicode || IsUnicode(field.RawType))
                     return "N'" + value.ToString().Replace("'", "''") + "'";
                 else
                     return "'" + value.ToString().Replace("'", "''") + "'";

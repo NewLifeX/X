@@ -43,6 +43,30 @@ namespace XCode
             set { _RawType = value; }
         }
 
+        private Int32 _Precision;
+        /// <summary>精度</summary>
+        public Int32 Precision
+        {
+            get { return _Precision; }
+            set { _Precision = value; }
+        }
+
+        private Int32 _Scale;
+        /// <summary>位数</summary>
+        public Int32 Scale
+        {
+            get { return _Scale; }
+            set { _Scale = value; }
+        }
+
+        private Boolean _IsUnicode;
+        /// <summary>是否Unicode</summary>
+        public Boolean IsUnicode
+        {
+            get { return _IsUnicode; }
+            set { _IsUnicode = value; }
+        }
+
         private Int32 _Order;
         /// <summary>顺序</summary>
         public Int32 Order

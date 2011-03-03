@@ -193,6 +193,9 @@ namespace XCode.DataAccessLayer
                 else if (TryGetDataRowValue<String>(dr, "DATATYPE", out str))
                     field.RawType = str;
 
+                // 是否Unicode
+                if (Database is DbBase) field.IsUnicode = (Database as DbBase).IsUnicode(field.RawType);
+
                 // 精度
                 if (TryGetDataRowValue<Int32>(dr, "NUMERIC_PRECISION", out n))
                     field.Precision = n;
@@ -463,34 +466,41 @@ namespace XCode.DataAccessLayer
             String[] pms = ps.Split(new Char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < pms.Length; i++)
             {
-                if (pms[i].Contains("length") || pms[i].Contains("size"))
-                {
-                    if (!param.EndsWith("(")) param += ",";
-                    param += field.Length;
-                    continue;
-                }
-                if (pms[i].Contains("precision"))
-                {
-                    if (!param.EndsWith("(")) param += ",";
-                    param += field.Precision;
-                    continue;
-                }
-                if (pms[i].Contains("scale") || pms[i].Contains("bits"))
-                {
-                    if (!param.EndsWith("(")) param += ",";
-                    // 如果没有设置位数，则使用最大位数
-                    Int32 d = field.Scale;
-                    //if (d < 0)
-                    //{
-                    //    if (!TryGetDataRowValue<Int32>(dr, "MaximumScale", out d)) d = field.Scale;
-                    //}
-                    param += d;
-                    continue;
-                }
+                Int32 item = GetFormatParamItem(field, dr, pms[i]);
+
+                if (!param.EndsWith("(")) param += ",";
+                param += item;
             }
             param += ")";
 
             return param;
+        }
+
+        /// <summary>
+        /// 获取格式化参数项
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="dr"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        protected virtual Int32 GetFormatParamItem(XField field, DataRow dr, String item)
+        {
+            if (item.Contains("length") || item.Contains("size")) return field.Length;
+
+            if (item.Contains("precision")) return field.Precision;
+
+            if (item.Contains("scale") || item.Contains("bits"))
+            {
+                // 如果没有设置位数，则使用最大位数
+                Int32 d = field.Scale;
+                //if (d < 0)
+                //{
+                //    if (!TryGetDataRowValue<Int32>(dr, "MaximumScale", out d)) d = field.Scale;
+                //}
+                return d;
+            }
+
+            return 0;
         }
         #endregion
 

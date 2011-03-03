@@ -95,10 +95,10 @@ namespace XCode.DataAccessLayer
         /// </summary>
         Int32 LongTextLength { get; }
 
-        /// <summary>
-        /// 保留字
-        /// </summary>
-        List<String> ReservedWords { get; }
+        ///// <summary>
+        ///// 保留字
+        ///// </summary>
+        //List<String> ReservedWords { get; }
 
         /// <summary>
         /// 格式化时间为SQL字符串

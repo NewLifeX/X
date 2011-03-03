@@ -55,6 +55,22 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         {
             txtConnStr.Text = dal.ConnStr;
 
+            // 数据架构
+            ddlSchema.Items.Clear();
+            DataTable dt = dal.Session.GetSchema(null, null);
+            if (dt != null)
+            {
+                foreach (DataRow dr in dt.Rows)
+                {
+                    ddlSchema.Items.Add(dr[0].ToString());
+                }
+
+                ddlSchema.Items.Insert(0, new ListItem("--请选择--", ""));
+            }
+
+            // 数据库信息架构
+            DatabaseSchema.Create(dal.Db).CheckDatabaseOnce().CheckAllTables();
+
             // 数据表
             ddlTable.Items.Clear();
             IList<XTable> tables = dal.Tables;
@@ -67,19 +83,6 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
                 }
 
                 ddlTable.Items.Insert(0, new ListItem("--请选择--", ""));
-            }
-
-            // 数据架构
-            ddlSchema.Items.Clear();
-            DataTable dt = dal.Session.GetSchema(null, null);
-            if (dt != null)
-            {
-                foreach (DataRow dr in dt.Rows)
-                {
-                    ddlSchema.Items.Add(dr[0].ToString());
-                }
-
-                ddlSchema.Items.Insert(0, new ListItem("--请选择--", ""));
             }
         }
         catch (Exception ex)

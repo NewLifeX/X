@@ -41,14 +41,14 @@ namespace XCode.DataAccessLayer
 
             ConnStr = ConnStrs[connName].ConnectionString;
 
-            try
-            {
-                DatabaseSchema.Check(this);
-            }
-            catch (Exception ex)
-            {
-                if (DbBase.Debug) DbBase.WriteLog(ex.ToString());
-            }
+            //try
+            //{
+            //    DatabaseSchema.Check(this);
+            //}
+            //catch (Exception ex)
+            //{
+            //    if (DbBase.Debug) DbBase.WriteLog(ex.ToString());
+            //}
         }
 
         private static Dictionary<String, DAL> _dals = new Dictionary<String, DAL>();

@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Data;
+using System.ComponentModel;
 using System.Reflection;
-using System.Diagnostics;
 using System.Xml;
 using System.Xml.Serialization;
-using System.IO;
-using System.ComponentModel;
 
 namespace XCode.DataAccessLayer
 {
@@ -111,6 +107,14 @@ namespace XCode.DataAccessLayer
         [XmlAttribute]
         [Description("允许空")]
         public Boolean Nullable { get { return _Nullable; } set { _Nullable = value; } }
+
+        private Boolean _IsUnicode;
+        /// <summary>
+        /// 是否Unicode
+        /// </summary>
+        [XmlAttribute]
+        [Description("是否Unicode")]
+        public Boolean IsUnicode { get { return _IsUnicode; } set { _IsUnicode = value; } }
 
         private String _Default;
         /// <summary>

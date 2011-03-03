@@ -16,9 +16,9 @@ namespace XCode.DataAccessLayer
     public class DatabaseSchema
     {
         #region 属性
-        private DAL _Database;
+        private IDatabase _Database;
         /// <summary>数据库</summary>
-        public DAL Database
+        public IDatabase Database
         {
             get { return _Database; }
             private set { _Database = value; }
@@ -27,19 +27,19 @@ namespace XCode.DataAccessLayer
         /// <summary>连接名</summary>
         public String ConnName { get { return Database.ConnName; } }
 
-        private IDbSession _Session;
-        /// <summary>数据库会话</summary>
-        public IDbSession Session
-        {
-            get { return _Session ?? (_Session = Database.Session); }
-            //set { _Session = value; }
-        }
+        //private IDbSession _Session;
+        ///// <summary>数据库会话</summary>
+        //public IDbSession Session
+        //{
+        //    get { return _Session ?? (_Session = Database.Session); }
+        //    //set { _Session = value; }
+        //}
 
         private IMetaData _MetaData;
         /// <summary>数据库元数据</summary>
         public IMetaData MetaData
         {
-            get { return _MetaData ?? (_MetaData = Database.Db.CreateMetaData()); }
+            get { return _MetaData ?? (_MetaData = Database.CreateMetaData()); }
         }
 
         private List<Type> _Entities;
@@ -124,99 +124,160 @@ namespace XCode.DataAccessLayer
         /// 构造函数
         /// </summary>
         /// <param name="database"></param>
-        private DatabaseSchema(DAL database)
+        private DatabaseSchema(IDatabase database)
         {
             Database = database;
         }
 
-        private static DictionaryCache<DAL, DatabaseSchema> _objcache = new DictionaryCache<DAL, DatabaseSchema>();
+        private static DictionaryCache<IDatabase, DatabaseSchema> _objcache = new DictionaryCache<IDatabase, DatabaseSchema>();
         /// <summary>
         /// 创建对象
         /// </summary>
         /// <param name="database"></param>
         /// <returns></returns>
-        public static DatabaseSchema Create(DAL database)
+        public static DatabaseSchema Create(IDatabase database)
         {
             //if (_objcache.ContainsKey(database)) return _objcache[database];
             //lock (_objcache)
             //{
             //    if (_objcache.ContainsKey(database)) return _objcache[database];
 
-            return _objcache.GetItem(database, delegate(DAL key)
+            return _objcache.GetItem(database, delegate(IDatabase key)
             {
                 return new DatabaseSchema(key);
             });
         }
 
-        private static Dictionary<String, DateTime> _cache = new Dictionary<String, DateTime>();
+        //private static Dictionary<String, DateTime> _cache = new Dictionary<String, DateTime>();
 
-        /// <summary>
-        /// 创建
-        /// </summary>
-        /// <param name="database"></param>
-        public static void Check(DAL database)
-        {
-            ////每10分钟检查一次
-            //if (_cache.ContainsKey(database.ConnName) && _cache[database.ConnName].AddMinutes(10) < DateTime.Now) return;
-            if (_cache.ContainsKey(database.ConnName)) return;
-            DatabaseSchema ds = null;
-            lock (_cache)
-            {
-                //if (_cache.ContainsKey(database.ConnName) && _cache[database.ConnName].AddMinutes(10) < DateTime.Now) return;
-                if (_cache.ContainsKey(database.ConnName)) return;
+        ///// <summary>
+        ///// 创建
+        ///// </summary>
+        ///// <param name="database"></param>
+        //public static void Check(DAL database)
+        //{
+        //    ////每10分钟检查一次
+        //    //if (_cache.ContainsKey(database.ConnName) && _cache[database.ConnName].AddMinutes(10) < DateTime.Now) return;
+        //    if (_cache.ContainsKey(database.ConnName)) return;
+        //    DatabaseSchema ds = null;
+        //    lock (_cache)
+        //    {
+        //        //if (_cache.ContainsKey(database.ConnName) && _cache[database.ConnName].AddMinutes(10) < DateTime.Now) return;
+        //        if (_cache.ContainsKey(database.ConnName)) return;
 
-                ds = Create(database);
-                //ds = new DatabaseSchema(database);
-                //ds.Database = database;
+        //        ds = Create(database);
+        //        //ds = new DatabaseSchema(database);
+        //        //ds.Database = database;
 
-                if (_cache.ContainsKey(database.ConnName))
-                    _cache[database.ConnName] = DateTime.Now;
-                else
-                    _cache.Add(database.ConnName, DateTime.Now);
-            }
+        //        if (_cache.ContainsKey(database.ConnName))
+        //            _cache[database.ConnName] = DateTime.Now;
+        //        else
+        //            _cache.Add(database.ConnName, DateTime.Now);
+        //    }
 
-            if (Enable != null && Enable.Value)
-                ds.Check();
-            else
-                ds.BeginCheck();
-        }
+        //    if (Enable != null && Enable.Value)
+        //        ds.Check();
+        //    else
+        //        ds.BeginCheck();
+        //}
         #endregion
 
         #region 业务
+        ///// <summary>
+        ///// 开始检查
+        ///// </summary>
+        //public void BeginCheck()
+        //{
+        //    if (Enable == null) return;
+
+        //    if (Exclude.Count > 0)
+        //    {
+        //        //检查是否被排除的链接
+        //        if (Exclude.Exists(delegate(String item) { return String.Equals(item, ConnName); })) return;
+        //    }
+
+        //    ThreadPool.QueueUserWorkItem(new WaitCallback(CheckWrap));
+        //}
+
+        //private void CheckWrap(Object state)
+        //{
+        //    try
+        //    {
+        //        Check();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        XTrace.WriteLine(ex.ToString());
+        //    }
+        //}
+
+        private Boolean _CheckOnce = false;
         /// <summary>
-        /// 开始检查
+        /// 检查一次
         /// </summary>
-        public void BeginCheck()
+        /// <returns></returns>
+        public DatabaseSchema CheckDatabaseOnce()
         {
-            if (Enable == null) return;
-
-            if (Exclude.Count > 0)
+            lock (this)
             {
-                //检查是否被排除的链接
-                if (Exclude.Exists(delegate(String item) { return String.Equals(item, ConnName); })) return;
-            }
+                if (_CheckOnce) return this;
+                _CheckOnce = true;
 
-            ThreadPool.QueueUserWorkItem(new WaitCallback(CheckWrap));
+                CheckDatabase();
+
+                return this;
+            }
         }
 
-        private void CheckWrap(Object state)
-        {
-            try
-            {
-                Check();
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteLine(ex.ToString());
-            }
-        }
+        ///// <summary>
+        ///// 检查
+        ///// </summary>
+        //public void Check()
+        //{
+        //    if (Enable == null) return;
 
-        /// <summary>
-        /// 检查
-        /// </summary>
-        public void Check()
+        //    WriteLog("开始检查数据架构：" + ConnName);
+
+        //    //数据库检查
+        //    Boolean dbExist = true;
+        //    try
+        //    {
+        //        dbExist = (Boolean)MetaData.SetSchema(DDLSchema.DatabaseExist, null);
+        //    }
+        //    catch
+        //    {
+        //        // 如果异常，默认认为数据库存在
+        //        dbExist = true;
+        //    }
+
+        //    if (!dbExist)
+        //    {
+        //        XTrace.WriteLine("创建数据库：{0}", ConnName);
+        //        MetaData.SetSchema(DDLSchema.CreateDatabase, null, null);
+        //    }
+
+        //    if (Entities == null || Entities.Count < 1)
+        //    {
+        //        WriteLog(ConnName + "没有找到实体类。");
+        //        return;
+        //    }
+
+        //    WriteLog(ConnName + "实体个数：" + Entities.Count);
+
+        //    if (EntityTables == null || EntityTables.Count < 1) return;
+
+        //    lock (EntityTables)
+        //    {
+        //        foreach (XTable item in EntityTables)
+        //        {
+        //            CheckTable(item);
+        //        }
+        //    }
+        //}
+
+        private void CheckDatabase()
         {
-            if (Enable == null) return;
+            if (Enable == null || IsExclude(ConnName)) return;
 
             WriteLog("开始检查数据架构：" + ConnName);
 
@@ -237,12 +298,14 @@ namespace XCode.DataAccessLayer
                 XTrace.WriteLine("创建数据库：{0}", ConnName);
                 MetaData.SetSchema(DDLSchema.CreateDatabase, null, null);
             }
+        }
 
-            if (Entities == null || Entities.Count < 1)
-            {
-                WriteLog(ConnName + "没有找到实体类。");
-                return;
-            }
+        /// <summary>
+        /// 检查所有表
+        /// </summary>
+        public void CheckAllTables()
+        {
+            if (Enable == null) return;
 
             WriteLog(ConnName + "实体个数：" + Entities.Count);
 
@@ -263,6 +326,8 @@ namespace XCode.DataAccessLayer
         /// <param name="tableName"></param>
         public void CheckTable(String tableName)
         {
+            if (Enable == null || IsExclude(tableName)) return;
+
             List<XTable> list = EntityTables;
             if (list == null || list.Count < 1) return;
 
@@ -280,17 +345,17 @@ namespace XCode.DataAccessLayer
         /// 检查实体表
         /// </summary>
         /// <param name="table"></param>
-        public void CheckTable(XTable table)
+        private void CheckTable(XTable table)
         {
-            if (Exclude.Count > 0)
-            {
-                //检查是否被排除的表
-                if (Exclude.Exists(delegate(String elm)
-                {
-                    return String.Equals(elm, table.Name, StringComparison.OrdinalIgnoreCase);
-                }))
-                    return;
-            }
+            //if (Exclude.Count > 0)
+            //{
+            //    //检查是否被排除的表
+            //    if (Exclude.Exists(delegate(String elm)
+            //    {
+            //        return String.Equals(elm, table.Name, StringComparison.OrdinalIgnoreCase);
+            //    }))
+            //        return;
+            //}
 
             Dictionary<String, XTable> dic = DBTables;
 
@@ -434,7 +499,7 @@ namespace XCode.DataAccessLayer
                     isChanged = true;
 
                     //如果是大文本类型，长度可能不等
-                    if ((item.Length > Database.Db.LongTextLength || item.Length <= 0) &&
+                    if ((item.Length > Database.LongTextLength || item.Length <= 0) &&
                         (entityDb != null && dbf.Length > entityDb.LongTextLength || dbf.Length <= 0)) isChanged = false;
                 }
 
@@ -447,7 +512,7 @@ namespace XCode.DataAccessLayer
                 if (isChanged && Type.GetTypeCode(item.DataType) == TypeCode.DateTime && !String.IsNullOrEmpty(item.Default) && !String.IsNullOrEmpty(dbf.Default))
                 {
                     // 如果当前默认值是开发数据库的时间默认值，则判断当前数据库的时间默认值
-                    if (entityDb.DateTimeNow == item.Default && Database.Db.DateTimeNow == dbf.Default) isChanged = false;
+                    if (entityDb.DateTimeNow == item.Default && Database.DateTimeNow == dbf.Default) isChanged = false;
                 }
 
                 if (isChanged)
@@ -461,7 +526,7 @@ namespace XCode.DataAccessLayer
                             // 特殊处理时间
                             String dv = item.Default;
                             // 如果当前默认值是开发数据库的时间默认值，则修改为当前数据库的时间默认值
-                            if (entityDb.DateTimeNow == item.Default) item.Default = Database.Db.DateTimeNow;
+                            if (entityDb.DateTimeNow == item.Default) item.Default = Database.DateTimeNow;
 
                             GetSchemaSQL(sb, onlySql, DDLSchema.AddDefault, item);
 
@@ -700,6 +765,16 @@ namespace XCode.DataAccessLayer
 
                 return _Exclude;
             }
+        }
+
+        static Boolean IsExclude(String name)
+        {
+            foreach (String item in Exclude)
+            {
+                if (String.Equals(item, name, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+
+            return false;
         }
         #endregion
 

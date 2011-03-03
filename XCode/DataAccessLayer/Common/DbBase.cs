@@ -188,6 +188,9 @@ namespace XCode.DataAccessLayer
 
                 _MySessions.Add(session);
 
+                // 检查数据库架构。在这里检查，避免线程冲突
+                DatabaseSchema.Create(this).CheckDatabaseOnce();
+
                 return session;
             }
         }
@@ -549,6 +552,7 @@ namespace XCode.DataAccessLayer
             {
                 if (value == null) return isNullable ? "null" : "''";
                 if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
+
                 return "'" + value.ToString().Replace("'", "''") + "'";
             }
             else if (code == TypeCode.DateTime)
@@ -596,6 +600,21 @@ namespace XCode.DataAccessLayer
                 if (value == null) return isNullable ? "null" : "";
                 return value.ToString();
             }
+        }
+
+        /// <summary>
+        /// 是否Unicode编码
+        /// </summary>
+        /// <param name="rawType"></param>
+        /// <returns></returns>
+        internal protected virtual Boolean IsUnicode(String rawType)
+        {
+            if (String.IsNullOrEmpty(rawType)) return false;
+
+            rawType = rawType.ToLower();
+            if (rawType.StartsWith("nchar") || rawType.StartsWith("nvarchar") || rawType.StartsWith("ntext") || rawType.StartsWith("nclob")) return true;
+
+            return false;
         }
         #endregion
 
