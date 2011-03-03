@@ -200,6 +200,12 @@ namespace XCode.DataAccessLayer
                         ConnectionString = builder.ToString();
                         Conn.ConnectionString = ConnectionString;
                     }
+                    else if (builder.ContainsKey("Initial Catalog"))
+                    {
+                        builder["Initial Catalog"] = value;
+                        ConnectionString = builder.ToString();
+                        Conn.ConnectionString = ConnectionString;
+                    }
                 }
             }
         }

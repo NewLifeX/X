@@ -559,6 +559,10 @@ namespace XCode
                     //    _Count = QueryCount(SQL(null, DataObjectMethodType.Fill));
                     //else
                     _Count = DBO.Session.QueryCountFast(TableName);
+
+                    // 先拿到记录数再初始化，因为初始化时会用到记录数，同时也避免了死循环
+                    CheckInitData();
+                    
                     return _Count.Value;
                 }
             }

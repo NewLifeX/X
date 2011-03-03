@@ -486,7 +486,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_ReservedWords == null)
                 {
-                    _ReservedWords = new List<String>((ReservedWordsStr + "").Split(','));
+                    _ReservedWords = new List<String>((ReservedWordsStr + "").ToLower().Split(','));
                 }
                 return _ReservedWords;
             }
@@ -521,7 +521,7 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return name;
 
-            if (ReservedWords.Contains(name))
+            if (ReservedWords.Contains(name.ToLower()))
                 return FormatKeyWord(name);
 
             return name;

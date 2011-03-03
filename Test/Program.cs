@@ -349,7 +349,7 @@ namespace Test
             //Console.WriteLine(Command);
 
             String ip = NetHelper.GetIPV4()[0].ToString();
-            
+
             UPnPClient client = new UPnPClient();
             client.OnNewDevice += delegate(object sender, EventArgs<InternetGatewayDevice, bool> e)
             {
@@ -408,6 +408,9 @@ namespace Test
 
         static void Test10()
         {
+            Console.WriteLine(Administrator.FindCount());
+            //Console.WriteLine(Administrator.Meta.Count);
+
             //XException ex = new XException("DT {0}", DateTime.Now);
             //XException ex2 = new XException("aaa", ex);
             //Console.WriteLine(ex2.Message);
@@ -432,15 +435,15 @@ namespace Test
             msg.Read(reader2);
             Console.WriteLine(msg.Entity);
 
-            String name = "System.Data.SQLite.SQLiteFactory";
-            Type type = TypeX.GetType(name);
-            Console.WriteLine(type.FullName);
+            //String name = "System.Data.SQLite.SQLiteFactory";
+            //Type type = TypeX.GetType(name);
+            //Console.WriteLine(type.FullName);
 
-            message.WritePacket(stream);
+            //message.WritePacket(stream);
 
-            BinaryReader reader = new BinaryReader(stream);
-            String str = reader.ReadString();
-            Console.WriteLine(str);
+            //BinaryReader reader = new BinaryReader(stream);
+            //String str = reader.ReadString();
+            //Console.WriteLine(str);
         }
 
         static void Test11()
