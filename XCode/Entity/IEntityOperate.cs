@@ -16,6 +16,11 @@ namespace XCode
         /// </summary>
         /// <returns></returns>
         IEntity Create();
+
+        /// <summary>
+        /// 首次连接数据库时初始化数据
+        /// </summary>
+        void InitData();
         #endregion
 
         #region 填充数据

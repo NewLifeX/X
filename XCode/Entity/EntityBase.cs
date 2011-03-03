@@ -27,6 +27,13 @@ namespace XCode
         IEntity IEntityOperate.Create() { return CreateInternal(); }
 
         internal abstract IEntity CreateInternal();
+
+        void IEntityOperate.InitData() { InitData(); }
+
+        /// <summary>
+        /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
+        /// </summary>
+        protected virtual void InitData() { }
         #endregion
 
         #region 填充数据

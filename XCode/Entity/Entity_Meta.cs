@@ -212,6 +212,8 @@ namespace XCode
             /// <returns>结果记录集</returns>
             public static DataSet Query(String sql)
             {
+                CheckInitData();
+
                 return DBO.Select(sql, Meta.TableName);
             }
 
@@ -223,6 +225,8 @@ namespace XCode
             /// <returns>结果记录集</returns>
             public static DataSet Query(String sql, String[] tableNames)
             {
+                CheckInitData();
+
                 return DBO.Select(sql, tableNames);
             }
 
@@ -233,6 +237,8 @@ namespace XCode
             /// <returns>记录数</returns>
             public static Int32 QueryCount(String sql)
             {
+                CheckInitData();
+
                 return DBO.SelectCount(sql, Meta.TableName);
             }
 
@@ -243,6 +249,8 @@ namespace XCode
             /// <returns>影响的结果</returns>
             public static Int32 Execute(String sql)
             {
+                CheckInitData();
+
                 Int32 rs = DBO.Execute(sql, Meta.TableName);
                 if (rs > 0) DataChange();
                 return rs;
@@ -255,6 +263,8 @@ namespace XCode
             /// <returns>新增行的自动编号</returns>
             public static Int64 InsertAndGetIdentity(String sql)
             {
+                CheckInitData();
+
                 Int64 rs = DBO.InsertAndGetIdentity(sql, Meta.TableName);
                 if (rs > 0) DataChange();
                 return rs;
@@ -315,6 +325,20 @@ namespace XCode
                 }
                 remove { }
             }
+
+            static List<String> hasCheckInitData = new List<String>();
+            /// <summary>
+            /// 检查并初始化数据
+            /// </summary>
+            public static void CheckInitData()
+            {
+                String key = ConnName + "$$$" + TableName;
+                if (hasCheckInitData.Contains(key)) return;
+                hasCheckInitData.Add(key);
+
+                IEntityOperate factory = EntityFactory.CreateOperate(ThisType);
+                factory.InitData();
+            }
             #endregion
 
             #region 事务保护
@@ -330,7 +354,7 @@ namespace XCode
             public static Int32 Commit()
             {
                 TransCount = DBO.Commit();
-                // 提交事务时更新数据，虽然不是绝对准备，但没有更好的办法
+                // 提交事务时更新数据，虽然不是绝对准确，但没有更好的办法
                 if (TransCount <= 0) DataChange();
                 return TransCount;
             }
