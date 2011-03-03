@@ -19,5 +19,9 @@ namespace NewLife.Remoting
             set { _Client = value; }
         }
         #endregion
+
+        #region 同步
+
+        #endregion
     }
 }

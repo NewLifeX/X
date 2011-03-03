@@ -158,11 +158,6 @@ namespace NewLife.IO
         public Boolean WriteObject(Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, WriteCallback callback)
         {
             Type type = member.Type;
-            //Object value = null;
-            //if (member.Member.MemberType == MemberTypes.TypeInfo)
-            //    value = target;
-            //else
-            //    value = member.GetValue(target);
             Object value = member.IsType ? target : member.GetValue(target);
 
             if (value != null) type = value.GetType();

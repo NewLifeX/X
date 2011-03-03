@@ -103,7 +103,7 @@ namespace NewLife.IO
         public Object ReadObject(Type type)
         {
             Object value;
-            return TryReadObject(null, TypeX.Create(type), true, true, false, out value) ? value : null;
+            return TryReadObject(null, TypeX.Create(type), null, true, true, false, out value) ? value : null;
         }
 
         /// <summary>
@@ -111,15 +111,16 @@ namespace NewLife.IO
         /// </summary>
         /// <param name="target">目标对象</param>
         /// <param name="member">成员</param>
+        /// <param name="type">成员类型，以哪一种类型读取</param>
         /// <param name="encodeInt">是否编码整数</param>
         /// <param name="allowNull">是否允许空</param>
         /// <param name="isProperty">是否处理属性</param>
         /// <param name="value">成员值</param>
         /// <returns>是否读取成功</returns>
-        public Boolean TryReadObject(Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value)
+        public Boolean TryReadObject(Object target, MemberInfoX member, Type type, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value)
         {
             // 使用自己作为处理成员的方法
-            return TryReadObject(target, member, encodeInt, allowNull, isProperty, out value, ReadMember);
+            return TryReadObject(target, member, type, encodeInt, allowNull, isProperty, out value, ReadMember);
         }
 
         /// <summary>
@@ -130,16 +131,20 @@ namespace NewLife.IO
         /// </remarks>
         /// <param name="target">目标对象</param>
         /// <param name="member">成员</param>
+        /// <param name="type">成员类型，以哪一种类型读取</param>
         /// <param name="encodeInt">是否编码整数</param>
         /// <param name="allowNull">是否允许空</param>
         /// <param name="isProperty">是否处理属性</param>
         /// <param name="value">成员值</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        public Boolean TryReadObject(Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value, ReadCallback callback)
+        public Boolean TryReadObject(Object target, MemberInfoX member, Type type, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value, ReadCallback callback)
         {
-            Type type = member.Type;
-            if (target != null && member.IsType) type = target.GetType();
+            if (type == null)
+            {
+                type = member.Type;
+                if (target != null && member.IsType) type = target.GetType();
+            }
             if (callback == null) callback = ReadMember;
 
             // 基本类型
@@ -149,7 +154,7 @@ namespace NewLife.IO
             if (TryReadX(type, out value)) return true;
 
             #region 枚举
-            if (typeof(IEnumerable).IsAssignableFrom(member.Type))
+            if (typeof(IEnumerable).IsAssignableFrom(type))
             {
                 return TryReadEnumerable(target, member, encodeInt, allowNull, isProperty, out value, callback);
             }
@@ -185,7 +190,7 @@ namespace NewLife.IO
                 {
                     //ReadMember(target, reader, item, encodeInt, allowNull);
                     MemberInfoX member2 = item;
-                    if (!callback(this, value, member2, encodeInt, allowNull, isProperty, out obj, callback)) return false;
+                    if (!callback(this, value, member2, member2.Type, encodeInt, allowNull, isProperty, out obj, callback)) return false;
                     member2.SetValue(value, obj);
                 }
             }
@@ -207,7 +212,7 @@ namespace NewLife.IO
                     //#endif
                     //ReadMember(target, this, item, encodeInt, allowNull);
                     MemberInfoX member2 = item;
-                    if (!callback(this, value, member2, encodeInt, allowNull, isProperty, out obj, callback)) return false;
+                    if (!callback(this, value, member2, member2.Type, encodeInt, allowNull, isProperty, out obj, callback)) return false;
                     // 尽管有可能会二次赋值（如果callback调用这里的话），但是没办法保证用户的callback一定会给成员赋值，所以这里多赋值一次
                     member2.SetValue(value, obj);
                     //#if DEBUG
@@ -232,10 +237,10 @@ namespace NewLife.IO
             return true;
         }
 
-        private static Boolean ReadMember(BinaryReaderX reader, Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value, ReadCallback callback)
+        private static Boolean ReadMember(BinaryReaderX reader, Object target, MemberInfoX member, Type type, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value, ReadCallback callback)
         {
             // 使用自己作为处理成员的方法
-            return reader.TryReadObject(target, member, encodeInt, allowNull, isProperty, out value, callback);
+            return reader.TryReadObject(target, member, type, encodeInt, allowNull, isProperty, out value, callback);
         }
         #endregion
 
@@ -517,7 +522,7 @@ namespace NewLife.IO
                         //Read(obj, reader, encodeInt, allowNull, member.Member.MemberType == MemberTypes.Property);
 
                         //obj = TypeX.CreateInstance(elementType);
-                        if (!callback(this, null, elementTypes[j], encodeInt, allowNull, isProperty, out obj, callback)) return false;
+                        if (!callback(this, null, elementTypes[j], null, encodeInt, allowNull, isProperty, out obj, callback)) return false;
                     }
                     arrs[j].SetValue(obj, i);
                 }
@@ -769,13 +774,14 @@ namespace NewLife.IO
         /// <param name="reader">读取器</param>
         /// <param name="target">目标对象</param>
         /// <param name="member">成员</param>
+        /// <param name="type">成员类型，以哪一种类型读取</param>
         /// <param name="encodeInt">是否编码整数</param>
         /// <param name="allowNull">是否允许空</param>
         /// <param name="isProperty">是否处理属性</param>
         /// <param name="value">成员值</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        public delegate Boolean ReadCallback(BinaryReaderX reader, Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value, ReadCallback callback);
+        public delegate Boolean ReadCallback(BinaryReaderX reader, Object target, MemberInfoX member, Type type, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value, ReadCallback callback);
         #endregion
     }
 }

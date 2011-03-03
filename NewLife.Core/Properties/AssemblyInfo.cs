@@ -33,9 +33,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.5.*")]
-[assembly: AssemblyFileVersion("1.5.2011.0222")]
+[assembly: AssemblyFileVersion("1.5.2011.0303")]
 
 /*
+ * v1.5.2011.0303   修改二进制读写器和二进制访问器，在读取数据时允许指定目标数据类型
+ * 
  * v1.5.2011.0222   修正读写锁的BUG，简化处理，任意读操作阻塞写操作，任意写操作阻塞所有其它读写操作
  * 
  * v1.5.2011.0212   TypeX增加GetType方法，用于根据类型名获取类型，可自动加载未加载程序集
