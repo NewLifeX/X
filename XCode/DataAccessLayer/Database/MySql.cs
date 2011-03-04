@@ -158,7 +158,7 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 长文本长度
         /// </summary>
-        public override int LongTextLength { get { return 255; } }
+        public override int LongTextLength { get { return 4000; } }
 
         /// <summary>系统数据库名</summary>
         public override String SystemDatabaseName { get { return "mysql"; } }
@@ -179,7 +179,7 @@ namespace XCode.DataAccessLayer
         public override Int64 InsertAndGetIdentity(string sql)
         {
             return Int64.Parse(ExecuteScalar(sql + ";Select LAST_INSERT_ID()").ToString());
-            
+
             //ExecuteTimes++;
             ////SQLServer写法
             //sql = "SET NOCOUNT ON;" + sql + ";Select LAST_INSERT_ID()";
@@ -280,7 +280,7 @@ namespace XCode.DataAccessLayer
                     foreach (DataRow dr in drs)
                     {
                         String name = GetDataRowValue<String>(dr, "TypeName");
-                        if (name == "NVARCHAR" && field.Length <= Database.LongTextLength)
+                        if ((name == "NVARCHAR" && field.IsUnicode || name == "VARCHAR" && !field.IsUnicode) && field.Length <= Database.LongTextLength)
                             return new DataRow[] { dr };
                         else if (name == "LONGTEXT" && field.Length > Database.LongTextLength)
                             return new DataRow[] { dr };

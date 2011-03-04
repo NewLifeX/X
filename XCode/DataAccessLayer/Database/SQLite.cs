@@ -570,81 +570,38 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 表和字段备注
-        //public Boolean AddTableDescription(String tablename, String description)
-        //{
-        //    try
-        //    {
-        //        using (ADOTabe table = new ADOTabe(ConnectionString, FileName, tablename))
-        //        {
-        //            table.Description = description;
-        //            return true;
-        //        }
-        //    }
-        //    catch { return false; }
-        //}
+        public override string AddTableDescriptionSQL(XTable table)
+        {
+            // 返回Empty，告诉反向工程，该数据库类型不支持该功能，请不要输出日志
+            return String.Empty;
+        }
 
-        //public Boolean DropTableDescription(String tablename)
-        //{
-        //    return AddTableDescription(tablename, null);
-        //}
+        public override string DropTableDescriptionSQL(XTable table)
+        {
+            return String.Empty;
+        }
 
-        //public Boolean AddColumnDescription(String tablename, String columnname, String description)
-        //{
-        //    try
-        //    {
-        //        using (ADOTabe table = new ADOTabe(ConnectionString, FileName, tablename))
-        //        {
-        //            if (table.Supported && table.Columns != null)
-        //            {
-        //                foreach (ADOColumn item in table.Columns)
-        //                {
-        //                    if (item.Name == columnname)
-        //                    {
-        //                        item.Description = description;
-        //                        return true;
-        //                    }
-        //                }
-        //            }
-        //            return false;
-        //        }
-        //    }
-        //    catch { return false; }
-        //}
+        public override string AddColumnDescriptionSQL(XField field)
+        {
+            return String.Empty;
+        }
 
-        //public Boolean DropColumnDescription(String tablename, String columnname)
-        //{
-        //    return AddColumnDescription(tablename, columnname, null);
-        //}
+        public override string DropColumnDescriptionSQL(XField field)
+        {
+            return String.Empty;
+        }
         #endregion
 
         #region 默认值
-        //public virtual Boolean AddDefault(String tablename, String columnname, String value)
-        //{
-        //    try
-        //    {
-        //        using (ADOTabe table = new ADOTabe(ConnectionString, FileName, tablename))
-        //        {
-        //            if (table.Supported && table.Columns != null)
-        //            {
-        //                foreach (ADOColumn item in table.Columns)
-        //                {
-        //                    if (item.Name == columnname)
-        //                    {
-        //                        item.Default = value;
-        //                        return true;
-        //                    }
-        //                }
-        //            }
-        //            return false;
-        //        }
-        //    }
-        //    catch { return false; }
-        //}
+        public override string AddDefaultSQL(XField field)
+        {
+            return String.Empty;
+        }
 
-        //public virtual Boolean DropDefault(String tablename, String columnname)
-        //{
-        //    return AddDefault(tablename, columnname, null);
-        //}
+        public override string DropDefaultSQL(XField field)
+        {
+            return String.Empty;
+        }
         #endregion
     }
 }

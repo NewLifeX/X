@@ -406,8 +406,9 @@ namespace XCode.DataAccessLayer
             base.FixTable(table, dr);
 
             // 表注释 USER_TAB_COMMENTS
-            String sql = String.Format("Select COMMENTS From USER_TAB_COMMENTS Where TABLE_NAME='{0}'", table.Name);
-            String comment = (String)Database.CreateSession().ExecuteScalar(sql);
+            //String sql = String.Format("Select COMMENTS From USER_TAB_COMMENTS Where TABLE_NAME='{0}'", table.Name);
+            //String comment = (String)Database.CreateSession().ExecuteScalar(sql);
+            String comment = GetTableComment(table.Name);
             if (!String.IsNullOrEmpty(comment)) table.Description = comment;
 
             if (table == null || table.Fields == null || table.Fields.Count < 1) return;
@@ -448,12 +449,72 @@ namespace XCode.DataAccessLayer
                     }
                 }
             }
+            if (!exists)
+            {
+                // 处理自增，整型、主键、名为ID认为是自增
+                foreach (XField field in table.Fields)
+                {
+                    TypeCode code = Type.GetTypeCode(field.DataType);
+                    if (code == TypeCode.Int16 || code == TypeCode.UInt16 ||
+                        code == TypeCode.Int32 || code == TypeCode.UInt32 ||
+                        code == TypeCode.Int64 || code == TypeCode.UInt64
+                        )
+                    {
+                        if (field.PrimaryKey && field.Name.ToLower().Contains("id")) field.Identity = true;
+                    }
+                }
+            }
         }
 
+        /// <summary>
+        /// 序列
+        /// </summary>
+        DataTable dtSequences;
+        /// <summary>
+        /// 检查序列是否存在
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         Boolean CheckSeqExists(String name)
         {
-            String sql = String.Format("SELECT Count(*) FROM ALL_SEQUENCES Where SEQUENCE_NAME='{0}' And SEQUENCE_OWNER='{1}'", name, Owner);
-            return Convert.ToInt32(Database.CreateSession().ExecuteScalar(sql)) > 0;
+            if (dtSequences == null)
+            {
+                DataSet ds = Database.CreateSession().Query("SELECT * FROM ALL_SEQUENCES Where SEQUENCE_OWNER='" + Owner + "'");
+                if (ds != null && ds.Tables != null && ds.Tables.Count > 0)
+                    dtSequences = ds.Tables[0];
+                else
+                    dtSequences = new DataTable();
+            }
+            if (dtSequences.Rows == null || dtSequences.Rows.Count < 1) return false;
+
+            String where = String.Format("SEQUENCE_NAME='{0}' And SEQUENCE_OWNER='{1}'", name, Owner);
+            DataRow[] drs = dtSequences.Select(where);
+            return drs != null && drs.Length > 0;
+
+            //String sql = String.Format("SELECT Count(*) FROM ALL_SEQUENCES Where SEQUENCE_NAME='{0}' And SEQUENCE_OWNER='{1}'", name, Owner);
+            //return Convert.ToInt32(Database.CreateSession().ExecuteScalar(sql)) > 0;
+        }
+
+        DataTable dtTableComment;
+        String GetTableComment(String name)
+        {
+            if (dtTableComment == null)
+            {
+                DataSet ds = Database.CreateSession().Query("SELECT * FROM USER_TAB_COMMENTS");
+                if (ds != null && ds.Tables != null && ds.Tables.Count > 0)
+                    dtTableComment = ds.Tables[0];
+                else
+                    dtTableComment = new DataTable();
+            }
+            if (dtTableComment.Rows == null || dtTableComment.Rows.Count < 1) return null;
+
+            String where = String.Format("TABLE_NAME='{0}'", name);
+            DataRow[] drs = dtTableComment.Select(where);
+            if (drs != null && drs.Length > 0) return Convert.ToString(drs[0]["COMMENTS"]);
+            return null;
+
+            //String sql = String.Format("Select COMMENTS From USER_TAB_COMMENTS Where TABLE_NAME='{0}'", table.Name);
+            //String comment = (String)Database.CreateSession().ExecuteScalar(sql);
         }
 
         /// <summary>
@@ -476,16 +537,37 @@ namespace XCode.DataAccessLayer
             // 字段注释
             if (list != null && list.Count > 0)
             {
-                String sql = String.Format("Select COLUMN_NAME, COMMENTS From USER_COL_COMMENTS Where TABLE_NAME='{0}'", table.Name);
-                dt = Database.CreateSession().Query(sql).Tables[0];
+                //String sql = String.Format("Select COLUMN_NAME, COMMENTS From USER_COL_COMMENTS Where TABLE_NAME='{0}'", table.Name);
+                //dt = Database.CreateSession().Query(sql).Tables[0];
                 foreach (XField field in list)
                 {
-                    drs = dt.Select(String.Format("COLUMN_NAME='{0}'", field.Name));
-                    if (drs != null && drs.Length > 0) field.Description = GetDataRowValue<String>(drs[0], "COMMENTS");
+                    //drs = dt.Select(String.Format("COLUMN_NAME='{0}'", field.Name));
+                    //if (drs != null && drs.Length > 0) field.Description = GetDataRowValue<String>(drs[0], "COMMENTS");
+
+                    field.Description = GetColumnComment(table.Name, field.Name);
                 }
             }
 
             return list;
+        }
+
+        DataTable dtColumnComment;
+        String GetColumnComment(String tableName, String columnName)
+        {
+            if (dtColumnComment == null)
+            {
+                DataSet ds = Database.CreateSession().Query("SELECT * FROM USER_COL_COMMENTS");
+                if (ds != null && ds.Tables != null && ds.Tables.Count > 0)
+                    dtColumnComment = ds.Tables[0];
+                else
+                    dtColumnComment = new DataTable();
+            }
+            if (dtColumnComment.Rows == null || dtColumnComment.Rows.Count < 1) return null;
+
+            String where = String.Format("TABLE_NAME='{0}' AND COLUMN_NAME='{1}'", tableName, columnName);
+            DataRow[] drs = dtColumnComment.Select(where);
+            if (drs != null && drs.Length > 0) return Convert.ToString(drs[0]["COMMENTS"]);
+            return null;
         }
 
         protected override void FixField(XField field, DataRow drColumn, DataRow drDataType)
@@ -521,6 +603,84 @@ namespace XCode.DataAccessLayer
             }
         }
 
+        protected override string GetFieldType(XField field)
+        {
+            Int32 precision = field.Precision;
+            Int32 scale = field.Scale;
+
+            switch (Type.GetTypeCode(field.DataType))
+            {
+                case TypeCode.Boolean:
+                    return "NUMBER(1, 0)";
+                case TypeCode.Int16:
+                case TypeCode.UInt16:
+                    if (precision <= 0) precision = 5;
+                    return String.Format("NUMBER({0}, 0)", precision);
+                case TypeCode.Int32:
+                case TypeCode.UInt32:
+                    //if (precision <= 0) precision = 10;
+                    if (precision <= 0) return "NUMBER";
+                    return String.Format("NUMBER({0}, 0)", precision);
+                case TypeCode.Int64:
+                case TypeCode.UInt64:
+                    if (precision <= 0) precision = 20;
+                    return String.Format("NUMBER({0}, 0)", precision);
+                case TypeCode.Single:
+                    if (precision <= 0) precision = 5;
+                    if (scale <= 0) scale = 1;
+                    return String.Format("NUMBER({0}, {1})", precision, scale);
+                case TypeCode.Double:
+                    if (precision <= 0) precision = 10;
+                    if (scale <= 0) scale = 2;
+                    return String.Format("NUMBER({0}, {1})", precision, scale);
+                case TypeCode.Decimal:
+                    if (precision <= 0) precision = 20;
+                    if (scale <= 0) scale = 4;
+                    return String.Format("NUMBER({0}, {1})", precision, scale);
+                default:
+                    break;
+            }
+
+            return base.GetFieldType(field);
+        }
+
+        protected override DataRow[] FindDataType(XField field, string typeName, bool? isLong)
+        {
+            DataRow[] drs = base.FindDataType(field, typeName, isLong);
+            if (drs != null && drs.Length > 1)
+            {
+                // 字符串
+                if (typeName == typeof(String).FullName)
+                {
+                    foreach (DataRow dr in drs)
+                    {
+                        String name = GetDataRowValue<String>(dr, "TypeName");
+                        if ((name == "NVARCHAR2" && field.IsUnicode || name == "VARCHAR2" && !field.IsUnicode) && field.Length <= Database.LongTextLength)
+                            return new DataRow[] { dr };
+                        else if ((name == "NCLOB" && field.IsUnicode || name == "LONG" && !field.IsUnicode) && field.Length > Database.LongTextLength)
+                            return new DataRow[] { dr };
+                    }
+                }
+
+                //// 时间日期
+                //if (typeName == typeof(DateTime).FullName)
+                //{
+                //    // DateTime的范围是0001到9999
+                //    // Timestamp的范围是1970到2038
+                //    String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
+                //    foreach (DataRow dr in drs)
+                //    {
+                //        String name = GetDataRowValue<String>(dr, "TypeName");
+                //        if (name == "DATETIME" && String.IsNullOrEmpty(field.Default))
+                //            return new DataRow[] { dr };
+                //        else if (name == "TIMESTAMP" && (d == "now()" || field.Default == "CURRENT_TIMESTAMP"))
+                //            return new DataRow[] { dr };
+                //    }
+                //}
+            }
+            return drs;
+        }
+
         /// <summary>
         /// 已重载。主键构架
         /// </summary>
@@ -538,5 +698,65 @@ namespace XCode.DataAccessLayer
                 return _PrimaryKeys;
             }
         }
+
+        #region 架构定义
+        protected override string GetFieldConstraints(XField field, bool onlyDefine)
+        {
+            // 有默认值时直接返回，待会在默认值里面加约束
+            // 因为Oracle的声明是先有默认值再有约束的
+            if (!String.IsNullOrEmpty(field.Default)) return null;
+
+            return base.GetFieldConstraints(field, onlyDefine);
+        }
+
+        protected override string GetFieldDefault(XField field, bool onlyDefine)
+        {
+            if (String.IsNullOrEmpty(field.Default)) return null;
+
+            return base.GetFieldDefault(field, onlyDefine) + base.GetFieldConstraints(field, onlyDefine);
+        }
+
+        public override string CreateTableSQL(XTable table)
+        {
+            String sql = base.CreateTableSQL(table);
+            if (String.IsNullOrEmpty(sql)) return sql;
+
+            String sqlSeq = "Create Sequence SEQ_{0}_{1} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1 Cache 20";
+            return sql + ";" + sqlSeq;
+        }
+
+        public override String AlterColumnSQL(XField field)
+        {
+            return String.Format("Alter Table {0} Modify Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
+        }
+
+        public override string AddTableDescriptionSQL(XTable table)
+        {
+            //return String.Format("Update USER_TAB_COMMENTS Set COMMENTS='{0}' Where TABLE_NAME='{1}'", table.Description, table.Name);
+
+            return String.Format("Comment On Table {0} is '{1}'", FormatKeyWord(table.Name), table.Description);
+        }
+
+        public override string DropTableDescriptionSQL(XTable table)
+        {
+            //return String.Format("Update USER_TAB_COMMENTS Set COMMENTS='' Where TABLE_NAME='{0}'", table.Name);
+
+            return String.Format("Comment On Table {0} is ''", FormatKeyWord(table.Name));
+        }
+
+        public override string AddColumnDescriptionSQL(XField field)
+        {
+            //return String.Format("Update USER_COL_COMMENTS Set COMMENTS='{0}' Where TABLE_NAME='{1}' AND COLUMN_NAME='{2}'", field.Description, field.Table.Name, field.Name);
+
+            return String.Format("Comment On Column {0}.{1} is '{2}'", FormatKeyWord(field.Table.Name), FormatKeyWord(field.Name), field.Description);
+        }
+
+        public override string DropColumnDescriptionSQL(XField field)
+        {
+            //return String.Format("Update USER_COL_COMMENTS Set COMMENTS='' Where TABLE_NAME='{0}' AND COLUMN_NAME='{1}'", field.Table.Name, field.Name);
+
+            return String.Format("Comment On Column {0}.{1} is ''", FormatKeyWord(field.Table.Name), FormatKeyWord(field.Name));
+        }
+        #endregion
     }
 }

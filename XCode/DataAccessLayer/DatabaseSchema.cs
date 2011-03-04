@@ -7,6 +7,7 @@ using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Log;
 using XCode.Configuration;
+using System.Diagnostics;
 
 namespace XCode.DataAccessLayer
 {
@@ -236,16 +237,28 @@ namespace XCode.DataAccessLayer
         {
             if (Enable == null || IsExclude(ConnName)) return;
 
-            CheckDatabase();
+            WriteLog("开始检查数据库架构：" + ConnName);
 
-            CheckAllTables();
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            try
+            {
+                CheckDatabase();
+
+                CheckAllTables();
+            }
+            finally
+            {
+                sw.Stop();
+
+                WriteLog("检查数据库架构" + ConnName + "耗时：" + sw.Elapsed.ToString());
+            }
         }
 
         private void CheckDatabase()
         {
             if (Enable == null || IsExclude(ConnName)) return;
-
-            WriteLog("开始检查数据库架构：" + ConnName);
 
             //数据库检查
             Boolean dbExist = true;
