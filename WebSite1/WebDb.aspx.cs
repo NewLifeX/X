@@ -68,8 +68,8 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
                 ddlSchema.Items.Insert(0, new ListItem("--请选择--", ""));
             }
 
-            // 数据库信息架构
-            DatabaseSchema.Create(dal.Db).CheckDatabaseOnce().CheckAllTables();
+            //// 数据库信息架构
+            //DatabaseSchema.Create(dal.Db).CheckDatabaseOnce().CheckAllTables();
 
             // 数据表
             ddlTable.Items.Clear();

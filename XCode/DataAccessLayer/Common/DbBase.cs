@@ -188,8 +188,8 @@ namespace XCode.DataAccessLayer
 
                 _MySessions.Add(session);
 
-                // 检查数据库架构。在这里检查，避免线程冲突
-                DatabaseSchema.Create(this).CheckDatabaseOnce();
+                //// 检查数据库架构。在这里检查，避免线程冲突
+                //DatabaseSchema.Create(this).CheckDatabaseOnce();
 
                 return session;
             }

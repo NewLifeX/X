@@ -11,7 +11,7 @@ using System.Web;
 
 namespace XCode.DataAccessLayer
 {
-    class SqlCe : DbBase
+    class SqlCe : FileDbBase
     {
         #region 属性
         /// <summary>
@@ -40,55 +40,6 @@ namespace XCode.DataAccessLayer
         public override DbProviderFactory Factory
         {
             get { return dbProviderFactory; }
-        }
-
-        /// <summary>链接字符串</summary>
-        public override string ConnectionString
-        {
-            get
-            {
-                return base.ConnectionString;
-            }
-            set
-            {
-                try
-                {
-                    OleDbConnectionStringBuilder csb = new OleDbConnectionStringBuilder(value);
-                    // 不是绝对路径
-                    if (!String.IsNullOrEmpty(csb.DataSource) && csb.DataSource.Length > 1 && csb.DataSource.Substring(1, 1) != ":")
-                    {
-                        String mdbPath = csb.DataSource;
-                        if (mdbPath.StartsWith("~/") || mdbPath.StartsWith("~\\"))
-                        {
-                            mdbPath = mdbPath.Replace("/", "\\").Replace("~\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-                        }
-                        else if (mdbPath.StartsWith("./") || mdbPath.StartsWith(".\\"))
-                        {
-                            mdbPath = mdbPath.Replace("/", "\\").Replace(".\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-                        }
-                        else
-                        {
-                            mdbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, mdbPath.Replace("/", "\\"));
-                        }
-                        csb.DataSource = mdbPath;
-                        FileName = mdbPath;
-                        value = csb.ConnectionString;
-                    }
-                }
-                catch (DbException ex)
-                {
-                    throw new XDbException(this, "分析SQLite连接字符串时出错", ex);
-                }
-                base.ConnectionString = value;
-            }
-        }
-
-        private String _FileName;
-        /// <summary>文件</summary>
-        public String FileName
-        {
-            get { return _FileName; }
-            private set { _FileName = value; }
         }
         #endregion
 

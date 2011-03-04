@@ -44,34 +44,12 @@ namespace XCode
                 get { return _ConnName ?? (_ConnName = DefaultConnName); }
                 set
                 {
-                    ////修改链接名，挂载当前表
-                    //if (!String.IsNullOrEmpty(value) && !String.Equals(_ConnName, value, StringComparison.OrdinalIgnoreCase))
-                    //{
-                    //    _ConnName = value;
+                    //修改链接名，挂载当前表
+                    if (!String.IsNullOrEmpty(value) && !String.Equals(_ConnName, value, StringComparison.OrdinalIgnoreCase))
+                    {
+                        CheckTable(value, TableName);
 
-                    //    DatabaseSchema ds = DatabaseSchema.Create(DBO);
-                    //    XTable table = null;
-                    //    //检查该表是否检查过
-                    //    if (ds.EntityTables != null && ds.EntityTables.Count > 0)
-                    //    {
-                    //        table = ds.EntityTables.Find(delegate(XTable item)
-                    //        {
-                    //            return String.Equals(item.Name, TableName, StringComparison.OrdinalIgnoreCase);
-                    //        });
-                    //    }
-
-                    //    if (table == null)
-                    //    {
-                    //        //检查新表名对应的数据表
-                    //        table = DatabaseSchema.Create(ThisType, TableName);
-                    //        ds.CheckTable(table);
-
-                    //        lock (ds.EntityTables)
-                    //        {
-                    //            ds.EntityTables.Add(table);
-                    //        }
-                    //    }
-                    //}
+                    }
                     _ConnName = value;
 
                     if (String.IsNullOrEmpty(_ConnName)) _ConnName = DefaultConnName;
@@ -91,36 +69,44 @@ namespace XCode
                 get { return _TableName ?? (_TableName = DefaultTableName); }
                 set
                 {
-                    ////修改表名
-                    //if (!String.IsNullOrEmpty(value) && !String.Equals(_TableName, value, StringComparison.OrdinalIgnoreCase))
-                    //{
-                    //    DatabaseSchema ds = DatabaseSchema.Create(DBO);
-                    //    XTable table = null;
-                    //    //检查该表是否检查过
-                    //    if (ds.EntityTables != null && ds.EntityTables.Count > 0)
-                    //    {
-                    //        table = ds.EntityTables.Find(delegate(XTable item)
-                    //        {
-                    //            return String.Equals(item.Name, value, StringComparison.OrdinalIgnoreCase);
-                    //        });
-                    //    }
-
-                    //    if (table == null)
-                    //    {
-                    //        //检查新表名对应的数据表
-                    //        table = DatabaseSchema.Create(ThisType, value);
-                    //        ds.CheckTable(table);
-
-                    //        lock (ds.EntityTables)
-                    //        {
-                    //            ds.EntityTables.Add(table);
-                    //        }
-                    //    }
-                    //}
+                    //修改表名
+                    if (!String.IsNullOrEmpty(value) && !String.Equals(_TableName, value, StringComparison.OrdinalIgnoreCase))
+                    {
+                        CheckTable(ConnName, value);
+                    }
                     _TableName = value;
 
                     if (String.IsNullOrEmpty(_TableName)) _TableName = DefaultTableName;
                 }
+            }
+
+            private static void CheckTable(String connName, String tableName)
+            {
+                DatabaseSchema.Create(DAL.Create(connName).Db).CheckNewTable(ThisType, tableName);
+
+                //DatabaseSchema ds = DatabaseSchema.Create(DAL.Create(connName).Db);
+                //XTable table = null;
+
+                //lock (ds.EntityTables)
+                //{
+                //    //检查该表是否检查过
+                //    if (ds.EntityTables != null && ds.EntityTables.Count > 0)
+                //    {
+                //        table = ds.EntityTables.Find(delegate(XTable item)
+                //        {
+                //            return String.Equals(item.Name, tableName, StringComparison.OrdinalIgnoreCase);
+                //        });
+                //    }
+
+                //    if (table == null)
+                //    {
+                //        //检查新表名对应的数据表
+                //        table = DatabaseSchema.Create(ThisType, tableName);
+                //        ds.CheckTable(table);
+
+                //        ds.EntityTables.Add(table);
+                //    }
+                //}
             }
 
             /// <summary>
@@ -201,7 +187,7 @@ namespace XCode
             /// <summary>
             /// 数据操作对象。
             /// </summary>
-            public static DAL DBO { get { return DAL.Create(Meta.ConnName); } }
+            public static DAL DBO { get { return DAL.Create(ConnName); } }
 
             /// <summary>
             /// 数据库类型
@@ -339,15 +325,15 @@ namespace XCode
                 if (hasCheckInitData.Contains(key)) return;
                 hasCheckInitData.Add(key);
 
-                try
-                {
-                    DatabaseSchema.Create(DBO.Db).CheckDatabaseOnce().CheckTable(TableName);
-                }
-                catch (Exception ex)
-                {
-                    if (XTrace.Debug) XTrace.WriteLine("检查数据表" + TableName + "信息架构出错！" + ex.ToString());
-                }
-                
+                //try
+                //{
+                //    DatabaseSchema.Create(DBO.Db).CheckDatabaseOnce().CheckTable(TableName);
+                //}
+                //catch (Exception ex)
+                //{
+                //    if (XTrace.Debug) XTrace.WriteLine("检查数据表" + TableName + "信息架构出错！" + ex.ToString());
+                //}
+
                 // 异步执行，并捕获错误日志
                 if (Config.GetConfig<Boolean>("XCode.InitDataAsync", true))
                 {
@@ -361,14 +347,14 @@ namespace XCode
 
             private static void CheckInitData2(Object state)
             {
-                try
-                {
-                    DatabaseSchema.Create(DBO.Db).CheckDatabaseOnce().CheckTable(TableName);
-                }
-                catch (Exception ex)
-                {
-                    if (XTrace.Debug) XTrace.WriteLine("检查数据表" + TableName + "信息架构出错！" + ex.ToString());
-                }
+                //try
+                //{
+                //    DatabaseSchema.Create(DBO.Db).CheckDatabaseOnce().CheckTable(TableName);
+                //}
+                //catch (Exception ex)
+                //{
+                //    if (XTrace.Debug) XTrace.WriteLine("检查数据表" + TableName + "信息架构出错！" + ex.ToString());
+                //}
                 try
                 {
                     EntityFactory.CreateOperate(ThisType).InitData();

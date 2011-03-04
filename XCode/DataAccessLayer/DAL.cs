@@ -41,14 +41,17 @@ namespace XCode.DataAccessLayer
 
             ConnStr = ConnStrs[connName].ConnectionString;
 
-            //try
-            //{
-            //    DatabaseSchema.Check(this);
-            //}
-            //catch (Exception ex)
-            //{
-            //    if (DbBase.Debug) DbBase.WriteLog(ex.ToString());
-            //}
+            // 创建数据库访问对象的时候，就开始检查数据库架构
+            // 尽管这样会占用大量时间，但这种情况往往只存在于安装部署的时候
+            // 要尽可能的减少非安装阶段的时间占用
+            try
+            {
+                DatabaseSchema.Check(Db);
+            }
+            catch (Exception ex)
+            {
+                if (DbBase.Debug) DbBase.WriteLog(ex.ToString());
+            }
         }
 
         private static Dictionary<String, DAL> _dals = new Dictionary<String, DAL>();
@@ -569,7 +572,7 @@ namespace XCode.DataAccessLayer
 
         private List<XTable> _Tables;
         /// <summary>
-        /// 取得所有表和视图的构架信息
+        /// 取得所有表和视图的构架信息，为了提高性能，得到的只是准实时信息，可能会有1秒到3秒的延迟
         /// </summary>
         /// <remarks>如果不存在缓存，则获取后返回；否则使用线程池线程获取，而主线程返回缓存</remarks>
         /// <returns></returns>

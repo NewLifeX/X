@@ -18,14 +18,14 @@ namespace XCode.DataAccessLayer
         #region 属性
         private IDatabase _Database;
         /// <summary>数据库</summary>
-        public IDatabase Database
+        private IDatabase Database
         {
             get { return _Database; }
-            private set { _Database = value; }
+            set { _Database = value; }
         }
 
         /// <summary>连接名</summary>
-        public String ConnName { get { return Database.ConnName; } }
+        private String ConnName { get { return Database.ConnName; } }
 
         //private IDbSession _Session;
         ///// <summary>数据库会话</summary>
@@ -37,14 +37,14 @@ namespace XCode.DataAccessLayer
 
         private IMetaData _MetaData;
         /// <summary>数据库元数据</summary>
-        public IMetaData MetaData
+        private IMetaData MetaData
         {
             get { return _MetaData ?? (_MetaData = Database.CreateMetaData()); }
         }
 
         private List<Type> _Entities;
         /// <summary>实体集合</summary>
-        public List<Type> Entities
+        private List<Type> Entities
         {
             get
             {
@@ -73,7 +73,7 @@ namespace XCode.DataAccessLayer
 
         private List<XTable> _EntityTables;
         /// <summary>实体表集合</summary>
-        public List<XTable> EntityTables
+        private List<XTable> EntityTables
         {
             get
             {
@@ -94,7 +94,7 @@ namespace XCode.DataAccessLayer
 
         private Dictionary<String, XTable> _DBTables;
         /// <summary>数据库表集合</summary>
-        public Dictionary<String, XTable> DBTables
+        private Dictionary<String, XTable> DBTables
         {
             get
             {
@@ -150,136 +150,102 @@ namespace XCode.DataAccessLayer
 
         //private static Dictionary<String, DateTime> _cache = new Dictionary<String, DateTime>();
 
-        ///// <summary>
-        ///// 创建
-        ///// </summary>
-        ///// <param name="database"></param>
-        //public static void Check(DAL database)
-        //{
-        //    ////每10分钟检查一次
-        //    //if (_cache.ContainsKey(database.ConnName) && _cache[database.ConnName].AddMinutes(10) < DateTime.Now) return;
-        //    if (_cache.ContainsKey(database.ConnName)) return;
-        //    DatabaseSchema ds = null;
-        //    lock (_cache)
-        //    {
-        //        //if (_cache.ContainsKey(database.ConnName) && _cache[database.ConnName].AddMinutes(10) < DateTime.Now) return;
-        //        if (_cache.ContainsKey(database.ConnName)) return;
+        /// <summary>
+        /// 检查数据库信息架构，如果打开开关，则同步检查，否则异步检查
+        /// </summary>
+        /// <param name="database"></param>
+        public static DatabaseSchema Check(IDatabase database)
+        {
+            //////每10分钟检查一次
+            ////if (_cache.ContainsKey(database.ConnName) && _cache[database.ConnName].AddMinutes(10) < DateTime.Now) return;
+            //if (_cache.ContainsKey(database.ConnName)) return;
+            //DatabaseSchema ds = null;
+            //lock (_cache)
+            //{
+            //    //if (_cache.ContainsKey(database.ConnName) && _cache[database.ConnName].AddMinutes(10) < DateTime.Now) return;
+            //    if (_cache.ContainsKey(database.ConnName)) return;
 
-        //        ds = Create(database);
-        //        //ds = new DatabaseSchema(database);
-        //        //ds.Database = database;
+            //    ds = Create(database);
+            //    //ds = new DatabaseSchema(database);
+            //    //ds.Database = database;
 
-        //        if (_cache.ContainsKey(database.ConnName))
-        //            _cache[database.ConnName] = DateTime.Now;
-        //        else
-        //            _cache.Add(database.ConnName, DateTime.Now);
-        //    }
+            //    if (_cache.ContainsKey(database.ConnName))
+            //        _cache[database.ConnName] = DateTime.Now;
+            //    else
+            //        _cache.Add(database.ConnName, DateTime.Now);
+            //}
 
-        //    if (Enable != null && Enable.Value)
-        //        ds.Check();
-        //    else
-        //        ds.BeginCheck();
-        //}
+            DatabaseSchema ds = Create(database);
+
+            if (Enable == null || IsExclude(database.ConnName)) return ds;
+
+            // 打开了开关，并且设置为true时，使用同步方式检查
+            // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
+            if (Enable != null && Enable.Value)
+                ds.Check();
+            else
+                ds.BeginCheck();
+
+            return ds;
+        }
         #endregion
 
         #region 业务
-        ///// <summary>
-        ///// 开始检查
-        ///// </summary>
-        //public void BeginCheck()
-        //{
-        //    if (Enable == null) return;
-
-        //    if (Exclude.Count > 0)
-        //    {
-        //        //检查是否被排除的链接
-        //        if (Exclude.Exists(delegate(String item) { return String.Equals(item, ConnName); })) return;
-        //    }
-
-        //    ThreadPool.QueueUserWorkItem(new WaitCallback(CheckWrap));
-        //}
-
-        //private void CheckWrap(Object state)
-        //{
-        //    try
-        //    {
-        //        Check();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        XTrace.WriteLine(ex.ToString());
-        //    }
-        //}
-
-        private Boolean _CheckOnce = false;
         /// <summary>
-        /// 检查一次
+        /// 开始检查
         /// </summary>
-        /// <returns></returns>
-        public DatabaseSchema CheckDatabaseOnce()
+        private void BeginCheck()
         {
-            lock (this)
+            if (Enable == null || IsExclude(ConnName)) return;
+
+            ThreadPool.QueueUserWorkItem(delegate
             {
-                if (_CheckOnce) return this;
-                _CheckOnce = true;
-
-                CheckDatabase();
-
-                return this;
-            }
+                try
+                {
+                    Check();
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteLine(ex.ToString());
+                }
+            });
         }
 
+        //private Boolean _CheckOnce = false;
         ///// <summary>
-        ///// 检查
+        ///// 检查一次
         ///// </summary>
-        //public void Check()
+        ///// <returns></returns>
+        //public DatabaseSchema CheckDatabaseOnce()
         //{
-        //    if (Enable == null) return;
-
-        //    WriteLog("开始检查数据架构：" + ConnName);
-
-        //    //数据库检查
-        //    Boolean dbExist = true;
-        //    try
+        //    lock (this)
         //    {
-        //        dbExist = (Boolean)MetaData.SetSchema(DDLSchema.DatabaseExist, null);
-        //    }
-        //    catch
-        //    {
-        //        // 如果异常，默认认为数据库存在
-        //        dbExist = true;
-        //    }
+        //        if (_CheckOnce) return this;
+        //        _CheckOnce = true;
 
-        //    if (!dbExist)
-        //    {
-        //        XTrace.WriteLine("创建数据库：{0}", ConnName);
-        //        MetaData.SetSchema(DDLSchema.CreateDatabase, null, null);
-        //    }
+        //        CheckDatabase();
 
-        //    if (Entities == null || Entities.Count < 1)
-        //    {
-        //        WriteLog(ConnName + "没有找到实体类。");
-        //        return;
-        //    }
-
-        //    WriteLog(ConnName + "实体个数：" + Entities.Count);
-
-        //    if (EntityTables == null || EntityTables.Count < 1) return;
-
-        //    lock (EntityTables)
-        //    {
-        //        foreach (XTable item in EntityTables)
-        //        {
-        //            CheckTable(item);
-        //        }
+        //        return this;
         //    }
         //}
+
+        /// <summary>
+        /// 检查
+        /// </summary>
+        private void Check()
+        {
+            if (Enable == null || IsExclude(ConnName)) return;
+
+            CheckDatabase();
+
+            CheckAllTables();
+        }
 
         private void CheckDatabase()
         {
             if (Enable == null || IsExclude(ConnName)) return;
 
-            WriteLog("开始检查数据架构：" + ConnName);
+            WriteLog("开始检查数据库架构：" + ConnName);
 
             //数据库检查
             Boolean dbExist = true;
@@ -303,7 +269,7 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 检查所有表
         /// </summary>
-        public void CheckAllTables()
+        private void CheckAllTables()
         {
             if (Enable == null) return;
 
@@ -315,29 +281,36 @@ namespace XCode.DataAccessLayer
             {
                 foreach (XTable item in EntityTables)
                 {
+                    if (IsExclude(item.Name)) continue;
+
                     CheckTable(item);
                 }
             }
         }
 
         /// <summary>
-        /// 检查表
+        /// 检查新表
         /// </summary>
+        /// <param name="type"></param>
         /// <param name="tableName"></param>
-        public void CheckTable(String tableName)
+        public void CheckNewTable(Type type, String tableName)
         {
-            if (Enable == null || IsExclude(tableName)) return;
-
-            List<XTable> list = EntityTables;
-            if (list == null || list.Count < 1) return;
-
-            foreach (XTable item in list)
+            lock (EntityTables)
             {
-                if (String.Equals(tableName, item.Name, StringComparison.OrdinalIgnoreCase))
+                List<XTable> list = EntityTables;
+                if (list == null || list.Count < 1) return;
+
+                foreach (XTable item in list)
                 {
-                    CheckTable(item);
-                    return;
+                    if (String.Equals(tableName, item.Name, StringComparison.OrdinalIgnoreCase)) return;
                 }
+
+                //检查新表名对应的数据表
+                XTable table = DatabaseSchema.Create(type, tableName);
+
+                EntityTables.Add(table);
+
+                CheckTable(table);
             }
         }
 
@@ -347,25 +320,10 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         private void CheckTable(XTable table)
         {
-            //if (Exclude.Count > 0)
-            //{
-            //    //检查是否被排除的表
-            //    if (Exclude.Exists(delegate(String elm)
-            //    {
-            //        return String.Equals(elm, table.Name, StringComparison.OrdinalIgnoreCase);
-            //    }))
-            //        return;
-            //}
-
             Dictionary<String, XTable> dic = DBTables;
 
             try
             {
-                //if (dic.ContainsKey(item.Name))
-                //    CheckTable(item, dic[item.Name]);
-                //else
-                //    CheckTable(item, null);
-
                 Boolean b = false;
                 foreach (String elm in dic.Keys)
                 {
@@ -517,8 +475,11 @@ namespace XCode.DataAccessLayer
 
                 if (isChanged)
                 {
+                    // 如果数据库存在默认值，则删除
                     if (!String.IsNullOrEmpty(dbf.Default))
                         GetSchemaSQL(sb, onlySql, DDLSchema.DropDefault, dbf);
+
+                    // 如果实体存在默认值，则增加
                     if (!String.IsNullOrEmpty(item.Default))
                     {
                         if (Type.GetTypeCode(item.DataType) == TypeCode.DateTime)
@@ -569,9 +530,10 @@ namespace XCode.DataAccessLayer
         /// <param name="type"></param>
         /// <param name="tablename"></param>
         /// <returns></returns>
-        public static XTable Create(Type type, String tablename)
+        private static XTable Create(Type type, String tablename)
         {
             XTable table = XCodeConfig.GetTable(type);
+            if (table == null) return null;
 
             if (!String.IsNullOrEmpty(tablename)) table.Name = tablename;
 
