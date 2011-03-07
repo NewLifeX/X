@@ -128,6 +128,14 @@ namespace XCode.DataAccessLayer
         /// <param name="value"></param>
         /// <returns></returns>
         String FormatValue(XField field, Object value);
+
+        /// <summary>
+        /// 格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        String FormatIdentity(XField field, Object value);
         #endregion
     }
 }

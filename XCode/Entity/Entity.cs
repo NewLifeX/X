@@ -1071,25 +1071,35 @@ namespace XCode
                     foreach (FieldItem fi in Meta.Fields)
                     {
                         // 标识列不需要插入，别的类型都需要
-                        if (!fi.DataObjectField.IsIdentity)
+                        String idv = null;
+                        if (fi.DataObjectField.IsIdentity)
                         {
-                            // 有默认值，并且没有设置值时，不参与插入操作
-                            if (!String.IsNullOrEmpty(fi.Column.DefaultValue) && !obj.Dirtys[fi.Name]) continue;
-
-                            if (!isFirst) sbNames.Append(", "); // 加逗号
-                            sbNames.Append(Meta.FormatName(fi.ColumnName));
-                            if (!isFirst)
-                                sbValues.Append(", "); // 加逗号
-                            else
-                                isFirst = false;
-
-                            //// 可空类型插入空
-                            //if (!obj.Dirtys[fi.Name] && fi.DataObjectField.IsNullable)
-                            //    sbValues.Append("null");
-                            //else
-                            //sbValues.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
-                            sbValues.Append(Meta.FormatValue(fi.Name, obj[fi.Name])); // 数据
+                            idv = Meta.DBO.Db.FormatIdentity(XCodeConfig.GetField(Meta.ThisType, fi.Name), obj[fi.Name]);
+                            //if (String.IsNullOrEmpty(idv)) continue;
+                            // 允许返回String.Empty作为插入空
+                            if (idv == null) continue;
                         }
+
+                        // 有默认值，并且没有设置值时，不参与插入操作
+                        if (!String.IsNullOrEmpty(fi.Column.DefaultValue) && !obj.Dirtys[fi.Name]) continue;
+
+                        if (!isFirst) sbNames.Append(", "); // 加逗号
+                        sbNames.Append(Meta.FormatName(fi.ColumnName));
+                        if (!isFirst)
+                            sbValues.Append(", "); // 加逗号
+                        else
+                            isFirst = false;
+
+                        //// 可空类型插入空
+                        //if (!obj.Dirtys[fi.Name] && fi.DataObjectField.IsNullable)
+                        //    sbValues.Append("null");
+                        //else
+                        //sbValues.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
+
+                        if (!fi.DataObjectField.IsIdentity)
+                            sbValues.Append(Meta.FormatValue(fi.Name, obj[fi.Name])); // 数据
+                        else
+                            sbValues.Append(idv);
                     }
                     return String.Format("Insert Into {0}({1}) Values({2})", Meta.FormatName(Meta.TableName), sbNames.ToString(), sbValues.ToString());
                 case DataObjectMethodType.Update:

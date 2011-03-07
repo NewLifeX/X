@@ -184,6 +184,17 @@ namespace XCode.DataAccessLayer
 
             return base.FormatValue(field, value);
         }
+
+        /// <summary>
+        /// 格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public override string FormatIdentity(XField field, Object value)
+        {
+            return String.Format("SEQ_{0}.nextval", field.Table.Name);
+        }
         #endregion
 
         #region 关键字
@@ -721,8 +732,8 @@ namespace XCode.DataAccessLayer
             String sql = base.CreateTableSQL(table);
             if (String.IsNullOrEmpty(sql)) return sql;
 
-            String sqlSeq = "Create Sequence SEQ_{0}_{1} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1 Cache 20";
-            return sql + ";" + sqlSeq;
+            String sqlSeq = String.Format("Create Sequence SEQ_{0} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1 Cache 20", table.Name);
+            return sql + ";" + Environment.NewLine + sqlSeq;
         }
 
         public override String AlterColumnSQL(XField field)
