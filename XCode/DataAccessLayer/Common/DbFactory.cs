@@ -67,6 +67,10 @@ namespace XCode.DataAccessLayer
                     return new SqlCe();
                 case DatabaseType.SQLite:
                     return new SQLite();
+                case DatabaseType.Firebird:
+                    return new Firebird();
+                case DatabaseType.PostgreSQL:
+                    return new PostgreSQL();
                 default:
                     break;
             }

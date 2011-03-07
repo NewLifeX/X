@@ -88,7 +88,9 @@
     <Compile Include="DataAccessLayer\Common\FileDb.cs" />
     <Compile Include="DataAccessLayer\Common\RemoteDb.cs" />
     <Compile Include="DataAccessLayer\Database\Distributed.cs" />
+    <Compile Include="DataAccessLayer\Database\Firebird.cs" />
     <Compile Include="DataAccessLayer\Database\Network.cs" />
+    <Compile Include="DataAccessLayer\Database\PostgreSQL.cs" />
     <Compile Include="DataAccessLayer\Database\SqlCe.cs" />
     <Compile Include="DataAccessLayer\Common\DbBase.cs" />
     <Compile Include="DataAccessLayer\Common\DbFactory.cs" />
@@ -112,7 +114,6 @@
     <Compile Include="DataAccessLayer\SelectBuilder.cs" />
     <Compile Include="DataAccessLayer\Database\SQLite.cs" />
     <Compile Include="DataAccessLayer\Database\SqlServer.cs" />
-    <Compile Include="DataAccessLayer\Database\SqlServer2005.cs" />
     <Compile Include="DataAccessLayer\MetaData\DDLSchema.cs" />
     <Compile Include="DataAccessLayer\XField.cs" />
     <Compile Include="DataAccessLayer\XTable.cs" />

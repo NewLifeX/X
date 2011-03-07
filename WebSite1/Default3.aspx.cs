@@ -11,7 +11,7 @@ public partial class Default3 : System.Web.UI.Page
 {
     protected void Page_Load(object sender, EventArgs e)
     {
-        DataTable dt = DAL.Create("MySql_System").Session.GetSchema("ReservedWords", null);
+        DataTable dt = DAL.Create("Firebird").Session.GetSchema("ReservedWords", null);
         if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
         {
             foreach (DataRow dr in dt.Rows)
@@ -21,11 +21,5 @@ public partial class Default3 : System.Web.UI.Page
                 Response.Write(dr[0].ToString());
             }
         }
-    }
-
-    protected void Button1_Click(object sender, EventArgs e)
-    {
-        Label1.Text = GridViewExtender1.SelectedIndexesString;
-        Label2.Text = GridViewExtender1.SelectedValuesString;
     }
 }

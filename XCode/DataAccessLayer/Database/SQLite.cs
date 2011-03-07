@@ -90,19 +90,6 @@ namespace XCode.DataAccessLayer
                 sql = String.Format("{0} limit {1}, {2}", sql, startRowIndex, maximumRows);
             return sql;
         }
-
-        /// <summary>
-        /// 已重写。获取分页
-        /// </summary>
-        /// <param name="builder"></param>
-        /// <param name="startRowIndex"></param>
-        /// <param name="maximumRows"></param>
-        /// <param name="keyColumn"></param>
-        /// <returns></returns>
-        public override string PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows, string keyColumn)
-        {
-            return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
-        }
         #endregion
 
         #region 数据库特性

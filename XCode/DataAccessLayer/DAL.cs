@@ -174,6 +174,12 @@ namespace XCode.DataAccessLayer
                     type = typeof(SQLite);
                 else if (provider.Contains("sqlce"))
                     type = typeof(SqlCe);
+                else if (provider.Contains("firebird"))
+                    type = typeof(Firebird);
+                else if (provider.Contains("postgresql"))
+                    type = typeof(PostgreSQL);
+                else if (provider.Contains("npgsql"))
+                    type = typeof(PostgreSQL);
                 else if (provider.Contains("sql2008"))
                     type = typeof(SqlServer);
                 else if (provider.Contains("sql2005"))

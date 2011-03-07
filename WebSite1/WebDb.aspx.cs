@@ -312,7 +312,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
                 if (dal.Tables == null || dal.Tables.Count < 1) return;
 
                 XTable table = dal.Tables.Find(delegate(XTable item) { return item.Name == ddlTable.SelectedValue; });
-                if (table == null) return;
+                if (table == null || table.Fields == null) return;
 
                 // 更新表头
                 foreach (TableCell item in e.Row.Cells)

@@ -58,7 +58,7 @@ namespace XCode.DataAccessLayer
         public String FileName
         {
             get { return _FileName; }
-            private set { _FileName = value; }
+            set { _FileName = value; }
         }
         #endregion
     }
@@ -153,6 +153,8 @@ namespace XCode.DataAccessLayer
         /// </summary>
         protected virtual void CreateDatabase()
         {
+            if (String.IsNullOrEmpty(FileName)) return;
+
             // 提前创建目录
             String dir = Path.GetDirectoryName(FileName);
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);

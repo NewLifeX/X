@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using XCode.Exceptions;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace XCode.DataAccessLayer
 {
@@ -143,11 +144,6 @@ namespace XCode.DataAccessLayer
             //sql = String.Format("Select * From ({1}) a Where rownum>={0} and rownum<={2}", startRowIndex, sql, startRowIndex + maximumRows - 1);
             return sql;
         }
-
-        public override string PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows, string keyColumn)
-        {
-            return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
-        }
         #endregion
 
         #region 数据库特性
@@ -257,15 +253,37 @@ namespace XCode.DataAccessLayer
             finally { AutoClose(); }
         }
 
-        ///// <summary>
-        ///// 执行插入语句并返回新增行的自动编号
-        ///// </summary>
-        ///// <param name="sql">SQL语句</param>
-        ///// <returns>新增行的自动编号</returns>
-        //public override Int64 InsertAndGetIdentity(String sql)
-        //{
-        //    throw new NotSupportedException("Oracle数据库不支持插入后返回新增行的自动编号！");
-        //}
+        static Regex reg_SEQ = new Regex(@"\b(\w+)\.nextval\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        /// <summary>
+        /// 执行插入语句并返回新增行的自动编号
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>新增行的自动编号</returns>
+        public override Int64 InsertAndGetIdentity(String sql)
+        {
+            Boolean b = IsAutoClose;
+            // 禁用自动关闭，保证两次在同一会话
+            IsAutoClose = false;
+
+            try
+            {
+                Int64 rs = base.InsertAndGetIdentity(sql);
+                if (rs <= 1) return rs;
+
+                Match m = reg_SEQ.Match(sql);
+                if (m == null || m.Groups == null || m.Groups.Count < 1) return rs;
+
+                String name = m.Groups[1].Value;
+                return (Int64)ExecuteScalar(String.Format("Select {0}.currval", name));
+            }
+            finally
+            {
+                IsAutoClose = b;
+                AutoClose();
+            }
+
+            //throw new NotSupportedException("Oracle数据库不支持插入后返回新增行的自动编号！");
+        }
         #endregion
 
         ///// <summary>
@@ -733,6 +751,15 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(sql)) return sql;
 
             String sqlSeq = String.Format("Create Sequence SEQ_{0} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1 Cache 20", table.Name);
+            return sql + ";" + Environment.NewLine + sqlSeq;
+        }
+
+        public override string DropTableSQL(XTable table)
+        {
+            String sql = base.DropTableSQL(table);
+            if (String.IsNullOrEmpty(sql)) return sql;
+
+            String sqlSeq = String.Format("Drop Sequence SEQ_{0}", table.Name);
             return sql + ";" + Environment.NewLine + sqlSeq;
         }
 

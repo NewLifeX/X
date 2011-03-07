@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace XCode.DataAccessLayer
 {
-    class MySql : RemoteDb
+    class PostgreSQL : RemoteDb
     {
         #region 属性
         /// <summary>
@@ -17,7 +17,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public override DatabaseType DbType
         {
-            get { return DatabaseType.MySql; }
+            get { return DatabaseType.PostgreSQL; }
         }
 
         private static DbProviderFactory _dbProviderFactory;
@@ -28,8 +28,8 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                //if (_dbProviderFactory == null) _dbProviderFactory = DbProviderFactories.GetFactory("MySql.Data.MySqlClient");
-                if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("MySql.Data.dll", "MySql.Data.MySqlClient.MySqlClientFactory");
+                //if (_dbProviderFactory == null) _dbProviderFactory = DbProviderFactories.GetFactory("PostgreSQL.Data.PostgreSQLClient");
+                if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("Npgsql.dll", "Npgsql.NpgsqlFactory");
 
                 return _dbProviderFactory;
             }
@@ -49,7 +49,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected override IDbSession OnCreateSession()
         {
-            return new MySqlSession();
+            return new PostgreSQLSession();
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData()
         {
-            return new MySqlMetaData();
+            return new PostgreSQLMetaData();
         }
         #endregion
 
@@ -156,14 +156,14 @@ namespace XCode.DataAccessLayer
         public override int LongTextLength { get { return 4000; } }
 
         /// <summary>系统数据库名</summary>
-        public override String SystemDatabaseName { get { return "mysql"; } }
+        public override String SystemDatabaseName { get { return "PostgreSQL"; } }
         #endregion
     }
 
     /// <summary>
-    /// MySql数据库
+    /// PostgreSQL数据库
     /// </summary>
-    internal class MySqlSession : RemoteDbSession
+    internal class PostgreSQLSession : RemoteDbSession
     {
         #region 基本方法 查询/执行
         /// <summary>
@@ -195,9 +195,9 @@ namespace XCode.DataAccessLayer
     }
 
     /// <summary>
-    /// MySql元数据
+    /// PostgreSQL元数据
     /// </summary>
-    class MySqlMetaData : RemoteDbMetaData
+    class PostgreSQLMetaData : RemoteDbMetaData
     {
         protected override void FixTable(XTable table, DataRow dr)
         {
@@ -229,7 +229,7 @@ namespace XCode.DataAccessLayer
             // 布尔类型
             if (field.RawType == "enum")
             {
-                // MySql中没有布尔型，这里处理YN枚举作为布尔型
+                // PostgreSQL中没有布尔型，这里处理YN枚举作为布尔型
                 if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
                 {
                     field.DataType = typeof(Boolean);
@@ -305,7 +305,7 @@ namespace XCode.DataAccessLayer
         //{
         //    if (typeName == "enum")
         //    {
-        //        // MySql中没有布尔型，这里处理YN枚举作为布尔型
+        //        // PostgreSQL中没有布尔型，这里处理YN枚举作为布尔型
         //        if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
         //        {
         //            field.DataType = typeof(Boolean);

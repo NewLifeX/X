@@ -47,6 +47,18 @@ namespace XCode.DataAccessLayer
         SQLite = 5,
 
         /// <summary>
+        /// Firebird数据库
+        /// </summary>
+        [Description("Firebird数据库")]
+        Firebird = 6,
+
+        /// <summary>
+        /// SqlCe数据库
+        /// </summary>
+        [Description("PostgreSQL数据库")]
+        PostgreSQL = 7,
+
+        /// <summary>
         /// 网络虚拟数据库
         /// </summary>
         [Description("网络虚拟数据库")]

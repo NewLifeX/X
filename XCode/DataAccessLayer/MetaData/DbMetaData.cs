@@ -168,9 +168,9 @@ namespace XCode.DataAccessLayer
                 if (field.ID == 0)
                 {
                     startIndex++;
-                    field.ID = startIndex;
+                    //field.ID = startIndex;
                 }
-                //if (startIndex > 0) field.ID += startIndex;
+                if (startIndex > 0) field.ID += startIndex;
 
                 // 名称
                 field.Name = GetDataRowValue<String>(dr, "COLUMN_NAME");
@@ -191,6 +191,8 @@ namespace XCode.DataAccessLayer
                 if (TryGetDataRowValue<String>(dr, "DATA_TYPE", out str))
                     field.RawType = str;
                 else if (TryGetDataRowValue<String>(dr, "DATATYPE", out str))
+                    field.RawType = str;
+                else if (TryGetDataRowValue<String>(dr, "COLUMN_DATA_TYPE", out str))
                     field.RawType = str;
 
                 // 是否Unicode
@@ -215,6 +217,8 @@ namespace XCode.DataAccessLayer
                 if (TryGetDataRowValue<Int32>(dr, "CHARACTER_MAXIMUM_LENGTH", out n))
                     field.Length = n;
                 else if (TryGetDataRowValue<Int32>(dr, "LENGTH", out n))
+                    field.Length = n;
+                else if (TryGetDataRowValue<Int32>(dr, "COLUMN_SIZE", out n))
                     field.Length = n;
                 else
                     field.Length = field.Precision;
@@ -442,7 +446,7 @@ namespace XCode.DataAccessLayer
             {
                 // 处理格式参数
                 String param = GetFormatParam(field, drs[0]);
-                if (!String.IsNullOrEmpty(param)) typeName += param;
+                if (!String.IsNullOrEmpty(param) && param != "()") typeName += param;
 
                 return typeName;
             }
@@ -459,7 +463,7 @@ namespace XCode.DataAccessLayer
         protected virtual String GetFormatParam(XField field, DataRow dr)
         {
             String ps = null;
-            if (!TryGetDataRowValue<String>(dr, "CreateParameters", out ps)) return null;
+            if (!TryGetDataRowValue<String>(dr, "CreateParameters", out ps) || String.IsNullOrEmpty(ps)) return null;
 
             String param = String.Empty;
             param += "(";
