@@ -251,7 +251,6 @@ namespace XControl
             if (_BtnControl == null)
             {
                 _BtnControl = new Button();
-                //_BtnControl = new LinkBox();
                 ////BackColor = Color.FromArgb(0xE7, 0xE7, 0xE7);
                 //_BtnControl.Style.Add(HtmlTextWriterStyle.BackgroundColor, "0xE7E7E7");
                 ////_BtnControl.Style.Add(HtmlTextWriterStyle.BackgroundImage, Page.ClientScript.GetWebResourceUrl(this.GetType(), "XControl.Button.choose.gif"));
@@ -321,14 +320,16 @@ namespace XControl
             string extraClientOpts = string.IsNullOrEmpty(ExtraClientOptions) ? "null" : "{" + ExtraClientOptions + "}";
 
             string otherClientClick = "return false;";
-            if (!String.IsNullOrEmpty(BtnControl.OnClientClick))
-            {
-                // 由于Button控件将OnClientClick值保存到ViewState,所以在post之后,OnClientClick属性值会恢复
-                // 所以这里不需要考虑保留旧值,并且ChooseButton控件没提供OnClientClick属性,外部也无法访问到Button控件的OnClientClick
-                // 原有代码会在post一次之后反复叠加Choose()的js调用
-                //otherClientClick = BtnControl.OnClientClick;
-                BtnControl.OnClientClick = string.Format("Choose(this,'{0}',{1},{2});{3}", ProcessedUrl, modalDialogOpts, extraClientOpts, otherClientClick);
-            }
+            //if (!String.IsNullOrEmpty(BtnControl.OnClientClick))
+            //{
+            //    otherClientClick = BtnControl.OnClientClick;
+            //}
+
+            // 由于Button控件将OnClientClick值保存到ViewState,所以在post之后,OnClientClick属性值会恢复
+            // 所以这里不需要考虑保留旧值,并且ChooseButton控件没提供OnClientClick属性,外部也无法访问到Button控件的OnClientClick
+            // 原有代码会在post一次之后反复叠加Choose()的js调用
+            BtnControl.OnClientClick = string.Format("Choose(this,'{0}',{1},{2});{3}", ProcessedUrl, modalDialogOpts,extraClientOpts,otherClientClick);
+
             //if (String.IsNullOrEmpty(BtnControl.OnClientClick))
             //    BtnControl.OnClientClick = "Choose(this,'" + Url + "');return false;";
             //else
