@@ -3,6 +3,7 @@ using System.Data.Common;
 using System.Data.OleDb;
 using System.IO;
 using XCode.Exceptions;
+using System.Collections.Generic;
 
 namespace XCode.DataAccessLayer
 {
@@ -12,45 +13,75 @@ namespace XCode.DataAccessLayer
     abstract class FileDbBase : DbBase
     {
         #region 属性
-        /// <summary>链接字符串</summary>
-        public override string ConnectionString
+        ///// <summary>链接字符串</summary>
+        //public override string ConnectionString
+        //{
+        //    get
+        //    {
+        //        return base.ConnectionString;
+        //    }
+        //    set
+        //    {
+        //        try
+        //        {
+        //            OleDbConnectionStringBuilder csb = new OleDbConnectionStringBuilder(value);
+        //            // 不是绝对路径
+        //            if (!String.IsNullOrEmpty(csb.DataSource) && csb.DataSource.Length > 1 && csb.DataSource.Substring(1, 1) != ":")
+        //            {
+        //                String mdbPath = csb.DataSource;
+        //                if (mdbPath.StartsWith("~/") || mdbPath.StartsWith("~\\"))
+        //                {
+        //                    mdbPath = mdbPath.Replace("/", "\\").Replace("~\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
+        //                }
+        //                else if (mdbPath.StartsWith("./") || mdbPath.StartsWith(".\\"))
+        //                {
+        //                    mdbPath = mdbPath.Replace("/", "\\").Replace(".\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
+        //                }
+        //                else
+        //                {
+        //                    mdbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, mdbPath.Replace("/", "\\"));
+        //                }
+        //                csb.DataSource = mdbPath;
+        //                FileName = mdbPath;
+        //                value = csb.ConnectionString;
+        //            }
+        //        }
+        //        catch (DbException ex)
+        //        {
+        //            throw new XDbException(this, "分析OLEDB连接字符串时出错", ex);
+        //        }
+        //        base.ConnectionString = value;
+        //    }
+        //}
+
+        protected internal override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
-            get
+            base.OnSetConnectionString(builder);
+
+            String file;
+            if (!builder.TryGetValue("Data Source", out file)) return;
+
+            file = ResoleFile(file);
+            builder["Data Source"] = file;
+            FileName = file;
+        }
+
+        protected internal String ResoleFile(String file)
+        {
+            if (file.StartsWith("~/") || file.StartsWith("~\\"))
             {
-                return base.ConnectionString;
+                file = file.Replace("/", "\\").Replace("~\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
             }
-            set
+            else if (file.StartsWith("./") || file.StartsWith(".\\"))
             {
-                try
-                {
-                    OleDbConnectionStringBuilder csb = new OleDbConnectionStringBuilder(value);
-                    // 不是绝对路径
-                    if (!String.IsNullOrEmpty(csb.DataSource) && csb.DataSource.Length > 1 && csb.DataSource.Substring(1, 1) != ":")
-                    {
-                        String mdbPath = csb.DataSource;
-                        if (mdbPath.StartsWith("~/") || mdbPath.StartsWith("~\\"))
-                        {
-                            mdbPath = mdbPath.Replace("/", "\\").Replace("~\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-                        }
-                        else if (mdbPath.StartsWith("./") || mdbPath.StartsWith(".\\"))
-                        {
-                            mdbPath = mdbPath.Replace("/", "\\").Replace(".\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-                        }
-                        else
-                        {
-                            mdbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, mdbPath.Replace("/", "\\"));
-                        }
-                        csb.DataSource = mdbPath;
-                        FileName = mdbPath;
-                        value = csb.ConnectionString;
-                    }
-                }
-                catch (DbException ex)
-                {
-                    throw new XDbException(this, "分析OLEDB连接字符串时出错", ex);
-                }
-                base.ConnectionString = value;
+                file = file.Replace("/", "\\").Replace(".\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
             }
+            else if (!Path.IsPathRooted(file))
+            {
+                file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file.Replace("/", "\\"));
+            }
+
+            return file;
         }
 
         private String _FileName;
@@ -77,12 +108,21 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
+        private static List<String> hasChecked = new List<string>();
+
         /// <summary>
         /// 已重载。打开数据库连接前创建数据库
         /// </summary>
         public override void Open()
         {
-            CreateDatabase();
+            if (!String.IsNullOrEmpty(FileName))
+            {
+                if (!hasChecked.Contains(FileName))
+                {
+                    hasChecked.Add(FileName);
+                    CreateDatabase();
+                }
+            }
 
             base.Open();
         }

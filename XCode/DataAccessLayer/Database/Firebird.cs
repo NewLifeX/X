@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using XCode.Exceptions;
 using System.Text.RegularExpressions;
 using System.Data.OleDb;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -44,46 +45,58 @@ namespace XCode.DataAccessLayer
             get { return dbProviderFactory; }
         }
 
-        /// <summary>链接字符串</summary>
-        public override string ConnectionString
+        ///// <summary>链接字符串</summary>
+        //public override string ConnectionString
+        //{
+        //    get
+        //    {
+        //        return base.ConnectionString;
+        //    }
+        //    set
+        //    {
+        //        try
+        //        {
+        //            DbConnectionStringBuilder csb = new DbConnectionStringBuilder(false);
+        //            csb.ConnectionString = value;
+        //            // 不是绝对路径
+        //            String mdbPath = (String)csb["Server"];
+        //            if (!String.IsNullOrEmpty(mdbPath) && mdbPath.Length > 1 && mdbPath.Substring(1, 1) != ":")
+        //            {
+        //                if (mdbPath.StartsWith("~/") || mdbPath.StartsWith("~\\"))
+        //                {
+        //                    mdbPath = mdbPath.Replace("/", "\\").Replace("~\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
+        //                }
+        //                else if (mdbPath.StartsWith("./") || mdbPath.StartsWith(".\\"))
+        //                {
+        //                    mdbPath = mdbPath.Replace("/", "\\").Replace(".\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
+        //                }
+        //                else
+        //                {
+        //                    mdbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, mdbPath.Replace("/", "\\"));
+        //                }
+        //                csb["Server"] = mdbPath;
+        //                FileName = mdbPath;
+        //                value = csb.ConnectionString;
+        //            }
+        //        }
+        //        catch (DbException ex)
+        //        {
+        //            throw new XDbException(this, "分析OLEDB连接字符串时出错", ex);
+        //        }
+        //        base.ConnectionString = value;
+        //    }
+        //}
+
+        protected internal override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
-            get
-            {
-                return base.ConnectionString;
-            }
-            set
-            {
-                try
-                {
-                    DbConnectionStringBuilder csb = new DbConnectionStringBuilder(false);
-                    csb.ConnectionString = value;
-                    // 不是绝对路径
-                    String mdbPath = (String)csb["Server"];
-                    if (!String.IsNullOrEmpty(mdbPath) && mdbPath.Length > 1 && mdbPath.Substring(1, 1) != ":")
-                    {
-                        if (mdbPath.StartsWith("~/") || mdbPath.StartsWith("~\\"))
-                        {
-                            mdbPath = mdbPath.Replace("/", "\\").Replace("~\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-                        }
-                        else if (mdbPath.StartsWith("./") || mdbPath.StartsWith(".\\"))
-                        {
-                            mdbPath = mdbPath.Replace("/", "\\").Replace(".\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-                        }
-                        else
-                        {
-                            mdbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, mdbPath.Replace("/", "\\"));
-                        }
-                        csb["Server"] = mdbPath;
-                        FileName = mdbPath;
-                        value = csb.ConnectionString;
-                    }
-                }
-                catch (DbException ex)
-                {
-                    throw new XDbException(this, "分析OLEDB连接字符串时出错", ex);
-                }
-                base.ConnectionString = value;
-            }
+            base.OnSetConnectionString(builder);
+
+            String file;
+            if (!builder.TryGetValue("Database", out file)) return;
+
+            file = ResoleFile(file);
+            builder["Database"] = file;
+            FileName = file;
         }
         #endregion
 
@@ -168,9 +181,9 @@ namespace XCode.DataAccessLayer
             //if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
             if (String.IsNullOrEmpty(keyWord)) return keyWord;
 
-            if (keyWord.StartsWith("`") && keyWord.EndsWith("`")) return keyWord;
+            if (keyWord.StartsWith("\"") && keyWord.EndsWith("\"")) return keyWord;
 
-            return String.Format("`{0}`", keyWord);
+            return String.Format("\"{0}\"", keyWord);
         }
 
         ///// <summary>
@@ -291,6 +304,13 @@ namespace XCode.DataAccessLayer
                 if (_PrimaryKeys == null) _PrimaryKeys = GetSchema("IndexColumns", new String[] { null, null, null });
                 return _PrimaryKeys;
             }
+        }
+
+        protected override string GetFieldType(XField field)
+        {
+            if (field.DataType == typeof(Boolean)) return "smallint";
+
+            return base.GetFieldType(field);
         }
 
         //protected override void FixTable(XTable table, DataRow dr)
@@ -465,6 +485,27 @@ namespace XCode.DataAccessLayer
         //}
 
         #region 架构定义
+        protected override void CreateDatabase()
+        {
+            //base.CreateDatabase();
+
+            if (String.IsNullOrEmpty(FileName) || File.Exists(FileName)) return;
+
+            //The miminum you must specify:
+
+            //Hashtable parameters = new Hashtable();
+            //parameters.Add("User", "SYSDBA");
+            //parameters.Add("Password", "masterkey");
+            //parameters.Add("Database", @"c:\database.fdb");
+            //FbConnection.CreateDatabase(parameters);
+
+            DbConnection conn = Database.Factory.CreateConnection();
+            MethodInfoX method = MethodInfoX.Create(conn.GetType(), "CreateDatabase", new Type[] { typeof(String) });
+            if (method == null) return;
+
+            method.Invoke(null, Database.ConnectionString);
+        }
+
         public override string CreateDatabaseSQL(string dbname, string file)
         {
             return String.Format("Create Database {0}", FormatKeyWord(dbname));
@@ -474,6 +515,14 @@ namespace XCode.DataAccessLayer
         //{
         //    return String.Format("Drop Database If Exists {0}", FormatKeyWord(dbname));
         //}
+
+        protected override string GetFieldConstraints(XField field, bool onlyDefine)
+        {
+            if (field.Nullable)
+                return "";
+            else
+                return " not null";
+        }
 
         public override string CreateTableSQL(XTable table)
         {

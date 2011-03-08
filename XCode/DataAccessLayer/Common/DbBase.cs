@@ -91,19 +91,43 @@ namespace XCode.DataAccessLayer
             get { return _ConnectionString; }
             set
             {
-                _ConnectionString = value;
-                if (!String.IsNullOrEmpty(_ConnectionString))
-                {
-                    DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
-                    builder.ConnectionString = _ConnectionString;
-                    if (builder.ContainsKey("owner"))
-                    {
-                        if (builder["owner"] != null) Owner = builder["owner"].ToString();
-                        builder.Remove("owner");
-                    }
-                    _ConnectionString = builder.ToString();
-                }
+                //_ConnectionString = value;
+                //if (!String.IsNullOrEmpty(_ConnectionString))
+                //{
+                //    DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
+                //    builder.ConnectionString = _ConnectionString;
+                //    if (builder.ContainsKey("owner"))
+                //    {
+                //        if (builder["owner"] != null) Owner = builder["owner"].ToString();
+                //        builder.Remove("owner");
+                //    }
+                //    _ConnectionString = builder.ToString();
+                //}
+
+                XDbConnectionStringBuilder builder = new XDbConnectionStringBuilder();
+                builder.ConnectionString = value;
+
+                OnSetConnectionString(builder);
+
+                _ConnectionString = builder.ConnectionString;
             }
+        }
+
+        const String KEY_OWNER = "Owner";
+        /// <summary>
+        /// 设置连接字符串时允许从中取值或修改，基类用于读取拥有者Owner，子类重写时应调用基类
+        /// </summary>
+        /// <param name="builder"></param>
+        internal protected virtual void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        {
+            //if (builder.ContainsKey(KEY_OWNER))
+            //{
+            //    if (!String.IsNullOrEmpty(builder[KEY_OWNER])) Owner = builder[KEY_OWNER];
+            //    builder.Remove(KEY_OWNER);
+            //}
+
+            String value;
+            if (builder.TryGetAndRemove(KEY_OWNER, out value) && !String.IsNullOrEmpty(value)) Owner = value;
         }
 
         private String _Owner;

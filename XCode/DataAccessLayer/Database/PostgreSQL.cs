@@ -84,7 +84,7 @@ namespace XCode.DataAccessLayer
             if (maximumRows < 1)
                 throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
             else
-                sql = String.Format("{0} limit {1}, {2}", sql, startRowIndex, maximumRows);
+                sql = String.Format("{0} limit {1} offset {2}", sql, startRowIndex, maximumRows);
             return sql;
         }
         #endregion

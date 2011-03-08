@@ -39,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test10();
+                    Test12();
                     //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
@@ -482,6 +482,24 @@ namespace Test
 
                 rw.ReleaseWrite();
             }
+        }
+
+        static void Test12()
+        {
+            String connStr=DAL.Create("Common1").ConnStr;
+            Console.WriteLine(connStr);
+
+            XDbConnectionStringBuilder builder = new XDbConnectionStringBuilder();
+            builder.ConnectionString = connStr;
+            builder["Owner"] = "nnhy";
+            builder.Remove("password");
+            foreach (String item in builder.Keys)
+            {
+                Console.WriteLine("{0}={1}", item, builder[item]);
+            }
+
+            connStr = builder.ConnectionString;
+            Console.WriteLine(connStr);
         }
     }
 }

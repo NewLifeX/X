@@ -141,7 +141,7 @@ namespace XCode.DataAccessLayer
     /// </summary>
     internal class AccessSession : FileDbSession
     {
-        #region 重载使用连接池
+        #region 方法
         /// <summary>
         /// 打开。已重写，为了建立数据库
         /// </summary>
@@ -161,10 +161,22 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public override Int64 InsertAndGetIdentity(String sql)
         {
-            Int32 rs = Execute(sql);
-            if (rs <= 0) return rs;
+            Boolean b = IsAutoClose;
+            // 禁用自动关闭，保证两次在同一会话
+            IsAutoClose = false;
 
-            return Int64.Parse(ExecuteScalar("Select @@Identity").ToString());
+            try
+            {
+                Int32 rs = Execute(sql);
+                if (rs <= 0) return rs;
+
+                return Int64.Parse(ExecuteScalar("Select @@Identity").ToString());
+            }
+            finally
+            {
+                IsAutoClose = b;
+                AutoClose();
+            }
 
             //ExecuteTimes++;
             //if (Debug) WriteLog(sql);
