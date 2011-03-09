@@ -23,7 +23,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Net", "NewLife.Net\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.PeerToPeer", "NewLife.PeerToPeer\NewLife.PeerToPeer.csproj", "{195A5858-8FE1-4043-9E51-7F879791629C}"
 EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebSite1", "WebSite1", "{BFB1099A-F1C7-42C2-8BD7-40E254A2BA82}"
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebSite1", "WebSite1\", "{BFB1099A-F1C7-42C2-8BD7-40E254A2BA82}"
 	ProjectSection(WebsiteProperties) = preProject
 		SccProjectName = ""
 		SccAuxPath = ""
@@ -47,6 +47,8 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebSite1", "WebSite1", "{BF
 		Release.AspNetCompiler.Debug = "False"
 		VWDPort = "36716"
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XCodeTest", "XCodeTest\XCodeTest.csproj", "{6AB57657-0627-40AC-ACC2-FF697E45FAF1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -178,6 +180,16 @@ Global
 		{BFB1099A-F1C7-42C2-8BD7-40E254A2BA82}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{BFB1099A-F1C7-42C2-8BD7-40E254A2BA82}.Release|Mixed Platforms.Build.0 = Debug|Any CPU
 		{BFB1099A-F1C7-42C2-8BD7-40E254A2BA82}.Release|x86.ActiveCfg = Debug|Any CPU
+		{6AB57657-0627-40AC-ACC2-FF697E45FAF1}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{6AB57657-0627-40AC-ACC2-FF697E45FAF1}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{6AB57657-0627-40AC-ACC2-FF697E45FAF1}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{6AB57657-0627-40AC-ACC2-FF697E45FAF1}.Debug|x86.ActiveCfg = Debug|x86
+		{6AB57657-0627-40AC-ACC2-FF697E45FAF1}.Debug|x86.Build.0 = Debug|x86
+		{6AB57657-0627-40AC-ACC2-FF697E45FAF1}.Release|Any CPU.ActiveCfg = Release|x86
+		{6AB57657-0627-40AC-ACC2-FF697E45FAF1}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{6AB57657-0627-40AC-ACC2-FF697E45FAF1}.Release|Mixed Platforms.Build.0 = Release|x86
+		{6AB57657-0627-40AC-ACC2-FF697E45FAF1}.Release|x86.ActiveCfg = Release|x86
+		{6AB57657-0627-40AC-ACC2-FF697E45FAF1}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Web;
 using System.Xml.Serialization;
+using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Web;
 using XCode;
@@ -556,6 +557,8 @@ namespace NewLife.CommonEntity
         /// <param name="remark">备注</param>
         public static void WriteLog(String action, String remark)
         {
+            if (!Config.GetConfig<Boolean>("NewLife.CommonEntity.WriteEntityLog", true)) return;
+
             IEntity log = CreateLog(action);
             if (log != null)
             {
