@@ -6,6 +6,7 @@ using NewLife.CommonEntity;
 using XCode;
 using System.Data.Common;
 using System.Data;
+using NewLife.Log;
 
 namespace XCodeTest
 {
@@ -48,23 +49,23 @@ namespace XCodeTest
             p.Cmd = p.Conn.CreateCommand();
             p.Cmd.CommandText = "Insert Into Administrator(Name, Password, DisplayName, RoleID, Logins, LastLogin, LastLoginIP, SSOUserID, IsEnable) Values(@Name, null, null, @RoleID, 0, null, null, 0, 0)";
 
-            p.UserTrans = false;
-            InsertTest(1000, p);
+            //p.UserTrans = false;
+            //InsertTest(1000, p);
+
+            //p.UserTrans = true;
+            //InsertTest(1000, p);
+
+            //p.UserTrans = false;
+            //InsertTest(10000, p);
 
             p.UserTrans = true;
-            InsertTest(1000, p);
-
-            p.UserTrans = false;
             InsertTest(10000, p);
 
-            p.UserTrans = true;
-            InsertTest(10000, p);
+            //p.UserTrans = false;
+            //InsertTest(100000, p);
 
-            p.UserTrans = false;
-            InsertTest(100000, p);
-
-            p.UserTrans = true;
-            InsertTest(100000, p);
+            //p.UserTrans = true;
+            //InsertTest(100000, p);
         }
 
         static void InsertTest(Int32 count, Param p)
@@ -75,24 +76,24 @@ namespace XCodeTest
             TimeSpan tsBase;
             TimeSpan ts;
 
-            ts = Test("ADO.Param：", ADONetParamInsert, count, p);
-            tsBase = ts;
-            Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
+            //ts = Test("ADO.Param：", ADONetParamInsert, count, p);
+            //tsBase = ts;
+            //Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
 
-            ts = Test("ADO.SQL：", ADONetInsert, count, p);
-            Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
+            //ts = Test("ADO.SQL：", ADONetInsert, count, p);
+            //Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
 
-            ts = Test("DAL：", DALTestInsert, count, p);
-            Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
+            //ts = Test("DAL：", DALTestInsert, count, p);
+            //Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
             ts = Test("Entity：", EntityInsert, count, p);
-            Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
-            ts = Test("WeakEntity：", WeakEntityInsert, count, p);
-            Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
+            //Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
+            //ts = Test("WeakEntity：", WeakEntityInsert, count, p);
+            //Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
         }
 
         #region 辅助
         static Int32 lastLeft = 0;
-        static TimeSpan Test(String title, Func<Param, Int32, Int32> fun, Int32 times, Param p)
+        static TimeSpan Test0(String title, Func<Param, Int32, Int32> fun, Int32 times, Param p)
         {
             Console.Write("{0,12} ", title);
             lastLeft = Console.CursorLeft;
@@ -143,6 +144,78 @@ namespace XCodeTest
 
                 fun(p, i);
             }
+
+            if (title.StartsWith("ADO"))
+            {
+                if (p.UserTrans) p.Cmd.Transaction.Commit();
+                p.Conn.Close();
+                p.Cmd.Transaction = null;
+            }
+            else
+            {
+                if (p.UserTrans) p.Dal.Commit();
+            }
+
+            sw.Stop();
+
+            Console.CursorLeft = lastLeft;
+
+            Console.Write("{0}", sw.Elapsed);
+
+            return sw.Elapsed;
+        }
+
+        static TimeSpan Test(String title, Func<Param, Int32, Int32> fun, Int32 times, Param p)
+        {
+            Console.Write("{0,12} ", title);
+            lastLeft = Console.CursorLeft;
+
+            // 预热
+            if (title.StartsWith("ADO")) p.Conn.Open();
+            fun(p, -1);
+            if (title.StartsWith("ADO")) p.Conn.Close();
+
+            //DbTransaction trans = null;
+
+            // 开始
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            if (title.StartsWith("ADO"))
+            {
+                p.Conn.Open();
+                if (p.UserTrans) p.Cmd.Transaction = p.Conn.BeginTransaction();
+            }
+            else
+            {
+                if (p.UserTrans) p.Dal.BeginTransaction();
+            } 
+            
+            CodeTimer.Time(times, delegate(Int32 i)
+            {
+                if (i % 500 == 0)
+                {
+                    Double d = (Double)i / times;
+                    Console.CursorLeft = lastLeft;
+                    Console.Write("{0:p}", d);
+
+                    if (p.UserTrans && i % 10000 == 0)
+                    {
+                        if (title.StartsWith("ADO"))
+                        {
+                            p.Cmd.Transaction.Commit();
+                            p.Cmd.Transaction = p.Conn.BeginTransaction();
+                        }
+                        else
+                        {
+                            p.Dal.Commit();
+                            p.Dal.BeginTransaction();
+                        }
+                    }
+                }
+
+                fun(p, i);
+            });
 
             if (title.StartsWith("ADO"))
             {

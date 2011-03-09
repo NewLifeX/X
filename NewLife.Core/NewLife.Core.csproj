@@ -66,6 +66,7 @@
     <Compile Include="IO\ReadWriteStream.cs" />
     <Compile Include="IOModule\StreamClient.cs" />
     <Compile Include="IOModule\HttpStreamClient.cs" />
+    <Compile Include="Log\CodeTimer.cs" />
     <Compile Include="Messaging\ExceptionMessage.cs" />
     <Compile Include="Messaging\IMessageHandler.cs" />
     <Compile Include="Messaging\Message.cs" />

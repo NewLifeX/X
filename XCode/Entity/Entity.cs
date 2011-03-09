@@ -849,7 +849,7 @@ namespace XCode
                     sbn.Append(", ");
                     sbv.Append(", ");
                 }
-                sbn.Append(fs[names[i]].Name);
+                sbn.Append(Meta.FormatName(fs[names[i]].Name));
                 //sbv.Append(SqlDataFormat(values[i], fs[names[i]]));
                 sbv.Append(Meta.FormatValue(names[i], values[i]));
             }
@@ -1186,7 +1186,7 @@ namespace XCode
             //    }
             //}
 
-            return String.Format("{0}{1}{2}", name, action, Meta.FormatValue(name, value));
+            return String.Format("{0}{1}{2}", Meta.FormatName(name), action, Meta.FormatValue(name, value));
 
             throw new Exception("’“≤ªµΩ[" + name + "] Ù–‘£°");
         }
