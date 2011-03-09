@@ -290,6 +290,9 @@ namespace XCode.DataAccessLayer
 
             if (EntityTables == null || EntityTables.Count < 1) return;
 
+            // 清空
+            _DBTables = null;
+
             lock (EntityTables)
             {
                 foreach (XTable item in EntityTables)

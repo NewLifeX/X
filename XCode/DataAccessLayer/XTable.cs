@@ -82,6 +82,19 @@ namespace XCode.DataAccessLayer
         public List<XField> Fields { get { return _Fields; } set { _Fields = value; } }
         #endregion
 
+        #region 构造
+        /// <summary>
+        /// 初始化
+        /// </summary>
+        public XTable() { }
+
+        /// <summary>
+        /// 初始化
+        /// </summary>
+        /// <param name="name"></param>
+        public XTable(String name) { Name = name; }
+        #endregion
+
         #region 方法
         /// <summary>
         /// 创建字段

@@ -517,6 +517,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String GetSchemaSQL(DDLSchema schema, params Object[] values)
         {
+            XTable table;
+
             switch (schema)
             {
                 case DDLSchema.CreateDatabase:
@@ -528,9 +530,19 @@ namespace XCode.DataAccessLayer
                 case DDLSchema.CreateTable:
                     return CreateTableSQL((XTable)values[0]);
                 case DDLSchema.DropTable:
-                    return DropTableSQL((XTable)values[0]);
+                    if (values[0] is XTable)
+                        table = values[0] as XTable;
+                    else
+                        table = new XTable(values[0].ToString());
+
+                    return DropTableSQL(table);
                 case DDLSchema.TableExist:
-                    return TableExistSQL((XTable)values[0]);
+                    if (values[0] is XTable)
+                        table = values[0] as XTable;
+                    else
+                        table = new XTable(values[0].ToString());
+
+                    return TableExistSQL(table);
                 case DDLSchema.AddTableDescription:
                     return AddTableDescriptionSQL((XTable)values[0]);
                 case DDLSchema.DropTableDescription:
@@ -571,7 +583,13 @@ namespace XCode.DataAccessLayer
                 //    CreateTable((XTable)values[0]);
                 //    return true;
                 case DDLSchema.TableExist:
-                    DataTable dt = GetSchema("Tables", new String[] { null, null, (String)values[0], "TABLE" });
+                    String name;
+                    if (values[0] is XTable)
+                        name = (values[0] as XTable).Name;
+                    else
+                        name = values[0].ToString();
+
+                    DataTable dt = GetSchema("Tables", new String[] { null, null, name, "TABLE" });
                     if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
                     return true;
                 default:
