@@ -501,6 +501,9 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public virtual Int32 LongTextLength { get { return 4000; } }
 
+        /// <summary>
+        /// 保留字字符串，其实可以在首次使用时动态从Schema中加载
+        /// </summary>
         protected virtual String ReservedWordsStr { get { return null; } }
 
         private Dictionary<String, Boolean> _ReservedWords = null;

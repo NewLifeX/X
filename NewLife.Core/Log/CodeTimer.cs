@@ -74,6 +74,8 @@ namespace NewLife.Log
 
         private static ulong GetCycleCount()
         {
+            if (Environment.Version.Major < 6) return 0;
+
             ulong cycleCount = 0;
             QueryThreadCycleTime(GetCurrentThread(), ref cycleCount);
             return cycleCount;
