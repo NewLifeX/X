@@ -365,7 +365,7 @@ namespace XCode.DataAccessLayer
             if (dbtable == null)
             {
                 #region 创建表
-                XTrace.WriteLine("创建表：" + entitytable.Name);
+                WriteLog("创建表：" + entitytable.Name);
 
                 StringBuilder sb = new StringBuilder();
                 // 建表，如果不是onlySql，执行时DAL会输出SQL日志

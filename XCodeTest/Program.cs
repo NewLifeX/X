@@ -79,13 +79,13 @@ namespace XCodeTest
 
             Int32 count = 20000000;
 
-            CodeTimer.WriteLine("Hashtable: {0}", count, delegate { ht.ContainsKey(key); });
-            CodeTimer.WriteLine("Dictionary: {0}", count, delegate { dic.ContainsKey(key); });
-            CodeTimer.WriteLine("StringDictionary: {0}", count, delegate { sdic.ContainsKey(key); });
-            CodeTimer.WriteLine("SortedList: {0}", count, delegate { slist.ContainsKey(key); });
-            CodeTimer.WriteLine("ArrayList: {0}", count, delegate { alist.Contains(key); });
-            CodeTimer.WriteLine("Array: {0}", count, delegate { Array.IndexOf(arr, key); });
-            CodeTimer.WriteLine("List: {0}", count, delegate { list.Contains(key); });
+            CodeTimer.TimeLine("Hashtable", count, delegate { ht.ContainsKey(key); });
+            CodeTimer.TimeLine("Dictionary", count, delegate { dic.ContainsKey(key); });
+            CodeTimer.TimeLine("StringDictionary", count, delegate { sdic.ContainsKey(key); });
+            CodeTimer.TimeLine("SortedList", count, delegate { slist.ContainsKey(key); });
+            CodeTimer.TimeLine("ArrayList", count, delegate { alist.Contains(key); });
+            CodeTimer.TimeLine("Array", count, delegate { Array.IndexOf(arr, key); });
+            CodeTimer.TimeLine("List", count, delegate { list.Contains(key); });
         }
     }
 }

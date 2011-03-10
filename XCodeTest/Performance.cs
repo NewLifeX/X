@@ -29,13 +29,6 @@ namespace XCodeTest
 
             DAL dal = DAL.Create("Common");
 
-            // 清理数据表
-            dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, "Administrator");
-            dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, "Role");
-            dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, "Menu");
-            dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, "RoleMenu");
-            DatabaseSchema.Check(dal.Db);
-
             Param p = new Param();
             p.Dal = dal;
             DbConnection conn = p.Conn;
@@ -92,156 +85,181 @@ namespace XCodeTest
         }
 
         #region 辅助
-        static Int32 lastLeft = 0;
-        static TimeSpan Test0(String title, Func<Param, Int32, Int32> fun, Int32 times, Param p)
-        {
-            Console.Write("{0,12} ", title);
-            lastLeft = Console.CursorLeft;
+        //static Int32 lastLeft = 0;
+        //static TimeSpan Test0(String title, Func<Param, Int32, Int32> fun, Int32 times, Param p)
+        //{
+        //    Console.Write("{0,12} ", title);
+        //    lastLeft = Console.CursorLeft;
 
-            // 预热
-            if (title.StartsWith("ADO")) p.Conn.Open();
-            fun(p, -1);
-            if (title.StartsWith("ADO")) p.Conn.Close();
+        //    // 预热
+        //    if (title.StartsWith("ADO")) p.Conn.Open();
+        //    fun(p, -1);
+        //    if (title.StartsWith("ADO")) p.Conn.Close();
 
-            //DbTransaction trans = null;
+        //    //DbTransaction trans = null;
 
-            // 开始
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
+        //    // 开始
+        //    Stopwatch sw = new Stopwatch();
+        //    sw.Start();
 
-            if (title.StartsWith("ADO"))
-            {
-                p.Conn.Open();
-                if (p.UserTrans) p.Cmd.Transaction = p.Conn.BeginTransaction();
-            }
-            else
-            {
-                if (p.UserTrans) p.Dal.BeginTransaction();
-            }
+        //    if (title.StartsWith("ADO"))
+        //    {
+        //        p.Conn.Open();
+        //        if (p.UserTrans) p.Cmd.Transaction = p.Conn.BeginTransaction();
+        //    }
+        //    else
+        //    {
+        //        if (p.UserTrans) p.Dal.BeginTransaction();
+        //    }
 
-            for (int i = 0; i < times; i++)
-            {
-                if (i % 500 == 0)
-                {
-                    Double d = (Double)i / times;
-                    Console.CursorLeft = lastLeft;
-                    Console.Write("{0:p}", d);
+        //    for (int i = 0; i < times; i++)
+        //    {
+        //        if (i % 500 == 0)
+        //        {
+        //            Double d = (Double)i / times;
+        //            Console.CursorLeft = lastLeft;
+        //            Console.Write("{0:p}", d);
 
-                    if (p.UserTrans && i % 10000 == 0)
-                    {
-                        if (title.StartsWith("ADO"))
-                        {
-                            p.Cmd.Transaction.Commit();
-                            p.Cmd.Transaction = p.Conn.BeginTransaction();
-                        }
-                        else
-                        {
-                            p.Dal.Commit();
-                            p.Dal.BeginTransaction();
-                        }
-                    }
-                }
+        //            if (p.UserTrans && i % 10000 == 0)
+        //            {
+        //                if (title.StartsWith("ADO"))
+        //                {
+        //                    p.Cmd.Transaction.Commit();
+        //                    p.Cmd.Transaction = p.Conn.BeginTransaction();
+        //                }
+        //                else
+        //                {
+        //                    p.Dal.Commit();
+        //                    p.Dal.BeginTransaction();
+        //                }
+        //            }
+        //        }
 
-                fun(p, i);
-            }
+        //        fun(p, i);
+        //    }
 
-            if (title.StartsWith("ADO"))
-            {
-                if (p.UserTrans) p.Cmd.Transaction.Commit();
-                p.Conn.Close();
-                p.Cmd.Transaction = null;
-            }
-            else
-            {
-                if (p.UserTrans) p.Dal.Commit();
-            }
+        //    if (title.StartsWith("ADO"))
+        //    {
+        //        if (p.UserTrans) p.Cmd.Transaction.Commit();
+        //        p.Conn.Close();
+        //        p.Cmd.Transaction = null;
+        //    }
+        //    else
+        //    {
+        //        if (p.UserTrans) p.Dal.Commit();
+        //    }
 
-            sw.Stop();
+        //    sw.Stop();
 
-            Console.CursorLeft = lastLeft;
+        //    Console.CursorLeft = lastLeft;
 
-            Console.Write("{0}", sw.Elapsed);
+        //    Console.Write("{0}", sw.Elapsed);
 
-            return sw.Elapsed;
-        }
+        //    return sw.Elapsed;
+        //}
+
+        //static TimeSpan Test(String title, Func<Param, Int32, Int32> fun, Int32 times, Param p)
+        //{
+        //    Console.Write("{0,12} ", title);
+        //    lastLeft = Console.CursorLeft;
+        //    ConsoleColor currentForeColor = Console.ForegroundColor;
+        //    Console.ForegroundColor = ConsoleColor.Yellow;
+
+        //    Boolean isADO = title.StartsWith("ADO");
+
+        //    long cpu;
+        //    Int32[] gen;
+        //    TimeSpan ts = CodeTimer.Time(times, delegate(Int32 i)
+        //    {
+        //        if (i == -1)
+        //        {
+        //            if (isADO) p.Conn.Open();
+        //            fun(p, i);
+        //            if (isADO) p.Conn.Close();
+        //            return;
+        //        }
+        //        else if (i == 0)
+        //        {
+        //            if (isADO)
+        //            {
+        //                p.Conn.Open();
+        //                if (p.UserTrans) p.Cmd.Transaction = p.Conn.BeginTransaction();
+        //            }
+        //            else
+        //            {
+        //                if (p.UserTrans) p.Dal.BeginTransaction();
+        //            }
+        //        }
+        //        else if (i != times - 1 && i % 500 == 0)
+        //        {
+        //            Double d = (Double)i / times;
+        //            Console.CursorLeft = lastLeft;
+        //            Console.Write("{0:p}", d);
+
+        //            if (p.UserTrans && i % 10000 == 0)
+        //            {
+        //                if (isADO)
+        //                {
+        //                    p.Cmd.Transaction.Commit();
+        //                    p.Cmd.Transaction = p.Conn.BeginTransaction();
+        //                }
+        //                else
+        //                {
+        //                    p.Dal.Commit();
+        //                    p.Dal.BeginTransaction();
+        //                }
+        //            }
+        //        }
+
+        //        fun(p, i);
+
+        //        if (i == times - 1)
+        //        {
+        //            if (isADO)
+        //            {
+        //                if (p.UserTrans) p.Cmd.Transaction.Commit();
+        //                p.Conn.Close();
+        //                p.Cmd.Transaction = null;
+        //            }
+        //            else
+        //            {
+        //                if (p.UserTrans) p.Dal.Commit();
+        //            }
+        //        }
+        //    }, out cpu, out gen);
+
+        //    Console.CursorLeft = lastLeft;
+
+        //    Console.Write(CodeTimer.Format(ts, cpu, gen));
+
+        //    Console.ForegroundColor = currentForeColor;
+
+        //    return ts;
+        //}
 
         static TimeSpan Test(String title, Func<Param, Int32, Int32> fun, Int32 times, Param p)
         {
             Console.Write("{0,12} ", title);
-            lastLeft = Console.CursorLeft;
+
+            PerfTest timer = new PerfTest();
+            timer.p = p;
+            timer.Fun = fun;
+            timer.IsADO = title.StartsWith("ADO");
+
+            timer.Times = times;
+            timer.ShowProgress = true;
+
             ConsoleColor currentForeColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
 
-            Boolean isADO = title.StartsWith("ADO");
+            timer.TimeOne();
+            timer.Time();
 
-            long cpu;
-            Int32[] gen;
-            TimeSpan ts = CodeTimer.Time(times, delegate(Int32 i)
-            {
-                if (i == -1)
-                {
-                    if (isADO) p.Conn.Open();
-                    fun(p, i);
-                    if (isADO) p.Conn.Close();
-                    return;
-                }
-                else if (i == 0)
-                {
-                    if (isADO)
-                    {
-                        p.Conn.Open();
-                        if (p.UserTrans) p.Cmd.Transaction = p.Conn.BeginTransaction();
-                    }
-                    else
-                    {
-                        if (p.UserTrans) p.Dal.BeginTransaction();
-                    }
-                }
-                else if (i != times - 1 && i % 500 == 0)
-                {
-                    Double d = (Double)i / times;
-                    Console.CursorLeft = lastLeft;
-                    Console.Write("{0:p}", d);
-
-                    if (p.UserTrans && i % 10000 == 0)
-                    {
-                        if (isADO)
-                        {
-                            p.Cmd.Transaction.Commit();
-                            p.Cmd.Transaction = p.Conn.BeginTransaction();
-                        }
-                        else
-                        {
-                            p.Dal.Commit();
-                            p.Dal.BeginTransaction();
-                        }
-                    }
-                }
-
-                fun(p, i);
-
-                if (i == times - 1)
-                {
-                    if (isADO)
-                    {
-                        if (p.UserTrans) p.Cmd.Transaction.Commit();
-                        p.Conn.Close();
-                        p.Cmd.Transaction = null;
-                    }
-                    else
-                    {
-                        if (p.UserTrans) p.Dal.Commit();
-                    }
-                }
-            }, out cpu, out gen);
-
-            Console.CursorLeft = lastLeft;
-
-            Console.Write(CodeTimer.Format(ts, cpu, gen));
+            Console.Write(timer.ToString());
 
             Console.ForegroundColor = currentForeColor;
 
-            return ts;
+            return timer.Elapsed;
         }
 
         class Param
@@ -254,6 +272,85 @@ namespace XCodeTest
             public DbCommand Cmd;
 
             public Boolean UserTrans = false;
+        }
+
+        class PerfTest : CodeTimer
+        {
+            #region 业务
+            public Param p;
+            public Func<Param, Int32, Int32> Fun;
+
+            private Boolean _IsADO;
+            /// <summary>是否ADO</summary>
+            public Boolean IsADO
+            {
+                get { return _IsADO; }
+                set { _IsADO = value; }
+            }
+
+            void Open()
+            {
+                if (IsADO)
+                {
+                    p.Conn.Open();
+                    if (p.UserTrans) p.Cmd.Transaction = p.Conn.BeginTransaction();
+                }
+                else
+                {
+                    if (p.UserTrans) p.Dal.BeginTransaction();
+                }
+            }
+
+            void Close()
+            {
+                if (IsADO)
+                {
+                    if (p.UserTrans) p.Cmd.Transaction.Commit();
+                    p.Conn.Close();
+                    p.Cmd.Transaction = null;
+                }
+                else
+                {
+                    if (p.UserTrans) p.Dal.Commit();
+                }
+            }
+            #endregion
+
+            #region 重载
+            public override void Time()
+            {
+                // 清理数据表
+                DAL dal = p.Dal;
+                dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, "Administrator");
+                dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, "Role");
+                dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, "Menu");
+                dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, "RoleMenu");
+                DatabaseSchema.Check(dal.Db);
+
+                base.Time();
+            }
+
+            public override void Init()
+            {
+                //base.Init();
+
+                Open();
+            }
+
+            public override void Finish()
+            {
+                //base.Finish();
+
+                Close();
+            }
+
+            public override void Time(int index)
+            {
+                //base.Time(index);
+
+                Fun(p, index);
+            }
+            #endregion
         }
         #endregion
 
