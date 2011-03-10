@@ -532,7 +532,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         private Boolean IsReservedWord(String word)
         {
-            return ReservedWords.ContainsKey(word);
+            return ReservedWords.ContainsKey(word.ToLower());
         }
 
         /// <summary>

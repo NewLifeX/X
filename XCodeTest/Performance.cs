@@ -18,9 +18,9 @@ namespace XCodeTest
         public static void Start()
         {
             // 准备数据库环境
-            String connStr = "";
-            connStr = "Data Source=.;Initial Catalog=Common_Performance;Integrated Security=SSPI";
-            DAL.AddConnStr("Common", connStr, null, "mssql");
+            //String connStr = "";
+            //connStr = "Data Source=.;Initial Catalog=Common_Performance;Integrated Security=SSPI";
+            //DAL.AddConnStr("Common", connStr, null, "mssql");
 
             Console.WriteLine("正在准备反向工程……");
             // 让通用实体库进入内存
