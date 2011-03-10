@@ -26,7 +26,7 @@ namespace NewLife.Log
         /// <summary>
         /// 初始化
         /// </summary>
-        public static void Initialize()
+        static CodeTimer()
         {
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
@@ -37,13 +37,33 @@ namespace NewLife.Log
 
         #region 计时
         /// <summary>
-        /// 计时
+        /// 计时，并返回字符串形式的统计信息
+        /// </summary>
+        /// <param name="interation"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public static String Time(Int32 interation, Action<Int32> action)
+        {
+            long cpu = 0;
+            Int32[] gen;
+            TimeSpan ts = Time(interation, action, out cpu, out gen);
+            return String.Format("{0:n0}ms {1:n0} {2}/{3}/{4}", ts.TotalMilliseconds, cpu, gen[0], gen[1], gen[2]);
+        }
+
+        /// <summary>
+        /// 计时，并返回时间、CPU时间、GC代数等信息
         /// </summary>
         /// <param name="iteration"></param>
         /// <param name="action"></param>
-        /// <param name="output"></param>
-        public static void Time(Int32 iteration, Action<Int32> action, [Optional]CodeTimerOutputCallback output)
+        /// <param name="cpu"></param>
+        /// <param name="gen"></param>
+        /// <returns></returns>
+        public static TimeSpan Time(Int32 iteration, Action<Int32> action, out long cpu, out Int32[] gen)
         {
+            // 预热目标函数
+            action(-1);
+
+            // 统计GC代数
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
             Int32[] gcCounts = new Int32[GC.MaxGeneration + 1];
             for (Int32 i = 0; i <= GC.MaxGeneration; i++)
@@ -58,6 +78,7 @@ namespace NewLife.Log
             long cpuCycles = GetCPU() - cycleCount;
             watch.Stop();
 
+            // 统计GC代数
             List<Int32> list = new List<Int32>();
             for (Int32 i = 0; i <= GC.MaxGeneration; i++)
             {
@@ -65,19 +86,23 @@ namespace NewLife.Log
                 list.Add(count);
             }
 
-            if (output == null)
-            {
-                output = delegate(TimeSpan ts2, long cpuCycles2, Int32[] gen2)
-                {
-                    ConsoleColor currentForeColor = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.Red;
+            cpu = cpuCycles;
+            gen = list.ToArray();
+            return watch.Elapsed;
 
-                    Console.WriteLine(Format(ts2, cpuCycles2, gen2));
+            //if (output == null)
+            //{
+            //    output = delegate(TimeSpan ts2, long cpuCycles2, Int32[] gen2)
+            //    {
+            //        ConsoleColor currentForeColor = Console.ForegroundColor;
+            //        Console.ForegroundColor = ConsoleColor.Red;
 
-                    Console.ForegroundColor = currentForeColor;
-                };
-            }
-            output(watch.Elapsed, cpuCycles, list.ToArray());
+            //        Console.WriteLine(Format(ts2, cpuCycles2, gen2));
+
+            //        Console.ForegroundColor = currentForeColor;
+            //    };
+            //}
+            //output(watch.Elapsed, cpuCycles, list.ToArray());
         }
 
         /// <summary>
@@ -90,6 +115,26 @@ namespace NewLife.Log
         public static String Format(TimeSpan ts, long cpu, Int32[] gen)
         {
             return String.Format("{0:n0}ms {1:n0} {2}/{3}/{4}", ts.TotalMilliseconds, cpu, gen[0], gen[1], gen[2]);
+        }
+
+        /// <summary>
+        /// 计时，并用控制台输出行
+        /// </summary>
+        /// <param name="format"></param>
+        /// <param name="interation"></param>
+        /// <param name="action"></param>
+        public static void WriteLine(String format, Int32 interation, Action<Int32> action)
+        {
+            long cpu = 0;
+            Int32[] gen;
+            TimeSpan ts = Time(interation, action, out cpu, out gen);
+
+            ConsoleColor currentForeColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Yellow;
+
+            Console.WriteLine(format, Format(ts, cpu, gen));
+
+            Console.ForegroundColor = currentForeColor;
         }
 
         private static long GetCPU()

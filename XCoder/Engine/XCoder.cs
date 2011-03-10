@@ -278,7 +278,7 @@ namespace XCoder
             Template.Debug = Config.Debug;
             foreach (String item in ss)
             {
-                if (item.EndsWith("scc", StringComparison.Ordinal)) continue;
+                if (item.EndsWith("scc", StringComparison.OrdinalIgnoreCase)) continue;
 
                 String tempFile = item;
                 if (!Path.IsPathRooted(tempFile) && !tempFile.StartsWith(TemplatePath, StringComparison.OrdinalIgnoreCase))
@@ -300,7 +300,7 @@ namespace XCoder
             List<String> rs = new List<string>();
             foreach (String item in ss)
             {
-                if (item.EndsWith("scc", StringComparison.Ordinal)) continue;
+                if (item.EndsWith("scc", StringComparison.OrdinalIgnoreCase)) continue;
 
                 //String content = RenderFile(table, item, data);
                 String content = tt.Render(item, data);

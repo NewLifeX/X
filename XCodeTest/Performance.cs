@@ -49,23 +49,23 @@ namespace XCodeTest
             p.Cmd = p.Conn.CreateCommand();
             p.Cmd.CommandText = "Insert Into Administrator(Name, Password, DisplayName, RoleID, Logins, LastLogin, LastLoginIP, SSOUserID, IsEnable) Values(@Name, null, null, @RoleID, 0, null, null, 0, 0)";
 
-            //p.UserTrans = false;
-            //InsertTest(1000, p);
+            p.UserTrans = false;
+            InsertTest(1000, p);
 
-            //p.UserTrans = true;
-            //InsertTest(1000, p);
+            p.UserTrans = true;
+            InsertTest(1000, p);
 
-            //p.UserTrans = false;
-            //InsertTest(10000, p);
+            p.UserTrans = false;
+            InsertTest(10000, p);
 
             p.UserTrans = true;
             InsertTest(10000, p);
 
-            //p.UserTrans = false;
-            //InsertTest(100000, p);
+            p.UserTrans = false;
+            InsertTest(100000, p);
 
-            //p.UserTrans = true;
-            //InsertTest(100000, p);
+            p.UserTrans = true;
+            InsertTest(100000, p);
         }
 
         static void InsertTest(Int32 count, Param p)
@@ -76,19 +76,19 @@ namespace XCodeTest
             TimeSpan tsBase;
             TimeSpan ts;
 
-            //ts = Test("ADO.Param：", ADONetParamInsert, count, p);
-            //tsBase = ts;
-            //Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
+            ts = Test("ADO.Param：", ADONetParamInsert, count, p);
+            tsBase = ts;
+            Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
 
-            //ts = Test("ADO.SQL：", ADONetInsert, count, p);
-            //Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
+            ts = Test("ADO.SQL：", ADONetInsert, count, p);
+            Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
 
-            //ts = Test("DAL：", DALTestInsert, count, p);
-            //Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
+            ts = Test("DAL：", DALTestInsert, count, p);
+            Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
             ts = Test("Entity：", EntityInsert, count, p);
-            //Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
-            //ts = Test("WeakEntity：", WeakEntityInsert, count, p);
-            //Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
+            Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
+            ts = Test("WeakEntity：", WeakEntityInsert, count, p);
+            Console.WriteLine(" {0:n2}", (Double)ts.Ticks / tsBase.Ticks);
         }
 
         #region 辅助
@@ -169,31 +169,35 @@ namespace XCodeTest
         {
             Console.Write("{0,12} ", title);
             lastLeft = Console.CursorLeft;
+            ConsoleColor currentForeColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Yellow;
 
-            // 预热
-            if (title.StartsWith("ADO")) p.Conn.Open();
-            fun(p, -1);
-            if (title.StartsWith("ADO")) p.Conn.Close();
+            Boolean isADO = title.StartsWith("ADO");
 
-            //DbTransaction trans = null;
-
-            // 开始
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-
-            if (title.StartsWith("ADO"))
+            long cpu;
+            Int32[] gen;
+            TimeSpan ts = CodeTimer.Time(times, delegate(Int32 i)
             {
-                p.Conn.Open();
-                if (p.UserTrans) p.Cmd.Transaction = p.Conn.BeginTransaction();
-            }
-            else
-            {
-                if (p.UserTrans) p.Dal.BeginTransaction();
-            } 
-            
-            CodeTimer.Time(times, delegate(Int32 i)
-            {
-                if (i % 500 == 0)
+                if (i == -1)
+                {
+                    if (isADO) p.Conn.Open();
+                    fun(p, i);
+                    if (isADO) p.Conn.Close();
+                    return;
+                }
+                else if (i == 0)
+                {
+                    if (isADO)
+                    {
+                        p.Conn.Open();
+                        if (p.UserTrans) p.Cmd.Transaction = p.Conn.BeginTransaction();
+                    }
+                    else
+                    {
+                        if (p.UserTrans) p.Dal.BeginTransaction();
+                    }
+                }
+                else if (i != times - 1 && i % 500 == 0)
                 {
                     Double d = (Double)i / times;
                     Console.CursorLeft = lastLeft;
@@ -201,7 +205,7 @@ namespace XCodeTest
 
                     if (p.UserTrans && i % 10000 == 0)
                     {
-                        if (title.StartsWith("ADO"))
+                        if (isADO)
                         {
                             p.Cmd.Transaction.Commit();
                             p.Cmd.Transaction = p.Conn.BeginTransaction();
@@ -215,26 +219,29 @@ namespace XCodeTest
                 }
 
                 fun(p, i);
-            });
 
-            if (title.StartsWith("ADO"))
-            {
-                if (p.UserTrans) p.Cmd.Transaction.Commit();
-                p.Conn.Close();
-                p.Cmd.Transaction = null;
-            }
-            else
-            {
-                if (p.UserTrans) p.Dal.Commit();
-            }
-
-            sw.Stop();
+                if (i == times - 1)
+                {
+                    if (isADO)
+                    {
+                        if (p.UserTrans) p.Cmd.Transaction.Commit();
+                        p.Conn.Close();
+                        p.Cmd.Transaction = null;
+                    }
+                    else
+                    {
+                        if (p.UserTrans) p.Dal.Commit();
+                    }
+                }
+            }, out cpu, out gen);
 
             Console.CursorLeft = lastLeft;
 
-            Console.Write("{0}", sw.Elapsed);
+            Console.Write(CodeTimer.Format(ts, cpu, gen));
 
-            return sw.Elapsed;
+            Console.ForegroundColor = currentForeColor;
+
+            return ts;
         }
 
         class Param

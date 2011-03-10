@@ -503,20 +503,36 @@ namespace XCode.DataAccessLayer
 
         protected virtual String ReservedWordsStr { get { return null; } }
 
-        private List<String> _ReservedWords = null;
+        private Dictionary<String, Boolean> _ReservedWords = null;
         /// <summary>
         /// 保留字
         /// </summary>
-        public virtual List<String> ReservedWords
+        private Dictionary<String, Boolean> ReservedWords
         {
             get
             {
                 if (_ReservedWords == null)
                 {
-                    _ReservedWords = new List<String>((ReservedWordsStr + "").ToLower().Split(','));
+                    //_ReservedWords = new List<String>((ReservedWordsStr + "").ToLower().Split(','));
+                    _ReservedWords = new Dictionary<String, Boolean>();
+                    String[] ss = (ReservedWordsStr + "").Split(',');
+                    foreach (String item in ss)
+                    {
+                        _ReservedWords.Add(item.Trim().ToLower(), true);
+                    }
                 }
                 return _ReservedWords;
             }
+        }
+
+        /// <summary>
+        /// 是否保留字
+        /// </summary>
+        /// <param name="word"></param>
+        /// <returns></returns>
+        private Boolean IsReservedWord(String word)
+        {
+            return ReservedWords.ContainsKey(word);
         }
 
         /// <summary>
@@ -548,8 +564,7 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return name;
 
-            if (ReservedWords.Contains(name.ToLower()))
-                return FormatKeyWord(name);
+            if (IsReservedWord(name)) return FormatKeyWord(name);
 
             return name;
         }
