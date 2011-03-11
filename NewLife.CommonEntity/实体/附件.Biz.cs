@@ -331,12 +331,13 @@ namespace NewLife.CommonEntity
         /// <param name="category"></param>
         /// <param name="userName"></param>
         /// <returns></returns>
-        public Attachment SaveFile(FileUpload fileUpload, String category, String userName)
+        public TEntity SaveFile(FileUpload fileUpload, String category, String userName)
         {
             if (fileUpload.HasFile == false) return null;
             //使用事务保护，保存文件不成功时，回滚记录
-            Attachment.Meta.DBO.BeginTransaction();
-            Attachment att = new Attachment();
+            //Meta.DBO.BeginTransaction();
+            Entity<TEntity>.Meta.DBO.BeginTransaction();
+            TEntity att = new TEntity();
             try
             {
                 att.FileName = fileUpload.FileName;
@@ -351,17 +352,20 @@ namespace NewLife.CommonEntity
                 //att.Save();
                 att.GetFilePath();
                 att.Save();
-                String path=att.FilePath.Substring(0,att.FilePath.Length-att.FileName.Length);
-                if(!Directory.Exists(path)){
+                String path = att.FilePath.Substring(0, att.FilePath.Length - att.FileName.Length);
+                if (!Directory.Exists(path))
+                {
                     Directory.CreateDirectory(path);
                 }
                 fileUpload.SaveAs(att.FilePath);
 
-                Attachment.Meta.DBO.Commit();
+                //Meta.DBO.Commit();
+                Entity<TEntity>.Meta.DBO.Commit();
             }
             catch //(Exception e)
             {
-                Attachment.Meta.DBO.Rollback();
+                //Meta.DBO.Rollback();
+                Entity<TEntity>.Meta.DBO.Rollback();
                 throw;// e;
             }
             //att.Save();
@@ -376,14 +380,14 @@ namespace NewLife.CommonEntity
         /// <param name="category"></param>
         /// <param name="userName"></param>
         /// <returns></returns>
-        public List<Attachment> SaveFile(HttpFileCollection fileUploads, String category, String userName)
+        public List<TEntity> SaveFile(HttpFileCollection fileUploads, String category, String userName)
         {
-            List<Attachment> atts = new List<Attachment>();
+            List<TEntity> atts = new List<TEntity>();
             foreach (FileUpload item in fileUploads)
             {
                 try
                 {
-                    Attachment att = SaveFile(item, category, userName);
+                    TEntity att = SaveFile(item, category, userName);
                     if (att != null) atts.Add(att);
                 }
                 catch (Exception ex)
