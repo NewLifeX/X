@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.3.*")]
-[assembly: AssemblyFileVersion("7.3.2011.0310")]
+[assembly: AssemblyFileVersion("7.3.2011.0311")]
 
 /*
  * XCode的重大改进
@@ -48,6 +48,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.3.2011.0311   修正非MS数据库的分页错误
+ * 
  * v7.3.2011.0310   修正判断保留字时使用泛型List导致性能低下的BUG，改为Dictionary
  * 
  * v7.3.2011.0307   增加对Firebird和PostgreSQL的支持，未完全测试通过

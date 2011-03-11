@@ -471,17 +471,7 @@ namespace XCode.DataAccessLayer
         /// <returns>分页SQL</returns>
         public virtual String PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
-            if (String.IsNullOrEmpty(builder.GroupBy) && startRowIndex <= 0 && maximumRows > 0) return PageSplit(builder, maximumRows);
-
             return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
-        }
-
-        protected virtual String PageSplit(SelectBuilder builder, Int32 maximumRows)
-        {
-            SelectBuilder sb = builder.Clone();
-            if (String.IsNullOrEmpty(builder.Column)) builder.Column = "*";
-            builder.Column = String.Format("Top {0} {1}", maximumRows, builder.Column);
-            return builder.ToString();
         }
         #endregion
 

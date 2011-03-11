@@ -52,8 +52,8 @@ namespace XCodeTest
             p.Cmd = p.Conn.CreateCommand();
             p.Cmd.CommandText = "Insert Into Administrator(Name, Password, DisplayName, RoleID, Logins, LastLogin, LastLoginIP, SSOUserID, IsEnable) Values(@Name, null, null, @RoleID, 0, null, null, 0, 0)";
 
-            //p.UserTrans = false;
-            //InsertTest(1000, p);
+            p.UserTrans = false;
+            InsertTest(1000, p);
 
             p.UserTrans = true;
             InsertTest(1000, p);
@@ -61,8 +61,8 @@ namespace XCodeTest
             //p.UserTrans = false;
             //InsertTest(10000, p);
 
-            //p.UserTrans = true;
-            //InsertTest(10000, p);
+            p.UserTrans = true;
+            InsertTest(10000, p);
 
             //p.UserTrans = false;
             //InsertTest(100000, p);

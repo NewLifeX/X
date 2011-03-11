@@ -274,7 +274,7 @@ namespace XCode.DataAccessLayer
 
             if (!dbExist)
             {
-                XTrace.WriteLine("创建数据库：{0}", ConnName);
+                WriteLog("创建数据库：{0}", ConnName);
                 MetaData.SetSchema(DDLSchema.CreateDatabase, null, null);
             }
         }
@@ -372,7 +372,7 @@ namespace XCode.DataAccessLayer
                 CreateTable(sb, entitytable, onlySql);
 
                 // 仅获取语句
-                if (onlySql) XTrace.WriteLine("XCode.Schema.Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sb.ToString());
+                if (onlySql) WriteLog("XCode.Schema.Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sb.ToString());
                 #endregion
             }
             else
@@ -381,7 +381,7 @@ namespace XCode.DataAccessLayer
                 String sql = AlterTable(entitytable, dbtable, onlySql);
                 if (!String.IsNullOrEmpty(sql) && onlySql)
                 {
-                    XTrace.WriteLine("XCode.Schema.Enable没有设置为True，请手工使用以下语句修改表：" + Environment.NewLine + sql);
+                    WriteLog("XCode.Schema.Enable没有设置为True，请手工使用以下语句修改表：" + Environment.NewLine + sql);
                 }
                 #endregion
             }
@@ -601,7 +601,7 @@ namespace XCode.DataAccessLayer
                         s.Append(item);
                     }
                 }
-                XTrace.WriteLine("修改表：{0} {1}", schema.ToString(), s.ToString());
+                WriteLog("修改表：{0} {1}", schema.ToString(), s.ToString());
                 //sb.AppendFormat("修改表：{0} {1}", schema.ToString(), s.ToString());
             }
 
@@ -613,7 +613,7 @@ namespace XCode.DataAccessLayer
                 }
                 catch (Exception ex)
                 {
-                    XTrace.WriteLine("修改表{0}失败！{1}", schema.ToString(), ex.Message);
+                    WriteLog("修改表{0}失败！{1}", schema.ToString(), ex.Message);
                 }
             }
         }
@@ -769,6 +769,11 @@ namespace XCode.DataAccessLayer
         private static void WriteLog(String msg)
         {
             if (DAL.Debug) DAL.WriteLog(msg);
+        }
+
+        private static void WriteLog(String format, params Object[] args)
+        {
+            if (DAL.Debug) DAL.WriteLog(format, args);
         }
         #endregion
     }

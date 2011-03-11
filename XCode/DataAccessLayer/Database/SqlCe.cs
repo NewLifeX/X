@@ -99,6 +99,23 @@ namespace XCode.DataAccessLayer
             return String.Format("[{0}]", keyWord);
         }
         #endregion
+
+        #region 分页
+        public override string PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows, string keyColumn)
+        {
+            if (String.IsNullOrEmpty(builder.GroupBy) && startRowIndex <= 0 && maximumRows > 0) return PageSplit(builder, maximumRows);
+
+            return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
+        }
+
+        String PageSplit(SelectBuilder builder, Int32 maximumRows)
+        {
+            SelectBuilder sb = builder.Clone();
+            if (String.IsNullOrEmpty(builder.Column)) builder.Column = "*";
+            builder.Column = String.Format("Top {0} {1}", maximumRows, builder.Column);
+            return builder.ToString();
+        }
+        #endregion
     }
 
     /// <summary>
