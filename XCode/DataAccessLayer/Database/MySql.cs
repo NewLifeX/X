@@ -136,13 +136,14 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string FormatValue(XField field, object value)
         {
-            if (field.DataType == typeof(String))
-            {
-                if (value == null) return field.Nullable ? "null" : "``";
-                if (String.IsNullOrEmpty(value.ToString()) && field.Nullable) return "null";
-                return "`" + value + "`";
-            }
-            else if (field.DataType == typeof(Boolean))
+            //if (field.DataType == typeof(String))
+            //{
+            //    if (value == null) return field.Nullable ? "null" : "``";
+            //    if (String.IsNullOrEmpty(value.ToString()) && field.Nullable) return "null";
+            //    return "`" + value + "`";
+            //}
+            //else
+            if (field.DataType == typeof(Boolean))
             {
                 return (Boolean)value ? "'Y'" : "'N'";
             }

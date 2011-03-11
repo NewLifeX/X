@@ -250,6 +250,7 @@ namespace XCode.Cache
             //静态缓存
             lock (_TableCache)
             {
+                //TODO 2011-03-11 大石头 这里已经成为性能瓶颈，将来需要优化，瓶颈在于_TableCache[sql]
                 List<String> toDel = new List<String>();
                 foreach (String sql in _TableCache.Keys)
                     if (_TableCache[sql].IsDependOn(tableName)) toDel.Add(sql);

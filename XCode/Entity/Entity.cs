@@ -157,6 +157,9 @@ namespace XCode
             }
         }
 
+        static String[] TrueString = new String[] { "true", "y", "yes", "1" };
+        static String[] FalseString = new String[] { "false", "n", "no", "0" };
+
         /// <summary>
         /// 从一个数据行对象加载数据。指定要加载数据的字段，以及要加载哪些关联的实体类对象。
         /// </summary>
@@ -180,10 +183,32 @@ namespace XCode
                 // 不处理相同数据的赋值
                 if (Object.Equals(v, v2)) continue;
 
-                // 不处理空字符串对空字符串的赋值
-                if (fi.Property.PropertyType == typeof(String) && v != null && String.IsNullOrEmpty(v.ToString()))
+                if (fi.Property.PropertyType == typeof(String))
                 {
-                    if (v2 == null || String.IsNullOrEmpty(v2.ToString())) continue;
+                    // 不处理空字符串对空字符串的赋值
+                    if (v != null && String.IsNullOrEmpty(v.ToString()))
+                    {
+                        if (v2 == null || String.IsNullOrEmpty(v2.ToString())) continue;
+                    }
+                }
+                else if (fi.Property.PropertyType == typeof(Boolean))
+                {
+                    // 处理字符串转为布尔型
+                    if (v != null && v.GetType() == typeof(String))
+                    {
+                        String vs = v.ToString();
+                        if (String.IsNullOrEmpty(vs))
+                            v = false;
+                        else
+                        {
+                            if (Array.IndexOf(TrueString, vs.ToLower()) >= 0)
+                                v = true;
+                            else if (Array.IndexOf(FalseString, vs.ToLower()) >= 0)
+                                v = false;
+
+                            if (NewLife.Configuration.Config.GetConfig<Boolean>("XCode.Debug")) NewLife.Log.XTrace.WriteLine("无法把字符串{0}转为布尔型！", vs);
+                        }
+                    }
                 }
 
                 //不影响脏数据的状态

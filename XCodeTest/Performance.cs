@@ -49,8 +49,9 @@ namespace XCodeTest
             Console.ReadKey(true);
             Console.Clear();
 
+            Console.WriteLine("DbType={0}", p.Dal.DbType);
             p.Cmd = p.Conn.CreateCommand();
-            p.Cmd.CommandText = "Insert Into Administrator(Name, Password, DisplayName, RoleID, Logins, LastLogin, LastLoginIP, SSOUserID, IsEnable) Values(@Name, null, null, @RoleID, 0, null, null, 0, 0)";
+            p.Cmd.CommandText = "Insert Into Administrator(Name, Password, DisplayName, RoleID, Logins, LastLogin, LastLoginIP, SSOUserID) Values(@Name, null, null, @RoleID, 0, null, null, 0)";
 
             p.UserTrans = false;
             InsertTest(1000, p);
@@ -261,13 +262,21 @@ namespace XCodeTest
             String sql1 = String.Format("SET NOCOUNT ON;Insert Into [Role](Name) Values('EntityRole_{0}');Select SCOPE_IDENTITY()", index);
             if (index % AdminNumPerRole == 0)
             {
-                DbCommand cmd1 = p.Conn.CreateCommand();
-                cmd1.Transaction = p.Cmd.Transaction;
-                cmd1.CommandText = sql1;
-                lastRoleID = Convert.ToInt32(cmd1.ExecuteScalar());
+                if (p.Dal.DbType == DatabaseType.SqlServer)
+                {
+                    DbCommand cmd1 = p.Conn.CreateCommand();
+                    cmd1.Transaction = p.Cmd.Transaction;
+                    cmd1.CommandText = sql1;
+                    lastRoleID = Convert.ToInt32(cmd1.ExecuteScalar());
+                }
+                else
+                {
+                    if (index == 0) lastRoleID = 0;
+                    lastRoleID++;
+                }
             }
 
-            String sql2 = String.Format("Insert Into Administrator(Name, Password, DisplayName, RoleID, Logins, LastLogin, LastLoginIP, SSOUserID, IsEnable) Values('EntityAdmin_{0}', null, null, {1}, 0, null, null, 0, 0)", index, lastRoleID);
+            String sql2 = String.Format("Insert Into Administrator(Name, Password, DisplayName, RoleID, Logins, LastLogin, LastLoginIP, SSOUserID) Values('EntityAdmin_{0}', null, null, {1}, 0, null, null, 0)", index, lastRoleID);
             DbCommand cmd2 = p.Conn.CreateCommand();
             cmd2.Transaction = p.Cmd.Transaction;
             cmd2.CommandText = sql2;
@@ -279,10 +288,18 @@ namespace XCodeTest
             String sql1 = String.Format("SET NOCOUNT ON;Insert Into [Role](Name) Values('EntityRole_{0}');Select SCOPE_IDENTITY()", index);
             if (index % AdminNumPerRole == 0)
             {
-                DbCommand cmd1 = p.Conn.CreateCommand();
-                cmd1.Transaction = p.Cmd.Transaction;
-                cmd1.CommandText = sql1;
-                lastRoleID = Convert.ToInt32(cmd1.ExecuteScalar());
+                if (p.Dal.DbType == DatabaseType.SqlServer)
+                {
+                    DbCommand cmd1 = p.Conn.CreateCommand();
+                    cmd1.Transaction = p.Cmd.Transaction;
+                    cmd1.CommandText = sql1;
+                    lastRoleID = Convert.ToInt32(cmd1.ExecuteScalar());
+                }
+                else
+                {
+                    if (index == 0) lastRoleID = 0;
+                    lastRoleID++;
+                }
             }
 
             //String sql2 = String.Format("Insert Into Administrator(Name, Password, DisplayName, RoleID, Logins, LastLogin, LastLoginIP, SSOUserID, IsEnable) Values('EntityAdmin_{0}', null, null, {1}, 0, null, null, 0, 0)", index, lastRoleID);
@@ -309,19 +326,19 @@ namespace XCodeTest
 
         static Int32 DALTestInsert(Param p, Int32 index)
         {
-            String sql1 = String.Format("Insert Into [Role](Name) Values('EntityRole_{0}')", index);
+            String sql1 = String.Format("Insert Into Role(Name) Values('EntityRole_{0}')", index);
             if (index % AdminNumPerRole == 0) lastRoleID = (Int32)p.Dal.InsertAndGetIdentity(sql1, "Role");
 
-            String sql2 = String.Format("Insert Into Administrator(Name, Password, DisplayName, RoleID, Logins, LastLogin, LastLoginIP, SSOUserID, IsEnable) Values('EntityAdmin_{0}', null, null, {1}, 0, null, null, 0, 0)", index, lastRoleID);
+            String sql2 = String.Format("Insert Into Administrator(Name, Password, DisplayName, RoleID, Logins, LastLogin, LastLoginIP, SSOUserID) Values('EntityAdmin_{0}', null, null, {1}, 0, null, null, 0)", index, lastRoleID);
             return p.Dal.Execute(sql2, "Administrator");
         }
 
         static Int32 DALInsertAndGetIdentity(Param p, Int32 index)
         {
-            String sql1 = String.Format("Insert Into [Role](Name) Values('EntityRole_{0}')", index);
+            String sql1 = String.Format("Insert Into Role(Name) Values('EntityRole_{0}')", index);
             if (index % AdminNumPerRole == 0) lastRoleID = (Int32)p.Dal.InsertAndGetIdentity(sql1, "Role");
 
-            String sql2 = String.Format("Insert Into Administrator(Name, Password, DisplayName, RoleID, Logins, LastLogin, LastLoginIP, SSOUserID, IsEnable) Values('EntityAdmin_{0}', null, null, {1}, 0, null, null, 0, 0)", index, lastRoleID);
+            String sql2 = String.Format("Insert Into Administrator(Name, Password, DisplayName, RoleID, Logins, LastLogin, LastLoginIP, SSOUserID) Values('EntityAdmin_{0}', null, null, {1}, 0, null, null, 0)", index, lastRoleID);
             return (Int32)p.Dal.InsertAndGetIdentity(sql2, "Administrator");
         }
 
@@ -352,7 +369,7 @@ namespace XCodeTest
                 role["Name"] = "EntityRole_" + index;
                 role.Save();
 
-                lastRoleID = (Int32)role["ID"];
+                lastRoleID = Convert.ToInt32(role["ID"]);
             }
 
             IEntityOperate eoAdmin = EntityFactory.CreateOperate("Administrator");
@@ -373,7 +390,8 @@ namespace XCodeTest
                 role["Name"] = "EntityRole_" + index;
                 role.Save();
 
-                lastRoleID = (Int32)role["ID"];
+                // SQLite中的自增是Int64，所以这里转两次
+                lastRoleID = Convert.ToInt32(role["ID"]);
             }
 
             IEntityOperate eoAdmin = p.Dal.CreateOperate("Administrator");
@@ -477,7 +495,7 @@ namespace XCodeTest
             builder2.Where = "ID=" + id;
             builder2.OrderBy = "ID Desc";
             String sql2 = p.Dal.PageSplit(builder2, 0, 1, "ID");
-            
+
             DataSet ds2 = p.Dal.Select(sql2, "Role");
 
             return 0;
@@ -513,7 +531,7 @@ namespace XCodeTest
             //if (admin == null) return 0;
 
             IEntity role = eoRole.FindByKey(admin["RoleID"]);
-            return role == null ? 0 : (Int32)role["ID"];
+            return role == null ? 0 : Convert.ToInt32(role["ID"]);
         }
         #endregion
     }

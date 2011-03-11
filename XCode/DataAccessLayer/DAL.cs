@@ -680,21 +680,7 @@ namespace XCode.DataAccessLayer
         public IEntityOperate CreateOperate(String tableName)
         {
             Assembly asm = EntityAssembly.Create(this);
-            Type type = asm.GetType(tableName);
-            if (type == null)
-            {
-                Type[] ts = asm.GetTypes();
-                foreach (Type item in ts)
-                {
-                    if (item.Name == tableName)
-                    {
-                        type = item;
-                        break;
-                    }
-                }
-
-                if (type == null) return null;
-            }
+            Type type = TypeX.GetType(asm, tableName);
 
             return EntityFactory.CreateOperate(type);
         }
