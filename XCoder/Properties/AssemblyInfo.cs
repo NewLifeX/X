@@ -29,10 +29,12 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("3.3.*")]
-[assembly: AssemblyFileVersion("3.3.2011.0117")]
+[assembly: AssemblyVersion("3.4.*")]
+[assembly: AssemblyFileVersion("3.4.2011.0311")]
 
 /*
+ * v3.4.2011.0311   XCode升级到最新版本，增加数据库支持
+ * 
  * v3.3.2011.0117   增加实体模版和页面模版，改变以前的生成模式（由一个表四次改为两次）
  *                  使用新的控件GridViewExtend和自定义表单EntityForm
  * 

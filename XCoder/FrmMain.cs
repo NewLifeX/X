@@ -508,6 +508,29 @@ namespace XCoder
                         entity.Link = item.SelectSingleNode("link").InnerText;
                         entity.Description = item.SelectSingleNode("description").InnerText;
 
+                        try
+                        {
+                            entity.PubDate = Convert.ToDateTime(item.SelectSingleNode("pubDate").InnerText);
+                        }
+                        catch { }
+
+                        #region 强制弹出
+                        if (entity.PubDate > DateTime.MinValue)
+                        {
+                            Int32 h = (Int32)(DateTime.Now - entity.PubDate).TotalHours;
+                            if (h < 24 * 3)
+                            {
+                                Random rnd = new Random((Int32)DateTime.Now.Ticks);
+                                // 时间越久，h越大，随机数为0的可能性就越小，弹出的可能性就越小
+                                // 一小时之内，是50%的可能性
+                                if (rnd.Next(0, h + 1) == 0)
+                                {
+                                    Process.Start(entity.Link);
+                                }
+                            }
+                        }
+                        #endregion
+
                         articles.Add(entity);
                     }
                 }
@@ -537,6 +560,7 @@ namespace XCoder
         {
             public String Title;
             public String Link;
+            public DateTime PubDate;
             public String Description;
         }
         #endregion
