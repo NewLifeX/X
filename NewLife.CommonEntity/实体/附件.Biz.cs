@@ -335,7 +335,7 @@ namespace NewLife.CommonEntity
         {
             if (fileUpload.HasFile == false) return null;
             //使用事务保护，保存文件不成功时，回滚记录
-            Meta.DBO.BeginTransaction();
+            Attachment.Meta.DBO.BeginTransaction();
             Attachment att = new Attachment();
             try
             {
@@ -357,11 +357,11 @@ namespace NewLife.CommonEntity
                 }
                 fileUpload.SaveAs(att.FilePath);
 
-                Meta.DBO.Commit();
+                Attachment.Meta.DBO.Commit();
             }
             catch //(Exception e)
             {
-                Meta.DBO.Rollback();
+                Attachment.Meta.DBO.Rollback();
                 throw;// e;
             }
             //att.Save();
