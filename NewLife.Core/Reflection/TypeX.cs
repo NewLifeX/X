@@ -391,6 +391,7 @@ namespace NewLife.Reflection
             return GetType(typeName, false);
         }
 
+        static DictionaryCache<String, Type> typeCache = new DictionaryCache<String, Type>();
         /// <summary>
         /// 根据名称获取类型
         /// </summary>
@@ -398,6 +399,16 @@ namespace NewLife.Reflection
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <returns></returns>
         public static Type GetType(String typeName, Boolean isLoadAssembly)
+        {
+            if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
+
+            //String key = (isLoadAssembly ? "1" : "0") + typeName;
+
+            // isLoadAssembly不参与缓存的键，对于缓存来说，只要能找到类型就行，不必关心是否外部程序集
+            return typeCache.GetItem<Boolean>(typeName, isLoadAssembly, GetTypeInternal);
+        }
+
+        private static Type GetTypeInternal(String typeName, Boolean isLoadAssembly)
         {
             if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
 

@@ -22,8 +22,6 @@ namespace NewLife.Log
         /// </summary>
         /// <param name="times"></param>
         /// <param name="action"></param>
-        /// <param name="cpu"></param>
-        /// <param name="gen"></param>
         /// <returns></returns>
         public static CodeTimer Time(Int32 times, Action<Int32> action)
         {
@@ -62,32 +60,6 @@ namespace NewLife.Log
 
             Console.ForegroundColor = currentForeColor;
         }
-
-        //private static long GetCPU()
-        //{
-        //    //TODO 检查系统版本，新版本使用QueryThreadCycleTime，旧版本使用GetThreadTimes
-        //    if (Environment.Version.Major >= 6)
-        //        return (long)GetCycleCount();
-        //    else
-        //        return GetCurrentThreadTimes();
-        //}
-
-        private static ulong GetCycleCount()
-        {
-            if (Environment.Version.Major < 6) return 0;
-
-            ulong cycleCount = 0;
-            QueryThreadCycleTime(GetCurrentThread(), ref cycleCount);
-            return cycleCount;
-        }
-
-        private static long GetCurrentThreadTimes()
-        {
-            long l;
-            long kernelTime, userTimer;
-            GetThreadTimes(GetCurrentThread(), out l, out l, out kernelTime, out userTimer);
-            return kernelTime + userTimer;
-        }
         #endregion
 
         #region PInvoke
@@ -100,6 +72,34 @@ namespace NewLife.Log
 
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool GetThreadTimes(IntPtr hThread, out long lpCreationTime, out long lpExitTime, out long lpKernelTime, out long lpUserTime);
+
+        static Boolean supportCycle = true;
+        private static ulong GetCycleCount()
+        {
+            //if (Environment.Version.Major < 6) return 0;
+
+            if (!supportCycle) return 0;
+
+            try
+            {
+                ulong cycleCount = 0;
+                QueryThreadCycleTime(GetCurrentThread(), ref cycleCount);
+                return cycleCount;
+            }
+            catch
+            {
+                supportCycle = false;
+                return 0;
+            }
+        }
+
+        private static long GetCurrentThreadTimes()
+        {
+            long l;
+            long kernelTime, userTimer;
+            GetThreadTimes(GetCurrentThread(), out l, out l, out kernelTime, out userTimer);
+            return kernelTime + userTimer;
+        }
         #endregion
 
         #region 私有字段
@@ -332,14 +332,17 @@ namespace NewLife.Log
                     Int32 i = Index;
                     if (i >= Times) break;
 
-                    Double d = (Double)i / Times;
-                    Console.Write("{0,7:n0}ms {1:p}", sw.Elapsed.TotalMilliseconds, d);
-                    Console.CursorLeft = left;
+                    if (i > 0 && sw.Elapsed.TotalMilliseconds > 10)
+                    {
+                        Double d = (Double)i / Times;
+                        Console.Write("{0,7:n0}ms {1:p}", sw.Elapsed.TotalMilliseconds, d);
+                        Console.CursorLeft = left;
+                    }
                 }
                 catch (ThreadAbortException) { break; }
                 catch { break; }
 
-                Thread.Sleep(1000);
+                Thread.Sleep(500);
             }
             sw.Stop();
 
@@ -350,7 +353,7 @@ namespace NewLife.Log
 
         #region 重载
         /// <summary>
-        /// 已重载。
+        /// 已重载。输出依次分别是：执行时间、CPU线程时间、时钟周期、GC代数
         /// </summary>
         /// <returns></returns>
         public override string ToString()
