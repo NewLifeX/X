@@ -258,6 +258,7 @@ namespace NewLife.Log
                 int count = GC.CollectionCount(i) - gen[i];
                 list.Add(count);
             }
+            Gen = list.ToArray();
         }
 
         /// <summary>
