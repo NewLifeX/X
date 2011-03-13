@@ -33,9 +33,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.6.*")]
-[assembly: AssemblyFileVersion("1.6.2011.0311")]
+[assembly: AssemblyFileVersion("1.6.2011.0313")]
 
 /*
+ * v1.6.2011.0313   扩展字段缓存DictionaryCache，增加几个支持更多参数的GetItem重载
+ * 
  * v1.6.2011.0311   优化TypeX.GetType，增加缓存功能
  * 
  * v1.5.2011.0303   修改二进制读写器和二进制访问器，在读取数据时允许指定目标数据类型
