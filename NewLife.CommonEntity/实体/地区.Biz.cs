@@ -70,29 +70,29 @@ namespace NewLife.CommonEntity
             set { _FriendName = value; }
         }
 
-        [NonSerialized]
-        private String _AllChildAreaCode;
-        /// <summary>所有子地区编号（不包括自己）</summary>
-        [XmlIgnore]
-        public virtual String AllChildAreaCode
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_AllChildAreaCode))
-                {
-                    EntityList<Area> list = Area.FindAllChildsByParent(ID);
-                    if (list != null && list.Count > 0)
-                    {
-                        foreach (Area item in list)
-                        {
-                            _AllChildAreaCode += String.IsNullOrEmpty(_AllChildAreaCode) ? "" + item.Code : "," + item.Code;
-                        }
-                    }
-                }
-                return _AllChildAreaCode;
-            }
-            set { _AllChildAreaCode = value; }
-        }
+        //[NonSerialized]
+        //private String _AllChildAreaCode;
+        ///// <summary>所有子地区编号（不包括自己）</summary>
+        //[XmlIgnore]
+        //public virtual String AllChildAreaCode
+        //{
+        //    get
+        //    {
+        //        if (String.IsNullOrEmpty(_AllChildAreaCode))
+        //        {
+        //            EntityList<Area> list = Area.FindAllChildsByParent(ID);
+        //            if (list != null && list.Count > 0)
+        //            {
+        //                foreach (Area item in list)
+        //                {
+        //                    _AllChildAreaCode += String.IsNullOrEmpty(_AllChildAreaCode) ? "" + item.Code : "," + item.Code;
+        //                }
+        //            }
+        //        }
+        //        return _AllChildAreaCode;
+        //    }
+        //    set { _AllChildAreaCode = value; }
+        //}
         #endregion
 
         #region 扩展查询
@@ -113,7 +113,7 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>
-        /// 根据编号查找
+        /// 根据编号查找。实体缓存
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
@@ -124,12 +124,13 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>
-        /// 按Code查找
+        /// 按Code查找。实体缓存
         /// </summary>
         /// <param name="code"></param>
         /// <returns></returns>
         public static TEntity FindByCode(Int32 code)
         {
+            if (code <= 0) return null;
             return Meta.Cache.Entities.Find(_.Code, code);
         }
 

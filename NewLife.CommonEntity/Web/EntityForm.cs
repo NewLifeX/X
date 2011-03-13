@@ -366,7 +366,12 @@ namespace NewLife.CommonEntity.Web
             lc.Text = "<font colore='red'>*</font>";
 
             Int32 p = control.Parent.Controls.IndexOf(control);
-            control.Parent.Controls.AddAt(p + 1, lc);
+            // 有时候可能无法添加，但是不影响使用，应该屏蔽异常
+            try
+            {
+                control.Parent.Controls.AddAt(p + 1, lc);
+            }
+            catch { }
         }
         #endregion
 

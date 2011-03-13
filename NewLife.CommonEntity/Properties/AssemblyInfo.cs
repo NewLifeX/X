@@ -33,9 +33,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.6.*")]
-[assembly: AssemblyFileVersion("1.6.2011.0303")]
+[assembly: AssemblyFileVersion("1.6.2011.0313")]
 
 /*
+ * v1.6.2011.0313   更新EntityForm，屏蔽SetNotAllowNull中可能出现的异常
+ * 
  * v1.6.2011.0303   调整实体类数据初始化架构，统一由XCode支持
  * 
  * v1.5.2011.0117   增加表单页基类EntityForm
