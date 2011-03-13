@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text;
 using System.Web.UI.WebControls;
 using System.Xml.Serialization;
-using NewLife.Log;
 using NewLife.Reflection;
-using System.Text;
 
 namespace XCode
 {
@@ -32,36 +31,47 @@ namespace XCode
         #endregion
 
         #region 扩展属性
-        /// <summary>关联键名称</summary>
+        /// <summary>关联键名称，一般是主键，如ID</summary>
         protected virtual String KeyName
         {
             get { return Meta.Unique.Name; }
         }
 
-        /// <summary>关联父键名</summary>
+        /// <summary>关联父键名，一般是Parent加主键，如ParentID</summary>
         protected virtual String ParentKeyName
         {
             get { return "Parent" + KeyName; }
         }
 
-        /// <summary>排序字段</summary>
+        private static String _SortingKeyName;
+        /// <summary>排序字段，默认是"Sorting", "Sort", "Rank"之一</summary>
         protected virtual String SortingKeyName
         {
             get
             {
-                String[] names = new String[] { "Sorting", "Rank" };
-                foreach (String name in names)
+                if (_SortingKeyName != null)
                 {
-                    if (Meta.FieldNames.Contains(name)) return name;
+                    // Empty与null不同，可用于区分是否已计算
+                    _SortingKeyName = String.Empty;
+
+                    String[] names = new String[] { "Sorting", "Sort", "Rank" };
+                    foreach (String name in names)
+                    {
+                        if (Meta.FieldNames.Contains(name))
+                        {
+                            _SortingKeyName = name;
+                            break;
+                        }
+                    }
                 }
-                return null;
+                return _SortingKeyName;
             }
         }
 
         /// <summary>子节点</summary>
         public virtual EntityList<TEntity> Childs
         {
-            get { return GetExtend<EntityList<TEntity>>("Childs", delegate { return FindChilds(); }); }
+            get { return GetExtend<EntityList<TEntity>>("Childs", delegate { return FindChilds(); }, !IsNull((TKey)this[KeyName])); }
             set { SetExtend("Childs", value); }
         }
 
@@ -89,7 +99,7 @@ namespace XCode
         [XmlIgnore]
         public virtual EntityList<TEntity> AllChilds
         {
-            get { return GetExtend<EntityList<TEntity>>("AllChilds", delegate { return FindAllChilds(this); }); }
+            get { return GetExtend<EntityList<TEntity>>("AllChilds", delegate { return FindAllChilds(this); }, !IsNull((TKey)this[KeyName])); }
             set { SetExtend("AllChilds", value); }
         }
 
@@ -292,6 +302,98 @@ namespace XCode
             list.Reverse();
 
             return list;
+        }
+        #endregion
+
+        #region 集合运算
+        /// <summary>
+        /// 是否包含子节点
+        /// </summary>
+        /// <param name="key">子节点键值</param>
+        /// <returns></returns>
+        public Boolean Contains(TKey key)
+        {
+            // 判断空
+            if (IsNull(key)) return false;
+
+            // 自身
+            if (Object.Equals((TKey)this[KeyName], key)) return true;
+
+            // 子级
+            if (Childs != null && Childs.Exists(KeyName, key)) return true;
+
+            // 子孙
+            if (AllChilds != null && AllChilds.Exists(KeyName, key)) return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// 子级键值集合
+        /// </summary>
+        public List<TKey> ChildKeys
+        {
+            get
+            {
+                EntityList<TEntity> list = Childs;
+                if (list == null || list.Count < 1) return null;
+
+                return list.GetItem<TKey>(KeyName);
+            }
+        }
+
+        /// <summary>
+        /// 逗号分隔的子级键值字符串，一般可用于SQL语句中
+        /// </summary>
+        public String ChildKeyString
+        {
+            get
+            {
+                List<TKey> list = ChildKeys;
+                if (list == null || list.Count < 1) return null;
+
+                StringBuilder sb = new StringBuilder();
+                foreach (TKey item in list)
+                {
+                    if (sb.Length > 0) sb.Append(",");
+                    sb.Append(item.ToString());
+                }
+                return sb.ToString();
+            }
+        }
+
+        /// <summary>
+        /// 子孙键值集合
+        /// </summary>
+        public List<TKey> AllChildKeys
+        {
+            get
+            {
+                EntityList<TEntity> list = AllChilds;
+                if (list == null || list.Count < 1) return null;
+
+                return list.GetItem<TKey>(KeyName);
+            }
+        }
+
+        /// <summary>
+        /// 逗号分隔的子孙键值字符串，一般可用于SQL语句中
+        /// </summary>
+        public String AllChildKeyString
+        {
+            get
+            {
+                List<TKey> list = AllChildKeys;
+                if (list == null || list.Count < 1) return null;
+
+                StringBuilder sb = new StringBuilder();
+                foreach (TKey item in list)
+                {
+                    if (sb.Length > 0) sb.Append(",");
+                    sb.Append(item.ToString());
+                }
+                return sb.ToString();
+            }
         }
         #endregion
 

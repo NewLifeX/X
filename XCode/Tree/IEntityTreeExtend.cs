@@ -12,8 +12,6 @@ namespace XCode
         where TEntity : Entity<TEntity>, IEntityTree<TEntity>, IEntityTreeExtend<TEntity>, new()
     {
         #region 属性
-
-
         /// <summary>
         /// 子孙实体集合。以深度层次树结构输出
         /// </summary>

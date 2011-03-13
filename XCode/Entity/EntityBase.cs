@@ -507,13 +507,22 @@ namespace XCode
             get { return _depends ?? (_depends = new Dictionary<Type, List<String>>()); }
         }
 
-        private static Boolean _StopExtend = false;
+        /// <summary>
+        /// 改为线程静态，避免线程间干扰。注意初始化赋值对线程静态无效，只有第一个生效
+        /// </summary>
+        [ThreadStatic]
+        private static Boolean? _StopExtend = false;
         /// <summary>
         /// 是否停止扩展属性，停止扩展属性后，可以避免扩展属性自动触发获取数据的功能
         /// </summary>
         public static Boolean StopExtend
         {
-            get { return _StopExtend; }
+            get
+            {
+                // 注意初始化赋值对线程静态无效，只有第一个生效
+                if (_StopExtend == null) _StopExtend = false;
+                return _StopExtend.Value;
+            }
             set { _StopExtend = value; }
         }
 
@@ -524,8 +533,10 @@ namespace XCode
         /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="key">键值</param>
         /// <param name="func">回调</param>
+        /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
         /// <returns></returns>
-        protected virtual TResult GetExtend<TDependEntity, TResult>(String key, Func<String, Object> func) where TDependEntity : Entity<TDependEntity>, new()
+        protected virtual TResult GetExtend<TDependEntity, TResult>(String key, Func<String, Object> func, Boolean cacheDefault = true) 
+            where TDependEntity : Entity<TDependEntity>, new()
         {
             Object value = null;
             if (Extends.TryGetValue(key, out value)) return (TResult)value;
@@ -542,15 +553,15 @@ namespace XCode
             }
 
             // 这里使用了成员方法GetExtend<TDependEntity>而不是匿名函数，为了避免生成包装类，且每次调用前实例化包装类带来较大开销
-            return (TResult)Extends.GetItem<Object[]>(key, new Object[] { func, list }, new Func<String, Object[], Object>(GetExtend<TDependEntity>));
+            return (TResult)Extends.GetItem<Func<String, Object>, List<String>>(key, func, list, new Func<String, Func<String, Object>, List<String>, Object>(GetExtend<TDependEntity>), cacheDefault);
         }
 
-        Object GetExtend<TDependEntity>(String key, Object[] args) where TDependEntity : Entity<TDependEntity>, new()
+        Object GetExtend<TDependEntity>(String key, Func<String, Object> func, List<String> list) where TDependEntity : Entity<TDependEntity>, new()
         {
             //if (Database.Debug) Database.WriteLog("GetExtend({0}, {1})", key, this);
 
-            Func<String, Object> func = args[0] as Func<String, Object>;
-            List<String> list = args[1] as List<String>;
+            //Func<String, Object> func = args[0] as Func<String, Object>;
+            //List<String> list = args[1] as List<String>;
 
             Object value = null;
             if (func != null) value = func(key);
@@ -577,8 +588,9 @@ namespace XCode
 
             if (Depends == null || Extends.Count < 1) return;
             // 找到依赖类型的扩展属性键值集合
-            List<String> list = Depends[dependType];
-            if (list == null || list.Count < 1) return;
+            //List<String> list = Depends[dependType];
+            List<String> list = null;
+            if (!Depends.TryGetValue(dependType, out list) || list == null || list.Count < 1) return;
 
             lock (Extends)
             {

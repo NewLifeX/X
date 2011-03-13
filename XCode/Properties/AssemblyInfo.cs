@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.3.*")]
-[assembly: AssemblyFileVersion("7.3.2011.0311")]
+[assembly: AssemblyFileVersion("7.3.2011.0313")]
 
 /*
  * XCode的重大改进
@@ -48,6 +48,10 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.3.2011.0313   扩展EntityTree，增加Contains、ChildKeys、ChildKeyString、AllChildKeys、AllChildKeyString
+ *                  修改EntityBase，GetExtend方法增加是否缓存默认值的选项，使用者可以选择在取不到数据时是否缓存代表空的默认值
+ *                  修改EntityTree的Root属性，不缓存空值，大多数情况下，树形结构的数据都不应该为空
+ * 
  * v7.3.2011.0311   修正非MS数据库的分页错误
  * 
  * v7.3.2011.0310   修正判断保留字时使用泛型List导致性能低下的BUG，改为Dictionary
