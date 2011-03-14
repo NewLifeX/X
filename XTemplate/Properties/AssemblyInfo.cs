@@ -33,9 +33,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.3.*")]
-[assembly: AssemblyFileVersion("1.3.2010.1014")]
+[assembly: AssemblyFileVersion("1.3.2011.0314")]
 
 /*
+ * v1.3.2011.0314   修正放置XTemp目录不正确的错误
+ * 
  * v1.3.2010.1014   取消模版优化处理，保证模版的输出原汁原味，模版编辑人员更加容易理解
  * 
  * v1.2.2010.1009   重整XTemplate结构，批量处理模版，编译到同一个程序集去。

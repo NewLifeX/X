@@ -611,6 +611,7 @@ namespace XTemplate.Templating
             options.WarningLevel = 4;
 
             String tempPath = "XTemp";
+            tempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, tempPath);
             if (!Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);
             options.TempFiles = new TempFileCollection(tempPath, Debug);
 
