@@ -48,7 +48,7 @@ using System.Runtime.InteropServices;
  * /
 
 /*
- * v7.3.2011.0314   修正实体基类静态构造函数的死锁问题
+ * v7.3.2011.0314   修正实体基类静态构造函数的死锁问题，感谢邱鹏发现该问题！
  * 
  * v7.3.2011.0313   扩展EntityTree，增加Contains、ChildKeys、ChildKeyString、AllChildKeys、AllChildKeyString
  *                  修改EntityBase，GetExtend方法增加是否缓存默认值的选项，使用者可以选择在取不到数据时是否缓存代表空的默认值
