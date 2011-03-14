@@ -24,10 +24,10 @@ namespace XCode.DataAccessLayer
         {
             lock (dbs)
             {
-                if (dbs.ContainsKey(dbType))
-                    dbs[dbType] = db;
-                else
-                    dbs.Add(dbType, db);
+                //if (dbs.ContainsKey(dbType))
+                dbs[dbType] = db;
+                //else
+                //    dbs.Add(dbType, db);
             }
         }
 

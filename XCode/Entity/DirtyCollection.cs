@@ -19,10 +19,11 @@ namespace XCode
         {
             get
             {
-                if (ContainsKey(item) && base[item])
-                    return true;
-                else
-                    return false;
+                //if (ContainsKey(item) && base[item])
+                //    return true;
+                //else
+                //    return false;
+                return ContainsKey(item) && base[item];
             }
             set
             {

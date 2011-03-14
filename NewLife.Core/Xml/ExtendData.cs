@@ -54,10 +54,10 @@ namespace NewLife.Xml
             {
                 if (Data == null) Data = new Dictionary<String, String>();
 
-                if (Data.ContainsKey(key))
-                    Data[key] = value;
-                else
-                    Data.Add(key, value);
+                //if (Data.ContainsKey(key))
+                Data[key] = value;
+                //else
+                //    Data.Add(key, value);
             }
         }
 

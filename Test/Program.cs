@@ -5,24 +5,21 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using NewLife;
 using NewLife.CommonEntity;
+using NewLife.IO;
 using NewLife.Log;
 using NewLife.Messaging;
+using NewLife.Net.Common;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
 using NewLife.Net.UPnP;
 using NewLife.PeerToPeer.Messages;
 using NewLife.Reflection;
-using XCode;
-using XCode.DataAccessLayer;
-using NewLife.IO;
 using NewLife.Remoting;
-using System.Net;
-using NewLife.Net.Common;
-using NewLife.Exceptions;
-using System.Threading;
 using NewLife.Threading;
+using XCode.DataAccessLayer;
 
 namespace Test
 {
@@ -39,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test12();
+                    Test14();
                     //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
@@ -486,7 +483,7 @@ namespace Test
 
         static void Test12()
         {
-            String connStr=DAL.Create("Common1").ConnStr;
+            String connStr = DAL.Create("Common1").ConnStr;
             Console.WriteLine(connStr);
 
             XDbConnectionStringBuilder builder = new XDbConnectionStringBuilder();
@@ -500,6 +497,69 @@ namespace Test
 
             connStr = builder.ConnectionString;
             Console.WriteLine(connStr);
+        }
+
+        static void Test13()
+        {
+            Dictionary<String, String> dic = new Dictionary<string, string>();
+            dic["aaa"] = "bbb";
+            foreach (String item in dic.Keys)
+            {
+                Console.WriteLine("{0}={1}", item, dic[item]);
+            }
+            Console.WriteLine();
+            dic["aaa"] = "ccc";
+            foreach (String item in dic.Keys)
+            {
+                Console.WriteLine("{0}={1}", item, dic[item]);
+            }
+        }
+
+        static void Test14()
+        {
+            //A a = new A();
+            ThreadPool.QueueUserWorkItem(delegate { A a = new A(); });
+            //ThreadPool.QueueUserWorkItem(delegate { B b = new B(); });
+        }
+        class A
+        {
+            static A()
+            {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+                XTrace.WriteLine("A1");
+                Thread.Sleep(3000);
+
+                //B b = new B();
+                XTrace.WriteLine("AA");
+                //ThreadPool.QueueUserWorkItem(delegate { XTrace.WriteLine("BB"); B b = new B(); });
+                Thread thread = new Thread(new ParameterizedThreadStart(delegate { XTrace.WriteLine("BB"); B b = new B(); }));
+                thread.Start();
+
+                Thread.Sleep(3000);
+                sw.Stop();
+                XTrace.WriteLine("A2 " + sw.Elapsed);
+            }
+
+            public A() { XTrace.WriteLine("new A"); }
+        }
+        class B
+        {
+            static B()
+            {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+                XTrace.WriteLine("B1");
+                Thread.Sleep(3000);
+
+                A a = new A();
+
+                Thread.Sleep(3000);
+                sw.Stop();
+                XTrace.WriteLine("B2 " + sw.Elapsed);
+            }
+
+            public B() { XTrace.WriteLine("new B"); }
         }
     }
 }

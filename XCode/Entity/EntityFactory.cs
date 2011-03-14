@@ -100,15 +100,16 @@ namespace XCode
         {
             if (entity == null) return CreateOperate(type);
 
-            //if (op_cache.ContainsKey(type)) return op_cache[type];
+            // 重新使用判断，减少锁争夺
+            if (op_cache.ContainsKey(type)) return op_cache[type];
             lock (op_cache)
             {
-                //if (op_cache.ContainsKey(type)) return op_cache[type];
+                if (op_cache.ContainsKey(type)) return op_cache[type];
 
-                if (op_cache.ContainsKey(type))
-                    op_cache[type] = entity;
-                else
-                    op_cache.Add(type, entity);
+                //if (op_cache.ContainsKey(type))
+                op_cache[type] = entity;
+                //else
+                //    op_cache.Add(type, entity);
 
                 return entity;
             }
