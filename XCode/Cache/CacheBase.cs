@@ -2,6 +2,7 @@
 using NewLife.Reflection;
 using NewLife.Log;
 using NewLife.Configuration;
+using XCode.DataAccessLayer;
 
 namespace XCode.Cache
 {
@@ -45,7 +46,8 @@ namespace XCode.Cache
             }
             catch (Exception ex)
             {
-                if (Config.GetConfig<Boolean>("XCode.Debug")) XTrace.WriteLine(ex.ToString());
+                //if (Config.GetConfig<Boolean>("XCode.Debug")) XTrace.WriteLine(ex.ToString());
+                if (DAL.Debug) DAL.WriteLog(ex.ToString());
             }
             finally
             {

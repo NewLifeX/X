@@ -215,7 +215,8 @@ namespace XCode
                             else if (Array.IndexOf(FalseString, vs.ToLower()) >= 0)
                                 v = false;
 
-                            if (NewLife.Configuration.Config.GetConfig<Boolean>("XCode.Debug")) NewLife.Log.XTrace.WriteLine("无法把字符串{0}转为布尔型！", vs);
+                            //if (NewLife.Configuration.Config.GetConfig<Boolean>("XCode.Debug")) NewLife.Log.XTrace.WriteLine("无法把字符串{0}转为布尔型！", vs);
+                            if (DAL.Debug) DAL.WriteLog("无法把字符串{0}转为布尔型！", vs);
                         }
                     }
                 }

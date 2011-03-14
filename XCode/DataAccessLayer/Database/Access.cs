@@ -779,28 +779,35 @@ namespace XCode.DataAccessLayer
         {
             base.OnDispose(disposing);
 
-            if (_Columns != null && _Columns.Count > 0)
+            try
             {
-                foreach (ADOColumn item in _Columns)
+                if (_Columns != null && _Columns.Count > 0)
                 {
-                    item.Dispose();
+                    foreach (ADOColumn item in _Columns)
+                    {
+                        item.Dispose();
+                    }
                 }
-            }
-            if (_Table != null) Marshal.ReleaseComObject(_Table);
-            if (_Cat != null) Marshal.ReleaseComObject(_Cat);
-            if (_Conn != null)
-            {
-                _Conn.Close();
-                Marshal.ReleaseComObject(_Conn);
-            }
+                if (_Table != null) Marshal.ReleaseComObject(_Table);
+                if (_Cat != null) Marshal.ReleaseComObject(_Cat);
+                if (_Conn != null)
+                {
+                    _Conn.Close();
+                    Marshal.ReleaseComObject(_Conn);
+                }
 
-            if (_TableDef != null) Marshal.ReleaseComObject(_TableDef);
-            if (_Db != null)
-            {
-                _Db.Close();
-                Marshal.ReleaseComObject(_Db);
+                if (_TableDef != null) Marshal.ReleaseComObject(_TableDef);
+                if (_Db != null)
+                {
+                    _Db.Close();
+                    Marshal.ReleaseComObject(_Db);
+                }
+                if (_Dbe != null) Marshal.ReleaseComObject(_Dbe);
             }
-            if (_Dbe != null) Marshal.ReleaseComObject(_Dbe);
+            catch (Exception ex)
+            {
+                if (DAL.Debug) DAL.WriteLog(ex.ToString());
+            }
         }
         #endregion
     }
@@ -946,7 +953,14 @@ namespace XCode.DataAccessLayer
         {
             base.OnDispose(disposing);
 
-            if (Column != null) Marshal.ReleaseComObject(Column);
+            try
+            {
+                if (Column != null) Marshal.ReleaseComObject(Column);
+            }
+            catch (Exception ex)
+            {
+                if (DAL.Debug) DAL.WriteLog(ex.ToString());
+            }
         }
         #endregion
     }
