@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.CSharp;
 using NewLife.Collections;
 using NewLife.Log;
+using NewLife;
 
 namespace XTemplate.Templating
 {
@@ -40,7 +41,7 @@ namespace XTemplate.Templating
     /// return temp.Render();
     /// </code>
     /// </example>
-    public class Template : IDisposable
+    public class Template : DisposeBase
     {
         #region 属性
         private CompilerErrorCollection _Errors;
@@ -110,39 +111,114 @@ namespace XTemplate.Templating
             }
             set { _NameSpace = value; }
         }
+
+        private Int32 _Step;
+        /// <summary>处理步骤</summary>
+        private Int32 Step
+        {
+            get { return _Step; }
+            set { _Step = value; }
+        }
         #endregion
 
         #region 释放
-        /// <summary>
-        /// 释放资源
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+        ///// <summary>
+        ///// 释放资源
+        ///// </summary>
+        //public void Dispose()
+        //{
+        //    Dispose(true);
+        //    GC.SuppressFinalize(this);
+        //}
 
-        private void Dispose(Boolean dispose)
+        //private void Dispose(Boolean dispose)
+        //{
+        //    if (dispose && (_Provider != null))
+        //    {
+        //        //_Provider.Dispose();
+        //        //_Provider = null;
+        //        Provider = null;
+        //    }
+        //}
+
+        ///// <summary>
+        ///// 释放资源
+        ///// </summary>
+        //~Template()
+        //{
+        //    Dispose(false);
+        //}
+        #endregion
+
+        #region 创建
+        private Template() { }
+
+        private static DictionaryCache<String, Template> cache = new DictionaryCache<string, Template>();
+        /// <summary>
+        /// 根据名称和模版创建模版实例，带缓存，避免重复编译
+        /// </summary>
+        /// <param name="name">名称</param>
+        /// <param name="templates">模版</param>
+        /// <returns></returns>
+        public static Template Create(String name, params String[] templates)
         {
-            if (dispose && (_Provider != null))
+            if (templates == null || templates.Length < 1) throw new ArgumentNullException("templates");
+
+            // 计算name
+            StringBuilder sb = new StringBuilder();
+            foreach (String item in templates)
             {
-                //_Provider.Dispose();
-                //_Provider = null;
-                Provider = null;
+                sb.Append(Hash(item));
             }
+            String hash = Hash(sb.ToString());
+
+            if (String.IsNullOrEmpty(name))
+                name = hash;
+            else
+                hash += name;
+
+            return cache.GetItem<String, String[]>(hash, name, templates, delegate(String key, String name2, String[] contents)
+            {
+                Template entity = new Template();
+                //entity.AddTemplateItem(key, content);
+                if (contents.Length == 1)
+                    entity.AddTemplateItem(name2, contents[0]);
+                else
+                {
+                    for (int i = 0; i < contents.Length; i++)
+                    {
+                        entity.AddTemplateItem(name2 + i, contents[i]);
+                    }
+                }
+                //entity.Process();
+                //entity.Compile();
+                return entity;
+            });
         }
 
         /// <summary>
-        /// 释放资源
+        /// 释放提供者
         /// </summary>
-        ~Template()
+        /// <param name="disposing"></param>
+        protected override void OnDispose(bool disposing)
         {
-            Dispose(false);
+            base.OnDispose(disposing);
+
+            try
+            {
+                if (_Provider != null)
+                {
+                    //_Provider.Dispose();
+                    //_Provider = null;
+                    Provider = null;
+                }
+            }
+            catch { }
         }
         #endregion
 
-        #region 分析模版
-        static DictionaryCache<String, Template> tempCache = new DictionaryCache<String, Template>();
+        #region 快速处理
+        //static DictionaryCache<String, Template> tempCache = new DictionaryCache<String, Template>();
         /// <summary>
         /// 通过指定模版文件和传入模版的参数处理模版，返回结果
         /// </summary>
@@ -212,29 +288,36 @@ namespace XTemplate.Templating
         {
             if (String.IsNullOrEmpty(template)) throw new ArgumentNullException("template");
 
-            // 尽量以模版内容为key，防止模版内容改变后没有生效
-            if (String.IsNullOrEmpty(name)) name = Hash(template);
+            //// 尽量以模版内容为key，防止模版内容改变后没有生效
+            //if (String.IsNullOrEmpty(name)) name = Hash(template);
 
-            Template tt = tempCache.GetItem<String>(name, template, delegate(String key, String content)
-            {
-                Template entity = new Template();
-                entity.AddTemplateItem(key, content);
-                entity.Process();
-                entity.Compile();
-                return entity;
-            });
+            //Template tt = tempCache.GetItem<String>(name, template, delegate(String key, String content)
+            //{
+            //    Template entity = new Template();
+            //    entity.AddTemplateItem(key, content);
+            //    entity.Process();
+            //    entity.Compile();
+            //    return entity;
+            //});
+
+            Template tt = Create(name, template);
 
             TemplateBase temp = tt.CreateInstance(tt.Templates[0].ClassName);
             temp.Data = data;
             return temp.Render();
         }
+        #endregion
 
+        #region 分析模版
+        const Int32 Step_Process = 1;
         /// <summary>
         /// 处理预先写入Templates的模版集合，模版生成类的代码在Sources中返回
         /// </summary>
         public void Process()
         {
             if (Templates == null || Templates.Count < 1) throw new InvalidOperationException("在Templates中未找到待处理模版！");
+
+            if (Step >= Step_Process) throw new InvalidOperationException("模版已分析处理！");
 
             //foreach (TemplateItem item in Templates)
             //{
@@ -244,6 +327,8 @@ namespace XTemplate.Templating
             {
                 Process(Templates[i]);
             }
+
+            Step = Step_Process;
         }
 
         /// <summary>
@@ -255,6 +340,8 @@ namespace XTemplate.Templating
         public void AddTemplateItem(String name, String content)
         {
             if (String.IsNullOrEmpty(content)) throw new ArgumentNullException("content", "模版内容不能为空！");
+
+            if (Step >= 1) throw new InvalidOperationException("模版已分析处理，不能再添加模版！");
 
             // 未指定模版名称时，使用模版的散列作为模版名称
             if (String.IsNullOrEmpty(name)) name = Hash(content);
@@ -604,12 +691,18 @@ namespace XTemplate.Templating
         #endregion
 
         #region 编译模版
+        const Int32 Step_Compile = 2;
         /// <summary>
         /// 编译运行
         /// </summary>
         /// <returns></returns>
         public Assembly Compile()
         {
+            if (Step < Step_Compile - 1)
+                Process();
+            else if (Step > Step_Compile)
+                throw new InvalidOperationException("模版已编译！");
+
             List<String> sources = new List<string>();
             foreach (TemplateItem item in Templates)
             {
@@ -623,6 +716,8 @@ namespace XTemplate.Templating
             // 释放提供者
             Provider = null;
 
+            Step = Step_Compile;
+
             return asm;
         }
 
@@ -631,10 +726,12 @@ namespace XTemplate.Templating
         {
             String key = outputAssembly;
             if (String.IsNullOrEmpty(key)) key = Hash(String.Join(Environment.NewLine, sources));
-            if (asmCache.ContainsKey(key)) return asmCache[key];
+
+            Assembly assembly = null;
+            if (asmCache.TryGetValue(key, out assembly)) return assembly;
             lock (asmCache)
             {
-                if (asmCache.ContainsKey(key)) return asmCache[key];
+                if (asmCache.TryGetValue(key, out assembly)) return assembly;
                 foreach (String str in references)
                 {
                     try
@@ -644,8 +741,9 @@ namespace XTemplate.Templating
                     catch { }
                 }
 
-                Assembly assembly = CompileInternal(outputAssembly, sources, references, provider, errors);
-                if (assembly != null && !asmCache.ContainsKey(key)) asmCache.Add(key, assembly);
+                assembly = CompileInternal(outputAssembly, sources, references, provider, errors);
+                //if (assembly != null && !asmCache.ContainsKey(key)) asmCache.Add(key, assembly);
+                if (assembly != null) asmCache.Add(key, assembly);
 
                 return assembly;
             }
@@ -723,6 +821,8 @@ namespace XTemplate.Templating
         /// <returns></returns>
         public TemplateBase CreateInstance(String className)
         {
+            if (Step < Step_Compile) Compile();
+
             if (Assembly == null) throw new InvalidOperationException("尚未编译模版！");
 
             if (String.IsNullOrEmpty(className))
@@ -895,11 +995,17 @@ namespace XTemplate.Templating
                 if (asms == null || asms.Length < 1) return null;
                 foreach (Assembly item in asms)
                 {
-                    String name = Path.GetFileName(item.Location);
-                    if (!String.IsNullOrEmpty(name)) name = name.ToLower();
-                    if (names.Contains(name)) continue;
-                    names.Add(name);
-                    list.Add(item.Location);
+                    try
+                    {
+                        if (String.IsNullOrEmpty(item.Location)) continue;
+
+                        String name = Path.GetFileName(item.Location);
+                        if (!String.IsNullOrEmpty(name)) name = name.ToLower();
+                        if (names.Contains(name)) continue;
+                        names.Add(name);
+                        list.Add(item.Location);
+                    }
+                    catch { }
                 }
 
                 return _References = list;

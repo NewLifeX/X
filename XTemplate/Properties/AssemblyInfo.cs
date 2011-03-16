@@ -37,6 +37,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v1.4.2011.0316   Template中原来的静态方法Process改为ProcessFile，另外根据需要增加常用的静态方法ProcessContent
+ *                  核心类Template改为私有构造，统一有带缓存的静态Create创建实例，避免分析及编译模版带来的性能损耗
  * 
  * v1.3.2011.0314   修正放置XTemp目录不正确的错误
  * 
