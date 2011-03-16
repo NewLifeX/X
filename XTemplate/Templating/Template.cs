@@ -155,7 +155,7 @@ namespace XTemplate.Templating
         /// <code>
         /// Dictionary&lt;String, Object&gt; data = new Dictionary&lt;String, Object&gt;();
         /// data["name"] = "参数测试";
-        /// String content = TextTemplate.Process("模版文件.txt", data);
+        /// String content = Template.ProcessFile("模版文件.txt", data);
         /// </code>
         /// </example>
         /// <param name="templateFile">模版文件</param>
@@ -183,6 +183,14 @@ namespace XTemplate.Templating
         /// <summary>
         /// 通过指定模版内容和传入模版的参数处理模版，返回结果
         /// </summary>
+        /// <example>
+        /// 快速用法：
+        /// <code>
+        /// Dictionary&lt;String, Object&gt; data = new Dictionary&lt;String, Object&gt;();
+        /// data["name"] = "参数测试";
+        /// String content = Template.ProcessTemplate("模版内容", data);
+        /// </code>
+        /// </example>
         /// <param name="template">模版内容</param>
         /// <param name="data">模版参数</param>
         /// <returns></returns>
