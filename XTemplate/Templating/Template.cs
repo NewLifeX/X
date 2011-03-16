@@ -166,18 +166,20 @@ namespace XTemplate.Templating
             // 尽量以模版内容为key，防止模版内容改变后没有生效
             String template = File.ReadAllText(templateFile);
 
-            Template tt = tempCache.GetItem<String, String>(Hash(template), templateFile, template, delegate(String key, String file, String content)
-            {
-                Template entity = new Template();
-                entity.AddTemplateItem(file, content);
-                entity.Process();
-                entity.Compile();
-                return entity;
-            });
+            //Template tt = tempCache.GetItem<String, String>(Hash(template), templateFile, template, delegate(String key, String file, String content)
+            //{
+            //    Template entity = new Template();
+            //    entity.AddTemplateItem(file, content);
+            //    entity.Process();
+            //    entity.Compile();
+            //    return entity;
+            //});
 
-            TemplateBase temp = tt.CreateInstance(tt.Templates[0].ClassName);
-            temp.Data = data;
-            return temp.Render();
+            //TemplateBase temp = tt.CreateInstance(tt.Templates[0].ClassName);
+            //temp.Data = data;
+            //return temp.Render();
+
+            return ProcessTemplate(templateFile, template, data);
         }
 
         /// <summary>
@@ -196,10 +198,22 @@ namespace XTemplate.Templating
         /// <returns></returns>
         public static String ProcessTemplate(String template, IDictionary<String, Object> data)
         {
+            return ProcessTemplate(null, template, data);
+        }
+
+        /// <summary>
+        /// 通过指定模版内容和传入模版的参数处理模版，返回结果
+        /// </summary>
+        /// <param name="name">模版名字</param>
+        /// <param name="template">模版内容</param>
+        /// <param name="data">模版参数</param>
+        /// <returns></returns>
+        public static String ProcessTemplate(String name, String template, IDictionary<String, Object> data)
+        {
             if (String.IsNullOrEmpty(template)) throw new ArgumentNullException("template");
 
             // 尽量以模版内容为key，防止模版内容改变后没有生效
-            String name = Hash(template);
+            if (String.IsNullOrEmpty(name)) name = Hash(template);
 
             Template tt = tempCache.GetItem<String>(name, template, delegate(String key, String content)
             {
