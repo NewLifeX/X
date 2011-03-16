@@ -50,7 +50,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Templating\DictionaryCache.cs" />
     <Compile Include="Templating\Directive.cs" />
     <Compile Include="Templating\TemplateException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

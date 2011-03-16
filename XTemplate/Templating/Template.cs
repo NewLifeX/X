@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CSharp;
+using NewLife.Collections;
 using NewLife.Log;
 
 namespace XTemplate.Templating
@@ -160,15 +161,42 @@ namespace XTemplate.Templating
         /// <param name="templateFile">模版文件</param>
         /// <param name="data">传入模版的参数，模版中可以使用Data[名称]获取</param>
         /// <returns></returns>
-        public static String Process(String templateFile, IDictionary<String, Object> data)
+        public static String ProcessFile(String templateFile, IDictionary<String, Object> data)
         {
             // 尽量以模版内容为key，防止模版内容改变后没有生效
-            String content = File.ReadAllText(templateFile);
+            String template = File.ReadAllText(templateFile);
 
-            Template tt = tempCache.GetItem(Hash(content), delegate(String key)
+            Template tt = tempCache.GetItem<String, String>(Hash(template), templateFile, template, delegate(String key, String file, String content)
             {
                 Template entity = new Template();
-                entity.AddTemplateItem(templateFile, content);
+                entity.AddTemplateItem(file, content);
+                entity.Process();
+                entity.Compile();
+                return entity;
+            });
+
+            TemplateBase temp = tt.CreateInstance(tt.Templates[0].ClassName);
+            temp.Data = data;
+            return temp.Render();
+        }
+
+        /// <summary>
+        /// 通过指定模版内容和传入模版的参数处理模版，返回结果
+        /// </summary>
+        /// <param name="template">模版内容</param>
+        /// <param name="data">模版参数</param>
+        /// <returns></returns>
+        public static String ProcessTemplate(String template, IDictionary<String, Object> data)
+        {
+            if (String.IsNullOrEmpty(template)) throw new ArgumentNullException("template");
+
+            // 尽量以模版内容为key，防止模版内容改变后没有生效
+            String name = Hash(template);
+
+            Template tt = tempCache.GetItem<String>(name, template, delegate(String key, String content)
+            {
+                Template entity = new Template();
+                entity.AddTemplateItem(key, content);
                 entity.Process();
                 entity.Compile();
                 return entity;
@@ -207,7 +235,7 @@ namespace XTemplate.Templating
             if (String.IsNullOrEmpty(content)) throw new ArgumentNullException("content", "模版内容不能为空！");
 
             // 未指定模版名称时，使用模版的散列作为模版名称
-            if (String.IsNullOrEmpty(name)) name = Hash(name);
+            if (String.IsNullOrEmpty(name)) name = Hash(content);
 
             TemplateItem item = FindTemplateItem(name);
             if (item == null)

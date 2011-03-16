@@ -32,10 +32,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.3.*")]
-[assembly: AssemblyFileVersion("1.3.2011.0314")]
+[assembly: AssemblyVersion("1.4.*")]
+[assembly: AssemblyFileVersion("1.4.2011.0316")]
 
 /*
+ * v1.4.2011.0316   Template中原来的静态方法Process改为ProcessFile，另外根据需要增加常用的静态方法ProcessContent
+ * 
  * v1.3.2011.0314   修正放置XTemp目录不正确的错误
  * 
  * v1.3.2010.1014   取消模版优化处理，保证模版的输出原汁原味，模版编辑人员更加容易理解
