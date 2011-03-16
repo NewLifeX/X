@@ -708,7 +708,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_NoDelete != null) return _Enable.Value;
+                if (_NoDelete != null) return _NoDelete.Value;
 
                 //String str = ConfigurationManager.AppSettings["DatabaseSchema_NoDelete"];
                 //if (String.IsNullOrEmpty(str)) return false;
@@ -716,7 +716,7 @@ namespace XCode.DataAccessLayer
                 //if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase)) return false;
                 //_NoDelete = Convert.ToBoolean(str);
 
-                _Enable = Config.GetConfig<Boolean>("XCode.Schema.NoDelete", Config.GetConfig<Boolean>("DatabaseSchema_NoDelete"));
+                _NoDelete = Config.GetConfig<Boolean>("XCode.Schema.NoDelete", Config.GetConfig<Boolean>("DatabaseSchema_NoDelete"));
 
                 return _NoDelete.Value;
             }
