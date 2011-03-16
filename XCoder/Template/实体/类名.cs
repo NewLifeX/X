@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using XCode;
+using XCode.DataAccessLayer;
 
 namespace <#=Config.NameSpace#>
 {
@@ -24,7 +25,7 @@ namespace <#=Config.NameSpace#>
 		/// </summary>
 		[Description("<#=GetPropertyDescription(Field)#>")]
 		[DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
-		[BindColumn(<#=Field.ID#>, "<#=Field.Name#>", "<#=GetPropertyDescription(Field)#>", "<#=Field.Default#>", "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode#>)]
+		[BindColumn(<#=Field.ID#>, "<#=Field.Name#>", "<#=GetPropertyDescription(Field)#>", "<#=Field.Default#>", "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
 		public <#=Field.FieldType#> <#=GetPropertyName(Field)#>
 		{
 			get { return _<#=GetPropertyName(Field)#>; }
