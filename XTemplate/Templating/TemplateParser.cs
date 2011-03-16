@@ -231,60 +231,6 @@ namespace XTemplate.Templating
             return null;
         }
 
-        //private static Regex allNewlineRegex = new Regex(@"^\s*$", RegexOptions.Singleline | RegexOptions.Compiled);
-        //private static Regex newlineAtLineStartRegex = new Regex(@"^[ \t]*((\r\n)|\n)", RegexOptions.Singleline | RegexOptions.Compiled);
-        //private static Regex newlineAtLineEndRegex = new Regex(@"(?=(\r\n)|\n)[ \t]*$", RegexOptions.Singleline | RegexOptions.Compiled);
-        ///// <summary>
-        ///// 删除多余的换行
-        ///// </summary>
-        ///// <remarks>
-        ///// 本方法的目的是为了让模版的编写更加随意灵活，有以下功能：
-        ///// 1，文本后面如果是语句代码段或者类成员代码段，允许忽略代码段前的一个换行和空白符 (?=(\r\n)|\n)[ \t]*$
-        ///// 2，文本前面如果是语句代码段或者类成员代码段，允许忽略代码段后面的空白以及一个换行符 ^[ \t]*((\r\n)|\n)
-        ///// 3，语句代码段和类成员代码段，允许忽略之间的空白和换行 ^\s*$
-        ///// </remarks>
-        ///// <param name="blocks"></param>
-        //internal static void StripExtraNewlines(List<Block> blocks)
-        //{
-        //    for (Int32 i = 0; i < blocks.Count; i++)
-        //    {
-        //        Block block = blocks[i];
-        //        if (block.Type != BlockType.Text) continue;
-
-        //        if (i > 0)
-        //        {
-        //            Block last = blocks[i - 1];
-        //            if (last.Type != BlockType.Expression && last.Type != BlockType.Text)
-        //            {
-        //                // 占位符块，不是第一块，前一块又不是表达式和占位符时，忽略一个换行
-        //                block.Text = newlineAtLineStartRegex.Replace(block.Text, String.Empty);
-        //            }
-        //            if (last.Type == BlockType.Member && (i == blocks.Count - 1 || blocks[i + 1].Type == BlockType.Member))
-        //            {
-        //                // 占位符块，不是第一块，前一块和后一块都是类结构时，忽略由换行组成的占位符
-        //                block.Text = allNewlineRegex.Replace(block.Text, String.Empty);
-        //            }
-        //        }
-        //        if (i < blocks.Count - 1)
-        //        {
-        //            Block next = blocks[i + 1];
-        //            if (next.Type != BlockType.Expression && next.Type != BlockType.Text)
-        //            {
-        //                // 占位符块，不是最后一块，下一块又不是表达式和占位符时，忽略一个换行
-        //                block.Text = newlineAtLineEndRegex.Replace(block.Text, String.Empty);
-        //            }
-        //        }
-        //    }
-        //    Predicate<Block> match = delegate(Block b)
-        //    {
-        //        // 类成员代码块可能需要空的结束符
-        //        if (b.Type == BlockType.Member) return false;
-        //        return String.IsNullOrEmpty(b.Text);
-        //    };
-        //    // 删除空块
-        //    blocks.RemoveAll(match);
-        //}
-
         private static Regex nameValidatingRegex = new Regex(@"^\s*[\w\.]+\s+", RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
         private static Regex paramValueValidatingRegex = new Regex("[\\w\\.]+\\s*=\\s*\"(.*?)(?<=[^\\\\](\\\\\\\\)*)\"\\s*", RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
         /// <summary>
@@ -310,6 +256,62 @@ namespace XTemplate.Templating
             if (length != block.Text.Length) return false;
 
             return true;
+        }
+        #endregion
+
+        #region 优化处理
+        private static Regex allNewlineRegex = new Regex(@"^\s*$", RegexOptions.Singleline | RegexOptions.Compiled);
+        private static Regex newlineAtLineStartRegex = new Regex(@"^[ \t]*((\r\n)|\n)", RegexOptions.Singleline | RegexOptions.Compiled);
+        private static Regex newlineAtLineEndRegex = new Regex(@"(?=(\r\n)|\n)[ \t]*$", RegexOptions.Singleline | RegexOptions.Compiled);
+        /// <summary>
+        /// 删除多余的换行
+        /// </summary>
+        /// <remarks>
+        /// 本方法的目的是为了让模版的编写更加随意灵活，有以下功能：
+        /// 1，文本后面如果是语句代码段或者类成员代码段，允许忽略代码段前的一个换行和空白符 (?=(\r\n)|\n)[ \t]*$
+        /// 2，文本前面如果是语句代码段或者类成员代码段，允许忽略代码段后面的空白以及一个换行符 ^[ \t]*((\r\n)|\n)
+        /// 3，语句代码段和类成员代码段，允许忽略之间的空白和换行 ^\s*$
+        /// </remarks>
+        /// <param name="blocks"></param>
+        internal static void StripExtraNewlines(List<Block> blocks)
+        {
+            for (Int32 i = 0; i < blocks.Count; i++)
+            {
+                Block block = blocks[i];
+                if (block.Type != BlockType.Text) continue;
+
+                if (i > 0)
+                {
+                    Block last = blocks[i - 1];
+                    if (last.Type != BlockType.Expression && last.Type != BlockType.Text)
+                    {
+                        // 占位符块，不是第一块，前一块又不是表达式和占位符时，忽略一个换行
+                        block.Text = newlineAtLineStartRegex.Replace(block.Text, String.Empty);
+                    }
+                    if (last.Type == BlockType.Member && (i == blocks.Count - 1 || blocks[i + 1].Type == BlockType.Member))
+                    {
+                        // 占位符块，不是第一块，前一块和后一块都是类结构时，忽略由换行组成的占位符
+                        block.Text = allNewlineRegex.Replace(block.Text, String.Empty);
+                    }
+                }
+                if (i < blocks.Count - 1)
+                {
+                    Block next = blocks[i + 1];
+                    if (next.Type != BlockType.Expression && next.Type != BlockType.Text)
+                    {
+                        // 占位符块，不是最后一块，下一块又不是表达式和占位符时，忽略一个换行
+                        block.Text = newlineAtLineEndRegex.Replace(block.Text, String.Empty);
+                    }
+                }
+            }
+            Predicate<Block> match = delegate(Block b)
+            {
+                // 类成员代码块可能需要空的结束符
+                if (b.Type == BlockType.Member) return false;
+                return String.IsNullOrEmpty(b.Text);
+            };
+            // 删除空块
+            blocks.RemoveAll(match);
         }
         #endregion
     }
