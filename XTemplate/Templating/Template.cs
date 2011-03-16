@@ -166,49 +166,57 @@ namespace XTemplate.Templating
         /// <returns></returns>
         public static Template Create(String name, params String[] templates)
         {
-            return Create(new String[] { name }, templates);
+            Dictionary<String, String> dic = new Dictionary<string, string>();
+
+            String prefix = !String.IsNullOrEmpty(name) ? name : "Class";
+
+            for (int i = 0; i < templates.Length; i++)
+            {
+                dic.Add(prefix + (i + 1), templates[0]);
+            }
+
+            return Create(dic);
         }
 
         /// <summary>
         /// 根据名称和模版创建模版实例，带缓存，避免重复编译
         /// </summary>
-        /// <param name="names">名称</param>
-        /// <param name="templates">模版</param>
+        /// <param name="templates">模版集合</param>
         /// <returns></returns>
-        public static Template Create(String[] names, params String[] templates)
+        public static Template Create(IDictionary<String, String> templates)
         {
-            if (templates == null || templates.Length < 1) throw new ArgumentNullException("templates");
+            if (templates == null || templates.Count < 1) throw new ArgumentNullException("templates");
 
             // 计算hash
             StringBuilder sb = new StringBuilder();
-            if (names != null && names.Length > 0)
+            foreach (KeyValuePair<String, String> item in templates)
             {
-                foreach (String item in names)
-                {
-                    if (!String.IsNullOrEmpty(item)) sb.Append(Hash(item));
-                }
-            }
-            foreach (String item in templates)
-            {
-                sb.Append(Hash(item));
+                sb.Append(Hash(item.Key));
+                sb.Append(Hash(item.Value));
             }
 
             String hash = Hash(sb.ToString());
 
-            return cache.GetItem<String[], String[]>(hash, names, templates, delegate(String key, String[] names2, String[] contents)
+            return cache.GetItem<IDictionary<String, String>>(hash, templates, delegate(String key, IDictionary<String, String> contents)
             {
                 Template entity = new Template();
                 //entity.AddTemplateItem(key, content);
 
-                // 如果只有一个名字，则作为所有模版名的前缀，否则使用Class作为前缀
-                String firstName = names2 != null && names2.Length == 1 && !String.IsNullOrEmpty(names[0]) ? names2[0] : "Class";
-                for (int i = 0; i < contents.Length; i++)
+                //// 如果只有一个名字，则作为所有模版名的前缀，否则使用Class作为前缀
+                //String firstName = names2 != null && names2.Length == 1 && !String.IsNullOrEmpty(names[0]) ? names2[0] : "Class";
+                //for (int i = 0; i < contents.Length; i++)
+                //{
+                //    // 如果存在名称，则使用名称，否则讲使用常量加上编号作为名称
+                //    //String elm = names2 != null && names2.Length > i ? names2[i] : key + i;
+                //    String elm = names2 != null && names2.Length > i ? names2[i] : firstName + i;
+                //    entity.AddTemplateItem(elm, contents[i]);
+                //}
+
+                foreach (KeyValuePair<String, String> item in contents)
                 {
-                    // 如果存在名称，则使用名称，否则讲使用常量加上编号作为名称
-                    //String elm = names2 != null && names2.Length > i ? names2[i] : key + i;
-                    String elm = names2 != null && names2.Length > i ? names2[i] : firstName + i;
-                    entity.AddTemplateItem(elm, contents[i]);
+                    entity.AddTemplateItem(item.Key, item.Value);
                 }
+
                 entity.Process();
                 //entity.Compile();
                 return entity;
