@@ -518,7 +518,7 @@ namespace XCoder
                         if (entity.PubDate > DateTime.MinValue)
                         {
                             Int32 h = (Int32)(DateTime.Now - entity.PubDate).TotalHours;
-                            if (h < 24 * 3)
+                            if (h < 24 * 30)
                             {
                                 Random rnd = new Random((Int32)DateTime.Now.Ticks);
                                 // 时间越久，h越大，随机数为0的可能性就越小，弹出的可能性就越小

@@ -24,7 +24,7 @@ namespace <#=Config.NameSpace#>
 		/// </summary>
 		[Description("<#=GetPropertyDescription(Field)#>")]
 		[DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
-		[BindColumn("<#=Field.Name#>", Description = "<#=GetPropertyDescription(Field)#>", DefaultValue = "<#=Field.Default#>", RawType = "<#=Field.RawType#>", Precision = <#=Field.Precision#>, Scale = <#=Field.Scale#>, IsUnicode = <#=Field.IsUnicode#>, Order = <#=Field.ID#>)]
+		[BindColumn(<#=Field.ID#>, "<#=Field.Name#>", "<#=GetPropertyDescription(Field)#>", "<#=Field.Default#>", "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode#>)]
 		public <#=Field.FieldType#> <#=GetPropertyName(Field)#>
 		{
 			get { return _<#=GetPropertyName(Field)#>; }

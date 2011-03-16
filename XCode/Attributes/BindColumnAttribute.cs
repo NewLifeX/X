@@ -5,12 +5,21 @@ using System.Reflection;
 
 namespace XCode
 {
-	/// <summary>
-	/// 用于指定数据类属性所绑定到的数据表的字段名
-	/// </summary>
+    /// <summary>
+    /// 用于指定数据类属性所绑定到的数据表的字段名
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-	public sealed class BindColumnAttribute : Attribute
-	{
+    public sealed class BindColumnAttribute : Attribute
+    {
+        #region 属性
+        private Int32 _Order;
+        /// <summary>顺序</summary>
+        public Int32 Order
+        {
+            get { return _Order; }
+            set { _Order = value; }
+        }
+
         private String _Name;
         /// <summary>字段名</summary>
         public String Name
@@ -66,24 +75,55 @@ namespace XCode
             get { return _IsUnicode; }
             set { _IsUnicode = value; }
         }
+        #endregion
 
-        private Int32 _Order;
-        /// <summary>顺序</summary>
-        public Int32 Order
-        {
-            get { return _Order; }
-            set { _Order = value; }
-        }
-
-		/// <summary>
-		/// 构造函数
-		/// </summary>
+        #region 构造
+        /// <summary>
+        /// 构造函数
+        /// </summary>
         /// <param name="name">字段名</param>
         public BindColumnAttribute(String name)
-		{
+        {
             Name = name;
-		}
+        }
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="order"></param>
+        /// <param name="name"></param>
+        /// <param name="description"></param>
+        /// <param name="defaultValue"></param>
+        public BindColumnAttribute(Int32 order, String name, String description, String defaultValue)
+        {
+            Order = order;
+            Name = name;
+            Description = description;
+            DefaultValue = defaultValue;
+        }
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="order"></param>
+        /// <param name="name"></param>
+        /// <param name="description"></param>
+        /// <param name="defaultValue"></param>
+        /// <param name="rawType"></param>
+        /// <param name="precision"></param>
+        /// <param name="scale"></param>
+        /// <param name="isUnicode"></param>
+        public BindColumnAttribute(Int32 order, String name, String description, String defaultValue, String rawType, Int32 precision, Int32 scale, Boolean isUnicode)
+            : this(order, name, description, defaultValue)
+        {
+            RawType = rawType;
+            Precision = precision;
+            Scale = scale;
+            IsUnicode = isUnicode;
+        }
+        #endregion
+
+        #region 方法
         /// <summary>
         /// 检索应用于类型成员的自定义属性。
         /// </summary>
@@ -93,5 +133,6 @@ namespace XCode
         {
             return GetCustomAttribute(element, typeof(BindColumnAttribute)) as BindColumnAttribute;
         }
+        #endregion
     }
 }

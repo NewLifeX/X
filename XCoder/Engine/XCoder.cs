@@ -274,8 +274,9 @@ namespace XCoder
             data["Table"] = table;
 
             // 声明模版引擎
-            Template tt = new Template();
+            //Template tt = new Template();
             Template.Debug = Config.Debug;
+            Dictionary<String, String> templates = new Dictionary<string, string>();
             foreach (String item in ss)
             {
                 if (item.EndsWith("scc", StringComparison.OrdinalIgnoreCase)) continue;
@@ -290,12 +291,16 @@ namespace XCoder
                 if (Config.UseHeadTemplate && !String.IsNullOrEmpty(Config.HeadTemplate))
                     content = Config.HeadTemplate + content;
 
-                tt.AddTemplateItem(item, content);
-            }
-            tt.Process();
+                //tt.AddTemplateItem(item, content);
 
-            // 编译模版
-            tt.Compile();
+                templates.Add(item, content);
+            }
+            Template tt = Template.Create(templates);
+
+            //tt.Process();
+
+            //// 编译模版
+            //tt.Compile();
 
             List<String> rs = new List<string>();
             foreach (String item in ss)
