@@ -280,8 +280,7 @@ namespace NewLife.CommonEntity
         static Administrator()
         {
             // 给基类设置一个默认管理员对象，用于写日志
-            TEntity entity = new TEntity();
-            DefaultAdministrator = entity;
+            if (DefaultAdministrator == null) DefaultAdministrator = new TEntity();
 
             //// 设置缓存时间为一个小时
             //Meta.Cache.Expriod = 60 * 60;
