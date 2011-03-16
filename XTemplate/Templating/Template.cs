@@ -329,9 +329,7 @@ namespace XTemplate.Templating
 
             Template tt = Create(name, template);
 
-            TemplateBase temp = tt.CreateInstance(tt.Templates[0].ClassName);
-            temp.Data = data;
-            return temp.Render();
+            return tt.Render(tt.Templates[0].ClassName, data);
         }
         #endregion
 
