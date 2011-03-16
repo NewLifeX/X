@@ -84,7 +84,7 @@ namespace XTemplate.Templating
 
         private CodeDomProvider _Provider;
         /// <summary>代码生成提供者</summary>
-        public CodeDomProvider Provider
+        private CodeDomProvider Provider
         {
             get { return _Provider ?? (_Provider = new CSharpCodeProvider()); }
             set
@@ -151,7 +151,11 @@ namespace XTemplate.Templating
         #endregion
 
         #region 创建
-        private Template() { }
+        ///// <summary>
+        ///// 构造一个模版实例。为了向下兼容，暂时还不能私有化构造函数
+        ///// </summary>
+        //[Obsolete("建议使用带有缓存的Create方法！")]
+        //public Template() { }
 
         private static DictionaryCache<String, Template> cache = new DictionaryCache<string, Template>();
         /// <summary>
@@ -162,35 +166,50 @@ namespace XTemplate.Templating
         /// <returns></returns>
         public static Template Create(String name, params String[] templates)
         {
+            return Create(new String[] { name }, templates);
+        }
+
+        /// <summary>
+        /// 根据名称和模版创建模版实例，带缓存，避免重复编译
+        /// </summary>
+        /// <param name="names">名称</param>
+        /// <param name="templates">模版</param>
+        /// <returns></returns>
+        public static Template Create(String[] names, params String[] templates)
+        {
             if (templates == null || templates.Length < 1) throw new ArgumentNullException("templates");
 
-            // 计算name
+            // 计算hash
             StringBuilder sb = new StringBuilder();
+            if (names != null && names.Length > 0)
+            {
+                foreach (String item in names)
+                {
+                    if (!String.IsNullOrEmpty(item)) sb.Append(Hash(item));
+                }
+            }
             foreach (String item in templates)
             {
                 sb.Append(Hash(item));
             }
+
             String hash = Hash(sb.ToString());
 
-            if (String.IsNullOrEmpty(name))
-                name = hash;
-            else
-                hash += name;
-
-            return cache.GetItem<String, String[]>(hash, name, templates, delegate(String key, String name2, String[] contents)
+            return cache.GetItem<String[], String[]>(hash, names, templates, delegate(String key, String[] names2, String[] contents)
             {
                 Template entity = new Template();
                 //entity.AddTemplateItem(key, content);
-                if (contents.Length == 1)
-                    entity.AddTemplateItem(name2, contents[0]);
-                else
+
+                // 如果只有一个名字，则作为所有模版名的前缀，否则使用Class作为前缀
+                String firstName = names2 != null && names2.Length == 1 && !String.IsNullOrEmpty(names[0]) ? names2[0] : "Class";
+                for (int i = 0; i < contents.Length; i++)
                 {
-                    for (int i = 0; i < contents.Length; i++)
-                    {
-                        entity.AddTemplateItem(name2 + i, contents[i]);
-                    }
+                    // 如果存在名称，则使用名称，否则讲使用常量加上编号作为名称
+                    //String elm = names2 != null && names2.Length > i ? names2[i] : key + i;
+                    String elm = names2 != null && names2.Length > i ? names2[i] : firstName + i;
+                    entity.AddTemplateItem(elm, contents[i]);
                 }
-                //entity.Process();
+                entity.Process();
                 //entity.Compile();
                 return entity;
             });
@@ -317,7 +336,8 @@ namespace XTemplate.Templating
         {
             if (Templates == null || Templates.Count < 1) throw new InvalidOperationException("在Templates中未找到待处理模版！");
 
-            if (Step >= Step_Process) throw new InvalidOperationException("模版已分析处理！");
+            if (Step >= Step_Process) return;
+            //if (Step > Step_Process) throw new InvalidOperationException("模版已分析处理！");
 
             //foreach (TemplateItem item in Templates)
             //{
@@ -691,17 +711,19 @@ namespace XTemplate.Templating
         #endregion
 
         #region 编译模版
-        const Int32 Step_Compile = 2;
+        const Int32 Step_Compile = Step_Process + 1;
         /// <summary>
         /// 编译运行
         /// </summary>
         /// <returns></returns>
         public Assembly Compile()
         {
-            if (Step < Step_Compile - 1)
-                Process();
-            else if (Step > Step_Compile)
-                throw new InvalidOperationException("模版已编译！");
+            if (Step >= Step_Compile) return Assembly;
+
+            if (Step < Step_Compile - 1) Process();
+
+            //else if (Step > Step_Compile)
+            //    throw new InvalidOperationException("模版已编译！");
 
             List<String> sources = new List<string>();
             foreach (TemplateItem item in Templates)
