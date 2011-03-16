@@ -6,6 +6,7 @@ using System.Web;
 using System.IO;
 using NewLife.Collections;
 using NewLife.Reflection;
+using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -284,12 +285,12 @@ namespace XCode
         #region 调试输出
         private static void WriteLog(String msg)
         {
-            if (XCode.DataAccessLayer.DbSession.Debug) XCode.DataAccessLayer.DbSession.WriteLog(msg);
+            if (DAL.Debug) DAL.WriteLog(msg);
         }
 
         private static void WriteLog(String format, params Object[] args)
         {
-            if (XCode.DataAccessLayer.DbSession.Debug) XCode.DataAccessLayer.DbSession.WriteLog(format, args);
+            if (DAL.Debug) DAL.WriteLog(format, args);
         }
         #endregion
     }

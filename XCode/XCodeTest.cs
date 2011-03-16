@@ -223,7 +223,7 @@ namespace XCode
                 Dal.BeginTransaction();
             }
             StringBuilder sb = new StringBuilder();
-            Boolean debug_old = DbSession.Debug;
+            Boolean debug_old = DbSession.ShowSQL;
             DAL.Debug = false;
             for (int i = 0; i < dataMax; i++)
             {

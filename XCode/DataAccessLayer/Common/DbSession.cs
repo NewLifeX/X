@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using NewLife;
 using XCode.Exceptions;
 using System.Threading;
+using NewLife.Configuration;
 
 namespace XCode.DataAccessLayer
 {
@@ -145,7 +146,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public virtual void Open()
         {
-            if (Debug && ThreadID != Thread.CurrentThread.ManagedThreadId) WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！");
+            if (DAL.Debug && ThreadID != Thread.CurrentThread.ManagedThreadId) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！");
 
             if (Conn != null && Conn.State == ConnectionState.Closed) Conn.Open();
         }
@@ -341,7 +342,7 @@ namespace XCode.DataAccessLayer
         public virtual DataSet Query(String sql)
         {
             QueryTimes++;
-            if (Debug) WriteLog(sql);
+            if (ShowSQL) WriteLog(sql);
             try
             {
                 DbCommand cmd = PrepareCommand();
@@ -372,7 +373,7 @@ namespace XCode.DataAccessLayer
         public virtual DataSet QueryWithKey(String sql)
         {
             QueryTimes++;
-            if (Debug) WriteLog(sql);
+            if (ShowSQL) WriteLog(sql);
             try
             {
                 DbCommand cmd = PrepareCommand();
@@ -450,7 +451,7 @@ namespace XCode.DataAccessLayer
             QueryTimes++;
             DbCommand cmd = PrepareCommand();
             cmd.CommandText = sql;
-            if (Debug) WriteLog(cmd.CommandText);
+            if (ShowSQL) WriteLog(cmd.CommandText);
             try
             {
                 return Convert.ToInt32(cmd.ExecuteScalar());
@@ -522,7 +523,7 @@ namespace XCode.DataAccessLayer
         public virtual Int32 Execute(String sql)
         {
             ExecuteTimes++;
-            if (Debug) WriteLog(sql);
+            if (ShowSQL) WriteLog(sql);
             try
             {
                 DbCommand cmd = PrepareCommand();
@@ -567,7 +568,7 @@ namespace XCode.DataAccessLayer
         {
             ExecuteTimes++;
 
-            if (Debug) WriteLog(sql);
+            if (ShowSQL) WriteLog(sql);
             try
             {
                 DbCommand cmd = PrepareCommand();
@@ -652,10 +653,22 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region Sql日志输出
+        private static Boolean? _ShowSQL;
         /// <summary>
-        /// 是否调试
+        /// 是否输出SQL语句，默认为XCode调试开关XCode.Debug
         /// </summary>
-        public static Boolean Debug { get { return DAL.Debug; } }
+        public static Boolean ShowSQL
+        {
+            get
+            {
+                if (_ShowSQL != null) return _ShowSQL.Value;
+
+                _ShowSQL = Config.GetConfig<Boolean>("XCode.ShowSQL", DAL.Debug);
+
+                return _ShowSQL.Value;
+            }
+            set { _ShowSQL = value; }
+        }
 
         /// <summary>
         /// 输出日志
