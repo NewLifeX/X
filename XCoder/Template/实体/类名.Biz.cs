@@ -70,7 +70,7 @@ namespace <#=Config.NameSpace#>
 		{
 			get
 			{
-				if (_Category == null && CategoryID > 0 && !Dirtys.ContainKey("Category"))
+				if (_Category == null && CategoryID > 0 && !Dirtys.ContainsKey("Category"))
 				{
 					_Category = Category.FindByKey(CategoryID);
 					Dirtys.Add("Category", true);
