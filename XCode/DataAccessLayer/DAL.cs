@@ -275,17 +275,17 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 数据库会话
-        /// </summary>
-        [Obsolete("请改为使用Session属性！")]
-        public IDbSession DB
-        {
-            get
-            {
-                return Session;
-            }
-        }
+        ///// <summary>
+        ///// 数据库会话
+        ///// </summary>
+        //[Obsolete("请改为使用Session属性！")]
+        //public IDbSession DB
+        //{
+        //    get
+        //    {
+        //        return Session;
+        //    }
+        //}
 
         /// <summary>
         /// 数据库会话

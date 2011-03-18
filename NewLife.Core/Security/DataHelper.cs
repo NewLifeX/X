@@ -52,7 +52,7 @@ namespace NewLife.Security
         /// </summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public static UInt16 CRC16(Stream stream)
+        public static Int16 CRC16(Stream stream)
         {
             UInt16 crc = 0;
 
@@ -65,7 +65,7 @@ namespace NewLife.Security
                 crc ^= crc_ta_8[high ^ (Byte)b];
             }
 
-            return crc;
+            return (Int16)crc;
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace NewLife.Security
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public static UInt16 CRC16(Byte[] buffer)
+        public static Int16 CRC16(Byte[] buffer)
         {
             UInt16 crc = 0;
             for (Int32 i = 0; i < buffer.Length; i++)
@@ -83,7 +83,7 @@ namespace NewLife.Security
                 crc ^= crc_ta_8[high ^ buffer[i]];
             }
 
-            return crc;
+            return (Int16)crc;
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace NewLife.Security
         /// </summary>
         /// <param name="filename"></param>
         /// <returns></returns>
-        public static UInt16 CRC16(String filename)
+        public static Int16 CRC16(String filename)
         {
             if (String.IsNullOrEmpty(filename)) throw new ArgumentNullException("filename");
 
@@ -202,7 +202,7 @@ namespace NewLife.Security
         /// </summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public static UInt32 CRC32(Stream stream)
+        public static Int16 CRC32(Stream stream)
         {
             UInt32 crc = 0;
             crc ^= 0xFFFFFFFF;
@@ -213,7 +213,7 @@ namespace NewLife.Security
                 crc = ((crc >> 8) & 0x00FFFFFF) ^ Crc32Table[(crc ^ (Byte)b) & 0xFF];
             }
 
-            return crc ^ 0xFFFFFFFF;
+            return (Int16)(crc ^ 0xFFFFFFFF);
         }
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace NewLife.Security
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public static UInt32 CRC32(Byte[] buffer)
+        public static Int16 CRC32(Byte[] buffer)
         {
             UInt32 crc = 0;
             crc ^= 0xFFFFFFFF;
@@ -229,7 +229,7 @@ namespace NewLife.Security
             {
                 crc = ((crc >> 8) & 0x00FFFFFF) ^ Crc32Table[(crc ^ buffer[i]) & 0xFF];
             }
-            return crc ^ 0xFFFFFFFF;
+            return (Int16)(crc ^ 0xFFFFFFFF);
 
             //Crc32 crc = new Crc32();
             //crc.Update(buffer);
@@ -241,7 +241,7 @@ namespace NewLife.Security
         /// </summary>
         /// <param name="filename"></param>
         /// <returns></returns>
-        public static UInt32 CRC32(String filename)
+        public static Int16 CRC32(String filename)
         {
             if (String.IsNullOrEmpty(filename)) throw new ArgumentNullException("filename");
 

@@ -218,7 +218,8 @@ namespace NewLife.CommonEntity
 		/// <summary>
 		/// 取得附件字段名的快捷方式
 		/// </summary>
-		public class _
+        [CLSCompliant(false)]
+        public class _
 		{
 			///<summary>
 			/// 编号

@@ -127,6 +127,7 @@ namespace NewLife.CommonEntity
         /// <summary>
         /// 取得字段名的快捷方式
         /// </summary>
+        [CLSCompliant(false)]
         public class _
         {
             /// <summary>

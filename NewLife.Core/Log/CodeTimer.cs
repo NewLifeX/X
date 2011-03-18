@@ -141,9 +141,9 @@ namespace NewLife.Log
             set { _Index = value; }
         }
 
-        private ulong _CpuCycles;
+        private long _CpuCycles;
         /// <summary>CPU周期</summary>
-        public ulong CpuCycles
+        public long CpuCycles
         {
             get { return _CpuCycles; }
             set { _CpuCycles = value; }
@@ -245,7 +245,7 @@ namespace NewLife.Log
                 Finish();
             }
 
-            CpuCycles = GetCycleCount() - cpuCycles;
+            CpuCycles = (long)(GetCycleCount() - cpuCycles);
             ThreadTime = GetCurrentThreadTimes() - threadTime;
 
             watch.Stop();
