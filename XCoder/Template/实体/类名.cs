@@ -84,6 +84,7 @@ if(conv.GetMethod("To"+Field.FieldType, new Type[]{typeof(Object)})!=null){
 		/// <summary>
 		/// 取得<#=ClassDescription#>字段名的快捷方式
 		/// </summary>
+        [CLSCompliant(false)]
 		public class _
 		{<#
 	   foreach(XField Field in Table.Fields)
