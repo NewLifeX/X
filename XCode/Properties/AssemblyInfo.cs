@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 // 则将该类型上的 ComVisible 属性设置为 true。
 [assembly: ComVisible(false)]
 [assembly: CLSCompliant(true)]
-[assembly: Dependency("XCode,", LoadHint.Always)]
+[assembly: Dependency("NewLife.Core,", LoadHint.Always)]
 
 // 如果此项目向 COM 公开，则下列 GUID 用于类型库的 ID
 [assembly: Guid("fd577d2c-f8aa-4cc8-a697-d7990c264af3")]
@@ -34,8 +34,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("7.3.*")]
-[assembly: AssemblyFileVersion("7.3.2011.0314")]
+[assembly: AssemblyVersion("7.4.*")]
+[assembly: AssemblyFileVersion("7.4.2011.0318")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,10 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.4.2011.0318   实体缓存增加是否允许空的设置，如果不允许空则即使缓存未过期也进行数据刷新
+ *                  稍微优化实体缓存和单对象缓存，提升性能
+ *                  计划加强各个缓存，特别是单对象缓存，利用维护线程删除过期缓存项，也可能借助System.Web.Caching.Cache
+ * 
  * v7.3.2011.0314   修正实体基类静态构造函数的死锁问题，感谢邱鹏发现该问题！
  * 
  * v7.3.2011.0313   扩展EntityTree，增加Contains、ChildKeys、ChildKeyString、AllChildKeys、AllChildKeyString

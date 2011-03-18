@@ -4,10 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml.Serialization;
-using XCode.Common;
+using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-using NewLife.Reflection;
 
 namespace XCode
 {

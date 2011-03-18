@@ -31,17 +31,33 @@ namespace XCode.Cache
                 Interlocked.Increment(ref Total);
                 #endregion
 
-                if (DateTime.Now > CacheTime.AddSeconds(Expriod))
+                //if (DateTime.Now > CacheTime.AddSeconds(Expriod))
+                // 两种情况更新缓存：1，缓存过期；2，不允许空但是集合又是空
+                Boolean isnull = !AllowNull && _Entities == null;
+                if (isnull || DateTime.Now > CacheTime)
                 {
                     lock (this)
                     {
-                        if (DateTime.Now > CacheTime.AddSeconds(Expriod))
+                        isnull = !AllowNull && _Entities == null;
+                        if (isnull || DateTime.Now > CacheTime)
                         {
-                            CacheTime = DateTime.Now;
-                            if (Asynchronous)
-                                ThreadPool.QueueUserWorkItem(new WaitCallback(FillWaper));
+                            // 异步更新时，如果为空，表明首次，同步获取数据
+                            if (Asynchronous && !isnull)
+                            {
+                                // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
+                                // 设置时间放在获取缓存之前，让其它线程不要空等
+                                CacheTime = DateTime.Now.AddSeconds(Expriod);
+
+                                ThreadPool.QueueUserWorkItem(FillWaper);
+                            }
                             else
-                                InvokeFill(delegate { _Entities = FillListMethod(); });
+                            {
+                                FillWaper(null);
+
+                                // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
+                                // 设置时间放在获取缓存之后，避免缓存尚未拿到，其它线程拿到空数据
+                                CacheTime = DateTime.Now.AddSeconds(Expriod);
+                            }
                         }
                         else
                             Interlocked.Increment(ref Shoot2);
@@ -50,8 +66,8 @@ namespace XCode.Cache
                 else
                     Interlocked.Increment(ref Shoot1);
 
-                if (_Entities == null || _Entities.Count < 1) return new EntityList<TEntity>();
-                return _Entities;
+                //if (_Entities == null || _Entities.Count < 1) return new EntityList<TEntity>();
+                return _Entities ?? Empty;
             }
             //set { _Entities = value; }
         }
@@ -61,13 +77,20 @@ namespace XCode.Cache
             try
             {
                 InvokeFill(delegate { _Entities = FillListMethod(); });
-                CacheTime = DateTime.Now;
+
+                // 清空
+                if (_Entities != null && _Entities.Count < 1) _Entities = null;
             }
             catch (Exception ex)
             {
                 XTrace.WriteLine(ex.ToString());
             }
         }
+
+        /// <summary>
+        /// 空集合
+        /// </summary>
+        private static EntityList<TEntity> Empty = new EntityList<TEntity>();
 
         private DateTime _CacheTime = DateTime.Now.AddDays(-100);
         /// <summary>缓存时间</summary>
@@ -103,6 +126,14 @@ namespace XCode.Cache
         {
             get { return _Asynchronous; }
             set { _Asynchronous = value; }
+        }
+
+        private Boolean _AllowNull;
+        /// <summary>允许缓存空对象</summary>
+        public Boolean AllowNull
+        {
+            get { return _AllowNull; }
+            set { _AllowNull = value; }
         }
 
         /// <summary>

@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 using System.Threading;
 using System.Web;
-using XCode.XLicense;
 using NewLife.Configuration;
 
 namespace XCode.Cache

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Reflection;
-using NewLife.Log;
 using System.Threading;
+using NewLife.Log;
 
 namespace XCode.Cache
 {
@@ -108,16 +107,17 @@ namespace XCode.Cache
         #endregion
 
         #region 单对象缓存
-        private SortedList<TKey, CacheItem> _Entities;
+        //private SortedList<TKey, CacheItem> _Entities;
+        //! Dictionary在集合方面具有较好查找性能，直接用字段，提高可能的性能
         /// <summary>单对象缓存</summary>
-        private SortedList<TKey, CacheItem> Entities
-        {
-            get
-            {
-                if (_Entities == null) _Entities = new SortedList<TKey, CacheItem>();
-                return _Entities;
-            }
-        }
+        private Dictionary<TKey, CacheItem> Entities = new Dictionary<TKey, CacheItem>();
+        //{
+        //    get
+        //    {
+        //        if (_Entities == null) _Entities = new Dictionary<TKey, CacheItem>();
+        //        return _Entities;
+        //    }
+        //}
         #endregion
 
         #region 统计
@@ -201,13 +201,13 @@ namespace XCode.Cache
                 //队列满时，移除最老的一个
                 if (Entities.Count >= MaxEntity)
                 {
-                    TKey key2 = Entities.Keys[0];
-                    if (key2 != null && (Type.GetTypeCode(typeof(TKey)) != TypeCode.String || String.IsNullOrEmpty(key2 as String)))
+                    TKey keyFirst = GetFirstKey();
+                    if (keyFirst != null && (Type.GetTypeCode(typeof(TKey)) != TypeCode.String || String.IsNullOrEmpty(keyFirst as String)))
                     {
                         CacheItem item2 = null;
-                        if (Entities.TryGetValue(key2, out item2) && item2 != null)
+                        if (Entities.TryGetValue(keyFirst, out item2) && item2 != null)
                         {
-                            Entities.RemoveAt(0);
+                            Entities.Remove(keyFirst);
 
                             //自动保存
                             if (AutoSave && item2.Entity != null) InvokeFill(delegate { item2.Entity.Update(); });
@@ -276,6 +276,16 @@ namespace XCode.Cache
                 return GetItem(key);
             }
         }
+
+        private TKey GetFirstKey()
+        {
+            Dictionary<TKey, CacheItem>.Enumerator em = Entities.GetEnumerator();
+            if (!em.MoveNext()) return default(TKey);
+
+            TKey key = em.Current.Key;
+            em.Dispose();
+            return key;
+        }
         #endregion
 
         #region 方法
@@ -296,12 +306,12 @@ namespace XCode.Cache
         public void RemoveKey(TKey key)
         {
             CacheItem item = null;
-            if (!Entities.TryGetValue(key, out item) || item == null) return;
+            if (!Entities.TryGetValue(key, out item)) return;
             lock (Entities)
             {
-                if (!Entities.TryGetValue(key, out item) || item == null) return;
+                if (!Entities.TryGetValue(key, out item)) return;
 
-                if (AutoSave && item.Entity != null) InvokeFill(delegate { item.Entity.Update(); });
+                if (AutoSave && item != null && item.Entity != null) InvokeFill(delegate { item.Entity.Update(); });
 
                 Entities.Remove(key);
             }

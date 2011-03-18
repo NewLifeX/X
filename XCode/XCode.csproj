@@ -145,10 +145,6 @@
     <Compile Include="Tree\IEntityTree.cs" />
     <Compile Include="Tree\IEntityTreeExtend.cs" />
     <Compile Include="XCodeTest.cs" />
-    <Compile Include="XLicense\HardInfo.cs" />
-    <Compile Include="XLicense\License.cs" />
-    <Compile Include="XLicense\LicenseInfo.cs" />
-    <Compile Include="XLicense\LicenseItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="App.config" />
