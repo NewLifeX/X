@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using System.Xml.Serialization;
 using XCode;
 using XCode.Configuration;
 
@@ -44,6 +45,7 @@ namespace <#=Config.NameSpace#>
 #>
 		private <#=className#> _<#=className#>;
 		/// <summary>该<#=ClassDescription#>所对应的<#=GetClassDescription(table)#></summary>
+        [XmlIgnore]
 		public <#=className#> <#=className#>
 		{
 			get
@@ -63,6 +65,7 @@ namespace <#=Config.NameSpace#>
 		/*
 		private Category _Category;
 		/// <summary>该商品所对应的类别</summary>
+        [XmlIgnore]
 		public Category Category
 		{
 			get
