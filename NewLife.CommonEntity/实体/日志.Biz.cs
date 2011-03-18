@@ -35,8 +35,6 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展属性
-
-        //private List<String> hasLoaded = new List<string>();
         #endregion
 
         #region 扩展查询
@@ -193,17 +191,13 @@ namespace NewLife.CommonEntity
         {
             return desCache.GetItem(type, delegate(Type key)
             {
-                if (!typeof(IEntity).IsAssignableFrom(type)) return null;
+                if (!typeof(IEntity).IsAssignableFrom(key)) return null;
 
-                BindColumnAttribute att = AttributeX.GetCustomAttribute<BindColumnAttribute>(type, true);
-                if (att != null && !String.IsNullOrEmpty(att.Description))
-                    return att.Description;
-                else
-                {
-                    DescriptionAttribute att2 = AttributeX.GetCustomAttribute<DescriptionAttribute>(type, true);
-                    if (att2 != null && !String.IsNullOrEmpty(att2.Description))
-                        return att2.Description;
-                }
+                BindColumnAttribute att = AttributeX.GetCustomAttribute<BindColumnAttribute>(key, true);
+                if (att != null && !String.IsNullOrEmpty(att.Description)) return att.Description;
+
+                DescriptionAttribute att2 = AttributeX.GetCustomAttribute<DescriptionAttribute>(key, true);
+                if (att2 != null && !String.IsNullOrEmpty(att2.Description)) return att2.Description;
 
                 return null;
             });

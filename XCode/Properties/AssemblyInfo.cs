@@ -11,8 +11,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("XCode")]
-[assembly: AssemblyCopyright("版权所有 (C) 新生命开发团队 2002~2011")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCopyright("版权所有 (C) 新生命开发团队 2002 - 2011")]
+[assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 使此程序集中的类型

@@ -44,22 +44,22 @@ namespace NewLife.CommonEntity
             try
             {
                 Int32 id = 1;
-                EntityList<TEntity> rs = Role<TEntity>.Meta.Cache.Entities;
+                EntityList<TEntity> rs = Meta.Cache.Entities;
                 if (rs != null && rs.Count > 0)
                 {
                     id = rs[0].ID;
                 }
 
                 // 授权访问所有菜单
-                //EntityList<TMenuEntity> ms = Menu<TMenuEntity>.Meta.Cache.Entities;
-                EntityList<TMenuEntity> ms = Menu<TMenuEntity>.FindAll();
+                EntityList<TMenuEntity> ms = Menu<TMenuEntity>.Meta.Cache.Entities;
+                //EntityList<TMenuEntity> ms = Menu<TMenuEntity>.FindAll();
                 if (ms != null && ms.Count > 0)
                 {
                     EntityList<TRoleMenuEntity> rms = RoleMenu<TRoleMenuEntity>.FindAllByRoleID(id);
                     foreach (TMenuEntity item in ms)
                     {
                         // 是否已存在
-                        if (rms != null && rms.Find(RoleMenu<TRoleMenuEntity>._.MenuID, item.ID) != null) continue;
+                        if (rms != null && rms.Exists(RoleMenu<TRoleMenuEntity>._.MenuID, item.ID)) continue;
 
                         //TRoleMenuEntity entity = new TRoleMenuEntity();
                         //entity.RoleID = id;
@@ -158,7 +158,7 @@ namespace NewLife.CommonEntity
         [XmlIgnore]
         public virtual EntityList<TRoleMenuEntity> Menus
         {
-            get { return GetExtend<TRoleMenuEntity, EntityList<TRoleMenuEntity>>("Menus", delegate { return RoleMenu<TRoleMenuEntity>.FindAllByRoleID(ID); }); }
+            get { return GetExtend<TRoleMenuEntity, EntityList<TRoleMenuEntity>>("Menus", delegate { return RoleMenu<TRoleMenuEntity>.FindAllByRoleID(ID); }, false); }
             set { Extends["Menus"] = value; }
         }
 
@@ -180,7 +180,7 @@ namespace NewLife.CommonEntity
                     });
                     if (list != null) list.Sort(Menu<TMenuEntity>._.Sort, true);
                     return list;
-                });
+                }, false);
             }
             set { Extends["MenuList"] = value; }
         }

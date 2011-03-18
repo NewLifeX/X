@@ -1,12 +1,12 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Text;
 using System.Web;
 using System.Xml.Serialization;
 using NewLife.Log;
 using NewLife.Security;
 using NewLife.Web;
 using XCode;
-using System.Text;
 using XCode.Configuration;
 
 namespace NewLife.CommonEntity
@@ -123,10 +123,11 @@ namespace NewLife.CommonEntity
 
         #region 权限日志
         /// <summary>角色</summary>
+        /// <remarks>扩展属性不缓存空对象，一般来说，每个管理员都有对应的角色，如果没有，可能是在初始化</remarks>
         [XmlIgnore]
         public virtual TRoleEntity Role
         {
-            get { return GetExtend<TRoleEntity, TRoleEntity>("Role", delegate { return Role<TRoleEntity, TMenuEntity, TRoleMenuEntity>.FindByID(RoleID); }); }
+            get { return GetExtend<TRoleEntity, TRoleEntity>("Role", delegate { return Role<TRoleEntity, TMenuEntity, TRoleMenuEntity>.FindByID(RoleID); }, false); }
             set { SetExtend<TRoleEntity>("Role", value); }
         }
 
@@ -268,9 +269,7 @@ namespace NewLife.CommonEntity
     /// 管理员
     /// </summary>
     /// <remarks>
-    /// 基础实体类应该是只有一个泛型参数的，
-    /// 需要用到别的类型时，可以继承一个，
-    /// 也可以通过虚拟重载等手段让基类实现
+    /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
     /// <typeparam name="TEntity">管理员类型</typeparam>
     public abstract partial class Administrator<TEntity> : CommonEntityBase<TEntity>, IAdministrator
@@ -539,23 +538,6 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展操作
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="obj"></param>
-        ///// <returns></returns>
-        //[DataObjectMethod(DataObjectMethodType.Update, false)]
-        //public static Int32 UpdateRole(TEntity obj)
-        //{
-        //    TEntity update = FindByKey(obj.ID);
-        //    if (!string.IsNullOrEmpty(obj.Password))
-        //    {
-        //        update.Password = DataHelper.Hash(obj.Password);
-        //    }
-        //    update.RoleID = obj.RoleID;
-        //    update.IsEnable = obj.IsEnable;
-        //    return update.Update();
-        //}
         #endregion
 
         #region 业务
