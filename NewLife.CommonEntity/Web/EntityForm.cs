@@ -262,7 +262,7 @@ namespace NewLife.CommonEntity.Web
             if (type == typeof(DateTime))
             {
                 DateTime d = (DateTime)Entity[field.Name];
-                //if (d > DateTime.Now.AddYears(-10))
+                if (IsNullKey && d == DateTime.MinValue) d = DateTime.Now;
                 control.Text = d.ToString("yyyy-MM-dd HH:mm:ss");
                 //else
                 //    control.Text = null;

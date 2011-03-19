@@ -38,6 +38,17 @@ namespace NewLife.CommonEntity
             // 如果角色菜单对应关系为空或者只有一个，则授权第一个角色访问所有菜单
             if (RoleMenu<TRoleMenuEntity>.Meta.Count > 1) return;
 
+            EntityList<TMenuEntity> ms = null;
+            // 等一下菜单那边初始化
+            for (int i = 0; i < 10; i++)
+            {
+                ms = Menu<TMenuEntity>.Meta.Cache.Entities;
+                if (ms != null && ms.Count > 0) break;
+
+                Thread.Sleep(1000);
+            }
+            if (ms == null || ms.Count < 1) return;
+
             if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}授权数据……", typeof(TEntity).Name);
 
             Meta.BeginTrans();
@@ -51,7 +62,6 @@ namespace NewLife.CommonEntity
                 }
 
                 // 授权访问所有菜单
-                EntityList<TMenuEntity> ms = Menu<TMenuEntity>.Meta.Cache.Entities;
                 //EntityList<TMenuEntity> ms = Menu<TMenuEntity>.FindAll();
                 if (ms != null && ms.Count > 0)
                 {
