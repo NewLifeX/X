@@ -36,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test14();
+                    Test15();
                     //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
@@ -560,6 +560,20 @@ namespace Test
             }
 
             public B() { XTrace.WriteLine("new B"); }
+        }
+
+        static void Test15()
+        {
+            Int32 n = Role.Meta.Count;
+            DAL dal = DAL.Create("Common_MSSQL");
+            dal.Session.Open();
+            IDbCommand cmd = dal.Db.Factory.CreateCommand();
+            cmd.CommandText = "select * from role";
+            cmd.Connection = dal.Session.Conn;
+            IDataReader reader = cmd.ExecuteReader(CommandBehavior.SchemaOnly);
+            DataTable dt = reader.GetSchemaTable();
+            Console.WriteLine(dt == null);
+            dal.Session.Close();
         }
     }
 }
