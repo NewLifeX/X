@@ -80,6 +80,9 @@ namespace XCode
                 }
             }
 
+            /// <summary>表注释</summary>
+            public static String Description { get { return XCodeConfig.GetTable(ThisType).Description; } }
+
             private static void CheckTable(String connName, String tableName)
             {
                 DatabaseSchema.Create(DAL.Create(connName).Db).CheckNewTable(ThisType, tableName);

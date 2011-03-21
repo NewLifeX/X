@@ -13,6 +13,7 @@ using System.Xml.Serialization;
 using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using XCode.Exceptions;
 
 namespace XCode
 {
@@ -468,22 +469,69 @@ namespace XCode
                 return factory.Create() as TEntity;
             }
 
+            Type type = field.Property.PropertyType;
+
             // 唯一键为自增且参数小于等于0时，返回新实例
-            if (field.DataObjectField.IsIdentity && (key is Int32) && ((Int32)key) <= 0)
+            if (IsInt(type) && IsInt(key.GetType()) && ((Int32)key) <= 0)
             {
-                IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
-                return factory.Create() as TEntity;
+                if (field.DataObjectField.IsIdentity)
+                {
+                    IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
+                    return factory.Create() as TEntity;
+                }
+                else
+                {
+                    if (DAL.Debug) DAL.WriteLog("{0}的{1}字段是整型主键，你是否忘记了设置自增？", Meta.TableName, field.ColumnName);
+                }
             }
 
             // 唯一键是字符串且为空时，返回新实例
-            if (field.Property.PropertyType == typeof(String) && (key is String) && String.IsNullOrEmpty((String)key))
+            if (type == typeof(String) && (key is String) && String.IsNullOrEmpty((String)key))
             {
                 IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
                 return factory.Create() as TEntity;
             }
 
             // 此外，一律返回 查找值，即使可能是空。而绝不能在找不到数据的情况下给它返回空，因为可能是找不到数据而已，而返回新实例会导致前端以为这里是新增数据
-            return Find(field.Name, key);
+            TEntity entity = Find(field.Name, key);
+
+            // 判断实体
+            if (entity == null)
+            {
+                String msg = null;
+                if (IsInt(type) && IsInt(key.GetType()) && ((Int32)key) <= 0)
+                    msg = String.Format("参数错误！无法取得编号为{0}的{1}！可能未设置自增主键！", key, Meta.Description);
+                else
+                    msg = String.Format("参数错误！无法取得编号为{0}的{1}！", key, Meta.Description);
+
+                throw new XCodeException(msg);
+            }
+
+            return entity;
+        }
+
+        /// <summary>
+        /// 是否整数，包括16位、32位和64位，还有无符号和有符号
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        static Boolean IsInt(Type type)
+        {
+            if (type == null) return false;
+
+            switch (Type.GetTypeCode(type))
+            {
+                case TypeCode.Int16:
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                    return true;
+                default:
+                    break;
+            }
+            return false;
         }
         #endregion
 

@@ -6,6 +6,8 @@ using XCode;
 using XCode.Configuration;
 using System.Collections.Generic;
 using NewLife.Reflection;
+using NewLife.Exceptions;
+using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity.Web
 {
@@ -140,6 +142,21 @@ namespace NewLife.CommonEntity.Web
         protected override void OnPreLoad(EventArgs e)
         {
             base.OnPreLoad(e);
+
+            // 判断实体
+            if (Entity == null)
+            {
+                String msg = null;
+                if (IsNullKey)
+                    msg = String.Format("参数错误！无法取得编号为{0}的{1}！可能未设置自增主键！", EntityID, Entity<TEntity>.Meta.TableName);
+                else
+                    msg = String.Format("参数错误！无法取得编号为{0}的{1}！", EntityID, Entity<TEntity>.Meta.TableName);
+
+                WebHelper.Alert(msg);
+                Response.Write(msg);
+                Response.End();
+                return;
+            }
 
             Control btn = SaveButton;
             if (!Page.IsPostBack)
