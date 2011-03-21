@@ -514,6 +514,8 @@ namespace XCode
         /// <returns></returns>
         public List<TResult> GetItem<TResult>(String name)
         {
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
             if (Count < 1) return null;
 
             List<TResult> list = new List<TResult>();
@@ -523,6 +525,42 @@ namespace XCode
                 list.Add((TResult)item[name]);
             }
             return list;
+        }
+
+        /// <summary>
+        /// 串联指定成员，方便由实体集合构造用于查询的子字符串
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="separator"></param>
+        /// <returns></returns>
+        public String Join(String name, String separator)
+        {
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
+            if (Count < 1) return null;
+
+            List<String> list = GetItem<String>(name);
+            if (list == null || list.Count < 1) return null;
+
+            return String.Join(separator, list.ToArray());
+        }
+
+        /// <summary>
+        /// 串联
+        /// </summary>
+        /// <param name="separator"></param>
+        /// <returns></returns>
+        public String Join(String separator)
+        {
+            if (Count < 1) return null;
+
+            StringBuilder sb = new StringBuilder();
+            foreach (T item in this)
+            {
+                if (sb.Length > 0) sb.Append(separator);
+                sb.Append("" + item);
+            }
+            return sb.ToString();
         }
         #endregion
 

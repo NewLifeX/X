@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.4.*")]
-[assembly: AssemblyFileVersion("7.4.2011.0318")]
+[assembly: AssemblyFileVersion("7.4.2011.0321")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.4.2011.0321   EntityList增加Join方法，串联指定成员，方便由实体集合构造用于查询的子字符串
+ * 
  * v7.4.2011.0318   实体缓存增加是否允许空的设置，如果不允许空则即使缓存未过期也进行数据刷新
  *                  稍微优化实体缓存和单对象缓存，提升性能
  *                  计划加强各个缓存，特别是单对象缓存，利用维护线程删除过期缓存项，也可能借助System.Web.Caching.Cache
