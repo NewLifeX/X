@@ -23,6 +23,14 @@ namespace NewLife.PeerToPeer.Messages
             set { _State = value; }
         }
 
+        private Int32 _Percent;
+        /// <summary>完成进度</summary>
+        public Int32 Percent
+        {
+            get { return _Percent; }
+            set { _Percent = value; }
+        }
+
         private String _Remark;
         /// <summary>备注</summary>
         public String Remark

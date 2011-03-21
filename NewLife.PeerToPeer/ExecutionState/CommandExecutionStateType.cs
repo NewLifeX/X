@@ -30,6 +30,11 @@ namespace NewLife.PeerToPeer.Messages
         执行完成 = 3,
 
         /// <summary>
+        /// 暂停下载
+        /// </summary>
+        暂停下载 = 4,
+
+        /// <summary>
         /// 未知错误
         /// </summary>
         未知错误 = 999,

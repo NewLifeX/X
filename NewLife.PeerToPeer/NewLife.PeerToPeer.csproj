@@ -41,6 +41,14 @@
     <DocumentationFile>..\..\生成\NewLife.PeerToPeer.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NewLife.Core, Version=1.6.4090.37476, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\DLL\NewLife.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="NewLife.Net, Version=1.4.4087.21084, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\DLL\NewLife.Net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
@@ -85,16 +93,6 @@
     <EmbeddedResource Include="App.config" />
     <None Include="架构设计\模型.cd" />
     <None Include="Messages\消息结构.cd" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
-      <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
-      <Name>NewLife.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NewLife.Net\NewLife.Net.csproj">
-      <Project>{5A8EF50C-3394-4C1E-99F0-33EFE8691CB0}</Project>
-      <Name>NewLife.Net</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="架构设计\P2P_Tracker流程.jpg" />
