@@ -318,6 +318,13 @@ namespace XCode
                 remove { }
             }
 
+            /// <summary>
+            /// 记录当前正在进行数据异步初始化的线程
+            /// </summary>
+            static List<Int32> initThreadList = new List<int>();
+            /// <summary>
+            /// 记录已进行数据初始化的表
+            /// </summary>
             static List<String> hasCheckInitData = new List<String>();
             /// <summary>
             /// 检查并初始化数据
@@ -340,15 +347,45 @@ namespace XCode
                 // 异步执行，并捕获错误日志
                 if (Config.GetConfig<Boolean>("XCode.InitDataAsync", true))
                 {
-                    ThreadPool.QueueUserWorkItem(CheckInitData2);
+                    Boolean b = false;
+                    // 如果当前线程已经是初始化数据现在，则不要使用异步初始化
+                    lock (initThreadList) { b = initThreadList.Contains(Thread.CurrentThread.ManagedThreadId); }
+                    if (b)
+                    {
+                        CheckInitData2();
+                    }
+                    else
+                    {
+                        ThreadPool.QueueUserWorkItem(delegate
+                        {
+                            // 记录当前线程正在初始化数据，内部调用的时候，不要再使用异步
+                            Int32 tid = Thread.CurrentThread.ManagedThreadId;
+                            lock (initThreadList)
+                            {
+                                if (!initThreadList.Contains(tid)) initThreadList.Add(tid);
+                            }
+                            try
+                            {
+                                CheckInitData2();
+                            }
+                            finally
+                            {
+                                // 异步完成，修改设置
+                                lock (initThreadList)
+                                {
+                                    if (initThreadList.Contains(tid)) initThreadList.Remove(tid);
+                                }
+                            }
+                        });
+                    }
                 }
                 else
                 {
-                    CheckInitData2(null);
+                    CheckInitData2();
                 }
             }
 
-            private static void CheckInitData2(Object state)
+            private static void CheckInitData2()
             {
                 //try
                 //{
