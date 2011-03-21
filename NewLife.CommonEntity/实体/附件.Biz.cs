@@ -159,6 +159,18 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
+
+        /// <summary>
+        /// 根据分类找附件
+        /// </summary>
+        /// <param name="catetory"></param>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select, true)]
+        public static EntityList<Attachment> FindAllByCmdType(String catetory)
+        {
+            return FindAll(_.Category,catetory) as EntityList<Attachment>;
+        }
+
         /// <summary>
         /// 根据主键查询一个附件实体对象用于表单编辑
         /// </summary>
