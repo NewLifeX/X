@@ -319,10 +319,6 @@ namespace XCode
             }
 
             /// <summary>
-            /// 记录当前正在进行数据异步初始化的线程
-            /// </summary>
-            static List<Int32> initThreadList = new List<int>();
-            /// <summary>
             /// 记录已进行数据初始化的表
             /// </summary>
             static List<String> hasCheckInitData = new List<String>();
@@ -345,39 +341,22 @@ namespace XCode
                 //}
 
                 // 异步执行，并捕获错误日志
-                if (Config.GetConfig<Boolean>("XCode.InitDataAsync", true))
+                if (Config.GetConfig<Boolean>("XCode.InitDataAsync", true) && !InitDataHelper.Running)
                 {
-                    Boolean b = false;
-                    // 如果当前线程已经是初始化数据现在，则不要使用异步初始化
-                    lock (initThreadList) { b = initThreadList.Contains(Thread.CurrentThread.ManagedThreadId); }
-                    if (b)
+                    ThreadPool.QueueUserWorkItem(delegate
                     {
-                        CheckInitData2();
-                    }
-                    else
-                    {
-                        ThreadPool.QueueUserWorkItem(delegate
+                        // 记录当前线程正在初始化数据，内部调用的时候，不要再使用异步
+                        InitDataHelper.Running = true;
+                        try
                         {
-                            // 记录当前线程正在初始化数据，内部调用的时候，不要再使用异步
-                            Int32 tid = Thread.CurrentThread.ManagedThreadId;
-                            lock (initThreadList)
-                            {
-                                if (!initThreadList.Contains(tid)) initThreadList.Add(tid);
-                            }
-                            try
-                            {
-                                CheckInitData2();
-                            }
-                            finally
-                            {
-                                // 异步完成，修改设置
-                                lock (initThreadList)
-                                {
-                                    if (initThreadList.Contains(tid)) initThreadList.Remove(tid);
-                                }
-                            }
-                        });
-                    }
+                            CheckInitData2();
+                        }
+                        finally
+                        {
+                            // 异步完成，修改设置
+                            InitDataHelper.Running = false;
+                        }
+                    });
                 }
                 else
                 {
@@ -591,21 +570,35 @@ namespace XCode
             {
                 get
                 {
-                    if (_Count != null) return _Count.Value;
+                    Int32? n = _Count;
+                    if (n != null && n.HasValue) return n.Value;
 
                     //if (_Count <= 1000)
                     //    _Count = QueryCount(SQL(null, DataObjectMethodType.Fill));
                     //else
-                    _Count = DBO.Session.QueryCountFast(TableName);
+                    Int32 m = DBO.Session.QueryCountFast(TableName);
+                    _Count = m;
 
                     // 先拿到记录数再初始化，因为初始化时会用到记录数，同时也避免了死循环
                     CheckInitData();
 
-                    return _Count.Value;
+                    return m;
                 }
             }
             #endregion
         }
         #endregion
+    }
+
+    /// <summary>
+    /// 初始化数据助手，用于判断当前线程是否正在初始化之中
+    /// </summary>
+    static class InitDataHelper
+    {
+        /// <summary>
+        /// 是否正在运行
+        /// </summary>
+        [ThreadStatic]
+        public static Boolean Running;
     }
 }

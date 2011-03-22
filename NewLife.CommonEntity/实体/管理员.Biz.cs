@@ -608,7 +608,7 @@ namespace NewLife.CommonEntity
         /// </summary>
         public void Logout()
         {
-            WriteLog("注销", null);
+            WriteLog("注销", Name);
             Current = null;
         }
 

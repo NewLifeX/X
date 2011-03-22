@@ -40,12 +40,12 @@ namespace NewLife.CommonEntity
 
             EntityList<TMenuEntity> ms = null;
             // 等一下菜单那边初始化
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 100; i++)
             {
                 ms = Menu<TMenuEntity>.Meta.Cache.Entities;
                 if (ms != null && ms.Count > 0) break;
 
-                Thread.Sleep(1000);
+                Thread.Sleep(100);
             }
             if (ms == null || ms.Count < 1) return;
 
