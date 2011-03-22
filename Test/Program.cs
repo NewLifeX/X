@@ -36,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test15();
+                    Test16();
                     //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
@@ -574,6 +574,33 @@ namespace Test
             DataTable dt = reader.GetSchemaTable();
             Console.WriteLine(dt == null);
             dal.Session.Close();
+        }
+
+        static void Test16()
+        {
+            Console.WriteLine(Log.Meta.Count);
+            Console.Clear();
+            TestLog();
+        }
+        static void TestLog()
+        {
+            NewLog log = new NewLog();
+            log.Action = "Test";
+            log.Category = "SystemLog";
+            log.Save();
+
+            log = new NewLog();
+            log.Action = "Test";
+            log.Category = "UserLog";
+            log.Save();
+        }
+        class NewLog : Log<NewLog>
+        {
+            public override int Insert()
+            {
+                Meta.TableName = Category;
+                return base.Insert();
+            }
         }
     }
 }
