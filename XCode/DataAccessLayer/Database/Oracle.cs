@@ -239,7 +239,7 @@ namespace XCode.DataAccessLayer
             String sql = String.Format("select NUM_ROWS from sys.all_indexes where TABLE_OWNER='{0}' and TABLE_NAME='{1}'", (Database as Oracle).Owner.ToUpper(), tableName);
 
             QueryTimes++;
-            DbCommand cmd = PrepareCommand();
+            DbCommand cmd = CreateCommand();
             cmd.CommandText = sql;
             if (ShowSQL) WriteLog(cmd.CommandText);
             try

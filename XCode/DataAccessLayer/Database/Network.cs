@@ -156,7 +156,7 @@ namespace XCode.DataAccessLayer.Database
         /// 不支持
         /// </summary>
         /// <returns></returns>
-        public override DbCommand PrepareCommand()
+        public override DbCommand CreateCommand()
         {
             throw new NotSupportedException();
         }

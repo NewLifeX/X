@@ -175,7 +175,17 @@ namespace XCode.DataAccessLayer
         /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
         /// </summary>
         /// <returns></returns>
+        [Obsolete("改名为CreateCommand")]
         DbCommand PrepareCommand();
+
+        /// <summary>
+        /// 获取一个DbCommand。
+        /// 配置了连接，并关联了事务。
+        /// 连接已打开。
+        /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
+        /// </summary>
+        /// <returns></returns>
+        DbCommand CreateCommand();
         #endregion
 
         #region 构架

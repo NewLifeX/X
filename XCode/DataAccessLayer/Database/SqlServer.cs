@@ -326,7 +326,7 @@ namespace XCode.DataAccessLayer
             String sql = String.Format("select rows from sysindexes where id = object_id('{0}') and indid in (0,1)", tableName);
 
             QueryTimes++;
-            DbCommand cmd = PrepareCommand();
+            DbCommand cmd = CreateCommand();
             cmd.CommandText = sql;
             if (ShowSQL) WriteLog(cmd.CommandText);
             try

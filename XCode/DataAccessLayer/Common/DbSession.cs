@@ -345,7 +345,7 @@ namespace XCode.DataAccessLayer
             if (ShowSQL) WriteLog(sql);
             try
             {
-                DbCommand cmd = PrepareCommand();
+                DbCommand cmd = CreateCommand();
                 cmd.CommandText = sql;
                 using (DbDataAdapter da = Factory.CreateDataAdapter())
                 {
@@ -376,7 +376,7 @@ namespace XCode.DataAccessLayer
             if (ShowSQL) WriteLog(sql);
             try
             {
-                DbCommand cmd = PrepareCommand();
+                DbCommand cmd = CreateCommand();
                 cmd.CommandText = sql;
                 using (DbDataAdapter da = Factory.CreateDataAdapter())
                 {
@@ -449,7 +449,7 @@ namespace XCode.DataAccessLayer
         protected virtual Int32 QueryCountInternal(String sql)
         {
             QueryTimes++;
-            DbCommand cmd = PrepareCommand();
+            DbCommand cmd = CreateCommand();
             cmd.CommandText = sql;
             if (ShowSQL) WriteLog(cmd.CommandText);
             try
@@ -526,7 +526,7 @@ namespace XCode.DataAccessLayer
             if (ShowSQL) WriteLog(sql);
             try
             {
-                DbCommand cmd = PrepareCommand();
+                DbCommand cmd = CreateCommand();
                 cmd.CommandText = sql;
                 return cmd.ExecuteNonQuery();
             }
@@ -571,7 +571,7 @@ namespace XCode.DataAccessLayer
             if (ShowSQL) WriteLog(sql);
             try
             {
-                DbCommand cmd = PrepareCommand();
+                DbCommand cmd = CreateCommand();
                 cmd.CommandText = sql;
                 Object rs = cmd.ExecuteScalar();
                 return rs == DBNull.Value ? null : rs;
@@ -605,7 +605,20 @@ namespace XCode.DataAccessLayer
         /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
         /// </summary>
         /// <returns></returns>
-        public virtual DbCommand PrepareCommand()
+        [Obsolete("改名为CreateCommand")]
+        public DbCommand PrepareCommand()
+        {
+            return CreateCommand();
+        }
+
+        /// <summary>
+        /// 获取一个DbCommand。
+        /// 配置了连接，并关联了事务。
+        /// 连接已打开。
+        /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
+        /// </summary>
+        /// <returns></returns>
+        public virtual DbCommand CreateCommand()
         {
             DbCommand cmd = Factory.CreateCommand();
             if (!Opened) Open();
