@@ -413,7 +413,7 @@ namespace XCode.DataAccessLayer
             if (dbtable == null)
             {
                 #region 创建表
-                WriteLog("创建表：" + entitytable.Name);
+                WriteLog("创建表：{0}({1})", entitytable.Name, entitytable.Description);
 
                 StringBuilder sb = new StringBuilder();
                 // 建表，如果不是onlySql，执行时DAL会输出SQL日志
