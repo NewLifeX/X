@@ -490,9 +490,13 @@ namespace XCode.DataAccessLayer
 
         protected override string GetFieldConstraints(XField field, Boolean onlyDefine)
         {
+            // 非定义时（修改字段），主键字段没有约束
+            if (!onlyDefine && field.PrimaryKey) return null;
+
             String str = base.GetFieldConstraints(field, onlyDefine);
 
-            if (field.Identity) str = " IDENTITY(1,1)" + str;
+            // 非定义时，自增字段没有约束
+            if (!onlyDefine && field.Identity) str = " IDENTITY(1,1)" + str;
 
             return str;
         }
@@ -789,22 +793,31 @@ namespace XCode.DataAccessLayer
 
         public override string AddColumnSQL(XField field)
         {
-            String sql = String.Format("Alter Table {0} Add {1}", FormatKeyWord(field.Table.Name), FieldClause(field, true));
-            ////if (!String.IsNullOrEmpty(field.Default)) sql += ";" + AddDefaultSQL(tablename, field.Name, field.Description);
-            //if (!String.IsNullOrEmpty(field.Description))
-            //{
-            //    //AddColumnDescriptionSQL中会调用DropColumnDescriptionSQL，这里不需要了
-            //    //sql += ";" + Environment.NewLine + DropColumnDescriptionSQL(tablename, field.Name);
-            //    sql += ";" + Environment.NewLine + AddColumnDescriptionSQL(tablename, field.Name, field.Description);
-            //}
-            return sql;
+            return String.Format("Alter Table {0} Add {1}", FormatKeyWord(field.Table.Name), FieldClause(field, true));
         }
 
         public override string AlterColumnSQL(XField field)
         {
             String sql = String.Format("Alter Table {0} Alter Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
-            //if (!String.IsNullOrEmpty(field.Default)) sql += ";" + Environment.NewLine + AddDefaultSQL(tablename, field);
-            //if (!String.IsNullOrEmpty(field.Description)) sql += ";" + Environment.NewLine + AddColumnDescriptionSQL(tablename, field.Name, field.Description);
+            String pk = DeleteConstraintsSQL(field, "PK");
+            if (field.PrimaryKey)
+            {
+                // 如果没有主键删除脚本，表明没有主键
+                if (String.IsNullOrEmpty(pk))
+                {
+                    // 增加主键约束
+                    pk = String.Format("Alter Table {0} ADD CONSTRAINT PK_{0} PRIMARY KEY {2}({1}) ON [PRIMARY]", FormatKeyWord(field.Table.Name), FormatKeyWord(field.Name), field.Identity ? "CLUSTERED" : "");
+                    sql += ";" + Environment.NewLine + pk;
+                }
+            }
+            else
+            {
+                // 字段声明没有主键，但是主键实际存在，则删除主键
+                if (!String.IsNullOrEmpty(pk))
+                {
+                    sql += ";" + Environment.NewLine + pk;
+                }
+            }
             return sql;
         }
 
