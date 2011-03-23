@@ -134,6 +134,17 @@ namespace NewLife.CommonEntity
             return Meta.Cache.Entities.Find(_.Code, code);
         }
 
+        /// <summary>
+        /// 按名称查找。实体缓存
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static TEntity FindByName(String name)
+        {
+            if (String.IsNullOrEmpty(name)) return null;
+            return Meta.Cache.Entities.Find(_.Name, name);
+        }
+
         ///// <summary>
         ///// 找到下一级
         ///// </summary>
