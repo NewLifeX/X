@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.4.*")]
-[assembly: AssemblyFileVersion("7.4.2011.0321")]
+[assembly: AssemblyFileVersion("7.4.2011.0323")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.4.2011.0323   修改反向工程，当多个实体类使用同一数据表时，优先使用非通用实体类
+ * 
  * v7.4.2011.0321   EntityList增加Join方法，串联指定成员，方便由实体集合构造用于查询的子字符串
  *                  进行异步数据初始化时，如果内部遇到其它数据初始化，则在当前线程进行处理，保证数据初始化的同步进行，保证某些业务数据的初始化安装预定顺序进行。
  * 

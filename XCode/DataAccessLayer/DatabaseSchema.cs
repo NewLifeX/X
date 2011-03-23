@@ -8,6 +8,7 @@ using NewLife.Configuration;
 using NewLife.Log;
 using XCode.Configuration;
 using System.Diagnostics;
+using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
@@ -81,9 +82,40 @@ namespace XCode.DataAccessLayer
                 if (_EntityTables == null)
                 {
                     List<XTable> tables = new List<XTable>();
+                    // 记录每个表名对应的实体类
+                    Dictionary<String, Type> dic = new Dictionary<String, Type>();
                     foreach (Type item in Entities)
                     {
                         XTable table = Create(item, null);
+
+                        // 判断表名是否已存在
+                        Type type = null;
+                        if (dic.TryGetValue(table.Name, out type))
+                        {
+                            // 两个实体类，只能要一个
+
+                            // 当前实体类是，跳过
+                            if (IsCommonEntity(item))
+                                continue;
+                            // 前面那个是，排除
+                            else if (IsCommonEntity(type))
+                            {
+                                dic[table.Name] = item;
+                                // 删除原始实体类
+                                tables.RemoveAll((tb) => tb.Name == table.Name);
+                            }
+                            // 两个都不是，报错吧！
+                            else
+                            {
+                                String msg = String.Format("设计错误！发现表{0}同时被两个实体类（{1}和{2}）使用！", table.Name, type.FullName, item.FullName);
+                                XTrace.WriteLine(msg);
+                                throw new XCodeException(msg);
+                            }
+                        }
+                        else
+                        {
+                            dic.Add(table.Name, item);
+                        }
 
                         tables.Add(table);
                     }
@@ -91,6 +123,22 @@ namespace XCode.DataAccessLayer
                 }
                 return _EntityTables;
             }
+        }
+
+        /// <summary>
+        /// 是否普通实体类
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private static Boolean IsCommonEntity(Type type)
+        {
+            // 通用实体类全部都是
+            if (type.FullName.Contains("NewLife.CommonEntity")) return true;
+
+            // 实体类和基类名字相同的也是
+            if (type.Name == type.BaseType.Name) return true;
+
+            return false;
         }
 
         private Dictionary<String, XTable> _DBTables;
