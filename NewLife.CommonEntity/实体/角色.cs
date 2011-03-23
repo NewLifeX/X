@@ -17,11 +17,11 @@ namespace NewLife.CommonEntity
         #region 属性
         private Int32 _ID;
         /// <summary>
-        /// 角色编号
+        /// 编号
         /// </summary>
-        [Description("角色编号")]
+        [Description("编号")]
         [DataObjectField(true, true, false, 10)]
-        [BindColumn("ID", Description = "角色编号", DefaultValue = "", Order = 1)]
+        [BindColumn("ID", Description = "编号", DefaultValue = "", Order = 1)]
         public Int32 ID
         {
             get { return _ID; }
@@ -81,7 +81,7 @@ namespace NewLife.CommonEntity
         public class _
         {
             /// <summary>
-            /// 角色编号
+            /// 编号
             /// </summary>
             public const String ID = "ID";
 
