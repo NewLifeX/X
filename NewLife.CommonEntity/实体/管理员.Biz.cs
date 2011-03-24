@@ -538,6 +538,14 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展操作
+        /// <summary>
+        /// 已重载。显示友好名字
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return FriendName;
+        }
         #endregion
 
         #region 业务
