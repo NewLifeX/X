@@ -695,73 +695,6 @@ namespace XCode.DataAccessLayer
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
-        //public override string CreateTableSQL(XTable table)
-        //{
-        //    List<XField> Fields = new List<XField>(table.Fields);
-        //    Fields.Sort(delegate(XField item1, XField item2) { return item1.ID.CompareTo(item2.ID); });
-
-        //    StringBuilder sb = new StringBuilder();
-
-        //    sb.AppendFormat("Create Table {0}(", FormatKeyWord(table.Name));
-        //    List<String> keys = new List<string>();
-        //    for (Int32 i = 0; i < Fields.Count; i++)
-        //    {
-        //        sb.AppendLine();
-        //        sb.Append("\t");
-        //        sb.Append(FieldClause(Fields[i], true));
-        //        if (i < Fields.Count - 1) sb.Append(",");
-
-        //        if (Fields[i].PrimaryKey) keys.Add(Fields[i].Name);
-        //    }
-
-        //    //主键
-        //    if (keys.Count > 0)
-        //    {
-        //        sb.Append(",");
-        //        sb.AppendLine();
-        //        sb.Append("\t");
-        //        sb.AppendFormat("CONSTRAINT [PK_{0}] PRIMARY KEY CLUSTERED", table.Name);
-        //        sb.AppendLine();
-        //        sb.Append("\t");
-        //        sb.Append("(");
-        //        for (Int32 i = 0; i < keys.Count; i++)
-        //        {
-        //            sb.AppendLine();
-        //            sb.Append("\t\t");
-        //            sb.AppendFormat("{0} ASC", FormatKeyWord(keys[i]));
-        //            if (i < keys.Count - 1) sb.Append(",");
-        //        }
-        //        sb.AppendLine();
-        //        sb.Append("\t");
-        //        sb.Append(") ON [PRIMARY]");
-        //    }
-
-        //    sb.AppendLine();
-        //    sb.Append(") ON [PRIMARY]");
-
-        //    ////注释
-        //    //if (!String.IsNullOrEmpty(table.Description))
-        //    //{
-        //    //    String sql = AddTableDescriptionSQL(table.Name, table.Description);
-        //    //    if (!String.IsNullOrEmpty(sql))
-        //    //    {
-        //    //        sb.AppendLine(";");
-        //    //        sb.Append(sql);
-        //    //    }
-        //    //}
-        //    ////字段注释
-        //    //foreach (XField item in table.Fields)
-        //    //{
-        //    //    if (!String.IsNullOrEmpty(item.Description))
-        //    //    {
-        //    //        sb.AppendLine(";");
-        //    //        sb.Append(AddColumnDescriptionSQL(table.Name, item.Name, item.Description));
-        //    //    }
-        //    //}
-
-        //    return sb.ToString();
-        //}
-
         public override string TableExistSQL(XTable table)
         {
             if (IsSQL2005)
@@ -799,7 +732,7 @@ namespace XCode.DataAccessLayer
         public override string AlterColumnSQL(XField field)
         {
             String sql = String.Format("Alter Table {0} Alter Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
-            String pk = DeleteConstraintsSQL(field, "PK");
+            String pk = DeletePrimaryKeySQL(field);
             if (field.PrimaryKey)
             {
                 // 如果没有主键删除脚本，表明没有主键
@@ -824,11 +757,11 @@ namespace XCode.DataAccessLayer
         public override string DropColumnSQL(XField field)
         {
             //删除默认值
-            String sql = DeleteConstraintsSQL(field, null);
+            String sql = DropDefaultSQL(field);
             if (!String.IsNullOrEmpty(sql)) sql += ";" + Environment.NewLine;
 
             //删除主键
-            String sql2 = DeleteConstraintsSQL(field, "PK");
+            String sql2 = DeletePrimaryKeySQL(field);
             if (!String.IsNullOrEmpty(sql2)) sql += sql2 + ";" + Environment.NewLine;
 
             sql += base.DropColumnSQL(field);
@@ -877,30 +810,12 @@ namespace XCode.DataAccessLayer
 
         public override string DropDefaultSQL(XField field)
         {
-            return DeleteConstraintsSQL(field, "D");
-        }
-
-        /// <summary>
-        /// 删除约束脚本。
-        /// </summary>
-        /// <param name="field"></param>
-        /// <param name="type">约束类型，默认值是D，如果未指定，则删除所有约束</param>
-        /// <returns></returns>
-        protected virtual String DeleteConstraintsSQL(XField field, String type)
-        {
             String sql = null;
-            if (type == "PK")
-            {
-                sql = String.Format("select c.name from sysobjects a inner join syscolumns b on a.id=b.id  inner join sysobjects c on c.parent_obj=a.id where a.name='{0}' and b.name='{1}' and c.xtype='PK'", field.Table.Name, field.Name);
-            }
+            if (IsSQL2005)
+                sql = String.Format("select b.name from sys.tables a inner join sys.default_constraints b on a.object_id=b.parent_object_id inner join sys.columns c on a.object_id=c.object_id and b.parent_column_id=c.column_id where a.name='{0}' and c.name='{1}'", field.Table.Name, field.Name);
             else
-            {
-                if (IsSQL2005)
-                    sql = String.Format("select b.name from sys.tables a inner join sys.default_constraints b on a.object_id=b.parent_object_id inner join sys.columns c on a.object_id=c.object_id and b.parent_column_id=c.column_id where a.name='{0}' and c.name='{1}'", field.Table.Name, field.Name);
-                else
-                    sql = String.Format("select b.name from syscolumns a inner join sysobjects b on a.cdefault=b.id inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}'", field.Table.Name, field.Name);
-                if (!String.IsNullOrEmpty(type)) sql += String.Format(" and b.xtype='{0}'", type);
-            }
+                sql = String.Format("select b.name from syscolumns a inner join sysobjects b on a.cdefault=b.id inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}' and b.xtype='D'", field.Table.Name, field.Name);
+
             DataSet ds = Database.CreateSession().Query(sql);
             if (ds == null || ds.Tables == null || ds.Tables[0].Rows.Count < 1) return null;
 
@@ -912,6 +827,17 @@ namespace XCode.DataAccessLayer
                 sb.AppendFormat("ALTER TABLE {0} DROP CONSTRAINT {1}", FormatKeyWord(field.Table.Name), name);
             }
             return sb.ToString();
+        }
+
+        String DeletePrimaryKeySQL(XField field)
+        {
+            DataRow[] drs = PrimaryKeys.Select(String.Format("table_name={0} And column_name={1}", field.Table.Name, field.Name));
+            if (drs == null || drs.Length < 1) return null;
+
+            String constraint_name = null;
+            if (!TryGetDataRowValue<String>(drs[0], "constraint_name", out constraint_name)) return null;
+
+            return String.Format("ALTER TABLE {0} DROP CONSTRAINT {1}", FormatKeyWord(field.Table.Name), constraint_name);
         }
 
         public override String DropDatabaseSQL(String dbname)
