@@ -831,7 +831,7 @@ namespace XCode.DataAccessLayer
 
         String DeletePrimaryKeySQL(XField field)
         {
-            DataRow[] drs = PrimaryKeys.Select(String.Format("table_name={0} And column_name={1}", field.Table.Name, field.Name));
+            DataRow[] drs = PrimaryKeys.Select(String.Format("table_name='{0}' And 'column_name='{1}'", field.Table.Name, field.Name));
             if (drs == null || drs.Length < 1) return null;
 
             String constraint_name = null;
