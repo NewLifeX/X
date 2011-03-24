@@ -114,10 +114,10 @@ $E.$A = function(attr, ele)
 $E.getTopLevelWindow = function()
 {
     var pw = window;
-    while (pw != pw.parent)
-    {
-        pw = pw.parent;
-    }
+    //while (pw != pw.parent)
+    //{
+    //    pw = pw.parent;
+    //}
     return pw;
 }
 $E.hide = function(ele)
