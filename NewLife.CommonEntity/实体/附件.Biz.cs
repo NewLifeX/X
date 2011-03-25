@@ -166,9 +166,10 @@ namespace NewLife.CommonEntity
         /// <param name="catetory"></param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<Attachment> FindAllByCmdType(String catetory)
+        public static EntityList<TEntity> FindAllByCmdType(String catetory)
         {
-            return FindAll(_.Category,catetory) as EntityList<Attachment>;
+            //return FindAll(_.Category, catetory) as EntityList<Attachment>;
+            return FindAll(_.Category, catetory);
         }
 
         /// <summary>
