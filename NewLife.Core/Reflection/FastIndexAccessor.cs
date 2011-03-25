@@ -5,6 +5,7 @@ namespace NewLife.Reflection
     /// <summary>
     /// 快速索引器接口的默认实现
     /// </summary>
+    [Serializable]
     public class FastIndexAccessor : IIndexAccessor
     {
         /// <summary>

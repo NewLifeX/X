@@ -17,6 +17,7 @@ namespace XCode
     /// <summary>
     /// 数据实体基类的基类
     /// </summary>
+    [Serializable]
     public abstract class EntityBase : BinaryAccessor, IEntity, IEntityOperate, ICloneable
     {
         #region 创建实体

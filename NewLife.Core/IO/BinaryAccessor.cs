@@ -6,6 +6,7 @@ namespace NewLife.IO
     /// <summary>
     /// 二进制数据访问器
     /// </summary>
+    [Serializable]
     public class BinaryAccessor : FastIndexAccessor, IBinaryAccessor
     {
         #region 读写
