@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Reflection.Emit;
+using NewLife.Exceptions;
 
 namespace NewLife.Reflection
 {
@@ -166,6 +167,132 @@ namespace NewLife.Reflection
         public EmitHelper Ldfld(FieldInfo field)
         {
             IL.Emit(OpCodes.Ldfld, field);
+
+            return this;
+        }
+
+        /// <summary>
+        /// 间接加载到计算堆栈
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public EmitHelper Ldind(Type type)
+        {
+            if (!type.IsValueType)
+                IL.Emit(OpCodes.Ldind_Ref);
+            else if (type.IsEnum)
+                Ldind(Enum.GetUnderlyingType(type));
+            else if (type == typeof(IntPtr))
+                IL.Emit(OpCodes.Ldind_I4);
+            else if (type == typeof(UIntPtr))
+                IL.Emit(OpCodes.Ldind_I4);
+            else
+            {
+                switch (Type.GetTypeCode(type))
+                {
+                    case TypeCode.Boolean:
+                        IL.Emit(OpCodes.Ldind_I1);
+                        break;
+                    case TypeCode.SByte:
+                        IL.Emit(OpCodes.Ldind_I1);
+                        break;
+                    case TypeCode.Byte:
+                        IL.Emit(OpCodes.Ldind_U1);
+                        break;
+                    case TypeCode.Char:
+                        IL.Emit(OpCodes.Ldind_U2);
+                        break;
+                    case TypeCode.Int16:
+                        IL.Emit(OpCodes.Ldind_I2);
+                        break;
+                    case TypeCode.Int32:
+                        IL.Emit(OpCodes.Ldind_I4);
+                        break;
+                    case TypeCode.Int64:
+                        IL.Emit(OpCodes.Ldind_I8);
+                        break;
+                    case TypeCode.UInt16:
+                        IL.Emit(OpCodes.Ldind_U2);
+                        break;
+                    case TypeCode.UInt32:
+                        IL.Emit(OpCodes.Ldind_U4);
+                        break;
+                    case TypeCode.UInt64:
+                        IL.Emit(OpCodes.Ldind_I8);
+                        break;
+                    case TypeCode.Single:
+                        IL.Emit(OpCodes.Ldind_R4);
+                        break;
+                    case TypeCode.Double:
+                        IL.Emit(OpCodes.Ldind_R8);
+                        break;
+                    default:
+                        throw new XException("{0}不支持的类型{1}", "Ldind", type);
+                }
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// 间接加载到计算堆栈
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public EmitHelper Stind(Type type)
+        {
+            if (!type.IsValueType)
+                IL.Emit(OpCodes.Stind_Ref);
+            else if (type.IsEnum)
+                Stind(Enum.GetUnderlyingType(type));
+            else if (type == typeof(IntPtr))
+                IL.Emit(OpCodes.Stind_I4);
+            else if (type == typeof(UIntPtr))
+                IL.Emit(OpCodes.Stind_I4);
+            else
+            {
+                switch (Type.GetTypeCode(type))
+                {
+                    case TypeCode.Boolean:
+                        IL.Emit(OpCodes.Stind_I1);
+                        break;
+                    case TypeCode.SByte:
+                        IL.Emit(OpCodes.Stind_I1);
+                        break;
+                    case TypeCode.Byte:
+                        IL.Emit(OpCodes.Stind_I1);
+                        break;
+                    case TypeCode.Char:
+                        IL.Emit(OpCodes.Stind_I2);
+                        break;
+                    case TypeCode.Int16:
+                        IL.Emit(OpCodes.Stind_I2);
+                        break;
+                    case TypeCode.Int32:
+                        IL.Emit(OpCodes.Stind_I4);
+                        break;
+                    case TypeCode.Int64:
+                        IL.Emit(OpCodes.Stind_I8);
+                        break;
+                    case TypeCode.UInt16:
+                        IL.Emit(OpCodes.Stind_I2);
+                        break;
+                    case TypeCode.UInt32:
+                        IL.Emit(OpCodes.Stind_I4);
+                        break;
+                    case TypeCode.UInt64:
+                        IL.Emit(OpCodes.Stind_I8);
+                        break;
+                    case TypeCode.Single:
+                        IL.Emit(OpCodes.Stind_R4);
+                        break;
+                    case TypeCode.Double:
+                        IL.Emit(OpCodes.Stind_R8);
+                        break;
+                    default:
+                        throw new XException("{0}不支持的类型{1}", "Stind", type);
+                }
+            }
 
             return this;
         }

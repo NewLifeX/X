@@ -150,27 +150,11 @@ namespace NewLife.Reflection
                 .CastFromObject(field.DeclaringType)
                 .Ldarg(1);
 
-            //il.Emit(OpCodes.Ldarg_0);
-            //help.CastFromObject(field.DeclaringType);
-            //il.Emit(OpCodes.Ldarg_1);
-
             MethodInfo method = GetMethod(field.FieldType);
             if (method != null)
-            {
-                //// 使用Convert.ToInt32(value)
-                //il.EmitCall(OpCodes.Call, method, null);
-
                 help.Call(method);
-            }
             else
-            {
-                //if (field.FieldType.IsValueType)
-                //    il.Emit(OpCodes.Unbox_Any, field.FieldType);
-                //else
-                //    il.Emit(OpCodes.Castclass, field.FieldType);
-
                 help.CastFromObject(field.FieldType);
-            }
 
             il.Emit(OpCodes.Stfld, field);
             il.Emit(OpCodes.Ret);
