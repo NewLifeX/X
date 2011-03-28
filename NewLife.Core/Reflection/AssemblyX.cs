@@ -170,6 +170,21 @@ namespace NewLife.Reflection
             }
             //set { _Description = value; }
         }
+
+        /// <summary>
+        /// 获取包含清单的已加载文件的路径或 UNC 位置。
+        /// </summary>
+        public String Location
+        {
+            get
+            {
+                try
+                {
+                    return Asm == null ? null : Asm.Location;
+                }
+                catch { return null; }
+            }
+        }
         #endregion
 
         #region 构造
@@ -444,12 +459,12 @@ namespace NewLife.Reflection
 
                     if (loadeds != null && loadeds.Exists(delegate(AssemblyX elm)
                     {
-                        return item.Equals(elm.Asm.Location, StringComparison.OrdinalIgnoreCase);
+                        return item.Equals(elm.Location, StringComparison.OrdinalIgnoreCase);
                     })) continue;
 
                     if (loadeds2 != null && loadeds2.Exists(delegate(AssemblyX elm)
                     {
-                        return item.Equals(elm.Asm.Location, StringComparison.OrdinalIgnoreCase);
+                        return item.Equals(elm.Location, StringComparison.OrdinalIgnoreCase);
                     })) continue;
 
                     try

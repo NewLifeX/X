@@ -18,7 +18,7 @@ namespace XCode
     /// 数据实体基类的基类
     /// </summary>
     [Serializable]
-    public abstract class EntityBase : BinaryAccessor, IEntity, IEntityOperate, ICloneable
+    public abstract class EntityBase : BinaryAccessor, IEntity, IEntityOperate, ICloneable, INotifyPropertyChanging, INotifyPropertyChanged
     {
         #region 创建实体
         /// <summary>
@@ -281,29 +281,29 @@ namespace XCode
         #endregion
 
         #region 静态操作
-        /// <summary>
-        /// 把一个实体对象持久化到数据库
-        /// </summary>
-        /// <param name="obj">实体对象</param>
-        /// <returns>返回受影响的行数</returns>
-        [WebMethod(Description = "插入")]
-        [DataObjectMethod(DataObjectMethodType.Insert, true)]
-        public static Int32 Insert(EntityBase obj)
-        {
-            return obj.Insert();
-        }
+        ///// <summary>
+        ///// 把一个实体对象持久化到数据库
+        ///// </summary>
+        ///// <param name="obj">实体对象</param>
+        ///// <returns>返回受影响的行数</returns>
+        //[WebMethod(Description = "插入")]
+        //[DataObjectMethod(DataObjectMethodType.Insert, true)]
+        //public static Int32 Insert(EntityBase obj)
+        //{
+        //    return obj.Insert();
+        //}
 
-        /// <summary>
-        /// 把一个实体对象更新到数据库
-        /// </summary>
-        /// <param name="obj">实体对象</param>
-        /// <returns>返回受影响的行数</returns>
-        [WebMethod(Description = "更新")]
-        [DataObjectMethod(DataObjectMethodType.Update, true)]
-        public static Int32 Update(EntityBase obj)
-        {
-            return obj.Update();
-        }
+        ///// <summary>
+        ///// 把一个实体对象更新到数据库
+        ///// </summary>
+        ///// <param name="obj">实体对象</param>
+        ///// <returns>返回受影响的行数</returns>
+        //[WebMethod(Description = "更新")]
+        //[DataObjectMethod(DataObjectMethodType.Update, true)]
+        //public static Int32 Update(EntityBase obj)
+        //{
+        //    return obj.Update();
+        //}
         #endregion
 
         #region 获取/设置 字段值
@@ -480,10 +480,56 @@ namespace XCode
         /// <param name="fieldName">字段名</param>
         /// <param name="newValue">新属性值</param>
         /// <returns>是否允许改变</returns>
+        //[Obsolete("改为使用OnPropertyChanging")]
         protected virtual Boolean OnPropertyChange(String fieldName, Object newValue)
         {
+            if (_PropertyChanging != null) _PropertyChanging(this, new PropertyChangingEventArgs(fieldName));
             Dirtys[fieldName] = true;
             return true;
+        }
+
+        /// <summary>
+        /// 属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。
+        /// </summary>
+        /// <param name="fieldName">字段名</param>
+        /// <param name="newValue">新属性值</param>
+        /// <returns>是否允许改变</returns>
+        protected virtual Boolean OnPropertyChanging(String fieldName, Object newValue)
+        {
+            if (_PropertyChanging != null) _PropertyChanging(this, new PropertyChangingEventArgs(fieldName));
+            Dirtys[fieldName] = true;
+            return true;
+        }
+
+        /// <summary>
+        /// 属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。
+        /// </summary>
+        /// <param name="fieldName">字段名</param>
+        protected virtual void OnPropertyChanged(String fieldName)
+        {
+            if (_PropertyChanged != null) _PropertyChanged(this, new PropertyChangedEventArgs(fieldName));
+        }
+
+        [field: NonSerialized]
+        event PropertyChangingEventHandler _PropertyChanging;
+        /// <summary>
+        /// 属性将更改
+        /// </summary>
+        event PropertyChangingEventHandler INotifyPropertyChanging.PropertyChanging
+        {
+            add { _PropertyChanging += value; }
+            remove { _PropertyChanging -= value; }
+        }
+
+        [field: NonSerialized]
+        event PropertyChangedEventHandler _PropertyChanged;
+        /// <summary>
+        /// 属性已更改
+        /// </summary>
+        event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
+        {
+            add { _PropertyChanged += value; }
+            remove { _PropertyChanged -= value; }
         }
         #endregion
 
@@ -492,6 +538,7 @@ namespace XCode
         private DictionaryCache<String, Object> _Extends;
         /// <summary>扩展属性</summary>
         [XmlIgnore]
+        [Browsable(false)]
         public DictionaryCache<String, Object> Extends
         {
             get { return _Extends ?? (_Extends = new DictionaryCache<String, Object>()); }
@@ -536,7 +583,7 @@ namespace XCode
         /// <param name="func">回调</param>
         /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
         /// <returns></returns>
-        protected virtual TResult GetExtend<TDependEntity, TResult>(String key, Func<String, Object> func, Boolean cacheDefault = true) 
+        protected virtual TResult GetExtend<TDependEntity, TResult>(String key, Func<String, Object> func, Boolean cacheDefault = true)
             where TDependEntity : Entity<TDependEntity>, new()
         {
             Object value = null;

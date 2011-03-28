@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using System.ComponentModel;
 
 namespace XCode
 {
@@ -14,7 +15,7 @@ namespace XCode
     /// 实体集合
     /// </summary>
     [Serializable]
-    public class EntityList<T> : List<T> where T : IEntity
+    public class EntityList<T> : List<T>, IListSource, ITypedList where T : IEntity
     {
         #region 构造函数
         /// <summary>
@@ -728,6 +729,184 @@ namespace XCode
             if (list == null || list.Count < 1) return null;
             return list;
         }
+        #endregion
+
+        #region IListSource接口
+        bool IListSource.ContainsListCollection
+        {
+            get { return false; }
+        }
+
+        IList IListSource.GetList()
+        {
+            // 如果是接口，创建新的集合，否则返回自身
+            if (!typeof(T).IsInterface) return this;
+
+            if (Count < 1) return null;
+
+            return ToArray(null);
+        }
+        #endregion
+
+        #region 复制
+        IList ToArray(Type type)
+        {
+            if (Count < 1) return null;
+
+            // 元素类型
+            if (type == null) type = this[0].GetType();
+            // 泛型
+            type = typeof(EntityList<>).MakeGenericType(type);
+
+            // 初始化集合，实际上是创建了一个真正的实体类型
+            IList list = TypeX.CreateInstance(type) as IList;
+            for (int i = 0; i < Count; i++)
+            {
+                list.Add(this[i]);
+            }
+
+            return list;
+        }
+        #endregion
+
+        #region ITypedList接口
+        static DisplayNameAttribute emptyDis = new DisplayNameAttribute();
+
+        PropertyDescriptorCollection ITypedList.GetItemProperties(PropertyDescriptor[] listAccessors)
+        {
+            Type type = typeof(T);
+            if (type.IsInterface)
+            {
+                if (Count > 0) type = this[0].GetType();
+            }
+            PropertyDescriptorCollection pdc = TypeDescriptor.GetProperties(type);
+            if (pdc != null && pdc.Count > 0)
+            {
+                IEntityOperate factory = EntityFactory.CreateOperate(type);
+                if (factory != null)
+                {
+                    List<PropertyDescriptor> list = new List<PropertyDescriptor>();
+                    foreach (PropertyDescriptor item in pdc)
+                    {
+                        // 显示名与属性名相同，并且没有DisplayName特性
+                        if (item.Name == item.DisplayName && !item.Attributes.Contains(emptyDis))
+                        {
+                            // 添加一个特性
+                            FieldItem fi = factory.Fields.Find(f => f.Name == item.Name);
+                            if (fi != null)
+                            {
+                                DisplayNameAttribute dis = new DisplayNameAttribute(fi.DisplayName);
+                                list.Add(TypeDescriptor.CreateProperty(fi.Property.PropertyType, item, dis));
+                                continue;
+                            }
+                        }
+                        list.Add(item);
+                    }
+                    pdc = new PropertyDescriptorCollection(list.ToArray());
+                }
+            }
+            return pdc;
+        }
+
+        string ITypedList.GetListName(PropertyDescriptor[] listAccessors)
+        {
+            return null;
+        }
+
+        //class MyPropertyDescriptor : PropertyDescriptor
+        //{
+        //    #region 重载
+        //    PropertyDescriptor pd;
+
+        //    public MyPropertyDescriptor(PropertyDescriptor p)
+        //        : base(p)
+        //    {
+        //        pd = p;
+        //        Fix();
+        //    }
+
+        //    public override bool CanResetValue(object component)
+        //    {
+        //        return pd.CanResetValue(component);
+        //    }
+
+        //    public override Type ComponentType
+        //    {
+        //        get { return pd.ComponentType; }
+        //    }
+
+        //    public override object GetValue(object component)
+        //    {
+        //        return pd.GetValue(component);
+        //    }
+
+        //    public override bool IsReadOnly
+        //    {
+        //        get { return pd.IsReadOnly; }
+        //    }
+
+        //    public override Type PropertyType
+        //    {
+        //        get { return pd.PropertyType; }
+        //    }
+
+        //    public override void ResetValue(object component)
+        //    {
+        //        pd.ResetValue(component);
+        //    }
+
+        //    public override void SetValue(object component, object value)
+        //    {
+        //        pd.SetValue(component, value);
+        //    }
+
+        //    public override bool ShouldSerializeValue(object component)
+        //    {
+        //        return pd.ShouldSerializeValue(component);
+        //    }
+        //    #endregion
+
+        //    #region 改写
+        //    private String _Category;
+        //    /// <summary>类别</summary>
+        //    public override String Category
+        //    {
+        //        get { return _Category ?? base.Category; }
+        //        //set { _Category = value; }
+        //    }
+
+        //    private String _DisplayName;
+        //    /// <summary>显示名</summary>
+        //    public override String DisplayName
+        //    {
+        //        get { return _DisplayName ?? base.DisplayName; }
+        //        //set { _DisplayName = value; }
+        //    }
+
+        //    static DescriptionAttribute emptyDes = new DescriptionAttribute();
+        //    static DisplayNameAttribute emptyDis = new DisplayNameAttribute();
+        //    static BindColumnAttribute emptyBind = new BindColumnAttribute();
+
+        //    void Fix()
+        //    {
+        //        BindColumnAttribute bc = pd.Attributes[typeof(BindColumnAttribute)] as BindColumnAttribute;
+
+        //        // 显示名和属性名相同、没有DisplayName特性、有Description特性
+        //        if (pd.DisplayName == pd.Name && !pd.Attributes.Contains(emptyDis))
+        //        {
+        //            DescriptionAttribute des = pd.Attributes[typeof(DescriptionAttribute)] as DescriptionAttribute;
+        //            if (des != null)
+        //            {
+        //                if (!String.IsNullOrEmpty(bc.Description)) _DisplayName = des.Description;
+        //            }
+        //            if (pd.DisplayName == pd.Name && bc != null)
+        //            {
+        //                if (!String.IsNullOrEmpty(bc.Description)) _DisplayName = bc.Description;
+        //            }
+        //        }
+        //    }
+        //    #endregion
+        //}
         #endregion
     }
 }

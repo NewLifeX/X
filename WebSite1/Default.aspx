@@ -23,6 +23,9 @@
         </XCL:DropDownList>
         <asp:Button ID="Button1" runat="server" onclick="Button1_Click" Text="Button" />
         <a href="javascript:modelReturn.call(this,event)">测试模态窗口返回值</a>
+        <asp:GridView ID="GridView1" runat="server" 
+            EnableModelValidation="True">
+        </asp:GridView>
     </div>
     </form>
 </body>

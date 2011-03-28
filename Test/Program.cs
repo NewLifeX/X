@@ -15,7 +15,6 @@ using NewLife.Net.Common;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
 using NewLife.Net.UPnP;
-using NewLife.PeerToPeer.Messages;
 using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Threading;
@@ -57,40 +56,6 @@ namespace Test
         static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
         {
             Console.WriteLine(e.ToString());
-        }
-
-        static void Test1()
-        {
-            PingMessage msg = new PingMessage();
-            msg.Token = Guid.NewGuid();
-
-            Type type = msg.GetType();
-
-            PropertyInfo[] pis = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            foreach (PropertyInfo item in pis)
-            {
-                Console.WriteLine("{0} {1}", item.Name, item.GetValue(msg, null));
-
-                //PropertyInfoX pi = PropertyInfoX.Create(item);
-                //PropertyInfoX pi = PropertyInfoX.Create(type, "Token");
-                //PropertyInfoX pi = item;
-                //pi.GetValue(msg); // =msg.Token
-                //pi.SetValue(msg, null);// msg.Token = null;
-            }
-
-            Console.WriteLine();
-            FieldInfo[] fis = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            foreach (FieldInfo item in fis)
-            {
-                Console.WriteLine("{0} {1}", item.Name, item.GetValue(msg));
-            }
-
-            Console.WriteLine();
-            MethodInfo[] methods = type.GetMethods();
-            foreach (MethodInfo item in methods)
-            {
-                Console.WriteLine(item.Name);
-            }
         }
 
         static void Test2()
@@ -596,11 +561,11 @@ namespace Test
         }
         class NewLog : Log<NewLog>
         {
-            public override int Insert()
-            {
-                Meta.TableName = Category;
-                return base.Insert();
-            }
+            //public override int Insert()
+            //{
+            //    Meta.TableName = Category;
+            //    return base.Insert();
+            //}
         }
     }
 }

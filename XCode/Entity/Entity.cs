@@ -898,6 +898,7 @@ namespace XCode
         /// </summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
+        [DisplayName("插入")]
         [WebMethod(Description = "插入")]
         [DataObjectMethod(DataObjectMethodType.Insert, true)]
         public static Int32 Insert(TEntity obj)
@@ -944,6 +945,7 @@ namespace XCode
         /// </summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
+        [DisplayName("更新")]
         [WebMethod(Description = "更新")]
         [DataObjectMethod(DataObjectMethodType.Update, true)]
         public static Int32 Update(TEntity obj)
@@ -1022,7 +1024,7 @@ namespace XCode
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
         [WebMethod(Description = "保存")]
-        [DataObjectMethod(DataObjectMethodType.Update, true)]
+        //[DataObjectMethod(DataObjectMethodType.Update, true)]
         public static Int32 Save(TEntity obj)
         {
             return obj.Save();

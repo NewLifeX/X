@@ -424,7 +424,7 @@ namespace NewLife.Reflection
 
             foreach (Assembly asm in asms)
             {
-                type = asm.GetType(typeName);
+                if (asm != null) type = asm.GetType(typeName);
                 if (type != null) return type;
             }
 

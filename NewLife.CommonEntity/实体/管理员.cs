@@ -33,6 +33,7 @@ namespace NewLife.CommonEntity
         /// 名称
         /// </summary>
         [Description("名称")]
+        [DisplayName("名称")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("Name", Description = "名称", DefaultValue = "", Order = 2)]
         public String Name

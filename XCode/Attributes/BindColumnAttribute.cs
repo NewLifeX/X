@@ -81,6 +81,11 @@ namespace XCode
         /// <summary>
         /// 构造函数
         /// </summary>
+        public BindColumnAttribute() { }
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
         /// <param name="name">字段名</param>
         public BindColumnAttribute(String name)
         {

@@ -67,10 +67,6 @@
       <Project>{5A8EF50C-3394-4C1E-99F0-33EFE8691CB0}</Project>
       <Name>NewLife.Net</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NewLife.PeerToPeer\NewLife.PeerToPeer.csproj">
-      <Project>{195A5858-8FE1-4043-9E51-7F879791629C}</Project>
-      <Name>NewLife.PeerToPeer</Name>
-    </ProjectReference>
     <ProjectReference Include="..\XCode\XCode.csproj">
       <Project>{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}</Project>
       <Name>XCode</Name>
