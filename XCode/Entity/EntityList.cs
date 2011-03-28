@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Xml.Serialization;
 using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-using System.ComponentModel;
 
 namespace XCode
 {
@@ -15,7 +15,7 @@ namespace XCode
     /// 实体集合
     /// </summary>
     [Serializable]
-    public class EntityList<T> : List<T>, IListSource, ITypedList where T : IEntity
+    public class EntityList<T> : List<T>, IListSource, ITypedList, IBindingList, IBindingListView where T : IEntity
     {
         #region 构造函数
         /// <summary>
@@ -770,42 +770,61 @@ namespace XCode
         #endregion
 
         #region ITypedList接口
-        static DisplayNameAttribute emptyDis = new DisplayNameAttribute();
-
         PropertyDescriptorCollection ITypedList.GetItemProperties(PropertyDescriptor[] listAccessors)
         {
             Type type = typeof(T);
+            // 如果是接口，使用第一个元素的类型
             if (type.IsInterface)
             {
                 if (Count > 0) type = this[0].GetType();
             }
+            // 调用TypeDescriptor获取属性
             PropertyDescriptorCollection pdc = TypeDescriptor.GetProperties(type);
-            if (pdc != null && pdc.Count > 0)
+            if (pdc == null || pdc.Count <= 0) return pdc;
+
+            // 准备实体操作者
+            IEntityOperate factory = EntityFactory.CreateOperate(type);
+            if (factory == null) return pdc;
+
+            // 准备字段集合
+            Dictionary<String, FieldItem> dic = new Dictionary<string, FieldItem>();
+            //factory.Fields.ForEach(item => dic.Add(item.Name, item));
+            foreach (FieldItem item in factory.Fields)
             {
-                IEntityOperate factory = EntityFactory.CreateOperate(type);
-                if (factory != null)
-                {
-                    List<PropertyDescriptor> list = new List<PropertyDescriptor>();
-                    foreach (PropertyDescriptor item in pdc)
-                    {
-                        // 显示名与属性名相同，并且没有DisplayName特性
-                        if (item.Name == item.DisplayName && !item.Attributes.Contains(emptyDis))
-                        {
-                            // 添加一个特性
-                            FieldItem fi = factory.Fields.Find(f => f.Name == item.Name);
-                            if (fi != null)
-                            {
-                                DisplayNameAttribute dis = new DisplayNameAttribute(fi.DisplayName);
-                                list.Add(TypeDescriptor.CreateProperty(fi.Property.PropertyType, item, dis));
-                                continue;
-                            }
-                        }
-                        list.Add(item);
-                    }
-                    pdc = new PropertyDescriptorCollection(list.ToArray());
-                }
+                dic.Add(item.Name, item);
             }
+
+            List<PropertyDescriptor> list = new List<PropertyDescriptor>();
+            foreach (PropertyDescriptor item in pdc)
+            {
+                // 显示名与属性名相同，并且没有DisplayName特性
+                if (item.Name == item.DisplayName && !ContainAttribute(item.Attributes, typeof(DisplayNameAttribute)))
+                {
+                    // 添加一个特性
+                    FieldItem fi = null;
+                    if (dic.TryGetValue(item.Name, out fi) && !String.IsNullOrEmpty(fi.DisplayName))
+                    {
+                        DisplayNameAttribute dis = new DisplayNameAttribute(fi.DisplayName);
+                        list.Add(TypeDescriptor.CreateProperty(type, item, dis));
+                        continue;
+                    }
+                }
+                list.Add(item);
+            }
+            pdc = new PropertyDescriptorCollection(list.ToArray());
+
             return pdc;
+        }
+
+        static Boolean ContainAttribute(AttributeCollection attributes, Type type)
+        {
+            if (attributes == null || attributes.Count < 1 || type == null) return false;
+
+            foreach (Attribute item in attributes)
+            {
+                if (type.IsAssignableFrom(item.GetType())) return true;
+            }
+            return false;
         }
 
         string ITypedList.GetListName(PropertyDescriptor[] listAccessors)
@@ -907,6 +926,270 @@ namespace XCode
         //    }
         //    #endregion
         //}
+        #endregion
+
+        #region IBindingList接口
+        #region 属性
+        Boolean _AllowEdit = true;
+        /// <summary>获取是否可更新列表中的项。</summary>
+        bool IBindingList.AllowEdit { get { return _AllowEdit; } }
+        bool AllowEdit
+        {
+            get { return _AllowEdit; }
+            set { if (_AllowEdit != value) { _AllowEdit = value; OnListChanged(ResetEventArgs); }; }
+        }
+
+        Boolean _AllowNew = true;
+        /// <summary>获取是否可以使用 System.ComponentModel.IBindingList.AddNew() 向列表中添加项。</summary>
+        bool IBindingList.AllowNew { get { return _AllowNew; } }
+        bool AllowNew
+        {
+            get { return _AllowNew; }
+            set { if (_AllowNew != value) { _AllowNew = value; OnListChanged(ResetEventArgs); }; }
+        }
+
+        Boolean _AllowRemove = true;
+        /// <summary>获取是否可以使用 System.Collections.IList.Remove(System.Object) 或 System.Collections.IList.RemoveAt(System.Int32)从列表中移除项。</summary>
+        bool IBindingList.AllowRemove { get { return _AllowRemove; } }
+        bool AllowDelete
+        {
+            get { return _AllowRemove; }
+            set { if (_AllowRemove != value) { _AllowRemove = value; OnListChanged(ResetEventArgs); }; }
+        }
+
+        Boolean _IsSorted = true;
+        /// <summary>获取是否对列表中的项进行排序。</summary>
+        bool IBindingList.IsSorted { get { return _IsSorted; } }
+        bool IsSorted
+        {
+            get { return _IsSorted; }
+            set { if (_IsSorted != value) { _IsSorted = value; OnListChanged(ResetEventArgs); }; }
+        }
+
+        ListSortDirection IBindingList.SortDirection
+        {
+            get { throw new NotImplementedException(); }
+        }
+
+        PropertyDescriptor IBindingList.SortProperty
+        {
+            get { throw new NotImplementedException(); }
+        }
+
+        bool IBindingList.SupportsChangeNotification
+        {
+            get { return true; }
+        }
+
+        bool IBindingList.SupportsSearching
+        {
+            get { return true; }
+        }
+
+        bool IBindingList.SupportsSorting
+        {
+            get { return true; }
+        }
+
+        bool IList.IsFixedSize
+        {
+            get { throw new NotImplementedException(); }
+        }
+
+        bool IList.IsReadOnly
+        {
+            get { throw new NotImplementedException(); }
+        }
+
+        int ICollection.Count
+        {
+            get { throw new NotImplementedException(); }
+        }
+
+        bool ICollection.IsSynchronized
+        {
+            get { throw new NotImplementedException(); }
+        }
+
+        object ICollection.SyncRoot
+        {
+            get { throw new NotImplementedException(); }
+        }
+        #endregion
+
+        #region 事件
+        event ListChangedEventHandler _ListChanged;
+        event ListChangedEventHandler IBindingList.ListChanged
+        {
+            add { _ListChanged += value; }
+            remove { _ListChanged -= value; }
+        }
+
+        static ListChangedEventArgs ResetEventArgs = new ListChangedEventArgs(ListChangedType.Reset, -1);
+
+        protected virtual void OnListChanged(ListChangedEventArgs e)
+        {
+            DataColumn dataColumn = null;
+            string propName = null;
+            switch (e.ListChangedType)
+            {
+                case ListChangedType.ItemMoved:
+                case ListChangedType.ItemChanged:
+                    if (0 <= e.NewIndex)
+                    {
+                        DataRow row = this.GetRow(e.NewIndex);
+                        if (row.HasPropertyChanged)
+                        {
+                            dataColumn = row.LastChangedColumn;
+                            propName = (dataColumn != null) ? dataColumn.ColumnName : string.Empty;
+                        }
+                        row.ResetLastChangedColumn();
+                    }
+                    break;
+            }
+            if (_ListChanged != null)
+            {
+                if ((dataColumn != null) && (e.NewIndex == e.OldIndex))
+                {
+                    ListChangedEventArgs args = new ListChangedEventArgs(e.ListChangedType, e.NewIndex, new DataColumnPropertyDescriptor(dataColumn));
+                    _ListChanged(this, args);
+                }
+                else
+                {
+                    _ListChanged(this, e);
+                }
+            }
+            if (propName != null)
+            {
+                this[e.NewIndex].RaisePropertyChangedEvent(propName);
+            }
+        }
+        #endregion
+
+        #region 方法
+        void IBindingList.AddIndex(PropertyDescriptor property)
+        {
+            throw new NotImplementedException();
+        }
+
+        object IBindingList.AddNew()
+        {
+            throw new NotImplementedException();
+        }
+
+        void IBindingList.ApplySort(PropertyDescriptor property, ListSortDirection direction)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IBindingList.Find(PropertyDescriptor property, object key)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IBindingList.RemoveIndex(PropertyDescriptor property)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IBindingList.RemoveSort()
+        {
+            throw new NotImplementedException();
+        }
+
+        int IList.Add(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IList.Clear()
+        {
+            throw new NotImplementedException();
+        }
+
+        bool IList.Contains(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IList.IndexOf(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IList.Insert(int index, object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IList.Remove(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IList.RemoveAt(int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        object IList.this[int index]
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        void ICollection.CopyTo(Array array, int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+        #endregion
+        #endregion
+
+        #region IBindingListView接口
+        void IBindingListView.ApplySort(ListSortDescriptionCollection sorts)
+        {
+            //TODO 未实现
+            throw new NotImplementedException();
+        }
+
+        string _Filter;
+        string IBindingListView.Filter
+        {
+            get { return _Filter; }
+            set { _Filter = value; }
+        }
+
+        void IBindingListView.RemoveFilter()
+        {
+            _Filter = "";
+        }
+
+        ListSortDescriptionCollection IBindingListView.SortDescriptions
+        {
+            //TODO 未实现
+            get { throw new NotImplementedException(); }
+        }
+
+        bool IBindingListView.SupportsAdvancedSorting
+        {
+            get { return true; }
+        }
+
+        bool IBindingListView.SupportsFiltering
+        {
+            get { return true; }
+        }
         #endregion
     }
 }
