@@ -184,6 +184,20 @@ namespace XCode
             /// 取得指定类对应的Select字句字符串。
             /// </summary>
             public static String Selects { get { return XCodeConfig.Selects(ThisType); } }
+
+            /// <summary>
+            /// 实体操作者
+            /// </summary>
+            internal static IEntityOperate Factory
+            {
+                get
+                {
+                    Type type = ThisType;
+                    if (type.IsInterface) return null;
+
+                    return EntityFactory.CreateOperate(type);
+                }
+            }
             #endregion
 
             #region 数据库操作
@@ -376,7 +390,7 @@ namespace XCode
                 //}
                 try
                 {
-                    EntityFactory.CreateOperate(ThisType).InitData();
+                    Factory.InitData();
                 }
                 catch (Exception ex)
                 {

@@ -623,7 +623,7 @@ namespace XCode
         private XmlSerializer CreateXmlSerializer()
         {
             XmlAttributeOverrides ovs = new XmlAttributeOverrides();
-            IEntityOperate factory = EntityFactory.CreateOperate(typeof(T));
+            IEntityOperate factory = Factory;
             IEntity entity = factory.Create();
             foreach (FieldItem item in factory.Fields)
             {
@@ -727,6 +727,38 @@ namespace XCode
             }
             if (list == null || list.Count < 1) return null;
             return list;
+        }
+        #endregion
+
+        #region 辅助函数
+        /// <summary>
+        /// 真正的实体类型。有些场合为了需要会使用IEntity。
+        /// </summary>
+        Type EntityType
+        {
+            get
+            {
+                Type type = typeof(T);
+                if (!type.IsInterface) return type;
+
+                if (Count > 0) return this[0].GetType();
+
+                return type;
+            }
+        }
+
+        /// <summary>
+        /// 实体操作者
+        /// </summary>
+        IEntityOperate Factory
+        {
+            get
+            {
+                Type type = EntityType;
+                if (type.IsInterface) return null;
+
+                return EntityFactory.CreateOperate(type);
+            }
         }
         #endregion
     }

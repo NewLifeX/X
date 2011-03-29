@@ -36,7 +36,7 @@ namespace XCode
         /// <returns></returns>
         public static IEntity Create(Type type)
         {
-            if (type == null) return null;
+            if (type == null || type.IsInterface) return null;
 
             return Activator.CreateInstance(type) as IEntity;
         }

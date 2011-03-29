@@ -105,7 +105,7 @@ namespace XCode
                 prefix = Meta.ColumnPrefix;
                 hasprefix = true;
             }
-            IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
+            IEntityOperate factory = Meta.Factory;
             List<FieldItem> ps = CheckColumn(dt, prefix);
             foreach (DataRow dr in dt.Rows)
             {
@@ -465,8 +465,8 @@ namespace XCode
             // 参数为空时，返回新实例
             if (key == null)
             {
-                IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
-                return factory.Create() as TEntity;
+                //IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
+                return Meta.Factory.Create() as TEntity;
             }
 
             Type type = field.Property.PropertyType;
@@ -476,8 +476,8 @@ namespace XCode
             {
                 if (field.DataObjectField.IsIdentity)
                 {
-                    IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
-                    return factory.Create() as TEntity;
+                    //IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
+                    return Meta.Factory.Create() as TEntity;
                 }
                 else
                 {
@@ -488,8 +488,8 @@ namespace XCode
             // 唯一键是字符串且为空时，返回新实例
             if (type == typeof(String) && (key is String) && String.IsNullOrEmpty((String)key))
             {
-                IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
-                return factory.Create() as TEntity;
+                //IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
+                return Meta.Factory.Create() as TEntity;
             }
 
             // 此外，一律返回 查找值，即使可能是空。而绝不能在找不到数据的情况下给它返回空，因为可能是找不到数据而已，而返回新实例会导致前端以为这里是新增数据
@@ -1482,8 +1482,8 @@ namespace XCode
             StopExtend = true;
             try
             {
-                IEntityOperate factory = EntityFactory.CreateOperate(typeof(TEntity));
-                XmlSerializer serial = ((TEntity)factory).CreateXmlSerializer();
+                //IEntityOperate factory = EntityFactory.CreateOperate(typeof(TEntity));
+                XmlSerializer serial = ((TEntity)Meta.Factory).CreateXmlSerializer();
                 using (StringReader reader = new StringReader(xml))
                 {
                     return serial.Deserialize(reader) as TEntity;

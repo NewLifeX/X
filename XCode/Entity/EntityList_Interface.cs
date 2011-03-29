@@ -50,24 +50,15 @@ namespace XCode
         #region ITypedList接口
         PropertyDescriptorCollection ITypedList.GetItemProperties(PropertyDescriptor[] listAccessors)
         {
-            Type type = typeof(T);
-            // 如果是接口，使用第一个元素的类型
-            if (type.IsInterface)
-            {
-                if (Count > 0) type = this[0].GetType();
-            }
+            Type type = EntityType;
             // 调用TypeDescriptor获取属性
             PropertyDescriptorCollection pdc = TypeDescriptor.GetProperties(type);
             if (pdc == null || pdc.Count <= 0) return pdc;
 
-            // 准备实体操作者
-            IEntityOperate factory = EntityFactory.CreateOperate(type);
-            if (factory == null) return pdc;
-
             // 准备字段集合
             Dictionary<String, FieldItem> dic = new Dictionary<string, FieldItem>();
             //factory.Fields.ForEach(item => dic.Add(item.Name, item));
-            foreach (FieldItem item in factory.Fields)
+            foreach (FieldItem item in Factory.Fields)
             {
                 dic.Add(item.Name, item);
             }
