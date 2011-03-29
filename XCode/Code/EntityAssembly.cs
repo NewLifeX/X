@@ -108,9 +108,26 @@ namespace XCode.Code
         /// <returns></returns>
         public EntityClass Create(XTable table)
         {
+            // 复制一份，以免修改原来的结构
+            XTable tb = table.Clone();
+            tb.Name = tb.Name.Replace("$", null);
+
+            // 计算名称，防止属性名和类型名重名
+            List<String> list = new List<String>();
+            list.Add(tb.Name);
+            foreach (XField item in tb.Fields)
+            {
+                String name = item.Name;
+                for (int i = 2; list.Contains(name); i++)
+                {
+                    name = item.Name + i;
+                }
+                item.Name = name;
+            }
+
             EntityClass entity = new EntityClass();
             entity.Assembly = this;
-            entity.Table = table;
+            entity.Table = tb;
             entity.Create();
             entity.AddProperties();
             entity.AddIndexs();

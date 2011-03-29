@@ -50,10 +50,7 @@ namespace XCode.Code
         /// </summary>
         public void Create()
         {
-            String tableName = Table.Name;
-            tableName = tableName.Replace("$", null);
-
-            Class = new CodeTypeDeclaration(tableName);
+            Class = new CodeTypeDeclaration(Table.Name);
             Class.IsClass = true;
             Class.IsPartial = true;
             Class.TypeAttributes = TypeAttributes.Public;
@@ -66,7 +63,7 @@ namespace XCode.Code
             Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DescriptionAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(Table.Description))));
             Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DisplayNameAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(Table.Description))));
             Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindTableAttribute)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(tableName)),
+                new CodeAttributeArgument(new CodePrimitiveExpression(Table.Name)),
                 new CodeAttributeArgument("Description", new CodePrimitiveExpression(Table.Description)),
                 new CodeAttributeArgument("ConnName", new CodePrimitiveExpression(Assembly.Dal.ConnName))
                 ));
@@ -75,7 +72,7 @@ namespace XCode.Code
             Type type = typeof(Entity<>);
             //type=type.MakeGenericType(typeof())
             //Class.BaseTypes.Add(type);
-            Class.BaseTypes.Add(String.Format("Entity<{0}>", tableName));
+            Class.BaseTypes.Add(String.Format("Entity<{0}>", Table.Name));
 
             Assembly.NameSpace.Types.Add(Class);
         }
@@ -221,50 +218,6 @@ namespace XCode.Code
             cas.Left = new CodeIndexerExpression(new CodeBaseReferenceExpression(), new CodeVariableReferenceExpression("name"));
             cas.Right = new CodeVariableReferenceExpression("value");
             p.SetStatements.Add(cas);
-
-            //StringBuilder sb = new StringBuilder();
-
-            //Int32 n = 3;
-            //sb.Append(GetTabSpace(n));
-            //sb.AppendLine("switch (name)");
-            //sb.Append(GetTabSpace(n));
-            //sb.AppendLine("{");
-            //n++;
-            //foreach (XField item in Table.Fields)
-            //{
-            //    sb.Append(GetTabSpace(n));
-            //    sb.AppendFormat("case \"{0}\": return {0};\r\n", item.Name);
-            //}
-            //sb.Append(GetTabSpace(n));
-            //sb.AppendLine("default: return base[name];");
-            //n--;
-            //sb.Append(GetTabSpace(n));
-            //sb.Append("}");
-
-            //CodeSnippetStatement cs = new CodeSnippetStatement(sb.ToString());
-            //p.GetStatements.Add(cs);
-
-            //sb = new StringBuilder();
-            //n = 3;
-
-            //sb.Append(GetTabSpace(n));
-            //sb.AppendLine("switch (name)");
-            //sb.Append(GetTabSpace(n));
-            //sb.AppendLine("{");
-            //n++;
-            //foreach (XField item in Table.Fields)
-            //{
-            //    sb.Append(GetTabSpace(n));
-            //    sb.AppendFormat("_{0} = Convert.To{1}(value); break;\r\n", item.Name, item.DataType.Name);
-            //}
-            //sb.Append(GetTabSpace(n));
-            //n--;
-            //sb.AppendLine("default: base[name] = value; break;");
-            //sb.Append(GetTabSpace(n));
-            //sb.Append("}");
-
-            //cs = new CodeSnippetStatement(sb.ToString());
-            //p.SetStatements.Add(cs);
 
             p.StartDirectives.Add(new CodeRegionDirective(CodeRegionMode.Start, "获取/设置 字段值"));
             p.EndDirectives.Add(new CodeRegionDirective(CodeRegionMode.End, null));

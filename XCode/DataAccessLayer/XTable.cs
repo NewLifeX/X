@@ -16,7 +16,7 @@ namespace XCode.DataAccessLayer
     /// </summary>
     [DebuggerDisplay("ID={ID} Name={Name} Description={Description}")]
     [Serializable]
-    public class XTable
+    public class XTable : ICloneable
     {
         #region 属性
         #region 基本属性
@@ -228,6 +228,38 @@ namespace XCode.DataAccessLayer
             {
                 return serializer.Deserialize(sr) as XTable;
             }
+        }
+        #endregion
+
+        #region ICloneable 成员
+        /// <summary>
+        /// /// 克隆
+        /// </summary>
+        /// <returns></returns>
+        object ICloneable.Clone()
+        {
+            return Clone();
+        }
+
+        /// <summary>
+        /// 克隆
+        /// </summary>
+        /// <returns></returns>
+        public XTable Clone()
+        {
+            XTable table = base.MemberwiseClone() as XTable;
+            if (table != null && Fields != null)
+            {
+                table.Fields = new List<XField>();
+                foreach (XField item in Fields)
+                {
+                    table.Fields.Add(item.Clone(table));
+                    //XField field = item.Clone();
+                    //field.Table = table;
+                    //table.Fields.Add(field);
+                }
+            }
+            return table;
         }
         #endregion
     }

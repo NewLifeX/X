@@ -11,7 +11,7 @@ namespace XCode.DataAccessLayer
     /// 字段构架
     /// </summary>
     [Serializable]
-    public class XField
+    public class XField : ICloneable
     {
         #region 属性
         private Int32 _ID;
@@ -153,8 +153,10 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 扩展属性
+        [NonSerialized]
         private XTable _Table;
         /// <summary>表架构</summary>
+        [XmlIgnore]
         public XTable Table
         {
             get { return _Table; }
@@ -301,6 +303,29 @@ namespace XCode.DataAccessLayer
         public override string ToString()
         {
             return String.Format("ID={0} Name={1} FieldType={2} RawType={3} Description={4}", ID, Name, FieldType, RawType, Description);
+        }
+        #endregion
+
+        #region ICloneable 成员
+        /// <summary>
+        /// /// 克隆
+        /// </summary>
+        /// <returns></returns>
+        object ICloneable.Clone()
+        {
+            return Clone(Table);
+        }
+
+        /// <summary>
+        /// 克隆
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        public XField Clone(XTable table)
+        {
+            XField field = base.MemberwiseClone() as XField;
+            field.Table = table;
+            return field;
         }
         #endregion
     }

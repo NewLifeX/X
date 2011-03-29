@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.4.*")]
-[assembly: AssemblyFileVersion("7.4.2011.0325")]
+[assembly: AssemblyFileVersion("7.4.2011.0329")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,11 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.4.2011.0329   修正动态生成代码时属性名与类型重名导致编译出错的问题
+ *                  XTable和XField实现克隆接口
+ *                  EntityBase实现INotifyPropertyChanging, INotifyPropertyChanged, ICustomTypeDescriptor, IEditableObject接口
+ *                  EntityList实现ITypedList, IBindingList, IBindingListView, ICancelAddNew接口
+ * 
  * v7.4.2011.0325   Entity所有基类标识为可序列化
  * 
  * v7.4.2011.0323   修改反向工程，当多个实体类使用同一数据表时，优先使用非通用实体类
