@@ -18,7 +18,7 @@ namespace XCode
     /// 数据实体基类的基类
     /// </summary>
     [Serializable]
-    public abstract class EntityBase : BinaryAccessor, IEntity, IEntityOperate, ICloneable, INotifyPropertyChanging, INotifyPropertyChanged
+    public abstract partial class EntityBase : BinaryAccessor, IEntity, IEntityOperate, ICloneable
     {
         #region 创建实体
         /// <summary>
@@ -486,50 +486,6 @@ namespace XCode
             if (_PropertyChanging != null) _PropertyChanging(this, new PropertyChangingEventArgs(fieldName));
             Dirtys[fieldName] = true;
             return true;
-        }
-
-        /// <summary>
-        /// 属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。
-        /// </summary>
-        /// <param name="fieldName">字段名</param>
-        /// <param name="newValue">新属性值</param>
-        /// <returns>是否允许改变</returns>
-        protected virtual Boolean OnPropertyChanging(String fieldName, Object newValue)
-        {
-            if (_PropertyChanging != null) _PropertyChanging(this, new PropertyChangingEventArgs(fieldName));
-            Dirtys[fieldName] = true;
-            return true;
-        }
-
-        /// <summary>
-        /// 属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。
-        /// </summary>
-        /// <param name="fieldName">字段名</param>
-        protected virtual void OnPropertyChanged(String fieldName)
-        {
-            if (_PropertyChanged != null) _PropertyChanged(this, new PropertyChangedEventArgs(fieldName));
-        }
-
-        [field: NonSerialized]
-        event PropertyChangingEventHandler _PropertyChanging;
-        /// <summary>
-        /// 属性将更改
-        /// </summary>
-        event PropertyChangingEventHandler INotifyPropertyChanging.PropertyChanging
-        {
-            add { _PropertyChanging += value; }
-            remove { _PropertyChanging -= value; }
-        }
-
-        [field: NonSerialized]
-        event PropertyChangedEventHandler _PropertyChanged;
-        /// <summary>
-        /// 属性已更改
-        /// </summary>
-        event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
-        {
-            add { _PropertyChanged += value; }
-            remove { _PropertyChanged -= value; }
         }
         #endregion
 

@@ -30,7 +30,7 @@ namespace <#=Config.NameSpace#>
 		#endregion
 		
 		#region 扩展属性
-		//TODO: 本类与哪些类有关联，可以在这里放置一个属性，使用延迟加载的方式获取关联对象
+		// 本类与哪些类有关联，可以在这里放置一个属性，使用延迟加载的方式获取关联对象
 <#
 		// 探测以ID结尾的字段是否为类名，如果是，则输出扩展属性
 		Boolean hasExtendProperty = false;

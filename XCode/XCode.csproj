@@ -99,6 +99,7 @@
     <Compile Include="DataAccessLayer\MetaData\IMetaData.cs" />
     <Compile Include="DataAccessLayer\XDbConnectionStringBuilder.cs" />
     <Compile Include="Entity\EntityList_Interface.cs" />
+    <Compile Include="Entity\EntityBase_Interface.cs" />
     <Compile Include="Exceptions\XDbException.cs" />
     <Compile Include="Exceptions\XCodeException.cs" />
     <Compile Include="Exceptions\XDbMetaDataException.cs" />

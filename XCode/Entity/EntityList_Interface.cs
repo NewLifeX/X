@@ -7,7 +7,7 @@ using XCode.Configuration;
 
 namespace XCode
 {
-    public partial class EntityList<T> : IListSource, ITypedList, IBindingList, IBindingListView
+    public partial class EntityList<T> : IListSource, ITypedList, IBindingList, IBindingListView, ICancelAddNew
     {
         #region IListSource接口
         bool IListSource.ContainsListCollection
@@ -226,7 +226,7 @@ namespace XCode
             set { if (_AllowRemove != value) { _AllowRemove = value; OnListChanged(ResetEventArgs); }; }
         }
 
-        Boolean _IsSorted = true;
+        Boolean _IsSorted = false;
         /// <summary>获取是否对列表中的项进行排序。</summary>
         bool IBindingList.IsSorted { get { return _IsSorted; } }
         bool IsSorted
@@ -235,16 +235,22 @@ namespace XCode
             set { if (_IsSorted != value) { _IsSorted = value; OnListChanged(ResetEventArgs); }; }
         }
 
-        ListSortDirection IBindingList.SortDirection
+        ListSortDirection _SortDirection;
+        ListSortDirection IBindingList.SortDirection { get { return _SortDirection; } }
+        /// <summary>获取排序的方向。</summary>
+        ListSortDirection SortDirection
         {
-            //TODO 未实现
-            get { throw new NotImplementedException(); }
+            get { return _SortDirection; }
+            set { if (_SortDirection != value) { _SortDirection = value; OnListChanged(ResetEventArgs); }; }
         }
 
-        PropertyDescriptor IBindingList.SortProperty
+        PropertyDescriptor _SortProperty;
+        PropertyDescriptor IBindingList.SortProperty { get { return _SortProperty; } }
+        /// <summary>获取正在用于排序的 System.ComponentModel.PropertyDescriptor。</summary>
+        PropertyDescriptor SortProperty
         {
-            //TODO 未实现
-            get { throw new NotImplementedException(); }
+            get { return _SortProperty; }
+            set { if (_SortProperty != value) { _SortProperty = value; OnListChanged(ResetEventArgs); }; }
         }
 
         bool IBindingList.SupportsChangeNotification
@@ -315,38 +321,62 @@ namespace XCode
         #region 方法
         void IBindingList.AddIndex(PropertyDescriptor property)
         {
-            //TODO 未实现
-            throw new NotImplementedException();
         }
 
         object IBindingList.AddNew()
         {
-            //TODO 未实现
-            throw new NotImplementedException();
+            T entity = (T)Factory.Create();
+            base.Add(entity);
+            OnListChanged(new ListChangedEventArgs(ListChangedType.ItemAdded, base.IndexOf(entity)));
+            return entity;
         }
 
         void IBindingList.ApplySort(PropertyDescriptor property, ListSortDirection direction)
         {
-            //TODO 未实现
-            throw new NotImplementedException();
+            Sort(property.Name, direction == ListSortDirection.Descending);
+
+            IsSorted = true;
+            SortProperty = property;
+            SortDirection = direction;
+
+            OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
         }
 
         int IBindingList.Find(PropertyDescriptor property, object key)
         {
-            //TODO 未实现
-            throw new NotImplementedException();
+            return FindIndex(item => Object.Equals(item[property.Name], key));
         }
 
         void IBindingList.RemoveIndex(PropertyDescriptor property)
         {
-            //TODO 未实现
-            throw new NotImplementedException();
         }
 
         void IBindingList.RemoveSort()
         {
-            //TODO 未实现
-            throw new NotImplementedException();
+            FieldItem fi = Factory.Fields[0];
+            Boolean isDesc = false;
+            foreach (FieldItem item in Factory.Fields)
+            {
+                if (item.DataObjectField.IsIdentity)
+                {
+                    fi = item;
+                    isDesc = true;
+                    break;
+                }
+                else if (item.DataObjectField.PrimaryKey)
+                {
+                    fi = item;
+                    isDesc = false;
+                    break;
+                }
+            }
+            Sort(Factory.Fields[0].Name, isDesc);
+
+            IsSorted = false;
+            SortProperty = null;
+            SortDirection = ListSortDirection.Ascending;
+
+            OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
         }
         #endregion
         #endregion
@@ -354,8 +384,19 @@ namespace XCode
         #region IBindingListView接口
         void IBindingListView.ApplySort(ListSortDescriptionCollection sorts)
         {
-            //TODO 未实现
-            throw new NotImplementedException();
+            if (sorts == null || sorts.Count < 1) return;
+
+            List<String> ns = new List<string>();
+            List<Boolean> ds = new List<bool>();
+            foreach (ListSortDescription item in sorts)
+            {
+                ns.Add(item.PropertyDescriptor.Name);
+                ds.Add(item.SortDirection == ListSortDirection.Descending);
+            }
+
+            Sort(ns.ToArray(), ds.ToArray());
+
+            SortDescriptions = sorts;
         }
 
         string _Filter;
@@ -370,10 +411,13 @@ namespace XCode
             _Filter = "";
         }
 
-        ListSortDescriptionCollection IBindingListView.SortDescriptions
+        ListSortDescriptionCollection _SortDescriptions;
+        ListSortDescriptionCollection IBindingListView.SortDescriptions { get { return _SortDescriptions; } }
+        /// <summary>获取当前应用于数据源的排序说明的集合。</summary>
+        ListSortDescriptionCollection SortDescriptions
         {
-            //TODO 未实现
-            get { throw new NotImplementedException(); }
+            get { return _SortDescriptions; }
+            set { if (_SortDescriptions != value) { _SortDescriptions = value; OnListChanged(ResetEventArgs); }; }
         }
 
         bool IBindingListView.SupportsAdvancedSorting
@@ -383,7 +427,23 @@ namespace XCode
 
         bool IBindingListView.SupportsFiltering
         {
-            get { return true; }
+            get { return false; }
+        }
+        #endregion
+
+        #region ICancelAddNew 成员
+        void ICancelAddNew.CancelNew(int itemIndex)
+        {
+            if (itemIndex < 0 || itemIndex >= Count) return;
+
+            RemoveAt(itemIndex);
+        }
+
+        void ICancelAddNew.EndNew(int itemIndex)
+        {
+            if (itemIndex < 0 || itemIndex >= Count) return;
+
+            this[itemIndex].Insert();
         }
         #endregion
     }
