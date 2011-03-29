@@ -29,7 +29,7 @@ namespace <#=Config.NameSpace#>
 		public <#=Field.FieldType#> <#=GetPropertyName(Field)#>
 		{
 			get { return _<#=GetPropertyName(Field)#>; }
-			set { if (OnPropertyChange("<#=GetPropertyName(Field)#>", value)) _<#=GetPropertyName(Field)#> = value; }
+			set { if (OnPropertyChanging("<#=GetPropertyName(Field)#>", value)) { _<#=GetPropertyName(Field)#> = value; OnPropertyChanged("<#=GetPropertyName(Field)#>"); } }
 		}
 <#
 	}

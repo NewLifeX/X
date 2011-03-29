@@ -247,6 +247,8 @@ namespace XCoder
 
         void AutoLoadTables(String name)
         {
+            if (String.IsNullOrEmpty(name)) return;
+
             // “Ï≤Ωº”‘ÿ
             ThreadPool.QueueUserWorkItem(delegate(Object state)
             {
@@ -257,7 +259,7 @@ namespace XCoder
                 catch (Exception ex)
                 {
                     //MessageBox.Show(ex.ToString(), this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    lb_Status.Text = ex.Message;
+                    //lb_Status.Text = ex.Message;
                 }
             });
         }

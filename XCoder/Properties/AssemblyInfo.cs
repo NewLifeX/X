@@ -30,9 +30,12 @@ using System.Runtime.InteropServices;
 //      修订号
 //
 [assembly: AssemblyVersion("3.4.*")]
-[assembly: AssemblyFileVersion("3.4.2011.0316")]
+[assembly: AssemblyFileVersion("3.4.2011.0329")]
 
 /*
+ * v3.4.2011.0329   修正自动尝试加载表时的错误
+ *                  更新实体模版，以兼容最新版本的XCode v7.5
+ * 
  * v3.4.2011.0316   升级模版引擎XTemplate，大大提高模版处理性能
  * 
  * v3.4.2011.0311   XCode升级到最新版本，增加数据库支持
