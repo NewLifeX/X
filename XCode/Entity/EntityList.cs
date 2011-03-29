@@ -968,11 +968,13 @@ namespace XCode
 
         ListSortDirection IBindingList.SortDirection
         {
+            //TODO 未实现
             get { throw new NotImplementedException(); }
         }
 
         PropertyDescriptor IBindingList.SortProperty
         {
+            //TODO 未实现
             get { throw new NotImplementedException(); }
         }
 
@@ -990,31 +992,6 @@ namespace XCode
         {
             get { return true; }
         }
-
-        bool IList.IsFixedSize
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        bool IList.IsReadOnly
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        int ICollection.Count
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        bool ICollection.IsSynchronized
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        object ICollection.SyncRoot
-        {
-            get { throw new NotImplementedException(); }
-        }
         #endregion
 
         #region 事件
@@ -1027,131 +1004,80 @@ namespace XCode
 
         static ListChangedEventArgs ResetEventArgs = new ListChangedEventArgs(ListChangedType.Reset, -1);
 
-        protected virtual void OnListChanged(ListChangedEventArgs e)
+        void OnListChanged(ListChangedEventArgs e)
         {
-            DataColumn dataColumn = null;
-            string propName = null;
+            //DataColumn dataColumn = null;
+            //string propName = null;
             switch (e.ListChangedType)
             {
                 case ListChangedType.ItemMoved:
                 case ListChangedType.ItemChanged:
                     if (0 <= e.NewIndex)
                     {
-                        DataRow row = this.GetRow(e.NewIndex);
-                        if (row.HasPropertyChanged)
-                        {
-                            dataColumn = row.LastChangedColumn;
-                            propName = (dataColumn != null) ? dataColumn.ColumnName : string.Empty;
-                        }
-                        row.ResetLastChangedColumn();
+                        //DataRow row = this.GetRow(e.NewIndex);
+                        //if (row.HasPropertyChanged)
+                        //{
+                        //    dataColumn = row.LastChangedColumn;
+                        //    propName = (dataColumn != null) ? dataColumn.ColumnName : string.Empty;
+                        //}
+                        //row.ResetLastChangedColumn();
                     }
                     break;
             }
             if (_ListChanged != null)
             {
-                if ((dataColumn != null) && (e.NewIndex == e.OldIndex))
-                {
-                    ListChangedEventArgs args = new ListChangedEventArgs(e.ListChangedType, e.NewIndex, new DataColumnPropertyDescriptor(dataColumn));
-                    _ListChanged(this, args);
-                }
-                else
-                {
-                    _ListChanged(this, e);
-                }
+                //if ((dataColumn != null) && (e.NewIndex == e.OldIndex))
+                //{
+                //    //ListChangedEventArgs args = new ListChangedEventArgs(e.ListChangedType, e.NewIndex, new DataColumnPropertyDescriptor(dataColumn));
+                //    //_ListChanged(this, args);
+                //}
+                //else
+                //{
+                //    _ListChanged(this, e);
+                //}
             }
-            if (propName != null)
-            {
-                this[e.NewIndex].RaisePropertyChangedEvent(propName);
-            }
+            //if (propName != null)
+            //{
+            //    this[e.NewIndex].RaisePropertyChangedEvent(propName);
+            //}
         }
         #endregion
 
         #region 方法
         void IBindingList.AddIndex(PropertyDescriptor property)
         {
+            //TODO 未实现
             throw new NotImplementedException();
         }
 
         object IBindingList.AddNew()
         {
+            //TODO 未实现
             throw new NotImplementedException();
         }
 
         void IBindingList.ApplySort(PropertyDescriptor property, ListSortDirection direction)
         {
+            //TODO 未实现
             throw new NotImplementedException();
         }
 
         int IBindingList.Find(PropertyDescriptor property, object key)
         {
+            //TODO 未实现
             throw new NotImplementedException();
         }
 
         void IBindingList.RemoveIndex(PropertyDescriptor property)
         {
+            //TODO 未实现
             throw new NotImplementedException();
         }
 
         void IBindingList.RemoveSort()
         {
+            //TODO 未实现
             throw new NotImplementedException();
-        }
-
-        int IList.Add(object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IList.Clear()
-        {
-            throw new NotImplementedException();
-        }
-
-        bool IList.Contains(object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        int IList.IndexOf(object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IList.Insert(int index, object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IList.Remove(object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IList.RemoveAt(int index)
-        {
-            throw new NotImplementedException();
-        }
-
-        object IList.this[int index]
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        void ICollection.CopyTo(Array array, int index)
-        {
-            throw new NotImplementedException();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
         #endregion
         #endregion
