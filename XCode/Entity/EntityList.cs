@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using System.ComponentModel;
 
 namespace XCode
 {
@@ -14,7 +15,7 @@ namespace XCode
     /// 实体集合
     /// </summary>
     [Serializable]
-    public partial class EntityList<T> : List<T> where T : IEntity
+    public partial class EntityList<T> : List<T>, IListSource where T : IEntity
     {
         #region 构造函数
         /// <summary>
@@ -726,6 +727,44 @@ namespace XCode
                 if (entity != null) list.Add(entity);
             }
             if (list == null || list.Count < 1) return null;
+            return list;
+        }
+        #endregion
+
+        #region IListSource接口
+        bool IListSource.ContainsListCollection
+        {
+            get { return false; }
+        }
+
+        IList IListSource.GetList()
+        {
+            // 如果是接口，创建新的集合，否则返回自身
+            if (!typeof(T).IsInterface) return this;
+
+            if (Count < 1) return null;
+
+            return ToArray(null);
+        }
+        #endregion
+
+        #region 复制
+        IList ToArray(Type type)
+        {
+            if (Count < 1) return null;
+
+            // 元素类型
+            if (type == null) type = this[0].GetType();
+            // 泛型
+            type = typeof(EntityListView<>).MakeGenericType(type);
+
+            // 初始化集合，实际上是创建了一个真正的实体类型
+            IList list = TypeX.CreateInstance(type) as IList;
+            for (int i = 0; i < Count; i++)
+            {
+                list.Add(this[i]);
+            }
+
             return list;
         }
         #endregion

@@ -1,56 +1,21 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using NewLife.Reflection;
+using NewLife.Collections;
 using XCode.Configuration;
 
 namespace XCode
 {
-    public partial class EntityList<T> : IListSource, ITypedList, IBindingList, IBindingListView, ICancelAddNew
+    /// <summary>
+    /// 实体列表视图
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public partial class EntityListView<T> : ListBase<T>, ITypedList, IBindingList, IBindingListView, ICancelAddNew where T : IEntity
     {
-        #region IListSource接口
-        bool IListSource.ContainsListCollection
-        {
-            get { return false; }
-        }
-
-        IList IListSource.GetList()
-        {
-            // 如果是接口，创建新的集合，否则返回自身
-            if (!typeof(T).IsInterface) return this;
-
-            if (Count < 1) return null;
-
-            return ToArray(null);
-        }
-        #endregion
-
-        #region 复制
-        IList ToArray(Type type)
-        {
-            if (Count < 1) return null;
-
-            // 元素类型
-            if (type == null) type = this[0].GetType();
-            // 泛型
-            type = typeof(EntityList<>).MakeGenericType(type);
-
-            // 初始化集合，实际上是创建了一个真正的实体类型
-            IList list = TypeX.CreateInstance(type) as IList;
-            for (int i = 0; i < Count; i++)
-            {
-                list.Add(this[i]);
-            }
-
-            return list;
-        }
-        #endregion
-
         #region ITypedList接口
         PropertyDescriptorCollection ITypedList.GetItemProperties(PropertyDescriptor[] listAccessors)
         {
-            Type type = EntityType;
+            Type type = typeof(T);
             // 调用TypeDescriptor获取属性
             PropertyDescriptorCollection pdc = TypeDescriptor.GetProperties(type);
             if (pdc == null || pdc.Count <= 0) return pdc;
@@ -262,12 +227,12 @@ namespace XCode
 
         bool IBindingList.SupportsSearching
         {
-            get { return true; }
+            get { return false; }
         }
 
         bool IBindingList.SupportsSorting
         {
-            get { return true; }
+            get { return false; }
         }
         #endregion
 
@@ -335,18 +300,19 @@ namespace XCode
 
         void IBindingList.ApplySort(PropertyDescriptor property, ListSortDirection direction)
         {
-            Sort(property.Name, direction == ListSortDirection.Descending);
+            //Sort(property.Name, direction == ListSortDirection.Descending);
 
-            IsSorted = true;
-            SortProperty = property;
-            SortDirection = direction;
+            //IsSorted = true;
+            //SortProperty = property;
+            //SortDirection = direction;
 
-            OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
+            //OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
         }
 
         int IBindingList.Find(PropertyDescriptor property, object key)
         {
-            return FindIndex(item => Object.Equals(item[property.Name], key));
+            //return FindIndex(item => Object.Equals(item[property.Name], key));
+            return -1;
         }
 
         void IBindingList.RemoveIndex(PropertyDescriptor property)
@@ -355,30 +321,30 @@ namespace XCode
 
         void IBindingList.RemoveSort()
         {
-            FieldItem fi = Factory.Fields[0];
-            Boolean isDesc = false;
-            foreach (FieldItem item in Factory.Fields)
-            {
-                if (item.DataObjectField.IsIdentity)
-                {
-                    fi = item;
-                    isDesc = true;
-                    break;
-                }
-                else if (item.DataObjectField.PrimaryKey)
-                {
-                    fi = item;
-                    isDesc = false;
-                    break;
-                }
-            }
-            Sort(Factory.Fields[0].Name, isDesc);
+            //FieldItem fi = Factory.Fields[0];
+            //Boolean isDesc = false;
+            //foreach (FieldItem item in Factory.Fields)
+            //{
+            //    if (item.DataObjectField.IsIdentity)
+            //    {
+            //        fi = item;
+            //        isDesc = true;
+            //        break;
+            //    }
+            //    else if (item.DataObjectField.PrimaryKey)
+            //    {
+            //        fi = item;
+            //        isDesc = false;
+            //        break;
+            //    }
+            //}
+            //Sort(Factory.Fields[0].Name, isDesc);
 
-            IsSorted = false;
-            SortProperty = null;
-            SortDirection = ListSortDirection.Ascending;
+            //IsSorted = false;
+            //SortProperty = null;
+            //SortDirection = ListSortDirection.Ascending;
 
-            OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
+            //OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
         }
         #endregion
         #endregion
@@ -386,19 +352,19 @@ namespace XCode
         #region IBindingListView接口
         void IBindingListView.ApplySort(ListSortDescriptionCollection sorts)
         {
-            if (sorts == null || sorts.Count < 1) return;
+            //if (sorts == null || sorts.Count < 1) return;
 
-            List<String> ns = new List<string>();
-            List<Boolean> ds = new List<bool>();
-            foreach (ListSortDescription item in sorts)
-            {
-                ns.Add(item.PropertyDescriptor.Name);
-                ds.Add(item.SortDirection == ListSortDirection.Descending);
-            }
+            //List<String> ns = new List<string>();
+            //List<Boolean> ds = new List<bool>();
+            //foreach (ListSortDescription item in sorts)
+            //{
+            //    ns.Add(item.PropertyDescriptor.Name);
+            //    ds.Add(item.SortDirection == ListSortDirection.Descending);
+            //}
 
-            Sort(ns.ToArray(), ds.ToArray());
+            //Sort(ns.ToArray(), ds.ToArray());
 
-            SortDescriptions = sorts;
+            //SortDescriptions = sorts;
         }
 
         string _Filter;
@@ -424,7 +390,7 @@ namespace XCode
 
         bool IBindingListView.SupportsAdvancedSorting
         {
-            get { return true; }
+            get { return false; }
         }
 
         bool IBindingListView.SupportsFiltering
@@ -445,7 +411,39 @@ namespace XCode
         {
             if (itemIndex < 0 || itemIndex >= Count) return;
 
-            this[itemIndex].Insert();
+            this[itemIndex].Save();
+        }
+        #endregion
+
+        #region 辅助函数
+        /// <summary>
+        /// 真正的实体类型。有些场合为了需要会使用IEntity。
+        /// </summary>
+        Type EntityType
+        {
+            get
+            {
+                Type type = typeof(T);
+                if (!type.IsInterface) return type;
+
+                if (Count > 0) return this[0].GetType();
+
+                return type;
+            }
+        }
+
+        /// <summary>
+        /// 实体操作者
+        /// </summary>
+        IEntityOperate Factory
+        {
+            get
+            {
+                Type type = EntityType;
+                if (type.IsInterface) return null;
+
+                return EntityFactory.CreateOperate(type);
+            }
         }
         #endregion
     }
