@@ -446,7 +446,7 @@ namespace XCode.DataAccessLayer
             return String.Format("Alter Table {0} Comment '{1}'", FormatKeyWord(table.Name), table.Description);
         }
 
-        public override string AlterColumnSQL(XField field)
+        public override string AlterColumnSQL(XField field, XField oldfield)
         {
             return String.Format("Alter Table {0} Modify Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
         }

@@ -763,7 +763,7 @@ namespace XCode.DataAccessLayer
             return sql + ";" + Environment.NewLine + sqlSeq;
         }
 
-        public override String AlterColumnSQL(XField field)
+        public override String AlterColumnSQL(XField field, XField oldfield)
         {
             return String.Format("Alter Table {0} Modify Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
         }

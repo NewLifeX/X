@@ -550,7 +550,7 @@ namespace XCode.DataAccessLayer
                 case DDLSchema.AddColumn:
                     return AddColumnSQL((XField)values[0]);
                 case DDLSchema.AlterColumn:
-                    return AlterColumnSQL((XField)values[0]);
+                    return AlterColumnSQL((XField)values[0], values.Length > 1 ? (XField)values[1] : null);
                 case DDLSchema.DropColumn:
                     return DropColumnSQL((XField)values[0]);
                 case DDLSchema.AddColumnDescription:
@@ -761,7 +761,7 @@ namespace XCode.DataAccessLayer
             return String.Format("Alter Table {0} Add {1}", FormatKeyWord(field.Table.Name), FieldClause(field, true));
         }
 
-        public virtual String AlterColumnSQL(XField field)
+        public virtual String AlterColumnSQL(XField field, XField oldfield)
         {
             return String.Format("Alter Table {0} Alter Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
         }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel;
+using XCode.Configuration;
 
 namespace XCode
 {
@@ -70,9 +71,9 @@ namespace XCode
                         description = (item as DescriptionAttribute).Description;
                         if (!String.IsNullOrEmpty(description)) break;
                     }
-                    if (item.GetType() == typeof(DescriptionAttribute))
+                    if (item.GetType() == typeof(BindColumnAttribute))
                     {
-                        description = (item as DescriptionAttribute).Description;
+                        description = (item as BindColumnAttribute).Description;
                         if (!String.IsNullOrEmpty(description)) break;
                     }
                 }
@@ -130,17 +131,55 @@ namespace XCode
 
         PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties(Attribute[] attributes)
         {
-            return TypeDescriptor.GetProperties(this, attributes, true);
+            return Fix(this.GetType(), TypeDescriptor.GetProperties(this, attributes, true));
         }
 
         PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties()
         {
-            return TypeDescriptor.GetProperties(this, true);
+            return Fix(this.GetType(), TypeDescriptor.GetProperties(this, true));
         }
 
         object ICustomTypeDescriptor.GetPropertyOwner(PropertyDescriptor pd)
         {
             return this;
+        }
+
+        internal static PropertyDescriptorCollection Fix(Type type, PropertyDescriptorCollection pdc)
+        {
+            if (pdc == null || pdc.Count < 1) return pdc;
+
+            IEntityOperate factory = EntityFactory.CreateOperate(type);
+
+            // 准备字段集合
+            Dictionary<String, FieldItem> dic = new Dictionary<string, FieldItem>();
+            //factory.Fields.ForEach(item => dic.Add(item.Name, item));
+            foreach (FieldItem item in factory.Fields)
+            {
+                dic.Add(item.Name, item);
+            }
+
+            Boolean hasChanged = false;
+            List<PropertyDescriptor> list = new List<PropertyDescriptor>();
+            foreach (PropertyDescriptor item in pdc)
+            {
+                // 显示名与属性名相同，并且没有DisplayName特性
+                if (item.Name == item.DisplayName && !ContainAttribute(item.Attributes, typeof(DisplayNameAttribute)))
+                {
+                    // 添加一个特性
+                    FieldItem fi = null;
+                    if (dic.TryGetValue(item.Name, out fi) && !String.IsNullOrEmpty(fi.DisplayName))
+                    {
+                        DisplayNameAttribute dis = new DisplayNameAttribute(fi.DisplayName);
+                        list.Add(TypeDescriptor.CreateProperty(type, item, dis));
+                        hasChanged = true;
+                        continue;
+                    }
+                }
+                list.Add(item);
+            }
+            if (hasChanged) pdc = new PropertyDescriptorCollection(list.ToArray());
+
+            return pdc;
         }
 
         static Boolean ContainAttribute(AttributeCollection attributes, Type type)

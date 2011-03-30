@@ -496,7 +496,7 @@ namespace XCode.DataAccessLayer
             String str = base.GetFieldConstraints(field, onlyDefine);
 
             // 非定义时，自增字段没有约束
-            if (!onlyDefine && field.Identity) str = " IDENTITY(1,1)" + str;
+            if (onlyDefine && field.Identity) str = " IDENTITY(1,1)" + str;
 
             return str;
         }
@@ -729,14 +729,21 @@ namespace XCode.DataAccessLayer
             return String.Format("Alter Table {0} Add {1}", FormatKeyWord(field.Table.Name), FieldClause(field, true));
         }
 
-        public override string AlterColumnSQL(XField field)
+        public override string AlterColumnSQL(XField field, XField oldfield)
         {
+            // 创建为自增，先删后加
+            if (field.Identity && !oldfield.Identity)
+            {
+                return DropColumnSQL(oldfield) + ";" + Environment.NewLine + AddColumnSQL(field);
+            }
+
             String sql = String.Format("Alter Table {0} Alter Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
             String pk = DeletePrimaryKeySQL(field);
             if (field.PrimaryKey)
             {
                 // 如果没有主键删除脚本，表明没有主键
-                if (String.IsNullOrEmpty(pk))
+                //if (String.IsNullOrEmpty(pk))
+                if (!oldfield.PrimaryKey)
                 {
                     // 增加主键约束
                     pk = String.Format("Alter Table {0} ADD CONSTRAINT PK_{0} PRIMARY KEY {2}({1}) ON [PRIMARY]", FormatKeyWord(field.Table.Name), FormatKeyWord(field.Name), field.Identity ? "CLUSTERED" : "");
@@ -746,7 +753,8 @@ namespace XCode.DataAccessLayer
             else
             {
                 // 字段声明没有主键，但是主键实际存在，则删除主键
-                if (!String.IsNullOrEmpty(pk))
+                //if (!String.IsNullOrEmpty(pk))
+                if (oldfield.PrimaryKey)
                 {
                     sql += ";" + Environment.NewLine + pk;
                 }
@@ -794,22 +802,24 @@ namespace XCode.DataAccessLayer
             String sql = DropDefaultSQL(field);
             if (!String.IsNullOrEmpty(sql)) sql += ";" + Environment.NewLine;
             if (Type.GetTypeCode(field.DataType) == TypeCode.String)
-                sql += String.Format("ALTER TABLE {0} ADD CONSTRAINT DF_{0}_{1} DEFAULT N'{2}' FOR {1}", field.Table.Name, field.Name, field.Default);
+                sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT N'{2}' FOR {1}", field.Table.Name, field.Name, field.Default);
             else if (Type.GetTypeCode(field.DataType) == TypeCode.DateTime)
             {
                 //String dv = field.Default;
                 //if (!String.IsNullOrEmpty(dv) && dv.Equals("now()", StringComparison.OrdinalIgnoreCase)) dv = "getdate()";
                 String dv = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
 
-                sql += String.Format("ALTER TABLE {0} ADD CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.Name, field.Name, dv);
+                sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.Name, field.Name, dv);
             }
             else
-                sql += String.Format("ALTER TABLE {0} ADD CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.Name, field.Name, field.Default);
+                sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.Name, field.Name, field.Default);
             return sql;
         }
 
         public override string DropDefaultSQL(XField field)
         {
+            if (String.IsNullOrEmpty(field.Default)) return String.Empty;
+
             String sql = null;
             if (IsSQL2005)
                 sql = String.Format("select b.name from sys.tables a inner join sys.default_constraints b on a.object_id=b.parent_object_id inner join sys.columns c on a.object_id=c.object_id and b.parent_column_id=c.column_id where a.name='{0}' and c.name='{1}'", field.Table.Name, field.Name);
@@ -824,20 +834,22 @@ namespace XCode.DataAccessLayer
             {
                 String name = dr[0].ToString();
                 if (sb.Length > 0) sb.AppendLine(";");
-                sb.AppendFormat("ALTER TABLE {0} DROP CONSTRAINT {1}", FormatKeyWord(field.Table.Name), name);
+                sb.AppendFormat("Alter Table {0} Drop CONSTRAINT {1}", FormatKeyWord(field.Table.Name), name);
             }
             return sb.ToString();
         }
 
         String DeletePrimaryKeySQL(XField field)
         {
+            if (!field.PrimaryKey) return String.Empty;
+
             DataRow[] drs = PrimaryKeys.Select(String.Format("table_name='{0}' And column_name='{1}'", field.Table.Name, field.Name));
             if (drs == null || drs.Length < 1) return null;
 
             String constraint_name = null;
             if (!TryGetDataRowValue<String>(drs[0], "constraint_name", out constraint_name)) return null;
 
-            return String.Format("ALTER TABLE {0} DROP CONSTRAINT {1}", FormatKeyWord(field.Table.Name), constraint_name);
+            return String.Format("Alter Table {0} Drop CONSTRAINT {1}", FormatKeyWord(field.Table.Name), constraint_name);
         }
 
         public override String DropDatabaseSQL(String dbname)

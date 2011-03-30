@@ -68,11 +68,13 @@ namespace XCode.Configuration
                 List<String> names = new List<String>();
                 foreach (PropertyInfo item in pis)
                 {
-                    FieldItem field = new FieldItem();
-                    field.Property = item;
-                    field.Column = BindColumnAttribute.GetCustomAttribute(item);
-                    field.DataObjectField = DataObjectAttribute.GetCustomAttribute(item, typeof(DataObjectFieldAttribute)) as DataObjectFieldAttribute;
-                    list.Add(field);
+                    //FieldItem field = new FieldItem();
+                    //field.Property = item;
+                    //field.Column = BindColumnAttribute.GetCustomAttribute(item);
+                    //field.DataObjectField = DataObjectAttribute.GetCustomAttribute(item, typeof(DataObjectFieldAttribute)) as DataObjectFieldAttribute;
+                    //list.Add(field);
+
+                    list.Add(new FieldItem(item));
 
                     if (names.Contains(item.Name)) throw new XCodeException(String.Format("{0}类中出现重复属性{1}", t.Name, item.Name));
                     names.Add(item.Name);

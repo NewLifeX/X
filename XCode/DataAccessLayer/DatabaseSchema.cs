@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Log;
 using XCode.Configuration;
-using System.Diagnostics;
 using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
@@ -28,14 +28,6 @@ namespace XCode.DataAccessLayer
 
         /// <summary>连接名</summary>
         private String ConnName { get { return Database.ConnName; } }
-
-        //private IDbSession _Session;
-        ///// <summary>数据库会话</summary>
-        //public IDbSession Session
-        //{
-        //    get { return _Session ?? (_Session = Database.Session); }
-        //    //set { _Session = value; }
-        //}
 
         private IMetaData _MetaData;
         /// <summary>数据库元数据</summary>
@@ -186,18 +178,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static DatabaseSchema Create(IDatabase database)
         {
-            //if (_objcache.ContainsKey(database)) return _objcache[database];
-            //lock (_objcache)
-            //{
-            //    if (_objcache.ContainsKey(database)) return _objcache[database];
-
             return _objcache.GetItem(database, delegate(IDatabase key)
             {
                 return new DatabaseSchema(key);
             });
         }
-
-        //private static Dictionary<String, DateTime> _cache = new Dictionary<String, DateTime>();
 
         /// <summary>
         /// 检查数据库信息架构，如果打开开关，则同步检查，否则异步检查
@@ -205,25 +190,6 @@ namespace XCode.DataAccessLayer
         /// <param name="database"></param>
         public static DatabaseSchema Check(IDatabase database)
         {
-            //////每10分钟检查一次
-            ////if (_cache.ContainsKey(database.ConnName) && _cache[database.ConnName].AddMinutes(10) < DateTime.Now) return;
-            //if (_cache.ContainsKey(database.ConnName)) return;
-            //DatabaseSchema ds = null;
-            //lock (_cache)
-            //{
-            //    //if (_cache.ContainsKey(database.ConnName) && _cache[database.ConnName].AddMinutes(10) < DateTime.Now) return;
-            //    if (_cache.ContainsKey(database.ConnName)) return;
-
-            //    ds = Create(database);
-            //    //ds = new DatabaseSchema(database);
-            //    //ds.Database = database;
-
-            //    if (_cache.ContainsKey(database.ConnName))
-            //        _cache[database.ConnName] = DateTime.Now;
-            //    else
-            //        _cache.Add(database.ConnName, DateTime.Now);
-            //}
-
             DatabaseSchema ds = Create(database);
 
             if (Enable == null || IsExclude(database.ConnName)) return ds;
@@ -259,24 +225,6 @@ namespace XCode.DataAccessLayer
                 }
             });
         }
-
-        //private Boolean _CheckOnce = false;
-        ///// <summary>
-        ///// 检查一次
-        ///// </summary>
-        ///// <returns></returns>
-        //public DatabaseSchema CheckDatabaseOnce()
-        //{
-        //    lock (this)
-        //    {
-        //        if (_CheckOnce) return this;
-        //        _CheckOnce = true;
-
-        //        CheckDatabase();
-
-        //        return this;
-        //    }
-        //}
 
         /// <summary>
         /// 检查
@@ -525,7 +473,7 @@ namespace XCode.DataAccessLayer
                         (entityDb != null && dbf.Length > entityDb.LongTextLength || dbf.Length <= 0)) isChanged = false;
                 }
 
-                if (isChanged) AlterColumn(sb, item, onlySql);
+                if (isChanged) AlterColumn(sb, item, dbf, onlySql);
 
                 //比较默认值
                 isChanged = !String.Equals(item.Default + "", dbf.Default + "", StringComparison.OrdinalIgnoreCase);
@@ -714,9 +662,9 @@ namespace XCode.DataAccessLayer
             GetSchemaSQL(sb, onlySql, DDLSchema.DropColumnDescription, field);
         }
 
-        void AlterColumn(StringBuilder sb, XField field, Boolean onlySql)
+        void AlterColumn(StringBuilder sb, XField field, XField oldfield, Boolean onlySql)
         {
-            GetSchemaSQL(sb, onlySql, DDLSchema.AlterColumn, field);
+            GetSchemaSQL(sb, onlySql, DDLSchema.AlterColumn, field, oldfield);
         }
         #endregion
 

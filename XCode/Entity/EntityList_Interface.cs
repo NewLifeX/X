@@ -55,46 +55,48 @@ namespace XCode
             PropertyDescriptorCollection pdc = TypeDescriptor.GetProperties(type);
             if (pdc == null || pdc.Count <= 0) return pdc;
 
-            // 准备字段集合
-            Dictionary<String, FieldItem> dic = new Dictionary<string, FieldItem>();
-            //factory.Fields.ForEach(item => dic.Add(item.Name, item));
-            foreach (FieldItem item in Factory.Fields)
-            {
-                dic.Add(item.Name, item);
-            }
+            return EntityBase.Fix(type, pdc);
 
-            List<PropertyDescriptor> list = new List<PropertyDescriptor>();
-            foreach (PropertyDescriptor item in pdc)
-            {
-                // 显示名与属性名相同，并且没有DisplayName特性
-                if (item.Name == item.DisplayName && !ContainAttribute(item.Attributes, typeof(DisplayNameAttribute)))
-                {
-                    // 添加一个特性
-                    FieldItem fi = null;
-                    if (dic.TryGetValue(item.Name, out fi) && !String.IsNullOrEmpty(fi.DisplayName))
-                    {
-                        DisplayNameAttribute dis = new DisplayNameAttribute(fi.DisplayName);
-                        list.Add(TypeDescriptor.CreateProperty(type, item, dis));
-                        continue;
-                    }
-                }
-                list.Add(item);
-            }
-            pdc = new PropertyDescriptorCollection(list.ToArray());
+            //// 准备字段集合
+            //Dictionary<String, FieldItem> dic = new Dictionary<string, FieldItem>();
+            ////factory.Fields.ForEach(item => dic.Add(item.Name, item));
+            //foreach (FieldItem item in Factory.Fields)
+            //{
+            //    dic.Add(item.Name, item);
+            //}
 
-            return pdc;
+            //List<PropertyDescriptor> list = new List<PropertyDescriptor>();
+            //foreach (PropertyDescriptor item in pdc)
+            //{
+            //    // 显示名与属性名相同，并且没有DisplayName特性
+            //    if (item.Name == item.DisplayName && !ContainAttribute(item.Attributes, typeof(DisplayNameAttribute)))
+            //    {
+            //        // 添加一个特性
+            //        FieldItem fi = null;
+            //        if (dic.TryGetValue(item.Name, out fi) && !String.IsNullOrEmpty(fi.DisplayName))
+            //        {
+            //            DisplayNameAttribute dis = new DisplayNameAttribute(fi.DisplayName);
+            //            list.Add(TypeDescriptor.CreateProperty(type, item, dis));
+            //            continue;
+            //        }
+            //    }
+            //    list.Add(item);
+            //}
+            //pdc = new PropertyDescriptorCollection(list.ToArray());
+
+            //return pdc;
         }
 
-        static Boolean ContainAttribute(AttributeCollection attributes, Type type)
-        {
-            if (attributes == null || attributes.Count < 1 || type == null) return false;
+        //static Boolean ContainAttribute(AttributeCollection attributes, Type type)
+        //{
+        //    if (attributes == null || attributes.Count < 1 || type == null) return false;
 
-            foreach (Attribute item in attributes)
-            {
-                if (type.IsAssignableFrom(item.GetType())) return true;
-            }
-            return false;
-        }
+        //    foreach (Attribute item in attributes)
+        //    {
+        //        if (type.IsAssignableFrom(item.GetType())) return true;
+        //    }
+        //    return false;
+        //}
 
         string ITypedList.GetListName(PropertyDescriptor[] listAccessors)
         {

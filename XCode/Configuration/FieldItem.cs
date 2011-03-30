@@ -17,7 +17,7 @@ namespace XCode.Configuration
         public PropertyInfo Property
         {
             get { return _Property; }
-            internal set { _Property = value; }
+            private set { _Property = value; }
         }
 
         private BindColumnAttribute _Column;
@@ -25,7 +25,7 @@ namespace XCode.Configuration
         public BindColumnAttribute Column
         {
             get { return _Column; }
-            internal set { _Column = value; }
+            private set { _Column = value; }
         }
 
         private DataObjectFieldAttribute _DataObjectField;
@@ -33,7 +33,15 @@ namespace XCode.Configuration
         public DataObjectFieldAttribute DataObjectField
         {
             get { return _DataObjectField; }
-            internal set { _DataObjectField = value; }
+            private set { _DataObjectField = value; }
+        }
+
+        private DescriptionAttribute _Description;
+        /// <summary>数据字段特性</summary>
+        public DescriptionAttribute Description
+        {
+            get { return _Description; }
+            private set { _Description = value; }
         }
 
         private String _Name;
@@ -82,8 +90,13 @@ namespace XCode.Configuration
         {
             get
             {
-                if (Column == null || String.IsNullOrEmpty(Column.Description)) return "";
-                return Column.Description;
+                //if (Column == null || String.IsNullOrEmpty(Column.Description)) return "";
+                //return Column.Description;
+
+                if (Description != null && !String.IsNullOrEmpty(Description.Description)) return Description.Description;
+                if (Column != null && !String.IsNullOrEmpty(Column.Description)) return Column.Description;
+
+                return null;
             }
         }
 
@@ -93,10 +106,10 @@ namespace XCode.Configuration
             get { return ColumnName.Trim(new Char[] { '[', ']' }); }
         }
 
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        public FieldItem() { }
+        ///// <summary>
+        ///// 构造函数
+        ///// </summary>
+        //public FieldItem() { }
 
         /// <summary>
         /// 构造函数
@@ -105,31 +118,34 @@ namespace XCode.Configuration
         public FieldItem(PropertyInfo pi)
         {
             Property = pi;
+            Column = BindColumnAttribute.GetCustomAttribute(Property);
+            DataObjectField = DataObjectAttribute.GetCustomAttribute(Property, typeof(DataObjectFieldAttribute)) as DataObjectFieldAttribute;
+            Description = DescriptionAttribute.GetCustomAttribute(Property, typeof(DescriptionAttribute)) as DescriptionAttribute;
         }
 
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        /// <param name="pi"></param>
-        /// <param name="bc"></param>
-        public FieldItem(PropertyInfo pi, BindColumnAttribute bc)
-        {
-            Property = pi;
-            Column = bc;
-        }
+        ///// <summary>
+        ///// 构造函数
+        ///// </summary>
+        ///// <param name="pi"></param>
+        ///// <param name="bc"></param>
+        //public FieldItem(PropertyInfo pi, BindColumnAttribute bc)
+        //{
+        //    Property = pi;
+        //    Column = bc;
+        //}
 
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        /// <param name="pi"></param>
-        /// <param name="bc"></param>
-        /// <param name="dof"></param>
-        public FieldItem(PropertyInfo pi, BindColumnAttribute bc, DataObjectFieldAttribute dof)
-        {
-            Property = pi;
-            Column = bc;
-            DataObjectField = dof;
-        }
+        ///// <summary>
+        ///// 构造函数
+        ///// </summary>
+        ///// <param name="pi"></param>
+        ///// <param name="bc"></param>
+        ///// <param name="dof"></param>
+        //public FieldItem(PropertyInfo pi, BindColumnAttribute bc, DataObjectFieldAttribute dof)
+        //{
+        //    Property = pi;
+        //    Column = bc;
+        //    DataObjectField = dof;
+        //}
 
         /// <summary>
         /// 已重载。
