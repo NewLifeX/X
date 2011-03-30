@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collections\DictionaryCache.cs" />
+    <Compile Include="Collections\ListBase.cs" />
     <Compile Include="Collections\ListX.cs" />
     <Compile Include="Collections\ObjectPool.cs" />
     <Compile Include="Collections\SingleListNode.cs" />
