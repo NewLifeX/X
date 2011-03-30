@@ -216,10 +216,8 @@ namespace NewLife.Collections
         #region IList接口
         int IList.Add(object value)
         {
-            if (!ListBase<T>.IsCompatibleType(value.GetType()))
-            {
-                throw new ArgumentException();
-            }
+            if (!IsCompatibleType(value)) throw new ArgumentException();
+
             this.Add((T)value);
             return (this.Count - 1);
         }
@@ -231,37 +229,29 @@ namespace NewLife.Collections
 
         bool IList.Contains(object value)
         {
-            if (!ListBase<T>.IsCompatibleType(value.GetType()))
-            {
-                return false;
-            }
+            if (!IsCompatibleType(value)) return false;
+
             return this.Contains((T)value);
         }
 
         int IList.IndexOf(object value)
         {
-            if (!ListBase<T>.IsCompatibleType(value.GetType()))
-            {
-                return -1;
-            }
+            if (!IsCompatibleType(value)) return -1;
+
             return this.IndexOf((T)value);
         }
 
         void IList.Insert(int index, object value)
         {
-            if (!ListBase<T>.IsCompatibleType(value.GetType()))
-            {
-                throw new ArgumentException();
-            }
+            if (!IsCompatibleType(value)) throw new ArgumentException();
+
             this.Insert(index, (T)value);
         }
 
         void IList.Remove(object value)
         {
-            if (!ListBase<T>.IsCompatibleType(value.GetType()))
-            {
-                throw new ArgumentException();
-            }
+            if (!IsCompatibleType(value)) throw new ArgumentException();
+
             this.Remove((T)value);
         }
 
@@ -273,10 +263,8 @@ namespace NewLife.Collections
             }
             set
             {
-                if (!ListBase<T>.IsCompatibleType(value.GetType()))
-                {
-                    throw new ArgumentException();
-                }
+                if (!IsCompatibleType(value)) throw new ArgumentException();
+
                 this[index] = (T)value;
             }
         }
