@@ -317,24 +317,28 @@ namespace XCode
         public override Int32 Insert()
         {
             String sql = SQL(this, DataObjectMethodType.Insert);
+            Int32 rs = 0;
 
-            //AC和SqlServer支持获取自增字段的最新编号
-            //if (Meta.DbType == DatabaseType.Access ||
-            //    Meta.DbType == DatabaseType.SqlServer ||
-            //    Meta.DbType == DatabaseType.SqlServer2005)
+            //检查是否有标识列，标识列需要特殊处理
+            FieldItem field = Meta.Unique;
+            if (field != null && field.DataObjectField != null && field.DataObjectField.IsIdentity)
             {
-                //检查是否有标识列，标识列需要特殊处理
-                //FieldItem[] ps = Meta.Uniques;
-                FieldItem field = Meta.Unique;
-                //if (ps != null && ps.Length > 0 && ps[0].DataObjectField != null && ps[0].DataObjectField.IsIdentity)
-                if (field != null && field.DataObjectField != null && field.DataObjectField.IsIdentity)
-                {
-                    Int64 res = Meta.InsertAndGetIdentity(sql);
-                    if (res > 0) this[field.Name] = res;
-                    return res > 0 ? 1 : 0;
-                }
+                Int64 res = Meta.InsertAndGetIdentity(sql);
+                if (res > 0) this[field.Name] = res;
+                rs = res > 0 ? 1 : 0;
             }
-            return Meta.Execute(sql);
+            else
+            {
+                rs = Meta.Execute(sql);
+            }
+
+            //清除脏数据，避免重复提交
+            if (Dirtys != null)
+            {
+                Dirtys.Clear();
+                Dirtys = null;
+            }
+            return rs;
         }
 
         /// <summary>

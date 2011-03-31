@@ -239,13 +239,16 @@ namespace XCode
         {
             if (Count < 1) return;
 
-            if (!(this[0][name] is IComparable)) throw new Exception("不支持比较！");
+            Type type = GetItemType(name);
+            if (!typeof(IComparable).IsAssignableFrom(type)) throw new Exception("不支持比较！");
 
             Int32 n = 1;
             if (isDesc) n = -1;
 
             Sort(delegate(T item1, T item2)
             {
+                // Object.Equals可以有效的处理两个元素都为空的问题
+                if (Object.Equals(item1[name], item2[name])) return 0;
                 return (item1[name] as IComparable).CompareTo(item2[name]) * n;
             });
         }
@@ -264,7 +267,8 @@ namespace XCode
                 String name = names[i];
                 Boolean isDesc = isDescs[i];
 
-                if (!(this[0][name] is IComparable)) throw new Exception("不支持比较！");
+                Type type = GetItemType(name);
+                if (!typeof(IComparable).IsAssignableFrom(type)) throw new Exception("不支持比较！");
             }
 
             Sort(delegate(T item1, T item2)
@@ -278,11 +282,28 @@ namespace XCode
                     Int32 n = 1;
                     if (isDesc) n = -1;
 
-                    n = (item1[name] as IComparable).CompareTo(item2[name]) * n;
+                    // Object.Equals可以有效的处理两个元素都为空的问题
+                    if (Object.Equals(item1[name], item2[name]))
+                        n = 0;
+                    else
+                        n = (item1[name] as IComparable).CompareTo(item2[name]) * n;
                     if (n != 0) return n;
                 }
                 return 0;
             });
+        }
+
+        Type GetItemType(String name)
+        {
+            if (String.IsNullOrEmpty(name) || EntityType == null) return null;
+
+            PropertyInfoX pi = PropertyInfoX.Create(EntityType, name);
+            if (pi != null) return pi.Type;
+
+            FieldInfoX fi = FieldInfoX.Create(EntityType, name);
+            if (fi != null) return fi.Type;
+
+            return null;
         }
         #endregion
 
@@ -300,8 +321,7 @@ namespace XCode
 
             if (useTransition)
             {
-                //DAL dal = Entity<T>.Meta.DBO;
-                DAL dal = DAL.Create(XCodeConfig.ConnName(this[0].GetType()));
+                IEntityOperate dal = Factory;
                 dal.BeginTransaction();
                 try
                 {
@@ -351,8 +371,7 @@ namespace XCode
 
             if (useTransition)
             {
-                //DAL dal = Entity<T>.Meta.DBO;
-                DAL dal = DAL.Create(XCodeConfig.ConnName(this[0].GetType()));
+                IEntityOperate dal = Factory;
                 dal.BeginTransaction();
                 try
                 {
@@ -402,8 +421,7 @@ namespace XCode
 
             if (useTransition)
             {
-                //DAL dal = Entity<T>.Meta.DBO;
-                DAL dal = DAL.Create(XCodeConfig.ConnName(this[0].GetType()));
+                IEntityOperate dal = Factory;
                 dal.BeginTransaction();
                 try
                 {
@@ -452,9 +470,8 @@ namespace XCode
             Int32 count = 0;
 
             if (useTransition)
-            {                //DAL dal = Entity<T>.Meta.DBO;
-                DAL dal = DAL.Create(XCodeConfig.ConnName(this[0].GetType()));
-
+            {
+                IEntityOperate dal = Factory;
                 dal.BeginTransaction();
                 try
                 {
@@ -754,7 +771,7 @@ namespace XCode
             if (Count < 1) return null;
 
             // 元素类型
-            if (type == null) type = this[0].GetType();
+            if (type == null) type = EntityType;
             // 泛型
             type = typeof(EntityListView<>).MakeGenericType(type);
 

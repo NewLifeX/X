@@ -13,12 +13,18 @@ namespace NewLife.Collections
     public class ListBase<T> : IList<T>, ICollection<T>, IEnumerable<T>, IList, ICollection, IEnumerable
     {
         #region 属性
-        List<T> innerList = new List<T>();
+        private IList<T> _list;
+        /// <summary>内部列表</summary>
+        protected virtual IList<T> InnerList
+        {
+            get { return _list ?? (_list = new List<T>()); }
+            set { _list = value; }
+        }
 
         /// <summary>
         /// 列表元素个数
         /// </summary>
-        public virtual int Count { get { return innerList.Count; } }
+        public virtual int Count { get { return InnerList.Count; } }
 
         /// <summary>
         /// 是否固定大小
@@ -47,7 +53,7 @@ namespace NewLife.Collections
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public virtual T this[int index] { get { return innerList[index]; } set { innerList[index] = value; } }
+        public virtual T this[int index] { get { return InnerList[index]; } set { InnerList[index] = value; } }
         #endregion
 
         #region 构造
@@ -127,7 +133,7 @@ namespace NewLife.Collections
             //    }
             //}
             //return -1;
-            return innerList.IndexOf(value);
+            return InnerList.IndexOf(value);
         }
 
         /// <summary>
@@ -137,7 +143,7 @@ namespace NewLife.Collections
         /// <param name="value"></param>
         public virtual void Insert(int index, T value)
         {
-            innerList.Insert(index, value);
+            InnerList.Insert(index, value);
         }
 
         private static bool IsCompatibleType(object value)
@@ -171,7 +177,7 @@ namespace NewLife.Collections
         /// <param name="index"></param>
         public virtual void RemoveAt(int index)
         {
-            innerList.RemoveAt(index);
+            InnerList.RemoveAt(index);
         }
         #endregion
 

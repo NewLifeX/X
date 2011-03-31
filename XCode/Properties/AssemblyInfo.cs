@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.4.*")]
-[assembly: AssemblyFileVersion("7.4.2011.0330")]
+[assembly: AssemblyFileVersion("7.4.2011.0331")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.4.2011.0331   实体类Insert后清空脏数据，避免连续两次Save变成一次Insert和一次Update
+ *                  修正实现组件模型接口中的一些问题，测试通过，基本上满足WinForm开发要求
+ * 
  * v7.4.2011.0330   修正3月23号更新SqlServer时带来的另一个错误——无法创建自增字段；同时增加了把原字段设置为自增字段的功能，先删后加！
  * 
  * v7.4.2011.0329   修正动态生成代码时属性名与类型重名导致编译出错的问题

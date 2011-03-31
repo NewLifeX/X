@@ -12,6 +12,43 @@ namespace XCode
     /// <typeparam name="T"></typeparam>
     public partial class EntityListView<T> : ListBase<T>, ITypedList, IBindingList, IBindingListView, ICancelAddNew where T : IEntity
     {
+        #region 重载
+        /// <summary>
+        /// 初始化
+        /// </summary>
+        public EntityListView()
+        {
+            // 使用实体列表作为内部列表，便于提供排序等功能
+            InnerList = new EntityList<T>();
+        }
+
+        /// <summary>
+        /// 已重载。新增元素时，触发事件改变
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="value"></param>
+        public override void Insert(int index, T value)
+        {
+            base.Insert(index, value);
+
+            OnListChanged(new ListChangedEventArgs(ListChangedType.ItemAdded, index));
+        }
+
+        /// <summary>
+        /// 已重载。从列表中删除项时，同时从数据库中删除实体
+        /// </summary>
+        /// <param name="index"></param>
+        public override void RemoveAt(int index)
+        {
+            T entity = this[index];
+            entity.Delete();
+
+            base.RemoveAt(index);
+
+            OnListChanged(new ListChangedEventArgs(ListChangedType.ItemDeleted, index));
+        }
+        #endregion
+
         #region ITypedList接口
         PropertyDescriptorCollection ITypedList.GetItemProperties(PropertyDescriptor[] listAccessors)
         {
@@ -227,12 +264,12 @@ namespace XCode
 
         bool IBindingList.SupportsSearching
         {
-            get { return false; }
+            get { return true; }
         }
 
         bool IBindingList.SupportsSorting
         {
-            get { return false; }
+            get { return true; }
         }
         #endregion
 
@@ -248,40 +285,7 @@ namespace XCode
 
         void OnListChanged(ListChangedEventArgs e)
         {
-            //DataColumn dataColumn = null;
-            //string propName = null;
-            switch (e.ListChangedType)
-            {
-                case ListChangedType.ItemMoved:
-                case ListChangedType.ItemChanged:
-                    if (0 <= e.NewIndex)
-                    {
-                        //DataRow row = this.GetRow(e.NewIndex);
-                        //if (row.HasPropertyChanged)
-                        //{
-                        //    dataColumn = row.LastChangedColumn;
-                        //    propName = (dataColumn != null) ? dataColumn.ColumnName : string.Empty;
-                        //}
-                        //row.ResetLastChangedColumn();
-                    }
-                    break;
-            }
-            if (_ListChanged != null)
-            {
-                //if ((dataColumn != null) && (e.NewIndex == e.OldIndex))
-                //{
-                //    //ListChangedEventArgs args = new ListChangedEventArgs(e.ListChangedType, e.NewIndex, new DataColumnPropertyDescriptor(dataColumn));
-                //    //_ListChanged(this, args);
-                //}
-                //else
-                //{
-                //    _ListChanged(this, e);
-                //}
-            }
-            //if (propName != null)
-            //{
-            //    this[e.NewIndex].RaisePropertyChangedEvent(propName);
-            //}
+            if (_ListChanged != null) _ListChanged(this, e);
         }
         #endregion
 
@@ -294,25 +298,31 @@ namespace XCode
         {
             T entity = (T)Factory.Create();
             base.Add(entity);
-            OnListChanged(new ListChangedEventArgs(ListChangedType.ItemAdded, base.IndexOf(entity)));
+            //OnListChanged(new ListChangedEventArgs(ListChangedType.ItemAdded, base.IndexOf(entity)));
             return entity;
         }
 
         void IBindingList.ApplySort(PropertyDescriptor property, ListSortDirection direction)
         {
-            //Sort(property.Name, direction == ListSortDirection.Descending);
+            EntityList<T> list = InnerList as EntityList<T>;
+            if (list == null || list.Count < 1) return;
 
-            //IsSorted = true;
-            //SortProperty = property;
-            //SortDirection = direction;
+            list.Sort(property.Name, direction == ListSortDirection.Descending);
 
-            //OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
+            IsSorted = true;
+            SortProperty = property;
+            SortDirection = direction;
+
+            OnListChanged(ResetEventArgs);
         }
 
         int IBindingList.Find(PropertyDescriptor property, object key)
         {
-            //return FindIndex(item => Object.Equals(item[property.Name], key));
-            return -1;
+            EntityList<T> list = InnerList as EntityList<T>;
+            if (list == null || list.Count < 1) return -1;
+
+            return list.FindIndex(item => Object.Equals(item[property.Name], key));
+            //return -1;
         }
 
         void IBindingList.RemoveIndex(PropertyDescriptor property)
@@ -321,30 +331,33 @@ namespace XCode
 
         void IBindingList.RemoveSort()
         {
-            //FieldItem fi = Factory.Fields[0];
-            //Boolean isDesc = false;
-            //foreach (FieldItem item in Factory.Fields)
-            //{
-            //    if (item.DataObjectField.IsIdentity)
-            //    {
-            //        fi = item;
-            //        isDesc = true;
-            //        break;
-            //    }
-            //    else if (item.DataObjectField.PrimaryKey)
-            //    {
-            //        fi = item;
-            //        isDesc = false;
-            //        break;
-            //    }
-            //}
-            //Sort(Factory.Fields[0].Name, isDesc);
+            EntityList<T> list = InnerList as EntityList<T>;
+            if (list == null || list.Count < 1) return;
 
-            //IsSorted = false;
-            //SortProperty = null;
-            //SortDirection = ListSortDirection.Ascending;
+            FieldItem fi = Factory.Fields[0];
+            Boolean isDesc = false;
+            foreach (FieldItem item in Factory.Fields)
+            {
+                if (item.DataObjectField.IsIdentity)
+                {
+                    fi = item;
+                    isDesc = true;
+                    break;
+                }
+                else if (item.DataObjectField.PrimaryKey)
+                {
+                    fi = item;
+                    isDesc = false;
+                    break;
+                }
+            }
+            list.Sort(Factory.Fields[0].Name, isDesc);
 
-            //OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
+            IsSorted = false;
+            SortProperty = null;
+            SortDirection = ListSortDirection.Ascending;
+
+            OnListChanged(ResetEventArgs);
         }
         #endregion
         #endregion
@@ -352,19 +365,24 @@ namespace XCode
         #region IBindingListView接口
         void IBindingListView.ApplySort(ListSortDescriptionCollection sorts)
         {
-            //if (sorts == null || sorts.Count < 1) return;
+            if (sorts == null || sorts.Count < 1) return;
 
-            //List<String> ns = new List<string>();
-            //List<Boolean> ds = new List<bool>();
-            //foreach (ListSortDescription item in sorts)
-            //{
-            //    ns.Add(item.PropertyDescriptor.Name);
-            //    ds.Add(item.SortDirection == ListSortDirection.Descending);
-            //}
+            EntityList<T> list = InnerList as EntityList<T>;
+            if (list == null || list.Count < 1) return;
 
-            //Sort(ns.ToArray(), ds.ToArray());
+            List<String> ns = new List<string>();
+            List<Boolean> ds = new List<bool>();
+            foreach (ListSortDescription item in sorts)
+            {
+                ns.Add(item.PropertyDescriptor.Name);
+                ds.Add(item.SortDirection == ListSortDirection.Descending);
+            }
 
-            //SortDescriptions = sorts;
+            list.Sort(ns.ToArray(), ds.ToArray());
+
+            SortDescriptions = sorts;
+
+            OnListChanged(ResetEventArgs);
         }
 
         string _Filter;
@@ -390,7 +408,7 @@ namespace XCode
 
         bool IBindingListView.SupportsAdvancedSorting
         {
-            get { return false; }
+            get { return true; }
         }
 
         bool IBindingListView.SupportsFiltering
@@ -411,7 +429,10 @@ namespace XCode
         {
             if (itemIndex < 0 || itemIndex >= Count) return;
 
-            this[itemIndex].Save();
+            //this[itemIndex].Save();
+
+            //OnListChanged(new ListChangedEventArgs(ListChangedType.ItemAdded, itemIndex));
+            OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, itemIndex));
         }
         #endregion
 

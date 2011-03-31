@@ -195,20 +195,26 @@ namespace XCode
         #endregion
 
         #region IEditableObject 成员
+        private EntityBase _bak;
+
         void IEditableObject.BeginEdit()
         {
-            //throw new NotImplementedException();
+            _bak = Clone() as EntityBase;
         }
 
         void IEditableObject.CancelEdit()
         {
-            //throw new NotImplementedException();
+            CopyFrom(_bak, false);
+
+            _bak = null;
         }
 
         void IEditableObject.EndEdit()
         {
-            //throw new NotImplementedException();
-            Update();
+            //Update();
+            Save();
+
+            _bak = null;
         }
         #endregion
 
