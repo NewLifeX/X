@@ -19,6 +19,7 @@ using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
+using XCode;
 
 namespace Test
 {
@@ -47,7 +48,7 @@ namespace Test
 
                 sw.Stop();
                 Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
-                ConsoleKeyInfo key = Console.ReadKey();
+                ConsoleKeyInfo key = Console.ReadKey(true);
                 if (key.Key != ConsoleKey.C) break;
             }
             //Console.ReadKey();
@@ -543,9 +544,18 @@ namespace Test
 
         static void Test16()
         {
-            Console.WriteLine(Log.Meta.Count);
-            Console.Clear();
-            TestLog();
+            //Json json = new Json();
+            Administrator admin = new Administrator();
+            admin.Name = "nnhy";
+            String str = admin.ToJson();
+            Console.WriteLine(str);
+
+            Administrator entity = Administrator.FromJson(str);
+            Console.WriteLine(entity == null);
+
+            EntityList<Administrator> list = Administrator.FindAll();
+            str = list.ToJson();
+            Console.WriteLine(str);
         }
         static void TestLog()
         {

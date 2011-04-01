@@ -39,7 +39,7 @@ namespace NewLife.CommonEntity
         public String Name
         {
             get { return _Name; }
-            set { if (OnPropertyChange("Name", value)) _Name = value; }
+            set { if (OnPropertyChanging("Name", value)) { _Name = value; OnPropertyChanged("Name"); } }
         }
 
         private String _Password;

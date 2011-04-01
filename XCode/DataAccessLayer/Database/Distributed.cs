@@ -4,7 +4,7 @@ using System.Text;
 using System.Data.Common;
 using XCode.Exceptions;
 
-namespace XCode.DataAccessLayer.Database
+namespace XCode.DataAccessLayer
 {
     /// <summary>
     /// 分布式数据库。同时操作多个数据库，多读多写，读写分析。

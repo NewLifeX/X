@@ -79,6 +79,13 @@ namespace XCode
         }
         #endregion
 
+        #region 导入导出Json
+        internal override EntityBase FromJsonInternal(string json)
+        {
+            return FromJson(json);
+        }
+        #endregion
+
         #region 事务
         internal override Int32 BeginTransactionInternal()
         {

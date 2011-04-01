@@ -8,6 +8,7 @@ using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using System.ComponentModel;
+using NewLife.IO;
 
 namespace XCode
 {
@@ -683,6 +684,25 @@ namespace XCode
             {
                 Import(reader);
             }
+        }
+
+        /// <summary>
+        /// 导出Json
+        /// </summary>
+        /// <returns></returns>
+        public virtual String ToJson()
+        {
+            return new Json().Serialize(this);
+        }
+
+        /// <summary>
+        /// 导入Json
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static EntityList<T> FromJson(String json)
+        {
+            return new Json().Deserialize<EntityList<T>>(json);
         }
         #endregion
 

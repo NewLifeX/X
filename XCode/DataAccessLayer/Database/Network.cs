@@ -4,7 +4,7 @@ using System.Text;
 using System.Data.Common;
 using System.Data;
 
-namespace XCode.DataAccessLayer.Database
+namespace XCode.DataAccessLayer
 {
     /// <summary>
     /// 网络数据库

@@ -14,6 +14,7 @@ using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
+using NewLife.IO;
 
 namespace XCode
 {
@@ -1553,6 +1554,18 @@ namespace XCode
         //        return Encoding.UTF8.GetString(stream.ToArray());
         //    }
         //}
+        #endregion
+
+        #region 导入导出Json
+        /// <summary>
+        /// 导入
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static TEntity FromJson(String json)
+        {
+            return new Json().Deserialize<TEntity>(json);
+        }
         #endregion
 
         #region 克隆

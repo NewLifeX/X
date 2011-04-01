@@ -185,6 +185,15 @@ namespace XCode
         EntityBase FromXml(String xml);
         #endregion
 
+        #region 导入导出Json
+        /// <summary>
+        /// 导入
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        EntityBase FromJson(String json);
+        #endregion
+
         #region 事务
         /// <summary>
         /// 开始事务

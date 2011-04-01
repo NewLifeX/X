@@ -60,12 +60,12 @@ namespace NewLife.IO
 
         public T Deserialize<T>(string input)
         {
-            return (T)Deserialize(this, input, typeof(T), this.RecursionLimit);
+            return (T)Deserialize(this, input, typeof(T), RecursionLimit);
         }
 
         public object Deserialize(string input, Type targetType)
         {
-            return Deserialize(this, input, targetType, this.RecursionLimit);
+            return Deserialize(this, input, targetType, RecursionLimit);
         }
 
         static object Deserialize(Json serializer, string input, Type type, int depthLimit)
@@ -78,31 +78,31 @@ namespace NewLife.IO
 
         public object DeserializeObject(string input)
         {
-            return Deserialize(this, input, null, this.RecursionLimit);
+            return Deserialize(this, input, null, RecursionLimit);
         }
         #endregion
 
         #region 序列化
         public string Serialize(object obj)
         {
-            return this.Serialize(obj, SerializationFormat.JSON);
+            return Serialize(obj, SerializationFormat.JSON);
         }
 
         public void Serialize(object obj, StringBuilder output)
         {
-            this.Serialize(obj, output, SerializationFormat.JSON);
+            Serialize(obj, output, SerializationFormat.JSON);
         }
 
-        internal string Serialize(object obj, SerializationFormat serializationFormat)
+        string Serialize(object obj, SerializationFormat serializationFormat)
         {
             StringBuilder output = new StringBuilder();
-            this.Serialize(obj, output, serializationFormat);
+            Serialize(obj, output, serializationFormat);
             return output.ToString();
         }
 
         internal void Serialize(object obj, StringBuilder output, SerializationFormat serializationFormat)
         {
-            this.SerializeValue(obj, output, 0, null, serializationFormat);
+            SerializeValue(obj, output, 0, null, serializationFormat);
             if (serializationFormat == SerializationFormat.JSON) CheckMaxLength(output.Length);
         }
 
@@ -129,7 +129,7 @@ namespace NewLife.IO
             {
                 SerializeString(ServerTypeFieldName, sb);
                 sb.Append(':');
-                this.SerializeValue(str, sb, depth, objectsInUse, serializationFormat);
+                SerializeValue(str, sb, depth, objectsInUse, serializationFormat);
                 flag = false;
             }
 
@@ -143,7 +143,7 @@ namespace NewLife.IO
                 }
                 SerializeString(info.Name, sb);
                 sb.Append(':');
-                this.SerializeValue(info.GetValue(o), sb, depth, objectsInUse, serializationFormat);
+                SerializeValue(info.GetValue(o), sb, depth, objectsInUse, serializationFormat);
                 flag = false;
             }
             foreach (PropertyInfo info2 in type.GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance))
@@ -159,7 +159,7 @@ namespace NewLife.IO
                     }
                     SerializeString(info2.Name, sb);
                     sb.Append(':');
-                    this.SerializeValue(info2.GetValue(o, null), sb, depth, objectsInUse, serializationFormat);
+                    SerializeValue(info2.GetValue(o, null), sb, depth, objectsInUse, serializationFormat);
                     flag = false;
                 }
             }
@@ -191,7 +191,7 @@ namespace NewLife.IO
             {
                 flag = false;
                 flag2 = true;
-                this.SerializeDictionaryKeyValue(ServerTypeFieldName, o[ServerTypeFieldName], sb, depth, objectsInUse, serializationFormat);
+                SerializeDictionaryKeyValue(ServerTypeFieldName, o[ServerTypeFieldName], sb, depth, objectsInUse, serializationFormat);
             }
             foreach (DictionaryEntry entry in o)
             {
@@ -210,7 +210,7 @@ namespace NewLife.IO
                     {
                         sb.Append(',');
                     }
-                    this.SerializeDictionaryKeyValue(key, entry.Value, sb, depth, objectsInUse, serializationFormat);
+                    SerializeDictionaryKeyValue(key, entry.Value, sb, depth, objectsInUse, serializationFormat);
                     flag = false;
                 }
             }
@@ -221,7 +221,7 @@ namespace NewLife.IO
         {
             SerializeString(key, sb);
             sb.Append(':');
-            this.SerializeValue(value, sb, depth, objectsInUse, serializationFormat);
+            SerializeValue(value, sb, depth, objectsInUse, serializationFormat);
         }
 
         private void SerializeEnumerable(IEnumerable enumerable, StringBuilder sb, int depth, Hashtable objectsInUse, SerializationFormat serializationFormat)
@@ -234,7 +234,7 @@ namespace NewLife.IO
                 {
                     sb.Append(',');
                 }
-                this.SerializeValue(obj2, sb, depth, objectsInUse, serializationFormat);
+                SerializeValue(obj2, sb, depth, objectsInUse, serializationFormat);
                 flag = false;
             }
             sb.Append(']');
@@ -361,18 +361,18 @@ namespace NewLife.IO
                                 IDictionary dictionary = o as IDictionary;
                                 if (dictionary != null)
                                 {
-                                    this.SerializeDictionary(dictionary, sb, depth, objectsInUse, serializationFormat);
+                                    SerializeDictionary(dictionary, sb, depth, objectsInUse, serializationFormat);
                                 }
                                 else
                                 {
                                     IEnumerable enumerable = o as IEnumerable;
                                     if (enumerable != null)
                                     {
-                                        this.SerializeEnumerable(enumerable, sb, depth, objectsInUse, serializationFormat);
+                                        SerializeEnumerable(enumerable, sb, depth, objectsInUse, serializationFormat);
                                     }
                                     else
                                     {
-                                        this.SerializeCustomObject(o, sb, depth, objectsInUse, serializationFormat);
+                                        SerializeCustomObject(o, sb, depth, objectsInUse, serializationFormat);
                                     }
                                 }
                             }
@@ -949,7 +949,7 @@ namespace NewLife.IO
         {
             #region 字段
             private int _depthLimit;
-            internal JsonString _s;
+            JsonString _s;
             private Json _serializer;
             private const string DateTimePrefix = "\"\\/Date(";
             private const int DateTimePrefixLength = 8;
@@ -958,9 +958,9 @@ namespace NewLife.IO
             #region 方法
             private JsonObjectDeserializer(string input, int depthLimit, Json serializer)
             {
-                this._s = new JsonString(input);
-                this._depthLimit = depthLimit;
-                this._serializer = serializer;
+                _s = new JsonString(input);
+                _depthLimit = depthLimit;
+                _serializer = serializer;
             }
 
             private void AppendCharToBuilder(char? c, StringBuilder sb)
@@ -993,9 +993,9 @@ namespace NewLife.IO
                 {
                     if (c != 'u')
                     {
-                        throw new ArgumentException(this._s.GetDebugString("错误的转义符！"));
+                        throw new ArgumentException(_s.GetDebugString("错误的转义符！"));
                     }
-                    sb.Append((char)int.Parse(this._s.MoveNext(4), NumberStyles.HexNumber, CultureInfo.InvariantCulture));
+                    sb.Append((char)int.Parse(_s.MoveNext(4), NumberStyles.HexNumber, CultureInfo.InvariantCulture));
                 }
             }
 
@@ -1020,7 +1020,7 @@ namespace NewLife.IO
                 }
                 if (c != '"')
                 {
-                    throw new ArgumentException(this._s.GetDebugString("字符串没有引号！"));
+                    throw new ArgumentException(_s.GetDebugString("字符串没有引号！"));
                 }
                 return '"';
             }
@@ -1031,31 +1031,31 @@ namespace NewLife.IO
                 char? nextNonEmptyChar;
                 char? nullable8;
                 char? nullable11;
-                if (this._s.MoveNext() != '{')
+                if (_s.MoveNext() != '{')
                 {
-                    throw new ArgumentException(this._s.GetDebugString("期望是左大括号！"));
+                    throw new ArgumentException(_s.GetDebugString("期望是左大括号！"));
                 }
             Label_018D:
-                nullable8 = nextNonEmptyChar = this._s.GetNextNonEmptyChar();
+                nullable8 = nextNonEmptyChar = _s.GetNextNonEmptyChar();
                 int? nullable10 = nullable8.HasValue ? new int?(nullable8.GetValueOrDefault()) : null;
                 if (nullable10.HasValue)
                 {
-                    this._s.MovePrev();
+                    _s.MovePrev();
                     if (nextNonEmptyChar == ':')
                     {
-                        throw new ArgumentException(this._s.GetDebugString("无效的成员名称！"));
+                        throw new ArgumentException(_s.GetDebugString("无效的成员名称！"));
                     }
                     string str = null;
                     if (nextNonEmptyChar != '}')
                     {
-                        str = this.DeserializeMemberName();
+                        str = DeserializeMemberName();
                         if (string.IsNullOrEmpty(str))
                         {
-                            throw new ArgumentException(this._s.GetDebugString("无效的成员名称！"));
+                            throw new ArgumentException(_s.GetDebugString("无效的成员名称！"));
                         }
-                        if (this._s.GetNextNonEmptyChar() != ':')
+                        if (_s.GetNextNonEmptyChar() != ':')
                         {
-                            throw new ArgumentException(this._s.GetDebugString("无效的对象"));
+                            throw new ArgumentException(_s.GetDebugString("无效的对象"));
                         }
                     }
                     if (dictionary == null)
@@ -1063,18 +1063,18 @@ namespace NewLife.IO
                         dictionary = new Dictionary<string, object>();
                         if (string.IsNullOrEmpty(str))
                         {
-                            nextNonEmptyChar = this._s.GetNextNonEmptyChar();
+                            nextNonEmptyChar = _s.GetNextNonEmptyChar();
                             goto Label_01CB;
                         }
                     }
-                    object obj2 = this.DeserializeInternal(depth);
+                    object obj2 = DeserializeInternal(depth);
                     dictionary[str] = obj2;
-                    nextNonEmptyChar = this._s.GetNextNonEmptyChar();
+                    nextNonEmptyChar = _s.GetNextNonEmptyChar();
                     if (nextNonEmptyChar != '}')
                     {
                         if (nextNonEmptyChar != ',')
                         {
-                            throw new ArgumentException(this._s.GetDebugString("无效的对象！"));
+                            throw new ArgumentException(_s.GetDebugString("无效的对象！"));
                         }
                         goto Label_018D;
                     }
@@ -1083,45 +1083,45 @@ namespace NewLife.IO
                 nullable11 = nextNonEmptyChar;
                 if ((nullable11.GetValueOrDefault() != '}') || !nullable11.HasValue)
                 {
-                    throw new ArgumentException(this._s.GetDebugString("无效的对象！"));
+                    throw new ArgumentException(_s.GetDebugString("无效的对象！"));
                 }
                 return dictionary;
             }
 
             private object DeserializeInternal(int depth)
             {
-                if (++depth > this._depthLimit) throw new ArgumentException(this._s.GetDebugString("超过深度限制！"));
+                if (++depth > _depthLimit) throw new ArgumentException(_s.GetDebugString("超过深度限制！"));
 
-                char? nextNonEmptyChar = this._s.GetNextNonEmptyChar();
+                char? nextNonEmptyChar = _s.GetNextNonEmptyChar();
                 char? nullable2 = nextNonEmptyChar;
                 int? nullable4 = nullable2.HasValue ? new int?(nullable2.GetValueOrDefault()) : null;
                 if (!nullable4.HasValue)
                 {
                     return null;
                 }
-                this._s.MovePrev();
-                if (this.IsNextElementDateTime())
+                _s.MovePrev();
+                if (IsNextElementDateTime())
                 {
-                    return this.DeserializeStringIntoDateTime();
+                    return DeserializeStringIntoDateTime();
                 }
                 if (IsNextElementObject(nextNonEmptyChar))
                 {
-                    IDictionary<string, object> o = this.DeserializeDictionary(depth);
+                    IDictionary<string, object> o = DeserializeDictionary(depth);
                     if (o.ContainsKey("__type"))
                     {
-                        return ObjectConverter.ConvertObjectToType(o, null, this._serializer);
+                        return ObjectConverter.ConvertObjectToType(o, null, _serializer);
                     }
                     return o;
                 }
                 if (IsNextElementArray(nextNonEmptyChar))
                 {
-                    return this.DeserializeList(depth);
+                    return DeserializeList(depth);
                 }
                 if (IsNextElementString(nextNonEmptyChar))
                 {
-                    return this.DeserializeString();
+                    return DeserializeString();
                 }
-                return this.DeserializePrimitiveObject();
+                return DeserializePrimitiveObject();
             }
 
             private IList DeserializeList(int depth)
@@ -1129,63 +1129,63 @@ namespace NewLife.IO
                 char? nextNonEmptyChar;
                 char? nullable5;
                 IList list = new ArrayList();
-                if (this._s.MoveNext() != '[')
+                if (_s.MoveNext() != '[')
                 {
-                    throw new ArgumentException(this._s.GetDebugString("无效的数组开始"));
+                    throw new ArgumentException(_s.GetDebugString("无效的数组开始"));
                 }
                 bool flag = false;
             Label_00C4:
-                nullable5 = nextNonEmptyChar = this._s.GetNextNonEmptyChar();
+                nullable5 = nextNonEmptyChar = _s.GetNextNonEmptyChar();
                 int? nullable7 = nullable5.HasValue ? new int?(nullable5.GetValueOrDefault()) : null;
                 if (nullable7.HasValue && (nextNonEmptyChar != ']'))
                 {
-                    this._s.MovePrev();
-                    object obj2 = this.DeserializeInternal(depth);
+                    _s.MovePrev();
+                    object obj2 = DeserializeInternal(depth);
                     list.Add(obj2);
                     flag = false;
-                    nextNonEmptyChar = this._s.GetNextNonEmptyChar();
+                    nextNonEmptyChar = _s.GetNextNonEmptyChar();
                     if (nextNonEmptyChar != ']')
                     {
                         flag = true;
                         if (nextNonEmptyChar != ',')
                         {
-                            throw new ArgumentException(this._s.GetDebugString("无效数组！"));
+                            throw new ArgumentException(_s.GetDebugString("无效数组！"));
                         }
                         goto Label_00C4;
                     }
                 }
                 if (flag)
                 {
-                    throw new ArgumentException(this._s.GetDebugString("无效数组！"));
+                    throw new ArgumentException(_s.GetDebugString("无效数组！"));
                 }
                 if (nextNonEmptyChar != ']')
                 {
-                    throw new ArgumentException(this._s.GetDebugString("无效的数组结束符！"));
+                    throw new ArgumentException(_s.GetDebugString("无效的数组结束符！"));
                 }
                 return list;
             }
 
             private string DeserializeMemberName()
             {
-                char? nextNonEmptyChar = this._s.GetNextNonEmptyChar();
+                char? nextNonEmptyChar = _s.GetNextNonEmptyChar();
                 char? nullable2 = nextNonEmptyChar;
                 int? nullable4 = nullable2.HasValue ? new int?(nullable2.GetValueOrDefault()) : null;
                 if (!nullable4.HasValue)
                 {
                     return null;
                 }
-                this._s.MovePrev();
+                _s.MovePrev();
                 if (IsNextElementString(nextNonEmptyChar))
                 {
-                    return this.DeserializeString();
+                    return DeserializeString();
                 }
-                return this.DeserializePrimitiveToken();
+                return DeserializePrimitiveToken();
             }
 
             private object DeserializePrimitiveObject()
             {
                 double num4;
-                string s = this.DeserializePrimitiveToken();
+                string s = DeserializePrimitiveToken();
                 if (s.Equals("null"))
                 {
                     return null;
@@ -1233,7 +1233,7 @@ namespace NewLife.IO
                 StringBuilder builder = new StringBuilder();
                 char? nullable = null;
             Label_0066:
-                nullable2 = nullable = this._s.MoveNext();
+                nullable2 = nullable = _s.MoveNext();
                 int? nullable4 = nullable2.HasValue ? new int?(nullable2.GetValueOrDefault()) : null;
                 if (nullable4.HasValue)
                 {
@@ -1243,7 +1243,7 @@ namespace NewLife.IO
                     }
                     else
                     {
-                        this._s.MovePrev();
+                        _s.MovePrev();
                         goto Label_00A2;
                     }
                     goto Label_0066;
@@ -1256,15 +1256,15 @@ namespace NewLife.IO
             {
                 StringBuilder sb = new StringBuilder();
                 bool flag = false;
-                char? c = this._s.MoveNext();
-                char ch = this.CheckQuoteChar(c);
+                char? c = _s.MoveNext();
+                char ch = CheckQuoteChar(c);
                 while (true)
                 {
-                    char? nullable4 = c = this._s.MoveNext();
+                    char? nullable4 = c = _s.MoveNext();
                     int? nullable6 = nullable4.HasValue ? new int?(nullable4.GetValueOrDefault()) : null;
                     if (!nullable6.HasValue)
                     {
-                        throw new ArgumentException(this._s.GetDebugString("未结束的字符串！"));
+                        throw new ArgumentException(_s.GetDebugString("未结束的字符串！"));
                     }
                     if (c == '\\')
                     {
@@ -1280,7 +1280,7 @@ namespace NewLife.IO
                     }
                     else if (flag)
                     {
-                        this.AppendCharToBuilder(c, sb);
+                        AppendCharToBuilder(c, sb);
                         flag = false;
                     }
                     else
@@ -1299,13 +1299,13 @@ namespace NewLife.IO
             private object DeserializeStringIntoDateTime()
             {
                 long num;
-                Match match = Regex.Match(this._s.ToString(), "^\"\\\\/Date\\((?<ticks>-?[0-9]+)(?:[a-zA-Z]|(?:\\+|-)[0-9]{4})?\\)\\\\/\"");
+                Match match = Regex.Match(_s.ToString(), "^\"\\\\/Date\\((?<ticks>-?[0-9]+)(?:[a-zA-Z]|(?:\\+|-)[0-9]{4})?\\)\\\\/\"");
                 if (long.TryParse(match.Groups["ticks"].Value, out num))
                 {
-                    this._s.MoveNext(match.Length);
+                    _s.MoveNext(match.Length);
                     return new DateTime((num * 0x2710L) + Json.DatetimeMinTimeTicks, DateTimeKind.Utc);
                 }
-                return this.DeserializeString();
+                return DeserializeString();
             }
 
             private static bool IsNextElementArray(char? c)
@@ -1315,10 +1315,10 @@ namespace NewLife.IO
 
             private bool IsNextElementDateTime()
             {
-                string a = this._s.MoveNext(8);
+                string a = _s.MoveNext(8);
                 if (a != null)
                 {
-                    this._s.MovePrev(8);
+                    _s.MovePrev(8);
                     return string.Equals(a, "\"\\/Date(", StringComparison.Ordinal);
                 }
                 return false;
@@ -1346,42 +1346,37 @@ namespace NewLife.IO
             #region 方法
             internal JsonString(string s)
             {
-                this._s = s;
+                _s = s;
             }
 
             internal string GetDebugString(string message)
             {
-                return string.Concat(new object[] { message, " (", this._index, "): ", this._s });
+                return string.Concat(new object[] { message, " (", _index, "): ", _s });
             }
 
             internal char? GetNextNonEmptyChar()
             {
-                while (this._s.Length > this._index)
+                while (_s.Length > _index)
                 {
-                    char c = this._s[this._index++];
-                    if (!char.IsWhiteSpace(c))
-                    {
-                        return new char?(c);
-                    }
+                    char c = _s[_index++];
+                    if (!char.IsWhiteSpace(c)) return new char?(c);
                 }
                 return null;
             }
 
             internal char? MoveNext()
             {
-                if (this._s.Length > this._index)
-                {
-                    return new char?(this._s[this._index++]);
-                }
+                if (_s.Length > _index) return new char?(_s[_index++]);
+
                 return null;
             }
 
             internal string MoveNext(int count)
             {
-                if (this._s.Length >= (this._index + count))
+                if (_s.Length >= (_index + count))
                 {
-                    string str = this._s.Substring(this._index, count);
-                    this._index += count;
+                    string str = _s.Substring(_index, count);
+                    _index += count;
                     return str;
                 }
                 return null;
@@ -1389,27 +1384,22 @@ namespace NewLife.IO
 
             internal void MovePrev()
             {
-                if (this._index > 0)
-                {
-                    this._index--;
-                }
+                if (_index > 0) _index--;
             }
 
             internal void MovePrev(int count)
             {
-                while ((this._index > 0) && (count > 0))
+                while ((_index > 0) && (count > 0))
                 {
-                    this._index--;
+                    _index--;
                     count--;
                 }
             }
 
             public override string ToString()
             {
-                if (this._s.Length > this._index)
-                {
-                    return this._s.Substring(this._index);
-                }
+                if (_s.Length > _index) return _s.Substring(_index);
+
                 return string.Empty;
             }
             #endregion

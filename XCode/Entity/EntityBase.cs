@@ -367,6 +367,27 @@ namespace XCode
         internal abstract EntityBase FromXmlInternal(String xml);
         #endregion
 
+        #region 导入导出Json
+        /// <summary>
+        /// 导出Json
+        /// </summary>
+        /// <returns></returns>
+        public virtual String ToJson()
+        {
+            Json json = new Json();
+            return json.Serialize(this);
+        }
+
+        /// <summary>
+        /// 导入
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        EntityBase IEntityOperate.FromJson(String json) { return FromJsonInternal(json); }
+
+        internal abstract EntityBase FromJsonInternal(String json);
+        #endregion
+
         #region 事务
         /// <summary>
         /// 开始事务
