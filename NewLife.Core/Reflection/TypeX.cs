@@ -219,22 +219,6 @@ namespace NewLife.Reflection
             //set { _Members = value; }
         }
 
-        //static ListX<MemberInfo> GetMembers(Type type)
-        //{
-        //    ListX<MemberInfo> list = new ListX<MemberInfo>();
-        //    MemberInfo[] mis = type.GetMembers(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-        //    if (mis != null && mis.Length > 0) list.AddRange(mis);
-
-        //    if (type.BaseType != null)
-        //    {
-        //        ListX<MemberInfo> list2 = GetMembers(type.BaseType);
-        //        if (list2 != null) list.AddRange(list2);
-        //    }
-
-        //    if (list.Count < 1) return null;
-        //    return list;
-        //}
-
         ListX<T> GetMembers<T>(MemberTypes memberType) where T : MemberInfo
         {
             if (Members == null || Members.Count < 1) return null;
@@ -342,6 +326,13 @@ namespace NewLife.Reflection
             }
             //set { _Interfaces = value; }
         }
+        #endregion
+
+        #region 获取成员
+        //public ListX<FieldInfo> GetFields(BindingFlags bindingAttr, Attribute[] includes, Attribute[] excludes)
+        //{
+            
+        //}
         #endregion
 
         #region 方法

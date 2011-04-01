@@ -64,6 +64,7 @@
     <Compile Include="IO\BinaryTest.cs" />
     <Compile Include="IOModule\StreamHttpHandler.cs" />
     <Compile Include="IOModule\IStreamHandler.cs" />
+    <Compile Include="IO\Json.cs" />
     <Compile Include="IO\ReadWriteStream.cs" />
     <Compile Include="IOModule\StreamClient.cs" />
     <Compile Include="IOModule\HttpStreamClient.cs" />
