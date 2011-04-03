@@ -331,7 +331,7 @@ namespace NewLife.Reflection
         #region 获取成员
         //public ListX<FieldInfo> GetFields(BindingFlags bindingAttr, Attribute[] includes, Attribute[] excludes)
         //{
-            
+
         //}
         #endregion
 
@@ -448,6 +448,15 @@ namespace NewLife.Reflection
                         return type;
                     }
                 }
+            }
+
+            // 尝试系统的
+            if (!typeName.Contains("."))
+            {
+                type = Type.GetType("System." + typeName);
+                if (type != null) return type;
+                type = Type.GetType("NewLife." + typeName);
+                if (type != null) return type;
             }
 
             return null;

@@ -641,11 +641,14 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public String Export()
         {
-            IList<XTable> list = Tables;
+            List<XTable> list = Tables;
 
             if (list == null || list.Count < 1) return null;
 
-            XmlSerializer serializer = new XmlSerializer(typeof(XTable[]));
+            // 排序
+            list.Sort((item1, item2) => item1.ID.CompareTo(item2.ID));
+
+            XmlSerializer serializer = new XmlSerializer(typeof(List<XTable>));
             using (StringWriter sw = new StringWriter())
             {
                 serializer.Serialize(sw, list);
@@ -658,15 +661,31 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="xml"></param>
         /// <returns></returns>
-        public static XTable[] Import(String xml)
+        public static List<XTable> Import(String xml)
         {
             if (String.IsNullOrEmpty(xml)) return null;
 
-            XmlSerializer serializer = new XmlSerializer(typeof(XTable[]));
+            List<XTable> list = null;
+            XmlSerializer serializer = new XmlSerializer(typeof(List<XTable>));
             using (StringReader sr = new StringReader(xml))
             {
-                return serializer.Deserialize(sr) as XTable[];
+                list = serializer.Deserialize(sr) as List<XTable>;
             }
+
+            if (list == null || list.Count < 1) return list;
+
+            // 修正字段中的Table引用
+            foreach (XTable item in list)
+            {
+                if (item.Fields == null || item.Fields.Count < 1) continue;
+
+                foreach (XField field in item.Fields)
+                {
+                    if (field.Table == null) field.Table = item;
+                }
+            }
+
+            return list;
         }
         #endregion
 

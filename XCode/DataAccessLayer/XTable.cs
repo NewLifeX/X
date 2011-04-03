@@ -105,24 +105,6 @@ namespace XCode.DataAccessLayer
             return XField.Create(this);
         }
 
-        ///// <summary>
-        ///// 取得经过修饰的类名，由子类重写实现
-        ///// </summary>
-        ///// <returns></returns>
-        //public virtual String GetClassName()
-        //{
-        //    return Name;
-        //}
-
-        ///// <summary>
-        ///// 取得经过修饰的类说明，由子类重写实现
-        ///// </summary>
-        ///// <returns></returns>
-        //public virtual String GetClassDescription()
-        //{
-        //    return Description;
-        //}
-
         /// <summary>
         /// 已重载。
         /// </summary>

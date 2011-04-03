@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Serialization;
+using System.Xml.Schema;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -11,7 +13,7 @@ namespace XCode.DataAccessLayer
     /// 字段构架
     /// </summary>
     [Serializable]
-    public class XField : ICloneable
+    public class XField : ICloneable, IXmlSerializable
     {
         #region 属性
         private Int32 _ID;
@@ -41,6 +43,7 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 字段类型
         /// </summary>
+        [XmlIgnore]
         [Description("字段类型")]
         public String FieldType { get { return DataType == null ? null : DataType.Name; } }
 
@@ -134,6 +137,8 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 构造
+        private XField() { }
+
         private XField(XTable table)
         {
             Table = table;
@@ -160,7 +165,7 @@ namespace XCode.DataAccessLayer
         public XTable Table
         {
             get { return _Table; }
-            private set { _Table = value; }
+            internal set { _Table = value; }
         }
         #endregion
 
@@ -326,6 +331,51 @@ namespace XCode.DataAccessLayer
             XField field = base.MemberwiseClone() as XField;
             field.Table = table;
             return field;
+        }
+        #endregion
+
+        #region IXmlSerializable 成员
+        XmlSchema IXmlSerializable.GetSchema()
+        {
+            return null;
+        }
+
+        void IXmlSerializable.ReadXml(XmlReader reader)
+        {
+            foreach (PropertyInfoX item in TypeX.Create(this.GetType()).Properties)
+            {
+                if (!item.Property.CanRead) continue;
+                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;
+
+                String v = reader.GetAttribute(item.Name);
+                if (String.IsNullOrEmpty(v)) continue;
+
+                Object obj = null;
+                if (item.Type == typeof(Type))
+                    obj = TypeX.GetType(v);
+                else
+                    obj = Convert.ChangeType(v, item.Type);
+                item.SetValue(this, obj);
+            }
+            reader.Skip();
+        }
+
+        static XField def = new XField();
+
+        void IXmlSerializable.WriteXml(XmlWriter writer)
+        {
+            foreach (PropertyInfoX item in TypeX.Create(this.GetType()).Properties)
+            {
+                if (!item.Property.CanWrite) continue;
+                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;
+
+                Object obj = item.GetValue(this);
+                // 默认值不参与序列化，节省空间
+                if (Object.Equals(obj, item.GetValue(def))) continue;
+
+                if (item.Type == typeof(Type)) obj = (obj as Type).Name;
+                writer.WriteAttributeString(item.Name, obj == null ? null : obj.ToString());
+            }
         }
         #endregion
     }

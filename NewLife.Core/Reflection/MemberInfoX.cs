@@ -22,6 +22,12 @@ namespace NewLife.Reflection
             set { _Member = value; }
         }
 
+        /// <summary>名称</summary>
+        public String Name
+        {
+            get { return Member.Name; }
+        }
+
         /// <summary>
         /// 默认查找标志
         /// </summary>
