@@ -599,8 +599,11 @@ namespace XCode
             //}
             //XmlSerializer serial = new XmlSerializer(this.GetType(), ovs);
 
-            XmlSerializer serial = CreateXmlSerializer();
-            serial.Serialize(writer, this);
+            IList list = this;
+            if (typeof(T).IsInterface) list = (this as IListSource).GetList();
+
+            XmlSerializer serial = CreateXmlSerializer(list.GetType());
+            serial.Serialize(writer, list);
 
             //XmlDocument doc = new XmlDocument();
             //doc.WriteTo(new XmlTextWriter(writer));
@@ -633,13 +636,13 @@ namespace XCode
             //}
             //XmlSerializer serial = new XmlSerializer(this.GetType(), ovs);
 
-            XmlSerializer serial = CreateXmlSerializer();
+            XmlSerializer serial = CreateXmlSerializer(this.GetType());
             EntityList<T> list = serial.Deserialize(reader) as EntityList<T>;
 
             AddRange(list);
         }
 
-        private XmlSerializer CreateXmlSerializer()
+        private XmlSerializer CreateXmlSerializer(Type type)
         {
             XmlAttributeOverrides ovs = new XmlAttributeOverrides();
             IEntityOperate factory = Factory;
@@ -651,7 +654,7 @@ namespace XCode
                 atts.XmlDefaultValue = entity[item.Name];
                 ovs.Add(item.Property.DeclaringType, item.Name, atts);
             }
-            return new XmlSerializer(this.GetType(), ovs);
+            return new XmlSerializer(type, ovs);
         }
 
         /// <summary>

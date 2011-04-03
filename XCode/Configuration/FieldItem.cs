@@ -76,8 +76,8 @@ namespace XCode.Configuration
                 {
                     if (Column != null && !String.IsNullOrEmpty(Column.Name))
                         _ColumnName = Column.Name;
-                    else
-                        _ColumnName = Property.Name;
+                    //else
+                    //    _ColumnName = Property.Name;
                 }
                 return _ColumnName;
             }
@@ -103,7 +103,7 @@ namespace XCode.Configuration
         /// <summary>字段名（去除左右中括号）</summary>
         internal String ColumnNameEx
         {
-            get { return ColumnName.Trim(new Char[] { '[', ']' }); }
+            get { return String.IsNullOrEmpty(ColumnName) ? ColumnName : ColumnName.Trim(new Char[] { '[', ']' }); }
         }
 
         ///// <summary>

@@ -282,6 +282,8 @@ namespace XCode
             //}
             foreach (FieldItem item in Meta.AllFields)
             {
+                if (String.IsNullOrEmpty(item.ColumnNameEx)) continue;
+
                 if (dt.Columns.Contains(prefix + item.ColumnNameEx)) ps.Add(item);
             }
             return ps;
@@ -1322,11 +1324,12 @@ namespace XCode
         {
             if (String.IsNullOrEmpty(oql)) return oql;
             String sql = oql;
-            if (Meta.ThisType.Name != Meta.TableName)
-                sql = Regex.Replace(sql, @"\b" + Meta.ThisType.Name + @"\b", Meta.TableName, RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            foreach (FieldItem fi in Meta.Fields)
-                if (fi.Name != fi.ColumnName)
-                    sql = Regex.Replace(sql, @"\b" + fi.Name + @"\b", fi.ColumnName, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            // 这个地方非常容易出错，有可能错误的修改了数据，而不仅仅是SQL
+            //if (Meta.ThisType.Name != Meta.TableName)
+            //    sql = Regex.Replace(sql, @"\b" + Meta.ThisType.Name + @"\b", Meta.TableName, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            //foreach (FieldItem fi in Meta.Fields)
+            //    if (fi.Name != fi.ColumnName)
+            //        sql = Regex.Replace(sql, @"\b" + fi.Name + @"\b", fi.ColumnName, RegexOptions.IgnoreCase | RegexOptions.Compiled);
             return sql;
         }
 

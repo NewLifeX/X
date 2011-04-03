@@ -68,11 +68,8 @@ namespace XCode.Configuration
                 List<String> names = new List<String>();
                 foreach (PropertyInfo item in pis)
                 {
-                    //FieldItem field = new FieldItem();
-                    //field.Property = item;
-                    //field.Column = BindColumnAttribute.GetCustomAttribute(item);
-                    //field.DataObjectField = DataObjectAttribute.GetCustomAttribute(item, typeof(DataObjectFieldAttribute)) as DataObjectFieldAttribute;
-                    //list.Add(field);
+                    // ÅÅ³ýË÷ÒýÆ÷
+                    if (item.GetIndexParameters().Length > 0) continue;
 
                     list.Add(new FieldItem(item));
 

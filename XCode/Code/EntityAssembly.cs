@@ -7,6 +7,7 @@ using System.Reflection;
 using NewLife.Collections;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
+using System.Collections.Specialized;
 
 namespace XCode.Code
 {
@@ -113,7 +114,9 @@ namespace XCode.Code
             tb.Name = tb.Name.Replace("$", null);
 
             // 计算名称，防止属性名和类型名重名
-            List<String> list = new List<String>();
+            StringCollection list = new StringCollection();
+            list.Add("Item");
+            list.Add("System");
             list.Add(tb.Name);
             foreach (XField item in tb.Fields)
             {
@@ -208,14 +211,15 @@ namespace XCode.Code
                 options = new CompilerParameters();
                 options.GenerateInMemory = true;
 
-#if DEBUG
-                options.GenerateInMemory = false;
-                options.OutputAssembly = String.Format("XCode.{0}.dll", Dal.ConnName);
+                if (DbBase.Debug)
+                {
+                    options.GenerateInMemory = false;
+                    options.OutputAssembly = String.Format("XCode.{0}.dll", Dal.ConnName);
 
-                String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
-                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-                options.TempFiles = new TempFileCollection(path, true);
-#endif
+                    String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XTemp");
+                    if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+                    options.TempFiles = new TempFileCollection(path, true);
+                }
             }
 
             String[] refs = new String[] { "System.dll", "XCode.dll", "NewLife.Core.dll" };
