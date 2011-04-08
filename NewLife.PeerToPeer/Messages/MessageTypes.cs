@@ -69,6 +69,16 @@ namespace NewLife.PeerToPeer.Messages
         /// 任务响应信息
         /// </summary>
         TaskResponse,
+        
+        /// <summary>
+        /// 重启客户端
+        /// </summary>
+        ResetCommandClient,
+
+        /// <summary>
+        /// 重启客户端响应
+        /// </summary>
+        ResetCommandClientResponse,
 
         #endregion
 
