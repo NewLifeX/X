@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.5.*")]
-[assembly: AssemblyFileVersion("7.5.2011.0408")]
+[assembly: AssemblyFileVersion("7.5.2011.0403")]
 
 /*
  * XCode的重大改进
@@ -51,8 +51,6 @@ using System.Runtime.InteropServices;
  * /
 
 /*
- * v7.5.2011.0408   实体基类实现IEnumerator接口，支持对实体数据的枚举操作
- * 
  * v7.5.2011.0403   修正XField中Xml序列化的问题
  * 
  * v7.5.2011.0401   增加Json支持

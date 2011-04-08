@@ -11,7 +11,6 @@ using NewLife.Collections;
 using NewLife.IO;
 using NewLife.Reflection;
 using XCode.Configuration;
-using System.Runtime.InteropServices;
 
 namespace XCode
 {
@@ -326,59 +325,6 @@ namespace XCode
             Boolean b = OnPropertyChange(name, value);
             if (b) this[name] = value;
             return b;
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            List<String> names = (this as IEntityOperate).FieldNames;
-            return new EntityEnumerator(this, names.ToArray());
-        }
-
-        [Serializable, StructLayout(LayoutKind.Sequential)]
-        struct EntityEnumerator : IEnumerator
-        {
-            public IEntity Entity;
-            public String[] Names;
-
-            private Int32 Index;
-
-            public EntityEnumerator(IEntity entity, String[] names)
-            {
-                Entity = entity;
-                Names = names;
-                Index = -1;
-            }
-
-            #region IEnumerator 成员
-            public object Current
-            {
-                get
-                {
-                    if (Index < 0) throw new InvalidOperationException("没有开始遍历或遍历已结束！");
-
-                    return Entity[Names[Index]];
-                }
-            }
-
-            public bool MoveNext()
-            {
-                Index++;
-                if (Index >= Names.Length)
-                {
-                    Index = -1;
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
-            }
-
-            public void Reset()
-            {
-                Index = -1;
-            }
-            #endregion
         }
         #endregion
 
