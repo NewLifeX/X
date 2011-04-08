@@ -4,13 +4,14 @@ using System.Data;
 using NewLife.IO;
 using NewLife.Reflection;
 using XCode.Configuration;
+using System.Collections;
 
 namespace XCode
 {
     /// <summary>
     /// 数据实体接口
     /// </summary>
-    public interface IEntity : IIndexAccessor, IBinaryAccessor
+    public interface IEntity : IIndexAccessor, IBinaryAccessor, IEnumerable
     {
         #region 填充数据
         /// <summary>
