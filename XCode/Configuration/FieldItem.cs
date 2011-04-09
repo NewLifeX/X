@@ -76,8 +76,8 @@ namespace XCode.Configuration
                 {
                     if (Column != null && !String.IsNullOrEmpty(Column.Name))
                         _ColumnName = Column.Name;
-                    //else
-                    //    _ColumnName = Property.Name;
+                    else
+                        _ColumnName = Property.Name;
                 }
                 return _ColumnName;
             }

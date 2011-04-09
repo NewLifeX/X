@@ -45,13 +45,13 @@ namespace XCode
             set { _MapColumn = value; }
         }
 
-        private PropertyInfo _LocalField;
-        /// <summary>本地域</summary>
-        public PropertyInfo LocalField
-        {
-            get { return _LocalField; }
-            set { _LocalField = value; }
-        }
+        //private PropertyInfo _LocalField;
+        ///// <summary>本地域</summary>
+        //public PropertyInfo LocalField
+        //{
+        //    get { return _LocalField; }
+        //    set { _LocalField = value; }
+        //}
 
         /// <summary>
         /// 构造函数。指定一个多表映射关系

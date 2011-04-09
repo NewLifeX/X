@@ -34,8 +34,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("7.5.*")]
-[assembly: AssemblyFileVersion("7.5.2011.0403")]
+[assembly: AssemblyVersion("7.6.*")]
+[assembly: AssemblyFileVersion("7.6.2011.0409")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.6.2011.0409   重新启用实体类的ToData，允许实体数据转化为DataRow
+ *                  EntityList增加ToDataTable和ToDataSet等方法，允许实体集合转为数据集，并通过事件把数据集的添删改操作委托到实体操作
+ * 
  * v7.5.2011.0403   修正XField中Xml序列化的问题
  * 
  * v7.5.2011.0401   增加Json支持

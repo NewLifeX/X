@@ -10,11 +10,11 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web.Services;
 using System.Xml.Serialization;
+using NewLife.IO;
 using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
-using NewLife.IO;
 
 namespace XCode
 {
@@ -39,10 +39,10 @@ namespace XCode
             //  已确认，当实体类静态构造函数中使用了EntityFactory.CreateOperate(Type)方法时，可能出现死锁。
             //  因为两者都会争夺EntityFactory中的op_cache，而CreateOperate(Type)拿到op_cache后，还需要等待当前静态构造函数执行完成。
             //  不确定这样子是否带来后遗症
-            //ThreadPool.QueueUserWorkItem(delegate
-            //{
-            EntityFactory.CreateOperate(Meta.ThisType, entity);
-            //});
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                EntityFactory.CreateOperate(Meta.ThisType, entity);
+            });
         }
 
         /// <summary>
@@ -60,7 +60,10 @@ namespace XCode
         /// <returns></returns>
         protected virtual TEntity CreateInstance()
         {
-            return new TEntity();
+            //return new TEntity();
+            // new TEntity会被编译为Activator.CreateInstance<TEntity>()，还不如Activator.CreateInstance()呢
+            // Activator.CreateInstance()有缓存功能，而泛型的那个没有
+            return Activator.CreateInstance(Meta.ThisType) as TEntity;
         }
         #endregion
 
@@ -81,7 +84,7 @@ namespace XCode
         /// </summary>
         /// <param name="dt">数据表</param>
         /// <returns>实体数组</returns>
-        protected static EntityList<TEntity> LoadData(DataTable dt)
+        public static EntityList<TEntity> LoadData(DataTable dt)
         {
             if (dt == null || dt.Rows.Count < 1) return null;
             return LoadData(dt, null);
@@ -91,12 +94,16 @@ namespace XCode
         /// 加载数据表
         /// </summary>
         /// <param name="dt">数据表</param>
-        /// <param name="jointypes"></param>
+        /// <param name="jointypes">要关联的实体类型</param>
         /// <returns>实体数组</returns>
         protected static EntityList<TEntity> LoadData(DataTable dt, Type[] jointypes)
         {
             if (dt == null || dt.Rows.Count < 1) return null;
+
+            // 准备好实体列表
             EntityList<TEntity> list = new EntityList<TEntity>(dt.Rows.Count);
+
+            // 计算关联的实体类型，绝大多数时候用不到
             String prefix = null;
             TableMapAttribute[] maps = null;
             Boolean hasprefix = false;
@@ -106,11 +113,19 @@ namespace XCode
                 prefix = Meta.ColumnPrefix;
                 hasprefix = true;
             }
-            IEntityOperate factory = Meta.Factory;
+
+            // 计算都有哪些字段可以加载数据，默认是使用了BindColumn特性的属性，然后才是别的属性
+            // 当然，要数据集中有这个列才行，也就是取实体类和数据集的交集
             List<FieldItem> ps = CheckColumn(dt, prefix);
+
+            // 创建实体操作者，将由实体操作者创建实体对象
+            IEntityOperate factory = Meta.Factory;
+
+            // 遍历每一行数据，填充成为实体
             foreach (DataRow dr in dt.Rows)
             {
                 //TEntity obj = new TEntity();
+                // 由实体操作者创建实体对象，因为实体操作者可能更换
                 TEntity obj = factory.Create() as TEntity;
                 obj.LoadData(dr, hasprefix, ps, maps);
                 list.Add(obj);
@@ -136,6 +151,8 @@ namespace XCode
         protected virtual void LoadData(DataRow dr, Type[] jointypes)
         {
             if (dr == null) return;
+
+            // 计算关联的实体类型，绝大多数时候用不到
             String prefix = null;
             TableMapAttribute[] maps = null;
             Boolean hasprefix = false;
@@ -145,6 +162,8 @@ namespace XCode
                 prefix = Meta.ColumnPrefix;
                 hasprefix = true;
             }
+
+            // 计算都有哪些字段可以加载数据
             List<FieldItem> ps = CheckColumn(dr.Table, prefix);
             LoadData(dr, hasprefix, ps, maps);
         }
@@ -182,7 +201,11 @@ namespace XCode
         private void LoadData(DataRow dr, Boolean hasprefix, List<FieldItem> ps, TableMapAttribute[] maps)
         {
             if (dr == null) return;
+
+            // 如果没有传入要加载数据的字段，则使用全部数据属性
+            // 这种情况一般不会发生，最好也不好发生，因为很有可能导致报错
             if (ps == null || ps.Count < 1) ps = Meta.Fields;
+
             String prefix = null;
             if (hasprefix) prefix = Meta.ColumnPrefix;
             foreach (FieldItem fi in ps)
@@ -259,7 +282,8 @@ namespace XCode
             //method.Invoke(this, new Object[] { dr, null });
             MethodInfoX.Create(method).Invoke(this, new Object[] { dr, null });
             //给关联属性赋值
-            map.LocalField.SetValue(this, obj, null);
+            //map.LocalField.SetValue(this, obj, null);
+            PropertyInfoX.SetValue(this, map.LocalColumn, obj);
         }
 
         /// <summary>
@@ -270,16 +294,7 @@ namespace XCode
         /// <returns></returns>
         private static List<FieldItem> CheckColumn(DataTable dt, String prefix)
         {
-            //// 检查dr中是否有该属性的列。考虑到Select可能是不完整的，此时，只需要局部填充
-            //List<FieldItem> allps = Meta.AllFields;
-            //if (allps == null || allps.Count < 1) return null;
-
-            //这里可千万不能删除allps中的项，那样会影响到全局的Fields缓存的
             List<FieldItem> ps = new List<FieldItem>();
-            //for (Int32 i = allps.Length - 1; i >= 0; i--)
-            //{
-            //    if (dt.Columns.Contains(prefix + allps[i].ColumnNameEx)) ps.Add(allps[i]);
-            //}
             foreach (FieldItem item in Meta.AllFields)
             {
                 if (String.IsNullOrEmpty(item.ColumnNameEx)) continue;
@@ -294,22 +309,22 @@ namespace XCode
             //});
         }
 
-        ///// <summary>
-        ///// 把数据复制到数据行对象中。
-        ///// </summary>
-        ///// <param name="dr">数据行</param>
-        //public virtual DataRow ToData(ref DataRow dr)
-        //{
-        //    if (dr == null) return null;
-        //    List<FieldItem> ps = Meta.Fields;
-        //    foreach (FieldItem fi in ps)
-        //    {
-        //        // 检查dr中是否有该属性的列。考虑到Select可能是不完整的，此时，只需要局部填充
-        //        if (dr.Table.Columns.Contains(fi.ColumnName))
-        //            dr[fi.ColumnName] = this[fi.Name];
-        //    }
-        //    return dr;
-        //}
+        /// <summary>
+        /// 把数据复制到数据行对象中。
+        /// </summary>
+        /// <param name="dr">数据行</param>
+        public virtual DataRow ToData(ref DataRow dr)
+        {
+            if (dr == null) return null;
+            List<FieldItem> ps = Meta.Fields;
+            foreach (FieldItem fi in ps)
+            {
+                // 检查dr中是否有该属性的列。考虑到Select可能是不完整的，此时，只需要局部填充
+                if (dr.Table.Columns.Contains(fi.ColumnName))
+                    dr[fi.ColumnName] = this[fi.Name];
+            }
+            return dr;
+        }
         #endregion
 
         #region 操作
@@ -320,6 +335,8 @@ namespace XCode
         public override Int32 Insert()
         {
             String sql = SQL(this, DataObjectMethodType.Insert);
+            if (String.IsNullOrEmpty(sql)) return 0;
+
             Int32 rs = 0;
 
             //检查是否有标识列，标识列需要特殊处理
@@ -335,7 +352,7 @@ namespace XCode
                 rs = Meta.Execute(sql);
             }
 
-            //清除脏数据，避免重复提交
+            //清除脏数据，避免连续两次调用Save造成重复提交
             if (Dirtys != null)
             {
                 Dirtys.Clear();
@@ -355,6 +372,7 @@ namespace XCode
 
             String sql = SQL(this, DataObjectMethodType.Update);
             if (String.IsNullOrEmpty(sql)) return 0;
+
             Int32 rs = Meta.Execute(sql);
 
             //清除脏数据，避免重复提交
@@ -405,8 +423,8 @@ namespace XCode
         /// <summary>
         /// 根据属性以及对应的值，查找单个实体
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
+        /// <param name="name">属性名称</param>
+        /// <param name="value">属性值</param>
         /// <returns></returns>
         [WebMethod(Description = "根据属性以及对应的值，查找单个实体")]
         [DataObjectMethod(DataObjectMethodType.Select, false)]
@@ -418,8 +436,8 @@ namespace XCode
         /// <summary>
         /// 根据属性列表以及对应的值列表，查找单个实体
         /// </summary>
-        /// <param name="names"></param>
-        /// <param name="values"></param>
+        /// <param name="names">属性名称集合</param>
+        /// <param name="values">属性值集合</param>
         /// <returns></returns>
         public static TEntity Find(String[] names, Object[] values)
         {
@@ -429,7 +447,7 @@ namespace XCode
         /// <summary>
         /// 根据条件查找单个实体
         /// </summary>
-        /// <param name="whereClause"></param>
+        /// <param name="whereClause">查询条件</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity Find(String whereClause)
@@ -444,7 +462,7 @@ namespace XCode
         /// <summary>
         /// 根据主键查找单个实体
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="key">唯一主键的值</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindByKey(Object key)
@@ -453,7 +471,7 @@ namespace XCode
             if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKey方法要求该表有唯一主键！");
 
             // 唯一键为自增且参数小于等于0时，返回空
-            if (field.DataObjectField.IsIdentity && (key is Int32) && ((Int32)key) <= 0) return null;
+            if (field.DataObjectField.IsIdentity && (key == null || IsInt(key.GetType())) && ((Int32)key) <= 0) return null;
 
             return Find(field.Name, key);
         }
@@ -461,7 +479,7 @@ namespace XCode
         /// <summary>
         /// 根据主键查询一个实体对象用于表单编辑
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="key">唯一主键的值</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindByKeyForEdit(Object key)
@@ -571,8 +589,13 @@ namespace XCode
             // 海量数据尾页查询优化
             // 在海量数据分页中，取越是后面页的数据越慢，可以考虑倒序的方式
             // 只有在百万数据，且开始行大于五十万时才使用
-            Int32 count = Meta.Count;
-            if (startRowIndex > 500000 && count > 1000000)
+            //Int32 count = Meta.Count;
+            //if (startRowIndex > 500000 && count > 1000000)
+
+            // 如下优化，避免了每次都调用Meta.Count而导致形成一次查询，虽然这次查询时间损耗不大
+            // 但是绝大多数查询，都不需要进行类似的海量数据优化，显然，这个startRowIndex将会挡住99%以上的浪费
+            Int32 count = 0;
+            if (startRowIndex > 500000 && (count = Meta.Count) > 1000000)
             {
                 // 计算本次查询的结果行数
                 if (!String.IsNullOrEmpty(whereClause)) count = FindCount(whereClause, orderClause, selects, startRowIndex, maximumRows);
@@ -1039,9 +1062,9 @@ namespace XCode
         #endregion
 
         #region 辅助方法
-        private static DateTime year1900 = new DateTime(1900, 1, 1);
-        private static DateTime year1753 = new DateTime(1753, 1, 1);
-        private static DateTime year9999 = new DateTime(9999, 1, 1);
+        //private static DateTime year1900 = new DateTime(1900, 1, 1);
+        //private static DateTime year1753 = new DateTime(1753, 1, 1);
+        //private static DateTime year9999 = new DateTime(9999, 1, 1);
 
         /// <summary>
         /// 取得一个值的Sql值。
@@ -1466,6 +1489,7 @@ namespace XCode
         /// <returns></returns>
         protected override XmlSerializer CreateXmlSerializer()
         {
+            // 给每一个数据属性加上Xml默认值特性，让Xml序列化时避开数据与默认值相同的数据属性，减少Xml大小
             XmlAttributeOverrides ovs = new XmlAttributeOverrides();
             TEntity entity = new TEntity();
             foreach (FieldItem item in Meta.Fields)
@@ -1614,20 +1638,6 @@ namespace XCode
         #endregion
 
         #region 脏数据
-        //[NonSerialized]
-        //private DirtyCollection _Dirtys;
-        ///// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
-        //[XmlIgnore]
-        //protected DirtyCollection Dirtys
-        //{
-        //    get
-        //    {
-        //        if (_Dirtys == null) _Dirtys = new DirtyCollection();
-        //        return _Dirtys;
-        //    }
-        //    set { _Dirtys = value; }
-        //}
-
         /// <summary>
         /// 设置所有数据的脏属性
         /// </summary>
@@ -1659,18 +1669,6 @@ namespace XCode
             }
             return count;
         }
-
-        ///// <summary>
-        ///// 属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。
-        ///// </summary>
-        ///// <param name="fieldName">字段名</param>
-        ///// <param name="newValue">新属性值</param>
-        ///// <returns>是否允许改变</returns>
-        //protected virtual Boolean OnPropertyChange(String fieldName, Object newValue)
-        //{
-        //    Dirtys[fieldName] = true;
-        //    return true;
-        //}
         #endregion
 
         #region 扩展属性
@@ -1678,7 +1676,7 @@ namespace XCode
         /// 获取依赖于当前实体类的扩展属性
         /// </summary>
         /// <typeparam name="TResult">返回类型</typeparam>
-        /// <param name="key">键值</param>
+        /// <param name="key">键</param>
         /// <param name="func">回调</param>
         /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
         /// <returns></returns>
@@ -1690,33 +1688,12 @@ namespace XCode
         /// <summary>
         /// 设置依赖于当前实体类的扩展属性
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
         protected void SetExtend(String key, Object value)
         {
             SetExtend<TEntity>(key, value);
         }
-        #endregion
-
-        #region 自动修改数据表结构
-        //private static Object schemasLock = new Object();
-        //private static Boolean hasChecked = false;
-        ///// <summary>
-        ///// 检查数据表架构是否已被修改
-        ///// </summary>
-        //private static void CheckModify()
-        //{
-        //    if (hasChecked) return;
-        //    lock (schemasLock)
-        //    {
-        //        if (hasChecked) return;
-
-        //        DatabaseSchema schema = new DatabaseSchema(Meta.ConnName, Meta.ThisType);
-        //        schema.BeginCheck();
-
-        //        hasChecked = true;
-        //    }
-        //}
         #endregion
     }
 }

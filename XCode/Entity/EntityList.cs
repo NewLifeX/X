@@ -9,6 +9,7 @@ using XCode.Configuration;
 using XCode.DataAccessLayer;
 using System.ComponentModel;
 using NewLife.IO;
+using System.Data;
 
 namespace XCode
 {
@@ -706,6 +707,105 @@ namespace XCode
         public static EntityList<T> FromJson(String json)
         {
             return new Json().Deserialize<EntityList<T>>(json);
+        }
+        #endregion
+
+        #region 导出DataSet数据集
+        /// <summary>
+        /// 转为DataTable
+        /// </summary>
+        /// <param name="allowUpdate">是否允许更新数据，如果允许，将可以对DataTable进行添删改等操作</param>
+        /// <returns></returns>
+        public DataTable ToDataTable(Boolean allowUpdate = true)
+        {
+            DataTable dt = new DataTable();
+            foreach (FieldItem item in Factory.Fields)
+            {
+                DataColumn dc = new DataColumn();
+                dc.ColumnName = item.Name;
+                dc.DataType = item.Property.PropertyType;
+                dc.Caption = item.Column.Description;
+                dc.AutoIncrement = item.DataObjectField.IsIdentity;
+                dc.Unique = item.DataObjectField.PrimaryKey;
+                dc.AllowDBNull = item.DataObjectField.IsNullable;
+                //if (!item.DataObjectField.IsIdentity) dc.DefaultValue = item.Column.DefaultValue;
+                dt.Columns.Add(dc);
+            }
+            // 判断是否有数据，即使没有数据，也需要创建一个空格DataTable
+            if (Count > 0)
+            {
+                foreach (IEntity entity in this)
+                {
+                    DataRow dr = dt.NewRow();
+                    foreach (FieldItem item in Factory.Fields)
+                    {
+                        dr[item.Name] = entity[item.Name];
+                    }
+                    dt.Rows.Add(dr);
+                }
+            }
+
+            // 如果允许更新数据，那么绑定三个事件，委托到实体类的更新操作
+            if (allowUpdate)
+            {
+                dt.RowChanging += new DataRowChangeEventHandler(dt_RowChanging);
+                dt.RowDeleting += new DataRowChangeEventHandler(dt_RowDeleting);
+                dt.TableNewRow += new DataTableNewRowEventHandler(dt_TableNewRow);
+            }
+
+            return dt;
+        }
+
+        void dt_TableNewRow(object sender, DataTableNewRowEventArgs e)
+        {
+            IEntity entity = Factory.FindByKeyForEdit(null);
+            DataRow dr = e.Row;
+            foreach (FieldItem item in Factory.Fields)
+            {
+                dr[item.Name] = entity[item.Name];
+            }
+        }
+
+        void dt_RowChanging(object sender, DataRowChangeEventArgs e)
+        {
+            IEntity entity = Factory.Create();
+            DataRow dr = e.Row;
+            foreach (FieldItem item in Factory.Fields)
+            {
+                entity[item.Name] = dr[item.Name];
+            }
+
+            if (e.Action == DataRowAction.Add)
+                entity.Insert();
+            else if (e.Action == DataRowAction.Change)
+                entity.Update();
+            else
+            {
+                // 不支持
+            }
+        }
+
+        void dt_RowDeleting(object sender, DataRowChangeEventArgs e)
+        {
+            IEntity entity = Factory.Create();
+            DataRow dr = e.Row;
+            foreach (FieldItem item in Factory.Fields)
+            {
+                entity[item.Name] = dr[item.Name];
+            }
+
+            entity.Delete();
+        }
+
+        /// <summary>
+        /// 转为DataSet
+        /// </summary>
+        /// <returns></returns>
+        public DataSet ToDataSet()
+        {
+            DataSet ds = new DataSet();
+            ds.Tables.Add(ToDataTable());
+            return ds;
         }
         #endregion
 
