@@ -235,12 +235,12 @@ namespace NewLife.CommonEntity.Web
                 // 设置ToolTip
                 if (String.IsNullOrEmpty(wc.ToolTip))
                 {
-                    String des = String.IsNullOrEmpty(field.Column.Description) ? field.Name : field.Column.Description;
+                    String des = String.IsNullOrEmpty(field.DisplayName) ? field.Name : field.DisplayName;
                     wc.ToolTip = String.Format("请填写{0}！", des);
                 }
 
                 // 必填项
-                if (!field.DataObjectField.IsNullable) SetNotAllowNull(field, control, canSave);
+                if (!field.IsNullable) SetNotAllowNull(field, control, canSave);
 
                 // 设置只读
                 if (wc is TextBox)
@@ -275,7 +275,7 @@ namespace NewLife.CommonEntity.Web
         /// <param name="canSave"></param>
         protected virtual void SetFormItemTextBox(FieldItem field, TextBox control, Boolean canSave)
         {
-            Type type = field.Property.PropertyType;
+            Type type = field.Type;
             if (type == typeof(DateTime))
             {
                 DateTime d = (DateTime)Entity[field.Name];
@@ -307,7 +307,7 @@ namespace NewLife.CommonEntity.Web
         /// <param name="canSave"></param>
         protected virtual void SetFormItemCheckBox(FieldItem field, CheckBox control, Boolean canSave)
         {
-            Type type = field.Property.PropertyType;
+            Type type = field.Type;
             if (type == typeof(Boolean))
                 control.Checked = (Boolean)Entity[field.Name];
             else if (type == typeof(Int32))
@@ -377,7 +377,7 @@ namespace NewLife.CommonEntity.Web
         /// <param name="canSave"></param>
         protected virtual void SetNotAllowNull(FieldItem field, Control control, Boolean canSave)
         {
-            if (field.DataObjectField.IsNullable) return;
+            if (field.IsNullable) return;
 
             LiteralControl lc = new LiteralControl();
             lc.Text = "<font colore='red'>*</font>";
@@ -471,7 +471,7 @@ namespace NewLife.CommonEntity.Web
         /// <param name="control"></param>
         protected virtual void GetFormItemCheckBox(FieldItem field, CheckBox control)
         {
-            Type type = field.Property.PropertyType;
+            Type type = field.Type;
             Object v;
             if (type == typeof(Boolean))
                 v = control.Checked;
@@ -552,23 +552,23 @@ namespace NewLife.CommonEntity.Web
         protected virtual Boolean ValidFormItem(FieldItem field, Control control)
         {
             // 必填项
-            if (!field.DataObjectField.IsNullable)
+            if (!field.IsNullable)
             {
-                if (field.Property.PropertyType == typeof(String))
+                if (field.Type == typeof(String))
                 {
                     if (String.IsNullOrEmpty((String)Entity[field.Name]))
                     {
-                        WebHelper.Alert(String.Format("{0}不能为空！", String.IsNullOrEmpty(field.Column.Description) ? field.Name : field.Column.Description));
+                        WebHelper.Alert(String.Format("{0}不能为空！", String.IsNullOrEmpty(field.DisplayName) ? field.Name : field.DisplayName));
                         control.Focus();
                         return false;
                     }
                 }
-                else if (field.Property.PropertyType == typeof(DateTime))
+                else if (field.Type == typeof(DateTime))
                 {
                     DateTime d = (DateTime)Entity[field.Name];
                     if (d == DateTime.MinValue || d == DateTime.MaxValue)
                     {
-                        WebHelper.Alert(String.Format("{0}不能为空！", String.IsNullOrEmpty(field.Column.Description) ? field.Name : field.Column.Description));
+                        WebHelper.Alert(String.Format("{0}不能为空！", String.IsNullOrEmpty(field.DisplayName) ? field.Name : field.DisplayName));
                         control.Focus();
                         return false;
                     }

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Log;
 using System.Reflection;
 
 namespace XCode

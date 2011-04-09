@@ -338,13 +338,13 @@ namespace XCode
             Boolean isDesc = false;
             foreach (FieldItem item in Factory.Fields)
             {
-                if (item.DataObjectField.IsIdentity)
+                if (item.IsIdentity)
                 {
                     fi = item;
                     isDesc = true;
                     break;
                 }
-                else if (item.DataObjectField.PrimaryKey)
+                else if (item.PrimaryKey)
                 {
                     fi = item;
                     isDesc = false;

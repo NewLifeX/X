@@ -723,11 +723,11 @@ namespace XCode
             {
                 DataColumn dc = new DataColumn();
                 dc.ColumnName = item.Name;
-                dc.DataType = item.Property.PropertyType;
-                dc.Caption = item.Column.Description;
-                dc.AutoIncrement = item.DataObjectField.IsIdentity;
-                dc.Unique = item.DataObjectField.PrimaryKey;
-                dc.AllowDBNull = item.DataObjectField.IsNullable;
+                dc.DataType = item.Type;
+                dc.Caption = item.DisplayName;
+                dc.AutoIncrement = item.IsIdentity;
+                dc.Unique = item.PrimaryKey;
+                dc.AllowDBNull = item.IsNullable;
                 //if (!item.DataObjectField.IsIdentity) dc.DefaultValue = item.Column.DefaultValue;
                 dt.Columns.Add(dc);
             }

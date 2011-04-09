@@ -323,7 +323,7 @@ namespace XCode.Configuration
                 List<FieldItem> list = new List<FieldItem>();
                 foreach (FieldItem fi in Fields(t))
                 {
-                    if (fi.DataObjectField.IsIdentity)
+                    if (fi.IsIdentity)
                     {
                         list.Add(fi);
                     }
@@ -332,7 +332,7 @@ namespace XCode.Configuration
                 {
                     foreach (FieldItem fi in Fields(t))
                     {
-                        if (fi.DataObjectField.PrimaryKey)
+                        if (fi.PrimaryKey)
                         {
                             list.Add(fi);
                         }

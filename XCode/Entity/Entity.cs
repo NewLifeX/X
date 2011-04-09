@@ -182,7 +182,7 @@ namespace XCode
             foreach (FieldItem fi in ps)
             {
                 // 两次dr[fi.ColumnName]简化为一次
-                Object v = dr[prefix + fi.ColumnNameEx];
+                Object v = dr[prefix + fi.ColumnName];
                 this[fi.Name] = v == DBNull.Value ? null : v;
             }
         }
@@ -211,13 +211,13 @@ namespace XCode
             foreach (FieldItem fi in ps)
             {
                 // 两次dr[fi.ColumnName]简化为一次
-                Object v = dr[prefix + fi.ColumnNameEx];
+                Object v = dr[prefix + fi.ColumnName];
                 Object v2 = this[fi.Name];
 
                 // 不处理相同数据的赋值
                 if (Object.Equals(v, v2)) continue;
 
-                if (fi.Property.PropertyType == typeof(String))
+                if (fi.Type == typeof(String))
                 {
                     // 不处理空字符串对空字符串的赋值
                     if (v != null && String.IsNullOrEmpty(v.ToString()))
@@ -225,7 +225,7 @@ namespace XCode
                         if (v2 == null || String.IsNullOrEmpty(v2.ToString())) continue;
                     }
                 }
-                else if (fi.Property.PropertyType == typeof(Boolean))
+                else if (fi.Type == typeof(Boolean))
                 {
                     // 处理字符串转为布尔型
                     if (v != null && v.GetType() == typeof(String))
@@ -297,9 +297,9 @@ namespace XCode
             List<FieldItem> ps = new List<FieldItem>();
             foreach (FieldItem item in Meta.AllFields)
             {
-                if (String.IsNullOrEmpty(item.ColumnNameEx)) continue;
+                if (String.IsNullOrEmpty(item.ColumnName)) continue;
 
-                if (dt.Columns.Contains(prefix + item.ColumnNameEx)) ps.Add(item);
+                if (dt.Columns.Contains(prefix + item.ColumnName)) ps.Add(item);
             }
             return ps;
 
@@ -341,7 +341,7 @@ namespace XCode
 
             //检查是否有标识列，标识列需要特殊处理
             FieldItem field = Meta.Unique;
-            if (field != null && field.DataObjectField != null && field.DataObjectField.IsIdentity)
+            if (field != null && field.IsIdentity)
             {
                 Int64 res = Meta.InsertAndGetIdentity(sql);
                 if (res > 0) this[field.Name] = res;
@@ -401,7 +401,7 @@ namespace XCode
         {
             //优先使用自增字段判断
             FieldItem fi = Meta.Unique;
-            if (fi != null && fi.DataObjectField.IsIdentity || fi.Property.PropertyType == typeof(Int32))
+            if (fi != null && fi.IsIdentity || fi.Type == typeof(Int32))
             {
                 Int64 id = Convert.ToInt64(this[Meta.Unique.Name]);
                 if (id > 0)
@@ -471,7 +471,7 @@ namespace XCode
             if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKey方法要求该表有唯一主键！");
 
             // 唯一键为自增且参数小于等于0时，返回空
-            if (field.DataObjectField.IsIdentity && (key == null || IsInt(key.GetType())) && ((Int32)key) <= 0) return null;
+            if (field.IsIdentity && (key == null || IsInt(key.GetType())) && ((Int32)key) <= 0) return null;
 
             return Find(field.Name, key);
         }
@@ -494,12 +494,12 @@ namespace XCode
                 return Meta.Factory.Create() as TEntity;
             }
 
-            Type type = field.Property.PropertyType;
+            Type type = field.Type;
 
             // 唯一键为自增且参数小于等于0时，返回新实例
             if (IsInt(type) && IsInt(key.GetType()) && ((Int32)key) <= 0)
             {
-                if (field.DataObjectField.IsIdentity)
+                if (field.IsIdentity)
                 {
                     //IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
                     return Meta.Factory.Create() as TEntity;
@@ -607,7 +607,7 @@ namespace XCode
 
                     #region 排序倒序
                     // 默认是自增字段的降序
-                    if (String.IsNullOrEmpty(order) && Meta.Unique != null && Meta.Unique.DataObjectField.IsIdentity)
+                    if (String.IsNullOrEmpty(order) && Meta.Unique != null && Meta.Unique.IsIdentity)
                         order = Meta.Unique.Name + " Desc";
 
                     if (!String.IsNullOrEmpty(order))
@@ -826,7 +826,7 @@ namespace XCode
             {
                 keyColumn = Meta.ColumnPrefix + fi.ColumnName;
                 // 加上Desc标记，将使用MaxMin分页算法。标识列，单一主键且为数字类型
-                if (fi.DataObjectField.IsIdentity || fi.Property.PropertyType == typeof(Int32)) keyColumn += " Desc";
+                if (fi.IsIdentity || fi.Type == typeof(Int32)) keyColumn += " Desc";
             }
             String sql = Meta.PageSplit(sb.ToString(), startRowIndex, maximumRows, keyColumn);
             DataSet ds = Meta.Query(sql, tables.ToArray());
@@ -1100,8 +1100,8 @@ namespace XCode
             return Meta.FormatValue(field.Name, obj);
 
             //Boolean isNullable = field.DataObjectField.IsNullable;
-            ////String typeName = field.Property.PropertyType.FullName;
-            //TypeCode code = Type.GetTypeCode(field.Property.PropertyType);
+            ////String typeName = field.Type.FullName;
+            //TypeCode code = Type.GetTypeCode(field.Type);
             ////if (typeName.Contains("String"))
             //if (code == TypeCode.String)
             //{
@@ -1143,7 +1143,7 @@ namespace XCode
             //    else
             //        return Convert.ToBoolean(obj) ? "1" : "0";
             //}
-            //else if (field.Property.PropertyType == typeof(Byte[]))
+            //else if (field.Type == typeof(Byte[]))
             //{
             //    Byte[] bts = (Byte[])obj;
             //    if (bts == null || bts.Length < 1) return "0x0";
@@ -1187,7 +1187,7 @@ namespace XCode
                     {
                         // 标识列不需要插入，别的类型都需要
                         String idv = null;
-                        if (fi.DataObjectField.IsIdentity)
+                        if (fi.IsIdentity)
                         {
                             idv = Meta.DBO.Db.FormatIdentity(XCodeConfig.GetField(Meta.ThisType, fi.Name), obj[fi.Name]);
                             //if (String.IsNullOrEmpty(idv)) continue;
@@ -1211,7 +1211,7 @@ namespace XCode
                         //else
                         //sbValues.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
 
-                        if (!fi.DataObjectField.IsIdentity)
+                        if (!fi.IsIdentity)
                             sbValues.Append(Meta.FormatValue(fi.Name, obj[fi.Name])); // 数据
                         else
                             sbValues.Append(idv);
@@ -1222,7 +1222,7 @@ namespace XCode
                     // 只读列没有更新操作
                     foreach (FieldItem fi in Meta.Fields)
                     {
-                        if (fi.DataObjectField.IsIdentity) continue;
+                        if (fi.IsIdentity) continue;
 
                         //脏数据判断
                         if (!obj.Dirtys[fi.Name]) continue;
@@ -1321,7 +1321,7 @@ namespace XCode
             // 没有标识列和主键，返回取所有数据的语句
             if (ps == null || ps.Count < 1) return null;
             // 标识列作为查询关键字
-            if (ps[0].DataObjectField.IsIdentity)
+            if (ps[0].IsIdentity)
             {
                 return String.Format("{0}={1}", Meta.FormatName(ps[0].ColumnName), Meta.FormatValue(ps[0].Name, obj[ps[0].Name]));
             }
@@ -1418,7 +1418,7 @@ namespace XCode
             {
                 keyColumn = fi.ColumnName;
                 // 加上Desc标记，将使用MaxMin分页算法。标识列，单一主键且为数字类型
-                if (fi.DataObjectField.IsIdentity || fi.Property.PropertyType == typeof(Int32)) keyColumn += " Desc";
+                if (fi.IsIdentity || fi.Type == typeof(Int32)) keyColumn += " Desc";
 
                 if (String.IsNullOrEmpty(builder.OrderBy)) builder.OrderBy = keyColumn;
             }

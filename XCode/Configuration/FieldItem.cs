@@ -12,6 +12,7 @@ namespace XCode.Configuration
     /// </summary>
     public class FieldItem
     {
+        #region 属性
         private PropertyInfo _Property;
         /// <summary>属性元数据</summary>
         public PropertyInfo Property
@@ -43,49 +44,25 @@ namespace XCode.Configuration
             get { return _Description; }
             private set { _Description = value; }
         }
+        #endregion
 
-        private String _Name;
-        /// <summary>
-        /// 属性名
-        /// </summary>
-        public String Name
-        {
-            get
-            {
-                if (_Name == null)
-                {
-                    if (Property != null)
-                        _Name = Property.Name;
-                    else
-                        _Name = String.Empty;
-                }
-                return _Name;
-            }
-        }
+        #region 扩展属性
+        /// <summary>属性名</summary>
+        public String Name { get { return Property == null ? null : Property.Name; } }
 
-        private String _ColumnName;
-        /// <summary>
-        /// 绑定的字段名
-        /// 默认使用BindColumn特性中指定的字段名，如果没有指定，则使用属性名。
-        /// </summary>
-        public String ColumnName
-        {
-            get
-            {
-                if (_ColumnName == null)
-                {
-                    if (Column != null && !String.IsNullOrEmpty(Column.Name))
-                        _ColumnName = Column.Name;
-                    else
-                        _ColumnName = Property.Name;
-                }
-                return _ColumnName;
-            }
-        }
+        /// <summary>属性类型</summary>
+        public Type Type { get { return Property == null ? null : Property.PropertyType; } }
 
-        /// <summary>
-        /// 中文名
-        /// </summary>
+        /// <summary>是否标识列</summary>
+        public Boolean IsIdentity { get { return DataObjectField == null ? false : DataObjectField.IsIdentity; } }
+
+        /// <summary>是否主键</summary>
+        public Boolean PrimaryKey { get { return DataObjectField == null ? false : DataObjectField.PrimaryKey; } }
+
+        /// <summary>是否允许空</summary>
+        public Boolean IsNullable { get { return DataObjectField == null ? false : DataObjectField.IsNullable; } }
+
+        /// <summary>显示名</summary>
         public String DisplayName
         {
             get
@@ -100,17 +77,27 @@ namespace XCode.Configuration
             }
         }
 
-        /// <summary>字段名（去除左右中括号）</summary>
-        internal String ColumnNameEx
+        /// <summary>字段名要过滤掉的标识符，考虑MSSQL、MySql、SQLite、Oracle等</summary>
+        static Char[] COLUMNNAME_FLAG = new Char[] { '[', ']', '\'', '"', '`' };
+
+        /// <summary>
+        /// 用于数据绑定的字段名。
+        /// 默认使用BindColumn特性中指定的字段名，如果没有指定，则使用属性名。
+        /// </summary>
+        public String ColumnName
         {
-            get { return String.IsNullOrEmpty(ColumnName) ? ColumnName : ColumnName.Trim(new Char[] { '[', ']' }); }
+            get
+            {
+                // 字段名可能两边带有方括号等标识符
+                if (Column != null && !String.IsNullOrEmpty(Column.Name))
+                    return Column.Name.Trim(COLUMNNAME_FLAG);
+                else
+                    return Property.Name;
+            }
         }
+        #endregion
 
-        ///// <summary>
-        ///// 构造函数
-        ///// </summary>
-        //public FieldItem() { }
-
+        #region 构造
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -122,31 +109,9 @@ namespace XCode.Configuration
             DataObjectField = DataObjectAttribute.GetCustomAttribute(Property, typeof(DataObjectFieldAttribute)) as DataObjectFieldAttribute;
             Description = DescriptionAttribute.GetCustomAttribute(Property, typeof(DescriptionAttribute)) as DescriptionAttribute;
         }
+        #endregion
 
-        ///// <summary>
-        ///// 构造函数
-        ///// </summary>
-        ///// <param name="pi"></param>
-        ///// <param name="bc"></param>
-        //public FieldItem(PropertyInfo pi, BindColumnAttribute bc)
-        //{
-        //    Property = pi;
-        //    Column = bc;
-        //}
-
-        ///// <summary>
-        ///// 构造函数
-        ///// </summary>
-        ///// <param name="pi"></param>
-        ///// <param name="bc"></param>
-        ///// <param name="dof"></param>
-        //public FieldItem(PropertyInfo pi, BindColumnAttribute bc, DataObjectFieldAttribute dof)
-        //{
-        //    Property = pi;
-        //    Column = bc;
-        //    DataObjectField = dof;
-        //}
-
+        #region 方法
         /// <summary>
         /// 已重载。
         /// </summary>
@@ -176,5 +141,6 @@ namespace XCode.Configuration
             field.Nullable = DataObjectField.IsNullable;
             field.Default = Column.DefaultValue;
         }
+        #endregion
     }
 }

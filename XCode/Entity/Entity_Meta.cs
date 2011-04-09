@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading;
 using NewLife;
 using NewLife.Collections;
+using NewLife.Configuration;
+using NewLife.Log;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-using NewLife.Log;
-using System.Threading;
-using NewLife.Configuration;
 
 namespace XCode
 {
     partial class Entity<TEntity>
     {
-        #region 元数据
         /// <summary>
         /// 元数据
         /// </summary>
@@ -168,7 +167,7 @@ namespace XCode
                     if (fis == null || fis.Count < 1) return null;
                     foreach (FieldItem item in fis)
                     {
-                        if (item.DataObjectField != null && item.DataObjectField.IsIdentity) return item;
+                        if (item.IsIdentity) return item;
                     }
                     if (fis.Count == 1) return fis[0];
                     return null;
@@ -601,7 +600,6 @@ namespace XCode
             }
             #endregion
         }
-        #endregion
     }
 
     /// <summary>
