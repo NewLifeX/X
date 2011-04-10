@@ -4,6 +4,7 @@ using System.Text;
 using System.Reflection;
 using System.ComponentModel;
 using XCode.DataAccessLayer;
+using XCode.Exceptions;
 
 namespace XCode.Configuration
 {
@@ -140,6 +141,116 @@ namespace XCode.Configuration
             field.PrimaryKey = DataObjectField.PrimaryKey;
             field.Nullable = DataObjectField.IsNullable;
             field.Default = Column.DefaultValue;
+        }
+        #endregion
+
+        #region 静态
+        private static Dictionary<Type, ReadOnlyList<FieldItem>> _Fields = new Dictionary<Type, ReadOnlyList<FieldItem>>();
+        /// <summary>
+        /// 取得指定类的帮定到数据表字段的属性。
+        /// 某些数据字段可能只是用于展现数据，并不帮定到数据表字段，
+        /// 区分的方法就是，DataObjectField属性是否为空。
+        /// 静态缓存。
+        /// </summary>
+        /// <param name="t">实体类型</param>
+        /// <returns>帮定到数据表字段的属性对象列表</returns>
+        public static List<FieldItem> Fields(Type t)
+        {
+            if (_Fields.ContainsKey(t) && !_Fields[t].Changed) return _Fields[t];
+            lock (_Fields)
+            {
+                if (_Fields.ContainsKey(t))
+                {
+                    if (_Fields[t].Changed) _Fields[t] = _Fields[t].Keep();
+                    return _Fields[t];
+                }
+
+                List<FieldItem> cFields = AllFields(t);
+                cFields = cFields.FindAll(delegate(FieldItem item) { return item.DataObjectField != null; });
+                ReadOnlyList<FieldItem> list = new ReadOnlyList<FieldItem>(cFields);
+                _Fields.Add(t, list);
+                return list;
+            }
+        }
+
+        private static Dictionary<Type, ReadOnlyList<FieldItem>> _AllFields = new Dictionary<Type, ReadOnlyList<FieldItem>>();
+        /// <summary>
+        /// 取得指定类的所有数据属性。
+        /// 静态缓存。
+        /// </summary>
+        /// <param name="t">实体类型</param>
+        /// <returns>所有数据属性对象列表</returns>
+        public static List<FieldItem> AllFields(Type t)
+        {
+            if (_AllFields.ContainsKey(t) && !_AllFields[t].Changed) return _AllFields[t];
+            lock (_AllFields)
+            {
+                if (_AllFields.ContainsKey(t))
+                {
+                    if (_AllFields[t].Changed) _AllFields[t] = _AllFields[t].Keep();
+                    return _AllFields[t];
+                }
+
+                List<FieldItem> list = new List<FieldItem>();
+                PropertyInfo[] pis = t.GetProperties();
+                List<String> names = new List<String>();
+                foreach (PropertyInfo item in pis)
+                {
+                    // 排除索引器
+                    if (item.GetIndexParameters().Length > 0) continue;
+
+                    list.Add(new FieldItem(item));
+
+                    if (names.Contains(item.Name)) throw new XCodeException(String.Format("{0}类中出现重复属性{1}", t.Name, item.Name));
+                    names.Add(item.Name);
+                }
+                ReadOnlyList<FieldItem> list2 = new ReadOnlyList<FieldItem>(list);
+                _AllFields.Add(t, list2);
+                return list2;
+            }
+        }
+
+        private static Dictionary<Type, ReadOnlyList<FieldItem>> _Unique = new Dictionary<Type, ReadOnlyList<FieldItem>>();
+        /// <summary>
+        /// 唯一键
+        /// 如果有标识列，则返回标识列集合；
+        /// 否则，返回主键集合。
+        /// </summary>
+        /// <param name="t">实体类型</param>
+        /// <returns>唯一键数组</returns>
+        public static List<FieldItem> Unique(Type t)
+        {
+            if (_Unique.ContainsKey(t) && !_Unique[t].Changed) return _Unique[t];
+            lock (_Unique)
+            {
+                if (_Unique.ContainsKey(t))
+                {
+                    if (_Unique[t].Changed) _Unique[t] = _Unique[t].Keep();
+                    return _Unique[t];
+                }
+
+                List<FieldItem> list = new List<FieldItem>();
+                foreach (FieldItem fi in Fields(t))
+                {
+                    if (fi.IsIdentity)
+                    {
+                        list.Add(fi);
+                    }
+                }
+                if (list.Count < 1) // 没有标识列，使用主键
+                {
+                    foreach (FieldItem fi in Fields(t))
+                    {
+                        if (fi.PrimaryKey)
+                        {
+                            list.Add(fi);
+                        }
+                    }
+                }
+                ReadOnlyList<FieldItem> list2 = new ReadOnlyList<FieldItem>(list);
+                _Unique.Add(t, list2);
+                return list2;
+            }
         }
         #endregion
     }

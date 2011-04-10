@@ -114,12 +114,12 @@ namespace XCode
             /// <summary>
             /// 所有数据属性
             /// </summary>
-            public static List<FieldItem> AllFields { get { return XCodeConfig.AllFields(ThisType); } }
+            public static List<FieldItem> AllFields { get { return FieldItem.AllFields(ThisType); } }
 
             /// <summary>
             /// 所有绑定到数据表的属性
             /// </summary>
-            public static List<FieldItem> Fields { get { return XCodeConfig.Fields(ThisType); } }
+            public static List<FieldItem> Fields { get { return FieldItem.Fields(ThisType); } }
 
             private static ReadOnlyList<String> _FieldNames;
             /// <summary>
@@ -154,7 +154,7 @@ namespace XCode
             /// <summary>
             /// 唯一键集合，返回标识列集合或主键集合
             /// </summary>
-            public static List<FieldItem> Uniques { get { return XCodeConfig.Unique(ThisType); } }
+            public static List<FieldItem> Uniques { get { return FieldItem.Unique(ThisType); } }
 
             /// <summary>
             /// 唯一键，返回第一个标识列或者唯一的主键
@@ -179,10 +179,10 @@ namespace XCode
             /// </summary>
             public static String ColumnPrefix { get { return XCodeConfig.ColumnPrefix(ThisType); } }
 
-            /// <summary>
-            /// 取得指定类对应的Select字句字符串。
-            /// </summary>
-            public static String Selects { get { return XCodeConfig.Selects(ThisType); } }
+            ///// <summary>
+            ///// 取得指定类对应的Select字句字符串。
+            ///// </summary>
+            //public static String Selects { get { return XCodeConfig.Selects(ThisType); } }
 
             /// <summary>
             /// 实体操作者
