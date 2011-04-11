@@ -53,6 +53,7 @@ using System.Runtime.InteropServices;
 /*
  * v7.6.2011.0409   重新启用实体类的ToData，允许实体数据转化为DataRow
  *                  EntityList增加ToDataTable和ToDataSet等方法，允许实体集合转为数据集，并通过事件把数据集的添删改操作委托到实体操作
+ *                  一级缓存默认设置改为请求级缓存，避免在Web项目中因不正当使用查询而带来的性能损耗
  * 
  * v7.5.2011.0403   修正XField中Xml序列化的问题
  * 

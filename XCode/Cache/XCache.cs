@@ -23,7 +23,7 @@ namespace XCode.Cache
         ///  0	永久静态缓存；
         /// >0	静态缓存时间，单位是秒；
         /// </summary>
-        public static Int32 Expiration = -2;
+        public static Int32 Expiration = -1;
 
         /// <summary>
         /// 数据缓存类型
