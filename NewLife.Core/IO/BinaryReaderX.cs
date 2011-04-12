@@ -12,7 +12,7 @@ namespace NewLife.IO
     /// <summary>
     /// 二进制协议读取器
     /// </summary>
-    public class BinaryReaderX : BinaryReader
+    public class BinaryReaderX : BinaryReader, IReader
     {
         #region 构造
         /// <summary>

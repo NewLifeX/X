@@ -17,7 +17,7 @@ namespace NewLife.IO
     /// 二进制协议写入器
     /// </summary>
     /// <remarks>在二进制协议里面，需要定义每一种类型的序列化方式，本写入器仅处理通用的基本类型</remarks>
-    public class BinaryWriterX : BinaryWriter
+    public class BinaryWriterX : BinaryWriter, IWriter
     {
         #region 编码
         private Encoding _Encoding;
@@ -25,7 +25,7 @@ namespace NewLife.IO
         public Encoding Encoding
         {
             get { return _Encoding; }
-            private set { _Encoding = value; }
+            set { _Encoding = value; }
         }
         #endregion
 
@@ -46,16 +46,37 @@ namespace NewLife.IO
 
         #region 压缩编码
         /// <summary>
-        /// 以压缩格式写入32位整数
+        /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
+        /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
         /// </summary>
         /// <param name="value"></param>
-        /// <returns>是否写入成功</returns>
+        /// <returns>实际写入字节数</returns>
+        public Int32 WriteEncoded(Int16 value)
+        {
+            Int32 count = 1;
+            UInt16 num = (UInt16)value;
+            while (num >= 0x80)
+            {
+                this.Write((byte)(num | 0x80));
+                num = (UInt16)(num >> 7);
+
+                count++;
+            }
+            this.Write((byte)num);
+
+            return count;
+        }
+
+        /// <summary>
+        /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
+        /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int32 value)
         {
-            //Write7BitEncodedInt(value);
-
             Int32 count = 1;
-            uint num = (uint)value;
+            UInt32 num = (UInt32)value;
             while (num >= 0x80)
             {
                 this.Write((byte)(num | 0x80));
@@ -69,10 +90,11 @@ namespace NewLife.IO
         }
 
         /// <summary>
-        /// 以压缩格式写入64位整数
+        /// 以7位压缩格式写入64位整数，小于7位用1个字节，小于14位用2个字节。
+        /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
         /// </summary>
         /// <param name="value"></param>
-        /// <returns>是否写入成功</returns>
+        /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int64 value)
         {
             Int32 count = 1;
@@ -786,6 +808,18 @@ namespace NewLife.IO
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
         public delegate Boolean WriteCallback(BinaryWriterX writer, Object target, MemberInfoX member, Boolean encodeInt, Boolean allowNull, Boolean isProperty, WriteCallback callback);
+        #endregion
+
+        #region IWriter 成员
+        public new void Write7BitEncodedInt(int value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Write(IEnumerable value)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }
