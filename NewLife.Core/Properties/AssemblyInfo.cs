@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.8.*")]
-[assembly: AssemblyFileVersion("1.8.2011.0401")]
+[assembly: AssemblyFileVersion("1.8.2011.0412")]
 
 /*
+ * v1.8.2011.0412   修改获取硬件信息时如果获取某项发生异常时,只有在NewLife.Debug开关打开时才输出异常信息
+ * 
  * v1.8.2011.0401   增加Json类
  * 
  * v1.7.2011.0330   增加泛型列表基类ListBase
