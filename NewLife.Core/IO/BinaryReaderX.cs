@@ -4,16 +4,27 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Reflection;
-using NewLife.Reflection;
+using System.Text;
 using NewLife.Exceptions;
+using NewLife.Reflection;
 
 namespace NewLife.IO
 {
     /// <summary>
     /// 二进制协议读取器
     /// </summary>
-    public class BinaryReaderX : BinaryReader, IReader
+    public class BinaryReaderX : BinaryReader, NewLife.Serialization.IReader
     {
+        #region 属性
+        private Encoding _Encoding;
+        /// <summary>编码</summary>
+        public virtual Encoding Encoding
+        {
+            get { return _Encoding; }
+            set { _Encoding = value; }
+        }
+        #endregion
+        
         #region 构造
         /// <summary>
         /// 构造
@@ -23,6 +34,28 @@ namespace NewLife.IO
         #endregion
 
         #region 压缩编码
+        /// <summary>
+        /// 以压缩格式读取16位整数
+        /// </summary>
+        /// <returns></returns>
+        public Int16 ReadEncodedInt16()
+        {
+            Byte b;
+            Int16 rs = 0;
+            Int32 n = 0;
+            while (true)
+            {
+                b = ReadByte();
+                // 必须转为Int16，否则可能溢出
+                rs += (Int16)((b & 0x7f) << n);
+                if ((b & 0x80) == 0) break;
+
+                n += 7;
+                if (n >= 64) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            }
+            return rs;
+        }
+
         /// <summary>
         /// 以压缩格式读取32位整数
         /// </summary>
@@ -104,6 +137,17 @@ namespace NewLife.IO
         {
             Object value;
             return TryReadObject(null, TypeX.Create(type), null, true, true, false, out value) ? value : null;
+        }
+
+        /// <summary>
+        /// 尝试读取目标对象指定成员的值
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <returns>是否读取成功</returns>
+        public Boolean TryReadObject(Type type, ref Object value)
+        {
+            return TryReadObject(null, TypeX.Create(type), null, true, true, false, out value);
         }
 
         /// <summary>
@@ -369,6 +413,17 @@ namespace NewLife.IO
         #endregion
 
         #region 枚举
+        /// <summary>
+        /// 尝试读取目标对象指定成员的值
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <returns>是否读取成功</returns>
+        public Boolean TryReadEnumerable(Type type, ref Object value)
+        {
+            return false;
+        }
+
         /// <summary>
         /// 尝试读取枚举
         /// </summary>

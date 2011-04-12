@@ -64,12 +64,20 @@
     <Compile Include="IO\BinaryTest.cs" />
     <Compile Include="IOModule\StreamHttpHandler.cs" />
     <Compile Include="IOModule\IStreamHandler.cs" />
-    <Compile Include="IO\IReader.cs" />
-    <Compile Include="IO\IWriter.cs" />
+    <Compile Include="Serialization\BinaryReaderX.cs" />
+    <Compile Include="Serialization\BinaryWriterX.cs" />
+    <Compile Include="Serialization\IReader.cs" />
+    <Compile Include="Serialization\IReaderWriter.cs" />
+    <Compile Include="Serialization\IWriter.cs" />
     <Compile Include="IO\Json.cs" />
+    <Compile Include="Serialization\JsonReader.cs" />
+    <Compile Include="Serialization\JsonWriter.cs" />
+    <Compile Include="Serialization\ReaderBase.cs" />
+    <Compile Include="Serialization\ReaderWriterBase.cs" />
     <Compile Include="IO\ReadWriteStream.cs" />
     <Compile Include="IOModule\StreamClient.cs" />
     <Compile Include="IOModule\HttpStreamClient.cs" />
+    <Compile Include="Serialization\WriterBase.cs" />
     <Compile Include="Log\CodeTimer.cs" />
     <Compile Include="Messaging\ExceptionMessage.cs" />
     <Compile Include="Messaging\IMessageHandler.cs" />
@@ -110,32 +118,32 @@
     <Compile Include="Security\DataHelper.cs" />
     <Compile Include="Common\HardInfo.cs" />
     <Compile Include="Common\IdentityCard.cs" />
-    <Compile Include="Serialization\Protocol\Attributes\OnProtocol.cs" />
-    <Compile Include="Serialization\Protocol\Attributes\ProtocolArrayAttribute.cs" />
-    <Compile Include="Serialization\Protocol\Attributes\ProtocolAttribute.cs" />
-    <Compile Include="Serialization\Protocol\Attributes\ProtocolElementAttribute.cs" />
-    <Compile Include="Serialization\Protocol\Attributes\ProtocolEncodeIntAttribute.cs" />
-    <Compile Include="Serialization\Protocol\Attributes\ProtocolNonSerializedAttribute.cs" />
-    <Compile Include="Serialization\Protocol\Attributes\ProtocolNotNullAttribute.cs" />
-    <Compile Include="Serialization\Protocol\Attributes\ProtocolSerialPropertyAttribute.cs" />
-    <Compile Include="Serialization\Protocol\Attributes\ProtocolUseRefObject.cs" />
-    <Compile Include="Serialization\Protocol\ConfigFlags.cs" />
-    <Compile Include="Serialization\Protocol\Context\ReadContext.cs" />
-    <Compile Include="Serialization\Protocol\Context\ReadWriteContext.cs" />
-    <Compile Include="Serialization\Protocol\Context\WriteContext.cs" />
-    <Compile Include="Serialization\Protocol\Event\ProtocolCreateInstanceEventArgs.cs" />
-    <Compile Include="Serialization\Protocol\Event\ProtocolDeserializedEventArgs.cs" />
-    <Compile Include="Serialization\Protocol\Event\ProtocolDeserializingEventArgs.cs" />
-    <Compile Include="Serialization\Protocol\Event\ProtocolSerializedEventArgs.cs" />
-    <Compile Include="Serialization\Protocol\Event\ProtocolSerializingEventArgs.cs" />
-    <Compile Include="Serialization\Protocol\FormatterConfig.cs" />
+    <None Include="Serialization\Protocol\Attributes\OnProtocol.cs" />
+    <None Include="Serialization\Protocol\Attributes\ProtocolArrayAttribute.cs" />
+    <None Include="Serialization\Protocol\Attributes\ProtocolAttribute.cs" />
+    <None Include="Serialization\Protocol\Attributes\ProtocolElementAttribute.cs" />
+    <None Include="Serialization\Protocol\Attributes\ProtocolEncodeIntAttribute.cs" />
+    <None Include="Serialization\Protocol\Attributes\ProtocolNonSerializedAttribute.cs" />
+    <None Include="Serialization\Protocol\Attributes\ProtocolNotNullAttribute.cs" />
+    <None Include="Serialization\Protocol\Attributes\ProtocolSerialPropertyAttribute.cs" />
+    <None Include="Serialization\Protocol\Attributes\ProtocolUseRefObject.cs" />
+    <None Include="Serialization\Protocol\ConfigFlags.cs" />
+    <None Include="Serialization\Protocol\Context\ReadContext.cs" />
+    <None Include="Serialization\Protocol\Context\ReadWriteContext.cs" />
+    <None Include="Serialization\Protocol\Context\WriteContext.cs" />
+    <None Include="Serialization\Protocol\Event\ProtocolCreateInstanceEventArgs.cs" />
+    <None Include="Serialization\Protocol\Event\ProtocolDeserializedEventArgs.cs" />
+    <None Include="Serialization\Protocol\Event\ProtocolDeserializingEventArgs.cs" />
+    <None Include="Serialization\Protocol\Event\ProtocolSerializedEventArgs.cs" />
+    <None Include="Serialization\Protocol\Event\ProtocolSerializingEventArgs.cs" />
+    <None Include="Serialization\Protocol\FormatterConfig.cs" />
     <Compile Include="IO\BinaryReaderX.cs" />
     <Compile Include="IO\BinaryWriterX.cs" />
-    <Compile Include="Serialization\Protocol\IProtocolSerializable.cs" />
-    <Compile Include="Serialization\Protocol\ProtocolFormatter.cs" />
-    <Compile Include="Serialization\Protocol\ProtocolFormatterHead.cs" />
-    <Compile Include="Serialization\Protocol\ProtocolTest.cs" />
-    <Compile Include="Serialization\Protocol\ProtocolTreeNode.cs" />
+    <None Include="Serialization\Protocol\IProtocolSerializable.cs" />
+    <None Include="Serialization\Protocol\ProtocolFormatter.cs" />
+    <None Include="Serialization\Protocol\ProtocolFormatterHead.cs" />
+    <None Include="Serialization\Protocol\ProtocolTest.cs" />
+    <None Include="Serialization\Protocol\ProtocolTreeNode.cs" />
     <Compile Include="Threading\TaskState.cs" />
     <Compile Include="Threading\ThreadPoolX.cs" />
     <Compile Include="Threading\ThreadTask.cs" />
@@ -148,6 +156,8 @@
     <Compile Include="Web\WebHelper.cs" />
     <Compile Include="Xml\ExtendData.cs" />
     <Compile Include="Xml\XMLEntity.cs" />
+    <Compile Include="Xml\XmlReaderX.cs" />
+    <Compile Include="Xml\XmlWriterX.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Serialization\Protocol\说明.txt" />
@@ -158,6 +168,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Serialization\读写器模型.cd" />
     <None Include="IOModule\数据流总线模型.cd" />
     <None Include="Messaging\消息总线模型.cd" />
   </ItemGroup>

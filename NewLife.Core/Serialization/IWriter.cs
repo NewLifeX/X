@@ -3,20 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 using System.Collections;
 
-namespace NewLife.IO
+namespace NewLife.Serialization
 {
     /// <summary>
     /// 写入器接口
     /// </summary>
-    public interface IWriter
+    [CLSCompliant(false)]
+    public interface IWriter : IReaderWriter
     {
-        #region 属性
-        /// <summary>
-        /// 字符串编码
-        /// </summary>
-        Encoding Encoding { get; set; }
-        #endregion
-
         #region 写入基础元数据
         /// <summary>
         /// 将单字节 Boolean 值写入
@@ -82,7 +76,6 @@ namespace NewLife.IO
         /// 将一个有符号字节写入当前流，并将流的位置提升 1 个字节。
         /// </summary>
         /// <param name="value">要写入的有符号字节。</param>
-        [CLSCompliant(false)]
         void Write(sbyte value);
 
         /// <summary>
@@ -101,21 +94,18 @@ namespace NewLife.IO
         /// 将 4 字节无符号整数写入当前流，并将流的位置提升 4 个字节。
         /// </summary>
         /// <param name="value">要写入的 4 字节无符号整数。</param>
-        [CLSCompliant(false)]
         void Write(uint value);
 
         /// <summary>
         /// 将 8 字节无符号整数写入当前流，并将流的位置提升 8 个字节。
         /// </summary>
         /// <param name="value">要写入的 8 字节无符号整数。</param>
-        [CLSCompliant(false)]
         void Write(ulong value);
 
         /// <summary>
         /// 将 2 字节无符号整数写入当前流，并将流的位置提升 2 个字节。
         /// </summary>
         /// <param name="value">要写入的 2 字节无符号整数。</param>
-        [CLSCompliant(false)]
         void Write(ushort value);
 
         /// <summary>

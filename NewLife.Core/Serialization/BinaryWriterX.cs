@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace NewLife.IO
+namespace NewLife.Serialization
 {
     /// <summary>
-    /// 读取器接口
+    /// 二进制写入器
     /// </summary>
-    public interface IReader
+    public class BinaryWriterX : WriterBase
     {
     }
 }

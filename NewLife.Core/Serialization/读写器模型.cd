@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="NewLife.Serialization.JsonWriter" Collapsed="true">
+    <Position X="12.25" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Serialization\JsonWriter.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Serialization.ReaderWriterBase">
+    <Position X="6.5" Y="0.5" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAIgAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Serialization\ReaderWriterBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="NewLife.Serialization.WriterBase" Collapsed="true">
+    <Position X="10" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAEAAAA=</HashCode>
+      <FileName>Serialization\WriterBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="NewLife.Serialization.ReaderBase" Collapsed="true">
+    <Position X="3.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIgCAAYCAAAAAEgCAAAAwAAAACACAUAAAEAREACAAAA=</HashCode>
+      <FileName>Serialization\ReaderBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="NewLife.Serialization.JsonReader" Collapsed="true">
+    <Position X="1" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Serialization\JsonReader.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Xml.XmlReaderX" Collapsed="true">
+    <Position X="3.25" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Xml\XmlReaderX.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Xml.XmlWriterX" Collapsed="true">
+    <Position X="10" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Xml\XmlWriterX.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Serialization.BinaryReaderX" Collapsed="true">
+    <Position X="5.5" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Serialization\BinaryReaderX.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Serialization.BinaryWriterX" Collapsed="true">
+    <Position X="7.75" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Serialization\BinaryWriterX.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="NewLife.Serialization.IReaderWriter" Collapsed="true">
+    <Position X="1.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Serialization\IReaderWriter.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="NewLife.Serialization.IWriter" Collapsed="true">
+    <Position X="2.75" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAEAAAA=</HashCode>
+      <FileName>Serialization\IWriter.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="NewLife.Serialization.IReader" Collapsed="true">
+    <Position X="0.5" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIgCAAYCAAAAAEgCAAAAwAAAACACAUAAAEAREACAAAA=</HashCode>
+      <FileName>Serialization\IReader.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="微软雅黑" Size="9" />
+</ClassDiagram>
