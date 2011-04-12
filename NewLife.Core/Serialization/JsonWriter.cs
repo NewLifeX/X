@@ -9,5 +9,13 @@ namespace NewLife.Serialization
     /// </summary>
     public class JsonWriter : WriterBase
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        public override void Write(byte value)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -9,5 +9,13 @@ namespace NewLife.Serialization
     /// </summary>
     public class JsonReader : ReaderBase
     {
+        /// <summary>
+        /// 读取字节
+        /// </summary>
+        /// <returns></returns>
+        public override byte ReadByte()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

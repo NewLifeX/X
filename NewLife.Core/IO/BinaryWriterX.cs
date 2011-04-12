@@ -17,7 +17,7 @@ namespace NewLife.IO
     /// 二进制协议写入器
     /// </summary>
     /// <remarks>在二进制协议里面，需要定义每一种类型的序列化方式，本写入器仅处理通用的基本类型</remarks>
-    public class BinaryWriterX : BinaryWriter, NewLife.Serialization.IWriter
+    public class BinaryWriterX : BinaryWriter
     {
         #region 编码
         private Encoding _Encoding;
@@ -811,15 +811,15 @@ namespace NewLife.IO
         #endregion
 
         #region IWriter 成员
-        public new void Write7BitEncodedInt(int value)
-        {
-            throw new NotImplementedException();
-        }
+        //public new void Write7BitEncodedInt(int value)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        public bool Write(IEnumerable value)
-        {
-            throw new NotImplementedException();
-        }
+        //public bool Write(IEnumerable value)
+        //{
+        //    throw new NotImplementedException();
+        //}
         #endregion
     }
 }

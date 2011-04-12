@@ -11,5 +11,13 @@ namespace NewLife.Xml
     /// </summary>
     public class XmlReaderX : ReaderBase
     {
+        /// <summary>
+        /// 读取字节
+        /// </summary>
+        /// <returns></returns>
+        public override byte ReadByte()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

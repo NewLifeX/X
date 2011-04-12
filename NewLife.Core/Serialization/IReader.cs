@@ -11,12 +11,7 @@ namespace NewLife.Serialization
     public interface IReader : IReaderWriter
     {
         #region 读取基础元数据
-        /// <summary>
-        /// 从当前流中读取 Boolean 值，并使该流的当前位置提升 1 个字节。
-        /// </summary>
-        /// <returns></returns>
-        bool ReadBoolean();
-
+        #region 字节
         /// <summary>
         /// 从当前流中读取下一个字节，并使流的当前位置提升 1 个字节。
         /// </summary>
@@ -31,30 +26,13 @@ namespace NewLife.Serialization
         byte[] ReadBytes(int count);
 
         /// <summary>
-        /// 从当前流中读取下一个字符，并根据所使用的 Encoding 和从流中读取的特定字符，提升流的当前位置。
+        /// 从此流中读取一个有符号字节，并使流的当前位置提升 1 个字节。
         /// </summary>
         /// <returns></returns>
-        char ReadChar();
+        sbyte ReadSByte();
+        #endregion
 
-        /// <summary>
-        /// 从当前流中读取 count 个字符，以字符数组的形式返回数据，并根据所使用的 Encoding 和从流中读取的特定字符，提升当前位置。
-        /// </summary>
-        /// <param name="count">要读取的字符数。</param>
-        /// <returns></returns>
-        char[] ReadChars(int count);
-
-        /// <summary>
-        /// 从当前流中读取十进制数值，并将该流的当前位置提升十六个字节。
-        /// </summary>
-        /// <returns></returns>
-        decimal ReadDecimal();
-
-        /// <summary>
-        /// 从当前流中读取 8 字节浮点值，并使流的当前位置提升 8 个字节。
-        /// </summary>
-        /// <returns></returns>
-        double ReadDouble();
-
+        #region 有符号整数
         /// <summary>
         /// 从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。
         /// </summary>
@@ -72,25 +50,9 @@ namespace NewLife.Serialization
         /// </summary>
         /// <returns></returns>
         long ReadInt64();
+        #endregion
 
-        /// <summary>
-        /// 从此流中读取一个有符号字节，并使流的当前位置提升 1 个字节。
-        /// </summary>
-        /// <returns></returns>
-        sbyte ReadSByte();
-
-        /// <summary>
-        /// 从当前流中读取 4 字节浮点值，并使流的当前位置提升 4 个字节。
-        /// </summary>
-        /// <returns></returns>
-        float ReadSingle();
-
-        /// <summary>
-        /// 从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。
-        /// </summary>
-        /// <returns></returns>
-        string ReadString();
-
+        #region 无符号整数
         /// <summary>
         /// 使用 Little-Endian 编码从当前流中读取 2 字节无符号整数，并将流的位置提升 2 个字节。
         /// </summary>
@@ -110,24 +72,74 @@ namespace NewLife.Serialization
         ulong ReadUInt64();
         #endregion
 
+        #region 浮点数
+        /// <summary>
+        /// 从当前流中读取 4 字节浮点值，并使流的当前位置提升 4 个字节。
+        /// </summary>
+        /// <returns></returns>
+        float ReadSingle();
+
+        /// <summary>
+        /// 从当前流中读取 8 字节浮点值，并使流的当前位置提升 8 个字节。
+        /// </summary>
+        /// <returns></returns>
+        double ReadDouble();
+        #endregion
+
+        #region 字符串
+        /// <summary>
+        /// 从当前流中读取下一个字符，并根据所使用的 Encoding 和从流中读取的特定字符，提升流的当前位置。
+        /// </summary>
+        /// <returns></returns>
+        char ReadChar();
+
+        /// <summary>
+        /// 从当前流中读取 count 个字符，以字符数组的形式返回数据，并根据所使用的 Encoding 和从流中读取的特定字符，提升当前位置。
+        /// </summary>
+        /// <param name="count">要读取的字符数。</param>
+        /// <returns></returns>
+        char[] ReadChars(int count);
+
+        /// <summary>
+        /// 从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。
+        /// </summary>
+        /// <returns></returns>
+        string ReadString();
+        #endregion
+
+        #region 其它
+        /// <summary>
+        /// 从当前流中读取 Boolean 值，并使该流的当前位置提升 1 个字节。
+        /// </summary>
+        /// <returns></returns>
+        bool ReadBoolean();
+
+        /// <summary>
+        /// 从当前流中读取十进制数值，并将该流的当前位置提升十六个字节。
+        /// </summary>
+        /// <returns></returns>
+        decimal ReadDecimal();
+        #endregion
+        #endregion
+
         #region 7位压缩编码整数
-        /// <summary>
-        /// 以压缩格式读取16位整数
-        /// </summary>
-        /// <returns></returns>
-        Int16 ReadEncodedInt16();
+        ///// <summary>
+        ///// 以压缩格式读取16位整数
+        ///// </summary>
+        ///// <returns></returns>
+        //Int16 ReadEncodedInt16();
 
-        /// <summary>
-        /// 以压缩格式读取32位整数
-        /// </summary>
-        /// <returns></returns>
-        Int32 ReadEncodedInt32();
+        ///// <summary>
+        ///// 以压缩格式读取32位整数
+        ///// </summary>
+        ///// <returns></returns>
+        //Int32 ReadEncodedInt32();
 
-        /// <summary>
-        /// 以压缩格式读取64位整数
-        /// </summary>
-        /// <returns></returns>
-        Int64 ReadEncodedInt64();
+        ///// <summary>
+        ///// 以压缩格式读取64位整数
+        ///// </summary>
+        ///// <returns></returns>
+        //Int64 ReadEncodedInt64();
         #endregion
 
         #region 读取对象

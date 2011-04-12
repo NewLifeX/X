@@ -48,21 +48,45 @@ namespace NewLife.IO
 
         #region 方法
         #region 反序列化
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public T ConvertToType<T>(object obj)
         {
             return (T)ObjectConverter.ConvertObjectToType(obj, typeof(T), this);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="targetType"></param>
+        /// <returns></returns>
         public object ConvertToType(object obj, Type targetType)
         {
             return ObjectConverter.ConvertObjectToType(obj, targetType, this);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public T Deserialize<T>(string input)
         {
             return (T)Deserialize(this, input, typeof(T), RecursionLimit);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="targetType"></param>
+        /// <returns></returns>
         public object Deserialize(string input, Type targetType)
         {
             return Deserialize(this, input, targetType, RecursionLimit);
@@ -76,6 +100,11 @@ namespace NewLife.IO
             return ObjectConverter.ConvertObjectToType(JsonObjectDeserializer.BasicDeserialize(input, depthLimit, serializer), type, serializer);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public object DeserializeObject(string input)
         {
             return Deserialize(this, input, null, RecursionLimit);
@@ -83,11 +112,21 @@ namespace NewLife.IO
         #endregion
 
         #region 序列化
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public string Serialize(object obj)
         {
             return Serialize(obj, SerializationFormat.JSON);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="output"></param>
         public void Serialize(object obj, StringBuilder output)
         {
             Serialize(obj, output, SerializationFormat.JSON);

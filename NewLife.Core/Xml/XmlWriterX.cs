@@ -11,5 +11,13 @@ namespace NewLife.Xml
     /// </summary>
     public class XmlWriterX : WriterBase
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        public override void Write(byte value)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

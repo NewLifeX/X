@@ -13,7 +13,7 @@ namespace NewLife.IO
     /// <summary>
     /// 二进制协议读取器
     /// </summary>
-    public class BinaryReaderX : BinaryReader, NewLife.Serialization.IReader
+    public class BinaryReaderX : BinaryReader
     {
         #region 属性
         private Encoding _Encoding;
