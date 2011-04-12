@@ -211,13 +211,23 @@ namespace NewLife.Common
                 ManagementObjectSearcher cimobject = new ManagementObjectSearcher(wql);
                 ManagementObjectCollection moc = cimobject.Get();
                 List<String> bbs = new List<String>();
-                foreach (ManagementObject mo in moc)
+                try
                 {
-                    if (mo != null &&
-                        mo.Properties != null &&
-                        mo.Properties[property] != null &&
-                        mo.Properties[property].Value != null)
-                        bbs.Add(mo.Properties[property].Value.ToString());
+                    foreach (ManagementObject mo in moc)
+                    {
+                        if (mo != null &&
+                            mo.Properties != null &&
+                            mo.Properties[property] != null &&
+                            mo.Properties[property].Value != null)
+                            bbs.Add(mo.Properties[property].Value.ToString());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (XTrace.Debug)
+                    {
+                        XTrace.WriteLine("获取{0} {1}硬件信息失败\r\n{2}", path, property, ex);
+                    }
                 }
                 bbs.Sort();
                 StringBuilder sb = new StringBuilder();
