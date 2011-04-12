@@ -260,6 +260,9 @@ namespace NewLife.CommonEntity.Web
             if (!Request.PhysicalPath.EndsWith(".aspx", StringComparison.Ordinal)) return;
             if (!XTrace.Debug) return;
 
+            //判断是否为Ajax 异步请求，以排除“Sys.WebForms.PageRequestManagerParserErrorException: 未能分析从服务器收到的消息 ”异常
+            if (Request.Headers["x-requested-with"] != null) return;
+
             TimeSpan ts = DateTime.Now - HttpContext.Current.Timestamp;
 
             String str = String.Format("查询{0}次，执行{1}次，耗时{2}毫秒！", DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds);
