@@ -8,6 +8,7 @@ namespace NewLife.Net.Application
     /// <summary>
     /// 基于Tcp的数据流服务器
     /// </summary>
+    [Obsolete("请使用StreamServer代替！")]
     public class TcpStreamServer : TcpNetServer
     {
         private String _StreamHandlerName;

@@ -20,6 +20,8 @@ using NewLife.Remoting;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XCode;
+using System.Runtime.InteropServices;
+using NewLife.Net.Application;
 
 namespace Test
 {
@@ -36,7 +38,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test16();
+                    Test17();
                     //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
@@ -557,25 +559,10 @@ namespace Test
             str = list.ToJson();
             Console.WriteLine(str);
         }
-        static void TestLog()
-        {
-            NewLog log = new NewLog();
-            log.Action = "Test";
-            log.Category = "SystemLog";
-            log.Save();
 
-            log = new NewLog();
-            log.Action = "Test";
-            log.Category = "UserLog";
-            log.Save();
-        }
-        class NewLog : Log<NewLog>
+        static void Test17()
         {
-            //public override int Insert()
-            //{
-            //    Meta.TableName = Category;
-            //    return base.Insert();
-            //}
+            AppTest.Start();
         }
     }
 }

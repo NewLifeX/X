@@ -12,7 +12,7 @@ namespace NewLife.Net.Sockets
     /// <summary>
     /// Socket基类
     /// </summary>
-    public abstract class SocketBase : Netbase
+    public class SocketBase : Netbase
     {
         #region 属性
         private Socket _Socket;

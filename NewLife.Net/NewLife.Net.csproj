@@ -48,8 +48,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Application\AppTest.cs" />
+    <Compile Include="Application\ChargenServer.cs" />
+    <Compile Include="Application\DaytimeServer.cs" />
+    <Compile Include="Application\DiscardServer.cs" />
+    <Compile Include="Application\EchoServer.cs" />
+    <Compile Include="Application\StreamServer.cs" />
     <Compile Include="Application\TcpEchoServer.cs" />
     <Compile Include="Application\TcpStreamServer.cs" />
+    <Compile Include="Application\TimeServer.cs" />
     <Compile Include="Application\UdpEchoServer.cs" />
     <Compile Include="Application\UdpStreamServer.cs" />
     <Compile Include="Common\NetHelper.cs" />

@@ -7,6 +7,7 @@ namespace NewLife.Net.Application
     /// <summary>
     /// Tcp实现的Echo服务
     /// </summary>
+    [Obsolete("请使用EchoServer代替！")]
     public class TcpEchoServer : TcpNetServer
     {
         /// <summary>

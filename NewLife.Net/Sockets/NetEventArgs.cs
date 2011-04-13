@@ -1,9 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Net.Sockets;
 using System.Text;
-using System.IO;
-using NewLife.Net.Udp;
-using System.Net;
 
 namespace NewLife.Net.Sockets
 {

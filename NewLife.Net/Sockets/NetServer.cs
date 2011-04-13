@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using NewLife.Net.Tcp;
+using NewLife.Net.Udp;
 
 namespace NewLife.Net.Sockets
 {
@@ -11,7 +13,10 @@ namespace NewLife.Net.Sockets
     /// 网络服务器模型，所有网络应用服务器可以通过继承该类实现。
     /// 该类仅实现了业务应用对网络流的操作，与具体网络协议无关。
     /// </remarks>
-    public abstract class NetServer : Netbase
+    /// <remarks>
+    /// 使用方法：重载方法EnsureCreateServer来创建一个SocketServer并赋值给Server属性，EnsureCreateServer将会在OnStart时首先被调用
+    /// </remarks>
+    public class NetServer : Netbase
     {
         #region 属性
         private IPAddress _Address = IPAddress.Any;
@@ -51,6 +56,44 @@ namespace NewLife.Net.Sockets
             get { return _Name ?? (_Name = GetType().Name); }
             set { _Name = value; }
         }
+
+        private ProtocolType _Protocol = ProtocolType.Unknown;
+        /// <summary>协议类型</summary>
+        public ProtocolType ProtocolType
+        {
+            get { return _Protocol; }
+            set { _Protocol = value; }
+        }
+        #endregion
+
+        #region 构造
+        /// <summary>
+        /// 实例化一个网络服务器
+        /// </summary>
+        public NetServer() { }
+
+        /// <summary>
+        /// 通过指定监听地址和端口实例化一个网络服务器
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="port"></param>
+        public NetServer(IPAddress address, Int32 port)
+        {
+            Address = address;
+            Port = port;
+        }
+
+        /// <summary>
+        /// 通过指定监听地址和端口，还有协议，实例化一个网络服务器，默认支持Tcp协议和Udp协议
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="port"></param>
+        /// <param name="protocolType"></param>
+        public NetServer(IPAddress address, Int32 port, ProtocolType protocolType)
+            : this(address, port)
+        {
+            ProtocolType = protocolType;
+        }
         #endregion
 
         #region 方法
@@ -62,12 +105,39 @@ namespace NewLife.Net.Sockets
             if (Active) throw new InvalidOperationException("服务已经开始！");
 
             OnStart();
+
+            ProtocolType = Server.ProtocolType;
         }
 
         /// <summary>
         /// 确保建立服务器
         /// </summary>
-        protected abstract void EnsureCreateServer();
+        protected virtual void EnsureCreateServer()
+        {
+            if (Server == null)
+            {
+                if (ProtocolType == ProtocolType.Unknown) throw new Exception("未指定协议类型！");
+                if (ProtocolType == ProtocolType.Tcp)
+                {
+                    TcpServer svr = new TcpServer(Address, Port);
+                    svr.Accepted += new EventHandler<NetEventArgs>(OnAccepted);
+
+                    Server = svr;
+                }
+                else if (ProtocolType == ProtocolType.Udp)
+                {
+                    UdpServer svr = new UdpServer(Address, Port);
+                    svr.Received += new EventHandler<NetEventArgs>(OnAccepted);
+                    svr.Received += new EventHandler<NetEventArgs>(OnReceived);
+
+                    Server = svr;
+                }
+                else
+                {
+                    throw new Exception("不支持的协议类型" + ProtocolType + "！");
+                }
+            }
+        }
 
         /// <summary>
         /// 开始时调用的方法
@@ -127,6 +197,71 @@ namespace NewLife.Net.Sockets
             //if (disposing)
             {
                 if (Server != null) Server.Stop();
+            }
+        }
+        #endregion
+
+        #region 业务
+        /// <summary>
+        /// 接受连接时，对于Udp是受到数据时（同时触发OnReceived）
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected virtual void OnAccepted(Object sender, NetEventArgs e)
+        {
+            TcpClientX session = e.UserToken as TcpClientX;
+            if (session != null)
+            {
+                session.Received += OnReceived;
+                session.Error += new EventHandler<NetEventArgs>(OnError);
+            }
+        }
+
+        /// <summary>
+        /// 收到数据时
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected virtual void OnReceived(Object sender, NetEventArgs e) { }
+
+        /// <summary>
+        /// 把数据发送给客户端
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="size"></param>
+        /// <param name="remoteEP"></param>
+        protected virtual void Send(SocketBase sender, Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP)
+        {
+            if (ProtocolType == ProtocolType.Tcp)
+            {
+                TcpClientX tc = sender as TcpClientX;
+                if (tc != null && tc.Client.Connected) tc.Send(buffer, offset, size);
+            }
+            else if (ProtocolType == ProtocolType.Udp)
+            {
+                if ((remoteEP as IPEndPoint).Address != IPAddress.Any)
+                {
+                    UdpServer us = sender as UdpServer;
+                    us.Send(buffer, offset, size, remoteEP);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 断开客户端连接
+        /// </summary>
+        /// <param name="client"></param>
+        protected virtual void Disconnect(SocketBase client)
+        {
+            if (ProtocolType == ProtocolType.Tcp)
+            {
+                TcpClientX tc = client as TcpClientX;
+                if (tc != null && tc.Client.Connected) tc.Close();
+            }
+            else if (ProtocolType == ProtocolType.Udp)
+            {
             }
         }
         #endregion

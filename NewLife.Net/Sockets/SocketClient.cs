@@ -45,6 +45,15 @@ namespace NewLife.Net.Sockets
         {
             Client.Connect(address, port);
         }
+
+        /// <summary>
+        /// 建立与远程主机的连接
+        /// </summary>
+        /// <param name="remoteEP">表示远程设备。</param>
+        public void Connect(EndPoint remoteEP)
+        {
+            Client.Connect(remoteEP);
+        }
         #endregion
 
         #region 接收

@@ -32,10 +32,14 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.4.*")]
-[assembly: AssemblyFileVersion("1.4.2010.1201")]
+[assembly: AssemblyVersion("1.5.*")]
+[assembly: AssemblyFileVersion("1.5.2011.0413")]
 
 /*
+ * v1.5.2011.0413   改善NetServer，不再作为抽象基类，通过指定协议类型可直接创建Tcp/Udp服务器
+ *                  重写Echo服务器和数据流服务器，把Tcp/Udp的实现统一起来
+ *                  实现另外四个简单网络服务器
+ * 
  * v1.4.2010.1201   增加Socket数据流SocketStream
  *                  增加Tcp和Udp数据流网络服务
  * 

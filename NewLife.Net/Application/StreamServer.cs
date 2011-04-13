@@ -1,16 +1,26 @@
 ﻿using System;
 using NewLife.IO;
 using NewLife.Net.Sockets;
-using NewLife.Net.Udp;
+using System.Net.Sockets;
 
 namespace NewLife.Net.Application
 {
     /// <summary>
-    /// 基于Udp的数据流服务器
+    /// 数据流服务器
     /// </summary>
-    [Obsolete("请使用StreamServer代替！")]
-    public class UdpStreamServer : UdpNetServer
+    public class StreamServer : NetServer
     {
+        /// <summary>
+        /// 实例化一个数据流服务器
+        /// </summary>
+        public StreamServer()
+        {
+            // 默认Udp协议
+            ProtocolType = ProtocolType.Udp;
+            // 默认8000端口
+            Port = 8000;
+        }
+
         private String _StreamHandlerName;
         /// <summary>数据流处理器名称</summary>
         public String StreamHandlerName
@@ -26,7 +36,10 @@ namespace NewLife.Net.Application
         {
             if (String.IsNullOrEmpty(StreamHandlerName)) throw new Exception("未指定数据流处理器名称！");
 
-            if (String.IsNullOrEmpty(Name)) Name = "数据流服务器（UDP）";
+            if (String.IsNullOrEmpty(Name))
+            {
+                Name = String.Format("数据流服务器（{0}）", ProtocolType);
+            }
 
             base.EnsureCreateServer();
         }

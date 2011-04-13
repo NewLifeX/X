@@ -1,37 +1,41 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Net.Sockets;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
+using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Udp
 {
     /// <summary>
     /// Udp实现的网络服务器基类
     /// </summary>
-    public abstract class UdpNetServer : NetServer
+    public class UdpNetServer : NetServer
     {
         /// <summary>
-        /// 已重载。
+        /// 实例化一个Udp网络服务器
         /// </summary>
-        protected override void EnsureCreateServer()
-        {
-            if (Server == null)
-            {
-                UdpServer svr = new UdpServer(Address, Port);
-                svr.Received += new EventHandler<NetEventArgs>(OnReceived);
+        public UdpNetServer() { ProtocolType = ProtocolType.Udp; }
 
-                Server = svr;
-            }
-        }
+        ///// <summary>
+        ///// 已重载。
+        ///// </summary>
+        //protected override void EnsureCreateServer()
+        //{
+        //    if (Server == null)
+        //    {
+        //        UdpServer svr = new UdpServer(Address, Port);
+        //        svr.Received += new EventHandler<NetEventArgs>(OnReceived);
 
-        /// <summary>
-        /// 数据到达时
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        protected virtual void OnReceived(object sender, NetEventArgs e) { }
+        //        Server = svr;
+        //    }
+        //}
+
+        ///// <summary>
+        ///// 数据到达时
+        ///// </summary>
+        ///// <param name="sender"></param>
+        ///// <param name="e"></param>
+        //protected virtual void OnReceived(object sender, NetEventArgs e) { }
 
         #region 发送
         /// <summary>

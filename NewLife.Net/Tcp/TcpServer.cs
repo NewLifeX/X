@@ -177,6 +177,7 @@ namespace NewLife.Net.Tcp
             TcpSession session = new TcpSession();
             session.Socket = e.AcceptSocket;
             session.RemoteEndPoint = e.AcceptSocket.RemoteEndPoint as IPEndPoint;
+            if (e.RemoteEndPoint == null) e.RemoteEndPoint = session.RemoteEndPoint;
             Sessions.Add(session);
             return session;
         }

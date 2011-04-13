@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
 
@@ -7,6 +8,7 @@ namespace NewLife.Net.Application
     /// <summary>
     /// Udp实现的Echo服务
     /// </summary>
+    [Obsolete("请使用EchoServer代替！")]
     public class UdpEchoServer : UdpNetServer
     {
         /// <summary>
