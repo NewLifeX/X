@@ -17,6 +17,9 @@ namespace NewLife.Net.Application
     /// </summary>
     public static class AppTest
     {
+        /// <summary>
+        /// 开始测试
+        /// </summary>
         public static void Start()
         {
             Type[] ts = new Type[] { typeof(ChargenServer), typeof(DaytimeServer), typeof(DiscardServer), typeof(EchoServer), typeof(TimeServer) };

@@ -558,9 +558,23 @@ namespace XCode
         /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="key">键值</param>
         /// <param name="func">回调</param>
+        /// <returns></returns>
+        protected virtual TResult GetExtend<TDependEntity, TResult>(String key, Func<String, Object> func)
+            where TDependEntity : Entity<TDependEntity>, new()
+        {
+            return GetExtend<TDependEntity, TResult>(key, func, true);
+        }
+
+        /// <summary>
+        /// 获取扩展属性，获取数据时向指定的依赖实体类注册数据更改事件
+        /// </summary>
+        /// <typeparam name="TDependEntity">依赖实体类，该实体类数据更改时清空所有依赖于实体类的扩展属性</typeparam>
+        /// <typeparam name="TResult">返回类型</typeparam>
+        /// <param name="key">键值</param>
+        /// <param name="func">回调</param>
         /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
         /// <returns></returns>
-        protected virtual TResult GetExtend<TDependEntity, TResult>(String key, Func<String, Object> func, Boolean cacheDefault = true)
+        protected virtual TResult GetExtend<TDependEntity, TResult>(String key, Func<String, Object> func, Boolean cacheDefault)
             where TDependEntity : Entity<TDependEntity>, new()
         {
             Object value = null;
