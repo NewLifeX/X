@@ -1,0 +1,20 @@
+﻿v1.9.2011.0224   +扩展控件基类，修改GetPropertyValue方法，当没有设定的ViewState时，从全局Appconfig中读取
+
+v1.8.2011.0116   Add：GridView扩展控件增加分页模版、多选
+
+v1.7.2010.1015   增加对话框控件
+
+v1.6.2010.0830   修正时间日期选择控件回发后失效的问题
+
+v1.5.2010.0706   增加选择输入控件ChooseButton，用于处理复杂选择
+
+v1.4.2010.0702   重写DropDownList处理异常项的逻辑
+
+v1.3.2010.0625   修正DropDownList中没有过滤重复异常项的问题
+
+v1.2.2010.0621   增加DataPager分页控件，剥离自GridView
+
+v1.1.2010.0604   增加DropDownList和CheckBoxList，修正关联参数ODS时两次绑定的BUG
+                 增加DateTimePicker，强大的日期时间控件
+                 
+v1.0.2008.1212   创建控件库

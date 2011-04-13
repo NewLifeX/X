@@ -6,12 +6,12 @@ using System.Runtime.InteropServices;
 // 有关程序集的常规信息通过下列属性集
 // 控制。更改这些属性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("Orm框架")]
+[assembly: AssemblyTitle("数据映射框架")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("XCode")]
-[assembly: AssemblyCopyright("版权所有 (C) 新生命开发团队 2002 - 2011")]
+[assembly: AssemblyCopyright("\x00a92002-2011 新生命开发团队")]
 [assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 

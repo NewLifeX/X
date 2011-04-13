@@ -210,7 +210,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="说明.txt" />
+    <EmbeddedResource Include="UpdateInfo.txt" />
+    <EmbeddedResource Include="说明.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

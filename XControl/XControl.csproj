@@ -144,6 +144,7 @@
     <EmbeddedResource Include="Box\Dialog\icon_query.gif" />
     <EmbeddedResource Include="Box\Dialog\window.gif" />
     <EmbeddedResource Include="TextBox\VerifyCode.js" />
+    <EmbeddedResource Include="UpdateInfo.txt" />
     <Content Include="说明.txt" />
   </ItemGroup>
   <ItemGroup>

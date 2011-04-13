@@ -140,6 +140,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="leaf.ico" />
+    <Content Include="UpdateInfo.txt" />
     <EmbeddedResource Include="Template\页面\类名.aspx">
       <SubType>ASPXCodeBehind</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

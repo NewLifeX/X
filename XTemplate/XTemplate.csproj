@@ -67,6 +67,7 @@
     <EmbeddedResource Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="UpdateInfo.txt" />
     <Content Include="XTemplate架构.jpg" />
   </ItemGroup>
   <ItemGroup>

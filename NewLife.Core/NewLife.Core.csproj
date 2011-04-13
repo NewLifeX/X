@@ -161,6 +161,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Serialization\Protocol\说明.txt" />
+    <EmbeddedResource Include="UpdateInfo.txt" />
     <Content Include="架构设计\消息模型_层次结构.jpg" />
     <Content Include="架构设计\消息模型_数据处理流程.jpg" />
   </ItemGroup>

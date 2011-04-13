@@ -11,7 +11,7 @@ using System.Web.UI;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("XControl")]
-[assembly: AssemblyCopyright("版权所有 (C) NewLife 2007")]
+[assembly: AssemblyCopyright("\x00a92002-2011 新生命开发团队")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -60,6 +60,7 @@ using System.Web.UI;
  * 
  * v1.1.2010.0604   增加DropDownList和CheckBoxList，修正关联参数ODS时两次绑定的BUG
  *                  增加DateTimePicker，强大的日期时间控件
+ *                  
  * v1.0.2008.1212   创建控件库
  *
 **/
