@@ -261,7 +261,7 @@ namespace NewLife.CommonEntity.Web
             if (!XTrace.Debug) return;
 
             //判断是否为Ajax 异步请求，以排除“Sys.WebForms.PageRequestManagerParserErrorException: 未能分析从服务器收到的消息 ”异常
-            if (Request.Headers["x-requested-with"] != null) return;
+            if (Request.Headers["X-MicrosoftAjax"] != null || Request.Headers["x-requested-with"] != null) return;
 
             TimeSpan ts = DateTime.Now - HttpContext.Current.Timestamp;
 
@@ -272,6 +272,7 @@ namespace NewLife.CommonEntity.Web
                 lt.Text = str;
             else
                 Response.Write(str);
+
         }
         #endregion
     }
