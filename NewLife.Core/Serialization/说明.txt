@@ -1,0 +1,6 @@
+﻿
+2011-04-14
+1，可以考虑兼容ISerializable接口，它实际上就是要求实现该接口的类，把所需要序列化的名值写入到SerializationInfo中，写入器只需要写入这些数据，即可代码写入该对象。因为.Net里面很多常用的类都实现了ISerializable接口，所以可以非常方便的定制它们的序列化。
+2，接口的另一个参数是StreamingContext，它有一个Object的成员Context，可以放置各种各样的值。
+3，SerializationInfo有个GetEnumerator方法，返回的是SerializationInfoEnumerator枚举器，可以进行枚举取得要序列化的名值，元素类型是SerializationEntry
+4，如果要兼容ISerializable接口，我们的框架可以这样子设计，第一步获取要序列化的成员和值，其实最好是获取得到MemberInfo和值，这样子就好序列化了
