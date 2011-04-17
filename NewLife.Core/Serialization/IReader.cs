@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Reflection;
 
 namespace NewLife.Serialization
 {
@@ -10,6 +11,19 @@ namespace NewLife.Serialization
     [CLSCompliant(false)]
     public interface IReader : IReaderWriter
     {
+        #region 事件
+        /// <summary>
+        /// 读成员前触发。参数是成员信息和是否取消读取该成员。
+        /// 事件处理器中可以自定义读取成员，然后把第二参数设为false请求读取器不要再读取该成员。
+        /// </summary>
+        event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberReading;
+
+        /// <summary>
+        /// 读成员后触发。
+        /// </summary>
+        event EventHandler<EventArgs<MemberInfo>> OnMemberReaded;
+        #endregion
+
         #region 读取基础元数据
         #region 字节
         /// <summary>

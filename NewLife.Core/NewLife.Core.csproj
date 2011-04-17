@@ -66,6 +66,7 @@
     <Compile Include="IOModule\IStreamHandler.cs" />
     <Compile Include="Serialization\BinaryReaderX.cs" />
     <Compile Include="Serialization\BinaryWriterX.cs" />
+    <Compile Include="Serialization\IAccessor.cs" />
     <Compile Include="Serialization\IReader.cs" />
     <Compile Include="Serialization\IReaderWriter.cs" />
     <Compile Include="Serialization\IWriter.cs" />
@@ -77,6 +78,7 @@
     <Compile Include="IO\ReadWriteStream.cs" />
     <Compile Include="IOModule\StreamClient.cs" />
     <Compile Include="IOModule\HttpStreamClient.cs" />
+    <Compile Include="Serialization\ReaderWriterConfig.cs" />
     <Compile Include="Serialization\WriterBase.cs" />
     <Compile Include="Log\CodeTimer.cs" />
     <Compile Include="Messaging\ExceptionMessage.cs" />

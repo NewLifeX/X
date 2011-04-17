@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Collections;
+using System.Runtime.InteropServices;
 
 namespace NewLife.Serialization
 {
@@ -184,6 +185,170 @@ namespace NewLife.Serialization
         public virtual Boolean WriteObject(Object value)
         {
             return false;
+        }
+        #endregion
+
+        #region 写入值类型
+        /// <summary>
+        /// 写入值类型，只能识别基础类型，对于不能识别的类型，方法返回false
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="encodeInt">是否编码整数</param>
+        /// <returns>是否写入成功</returns>
+        public Boolean WriteValue(Object value, Boolean encodeInt)
+        {
+            // 值类型不会有空，写入器不知道该如何处理空，由外部决定吧
+            if (value == null) return true;
+
+            return WriteValue(value, value.GetType(), encodeInt);
+        }
+
+        /// <summary>
+        /// 写入值类型，只能识别基础类型，对于不能识别的类型，方法返回false
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="encodeInt">是否编码整数</param>
+        /// <returns>是否写入成功</returns>
+        public Boolean WriteValue(Object value, Type type, Boolean encodeInt)
+        {
+            // 对象不为空时，使用对象实际类型
+            if (value != null) type = value.GetType();
+
+            TypeCode code = Type.GetTypeCode(type);
+            switch (code)
+            {
+                case TypeCode.Boolean:
+                    Write(Convert.ToBoolean(value, CultureInfo.InvariantCulture));
+                    return true;
+                case TypeCode.Byte:
+                    Write(Convert.ToByte(value, CultureInfo.InvariantCulture));
+                    return true;
+                case TypeCode.Char:
+                    Write(Convert.ToChar(value, CultureInfo.InvariantCulture));
+                    return true;
+                case TypeCode.DBNull:
+                    Write((Byte)0);
+                    return true;
+                case TypeCode.DateTime:
+                    return WriteValue(Convert.ToDateTime(value, CultureInfo.InvariantCulture).Ticks, encodeInt);
+                case TypeCode.Decimal:
+                    Write(Convert.ToDecimal(value, CultureInfo.InvariantCulture));
+                    return true;
+                case TypeCode.Double:
+                    Write(Convert.ToDouble(value, CultureInfo.InvariantCulture));
+                    return true;
+                case TypeCode.Empty:
+                    Write((Byte)0);
+                    return true;
+                case TypeCode.Int16:
+                    Write(Convert.ToInt16(value, CultureInfo.InvariantCulture));
+                    return true;
+                case TypeCode.Int32:
+                    if (!encodeInt)
+                        Write(Convert.ToInt32(value, CultureInfo.InvariantCulture));
+                    else
+                        WriteEncoded(Convert.ToInt32(value, CultureInfo.InvariantCulture));
+                    return true;
+                case TypeCode.Int64:
+                    if (!encodeInt)
+                        Write(Convert.ToInt64(value, CultureInfo.InvariantCulture));
+                    else
+                        WriteEncoded(Convert.ToInt64(value, CultureInfo.InvariantCulture));
+                    return true;
+                case TypeCode.Object:
+                    break;
+                case TypeCode.SByte:
+                    Write(Convert.ToSByte(value, CultureInfo.InvariantCulture));
+                    return true;
+                case TypeCode.Single:
+                    Write(Convert.ToSingle(value, CultureInfo.InvariantCulture));
+                    return true;
+                case TypeCode.String:
+                    Write(Convert.ToString(value, CultureInfo.InvariantCulture));
+                    return true;
+                case TypeCode.UInt16:
+                    Write(Convert.ToUInt16(value, CultureInfo.InvariantCulture));
+                    return true;
+                case TypeCode.UInt32:
+                    if (!encodeInt)
+                        Write(Convert.ToUInt32(value, CultureInfo.InvariantCulture));
+                    else
+                        WriteEncoded(Convert.ToInt32(value, CultureInfo.InvariantCulture));
+                    return true;
+                case TypeCode.UInt64:
+                    if (!encodeInt)
+                        Write(Convert.ToUInt64(value, CultureInfo.InvariantCulture));
+                    else
+                        WriteEncoded(Convert.ToInt64(value, CultureInfo.InvariantCulture));
+                    return true;
+                default:
+                    break;
+            }
+
+            if (type == typeof(Byte[]))
+            {
+                Byte[] arr = (Byte[])value;
+                if (arr == null || arr.Length == 0)
+                    WriteEncoded(0);
+                else
+                {
+                    WriteEncoded(arr.Length);
+                    Write(arr);
+                }
+                return true;
+            }
+            if (type == typeof(Char[]))
+            {
+                Char[] arr = (Char[])value;
+                if (arr == null || arr.Length == 0)
+                    WriteEncoded(0);
+                else
+                {
+                    WriteEncoded(arr.Length);
+                    Write(arr);
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 写入结构体
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns>是否写入成功</returns>
+        public Int32 WriteStruct(ValueType value)
+        {
+            if (value == null) return 0;
+
+            Type type = value.GetType();
+            if (type.IsGenericType) return 0;
+
+            Int32 len = Marshal.SizeOf(type);
+
+            // 分配全局内存，一并写入
+            IntPtr p = Marshal.AllocHGlobal(len);
+            try
+            {
+                Marshal.StructureToPtr(value, p, true);
+
+                Byte[] buffer = new Byte[len];
+                Marshal.Copy(p, buffer, 0, buffer.Length);
+
+                Write(buffer, 0, buffer.Length);
+
+                return buffer.Length;
+            }
+            catch
+            {
+                return 0;
+            }
+            finally
+            {
+                Marshal.DestroyStructure(p, type);
+            }
         }
         #endregion
 

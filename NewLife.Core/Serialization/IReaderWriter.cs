@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Reflection;
 
 namespace NewLife.Serialization
 {
@@ -24,6 +25,21 @@ namespace NewLife.Serialization
         ///// ARM同时支持 big和little，实际应用中通常使用Little-Endian。
         ///// </remarks>
         //Boolean IsLittleEndian { get; set; }
+
+        /// <summary>是否序列化属性。</summary>
+        Boolean IsProperty { get; }
+        #endregion
+
+        #region 方法
+        /// <summary>
+        /// 获取需要序列化的成员（属性或字段）
+        /// </summary>
+        /// <returns></returns>
+        MemberInfo[] GetMembers();
+        #endregion
+
+        #region 事件
+        event EventHandler<EventArgs<MemberInfo[]>> OnGetMembers;
         #endregion
     }
 }

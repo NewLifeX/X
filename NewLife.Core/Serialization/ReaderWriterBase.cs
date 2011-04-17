@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Reflection;
+using System.ComponentModel;
 
 namespace NewLife.Serialization
 {
@@ -34,6 +36,21 @@ namespace NewLife.Serialization
         //    get { return _IsLittleEndian; }
         //    set { _IsLittleEndian = value; }
         //}
+
+        /// <summary>是否序列化属性，默认序列化属性。主要影响GetMembers</summary>
+        public virtual Boolean IsProperty { get { return true; } }
+        #endregion
+
+        #region 方法
+        /// <summary>
+        /// 获取需要序列化的成员（属性或字段）
+        /// </summary>
+        /// <returns></returns>
+        public virtual MemberInfo[] GetMembers()
+        {
+            //TypeDescriptor td = new TypeDescriptor();
+            return null;
+        }
         #endregion
     }
 }

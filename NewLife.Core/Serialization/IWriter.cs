@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Collections;
+using System.Reflection;
 
 namespace NewLife.Serialization
 {
@@ -11,6 +12,19 @@ namespace NewLife.Serialization
     [CLSCompliant(false)]
     public interface IWriter : IReaderWriter
     {
+        #region 事件
+        /// <summary>
+        /// 写成员前触发。参数是成员信息和是否取消写入该成员。
+        /// 事件处理器中可以自定义写入成员，然后把第二参数设为false请求写入器不要再写入该成员。
+        /// </summary>
+        event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberWriting;
+
+        /// <summary>
+        /// 写成员后触发。
+        /// </summary>
+        event EventHandler<EventArgs<MemberInfo>> OnMemberWrited;
+        #endregion
+
         #region 写入基础元数据
         #region 字节
         /// <summary>
