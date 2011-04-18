@@ -47,7 +47,23 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="type">指定类型</param>
         /// <returns>需要序列化的成员</returns>
-        public virtual MemberInfo[] GetMembers(Type type)
+        public MemberInfo[] GetMembers(Type type)
+        {
+            if (type == null) throw new ArgumentNullException("type");
+
+            MemberInfo[] mis = OnGetMembers(type);
+
+            if (OnGotMembers != null)
+            {
+                EventArgs<Type, MemberInfo[]> e = new EventArgs<Type, MemberInfo[]>(type, mis);
+                OnGotMembers(this, e);
+                mis = e.Arg2;
+            }
+
+            return mis;
+        }
+
+        protected virtual MemberInfo[] OnGetMembers(Type type)
         {
             if (type == null) throw new ArgumentNullException("type");
 
@@ -60,22 +76,13 @@ namespace NewLife.Serialization
                 list.Add(item);
             }
 
-            MemberInfo[] mis = list.ToArray();
-
-            if (OnGetMembers != null)
-            {
-                EventArgs<Type, MemberInfo[]> e = new EventArgs<Type, MemberInfo[]>(type, mis);
-                OnGetMembers(this, e);
-                mis = e.Arg2;
-            }
-
-            return mis;
+            return list.ToArray();
         }
 
         /// <summary>
         /// 获取指定类型中需要序列化的成员时触发。使用者可以修改、排序要序列化的成员。
         /// </summary>
-        public event EventHandler<EventArgs<Type, MemberInfo[]>> OnGetMembers;
+        public event EventHandler<EventArgs<Type, MemberInfo[]>> OnGotMembers;
         #endregion
     }
 }

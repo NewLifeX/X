@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Collections;
 using System.Runtime.InteropServices;
+using System.Globalization;
 
 namespace NewLife.Serialization
 {
@@ -247,14 +248,14 @@ namespace NewLife.Serialization
                 case TypeCode.Int32:
                     if (!encodeInt)
                         Write(Convert.ToInt32(value, CultureInfo.InvariantCulture));
-                    else
-                        WriteEncoded(Convert.ToInt32(value, CultureInfo.InvariantCulture));
+                    //else
+                    //    WriteEncoded(Convert.ToInt32(value, CultureInfo.InvariantCulture));
                     return true;
                 case TypeCode.Int64:
                     if (!encodeInt)
                         Write(Convert.ToInt64(value, CultureInfo.InvariantCulture));
-                    else
-                        WriteEncoded(Convert.ToInt64(value, CultureInfo.InvariantCulture));
+                    //else
+                    //    WriteEncoded(Convert.ToInt64(value, CultureInfo.InvariantCulture));
                     return true;
                 case TypeCode.Object:
                     break;
@@ -273,14 +274,14 @@ namespace NewLife.Serialization
                 case TypeCode.UInt32:
                     if (!encodeInt)
                         Write(Convert.ToUInt32(value, CultureInfo.InvariantCulture));
-                    else
-                        WriteEncoded(Convert.ToInt32(value, CultureInfo.InvariantCulture));
+                    //else
+                    //    WriteEncoded(Convert.ToInt32(value, CultureInfo.InvariantCulture));
                     return true;
                 case TypeCode.UInt64:
                     if (!encodeInt)
                         Write(Convert.ToUInt64(value, CultureInfo.InvariantCulture));
-                    else
-                        WriteEncoded(Convert.ToInt64(value, CultureInfo.InvariantCulture));
+                    //else
+                    //    WriteEncoded(Convert.ToInt64(value, CultureInfo.InvariantCulture));
                     return true;
                 default:
                     break;
@@ -289,25 +290,25 @@ namespace NewLife.Serialization
             if (type == typeof(Byte[]))
             {
                 Byte[] arr = (Byte[])value;
-                if (arr == null || arr.Length == 0)
-                    WriteEncoded(0);
-                else
-                {
-                    WriteEncoded(arr.Length);
-                    Write(arr);
-                }
+                //if (arr == null || arr.Length == 0)
+                //    WriteEncoded(0);
+                //else
+                //{
+                //    WriteEncoded(arr.Length);
+                //    Write(arr);
+                //}
                 return true;
             }
             if (type == typeof(Char[]))
             {
                 Char[] arr = (Char[])value;
-                if (arr == null || arr.Length == 0)
-                    WriteEncoded(0);
-                else
-                {
-                    WriteEncoded(arr.Length);
-                    Write(arr);
-                }
+                //if (arr == null || arr.Length == 0)
+                //    WriteEncoded(0);
+                //else
+                //{
+                //    WriteEncoded(arr.Length);
+                //    Write(arr);
+                //}
                 return true;
             }
 
@@ -362,6 +363,14 @@ namespace NewLife.Serialization
         {
             return false;
         }
+        #endregion
+
+        #region IWriter 成员
+
+        public event EventHandler<EventArgs<System.Reflection.MemberInfo, bool>> OnMemberWriting;
+
+        public event EventHandler<EventArgs<System.Reflection.MemberInfo>> OnMemberWrited;
+
         #endregion
     }
 }

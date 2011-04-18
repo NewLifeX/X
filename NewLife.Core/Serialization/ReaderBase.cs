@@ -255,5 +255,13 @@ namespace NewLife.Serialization
             return false;
         }
         #endregion
+
+        #region IReader 成员
+
+        public event EventHandler<EventArgs<System.Reflection.MemberInfo, bool>> OnMemberReading;
+
+        public event EventHandler<EventArgs<System.Reflection.MemberInfo>> OnMemberReaded;
+
+        #endregion
     }
 }

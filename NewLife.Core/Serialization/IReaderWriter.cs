@@ -43,7 +43,7 @@ namespace NewLife.Serialization
         /// <summary>
         /// 获取指定类型中需要序列化的成员时触发。使用者可以修改、排序要序列化的成员。
         /// </summary>
-        event EventHandler<EventArgs<Type, MemberInfo[]>> OnGetMembers;
+        event EventHandler<EventArgs<Type, MemberInfo[]>> OnGotMembers;
         #endregion
     }
 }
