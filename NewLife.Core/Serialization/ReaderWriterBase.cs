@@ -37,20 +37,45 @@ namespace NewLife.Serialization
         //    set { _IsLittleEndian = value; }
         //}
 
-        /// <summary>是否序列化属性，默认序列化属性。主要影响GetMembers</summary>
-        public virtual Boolean IsProperty { get { return true; } }
+        ///// <summary>是否序列化属性，默认序列化属性。主要影响GetMembers</summary>
+        //public virtual Boolean IsProperty { get { return true; } }
         #endregion
 
         #region 方法
         /// <summary>
         /// 获取需要序列化的成员（属性或字段）
         /// </summary>
-        /// <returns></returns>
-        public virtual MemberInfo[] GetMembers()
+        /// <param name="type">指定类型</param>
+        /// <returns>需要序列化的成员</returns>
+        public virtual MemberInfo[] GetMembers(Type type)
         {
-            //TypeDescriptor td = new TypeDescriptor();
-            return null;
+            if (type == null) throw new ArgumentNullException("type");
+
+            PropertyInfo[] pis = type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            if (pis == null || pis.Length < 1) return null;
+
+            List<MemberInfo> list = new List<MemberInfo>();
+            foreach (PropertyInfo item in pis)
+            {
+                list.Add(item);
+            }
+
+            MemberInfo[] mis = list.ToArray();
+
+            if (OnGetMembers != null)
+            {
+                EventArgs<Type, MemberInfo[]> e = new EventArgs<Type, MemberInfo[]>(type, mis);
+                OnGetMembers(this, e);
+                mis = e.Arg2;
+            }
+
+            return mis;
         }
+
+        /// <summary>
+        /// 获取指定类型中需要序列化的成员时触发。使用者可以修改、排序要序列化的成员。
+        /// </summary>
+        public event EventHandler<EventArgs<Type, MemberInfo[]>> OnGetMembers;
         #endregion
     }
 }

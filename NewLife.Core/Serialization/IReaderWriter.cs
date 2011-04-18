@@ -26,20 +26,24 @@ namespace NewLife.Serialization
         ///// </remarks>
         //Boolean IsLittleEndian { get; set; }
 
-        /// <summary>是否序列化属性。</summary>
-        Boolean IsProperty { get; }
+        ///// <summary>是否序列化属性。</summary>
+        //Boolean IsProperty { get; }
         #endregion
 
         #region 方法
         /// <summary>
-        /// 获取需要序列化的成员（属性或字段）
+        /// 获取指定类型中需要序列化的成员（属性或字段）
         /// </summary>
-        /// <returns></returns>
-        MemberInfo[] GetMembers();
+        /// <param name="type">指定类型</param>
+        /// <returns>需要序列化的成员</returns>
+        MemberInfo[] GetMembers(Type type);
         #endregion
 
         #region 事件
-        event EventHandler<EventArgs<MemberInfo[]>> OnGetMembers;
+        /// <summary>
+        /// 获取指定类型中需要序列化的成员时触发。使用者可以修改、排序要序列化的成员。
+        /// </summary>
+        event EventHandler<EventArgs<Type, MemberInfo[]>> OnGetMembers;
         #endregion
     }
 }
