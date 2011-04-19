@@ -9,5 +9,14 @@ namespace NewLife.Serialization
     /// </summary>
     public class ReaderWriterConfig
     {
+        #region 属性
+        private Boolean _Required;
+        /// <summary>必须的</summary>
+        public Boolean Required
+        {
+            get { return _Required; }
+            set { _Required = value; }
+        }
+        #endregion
     }
 }

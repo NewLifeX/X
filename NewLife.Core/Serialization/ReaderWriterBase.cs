@@ -63,6 +63,11 @@ namespace NewLife.Serialization
             return mis;
         }
 
+        /// <summary>
+        /// 获取需要序列化的成员（属性或字段）
+        /// </summary>
+        /// <param name="type">指定类型</param>
+        /// <returns>需要序列化的成员</returns>
         protected virtual MemberInfo[] OnGetMembers(Type type)
         {
             if (type == null) throw new ArgumentNullException("type");
@@ -83,6 +88,35 @@ namespace NewLife.Serialization
         /// 获取指定类型中需要序列化的成员时触发。使用者可以修改、排序要序列化的成员。
         /// </summary>
         public event EventHandler<EventArgs<Type, MemberInfo[]>> OnGotMembers;
+
+        /// <summary>
+        /// 过滤掉具有指定特性的成员
+        /// </summary>
+        /// <param name="members">要过滤的成员</param>
+        /// <param name="attTypes">指定的特性</param>
+        /// <returns>过滤后的成员集合</returns>
+        protected static MemberInfo[] FilterMembers(MemberInfo[] members, params Type[] attTypes)
+        {
+            if (members == null || members.Length < 1) return members;
+            if (attTypes == null || attTypes.Length < 1) return members;
+
+            List<PropertyInfo> list = new List<PropertyInfo>();
+            foreach (PropertyInfo item in members)
+            {
+                Boolean flag = false;
+                foreach (Type attType in attTypes)
+                {
+                    if (Attribute.IsDefined(item, attType))
+                    {
+                        flag = true;
+                        break;
+                    }
+                }
+                if (!flag) list.Add(item);
+            }
+            if (list == null || list.Count < 1) return null;
+            return list.ToArray();
+        }
         #endregion
     }
 }

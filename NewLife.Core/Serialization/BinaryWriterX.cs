@@ -8,6 +8,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// 二进制写入器
     /// </summary>
+    [CLSCompliant(false)]
     public class BinaryWriterX : WriterBase
     {
         #region 属性

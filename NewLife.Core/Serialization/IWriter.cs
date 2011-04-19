@@ -22,7 +22,7 @@ namespace NewLife.Serialization
         /// <summary>
         /// 写成员后触发。
         /// </summary>
-        event EventHandler<EventArgs<MemberInfo>> OnMemberWrited;
+        event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberWrited;
         #endregion
 
         #region 写入基础元数据

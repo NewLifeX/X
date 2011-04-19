@@ -4,12 +4,16 @@ using System.Text;
 using System.Collections;
 using System.Runtime.InteropServices;
 using System.Globalization;
+using System.Reflection;
+using System.Net;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
     /// <summary>
     /// 写入器基类
     /// </summary>
+    [CLSCompliant(false)]
     public abstract class WriterBase : ReaderWriterBase, IWriter
     {
         #region 写入基础元数据
@@ -187,6 +191,100 @@ namespace NewLife.Serialization
         {
             return false;
         }
+
+        /// <summary>
+        /// 把目标对象指定成员写入数据流，通过委托方法递归处理成员
+        /// </summary>
+        /// <param name="target">对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="config">设置</param>
+        /// <returns>是否写入成功</returns>
+        public Boolean WriteObject(Object target, MemberInfo member, ReaderWriterConfig config)
+        {
+            // 使用自己作为处理成员的方法
+            return WriteObject(target, member, config, WriteMember);
+        }
+
+        /// <summary>
+        /// 把目标对象指定成员写入数据流，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
+        /// </summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="config">设置</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        public Boolean WriteObject(Object target, MemberInfo member, ReaderWriterConfig config, WriteMemberCallback callback)
+        {
+            //Type type = member.Type;
+            //Object value = member.IsType ? target : member.GetValue(target);
+
+            Type type = (member is PropertyInfo) ? (member as PropertyInfo).PropertyType : (member as FieldInfo).FieldType;
+            MemberInfoX mix = member;
+            Object value = mix.GetValue(target);
+
+            if (value != null) type = value.GetType();
+            if (callback == null) callback = WriteMember;
+
+            // 基本类型
+            if (WriteValue(value, type, config)) return true;
+
+            // 扩展类型
+            if (WriteX(value, type)) return true;
+
+            #region 枚举
+            if (typeof(IEnumerable).IsAssignableFrom(type))
+            {
+                if (WriteEnumerable(value as IEnumerable, type, config, callback)) return true;
+            }
+            #endregion
+
+            #region 复杂对象
+            Boolean allowNull = !config.Required;
+
+            // 值类型不会为null，只有引用类型才需要写标识
+            if (!type.IsValueType)
+            {
+                // 允许空时，增加一个字节表示对象是否为空
+                if (value == null)
+                {
+                    if (allowNull) Write(false);
+                    return true;
+                }
+                if (allowNull) Write(true);
+            }
+
+            // 复杂类型，处理对象成员
+            MemberInfo[] mis = GetMembers(type);
+            if (mis == null || mis.Length < 1) return true;
+
+            foreach (MemberInfo item in mis)
+            {
+                if (OnMemberWriting != null)
+                {
+                    EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(item, false);
+                    OnMemberWriting(this, e);
+                    if (e.Arg2) continue;
+                }
+
+                Boolean result = callback(this, value, item, config, callback);
+                if (OnMemberWrited != null)
+                {
+                    EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(item, result);
+                    OnMemberWrited(this, e);
+                    result = e.Arg2;
+                }
+                if (!result) return false;
+            }
+            #endregion
+
+            return true;
+        }
+
+        private static Boolean WriteMember(IWriter writer, Object target, MemberInfo member, ReaderWriterConfig config, WriteMemberCallback callback)
+        {
+            // 使用自己作为处理成员的方法
+            return (writer as WriterBase).WriteObject(target, member, config, callback);
+        }
         #endregion
 
         #region 写入值类型
@@ -194,24 +292,10 @@ namespace NewLife.Serialization
         /// 写入值类型，只能识别基础类型，对于不能识别的类型，方法返回false
         /// </summary>
         /// <param name="value">要写入的对象</param>
-        /// <param name="encodeInt">是否编码整数</param>
-        /// <returns>是否写入成功</returns>
-        public Boolean WriteValue(Object value, Boolean encodeInt)
-        {
-            // 值类型不会有空，写入器不知道该如何处理空，由外部决定吧
-            if (value == null) return true;
-
-            return WriteValue(value, value.GetType(), encodeInt);
-        }
-
-        /// <summary>
-        /// 写入值类型，只能识别基础类型，对于不能识别的类型，方法返回false
-        /// </summary>
-        /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
-        /// <param name="encodeInt">是否编码整数</param>
+        /// <param name="config">设置</param>
         /// <returns>是否写入成功</returns>
-        public Boolean WriteValue(Object value, Type type, Boolean encodeInt)
+        public virtual Boolean WriteValue(Object value, Type type, ReaderWriterConfig config)
         {
             // 对象不为空时，使用对象实际类型
             if (value != null) type = value.GetType();
@@ -232,7 +316,7 @@ namespace NewLife.Serialization
                     Write((Byte)0);
                     return true;
                 case TypeCode.DateTime:
-                    return WriteValue(Convert.ToDateTime(value, CultureInfo.InvariantCulture).Ticks, encodeInt);
+                    return WriteValue(Convert.ToDateTime(value, CultureInfo.InvariantCulture).Ticks, null, config);
                 case TypeCode.Decimal:
                     Write(Convert.ToDecimal(value, CultureInfo.InvariantCulture));
                     return true;
@@ -246,16 +330,10 @@ namespace NewLife.Serialization
                     Write(Convert.ToInt16(value, CultureInfo.InvariantCulture));
                     return true;
                 case TypeCode.Int32:
-                    if (!encodeInt)
-                        Write(Convert.ToInt32(value, CultureInfo.InvariantCulture));
-                    //else
-                    //    WriteEncoded(Convert.ToInt32(value, CultureInfo.InvariantCulture));
+                    Write(Convert.ToInt32(value, CultureInfo.InvariantCulture));
                     return true;
                 case TypeCode.Int64:
-                    if (!encodeInt)
-                        Write(Convert.ToInt64(value, CultureInfo.InvariantCulture));
-                    //else
-                    //    WriteEncoded(Convert.ToInt64(value, CultureInfo.InvariantCulture));
+                    Write(Convert.ToInt64(value, CultureInfo.InvariantCulture));
                     return true;
                 case TypeCode.Object:
                     break;
@@ -272,16 +350,10 @@ namespace NewLife.Serialization
                     Write(Convert.ToUInt16(value, CultureInfo.InvariantCulture));
                     return true;
                 case TypeCode.UInt32:
-                    if (!encodeInt)
-                        Write(Convert.ToUInt32(value, CultureInfo.InvariantCulture));
-                    //else
-                    //    WriteEncoded(Convert.ToInt32(value, CultureInfo.InvariantCulture));
+                    Write(Convert.ToUInt32(value, CultureInfo.InvariantCulture));
                     return true;
                 case TypeCode.UInt64:
-                    if (!encodeInt)
-                        Write(Convert.ToUInt64(value, CultureInfo.InvariantCulture));
-                    //else
-                    //    WriteEncoded(Convert.ToInt64(value, CultureInfo.InvariantCulture));
+                    Write(Convert.ToUInt64(value, CultureInfo.InvariantCulture));
                     return true;
                 default:
                     break;
@@ -289,26 +361,12 @@ namespace NewLife.Serialization
 
             if (type == typeof(Byte[]))
             {
-                Byte[] arr = (Byte[])value;
-                //if (arr == null || arr.Length == 0)
-                //    WriteEncoded(0);
-                //else
-                //{
-                //    WriteEncoded(arr.Length);
-                //    Write(arr);
-                //}
+                Write((Byte[])value);
                 return true;
             }
             if (type == typeof(Char[]))
             {
-                Char[] arr = (Char[])value;
-                //if (arr == null || arr.Length == 0)
-                //    WriteEncoded(0);
-                //else
-                //{
-                //    WriteEncoded(arr.Length);
-                //    Write(arr);
-                //}
+                Write((Char[])value);
                 return true;
             }
 
@@ -363,14 +421,261 @@ namespace NewLife.Serialization
         {
             return false;
         }
+
+        /// <summary>
+        /// 写入枚举数据，复杂类型使用委托方法进行处理
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <param name="type">类型</param>
+        /// <param name="config">配置</param>
+        /// <param name="callback">使用指定委托方法处理复杂数据</param>
+        /// <returns>是否写入成功</returns>
+        public Boolean WriteEnumerable(IEnumerable value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
+        {
+            //if (!type.IsArray) throw new Exception("目标类型不是数组类型！");
+            Boolean allowNull = !config.Required;
+
+            if (value == null)
+            {
+                // 允许空，写入0字节
+                if (allowNull) Write(0);
+                return true;
+            }
+
+            #region 特殊处理字节数组和字符数组
+            if (WriteValue(value, type, config)) return true;
+            #endregion
+
+            #region 初始化数据
+            Int32 count = 0;
+            Type elementType = null;
+            List<Object> list = new List<Object>();
+
+            if (type.IsArray)
+            {
+                Array arr = value as Array;
+                count = arr.Length;
+                elementType = type.GetElementType();
+            }
+            //else if (typeof(ICollection).IsAssignableFrom(type))
+            //{
+            //    count = (value as ICollection).Count;
+            //}
+            else
+            {
+                foreach (Object item in value)
+                {
+                    // 加入集合，防止value进行第二次遍历
+                    list.Add(item);
+
+                    if (item == null) continue;
+
+                    // 找到枚举的元素类型
+                    Type t = item.GetType();
+                    if (elementType == null)
+                        elementType = t;
+                    else if (elementType != item.GetType())
+                    {
+                        if (elementType.IsAssignableFrom(t))
+                        {
+                            // t继承自elementType
+                        }
+                        else if (t.IsAssignableFrom(elementType))
+                        {
+                            // elementType继承自t
+                            elementType = t;
+                        }
+                        else
+                        {
+                            // 可能是Object类型，无法支持
+                            return false;
+                        }
+                    }
+                }
+                count = list.Count;
+                value = list;
+            }
+            if (count == 0)
+            {
+                Write(0);
+                return true;
+            }
+
+            // 可能是Object类型，无法支持
+            if (elementType == null) return false;
+
+            //TODO 如果不是基本类型和特殊类型，必须有委托方法
+            //if (!Support(elementType) && callback == null) return false;
+            #endregion
+
+            // 写入长度
+            Write(count);
+
+            foreach (Object item in value)
+            {
+                // 基本类型
+                if (WriteValue(item, null, config)) continue;
+                // 特别支持的常用类型
+                if (WriteX(item)) continue;
+
+                if (!callback(this, item, elementType, config, callback)) return false;
+
+                //// 允许空时，增加一个字节表示对象是否为空
+                //if (item == null)
+                //{
+                //    if (allowNull) Write(false);
+                //    continue;
+                //}
+                //if (allowNull) Write(true);
+
+                //if (!writer.WriteValue(item, encodeInt))
+                //    Write(item, writer, encodeInt, allowNull, member.Member.MemberType == MemberTypes.Property);
+                //// 复杂
+                //Write(item, writer, encodeInt, allowNull, member.Member.MemberType == MemberTypes.Property);
+            }
+
+            return true;
+        }
+        #endregion
+
+        #region 扩展处理类型
+        /// <summary>
+        /// 扩展写入，反射查找合适的写入方法
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Boolean WriteX(Object value)
+        {
+            // 对象为空，无法取得类型，无法写入
+            if (value == null) return false;
+
+            return WriteX(value, value.GetType());
+        }
+
+        /// <summary>
+        /// 扩展写入，反射查找合适的写入方法
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public Boolean WriteX(Object value, Type type)
+        {
+            if (type == null)
+            {
+                if (value == null) throw new Exception("没有指定写入类型，且写入对象为空，不知道如何写入！");
+
+                type = value.GetType();
+            }
+
+            if (type == typeof(Guid))
+            {
+                Write((Guid)value);
+                return true;
+            }
+            if (type == typeof(IPAddress))
+            {
+                Write((IPAddress)value);
+                return true;
+            }
+            if (type == typeof(IPEndPoint))
+            {
+                Write((IPEndPoint)value);
+                return true;
+            }
+            if (typeof(Type).IsAssignableFrom(type))
+            {
+                Write((Type)value);
+                return true;
+            }
+
+            return false;
+
+            //MethodInfo method = this.GetType().GetMethod("Write", new Type[] { type });
+            //if (method == null) return false;
+
+            //MethodInfoX.Create(method).Invoke(this, new Object[] { value });
+            //return true;
+        }
+
+        /// <summary>
+        /// 写入Guid
+        /// </summary>
+        /// <param name="value"></param>
+        public void Write(Guid value)
+        {
+            Write(((Guid)value).ToByteArray());
+        }
+
+        /// <summary>
+        /// 写入IPAddress
+        /// </summary>
+        /// <param name="value"></param>
+        public void Write(IPAddress value)
+        {
+            if (value != null)
+            {
+                Byte[] buffer = (value as IPAddress).GetAddressBytes();
+                Write(buffer.Length);
+                Write(buffer);
+            }
+            else
+                Write(0);
+        }
+
+        /// <summary>
+        /// 写入IPEndPoint
+        /// </summary>
+        /// <param name="value"></param>
+        public void Write(IPEndPoint value)
+        {
+            if (value != null)
+            {
+                Write(value.Address);
+                //// 端口实际只占2字节
+                //Write((UInt16)value.Port);
+                Write(value.Port);
+            }
+            else
+                Write(0);
+        }
+
+        /// <summary>
+        /// 写入Type
+        /// </summary>
+        /// <param name="value"></param>
+        public void Write(Type value)
+        {
+            // 尽管使用AssemblyQualifiedName更精确，但是它的长度实在太大了
+            if (value != null)
+                Write(value.FullName);
+            else
+                Write(0);
+        }
         #endregion
 
         #region IWriter 成员
+        /// <summary>
+        /// 
+        /// </summary>
+        public event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberWriting;
 
-        public event EventHandler<EventArgs<System.Reflection.MemberInfo, bool>> OnMemberWriting;
-
-        public event EventHandler<EventArgs<System.Reflection.MemberInfo>> OnMemberWrited;
+        /// <summary>
+        /// 
+        /// </summary>
+        public event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberWrited;
 
         #endregion
     }
+
+    /// <summary>
+    /// 数据写入方法
+    /// </summary>
+    /// <param name="writer">写入器</param>
+    /// <param name="target">目标对象</param>
+    /// <param name="member">成员</param>
+    /// <param name="config">配置</param>
+    /// <param name="callback">处理成员的方法</param>
+    /// <returns>是否写入成功</returns>
+    [CLSCompliant(false)]
+    public delegate Boolean WriteMemberCallback(IWriter writer, Object target, MemberInfo member, ReaderWriterConfig config, WriteMemberCallback callback);
 }

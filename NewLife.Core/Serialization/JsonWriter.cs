@@ -7,6 +7,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// Json写入器
     /// </summary>
+    [CLSCompliant(false)]
     public class JsonWriter : WriterBase
     {
         /// <summary>
