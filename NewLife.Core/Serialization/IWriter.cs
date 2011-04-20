@@ -9,7 +9,6 @@ namespace NewLife.Serialization
     /// <summary>
     /// 写入器接口
     /// </summary>
-    [CLSCompliant(false)]
     public interface IWriter : IReaderWriter
     {
         #region 事件
@@ -39,11 +38,11 @@ namespace NewLife.Serialization
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
         void Write(byte[] buffer);
 
-        /// <summary>
-        /// 将一个有符号字节写入当前流，并将流的位置提升 1 个字节。
-        /// </summary>
-        /// <param name="value">要写入的有符号字节。</param>
-        void Write(sbyte value);
+        ///// <summary>
+        ///// 将一个有符号字节写入当前流，并将流的位置提升 1 个字节。
+        ///// </summary>
+        ///// <param name="value">要写入的有符号字节。</param>
+        //void Write(sbyte value);
 
         /// <summary>
         /// 将字节数组部分写入当前流。
@@ -75,23 +74,23 @@ namespace NewLife.Serialization
         #endregion
 
         #region 无符号整数
-        /// <summary>
-        /// 将 2 字节无符号整数写入当前流，并将流的位置提升 2 个字节。
-        /// </summary>
-        /// <param name="value">要写入的 2 字节无符号整数。</param>
-        void Write(ushort value);
+        ///// <summary>
+        ///// 将 2 字节无符号整数写入当前流，并将流的位置提升 2 个字节。
+        ///// </summary>
+        ///// <param name="value">要写入的 2 字节无符号整数。</param>
+        //void Write(ushort value);
 
-        /// <summary>
-        /// 将 4 字节无符号整数写入当前流，并将流的位置提升 4 个字节。
-        /// </summary>
-        /// <param name="value">要写入的 4 字节无符号整数。</param>
-        void Write(uint value);
+        ///// <summary>
+        ///// 将 4 字节无符号整数写入当前流，并将流的位置提升 4 个字节。
+        ///// </summary>
+        ///// <param name="value">要写入的 4 字节无符号整数。</param>
+        //void Write(uint value);
 
-        /// <summary>
-        /// 将 8 字节无符号整数写入当前流，并将流的位置提升 8 个字节。
-        /// </summary>
-        /// <param name="value">要写入的 8 字节无符号整数。</param>
-        void Write(ulong value);
+        ///// <summary>
+        ///// 将 8 字节无符号整数写入当前流，并将流的位置提升 8 个字节。
+        ///// </summary>
+        ///// <param name="value">要写入的 8 字节无符号整数。</param>
+        //void Write(ulong value);
         #endregion
 
         #region 浮点数

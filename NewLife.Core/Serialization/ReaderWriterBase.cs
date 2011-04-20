@@ -4,6 +4,7 @@ using System.Text;
 using System.Reflection;
 using System.ComponentModel;
 using NewLife.Collections;
+using System.Xml.Serialization;
 
 namespace NewLife.Serialization
 {
@@ -73,16 +74,7 @@ namespace NewLife.Serialization
         {
             if (type == null) throw new ArgumentNullException("type");
 
-            PropertyInfo[] pis = type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            if (pis == null || pis.Length < 1) return null;
-
-            List<MemberInfo> list = new List<MemberInfo>();
-            foreach (PropertyInfo item in pis)
-            {
-                list.Add(item);
-            }
-
-            return list.ToArray();
+            return FilterMembers(FindProperties(type), typeof(NonSerializedAttribute), typeof(XmlIgnoreAttribute));
         }
 
         /// <summary>
@@ -96,7 +88,7 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        internal protected static MemberInfo[] FindFields(Type type)
+        protected static MemberInfo[] FindFields(Type type)
         {
             if (type == null) return null;
 
@@ -117,12 +109,12 @@ namespace NewLife.Serialization
                 // 递归取父级的字段
                 if (type.BaseType != null && type.BaseType != typeof(Object))
                 {
-                    MemberInfo[] fis2 = FindFields(type.BaseType);
-                    //if (fis2 != null) list.AddRange(fis2);
-                    if (fis2 != null)
+                    MemberInfo[] mis = FindFields(type.BaseType);
+                    if (mis != null)
                     {
-                        List<MemberInfo> list2 = new List<MemberInfo>(fis2);
-                        list2.AddRange(list);
+                        // 基类的字段排在子类字段前面
+                        List<MemberInfo> list2 = new List<MemberInfo>(mis);
+                        if (list.Count > 0) list2.AddRange(list);
                         list = list2;
                     }
                 }
@@ -138,7 +130,7 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        internal protected static MemberInfo[] FindProperties(Type type)
+        protected static MemberInfo[] FindProperties(Type type)
         {
             if (type == null) return null;
 

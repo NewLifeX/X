@@ -51,7 +51,7 @@ namespace NewLife.IO
                 if (value == null)
                 {
                     //value = Activator.CreateInstance(member.Type);
-                    value = TypeX.CreateInstance(type);
+                    value = CreateInstance(type);
                     //member.SetValue(target, value);
                 }
                 if (value == null) return false;

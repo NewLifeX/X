@@ -9,7 +9,6 @@ namespace NewLife.Xml
     /// <summary>
     /// Xml读取器
     /// </summary>
-    [CLSCompliant(false)]
     public class XmlWriterX : WriterBase
     {
         /// <summary>

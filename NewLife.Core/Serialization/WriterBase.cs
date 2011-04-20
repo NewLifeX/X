@@ -13,7 +13,6 @@ namespace NewLife.Serialization
     /// <summary>
     /// 写入器基类
     /// </summary>
-    [CLSCompliant(false)]
     public abstract class WriterBase : ReaderWriterBase, IWriter
     {
         #region 写入基础元数据
@@ -189,38 +188,38 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public virtual Boolean WriteObject(Object value)
         {
-            return false;
+            return WriteObject(value, null, null);
         }
 
         /// <summary>
         /// 把目标对象指定成员写入数据流，通过委托方法递归处理成员
         /// </summary>
-        /// <param name="target">对象</param>
-        /// <param name="member">成员</param>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
         /// <param name="config">设置</param>
         /// <returns>是否写入成功</returns>
-        public Boolean WriteObject(Object target, MemberInfo member, ReaderWriterConfig config)
+        public virtual Boolean WriteObject(Object value, Type type, ReaderWriterConfig config)
         {
             // 使用自己作为处理成员的方法
-            return WriteObject(target, member, config, WriteMember);
+            return WriteObject(value, type, config, WriteMember);
         }
 
         /// <summary>
         /// 把目标对象指定成员写入数据流，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
         /// </summary>
-        /// <param name="target">目标对象</param>
-        /// <param name="member">成员</param>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
         /// <param name="config">设置</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        public Boolean WriteObject(Object target, MemberInfo member, ReaderWriterConfig config, WriteMemberCallback callback)
+        public virtual Boolean WriteObject(Object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
         {
             //Type type = member.Type;
             //Object value = member.IsType ? target : member.GetValue(target);
 
-            Type type = (member is PropertyInfo) ? (member as PropertyInfo).PropertyType : (member as FieldInfo).FieldType;
-            MemberInfoX mix = member;
-            Object value = mix.GetValue(target);
+            //Type type = (member is PropertyInfo) ? (member as PropertyInfo).PropertyType : (member as FieldInfo).FieldType;
+            //MemberInfoX mix = member;
+            //Object value = mix.GetValue(target);
 
             if (value != null) type = value.GetType();
             if (callback == null) callback = WriteMember;
@@ -266,7 +265,8 @@ namespace NewLife.Serialization
                     if (e.Arg2) continue;
                 }
 
-                Boolean result = callback(this, value, item, config, callback);
+                MemberInfoX mix = item;
+                Boolean result = callback(this, mix.GetValue(value), mix.Type, config, callback);
                 if (OnMemberWrited != null)
                 {
                     EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(item, result);
@@ -280,10 +280,10 @@ namespace NewLife.Serialization
             return true;
         }
 
-        private static Boolean WriteMember(IWriter writer, Object target, MemberInfo member, ReaderWriterConfig config, WriteMemberCallback callback)
+        private static Boolean WriteMember(IWriter writer, Object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
         {
             // 使用自己作为处理成员的方法
-            return (writer as WriterBase).WriteObject(target, member, config, callback);
+            return (writer as WriterBase).WriteObject(value, type, config, callback);
         }
         #endregion
 
@@ -653,17 +653,16 @@ namespace NewLife.Serialization
         }
         #endregion
 
-        #region IWriter 成员
+        #region 事件
         /// <summary>
-        /// 
+        /// 写入成员前触发。参数觉得是否忽略该成员。
         /// </summary>
         public event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberWriting;
 
         /// <summary>
-        /// 
+        /// 写入成员后触发。参数决定是否写入成功。
         /// </summary>
         public event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberWrited;
-
         #endregion
     }
 
@@ -671,11 +670,10 @@ namespace NewLife.Serialization
     /// 数据写入方法
     /// </summary>
     /// <param name="writer">写入器</param>
-    /// <param name="target">目标对象</param>
-    /// <param name="member">成员</param>
+    /// <param name="value">要写入的对象</param>
+    /// <param name="type">要写入的对象类型</param>
     /// <param name="config">配置</param>
     /// <param name="callback">处理成员的方法</param>
     /// <returns>是否写入成功</returns>
-    [CLSCompliant(false)]
-    public delegate Boolean WriteMemberCallback(IWriter writer, Object target, MemberInfo member, ReaderWriterConfig config, WriteMemberCallback callback);
+    public delegate Boolean WriteMemberCallback(IWriter writer, Object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback);
 }

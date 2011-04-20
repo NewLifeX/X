@@ -8,7 +8,6 @@ namespace NewLife.Serialization
     /// <summary>
     /// 读取器接口
     /// </summary>
-    [CLSCompliant(false)]
     public interface IReader : IReaderWriter
     {
         #region 事件
@@ -21,7 +20,7 @@ namespace NewLife.Serialization
         /// <summary>
         /// 读成员后触发。
         /// </summary>
-        event EventHandler<EventArgs<MemberInfo>> OnMemberReaded;
+        event EventHandler<EventArgs<MemberInfo, Object>> OnMemberReaded;
         #endregion
 
         #region 读取基础元数据
@@ -39,11 +38,11 @@ namespace NewLife.Serialization
         /// <returns></returns>
         byte[] ReadBytes(int count);
 
-        /// <summary>
-        /// 从此流中读取一个有符号字节，并使流的当前位置提升 1 个字节。
-        /// </summary>
-        /// <returns></returns>
-        sbyte ReadSByte();
+        ///// <summary>
+        ///// 从此流中读取一个有符号字节，并使流的当前位置提升 1 个字节。
+        ///// </summary>
+        ///// <returns></returns>
+        //sbyte ReadSByte();
         #endregion
 
         #region 有符号整数
@@ -67,23 +66,23 @@ namespace NewLife.Serialization
         #endregion
 
         #region 无符号整数
-        /// <summary>
-        /// 使用 Little-Endian 编码从当前流中读取 2 字节无符号整数，并将流的位置提升 2 个字节。
-        /// </summary>
-        /// <returns></returns>
-        ushort ReadUInt16();
+        ///// <summary>
+        ///// 使用 Little-Endian 编码从当前流中读取 2 字节无符号整数，并将流的位置提升 2 个字节。
+        ///// </summary>
+        ///// <returns></returns>
+        //ushort ReadUInt16();
 
-        /// <summary>
-        /// 从当前流中读取 4 字节无符号整数并使流的当前位置提升 4 个字节。
-        /// </summary>
-        /// <returns></returns>
-        uint ReadUInt32();
+        ///// <summary>
+        ///// 从当前流中读取 4 字节无符号整数并使流的当前位置提升 4 个字节。
+        ///// </summary>
+        ///// <returns></returns>
+        //uint ReadUInt32();
 
-        /// <summary>
-        /// 从当前流中读取 8 字节无符号整数并使流的当前位置提升 8 个字节。
-        /// </summary>
-        /// <returns></returns>
-        ulong ReadUInt64();
+        ///// <summary>
+        ///// 从当前流中读取 8 字节无符号整数并使流的当前位置提升 8 个字节。
+        ///// </summary>
+        ///// <returns></returns>
+        //ulong ReadUInt64();
         #endregion
 
         #region 浮点数
