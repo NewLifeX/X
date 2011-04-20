@@ -125,10 +125,13 @@ namespace XCode.DataAccessLayer
         private static Boolean IsCommonEntity(Type type)
         {
             // 通用实体类全部都是
-            if (type.FullName.Contains("NewLife.CommonEntity")) return true;
+            //if (type.FullName.Contains("NewLife.CommonEntity")) return true;
+            if (type.Namespace == "NewLife.CommonEntity") return true;
 
             // 实体类和基类名字相同的也是
-            if (type.Name == type.BaseType.Name) return true;
+            String name = type.BaseType.Name;
+            Int32 p = name.IndexOf('`');
+            if (p > 0 && type.Name == name.Substring(0, p)) return true;
 
             return false;
         }

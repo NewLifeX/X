@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.6.*")]
-[assembly: AssemblyFileVersion("7.6.2011.0409")]
+[assembly: AssemblyFileVersion("7.6.2011.0420")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.6.2011.0420   修正XCode中反向工程模块判断是否普通实体类的错误
+ * 
  * v7.6.2011.0409   重新启用实体类的ToData，允许实体数据转化为DataRow
  *                  EntityList增加ToDataTable和ToDataSet等方法，允许实体集合转为数据集，并通过事件把数据集的添删改操作委托到实体操作
  *                  一级缓存默认设置改为请求级缓存，避免在Web项目中因不正当使用查询而带来的性能损耗
