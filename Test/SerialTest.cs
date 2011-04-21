@@ -59,13 +59,16 @@ namespace Test
             xtw.Formatting = Formatting.Indented;
             writer.Writer = xtw;
 
-            //writer.MemberStyle = XmlMemberStyle.Element;
-            writer.MemberStyle = XmlMemberStyle.Attribute;
+            writer.MemberStyle = XmlMemberStyle.Element;
+            writer.IgnoreDefault = false;
 
             Administrator entity = new Administrator();
             entity.ID = 123;
             entity.Name = "nnhy";
             entity.DisplayName = "大石头";
+            entity.Logins = 65535;
+            entity.LastLogin = DateTime.Now;
+            entity.SSOUserID = 555;
 
             writer.WriteObject(entity);
 
@@ -73,14 +76,19 @@ namespace Test
             Byte[] buffer = ms.ToArray();
             Console.WriteLine(Encoding.UTF8.GetString(buffer));
 
-            //XmlReaderX reader = new XmlReaderX();
-            //ms.Position = 0;
+            XmlReaderX reader = new XmlReaderX();
+            ms.Position = 0;
             //reader.Reader = new XmlTextReader(ms);
-            //reader.MemberStyle = XmlMemberStyle.Element;
+            XmlReaderSettings setting = new XmlReaderSettings();
+            setting.IgnoreWhitespace = true;
 
-            //Administrator admin = new Administrator();
-            //Object obj = admin;
-            //reader.ReadObject(null, ref obj);
+            reader.Reader = XmlReader.Create(ms, setting);
+            reader.MemberStyle = writer.MemberStyle;
+            reader.IgnoreDefault = writer.IgnoreDefault;
+
+            Administrator admin = new Administrator();
+            Object obj = admin;
+            reader.ReadObject(null, ref obj);
             //Console.WriteLine(obj != null);
         }
     }

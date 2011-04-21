@@ -147,6 +147,12 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value">要写入的十进制值。</param>
         void Write(decimal value);
+
+        /// <summary>
+        /// 将一个时间日期写入
+        /// </summary>
+        /// <param name="value"></param>
+        void Write(DateTime value);
         #endregion
         #endregion
 

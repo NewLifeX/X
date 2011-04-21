@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.IO;
-using NewLife.Serialization;
-using System.Xml;
 using System.Reflection;
+using System.Xml;
+using NewLife.Collections;
+using NewLife.Reflection;
+using NewLife.Serialization;
+using System.Collections.Generic;
 
 namespace NewLife.Xml
 {
@@ -36,6 +36,14 @@ namespace NewLife.Xml
         {
             get { return _MemberStyle; }
             set { _MemberStyle = value; }
+        }
+
+        private Boolean _IgnoreDefault;
+        /// <summary>忽略默认</summary>
+        public Boolean IgnoreDefault
+        {
+            get { return _IgnoreDefault; }
+            set { _IgnoreDefault = value; }
         }
         #endregion
 
@@ -138,6 +146,12 @@ namespace NewLife.Xml
         /// </summary>
         /// <param name="value">要写入的十进制值。</param>
         public override void Write(decimal value) { Writer.WriteValue(value); }
+
+        /// <summary>
+        /// 将一个时间日期写入
+        /// </summary>
+        /// <param name="value"></param>
+        public override void Write(DateTime value) { Writer.WriteValue(value); }
         #endregion
         #endregion
 
@@ -175,16 +189,22 @@ namespace NewLife.Xml
         /// <returns>是否写入成功</returns>
         protected override bool WriteMember(object value, MemberInfo member, ReaderWriterConfig config, WriteMemberCallback callback)
         {
-            if (MemberStyle == XmlMemberStyle.Attribute)
+            XmlReaderWriterConfig xconfig = config as XmlReaderWriterConfig;
+
+            // 检查成员的值，如果是默认值，则不输出
+            Boolean ignoreDefault = xconfig != null ? xconfig.IgnoreDefault : IgnoreDefault;
+            if (ignoreDefault && IsDefault(value, member)) return true;
+
+            XmlMemberStyle style = xconfig != null ? xconfig.MemberStyle : MemberStyle;
+
+            if (style == XmlMemberStyle.Attribute)
                 Writer.WriteStartAttribute(member.Name);
             else
                 Writer.WriteStartElement(member.Name);
 
-            //TODO 检查成员的值，如果是默认值，则不输出
-
             Boolean rs = base.WriteMember(value, member, config, callback);
 
-            if (MemberStyle == XmlMemberStyle.Attribute)
+            if (style == XmlMemberStyle.Attribute)
                 Writer.WriteEndAttribute();
             else
                 Writer.WriteEndElement();
@@ -193,16 +213,71 @@ namespace NewLife.Xml
         }
         #endregion
 
+        #region 成员
+        /// <summary>
+        /// 已重载。过滤掉不能没有Get的属性成员
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected override MemberInfo[] OnGetMembers(Type type)
+        {
+            MemberInfo[] mis = base.OnGetMembers(type);
+            if (mis == null || mis.Length < 1) return mis;
+
+            List<MemberInfo> list = new List<MemberInfo>();
+            foreach (MemberInfo item in mis)
+            {
+                if (item is PropertyInfo)
+                {
+                    if (!(item as PropertyInfo).CanRead) continue;
+                }
+                list.Add(item);
+            }
+            mis = list.ToArray();
+
+            return mis;
+        }
+        #endregion
+
         #region 对象默认值
-        ///// <summary>
-        ///// 过滤要序列化的成员
-        ///// </summary>
-        ///// <param name="type"></param>
-        ///// <returns></returns>
-        //protected override MemberInfo[] OnGetMembers(Type type)
-        //{
-        //    return base.OnGetMembers(type);
-        //}
+        static DictionaryCache<Type, Object> objCache = new DictionaryCache<Type, Object>();
+        /// <summary>
+        /// 获取某个类型的默认对象
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        static Object GetDefault(Type type)
+        {
+            return objCache.GetItem(type, delegate(Type t) { return TypeX.CreateInstance(type); });
+        }
+
+        /// <summary>
+        /// 判断一个对象的某个成员是否默认值
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="member"></param>
+        /// <returns></returns>
+        internal static Boolean IsDefault(Object value, MemberInfo member)
+        {
+            Object def = GetDefault(value.GetType());
+            MemberInfoX mix = member;
+
+            return Object.Equals(mix.GetValue(value), mix.GetValue(def));
+        }
+        #endregion
+
+        #region 设置
+        /// <summary>
+        /// 创建配置
+        /// </summary>
+        /// <returns></returns>
+        protected override ReaderWriterConfig CreateConfig()
+        {
+            XmlReaderWriterConfig config = new XmlReaderWriterConfig();
+            config.MemberStyle = MemberStyle;
+            config.IgnoreDefault = IgnoreDefault;
+            return config;
+        }
         #endregion
     }
 }

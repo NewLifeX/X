@@ -198,7 +198,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展属性
-        //TODO: 本类与哪些类有关联，可以在这里放置一个属性，使用延迟加载的方式获取关联对象
+        // 本类与哪些类有关联，可以在这里放置一个属性，使用延迟加载的方式获取关联对象
         /*
         private List<String> hasLoaded = new List<string>();
         private Category _Category;

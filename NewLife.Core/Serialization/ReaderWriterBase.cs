@@ -181,5 +181,16 @@ namespace NewLife.Serialization
             return list.ToArray();
         }
         #endregion
+
+        #region 配置
+        /// <summary>
+        /// 创建配置。基类可以重写ReaderWriterConfig，然后在这里返回
+        /// </summary>
+        /// <returns></returns>
+        protected virtual ReaderWriterConfig CreateConfig()
+        {
+            return new ReaderWriterConfig();
+        }
+        #endregion
     }
 }

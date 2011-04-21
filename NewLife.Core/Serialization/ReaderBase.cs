@@ -192,6 +192,12 @@ namespace NewLife.Serialization
             }
             return new Decimal(data);
         }
+
+        /// <summary>
+        /// 读取一个时间日期
+        /// </summary>
+        /// <returns></returns>
+        public virtual DateTime ReadDateTime() { return new DateTime(ReadInt64()); }
         #endregion
         #endregion
 
@@ -231,7 +237,7 @@ namespace NewLife.Serialization
             // 因此，第一次用的成员处理方法比较特别，需要修改Required
             if (config == null)
             {
-                config = new ReaderWriterConfig();
+                config = CreateConfig();
                 config.Required = true;
                 return ReadObject(type, ref value, config, ReadMemberWithNotRequired);
             }
@@ -255,11 +261,11 @@ namespace NewLife.Serialization
         public virtual Boolean ReadObject(Type type, ref Object value, ReaderWriterConfig config, ReadMemberCallback callback)
         {
             if (type == null && value != null) type = value.GetType();
-            if (config == null) config = new ReaderWriterConfig();
+            if (config == null) config = CreateConfig();
             if (callback == null) callback = ReadMember;
 
             // 基本类型
-            if (TryReadValue(type, config, ref value)) return true;
+            if (ReadValue(type, config, ref value)) return true;
 
             // 特殊类型
             if (TryReadX(type, ref value)) return true;
@@ -351,9 +357,10 @@ namespace NewLife.Serialization
 
         private static Boolean ReadMemberWithNotRequired(IReader reader, Type type, ref Object value, ReaderWriterConfig config, ReadMemberCallback callback)
         {
-            if (config == null) config = new ReaderWriterConfig();
+            ReaderBase rb = reader as ReaderBase;
+            if (config == null) config = rb.CreateConfig();
             config.Required = false;
-            return (reader as ReaderBase).ReadObject(type, ref value, config, callback);
+            return rb.ReadObject(type, ref value, config, callback);
         }
         #endregion
 
@@ -367,7 +374,7 @@ namespace NewLife.Serialization
         public Object ReadValue(Type type, ReaderWriterConfig config)
         {
             Object value = null;
-            return TryReadValue(type, config, ref value) ? value : null;
+            return ReadValue(type, config, ref value) ? value : null;
         }
 
         /// <summary>
@@ -377,7 +384,7 @@ namespace NewLife.Serialization
         /// <param name="config">配置</param>
         /// <param name="value">要读取的对象</param>
         /// <returns></returns>
-        public Boolean TryReadValue(Type type, ReaderWriterConfig config, ref Object value)
+        public Boolean ReadValue(Type type, ReaderWriterConfig config, ref Object value)
         {
             TypeCode code = Type.GetTypeCode(type);
             switch (code)
@@ -395,8 +402,9 @@ namespace NewLife.Serialization
                     value = ReadByte();
                     return true;
                 case TypeCode.DateTime:
-                    if (!TryReadValue(typeof(Int64), config, ref value)) return false;
-                    value = new DateTime((Int64)value);
+                    //if (!ReadValue(typeof(Int64), config, ref value)) return false;
+                    //value = new DateTime((Int64)value);
+                    value = ReadDateTime();
                     return true;
                 case TypeCode.Decimal:
                     value = ReadDecimal();
@@ -596,7 +604,7 @@ namespace NewLife.Serialization
             #endregion
 
             #region 特殊处理字节数组和字符数组
-            if (TryReadValue(type, config, ref value)) return true;
+            if (ReadValue(type, config, ref value)) return true;
             #endregion
 
             #region 多数组取值
@@ -612,7 +620,7 @@ namespace NewLife.Serialization
                     if (arrs[j] == null) arrs[j] = TypeX.CreateInstance(elementTypes[j].MakeArrayType(), count) as Array;
 
                     Object obj = null;
-                    if (!TryReadValue(elementTypes[j], config, ref obj) &&
+                    if (!ReadValue(elementTypes[j], config, ref obj) &&
                         !TryReadX(elementTypes[j], ref obj))
                     {
                         //obj = CreateInstance(elementType);

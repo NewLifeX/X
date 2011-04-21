@@ -69,18 +69,6 @@ namespace NewLife.Serialization
 
             base.WriteIntBytes(buffer);
         }
-
-        ///// <summary>
-        ///// 写入字符串，先用压缩编码写入长度
-        ///// </summary>
-        ///// <param name="value"></param>
-        //public override void Write(string value)
-        //{
-        //    // 先用压缩编码写入长度
-        //    Int64 n = String.IsNullOrEmpty(value) ? 0 : value.Length;
-        //    WriteEncoded(n);
-        //    Write(value == null ? null : value.ToCharArray());
-        //}
         #endregion
 
         #region 整数
@@ -189,6 +177,35 @@ namespace NewLife.Serialization
         }
         #endregion
 
+        #region 写入对象
+        /// <summary>
+        /// 写对象成员
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="config">设置</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        public override bool WriteMembers(object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
+        {
+            Boolean allowNull = !config.Required;
+
+            // 值类型不会为null，只有引用类型才需要写标识
+            if (!type.IsValueType)
+            {
+                // 允许空时，增加一个字节表示对象是否为空
+                if (value == null)
+                {
+                    if (allowNull) Write(false);
+                    return true;
+                }
+                if (allowNull) Write(true);
+            }
+
+            return base.WriteMembers(value, type, config, callback);
+        }
+        #endregion
+
         #region 获取成员
         /// <summary>
         /// 已重载。序列化字段
@@ -198,6 +215,19 @@ namespace NewLife.Serialization
         protected override MemberInfo[] OnGetMembers(Type type)
         {
             return FilterMembers(FindFields(type), typeof(NonSerializedAttribute));
+        }
+        #endregion
+
+        #region 设置
+        /// <summary>
+        /// 创建配置
+        /// </summary>
+        /// <returns></returns>
+        protected override ReaderWriterConfig CreateConfig()
+        {
+            BinaryReaderWriterConfig config = new BinaryReaderWriterConfig();
+            config.EncodeInt = EncodeInt;
+            return config;
         }
         #endregion
     }

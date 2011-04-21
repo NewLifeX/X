@@ -132,6 +132,12 @@ namespace NewLife.Serialization
         /// </summary>
         /// <returns></returns>
         decimal ReadDecimal();
+
+        /// <summary>
+        /// 读取一个时间日期
+        /// </summary>
+        /// <returns></returns>
+        DateTime ReadDateTime();
         #endregion
         #endregion
 

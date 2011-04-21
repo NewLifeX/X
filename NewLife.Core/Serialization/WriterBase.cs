@@ -181,6 +181,12 @@ namespace NewLife.Serialization
                 Write(data[i]);
             }
         }
+
+        /// <summary>
+        /// 将一个时间日期写入
+        /// </summary>
+        /// <param name="value"></param>
+        public virtual void Write(DateTime value) { Write(Convert.ToDateTime(value, CultureInfo.InvariantCulture).Ticks); }
         #endregion
         #endregion
 
@@ -208,7 +214,7 @@ namespace NewLife.Serialization
             // 因此，第一次用的成员处理方法比较特别，需要修改Required
             if (config == null)
             {
-                config = new ReaderWriterConfig();
+                config = CreateConfig();
                 config.Required = true;
                 return WriteObject(value, type, config, WriteMemberWithNotRequired);
             }
@@ -229,7 +235,7 @@ namespace NewLife.Serialization
         public virtual Boolean WriteObject(Object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
         {
             if (value != null) type = value.GetType();
-            if (config == null) config = new ReaderWriterConfig();
+            if (config == null) config = CreateConfig();
             if (callback == null) callback = WriteMember;
 
             // 基本类型
@@ -246,21 +252,23 @@ namespace NewLife.Serialization
             #endregion
 
             #region 复杂对象
-            Boolean allowNull = !config.Required;
-
-            // 值类型不会为null，只有引用类型才需要写标识
-            if (!type.IsValueType)
-            {
-                // 允许空时，增加一个字节表示对象是否为空
-                if (value == null)
-                {
-                    if (allowNull) Write(false);
-                    return true;
-                }
-                if (allowNull) Write(true);
-            }
-
             // 复杂类型，处理对象成员
+            if (!WriteMembers(value, type, config, callback)) return false;
+            #endregion
+
+            return true;
+        }
+
+        /// <summary>
+        /// 写对象成员
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="config">设置</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        public virtual Boolean WriteMembers(Object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
+        {
             MemberInfo[] mis = GetMembers(type);
             if (mis == null || mis.Length < 1) return true;
 
@@ -268,7 +276,6 @@ namespace NewLife.Serialization
             {
                 if (!WriteMember(value, item, config, callback)) return false;
             }
-            #endregion
 
             return true;
         }
@@ -316,9 +323,10 @@ namespace NewLife.Serialization
 
         private static Boolean WriteMemberWithNotRequired(IWriter writer, Object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
         {
-            if (config == null) config = new ReaderWriterConfig();
+            WriterBase wb = writer as WriterBase;
+            if (config == null) config = wb.CreateConfig();
             config.Required = false;
-            return (writer as WriterBase).WriteObject(value, type, config, WriteMember);
+            return wb.WriteObject(value, type, config, WriteMember);
         }
         #endregion
 
@@ -351,7 +359,9 @@ namespace NewLife.Serialization
                     Write((Byte)0);
                     return true;
                 case TypeCode.DateTime:
-                    return WriteValue(Convert.ToDateTime(value, CultureInfo.InvariantCulture).Ticks, null, config);
+                    //return WriteValue(Convert.ToDateTime(value, CultureInfo.InvariantCulture).Ticks, null, config);
+                    Write((DateTime)value);
+                    return true;
                 case TypeCode.Decimal:
                     Write(Convert.ToDecimal(value, CultureInfo.InvariantCulture));
                     return true;
@@ -465,7 +475,7 @@ namespace NewLife.Serialization
         /// <param name="config">配置</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        public Boolean WriteEnumerable(IEnumerable value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
+        public virtual Boolean WriteEnumerable(IEnumerable value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
         {
             //if (!type.IsArray) throw new Exception("目标类型不是数组类型！");
             Boolean allowNull = !config.Required;

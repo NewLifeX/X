@@ -189,5 +189,18 @@ namespace NewLife.Serialization
             return FilterMembers(FindFields(type), typeof(NonSerializedAttribute));
         }
         #endregion
+
+        #region 设置
+        /// <summary>
+        /// 创建配置
+        /// </summary>
+        /// <returns></returns>
+        protected override ReaderWriterConfig CreateConfig()
+        {
+            BinaryReaderWriterConfig config = new BinaryReaderWriterConfig();
+            config.EncodeInt = EncodeInt;
+            return config;
+        }
+        #endregion
     }
 }

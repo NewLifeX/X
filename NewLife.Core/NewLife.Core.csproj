@@ -90,6 +90,7 @@
     <Compile Include="IO\BinaryTest.cs" />
     <Compile Include="IOModule\StreamHttpHandler.cs" />
     <Compile Include="IOModule\IStreamHandler.cs" />
+    <Compile Include="Serialization\BinaryReaderWriterConfig.cs" />
     <Compile Include="Serialization\BinaryReaderX.cs" />
     <Compile Include="Serialization\BinaryWriterX.cs" />
     <Compile Include="Serialization\IAccessor.cs" />
@@ -184,6 +185,7 @@
     <Compile Include="Log\XTrace.cs" />
     <Compile Include="Web\WebHelper.cs" />
     <Compile Include="Xml\ExtendData.cs" />
+    <Compile Include="Xml\XmlReaderWriterConfig.cs" />
     <Compile Include="Xml\XMLEntity.cs" />
     <Compile Include="Xml\XmlMemberStyle.cs" />
     <Compile Include="Xml\XmlReaderX.cs" />
