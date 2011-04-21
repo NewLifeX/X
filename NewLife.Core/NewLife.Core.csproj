@@ -185,6 +185,7 @@
     <Compile Include="Web\WebHelper.cs" />
     <Compile Include="Xml\ExtendData.cs" />
     <Compile Include="Xml\XMLEntity.cs" />
+    <Compile Include="Xml\XmlMemberStyle.cs" />
     <Compile Include="Xml\XmlReaderX.cs" />
     <Compile Include="Xml\XmlWriterX.cs" />
   </ItemGroup>

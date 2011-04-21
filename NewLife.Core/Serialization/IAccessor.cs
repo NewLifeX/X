@@ -7,7 +7,6 @@ namespace NewLife.Serialization
     /// <summary>
     /// 序列化访问器
     /// </summary>
-    [CLSCompliant(false)]
     public interface IAccessor
     {
         /// <summary>

@@ -204,7 +204,7 @@ namespace NewLife.Serialization
         public virtual Object ReadObject(Type type)
         {
             Object value = null;
-            return TryReadObject(type, ref value, null) ? value : null;
+            return ReadObject(type, ref value, null) ? value : null;
         }
 
         /// <summary>
@@ -213,9 +213,9 @@ namespace NewLife.Serialization
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
         /// <returns>是否读取成功</returns>
-        public virtual Boolean TryReadObject(Type type, ref Object value)
+        public virtual Boolean ReadObject(Type type, ref Object value)
         {
-            return TryReadObject(type, ref value, null);
+            return ReadObject(type, ref value, null);
         }
 
         /// <summary>
@@ -225,7 +225,7 @@ namespace NewLife.Serialization
         /// <param name="value">要读取的对象</param>
         /// <param name="config">配置</param>
         /// <returns>是否读取成功</returns>
-        public virtual Boolean TryReadObject(Type type, ref Object value, ReaderWriterConfig config)
+        public virtual Boolean ReadObject(Type type, ref Object value, ReaderWriterConfig config)
         {
             // 顶级对象，是必须的，避免开头就写入对象是否为空的标记
             // 因此，第一次用的成员处理方法比较特别，需要修改Required
@@ -233,11 +233,11 @@ namespace NewLife.Serialization
             {
                 config = new ReaderWriterConfig();
                 config.Required = true;
-                return TryReadObject(type, ref value, config, ReadMemberWithNotRequired);
+                return ReadObject(type, ref value, config, ReadMemberWithNotRequired);
             }
             else
             {
-                return TryReadObject(type, ref value, config, ReadMember);
+                return ReadObject(type, ref value, config, ReadMember);
             }
         }
 
@@ -252,18 +252,17 @@ namespace NewLife.Serialization
         /// <param name="config">配置</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        [CLSCompliant(false)]
-        public virtual Boolean TryReadObject(Type type, ref Object value, ReaderWriterConfig config, ReadMemberCallback callback)
+        public virtual Boolean ReadObject(Type type, ref Object value, ReaderWriterConfig config, ReadMemberCallback callback)
         {
             if (type == null && value != null) type = value.GetType();
             if (config == null) config = new ReaderWriterConfig();
             if (callback == null) callback = ReadMember;
 
             // 基本类型
-            if (TryReadValue(type, config, out value)) return true;
+            if (TryReadValue(type, config, ref value)) return true;
 
             // 特殊类型
-            if (TryReadX(type, out value)) return true;
+            if (TryReadX(type, ref value)) return true;
 
             #region 枚举
             if (typeof(IEnumerable).IsAssignableFrom(type))
@@ -292,7 +291,6 @@ namespace NewLife.Serialization
             }
 
             // 以下只负责填充value的各成员
-            Object obj = null;
 
             // 复杂类型，处理对象成员
             MemberInfo[] mis = GetMembers(type);
@@ -300,46 +298,62 @@ namespace NewLife.Serialization
 
             foreach (MemberInfo item in mis)
             {
-                try
-                {
-                    if (OnMemberReading != null)
-                    {
-                        EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(item, false);
-                        OnMemberReading(this, e);
-                        if (e.Arg2) continue;
-                    }
-
-                    MemberInfoX mix = item;
-                    obj = mix.GetValue(value);
-                    if (!callback(this, mix.Type, ref obj, config, callback)) return false;
-                    if (OnMemberReaded != null)
-                    {
-                        EventArgs<MemberInfo, Object> e = new EventArgs<MemberInfo, Object>(item, obj);
-                        OnMemberReaded(this, e);
-                        obj = e.Arg2;
-                    }
-                    mix.SetValue(value, obj);
-                }
-                catch (Exception ex)
-                {
-                    throw new XSerializationException(item, ex);
-                }
+                if (!ReadMember(ref value, item, config, callback)) return false;
             }
             #endregion
 
             return true;
         }
 
+        /// <summary>
+        /// 读取成员
+        /// </summary>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="config">配置</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        protected virtual Boolean ReadMember(ref Object value, MemberInfo member, ReaderWriterConfig config, ReadMemberCallback callback)
+        {
+            Object obj = null;
+            try
+            {
+                if (OnMemberReading != null)
+                {
+                    EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(member, false);
+                    OnMemberReading(this, e);
+                    if (e.Arg2) return true;
+                }
+
+                MemberInfoX mix = member;
+                obj = mix.GetValue(value);
+                if (!callback(this, mix.Type, ref obj, config, callback)) return false;
+                if (OnMemberReaded != null)
+                {
+                    EventArgs<MemberInfo, Object> e = new EventArgs<MemberInfo, Object>(member, obj);
+                    OnMemberReaded(this, e);
+                    obj = e.Arg2;
+                }
+                mix.SetValue(value, obj);
+            }
+            catch (Exception ex)
+            {
+                throw new XSerializationException(member, ex);
+            }
+
+            return true;
+        }
+
         private static Boolean ReadMember(IReader reader, Type type, ref Object value, ReaderWriterConfig config, ReadMemberCallback callback)
         {
-            return (reader as ReaderBase).TryReadObject(type, ref value, config, callback);
+            return (reader as ReaderBase).ReadObject(type, ref value, config, callback);
         }
 
         private static Boolean ReadMemberWithNotRequired(IReader reader, Type type, ref Object value, ReaderWriterConfig config, ReadMemberCallback callback)
         {
             if (config == null) config = new ReaderWriterConfig();
             config.Required = false;
-            return (reader as ReaderBase).TryReadObject(type, ref value, config, callback);
+            return (reader as ReaderBase).ReadObject(type, ref value, config, callback);
         }
         #endregion
 
@@ -352,8 +366,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Object ReadValue(Type type, ReaderWriterConfig config)
         {
-            Object value;
-            return TryReadValue(type, config, out value) ? value : null;
+            Object value = null;
+            return TryReadValue(type, config, ref value) ? value : null;
         }
 
         /// <summary>
@@ -363,7 +377,7 @@ namespace NewLife.Serialization
         /// <param name="config">配置</param>
         /// <param name="value">要读取的对象</param>
         /// <returns></returns>
-        public Boolean TryReadValue(Type type, ReaderWriterConfig config, out Object value)
+        public Boolean TryReadValue(Type type, ReaderWriterConfig config, ref Object value)
         {
             TypeCode code = Type.GetTypeCode(type);
             switch (code)
@@ -381,7 +395,7 @@ namespace NewLife.Serialization
                     value = ReadByte();
                     return true;
                 case TypeCode.DateTime:
-                    if (!TryReadValue(typeof(Int64), config, out value)) return false;
+                    if (!TryReadValue(typeof(Int64), config, ref value)) return false;
                     value = new DateTime((Int64)value);
                     return true;
                 case TypeCode.Decimal:
@@ -443,7 +457,7 @@ namespace NewLife.Serialization
                 return true;
             }
 
-            value = null;
+            //value = null;
             return false;
         }
         #endregion
@@ -582,7 +596,7 @@ namespace NewLife.Serialization
             #endregion
 
             #region 特殊处理字节数组和字符数组
-            if (TryReadValue(type, config, out value)) return true;
+            if (TryReadValue(type, config, ref value)) return true;
             #endregion
 
             #region 多数组取值
@@ -598,8 +612,8 @@ namespace NewLife.Serialization
                     if (arrs[j] == null) arrs[j] = TypeX.CreateInstance(elementTypes[j].MakeArrayType(), count) as Array;
 
                     Object obj = null;
-                    if (!TryReadValue(elementTypes[j], config, out obj) &&
-                        !TryReadX(elementTypes[j], out obj))
+                    if (!TryReadValue(elementTypes[j], config, ref obj) &&
+                        !TryReadX(elementTypes[j], ref obj))
                     {
                         //obj = CreateInstance(elementType);
                         //Read(obj, reader, encodeInt, allowNull, member.Member.MemberType == MemberTypes.Property);
@@ -692,9 +706,9 @@ namespace NewLife.Serialization
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns></returns>
-        public Boolean TryReadX(Type type, out Object value)
+        public Boolean TryReadX(Type type, ref Object value)
         {
-            value = null;
+            //value = null;
 
             if (type == typeof(Guid))
             {

@@ -136,12 +136,15 @@ namespace NewLife.Serialization
 
             return cache2.GetItem(type, delegate(Type t)
             {
-                MemberInfo[] pis = t.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                PropertyInfo[] pis = t.GetProperties(BindingFlags.Instance | BindingFlags.Public);
                 if (pis == null || pis.Length < 1) return null;
 
                 List<MemberInfo> list = new List<MemberInfo>();
-                foreach (MemberInfo item in pis)
+                foreach (PropertyInfo item in pis)
                 {
+                    ParameterInfo[] ps = item.GetIndexParameters();
+                    if (ps != null && ps.Length > 0) continue;
+
                     list.Add(item);
                 }
                 if (list == null || list.Count < 1) return null;

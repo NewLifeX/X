@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using XCode.Configuration;
+using System.Xml.Serialization;
 
 namespace XCode
 {
@@ -122,11 +123,13 @@ namespace XCode
         /// <summary>
         /// 所有绑定到数据表的属性
         /// </summary>
+        [XmlIgnore]
         internal override List<FieldItem> FieldsInternal { get { return Meta.Fields; } }
 
         /// <summary>
         /// 字段名列表
         /// </summary>
+        [XmlIgnore]
         internal override List<String> FieldNamesInternal { get { return Meta.FieldNames; } }
         #endregion
     }

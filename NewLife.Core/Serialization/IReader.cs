@@ -169,7 +169,7 @@ namespace NewLife.Serialization
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
         /// <returns>是否读取成功</returns>
-        Boolean TryReadObject(Type type, ref Object value);
+        Boolean ReadObject(Type type, ref Object value);
 
         ///// <summary>
         ///// 尝试读取目标对象指定成员的值，通过委托方法递归处理成员

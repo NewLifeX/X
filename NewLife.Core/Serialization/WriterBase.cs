@@ -266,32 +266,46 @@ namespace NewLife.Serialization
 
             foreach (MemberInfo item in mis)
             {
-                try
-                {
-                    if (OnMemberWriting != null)
-                    {
-                        EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(item, false);
-                        OnMemberWriting(this, e);
-                        if (e.Arg2) continue;
-                    }
-
-                    MemberInfoX mix = item;
-                    Boolean result = callback(this, mix.GetValue(value), mix.Type, config, callback);
-                    if (OnMemberWrited != null)
-                    {
-                        EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(item, result);
-                        OnMemberWrited(this, e);
-                        result = e.Arg2;
-                    }
-                    if (!result) return false;
-                }
-                catch (Exception ex)
-                {
-                    throw new XSerializationException(item, ex);
-                }
+                if (!WriteMember(value, item, config, callback)) return false;
             }
             #endregion
 
+            return true;
+        }
+
+        /// <summary>
+        /// 写入成员
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="config">设置</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        protected virtual Boolean WriteMember(Object value, MemberInfo member, ReaderWriterConfig config, WriteMemberCallback callback)
+        {
+            try
+            {
+                if (OnMemberWriting != null)
+                {
+                    EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(member, false);
+                    OnMemberWriting(this, e);
+                    if (e.Arg2) return true;
+                }
+
+                MemberInfoX mix = member;
+                Boolean result = callback(this, mix.GetValue(value), mix.Type, config, callback);
+                if (OnMemberWrited != null)
+                {
+                    EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(member, result);
+                    OnMemberWrited(this, e);
+                    result = e.Arg2;
+                }
+                if (!result) return false;
+            }
+            catch (Exception ex)
+            {
+                throw new XSerializationException(member, ex);
+            }
             return true;
         }
 
