@@ -246,7 +246,7 @@ namespace NewLife.Serialization
         public virtual Boolean TryReadObject(Type type, ref Object value, ReaderWriterConfig config, ReadMemberCallback callback)
         {
             if (type == null && value != null) type = value.GetType();
-
+            if (config == null) config = new ReaderWriterConfig();
             if (callback == null) callback = ReadMember;
 
             // 基本类型

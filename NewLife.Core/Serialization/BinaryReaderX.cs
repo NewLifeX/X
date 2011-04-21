@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Reflection;
 
 namespace NewLife.Serialization
 {
@@ -60,5 +61,17 @@ namespace NewLife.Serialization
 
             return buffer;
         }
+
+        #region 获取成员
+        /// <summary>
+        /// 已重载。序列化字段
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected override MemberInfo[] OnGetMembers(Type type)
+        {
+            return FilterMembers(FindFields(type), typeof(NonSerializedAttribute));
+        }
+        #endregion
     }
 }

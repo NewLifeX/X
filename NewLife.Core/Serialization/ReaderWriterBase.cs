@@ -160,8 +160,8 @@ namespace NewLife.Serialization
             if (members == null || members.Length < 1) return members;
             if (attTypes == null || attTypes.Length < 1) return members;
 
-            List<PropertyInfo> list = new List<PropertyInfo>();
-            foreach (PropertyInfo item in members)
+            List<MemberInfo> list = new List<MemberInfo>();
+            foreach (MemberInfo item in members)
             {
                 Boolean flag = false;
                 foreach (Type attType in attTypes)

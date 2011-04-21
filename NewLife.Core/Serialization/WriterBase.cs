@@ -140,7 +140,11 @@ namespace NewLife.Serialization
         /// <param name="count">要写入的字符数。</param>
         public virtual void Write(char[] chars, int index, int count)
         {
-            if (chars == null || chars.Length < 1 || count <= 0 || index >= chars.Length) return;
+            if (chars == null || chars.Length < 1 || count <= 0 || index >= chars.Length)
+            {
+                Write(0);
+                return;
+            }
 
             // 先用写入字节长度
             Byte[] buffer = Encoding.GetBytes(chars, index, count);
@@ -200,8 +204,18 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public virtual Boolean WriteObject(Object value, Type type, ReaderWriterConfig config)
         {
-            // 使用自己作为处理成员的方法
-            return WriteObject(value, type, config, WriteMember);
+            // 顶级对象，是必须的，避免开头就写入对象是否为空的标记
+            // 因此，第一次用的成员处理方法比较特别，需要修改Required
+            if (config == null)
+            {
+                config = new ReaderWriterConfig();
+                config.Required = true;
+                return WriteObject(value, type, config, WriteMemberWithNotRequired);
+            }
+            else
+            {
+                return WriteObject(value, type, config, WriteMember);
+            }
         }
 
         /// <summary>
@@ -214,14 +228,8 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public virtual Boolean WriteObject(Object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
         {
-            //Type type = member.Type;
-            //Object value = member.IsType ? target : member.GetValue(target);
-
-            //Type type = (member is PropertyInfo) ? (member as PropertyInfo).PropertyType : (member as FieldInfo).FieldType;
-            //MemberInfoX mix = member;
-            //Object value = mix.GetValue(target);
-
             if (value != null) type = value.GetType();
+            if (config == null) config = new ReaderWriterConfig();
             if (callback == null) callback = WriteMember;
 
             // 基本类型
@@ -282,8 +290,14 @@ namespace NewLife.Serialization
 
         private static Boolean WriteMember(IWriter writer, Object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
         {
-            // 使用自己作为处理成员的方法
             return (writer as WriterBase).WriteObject(value, type, config, callback);
+        }
+
+        private static Boolean WriteMemberWithNotRequired(IWriter writer, Object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
+        {
+            if (config == null) config = new ReaderWriterConfig();
+            config.Required = false;
+            return (writer as WriterBase).WriteObject(value, type, config, WriteMember);
         }
         #endregion
 

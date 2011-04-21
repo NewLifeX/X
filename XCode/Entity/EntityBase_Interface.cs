@@ -195,6 +195,7 @@ namespace XCode
         #endregion
 
         #region IEditableObject 成员
+        [NonSerialized]
         private EntityBase _bak;
 
         void IEditableObject.BeginEdit()

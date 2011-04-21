@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Reflection;
 
 namespace NewLife.Serialization
 {
@@ -35,8 +36,17 @@ namespace NewLife.Serialization
             get { return _IsLittleEndian; }
             set { _IsLittleEndian = value; }
         }
+
+        private Boolean _EncodeInt;
+        /// <summary>编码整数</summary>
+        public Boolean EncodeInt
+        {
+            get { return _EncodeInt; }
+            set { _EncodeInt = value; }
+        }
         #endregion
 
+        #region 已重载
         /// <summary>
         /// 写入字节
         /// </summary>
@@ -60,17 +70,56 @@ namespace NewLife.Serialization
             base.WriteIntBytes(buffer);
         }
 
+        ///// <summary>
+        ///// 写入字符串，先用压缩编码写入长度
+        ///// </summary>
+        ///// <param name="value"></param>
+        //public override void Write(string value)
+        //{
+        //    // 先用压缩编码写入长度
+        //    Int64 n = String.IsNullOrEmpty(value) ? 0 : value.Length;
+        //    WriteEncoded(n);
+        //    Write(value == null ? null : value.ToCharArray());
+        //}
+        #endregion
+
+        #region 整数
         /// <summary>
-        /// 写入字符串，先用压缩编码写入长度
+        /// 将 2 字节有符号整数写入当前流，并将流的位置提升 2 个字节。
         /// </summary>
-        /// <param name="value"></param>
-        public override void Write(string value)
+        /// <param name="value">要写入的 2 字节有符号整数。</param>
+        public override void Write(short value)
         {
-            // 先用压缩编码写入长度
-            Int64 n = String.IsNullOrEmpty(value) ? 0 : value.Length;
-            WriteEncoded(n);
-            Write(value == null ? null : value.ToCharArray());
+            if (EncodeInt)
+                WriteEncoded(value);
+            else
+                base.Write(value);
         }
+
+        /// <summary>
+        /// 将 4 字节有符号整数写入当前流，并将流的位置提升 4 个字节。
+        /// </summary>
+        /// <param name="value">要写入的 4 字节有符号整数。</param>
+        public override void Write(int value)
+        {
+            if (EncodeInt)
+                WriteEncoded(value);
+            else
+                base.Write(value);
+        }
+
+        /// <summary>
+        /// 将 8 字节有符号整数写入当前流，并将流的位置提升 8 个字节。
+        /// </summary>
+        /// <param name="value">要写入的 8 字节有符号整数。</param>
+        public override void Write(long value)
+        {
+            if (EncodeInt)
+                WriteEncoded(value);
+            else
+                base.Write(value);
+        }
+        #endregion
 
         #region 7位压缩编码整数
         /// <summary>
@@ -137,6 +186,18 @@ namespace NewLife.Serialization
             this.Write((byte)num);
 
             return count;
+        }
+        #endregion
+
+        #region 获取成员
+        /// <summary>
+        /// 已重载。序列化字段
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected override MemberInfo[] OnGetMembers(Type type)
+        {
+            return FilterMembers(FindFields(type), typeof(NonSerializedAttribute));
         }
         #endregion
     }
