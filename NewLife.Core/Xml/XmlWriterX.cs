@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Xml;
 using NewLife.Collections;
 using NewLife.Reflection;
 using NewLife.Serialization;
-using System.Collections.Generic;
+using System.Collections;
 
 namespace NewLife.Xml
 {
@@ -30,12 +31,12 @@ namespace NewLife.Xml
             set { _RootName = value; }
         }
 
-        private XmlMemberStyle _MemberStyle;
-        /// <summary>成员样式</summary>
-        public XmlMemberStyle MemberStyle
+        private Boolean _MemberAsAttribute;
+        /// <summary>成员作为属性</summary>
+        public Boolean MemberAsAttribute
         {
-            get { return _MemberStyle; }
-            set { _MemberStyle = value; }
+            get { return _MemberAsAttribute; }
+            set { _MemberAsAttribute = value; }
         }
 
         private Boolean _IgnoreDefault;
@@ -159,12 +160,14 @@ namespace NewLife.Xml
         /// <summary>
         /// 已重载。写入文档的开头和结尾
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="type"></param>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        public override bool WriteObject(object value, Type type, ReaderWriterConfig config)
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        public override bool WriteObject(object value, Type type, WriteObjectCallback callback)
         {
+            if (Depth > 1) return base.WriteObject(value, type, callback);
+
             if (String.IsNullOrEmpty(RootName))
             {
                 if (type == null && value != null) type = value.GetType();
@@ -173,7 +176,9 @@ namespace NewLife.Xml
 
             Writer.WriteStartDocument();
             Writer.WriteStartElement(RootName);
-            Boolean rs = base.WriteObject(value, type, config);
+
+            Boolean rs = base.WriteObject(value, type, callback);
+
             Writer.WriteEndElement();
             Writer.WriteEndDocument();
             return rs;
@@ -184,33 +189,43 @@ namespace NewLife.Xml
         /// </summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="member">成员</param>
-        /// <param name="config">设置</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected override bool WriteMember(object value, MemberInfo member, ReaderWriterConfig config, WriteMemberCallback callback)
+        protected override bool WriteMember(object value, MemberInfo member, WriteObjectCallback callback)
         {
-            XmlReaderWriterConfig xconfig = config as XmlReaderWriterConfig;
-
             // 检查成员的值，如果是默认值，则不输出
-            Boolean ignoreDefault = xconfig != null ? xconfig.IgnoreDefault : IgnoreDefault;
-            if (ignoreDefault && IsDefault(value, member)) return true;
+            if (IgnoreDefault && IsDefault(value, member)) return true;
 
-            XmlMemberStyle style = xconfig != null ? xconfig.MemberStyle : MemberStyle;
-
-            if (style == XmlMemberStyle.Attribute)
+            if (MemberAsAttribute)
                 Writer.WriteStartAttribute(member.Name);
             else
                 Writer.WriteStartElement(member.Name);
 
-            Boolean rs = base.WriteMember(value, member, config, callback);
+            Boolean rs = base.WriteMember(value, member, callback);
 
-            if (style == XmlMemberStyle.Attribute)
-                Writer.WriteEndAttribute();
-            else
-                Writer.WriteEndElement();
+            //if (MemberAsAttribute)
+            //    Writer.WriteEndAttribute();
+            //else
+            //    Writer.WriteEndElement();
+            if (!MemberAsAttribute) Writer.WriteEndElement();
 
             return rs;
         }
+        #endregion
+
+        #region 枚举
+        //public override bool WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
+        //{
+        //    if (value != null) type = value.GetType();
+
+        //    Writer.WriteStartElement(type.GetElementType().Name + "s");
+
+        //    Boolean rs = base.WriteEnumerable(value, type, callback);
+
+        //    Writer.WriteEndElement();
+
+        //    return rs;
+        //}
         #endregion
 
         #region 成员
@@ -267,17 +282,17 @@ namespace NewLife.Xml
         #endregion
 
         #region 设置
-        /// <summary>
-        /// 创建配置
-        /// </summary>
-        /// <returns></returns>
-        protected override ReaderWriterConfig CreateConfig()
-        {
-            XmlReaderWriterConfig config = new XmlReaderWriterConfig();
-            config.MemberStyle = MemberStyle;
-            config.IgnoreDefault = IgnoreDefault;
-            return config;
-        }
+        ///// <summary>
+        ///// 创建配置
+        ///// </summary>
+        ///// <returns></returns>
+        //protected override ReaderWriterConfig CreateConfig()
+        //{
+        //    XmlReaderWriterConfig config = new XmlReaderWriterConfig();
+        //    config.MemberStyle = MemberStyle;
+        //    config.IgnoreDefault = IgnoreDefault;
+        //    return config;
+        //}
         #endregion
     }
 }

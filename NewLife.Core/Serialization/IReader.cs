@@ -215,7 +215,7 @@ namespace NewLife.Serialization
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
         /// <returns>是否读取成功</returns>
-        Boolean TryReadEnumerable(Type type, ref Object value);
+        Boolean ReadEnumerable(Type type, ref Object value);
         #endregion
     }
 }

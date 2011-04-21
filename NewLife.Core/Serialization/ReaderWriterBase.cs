@@ -22,25 +22,13 @@ namespace NewLife.Serialization
             set { _Encoding = value; }
         }
 
-        //private Boolean _IsLittleEndian = true;
-        ///// <summary>
-        ///// 是否小端字节序。
-        ///// </summary>
-        ///// <remarks>
-        ///// 网络协议都是Big-Endian；
-        ///// Java编译的都是Big-Endian；
-        ///// Motorola的PowerPC是Big-Endian；
-        ///// x86系列则采用Little-Endian方式存储数据；
-        ///// ARM同时支持 big和little，实际应用中通常使用Little-Endian。
-        ///// </remarks>
-        //public Boolean IsLittleEndian
-        //{
-        //    get { return _IsLittleEndian; }
-        //    set { _IsLittleEndian = value; }
-        //}
-
-        ///// <summary>是否序列化属性，默认序列化属性。主要影响GetMembers</summary>
-        //public virtual Boolean IsProperty { get { return true; } }
+        private Int32 _Depth;
+        /// <summary>层次深度</summary>
+        public Int32 Depth
+        {
+            get { return _Depth; }
+            set { _Depth = value; }
+        }
         #endregion
 
         #region 方法
@@ -183,14 +171,14 @@ namespace NewLife.Serialization
         #endregion
 
         #region 配置
-        /// <summary>
-        /// 创建配置。基类可以重写ReaderWriterConfig，然后在这里返回
-        /// </summary>
-        /// <returns></returns>
-        protected virtual ReaderWriterConfig CreateConfig()
-        {
-            return new ReaderWriterConfig();
-        }
+        ///// <summary>
+        ///// 创建配置。基类可以重写ReaderWriterConfig，然后在这里返回
+        ///// </summary>
+        ///// <returns></returns>
+        //protected virtual ReaderWriterConfig CreateConfig()
+        //{
+        //    return new ReaderWriterConfig();
+        //}
         #endregion
     }
 }

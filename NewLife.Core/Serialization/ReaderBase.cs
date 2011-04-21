@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Text;
-using NewLife.Reflection;
 using NewLife.Exceptions;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
@@ -214,37 +214,14 @@ namespace NewLife.Serialization
         }
 
         /// <summary>
-        /// 尝试读取目标对象指定成员的值
-        /// </summary>
-        /// <param name="type">类型</param>
-        /// <param name="value">对象</param>
-        /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadObject(Type type, ref Object value)
-        {
-            return ReadObject(type, ref value, null);
-        }
-
-        /// <summary>
         /// 尝试读取目标对象指定成员的值，通过委托方法递归处理成员
         /// </summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
-        /// <param name="config">配置</param>
         /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadObject(Type type, ref Object value, ReaderWriterConfig config)
+        public virtual Boolean ReadObject(Type type, ref Object value)
         {
-            // 顶级对象，是必须的，避免开头就写入对象是否为空的标记
-            // 因此，第一次用的成员处理方法比较特别，需要修改Required
-            if (config == null)
-            {
-                config = CreateConfig();
-                config.Required = true;
-                return ReadObject(type, ref value, config, ReadMemberWithNotRequired);
-            }
-            else
-            {
-                return ReadObject(type, ref value, config, ReadMember);
-            }
+            return ReadObject(type, ref value, ReadMember);
         }
 
         /// <summary>
@@ -255,58 +232,54 @@ namespace NewLife.Serialization
         /// </remarks>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
-        /// <param name="config">配置</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadObject(Type type, ref Object value, ReaderWriterConfig config, ReadMemberCallback callback)
+        public virtual Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback)
         {
+            if (Depth < 1) Depth = 1;
+
             if (type == null && value != null) type = value.GetType();
-            if (config == null) config = CreateConfig();
             if (callback == null) callback = ReadMember;
 
             // 基本类型
-            if (ReadValue(type, config, ref value)) return true;
+            if (ReadValue(type, ref value)) return true;
 
             // 特殊类型
             if (TryReadX(type, ref value)) return true;
 
-            #region 枚举
+            // 枚举
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
-                return TryReadEnumerable(type, ref value, config, callback);
+                return ReadEnumerable(type, ref value, callback);
             }
-            #endregion
-
-            #region 复杂对象
-            // 引用类型允许空时，先读取一个字节判断对象是否为空
-            if (!type.IsValueType && !config.Required && !ReadBoolean()) return true;
-
-            //// 成员对象
-            ////if (member.Member.MemberType == MemberTypes.TypeInfo)
-            ////    value = target;
-            ////else
-            ////    value = member.GetValue(target);
-            //value = member.IsType ? target : member.GetValue(target);
-
-            // 如果为空，实例化并赋值。只有引用类型才会进来
-            if (value == null)
-            {
-                value = TypeX.CreateInstance(type);
-                //// 如果是成员，还需要赋值
-                //if (member.Member.MemberType != MemberTypes.TypeInfo && target != null) member.SetValue(target, value);
-            }
-
-            // 以下只负责填充value的各成员
 
             // 复杂类型，处理对象成员
+            if (ReadMembers(type, ref value, callback)) return true;
+
+            return true;
+        }
+
+        /// <summary>
+        /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
+        /// </summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public virtual Boolean ReadMembers(Type type, ref Object value, ReadObjectCallback callback)
+        {
             MemberInfo[] mis = GetMembers(type);
             if (mis == null || mis.Length < 1) return true;
 
+            // 如果为空，实例化并赋值。
+            if (value == null) value = TypeX.CreateInstance(type);
+
             foreach (MemberInfo item in mis)
             {
-                if (!ReadMember(ref value, item, config, callback)) return false;
+                Depth++;
+                if (!ReadMember(ref value, item, callback)) return false;
+                Depth--;
             }
-            #endregion
 
             return true;
         }
@@ -316,14 +289,16 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value">要读取的对象</param>
         /// <param name="member">成员</param>
-        /// <param name="config">配置</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        protected virtual Boolean ReadMember(ref Object value, MemberInfo member, ReaderWriterConfig config, ReadMemberCallback callback)
+        protected virtual Boolean ReadMember(ref Object value, MemberInfo member, ReadObjectCallback callback)
         {
             Object obj = null;
+#if !DEBUG
             try
+#endif
             {
+                // 读取成员前
                 if (OnMemberReading != null)
                 {
                     EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(member, false);
@@ -333,7 +308,9 @@ namespace NewLife.Serialization
 
                 MemberInfoX mix = member;
                 obj = mix.GetValue(value);
-                if (!callback(this, mix.Type, ref obj, config, callback)) return false;
+                if (!callback(this, mix.Type, ref obj, callback)) return false;
+
+                // 读取成员后
                 if (OnMemberReaded != null)
                 {
                     EventArgs<MemberInfo, Object> e = new EventArgs<MemberInfo, Object>(member, obj);
@@ -342,25 +319,19 @@ namespace NewLife.Serialization
                 }
                 mix.SetValue(value, obj);
             }
+#if !DEBUG
             catch (Exception ex)
             {
                 throw new XSerializationException(member, ex);
             }
+#endif
 
             return true;
         }
 
-        private static Boolean ReadMember(IReader reader, Type type, ref Object value, ReaderWriterConfig config, ReadMemberCallback callback)
+        private static Boolean ReadMember(IReader reader, Type type, ref Object value, ReadObjectCallback callback)
         {
-            return (reader as ReaderBase).ReadObject(type, ref value, config, callback);
-        }
-
-        private static Boolean ReadMemberWithNotRequired(IReader reader, Type type, ref Object value, ReaderWriterConfig config, ReadMemberCallback callback)
-        {
-            ReaderBase rb = reader as ReaderBase;
-            if (config == null) config = rb.CreateConfig();
-            config.Required = false;
-            return rb.ReadObject(type, ref value, config, callback);
+            return (reader as ReaderBase).ReadObject(type, ref value, callback);
         }
         #endregion
 
@@ -369,22 +340,20 @@ namespace NewLife.Serialization
         /// 读取值类型数据
         /// </summary>
         /// <param name="type"></param>
-        /// <param name="config">配置</param>
         /// <returns></returns>
-        public Object ReadValue(Type type, ReaderWriterConfig config)
+        public Object ReadValue(Type type)
         {
             Object value = null;
-            return ReadValue(type, config, ref value) ? value : null;
+            return ReadValue(type, ref value) ? value : null;
         }
 
         /// <summary>
         /// 尝试读取值类型数据，返回是否读取成功
         /// </summary>
         /// <param name="type">要读取的对象类型</param>
-        /// <param name="config">配置</param>
         /// <param name="value">要读取的对象</param>
         /// <returns></returns>
-        public Boolean ReadValue(Type type, ReaderWriterConfig config, ref Object value)
+        public Boolean ReadValue(Type type, ref Object value)
         {
             TypeCode code = Type.GetTypeCode(type);
             switch (code)
@@ -402,7 +371,7 @@ namespace NewLife.Serialization
                     value = ReadByte();
                     return true;
                 case TypeCode.DateTime:
-                    //if (!ReadValue(typeof(Int64), config, ref value)) return false;
+                    //if (!ReadValue(typeof(Int64), ref value)) return false;
                     //value = new DateTime((Int64)value);
                     value = ReadDateTime();
                     return true;
@@ -472,26 +441,14 @@ namespace NewLife.Serialization
 
         #region 枚举
         /// <summary>
-        /// 尝试读取目标对象指定成员的值
-        /// </summary>
-        /// <param name="type">要读取的对象类型</param>
-        /// <param name="value">要读取的对象</param>
-        /// <returns>是否读取成功</returns>
-        public Boolean TryReadEnumerable(Type type, ref Object value)
-        {
-            return TryReadEnumerable(type, ref value, null);
-        }
-
-        /// <summary>
         /// 尝试读取枚举
         /// </summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
-        /// <param name="config">配置</param>
         /// <returns>是否读取成功</returns>
-        public Boolean TryReadEnumerable(Type type, ref Object value, ReaderWriterConfig config)
+        public virtual Boolean ReadEnumerable(Type type, ref Object value)
         {
-            return TryReadEnumerable(type, ref value, config, ReadMember);
+            return ReadEnumerable(type, ref value, ReadMember);
         }
 
         /// <summary>
@@ -500,82 +457,15 @@ namespace NewLife.Serialization
         /// <remarks>重点和难点在于如果得知枚举元素类型，这里假设所有元素类型一致，否则实在无法处理</remarks>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
-        /// <param name="config">配置</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        public Boolean TryReadEnumerable(Type type, ref Object value, ReaderWriterConfig config, ReadMemberCallback callback)
+        public virtual Boolean ReadEnumerable(Type type, ref Object value, ReadObjectCallback callback)
         {
             value = null;
             if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
-
-            //// 尝试计算元素类型，通过成员的第一个元素。这个办法实在丑陋，不仅要给成员赋值，还要加一个元素
-            //Type elmType = null;
-            //if (target != null && !member.IsType)
-            //{
-            //    IEnumerable en = member.GetValue(target) as IEnumerable;
-            //    if (en != null)
-            //    {
-            //        foreach (Object item in en)
-            //        {
-            //            if (item != null)
-            //            {
-            //                elmType = item.GetType();
-            //                break;
-            //            }
-            //        }
-            //    }
-            //}
-
-            if (!TryReadEnumerable(type, Type.EmptyTypes, ref value, config, callback)) return false;
-
-            //if (!member.IsType) member.SetValue(target, value);
-
-            return true;
-        }
-
-        /// <summary>
-        /// 尝试读取枚举
-        /// </summary>
-        /// <remarks>重点和难点在于如果得知枚举元素类型，这里假设所有元素类型一致，否则实在无法处理</remarks>
-        /// <param name="type">类型</param>
-        /// <param name="elementTypes">元素类型数组</param>
-        /// <param name="value">要读取的对象</param>
-        /// <param name="config">配置</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否读取成功</returns>
-        public Boolean TryReadEnumerable(Type type, Type[] elementTypes, ref Object value, ReaderWriterConfig config, ReadMemberCallback callback)
-        {
-            value = null;
-            if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
-
-            Type elementType = null;
-            Type valueType = null;
-            if (elementTypes != null)
-            {
-                if (elementTypes.Length >= 1) elementType = elementTypes[0];
-                if (elementTypes.Length >= 2) valueType = elementTypes[1];
-            }
-
-            //// 列表
-            //if (typeof(IList).IsAssignableFrom(type))
-            //{
-            //    if (TryReadList(type, elementType, encodeInt, allowNull, isProperty, out value, callback)) return true;
-            //}
-
-            //// 字典
-            //if (typeof(IDictionary).IsAssignableFrom(type))
-            //{
-            //    if (TryReadDictionary(type, elementType, valueType, encodeInt, allowNull, isProperty, out value, callback)) return true;
-            //}
-
-            // 先读元素个数
-            Int32 count = ReadInt32();
-            if (count < 0) throw new InvalidOperationException("无效元素个数" + count + "！");
-
-            // 没有元素
-            if (count == 0) return true;
 
             #region 计算元素类型
+            Type[] elementTypes = Type.EmptyTypes;
             if (elementTypes == null || elementTypes.Length <= 0)
             {
                 if (type.HasElementType)
@@ -591,117 +481,34 @@ namespace NewLife.Serialization
                             elementTypes = new Type[] { ts[0], ts[1] };
                     }
                 }
-                if (elementTypes != null)
-                {
-                    if (elementTypes.Length >= 1) elementType = elementTypes[0];
-                    if (elementTypes.Length >= 2) valueType = elementTypes[1];
-                }
+                //if (elementTypes != null)
+                //{
+                //    if (elementTypes.Length >= 1) elementType = elementTypes[0];
+                //    if (elementTypes.Length >= 2) valueType = elementTypes[1];
+                //}
             }
 
-            value = null;
             // 如果不是基本类型和特殊类型，必须有委托方法
             //if (elementType == null || !Support(elementType) && callback == null) return false;
             #endregion
 
-            #region 特殊处理字节数组和字符数组
-            if (ReadValue(type, config, ref value)) return true;
-            #endregion
+            if (!ReadEnumerable(type, elementTypes, ref value, callback)) return false;
 
-            #region 多数组取值
-            //Array arr = Array.CreateInstance(elementType, count);
-            //Array arr = TypeX.CreateInstance(elementType.MakeArrayType(), count) as Array;
-            Array[] arrs = new Array[elementTypes.Length];
-            for (int i = 0; i < count; i++)
-            {
-                //if (allowNull && ReadEncodedInt32() == 0) continue;
+            return true;
+        }
 
-                for (int j = 0; j < elementTypes.Length; j++)
-                {
-                    if (arrs[j] == null) arrs[j] = TypeX.CreateInstance(elementTypes[j].MakeArrayType(), count) as Array;
-
-                    Object obj = null;
-                    if (!ReadValue(elementTypes[j], config, ref obj) &&
-                        !TryReadX(elementTypes[j], ref obj))
-                    {
-                        //obj = CreateInstance(elementType);
-                        //Read(obj, reader, encodeInt, allowNull, member.Member.MemberType == MemberTypes.Property);
-
-                        //obj = TypeX.CreateInstance(elementType);
-                        if (!callback(this, elementTypes[j], ref obj, config, callback)) return false;
-                    }
-                    arrs[j].SetValue(obj, i);
-                }
-            }
-            #endregion
-
-            //value = arr;
-            //if (!type.IsArray) value = Activator.CreateInstance(type, arr);
-            //if (!type.IsArray) value = TypeX.CreateInstance(type, arr);
-
-            #region 结果处理
-            // 如果是数组，直接赋值
-            if (type.IsArray)
-            {
-                value = arrs[0];
-                return true;
-            }
-            else
-            {
-                if (arrs.Length == 1)
-                {
-                    // 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
-                    ConstructorInfoX ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable) });
-                    if (ci == null) ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable<>).MakeGenericType(elementType) });
-                    if (ci != null)
-                    {
-                        //value = TypeX.CreateInstance(type, arrs[0]);
-                        value = ci.CreateInstance(arrs[0]);
-                        return true;
-                    }
-
-                    // 添加方法
-                    MethodInfoX method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
-                    if (method != null)
-                    {
-                        value = TypeX.CreateInstance(type);
-                        for (int i = 0; i < count; i++)
-                        {
-                            method.Invoke(value, arrs[0].GetValue(i));
-                        }
-                        return true;
-                    }
-                }
-                else if (arrs.Length == 2)
-                {
-                    // 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
-                    ConstructorInfoX ci = ConstructorInfoX.Create(type, new Type[] { typeof(IDictionary<,>).MakeGenericType(elementType, valueType) });
-                    if (ci != null)
-                    {
-                        Type dicType = typeof(Dictionary<,>).MakeGenericType(elementType, valueType);
-                        IDictionary dic = TypeX.CreateInstance(dicType) as IDictionary;
-                        for (int i = 0; i < count; i++)
-                        {
-                            dic.Add(arrs[0].GetValue(i), arrs[1].GetValue(i));
-                        }
-                        //value = TypeX.CreateInstance(type, dic);
-                        value = ci.CreateInstance(dic);
-                        return true;
-                    }
-
-                    // 添加方法
-                    MethodInfoX method = MethodInfoX.Create(type, "Add", new Type[] { elementType, valueType });
-                    if (method != null)
-                    {
-                        value = TypeX.CreateInstance(type);
-                        for (int i = 0; i < count; i++)
-                        {
-                            method.Invoke(value, arrs[0].GetValue(i), arrs[1].GetValue(i));
-                        }
-                        return true;
-                    }
-                }
-            }
-            #endregion
+        /// <summary>
+        /// 尝试读取枚举
+        /// </summary>
+        /// <remarks>重点和难点在于如果得知枚举元素类型，这里假设所有元素类型一致，否则实在无法处理</remarks>
+        /// <param name="type">类型</param>
+        /// <param name="elementTypes">元素类型数组</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public virtual Boolean ReadEnumerable(Type type, Type[] elementTypes, ref Object value, ReadObjectCallback callback)
+        {
+            if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
 
             return false;
         }
@@ -716,8 +523,6 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Boolean TryReadX(Type type, ref Object value)
         {
-            //value = null;
-
             if (type == typeof(Guid))
             {
                 value = ReadGuid();
@@ -740,12 +545,6 @@ namespace NewLife.Serialization
             }
 
             return false;
-
-            //MethodInfo method = this.GetType().GetMethod("Read" + type.Name, new Type[0]);
-            //if (method == null) return false;
-
-            //value = MethodInfoX.Create(method).Invoke(this, new Object[0]);
-            //return true;
         }
 
         /// <summary>
@@ -827,8 +626,7 @@ namespace NewLife.Serialization
     /// <param name="reader">读取器</param>
     /// <param name="type">要读取的对象类型</param>
     /// <param name="value">要读取的对象</param>
-    /// <param name="config">配置</param>
     /// <param name="callback">处理成员的方法</param>
     /// <returns>是否读取成功</returns>
-    public delegate Boolean ReadMemberCallback(IReader reader, Type type, ref Object value, ReaderWriterConfig config, ReadMemberCallback callback);
+    public delegate Boolean ReadObjectCallback(IReader reader, Type type, ref Object value, ReadObjectCallback callback);
 }

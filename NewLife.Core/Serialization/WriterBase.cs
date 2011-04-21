@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Collections;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
 using System.Globalization;
-using System.Reflection;
 using System.Net;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -192,36 +192,13 @@ namespace NewLife.Serialization
 
         #region 写入对象
         /// <summary>
-        /// 把对象写入数据流，空对象写入0，所有子孙成员编码整数、允许空、写入字段。
+        /// 把对象写入数据流
         /// </summary>
         /// <param name="value">对象</param>
         /// <returns>是否写入成功</returns>
         public virtual Boolean WriteObject(Object value)
         {
-            return WriteObject(value, null, null);
-        }
-
-        /// <summary>
-        /// 把目标对象指定成员写入数据流，通过委托方法递归处理成员
-        /// </summary>
-        /// <param name="value">要写入的对象</param>
-        /// <param name="type">要写入的对象类型</param>
-        /// <param name="config">设置</param>
-        /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteObject(Object value, Type type, ReaderWriterConfig config)
-        {
-            // 顶级对象，是必须的，避免开头就写入对象是否为空的标记
-            // 因此，第一次用的成员处理方法比较特别，需要修改Required
-            if (config == null)
-            {
-                config = CreateConfig();
-                config.Required = true;
-                return WriteObject(value, type, config, WriteMemberWithNotRequired);
-            }
-            else
-            {
-                return WriteObject(value, type, config, WriteMember);
-            }
+            return WriteObject(value, null, WriteMember);
         }
 
         /// <summary>
@@ -229,32 +206,29 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
-        /// <param name="config">设置</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteObject(Object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
+        public virtual Boolean WriteObject(Object value, Type type, WriteObjectCallback callback)
         {
+            if (Depth < 1) Depth = 1;
+
             if (value != null) type = value.GetType();
-            if (config == null) config = CreateConfig();
             if (callback == null) callback = WriteMember;
 
             // 基本类型
-            if (WriteValue(value, type, config)) return true;
+            if (WriteValue(value, type)) return true;
 
             // 扩展类型
             if (WriteX(value, type)) return true;
 
-            #region 枚举
+            // 枚举
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
-                if (WriteEnumerable(value as IEnumerable, type, config, callback)) return true;
+                if (WriteEnumerable(value as IEnumerable, type, callback)) return true;
             }
-            #endregion
 
-            #region 复杂对象
             // 复杂类型，处理对象成员
-            if (!WriteMembers(value, type, config, callback)) return false;
-            #endregion
+            if (WriteMembers(value, type, callback)) return true;
 
             return true;
         }
@@ -264,17 +238,18 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
-        /// <param name="config">设置</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteMembers(Object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
+        public virtual Boolean WriteMembers(Object value, Type type, WriteObjectCallback callback)
         {
             MemberInfo[] mis = GetMembers(type);
             if (mis == null || mis.Length < 1) return true;
 
             foreach (MemberInfo item in mis)
             {
-                if (!WriteMember(value, item, config, callback)) return false;
+                Depth++;
+                if (!WriteMember(value, item, callback)) return false;
+                Depth--;
             }
 
             return true;
@@ -285,13 +260,15 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="member">成员</param>
-        /// <param name="config">设置</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected virtual Boolean WriteMember(Object value, MemberInfo member, ReaderWriterConfig config, WriteMemberCallback callback)
+        protected virtual Boolean WriteMember(Object value, MemberInfo member, WriteObjectCallback callback)
         {
+#if !DEBUG
             try
+#endif
             {
+                // 写入成员前
                 if (OnMemberWriting != null)
                 {
                     EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(member, false);
@@ -300,7 +277,9 @@ namespace NewLife.Serialization
                 }
 
                 MemberInfoX mix = member;
-                Boolean result = callback(this, mix.GetValue(value), mix.Type, config, callback);
+                Boolean result = callback(this, mix.GetValue(value), mix.Type, callback);
+
+                // 写入成员后
                 if (OnMemberWrited != null)
                 {
                     EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(member, result);
@@ -309,24 +288,18 @@ namespace NewLife.Serialization
                 }
                 if (!result) return false;
             }
+#if !DEBUG
             catch (Exception ex)
             {
                 throw new XSerializationException(member, ex);
             }
+#endif
             return true;
         }
 
-        private static Boolean WriteMember(IWriter writer, Object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
+        private static Boolean WriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback)
         {
-            return (writer as WriterBase).WriteObject(value, type, config, callback);
-        }
-
-        private static Boolean WriteMemberWithNotRequired(IWriter writer, Object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
-        {
-            WriterBase wb = writer as WriterBase;
-            if (config == null) config = wb.CreateConfig();
-            config.Required = false;
-            return wb.WriteObject(value, type, config, WriteMember);
+            return (writer as WriterBase).WriteObject(value, type, callback);
         }
         #endregion
 
@@ -336,9 +309,8 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
-        /// <param name="config">设置</param>
         /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteValue(Object value, Type type, ReaderWriterConfig config)
+        public virtual Boolean WriteValue(Object value, Type type)
         {
             // 对象不为空时，使用对象实际类型
             if (value != null) type = value.GetType();
@@ -359,7 +331,7 @@ namespace NewLife.Serialization
                     Write((Byte)0);
                     return true;
                 case TypeCode.DateTime:
-                    //return WriteValue(Convert.ToDateTime(value, CultureInfo.InvariantCulture).Ticks, null, config);
+                    //return WriteValue(Convert.ToDateTime(value, CultureInfo.InvariantCulture).Ticks, null);
                     Write((DateTime)value);
                     return true;
                 case TypeCode.Decimal:
@@ -464,7 +436,7 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public virtual Boolean Write(IEnumerable value)
         {
-            return false;
+            return WriteEnumerable(value, null, WriteMember);
         }
 
         /// <summary>
@@ -472,111 +444,23 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value">对象</param>
         /// <param name="type">类型</param>
-        /// <param name="config">配置</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteEnumerable(IEnumerable value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
+        public virtual Boolean WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
         {
-            //if (!type.IsArray) throw new Exception("目标类型不是数组类型！");
-            Boolean allowNull = !config.Required;
-
-            if (value == null)
-            {
-                // 允许空，写入0字节
-                if (allowNull) Write(0);
-                return true;
-            }
-
-            #region 特殊处理字节数组和字符数组
-            if (WriteValue(value, type, config)) return true;
-            #endregion
-
-            #region 初始化数据
-            Int32 count = 0;
-            Type elementType = null;
-            List<Object> list = new List<Object>();
-
-            if (type.IsArray)
-            {
-                Array arr = value as Array;
-                count = arr.Length;
-                elementType = type.GetElementType();
-            }
-            //else if (typeof(ICollection).IsAssignableFrom(type))
-            //{
-            //    count = (value as ICollection).Count;
-            //}
-            else
-            {
-                foreach (Object item in value)
-                {
-                    // 加入集合，防止value进行第二次遍历
-                    list.Add(item);
-
-                    if (item == null) continue;
-
-                    // 找到枚举的元素类型
-                    Type t = item.GetType();
-                    if (elementType == null)
-                        elementType = t;
-                    else if (elementType != item.GetType())
-                    {
-                        if (elementType.IsAssignableFrom(t))
-                        {
-                            // t继承自elementType
-                        }
-                        else if (t.IsAssignableFrom(elementType))
-                        {
-                            // elementType继承自t
-                            elementType = t;
-                        }
-                        else
-                        {
-                            // 可能是Object类型，无法支持
-                            return false;
-                        }
-                    }
-                }
-                count = list.Count;
-                value = list;
-            }
-            if (count == 0)
-            {
-                Write(0);
-                return true;
-            }
-
-            // 可能是Object类型，无法支持
-            if (elementType == null) return false;
-
-            //TODO 如果不是基本类型和特殊类型，必须有委托方法
-            //if (!Support(elementType) && callback == null) return false;
-            #endregion
-
-            // 写入长度
-            Write(count);
+            if (value != null) type = value.GetType();
+            if (type != null && !typeof(IEnumerable).IsAssignableFrom(type)) throw new Exception("目标类型不是枚举类型！");
 
             foreach (Object item in value)
             {
-                // 基本类型
-                if (WriteValue(item, null, config)) continue;
-                // 特别支持的常用类型
-                if (WriteX(item)) continue;
+                //// 基本类型
+                //if (WriteValue(item, null)) continue;
+                //// 特别支持的常用类型
+                //if (WriteX(item)) continue;
 
-                if (!callback(this, item, elementType, config, callback)) return false;
+                //if (!callback(this, item, elementType, callback)) return false;
 
-                //// 允许空时，增加一个字节表示对象是否为空
-                //if (item == null)
-                //{
-                //    if (allowNull) Write(false);
-                //    continue;
-                //}
-                //if (allowNull) Write(true);
-
-                //if (!writer.WriteValue(item, encodeInt))
-                //    Write(item, writer, encodeInt, allowNull, member.Member.MemberType == MemberTypes.Property);
-                //// 复杂
-                //Write(item, writer, encodeInt, allowNull, member.Member.MemberType == MemberTypes.Property);
+                if (!WriteObject(item, null, callback)) return false;
             }
 
             return true;
@@ -717,8 +601,7 @@ namespace NewLife.Serialization
     /// <param name="writer">写入器</param>
     /// <param name="value">要写入的对象</param>
     /// <param name="type">要写入的对象类型</param>
-    /// <param name="config">配置</param>
     /// <param name="callback">处理成员的方法</param>
     /// <returns>是否写入成功</returns>
-    public delegate Boolean WriteMemberCallback(IWriter writer, Object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback);
+    public delegate Boolean WriteObjectCallback(IWriter writer, Object value, Type type, WriteObjectCallback callback);
 }

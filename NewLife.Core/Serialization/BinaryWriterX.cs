@@ -183,12 +183,11 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
-        /// <param name="config">设置</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        public override bool WriteMembers(object value, Type type, ReaderWriterConfig config, WriteMemberCallback callback)
+        public override bool WriteMembers(object value, Type type, WriteObjectCallback callback)
         {
-            Boolean allowNull = !config.Required;
+            Boolean allowNull = Depth > 1;
 
             // 值类型不会为null，只有引用类型才需要写标识
             if (!type.IsValueType)
@@ -202,7 +201,93 @@ namespace NewLife.Serialization
                 if (allowNull) Write(true);
             }
 
-            return base.WriteMembers(value, type, config, callback);
+            return base.WriteMembers(value, type, callback);
+        }
+        #endregion
+
+        #region 枚举
+        /// <summary>
+        /// 写入枚举数据，复杂类型使用委托方法进行处理
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <param name="type">类型</param>
+        /// <param name="callback">使用指定委托方法处理复杂数据</param>
+        /// <returns>是否写入成功</returns>
+        public override bool WriteEnumerable(System.Collections.IEnumerable value, Type type, WriteObjectCallback callback)
+        {
+            if (value == null)
+            {
+                // 允许空，写入0字节
+                if (Depth > 1) Write(0);
+                return true;
+            }
+
+            #region 初始化数据
+            Int32 count = 0;
+            Type elementType = null;
+            List<Object> list = new List<Object>();
+
+            if (type.IsArray)
+            {
+                Array arr = value as Array;
+                count = arr.Length;
+                elementType = type.GetElementType();
+            }
+            //else if (typeof(ICollection).IsAssignableFrom(type))
+            //{
+            //    count = (value as ICollection).Count;
+            //}
+            else
+            {
+                foreach (Object item in value)
+                {
+                    // 加入集合，防止value进行第二次遍历
+                    list.Add(item);
+
+                    if (item == null) continue;
+
+                    // 找到枚举的元素类型
+                    Type t = item.GetType();
+                    if (elementType == null)
+                        elementType = t;
+                    else if (elementType != item.GetType())
+                    {
+                        if (elementType.IsAssignableFrom(t))
+                        {
+                            // t继承自elementType
+                        }
+                        else if (t.IsAssignableFrom(elementType))
+                        {
+                            // elementType继承自t
+                            elementType = t;
+                        }
+                        else
+                        {
+                            // 可能是Object类型，无法支持
+                            return false;
+                        }
+                    }
+                }
+                count = list.Count;
+                value = list;
+            }
+            if (count == 0)
+            {
+                Write(0);
+                return true;
+            }
+
+            // 可能是Object类型，无法支持
+            if (elementType == null) return false;
+
+            //TODO 如果不是基本类型和特殊类型，必须有委托方法
+            //if (!Support(elementType) && callback == null) return false;
+            #endregion
+
+            // 写入长度
+            Write(count);
+
+            return base.WriteEnumerable(value, type, callback);
         }
         #endregion
 
@@ -219,16 +304,16 @@ namespace NewLife.Serialization
         #endregion
 
         #region 设置
-        /// <summary>
-        /// 创建配置
-        /// </summary>
-        /// <returns></returns>
-        protected override ReaderWriterConfig CreateConfig()
-        {
-            BinaryReaderWriterConfig config = new BinaryReaderWriterConfig();
-            config.EncodeInt = EncodeInt;
-            return config;
-        }
+        ///// <summary>
+        ///// 创建配置
+        ///// </summary>
+        ///// <returns></returns>
+        //protected override ReaderWriterConfig CreateConfig()
+        //{
+        //    BinaryReaderWriterConfig config = new BinaryReaderWriterConfig();
+        //    config.EncodeInt = EncodeInt;
+        //    return config;
+        //}
         #endregion
     }
 }

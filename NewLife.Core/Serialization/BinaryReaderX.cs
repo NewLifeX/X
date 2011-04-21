@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Reflection;
+using NewLife.Reflection;
+using System.Collections;
 
 namespace NewLife.Serialization
 {
@@ -178,6 +180,24 @@ namespace NewLife.Serialization
         }
         #endregion
 
+        #region 读取成员
+        /// <summary>
+        /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
+        /// </summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public override bool ReadMembers(Type type, ref object value, ReadObjectCallback callback)
+        {
+            // 引用类型允许空时，先读取一个字节判断对象是否为空
+            //if (!type.IsValueType && !config.Required && !ReadBoolean()) return true;
+            if (!type.IsValueType && Depth > 1 && !ReadBoolean()) return true;
+
+            return base.ReadMembers(type, ref value, callback);
+        }
+        #endregion
+
         #region 获取成员
         /// <summary>
         /// 已重载。序列化字段
@@ -190,17 +210,140 @@ namespace NewLife.Serialization
         }
         #endregion
 
-        #region 设置
+        #region 枚举
         /// <summary>
-        /// 创建配置
+        /// 尝试读取枚举
         /// </summary>
-        /// <returns></returns>
-        protected override ReaderWriterConfig CreateConfig()
+        /// <remarks>重点和难点在于如果得知枚举元素类型，这里假设所有元素类型一致，否则实在无法处理</remarks>
+        /// <param name="type">类型</param>
+        /// <param name="elementTypes">元素类型数组</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public override Boolean ReadEnumerable(Type type, Type[] elementTypes, ref Object value, ReadObjectCallback callback)
         {
-            BinaryReaderWriterConfig config = new BinaryReaderWriterConfig();
-            config.EncodeInt = EncodeInt;
-            return config;
+            Type elementType = null;
+            Type valueType = null;
+            if (elementTypes != null)
+            {
+                if (elementTypes.Length >= 1) elementType = elementTypes[0];
+                if (elementTypes.Length >= 2) valueType = elementTypes[1];
+            }
+
+            // 先读元素个数
+            Int32 count = ReadInt32();
+            if (count < 0) throw new InvalidOperationException("无效元素个数" + count + "！");
+
+            // 没有元素
+            if (count == 0) return true;
+
+            #region 多数组取值
+            //Array arr = Array.CreateInstance(elementType, count);
+            //Array arr = TypeX.CreateInstance(elementType.MakeArrayType(), count) as Array;
+            Array[] arrs = new Array[elementTypes.Length];
+            for (int i = 0; i < count; i++)
+            {
+                //if (allowNull && ReadEncodedInt32() == 0) continue;
+
+                for (int j = 0; j < elementTypes.Length; j++)
+                {
+                    if (arrs[j] == null) arrs[j] = TypeX.CreateInstance(elementTypes[j].MakeArrayType(), count) as Array;
+
+                    Object obj = null;
+                    if (!ReadValue(elementTypes[j], ref obj) &&
+                        !TryReadX(elementTypes[j], ref obj))
+                    {
+                        //obj = CreateInstance(elementType);
+                        //Read(obj, reader, encodeInt, allowNull, member.Member.MemberType == MemberTypes.Property);
+
+                        //obj = TypeX.CreateInstance(elementType);
+                        if (!callback(this, elementTypes[j], ref obj, callback)) return false;
+                    }
+                    arrs[j].SetValue(obj, i);
+                }
+            }
+            #endregion
+
+            #region 结果处理
+            // 如果是数组，直接赋值
+            if (type.IsArray)
+            {
+                value = arrs[0];
+                return true;
+            }
+            else
+            {
+                if (arrs.Length == 1)
+                {
+                    // 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
+                    ConstructorInfoX ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable) });
+                    if (ci == null) ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable<>).MakeGenericType(elementType) });
+                    if (ci != null)
+                    {
+                        //value = TypeX.CreateInstance(type, arrs[0]);
+                        value = ci.CreateInstance(arrs[0]);
+                        return true;
+                    }
+
+                    // 添加方法
+                    MethodInfoX method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
+                    if (method != null)
+                    {
+                        value = TypeX.CreateInstance(type);
+                        for (int i = 0; i < count; i++)
+                        {
+                            method.Invoke(value, arrs[0].GetValue(i));
+                        }
+                        return true;
+                    }
+                }
+                else if (arrs.Length == 2)
+                {
+                    // 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
+                    ConstructorInfoX ci = ConstructorInfoX.Create(type, new Type[] { typeof(IDictionary<,>).MakeGenericType(elementType, valueType) });
+                    if (ci != null)
+                    {
+                        Type dicType = typeof(Dictionary<,>).MakeGenericType(elementType, valueType);
+                        IDictionary dic = TypeX.CreateInstance(dicType) as IDictionary;
+                        for (int i = 0; i < count; i++)
+                        {
+                            dic.Add(arrs[0].GetValue(i), arrs[1].GetValue(i));
+                        }
+                        //value = TypeX.CreateInstance(type, dic);
+                        value = ci.CreateInstance(dic);
+                        return true;
+                    }
+
+                    // 添加方法
+                    MethodInfoX method = MethodInfoX.Create(type, "Add", new Type[] { elementType, valueType });
+                    if (method != null)
+                    {
+                        value = TypeX.CreateInstance(type);
+                        for (int i = 0; i < count; i++)
+                        {
+                            method.Invoke(value, arrs[0].GetValue(i), arrs[1].GetValue(i));
+                        }
+                        return true;
+                    }
+                }
+            }
+            #endregion
+
+            return base.ReadEnumerable(type, ref value, callback);
         }
+        #endregion
+
+        #region 设置
+        ///// <summary>
+        ///// 创建配置
+        ///// </summary>
+        ///// <returns></returns>
+        //protected override ReaderWriterConfig CreateConfig()
+        //{
+        //    BinaryReaderWriterConfig config = new BinaryReaderWriterConfig();
+        //    config.EncodeInt = EncodeInt;
+        //    return config;
+        //}
         #endregion
     }
 }
