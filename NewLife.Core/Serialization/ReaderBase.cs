@@ -227,8 +227,18 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public virtual Boolean TryReadObject(Type type, ref Object value, ReaderWriterConfig config)
         {
-            // 使用自己作为处理成员的方法
-            return TryReadObject(type, ref value, config, ReadMember);
+            // 顶级对象，是必须的，避免开头就写入对象是否为空的标记
+            // 因此，第一次用的成员处理方法比较特别，需要修改Required
+            if (config == null)
+            {
+                config = new ReaderWriterConfig();
+                config.Required = true;
+                return TryReadObject(type, ref value, config, ReadMemberWithNotRequired);
+            }
+            else
+            {
+                return TryReadObject(type, ref value, config, ReadMember);
+            }
         }
 
         /// <summary>
@@ -290,23 +300,30 @@ namespace NewLife.Serialization
 
             foreach (MemberInfo item in mis)
             {
-                if (OnMemberReading != null)
+                try
                 {
-                    EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(item, false);
-                    OnMemberReading(this, e);
-                    if (e.Arg2) continue;
-                }
+                    if (OnMemberReading != null)
+                    {
+                        EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(item, false);
+                        OnMemberReading(this, e);
+                        if (e.Arg2) continue;
+                    }
 
-                MemberInfoX mix = item;
-                obj = mix.GetValue(value);
-                if (!callback(this, mix.Type, ref obj, config, callback)) return false;
-                if (OnMemberReaded != null)
-                {
-                    EventArgs<MemberInfo, Object> e = new EventArgs<MemberInfo, Object>(item, obj);
-                    OnMemberReaded(this, e);
-                    obj = e.Arg2;
+                    MemberInfoX mix = item;
+                    obj = mix.GetValue(value);
+                    if (!callback(this, mix.Type, ref obj, config, callback)) return false;
+                    if (OnMemberReaded != null)
+                    {
+                        EventArgs<MemberInfo, Object> e = new EventArgs<MemberInfo, Object>(item, obj);
+                        OnMemberReaded(this, e);
+                        obj = e.Arg2;
+                    }
+                    mix.SetValue(value, obj);
                 }
-                mix.SetValue(value, obj);
+                catch (Exception ex)
+                {
+                    throw new XSerializationException(item, ex);
+                }
             }
             #endregion
 
@@ -315,7 +332,13 @@ namespace NewLife.Serialization
 
         private static Boolean ReadMember(IReader reader, Type type, ref Object value, ReaderWriterConfig config, ReadMemberCallback callback)
         {
-            // 使用自己作为处理成员的方法
+            return (reader as ReaderBase).TryReadObject(type, ref value, config, callback);
+        }
+
+        private static Boolean ReadMemberWithNotRequired(IReader reader, Type type, ref Object value, ReaderWriterConfig config, ReadMemberCallback callback)
+        {
+            if (config == null) config = new ReaderWriterConfig();
+            config.Required = false;
             return (reader as ReaderBase).TryReadObject(type, ref value, config, callback);
         }
         #endregion

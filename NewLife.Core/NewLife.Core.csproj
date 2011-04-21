@@ -126,6 +126,7 @@
     <Compile Include="Remoting\RemotingMessageHandler.cs" />
     <Compile Include="Remoting\RemotingMessageType.cs" />
     <Compile Include="Remoting\RemotingStreamHandler.cs" />
+    <Compile Include="Serialization\XSerializationException.cs" />
     <Compile Include="Threading\ReadWriteLock.cs" />
     <Compile Include="Reflection\TypeX.cs" />
     <Compile Include="Reflection\WeakReference.cs" />

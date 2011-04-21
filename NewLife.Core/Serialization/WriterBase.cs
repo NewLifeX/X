@@ -266,22 +266,29 @@ namespace NewLife.Serialization
 
             foreach (MemberInfo item in mis)
             {
-                if (OnMemberWriting != null)
+                try
                 {
-                    EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(item, false);
-                    OnMemberWriting(this, e);
-                    if (e.Arg2) continue;
-                }
+                    if (OnMemberWriting != null)
+                    {
+                        EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(item, false);
+                        OnMemberWriting(this, e);
+                        if (e.Arg2) continue;
+                    }
 
-                MemberInfoX mix = item;
-                Boolean result = callback(this, mix.GetValue(value), mix.Type, config, callback);
-                if (OnMemberWrited != null)
-                {
-                    EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(item, result);
-                    OnMemberWrited(this, e);
-                    result = e.Arg2;
+                    MemberInfoX mix = item;
+                    Boolean result = callback(this, mix.GetValue(value), mix.Type, config, callback);
+                    if (OnMemberWrited != null)
+                    {
+                        EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(item, result);
+                        OnMemberWrited(this, e);
+                        result = e.Arg2;
+                    }
+                    if (!result) return false;
                 }
-                if (!result) return false;
+                catch (Exception ex)
+                {
+                    throw new XSerializationException(item, ex);
+                }
             }
             #endregion
 
