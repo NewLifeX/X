@@ -413,6 +413,8 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public void Write(Guid value)
         {
+            if (WriteObjRef(value)) return;
+
             Write(((Guid)value).ToByteArray());
         }
 
@@ -422,14 +424,11 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public void Write(IPAddress value)
         {
-            if (value != null)
-            {
-                Byte[] buffer = (value as IPAddress).GetAddressBytes();
-                Write(buffer.Length);
-                Write(buffer);
-            }
-            else
-                Write(0);
+            if (WriteObjRef(value)) return;
+
+            Byte[] buffer = (value as IPAddress).GetAddressBytes();
+            //Write(buffer.Length);
+            Write(buffer);
         }
 
         /// <summary>
@@ -438,15 +437,12 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public void Write(IPEndPoint value)
         {
-            if (value != null)
-            {
-                Write(value.Address);
-                //// 端口实际只占2字节
-                //Write((UInt16)value.Port);
-                Write(value.Port);
-            }
-            else
-                Write(0);
+            if (WriteObjRef(value)) return;
+
+            Write(value.Address);
+            //// 端口实际只占2字节
+            //Write((UInt16)value.Port);
+            Write(value.Port);
         }
 
         /// <summary>
@@ -455,11 +451,10 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public void Write(Type value)
         {
+            if (WriteObjRef(value)) return;
+
             // 尽管使用AssemblyQualifiedName更精确，但是它的长度实在太大了
-            if (value != null)
-                Write(value.FullName);
-            else
-                Write(0);
+            Write(value.FullName);
         }
 
         //public void Register<T>(Func<IWriter, T, Boolean> handler)

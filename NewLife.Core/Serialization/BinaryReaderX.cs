@@ -60,6 +60,18 @@ namespace NewLife.Serialization
         }
 
         /// <summary>
+        /// 从当前流中将 count 个字节读入字节数组，并使当前位置提升 count 个字节。
+        /// </summary>
+        /// <param name="count">要读取的字节数。</param>
+        /// <returns></returns>
+        public override byte[] ReadBytes(int count)
+        {
+            if (count < 0) count = ReadInt32();
+
+            return Reader.ReadBytes(count);
+        }
+
+        /// <summary>
         /// 判断字节顺序
         /// </summary>
         /// <param name="count"></param>

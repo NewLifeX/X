@@ -201,173 +201,6 @@ namespace NewLife.Serialization
         #endregion
         #endregion
 
-        #region 读取对象
-        /// <summary>
-        /// 从数据流中读取指定类型的对象
-        /// </summary>
-        /// <param name="type">类型</param>
-        /// <returns>对象</returns>
-        public virtual Object ReadObject(Type type)
-        {
-            Object value = null;
-            return ReadObject(type, ref value, null) ? value : null;
-        }
-
-        /// <summary>
-        /// 尝试读取目标对象指定成员的值，通过委托方法递归处理成员
-        /// </summary>
-        /// <param name="type">要读取的对象类型</param>
-        /// <param name="value">要读取的对象</param>
-        /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadObject(Type type, ref Object value)
-        {
-            return ReadObject(type, ref value, ReadMember);
-        }
-
-        /// <summary>
-        /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
-        /// </summary>
-        /// <remarks>
-        /// 简单类型在value中返回，复杂类型直接填充target；
-        /// </remarks>
-        /// <param name="type">要读取的对象类型</param>
-        /// <param name="value">要读取的对象</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback)
-        {
-            if (type == null && value != null) type = value.GetType();
-            if (callback == null) callback = ReadMember;
-
-            // 基本类型
-            if (ReadValue(type, ref value)) return true;
-
-            // 特殊类型
-            if (TryReadX(type, ref value)) return true;
-
-            // 读取对象引用
-            Int32 index = 0;
-            if (ReadObjRef(type, ref value, out index)) return true;
-
-            // 枚举
-            if (typeof(IEnumerable).IsAssignableFrom(type))
-            {
-                if (ReadEnumerable(type, ref value, callback))
-                {
-                    if (value != null) AddObjRef(index, value);
-                    return true;
-                }
-            }
-
-            // 复杂类型，处理对象成员
-            if (ReadMembers(type, ref value, callback))
-            {
-                if (value != null) AddObjRef(index, value);
-                return true;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
-        /// </summary>
-        /// <param name="type">要读取的对象类型</param>
-        /// <param name="value">要读取的对象</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadMembers(Type type, ref Object value, ReadObjectCallback callback)
-        {
-            IObjectMemberInfo[] mis = GetMembers(type, value);
-            if (mis == null || mis.Length < 1) return true;
-
-            // 如果为空，实例化并赋值。
-            if (value == null) value = TypeX.CreateInstance(type);
-
-            foreach (IObjectMemberInfo item in mis)
-            {
-                Depth++;
-                if (!ReadMember(ref value, item, callback)) return false;
-                Depth--;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// 读取成员
-        /// </summary>
-        /// <param name="value">要读取的对象</param>
-        /// <param name="member">成员</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否读取成功</returns>
-        protected virtual Boolean ReadMember(ref Object value, IObjectMemberInfo member, ReadObjectCallback callback)
-        {
-#if !DEBUG
-            try
-#endif
-            {
-                // 读取成员前
-                if (OnMemberReading != null)
-                {
-                    EventArgs<IObjectMemberInfo, Boolean> e = new EventArgs<IObjectMemberInfo, Boolean>(member, false);
-                    OnMemberReading(this, e);
-                    if (e.Arg2) return true;
-                }
-
-                //MemberInfoX mix = member;
-                //obj = mix.GetValue(value);
-                Object obj = member[value];
-                if (!callback(this, member.Type, ref obj, callback)) return false;
-
-                // 读取成员后
-                if (OnMemberReaded != null)
-                {
-                    EventArgs<IObjectMemberInfo, Object> e = new EventArgs<IObjectMemberInfo, Object>(member, obj);
-                    OnMemberReaded(this, e);
-                    obj = e.Arg2;
-                }
-                //mix.SetValue(value, obj);
-                member[value] = obj;
-            }
-#if !DEBUG
-            catch (Exception ex)
-            {
-                throw new XSerializationException(member, ex);
-            }
-#endif
-
-            return true;
-        }
-
-        private static Boolean ReadMember(IReader reader, Type type, ref Object value, ReadObjectCallback callback)
-        {
-            return (reader as ReaderBase).ReadObject(type, ref value, callback);
-        }
-
-        /// <summary>
-        /// 读取对象引用。
-        /// </summary>
-        /// <param name="type">类型</param>
-        /// <param name="value">对象</param>
-        /// <param name="index">引用计数</param>
-        /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadObjRef(Type type, ref Object value, out Int32 index)
-        {
-            index = 0;
-            return false;
-        }
-
-        /// <summary>
-        /// 添加对象引用
-        /// </summary>
-        /// <param name="index">引用计数</param>
-        /// <param name="value">对象</param>
-        protected virtual void AddObjRef(Int32 index, Object value)
-        {
-        }
-        #endregion
-
         #region 读取值类型
         /// <summary>
         /// 读取值类型数据
@@ -586,7 +419,9 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Guid ReadGuid()
         {
-            return new Guid(ReadBytes(16));
+            //return new Guid(ReadBytes(16));
+
+            return ReadObjRef<Guid>(delegate { return new Guid(ReadBytes(16)); });
         }
 
         /// <summary>
@@ -595,13 +430,17 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public IPAddress ReadIPAddress()
         {
-            Int32 p = 0;
-            p = ReadInt32();
-            if (p == 0) return null;
+            //Object obj = null;
+            //Int32 index = 0;
+            //if (ReadObjRef(typeof(IPAddress), ref obj, out index)) return obj as IPAddress;
 
-            Byte[] buffer = ReadBytes(p);
+            //Byte[] buffer = ReadBytes(-1);
 
-            return new IPAddress(buffer);
+            //IPAddress address = new IPAddress(buffer);
+            //AddObjRef(index, address);
+            //return address;
+
+            return ReadObjRef<IPAddress>(delegate { return new IPAddress(ReadBytes(-1)); });
         }
 
         /// <summary>
@@ -610,15 +449,25 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public IPEndPoint ReadIPEndPoint()
         {
-            //if (ReadByte() == 0) return null;
-            //BaseStream.Seek(-1, SeekOrigin.Current);
+            ////if (ReadByte() == 0) return null;
+            ////BaseStream.Seek(-1, SeekOrigin.Current);
 
-            IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
-            ep.Address = ReadIPAddress();
-            //// 端口实际只占2字节
-            //ep.Port = ReadUInt16();
-            ep.Port = ReadInt32();
-            return ep;
+            //IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
+            //ep.Address = ReadIPAddress();
+            ////// 端口实际只占2字节
+            ////ep.Port = ReadUInt16();
+            //ep.Port = ReadInt32();
+            //return ep;
+
+            return ReadObjRef<IPEndPoint>(delegate
+            {
+                IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
+                ep.Address = ReadIPAddress();
+                //// 端口实际只占2字节
+                //ep.Port = ReadUInt16();
+                ep.Port = ReadInt32();
+                return ep;
+            });
         }
 
         /// <summary>
@@ -630,13 +479,215 @@ namespace NewLife.Serialization
             //if (ReadByte() == 0) return null;
             //BaseStream.Seek(-1, SeekOrigin.Current);
 
-            String typeName = ReadString();
-            if (String.IsNullOrEmpty(typeName)) return null;
+            //String typeName = ReadString();
+            //if (String.IsNullOrEmpty(typeName)) return null;
 
-            Type type = TypeX.GetType(typeName);
-            if (type != null) return type;
+            //Type type = TypeX.GetType(typeName);
+            //if (type != null) return type;
 
-            throw new XException("无法找到名为{0}的类型！", typeName);
+            //throw new XException("无法找到名为{0}的类型！", typeName);
+
+            return ReadObjRef<Type>(delegate
+            {
+                String typeName = ReadString();
+                if (String.IsNullOrEmpty(typeName)) return null;
+
+                Type type = TypeX.GetType(typeName);
+                if (type != null) return type;
+
+                throw new XException("无法找到名为{0}的类型！", typeName);
+            });
+        }
+        #endregion
+
+        #region 读取对象
+        /// <summary>
+        /// 从数据流中读取指定类型的对象
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <returns>对象</returns>
+        public virtual Object ReadObject(Type type)
+        {
+            Object value = null;
+            return ReadObject(type, ref value, null) ? value : null;
+        }
+
+        /// <summary>
+        /// 尝试读取目标对象指定成员的值，通过委托方法递归处理成员
+        /// </summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <returns>是否读取成功</returns>
+        public virtual Boolean ReadObject(Type type, ref Object value)
+        {
+            return ReadObject(type, ref value, ReadMember);
+        }
+
+        /// <summary>
+        /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
+        /// </summary>
+        /// <remarks>
+        /// 简单类型在value中返回，复杂类型直接填充target；
+        /// </remarks>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public virtual Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback)
+        {
+            if (type == null && value != null) type = value.GetType();
+            if (callback == null) callback = ReadMember;
+
+            // 基本类型
+            if (ReadValue(type, ref value)) return true;
+
+            // 特殊类型
+            if (TryReadX(type, ref value)) return true;
+
+            // 读取对象引用
+            Int32 index = 0;
+            if (ReadObjRef(type, ref value, out index)) return true;
+
+            // 枚举
+            if (typeof(IEnumerable).IsAssignableFrom(type))
+            {
+                if (ReadEnumerable(type, ref value, callback))
+                {
+                    if (value != null) AddObjRef(index, value);
+                    return true;
+                }
+            }
+
+            // 复杂类型，处理对象成员
+            if (ReadMembers(type, ref value, callback))
+            {
+                if (value != null) AddObjRef(index, value);
+                return true;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
+        /// </summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public virtual Boolean ReadMembers(Type type, ref Object value, ReadObjectCallback callback)
+        {
+            IObjectMemberInfo[] mis = GetMembers(type, value);
+            if (mis == null || mis.Length < 1) return true;
+
+            // 如果为空，实例化并赋值。
+            if (value == null) value = TypeX.CreateInstance(type);
+
+            foreach (IObjectMemberInfo item in mis)
+            {
+                Depth++;
+                if (!ReadMember(ref value, item, callback)) return false;
+                Depth--;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 读取成员
+        /// </summary>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        protected virtual Boolean ReadMember(ref Object value, IObjectMemberInfo member, ReadObjectCallback callback)
+        {
+#if !DEBUG
+            try
+#endif
+            {
+                // 读取成员前
+                if (OnMemberReading != null)
+                {
+                    EventArgs<IObjectMemberInfo, Boolean> e = new EventArgs<IObjectMemberInfo, Boolean>(member, false);
+                    OnMemberReading(this, e);
+                    if (e.Arg2) return true;
+                }
+
+                //MemberInfoX mix = member;
+                //obj = mix.GetValue(value);
+                Object obj = member[value];
+                if (!callback(this, member.Type, ref obj, callback)) return false;
+
+                // 读取成员后
+                if (OnMemberReaded != null)
+                {
+                    EventArgs<IObjectMemberInfo, Object> e = new EventArgs<IObjectMemberInfo, Object>(member, obj);
+                    OnMemberReaded(this, e);
+                    obj = e.Arg2;
+                }
+                //mix.SetValue(value, obj);
+                member[value] = obj;
+            }
+#if !DEBUG
+            catch (Exception ex)
+            {
+                throw new XSerializationException(member, ex);
+            }
+#endif
+
+            return true;
+        }
+
+        private static Boolean ReadMember(IReader reader, Type type, ref Object value, ReadObjectCallback callback)
+        {
+            return (reader as ReaderBase).ReadObject(type, ref value, callback);
+        }
+
+        /// <summary>
+        /// 读取引用对象的包装，能自动从引用对象集合里面读取，如果不存在，则调用委托读取对象，并加入引用对象集合
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="func"></param>
+        /// <returns></returns>
+        T ReadObjRef<T>(Func<T> func)
+        {
+            Object obj = null;
+            Int32 index = 0;
+            if (ReadObjRef(typeof(T), ref obj, out index)) return (T)obj;
+
+            if (func != null)
+            {
+                obj = func();
+
+                if (obj != null) AddObjRef(index, obj);
+
+                return (T)obj;
+            }
+
+            return default(T);
+        }
+
+        /// <summary>
+        /// 读取对象引用。
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <param name="index">引用计数</param>
+        /// <returns>是否读取成功</returns>
+        public virtual Boolean ReadObjRef(Type type, ref Object value, out Int32 index)
+        {
+            index = 0;
+            return false;
+        }
+
+        /// <summary>
+        /// 添加对象引用
+        /// </summary>
+        /// <param name="index">引用计数</param>
+        /// <param name="value">对象</param>
+        protected virtual void AddObjRef(Int32 index, Object value)
+        {
         }
         #endregion
 
