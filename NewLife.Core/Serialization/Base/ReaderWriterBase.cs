@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
 using System.Text;
-using System.Xml.Serialization;
-using NewLife.Collections;
-using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
@@ -26,7 +21,11 @@ namespace NewLife.Serialization
         /// <summary>层次深度</summary>
         public Int32 Depth
         {
-            get { return _Depth; }
+            get
+            {
+                if (_Depth < 1) _Depth = 1;
+                return _Depth;
+            }
             set { _Depth = value; }
         }
         #endregion
@@ -64,7 +63,7 @@ namespace NewLife.Serialization
         {
             if (type == null) throw new ArgumentNullException("type");
 
-            return ObjectInfo.GetMembers(type, value, false);
+            return ObjectInfo.GetMembers(type, value, false, true);
         }
 
         /// <summary>

@@ -203,6 +203,41 @@ namespace NewLife.Serialization
 
             return base.WriteMembers(value, type, callback);
         }
+
+        List<Object> objRefs = new List<Object>();
+
+        /// <summary>
+        /// 写入对象引用。
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <returns>是否写入成功。对象为空时写入0，否则写入对象的引用计数</returns>
+        public override Boolean WriteObjRef(object value)
+        {
+            if (value == null)
+            {
+                Write(0);
+                return true;
+            }
+
+            // 在对象引用集合中找该对象
+            Int32 index = objRefs.IndexOf(value);
+
+            // 如果没找到，添加，返回false，通知上层继续处理
+            if (index < 0)
+            {
+                objRefs.Add(value);
+
+                // 写入引用计数
+                Write(objRefs.Count);
+
+                return false;
+            }
+
+            // 如果找到，写入对象引用计数，返回true，通知上层不要再处理该对象，避免重写写入对象
+            Write(index + 1);
+
+            return true;
+        }
         #endregion
 
         #region 枚举
@@ -213,7 +248,7 @@ namespace NewLife.Serialization
         /// <param name="type">类型</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        public override bool WriteEnumerable(System.Collections.IEnumerable value, Type type, WriteObjectCallback callback)
+        public override bool Write(System.Collections.IEnumerable value, Type type, WriteObjectCallback callback)
         {
             if (value == null)
             {
@@ -287,7 +322,7 @@ namespace NewLife.Serialization
             // 写入长度
             Write(count);
 
-            return base.WriteEnumerable(value, type, callback);
+            return base.Write(value, type, callback);
         }
         #endregion
 
@@ -302,7 +337,7 @@ namespace NewLife.Serialization
         {
             if (type == null) throw new ArgumentNullException("type");
 
-            return ObjectInfo.GetMembers(type, value, true);
+            return ObjectInfo.GetMembers(type, value, true, true);
         }
         #endregion
 

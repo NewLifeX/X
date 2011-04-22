@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using NewLife.Reflection;
 using System.Collections;
+using NewLife.Exceptions;
 
 namespace NewLife.Serialization
 {
@@ -180,7 +181,7 @@ namespace NewLife.Serialization
         }
         #endregion
 
-        #region 读取成员
+        #region 读取对象
         /// <summary>
         /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
         /// </summary>
@@ -196,6 +197,56 @@ namespace NewLife.Serialization
 
             return base.ReadMembers(type, ref value, callback);
         }
+
+        List<Object> objRefs = new List<Object>();
+
+        /// <summary>
+        /// 读取对象引用。
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <param name="index">引用计数</param>
+        /// <returns>是否读取成功</returns>
+        public override Boolean ReadObjRef(Type type, ref object value, out Int32 index)
+        {
+            index = ReadInt32();
+
+            if (index < 0) return false;
+
+            if (index == 0)
+            {
+                value = null;
+                return true;
+            }
+
+            //// 如果引用计数刚好是下一个引用对象，说明这是该对象的第一次引用，返回false
+            //if (index == objRefs.Count + 1) return false;
+
+            //if (index > objRefs.Count) throw new XException("对象引用错误，无法找到引用计数为" + index + "的对象！");
+
+            // 引用计数等于索引加一
+            if (index > objRefs.Count) return false;
+
+            value = objRefs[index - 1];
+
+            return true;
+        }
+
+        /// <summary>
+        /// 添加对象引用
+        /// </summary>
+        /// <param name="index">引用计数</param>
+        /// <param name="value">对象</param>
+        protected override void AddObjRef(Int32 index, object value)
+        {
+            //if (value != null && !objRefs.Contains(value)) objRefs.Add(value);
+
+            if (value == null) return;
+
+            while (index > objRefs.Count) objRefs.Add(null);
+
+            objRefs[index - 1] = value;
+        }
         #endregion
 
         #region 获取成员
@@ -209,7 +260,7 @@ namespace NewLife.Serialization
         {
             if (type == null) throw new ArgumentNullException("type");
 
-            return ObjectInfo.GetMembers(type, value, true);
+            return ObjectInfo.GetMembers(type, value, true, true);
         }
         #endregion
 

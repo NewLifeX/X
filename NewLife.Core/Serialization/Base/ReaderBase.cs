@@ -236,8 +236,6 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public virtual Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-            if (Depth < 1) Depth = 1;
-
             if (type == null && value != null) type = value.GetType();
             if (callback == null) callback = ReadMember;
 
@@ -247,14 +245,26 @@ namespace NewLife.Serialization
             // 特殊类型
             if (TryReadX(type, ref value)) return true;
 
+            // 读取对象引用
+            Int32 index = 0;
+            if (ReadObjRef(type, ref value, out index)) return true;
+
             // 枚举
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
-                return ReadEnumerable(type, ref value, callback);
+                if (ReadEnumerable(type, ref value, callback))
+                {
+                    if (value != null) AddObjRef(index, value);
+                    return true;
+                }
             }
 
             // 复杂类型，处理对象成员
-            if (ReadMembers(type, ref value, callback)) return true;
+            if (ReadMembers(type, ref value, callback))
+            {
+                if (value != null) AddObjRef(index, value);
+                return true;
+            }
 
             return true;
         }
@@ -333,6 +343,28 @@ namespace NewLife.Serialization
         private static Boolean ReadMember(IReader reader, Type type, ref Object value, ReadObjectCallback callback)
         {
             return (reader as ReaderBase).ReadObject(type, ref value, callback);
+        }
+
+        /// <summary>
+        /// 读取对象引用。
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <param name="index">引用计数</param>
+        /// <returns>是否读取成功</returns>
+        public virtual Boolean ReadObjRef(Type type, ref Object value, out Int32 index)
+        {
+            index = 0;
+            return false;
+        }
+
+        /// <summary>
+        /// 添加对象引用
+        /// </summary>
+        /// <param name="index">引用计数</param>
+        /// <param name="value">对象</param>
+        protected virtual void AddObjRef(Int32 index, Object value)
+        {
         }
         #endregion
 

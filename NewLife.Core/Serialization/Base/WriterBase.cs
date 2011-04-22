@@ -2,11 +2,8 @@
 using System.Collections;
 using System.Globalization;
 using System.Net;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using NewLife.Reflection;
-using NewLife.Collections;
 using System.Collections.Generic;
 
 namespace NewLife.Serialization
@@ -322,9 +319,9 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value">枚举数据</param>
         /// <returns>是否写入成功</returns>
-        public virtual Boolean Write(IEnumerable value)
+        public Boolean Write(IEnumerable value)
         {
-            return WriteEnumerable(value, null, WriteMember);
+            return Write(value, null, WriteMember);
         }
 
         /// <summary>
@@ -334,9 +331,11 @@ namespace NewLife.Serialization
         /// <param name="type">类型</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
+        public virtual Boolean Write(IEnumerable value, Type type, WriteObjectCallback callback)
         {
-            if (value != null) type = value.GetType();
+            if (value == null) return true;
+
+            type = value.GetType();
             if (type != null && !typeof(IEnumerable).IsAssignableFrom(type)) throw new Exception("目标类型不是枚举类型！");
 
             foreach (Object item in value)
@@ -406,12 +405,6 @@ namespace NewLife.Serialization
             }
 
             return false;
-
-            //MethodInfo method = this.GetType().GetMethod("Write", new Type[] { type });
-            //if (method == null) return false;
-
-            //MethodInfoX.Create(method).Invoke(this, new Object[] { value });
-            //return true;
         }
 
         /// <summary>
@@ -493,7 +486,7 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value">对象</param>
         /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteObject(Object value)
+        public Boolean WriteObject(Object value)
         {
             return WriteObject(value, null, WriteMember);
         }
@@ -507,8 +500,6 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public virtual Boolean WriteObject(Object value, Type type, WriteObjectCallback callback)
         {
-            if (Depth < 1) Depth = 1;
-
             if (value != null) type = value.GetType();
             if (callback == null) callback = WriteMember;
 
@@ -518,10 +509,13 @@ namespace NewLife.Serialization
             // 基本类型
             if (WriteValue(value, type)) return true;
 
+            // 写入对象引用
+            if (WriteObjRef(value)) return true;
+
             // 枚举
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
-                if (WriteEnumerable(value as IEnumerable, type, callback)) return true;
+                if (Write(value as IEnumerable, type, callback)) return true;
             }
 
             // 复杂类型，处理对象成员
@@ -598,6 +592,16 @@ namespace NewLife.Serialization
         private static Boolean WriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback)
         {
             return (writer as WriterBase).WriteObject(value, type, callback);
+        }
+
+        /// <summary>
+        /// 写入对象引用。
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <returns>是否写入成功</returns>
+        public virtual Boolean WriteObjRef(Object value)
+        {
+            return false;
         }
         #endregion
 

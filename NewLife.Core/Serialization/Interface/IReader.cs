@@ -160,19 +160,22 @@ namespace NewLife.Serialization
 
         #region 读取对象
         /// <summary>
-        /// 从数据流中读取指定类型的对象
-        /// </summary>
-        /// <param name="type">类型</param>
-        /// <returns>对象</returns>
-        Object ReadObject(Type type);
-
-        /// <summary>
         /// 尝试读取目标对象指定成员的值
         /// </summary>
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
+        /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        Boolean ReadObject(Type type, ref Object value);
+        Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback);
+
+        /// <summary>
+        /// 读取对象引用。
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <param name="index">引用计数</param>
+        /// <returns>是否读取成功</returns>
+        Boolean ReadObjRef(Type type, ref Object value, out Int32 index);
         #endregion
 
         #region 事件

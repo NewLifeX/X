@@ -148,17 +148,28 @@ namespace NewLife.Serialization
         /// 写入枚举类型数据
         /// </summary>
         /// <param name="value">枚举数据</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        Boolean Write(IEnumerable value);
+        Boolean Write(IEnumerable value, Type type, WriteObjectCallback callback);
         #endregion
 
         #region 写入对象
         /// <summary>
-        /// 把对象写入数据流，空对象写入0，所有子孙成员编码整数、允许空、写入字段。
+        /// 写入对象。具体读写器可以重载该方法以修改写入对象前后的行为。
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        Boolean WriteObject(Object value, Type type, WriteObjectCallback callback);
+
+        /// <summary>
+        /// 写入对象引用。
         /// </summary>
         /// <param name="value">对象</param>
         /// <returns>是否写入成功</returns>
-        Boolean WriteObject(Object value);
+        Boolean WriteObjRef(Object value);
         #endregion
 
         #region 事件

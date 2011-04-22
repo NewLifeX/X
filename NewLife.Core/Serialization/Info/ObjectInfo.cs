@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using NewLife.Reflection;
 using NewLife.Collections;
+using System.Xml.Serialization;
 
 namespace NewLife.Serialization
 {
@@ -50,8 +51,9 @@ namespace NewLife.Serialization
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
         /// <param name="isField">是否字段</param>
+        /// <param name="isBaseFirst">是否基类成员排在前面</param>
         /// <returns></returns>
-        public static IObjectMemberInfo[] GetMembers(Type type, Object value, Boolean isField)
+        public static IObjectMemberInfo[] GetMembers(Type type, Object value, Boolean isField, Boolean isBaseFirst)
         {
             if (type == null && value != null) type = value.GetType();
 
@@ -67,7 +69,7 @@ namespace NewLife.Serialization
             }
 
             //return CreateDictionary(GetMembers(type, isField));
-            return GetMembers(type, isField);
+            return GetMembers(type, isField, isBaseFirst);
         }
 
         //static IDictionary<String, IObjectMemberInfo> CreateDictionary(IObjectMemberInfo[] mis)
@@ -81,19 +83,37 @@ namespace NewLife.Serialization
         //}
 
         static DictionaryCache<Type, IObjectMemberInfo[]> fieldCache = new DictionaryCache<Type, IObjectMemberInfo[]>();
+        static DictionaryCache<Type, IObjectMemberInfo[]> fieldCache2 = new DictionaryCache<Type, IObjectMemberInfo[]>();
         static DictionaryCache<Type, IObjectMemberInfo[]> propertyCache = new DictionaryCache<Type, IObjectMemberInfo[]>();
-        static IObjectMemberInfo[] GetMembers(Type type, Boolean isField)
+        static DictionaryCache<Type, IObjectMemberInfo[]> propertyCache2 = new DictionaryCache<Type, IObjectMemberInfo[]>();
+        static IObjectMemberInfo[] GetMembers(Type type, Boolean isField, Boolean isBaseFirst)
         {
             if (isField)
-                return fieldCache.GetItem(type, delegate(Type t)
-                {
-                    return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(FindFields(t), delegate(MemberInfo member) { return CreateObjectMemberInfo(member); });
-                });
+            {
+                if (isBaseFirst)
+                    return fieldCache.GetItem(type, delegate(Type t)
+                    {
+                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(FindFields(t, true), delegate(MemberInfo member) { return CreateObjectMemberInfo(member); });
+                    });
+                else
+                    return fieldCache2.GetItem(type, delegate(Type t)
+                    {
+                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(FindFields(t, false), delegate(MemberInfo member) { return CreateObjectMemberInfo(member); });
+                    });
+            }
             else
-                return propertyCache.GetItem(type, delegate(Type t)
-                {
-                    return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(FindProperties(t), delegate(MemberInfo member) { return CreateObjectMemberInfo(member); });
-                });
+            {
+                if (isBaseFirst)
+                    return propertyCache.GetItem(type, delegate(Type t)
+                    {
+                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(FindProperties(t, true), delegate(MemberInfo member) { return CreateObjectMemberInfo(member); });
+                    });
+                else
+                    return propertyCache2.GetItem(type, delegate(Type t)
+                    {
+                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(FindProperties(t, false), delegate(MemberInfo member) { return CreateObjectMemberInfo(member); });
+                    });
+            }
         }
 
         static DictionaryCache<Type, MemberInfo[]> cache1 = new DictionaryCache<Type, MemberInfo[]>();
@@ -101,59 +121,62 @@ namespace NewLife.Serialization
         /// 取得所有字段
         /// </summary>
         /// <param name="type"></param>
+        /// <param name="isBaseFirst"></param>
         /// <returns></returns>
-        static MemberInfo[] FindFields(Type type)
+        static MemberInfo[] FindFields(Type type, Boolean isBaseFirst)
         {
             if (type == null) return null;
 
-            return cache1.GetItem(type, delegate(Type t)
+            List<MemberInfo> list = new List<MemberInfo>();
+
+            // GetFields只能取得本类的字段，没办法取得基类的字段
+            FieldInfo[] fis = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (fis != null && fis.Length > 0)
             {
-                List<MemberInfo> list = new List<MemberInfo>();
-
-                // GetFields只能取得本类的字段，没办法取得基类的字段
-                FieldInfo[] fis = t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if (fis != null && fis.Length > 0)
+                foreach (FieldInfo item in fis)
                 {
-                    foreach (FieldInfo item in fis)
-                    {
-                        if (!Attribute.IsDefined(item, typeof(NonSerializedAttribute))) list.Add(item);
-                    }
+                    if (!Attribute.IsDefined(item, typeof(NonSerializedAttribute))) list.Add(item);
                 }
+            }
 
-                // 递归取父级的字段
-                if (type.BaseType != null && type.BaseType != typeof(Object))
+            // 递归取父级的字段
+            if (type.BaseType != null && type.BaseType != typeof(Object))
+            {
+                MemberInfo[] mis = FindFields(type.BaseType, isBaseFirst);
+                if (mis != null)
                 {
-                    MemberInfo[] mis = FindFields(type.BaseType);
-                    if (mis != null)
+                    if (isBaseFirst)
                     {
                         // 基类的字段排在子类字段前面
                         List<MemberInfo> list2 = new List<MemberInfo>(mis);
                         if (list.Count > 0) list2.AddRange(list);
                         list = list2;
                     }
+                    else
+                        list.AddRange(mis);
                 }
+            }
 
-                if (list == null || list.Count < 1) return null;
-                return list.ToArray();
-            });
+            if (list == null || list.Count < 1) return null;
+            return list.ToArray();
         }
 
-        static DictionaryCache<Type, MemberInfo[]> cache2 = new DictionaryCache<Type, MemberInfo[]>();
         /// <summary>
         /// 取得所有属性
         /// </summary>
         /// <param name="type"></param>
+        /// <param name="isBaseFirst"></param>
         /// <returns></returns>
-        static MemberInfo[] FindProperties(Type type)
+        static MemberInfo[] FindProperties(Type type, Boolean isBaseFirst)
         {
             if (type == null) return null;
 
-            return cache2.GetItem(type, delegate(Type t)
-            {
-                PropertyInfo[] pis = t.GetProperties(BindingFlags.Instance | BindingFlags.Public);
-                if (pis == null || pis.Length < 1) return null;
+            List<MemberInfo> list = new List<MemberInfo>();
 
-                List<MemberInfo> list = new List<MemberInfo>();
+            // 只返回本级的属性，递归返回，保证排序
+            PropertyInfo[] pis = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+            if (pis != null && pis.Length > 0)
+            {
                 foreach (PropertyInfo item in pis)
                 {
                     // 必须可读写
@@ -162,11 +185,30 @@ namespace NewLife.Serialization
                     ParameterInfo[] ps = item.GetIndexParameters();
                     if (ps != null && ps.Length > 0) continue;
 
-                    if (!Attribute.IsDefined(item, typeof(NonSerializedAttribute))) list.Add(item);
+                    if (!Attribute.IsDefined(item, typeof(XmlIgnoreAttribute))) list.Add(item);
                 }
-                if (list == null || list.Count < 1) return null;
-                return list.ToArray();
-            });
+            }
+
+            // 递归取父级的属性
+            if (type.BaseType != null && type.BaseType != typeof(Object))
+            {
+                MemberInfo[] mis = FindProperties(type.BaseType, isBaseFirst);
+                if (mis != null)
+                {
+                    if (isBaseFirst)
+                    {
+                        // 基类的属性排在子类属性前面
+                        List<MemberInfo> list2 = new List<MemberInfo>(mis);
+                        if (list.Count > 0) list2.AddRange(list);
+                        list = list2;
+                    }
+                    else
+                        list.AddRange(mis);
+                }
+            }
+
+            if (list == null || list.Count < 1) return null;
+            return list.ToArray();
         }
 
         static Dictionary<Type, IObjectMemberInfo[]> serialCache = new Dictionary<Type, IObjectMemberInfo[]>();
