@@ -180,21 +180,6 @@ namespace NewLife.Xml
             return rs;
         }
 
-        //public override bool WriteMembers(object value, Type type, WriteObjectCallback callback)
-        //{
-        //    if (type == null && value != null) type = value.GetType();
-        //    String name = null;
-        //    if (type != null) name = type.Name;
-
-        //    Writer.WriteStartElement(name);
-            
-        //    Boolean rs = base.WriteMembers(value, type, callback);
-
-        //    Writer.WriteEndElement();
-            
-        //    return rs;
-        //}
-
         /// <summary>
         /// 写入成员
         /// </summary>
@@ -225,6 +210,13 @@ namespace NewLife.Xml
         #endregion
 
         #region 枚举
+        /// <summary>
+        /// 写入枚举项
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <param name="type">类型</param>
+        /// <param name="callback">使用指定委托方法处理复杂数据</param>
+        /// <returns>是否写入成功</returns>
         public override bool WriteItem(Object value, Type type, WriteObjectCallback callback)
         {
             if (type == null && value != null) type = value.GetType();

@@ -174,6 +174,26 @@ namespace NewLife.Xml
         #endregion
         #endregion
 
+        #region 枚举
+        protected override Array[] ReadItems(Type type, Type[] elementTypes, ReadObjectCallback callback)
+        {
+            Reader.ReadStartElement();
+
+            Array[] rs = base.ReadItems(type, elementTypes, callback);
+
+            Reader.ReadEndElement();
+
+            return rs;
+        }
+
+        protected override bool ReadItem(Type type, ref object value, ReadObjectCallback callback)
+        {
+            if (Reader.Name != type.Name) return false;
+
+            return base.ReadItem(type, ref value, callback);
+        }
+        #endregion
+
         #region 读取对象
         /// <summary>
         /// 尝试读取目标对象指定成员的值，通过委托方法递归处理成员
@@ -228,9 +248,17 @@ namespace NewLife.Xml
             while (Reader.NodeType == XmlNodeType.Element)
             {
                 //Reader.ReadStartElement();
-                if (Reader.IsEmptyElement) continue;
+                if (Reader.IsEmptyElement)
+                {
+                    Reader.Read();
+                    continue;
+                }
 
-                if (!dic.ContainsKey(Reader.Name)) continue;
+                if (!dic.ContainsKey(Reader.Name))
+                {
+                    Reader.ReadEndElement();
+                    continue;
+                }
 
                 Depth++;
                 if (!ReadMember(ref value, dic[Reader.Name], callback)) return false;

@@ -349,7 +349,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>
-        /// 写入枚举数据，复杂类型使用委托方法进行处理
+        /// 写入枚举项
         /// </summary>
         /// <param name="value">对象</param>
         /// <param name="type">类型</param>

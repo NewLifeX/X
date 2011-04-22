@@ -383,6 +383,165 @@ namespace NewLife.Serialization
         {
             if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
 
+            Array[] arrs = ReadItems(type, elementTypes, callback);
+            if (arrs == null) return false;
+            if (arrs.Length == 1 && arrs[0].Length == 1) return true;
+
+            if (ProcessItems(type, elementTypes, ref value, arrs)) return true;
+
+            return false;
+        }
+
+        protected virtual Boolean ReadItem(Type type, ref Object value, ReadObjectCallback callback)
+        {
+            return ReadObject(type, ref value, callback);
+        }
+
+        protected virtual Array[] ReadItems(Type type, Type[] elementTypes, ReadObjectCallback callback)
+        {
+            //Type elementType = null;
+            //Type valueType = null;
+            //if (elementTypes != null)
+            //{
+            //    if (elementTypes.Length >= 1) elementType = elementTypes[0];
+            //    if (elementTypes.Length >= 2) valueType = elementTypes[1];
+            //}
+
+            ArrayList list = new ArrayList();
+            while (true)
+            {
+                // 一旦有一个元素读不到，就中断
+                Object obj = null;
+                if (!ReadItem(elementTypes[0], ref obj, callback)) break;
+                list.Add(obj);
+            }
+            return new Array[] { list.ToArray() };
+
+            //// 先读元素个数
+            //Int32 count = ReadInt32();
+            //if (count < 0) throw new InvalidOperationException("无效元素个数" + count + "！");
+
+            //// 没有元素
+            //if (count == 0) return new Array[0];
+
+            //Array[] arrs = new Array[elementTypes.Length];
+            //for (int i = 0; i < count; i++)
+            //{
+            //    for (int j = 0; j < elementTypes.Length; j++)
+            //    {
+            //        if (arrs[j] == null) arrs[j] = TypeX.CreateInstance(elementTypes[j].MakeArrayType(), count) as Array;
+
+            //        Object obj = null;
+            //        if (!ReadItem(elementTypes[j], ref obj, callback)) return null;
+            //        arrs[j].SetValue(obj, i);
+            //    }
+            //}
+            //return arrs;
+        }
+
+        protected Boolean ProcessItems(Type type, Type[] elementTypes, ref Object value, Array[] arrs)
+        {
+            Type elementType = null;
+            Type valueType = null;
+            if (elementTypes != null)
+            {
+                if (elementTypes.Length >= 1) elementType = elementTypes[0];
+                if (elementTypes.Length >= 2) valueType = elementTypes[1];
+            }
+
+            // 如果是数组，直接赋值
+            if (type.IsArray)
+            {
+                value = arrs[0];
+
+                if (value.GetType().GetElementType() != elementTypes[0])
+                {
+                    Array arr = TypeX.CreateInstance(elementTypes[0].MakeArrayType(), arrs[0].Length) as Array;
+                    for (int i = 0; i < arrs[0].Length; i++)
+                    {
+                        arr.SetValue(arrs[0].GetValue(i), i);
+                    }
+                    value = arr;
+                }
+
+                return true;
+            }
+
+            // 一个元素类型还是两个元素类型，分开处理
+            if (arrs.Length == 1)
+            {
+                #region 一个元素
+                // 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
+                ConstructorInfoX ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable) });
+                if (ci == null) ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable<>).MakeGenericType(elementType) });
+                if (ci != null)
+                {
+                    //value = TypeX.CreateInstance(type, arrs[0]);
+                    value = ci.CreateInstance(arrs[0]);
+                    return true;
+                }
+
+                // 添加方法
+                MethodInfoX method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
+                if (method != null)
+                {
+                    value = TypeX.CreateInstance(type);
+                    //for (int i = 0; i < count; i++)
+                    //{
+                    //    method.Invoke(value, arrs[0].GetValue(i));
+                    //}
+                    foreach (Object item in arrs[0])
+                    {
+                        method.Invoke(value, item);
+                    }
+                    return true;
+                }
+                #endregion
+            }
+            else if (arrs.Length == 2)
+            {
+                #region 两个元素
+                // 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
+                ConstructorInfoX ci = ConstructorInfoX.Create(type, new Type[] { typeof(IDictionary<,>).MakeGenericType(elementType, valueType) });
+                if (ci != null)
+                {
+                    Type dicType = typeof(Dictionary<,>).MakeGenericType(elementType, valueType);
+                    IDictionary dic = TypeX.CreateInstance(dicType) as IDictionary;
+                    //for (int i = 0; i < count; i++)
+                    //{
+                    //    dic.Add(arrs[0].GetValue(i), arrs[1].GetValue(i));
+                    //}
+                    Int32 i = 0;
+                    foreach (Object item in arrs[0])
+                    {
+                        dic.Add(arrs[0].GetValue(i), arrs[1].GetValue(i));
+                        i++;
+                    }
+                    //value = TypeX.CreateInstance(type, dic);
+                    value = ci.CreateInstance(dic);
+                    return true;
+                }
+
+                // 添加方法
+                MethodInfoX method = MethodInfoX.Create(type, "Add", new Type[] { elementType, valueType });
+                if (method != null)
+                {
+                    value = TypeX.CreateInstance(type);
+                    //for (int i = 0; i < count; i++)
+                    //{
+                    //    method.Invoke(value, arrs[0].GetValue(i), arrs[1].GetValue(i));
+                    //}
+                    Int32 i = 0;
+                    foreach (Object item in arrs[0])
+                    {
+                        method.Invoke(value, arrs[0].GetValue(i), arrs[1].GetValue(i));
+                        i++;
+                    }
+                    return true;
+                }
+                #endregion
+            }
+
             return false;
         }
         #endregion
