@@ -11,7 +11,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// 读写器基类
     /// </summary>
-    public abstract class ReaderWriterBase : IReaderWriter
+    public abstract class ReaderWriterBase : NewLife.DisposeBase, IReaderWriter
     {
         #region 属性
         private Encoding _Encoding;
@@ -170,15 +170,15 @@ namespace NewLife.Serialization
         }
         #endregion
 
-        #region 配置
-        ///// <summary>
-        ///// 创建配置。基类可以重写ReaderWriterConfig，然后在这里返回
-        ///// </summary>
-        ///// <returns></returns>
-        //protected virtual ReaderWriterConfig CreateConfig()
-        //{
-        //    return new ReaderWriterConfig();
-        //}
+        #region 释放
+        /// <summary>
+        /// 释放资源
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+        }
         #endregion
     }
 }

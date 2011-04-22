@@ -11,19 +11,6 @@ namespace NewLife.Serialization
     /// </summary>
     public interface IWriter : IReaderWriter
     {
-        #region 事件
-        /// <summary>
-        /// 写成员前触发。参数是成员信息和是否取消写入该成员。
-        /// 事件处理器中可以自定义写入成员，然后把第二参数设为false请求写入器不要再写入该成员。
-        /// </summary>
-        event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberWriting;
-
-        /// <summary>
-        /// 写成员后触发。
-        /// </summary>
-        event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberWrited;
-        #endregion
-
         #region 写入基础元数据
         #region 字节
         /// <summary>
@@ -156,30 +143,13 @@ namespace NewLife.Serialization
         #endregion
         #endregion
 
-        #region 7位压缩编码整数
-        ///// <summary>
-        ///// 以7位压缩格式写入16位整数，小于7位用1个字节，小于14位用2个字节。
-        ///// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
-        ///// </summary>
-        ///// <param name="value">16位整数</param>
-        ///// <returns>实际写入字节数</returns>
-        //Int32 WriteEncoded(Int16 value);
-
-        ///// <summary>
-        ///// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
-        ///// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
-        ///// </summary>
-        ///// <param name="value">32位整数</param>
-        ///// <returns>实际写入字节数</returns>
-        //Int32 WriteEncoded(Int32 value);
-
-        ///// <summary>
-        ///// 以7位压缩格式写入64位整数，小于7位用1个字节，小于14位用2个字节。
-        ///// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
-        ///// </summary>
-        ///// <param name="value">64位整数</param>
-        ///// <returns>实际写入字节数</returns>
-        //Int32 WriteEncoded(Int64 value);
+        #region 枚举
+        /// <summary>
+        /// 写入枚举类型数据
+        /// </summary>
+        /// <param name="value">枚举数据</param>
+        /// <returns>是否写入成功</returns>
+        Boolean Write(IEnumerable value);
         #endregion
 
         #region 写入对象
@@ -191,13 +161,34 @@ namespace NewLife.Serialization
         Boolean WriteObject(Object value);
         #endregion
 
-        #region 枚举
+        #region 事件
+        ///// <summary>
+        ///// 写成员前触发。参数是成员信息和是否取消写入该成员。
+        ///// 事件处理器中可以自定义写入成员，然后把第二参数设为false请求写入器不要再写入该成员。
+        ///// </summary>
+        //event EventHandler<EventArgs<Object, Boolean>> OnWritingObject;
+
         /// <summary>
-        /// 写入枚举类型数据
+        /// 写成员前触发。参数是成员信息和是否取消写入该成员。
+        /// 事件处理器中可以自定义写入成员，然后把第二参数设为false请求写入器不要再写入该成员。
         /// </summary>
-        /// <param name="value">枚举数据</param>
-        /// <returns>是否写入成功</returns>
-        Boolean Write(IEnumerable value);
+        event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberWriting;
+
+        /// <summary>
+        /// 写成员后触发。
+        /// </summary>
+        event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberWrited;
+
+        ///// <summary>
+        ///// 写成员前触发。参数是成员信息和是否取消写入该成员。
+        ///// 事件处理器中可以自定义写入成员，然后把第二参数设为false请求写入器不要再写入该成员。
+        ///// </summary>
+        //event EventHandler<EventArgs<MemberInfo, Boolean>> OnWritingMemberContent;
+
+        ///// <summary>
+        ///// 写成员后触发。
+        ///// </summary>
+        //event EventHandler<EventArgs<MemberInfo, Boolean>> OnWritedMemberContent;
         #endregion
     }
 }

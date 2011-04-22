@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using NewLife.Reflection;
+using NewLife.Collections;
+using System.Collections.Generic;
 
 namespace NewLife.Serialization
 {
@@ -188,119 +189,6 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public virtual void Write(DateTime value) { Write(Convert.ToDateTime(value, CultureInfo.InvariantCulture).Ticks); }
         #endregion
-        #endregion
-
-        #region 写入对象
-        /// <summary>
-        /// 把对象写入数据流
-        /// </summary>
-        /// <param name="value">对象</param>
-        /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteObject(Object value)
-        {
-            return WriteObject(value, null, WriteMember);
-        }
-
-        /// <summary>
-        /// 把目标对象指定成员写入数据流，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
-        /// </summary>
-        /// <param name="value">要写入的对象</param>
-        /// <param name="type">要写入的对象类型</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteObject(Object value, Type type, WriteObjectCallback callback)
-        {
-            if (Depth < 1) Depth = 1;
-
-            if (value != null) type = value.GetType();
-            if (callback == null) callback = WriteMember;
-
-            // 基本类型
-            if (WriteValue(value, type)) return true;
-
-            // 扩展类型
-            if (WriteX(value, type)) return true;
-
-            // 枚举
-            if (typeof(IEnumerable).IsAssignableFrom(type))
-            {
-                if (WriteEnumerable(value as IEnumerable, type, callback)) return true;
-            }
-
-            // 复杂类型，处理对象成员
-            if (WriteMembers(value, type, callback)) return true;
-
-            return true;
-        }
-
-        /// <summary>
-        /// 写对象成员
-        /// </summary>
-        /// <param name="value">要写入的对象</param>
-        /// <param name="type">要写入的对象类型</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteMembers(Object value, Type type, WriteObjectCallback callback)
-        {
-            MemberInfo[] mis = GetMembers(type);
-            if (mis == null || mis.Length < 1) return true;
-
-            foreach (MemberInfo item in mis)
-            {
-                Depth++;
-                if (!WriteMember(value, item, callback)) return false;
-                Depth--;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// 写入成员
-        /// </summary>
-        /// <param name="value">要写入的对象</param>
-        /// <param name="member">成员</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否写入成功</returns>
-        protected virtual Boolean WriteMember(Object value, MemberInfo member, WriteObjectCallback callback)
-        {
-#if !DEBUG
-            try
-#endif
-            {
-                // 写入成员前
-                if (OnMemberWriting != null)
-                {
-                    EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(member, false);
-                    OnMemberWriting(this, e);
-                    if (e.Arg2) return true;
-                }
-
-                MemberInfoX mix = member;
-                Boolean result = callback(this, mix.GetValue(value), mix.Type, callback);
-
-                // 写入成员后
-                if (OnMemberWrited != null)
-                {
-                    EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(member, result);
-                    OnMemberWrited(this, e);
-                    result = e.Arg2;
-                }
-                if (!result) return false;
-            }
-#if !DEBUG
-            catch (Exception ex)
-            {
-                throw new XSerializationException(member, ex);
-            }
-#endif
-            return true;
-        }
-
-        private static Boolean WriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback)
-        {
-            return (writer as WriterBase).WriteObject(value, type, callback);
-        }
         #endregion
 
         #region 写入值类型
@@ -579,6 +467,136 @@ namespace NewLife.Serialization
                 Write(value.FullName);
             else
                 Write(0);
+        }
+
+        public void Register<T>(Func<IWriter, T, Boolean> handler)
+        {
+            Register(typeof(T), delegate(IWriter writer, Object value) { return handler(writer, (T)value); });
+        }
+
+        Dictionary<Type, Func<IWriter, Object, Boolean>> handlerCache = new Dictionary<Type, Func<IWriter, Object, Boolean>>();
+        public void Register(Type type, Func<IWriter, Object, Boolean> handler)
+        {
+            if (handlerCache.ContainsKey(type)) return;
+            lock (handlerCache)
+            {
+                if (handlerCache.ContainsKey(type)) return;
+
+                handlerCache.Add(type, handler);
+            }
+        }
+        #endregion
+
+        #region 写入对象
+        /// <summary>
+        /// 把对象写入数据流
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <returns>是否写入成功</returns>
+        public virtual Boolean WriteObject(Object value)
+        {
+            return WriteObject(value, null, WriteMember);
+        }
+
+        /// <summary>
+        /// 把目标对象指定成员写入数据流，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        public virtual Boolean WriteObject(Object value, Type type, WriteObjectCallback callback)
+        {
+            if (Depth < 1) Depth = 1;
+
+            if (value != null) type = value.GetType();
+            if (callback == null) callback = WriteMember;
+
+            // 扩展类型
+            if (WriteX(value, type)) return true;
+
+            // 基本类型
+            if (WriteValue(value, type)) return true;
+
+            // 枚举
+            if (typeof(IEnumerable).IsAssignableFrom(type))
+            {
+                if (WriteEnumerable(value as IEnumerable, type, callback)) return true;
+            }
+
+            // 复杂类型，处理对象成员
+            if (WriteMembers(value, type, callback)) return true;
+
+            return true;
+        }
+
+        /// <summary>
+        /// 写对象成员
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        public virtual Boolean WriteMembers(Object value, Type type, WriteObjectCallback callback)
+        {
+            MemberInfo[] mis = GetMembers(type);
+            if (mis == null || mis.Length < 1) return true;
+
+            foreach (MemberInfo item in mis)
+            {
+                Depth++;
+                if (!WriteMember(value, item, callback)) return false;
+                Depth--;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 写入成员
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        protected virtual Boolean WriteMember(Object value, MemberInfo member, WriteObjectCallback callback)
+        {
+#if !DEBUG
+            try
+#endif
+            {
+                // 写入成员前
+                if (OnMemberWriting != null)
+                {
+                    EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(member, false);
+                    OnMemberWriting(this, e);
+                    if (e.Arg2) return true;
+                }
+
+                MemberInfoX mix = member;
+                Boolean result = callback(this, mix.GetValue(value), mix.Type, callback);
+
+                // 写入成员后
+                if (OnMemberWrited != null)
+                {
+                    EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(member, result);
+                    OnMemberWrited(this, e);
+                    result = e.Arg2;
+                }
+                if (!result) return false;
+            }
+#if !DEBUG
+            catch (Exception ex)
+            {
+                throw new XSerializationException(member, ex);
+            }
+#endif
+            return true;
+        }
+
+        private static Boolean WriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback)
+        {
+            return (writer as WriterBase).WriteObject(value, type, callback);
         }
         #endregion
 
