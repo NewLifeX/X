@@ -107,6 +107,7 @@
     <Compile Include="IOModule\HttpStreamClient.cs" />
     <Compile Include="Serialization\Info\ReflectMemberInfo.cs" />
     <Compile Include="Serialization\Info\SimpleMemberInfo.cs" />
+    <Compile Include="Serialization\Info\ObjectInfo.cs" />
     <Compile Include="Serialization\RWServices.cs" />
     <Compile Include="Serialization\Base\WriterBase.cs" />
     <Compile Include="Log\CodeTimer.cs" />

@@ -172,23 +172,23 @@ namespace NewLife.Serialization
         /// 写成员前触发。参数是成员信息和是否取消写入该成员。
         /// 事件处理器中可以自定义写入成员，然后把第二参数设为false请求写入器不要再写入该成员。
         /// </summary>
-        event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberWriting;
+        event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnMemberWriting;
 
         /// <summary>
         /// 写成员后触发。
         /// </summary>
-        event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberWrited;
+        event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnMemberWrited;
 
         ///// <summary>
         ///// 写成员前触发。参数是成员信息和是否取消写入该成员。
         ///// 事件处理器中可以自定义写入成员，然后把第二参数设为false请求写入器不要再写入该成员。
         ///// </summary>
-        //event EventHandler<EventArgs<MemberInfo, Boolean>> OnWritingMemberContent;
+        //event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnWritingMemberContent;
 
         ///// <summary>
         ///// 写成员后触发。
         ///// </summary>
-        //event EventHandler<EventArgs<MemberInfo, Boolean>> OnWritedMemberContent;
+        //event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnWritedMemberContent;
         #endregion
     }
 }

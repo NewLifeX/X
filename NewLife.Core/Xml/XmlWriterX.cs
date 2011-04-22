@@ -191,7 +191,7 @@ namespace NewLife.Xml
         /// <param name="member">成员</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected override bool WriteMember(object value, MemberInfo member, WriteObjectCallback callback)
+        protected override bool WriteMember(object value, IObjectMemberInfo member, WriteObjectCallback callback)
         {
             // 检查成员的值，如果是默认值，则不输出
             if (IgnoreDefault && IsDefault(value, member)) return true;
@@ -225,73 +225,6 @@ namespace NewLife.Xml
         //    Writer.WriteEndElement();
 
         //    return rs;
-        //}
-        #endregion
-
-        #region 成员
-        /// <summary>
-        /// 已重载。过滤掉不能没有Get的属性成员
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        protected override MemberInfo[] OnGetMembers(Type type)
-        {
-            MemberInfo[] mis = base.OnGetMembers(type);
-            if (mis == null || mis.Length < 1) return mis;
-
-            List<MemberInfo> list = new List<MemberInfo>();
-            foreach (MemberInfo item in mis)
-            {
-                if (item is PropertyInfo)
-                {
-                    if (!(item as PropertyInfo).CanRead) continue;
-                }
-                list.Add(item);
-            }
-            mis = list.ToArray();
-
-            return mis;
-        }
-        #endregion
-
-        #region 对象默认值
-        static DictionaryCache<Type, Object> objCache = new DictionaryCache<Type, Object>();
-        /// <summary>
-        /// 获取某个类型的默认对象
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        static Object GetDefault(Type type)
-        {
-            return objCache.GetItem(type, delegate(Type t) { return TypeX.CreateInstance(type); });
-        }
-
-        /// <summary>
-        /// 判断一个对象的某个成员是否默认值
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="member"></param>
-        /// <returns></returns>
-        internal static Boolean IsDefault(Object value, MemberInfo member)
-        {
-            Object def = GetDefault(value.GetType());
-            MemberInfoX mix = member;
-
-            return Object.Equals(mix.GetValue(value), mix.GetValue(def));
-        }
-        #endregion
-
-        #region 设置
-        ///// <summary>
-        ///// 创建配置
-        ///// </summary>
-        ///// <returns></returns>
-        //protected override ReaderWriterConfig CreateConfig()
-        //{
-        //    XmlReaderWriterConfig config = new XmlReaderWriterConfig();
-        //    config.MemberStyle = MemberStyle;
-        //    config.IgnoreDefault = IgnoreDefault;
-        //    return config;
         //}
         #endregion
     }

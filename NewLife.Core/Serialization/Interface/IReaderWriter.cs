@@ -13,22 +13,26 @@ namespace NewLife.Serialization
         #region 属性
         /// <summary>字符串编码。</summary>
         Encoding Encoding { get; set; }
+
+        /// <summary>层次深度。</summary>
+        Int32 Depth { get; set; }
         #endregion
 
-        //#region 方法
-        ///// <summary>
-        ///// 获取指定类型中需要序列化的成员（属性或字段）
-        ///// </summary>
-        ///// <param name="type">指定类型</param>
-        ///// <returns>需要序列化的成员</returns>
-        //IObjectMemberInfo[] GetMembers(Type type);
-        //#endregion
+        #region 方法
+        /// <summary>
+        /// 获取需要序列化的成员
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <returns>需要序列化的成员</returns>
+        IObjectMemberInfo[] GetMembers(Type type, Object value);
+        #endregion
 
-        //#region 事件
-        ///// <summary>
-        ///// 获取指定类型中需要序列化的成员时触发。使用者可以修改、排序要序列化的成员。
-        ///// </summary>
-        //event EventHandler<EventArgs<Type, IObjectMemberInfo[]>> OnGotMembers;
-        //#endregion
+        #region 事件
+        /// <summary>
+        /// 获取指定类型中需要序列化的成员时触发。使用者可以修改、排序要序列化的成员。
+        /// </summary>
+        event EventHandler<EventArgs<Type, Object, IObjectMemberInfo[]>> OnGotMembers;
+        #endregion
     }
 }

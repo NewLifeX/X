@@ -469,22 +469,22 @@ namespace NewLife.Serialization
                 Write(0);
         }
 
-        public void Register<T>(Func<IWriter, T, Boolean> handler)
-        {
-            Register(typeof(T), delegate(IWriter writer, Object value) { return handler(writer, (T)value); });
-        }
+        //public void Register<T>(Func<IWriter, T, Boolean> handler)
+        //{
+        //    Register(typeof(T), delegate(IWriter writer, Object value) { return handler(writer, (T)value); });
+        //}
 
-        Dictionary<Type, Func<IWriter, Object, Boolean>> handlerCache = new Dictionary<Type, Func<IWriter, Object, Boolean>>();
-        public void Register(Type type, Func<IWriter, Object, Boolean> handler)
-        {
-            if (handlerCache.ContainsKey(type)) return;
-            lock (handlerCache)
-            {
-                if (handlerCache.ContainsKey(type)) return;
+        //Dictionary<Type, Func<IWriter, Object, Boolean>> handlerCache = new Dictionary<Type, Func<IWriter, Object, Boolean>>();
+        //public void Register(Type type, Func<IWriter, Object, Boolean> handler)
+        //{
+        //    if (handlerCache.ContainsKey(type)) return;
+        //    lock (handlerCache)
+        //    {
+        //        if (handlerCache.ContainsKey(type)) return;
 
-                handlerCache.Add(type, handler);
-            }
-        }
+        //        handlerCache.Add(type, handler);
+        //    }
+        //}
         #endregion
 
         #region 写入对象
@@ -539,10 +539,10 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public virtual Boolean WriteMembers(Object value, Type type, WriteObjectCallback callback)
         {
-            MemberInfo[] mis = GetMembers(type);
+            IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
 
-            foreach (MemberInfo item in mis)
+            foreach (IObjectMemberInfo item in mis)
             {
                 Depth++;
                 if (!WriteMember(value, item, callback)) return false;
@@ -559,7 +559,7 @@ namespace NewLife.Serialization
         /// <param name="member">成员</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected virtual Boolean WriteMember(Object value, MemberInfo member, WriteObjectCallback callback)
+        protected virtual Boolean WriteMember(Object value, IObjectMemberInfo member, WriteObjectCallback callback)
         {
 #if !DEBUG
             try
@@ -568,18 +568,17 @@ namespace NewLife.Serialization
                 // 写入成员前
                 if (OnMemberWriting != null)
                 {
-                    EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(member, false);
+                    EventArgs<IObjectMemberInfo, Boolean> e = new EventArgs<IObjectMemberInfo, Boolean>(member, false);
                     OnMemberWriting(this, e);
                     if (e.Arg2) return true;
                 }
 
-                MemberInfoX mix = member;
-                Boolean result = callback(this, mix.GetValue(value), mix.Type, callback);
+                Boolean result = callback(this, member[value], member.Type, callback);
 
                 // 写入成员后
                 if (OnMemberWrited != null)
                 {
-                    EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(member, result);
+                    EventArgs<IObjectMemberInfo, Boolean> e = new EventArgs<IObjectMemberInfo, Boolean>(member, result);
                     OnMemberWrited(this, e);
                     result = e.Arg2;
                 }
@@ -604,12 +603,12 @@ namespace NewLife.Serialization
         /// <summary>
         /// 写入成员前触发。参数觉得是否忽略该成员。
         /// </summary>
-        public event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberWriting;
+        public event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnMemberWriting;
 
         /// <summary>
         /// 写入成员后触发。参数决定是否写入成功。
         /// </summary>
-        public event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberWrited;
+        public event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnMemberWrited;
         #endregion
     }
 

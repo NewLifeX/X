@@ -200,13 +200,16 @@ namespace NewLife.Serialization
 
         #region 获取成员
         /// <summary>
-        /// 已重载。序列化字段
+        /// 获取需要序列化的成员
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        protected override MemberInfo[] OnGetMembers(Type type)
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <returns>需要序列化的成员</returns>
+        protected override IObjectMemberInfo[] OnGetMembers(Type type, Object value)
         {
-            return FilterMembers(FindFields(type), typeof(NonSerializedAttribute));
+            if (type == null) throw new ArgumentNullException("type");
+
+            return ObjectInfo.GetMembers(type, value, true);
         }
         #endregion
 

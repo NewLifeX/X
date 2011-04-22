@@ -211,11 +211,11 @@ namespace NewLife.Xml
             // 如果是属性，使用基类就足够了
             if (MemberAsAttribute) return base.ReadMembers(type, ref value, callback);
 
-            MemberInfo[] mis = GetMembers(type);
+            IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
 
-            Dictionary<String, MemberInfo> dic = new Dictionary<string, MemberInfo>();
-            foreach (MemberInfo item in mis)
+            Dictionary<String, IObjectMemberInfo> dic = new Dictionary<string, IObjectMemberInfo>();
+            foreach (IObjectMemberInfo item in mis)
             {
                 if (!dic.ContainsKey(item.Name)) dic.Add(item.Name, item);
             }
@@ -250,7 +250,7 @@ namespace NewLife.Xml
         /// <param name="member">成员</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        protected override bool ReadMember(ref object value, MemberInfo member, ReadObjectCallback callback)
+        protected override bool ReadMember(ref object value, IObjectMemberInfo member, ReadObjectCallback callback)
         {
             if (MemberAsAttribute)
             {
@@ -259,46 +259,6 @@ namespace NewLife.Xml
 
             return base.ReadMember(ref value, member, callback);
         }
-        #endregion
-
-        #region 成员
-        /// <summary>
-        /// 已重载。过滤掉不能没有Set的属性成员
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        protected override MemberInfo[] OnGetMembers(Type type)
-        {
-            MemberInfo[] mis = base.OnGetMembers(type);
-            if (mis == null || mis.Length < 1) return mis;
-
-            List<MemberInfo> list = new List<MemberInfo>();
-            foreach (MemberInfo item in mis)
-            {
-                if (item is PropertyInfo)
-                {
-                    if (!(item as PropertyInfo).CanWrite) continue;
-                }
-                list.Add(item);
-            }
-            mis = list.ToArray();
-
-            return mis;
-        }
-        #endregion
-
-        #region 设置
-        ///// <summary>
-        ///// 创建配置
-        ///// </summary>
-        ///// <returns></returns>
-        //protected override ReaderWriterConfig CreateConfig()
-        //{
-        //    XmlReaderWriterConfig config = new XmlReaderWriterConfig();
-        //    config.MemberStyle = MemberStyle;
-        //    config.IgnoreDefault = IgnoreDefault;
-        //    return config;
-        //}
         #endregion
     }
 }

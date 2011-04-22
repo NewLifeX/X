@@ -268,13 +268,13 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public virtual Boolean ReadMembers(Type type, ref Object value, ReadObjectCallback callback)
         {
-            MemberInfo[] mis = GetMembers(type);
+            IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
 
             // 如果为空，实例化并赋值。
             if (value == null) value = TypeX.CreateInstance(type);
 
-            foreach (MemberInfo item in mis)
+            foreach (IObjectMemberInfo item in mis)
             {
                 Depth++;
                 if (!ReadMember(ref value, item, callback)) return false;
@@ -291,9 +291,8 @@ namespace NewLife.Serialization
         /// <param name="member">成员</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        protected virtual Boolean ReadMember(ref Object value, MemberInfo member, ReadObjectCallback callback)
+        protected virtual Boolean ReadMember(ref Object value, IObjectMemberInfo member, ReadObjectCallback callback)
         {
-            Object obj = null;
 #if !DEBUG
             try
 #endif
@@ -301,23 +300,25 @@ namespace NewLife.Serialization
                 // 读取成员前
                 if (OnMemberReading != null)
                 {
-                    EventArgs<MemberInfo, Boolean> e = new EventArgs<MemberInfo, Boolean>(member, false);
+                    EventArgs<IObjectMemberInfo, Boolean> e = new EventArgs<IObjectMemberInfo, Boolean>(member, false);
                     OnMemberReading(this, e);
                     if (e.Arg2) return true;
                 }
 
-                MemberInfoX mix = member;
-                obj = mix.GetValue(value);
-                if (!callback(this, mix.Type, ref obj, callback)) return false;
+                //MemberInfoX mix = member;
+                //obj = mix.GetValue(value);
+                Object obj = member[value];
+                if (!callback(this, member.Type, ref obj, callback)) return false;
 
                 // 读取成员后
                 if (OnMemberReaded != null)
                 {
-                    EventArgs<MemberInfo, Object> e = new EventArgs<MemberInfo, Object>(member, obj);
+                    EventArgs<IObjectMemberInfo, Object> e = new EventArgs<IObjectMemberInfo, Object>(member, obj);
                     OnMemberReaded(this, e);
                     obj = e.Arg2;
                 }
-                mix.SetValue(value, obj);
+                //mix.SetValue(value, obj);
+                member[value] = obj;
             }
 #if !DEBUG
             catch (Exception ex)
@@ -611,12 +612,12 @@ namespace NewLife.Serialization
         /// <summary>
         /// 读取成员先触发。参数决定是否读取成功。
         /// </summary>
-        public event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberReading;
+        public event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnMemberReading;
 
         /// <summary>
         /// 读取成员后触发
         /// </summary>
-        public event EventHandler<EventArgs<MemberInfo, Object>> OnMemberReaded;
+        public event EventHandler<EventArgs<IObjectMemberInfo, Object>> OnMemberReaded;
         #endregion
     }
 

@@ -10,19 +10,6 @@ namespace NewLife.Serialization
     /// </summary>
     public interface IReader : IReaderWriter
     {
-        #region 事件
-        /// <summary>
-        /// 读成员前触发。参数是成员信息和是否取消读取该成员。
-        /// 事件处理器中可以自定义读取成员，然后把第二参数设为false请求读取器不要再读取该成员。
-        /// </summary>
-        event EventHandler<EventArgs<MemberInfo, Boolean>> OnMemberReading;
-
-        /// <summary>
-        /// 读成员后触发。
-        /// </summary>
-        event EventHandler<EventArgs<MemberInfo, Object>> OnMemberReaded;
-        #endregion
-
         #region 读取基础元数据
         #region 字节
         /// <summary>
@@ -161,6 +148,16 @@ namespace NewLife.Serialization
         //Int64 ReadEncodedInt64();
         #endregion
 
+        #region 枚举
+        /// <summary>
+        /// 尝试读取目标对象指定成员的值
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <returns>是否读取成功</returns>
+        Boolean ReadEnumerable(Type type, ref Object value);
+        #endregion
+
         #region 读取对象
         /// <summary>
         /// 从数据流中读取指定类型的对象
@@ -176,46 +173,19 @@ namespace NewLife.Serialization
         /// <param name="value">对象</param>
         /// <returns>是否读取成功</returns>
         Boolean ReadObject(Type type, ref Object value);
-
-        ///// <summary>
-        ///// 尝试读取目标对象指定成员的值，通过委托方法递归处理成员
-        ///// </summary>
-        ///// <param name="target">目标对象</param>
-        ///// <param name="member">成员</param>
-        ///// <param name="type">成员类型，以哪一种类型读取</param>
-        ///// <param name="encodeInt">是否编码整数</param>
-        ///// <param name="allowNull">是否允许空</param>
-        ///// <param name="isProperty">是否处理属性</param>
-        ///// <param name="value">成员值</param>
-        ///// <returns>是否读取成功</returns>
-        //Boolean TryReadObject(Object target, MemberInfoX member, Type type, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value);
-
-        ///// <summary>
-        ///// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
-        ///// </summary>
-        ///// <remarks>
-        ///// 简单类型在value中返回，复杂类型直接填充target；
-        ///// </remarks>
-        ///// <param name="target">目标对象</param>
-        ///// <param name="member">成员</param>
-        ///// <param name="type">成员类型，以哪一种类型读取</param>
-        ///// <param name="encodeInt">是否编码整数</param>
-        ///// <param name="allowNull">是否允许空</param>
-        ///// <param name="isProperty">是否处理属性</param>
-        ///// <param name="value">成员值</param>
-        ///// <param name="callback">处理成员的方法</param>
-        ///// <returns>是否读取成功</returns>
-        //Boolean TryReadObject(Object target, MemberInfoX member, Type type, Boolean encodeInt, Boolean allowNull, Boolean isProperty, out Object value, ReadCallback callback);
         #endregion
 
-        #region 枚举
+        #region 事件
         /// <summary>
-        /// 尝试读取目标对象指定成员的值
+        /// 读成员前触发。参数是成员信息和是否取消读取该成员。
+        /// 事件处理器中可以自定义读取成员，然后把第二参数设为false请求读取器不要再读取该成员。
         /// </summary>
-        /// <param name="type">类型</param>
-        /// <param name="value">对象</param>
-        /// <returns>是否读取成功</returns>
-        Boolean ReadEnumerable(Type type, ref Object value);
+        event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnMemberReading;
+
+        /// <summary>
+        /// 读成员后触发。
+        /// </summary>
+        event EventHandler<EventArgs<IObjectMemberInfo, Object>> OnMemberReaded;
         #endregion
     }
 }
