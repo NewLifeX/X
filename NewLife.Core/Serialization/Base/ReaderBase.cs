@@ -6,6 +6,8 @@ using System.Reflection;
 using System.Text;
 using NewLife.Exceptions;
 using NewLife.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 namespace NewLife.Serialization
 {
@@ -327,7 +329,12 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public virtual Boolean ReadEnumerable(Type type, ref Object value, ReadObjectCallback callback)
         {
-            value = null;
+            if (type == null)
+            {
+                if (value == null) throw new ArgumentNullException("type");
+                type = value.GetType();
+            }
+
             if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
 
             #region 计算元素类型
@@ -565,6 +572,12 @@ namespace NewLife.Serialization
                 return true;
             }
 
+            // 调用.Net的二进制序列化来解决剩下的事情
+            BinaryFormatter bf = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream(ReadBytes(-1));
+            value = bf.Deserialize(ms);
+
+            if (value != null) AddObjRef(index, value);
             return true;
         }
 

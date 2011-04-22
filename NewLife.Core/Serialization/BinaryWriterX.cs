@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Reflection;
+using System.Collections;
 
 namespace NewLife.Serialization
 {
@@ -248,12 +249,12 @@ namespace NewLife.Serialization
         /// <param name="type">类型</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        public override bool Write(System.Collections.IEnumerable value, Type type, WriteObjectCallback callback)
+        public override bool Write(IEnumerable value, Type type, WriteObjectCallback callback)
         {
             if (value == null)
             {
-                // 允许空，写入0字节
-                if (Depth > 1) Write(0);
+                // 写入0长度。至此，枚举类型前面就会有两个字节用于标识，一个是是否为空，或者是对象引用，第二个是长度，注意长度为0的枚举类型
+                Write(0);
                 return true;
             }
 
@@ -287,6 +288,7 @@ namespace NewLife.Serialization
                         elementType = t;
                     else if (elementType != item.GetType())
                     {
+                        // 争取找到最顶级的类型
                         if (elementType.IsAssignableFrom(t))
                         {
                             // t继承自elementType
@@ -306,6 +308,8 @@ namespace NewLife.Serialization
                 count = list.Count;
                 value = list;
             }
+            #endregion
+            
             if (count == 0)
             {
                 Write(0);
@@ -314,10 +318,6 @@ namespace NewLife.Serialization
 
             // 可能是Object类型，无法支持
             if (elementType == null) return false;
-
-            //TODO 如果不是基本类型和特殊类型，必须有委托方法
-            //if (!Support(elementType) && callback == null) return false;
-            #endregion
 
             // 写入长度
             Write(count);
@@ -339,19 +339,6 @@ namespace NewLife.Serialization
 
             return ObjectInfo.GetMembers(type, value, true, true);
         }
-        #endregion
-
-        #region 设置
-        ///// <summary>
-        ///// 创建配置
-        ///// </summary>
-        ///// <returns></returns>
-        //protected override ReaderWriterConfig CreateConfig()
-        //{
-        //    BinaryReaderWriterConfig config = new BinaryReaderWriterConfig();
-        //    config.EncodeInt = EncodeInt;
-        //    return config;
-        //}
         #endregion
     }
 }

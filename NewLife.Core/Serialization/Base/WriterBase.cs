@@ -5,6 +5,8 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Collections.Generic;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 namespace NewLife.Serialization
 {
@@ -340,17 +342,22 @@ namespace NewLife.Serialization
 
             foreach (Object item in value)
             {
-                //// 基本类型
-                //if (WriteValue(item, null)) continue;
-                //// 特别支持的常用类型
-                //if (WriteX(item)) continue;
-
-                //if (!callback(this, item, elementType, callback)) return false;
-
-                if (!WriteObject(item, null, callback)) return false;
+                if (!WriteItem(item, null, callback)) return false;
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// 写入枚举数据，复杂类型使用委托方法进行处理
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <param name="type">类型</param>
+        /// <param name="callback">使用指定委托方法处理复杂数据</param>
+        /// <returns>是否写入成功</returns>
+        public virtual Boolean WriteItem(Object value, Type type, WriteObjectCallback callback)
+        {
+            return WriteObject(value, null, callback);
         }
         #endregion
 
@@ -515,6 +522,13 @@ namespace NewLife.Serialization
 
             // 复杂类型，处理对象成员
             if (WriteMembers(value, type, callback)) return true;
+
+            // 调用.Net的二进制序列化来解决剩下的事情
+            BinaryFormatter bf = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream();
+            bf.Serialize(ms, value);
+            ms.Position = 0;
+            Write(ms.ToArray());
 
             return true;
         }

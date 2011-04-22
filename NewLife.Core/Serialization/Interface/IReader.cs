@@ -154,8 +154,9 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
+        /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        Boolean ReadEnumerable(Type type, ref Object value);
+        Boolean ReadEnumerable(Type type, ref Object value, ReadObjectCallback callback);
         #endregion
 
         #region 读取对象

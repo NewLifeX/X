@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
 using System.Xml;
-using NewLife.Collections;
-using NewLife.Reflection;
 using NewLife.Serialization;
 using System.Collections;
 
@@ -168,21 +164,36 @@ namespace NewLife.Xml
         {
             if (Depth > 1) return base.WriteObject(value, type, callback);
 
-            if (String.IsNullOrEmpty(RootName))
-            {
-                if (type == null && value != null) type = value.GetType();
-                if (type != null) RootName = type.Name;
-            }
+            if (type == null && value != null) type = value.GetType();
+            String name = null;
+            if (type != null) name = type.Name;
 
-            Writer.WriteStartDocument();
-            Writer.WriteStartElement(RootName);
+            if (String.IsNullOrEmpty(RootName)) RootName = name;
+
+            if (Depth == 1) Writer.WriteStartDocument();
+            Writer.WriteStartElement(name);
 
             Boolean rs = base.WriteObject(value, type, callback);
 
             Writer.WriteEndElement();
-            Writer.WriteEndDocument();
+            if (Depth == 1) Writer.WriteEndDocument();
             return rs;
         }
+
+        //public override bool WriteMembers(object value, Type type, WriteObjectCallback callback)
+        //{
+        //    if (type == null && value != null) type = value.GetType();
+        //    String name = null;
+        //    if (type != null) name = type.Name;
+
+        //    Writer.WriteStartElement(name);
+            
+        //    Boolean rs = base.WriteMembers(value, type, callback);
+
+        //    Writer.WriteEndElement();
+            
+        //    return rs;
+        //}
 
         /// <summary>
         /// 写入成员
@@ -214,18 +225,20 @@ namespace NewLife.Xml
         #endregion
 
         #region 枚举
-        //public override bool WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
-        //{
-        //    if (value != null) type = value.GetType();
+        public override bool WriteItem(Object value, Type type, WriteObjectCallback callback)
+        {
+            if (type == null && value != null) type = value.GetType();
+            String name = null;
+            if (type != null) name = type.Name;
 
-        //    Writer.WriteStartElement(type.GetElementType().Name + "s");
+            Writer.WriteStartElement(name);
 
-        //    Boolean rs = base.WriteEnumerable(value, type, callback);
+            Boolean rs = base.WriteItem(value, type, callback);
 
-        //    Writer.WriteEndElement();
+            Writer.WriteEndElement();
 
-        //    return rs;
-        //}
+            return rs;
+        }
         #endregion
     }
 }
