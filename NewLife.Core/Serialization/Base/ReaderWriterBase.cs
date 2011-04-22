@@ -82,6 +82,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         internal static Boolean IsDefault(Object value, IObjectMemberInfo member)
         {
+            if (value == null) return false;
+
             Object def = ObjectInfo.GetDefaultObject(value.GetType());
 
             return Object.Equals(member[value], member[def]);

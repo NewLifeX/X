@@ -539,6 +539,8 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public virtual Boolean WriteMembers(Object value, Type type, WriteObjectCallback callback)
         {
+            if (value == null) return true;
+
             IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
 

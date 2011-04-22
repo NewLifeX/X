@@ -93,5 +93,16 @@ namespace NewLife.Serialization
             }
         }
         #endregion
+
+        #region 已重载
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return Name;
+        }
+        #endregion
     }
 }

@@ -194,7 +194,7 @@ namespace NewLife.Xml
         protected override bool WriteMember(object value, IObjectMemberInfo member, WriteObjectCallback callback)
         {
             // 检查成员的值，如果是默认值，则不输出
-            if (IgnoreDefault && IsDefault(value, member)) return true;
+            if (value != null && IgnoreDefault && IsDefault(value, member)) return true;
 
             if (MemberAsAttribute)
                 Writer.WriteStartAttribute(member.Name);

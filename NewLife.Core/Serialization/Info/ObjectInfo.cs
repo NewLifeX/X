@@ -80,15 +80,20 @@ namespace NewLife.Serialization
         //    return dic;
         //}
 
-        static DictionaryCache<Type, IObjectMemberInfo[]> cache = new DictionaryCache<Type, IObjectMemberInfo[]>();
+        static DictionaryCache<Type, IObjectMemberInfo[]> fieldCache = new DictionaryCache<Type, IObjectMemberInfo[]>();
+        static DictionaryCache<Type, IObjectMemberInfo[]> propertyCache = new DictionaryCache<Type, IObjectMemberInfo[]>();
         static IObjectMemberInfo[] GetMembers(Type type, Boolean isField)
         {
-            return cache.GetItem<Boolean>(type, isField, delegate(Type t, Boolean isf)
-            {
-                MemberInfo[] mis = isf ? FindFields(t) : FindProperties(t);
-                return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, delegate(MemberInfo member) { return CreateObjectMemberInfo(member); });
-            });
-
+            if (isField)
+                return fieldCache.GetItem(type, delegate(Type t)
+                {
+                    return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(FindFields(t), delegate(MemberInfo member) { return CreateObjectMemberInfo(member); });
+                });
+            else
+                return propertyCache.GetItem(type, delegate(Type t)
+                {
+                    return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(FindProperties(t), delegate(MemberInfo member) { return CreateObjectMemberInfo(member); });
+                });
         }
 
         static DictionaryCache<Type, MemberInfo[]> cache1 = new DictionaryCache<Type, MemberInfo[]>();
