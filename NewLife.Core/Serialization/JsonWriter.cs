@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Collections;
+using System.Globalization;
 
 namespace NewLife.Serialization
 {
@@ -50,6 +51,21 @@ namespace NewLife.Serialization
             }
         }
 
+        private Boolean _Indent;
+        /// <summary>缩进</summary>
+        public Boolean Indent
+        {
+            get { return _Indent; }
+            set { _Indent = value; }
+        }
+
+        private Boolean _JsDateTimeFormat;
+        /// <summary>Js时间日期格式</summary>
+        public Boolean JsDateTimeFormat
+        {
+            get { return _JsDateTimeFormat; }
+            set { _JsDateTimeFormat = value; }
+        }
         #endregion
 
         #region 已重载
@@ -62,14 +78,26 @@ namespace NewLife.Serialization
             Writer.Write(value);
         }
 
+        /// <summary>
+        /// 将单字节 Boolean 值写入
+        /// </summary>
+        /// <param name="value">要写入的 Boolean 值</param>
         public override void Write(bool value)
         {
             Writer.Write(value ? "true" : "false");
         }
 
+        /// <summary>
+        /// 将一个时间日期写入
+        /// </summary>
+        /// <param name="value"></param>
         public override void Write(DateTime value)
         {
-            Write(String.Format("/Date({0})/", (Int64)(value - BaseDateTime).TotalMilliseconds));
+            String str = String.Format("Date({0})", (Int64)(value - BaseDateTime).TotalMilliseconds);
+            if (JsDateTimeFormat)
+                Write("new " + str);
+            else
+                Write("/" + str + "/");
         }
         #endregion
 
@@ -79,31 +107,55 @@ namespace NewLife.Serialization
             Writer.Write(value);
         }
 
+        /// <summary>
+        /// 将 2 字节有符号整数写入当前流，并将流的位置提升 2 个字节。
+        /// </summary>
+        /// <param name="value">要写入的 2 字节有符号整数。</param>
         public override void Write(short value)
         {
             WriteNumber(value);
         }
 
+        /// <summary>
+        /// 将 4 字节有符号整数写入当前流，并将流的位置提升 4 个字节。
+        /// </summary>
+        /// <param name="value">要写入的 4 字节有符号整数。</param>
         public override void Write(int value)
         {
             WriteNumber(value);
         }
 
+        /// <summary>
+        /// 将 8 字节有符号整数写入当前流，并将流的位置提升 8 个字节。
+        /// </summary>
+        /// <param name="value">要写入的 8 字节有符号整数。</param>
         public override void Write(long value)
         {
             WriteNumber(value);
         }
 
+        /// <summary>
+        /// 将 4 字节浮点值写入当前流，并将流的位置提升 4 个字节。
+        /// </summary>
+        /// <param name="value">要写入的 4 字节浮点值。</param>
         public override void Write(float value)
         {
             WriteNumber(value);
         }
 
+        /// <summary>
+        /// 将 8 字节浮点值写入当前流，并将流的位置提升 8 个字节。
+        /// </summary>
+        /// <param name="value">要写入的 8 字节浮点值。</param>
         public override void Write(double value)
         {
             WriteNumber(value);
         }
 
+        /// <summary>
+        /// 将一个十进制值写入当前流，并将流位置提升十六个字节。
+        /// </summary>
+        /// <param name="value">要写入的十进制值。</param>
         public override void Write(decimal value)
         {
             Writer.Write(value);
@@ -111,11 +163,24 @@ namespace NewLife.Serialization
         #endregion
 
         #region 字符串
+        /// <summary>
+        /// 将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。
+        /// </summary>
+        /// <param name="ch">要写入的非代理项 Unicode 字符。</param>
         public override void Write(char ch)
         {
-            Writer.Write(ch);
+            //Writer.Write(ch);
+
+            if (ch == '\0')
+                Writer.Write("null");
+            else
+                Write(ch.ToString());
         }
 
+        /// <summary>
+        /// 写入字符串
+        /// </summary>
+        /// <param name="value">要写入的值。</param>
         public override void Write(string value)
         {
             value = Encode(value);
@@ -123,22 +188,79 @@ namespace NewLife.Serialization
             Writer.Write("\"" + value + "\"");
         }
 
-        String Encode(String str)
+        static string Encode(string value)
         {
-            if (String.IsNullOrEmpty(str)) return str;
+            if (string.IsNullOrEmpty(value)) return string.Empty;
 
-            return str.Replace("\"", "\\\"")
-                .Replace("\\", "\\\\")
-                .Replace("/", "\\/")
-                .Replace(" ", "\\b")
-                .Replace("\f", "\\f")
-                .Replace("\n", "\\n")
-                .Replace("\r", "\\r")
-                .Replace("\t", "\\t");
+            StringBuilder builder = null;
+            int startIndex = 0;
+            int count = 0;
+            for (int i = 0; i < value.Length; i++)
+            {
+                char c = value[i];
+                // 拥有特殊字符时才编码处理
+                if (c == '\r' || c == '\t' || c == '"' || c == '\'' || c == '<' || c == '>' ||
+                    c == '\\' || c == '\n' || c == '\b' || c == '\f' || c < ' ')
+                {
+                    if (builder == null) builder = new StringBuilder(value.Length + 5);
+
+                    if (count > 0) builder.Append(value, startIndex, count);
+
+                    startIndex = i + 1;
+                    count = 0;
+                }
+                switch (c)
+                {
+                    case '<':
+                    case '>':
+                    case '\'':
+                        builder.Append(@"\u");
+                        builder.Append(((Int32)c).ToString("x4", CultureInfo.InvariantCulture));
+                        continue;
+                    case '\\':
+                        builder.Append(@"\\");
+                        continue;
+                    case '\b':
+                        builder.Append(@"\b");
+                        continue;
+                    case '\t':
+                        builder.Append(@"\t");
+                        continue;
+                    case '\n':
+                        builder.Append(@"\n");
+                        continue;
+                    case '\f':
+                        builder.Append(@"\f");
+                        continue;
+                    case '\r':
+                        builder.Append(@"\r");
+                        continue;
+                    case '"':
+                        builder.Append("\\\"");
+                        continue;
+                }
+                if (c < ' ')
+                {
+                    builder.Append(@"\u");
+                    builder.Append(((Int32)c).ToString("x4", CultureInfo.InvariantCulture));
+                }
+                else
+                    count++;
+            }
+            if (builder == null) return value;
+            if (count > 0) builder.Append(value, startIndex, count);
+            return builder.ToString();
         }
         #endregion
 
         #region 枚举
+        /// <summary>
+        /// 写入枚举数据，复杂类型使用委托方法进行处理
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <param name="type">类型</param>
+        /// <param name="callback">使用指定委托方法处理复杂数据</param>
+        /// <returns>是否写入成功</returns>
         public override bool Write(IEnumerable value, Type type, WriteObjectCallback callback)
         {
             Writer.Write("[");
@@ -148,6 +270,14 @@ namespace NewLife.Serialization
             return rs;
         }
 
+        /// <summary>
+        /// 写入枚举项
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <param name="type">类型</param>
+        /// <param name="index">成员索引</param>
+        /// <param name="callback">使用指定委托方法处理复杂数据</param>
+        /// <returns>是否写入成功</returns>
         public override bool WriteItem(object value, Type type, int index, WriteObjectCallback callback)
         {
             if (index > 0)
@@ -178,6 +308,13 @@ namespace NewLife.Serialization
             return base.WriteObject(value, type, callback);
         }
 
+        /// <summary>
+        /// 写对象成员
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
         public override bool WriteMembers(object value, Type type, WriteObjectCallback callback)
         {
             Writer.Write("{");
