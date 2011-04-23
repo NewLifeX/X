@@ -78,6 +78,19 @@ namespace NewLife.Serialization
         }
 
         /// <summary>
+        /// 将字节数组部分写入当前流。
+        /// </summary>
+        /// <param name="buffer">包含要写入的数据的字节数组。</param>
+        /// <param name="index">buffer 中开始写入的起始点。</param>
+        /// <param name="count">要写入的字节数。</param>
+        public override void Write(byte[] buffer, int index, int count)
+        {
+            if (buffer == null || buffer.Length < 1 || count <= 0 || index >= buffer.Length) return;
+
+            Writer.Write(buffer, index, count);
+        }
+
+        /// <summary>
         /// 判断字节顺序
         /// </summary>
         /// <param name="buffer"></param>
@@ -139,16 +152,20 @@ namespace NewLife.Serialization
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int16 value)
         {
+            List<Byte> list = new List<Byte>();
+
             Int32 count = 1;
             UInt16 num = (UInt16)value;
             while (num >= 0x80)
             {
-                this.Write((byte)(num | 0x80));
+                list.Add((byte)(num | 0x80));
                 num = (UInt16)(num >> 7);
 
                 count++;
             }
-            this.Write((byte)num);
+            list.Add((byte)num);
+
+            Write(list.ToArray());
 
             return count;
         }
@@ -161,16 +178,20 @@ namespace NewLife.Serialization
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int32 value)
         {
+            List<Byte> list = new List<Byte>();
+
             Int32 count = 1;
             UInt32 num = (UInt32)value;
             while (num >= 0x80)
             {
-                this.Write((byte)(num | 0x80));
+                list.Add((byte)(num | 0x80));
                 num = num >> 7;
 
                 count++;
             }
-            this.Write((byte)num);
+            list.Add((byte)num);
+
+            Write(list.ToArray());
 
             return count;
         }
@@ -183,16 +204,20 @@ namespace NewLife.Serialization
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int64 value)
         {
+            List<Byte> list = new List<Byte>();
+
             Int32 count = 1;
             UInt64 num = (UInt64)value;
             while (num >= 0x80)
             {
-                this.Write((byte)(num | 0x80));
+                list.Add((byte)(num | 0x80));
                 num = num >> 7;
 
                 count++;
             }
-            this.Write((byte)num);
+            list.Add((byte)num);
+
+            Write(list.ToArray());
 
             return count;
         }

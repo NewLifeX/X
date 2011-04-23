@@ -33,10 +33,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.8.*")]
-[assembly: AssemblyFileVersion("1.8.2011.0412")]
+[assembly: AssemblyVersion("1.9.*")]
+[assembly: AssemblyFileVersion("1.9.2011.0423")]
 
 /*
+ * v1.9.2011.0423   增加跟踪数据流TraceStream，用于跟踪各种数据流操作
+ * 
  * v1.8.2011.0412   修改获取硬件信息时如果获取某项发生异常时,只有在NewLife.Debug开关打开时才输出异常信息
  * 
  * v1.8.2011.0401   增加Json类

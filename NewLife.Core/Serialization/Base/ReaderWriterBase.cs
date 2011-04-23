@@ -45,6 +45,19 @@ namespace NewLife.Serialization
             }
             set { _Depth = value; }
         }
+
+        private Boolean _EncodeDateTime;
+        /// <summary>编码时间日期，使用1970-01-01以来的秒数代替</summary>
+        public Boolean EncodeDateTime
+        {
+            get { return _EncodeDateTime; }
+            set { _EncodeDateTime = value; }
+        }
+
+        /// <summary>
+        /// 编码时间日期的其实时间，固定1970-01-01
+        /// </summary>
+        public static readonly DateTime BaseDateTime = new DateTime(1970, 1, 1);
         #endregion
 
         #region 方法

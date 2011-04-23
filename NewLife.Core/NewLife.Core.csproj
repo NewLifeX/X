@@ -90,6 +90,7 @@
     <Compile Include="IO\BinaryTest.cs" />
     <Compile Include="IOModule\StreamHttpHandler.cs" />
     <Compile Include="IOModule\IStreamHandler.cs" />
+    <Compile Include="Log\TraceStream.cs" />
     <Compile Include="Serialization\BinaryReaderX.cs" />
     <Compile Include="Serialization\BinaryWriterX.cs" />
     <Compile Include="Serialization\Interface\IAccessor.cs" />

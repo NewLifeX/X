@@ -186,7 +186,13 @@ namespace NewLife.Serialization
         /// 将一个时间日期写入
         /// </summary>
         /// <param name="value"></param>
-        public virtual void Write(DateTime value) { Write(Convert.ToDateTime(value, CultureInfo.InvariantCulture).Ticks); }
+        public virtual void Write(DateTime value)
+        {
+            if (!EncodeDateTime)
+                Write(Convert.ToDateTime(value, CultureInfo.InvariantCulture).Ticks);
+            else
+                Write((Int64)(Convert.ToDateTime(value, CultureInfo.InvariantCulture) - BaseDateTime).TotalSeconds);
+        }
         #endregion
         #endregion
 

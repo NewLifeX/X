@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
-using NewLife.Serialization;
-using NewLife.CommonEntity;
-using System.IO;
-using NewLife.Xml;
 using System.Xml;
+using NewLife.CommonEntity;
+using NewLife.Serialization;
+using NewLife.Xml;
+using NewLife.Log;
 
 namespace Test
 {
@@ -19,9 +18,14 @@ namespace Test
         /// </summary>
         public static void BinaryTest()
         {
+            TraceStream ts = new TraceStream();
+            ts.UseConsole = true;
+
             BinaryWriterX writer = new BinaryWriterX();
+            writer.Stream = ts;
             //writer.IsLittleEndian = false;
             writer.EncodeInt = true;
+            writer.EncodeDateTime = true;
 
             Administrator entity = GetDemo();
 
@@ -34,6 +38,7 @@ namespace Test
             reader.Stream = writer.Stream;
             reader.Stream.Position = 0;
             reader.EncodeInt = true;
+            reader.EncodeDateTime = true;
 
             Administrator admin = new Admin();
             Object obj = admin;
@@ -48,7 +53,11 @@ namespace Test
         /// </summary>
         public static void XmlTest()
         {
+            TraceStream ts = new TraceStream();
+            ts.UseConsole = true;
+
             XmlWriterX writer = new XmlWriterX();
+            writer.Stream = ts;
             writer.MemberAsAttribute = false;
             writer.IgnoreDefault = false;
 

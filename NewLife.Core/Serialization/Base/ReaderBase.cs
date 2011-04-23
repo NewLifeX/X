@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
-using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using NewLife.Exceptions;
 using NewLife.Reflection;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.IO;
 
 namespace NewLife.Serialization
 {
@@ -199,7 +198,13 @@ namespace NewLife.Serialization
         /// 读取一个时间日期
         /// </summary>
         /// <returns></returns>
-        public virtual DateTime ReadDateTime() { return new DateTime(ReadInt64()); }
+        public virtual DateTime ReadDateTime()
+        {
+            if (!EncodeDateTime)
+                return new DateTime(ReadInt64());
+            else
+                return BaseDateTime.AddSeconds(ReadInt64());
+        }
         #endregion
         #endregion
 

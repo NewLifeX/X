@@ -22,6 +22,9 @@ namespace NewLife.Serialization
 
         /// <summary>层次深度。</summary>
         Int32 Depth { get; set; }
+
+        /// <summary>编码时间日期，使用1970-01-01以来的秒数代替</summary>
+        Boolean EncodeDateTime { get; set; }
         #endregion
 
         #region 方法
