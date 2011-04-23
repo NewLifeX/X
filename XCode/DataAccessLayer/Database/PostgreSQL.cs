@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Data.Common;
-using System.IO;
-using System.Reflection;
-using System.Web;
-using System.Data;
-using System.Text;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
+using System.Text;
 
 namespace XCode.DataAccessLayer
 {

@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
-using System.Web;
-using System.IO;
 using NewLife.Collections;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;

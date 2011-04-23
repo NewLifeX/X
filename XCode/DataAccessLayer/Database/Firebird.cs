@@ -1,15 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.IO;
-using System.Reflection;
-using System.Web;
-using System.Data;
-using System.Text;
-using System.Collections.Generic;
-using XCode.Exceptions;
 using System.Text.RegularExpressions;
-using System.Data.OleDb;
 using NewLife.Reflection;
+using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {

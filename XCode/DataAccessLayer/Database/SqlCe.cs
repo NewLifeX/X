@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Data.SqlTypes;
 using System.Data.Common;
-using System.Data.OleDb;
-using System.IO;
-using XCode.Exceptions;
-using System.Reflection;
-using System.Web;
+using System.Data.SqlTypes;
 
 namespace XCode.DataAccessLayer
 {
