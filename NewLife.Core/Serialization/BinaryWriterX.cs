@@ -17,8 +17,28 @@ namespace NewLife.Serialization
         /// <summary>写入器</summary>
         public BinaryWriter Writer
         {
-            get { return _Writer; }
-            set { _Writer = value; }
+            get { return _Writer ?? (_Writer = new BinaryWriter(Stream, Encoding)); }
+            set
+            {
+                _Writer = value;
+                if (Stream != _Writer.BaseStream) Stream = _Writer.BaseStream;
+            }
+        }
+
+        /// <summary>
+        /// 数据流。更改数据流后，重置Writer为空，以使用新的数据流
+        /// </summary>
+        public override Stream Stream
+        {
+            get
+            {
+                return base.Stream;
+            }
+            set
+            {
+                if (base.Stream != value) _Writer = null;
+                base.Stream = value;
+            }
         }
 
         private Boolean _IsLittleEndian = true;
@@ -309,7 +329,7 @@ namespace NewLife.Serialization
                 value = list;
             }
             #endregion
-            
+
             if (count == 0)
             {
                 Write(0);
@@ -338,6 +358,28 @@ namespace NewLife.Serialization
             if (type == null) throw new ArgumentNullException("type");
 
             return ObjectInfo.GetMembers(type, value, true, true);
+        }
+        #endregion
+
+        #region 方法
+        /// <summary>
+        /// 刷新缓存中的数据
+        /// </summary>
+        public override void Flush()
+        {
+            Writer.Flush();
+
+            base.Flush();
+        }
+
+        /// <summary>
+        /// 重置
+        /// </summary>
+        public override void Reset()
+        {
+            objRefs.Clear();
+
+            base.Reset();
         }
         #endregion
     }

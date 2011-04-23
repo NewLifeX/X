@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
-using NewLife.IO;
-using NewLife.Serialization;
 using System.Xml;
-using System.Reflection;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Xml
 {
@@ -19,8 +18,40 @@ namespace NewLife.Xml
         /// <summary>读取器</summary>
         public XmlReader Reader
         {
-            get { return _Reader; }
-            set { _Reader = value; }
+            get
+            {
+                if (_Reader == null)
+                {
+                    XmlReaderSettings settings = new XmlReaderSettings();
+                    settings.IgnoreWhitespace = true;
+                    settings.IgnoreComments = true;
+                    _Reader = XmlReader.Create(Stream, settings);
+                }
+                return _Reader;
+            }
+            set
+            {
+                _Reader = value;
+
+                XmlTextReader xr = _Reader as XmlTextReader;
+                if (xr != null && Encoding != xr.Encoding) Encoding = xr.Encoding;
+            }
+        }
+
+        /// <summary>
+        /// 数据流。更改数据流后，重置Reader为空，以使用新的数据流
+        /// </summary>
+        public override Stream Stream
+        {
+            get
+            {
+                return base.Stream;
+            }
+            set
+            {
+                if (base.Stream != value) _Reader = null;
+                base.Stream = value;
+            }
         }
 
         private String _RootName;
@@ -175,6 +206,13 @@ namespace NewLife.Xml
         #endregion
 
         #region 枚举
+        /// <summary>
+        /// 读取元素集合
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="elementTypes"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
         protected override Array[] ReadItems(Type type, Type[] elementTypes, ReadObjectCallback callback)
         {
             Reader.ReadStartElement();
@@ -186,6 +224,13 @@ namespace NewLife.Xml
             return rs;
         }
 
+        /// <summary>
+        /// 读取项
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
         protected override bool ReadItem(Type type, ref object value, ReadObjectCallback callback)
         {
             if (Reader.Name != type.Name) return false;

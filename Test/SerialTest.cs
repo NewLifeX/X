@@ -20,9 +20,6 @@ namespace Test
         public static void BinaryTest()
         {
             BinaryWriterX writer = new BinaryWriterX();
-            MemoryStream ms = new MemoryStream();
-            writer.Writer = new BinaryWriter(ms);
-
             //writer.IsLittleEndian = false;
             writer.EncodeInt = true;
 
@@ -30,12 +27,12 @@ namespace Test
 
             writer.WriteObject(entity);
 
-            Byte[] buffer = ms.ToArray();
+            Byte[] buffer = writer.ToArray();
             Console.WriteLine(BitConverter.ToString(buffer));
 
             BinaryReaderX reader = new BinaryReaderX();
-            ms.Position = 0;
-            reader.Reader = new BinaryReader(ms);
+            reader.Stream = writer.Stream;
+            reader.Stream.Position = 0;
             reader.EncodeInt = true;
 
             Administrator admin = new Admin();
@@ -52,11 +49,6 @@ namespace Test
         public static void XmlTest()
         {
             XmlWriterX writer = new XmlWriterX();
-            MemoryStream ms = new MemoryStream();
-            XmlTextWriter xtw = new XmlTextWriter(ms, writer.Encoding);
-            xtw.Formatting = Formatting.Indented;
-            writer.Writer = xtw;
-
             writer.MemberAsAttribute = false;
             writer.IgnoreDefault = false;
 
@@ -64,26 +56,24 @@ namespace Test
 
             writer.WriteObject(entity);
 
-            writer.Writer.Flush();
-            Byte[] buffer = ms.ToArray();
+            writer.Flush();
+            Byte[] buffer = writer.ToArray();
             Console.WriteLine(Encoding.UTF8.GetString(buffer));
 
-            XmlReaderX reader = new XmlReaderX();
-            ms.Position = 0;
-            //reader.Reader = new XmlTextReader(ms);
-            XmlReaderSettings setting = new XmlReaderSettings();
-            setting.IgnoreWhitespace = true;
-
             #region 测试
-            XmlReader xr = XmlReader.Create(ms, setting);
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.IgnoreWhitespace = true;
+            writer.Stream.Position = 0;
+            XmlReader xr = XmlReader.Create(writer.Stream, settings);
             while (xr.Read())
             {
                 Console.WriteLine("{0}, {1}={2}", xr.NodeType, xr.Name, xr.Value);
             }
             #endregion
 
-            ms.Position = 0;
-            reader.Reader = XmlReader.Create(ms, setting);
+            XmlReaderX reader = new XmlReaderX();
+            reader.Stream = writer.Stream;
+            reader.Stream.Position = 0;
             reader.MemberAsAttribute = writer.MemberAsAttribute;
             reader.IgnoreDefault = writer.IgnoreDefault;
 

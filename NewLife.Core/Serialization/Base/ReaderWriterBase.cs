@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.IO;
 
 namespace NewLife.Serialization
 {
@@ -17,6 +18,22 @@ namespace NewLife.Serialization
             set { _Encoding = value; }
         }
 
+        private Stream _Stream;
+        /// <summary>数据流。默认实例化一个MemoryStream，设置值时将重置Depth为1</summary>
+        public virtual Stream Stream
+        {
+            get { return _Stream ?? (_Stream = new MemoryStream()); }
+            set
+            {
+                if (_Stream != value)
+                {
+                    Depth = 1;
+
+                    _Stream = value;
+                }
+            }
+        }
+
         private Int32 _Depth;
         /// <summary>层次深度</summary>
         public Int32 Depth
@@ -27,6 +44,16 @@ namespace NewLife.Serialization
                 return _Depth;
             }
             set { _Depth = value; }
+        }
+        #endregion
+
+        #region 方法
+        /// <summary>
+        /// 重置
+        /// </summary>
+        public virtual void Reset()
+        {
+            Depth = 1;
         }
         #endregion
 

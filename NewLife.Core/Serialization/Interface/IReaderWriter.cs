@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
+using System.IO;
 
 namespace NewLife.Serialization
 {
@@ -14,11 +15,21 @@ namespace NewLife.Serialization
         /// <summary>字符串编码。</summary>
         Encoding Encoding { get; set; }
 
+        /// <summary>
+        /// 数据流
+        /// </summary>
+        Stream Stream { get; set; }
+
         /// <summary>层次深度。</summary>
         Int32 Depth { get; set; }
         #endregion
 
         #region 方法
+        /// <summary>
+        /// 重置
+        /// </summary>
+        void Reset();
+
         /// <summary>
         /// 获取需要序列化的成员
         /// </summary>

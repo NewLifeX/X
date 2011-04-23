@@ -172,6 +172,19 @@ namespace NewLife.Serialization
         Boolean WriteObjRef(Object value);
         #endregion
 
+        #region 方法
+        /// <summary>
+        /// 刷新缓存中的数据
+        /// </summary>
+        void Flush();
+
+        /// <summary>
+        /// 输出数据转为字节数组
+        /// </summary>
+        /// <returns></returns>
+        Byte[] ToArray();
+        #endregion
+
         #region 事件
         ///// <summary>
         ///// 写成员前触发。参数是成员信息和是否取消写入该成员。

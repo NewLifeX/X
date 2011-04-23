@@ -19,8 +19,28 @@ namespace NewLife.Serialization
         /// <summary>读取器</summary>
         public BinaryReader Reader
         {
-            get { return _Reader; }
-            set { _Reader = value; }
+            get { return _Reader ?? (_Reader = new BinaryReader(Stream, Encoding)); }
+            set
+            {
+                _Reader = value;
+                if (Stream != _Reader.BaseStream) Stream = _Reader.BaseStream;
+            }
+        }
+
+        /// <summary>
+        /// 数据流。更改数据流后，重置Reader为空，以使用新的数据流
+        /// </summary>
+        public override Stream Stream
+        {
+            get
+            {
+                return base.Stream;
+            }
+            set
+            {
+                if (base.Stream != value) _Reader = null;
+                base.Stream = value;
+            }
         }
 
         private Boolean _IsLittleEndian = true;
@@ -84,6 +104,16 @@ namespace NewLife.Serialization
             if (!IsLittleEndian) Array.Reverse(buffer);
 
             return buffer;
+        }
+
+        /// <summary>
+        /// 重置
+        /// </summary>
+        public override void Reset()
+        {
+            objRefs.Clear();
+
+            base.Reset();
         }
         #endregion
 
@@ -194,6 +224,13 @@ namespace NewLife.Serialization
         #endregion
 
         #region 枚举
+        /// <summary>
+        /// 读取元素集合
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="elementTypes"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
         protected override Array[] ReadItems(Type type, Type[] elementTypes, ReadObjectCallback callback)
         {
             Type elementType = null;

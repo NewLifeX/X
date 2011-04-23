@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 
 namespace NewLife.Serialization
 {
@@ -9,6 +10,47 @@ namespace NewLife.Serialization
     /// </summary>
     public class JsonWriter : WriterBase
     {
+        #region 属性
+        private TextWriter _Writer;
+        /// <summary>写入器</summary>
+        public TextWriter Writer
+        {
+            get
+            {
+                if (_Writer == null)
+                {
+                    _Writer = new StreamWriter(Stream, Encoding);
+                }
+                return _Writer;
+            }
+            set
+            {
+                _Writer = value;
+                if (Encoding != _Writer.Encoding) Encoding = _Writer.Encoding;
+
+                StreamWriter sw = _Writer as StreamWriter;
+                if (sw != null && sw.BaseStream != Stream) Stream = sw.BaseStream;
+            }
+        }
+
+        /// <summary>
+        /// 数据流。更改数据流后，重置Writer为空，以使用新的数据流
+        /// </summary>
+        public override Stream Stream
+        {
+            get
+            {
+                return base.Stream;
+            }
+            set
+            {
+                if (base.Stream != value) _Writer = null;
+                base.Stream = value;
+            }
+        }
+
+        #endregion
+
         /// <summary>
         /// 
         /// </summary>
@@ -39,6 +81,18 @@ namespace NewLife.Serialization
             Write("]");
 
             return rs;
+        }
+        #endregion
+
+        #region 方法
+        /// <summary>
+        /// 刷新缓存中的数据
+        /// </summary>
+        public override void Flush()
+        {
+            Writer.Flush();
+
+            base.Flush();
         }
         #endregion
     }

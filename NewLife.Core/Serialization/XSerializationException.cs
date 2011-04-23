@@ -13,9 +13,9 @@ namespace NewLife.Serialization
     [Serializable]
     public class XSerializationException : XException
     {
-        private MemberInfo _Member;
+        private IObjectMemberInfo _Member;
         /// <summary>成员</summary>
-        public MemberInfo Member
+        public IObjectMemberInfo Member
         {
             get { return _Member; }
             //set { _Member = value; }
@@ -26,14 +26,14 @@ namespace NewLife.Serialization
         /// 初始化
         /// </summary>
         /// <param name="member"></param>
-        public XSerializationException(MemberInfo member) { _Member = member; }
+        public XSerializationException(IObjectMemberInfo member) { _Member = member; }
 
         /// <summary>
         /// 初始化
         /// </summary>
         /// <param name="member"></param>
         /// <param name="message"></param>
-        public XSerializationException(MemberInfo member, String message) : base(message) { _Member = member; }
+        public XSerializationException(IObjectMemberInfo member, String message) : base(message) { _Member = member; }
 
         /// <summary>
         /// 初始化
@@ -41,8 +41,8 @@ namespace NewLife.Serialization
         /// <param name="member"></param>
         /// <param name="message"></param>
         /// <param name="innerException"></param>
-        public XSerializationException(MemberInfo member, String message, Exception innerException)
-            : base(message + (member != null ? "[" + member.MemberType + ":" + member.Name + "]" : null), innerException)
+        public XSerializationException(IObjectMemberInfo member, String message, Exception innerException)
+            : base(message + (member != null ? "[Member:" + member.Name + "]" : null), innerException)
         {
             _Member = member;
         }
@@ -52,8 +52,8 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="member"></param>
         /// <param name="innerException"></param>
-        public XSerializationException(MemberInfo member, Exception innerException)
-            : base((innerException != null ? innerException.Message : null) + (member != null ? "[" + member.MemberType + ":" + member.Name + "]" : null), innerException)
+        public XSerializationException(IObjectMemberInfo member, Exception innerException)
+            : base((innerException != null ? innerException.Message : null) + (member != null ? "[Member:" + member.Name + "]" : null), innerException)
         {
             _Member = member;
         }

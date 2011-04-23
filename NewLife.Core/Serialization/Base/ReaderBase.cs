@@ -392,11 +392,25 @@ namespace NewLife.Serialization
             return false;
         }
 
+        /// <summary>
+        /// 读取项
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
         protected virtual Boolean ReadItem(Type type, ref Object value, ReadObjectCallback callback)
         {
             return ReadObject(type, ref value, callback);
         }
 
+        /// <summary>
+        /// 读取元素集合
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="elementTypes"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
         protected virtual Array[] ReadItems(Type type, Type[] elementTypes, ReadObjectCallback callback)
         {
             //Type elementType = null;
@@ -439,6 +453,14 @@ namespace NewLife.Serialization
             //return arrs;
         }
 
+        /// <summary>
+        /// 处理结果集
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="elementTypes"></param>
+        /// <param name="value"></param>
+        /// <param name="arrs"></param>
+        /// <returns></returns>
         protected Boolean ProcessItems(Type type, Type[] elementTypes, ref Object value, Array[] arrs)
         {
             Type elementType = null;

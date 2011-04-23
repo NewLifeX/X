@@ -1,7 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Xml;
 using NewLife.Serialization;
-using System.Collections;
 
 namespace NewLife.Xml
 {
@@ -15,8 +15,41 @@ namespace NewLife.Xml
         /// <summary>写入器</summary>
         public XmlWriter Writer
         {
-            get { return _Writer; }
-            set { _Writer = value; }
+            get
+            {
+                if (_Writer == null)
+                {
+                    XmlWriterSettings settings = new XmlWriterSettings();
+                    settings.Encoding = Encoding;
+                    settings.Indent = true;
+                    _Writer = XmlWriter.Create(Stream, settings);
+                }
+                return _Writer;
+            }
+            set
+            {
+                _Writer = value;
+                if (Encoding != _Writer.Settings.Encoding) Encoding = _Writer.Settings.Encoding;
+
+                XmlTextWriter xw = _Writer as XmlTextWriter;
+                if (xw != null && Stream != xw.BaseStream) Stream = xw.BaseStream;
+            }
+        }
+
+        /// <summary>
+        /// 数据流。更改数据流后，重置Writer为空，以使用新的数据流
+        /// </summary>
+        public override Stream Stream
+        {
+            get
+            {
+                return base.Stream;
+            }
+            set
+            {
+                if (base.Stream != value) _Writer = null;
+                base.Stream = value;
+            }
         }
 
         private String _RootName;
@@ -230,6 +263,18 @@ namespace NewLife.Xml
             Writer.WriteEndElement();
 
             return rs;
+        }
+        #endregion
+
+        #region 方法
+        /// <summary>
+        /// 刷新缓存中的数据
+        /// </summary>
+        public override void Flush()
+        {
+            Writer.Flush();
+
+            base.Flush();
         }
         #endregion
     }
