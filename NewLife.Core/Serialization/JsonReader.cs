@@ -53,6 +53,8 @@ namespace NewLife.Serialization
         }
 
         #endregion
+
+        #region 字节
         /// <summary>
         /// 读取字节
         /// </summary>
@@ -61,5 +63,14 @@ namespace NewLife.Serialization
         {
             throw new NotImplementedException();
         }
+
+        public override byte[] ReadBytes(int count)
+        {
+            return base.ReadBytes(count);
+        }
+        #endregion
+
+        #region 数字
+        #endregion
     }
 }

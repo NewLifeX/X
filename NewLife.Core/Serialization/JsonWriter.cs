@@ -79,6 +79,17 @@ namespace NewLife.Serialization
         }
 
         /// <summary>
+        /// 将字节数组部分写入当前流。
+        /// </summary>
+        /// <param name="buffer">包含要写入的数据的字节数组。</param>
+        /// <param name="index">buffer 中开始写入的起始点。</param>
+        /// <param name="count">要写入的字节数。</param>
+        public override void Write(byte[] buffer, int index, int count)
+        {
+            Write(Encoding.GetString(buffer, index, count));
+        }
+
+        /// <summary>
         /// 将单字节 Boolean 值写入
         /// </summary>
         /// <param name="value">要写入的 Boolean 值</param>
