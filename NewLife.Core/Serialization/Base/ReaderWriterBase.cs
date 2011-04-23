@@ -57,7 +57,7 @@ namespace NewLife.Serialization
         /// <summary>
         /// 编码时间日期的其实时间，固定1970-01-01
         /// </summary>
-        public static readonly DateTime BaseDateTime = new DateTime(1970, 1, 1);
+        public static readonly DateTime BaseDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         #endregion
 
         #region 方法

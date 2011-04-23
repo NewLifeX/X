@@ -518,6 +518,7 @@ namespace Test
             //AppTest.Start();
             SerialTest.BinaryTest();
             SerialTest.XmlTest();
+            SerialTest.JsonTest();
         }
     }
 }

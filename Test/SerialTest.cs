@@ -92,6 +92,35 @@ namespace Test
             Console.WriteLine(obj != null);
         }
 
+        public static void JsonTest()
+        {
+            Console.Clear();
+
+            TraceStream ts = new TraceStream();
+            //ts.UseConsole = true;
+
+            JsonWriter writer = new JsonWriter();
+            writer.Stream = ts;
+
+            Administrator entity = GetDemo();
+
+            writer.WriteObject(entity);
+
+            Console.WriteLine(writer.ToString());
+
+            NewLife.IO.Json json = new NewLife.IO.Json();
+            Console.WriteLine(json.Serialize(entity));
+
+            JsonReader reader = new JsonReader();
+            reader.Stream = writer.Stream;
+            reader.Stream.Position = 0;
+
+            Administrator admin = new Admin();
+            Object obj = admin;
+            reader.ReadObject(null, ref obj);
+            Console.WriteLine(obj != null);
+        }
+
         static Administrator GetDemo()
         {
             Admin entity = new Admin();

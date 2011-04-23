@@ -346,9 +346,10 @@ namespace NewLife.Serialization
             type = value.GetType();
             if (type != null && !typeof(IEnumerable).IsAssignableFrom(type)) throw new Exception("目标类型不是枚举类型！");
 
+            Int32 i = 0;
             foreach (Object item in value)
             {
-                if (!WriteItem(item, null, callback)) return false;
+                if (!WriteItem(item, null, i++, callback)) return false;
             }
 
             return true;
@@ -359,9 +360,10 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value">对象</param>
         /// <param name="type">类型</param>
+        /// <param name="index">成员索引</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteItem(Object value, Type type, WriteObjectCallback callback)
+        public virtual Boolean WriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
             return WriteObject(value, null, callback);
         }
@@ -553,10 +555,16 @@ namespace NewLife.Serialization
             IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
 
-            foreach (IObjectMemberInfo item in mis)
+            //foreach (IObjectMemberInfo item in mis)
+            //{
+            //    Depth++;
+            //    if (!WriteMember(value, item, callback)) return false;
+            //    Depth--;
+            //}
+            for (int i = 0; i < mis.Length; i++)
             {
                 Depth++;
-                if (!WriteMember(value, item, callback)) return false;
+                if (!WriteMember(value, mis[i], i, callback)) return false;
                 Depth--;
             }
 
@@ -568,9 +576,10 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="member">成员</param>
+        /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected virtual Boolean WriteMember(Object value, IObjectMemberInfo member, WriteObjectCallback callback)
+        protected virtual Boolean WriteMember(Object value, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
         {
 #if !DEBUG
             try
@@ -660,6 +669,18 @@ namespace NewLife.Serialization
             }
 
             return ms.ToArray();
+        }
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            Byte[] buffer = ToArray();
+            if (buffer == null || buffer.Length < 1) return base.ToString();
+
+            return Encoding.GetString(buffer);
         }
         #endregion
 
