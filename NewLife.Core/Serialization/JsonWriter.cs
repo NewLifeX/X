@@ -272,10 +272,10 @@ namespace NewLife.Serialization
         /// <param name="type">类型</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        public override bool Write(IEnumerable value, Type type, WriteObjectCallback callback)
+        public override bool WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
         {
             Writer.Write("[");
-            Boolean rs = base.Write(value, type, callback);
+            Boolean rs = base.WriteEnumerable(value, type, callback);
             Writer.Write("]");
 
             return rs;
@@ -326,11 +326,11 @@ namespace NewLife.Serialization
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        public override bool WriteMembers(object value, Type type, WriteObjectCallback callback)
+        public override bool WriteCustomObject(object value, Type type, WriteObjectCallback callback)
         {
             Writer.Write("{");
             Writer.WriteLine();
-            Boolean rs = base.WriteMembers(value, type, callback);
+            Boolean rs = base.WriteCustomObject(value, type, callback);
             Writer.WriteLine();
             Writer.Write("}");
 

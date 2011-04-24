@@ -148,9 +148,20 @@ namespace NewLife.Serialization
         //Int64 ReadEncodedInt64();
         #endregion
 
+        #region 字典
+        /// <summary>
+        /// 尝试读取字典类型对象
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        Boolean ReadDictionary(Type type, ref Object value, ReadObjectCallback callback);
+        #endregion
+
         #region 枚举
         /// <summary>
-        /// 尝试读取目标对象指定成员的值
+        /// 尝试读取枚举类型对象
         /// </summary>
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
@@ -161,7 +172,7 @@ namespace NewLife.Serialization
 
         #region 读取对象
         /// <summary>
-        /// 尝试读取目标对象指定成员的值
+        /// 尝试按照指定类型读取目标对象
         /// </summary>
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>

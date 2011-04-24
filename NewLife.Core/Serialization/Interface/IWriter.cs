@@ -143,6 +143,17 @@ namespace NewLife.Serialization
         #endregion
         #endregion
 
+        #region 字典
+        /// <summary>
+        /// 写入字典类型数据
+        /// </summary>
+        /// <param name="value">字典数据</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        Boolean WriteDictionary(IDictionary value, Type type, WriteObjectCallback callback);
+        #endregion
+
         #region 枚举
         /// <summary>
         /// 写入枚举类型数据
@@ -151,7 +162,7 @@ namespace NewLife.Serialization
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        Boolean Write(IEnumerable value, Type type, WriteObjectCallback callback);
+        Boolean WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback);
         #endregion
 
         #region 写入对象
