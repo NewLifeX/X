@@ -140,7 +140,13 @@ namespace NewLife.Serialization
         /// <param name="count">要写入的字符数。</param>
         public virtual void Write(char[] chars, int index, int count)
         {
-            if (chars == null || chars.Length < 1 || count <= 0 || index >= chars.Length)
+            if (chars == null)
+            {
+                Write(-1);
+                return;
+            }
+
+            if (chars.Length < 1 || count <= 0 || index >= chars.Length)
             {
                 Write(0);
                 return;
@@ -520,8 +526,6 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public void Write(Type value)
         {
-            if (WriteObjRef(value)) return;
-
             // 特殊处理泛型，把泛型类型和泛型参数拆分开来，充分利用对象引用以及FullName
             if (value.IsGenericType && !value.IsGenericTypeDefinition)
             {
@@ -532,6 +536,8 @@ namespace NewLife.Serialization
                 }
                 return;
             }
+
+            if (WriteObjRef(value)) return;
 
             // 尽管使用AssemblyQualifiedName更精确，但是它的长度实在太大了
             Write(value.FullName);

@@ -166,7 +166,8 @@ namespace NewLife.Serialization
         {
             // 先读长度
             Int32 n = ReadInt32();
-            if (n <= 0) return null;
+            if (n < 0) return null;
+            if (n == 0) return String.Empty;
 
             Byte[] buffer = ReadBytes(n);
 
@@ -780,26 +781,29 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Type ReadType()
         {
-            return ReadObjRef<Type>(delegate
+            Type t = ReadObjRef<Type>(delegate
             {
                 String typeName = ReadString();
                 if (String.IsNullOrEmpty(typeName)) return null;
 
                 Type type = TypeX.GetType(typeName);
-                if (type != null)
-                {
-                    // 处理泛型
-                    if (type.IsGenericType && type.IsGenericTypeDefinition)
-                    {
-                        Type[] ts = type.GetGenericArguments();
-                        ts = type.GetGenericParameterConstraints();
-                    }
-
-                    return type;
-                }
+                if (type != null) return type;
 
                 throw new XException("无法找到名为{0}的类型！", typeName);
             });
+
+            // 处理泛型
+            if (t != null && t.IsGenericType && t.IsGenericTypeDefinition)
+            {
+                Type[] ts = t.GetGenericArguments();
+                for (int i = 0; i < ts.Length; i++)
+                {
+                    ts[i] = ReadType();
+                }
+                t = t.MakeGenericType(ts);
+            }
+
+            return t;
         }
         #endregion
 

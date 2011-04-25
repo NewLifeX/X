@@ -519,7 +519,12 @@ namespace Test
             //SerialTest.BinaryTest();
             //SerialTest.XmlTest();
             //SerialTest.JsonTest();
-            SerialTest.Start();
+            //SerialTest.Start();
+
+            FieldInfoX fix=FieldInfoX
+
+            CodeTimer.TimeLine("List", count, delegate { list.Contains(key); });
+
         }
     }
 }
