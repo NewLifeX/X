@@ -9,6 +9,7 @@ namespace NewLife.CommonEntity
     /// 通用实体类基类
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
+    [Serializable]
     public class CommonEntityBase<TEntity> : Entity<TEntity> where TEntity : CommonEntityBase<TEntity>, new()
     {
         #region 日志

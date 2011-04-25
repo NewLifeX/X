@@ -43,29 +43,12 @@ namespace NewLife.Serialization
             }
         }
 
-        private Boolean _IsLittleEndian = true;
-        /// <summary>
-        /// 是否小端字节序。
-        /// </summary>
-        /// <remarks>
-        /// 网络协议都是Big-Endian；
-        /// Java编译的都是Big-Endian；
-        /// Motorola的PowerPC是Big-Endian；
-        /// x86系列则采用Little-Endian方式存储数据；
-        /// ARM同时支持 big和little，实际应用中通常使用Little-Endian。
-        /// </remarks>
-        public Boolean IsLittleEndian
+        private BinarySettings _Settings;
+        /// <summary>设置</summary>
+        public BinarySettings Settings
         {
-            get { return _IsLittleEndian; }
-            set { _IsLittleEndian = value; }
-        }
-
-        private Boolean _EncodeInt;
-        /// <summary>编码整数</summary>
-        public Boolean EncodeInt
-        {
-            get { return _EncodeInt; }
-            set { _EncodeInt = value; }
+            get { return _Settings ?? (_Settings = new BinarySettings()); }
+            set { _Settings = value; }
         }
         #endregion
 
@@ -101,7 +84,7 @@ namespace NewLife.Serialization
             Byte[] buffer = base.ReadIntBytes(count);
 
             // 如果不是小端字节顺序，则倒序
-            if (!IsLittleEndian) Array.Reverse(buffer);
+            if (!Settings.IsLittleEndian) Array.Reverse(buffer);
 
             return buffer;
         }
@@ -124,7 +107,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override short ReadInt16()
         {
-            if (EncodeInt)
+            if (Settings.EncodeInt)
                 return ReadEncodedInt16();
             else
                 return base.ReadInt16();
@@ -136,7 +119,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override int ReadInt32()
         {
-            if (EncodeInt)
+            if (Settings.EncodeInt)
                 return ReadEncodedInt32();
             else
                 return base.ReadInt32();
@@ -148,7 +131,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override long ReadInt64()
         {
-            if (EncodeInt)
+            if (Settings.EncodeInt)
                 return ReadEncodedInt64();
             else
                 return base.ReadInt64();
@@ -386,19 +369,18 @@ namespace NewLife.Serialization
 
         #region 读取对象
         /// <summary>
-        /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
+        /// 尝试读取引用对象
         /// </summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        public override bool ReadCustomObject(Type type, ref object value, ReadObjectCallback callback)
+        protected override bool ReadRefObject(Type type, ref object value, ReadObjectCallback callback)
         {
-            // 引用类型允许空时，先读取一个字节判断对象是否为空
-            //if (!type.IsValueType && !config.Required && !ReadBoolean()) return true;
-            if (!type.IsValueType && Depth > 1 && !ReadBoolean()) return true;
+            if (value != null) type = value.GetType();
+            if (!Settings.IgnoreType) type = ReadType();
 
-            return base.ReadCustomObject(type, ref value, callback);
+            return base.ReadRefObject(type, ref value, callback);
         }
 
         List<Object> objRefs = new List<Object>();
@@ -412,7 +394,11 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public override Boolean ReadObjRef(Type type, ref object value, out Int32 index)
         {
-            index = ReadInt32();
+            // 顶级特殊处理
+            if (Depth <= 1)
+                index = 1;
+            else
+                index = ReadInt32();
 
             if (index < 0) return false;
 
@@ -442,13 +428,28 @@ namespace NewLife.Serialization
         /// <param name="value">对象</param>
         protected override void AddObjRef(Int32 index, object value)
         {
-            //if (value != null && !objRefs.Contains(value)) objRefs.Add(value);
-
             if (value == null) return;
 
             while (index > objRefs.Count) objRefs.Add(null);
 
             objRefs[index - 1] = value;
+        }
+        #endregion
+
+        #region 自定义对象
+        /// <summary>
+        /// 读取成员
+        /// </summary>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        protected override bool ReadMember(ref object value, IObjectMemberInfo member, ReadObjectCallback callback)
+        {
+            //todo 这里只是简单的判断名称是否相同，然后返回失败。实际上，应该根据名称来读取
+            if (!Settings.IgnoreName && ReadString() != member.Name) return false;
+
+            return base.ReadMember(ref value, member, callback);
         }
         #endregion
 

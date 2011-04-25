@@ -19,6 +19,7 @@ namespace NewLife.CommonEntity
     /// <typeparam name="TMenuEntity">菜单实体类</typeparam>
     /// <typeparam name="TRoleMenuEntity">角色菜单实体类</typeparam>
     /// <typeparam name="TLogEntity">日志实体类</typeparam>
+    [Serializable]
     public partial class Administrator<TEntity, TRoleEntity, TMenuEntity, TRoleMenuEntity, TLogEntity> : Administrator<TEntity>
         where TEntity : Administrator<TEntity, TRoleEntity, TMenuEntity, TRoleMenuEntity, TLogEntity>, new()
         where TRoleEntity : Role<TRoleEntity, TMenuEntity, TRoleMenuEntity>, new()

@@ -92,6 +92,7 @@
     <Compile Include="IOModule\IStreamHandler.cs" />
     <Compile Include="Log\TraceStream.cs" />
     <Compile Include="Serialization\BinaryReaderX.cs" />
+    <Compile Include="Serialization\BinarySettings.cs" />
     <Compile Include="Serialization\BinaryWriterX.cs" />
     <Compile Include="Serialization\Interface\IAccessor.cs" />
     <Compile Include="Serialization\Info\IObjectMemberInfo.cs" />

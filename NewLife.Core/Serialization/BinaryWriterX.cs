@@ -41,33 +41,16 @@ namespace NewLife.Serialization
             }
         }
 
-        private Boolean _IsLittleEndian = true;
-        /// <summary>
-        /// 是否小端字节序。
-        /// </summary>
-        /// <remarks>
-        /// 网络协议都是Big-Endian；
-        /// Java编译的都是Big-Endian；
-        /// Motorola的PowerPC是Big-Endian；
-        /// x86系列则采用Little-Endian方式存储数据；
-        /// ARM同时支持 big和little，实际应用中通常使用Little-Endian。
-        /// </remarks>
-        public Boolean IsLittleEndian
+        private BinarySettings _Settings;
+        /// <summary>设置</summary>
+        public BinarySettings Settings
         {
-            get { return _IsLittleEndian; }
-            set { _IsLittleEndian = value; }
-        }
-
-        private Boolean _EncodeInt;
-        /// <summary>编码整数</summary>
-        public Boolean EncodeInt
-        {
-            get { return _EncodeInt; }
-            set { _EncodeInt = value; }
+            get { return _Settings ?? (_Settings = new BinarySettings()); }
+            set { _Settings = value; }
         }
         #endregion
 
-        #region 已重载
+        #region 基础元数据
         /// <summary>
         /// 写入字节
         /// </summary>
@@ -99,7 +82,7 @@ namespace NewLife.Serialization
             if (buffer == null || buffer.Length < 1) return;
 
             // 如果不是小端字节顺序，则倒序
-            if (!IsLittleEndian) Array.Reverse(buffer);
+            if (!Settings.IsLittleEndian) Array.Reverse(buffer);
 
             base.WriteIntBytes(buffer);
         }
@@ -112,7 +95,7 @@ namespace NewLife.Serialization
         /// <param name="value">要写入的 2 字节有符号整数。</param>
         public override void Write(short value)
         {
-            if (EncodeInt)
+            if (Settings.EncodeInt)
                 WriteEncoded(value);
             else
                 base.Write(value);
@@ -124,7 +107,7 @@ namespace NewLife.Serialization
         /// <param name="value">要写入的 4 字节有符号整数。</param>
         public override void Write(int value)
         {
-            if (EncodeInt)
+            if (Settings.EncodeInt)
                 WriteEncoded(value);
             else
                 base.Write(value);
@@ -136,7 +119,7 @@ namespace NewLife.Serialization
         /// <param name="value">要写入的 8 字节有符号整数。</param>
         public override void Write(long value)
         {
-            if (EncodeInt)
+            if (Settings.EncodeInt)
                 WriteEncoded(value);
             else
                 base.Write(value);
@@ -225,29 +208,18 @@ namespace NewLife.Serialization
 
         #region 写入对象
         /// <summary>
-        /// 写对象成员
+        /// 写对象
         /// </summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        public override bool WriteCustomObject(object value, Type type, WriteObjectCallback callback)
+        protected override bool WriteRefObject(object value, Type type, WriteObjectCallback callback)
         {
-            Boolean allowNull = Depth > 1;
+            if (value != null) type = value.GetType();
+            if (!Settings.IgnoreType && type != null) Write(type);
 
-            // 值类型不会为null，只有引用类型才需要写标识
-            if (!type.IsValueType)
-            {
-                // 允许空时，增加一个字节表示对象是否为空
-                if (value == null)
-                {
-                    if (allowNull) Write(false);
-                    return true;
-                }
-                if (allowNull) Write(true);
-            }
-
-            return base.WriteCustomObject(value, type, callback);
+            return base.WriteRefObject(value, type, callback);
         }
 
         List<Object> objRefs = new List<Object>();
@@ -261,7 +233,8 @@ namespace NewLife.Serialization
         {
             if (value == null)
             {
-                Write(0);
+                // 顶级不需要
+                if (Depth > 1) Write(0);
                 return true;
             }
 
@@ -274,7 +247,7 @@ namespace NewLife.Serialization
                 objRefs.Add(value);
 
                 // 写入引用计数
-                Write(objRefs.Count);
+                if (Depth > 1) Write(objRefs.Count);
 
                 return false;
             }
@@ -283,6 +256,23 @@ namespace NewLife.Serialization
             Write(index + 1);
 
             return true;
+        }
+        #endregion
+
+        #region 自定义对象
+        /// <summary>
+        /// 写入成员
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="index">成员索引</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        protected override bool WriteMember(object value, IObjectMemberInfo member, int index, WriteObjectCallback callback)
+        {
+            if (!Settings.IgnoreName) Write(member.Name);
+
+            return base.WriteMember(value, member, index, callback);
         }
         #endregion
 

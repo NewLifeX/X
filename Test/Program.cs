@@ -516,9 +516,10 @@ namespace Test
         static void Test17()
         {
             //AppTest.Start();
-            SerialTest.BinaryTest();
-            SerialTest.XmlTest();
-            SerialTest.JsonTest();
+            //SerialTest.BinaryTest();
+            //SerialTest.XmlTest();
+            //SerialTest.JsonTest();
+            SerialTest.Start();
         }
     }
 }

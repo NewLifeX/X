@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using NewLife.Exceptions;
 using NewLife.Reflection;
-using System.Runtime.Serialization;
 
 namespace NewLife.Serialization
 {
@@ -780,24 +780,23 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Type ReadType()
         {
-            //if (ReadByte() == 0) return null;
-            //BaseStream.Seek(-1, SeekOrigin.Current);
-
-            //String typeName = ReadString();
-            //if (String.IsNullOrEmpty(typeName)) return null;
-
-            //Type type = TypeX.GetType(typeName);
-            //if (type != null) return type;
-
-            //throw new XException("无法找到名为{0}的类型！", typeName);
-
             return ReadObjRef<Type>(delegate
             {
                 String typeName = ReadString();
                 if (String.IsNullOrEmpty(typeName)) return null;
 
                 Type type = TypeX.GetType(typeName);
-                if (type != null) return type;
+                if (type != null)
+                {
+                    // 处理泛型
+                    if (type.IsGenericType && type.IsGenericTypeDefinition)
+                    {
+                        Type[] ts = type.GetGenericArguments();
+                        ts = type.GetGenericParameterConstraints();
+                    }
+
+                    return type;
+                }
 
                 throw new XException("无法找到名为{0}的类型！", typeName);
             });
@@ -830,9 +829,6 @@ namespace NewLife.Serialization
         /// <summary>
         /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
         /// </summary>
-        /// <remarks>
-        /// 简单类型在value中返回，复杂类型直接填充target；
-        /// </remarks>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
@@ -852,49 +848,48 @@ namespace NewLife.Serialization
             Int32 index = 0;
             if (ReadObjRef(type, ref value, out index)) return true;
 
+            // 读取引用对象
+            if (!ReadRefObject(type, ref value, callback)) return false;
+
+            if (value != null) AddObjRef(index, value);
+            return true;
+        }
+
+        /// <summary>
+        /// 尝试读取引用对象
+        /// </summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        protected virtual Boolean ReadRefObject(Type type, ref Object value, ReadObjectCallback callback)
+        {
             // 可序列化接口
             if (typeof(ISerializable).IsAssignableFrom(type))
             {
-                if (ReadSerializable(type, ref value, callback))
-                {
-                    if (value != null) AddObjRef(index, value);
-                    return true;
-                }
+                if (ReadSerializable(type, ref value, callback)) return true;
             }
 
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
             {
-                if (ReadDictionary(type, ref value, callback))
-                {
-                    if (value != null) AddObjRef(index, value);
-                    return true;
-                }
+                if (ReadDictionary(type, ref value, callback)) return true;
             }
 
             // 枚举
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
-                if (ReadEnumerable(type, ref value, callback))
-                {
-                    if (value != null) AddObjRef(index, value);
-                    return true;
-                }
+                if (ReadEnumerable(type, ref value, callback)) return true;
             }
 
             // 复杂类型，处理对象成员
-            if (ReadCustomObject(type, ref value, callback))
-            {
-                if (value != null) AddObjRef(index, value);
-                return true;
-            }
+            if (ReadCustomObject(type, ref value, callback)) return true;
 
             // 调用.Net的二进制序列化来解决剩下的事情
             BinaryFormatter bf = new BinaryFormatter();
             MemoryStream ms = new MemoryStream(ReadBytes(-1));
             value = bf.Deserialize(ms);
 
-            if (value != null) AddObjRef(index, value);
             return true;
         }
 

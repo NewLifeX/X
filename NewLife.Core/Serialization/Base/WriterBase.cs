@@ -522,6 +522,17 @@ namespace NewLife.Serialization
         {
             if (WriteObjRef(value)) return;
 
+            // 特殊处理泛型，把泛型类型和泛型参数拆分开来，充分利用对象引用以及FullName
+            if (value.IsGenericType && !value.IsGenericTypeDefinition)
+            {
+                Write(value.GetGenericTypeDefinition());
+                foreach (Type type in value.GetGenericArguments())
+                {
+                    Write(type);
+                }
+                return;
+            }
+
             // 尽管使用AssemblyQualifiedName更精确，但是它的长度实在太大了
             Write(value.FullName);
         }
@@ -576,6 +587,21 @@ namespace NewLife.Serialization
             // 写入对象引用
             if (WriteObjRef(value)) return true;
 
+            // 写入引用对象
+            if (WriteRefObject(value, type, callback)) return true;
+
+            return true;
+        }
+
+        /// <summary>
+        /// 写入引用对象
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        protected virtual Boolean WriteRefObject(Object value, Type type, WriteObjectCallback callback)
+        {
             // 可序列化接口
             if (typeof(ISerializable).IsAssignableFrom(type))
             {

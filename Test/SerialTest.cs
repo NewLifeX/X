@@ -5,6 +5,8 @@ using NewLife.CommonEntity;
 using NewLife.Serialization;
 using NewLife.Xml;
 using NewLife.Log;
+using System.Collections.Generic;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Test
 {
@@ -13,6 +15,35 @@ namespace Test
     /// </summary>
     public static class SerialTest
     {
+        /// <summary>
+        /// 开始
+        /// </summary>
+        public static void Start()
+        {
+            //OldBinaryTest();
+            BinaryTest();
+        }
+
+        static void OldBinaryTest()
+        {
+            TraceStream ts = new TraceStream();
+            ts.UseConsole = true;
+
+            BinaryFormatter bf = new BinaryFormatter();
+
+            Administrator entity = GetDemo();
+
+            bf.Serialize(ts, entity);
+
+            Byte[] buffer = ts.ToArray();
+            Console.WriteLine(BitConverter.ToString(buffer));
+
+            bf = new BinaryFormatter();
+            ts.Position = 0;
+            entity = bf.Deserialize(ts) as Admin;
+            Console.WriteLine(entity != null);
+        }
+
         /// <summary>
         /// 二进制序列化测试
         /// </summary>
@@ -24,8 +55,10 @@ namespace Test
             BinaryWriterX writer = new BinaryWriterX();
             writer.Stream = ts;
             //writer.IsLittleEndian = false;
-            writer.EncodeInt = true;
+            //writer.EncodeInt = true;
             writer.EncodeDateTime = true;
+            writer.Settings.IgnoreName = false;
+            writer.Settings.IgnoreType = false;
 
             Administrator entity = GetDemo();
 
@@ -37,8 +70,9 @@ namespace Test
             BinaryReaderX reader = new BinaryReaderX();
             reader.Stream = writer.Stream;
             reader.Stream.Position = 0;
-            reader.EncodeInt = true;
+            //reader.EncodeInt = true;
             reader.EncodeDateTime = true;
+            reader.Settings = writer.Settings;
 
             Administrator admin = new Admin();
             Object obj = admin;
@@ -145,9 +179,18 @@ namespace Test
 
             entity.DPS = new Department[] { dp, dp2, dp };
 
+            entity.LPS = new List<Department>(entity.DPS);
+
+            entity.PPS = new Dictionary<string, Department>();
+            entity.PPS.Add("aa", dp);
+            entity.PPS.Add("bb", dp2);
+
+            entity.SPS = new SortedList<string, Department>(entity.PPS);
+
             return entity;
         }
 
+        [Serializable]
         class Admin : Administrator
         {
             private Department _DP1;
@@ -181,8 +224,33 @@ namespace Test
                 get { return _DPS; }
                 set { _DPS = value; }
             }
+
+            private List<Department> _LPS;
+            /// <summary>属性说明</summary>
+            public List<Department> LPS
+            {
+                get { return _LPS; }
+                set { _LPS = value; }
+            }
+
+            private Dictionary<String, Department> _PPS;
+            /// <summary>字典</summary>
+            public Dictionary<String, Department> PPS
+            {
+                get { return _PPS; }
+                set { _PPS = value; }
+            }
+
+            private SortedList<String, Department> _SPS;
+            /// <summary>属性说明</summary>
+            public SortedList<String, Department> SPS
+            {
+                get { return _SPS; }
+                set { _SPS = value; }
+            }
         }
 
+        [Serializable]
         class Department
         {
             private Int32 _ID;

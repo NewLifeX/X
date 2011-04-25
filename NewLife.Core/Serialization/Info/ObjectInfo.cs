@@ -93,12 +93,16 @@ namespace NewLife.Serialization
                 if (isBaseFirst)
                     return fieldCache.GetItem(type, delegate(Type t)
                     {
-                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(FindFields(t, true), delegate(MemberInfo member) { return CreateObjectMemberInfo(member); });
+                        MemberInfo[] mis = FindFields(t, true);
+                        if (mis == null || mis.Length < 1) return null;
+                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
                     });
                 else
                     return fieldCache2.GetItem(type, delegate(Type t)
                     {
-                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(FindFields(t, false), delegate(MemberInfo member) { return CreateObjectMemberInfo(member); });
+                        MemberInfo[] mis = FindFields(t, false);
+                        if (mis == null || mis.Length < 1) return null;
+                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
                     });
             }
             else
@@ -106,12 +110,16 @@ namespace NewLife.Serialization
                 if (isBaseFirst)
                     return propertyCache.GetItem(type, delegate(Type t)
                     {
-                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(FindProperties(t, true), delegate(MemberInfo member) { return CreateObjectMemberInfo(member); });
+                        MemberInfo[] mis = FindProperties(t, true);
+                        if (mis == null || mis.Length < 1) return null;
+                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
                     });
                 else
                     return propertyCache2.GetItem(type, delegate(Type t)
                     {
-                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(FindProperties(t, false), delegate(MemberInfo member) { return CreateObjectMemberInfo(member); });
+                        MemberInfo[] mis = FindProperties(t, false);
+                        if (mis == null || mis.Length < 1) return null;
+                        return Array.ConvertAll<MemberInfo, IObjectMemberInfo>(mis, CreateObjectMemberInfo);
                     });
             }
         }
