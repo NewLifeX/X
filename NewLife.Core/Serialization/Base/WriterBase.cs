@@ -218,13 +218,13 @@ namespace NewLife.Serialization
             switch (code)
             {
                 case TypeCode.Boolean:
-                    Write(Convert.ToBoolean(value, CultureInfo.InvariantCulture));
+                    Write((Boolean)value);
                     return true;
                 case TypeCode.Byte:
-                    Write(Convert.ToByte(value, CultureInfo.InvariantCulture));
+                    Write((Byte)value);
                     return true;
                 case TypeCode.Char:
-                    Write(Convert.ToChar(value, CultureInfo.InvariantCulture));
+                    Write((Char)value);
                     return true;
                 case TypeCode.DBNull:
                     Write((Byte)0);
@@ -234,42 +234,42 @@ namespace NewLife.Serialization
                     Write((DateTime)value);
                     return true;
                 case TypeCode.Decimal:
-                    Write(Convert.ToDecimal(value, CultureInfo.InvariantCulture));
+                    Write((Decimal)value);
                     return true;
                 case TypeCode.Double:
-                    Write(Convert.ToDouble(value, CultureInfo.InvariantCulture));
+                    Write((Double)value);
                     return true;
                 case TypeCode.Empty:
                     Write((Byte)0);
                     return true;
                 case TypeCode.Int16:
-                    Write(Convert.ToInt16(value, CultureInfo.InvariantCulture));
+                    Write((Int32)value);
                     return true;
                 case TypeCode.Int32:
-                    Write(Convert.ToInt32(value, CultureInfo.InvariantCulture));
+                    Write((Int32)value);
                     return true;
                 case TypeCode.Int64:
-                    Write(Convert.ToInt64(value, CultureInfo.InvariantCulture));
+                    Write((Int64)value);
                     return true;
                 case TypeCode.Object:
                     break;
                 case TypeCode.SByte:
-                    Write(Convert.ToSByte(value, CultureInfo.InvariantCulture));
+                    Write((SByte)value);
                     return true;
                 case TypeCode.Single:
-                    Write(Convert.ToSingle(value, CultureInfo.InvariantCulture));
+                    Write((Single)value);
                     return true;
                 case TypeCode.String:
-                    Write(Convert.ToString(value, CultureInfo.InvariantCulture));
+                    Write((String)value);
                     return true;
                 case TypeCode.UInt16:
-                    Write(Convert.ToUInt16(value, CultureInfo.InvariantCulture));
+                    Write((UInt16)value);
                     return true;
                 case TypeCode.UInt32:
-                    Write(Convert.ToUInt32(value, CultureInfo.InvariantCulture));
+                    Write((UInt32)value);
                     return true;
                 case TypeCode.UInt64:
-                    Write(Convert.ToUInt64(value, CultureInfo.InvariantCulture));
+                    Write((UInt64)value);
                     return true;
                 default:
                     break;
