@@ -94,6 +94,7 @@ namespace NewLife.Reflection
             FieldInfo field = type.GetField(name);
             if (field == null) field = type.GetField(name, DefaultBinding);
             if (field == null) field = type.GetField(name, DefaultBinding | BindingFlags.IgnoreCase);
+            if (field == null && type.BaseType != typeof(Object)) return Create(type.BaseType, name);
             if (field == null) return null;
 
             return Create(field);
@@ -136,23 +137,23 @@ namespace NewLife.Reflection
             return (FastGetValueHandler)dynamicMethod.CreateDelegate(typeof(FastGetValueHandler));
         }
 
-        private static DynamicMethod GetValueInvoker2(FieldInfo field)
-        {
-            //定义一个没有名字的动态方法
-            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, field.FieldType, new Type[] { typeof(Object) }, field.DeclaringType.Module, true);
-            ILGenerator il = dynamicMethod.GetILGenerator();
-            EmitHelper help = new EmitHelper(il);
+        //private static DynamicMethod GetValueInvoker2(FieldInfo field)
+        //{
+        //    //定义一个没有名字的动态方法
+        //    DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, field.FieldType, new Type[] { typeof(Object) }, field.DeclaringType.Module, true);
+        //    ILGenerator il = dynamicMethod.GetILGenerator();
+        //    EmitHelper help = new EmitHelper(il);
 
-            // 必须考虑对象是值类型的情况，需要拆箱
-            // 其它地方看到的程序从来都没有人处理
-            help.Ldarg(0)
-                .CastFromObject(field.DeclaringType)
-                .Ldfld(field)
-                //.BoxIfValueType(field.FieldType)
-                .Ret();
+        //    // 必须考虑对象是值类型的情况，需要拆箱
+        //    // 其它地方看到的程序从来都没有人处理
+        //    help.Ldarg(0)
+        //        .CastFromObject(field.DeclaringType)
+        //        .Ldfld(field)
+        //        //.BoxIfValueType(field.FieldType)
+        //        .Ret();
 
-            return dynamicMethod;
-        }
+        //    return dynamicMethod;
+        //}
 
         private static FastSetValueHandler SetValueInvoker(FieldInfo field)
         {
@@ -198,29 +199,29 @@ namespace NewLife.Reflection
             return GetHandler.Invoke(obj);
         }
 
-        DynamicMethod _GetMethod;
-        /// <summary>
-        /// 快速调用委托，延迟到首次使用才创建
-        /// </summary>
-        DynamicMethod GetMethod2
-        {
-            get
-            {
-                if (_GetMethod == null) _GetMethod = GetValueInvoker2(Field);
+        //DynamicMethod _GetMethod;
+        ///// <summary>
+        ///// 快速调用委托，延迟到首次使用才创建
+        ///// </summary>
+        //DynamicMethod GetMethod2
+        //{
+        //    get
+        //    {
+        //        if (_GetMethod == null) _GetMethod = GetValueInvoker2(Field);
 
-                return _GetMethod;
-            }
-        }
+        //        return _GetMethod;
+        //    }
+        //}
 
-        /// <summary>
-        /// 取值
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public Object GetValue2(Object obj)
-        {
-            return GetMethod2.Invoke(null, new Object[] { obj });
-        }
+        ///// <summary>
+        ///// 取值
+        ///// </summary>
+        ///// <param name="obj"></param>
+        ///// <returns></returns>
+        //public Object GetValue2(Object obj)
+        //{
+        //    return GetMethod2.Invoke(null, new Object[] { obj });
+        //}
 
         /// <summary>
         /// 赋值

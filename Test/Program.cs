@@ -38,8 +38,8 @@ namespace Test
                 try
                 {
 #endif
-                    Test17();
-                    //ThreadPoolTest.Main2(args);
+                Test17();
+                //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -519,12 +519,16 @@ namespace Test
             //SerialTest.BinaryTest();
             //SerialTest.XmlTest();
             //SerialTest.JsonTest();
-            //SerialTest.Start();
+            SerialTest.Start();
 
-            FieldInfoX fix=FieldInfoX
+            //FieldInfoX fix = FieldInfoX.Create(typeof(Administrator), "_Password");
+            //Administrator admin = new Administrator();
+            ////admin.Password = "admin";
 
-            CodeTimer.TimeLine("List", count, delegate { list.Contains(key); });
-
+            //Int32 count = 1000000;
+            //CodeTimer.TimeLine("GetValue", count, delegate { String str = (String)fix.GetValue(admin); });
+            //CodeTimer.TimeLine("GetValue2", count, delegate { String str = (String)fix.GetValue2(admin); });
+            //CodeTimer.TimeLine("GetValue3", count, delegate { String str = (String)fix.Field.GetValue(admin); });
         }
     }
 }
