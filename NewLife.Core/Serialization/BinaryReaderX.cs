@@ -392,13 +392,13 @@ namespace NewLife.Serialization
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        public override bool ReadMembers(Type type, ref object value, ReadObjectCallback callback)
+        public override bool ReadCustomObject(Type type, ref object value, ReadObjectCallback callback)
         {
             // 引用类型允许空时，先读取一个字节判断对象是否为空
             //if (!type.IsValueType && !config.Required && !ReadBoolean()) return true;
             if (!type.IsValueType && Depth > 1 && !ReadBoolean()) return true;
 
-            return base.ReadMembers(type, ref value, callback);
+            return base.ReadCustomObject(type, ref value, callback);
         }
 
         List<Object> objRefs = new List<Object>();

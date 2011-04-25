@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Globalization;
+using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Collections.Generic;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.IO;
 using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 
 namespace NewLife.Serialization
 {
@@ -771,14 +770,4 @@ namespace NewLife.Serialization
         public event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnMemberWrited;
         #endregion
     }
-
-    /// <summary>
-    /// 数据写入方法
-    /// </summary>
-    /// <param name="writer">写入器</param>
-    /// <param name="value">要写入的对象</param>
-    /// <param name="type">要写入的对象类型</param>
-    /// <param name="callback">处理成员的方法</param>
-    /// <returns>是否写入成功</returns>
-    public delegate Boolean WriteObjectCallback(IWriter writer, Object value, Type type, WriteObjectCallback callback);
 }

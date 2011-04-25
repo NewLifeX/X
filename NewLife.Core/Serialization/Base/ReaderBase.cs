@@ -7,6 +7,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using NewLife.Exceptions;
 using NewLife.Reflection;
+using System.Runtime.Serialization;
 
 namespace NewLife.Serialization
 {
@@ -308,6 +309,116 @@ namespace NewLife.Serialization
             }
 
             //value = null;
+            return false;
+        }
+        #endregion
+
+        #region 字典
+        /// <summary>
+        /// 尝试读取字典类型对象
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <returns>是否读取成功</returns>
+        public virtual Boolean ReadDictionary(Type type, ref Object value)
+        {
+            return ReadDictionary(type, ref value, ReadMember);
+        }
+
+        /// <summary>
+        /// 尝试读取字典类型对象
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public virtual Boolean ReadDictionary(Type type, ref Object value, ReadObjectCallback callback)
+        {
+            if (type == null)
+            {
+                if (value == null) throw new ArgumentNullException("type");
+                type = value.GetType();
+            }
+
+            if (!typeof(IDictionary).IsAssignableFrom(type)) return false;
+
+            // 计算元素类型
+            Type keyType = null;
+            Type valueType = null;
+
+            // 无法取得键值类型
+            if (!GetDictionaryEntryType(type, ref keyType, ref valueType)) return false;
+
+            // 读取键值对集合
+            IEnumerable<DictionaryEntry> list = ReadDictionary(keyType, valueType, callback);
+            if (list == null) return false;
+
+            if (value == null) value = TypeX.CreateInstance(type);
+            IDictionary dic = value as IDictionary;
+            foreach (DictionaryEntry item in list)
+            {
+                dic.Add(item.Key, item.Value);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 读取字典项集合，以读取键值失败作为读完字典项的标识，子类可以重载实现以字典项数量来读取
+        /// </summary>
+        /// <param name="keyType">键类型</param>
+        /// <param name="valueType">值类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>字典项集合</returns>
+        protected virtual IEnumerable<DictionaryEntry> ReadDictionary(Type keyType, Type valueType, ReadObjectCallback callback)
+        {
+            List<DictionaryEntry> list = new List<DictionaryEntry>();
+            while (true)
+            {
+                // 一旦有一个元素读不到，就中断
+                DictionaryEntry obj;
+                if (!ReadDictionaryEntry(keyType, valueType, ref obj, callback)) break;
+                list.Add(obj);
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// 取得字典的键值类型，默认只支持获取两个泛型参数的字典的键值类型
+        /// </summary>
+        /// <param name="type">字典类型</param>
+        /// <param name="keyType">键类型</param>
+        /// <param name="valueType">值类型</param>
+        /// <returns>是否获取成功，如果失败，则字典读取失败</returns>
+        protected virtual Boolean GetDictionaryEntryType(Type type, ref Type keyType, ref Type valueType)
+        {
+            // 两个泛型参数的泛型
+            if (type.IsGenericType)
+            {
+                Type[] ts = type.GetGenericArguments();
+                if (ts != null && ts.Length == 2)
+                {
+                    keyType = ts[0];
+                    valueType = ts[1];
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 读取字典项
+        /// </summary>
+        /// <param name="keyType">键类型</param>
+        /// <param name="valueType">值类型</param>
+        /// <param name="value">字典项</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public virtual Boolean ReadDictionaryEntry(Type keyType, Type valueType, ref DictionaryEntry value, ReadObjectCallback callback)
+        {
             return false;
         }
         #endregion
@@ -741,6 +852,26 @@ namespace NewLife.Serialization
             Int32 index = 0;
             if (ReadObjRef(type, ref value, out index)) return true;
 
+            // 可序列化接口
+            if (typeof(ISerializable).IsAssignableFrom(type))
+            {
+                if (ReadSerializable(type, ref value, callback))
+                {
+                    if (value != null) AddObjRef(index, value);
+                    return true;
+                }
+            }
+
+            // 字典
+            if (typeof(IDictionary).IsAssignableFrom(type))
+            {
+                if (ReadDictionary(type, ref value, callback))
+                {
+                    if (value != null) AddObjRef(index, value);
+                    return true;
+                }
+            }
+
             // 枚举
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
@@ -752,7 +883,7 @@ namespace NewLife.Serialization
             }
 
             // 复杂类型，处理对象成员
-            if (ReadMembers(type, ref value, callback))
+            if (ReadCustomObject(type, ref value, callback))
             {
                 if (value != null) AddObjRef(index, value);
                 return true;
@@ -768,13 +899,73 @@ namespace NewLife.Serialization
         }
 
         /// <summary>
+        /// 读取引用对象的包装，能自动从引用对象集合里面读取，如果不存在，则调用委托读取对象，并加入引用对象集合
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="func"></param>
+        /// <returns></returns>
+        T ReadObjRef<T>(Func<T> func)
+        {
+            Object obj = null;
+            Int32 index = 0;
+            if (ReadObjRef(typeof(T), ref obj, out index)) return (T)obj;
+
+            if (func != null)
+            {
+                obj = func();
+
+                if (obj != null) AddObjRef(index, obj);
+
+                return (T)obj;
+            }
+
+            return default(T);
+        }
+
+        /// <summary>
+        /// 读取对象引用。
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <param name="index">引用计数</param>
+        /// <returns>是否读取成功</returns>
+        public virtual Boolean ReadObjRef(Type type, ref Object value, out Int32 index)
+        {
+            index = 0;
+            return false;
+        }
+
+        /// <summary>
+        /// 添加对象引用
+        /// </summary>
+        /// <param name="index">引用计数</param>
+        /// <param name="value">对象</param>
+        protected virtual void AddObjRef(Int32 index, Object value)
+        {
+        }
+
+        /// <summary>
+        /// 读取实现了可序列化接口的对象
+        /// </summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public virtual Boolean ReadSerializable(Type type, ref Object value, ReadObjectCallback callback)
+        {
+            return ReadCustomObject(type, ref value, callback);
+        }
+        #endregion
+
+        #region 自定义对象
+        /// <summary>
         /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
         /// </summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadMembers(Type type, ref Object value, ReadObjectCallback callback)
+        public virtual Boolean ReadCustomObject(Type type, ref Object value, ReadObjectCallback callback)
         {
             IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
@@ -842,52 +1033,6 @@ namespace NewLife.Serialization
         {
             return (reader as ReaderBase).ReadObject(type, ref value, callback);
         }
-
-        /// <summary>
-        /// 读取引用对象的包装，能自动从引用对象集合里面读取，如果不存在，则调用委托读取对象，并加入引用对象集合
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="func"></param>
-        /// <returns></returns>
-        T ReadObjRef<T>(Func<T> func)
-        {
-            Object obj = null;
-            Int32 index = 0;
-            if (ReadObjRef(typeof(T), ref obj, out index)) return (T)obj;
-
-            if (func != null)
-            {
-                obj = func();
-
-                if (obj != null) AddObjRef(index, obj);
-
-                return (T)obj;
-            }
-
-            return default(T);
-        }
-
-        /// <summary>
-        /// 读取对象引用。
-        /// </summary>
-        /// <param name="type">类型</param>
-        /// <param name="value">对象</param>
-        /// <param name="index">引用计数</param>
-        /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadObjRef(Type type, ref Object value, out Int32 index)
-        {
-            index = 0;
-            return false;
-        }
-
-        /// <summary>
-        /// 添加对象引用
-        /// </summary>
-        /// <param name="index">引用计数</param>
-        /// <param name="value">对象</param>
-        protected virtual void AddObjRef(Int32 index, Object value)
-        {
-        }
         #endregion
 
         #region 事件
@@ -902,14 +1047,4 @@ namespace NewLife.Serialization
         public event EventHandler<EventArgs<IObjectMemberInfo, Object>> OnMemberReaded;
         #endregion
     }
-
-    /// <summary>
-    /// 数据读取方法
-    /// </summary>
-    /// <param name="reader">读取器</param>
-    /// <param name="type">要读取的对象类型</param>
-    /// <param name="value">要读取的对象</param>
-    /// <param name="callback">处理成员的方法</param>
-    /// <returns>是否读取成功</returns>
-    public delegate Boolean ReadObjectCallback(IReader reader, Type type, ref Object value, ReadObjectCallback callback);
 }

@@ -271,10 +271,10 @@ namespace NewLife.Xml
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        public override Boolean ReadMembers(Type type, ref Object value, ReadObjectCallback callback)
+        public override Boolean ReadCustomObject(Type type, ref Object value, ReadObjectCallback callback)
         {
             // 如果是属性，使用基类就足够了
-            if (MemberAsAttribute) return base.ReadMembers(type, ref value, callback);
+            if (MemberAsAttribute) return base.ReadCustomObject(type, ref value, callback);
 
             IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;

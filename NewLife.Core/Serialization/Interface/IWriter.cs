@@ -226,4 +226,14 @@ namespace NewLife.Serialization
         //event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnWritedMemberContent;
         #endregion
     }
+
+    /// <summary>
+    /// 数据写入方法
+    /// </summary>
+    /// <param name="writer">写入器</param>
+    /// <param name="value">要写入的对象</param>
+    /// <param name="type">要写入的对象类型</param>
+    /// <param name="callback">处理成员的方法</param>
+    /// <returns>是否写入成功</returns>
+    public delegate Boolean WriteObjectCallback(IWriter writer, Object value, Type type, WriteObjectCallback callback);
 }
