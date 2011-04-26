@@ -10,7 +10,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// Json写入器
     /// </summary>
-    public class JsonWriter : WriterBase
+    public class JsonWriter : WriterBase<SerialSettings>
     {
         #region 属性
         private TextWriter _Writer;
@@ -21,14 +21,14 @@ namespace NewLife.Serialization
             {
                 if (_Writer == null)
                 {
-                    _Writer = new StreamWriter(Stream, Encoding);
+                    _Writer = new StreamWriter(Stream, Settings.Encoding);
                 }
                 return _Writer;
             }
             set
             {
                 _Writer = value;
-                if (Encoding != _Writer.Encoding) Encoding = _Writer.Encoding;
+                if (Settings.Encoding != _Writer.Encoding) Settings.Encoding = _Writer.Encoding;
 
                 StreamWriter sw = _Writer as StreamWriter;
                 if (sw != null && sw.BaseStream != Stream) Stream = sw.BaseStream;
@@ -86,7 +86,7 @@ namespace NewLife.Serialization
         /// <param name="count">要写入的字节数。</param>
         public override void Write(byte[] buffer, int index, int count)
         {
-            Write(Encoding.GetString(buffer, index, count));
+            Write(Settings.Encoding.GetString(buffer, index, count));
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public override void Write(DateTime value)
         {
-            String str = String.Format("Date({0})", (Int64)(value - BaseDateTime).TotalMilliseconds);
+            String str = String.Format("Date({0})", Settings.ConvertDateTimeToInt64(value));
             if (JsDateTimeFormat)
                 Write("new " + str);
             else

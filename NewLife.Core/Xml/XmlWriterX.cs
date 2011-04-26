@@ -8,7 +8,7 @@ namespace NewLife.Xml
     /// <summary>
     /// Xml写入器
     /// </summary>
-    public class XmlWriterX : WriterBase
+    public class XmlWriterX : WriterBase<SerialSettings>
     {
         #region 属性
         private XmlWriter _Writer;
@@ -20,7 +20,7 @@ namespace NewLife.Xml
                 if (_Writer == null)
                 {
                     XmlWriterSettings settings = new XmlWriterSettings();
-                    settings.Encoding = Encoding;
+                    settings.Encoding = Settings.Encoding;
                     settings.Indent = true;
                     _Writer = XmlWriter.Create(Stream, settings);
                 }
@@ -29,7 +29,7 @@ namespace NewLife.Xml
             set
             {
                 _Writer = value;
-                if (Encoding != _Writer.Settings.Encoding) Encoding = _Writer.Settings.Encoding;
+                if (Settings.Encoding != _Writer.Settings.Encoding) Settings.Encoding = _Writer.Settings.Encoding;
 
                 XmlTextWriter xw = _Writer as XmlTextWriter;
                 if (xw != null && Stream != xw.BaseStream) Stream = xw.BaseStream;

@@ -12,14 +12,14 @@ namespace NewLife.Serialization
     /// <summary>
     /// 二进制读取器
     /// </summary>
-    public class BinaryReaderX : ReaderBase
+    public class BinaryReaderX : ReaderBase<BinarySettings>
     {
         #region 属性
         private BinaryReader _Reader;
         /// <summary>读取器</summary>
         public BinaryReader Reader
         {
-            get { return _Reader ?? (_Reader = new BinaryReader(Stream, Encoding)); }
+            get { return _Reader ?? (_Reader = new BinaryReader(Stream, Settings.Encoding)); }
             set
             {
                 _Reader = value;
@@ -43,13 +43,13 @@ namespace NewLife.Serialization
             }
         }
 
-        private BinarySettings _Settings;
-        /// <summary>设置</summary>
-        public BinarySettings Settings
-        {
-            get { return _Settings ?? (_Settings = new BinarySettings()); }
-            set { _Settings = value; }
-        }
+        //private BinarySettings _Settings;
+        ///// <summary>设置</summary>
+        //public BinarySettings Settings
+        //{
+        //    get { return _Settings ?? (_Settings = new BinarySettings()); }
+        //    set { _Settings = value; }
+        //}
         #endregion
 
         #region 已重载

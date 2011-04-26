@@ -7,7 +7,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// 二进制序列化设置
     /// </summary>
-    public class BinarySettings
+    public class BinarySettings : SerialSettings
     {
         private Boolean _IsLittleEndian = true;
         /// <summary>

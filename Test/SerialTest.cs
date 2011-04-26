@@ -56,7 +56,8 @@ namespace Test
             writer.Stream = ts;
             //writer.IsLittleEndian = false;
             //writer.EncodeInt = true;
-            writer.EncodeDateTime = true;
+            writer.Settings.DateTimeFormat = SerialSettings.DateTimeFormats.Seconds;
+            writer.SplitGenericType = true;
             writer.Settings.IgnoreName = false;
             writer.Settings.IgnoreType = false;
 
@@ -71,7 +72,7 @@ namespace Test
             reader.Stream = writer.Stream;
             reader.Stream.Position = 0;
             //reader.EncodeInt = true;
-            reader.EncodeDateTime = true;
+            reader.SplitGenericType = true;
             reader.Settings = writer.Settings;
 
             Administrator admin = new Admin();

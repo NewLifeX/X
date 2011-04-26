@@ -14,7 +14,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// 读取器基类
     /// </summary>
-    public abstract class ReaderBase : ReaderWriterBase, IReader
+    public abstract class ReaderBase<TSettings> : ReaderWriterBase<TSettings>, IReader where TSettings : SerialSettings, new()
     {
         #region 读取基础元数据
         #region 字节
@@ -132,13 +132,13 @@ namespace NewLife.Serialization
         public virtual char[] ReadChars(int count)
         {
             // count个字符可能的最大字节数
-            Int32 max = Encoding.GetMaxByteCount(count);
+            Int32 max = Settings.Encoding.GetMaxByteCount(count);
 
             // 首先按最小值读取
             Byte[] data = ReadBytes(count);
 
             // 相同，最简单的一种
-            if (max == count) return Encoding.GetChars(data);
+            if (max == count) return Settings.Encoding.GetChars(data);
 
             // 按最大值准备一个字节数组
             Byte[] buffer = new Byte[max];
@@ -149,13 +149,13 @@ namespace NewLife.Serialization
             Int32 i = 0;
             for (i = count; i < max; i++)
             {
-                Int32 n = Encoding.GetCharCount(buffer, 0, i);
+                Int32 n = Settings.Encoding.GetCharCount(buffer, 0, i);
                 if (n >= count) break;
 
                 buffer[i] = ReadByte();
             }
 
-            return Encoding.GetChars(buffer, 0, i);
+            return Settings.Encoding.GetChars(buffer, 0, i);
         }
 
         /// <summary>
@@ -171,7 +171,7 @@ namespace NewLife.Serialization
 
             Byte[] buffer = ReadBytes(n);
 
-            return Encoding.GetString(buffer);
+            return Settings.Encoding.GetString(buffer);
         }
         #endregion
 
@@ -202,10 +202,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public virtual DateTime ReadDateTime()
         {
-            if (!EncodeDateTime)
-                return new DateTime(ReadInt64());
-            else
-                return BaseDateTime.AddSeconds(ReadInt64());
+            return Settings.ConvertInt64ToDateTime(ReadInt64());
         }
         #endregion
         #endregion
@@ -792,15 +789,23 @@ namespace NewLife.Serialization
                 throw new XException("无法找到名为{0}的类型！", typeName);
             });
 
-            // 处理泛型
-            if (t != null && t.IsGenericType && t.IsGenericTypeDefinition)
+            if (SplitGenericType)
             {
-                Type[] ts = t.GetGenericArguments();
-                for (int i = 0; i < ts.Length; i++)
+                // 处理泛型
+                // 这里有个漏洞，加入写入的类型本身就是泛型定义，如typeof(List<>)，那么这里将会出错
+                if (t != null && t.IsGenericType && t.IsGenericTypeDefinition)
                 {
-                    ts[i] = ReadType();
+                    Int32 count = ReadInt32();
+                    if (count > 0)
+                    {
+                        Type[] ts = t.GetGenericArguments();
+                        for (int i = 0; i < ts.Length; i++)
+                        {
+                            ts[i] = ReadType();
+                        }
+                        t = t.MakeGenericType(ts);
+                    }
                 }
-                t = t.MakeGenericType(ts);
             }
 
             return t;
@@ -1030,7 +1035,7 @@ namespace NewLife.Serialization
 
         private static Boolean ReadMember(IReader reader, Type type, ref Object value, ReadObjectCallback callback)
         {
-            return (reader as ReaderBase).ReadObject(type, ref value, callback);
+            return (reader as ReaderBase<TSettings>).ReadObject(type, ref value, callback);
         }
         #endregion
 

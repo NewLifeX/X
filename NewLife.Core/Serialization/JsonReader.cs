@@ -8,7 +8,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// Json读取器
     /// </summary>
-    public class JsonReader : ReaderBase
+    public class JsonReader : ReaderBase<SerialSettings>
     {
         #region 属性
         private TextReader _Reader;
@@ -19,7 +19,7 @@ namespace NewLife.Serialization
             {
                 if (_Reader == null)
                 {
-                    _Reader = new StreamReader(Stream, Encoding);
+                    _Reader = new StreamReader(Stream, Settings.Encoding);
                 }
                 return _Reader;
             }
@@ -30,7 +30,7 @@ namespace NewLife.Serialization
                 StreamReader sr = _Reader as StreamReader;
                 if (sr != null)
                 {
-                    if (Encoding != sr.CurrentEncoding) Encoding = sr.CurrentEncoding;
+                    if (Settings.Encoding != sr.CurrentEncoding) Settings.Encoding = sr.CurrentEncoding;
                     if (Stream != sr.BaseStream) Stream = sr.BaseStream;
                 }
             }
@@ -64,6 +64,11 @@ namespace NewLife.Serialization
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// 读取字节数组
+        /// </summary>
+        /// <param name="count"></param>
+        /// <returns></returns>
         public override byte[] ReadBytes(int count)
         {
             return base.ReadBytes(count);

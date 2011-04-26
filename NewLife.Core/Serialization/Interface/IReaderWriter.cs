@@ -12,19 +12,24 @@ namespace NewLife.Serialization
     public interface IReaderWriter
     {
         #region 属性
-        /// <summary>字符串编码。</summary>
-        Encoding Encoding { get; set; }
+        ///// <summary>字符串编码。</summary>
+        //Encoding Encoding { get; set; }
 
         /// <summary>
         /// 数据流
         /// </summary>
         Stream Stream { get; set; }
 
+        /// <summary>
+        /// 序列化设置
+        /// </summary>
+        SerialSettings Settings { get; set; }
+
         /// <summary>层次深度。</summary>
         Int32 Depth { get; set; }
 
-        /// <summary>编码时间日期，使用1970-01-01以来的秒数代替</summary>
-        Boolean EncodeDateTime { get; set; }
+        ///// <summary>编码时间日期，使用1970-01-01以来的秒数代替</summary>
+        //Boolean EncodeDateTime { get; set; }
         #endregion
 
         #region 方法

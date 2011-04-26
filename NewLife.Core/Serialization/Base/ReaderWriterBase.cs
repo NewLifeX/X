@@ -7,16 +7,16 @@ namespace NewLife.Serialization
     /// <summary>
     /// 读写器基类
     /// </summary>
-    public abstract class ReaderWriterBase : NewLife.DisposeBase, IReaderWriter
+    public abstract class ReaderWriterBase<TSettings> : NewLife.DisposeBase, IReaderWriter where TSettings : SerialSettings, new()
     {
         #region 属性
-        private Encoding _Encoding;
-        /// <summary>字符串编码</summary>
-        public virtual Encoding Encoding
-        {
-            get { return _Encoding ?? (_Encoding = Encoding.UTF8); }
-            set { _Encoding = value; }
-        }
+        //private Encoding _Encoding;
+        ///// <summary>字符串编码</summary>
+        //public virtual Encoding Encoding
+        //{
+        //    get { return _Encoding ?? (_Encoding = Encoding.UTF8); }
+        //    set { _Encoding = value; }
+        //}
 
         private Stream _Stream;
         /// <summary>数据流。默认实例化一个MemoryStream，设置值时将重置Depth为1</summary>
@@ -34,6 +34,19 @@ namespace NewLife.Serialization
             }
         }
 
+        private TSettings _Settings;
+        /// <summary>序列化设置</summary>
+        public virtual TSettings Settings
+        {
+            get { return _Settings ?? (_Settings = new TSettings()); }
+            set { _Settings = value; }
+        }
+
+        /// <summary>
+        /// 序列化设置
+        /// </summary>
+        SerialSettings IReaderWriter.Settings { get { return Settings; } set { Settings = (TSettings)value; } }
+
         private Int32 _Depth;
         /// <summary>层次深度</summary>
         public Int32 Depth
@@ -46,18 +59,26 @@ namespace NewLife.Serialization
             set { _Depth = value; }
         }
 
-        private Boolean _EncodeDateTime;
-        /// <summary>编码时间日期，使用1970-01-01以来的秒数代替</summary>
-        public Boolean EncodeDateTime
-        {
-            get { return _EncodeDateTime; }
-            set { _EncodeDateTime = value; }
-        }
+        //private Boolean _EncodeDateTime;
+        ///// <summary>编码时间日期，使用1970-01-01以来的秒数代替</summary>
+        //public Boolean EncodeDateTime
+        //{
+        //    get { return _EncodeDateTime; }
+        //    set { _EncodeDateTime = value; }
+        //}
 
-        /// <summary>
-        /// 编码时间日期的其实时间，固定1970-01-01
-        /// </summary>
-        public static readonly DateTime BaseDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        ///// <summary>
+        ///// 编码时间日期的其实时间，固定1970-01-01
+        ///// </summary>
+        //public static readonly DateTime BaseDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        private Boolean _SplitGenericType;
+        /// <summary>是否拆分泛型类。拆分后，泛型类将按照泛型定义和泛型参数依次写入，同时利用对象引用，能在一定程度上减少大小</summary>
+        public Boolean SplitGenericType
+        {
+            get { return _SplitGenericType; }
+            set { _SplitGenericType = value; }
+        }
         #endregion
 
         #region 方法

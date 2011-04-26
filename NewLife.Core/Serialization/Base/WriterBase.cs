@@ -13,7 +13,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// 写入器基类
     /// </summary>
-    public abstract class WriterBase : ReaderWriterBase, IWriter
+    public abstract class WriterBase<TSettings> : ReaderWriterBase<TSettings>, IWriter where TSettings : SerialSettings, new()
     {
         #region 写入基础元数据
         #region 字节
@@ -153,7 +153,7 @@ namespace NewLife.Serialization
             }
 
             // 先用写入字节长度
-            Byte[] buffer = Encoding.GetBytes(chars, index, count);
+            Byte[] buffer = Settings.Encoding.GetBytes(chars, index, count);
             Write(buffer.Length);
             Write(buffer);
         }
@@ -194,10 +194,7 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public virtual void Write(DateTime value)
         {
-            if (!EncodeDateTime)
-                Write(Convert.ToDateTime(value, CultureInfo.InvariantCulture).Ticks);
-            else
-                Write((Int64)(Convert.ToDateTime(value, CultureInfo.InvariantCulture) - BaseDateTime).TotalSeconds);
+            Write(Settings.ConvertDateTimeToInt64(value));
         }
         #endregion
         #endregion
@@ -526,15 +523,27 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public void Write(Type value)
         {
-            // 特殊处理泛型，把泛型类型和泛型参数拆分开来，充分利用对象引用以及FullName
-            if (value.IsGenericType && !value.IsGenericTypeDefinition)
+            if (SplitGenericType)
             {
-                Write(value.GetGenericTypeDefinition());
-                foreach (Type type in value.GetGenericArguments())
+                // 特殊处理泛型，把泛型类型和泛型参数拆分开来，充分利用对象引用以及FullName
+                if (value.IsGenericType && !value.IsGenericTypeDefinition)
                 {
-                    Write(type);
+                    Write(value.GetGenericTypeDefinition());
+                    Type[] ts = value.GetGenericArguments();
+                    if (ts != null && ts.Length > 0)
+                    {
+                        Write(ts.Length);
+                        foreach (Type type in ts)
+                        {
+                            Write(type);
+                        }
+                    }
+                    else
+                    {
+                        Write(0);
+                    }
+                    return;
                 }
-                return;
             }
 
             if (WriteObjRef(value)) return;
@@ -731,7 +740,7 @@ namespace NewLife.Serialization
 
         private static Boolean WriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback)
         {
-            return (writer as WriterBase).WriteObject(value, type, callback);
+            return (writer as WriterBase<TSettings>).WriteObject(value, type, callback);
         }
         #endregion
 
@@ -786,7 +795,7 @@ namespace NewLife.Serialization
             Byte[] buffer = ToArray();
             if (buffer == null || buffer.Length < 1) return base.ToString();
 
-            return Encoding.GetString(buffer);
+            return Settings.Encoding.GetString(buffer);
         }
         #endregion
 

@@ -10,14 +10,14 @@ namespace NewLife.Serialization
     /// <summary>
     /// 二进制写入器
     /// </summary>
-    public class BinaryWriterX : WriterBase
+    public class BinaryWriterX : WriterBase<BinarySettings>
     {
         #region 属性
         private BinaryWriter _Writer;
         /// <summary>写入器</summary>
         public BinaryWriter Writer
         {
-            get { return _Writer ?? (_Writer = new BinaryWriter(Stream, Encoding)); }
+            get { return _Writer ?? (_Writer = new BinaryWriter(Stream, Settings.Encoding)); }
             set
             {
                 _Writer = value;
@@ -41,13 +41,13 @@ namespace NewLife.Serialization
             }
         }
 
-        private BinarySettings _Settings;
-        /// <summary>设置</summary>
-        public BinarySettings Settings
-        {
-            get { return _Settings ?? (_Settings = new BinarySettings()); }
-            set { _Settings = value; }
-        }
+        //private BinarySettings _Settings;
+        ///// <summary>设置</summary>
+        //public BinarySettings Settings
+        //{
+        //    get { return _Settings ?? (_Settings = new BinarySettings()); }
+        //    set { _Settings = value; }
+        //}
         #endregion
 
         #region 基础元数据
