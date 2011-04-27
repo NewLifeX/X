@@ -76,8 +76,8 @@ namespace Test
         public static void XmlTest()
         {
             XmlWriterX writer = GetWriter<XmlWriterX>();
-            writer.MemberAsAttribute = false;
-            writer.IgnoreDefault = false;
+            writer.Settings.MemberAsAttribute = false;
+            writer.Settings.IgnoreDefault = false;
 
             DoTest<XmlWriterX, XmlReaderX>(writer);
 
