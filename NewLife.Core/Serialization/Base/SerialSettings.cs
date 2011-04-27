@@ -25,6 +25,14 @@ namespace NewLife.Serialization
             get { return _UseTypeFullName; }
             set { _UseTypeFullName = value; }
         }
+
+        private Boolean _AutoFlush;
+        /// <summary>自动刷新输出</summary>
+        public Boolean AutoFlush
+        {
+            get { return _AutoFlush; }
+            set { _AutoFlush = value; }
+        }
         #endregion
 
         #region 时间日期

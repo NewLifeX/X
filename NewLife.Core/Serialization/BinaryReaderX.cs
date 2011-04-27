@@ -234,10 +234,10 @@ namespace NewLife.Serialization
                         return ReadType().MakeArrayType(rank);
 
                     case BinarySettings.TypeKinds.Nested:
-                        //return ReadType().GetNestedType(ReadString(), BindingFlags.Public | BindingFlags.NonPublic);
-                        type = ReadType();
-                        type = type.GetNestedType(ReadString(), BindingFlags.Public | BindingFlags.NonPublic);
-                        return type;
+                        return ReadType().GetNestedType(ReadString(), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+                        //type = ReadType();
+                        //type = type.GetNestedType(ReadString(), BindingFlags.Public | BindingFlags.NonPublic);
+                        //return type;
 
                     case BinarySettings.TypeKinds.Generic:
                         type = ReadType();

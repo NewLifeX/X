@@ -758,6 +758,14 @@ namespace NewLife.Serialization
         }
 
         /// <summary>
+        /// 如果设置了自动刷新缓存，该方面将会调用Flush
+        /// </summary>
+        protected void AutoFlush()
+        {
+            if (Settings.AutoFlush) Flush();
+        }
+
+        /// <summary>
         /// 输出数据转为字节数组
         /// </summary>
         /// <returns></returns>

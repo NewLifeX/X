@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 using NewLife.CommonEntity;
 using NewLife.Log;
 using NewLife.Serialization;
 using NewLife.Xml;
-using System.Xml.Serialization;
-using System.Runtime.Serialization;
-using System.Xml.Schema;
 
 namespace Test
 {
@@ -27,7 +26,8 @@ namespace Test
             //Console.WriteLine(type);
 
             //OldBinaryTest();
-            BinaryTest();
+            //BinaryTest();
+            XmlTest();
 
             //foreach (ConsoleColor item in Enum.GetValues(typeof(ConsoleColor)))
             //{
@@ -61,39 +61,13 @@ namespace Test
         /// </summary>
         public static void BinaryTest()
         {
-            TraceStream ts = new TraceStream();
-            ts.UseConsole = true;
-
-            BinaryWriterX writer = new BinaryWriterX();
-            writer.Stream = ts;
-            //writer.IsLittleEndian = false;
-            //writer.EncodeInt = true;
+            BinaryWriterX writer = GetWriter<BinaryWriterX>();
             writer.Settings.DateTimeFormat = SerialSettings.DateTimeFormats.Seconds;
-            //writer.SplitGenericType = true;
             //writer.Settings.IgnoreName = false;
-            writer.Settings.IgnoreType = false;
+            //writer.Settings.IgnoreType = false;
             writer.Settings.SplitComplexType = true;
 
-            Administrator entity = GetDemo();
-
-            writer.WriteObject(entity);
-
-            Byte[] buffer = writer.ToArray();
-            //Console.WriteLine(BitConverter.ToString(buffer));
-
-            BinaryReaderX reader = new BinaryReaderX();
-            reader.Stream = writer.Stream;
-            reader.Stream.Position = 0;
-            //reader.EncodeInt = true;
-            //reader.SplitGenericType = true;
-            reader.Settings = writer.Settings;
-
-            Administrator admin = new Admin();
-            Object obj = admin;
-            reader.ReadObject(null, ref obj);
-            Console.WriteLine(obj != null);
-
-            //reader.ReadObject(typeof(Administrator));
+            DoTest<BinaryWriterX, BinaryReaderX>(writer);
         }
 
         /// <summary>
@@ -101,72 +75,76 @@ namespace Test
         /// </summary>
         public static void XmlTest()
         {
-            TraceStream ts = new TraceStream();
-            ts.UseConsole = true;
-
-            XmlWriterX writer = new XmlWriterX();
-            writer.Stream = ts;
+            XmlWriterX writer = GetWriter<XmlWriterX>();
             writer.MemberAsAttribute = false;
             writer.IgnoreDefault = false;
 
-            Administrator entity = GetDemo();
-
-            writer.WriteObject(entity);
-
-            writer.Flush();
-            Byte[] buffer = writer.ToArray();
-            Console.WriteLine(Encoding.UTF8.GetString(buffer));
+            DoTest<XmlWriterX, XmlReaderX>(writer);
 
             #region 测试
-            XmlReaderSettings settings = new XmlReaderSettings();
-            settings.IgnoreWhitespace = true;
-            writer.Stream.Position = 0;
-            XmlReader xr = XmlReader.Create(writer.Stream, settings);
-            while (xr.Read())
-            {
-                Console.WriteLine("{0}, {1}={2}", xr.NodeType, xr.Name, xr.Value);
-            }
+            //XmlReaderSettings settings = new XmlReaderSettings();
+            //settings.IgnoreWhitespace = true;
+            //writer.Stream.Position = 0;
+            //XmlReader xr = XmlReader.Create(writer.Stream, settings);
+            //while (xr.Read())
+            //{
+            //    Console.WriteLine("{0}, {1}={2}", xr.NodeType, xr.Name, xr.Value);
+            //}
             #endregion
-
-            XmlReaderX reader = new XmlReaderX();
-            reader.Stream = writer.Stream;
-            reader.Stream.Position = 0;
-            reader.MemberAsAttribute = writer.MemberAsAttribute;
-            reader.IgnoreDefault = writer.IgnoreDefault;
-
-            Administrator admin = new Admin();
-            Object obj = admin;
-            reader.ReadObject(null, ref obj);
-            Console.WriteLine(obj != null);
         }
 
+        /// <summary>
+        /// Json测试
+        /// </summary>
         public static void JsonTest()
         {
-            Console.Clear();
+            JsonWriter writer = GetWriter<JsonWriter>();
 
-            TraceStream ts = new TraceStream();
-            //ts.UseConsole = true;
+            DoTest<JsonWriter, JsonReader>(writer);
+        }
 
-            JsonWriter writer = new JsonWriter();
-            writer.Stream = ts;
-
+        static void DoTest<TWriter, TReader>(TWriter writer)
+            where TWriter : IWriter, new()
+            where TReader : IReader, new()
+        {
             Administrator entity = GetDemo();
 
-            writer.WriteObject(entity);
+            writer.WriteObject(entity, null, null);
 
-            Console.WriteLine(writer.ToString());
+            Byte[] buffer = writer.ToArray();
+            //Console.WriteLine(BitConverter.ToString(buffer));
 
-            NewLife.IO.Json json = new NewLife.IO.Json();
-            Console.WriteLine(json.Serialize(entity));
+            TReader reader = GetReader<TWriter, TReader>(writer);
 
-            JsonReader reader = new JsonReader();
+            Object obj = null;
+            reader.ReadObject(typeof(Admin), ref obj, null);
+            Administrator admin = obj as Admin;
+            Console.WriteLine(admin != null);
+        }
+
+        static T GetWriter<T>() where T : IWriter, new()
+        {
+            TraceStream ts = new TraceStream();
+
+            T writer = new T();
+            writer.Stream = ts;
+
+            writer.Settings.AutoFlush = true;
+
+            return writer;
+        }
+
+        static TReader GetReader<TWriter, TReader>(IWriter writer)
+            where TWriter : IWriter, new()
+            where TReader : IReader, new()
+        {
+            TReader reader = new TReader();
             reader.Stream = writer.Stream;
             reader.Stream.Position = 0;
 
-            Administrator admin = new Admin();
-            Object obj = admin;
-            reader.ReadObject(null, ref obj);
-            Console.WriteLine(obj != null);
+            reader.Settings = writer.Settings;
+
+            return reader;
         }
 
         static Administrator GetDemo()

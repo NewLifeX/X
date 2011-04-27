@@ -65,6 +65,16 @@ namespace NewLife.Log
         }
         #endregion
 
+        #region 构造
+        /// <summary>
+        /// 实例化跟踪流
+        /// </summary>
+        public TraceStream()
+        {
+            UseConsole = true;
+        }
+        #endregion
+
         #region 事件
         /// <summary>
         /// 操作时触发

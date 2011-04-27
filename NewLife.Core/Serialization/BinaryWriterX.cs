@@ -60,6 +60,8 @@ namespace NewLife.Serialization
             SetDebugIndent();
 
             Writer.Write(value);
+
+            AutoFlush();
         }
 
         /// <summary>
@@ -75,6 +77,8 @@ namespace NewLife.Serialization
             SetDebugIndent();
 
             Writer.Write(buffer, index, count);
+
+            AutoFlush();
         }
 
         /// <summary>
@@ -469,6 +473,18 @@ namespace NewLife.Serialization
             objRefs.Clear();
 
             base.Reset();
+        }
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            Byte[] buffer = ToArray();
+            if (buffer == null || buffer.Length < 1) return base.ToString();
+
+            return BitConverter.ToString(buffer);
         }
         #endregion
     }
