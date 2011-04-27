@@ -8,7 +8,7 @@ namespace NewLife.Xml
     /// <summary>
     /// Xml写入器
     /// </summary>
-    public class XmlWriterX : WriterBase<SerialSettings>
+    public class XmlWriterX : WriterBase<XmlSerialSettings>
     {
         #region 属性
         private XmlWriter _Writer;
@@ -58,22 +58,6 @@ namespace NewLife.Xml
         {
             get { return _RootName; }
             set { _RootName = value; }
-        }
-
-        private Boolean _MemberAsAttribute;
-        /// <summary>成员作为属性</summary>
-        public Boolean MemberAsAttribute
-        {
-            get { return _MemberAsAttribute; }
-            set { _MemberAsAttribute = value; }
-        }
-
-        private Boolean _IgnoreDefault;
-        /// <summary>忽略默认</summary>
-        public Boolean IgnoreDefault
-        {
-            get { return _IgnoreDefault; }
-            set { _IgnoreDefault = value; }
         }
         #endregion
 
@@ -268,9 +252,9 @@ namespace NewLife.Xml
         protected override bool WriteMember(object value, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
         {
             // 检查成员的值，如果是默认值，则不输出
-            if (value != null && IgnoreDefault && IsDefault(value, member)) return true;
+            if (value != null && Settings.IgnoreDefault && IsDefault(value, member)) return true;
 
-            if (MemberAsAttribute)
+            if (Settings.MemberAsAttribute)
                 Writer.WriteStartAttribute(member.Name);
             else
                 Writer.WriteStartElement(member.Name);
@@ -285,7 +269,7 @@ namespace NewLife.Xml
             //    Writer.WriteEndAttribute();
             //else
             //    Writer.WriteEndElement();
-            if (!MemberAsAttribute) Writer.WriteEndElement();
+            if (!Settings.MemberAsAttribute) Writer.WriteEndElement();
 
             AutoFlush();
 

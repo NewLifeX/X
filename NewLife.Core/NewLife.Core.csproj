@@ -194,6 +194,7 @@
     <Compile Include="Xml\ExtendData.cs" />
     <Compile Include="Xml\XMLEntity.cs" />
     <Compile Include="Xml\XmlReaderX.cs" />
+    <Compile Include="Xml\XmlSerialSettings.cs" />
     <Compile Include="Xml\XmlWriterX.cs" />
   </ItemGroup>
   <ItemGroup>
