@@ -263,7 +263,7 @@ namespace NewLife.Xml
 
             Boolean rs = base.WriteMember(value, member, index, callback);
 
-            AutoFlush();
+            //AutoFlush();
 
             //if (MemberAsAttribute)
             //    Writer.WriteEndAttribute();
