@@ -543,7 +543,13 @@ namespace NewLife.Serialization
                 if (!ReadItem(elementTypes[0], ref obj, callback)) break;
                 list.Add(obj);
             }
-            return new Array[] { list.ToArray() };
+            Array[] arrs = new Array[list.Count];
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (arrs[i] == null) arrs[i] = TypeX.CreateInstance(elementTypes[0].MakeArrayType(), 1) as Array;
+                arrs[i].SetValue(list[i], 0);
+            }
+            return arrs;
 
             //// 先读元素个数
             //Int32 count = ReadInt32();
@@ -865,13 +871,6 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         protected virtual Boolean ReadRefObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-            // 可序列化接口
-            if (typeof(ISerializable).IsAssignableFrom(type))
-            {
-                Debug("ReadSerializable", type.Name);
-
-                if (ReadSerializable(type, ref value, callback)) return true;
-            }
 
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
@@ -879,6 +878,13 @@ namespace NewLife.Serialization
                 Debug("ReadDictionary", type.Name);
 
                 if (ReadDictionary(type, ref value, callback)) return true;
+            }
+            // 可序列化接口
+            if (typeof(ISerializable).IsAssignableFrom(type))
+            {
+                Debug("ReadSerializable", type.Name);
+
+                if (ReadSerializable(type, ref value, callback)) return true;
             }
 
             // 枚举
