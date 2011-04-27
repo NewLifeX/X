@@ -612,20 +612,19 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected virtual Boolean WriteRefObject(Object value, Type type, WriteObjectCallback callback)
         {
-            // 可序列化接口
-            if (typeof(ISerializable).IsAssignableFrom(type))
-            {
-                Debug("WriteSerializable", type.Name);
-
-                if (WriteSerializable(value as ISerializable, type, callback)) return true;
-            }
-
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
             {
                 Debug("WriteDictionary", type.Name);
 
                 if (WriteDictionary(value as IDictionary, type, callback)) return true;
+            }
+            // 可序列化接口
+            if (typeof(ISerializable).IsAssignableFrom(type))
+            {
+                Debug("WriteSerializable", type.Name);
+
+                if (WriteSerializable(value as ISerializable, type, callback)) return true;
             }
 
             // 枚举
