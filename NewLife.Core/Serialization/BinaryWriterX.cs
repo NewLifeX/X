@@ -57,6 +57,8 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public override void Write(byte value)
         {
+            SetDebugIndent();
+
             Writer.Write(value);
         }
 
@@ -69,6 +71,8 @@ namespace NewLife.Serialization
         public override void Write(byte[] buffer, int index, int count)
         {
             if (buffer == null || buffer.Length < 1 || count <= 0 || index >= buffer.Length) return;
+
+            SetDebugIndent();
 
             Writer.Write(buffer, index, count);
         }
@@ -206,6 +210,69 @@ namespace NewLife.Serialization
         }
         #endregion
 
+        #region 扩展处理类型
+        /// <summary>
+        /// 写入Type
+        /// </summary>
+        /// <param name="value"></param>
+        protected override void OnWriteType(Type value)
+        {
+            if (Settings.SplitComplexType)
+            {
+                if (value.IsArray)
+                {
+                    // 数组类型
+                    Write((Byte)BinarySettings.TypeKinds.Array);
+                    // 数组维数
+                    Write(value.GetArrayRank());
+                    // 数据元素类型
+                    Write(value.GetElementType());
+                    return;
+                }
+
+                if (value.IsNested)
+                {
+                    // 内嵌类型
+                    Write((Byte)BinarySettings.TypeKinds.Nested);
+                    // 声明类
+                    Write(value.DeclaringType);
+                    // 本类类名
+                    Write(value.Name);
+                    return;
+                }
+
+                // 特殊处理泛型，把泛型类型和泛型参数拆分开来，充分利用对象引用以及FullName
+                if (value.IsGenericType && !value.IsGenericTypeDefinition)
+                {
+                    // 泛型类型
+                    Write((Byte)BinarySettings.TypeKinds.Generic);
+
+                    Write(value.GetGenericTypeDefinition());
+                    Type[] ts = value.GetGenericArguments();
+                    if (ts != null && ts.Length > 0)
+                    {
+                        // 不需要泛型参数个数，因为读取时能从GetGenericArguments得知个数
+                        //Write(ts.Length);
+                        foreach (Type type in ts)
+                        {
+                            Write(type);
+                        }
+                    }
+                    //else
+                    //{
+                    //    Write(0);
+                    //}
+                    return;
+                }
+
+                // 普通类型
+                Write((Byte)BinarySettings.TypeKinds.Normal);
+            }
+
+            base.OnWriteType(value);
+        }
+        #endregion
+
         #region 写入对象
         /// <summary>
         /// 写对象
@@ -217,7 +284,13 @@ namespace NewLife.Serialization
         protected override bool WriteRefObject(object value, Type type, WriteObjectCallback callback)
         {
             if (value != null) type = value.GetType();
-            if (!Settings.IgnoreType && type != null) Write(type);
+            if (!Settings.IgnoreType && type != null)
+            {
+                // 增加深度，否则写对象引用时将会受到影响，顶级对象不写对象引用
+                Depth++;
+                Write(type);
+                Depth--;
+            }
 
             return base.WriteRefObject(value, type, callback);
         }

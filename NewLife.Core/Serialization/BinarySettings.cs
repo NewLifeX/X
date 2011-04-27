@@ -9,6 +9,7 @@ namespace NewLife.Serialization
     /// </summary>
     public class BinarySettings : SerialSettings
     {
+        #region 属性
         private Boolean _IsLittleEndian = true;
         /// <summary>
         /// 是否小端字节序。
@@ -49,5 +50,42 @@ namespace NewLife.Serialization
             get { return _IgnoreName; }
             set { _IgnoreName = value; }
         }
+        #endregion
+
+        #region 类型
+        private Boolean _SplitComplexType;
+        /// <summary>是否拆分复杂类型。将拆分数组、内嵌和泛型</summary>
+        public Boolean SplitComplexType
+        {
+            get { return _SplitComplexType; }
+            set { _SplitComplexType = value; }
+        }
+
+        /// <summary>
+        /// 类型样式
+        /// </summary>
+        public enum TypeKinds
+        {
+            /// <summary>
+            /// 普通类型
+            /// </summary>
+            Normal,
+
+            /// <summary>
+            /// 数组类型
+            /// </summary>
+            Array,
+
+            /// <summary>
+            /// 内嵌类型
+            /// </summary>
+            Nested,
+
+            /// <summary>
+            /// 泛型类型
+            /// </summary>
+            Generic
+        }
+        #endregion
     }
 }

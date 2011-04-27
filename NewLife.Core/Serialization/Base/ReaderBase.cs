@@ -778,37 +778,23 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Type ReadType()
         {
-            Type t = ReadObjRef<Type>(delegate
-            {
-                String typeName = ReadString();
-                if (String.IsNullOrEmpty(typeName)) return null;
+            // 分离出去，便于重载，而又能有效利用对象引用
+            return ReadObjRef<Type>(OnReadType);
+        }
 
-                Type type = TypeX.GetType(typeName);
-                if (type != null) return type;
+        /// <summary>
+        /// 读取Type
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Type OnReadType()
+        {
+            String typeName = ReadString();
+            if (String.IsNullOrEmpty(typeName)) return null;
 
-                throw new XException("无法找到名为{0}的类型！", typeName);
-            });
+            Type type = TypeX.GetType(typeName);
+            if (type != null) return type;
 
-            if (SplitGenericType)
-            {
-                // 处理泛型
-                // 这里有个漏洞，加入写入的类型本身就是泛型定义，如typeof(List<>)，那么这里将会出错
-                if (t != null && t.IsGenericType && t.IsGenericTypeDefinition)
-                {
-                    Int32 count = ReadInt32();
-                    if (count > 0)
-                    {
-                        Type[] ts = t.GetGenericArguments();
-                        for (int i = 0; i < ts.Length; i++)
-                        {
-                            ts[i] = ReadType();
-                        }
-                        t = t.MakeGenericType(ts);
-                    }
-                }
-            }
-
-            return t;
+            throw new XException("无法找到名为{0}的类型！", typeName);
         }
         #endregion
 

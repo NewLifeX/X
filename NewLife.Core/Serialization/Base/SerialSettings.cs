@@ -18,6 +18,13 @@ namespace NewLife.Serialization
             set { _Encoding = value; }
         }
 
+        private Boolean _UseTypeFullName = true;
+        /// <summary>是否使用类型全名。类型全名能比程序集唯一名更节省空间</summary>
+        public Boolean UseTypeFullName
+        {
+            get { return _UseTypeFullName; }
+            set { _UseTypeFullName = value; }
+        }
         #endregion
 
         #region 时间日期
@@ -107,34 +114,34 @@ namespace NewLife.Serialization
         #endregion
 
         #region 类型
-        private TypeFormats _TypeFormat = TypeFormats.FullName;
-        /// <summary>类型格式</summary>
-        public virtual TypeFormats TypeFormat
-        {
-            get { return _TypeFormat; }
-            set { _TypeFormat = value; }
-        }
+        //private TypeFormats _TypeFormat = TypeFormats.FullName;
+        ///// <summary>类型格式</summary>
+        //public virtual TypeFormats TypeFormat
+        //{
+        //    get { return _TypeFormat; }
+        //    set { _TypeFormat = value; }
+        //}
 
-        /// <summary>
-        /// 类型格式
-        /// </summary>
-        public enum TypeFormats
-        {
-            /// <summary>
-            /// 程序集唯一名。精确，但占用空间大
-            /// </summary>
-            AssemblyQualifiedName,
+        ///// <summary>
+        ///// 类型格式
+        ///// </summary>
+        //public enum TypeFormats
+        //{
+        //    /// <summary>
+        //    /// 程序集唯一名。精确，但占用空间大
+        //    /// </summary>
+        //    AssemblyQualifiedName,
 
-            /// <summary>
-            /// 全名。常用
-            /// </summary>
-            FullName,
+        //    /// <summary>
+        //    /// 全名。常用
+        //    /// </summary>
+        //    FullName,
 
-            /// <summary>
-            /// 全名，扩展数组、泛型、内嵌类型
-            /// </summary>
-            FullNameExtend
-        }
+        //    /// <summary>
+        //    /// 全名，扩展数组、泛型、内嵌类型
+        //    /// </summary>
+        //    FullNameExtend
+        //}
         #endregion
     }
 }

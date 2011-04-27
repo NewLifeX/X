@@ -20,8 +20,17 @@ namespace Test
         /// </summary>
         public static void Start()
         {
+            //Type type = typeof(Admin);
+            //Console.WriteLine(type);
+
             //OldBinaryTest();
             BinaryTest();
+
+            //foreach (ConsoleColor item in Enum.GetValues(typeof(ConsoleColor)))
+            //{
+            //    Console.ForegroundColor = item;
+            //    Console.WriteLine("Test");
+            //}
         }
 
         static void OldBinaryTest()
@@ -57,9 +66,10 @@ namespace Test
             //writer.IsLittleEndian = false;
             //writer.EncodeInt = true;
             writer.Settings.DateTimeFormat = SerialSettings.DateTimeFormats.Seconds;
-            writer.SplitGenericType = true;
+            //writer.SplitGenericType = true;
             writer.Settings.IgnoreName = false;
             writer.Settings.IgnoreType = false;
+            writer.Settings.SplitComplexType = true;
 
             Administrator entity = GetDemo();
 
@@ -72,7 +82,7 @@ namespace Test
             reader.Stream = writer.Stream;
             reader.Stream.Position = 0;
             //reader.EncodeInt = true;
-            reader.SplitGenericType = true;
+            //reader.SplitGenericType = true;
             reader.Settings = writer.Settings;
 
             Administrator admin = new Admin();
@@ -179,6 +189,8 @@ namespace Test
             entity.DP3 = dp;
 
             entity.DPS = new Department[] { dp, dp2, dp };
+            entity.DPS2 = new Department[][] { new Department[] { dp, dp2, dp }, new Department[] { dp2, dp2, dp } };
+            entity.DPS3 = new Department[2, 2] { { dp, dp2 }, { dp2, dp } };
 
             entity.LPS = new List<Department>(entity.DPS);
 
@@ -224,6 +236,22 @@ namespace Test
             {
                 get { return _DPS; }
                 set { _DPS = value; }
+            }
+
+            private Department[][] _DPS2;
+            /// <summary>属性说明</summary>
+            public Department[][] DPS2
+            {
+                get { return _DPS2; }
+                set { _DPS2 = value; }
+            }
+
+            private Department[,] _DPS3;
+            /// <summary>属性说明</summary>
+            public Department[,] DPS3
+            {
+                get { return _DPS3; }
+                set { _DPS3 = value; }
             }
 
             private List<Department> _LPS;

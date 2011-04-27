@@ -10,7 +10,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// Json写入器
     /// </summary>
-    public class JsonWriter : WriterBase<SerialSettings>
+    public class JsonWriter : WriterBase<JsonSettings>
     {
         #region 属性
         private TextWriter _Writer;
@@ -51,21 +51,21 @@ namespace NewLife.Serialization
             }
         }
 
-        private Boolean _Indent;
-        /// <summary>缩进</summary>
-        public Boolean Indent
-        {
-            get { return _Indent; }
-            set { _Indent = value; }
-        }
+        //private Boolean _Indent;
+        ///// <summary>缩进</summary>
+        //public Boolean Indent
+        //{
+        //    get { return _Indent; }
+        //    set { _Indent = value; }
+        //}
 
-        private Boolean _JsDateTimeFormat;
-        /// <summary>Js时间日期格式</summary>
-        public Boolean JsDateTimeFormat
-        {
-            get { return _JsDateTimeFormat; }
-            set { _JsDateTimeFormat = value; }
-        }
+        //private Boolean _JsDateTimeFormat;
+        ///// <summary>Js时间日期格式</summary>
+        //public Boolean JsDateTimeFormat
+        //{
+        //    get { return _JsDateTimeFormat; }
+        //    set { _JsDateTimeFormat = value; }
+        //}
         #endregion
 
         #region 已重载
@@ -105,7 +105,7 @@ namespace NewLife.Serialization
         public override void Write(DateTime value)
         {
             String str = String.Format("Date({0})", Settings.ConvertDateTimeToInt64(value));
-            if (JsDateTimeFormat)
+            if (Settings.JsDateTimeFormat)
                 Write("new " + str);
             else
                 Write("/" + str + "/");

@@ -52,7 +52,7 @@ namespace NewLife.Serialization
         //}
         #endregion
 
-        #region 已重载
+        #region 基本元数据
         /// <summary>
         /// 读取字节
         /// </summary>
@@ -203,6 +203,47 @@ namespace NewLife.Serialization
                 if (n >= 64) throw new FormatException("数字值过大，无法使用压缩格式读取！");
             }
             return rs;
+        }
+        #endregion
+
+        #region 扩展处理类型
+        /// <summary>
+        /// 读取Type
+        /// </summary>
+        /// <returns></returns>
+        protected override Type OnReadType()
+        {
+            if (Settings.SplitComplexType)
+            {
+                Type type = null;
+                BinarySettings.TypeKinds kind = (BinarySettings.TypeKinds)ReadByte();
+                switch (kind)
+                {
+                    case BinarySettings.TypeKinds.Normal:
+                        return ReadType();
+
+                    case BinarySettings.TypeKinds.Array:
+                        Int32 rank = ReadInt32();
+                        return ReadType().MakeArrayType(rank);
+
+                    case BinarySettings.TypeKinds.Nested:
+                        return ReadType().GetNestedType(ReadString());
+
+                    case BinarySettings.TypeKinds.Generic:
+                        type = ReadType();
+                        Type[] ts = type.GetGenericArguments();
+                        for (int i = 0; i < ts.Length; i++)
+                        {
+                            ts[i] = ReadType();
+                        }
+                        return type.MakeGenericType(ts);
+
+                    default:
+                        break;
+                }
+            }
+
+            return base.OnReadType();
         }
         #endregion
 
@@ -378,7 +419,13 @@ namespace NewLife.Serialization
         protected override bool ReadRefObject(Type type, ref object value, ReadObjectCallback callback)
         {
             if (value != null) type = value.GetType();
-            if (!Settings.IgnoreType) type = ReadType();
+            if (!Settings.IgnoreType)
+            {
+                // 增加深度，否则写对象引用时将会受到影响，顶级对象不写对象引用
+                Depth++;
+                type = ReadType();
+                Depth--;
+            }
 
             return base.ReadRefObject(type, ref value, callback);
         }

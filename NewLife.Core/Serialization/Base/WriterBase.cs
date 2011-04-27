@@ -523,33 +523,25 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public void Write(Type value)
         {
-            if (SplitGenericType)
-            {
-                // 特殊处理泛型，把泛型类型和泛型参数拆分开来，充分利用对象引用以及FullName
-                if (value.IsGenericType && !value.IsGenericTypeDefinition)
-                {
-                    Write(value.GetGenericTypeDefinition());
-                    Type[] ts = value.GetGenericArguments();
-                    if (ts != null && ts.Length > 0)
-                    {
-                        Write(ts.Length);
-                        foreach (Type type in ts)
-                        {
-                            Write(type);
-                        }
-                    }
-                    else
-                    {
-                        Write(0);
-                    }
-                    return;
-                }
-            }
-
             if (WriteObjRef(value)) return;
 
+            Debug("WriteType", value);
+
+            // 分离出去，便于重载，而又能有效利用对象引用
+            OnWriteType(value);
+        }
+
+        /// <summary>
+        /// 写入Type
+        /// </summary>
+        /// <param name="value"></param>
+        protected virtual void OnWriteType(Type value)
+        {
             // 尽管使用AssemblyQualifiedName更精确，但是它的长度实在太大了
-            Write(value.FullName);
+            if (Settings.UseTypeFullName)
+                Write(value.FullName);
+            else
+                Write(value.AssemblyQualifiedName);
         }
 
         //public void Register<T>(Func<IWriter, T, Boolean> handler)

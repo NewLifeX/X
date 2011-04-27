@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.IO;
+using System.Diagnostics;
 
 namespace NewLife.Serialization
 {
@@ -72,13 +73,13 @@ namespace NewLife.Serialization
         ///// </summary>
         //public static readonly DateTime BaseDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        private Boolean _SplitGenericType;
-        /// <summary>是否拆分泛型类。拆分后，泛型类将按照泛型定义和泛型参数依次写入，同时利用对象引用，能在一定程度上减少大小</summary>
-        public Boolean SplitGenericType
-        {
-            get { return _SplitGenericType; }
-            set { _SplitGenericType = value; }
-        }
+        //private Boolean _SplitGenericType;
+        ///// <summary>是否拆分泛型类。拆分后，泛型类将按照泛型定义和泛型参数依次写入，同时利用对象引用，能在一定程度上减少大小</summary>
+        //public Boolean SplitGenericType
+        //{
+        //    get { return _SplitGenericType; }
+        //    set { _SplitGenericType = value; }
+        //}
         #endregion
 
         #region 方法
@@ -158,6 +159,60 @@ namespace NewLife.Serialization
         protected override void OnDispose(bool disposing)
         {
             base.OnDispose(disposing);
+        }
+        #endregion
+
+        #region 写日志
+        /// <summary>
+        /// 调试输出
+        /// </summary>
+        /// <param name="action">操作</param>
+        /// <param name="args">参数</param>
+        [Conditional("DEBUG")]
+        public void Debug(String action, params Object[] args)
+        {
+            ConsoleColor color = Console.ForegroundColor;
+
+            // 缩进
+            SetDebugIndent();
+
+            // 红色动作
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write(action);
+
+            if (args != null && args.Length > 0)
+            {
+                // 白色参数
+                Console.ForegroundColor = ConsoleColor.White;
+
+                for (int i = 0; i < args.Length; i++)
+                {
+                    Console.Write("\t");
+                    Console.Write(args[i]);
+                }
+            }
+
+            Console.ForegroundColor = color;
+            Console.WriteLine();
+        }
+
+        /// <summary>
+        /// 设置调试缩进
+        /// </summary>
+        /// <param name="indent">缩进</param>
+        [Conditional("DEBUG")]
+        public static void SetDebugIndent(Int32 indent)
+        {
+            Console.CursorLeft = indent * 4;
+        }
+
+        /// <summary>
+        /// 设置调试缩进
+        /// </summary>
+        [Conditional("DEBUG")]
+        public void SetDebugIndent()
+        {
+            SetDebugIndent(Depth - 1);
         }
         #endregion
     }
