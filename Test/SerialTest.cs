@@ -7,6 +7,9 @@ using NewLife.CommonEntity;
 using NewLife.Log;
 using NewLife.Serialization;
 using NewLife.Xml;
+using System.Xml.Serialization;
+using System.Runtime.Serialization;
+using System.Xml.Schema;
 
 namespace Test
 {
@@ -194,11 +197,11 @@ namespace Test
 
             entity.LPS = new List<Department>(entity.DPS);
 
-            entity.PPS = new Dictionary<string, Department>();
-            entity.PPS.Add("aa", dp);
-            entity.PPS.Add("bb", dp2);
+            //entity.PPS = new Dictionary<string, Department>();
+            //entity.PPS.Add("aa", dp);
+            //entity.PPS.Add("bb", dp2);
 
-            entity.SPS = new SortedList<string, Department>(entity.PPS);
+            //entity.SPS = new SortedList<string, Department>(entity.PPS);
 
             return entity;
         }
@@ -302,6 +305,103 @@ namespace Test
             {
                 return String.Format("{0}, {1}", ID, Name);
             }
+        }
+
+        /// <summary>   
+        /// 支持XML序列化的泛型 Dictionary   
+        /// </summary>   
+        /// <typeparam name="TKey"></typeparam>   
+        /// <typeparam name="TValue"></typeparam>   
+        [XmlRoot("SerializableDictionary")]
+        public class SerializableDictionary<TKey, TValue>
+            : Dictionary<TKey, TValue>, IXmlSerializable
+        {
+
+            #region 构造函数
+            public SerializableDictionary()
+                : base()
+            {
+            }
+            public SerializableDictionary(IDictionary<TKey, TValue> dictionary)
+                : base(dictionary)
+            {
+            }
+
+            public SerializableDictionary(IEqualityComparer<TKey> comparer)
+                : base(comparer)
+            {
+            }
+
+            public SerializableDictionary(int capacity)
+                : base(capacity)
+            {
+            }
+            public SerializableDictionary(int capacity, IEqualityComparer<TKey> comparer)
+                : base(capacity, comparer)
+            {
+            }
+            protected SerializableDictionary(SerializationInfo info, StreamingContext context)
+                : base(info, context)
+            {
+            }
+            #endregion
+            #region IXmlSerializable Members
+            public XmlSchema GetSchema()
+            {
+                return null;
+            }
+            /// <summary>   
+            /// 从对象的 XML 表示形式生成该对象   
+            /// </summary>   
+            /// <param name="reader"></param>   
+            public void ReadXml(XmlReader reader)
+            {
+                XmlSerializer keySerializer = new XmlSerializer(typeof(TKey));
+                XmlSerializer valueSerializer = new XmlSerializer(typeof(TValue));
+                bool wasEmpty = reader.IsEmptyElement;
+                reader.Read();
+                if (wasEmpty)
+                    return;
+                while (reader.NodeType != XmlNodeType.EndElement)
+                {
+                    reader.ReadStartElement("item");
+                    TKey key = (TKey)keySerializer.Deserialize(reader);
+                    reader.ReadEndElement();
+                    reader.ReadStartElement("value");
+                    TValue value = (TValue)valueSerializer.Deserialize(reader);
+                    reader.ReadEndElement();
+                    this.Add(key, value);
+                    reader.ReadEndElement();
+                    reader.MoveToContent();
+                }
+                //临时办法，将来解决
+                if (reader.NodeType != XmlNodeType.None)
+                    reader.ReadEndElement();
+            }
+
+            /**/
+            /// <summary>   
+            /// 将对象转换为其 XML 表示形式   
+            /// </summary>   
+            /// <param name="writer"></param>   
+            public void WriteXml(System.Xml.XmlWriter writer)
+            {
+                XmlSerializer keySerializer = new XmlSerializer(typeof(TKey));
+                XmlSerializer valueSerializer = new XmlSerializer(typeof(TValue));
+                foreach (TKey key in this.Keys)
+                {
+                    writer.WriteStartElement("item");
+                    writer.WriteStartElement("key");
+                    keySerializer.Serialize(writer, key);
+                    writer.WriteEndElement();
+                    writer.WriteStartElement("value");
+                    TValue value = this[key];
+                    valueSerializer.Serialize(writer, value);
+                    writer.WriteEndElement();
+                    writer.WriteEndElement();
+                }
+            }
+            #endregion
         }
     }
 }
