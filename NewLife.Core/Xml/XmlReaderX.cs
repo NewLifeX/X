@@ -311,7 +311,9 @@ namespace NewLife.Xml
 
                 //Reader.ReadEndElement();
             }
-            Reader.ReadEndElement();
+            //临时办法，将来解决
+            if (Reader.NodeType != XmlNodeType.None)
+                Reader.ReadEndElement();
 
             return true;
         }
