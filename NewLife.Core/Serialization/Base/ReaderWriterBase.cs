@@ -183,11 +183,13 @@ namespace NewLife.Serialization
             if (args != null && args.Length > 0)
             {
                 // 白色参数
-                Console.ForegroundColor = ConsoleColor.White;
+                //Console.ForegroundColor = ConsoleColor.White;
+                ConsoleColor[] colors = new ConsoleColor[] { ConsoleColor.Magenta, ConsoleColor.White, ConsoleColor.Yellow };
 
                 for (int i = 0; i < args.Length; i++)
                 {
-                    Console.Write("\t");
+                    Console.ForegroundColor = colors[i % colors.Length];
+                    Console.Write(" ");
                     Console.Write(args[i]);
                 }
             }

@@ -1,12 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Xml;
 using NewLife.CommonEntity;
+using NewLife.Log;
 using NewLife.Serialization;
 using NewLife.Xml;
-using NewLife.Log;
-using System.Collections.Generic;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Test
 {
@@ -67,7 +67,7 @@ namespace Test
             //writer.EncodeInt = true;
             writer.Settings.DateTimeFormat = SerialSettings.DateTimeFormats.Seconds;
             //writer.SplitGenericType = true;
-            writer.Settings.IgnoreName = false;
+            //writer.Settings.IgnoreName = false;
             writer.Settings.IgnoreType = false;
             writer.Settings.SplitComplexType = true;
 
@@ -76,7 +76,7 @@ namespace Test
             writer.WriteObject(entity);
 
             Byte[] buffer = writer.ToArray();
-            Console.WriteLine(BitConverter.ToString(buffer));
+            //Console.WriteLine(BitConverter.ToString(buffer));
 
             BinaryReaderX reader = new BinaryReaderX();
             reader.Stream = writer.Stream;
@@ -189,8 +189,8 @@ namespace Test
             entity.DP3 = dp;
 
             entity.DPS = new Department[] { dp, dp2, dp };
-            entity.DPS2 = new Department[][] { new Department[] { dp, dp2, dp }, new Department[] { dp2, dp2, dp } };
-            entity.DPS3 = new Department[2, 2] { { dp, dp2 }, { dp2, dp } };
+            //entity.DPS2 = new Department[][] { new Department[] { dp, dp2, dp }, new Department[] { dp2, dp2, dp } };
+            //entity.DPS3 = new Department[2, 2] { { dp, dp2 }, { dp2, dp } };
 
             entity.LPS = new List<Department>(entity.DPS);
 

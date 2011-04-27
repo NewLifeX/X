@@ -778,8 +778,14 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Type ReadType()
         {
+            Depth++;
             // 分离出去，便于重载，而又能有效利用对象引用
-            return ReadObjRef<Type>(OnReadType);
+            Type type = ReadObjRef<Type>(OnReadType);
+
+            if (type != null) Debug("ReadType", type.FullName);
+
+            Depth--;
+            return type;
         }
 
         /// <summary>
@@ -862,23 +868,31 @@ namespace NewLife.Serialization
             // 可序列化接口
             if (typeof(ISerializable).IsAssignableFrom(type))
             {
+                Debug("ReadSerializable", type.Name);
+
                 if (ReadSerializable(type, ref value, callback)) return true;
             }
 
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
             {
+                Debug("ReadDictionary", type.Name);
+
                 if (ReadDictionary(type, ref value, callback)) return true;
             }
 
             // 枚举
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
+                Debug("ReadEnumerable", type.Name);
+
                 if (ReadEnumerable(type, ref value, callback)) return true;
             }
 
             // 复杂类型，处理对象成员
             if (ReadCustomObject(type, ref value, callback)) return true;
+
+            Debug("ReadBinaryFormatter", type.Name);
 
             // 调用.Net的二进制序列化来解决剩下的事情
             BinaryFormatter bf = new BinaryFormatter();
@@ -966,6 +980,8 @@ namespace NewLife.Serialization
             foreach (IObjectMemberInfo item in mis)
             {
                 Depth++;
+                Debug("ReadMember", item.Name, item.Type.FullName);
+
                 if (!ReadMember(ref value, item, callback)) return false;
                 Depth--;
             }

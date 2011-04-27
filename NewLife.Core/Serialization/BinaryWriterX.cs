@@ -284,13 +284,8 @@ namespace NewLife.Serialization
         protected override bool WriteRefObject(object value, Type type, WriteObjectCallback callback)
         {
             if (value != null) type = value.GetType();
-            if (!Settings.IgnoreType && type != null)
-            {
-                // 增加深度，否则写对象引用时将会受到影响，顶级对象不写对象引用
-                Depth++;
-                Write(type);
-                Depth--;
-            }
+            // WriteType必须增加深度，否则写对象引用时将会受到影响，顶级对象不写对象引用
+            if (!Settings.IgnoreType && type != null) Write(type);
 
             return base.WriteRefObject(value, type, callback);
         }
@@ -306,6 +301,8 @@ namespace NewLife.Serialization
         {
             if (value == null)
             {
+                Debug("WriteObjRef", "null");
+
                 // 顶级不需要
                 if (Depth > 1) Write(0);
                 return true;
@@ -319,11 +316,15 @@ namespace NewLife.Serialization
             {
                 objRefs.Add(value);
 
+                Debug("AddObjRef", objRefs.Count, value.ToString(), value.GetType().Name);
+
                 // 写入引用计数
                 if (Depth > 1) Write(objRefs.Count);
 
                 return false;
             }
+
+            Debug("WriteObjRef", index + 1, value.ToString(), value.GetType().Name);
 
             // 如果找到，写入对象引用计数，返回true，通知上层不要再处理该对象，避免重写写入对象
             Write(index + 1);

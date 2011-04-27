@@ -59,6 +59,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override byte ReadByte()
         {
+            SetDebugIndent();
+
             return Reader.ReadByte();
         }
 
@@ -69,6 +71,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override byte[] ReadBytes(int count)
         {
+            SetDebugIndent();
+
             if (count < 0) count = ReadInt32();
 
             return Reader.ReadBytes(count);
@@ -217,17 +221,23 @@ namespace NewLife.Serialization
             {
                 Type type = null;
                 BinarySettings.TypeKinds kind = (BinarySettings.TypeKinds)ReadByte();
+
+                Debug("ReadType", kind);
+
                 switch (kind)
                 {
                     case BinarySettings.TypeKinds.Normal:
-                        return ReadType();
+                        return base.OnReadType();
 
                     case BinarySettings.TypeKinds.Array:
                         Int32 rank = ReadInt32();
                         return ReadType().MakeArrayType(rank);
 
                     case BinarySettings.TypeKinds.Nested:
-                        return ReadType().GetNestedType(ReadString());
+                        //return ReadType().GetNestedType(ReadString(), BindingFlags.Public | BindingFlags.NonPublic);
+                        type = ReadType();
+                        type = type.GetNestedType(ReadString(), BindingFlags.Public | BindingFlags.NonPublic);
+                        return type;
 
                     case BinarySettings.TypeKinds.Generic:
                         type = ReadType();
@@ -419,13 +429,8 @@ namespace NewLife.Serialization
         protected override bool ReadRefObject(Type type, ref object value, ReadObjectCallback callback)
         {
             if (value != null) type = value.GetType();
-            if (!Settings.IgnoreType)
-            {
-                // 增加深度，否则写对象引用时将会受到影响，顶级对象不写对象引用
-                Depth++;
-                type = ReadType();
-                Depth--;
-            }
+            // ReadType必须增加深度，否则写对象引用时将会受到影响，顶级对象不写对象引用
+            if (!Settings.IgnoreType) type = ReadType();
 
             return base.ReadRefObject(type, ref value, callback);
         }
@@ -451,6 +456,8 @@ namespace NewLife.Serialization
 
             if (index == 0)
             {
+                Debug("ReadObjRef", "null", type.Name);
+
                 value = null;
                 return true;
             }
@@ -461,9 +468,16 @@ namespace NewLife.Serialization
             //if (index > objRefs.Count) throw new XException("对象引用错误，无法找到引用计数为" + index + "的对象！");
 
             // 引用计数等于索引加一
-            if (index > objRefs.Count) return false;
+            if (index > objRefs.Count)
+            {
+                Debug("ReadObjRef", index, type.Name);
+
+                return false;
+            }
 
             value = objRefs[index - 1];
+
+            Debug("ReadObjRef", index, value.ToString(), value.GetType().Name);
 
             return true;
         }

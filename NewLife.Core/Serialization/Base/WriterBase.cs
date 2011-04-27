@@ -523,12 +523,15 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public void Write(Type value)
         {
-            if (WriteObjRef(value)) return;
+            Depth++;
+            if (!WriteObjRef(value))
+            {
+                Debug("WriteType", value.FullName);
 
-            Debug("WriteType", value);
-
-            // 分离出去，便于重载，而又能有效利用对象引用
-            OnWriteType(value);
+                // 分离出去，便于重载，而又能有效利用对象引用
+                OnWriteType(value);
+            }
+            Depth--;
         }
 
         /// <summary>
@@ -612,7 +615,7 @@ namespace NewLife.Serialization
             // 可序列化接口
             if (typeof(ISerializable).IsAssignableFrom(type))
             {
-                Debug("WriteSerializable", type.FullName);
+                Debug("WriteSerializable", type.Name);
 
                 if (WriteSerializable(value as ISerializable, type, callback)) return true;
             }
@@ -620,7 +623,7 @@ namespace NewLife.Serialization
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
             {
-                Debug("WriteDictionary", type.FullName);
+                Debug("WriteDictionary", type.Name);
 
                 if (WriteDictionary(value as IDictionary, type, callback)) return true;
             }
@@ -628,7 +631,7 @@ namespace NewLife.Serialization
             // 枚举
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
-                Debug("WriteEnumerable", type.FullName);
+                Debug("WriteEnumerable", type.Name);
 
                 if (WriteEnumerable(value as IEnumerable, type, callback)) return true;
             }
@@ -636,7 +639,7 @@ namespace NewLife.Serialization
             // 复杂类型，处理对象成员
             if (WriteCustomObject(value, type, callback)) return true;
 
-            Debug("WriteBinaryFormatter", type.FullName);
+            Debug("WriteBinaryFormatter", type.Name);
 
             // 调用.Net的二进制序列化来解决剩下的事情
             BinaryFormatter bf = new BinaryFormatter();
