@@ -197,11 +197,11 @@ namespace Test
 
             entity.LPS = new List<Department>(entity.DPS);
 
-            //entity.PPS = new Dictionary<string, Department>();
-            //entity.PPS.Add("aa", dp);
-            //entity.PPS.Add("bb", dp2);
+            entity.PPS = new Dictionary<string, Department>();
+            entity.PPS.Add("aa", dp);
+            entity.PPS.Add("bb", dp2);
 
-            //entity.SPS = new SortedList<string, Department>(entity.PPS);
+            entity.SPS = new SortedList<string, Department>(entity.PPS);
 
             return entity;
         }
