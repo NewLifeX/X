@@ -612,23 +612,31 @@ namespace NewLife.Serialization
             // 可序列化接口
             if (typeof(ISerializable).IsAssignableFrom(type))
             {
+                Debug("WriteSerializable", type.FullName);
+
                 if (WriteSerializable(value as ISerializable, type, callback)) return true;
             }
 
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
             {
+                Debug("WriteDictionary", type.FullName);
+
                 if (WriteDictionary(value as IDictionary, type, callback)) return true;
             }
 
             // 枚举
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
+                Debug("WriteEnumerable", type.FullName);
+
                 if (WriteEnumerable(value as IEnumerable, type, callback)) return true;
             }
 
             // 复杂类型，处理对象成员
             if (WriteCustomObject(value, type, callback)) return true;
+
+            Debug("WriteBinaryFormatter", type.FullName);
 
             // 调用.Net的二进制序列化来解决剩下的事情
             BinaryFormatter bf = new BinaryFormatter();
@@ -681,6 +689,8 @@ namespace NewLife.Serialization
             for (int i = 0; i < mis.Length; i++)
             {
                 Depth++;
+                Debug("WriteMember", mis[i].Name, mis[i].Type.FullName);
+
                 if (!WriteMember(value, mis[i], i, callback)) return false;
                 Depth--;
             }
