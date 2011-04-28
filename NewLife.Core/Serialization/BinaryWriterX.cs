@@ -346,11 +346,11 @@ namespace NewLife.Serialization
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected override bool WriteMember(object value, IObjectMemberInfo member, int index, WriteObjectCallback callback)
+        protected override bool OnWriteMember(object value, IObjectMemberInfo member, int index, WriteObjectCallback callback)
         {
             if (!Settings.IgnoreName) Write(member.Name);
 
-            return base.WriteMember(value, member, index, callback);
+            return base.OnWriteMember(value, member, index, callback);
         }
         #endregion
 

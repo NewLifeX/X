@@ -143,6 +143,24 @@ namespace NewLife.Serialization
         #endregion
         #endregion
 
+        #region 写入对象
+        /// <summary>
+        /// 写入对象。具体读写器可以重载该方法以修改写入对象前后的行为。
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        Boolean WriteObject(Object value, Type type, WriteObjectCallback callback);
+
+        /// <summary>
+        /// 写入对象引用。
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <returns>是否写入成功</returns>
+        Boolean WriteObjRef(Object value);
+        #endregion
+
         #region 字典
         /// <summary>
         /// 写入字典类型数据
@@ -165,22 +183,26 @@ namespace NewLife.Serialization
         Boolean WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback);
         #endregion
 
-        #region 写入对象
+        #region 序列化接口
         /// <summary>
-        /// 写入对象。具体读写器可以重载该方法以修改写入对象前后的行为。
+        /// 写入实现了可序列化接口的对象
         /// </summary>
-        /// <param name="value">对象</param>
+        /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        Boolean WriteObject(Object value, Type type, WriteObjectCallback callback);
+        Boolean WriteSerializable(Object value, Type type, WriteObjectCallback callback);
+        #endregion
 
+        #region 未知对象
         /// <summary>
-        /// 写入对象引用。
+        /// 写入未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization
         /// </summary>
-        /// <param name="value">对象</param>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        Boolean WriteObjRef(Object value);
+        Boolean WriteUnKnown(Object value, Type type, WriteObjectCallback callback);
         #endregion
 
         #region 方法
@@ -197,33 +219,25 @@ namespace NewLife.Serialization
         #endregion
 
         #region 事件
-        ///// <summary>
-        ///// 写成员前触发。参数是成员信息和是否取消写入该成员。
-        ///// 事件处理器中可以自定义写入成员，然后把第二参数设为false请求写入器不要再写入该成员。
-        ///// </summary>
-        //event EventHandler<EventArgs<Object, Boolean>> OnWritingObject;
+        /// <summary>
+        /// 写对象前触发。
+        /// </summary>
+        event EventHandler<SerialEventArgs<WriteObjectCallback>> OnObjectWriting;
 
         /// <summary>
-        /// 写成员前触发。参数是成员信息和是否取消写入该成员。
-        /// 事件处理器中可以自定义写入成员，然后把第二参数设为false请求写入器不要再写入该成员。
+        /// 写对象后触发。
         /// </summary>
-        event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnMemberWriting;
+        event EventHandler<SerialEventArgs<WriteObjectCallback>> OnObjectWrited;
+
+        /// <summary>
+        /// 写成员前触发。
+        /// </summary>
+        event EventHandler<SerialEventArgs<WriteObjectCallback>> OnMemberWriting;
 
         /// <summary>
         /// 写成员后触发。
         /// </summary>
-        event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnMemberWrited;
-
-        ///// <summary>
-        ///// 写成员前触发。参数是成员信息和是否取消写入该成员。
-        ///// 事件处理器中可以自定义写入成员，然后把第二参数设为false请求写入器不要再写入该成员。
-        ///// </summary>
-        //event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnWritingMemberContent;
-
-        ///// <summary>
-        ///// 写成员后触发。
-        ///// </summary>
-        //event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnWritedMemberContent;
+        event EventHandler<SerialEventArgs<WriteObjectCallback>> OnMemberWrited;
         #endregion
     }
 

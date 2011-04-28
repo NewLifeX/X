@@ -128,24 +128,24 @@ namespace NewLife.Serialization
         #endregion
         #endregion
 
-        #region 7位压缩编码整数
-        ///// <summary>
-        ///// 以压缩格式读取16位整数
-        ///// </summary>
-        ///// <returns></returns>
-        //Int16 ReadEncodedInt16();
+        #region 读取对象
+        /// <summary>
+        /// 尝试按照指定类型读取目标对象
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback);
 
-        ///// <summary>
-        ///// 以压缩格式读取32位整数
-        ///// </summary>
-        ///// <returns></returns>
-        //Int32 ReadEncodedInt32();
-
-        ///// <summary>
-        ///// 以压缩格式读取64位整数
-        ///// </summary>
-        ///// <returns></returns>
-        //Int64 ReadEncodedInt64();
+        /// <summary>
+        /// 读取对象引用。
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="value">对象</param>
+        /// <param name="index">引用计数</param>
+        /// <returns>是否读取成功</returns>
+        Boolean ReadObjRef(Type type, ref Object value, out Int32 index);
         #endregion
 
         #region 字典
@@ -170,37 +170,48 @@ namespace NewLife.Serialization
         Boolean ReadEnumerable(Type type, ref Object value, ReadObjectCallback callback);
         #endregion
 
-        #region 读取对象
+        #region 序列化接口
         /// <summary>
-        /// 尝试按照指定类型读取目标对象
+        /// 读取实现了可序列化接口的对象
         /// </summary>
-        /// <param name="type">类型</param>
-        /// <param name="value">对象</param>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback);
+        Boolean ReadSerializable(Type type, ref Object value, ReadObjectCallback callback);
+        #endregion
 
+        #region 未知对象
         /// <summary>
-        /// 读取对象引用。
+        /// 读取未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization
         /// </summary>
-        /// <param name="type">类型</param>
-        /// <param name="value">对象</param>
-        /// <param name="index">引用计数</param>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        Boolean ReadObjRef(Type type, ref Object value, out Int32 index);
+        Boolean ReadUnKnown(Type type, ref Object value, ReadObjectCallback callback);
         #endregion
 
         #region 事件
         /// <summary>
-        /// 读成员前触发。参数是成员信息和是否取消读取该成员。
-        /// 事件处理器中可以自定义读取成员，然后把第二参数设为false请求读取器不要再读取该成员。
+        /// 读对象前触发。
         /// </summary>
-        event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnMemberReading;
+        event EventHandler<SerialEventArgs<ReadObjectCallback>> OnObjectReading;
+
+        /// <summary>
+        /// 读对象后触发。
+        /// </summary>
+        event EventHandler<SerialEventArgs<ReadObjectCallback>> OnObjectReaded;
+
+        /// <summary>
+        /// 读成员前触发。
+        /// </summary>
+        event EventHandler<SerialEventArgs<ReadObjectCallback>> OnMemberReading;
 
         /// <summary>
         /// 读成员后触发。
         /// </summary>
-        event EventHandler<EventArgs<IObjectMemberInfo, Object>> OnMemberReaded;
+        event EventHandler<SerialEventArgs<ReadObjectCallback>> OnMemberReaded;
         #endregion
     }
 

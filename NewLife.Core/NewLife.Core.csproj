@@ -134,6 +134,7 @@
     <Compile Include="Remoting\RemotingMessageType.cs" />
     <Compile Include="Remoting\RemotingStreamHandler.cs" />
     <Compile Include="Serialization\Base\SerialSettings.cs" />
+    <Compile Include="Serialization\SerialEventArgs.cs" />
     <Compile Include="Serialization\XSerializationException.cs" />
     <Compile Include="Threading\ReadWriteLock.cs" />
     <Compile Include="Reflection\TypeX.cs" />
@@ -200,7 +201,8 @@
   <ItemGroup>
     <Content Include="Serialization\Protocol\说明.txt" />
     <EmbeddedResource Include="UpdateInfo.txt" />
-    <Content Include="Serialization\序列化架构.png" />
+    <Content Include="Serialization\序列化_写入器.png" />
+    <Content Include="Serialization\序列化_读取器.png" />
     <Content Include="Serialization\说明.txt" />
     <Content Include="架构设计\消息模型_层次结构.jpg" />
     <Content Include="架构设计\消息模型_数据处理流程.jpg" />

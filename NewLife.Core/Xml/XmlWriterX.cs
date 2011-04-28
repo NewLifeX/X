@@ -215,9 +215,9 @@ namespace NewLife.Xml
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        public override bool WriteObject(object value, Type type, WriteObjectCallback callback)
+        protected override bool OnWriteObject(object value, Type type, WriteObjectCallback callback)
         {
-            if (Depth > 1) return base.WriteObject(value, type, callback);
+            if (Depth > 1) return base.OnWriteObject(value, type, callback);
 
             if (type == null && value != null) type = value.GetType();
             String name = null;
@@ -230,7 +230,7 @@ namespace NewLife.Xml
 
             AutoFlush();
 
-            Boolean rs = base.WriteObject(value, type, callback);
+            Boolean rs = base.OnWriteObject(value, type, callback);
 
             AutoFlush();
 
@@ -249,7 +249,7 @@ namespace NewLife.Xml
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected override bool WriteMember(object value, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
+        protected override bool OnWriteMember(object value, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
         {
             // 检查成员的值，如果是默认值，则不输出
             if (value != null && Settings.IgnoreDefault && IsDefault(value, member)) return true;
@@ -261,7 +261,7 @@ namespace NewLife.Xml
 
             AutoFlush();
 
-            Boolean rs = base.WriteMember(value, member, index, callback);
+            Boolean rs = base.OnWriteMember(value, member, index, callback);
 
             //AutoFlush();
 

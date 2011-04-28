@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections;
-using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 
 namespace NewLife.Serialization
 {
@@ -426,6 +424,47 @@ namespace NewLife.Serialization
         }
         #endregion
 
+        #region 序列化接口
+        /// <summary>
+        /// 写入实现了可序列化接口的对象
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        public virtual Boolean WriteSerializable(Object value, Type type, WriteObjectCallback callback)
+        {
+            if (!typeof(ISerializable).IsAssignableFrom(type)) return false;
+
+            Debug("WriteSerializable", type.Name);
+
+            return WriteCustomObject(value, type, callback);
+        }
+        #endregion
+
+        #region 未知对象
+        /// <summary>
+        /// 写入未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        public virtual Boolean WriteUnKnown(Object value, Type type, WriteObjectCallback callback)
+        {
+            Debug("WriteUnKnown", type.Name);
+
+            // 调用.Net的二进制序列化来解决剩下的事情
+            BinaryFormatter bf = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream();
+            bf.Serialize(ms, value);
+            ms.Position = 0;
+            Write(ms.ToArray());
+
+            return true;
+        }
+        #endregion
+
         #region 扩展处理类型
         /// <summary>
         /// 扩展写入，反射查找合适的写入方法
@@ -583,11 +622,61 @@ namespace NewLife.Serialization
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteObject(Object value, Type type, WriteObjectCallback callback)
+        public Boolean WriteObject(Object value, Type type, WriteObjectCallback callback)
         {
             if (value != null) type = value.GetType();
             if (callback == null) callback = WriteMember;
 
+            // 检查IAcessor接口
+            if (typeof(IAccessor).IsAssignableFrom(type))
+            {
+                IAccessor accessor = value as IAccessor;
+                if (accessor != null && accessor.Write(this)) return true;
+            }
+
+            // 事件
+            SerialEventArgs<WriteObjectCallback> e = null;
+            if (OnObjectWriting != null)
+            {
+                e = new SerialEventArgs<WriteObjectCallback>(value, type, callback);
+
+                OnObjectWriting(this, e);
+
+                // 事件处理器可能已经成功写入对象
+                if (e.Success) return true;
+
+                // 事件里面有可能改变了参数
+                value = e.Value;
+                type = e.Type;
+                callback = e.Callback;
+            }
+
+            Boolean rs = OnWriteObject(value, type, callback);
+
+            // 事件
+            if (OnObjectWrited != null)
+            {
+                if (e == null) e = new SerialEventArgs<WriteObjectCallback>(value, type, callback);
+                e.Success = rs;
+
+                OnObjectWrited(this, e);
+
+                // 事件处理器可以影响结果
+                rs = e.Success;
+            }
+
+            return rs;
+        }
+
+        /// <summary>
+        /// 把目标对象指定成员写入数据流，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        protected virtual Boolean OnWriteObject(Object value, Type type, WriteObjectCallback callback)
+        {
             // 扩展类型
             if (WriteX(value, type)) return true;
 
@@ -619,13 +708,6 @@ namespace NewLife.Serialization
 
                 if (WriteDictionary(value as IDictionary, type, callback)) return true;
             }
-            // 可序列化接口
-            if (typeof(ISerializable).IsAssignableFrom(type))
-            {
-                Debug("WriteSerializable", type.Name);
-
-                if (WriteSerializable(value as ISerializable, type, callback)) return true;
-            }
 
             // 枚举
             if (typeof(IEnumerable).IsAssignableFrom(type))
@@ -635,19 +717,13 @@ namespace NewLife.Serialization
                 if (WriteEnumerable(value as IEnumerable, type, callback)) return true;
             }
 
+            // 可序列化接口
+            if (WriteSerializable(value, type, callback)) return true;
+
             // 复杂类型，处理对象成员
             if (WriteCustomObject(value, type, callback)) return true;
 
-            Debug("WriteBinaryFormatter", type.Name);
-
-            // 调用.Net的二进制序列化来解决剩下的事情
-            BinaryFormatter bf = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream();
-            bf.Serialize(ms, value);
-            ms.Position = 0;
-            Write(ms.ToArray());
-
-            return true;
+            return WriteUnKnown(value, type, callback);
         }
 
         /// <summary>
@@ -658,18 +734,6 @@ namespace NewLife.Serialization
         public virtual Boolean WriteObjRef(Object value)
         {
             return false;
-        }
-
-        /// <summary>
-        /// 写入实现了可序列化接口的对象
-        /// </summary>
-        /// <param name="value">要写入的对象</param>
-        /// <param name="type">要写入的对象类型</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteSerializable(ISerializable value, Type type, WriteObjectCallback callback)
-        {
-            return WriteCustomObject(value, type, callback);
         }
         #endregion
 
@@ -708,30 +772,52 @@ namespace NewLife.Serialization
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected virtual Boolean WriteMember(Object value, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
+        protected Boolean WriteMember(Object value, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
         {
 #if !DEBUG
             try
 #endif
             {
                 // 写入成员前
+                SerialEventArgs<WriteObjectCallback> e = null;
                 if (OnMemberWriting != null)
                 {
-                    EventArgs<IObjectMemberInfo, Boolean> e = new EventArgs<IObjectMemberInfo, Boolean>(member, false);
+                    e = new SerialEventArgs<WriteObjectCallback>(value, null, callback);
+                    e.Member = member;
+                    e.Index = index;
+
                     OnMemberWriting(this, e);
-                    if (e.Arg2) return true;
+
+                    // 事件处理器可能已经成功写入对象
+                    if (e.Success) return true;
+
+                    // 事件里面有可能改变了参数
+                    value = e.Value;
+                    callback = e.Callback;
+                    member = e.Member;
+                    index = e.Index;
                 }
 
-                Boolean result = callback(this, member[value], member.Type, callback);
+                Boolean rs = OnWriteMember(value, member, index, callback);
 
                 // 写入成员后
                 if (OnMemberWrited != null)
                 {
-                    EventArgs<IObjectMemberInfo, Boolean> e = new EventArgs<IObjectMemberInfo, Boolean>(member, result);
+                    if (e == null)
+                    {
+                        e = new SerialEventArgs<WriteObjectCallback>(value, null, callback);
+                        e.Member = member;
+                        e.Index = index;
+                    }
+                    e.Success = rs;
+
                     OnMemberWrited(this, e);
-                    result = e.Arg2;
+
+                    // 事件处理器可以影响结果
+                    rs = e.Success;
                 }
-                if (!result) return false;
+
+                return rs;
             }
 #if !DEBUG
             catch (Exception ex)
@@ -739,12 +825,24 @@ namespace NewLife.Serialization
                 throw new XSerializationException(member, ex);
             }
 #endif
-            return true;
+        }
+
+        /// <summary>
+        /// 写入成员
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="index">成员索引</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        protected virtual Boolean OnWriteMember(Object value, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
+        {
+            return callback(this, member[value], member.Type, callback);
         }
 
         private static Boolean WriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback)
         {
-            return (writer as WriterBase<TSettings>).WriteObject(value, type, callback);
+            return writer.WriteObject(value, type, callback);
         }
         #endregion
 
@@ -813,14 +911,24 @@ namespace NewLife.Serialization
 
         #region 事件
         /// <summary>
-        /// 写入成员前触发。参数觉得是否忽略该成员。
+        /// 写对象前触发。
         /// </summary>
-        public event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnMemberWriting;
+        public event EventHandler<SerialEventArgs<WriteObjectCallback>> OnObjectWriting;
 
         /// <summary>
-        /// 写入成员后触发。参数决定是否写入成功。
+        /// 写对象后触发。
         /// </summary>
-        public event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnMemberWrited;
+        public event EventHandler<SerialEventArgs<WriteObjectCallback>> OnObjectWrited;
+
+        /// <summary>
+        /// 写成员前触发。
+        /// </summary>
+        public event EventHandler<SerialEventArgs<WriteObjectCallback>> OnMemberWriting;
+
+        /// <summary>
+        /// 写成员后触发。
+        /// </summary>
+        public event EventHandler<SerialEventArgs<WriteObjectCallback>> OnMemberWrited;
         #endregion
     }
 }

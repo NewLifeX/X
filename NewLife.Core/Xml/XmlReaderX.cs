@@ -274,6 +274,7 @@ namespace NewLife.Xml
 
             Reader.ReadStartElement();
             //while (Reader.Read() && Reader.NodeType == XmlNodeType.Element)
+            Int32 index = 0;
             while (Reader.NodeType == XmlNodeType.Element)
             {
                 //Reader.ReadStartElement();
@@ -290,7 +291,7 @@ namespace NewLife.Xml
                 }
 
                 Depth++;
-                if (!ReadMember(ref value, dic[Reader.Name], callback)) return false;
+                if (!ReadMember(ref value, dic[Reader.Name], index++, callback)) return false;
                 Depth--;
 
                 //Reader.ReadEndElement();
@@ -307,16 +308,17 @@ namespace NewLife.Xml
         /// </summary>
         /// <param name="value">要读取的对象</param>
         /// <param name="member">成员</param>
+        /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        protected override bool ReadMember(ref object value, IObjectMemberInfo member, ReadObjectCallback callback)
+        protected override bool OnReadMember(ref object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
             if (Settings.MemberAsAttribute)
             {
                 Reader.MoveToAttribute(member.Name);
             }
 
-            return base.ReadMember(ref value, member, callback);
+            return base.OnReadMember(ref value, member, index, callback);
         }
         #endregion
     }

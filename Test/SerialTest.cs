@@ -26,8 +26,8 @@ namespace Test
             //Console.WriteLine(type);
 
             //OldBinaryTest();
-            //BinaryTest();
-            XmlTest();
+            BinaryTest();
+            //XmlTest();
 
             //foreach (ConsoleColor item in Enum.GetValues(typeof(ConsoleColor)))
             //{

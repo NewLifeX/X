@@ -503,14 +503,15 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value">要读取的对象</param>
         /// <param name="member">成员</param>
+        /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        protected override bool ReadMember(ref object value, IObjectMemberInfo member, ReadObjectCallback callback)
+        protected override bool OnReadMember(ref object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
             //todo 这里只是简单的判断名称是否相同，然后返回失败。实际上，应该根据名称来读取
             if (!Settings.IgnoreName && ReadString() != member.Name) return false;
 
-            return base.ReadMember(ref value, member, callback);
+            return base.OnReadMember(ref value, member, index, callback);
         }
         #endregion
 

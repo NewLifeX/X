@@ -688,6 +688,45 @@ namespace NewLife.Serialization
         }
         #endregion
 
+        #region 序列化接口
+        /// <summary>
+        /// 读取实现了可序列化接口的对象
+        /// </summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public virtual Boolean ReadSerializable(Type type, ref Object value, ReadObjectCallback callback)
+        {
+            if (!typeof(ISerializable).IsAssignableFrom(type)) return false;
+
+            Debug("ReadSerializable", type.Name);
+
+            return ReadCustomObject(type, ref value, callback);
+        }
+        #endregion
+
+        #region 未知对象
+        /// <summary>
+        /// 读取未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization
+        /// </summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public virtual Boolean ReadUnKnown(Type type, ref Object value, ReadObjectCallback callback)
+        {
+            Debug("ReadBinaryFormatter", type.Name);
+
+            // 调用.Net的二进制序列化来解决剩下的事情
+            BinaryFormatter bf = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream(ReadBytes(-1));
+            value = bf.Deserialize(ms);
+
+            return true;
+        }
+        #endregion
+
         #region 扩展处理类型
         /// <summary>
         /// 扩展读取，反射查找合适的读取方法
@@ -695,7 +734,7 @@ namespace NewLife.Serialization
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns></returns>
-        public Boolean TryReadX(Type type, ref Object value)
+        public Boolean ReadX(Type type, ref Object value)
         {
             if (type == typeof(Guid))
             {
@@ -840,16 +879,71 @@ namespace NewLife.Serialization
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback)
+        public Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback)
+        {
+            if (value != null) type = value.GetType();
+            if (callback == null) callback = ReadMember;
+
+            // 检查IAcessor接口
+            if (typeof(IAccessor).IsAssignableFrom(type))
+            {
+                IAccessor accessor = value as IAccessor;
+                if (accessor != null && accessor.Read(this)) return true;
+            }
+
+            // 事件
+            SerialEventArgs<ReadObjectCallback> e = null;
+            if (OnObjectReading != null)
+            {
+                e = new SerialEventArgs<ReadObjectCallback>(value, type, callback);
+
+                OnObjectReading(this, e);
+
+                // 事件里面有可能改变了参数
+                value = e.Value;
+                type = e.Type;
+                callback = e.Callback;
+
+                // 事件处理器可能已经成功读取对象
+                if (e.Success) return true;
+            }
+
+            Boolean rs = OnReadObject(type, ref value, callback);
+
+            // 事件
+            if (OnObjectReaded != null)
+            {
+                if (e == null) e = new SerialEventArgs<ReadObjectCallback>(value, type, callback);
+                e.Value = value;
+                e.Success = rs;
+
+                OnObjectReaded(this, e);
+
+                // 事件处理器可以影响结果
+                value = e.Value;
+                rs = e.Success;
+            }
+
+            return rs;
+        }
+
+        /// <summary>
+        /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
+        /// </summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        protected virtual Boolean OnReadObject(Type type, ref Object value, ReadObjectCallback callback)
         {
             if (type == null && value != null) type = value.GetType();
             if (callback == null) callback = ReadMember;
 
+            // 特殊类型
+            if (ReadX(type, ref value)) return true;
+
             // 基本类型
             if (ReadValue(type, ref value)) return true;
-
-            // 特殊类型
-            if (TryReadX(type, ref value)) return true;
 
             // 读取对象引用
             Int32 index = 0;
@@ -871,20 +965,12 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         protected virtual Boolean ReadRefObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
             {
                 Debug("ReadDictionary", type.Name);
 
                 if (ReadDictionary(type, ref value, callback)) return true;
-            }
-            // 可序列化接口
-            if (typeof(ISerializable).IsAssignableFrom(type))
-            {
-                Debug("ReadSerializable", type.Name);
-
-                if (ReadSerializable(type, ref value, callback)) return true;
             }
 
             // 枚举
@@ -895,19 +981,16 @@ namespace NewLife.Serialization
                 if (ReadEnumerable(type, ref value, callback)) return true;
             }
 
+            // 可序列化接口
+            if (ReadSerializable(type, ref value, callback)) return true;
+
             // 复杂类型，处理对象成员
             if (ReadCustomObject(type, ref value, callback)) return true;
 
-            Debug("ReadBinaryFormatter", type.Name);
-
-            // 调用.Net的二进制序列化来解决剩下的事情
-            BinaryFormatter bf = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream(ReadBytes(-1));
-            value = bf.Deserialize(ms);
-
-            return true;
+            return ReadUnKnown(type, ref value, callback);
         }
 
+        #region 对象引用
         /// <summary>
         /// 读取引用对象的包装，能自动从引用对象集合里面读取，如果不存在，则调用委托读取对象，并加入引用对象集合
         /// </summary>
@@ -953,18 +1036,7 @@ namespace NewLife.Serialization
         protected virtual void AddObjRef(Int32 index, Object value)
         {
         }
-
-        /// <summary>
-        /// 读取实现了可序列化接口的对象
-        /// </summary>
-        /// <param name="type">要读取的对象类型</param>
-        /// <param name="value">要读取的对象</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadSerializable(Type type, ref Object value, ReadObjectCallback callback)
-        {
-            return ReadCustomObject(type, ref value, callback);
-        }
+        #endregion
         #endregion
 
         #region 自定义对象
@@ -983,12 +1055,12 @@ namespace NewLife.Serialization
             // 如果为空，实例化并赋值。
             if (value == null) value = TypeX.CreateInstance(type);
 
-            foreach (IObjectMemberInfo item in mis)
+            for (int i = 0; i < mis.Length; i++)
             {
                 Depth++;
-                Debug("ReadMember", item.Name, item.Type.FullName);
+                Debug("ReadMember", mis[i].Name, mis[i].Type.FullName);
 
-                if (!ReadMember(ref value, item, callback)) return false;
+                if (!ReadMember(ref value, mis[i], i, callback)) return false;
                 Depth--;
             }
 
@@ -1000,36 +1072,61 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value">要读取的对象</param>
         /// <param name="member">成员</param>
+        /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        protected virtual Boolean ReadMember(ref Object value, IObjectMemberInfo member, ReadObjectCallback callback)
+        protected Boolean ReadMember(ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
 #if !DEBUG
             try
 #endif
             {
                 // 读取成员前
+                SerialEventArgs<ReadObjectCallback> e = null;
                 if (OnMemberReading != null)
                 {
-                    EventArgs<IObjectMemberInfo, Boolean> e = new EventArgs<IObjectMemberInfo, Boolean>(member, false);
+                    e = new SerialEventArgs<ReadObjectCallback>(value, null, callback);
+                    e.Member = member;
+                    e.Index = index;
+
                     OnMemberReading(this, e);
-                    if (e.Arg2) return true;
+
+                    // 事件里面有可能改变了参数
+                    value = e.Value;
+                    callback = e.Callback;
+                    member = e.Member;
+                    index = e.Index;
+
+                    // 事件处理器可能已经成功读取对象
+                    if (e.Success) return true;
                 }
 
-                //MemberInfoX mix = member;
-                //obj = mix.GetValue(value);
-                Object obj = member[value];
-                if (!callback(this, member.Type, ref obj, callback)) return false;
+                Object obj = null;
+                Boolean rs = OnReadMember(ref obj, member, index, callback);
 
                 // 读取成员后
                 if (OnMemberReaded != null)
                 {
-                    EventArgs<IObjectMemberInfo, Object> e = new EventArgs<IObjectMemberInfo, Object>(member, obj);
+                    if (e == null)
+                    {
+                        e = new SerialEventArgs<ReadObjectCallback>(value, null, callback);
+                        e.Member = member;
+                        e.Index = index;
+                    }
+                    e.Value = obj;
+                    e.Success = rs;
+
                     OnMemberReaded(this, e);
-                    obj = e.Arg2;
+
+                    // 事件处理器可以影响结果
+                    obj = e.Value;
+                    rs = e.Success;
                 }
-                //mix.SetValue(value, obj);
+
+                // 设置成员的值
                 member[value] = obj;
+
+                return rs;
             }
 #if !DEBUG
             catch (Exception ex)
@@ -1037,26 +1134,47 @@ namespace NewLife.Serialization
                 throw new XSerializationException(member, ex);
             }
 #endif
+        }
 
-            return true;
+        /// <summary>
+        /// 读取成员
+        /// </summary>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="member">成员</param>
+        /// <param name="index">成员索引</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        protected virtual Boolean OnReadMember(ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
+        {
+            return callback(this, member.Type, ref value, callback);
         }
 
         private static Boolean ReadMember(IReader reader, Type type, ref Object value, ReadObjectCallback callback)
         {
-            return (reader as ReaderBase<TSettings>).ReadObject(type, ref value, callback);
+            return reader.ReadObject(type, ref value, callback);
         }
         #endregion
 
         #region 事件
         /// <summary>
-        /// 读取成员先触发。参数决定是否读取成功。
+        /// 读对象前触发。
         /// </summary>
-        public event EventHandler<EventArgs<IObjectMemberInfo, Boolean>> OnMemberReading;
+        public event EventHandler<SerialEventArgs<ReadObjectCallback>> OnObjectReading;
 
         /// <summary>
-        /// 读取成员后触发
+        /// 读对象后触发。
         /// </summary>
-        public event EventHandler<EventArgs<IObjectMemberInfo, Object>> OnMemberReaded;
+        public event EventHandler<SerialEventArgs<ReadObjectCallback>> OnObjectReaded;
+
+        /// <summary>
+        /// 读成员前触发。
+        /// </summary>
+        public event EventHandler<SerialEventArgs<ReadObjectCallback>> OnMemberReading;
+
+        /// <summary>
+        /// 读成员后触发。
+        /// </summary>
+        public event EventHandler<SerialEventArgs<ReadObjectCallback>> OnMemberReaded;
         #endregion
     }
 }
