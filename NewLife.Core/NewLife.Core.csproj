@@ -200,6 +200,7 @@
   <ItemGroup>
     <Content Include="Serialization\Protocol\说明.txt" />
     <EmbeddedResource Include="UpdateInfo.txt" />
+    <Content Include="Serialization\序列化架构.png" />
     <Content Include="Serialization\说明.txt" />
     <Content Include="架构设计\消息模型_层次结构.jpg" />
     <Content Include="架构设计\消息模型_数据处理流程.jpg" />
@@ -208,6 +209,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Serialization\序列化架构.edx" />
     <None Include="Serialization\读写器模型.cd" />
     <None Include="IOModule\数据流总线模型.cd" />
     <None Include="Messaging\消息总线模型.cd" />
