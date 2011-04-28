@@ -2,6 +2,7 @@
 using System.IO;
 using System.Xml;
 using NewLife.Serialization;
+using System.Collections;
 
 namespace NewLife.Xml
 {
@@ -205,6 +206,29 @@ namespace NewLife.Xml
             AutoFlush();
         }
         #endregion
+        #endregion
+
+        #region 字典
+        /// <summary>
+        /// 写入字典项
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <param name="type">类型</param>
+        /// <param name="index">成员索引</param>
+        /// <param name="callback">使用指定委托方法处理复杂数据</param>
+        /// <returns>是否写入成功</returns>
+        public override bool WriteKeyValue(DictionaryEntry value, Type type, int index, WriteObjectCallback callback)
+        {
+            Writer.WriteStartElement("Key");
+            if (!WriteObject(value.Key, null, callback)) return false;
+            Writer.WriteEndElement();
+
+            Writer.WriteStartElement("Value");
+            if (!WriteObject(value.Value, null, callback)) return false;
+            Writer.WriteEndElement();
+
+            return true;
+        }
         #endregion
 
         #region 写入对象

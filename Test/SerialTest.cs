@@ -22,8 +22,14 @@ namespace Test
         /// </summary>
         public static void Start()
         {
-            //Type type = typeof(Admin);
+            //Type type = typeof(List<String>);
             //Console.WriteLine(type);
+            //Type[] ts = type.GetInterfaces();
+            //Console.WriteLine(ts != null);
+            //foreach (Type item in ts)
+            //{
+            //    if (typeof(IEnumerable<>) == item.GetGenericTypeDefinition()) Console.WriteLine(item);
+            //}
 
             //OldBinaryTest();
             BinaryTest();

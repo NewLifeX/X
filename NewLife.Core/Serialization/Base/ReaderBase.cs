@@ -348,8 +348,8 @@ namespace NewLife.Serialization
             if (!GetDictionaryEntryType(type, ref keyType, ref valueType)) return false;
 
             // 读取键值对集合
-            IEnumerable<DictionaryEntry> list = ReadDictionary(keyType, valueType, callback);
-            if (list == null) return false;
+            IEnumerable<DictionaryEntry> list = ReadDictionary(keyType, valueType, Int32.MaxValue, callback);
+            if (list == null) return true;
 
             if (value == null) value = TypeX.CreateInstance(type);
             IDictionary dic = value as IDictionary;
@@ -366,20 +366,50 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="keyType">键类型</param>
         /// <param name="valueType">值类型</param>
-        /// <param name="callback">处理成员的方法</param>
+        /// <param name="count">元素个数</param>
+        /// <param name="callback">处理元素的方法</param>
         /// <returns>字典项集合</returns>
-        protected virtual IEnumerable<DictionaryEntry> ReadDictionary(Type keyType, Type valueType, ReadObjectCallback callback)
+        protected virtual IEnumerable<DictionaryEntry> ReadDictionary(Type keyType, Type valueType, Int32 count, ReadObjectCallback callback)
         {
             List<DictionaryEntry> list = new List<DictionaryEntry>();
-            while (true)
+            for (int i = 0; i < count; i++)
             {
                 // 一旦有一个元素读不到，就中断
                 DictionaryEntry obj;
-                if (!ReadDictionaryEntry(keyType, valueType, ref obj, callback)) break;
+                Depth++;
+                if (!ReadDictionaryEntry(keyType, valueType, ref obj, i, callback))
+                {
+                    Depth--;
+                    break;
+                }
+                Depth--;
                 list.Add(obj);
             }
 
             return list;
+        }
+
+        /// <summary>
+        /// 读取字典项
+        /// </summary>
+        /// <param name="keyType">键类型</param>
+        /// <param name="valueType">值类型</param>
+        /// <param name="value">字典项</param>
+        /// <param name="index">元素序号</param>
+        /// <param name="callback">处理元素的方法</param>
+        /// <returns>是否读取成功</returns>
+        public virtual Boolean ReadDictionaryEntry(Type keyType, Type valueType, ref DictionaryEntry value, Int32 index, ReadObjectCallback callback)
+        {
+            Object key = null;
+            Object val = null;
+
+            if (!ReadObject(keyType, ref key)) return false;
+            if (!ReadObject(valueType, ref val)) return false;
+
+            value.Key = key;
+            value.Value = val;
+
+            return true;
         }
 
         /// <summary>
@@ -404,19 +434,6 @@ namespace NewLife.Serialization
                 }
             }
 
-            return false;
-        }
-
-        /// <summary>
-        /// 读取字典项
-        /// </summary>
-        /// <param name="keyType">键类型</param>
-        /// <param name="valueType">值类型</param>
-        /// <param name="value">字典项</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadDictionaryEntry(Type keyType, Type valueType, ref DictionaryEntry value, ReadObjectCallback callback)
-        {
             return false;
         }
         #endregion
@@ -445,41 +462,33 @@ namespace NewLife.Serialization
         {
             if (type == null)
             {
-                if (value == null) throw new ArgumentNullException("type");
+                if (value == null) return false;
                 type = value.GetType();
             }
 
             if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
 
-            #region 计算元素类型
-            Type[] elementTypes = Type.EmptyTypes;
-            if (elementTypes == null || elementTypes.Length <= 0)
+            // 计算元素类型，如果无法计算，这里不能处理，否则能写不能读（因为不知道元素类型）
+            Type elementType = null;
+            if (type.HasElementType) elementType = type.GetElementType();
+
+            // 如果实现了IEnumerable<>接口，那么取泛型参数
+            if (elementType == null)
             {
-                if (type.HasElementType)
-                    elementTypes = new Type[] { type.GetElementType() };
-                else if (type.IsGenericType)
+                Type[] ts = type.GetInterfaces();
+                foreach (Type item in ts)
                 {
-                    Type[] ts = type.GetGenericArguments();
-                    if (ts != null && ts.Length > 0)
+                    if (item.IsGenericType && item.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                     {
-                        if (ts.Length == 1)
-                            elementTypes = new Type[] { ts[0] };
-                        else if (ts.Length == 2)
-                            elementTypes = new Type[] { ts[0], ts[1] };
+                        elementType = item.GetGenericArguments()[0];
+                        break;
                     }
                 }
-                //if (elementTypes != null)
-                //{
-                //    if (elementTypes.Length >= 1) elementType = elementTypes[0];
-                //    if (elementTypes.Length >= 2) valueType = elementTypes[1];
-                //}
             }
 
-            // 如果不是基本类型和特殊类型，必须有委托方法
-            //if (elementType == null || !Support(elementType) && callback == null) return false;
-            #endregion
+            if (elementType == null) return false;
 
-            if (!ReadEnumerable(type, elementTypes, ref value, callback)) return false;
+            if (!ReadEnumerable(type, elementType, ref value, callback)) return false;
 
             return true;
         }
@@ -489,21 +498,52 @@ namespace NewLife.Serialization
         /// </summary>
         /// <remarks>重点和难点在于如果得知枚举元素类型，这里假设所有元素类型一致，否则实在无法处理</remarks>
         /// <param name="type">类型</param>
-        /// <param name="elementTypes">元素类型数组</param>
+        /// <param name="elementType">元素类型数组</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadEnumerable(Type type, Type[] elementTypes, ref Object value, ReadObjectCallback callback)
+        public virtual Boolean ReadEnumerable(Type type, Type elementType, ref Object value, ReadObjectCallback callback)
         {
             if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
 
-            Array[] arrs = ReadItems(type, elementTypes, callback);
-            if (arrs == null) return false;
-            if (arrs.Length == 1 && arrs[0].Length == 1) return true;
+            IEnumerable arr = ReadItems(type, elementType, Int32.MaxValue, callback);
+            if (arr == null)
+            {
+                value = null;
+                return true;
+            }
 
-            if (ProcessItems(type, elementTypes, ref value, arrs)) return true;
+            if (ProcessItems(type, elementType, ref value, arr)) return true;
 
             return false;
+        }
+
+        /// <summary>
+        /// 读取元素集合
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="elementType"></param>
+        /// <param name="count">元素个数</param>
+        /// <param name="callback">处理元素的方法</param>
+        /// <returns></returns>
+        protected virtual IEnumerable ReadItems(Type type, Type elementType, Int32 count, ReadObjectCallback callback)
+        {
+            ArrayList list = new ArrayList();
+            for (int i = 0; i < count; i++)
+            {
+                // 一旦有一个元素读不到，就中断
+                Object obj = null;
+                Depth++;
+                if (!ReadItem(elementType, ref obj, i, callback))
+                {
+                    Depth--;
+                    break;
+                }
+                Depth--;
+                list.Add(obj);
+            }
+
+            return list;
         }
 
         /// <summary>
@@ -511,177 +551,109 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="type"></param>
         /// <param name="value"></param>
-        /// <param name="callback"></param>
+        /// <param name="index">元素序号</param>
+        /// <param name="callback">处理元素的方法</param>
         /// <returns></returns>
-        protected virtual Boolean ReadItem(Type type, ref Object value, ReadObjectCallback callback)
+        protected virtual Boolean ReadItem(Type type, ref Object value, Int32 index, ReadObjectCallback callback)
         {
             return ReadObject(type, ref value, callback);
-        }
-
-        /// <summary>
-        /// 读取元素集合
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="elementTypes"></param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        protected virtual Array[] ReadItems(Type type, Type[] elementTypes, ReadObjectCallback callback)
-        {
-            //Type elementType = null;
-            //Type valueType = null;
-            //if (elementTypes != null)
-            //{
-            //    if (elementTypes.Length >= 1) elementType = elementTypes[0];
-            //    if (elementTypes.Length >= 2) valueType = elementTypes[1];
-            //}
-
-            ArrayList list = new ArrayList();
-            while (true)
-            {
-                // 一旦有一个元素读不到，就中断
-                Object obj = null;
-                if (!ReadItem(elementTypes[0], ref obj, callback)) break;
-                list.Add(obj);
-            }
-            Array[] arrs = new Array[list.Count];
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (arrs[i] == null) arrs[i] = TypeX.CreateInstance(elementTypes[0].MakeArrayType(), 1) as Array;
-                arrs[i].SetValue(list[i], 0);
-            }
-            return arrs;
-
-            //// 先读元素个数
-            //Int32 count = ReadInt32();
-            //if (count < 0) throw new InvalidOperationException("无效元素个数" + count + "！");
-
-            //// 没有元素
-            //if (count == 0) return new Array[0];
-
-            //Array[] arrs = new Array[elementTypes.Length];
-            //for (int i = 0; i < count; i++)
-            //{
-            //    for (int j = 0; j < elementTypes.Length; j++)
-            //    {
-            //        if (arrs[j] == null) arrs[j] = TypeX.CreateInstance(elementTypes[j].MakeArrayType(), count) as Array;
-
-            //        Object obj = null;
-            //        if (!ReadItem(elementTypes[j], ref obj, callback)) return null;
-            //        arrs[j].SetValue(obj, i);
-            //    }
-            //}
-            //return arrs;
         }
 
         /// <summary>
         /// 处理结果集
         /// </summary>
         /// <param name="type"></param>
-        /// <param name="elementTypes"></param>
+        /// <param name="elementType"></param>
         /// <param name="value"></param>
-        /// <param name="arrs"></param>
+        /// <param name="arr"></param>
         /// <returns></returns>
-        protected Boolean ProcessItems(Type type, Type[] elementTypes, ref Object value, Array[] arrs)
+        protected Boolean ProcessItems(Type type, Type elementType, ref Object value, IEnumerable arr)
         {
-            Type elementType = null;
-            Type valueType = null;
-            if (elementTypes != null)
+            if (type == arr.GetType())
             {
-                if (elementTypes.Length >= 1) elementType = elementTypes[0];
-                if (elementTypes.Length >= 2) valueType = elementTypes[1];
-            }
-
-            // 如果是数组，直接赋值
-            if (type.IsArray)
-            {
-                value = arrs[0];
-
-                if (value.GetType().GetElementType() != elementTypes[0])
-                {
-                    Array arr = TypeX.CreateInstance(elementTypes[0].MakeArrayType(), arrs[0].Length) as Array;
-                    for (int i = 0; i < arrs[0].Length; i++)
-                    {
-                        arr.SetValue(arrs[0].GetValue(i), i);
-                    }
-                    value = arr;
-                }
-
+                value = arr;
                 return true;
             }
 
-            // 一个元素类型还是两个元素类型，分开处理
-            if (arrs.Length == 1)
+            // 添加方法
+            MethodInfoX method = null;
+
+            // 如果源对象不为空，则尽量使用源对象
+            if (value != null)
             {
-                #region 一个元素
-                // 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
-                ConstructorInfoX ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable) });
-                if (ci == null) ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable<>).MakeGenericType(elementType) });
-                if (ci != null)
+                if (typeof(IList).IsAssignableFrom(type))
                 {
-                    //value = TypeX.CreateInstance(type, arrs[0]);
-                    value = ci.CreateInstance(arrs[0]);
-                    return true;
+                    IList list = value as IList;
+                    if (list != null)
+                    {
+                        foreach (Object item in arr)
+                        {
+                            list.Add(item);
+                        }
+                        return true;
+                    }
                 }
 
-                // 添加方法
-                MethodInfoX method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
+                method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
                 if (method != null)
                 {
-                    value = TypeX.CreateInstance(type);
-                    //for (int i = 0; i < count; i++)
-                    //{
-                    //    method.Invoke(value, arrs[0].GetValue(i));
-                    //}
-                    foreach (Object item in arrs[0])
+                    foreach (Object item in arr)
                     {
                         method.Invoke(value, item);
                     }
                     return true;
                 }
-                #endregion
             }
-            else if (arrs.Length == 2)
+
+            // 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
+            ConstructorInfoX ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable) });
+            if (ci != null)
             {
-                #region 两个元素
-                // 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
-                ConstructorInfoX ci = ConstructorInfoX.Create(type, new Type[] { typeof(IDictionary<,>).MakeGenericType(elementType, valueType) });
-                if (ci != null)
+                value = ci.CreateInstance(arr);
+                return true;
+            }
+
+            Type enumType = typeof(IEnumerable<>).MakeGenericType(elementType);
+            if (ci == null) ci = ConstructorInfoX.Create(type, new Type[] { enumType });
+            if (ci != null)
+            {
+                // 如果数据不是IEnumerable<>类型，则需要转换
+                if (!enumType.IsAssignableFrom(arr.GetType()))
                 {
-                    Type dicType = typeof(Dictionary<,>).MakeGenericType(elementType, valueType);
-                    IDictionary dic = TypeX.CreateInstance(dicType) as IDictionary;
-                    //for (int i = 0; i < count; i++)
-                    //{
-                    //    dic.Add(arrs[0].GetValue(i), arrs[1].GetValue(i));
-                    //}
-                    Int32 i = 0;
-                    foreach (Object item in arrs[0])
+                    // 用List<>来转换
+                    Type listType = typeof(List<>).MakeGenericType(elementType);
+                    IList list = TypeX.CreateInstance(listType) as IList;
+                    if (list != null)
                     {
-                        dic.Add(arrs[0].GetValue(i), arrs[1].GetValue(i));
-                        i++;
+                        foreach (Object item in arr)
+                        {
+                            list.Add(item);
+                        }
+
+                        if (type == listType)
+                        {
+                            value = list;
+                            return true;
+                        }
+
+                        arr = list;
                     }
-                    //value = TypeX.CreateInstance(type, dic);
-                    value = ci.CreateInstance(dic);
-                    return true;
                 }
 
-                // 添加方法
-                MethodInfoX method = MethodInfoX.Create(type, "Add", new Type[] { elementType, valueType });
-                if (method != null)
+                value = ci.CreateInstance(arr);
+                return true;
+            }
+
+            // 添加方法
+            if (method == null) method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
+            if (method != null)
+            {
+                if (value != null) value = TypeX.CreateInstance(type);
+                foreach (Object item in arr)
                 {
-                    value = TypeX.CreateInstance(type);
-                    //for (int i = 0; i < count; i++)
-                    //{
-                    //    method.Invoke(value, arrs[0].GetValue(i), arrs[1].GetValue(i));
-                    //}
-                    Int32 i = 0;
-                    foreach (Object item in arrs[0])
-                    {
-                        method.Invoke(value, arrs[0].GetValue(i), arrs[1].GetValue(i));
-                        i++;
-                    }
-                    return true;
+                    method.Invoke(value, item);
                 }
-                #endregion
+                return true;
             }
 
             return false;

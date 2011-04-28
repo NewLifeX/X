@@ -5,6 +5,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Collections.Generic;
 
 namespace NewLife.Serialization
 {
@@ -370,6 +371,7 @@ namespace NewLife.Serialization
         {
             if (!WriteObject(value.Key, null, callback)) return false;
             if (!WriteObject(value.Value, null, callback)) return false;
+         
             return true;
         }
         #endregion
@@ -398,6 +400,26 @@ namespace NewLife.Serialization
 
             type = value.GetType();
             if (type != null && !typeof(IEnumerable).IsAssignableFrom(type)) throw new Exception("目标类型不是枚举类型！");
+
+            // 计算元素类型，如果无法计算，这里不能处理，否则能写不能读（因为不知道元素类型）
+            Type elementType = null;
+            if (type.HasElementType) elementType = type.GetElementType();
+
+            // 如果实现了IEnumerable<>接口，那么取泛型参数
+            if (elementType == null)
+            {
+                Type[] ts = type.GetInterfaces();
+                foreach (Type item in ts)
+                {
+                    if (item.IsGenericType && item.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                    {
+                        elementType = item.GetGenericArguments()[0];
+                        break;
+                    }
+                }
+            }
+
+            if (elementType == null) return false;
 
             Int32 i = 0;
             foreach (Object item in value)

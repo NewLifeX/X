@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml;
 using NewLife.Reflection;
 using NewLife.Serialization;
+using System.Collections;
 
 namespace NewLife.Xml
 {
@@ -189,19 +190,50 @@ namespace NewLife.Xml
         #endregion
         #endregion
 
+        #region 字典
+        /// <summary>
+        /// 读取字典项
+        /// </summary>
+        /// <param name="keyType">键类型</param>
+        /// <param name="valueType">值类型</param>
+        /// <param name="value">字典项</param>
+        /// <param name="index">元素序号</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public override bool ReadDictionaryEntry(Type keyType, Type valueType, ref DictionaryEntry value, Int32 index, ReadObjectCallback callback)
+        {
+            Object key = null;
+            Object val = null;
+
+            Reader.ReadStartElement();
+            if (!ReadObject(keyType, ref key)) return false;
+            Reader.ReadEndElement();
+            
+            Reader.ReadStartElement();
+            if (!ReadObject(valueType, ref val)) return false;
+            Reader.ReadEndElement();
+
+            value.Key = key;
+            value.Value = val;
+
+            return true;
+        }
+        #endregion
+
         #region 枚举
         /// <summary>
         /// 读取元素集合
         /// </summary>
         /// <param name="type"></param>
-        /// <param name="elementTypes"></param>
-        /// <param name="callback"></param>
+        /// <param name="elementType"></param>
+        /// <param name="count">元素个数</param>
+        /// <param name="callback">处理元素的方法</param>
         /// <returns></returns>
-        protected override Array[] ReadItems(Type type, Type[] elementTypes, ReadObjectCallback callback)
+        protected override IEnumerable ReadItems(Type type, Type elementType, Int32 count, ReadObjectCallback callback)
         {
             Reader.ReadStartElement();
 
-            Array[] rs = base.ReadItems(type, elementTypes, callback);
+            IEnumerable rs = base.ReadItems(type, elementType, count, callback);
 
             Reader.ReadEndElement();
 
@@ -213,13 +245,14 @@ namespace NewLife.Xml
         /// </summary>
         /// <param name="type"></param>
         /// <param name="value"></param>
-        /// <param name="callback"></param>
+        /// <param name="index">元素序号</param>
+        /// <param name="callback">处理元素的方法</param>
         /// <returns></returns>
-        protected override bool ReadItem(Type type, ref object value, ReadObjectCallback callback)
+        protected override bool ReadItem(Type type, ref object value, Int32 index, ReadObjectCallback callback)
         {
             if (Reader.Name != type.Name) return false;
 
-            return base.ReadItem(type, ref value, callback);
+            return base.ReadItem(type, ref value, index, callback);
         }
         #endregion
 

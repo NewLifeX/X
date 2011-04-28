@@ -40,14 +40,6 @@ namespace NewLife.Serialization
                 base.Stream = value;
             }
         }
-
-        //private BinarySettings _Settings;
-        ///// <summary>设置</summary>
-        //public BinarySettings Settings
-        //{
-        //    get { return _Settings ?? (_Settings = new BinarySettings()); }
-        //    set { _Settings = value; }
-        //}
         #endregion
 
         #region 基础元数据
@@ -354,6 +346,25 @@ namespace NewLife.Serialization
         }
         #endregion
 
+        #region 字典
+        /// <summary>
+        /// 写入字典类型数据
+        /// </summary>
+        /// <param name="value">字典数据</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        public override bool WriteDictionary(IDictionary value, Type type, WriteObjectCallback callback)
+        {
+            if (value == null) return true;
+
+            Write(value.Count);
+            if (value.Count == 0) return true;
+
+            return base.WriteDictionary(value, type, callback);
+        }
+        #endregion
+
         #region 枚举
         /// <summary>
         /// 写入枚举数据，复杂类型使用委托方法进行处理
@@ -364,73 +375,31 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public override bool WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
         {
-            if (value == null)
-            {
-                // 写入0长度。至此，枚举类型前面就会有两个字节用于标识，一个是是否为空，或者是对象引用，第二个是长度，注意长度为0的枚举类型
-                Write(0);
-                return true;
-            }
-
-            #region 初始化数据
             Int32 count = 0;
-            Type elementType = null;
-            List<Object> list = new List<Object>();
 
             if (type.IsArray)
             {
                 Array arr = value as Array;
                 count = arr.Length;
-                elementType = type.GetElementType();
             }
-            //else if (typeof(ICollection).IsAssignableFrom(type))
-            //{
-            //    count = (value as ICollection).Count;
-            //}
             else
             {
+                List<Object> list = new List<Object>();
                 foreach (Object item in value)
                 {
                     // 加入集合，防止value进行第二次遍历
                     list.Add(item);
-
-                    if (item == null) continue;
-
-                    // 找到枚举的元素类型
-                    Type t = item.GetType();
-                    if (elementType == null)
-                        elementType = t;
-                    else if (elementType != item.GetType())
-                    {
-                        // 争取找到最顶级的类型
-                        if (elementType.IsAssignableFrom(t))
-                        {
-                            // t继承自elementType
-                        }
-                        else if (t.IsAssignableFrom(elementType))
-                        {
-                            // elementType继承自t
-                            elementType = t;
-                        }
-                        else
-                        {
-                            // 可能是Object类型，无法支持
-                            return false;
-                        }
-                    }
                 }
                 count = list.Count;
                 value = list;
             }
-            #endregion
 
             if (count == 0)
             {
+                // 写入0长度。至此，枚举类型前面就会有两个字节用于标识，一个是是否为空，或者是对象引用，第二个是长度，注意长度为0的枚举类型
                 Write(0);
                 return true;
             }
-
-            // 可能是Object类型，无法支持
-            if (elementType == null) return false;
 
             // 写入长度
             Write(count);
