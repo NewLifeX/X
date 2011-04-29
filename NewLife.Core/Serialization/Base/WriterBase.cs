@@ -777,7 +777,7 @@ namespace NewLife.Serialization
             for (int i = 0; i < mis.Length; i++)
             {
                 Depth++;
-                Debug("WriteMember", mis[i].Name, mis[i].Type.FullName);
+                Debug("WriteMember", mis[i].Name, mis[i].Type.Name);
 
                 if (!WriteMember(value, mis[i], i, callback)) return false;
                 Depth--;

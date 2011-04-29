@@ -1030,7 +1030,7 @@ namespace NewLife.Serialization
             for (int i = 0; i < mis.Length; i++)
             {
                 Depth++;
-                Debug("ReadMember", mis[i].Name, mis[i].Type.FullName);
+                Debug("ReadMember", mis[i].Name, mis[i].Type.Name);
 
                 if (!ReadMember(ref value, mis[i], i, callback)) return false;
                 Depth--;

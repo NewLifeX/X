@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 using System.Xml;
 using NewLife.Serialization;
-using System.Collections;
 
 namespace NewLife.Xml
 {
@@ -219,12 +219,16 @@ namespace NewLife.Xml
         /// <returns>是否写入成功</returns>
         public override bool WriteKeyValue(DictionaryEntry value, Type type, int index, WriteObjectCallback callback)
         {
+            Writer.WriteStartElement("Item");
+            
             Writer.WriteStartElement("Key");
             if (!WriteObject(value.Key, null, callback)) return false;
             Writer.WriteEndElement();
 
             Writer.WriteStartElement("Value");
             if (!WriteObject(value.Value, null, callback)) return false;
+            Writer.WriteEndElement();
+
             Writer.WriteEndElement();
 
             return true;

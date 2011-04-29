@@ -1,11 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Xml;
 using NewLife.Reflection;
 using NewLife.Serialization;
-using System.Collections;
 
 namespace NewLife.Xml
 {
@@ -64,7 +63,7 @@ namespace NewLife.Xml
         }
         #endregion
 
-        #region 读取基础元数据
+        #region 基础元数据
         #region 字节
         /// <summary>
         /// 从当前流中读取下一个字节，并使流的当前位置提升 1 个字节。
@@ -191,6 +190,17 @@ namespace NewLife.Xml
         #endregion
 
         #region 字典
+        protected override IEnumerable<DictionaryEntry> ReadDictionary(Type keyType, Type valueType, int count, ReadObjectCallback callback)
+        {
+            Reader.ReadStartElement();
+
+            IEnumerable<DictionaryEntry> rs = base.ReadDictionary(keyType, valueType, count, callback);
+
+            Reader.ReadEndElement();
+
+            return rs;
+        }
+
         /// <summary>
         /// 读取字典项
         /// </summary>
@@ -208,7 +218,7 @@ namespace NewLife.Xml
             Reader.ReadStartElement();
             if (!ReadObject(keyType, ref key)) return false;
             Reader.ReadEndElement();
-            
+
             Reader.ReadStartElement();
             if (!ReadObject(valueType, ref val)) return false;
             Reader.ReadEndElement();
@@ -262,8 +272,9 @@ namespace NewLife.Xml
         /// </summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
+        /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        public override bool ReadObject(Type type, ref object value)
+        protected override bool OnReadObject(Type type, ref object value, ReadObjectCallback callback)
         {
             //Reader.Read();
             //Reader.ReadStartElement();
@@ -273,7 +284,7 @@ namespace NewLife.Xml
 
             //if (MemberStyle == XmlMemberStyle.Element) Reader.ReadStartElement();
 
-            Boolean rs = base.ReadObject(type, ref value);
+            Boolean rs = base.OnReadObject(type, ref value, callback);
 
             //Reader.ReadEndElement();
             //Reader.Read();
@@ -324,7 +335,10 @@ namespace NewLife.Xml
                 }
 
                 Depth++;
-                if (!ReadMember(ref value, dic[Reader.Name], index++, callback)) return false;
+                IObjectMemberInfo member = dic[Reader.Name];
+                Debug("ReadMember", member.Name, member.Type.Name);
+
+                if (!ReadMember(ref value, member, index++, callback)) return false;
                 Depth--;
 
                 //Reader.ReadEndElement();
