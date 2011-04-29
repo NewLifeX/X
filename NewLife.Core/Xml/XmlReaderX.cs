@@ -127,39 +127,18 @@ namespace NewLife.Xml
         #endregion
 
         #region 字符串
-        ///// <summary>
-        ///// 从当前流中读取 count 个字符，以字符数组的形式返回数据，并根据所使用的 Encoding 和从流中读取的特定字符，提升当前位置。
-        ///// </summary>
-        ///// <param name="count">要读取的字符数。</param>
-        ///// <returns></returns>
-        //public override char[] ReadChars(int count)
-        //{
-        //    // count个字符可能的最大字节数
-        //    Int32 max = Settings.Encoding.GetMaxByteCount(count);
+        /// <summary>
+        /// 从当前流中读取 count 个字符，以字符数组的形式返回数据，并根据所使用的 Encoding 和从流中读取的特定字符，提升当前位置。
+        /// </summary>
+        /// <param name="count">要读取的字符数。</param>
+        /// <returns></returns>
+        public override char[] ReadChars(int count)
+        {
+            String str = ReadString();
+            if (str == null) return null;
 
-        //    // 首先按最小值读取
-        //    Byte[] data = ReadBytes(count);
-
-        //    // 相同，最简单的一种
-        //    if (max == count) return Settings.Encoding.GetChars(data);
-
-        //    // 按最大值准备一个字节数组
-        //    Byte[] buffer = new Byte[max];
-        //    // 复制过去
-        //    Buffer.BlockCopy(data, 0, buffer, 0, data.Length);
-
-        //    // 遍历，以下算法性能较差，将来可以考虑优化
-        //    Int32 i = 0;
-        //    for (i = count; i < max; i++)
-        //    {
-        //        Int32 n = Settings.Encoding.GetCharCount(buffer, 0, i);
-        //        if (n >= count) break;
-
-        //        buffer[i] = ReadByte();
-        //    }
-
-        //    return Settings.Encoding.GetChars(buffer, 0, i);
-        //}
+            return str.ToCharArray();
+        }
 
         /// <summary>
         /// 从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。
