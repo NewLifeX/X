@@ -636,7 +636,9 @@ namespace XCode.DataAccessLayer
 
             String typeName = null;
             // 如果还是原来的数据库类型，则直接使用
-            if (Database.DbType == field.Table.DbType) typeName = field.RawType;
+            //if (Database.DbType == field.Table.DbType) typeName = field.RawType;
+            // 每种数据库的自增差异太大，理应由各自处理，而不采用原始值
+            if (Database.DbType == field.Table.DbType && !field.Identity) typeName = field.RawType;
 
             if (String.IsNullOrEmpty(typeName)) typeName = GetFieldType(field);
 
