@@ -348,6 +348,18 @@ namespace XCode.DataAccessLayer
 
             return str;
         }
+
+        /// <summary>
+        /// 取得字段默认值
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="onlyDefine">仅仅定义</param>
+        /// <returns></returns>
+        protected override string GetFieldDefault(XField field, bool onlyDefine)
+        {
+            // Access不能通过DDL来操作默认值
+            return null;
+        }
         #endregion
 
         #region 数据定义
@@ -359,7 +371,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override object SetSchema(DDLSchema schema, object[] values)
         {
-            //Object obj = null;
+            Object obj = null;
             switch (schema)
             {
                 //case DDLSchema.CreateDatabase:
@@ -369,15 +381,26 @@ namespace XCode.DataAccessLayer
                 //    return null;
                 //case DDLSchema.DatabaseExist:
                 //    return File.Exists(FileName);
-                //case DDLSchema.CreateTable:
-                //    obj = base.SetSchema(DDLSchema.CreateTable, values);
-                //    XTable table = values[0] as XTable;
-                //    if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(table.Name, table.Description);
-                //    foreach (XField item in table.Fields)
-                //    {
-                //        if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(table.Name, item.Name, item.Description);
-                //    }
-                //    return obj;
+                case DDLSchema.CreateTable:
+                    obj = base.SetSchema(DDLSchema.CreateTable, values);
+                    XTable table = values[0] as XTable;
+
+                    // Access建表语句的不能操作默认值，所以在这里操作
+
+                    // 默认值
+                    foreach (XField item in table.Fields)
+                    {
+                        if (!String.IsNullOrEmpty(item.Default)) AddDefault(item, item.Default);
+                    }
+
+                    //// 表说明
+                    //if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(table, table.Description);
+                    //foreach (XField item in table.Fields)
+                    //{
+                    //    if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(item, item.Description);
+                    //}
+
+                    return obj;
                 //case DDLSchema.DropTable:
                 //    break;
                 //case DDLSchema.TableExist:
@@ -472,6 +495,11 @@ namespace XCode.DataAccessLayer
         #region 默认值
         public virtual Boolean AddDefault(XField field, String value)
         {
+            if (field.DataType == typeof(DateTime))
+            {
+                value = CheckAndGetDefaultDateTimeNow(field.Table.DbType, value);
+            }
+
             try
             {
                 using (ADOTabe table = GetTable(field.Table.Name))

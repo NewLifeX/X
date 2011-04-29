@@ -34,8 +34,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("7.6.*")]
-[assembly: AssemblyFileVersion("7.6.2011.0420")]
+[assembly: AssemblyVersion("7.7.*")]
+[assembly: AssemblyFileVersion("7.7.2011.0429")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.7.2011.0429   修正Access创建表时不应该同时操作默认值的错误
+ * 
  * v7.6.2011.0420   修正XCode中反向工程模块判断是否普通实体类的错误
  * 
  * v7.6.2011.0409   重新启用实体类的ToData，允许实体数据转化为DataRow
