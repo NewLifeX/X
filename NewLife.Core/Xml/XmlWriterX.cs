@@ -235,6 +235,37 @@ namespace NewLife.Xml
         }
         #endregion
 
+        #region 枚举
+        /// <summary>
+        /// 写入枚举项
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <param name="type">类型</param>
+        /// <param name="index">成员索引</param>
+        /// <param name="callback">使用指定委托方法处理复杂数据</param>
+        /// <returns>是否写入成功</returns>
+        public override bool WriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
+        {
+            if (type == null && value != null) type = value.GetType();
+            String name = null;
+            if (type != null) name = type.Name;
+
+            Writer.WriteStartElement(name);
+
+            AutoFlush();
+
+            Boolean rs = base.WriteItem(value, type, index, callback);
+
+            AutoFlush();
+
+            Writer.WriteEndElement();
+
+            AutoFlush();
+
+            return rs;
+        }
+        #endregion
+
         #region 写入对象
         /// <summary>
         /// 已重载。写入文档的开头和结尾
@@ -298,37 +329,6 @@ namespace NewLife.Xml
             //else
             //    Writer.WriteEndElement();
             if (!Settings.MemberAsAttribute) Writer.WriteEndElement();
-
-            AutoFlush();
-
-            return rs;
-        }
-        #endregion
-
-        #region 枚举
-        /// <summary>
-        /// 写入枚举项
-        /// </summary>
-        /// <param name="value">对象</param>
-        /// <param name="type">类型</param>
-        /// <param name="index">成员索引</param>
-        /// <param name="callback">使用指定委托方法处理复杂数据</param>
-        /// <returns>是否写入成功</returns>
-        public override bool WriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
-        {
-            if (type == null && value != null) type = value.GetType();
-            String name = null;
-            if (type != null) name = type.Name;
-
-            Writer.WriteStartElement(name);
-
-            AutoFlush();
-
-            Boolean rs = base.WriteItem(value, type, index, callback);
-
-            AutoFlush();
-
-            Writer.WriteEndElement();
 
             AutoFlush();
 

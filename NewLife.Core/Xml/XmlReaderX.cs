@@ -169,13 +169,21 @@ namespace NewLife.Xml
         #endregion
 
         #region 字典
+        /// <summary>
+        /// 读取字典项集合，以读取键值失败作为读完字典项的标识，子类可以重载实现以字典项数量来读取
+        /// </summary>
+        /// <param name="keyType">键类型</param>
+        /// <param name="valueType">值类型</param>
+        /// <param name="count">元素个数</param>
+        /// <param name="callback">处理元素的方法</param>
+        /// <returns>字典项集合</returns>
         protected override IEnumerable<DictionaryEntry> ReadDictionary(Type keyType, Type valueType, int count, ReadObjectCallback callback)
         {
             Reader.ReadStartElement();
 
             IEnumerable<DictionaryEntry> rs = base.ReadDictionary(keyType, valueType, count, callback);
 
-            Reader.ReadEndElement();
+            if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
             return rs;
         }
@@ -196,11 +204,11 @@ namespace NewLife.Xml
 
             Reader.ReadStartElement();
             if (!ReadObject(keyType, ref key)) return false;
-            Reader.ReadEndElement();
+            if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
             Reader.ReadStartElement();
             if (!ReadObject(valueType, ref val)) return false;
-            Reader.ReadEndElement();
+            if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
             value.Key = key;
             value.Value = val;
@@ -224,7 +232,7 @@ namespace NewLife.Xml
 
             IEnumerable rs = base.ReadItems(type, elementType, count, callback);
 
-            Reader.ReadEndElement();
+            if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
             return rs;
         }
@@ -322,9 +330,8 @@ namespace NewLife.Xml
 
                 //Reader.ReadEndElement();
             }
-            //临时办法，将来解决
-            if (Reader.NodeType != XmlNodeType.None)
-                Reader.ReadEndElement();
+
+            if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
             return true;
         }
