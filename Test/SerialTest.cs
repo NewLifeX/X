@@ -166,9 +166,9 @@ namespace Test
             entity.DB1 = 1.34;
             entity.DM1 = 12.3M;
             entity.BT1 = 12;
-            Byte[] b={0,2,35};
+            Byte[] b = { 0, 2, 35 };
             entity.BT2 = b;
-            Char[] a={'a','b','c'};
+            Char[] a = { 'a', 'b', 'c' };
             entity.CH1 = a;
 
             Department dp = new Department();
