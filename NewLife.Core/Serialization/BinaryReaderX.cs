@@ -222,7 +222,7 @@ namespace NewLife.Serialization
                 Type type = null;
                 BinarySettings.TypeKinds kind = (BinarySettings.TypeKinds)ReadByte();
 
-                Debug("ReadType", kind);
+                WriteLog("ReadType", kind);
 
                 switch (kind)
                 {
@@ -288,7 +288,7 @@ namespace NewLife.Serialization
         /// <param name="count">元素个数</param>
         /// <param name="callback">处理元素的方法</param>
         /// <returns></returns>
-        protected override IEnumerable ReadItems(Type type, Type elementType, Int32 count, ReadObjectCallback callback)
+        protected override IList ReadItems(Type type, Type elementType, Int32 count, ReadObjectCallback callback)
         {
             // 读取元素个数
             count = ReadInt32();
@@ -339,7 +339,7 @@ namespace NewLife.Serialization
 
             if (index == 0)
             {
-                Debug("ReadObjRef", "null", type.Name);
+                WriteLog("ReadObjRef", "null", type.Name);
 
                 value = null;
                 return true;
@@ -353,14 +353,14 @@ namespace NewLife.Serialization
             // 引用计数等于索引加一
             if (index > objRefs.Count)
             {
-                Debug("ReadObjRef", index, type.Name);
+                WriteLog("ReadObjRef", index, type.Name);
 
                 return false;
             }
 
             value = objRefs[index - 1];
 
-            Debug("ReadObjRef", index, value.ToString(), value.GetType().Name);
+            WriteLog("ReadObjRef", index, value.ToString(), value.GetType().Name);
 
             return true;
         }

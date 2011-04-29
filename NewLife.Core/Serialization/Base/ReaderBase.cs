@@ -506,14 +506,14 @@ namespace NewLife.Serialization
         {
             if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
 
-            IEnumerable arr = ReadItems(type, elementType, Int32.MaxValue, callback);
-            if (arr == null)
+            IList list = ReadItems(type, elementType, Int32.MaxValue, callback);
+            if (list == null)
             {
                 value = null;
                 return true;
             }
 
-            if (ProcessItems(type, elementType, ref value, arr)) return true;
+            if (ProcessItems(type, elementType, ref value, list)) return true;
 
             return false;
         }
@@ -526,9 +526,11 @@ namespace NewLife.Serialization
         /// <param name="count">元素个数</param>
         /// <param name="callback">处理元素的方法</param>
         /// <returns></returns>
-        protected virtual IEnumerable ReadItems(Type type, Type elementType, Int32 count, ReadObjectCallback callback)
+        protected virtual IList ReadItems(Type type, Type elementType, Int32 count, ReadObjectCallback callback)
         {
-            ArrayList list = new ArrayList();
+            //ArrayList list = new ArrayList();
+            Type listType = typeof(List<>).MakeGenericType(elementType);
+            IList list = TypeX.CreateInstance(listType) as IList;
             for (int i = 0; i < count; i++)
             {
                 // 一旦有一个元素读不到，就中断
@@ -565,20 +567,20 @@ namespace NewLife.Serialization
         /// <param name="type"></param>
         /// <param name="elementType"></param>
         /// <param name="value"></param>
-        /// <param name="arr"></param>
+        /// <param name="items"></param>
         /// <returns></returns>
-        protected Boolean ProcessItems(Type type, Type elementType, ref Object value, IEnumerable arr)
+        protected Boolean ProcessItems(Type type, Type elementType, ref Object value, IList items)
         {
-            if (type == arr.GetType())
+            if (type == items.GetType())
             {
-                value = arr;
+                value = items;
                 return true;
             }
 
             // 添加方法
             MethodInfoX method = null;
 
-            // 如果源对象不为空，则尽量使用源对象
+            #region 如果源对象不为空，则尽量使用源对象
             if (value != null)
             {
                 if (typeof(IList).IsAssignableFrom(type))
@@ -586,7 +588,7 @@ namespace NewLife.Serialization
                     IList list = value as IList;
                     if (list != null)
                     {
-                        foreach (Object item in arr)
+                        foreach (Object item in items)
                         {
                             list.Add(item);
                         }
@@ -597,64 +599,81 @@ namespace NewLife.Serialization
                 method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
                 if (method != null)
                 {
-                    foreach (Object item in arr)
+                    foreach (Object item in items)
                     {
                         method.Invoke(value, item);
                     }
                     return true;
                 }
             }
+            #endregion
 
-            // 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
+            #region 数组
+            if (type.IsArray && type.HasElementType && type.GetElementType() == elementType)
+            {
+                Array arr = TypeX.CreateInstance(type, items.Count) as Array;
+                items.CopyTo(arr, 0);
+                value = arr;
+                return true;
+            }
+            #endregion
+
+            #region 检查类型是否有指定类型的构造函数，如果有，直接创建类型，并把数组作为构造函数传入
             ConstructorInfoX ci = ConstructorInfoX.Create(type, new Type[] { typeof(IEnumerable) });
             if (ci != null)
             {
-                value = ci.CreateInstance(arr);
+                value = ci.CreateInstance(items);
                 return true;
             }
+            #endregion
 
+            #region 检查是否实现IEnumerable<>接口，如果不是，转为该接口，后面的构造函数需要用
             Type enumType = typeof(IEnumerable<>).MakeGenericType(elementType);
-            if (ci == null) ci = ConstructorInfoX.Create(type, new Type[] { enumType });
+            // 如果数据不是IEnumerable<>类型，则需要转换
+            if (!enumType.IsAssignableFrom(items.GetType()))
+            {
+                // 用List<>来转换
+                Type listType = typeof(List<>).MakeGenericType(elementType);
+                IList list = TypeX.CreateInstance(listType) as IList;
+                if (list != null)
+                {
+                    foreach (Object item in items)
+                    {
+                        list.Add(item);
+                    }
+
+                    if (type == listType)
+                    {
+                        value = list;
+                        return true;
+                    }
+
+                    items = list;
+                }
+            }
+            #endregion
+
+            #region 泛型枚举接口IEnumerable<>的构造函数
+            ci = ConstructorInfoX.Create(type, new Type[] { enumType });
             if (ci != null)
             {
-                // 如果数据不是IEnumerable<>类型，则需要转换
-                if (!enumType.IsAssignableFrom(arr.GetType()))
-                {
-                    // 用List<>来转换
-                    Type listType = typeof(List<>).MakeGenericType(elementType);
-                    IList list = TypeX.CreateInstance(listType) as IList;
-                    if (list != null)
-                    {
-                        foreach (Object item in arr)
-                        {
-                            list.Add(item);
-                        }
-
-                        if (type == listType)
-                        {
-                            value = list;
-                            return true;
-                        }
-
-                        arr = list;
-                    }
-                }
-
-                value = ci.CreateInstance(arr);
+                value = ci.CreateInstance(items);
                 return true;
             }
+            #endregion
 
-            // 添加方法
+            #region 是否具有Add方法
             if (method == null) method = MethodInfoX.Create(type, "Add", new Type[] { elementType });
             if (method != null)
             {
                 if (value != null) value = TypeX.CreateInstance(type);
-                foreach (Object item in arr)
+                foreach (Object item in items)
                 {
                     method.Invoke(value, item);
                 }
                 return true;
             }
+            #endregion
 
             return false;
         }
@@ -672,7 +691,7 @@ namespace NewLife.Serialization
         {
             if (!typeof(ISerializable).IsAssignableFrom(type)) return false;
 
-            Debug("ReadSerializable", type.Name);
+            WriteLog("ReadSerializable", type.Name);
 
             return ReadCustomObject(type, ref value, callback);
         }
@@ -688,7 +707,7 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public virtual Boolean ReadUnKnown(Type type, ref Object value, ReadObjectCallback callback)
         {
-            Debug("ReadBinaryFormatter", type.Name);
+            WriteLog("ReadBinaryFormatter", type.Name);
 
             // 调用.Net的二进制序列化来解决剩下的事情
             BinaryFormatter bf = new BinaryFormatter();
@@ -799,7 +818,7 @@ namespace NewLife.Serialization
             // 分离出去，便于重载，而又能有效利用对象引用
             Type type = ReadObjRef<Type>(OnReadType);
 
-            if (type != null) Debug("ReadType", type.FullName);
+            if (type != null) WriteLog("ReadType", type.FullName);
 
             Depth--;
             return type;
@@ -940,7 +959,7 @@ namespace NewLife.Serialization
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
             {
-                Debug("ReadDictionary", type.Name);
+                WriteLog("ReadDictionary", type.Name);
 
                 if (ReadDictionary(type, ref value, callback)) return true;
             }
@@ -948,7 +967,7 @@ namespace NewLife.Serialization
             // 枚举
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
-                Debug("ReadEnumerable", type.Name);
+                WriteLog("ReadEnumerable", type.Name);
 
                 if (ReadEnumerable(type, ref value, callback)) return true;
             }
@@ -1030,7 +1049,7 @@ namespace NewLife.Serialization
             for (int i = 0; i < mis.Length; i++)
             {
                 Depth++;
-                Debug("ReadMember", mis[i].Name, mis[i].Type.Name);
+                WriteLog("ReadMember", mis[i].Name, mis[i].Type.Name);
 
                 if (!ReadMember(ref value, mis[i], i, callback)) return false;
                 Depth--;

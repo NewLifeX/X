@@ -458,7 +458,7 @@ namespace NewLife.Serialization
         {
             if (!typeof(ISerializable).IsAssignableFrom(type)) return false;
 
-            Debug("WriteSerializable", type.Name);
+            WriteLog("WriteSerializable", type.Name);
 
             return WriteCustomObject(value, type, callback);
         }
@@ -474,7 +474,7 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public virtual Boolean WriteUnKnown(Object value, Type type, WriteObjectCallback callback)
         {
-            Debug("WriteUnKnown", type.Name);
+            WriteLog("WriteUnKnown", type.Name);
 
             // 调用.Net的二进制序列化来解决剩下的事情
             BinaryFormatter bf = new BinaryFormatter();
@@ -587,7 +587,7 @@ namespace NewLife.Serialization
             Depth++;
             if (!WriteObjRef(value))
             {
-                Debug("WriteType", value.FullName);
+                WriteLog("WriteType", value.FullName);
 
                 // 分离出去，便于重载，而又能有效利用对象引用
                 OnWriteType(value);
@@ -726,7 +726,7 @@ namespace NewLife.Serialization
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
             {
-                Debug("WriteDictionary", type.Name);
+                WriteLog("WriteDictionary", type.Name);
 
                 if (WriteDictionary(value as IDictionary, type, callback)) return true;
             }
@@ -734,7 +734,7 @@ namespace NewLife.Serialization
             // 枚举
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
-                Debug("WriteEnumerable", type.Name);
+                WriteLog("WriteEnumerable", type.Name);
 
                 if (WriteEnumerable(value as IEnumerable, type, callback)) return true;
             }
@@ -777,7 +777,7 @@ namespace NewLife.Serialization
             for (int i = 0; i < mis.Length; i++)
             {
                 Depth++;
-                Debug("WriteMember", mis[i].Name, mis[i].Type.Name);
+                WriteLog("WriteMember", mis[i].Name, mis[i].Type.Name);
 
                 if (!WriteMember(value, mis[i], i, callback)) return false;
                 Depth--;

@@ -169,7 +169,7 @@ namespace NewLife.Serialization
         /// <param name="action">操作</param>
         /// <param name="args">参数</param>
         [Conditional("DEBUG")]
-        public void Debug(String action, params Object[] args)
+        public void WriteLog(String action, params Object[] args)
         {
             ConsoleColor color = Console.ForegroundColor;
 

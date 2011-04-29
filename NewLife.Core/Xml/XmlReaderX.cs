@@ -5,6 +5,7 @@ using System.IO;
 using System.Xml;
 using NewLife.Reflection;
 using NewLife.Serialization;
+using System.Diagnostics;
 
 namespace NewLife.Xml
 {
@@ -81,7 +82,7 @@ namespace NewLife.Xml
             if (count <= 0) return null;
 
             Byte[] buffer = new Byte[count];
-            Int32 n = Settings.MemberAsAttribute ? Reader.ReadContentAsBase64(buffer, 0, count) : Reader.ReadElementContentAsBase64(buffer, 0, count);
+            Int32 n = Reader.ReadContentAsBase64(buffer, 0, count);
 
             if (n == count) return buffer;
 
@@ -103,13 +104,13 @@ namespace NewLife.Xml
         /// 从当前流中读取 4 字节有符号整数，并使流的当前位置提升 4 个字节。
         /// </summary>
         /// <returns></returns>
-        public override int ReadInt32() { return Settings.MemberAsAttribute ? Reader.ReadContentAsInt() : Reader.ReadElementContentAsInt(); }
+        public override int ReadInt32() { return Reader.ReadContentAsInt(); }
 
         /// <summary>
         /// 从当前流中读取 8 字节有符号整数，并使流的当前位置向前移动 8 个字节。
         /// </summary>
         /// <returns></returns>
-        public override long ReadInt64() { return Settings.MemberAsAttribute ? Reader.ReadContentAsLong() : Reader.ReadElementContentAsLong(); }
+        public override long ReadInt64() { return Reader.ReadContentAsLong(); }
         #endregion
 
         #region 浮点数
@@ -117,13 +118,13 @@ namespace NewLife.Xml
         /// 从当前流中读取 4 字节浮点值，并使流的当前位置提升 4 个字节。
         /// </summary>
         /// <returns></returns>
-        public override float ReadSingle() { return Settings.MemberAsAttribute ? Reader.ReadContentAsFloat() : Reader.ReadElementContentAsFloat(); }
+        public override float ReadSingle() { return Reader.ReadContentAsFloat(); }
 
         /// <summary>
         /// 从当前流中读取 8 字节浮点值，并使流的当前位置提升 8 个字节。
         /// </summary>
         /// <returns></returns>
-        public override double ReadDouble() { return Settings.MemberAsAttribute ? Reader.ReadContentAsDouble() : Reader.ReadElementContentAsDouble(); }
+        public override double ReadDouble() { return Reader.ReadContentAsDouble(); }
         #endregion
 
         #region 字符串
@@ -144,7 +145,7 @@ namespace NewLife.Xml
         /// 从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。
         /// </summary>
         /// <returns></returns>
-        public override string ReadString() { return Settings.MemberAsAttribute ? Reader.ReadContentAsString() : Reader.ReadElementContentAsString(); }
+        public override string ReadString() { return Reader.ReadContentAsString(); }
         #endregion
 
         #region 其它
@@ -152,41 +153,49 @@ namespace NewLife.Xml
         /// 从当前流中读取 Boolean 值，并使该流的当前位置提升 1 个字节。
         /// </summary>
         /// <returns></returns>
-        public override bool ReadBoolean() { return Settings.MemberAsAttribute ? Reader.ReadContentAsBoolean() : Reader.ReadElementContentAsBoolean(); }
+        public override bool ReadBoolean() { return Reader.ReadContentAsBoolean(); }
 
         /// <summary>
         /// 从当前流中读取十进制数值，并将该流的当前位置提升十六个字节。
         /// </summary>
         /// <returns></returns>
-        public override decimal ReadDecimal() { return Settings.MemberAsAttribute ? Reader.ReadContentAsDecimal() : Reader.ReadElementContentAsDecimal(); }
+        public override decimal ReadDecimal() { return Reader.ReadContentAsDecimal(); }
 
         /// <summary>
         /// 读取一个时间日期
         /// </summary>
         /// <returns></returns>
-        public override DateTime ReadDateTime() { return Settings.MemberAsAttribute ? Reader.ReadContentAsDateTime() : Reader.ReadElementContentAsDateTime(); }
+        public override DateTime ReadDateTime() { return Reader.ReadContentAsDateTime(); }
         #endregion
         #endregion
 
         #region 字典
-        /// <summary>
-        /// 读取字典项集合，以读取键值失败作为读完字典项的标识，子类可以重载实现以字典项数量来读取
-        /// </summary>
-        /// <param name="keyType">键类型</param>
-        /// <param name="valueType">值类型</param>
-        /// <param name="count">元素个数</param>
-        /// <param name="callback">处理元素的方法</param>
-        /// <returns>字典项集合</returns>
-        protected override IEnumerable<DictionaryEntry> ReadDictionary(Type keyType, Type valueType, int count, ReadObjectCallback callback)
+        public override bool ReadDictionary(Type type, ref object value, ReadObjectCallback callback)
         {
-            Reader.ReadStartElement();
+            if (IsEmpty) return true;
 
-            IEnumerable<DictionaryEntry> rs = base.ReadDictionary(keyType, valueType, count, callback);
-
-            if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
-
-            return rs;
+            return base.ReadDictionary(type, ref value, callback);
         }
+
+        ///// <summary>
+        ///// 读取字典项集合，以读取键值失败作为读完字典项的标识，子类可以重载实现以字典项数量来读取
+        ///// </summary>
+        ///// <param name="keyType">键类型</param>
+        ///// <param name="valueType">值类型</param>
+        ///// <param name="count">元素个数</param>
+        ///// <param name="callback">处理元素的方法</param>
+        ///// <returns>字典项集合</returns>
+        //protected override IEnumerable<DictionaryEntry> ReadDictionary(Type keyType, Type valueType, int count, ReadObjectCallback callback)
+        //{
+        //    Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
+        //    Reader.ReadStartElement();
+
+        //    IEnumerable<DictionaryEntry> rs = base.ReadDictionary(keyType, valueType, count, callback);
+
+        //    if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
+
+        //    return rs;
+        //}
 
         /// <summary>
         /// 读取字典项
@@ -199,43 +208,66 @@ namespace NewLife.Xml
         /// <returns>是否读取成功</returns>
         public override bool ReadDictionaryEntry(Type keyType, Type valueType, ref DictionaryEntry value, Int32 index, ReadObjectCallback callback)
         {
+            if (Reader.NodeType == XmlNodeType.EndElement) return false;
+
             Object key = null;
             Object val = null;
 
+            Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
+            // <Item>
+            Reader.ReadStartElement();
+
+            Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
+            // <Key>
             Reader.ReadStartElement();
             if (!ReadObject(keyType, ref key)) return false;
+            // </Key>
             if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
+            Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
+            // <Value>
             Reader.ReadStartElement();
             if (!ReadObject(valueType, ref val)) return false;
+            // </Value>
             if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
             value.Key = key;
             value.Value = val;
+
+            // </Item>
+            if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
             return true;
         }
         #endregion
 
         #region 枚举
-        /// <summary>
-        /// 读取元素集合
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="elementType"></param>
-        /// <param name="count">元素个数</param>
-        /// <param name="callback">处理元素的方法</param>
-        /// <returns></returns>
-        protected override IEnumerable ReadItems(Type type, Type elementType, Int32 count, ReadObjectCallback callback)
+        public override bool ReadEnumerable(Type type, ref object value, ReadObjectCallback callback)
         {
-            Reader.ReadStartElement();
+            if (IsEmpty) return true;
 
-            IEnumerable rs = base.ReadItems(type, elementType, count, callback);
-
-            if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
-
-            return rs;
+            return base.ReadEnumerable(type, ref value, callback);
         }
+
+        ///// <summary>
+        ///// 读取元素集合
+        ///// </summary>
+        ///// <param name="type"></param>
+        ///// <param name="elementType"></param>
+        ///// <param name="count">元素个数</param>
+        ///// <param name="callback">处理元素的方法</param>
+        ///// <returns></returns>
+        //protected override IEnumerable ReadItems(Type type, Type elementType, Int32 count, ReadObjectCallback callback)
+        //{
+        //    Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
+        //    Reader.ReadStartElement();
+
+        //    IEnumerable rs = base.ReadItems(type, elementType, count, callback);
+
+        //    if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
+
+        //    return rs;
+        //}
 
         /// <summary>
         /// 读取项
@@ -247,9 +279,16 @@ namespace NewLife.Xml
         /// <returns></returns>
         protected override bool ReadItem(Type type, ref object value, Int32 index, ReadObjectCallback callback)
         {
-            if (Reader.Name != type.Name) return false;
+            if (Reader.NodeType == XmlNodeType.EndElement || Reader.Name != type.Name) return false;
+            if (IsEmpty) return true;
 
-            return base.ReadItem(type, ref value, index, callback);
+            Reader.ReadStartElement();
+
+            Boolean rs = base.ReadItem(type, ref value, index, callback);
+
+            if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
+
+            return rs;
         }
         #endregion
 
@@ -263,78 +302,83 @@ namespace NewLife.Xml
         /// <returns>是否读取成功</returns>
         protected override bool OnReadObject(Type type, ref object value, ReadObjectCallback callback)
         {
-            //Reader.Read();
+            if (IsEmpty) return true;
+
+            if (Depth > 1) return base.OnReadObject(type, ref value, callback);
+
             //Reader.ReadStartElement();
 
             while (Reader.NodeType != XmlNodeType.Element) { if (!Reader.Read())return false; }
-            RootName = Reader.Name;
+            if (String.IsNullOrEmpty(RootName)) RootName = Reader.Name;
 
-            //if (MemberStyle == XmlMemberStyle.Element) Reader.ReadStartElement();
+            Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
+            Reader.ReadStartElement();
 
             Boolean rs = base.OnReadObject(type, ref value, callback);
 
-            //Reader.ReadEndElement();
-            //Reader.Read();
+            if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
             return rs;
         }
 
-        /// <summary>
-        /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
-        /// </summary>
-        /// <param name="type">要读取的对象类型</param>
-        /// <param name="value">要读取的对象</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否读取成功</returns>
-        public override Boolean ReadCustomObject(Type type, ref Object value, ReadObjectCallback callback)
-        {
-            // 如果是属性，使用基类就足够了
-            if (Settings.MemberAsAttribute) return base.ReadCustomObject(type, ref value, callback);
+        ///// <summary>
+        ///// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
+        ///// </summary>
+        ///// <param name="type">要读取的对象类型</param>
+        ///// <param name="value">要读取的对象</param>
+        ///// <param name="callback">处理成员的方法</param>
+        ///// <returns>是否读取成功</returns>
+        //public override Boolean ReadCustomObject(Type type, ref Object value, ReadObjectCallback callback)
+        //{
+        //    // 如果是属性，使用基类就足够了
+        //    if (Settings.MemberAsAttribute) return base.ReadCustomObject(type, ref value, callback);
 
-            IObjectMemberInfo[] mis = GetMembers(type, value);
-            if (mis == null || mis.Length < 1) return true;
+        //    IObjectMemberInfo[] mis = GetMembers(type, value);
+        //    if (mis == null || mis.Length < 1) return true;
 
-            Dictionary<String, IObjectMemberInfo> dic = new Dictionary<string, IObjectMemberInfo>();
-            foreach (IObjectMemberInfo item in mis)
-            {
-                if (!dic.ContainsKey(item.Name)) dic.Add(item.Name, item);
-            }
+        //    Dictionary<String, IObjectMemberInfo> dic = new Dictionary<string, IObjectMemberInfo>();
+        //    foreach (IObjectMemberInfo item in mis)
+        //    {
+        //        if (!dic.ContainsKey(item.Name)) dic.Add(item.Name, item);
+        //    }
 
-            // 如果为空，实例化并赋值。
-            if (value == null) value = TypeX.CreateInstance(type);
+        //    // 如果为空，实例化并赋值。
+        //    if (value == null) value = TypeX.CreateInstance(type);
 
-            Reader.ReadStartElement();
-            //while (Reader.Read() && Reader.NodeType == XmlNodeType.Element)
-            Int32 index = 0;
-            while (Reader.NodeType == XmlNodeType.Element)
-            {
-                //Reader.ReadStartElement();
-                if (Reader.IsEmptyElement)
-                {
-                    Reader.Read();
-                    continue;
-                }
+        //    // 当前节点名
+        //    String name = Reader.Name;
 
-                if (!dic.ContainsKey(Reader.Name))
-                {
-                    Reader.ReadEndElement();
-                    continue;
-                }
+        //    Reader.ReadStartElement();
+        //    //while (Reader.Read() && Reader.NodeType == XmlNodeType.Element)
+        //    Int32 index = 0;
+        //    while (!(Reader.NodeType == XmlNodeType.EndElement && Reader.Name == name))
+        //    {
+        //        //Reader.ReadStartElement();
 
-                Depth++;
-                IObjectMemberInfo member = dic[Reader.Name];
-                Debug("ReadMember", member.Name, member.Type.Name);
+        //        if (Reader.IsEmptyElement)
+        //        {
+        //            Reader.Read();
+        //            continue;
+        //        }
 
-                if (!ReadMember(ref value, member, index++, callback)) return false;
-                Depth--;
+        //        if (!dic.ContainsKey(Reader.Name))
+        //        {
+        //            Reader.ReadEndElement();
+        //            continue;
+        //        }
 
-                //Reader.ReadEndElement();
-            }
+        //        Depth++;
+        //        IObjectMemberInfo member = dic[Reader.Name];
+        //        Debug("ReadMember", member.Name, member.Type.Name);
 
-            if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
+        //        if (!ReadMember(ref value, member, index++, callback)) return false;
+        //        Depth--;
 
-            return true;
-        }
+        //        //if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
+        //    }
+
+        //    return true;
+        //}
 
         /// <summary>
         /// 读取成员
@@ -351,7 +395,39 @@ namespace NewLife.Xml
                 Reader.MoveToAttribute(member.Name);
             }
 
-            return base.OnReadMember(ref value, member, index, callback);
+            Debug.Assert(Reader.NodeType != XmlNodeType.Element || Reader.IsStartElement(), "这里应该是起始节点呀！");
+
+            // 空元素直接返回
+            if (IsEmpty) return true;
+
+            Reader.ReadStartElement();
+
+            Boolean rs = base.OnReadMember(ref value, member, index, callback);
+
+            if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
+
+            return rs;
+        }
+        #endregion
+
+        #region 方法
+        /// <summary>
+        /// 当前节点是否空。如果是空节点，则读一次，让指针移到下一个元素
+        /// </summary>
+        Boolean IsEmpty
+        {
+            get
+            {
+                // 空元素直接返回
+                if (Reader.IsEmptyElement)
+                {
+                    // 读一次，把指针移到下一个元素上
+                    Reader.Read();
+                    return true;
+                }
+
+                return false;
+            }
         }
         #endregion
     }
