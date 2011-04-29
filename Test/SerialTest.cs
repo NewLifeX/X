@@ -162,6 +162,14 @@ namespace Test
             entity.Logins = 65535;
             entity.LastLogin = DateTime.Now;
             entity.SSOUserID = 555;
+            entity.FT1 = 1.3F;
+            entity.DB1 = 1.34;
+            entity.DM1 = 12.3M;
+            entity.BT1 = 12;
+            Byte[] b={0,2,35};
+            entity.BT2 = b;
+            Char[] a={'a','b','c'};
+            entity.CH1 = a;
 
             Department dp = new Department();
             dp.ID = 1;
@@ -193,6 +201,54 @@ namespace Test
         [Serializable]
         class Admin : Administrator
         {
+            private float _FT1;
+            /// <summary>单精度</summary>
+            public float FT1
+            {
+                get { return _FT1; }
+                set { _FT1 = value; }
+            }
+
+            private Double _DB1;
+            /// <summary>双精度</summary>
+            public Double DB1
+            {
+                get { return _DB1; }
+                set { _DB1 = value; }
+            }
+
+            private Decimal _DM1;
+            /// <summary>属性说明</summary>
+            public Decimal DM1
+            {
+                get { return _DM1; }
+                set { _DM1 = value; }
+            }
+
+            private Byte _BT1;
+            /// <summary>字节</summary>
+            public Byte BT1
+            {
+                get { return _BT1; }
+                set { _BT1 = value; }
+            }
+
+            private Byte[] _BT2;
+            /// <summary>字节数组</summary>
+            public Byte[] BT2
+            {
+                get { return _BT2; }
+                set { _BT2 = value; }
+            }
+
+            private Char[] _CH1;
+            /// <summary>字符数组</summary>
+            public Char[] CH1
+            {
+                get { return _CH1; }
+                set { _CH1 = value; }
+            }
+
             private Department _DP1;
             /// <summary>属性说明</summary>
             public Department DP1
