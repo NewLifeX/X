@@ -56,6 +56,22 @@ namespace NewLife.Serialization
             AutoFlush();
         }
 
+        ///// <summary>
+        ///// 将字节数组写入，先写入字节数组的长度
+        ///// </summary>
+        ///// <param name="buffer">包含要写入的数据的字节数组。</param>
+        //public override void Write(byte[] buffer)
+        //{
+        //    if (buffer == null)
+        //    {
+        //        Write(0);
+        //        return;
+        //    }
+
+        //    Write(buffer.Length);
+        //    Write(buffer, 0, buffer.Length);
+        //}
+
         /// <summary>
         /// 将字节数组部分写入当前流。
         /// </summary>
@@ -148,7 +164,7 @@ namespace NewLife.Serialization
             }
             list.Add((byte)num);
 
-            Write(list.ToArray());
+            Write(list.ToArray(), 0, list.Count);
 
             return count;
         }
@@ -174,7 +190,7 @@ namespace NewLife.Serialization
             }
             list.Add((byte)num);
 
-            Write(list.ToArray());
+            Write(list.ToArray(), 0, list.Count);
 
             return count;
         }
@@ -200,7 +216,7 @@ namespace NewLife.Serialization
             }
             list.Add((byte)num);
 
-            Write(list.ToArray());
+            Write(list.ToArray(), 0, list.Count);
 
             return count;
         }

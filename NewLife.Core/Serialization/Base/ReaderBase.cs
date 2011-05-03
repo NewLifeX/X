@@ -31,6 +31,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public virtual byte[] ReadBytes(int count)
         {
+            if (count < 0) count = ReadInt32();
+
             if (count <= 0) return null;
 
             Byte[] buffer = new Byte[count];

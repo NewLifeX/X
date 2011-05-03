@@ -70,7 +70,7 @@ namespace NewLife.Xml
         /// <param name="value">要写入的无符号字节。</param>
         public override void Write(Byte value)
         {
-            Write(new Byte[] { value });
+            Write(new Byte[] { value }, 0, 1);
         }
 
         /// <summary>
@@ -220,7 +220,7 @@ namespace NewLife.Xml
         public override bool WriteKeyValue(DictionaryEntry value, Type type, int index, WriteObjectCallback callback)
         {
             Writer.WriteStartElement("Item");
-            
+
             Writer.WriteStartElement("Key");
             if (!WriteObject(value.Key, null, callback)) return false;
             Writer.WriteEndElement();

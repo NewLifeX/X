@@ -23,10 +23,22 @@ namespace NewLife.Serialization
         public abstract void Write(Byte value);
 
         /// <summary>
-        /// 将字节数组写入
+        /// 将字节数组写入，先写入字节数组的长度
         /// </summary>
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
-        public virtual void Write(byte[] buffer) { Write(buffer, 0, buffer == null ? 0 : buffer.Length); }
+        public virtual void Write(byte[] buffer)
+        {
+            if (buffer == null)
+            {
+                Write(0);
+                return;
+            }
+
+            Write(buffer.Length);
+            Write(buffer, 0, buffer.Length);
+
+            //Write(buffer, 0, buffer == null ? 0 : buffer.Length);
+        }
 
         /// <summary>
         /// 将一个有符号字节写入当前流，并将流的位置提升 1 个字节。
@@ -50,6 +62,20 @@ namespace NewLife.Serialization
                 Write(buffer[index + i]);
             }
         }
+
+        /// <summary>
+        /// 写入字节数组，自动计算长度
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="count"></param>
+        private void Write(Byte[] buffer, Int32 count)
+        {
+            if (buffer == null) return;
+
+            if (count < 0 || count > buffer.Length) count = buffer.Length;
+
+            Write(buffer, 0, count);
+        }
         #endregion
 
         #region 有符号整数
@@ -59,7 +85,7 @@ namespace NewLife.Serialization
         /// <param name="buffer"></param>
         protected virtual void WriteIntBytes(Byte[] buffer)
         {
-            Write(buffer);
+            Write(buffer, -1);
         }
 
         /// <summary>
@@ -109,13 +135,13 @@ namespace NewLife.Serialization
         /// 将 4 字节浮点值写入当前流，并将流的位置提升 4 个字节。
         /// </summary>
         /// <param name="value">要写入的 4 字节浮点值。</param>
-        public virtual void Write(float value) { Write(BitConverter.GetBytes(value)); }
+        public virtual void Write(float value) { Write(BitConverter.GetBytes(value), -1); }
 
         /// <summary>
         /// 将 8 字节浮点值写入当前流，并将流的位置提升 8 个字节。
         /// </summary>
         /// <param name="value">要写入的 8 字节浮点值。</param>
-        public virtual void Write(double value) { Write(BitConverter.GetBytes(value)); }
+        public virtual void Write(double value) { Write(BitConverter.GetBytes(value), -1); }
         #endregion
 
         #region 字符串
@@ -153,7 +179,7 @@ namespace NewLife.Serialization
 
             // 先用写入字节长度
             Byte[] buffer = Settings.Encoding.GetBytes(chars, index, count);
-            Write(buffer.Length);
+            //Write(buffer.Length);
             Write(buffer);
         }
 
@@ -371,7 +397,7 @@ namespace NewLife.Serialization
         {
             if (!WriteObject(value.Key, null, callback)) return false;
             if (!WriteObject(value.Value, null, callback)) return false;
-         
+
             return true;
         }
         #endregion
@@ -548,7 +574,7 @@ namespace NewLife.Serialization
         {
             if (WriteObjRef(value)) return;
 
-            Write(((Guid)value).ToByteArray());
+            Write(((Guid)value).ToByteArray(), -1);
         }
 
         /// <summary>
@@ -561,7 +587,7 @@ namespace NewLife.Serialization
 
             Byte[] buffer = (value as IPAddress).GetAddressBytes();
             //Write(buffer.Length);
-            Write(buffer);
+            Write(buffer, -1);
         }
 
         /// <summary>

@@ -119,13 +119,25 @@ namespace Test
 
             Byte[] buffer = writer.ToArray();
             //Console.WriteLine(BitConverter.ToString(buffer));
+            Console.WriteLine("写入完成！");
 
             TReader reader = GetReader<TWriter, TReader>(writer);
 
             Object obj = null;
             reader.ReadObject(typeof(Admin), ref obj, null);
             Administrator admin = obj as Admin;
-            Console.WriteLine(admin != null);
+            //Console.WriteLine(admin != null);
+            if (admin != null)
+            {
+                Console.WriteLine("读取完成！");
+
+                TWriter writer2 = GetWriter<TWriter>();
+                writer2.Settings = reader.Settings;
+                writer2.WriteObject(admin, null, null);
+
+                Byte[] buffer2 = writer2.ToArray();
+                Console.WriteLine("校验结果：{0}", CompareByteArray(buffer, buffer2));
+            }
         }
 
         static T GetWriter<T>() where T : IWriter, new()
@@ -196,6 +208,21 @@ namespace Test
             entity.SPS = new SortedList<string, Department>(entity.PPS);
 
             return entity;
+        }
+
+        static Int32 CompareByteArray(Byte[] buffer1, Byte[] buffer2)
+        {
+            if (buffer1 == buffer2) return 0;
+
+            for (int i = 0; i < buffer1.Length; i++)
+            {
+                if (i >= buffer2.Length) return 1;
+
+                Int32 n = buffer1[i].CompareTo(buffer2[i]);
+                if (n != 0) return n;
+            }
+
+            return -1;
         }
 
         [Serializable]
