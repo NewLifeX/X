@@ -143,7 +143,12 @@ namespace NewLife.Xml
         /// 从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。
         /// </summary>
         /// <returns></returns>
-        public override string ReadString() { return Reader.ReadContentAsString(); }
+        public override string ReadString()
+        {
+            String str = Reader.ReadContentAsString();
+            WriteLog("ReadString", str);
+            return str;
+        }
         #endregion
 
         //#region 其它

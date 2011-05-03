@@ -51,7 +51,6 @@ namespace NewLife.Serialization
                 base.Stream = value;
             }
         }
-
         #endregion
 
         #region 字节
@@ -75,7 +74,17 @@ namespace NewLife.Serialization
         }
         #endregion
 
-        #region 数字
+        #region 字符串
+        /// <summary>
+        /// 从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。
+        /// </summary>
+        /// <returns></returns>
+        public override string ReadString()
+        {
+            String str = Reader.ReadLine();
+            WriteLog("ReadString", str);
+            return str;
+        }
         #endregion
     }
 }

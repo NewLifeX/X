@@ -28,7 +28,7 @@ namespace NewLife.Serialization
         {
             if (count <= 0) return null;
 
-            Byte[] buffer = new Byte[count];
+            //Byte[] buffer = new Byte[count];
             //Int32 n = Reader.ReadContentAsBase64(buffer, 0, count);
             String str = ReadString();
             if (str == null) return null;
