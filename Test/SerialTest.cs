@@ -162,14 +162,14 @@ namespace Test
             entity.Logins = 65535;
             entity.LastLogin = DateTime.Now;
             entity.SSOUserID = 555;
-            entity.FT1 = 1.3F;
-            entity.DB1 = 1.34;
-            entity.DM1 = 12.3M;
-            entity.BT1 = 12;
+            entity.float1 = 1.3F;
+            entity.Double1 = 1.34;
+            entity.Decimal1 = 12.3M;
+            entity.Byte1 = 12;
             Byte[] b = { 0, 2, 35 };
-            entity.BT2 = b;
+            entity.Byte2 = b;
             Char[] a = { 'a', 'b', 'c' };
-            entity.CH1 = a;
+            entity.Char1 = a;
 
             Department dp = new Department();
             dp.ID = 1;
@@ -201,52 +201,52 @@ namespace Test
         [Serializable]
         class Admin : Administrator
         {
-            private float _FT1;
+            private float _float1;
             /// <summary>单精度</summary>
-            public float FT1
+            public float float1
             {
-                get { return _FT1; }
-                set { _FT1 = value; }
+                get { return _float1; }
+                set { _float1 = value; }
             }
 
-            private Double _DB1;
+            private Double _Double1;
             /// <summary>双精度</summary>
-            public Double DB1
+            public Double Double1
             {
-                get { return _DB1; }
-                set { _DB1 = value; }
+                get { return _Double1; }
+                set { _Double1 = value; }
             }
 
-            private Decimal _DM1;
+            private Decimal _Decimal1;
             /// <summary>属性说明</summary>
-            public Decimal DM1
+            public Decimal Decimal1
             {
-                get { return _DM1; }
-                set { _DM1 = value; }
+                get { return _Decimal1; }
+                set { _Decimal1 = value; }
             }
 
-            private Byte _BT1;
+            private Byte _Byte1;
             /// <summary>字节</summary>
-            public Byte BT1
+            public Byte Byte1
             {
-                get { return _BT1; }
-                set { _BT1 = value; }
+                get { return _Byte1; }
+                set { _Byte1 = value; }
             }
 
-            private Byte[] _BT2;
+            private Byte[] _Byte2;
             /// <summary>字节数组</summary>
-            public Byte[] BT2
+            public Byte[] Byte2
             {
-                get { return _BT2; }
-                set { _BT2 = value; }
+                get { return _Byte2; }
+                set { _Byte2 = value; }
             }
 
-            private Char[] _CH1;
+            private Char[] _Char1;
             /// <summary>字符数组</summary>
-            public Char[] CH1
+            public Char[] Char1
             {
-                get { return _CH1; }
-                set { _CH1 = value; }
+                get { return _Char1; }
+                set { _Char1 = value; }
             }
 
             private Department _DP1;
