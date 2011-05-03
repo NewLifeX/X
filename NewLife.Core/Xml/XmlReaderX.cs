@@ -172,7 +172,7 @@ namespace NewLife.Xml
         #region 字典
         public override bool ReadDictionary(Type type, ref object value, ReadObjectCallback callback)
         {
-            if (IsEmpty) return true;
+            if (SkipEmpty()) return true;
 
             return base.ReadDictionary(type, ref value, callback);
         }
@@ -244,7 +244,7 @@ namespace NewLife.Xml
         #region 枚举
         public override bool ReadEnumerable(Type type, ref object value, ReadObjectCallback callback)
         {
-            if (IsEmpty) return true;
+            if (SkipEmpty()) return true;
 
             return base.ReadEnumerable(type, ref value, callback);
         }
@@ -280,7 +280,7 @@ namespace NewLife.Xml
         protected override bool ReadItem(Type type, ref object value, Int32 index, ReadObjectCallback callback)
         {
             if (Reader.NodeType == XmlNodeType.EndElement || Reader.Name != type.Name) return false;
-            if (IsEmpty) return true;
+            if (SkipEmpty()) return true;
 
             Reader.ReadStartElement();
 
@@ -302,7 +302,7 @@ namespace NewLife.Xml
         /// <returns>是否读取成功</returns>
         protected override bool OnReadObject(Type type, ref object value, ReadObjectCallback callback)
         {
-            if (IsEmpty) return true;
+            if (SkipEmpty()) return true;
 
             if (Depth > 1) return base.OnReadObject(type, ref value, callback);
 
@@ -398,7 +398,7 @@ namespace NewLife.Xml
             Debug.Assert(Reader.NodeType != XmlNodeType.Element || Reader.IsStartElement(), "这里应该是起始节点呀！");
 
             // 空元素直接返回
-            if (IsEmpty) return true;
+            if (SkipEmpty()) return true;
 
             Reader.ReadStartElement();
 
@@ -414,20 +414,17 @@ namespace NewLife.Xml
         /// <summary>
         /// 当前节点是否空。如果是空节点，则读一次，让指针移到下一个元素
         /// </summary>
-        Boolean IsEmpty
+        Boolean SkipEmpty()
         {
-            get
+            // 空元素直接返回
+            if (Reader.IsEmptyElement)
             {
-                // 空元素直接返回
-                if (Reader.IsEmptyElement)
-                {
-                    // 读一次，把指针移到下一个元素上
-                    Reader.Read();
-                    return true;
-                }
-
-                return false;
+                // 读一次，把指针移到下一个元素上
+                Reader.Read();
+                return true;
             }
+
+            return false;
         }
         #endregion
     }
