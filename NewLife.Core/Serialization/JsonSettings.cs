@@ -7,7 +7,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// Json设置
     /// </summary>
-    public class JsonSettings : SerialSettings
+    public class JsonSettings : StringReaderWriterSetting
     {
         #region 属性
         private Boolean _Indent;

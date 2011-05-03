@@ -12,7 +12,8 @@ namespace NewLife.Serialization
     /// <summary>
     /// 写入器基类
     /// </summary>
-    public abstract class WriterBase<TSettings> : ReaderWriterBase<TSettings>, IWriter where TSettings : SerialSettings, new()
+    /// <typeparam name="TSettings">设置类</typeparam>
+    public abstract class WriterBase<TSettings> : ReaderWriterBase<TSettings>, IWriter where TSettings : ReaderWriterSetting, new()
     {
         #region 写入基础元数据
         #region 字节
@@ -570,7 +571,7 @@ namespace NewLife.Serialization
         /// 写入Guid
         /// </summary>
         /// <param name="value"></param>
-        public void Write(Guid value)
+        public virtual void Write(Guid value)
         {
             if (WriteObjRef(value)) return;
 
@@ -581,7 +582,7 @@ namespace NewLife.Serialization
         /// 写入IPAddress
         /// </summary>
         /// <param name="value"></param>
-        public void Write(IPAddress value)
+        public virtual void Write(IPAddress value)
         {
             if (WriteObjRef(value)) return;
 
@@ -594,7 +595,7 @@ namespace NewLife.Serialization
         /// 写入IPEndPoint
         /// </summary>
         /// <param name="value"></param>
-        public void Write(IPEndPoint value)
+        public virtual void Write(IPEndPoint value)
         {
             if (WriteObjRef(value)) return;
 

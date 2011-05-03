@@ -32,8 +32,9 @@ namespace Test
             //}
 
             //OldBinaryTest();
-            BinaryTest();
-            //XmlTest();
+            //BinaryTest();
+            XmlTest();
+            //JsonTest();
 
             //foreach (ConsoleColor item in Enum.GetValues(typeof(ConsoleColor)))
             //{
@@ -68,7 +69,7 @@ namespace Test
         public static void BinaryTest()
         {
             BinaryWriterX writer = GetWriter<BinaryWriterX>();
-            writer.Settings.DateTimeFormat = SerialSettings.DateTimeFormats.Seconds;
+            writer.Settings.DateTimeFormat = ReaderWriterSetting.DateTimeFormats.Seconds;
             //writer.Settings.IgnoreName = false;
             //writer.Settings.IgnoreType = false;
             writer.Settings.SplitComplexType = true;
@@ -221,6 +222,8 @@ namespace Test
                 Int32 n = buffer1[i].CompareTo(buffer2[i]);
                 if (n != 0) return n;
             }
+
+            if (buffer1.Length == buffer2.Length) return 0;
 
             return -1;
         }

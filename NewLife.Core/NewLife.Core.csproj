@@ -91,6 +91,7 @@
     <Compile Include="IOModule\StreamHttpHandler.cs" />
     <Compile Include="IOModule\IStreamHandler.cs" />
     <Compile Include="Log\TraceStream.cs" />
+    <Compile Include="Serialization\Base\StringReaderBase.cs" />
     <Compile Include="Serialization\BinaryReaderX.cs" />
     <Compile Include="Serialization\BinarySettings.cs" />
     <Compile Include="Serialization\BinaryWriterX.cs" />
@@ -133,8 +134,10 @@
     <Compile Include="Remoting\RemotingMessageHandler.cs" />
     <Compile Include="Remoting\RemotingMessageType.cs" />
     <Compile Include="Remoting\RemotingStreamHandler.cs" />
-    <Compile Include="Serialization\Base\SerialSettings.cs" />
+    <Compile Include="Serialization\Base\ReaderWriterSettings.cs" />
     <Compile Include="Serialization\SerialEventArgs.cs" />
+    <Compile Include="Serialization\Base\StringWriterBase.cs" />
+    <Compile Include="Serialization\Base\StringReaderWriterSetting.cs" />
     <Compile Include="Serialization\XSerializationException.cs" />
     <Compile Include="Threading\ReadWriteLock.cs" />
     <Compile Include="Reflection\TypeX.cs" />
@@ -195,7 +198,7 @@
     <Compile Include="Xml\ExtendData.cs" />
     <Compile Include="Xml\XMLEntity.cs" />
     <Compile Include="Xml\XmlReaderX.cs" />
-    <Compile Include="Xml\XmlSerialSettings.cs" />
+    <Compile Include="Xml\XmlReaderWriterSettings.cs" />
     <Compile Include="Xml\XmlWriterX.cs" />
   </ItemGroup>
   <ItemGroup>

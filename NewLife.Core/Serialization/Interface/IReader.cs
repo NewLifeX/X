@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
+using System.Net;
 
 namespace NewLife.Serialization
 {
@@ -126,6 +124,32 @@ namespace NewLife.Serialization
         /// <returns></returns>
         DateTime ReadDateTime();
         #endregion
+        #endregion
+
+        #region 扩展类型
+        /// <summary>
+        /// 读取Guid
+        /// </summary>
+        /// <returns></returns>
+        Guid ReadGuid();
+
+        /// <summary>
+        /// 读取IPAddress
+        /// </summary>
+        /// <returns></returns>
+        IPAddress ReadIPAddress();
+
+        /// <summary>
+        /// 读取IPEndPoint
+        /// </summary>
+        /// <returns></returns>
+        IPEndPoint ReadIPEndPoint();
+
+        /// <summary>
+        /// 读取Type
+        /// </summary>
+        /// <returns></returns>
+        Type ReadType();
         #endregion
 
         #region 读取对象

@@ -20,7 +20,7 @@ namespace NewLife.Serialization
         /// <summary>
         /// 序列化设置
         /// </summary>
-        SerialSettings Settings { get; set; }
+        ReaderWriterSetting Settings { get; set; }
 
         /// <summary>层次深度。</summary>
         Int32 Depth { get; set; }

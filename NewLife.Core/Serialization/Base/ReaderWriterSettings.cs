@@ -7,7 +7,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// 序列化设置
     /// </summary>
-    public class SerialSettings
+    public class ReaderWriterSetting
     {
         #region 属性
         private Encoding _Encoding;

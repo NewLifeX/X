@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Collections;
-using System.Reflection;
+using System.Net;
 
 namespace NewLife.Serialization
 {
@@ -141,6 +139,32 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         void Write(DateTime value);
         #endregion
+        #endregion
+
+        #region 扩展类型
+        /// <summary>
+        /// 写入Guid
+        /// </summary>
+        /// <param name="value"></param>
+        void Write(Guid value);
+
+        /// <summary>
+        /// 写入IPAddress
+        /// </summary>
+        /// <param name="value"></param>
+        void Write(IPAddress value);
+        
+        /// <summary>
+        /// 写入IPEndPoint
+        /// </summary>
+        /// <param name="value"></param>
+        void Write(IPEndPoint value);
+
+        /// <summary>
+        /// 写入Type
+        /// </summary>
+        /// <param name="value"></param>
+        void Write(Type value);
         #endregion
 
         #region 写入对象

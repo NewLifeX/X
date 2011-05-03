@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
 using System.Collections;
 using System.Globalization;
+using System.IO;
+using System.Text;
 
 namespace NewLife.Serialization
 {
     /// <summary>
     /// Json写入器
     /// </summary>
-    public class JsonWriter : WriterBase<JsonSettings>
+    public class JsonWriter : StringWriterBase<JsonSettings>
     {
         #region 属性
         private TextWriter _Writer;
@@ -68,35 +67,35 @@ namespace NewLife.Serialization
         //}
         #endregion
 
-        #region 已重载
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
-        public override void Write(byte value)
-        {
-            Writer.Write(value);
-        }
+        #region 时间
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="value"></param>
+        //public override void Write(byte value)
+        //{
+        //    Writer.Write(value);
+        //}
 
-        /// <summary>
-        /// 将字节数组部分写入当前流。
-        /// </summary>
-        /// <param name="buffer">包含要写入的数据的字节数组。</param>
-        /// <param name="index">buffer 中开始写入的起始点。</param>
-        /// <param name="count">要写入的字节数。</param>
-        public override void Write(byte[] buffer, int index, int count)
-        {
-            Write(Settings.Encoding.GetString(buffer, index, count));
-        }
+        ///// <summary>
+        ///// 将字节数组部分写入当前流。
+        ///// </summary>
+        ///// <param name="buffer">包含要写入的数据的字节数组。</param>
+        ///// <param name="index">buffer 中开始写入的起始点。</param>
+        ///// <param name="count">要写入的字节数。</param>
+        //public override void Write(byte[] buffer, int index, int count)
+        //{
+        //    Write(Settings.Encoding.GetString(buffer, index, count));
+        //}
 
-        /// <summary>
-        /// 将单字节 Boolean 值写入
-        /// </summary>
-        /// <param name="value">要写入的 Boolean 值</param>
-        public override void Write(bool value)
-        {
-            Writer.Write(value ? "true" : "false");
-        }
+        ///// <summary>
+        ///// 将单字节 Boolean 值写入
+        ///// </summary>
+        ///// <param name="value">要写入的 Boolean 值</param>
+        //public override void Write(bool value)
+        //{
+        //    Writer.Write(value ? "true" : "false");
+        //}
 
         /// <summary>
         /// 将一个时间日期写入
@@ -113,64 +112,64 @@ namespace NewLife.Serialization
         #endregion
 
         #region 数字
-        void WriteNumber(Double value)
-        {
-            Writer.Write(value);
-        }
+        //void WriteNumber(Double value)
+        //{
+        //    Writer.Write(value);
+        //}
 
-        /// <summary>
-        /// 将 2 字节有符号整数写入当前流，并将流的位置提升 2 个字节。
-        /// </summary>
-        /// <param name="value">要写入的 2 字节有符号整数。</param>
-        public override void Write(short value)
-        {
-            WriteNumber(value);
-        }
+        ///// <summary>
+        ///// 将 2 字节有符号整数写入当前流，并将流的位置提升 2 个字节。
+        ///// </summary>
+        ///// <param name="value">要写入的 2 字节有符号整数。</param>
+        //public override void Write(short value)
+        //{
+        //    WriteNumber(value);
+        //}
 
-        /// <summary>
-        /// 将 4 字节有符号整数写入当前流，并将流的位置提升 4 个字节。
-        /// </summary>
-        /// <param name="value">要写入的 4 字节有符号整数。</param>
-        public override void Write(int value)
-        {
-            WriteNumber(value);
-        }
+        ///// <summary>
+        ///// 将 4 字节有符号整数写入当前流，并将流的位置提升 4 个字节。
+        ///// </summary>
+        ///// <param name="value">要写入的 4 字节有符号整数。</param>
+        //public override void Write(int value)
+        //{
+        //    WriteNumber(value);
+        //}
 
-        /// <summary>
-        /// 将 8 字节有符号整数写入当前流，并将流的位置提升 8 个字节。
-        /// </summary>
-        /// <param name="value">要写入的 8 字节有符号整数。</param>
-        public override void Write(long value)
-        {
-            WriteNumber(value);
-        }
+        ///// <summary>
+        ///// 将 8 字节有符号整数写入当前流，并将流的位置提升 8 个字节。
+        ///// </summary>
+        ///// <param name="value">要写入的 8 字节有符号整数。</param>
+        //public override void Write(long value)
+        //{
+        //    WriteNumber(value);
+        //}
 
-        /// <summary>
-        /// 将 4 字节浮点值写入当前流，并将流的位置提升 4 个字节。
-        /// </summary>
-        /// <param name="value">要写入的 4 字节浮点值。</param>
-        public override void Write(float value)
-        {
-            WriteNumber(value);
-        }
+        ///// <summary>
+        ///// 将 4 字节浮点值写入当前流，并将流的位置提升 4 个字节。
+        ///// </summary>
+        ///// <param name="value">要写入的 4 字节浮点值。</param>
+        //public override void Write(float value)
+        //{
+        //    WriteNumber(value);
+        //}
 
-        /// <summary>
-        /// 将 8 字节浮点值写入当前流，并将流的位置提升 8 个字节。
-        /// </summary>
-        /// <param name="value">要写入的 8 字节浮点值。</param>
-        public override void Write(double value)
-        {
-            WriteNumber(value);
-        }
+        ///// <summary>
+        ///// 将 8 字节浮点值写入当前流，并将流的位置提升 8 个字节。
+        ///// </summary>
+        ///// <param name="value">要写入的 8 字节浮点值。</param>
+        //public override void Write(double value)
+        //{
+        //    WriteNumber(value);
+        //}
 
-        /// <summary>
-        /// 将一个十进制值写入当前流，并将流位置提升十六个字节。
-        /// </summary>
-        /// <param name="value">要写入的十进制值。</param>
-        public override void Write(decimal value)
-        {
-            Writer.Write(value);
-        }
+        ///// <summary>
+        ///// 将一个十进制值写入当前流，并将流位置提升十六个字节。
+        ///// </summary>
+        ///// <param name="value">要写入的十进制值。</param>
+        //public override void Write(decimal value)
+        //{
+        //    Writer.Write(value);
+        //}
         #endregion
 
         #region 字符串

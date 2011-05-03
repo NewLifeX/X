@@ -8,7 +8,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// 读写器基类
     /// </summary>
-    public abstract class ReaderWriterBase<TSettings> : NewLife.DisposeBase, IReaderWriter where TSettings : SerialSettings, new()
+    public abstract class ReaderWriterBase<TSettings> : NewLife.DisposeBase, IReaderWriter where TSettings : ReaderWriterSetting, new()
     {
         #region 属性
         //private Encoding _Encoding;
@@ -46,7 +46,7 @@ namespace NewLife.Serialization
         /// <summary>
         /// 序列化设置
         /// </summary>
-        SerialSettings IReaderWriter.Settings { get { return Settings; } set { Settings = (TSettings)value; } }
+        ReaderWriterSetting IReaderWriter.Settings { get { return Settings; } set { Settings = (TSettings)value; } }
 
         private Int32 _Depth;
         /// <summary>层次深度</summary>

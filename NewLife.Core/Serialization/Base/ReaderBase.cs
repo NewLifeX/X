@@ -14,7 +14,8 @@ namespace NewLife.Serialization
     /// <summary>
     /// 读取器基类
     /// </summary>
-    public abstract class ReaderBase<TSettings> : ReaderWriterBase<TSettings>, IReader where TSettings : SerialSettings, new()
+    /// <typeparam name="TSettings">设置类</typeparam>
+    public abstract class ReaderBase<TSettings> : ReaderWriterBase<TSettings>, IReader where TSettings : ReaderWriterSetting, new()
     {
         #region 读取基础元数据
         #region 字节
@@ -757,7 +758,7 @@ namespace NewLife.Serialization
         /// 读取Guid
         /// </summary>
         /// <returns></returns>
-        public Guid ReadGuid()
+        public virtual Guid ReadGuid()
         {
             //return new Guid(ReadBytes(16));
 
@@ -768,7 +769,7 @@ namespace NewLife.Serialization
         /// 读取IPAddress
         /// </summary>
         /// <returns></returns>
-        public IPAddress ReadIPAddress()
+        public virtual IPAddress ReadIPAddress()
         {
             //Object obj = null;
             //Int32 index = 0;
@@ -787,7 +788,7 @@ namespace NewLife.Serialization
         /// 读取IPEndPoint
         /// </summary>
         /// <returns></returns>
-        public IPEndPoint ReadIPEndPoint()
+        public virtual IPEndPoint ReadIPEndPoint()
         {
             ////if (ReadByte() == 0) return null;
             ////BaseStream.Seek(-1, SeekOrigin.Current);
