@@ -146,7 +146,7 @@ namespace NewLife.Xml
         public override string ReadString()
         {
             String str = Reader.ReadContentAsString();
-            WriteLog("ReadString", str);
+            WriteLog(1, "ReadString", str);
             return str;
         }
         #endregion

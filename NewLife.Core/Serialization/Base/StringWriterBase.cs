@@ -11,6 +11,14 @@ namespace NewLife.Serialization
     /// <typeparam name="TSettings">设置类</typeparam>
     public class StringWriterBase<TSettings> : WriterBase<TSettings>, IWriter where TSettings : StringReaderWriterSetting, new()
     {
+        #region 属性
+        /// <summary>是否使用大小，如果使用，将在写入数组、集合和字符串前预先写入大小。字符串类型读写器一般带有边界，不需要使用大小</summary>
+        protected override Boolean UseSize
+        {
+            get { return false; }
+        }
+        #endregion
+
         #region 基础元数据
         #region 字节
         //protected virtual void WriteBase64(Byte[] buffer, Int32 index, Int32 count)
@@ -26,6 +34,17 @@ namespace NewLife.Serialization
         {
             Write(new Byte[] { value }, 0, 1);
         }
+
+        ///// <summary>
+        ///// 将字节数组写入，先写入字节数组的长度
+        ///// </summary>
+        ///// <param name="buffer">包含要写入的数据的字节数组。</param>
+        //public override void Write(byte[] buffer)
+        //{
+        //    if (buffer == null) return;
+
+        //    Write(buffer, 0, buffer.Length);
+        //}
 
         /// <summary>
         /// 将字节数组部分写入当前流。

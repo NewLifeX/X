@@ -32,11 +32,11 @@ namespace NewLife.Serialization
         {
             if (buffer == null)
             {
-                Write(0);
+                WriteSize(0);
                 return;
             }
 
-            Write(buffer.Length);
+            WriteSize(buffer.Length);
             Write(buffer, 0, buffer.Length);
 
             //Write(buffer, 0, buffer == null ? 0 : buffer.Length);
@@ -169,13 +169,13 @@ namespace NewLife.Serialization
         {
             if (chars == null)
             {
-                Write(-1);
+                WriteSize(0);
                 return;
             }
 
             if (chars.Length < 1 || count <= 0 || index >= chars.Length)
             {
-                Write(0);
+                WriteSize(0);
                 return;
             }
 
@@ -224,6 +224,19 @@ namespace NewLife.Serialization
             Write(Settings.ConvertDateTimeToInt64(value));
         }
         #endregion
+        #endregion
+
+        #region 数组长度
+        /// <summary>
+        /// 写入大小
+        /// </summary>
+        /// <param name="size"></param>
+        protected virtual void WriteSize(Int32 size)
+        {
+            if (!UseSize) return;
+
+            Write(size);
+        }
         #endregion
 
         #region 写入值类型
@@ -372,6 +385,9 @@ namespace NewLife.Serialization
         public virtual Boolean WriteDictionary(IDictionary value, Type type, WriteObjectCallback callback)
         {
             if (value == null) return true;
+
+            WriteSize(value.Count);
+            if (value.Count == 0) return true;
 
             type = value.GetType();
             if (type != null && !typeof(IDictionary).IsAssignableFrom(type)) throw new Exception("目标类型不是枚举类型！");

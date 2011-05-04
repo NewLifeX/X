@@ -32,7 +32,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public virtual byte[] ReadBytes(int count)
         {
-            if (count < 0) count = ReadInt32();
+            if (count < 0) count = ReadSize();
 
             if (count <= 0) return null;
 
@@ -134,6 +134,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public virtual char[] ReadChars(int count)
         {
+            if (count < 0) count = ReadSize();
+
             // count个字符可能的最大字节数
             Int32 max = Settings.Encoding.GetMaxByteCount(count);
 
@@ -168,7 +170,7 @@ namespace NewLife.Serialization
         public virtual string ReadString()
         {
             // 先读长度
-            Int32 n = ReadInt32();
+            Int32 n = ReadSize();
             if (n < 0) return null;
             if (n == 0) return String.Empty;
 
@@ -208,6 +210,19 @@ namespace NewLife.Serialization
             return Settings.ConvertInt64ToDateTime(ReadInt64());
         }
         #endregion
+        #endregion
+
+        #region 数组长度
+        /// <summary>
+        /// 读取大小
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Int32 ReadSize()
+        {
+            if (!UseSize) return -1;
+
+            return ReadInt32();
+        }
         #endregion
 
         #region 读取值类型
@@ -294,18 +309,24 @@ namespace NewLife.Serialization
 
             if (type == typeof(Byte[]))
             {
-                Int32 len = ReadInt32();
-                if (len < 0) throw new Exception("非法数据！字节数组长度不能为负数！");
-                value = null;
-                if (len > 0) value = ReadBytes(len);
+                //Int32 len = ReadInt32();
+                //if (len < 0) throw new Exception("非法数据！字节数组长度不能为负数！");
+                //value = null;
+                //if (len > 0) value = ReadBytes(len);
+                //return true;
+
+                value = ReadBytes(-1);
                 return true;
             }
             if (type == typeof(Char[]))
             {
-                Int32 len = ReadInt32();
-                if (len < 0) throw new Exception("非法数据！字符数组长度不能为负数！");
-                value = null;
-                if (len > 0) value = ReadChars(len);
+                //Int32 len = ReadInt32();
+                //if (len < 0) throw new Exception("非法数据！字符数组长度不能为负数！");
+                //value = null;
+                //if (len > 0) value = ReadChars(len);
+                //return true;
+
+                value = ReadChars(-1);
                 return true;
             }
 
@@ -351,7 +372,7 @@ namespace NewLife.Serialization
             if (!GetDictionaryEntryType(type, ref keyType, ref valueType)) return false;
 
             // 读取键值对集合
-            IEnumerable<DictionaryEntry> list = ReadDictionary(keyType, valueType, Int32.MaxValue, callback);
+            IEnumerable<DictionaryEntry> list = ReadDictionary(keyType, valueType, ReadSize(), callback);
             if (list == null) return true;
 
             if (value == null) value = TypeX.CreateInstance(type);
@@ -375,6 +396,9 @@ namespace NewLife.Serialization
         protected virtual IEnumerable<DictionaryEntry> ReadDictionary(Type keyType, Type valueType, Int32 count, ReadObjectCallback callback)
         {
             List<DictionaryEntry> list = new List<DictionaryEntry>();
+
+            // 元素个数小于0，可能是因为不支持元素个数，直接设为最大值
+            if (count < 0) count = Int32.MaxValue;
             for (int i = 0; i < count; i++)
             {
                 // 一旦有一个元素读不到，就中断
@@ -558,7 +582,7 @@ namespace NewLife.Serialization
         {
             if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
 
-            IList list = ReadItems(type, elementType, Int32.MaxValue, callback);
+            IList list = ReadItems(type, elementType, ReadSize(), callback);
             if (list == null)
             {
                 value = null;
@@ -583,6 +607,9 @@ namespace NewLife.Serialization
             //ArrayList list = new ArrayList();
             Type listType = typeof(List<>).MakeGenericType(elementType);
             IList list = TypeX.CreateInstance(listType) as IList;
+
+            // 元素个数小于0，可能是因为不支持元素个数，直接设为最大值
+            if (count < 0) count = Int32.MaxValue;
             for (int i = 0; i < count; i++)
             {
                 // 一旦有一个元素读不到，就中断

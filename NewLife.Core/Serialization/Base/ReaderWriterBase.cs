@@ -69,27 +69,6 @@ namespace NewLife.Serialization
             }
             set { _Depth = value; }
         }
-
-        //private Boolean _EncodeDateTime;
-        ///// <summary>编码时间日期，使用1970-01-01以来的秒数代替</summary>
-        //public Boolean EncodeDateTime
-        //{
-        //    get { return _EncodeDateTime; }
-        //    set { _EncodeDateTime = value; }
-        //}
-
-        ///// <summary>
-        ///// 编码时间日期的其实时间，固定1970-01-01
-        ///// </summary>
-        //public static readonly DateTime BaseDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
-        //private Boolean _SplitGenericType;
-        ///// <summary>是否拆分泛型类。拆分后，泛型类将按照泛型定义和泛型参数依次写入，同时利用对象引用，能在一定程度上减少大小</summary>
-        //public Boolean SplitGenericType
-        //{
-        //    get { return _SplitGenericType; }
-        //    set { _SplitGenericType = value; }
-        //}
         #endregion
 
         #region 方法
@@ -99,6 +78,14 @@ namespace NewLife.Serialization
         public virtual void Reset()
         {
             Depth = 1;
+        }
+        #endregion
+
+        #region 数组长度
+        /// <summary>是否使用大小，如果使用，将在写入数组、集合和字符串前预先写入大小</summary>
+        protected virtual Boolean UseSize
+        {
+            get { return true; }
         }
         #endregion
 
@@ -181,24 +168,39 @@ namespace NewLife.Serialization
         [Conditional("DEBUG")]
         public void WriteLog(String action, params Object[] args)
         {
+            WriteLog(0, action, args);
+        }
+
+        static ConsoleColor[][] colors = new ConsoleColor[][] { 
+            new ConsoleColor[] { ConsoleColor.Green,ConsoleColor.Magenta, ConsoleColor.White, ConsoleColor.Yellow },
+            new ConsoleColor[] { ConsoleColor.Yellow, ConsoleColor.White, ConsoleColor.Magenta,ConsoleColor.Green }
+      };
+        /// <summary>
+        /// 调试输出
+        /// </summary>
+        /// <param name="colorIndex">颜色方案</param>
+        /// <param name="action">操作</param>
+        /// <param name="args">参数</param>
+        [Conditional("DEBUG")]
+        public void WriteLog(Int32 colorIndex, String action, params Object[] args)
+        {
             ConsoleColor color = Console.ForegroundColor;
 
             // 缩进
             SetDebugIndent();
 
             // 红色动作
-            Console.ForegroundColor = ConsoleColor.Green;
+            Console.ForegroundColor = colors[colorIndex][0];
             Console.Write(action);
 
             if (args != null && args.Length > 0)
             {
                 // 白色参数
                 //Console.ForegroundColor = ConsoleColor.White;
-                ConsoleColor[] colors = new ConsoleColor[] { ConsoleColor.Magenta, ConsoleColor.White, ConsoleColor.Yellow };
 
                 for (int i = 0; i < args.Length; i++)
                 {
-                    Console.ForegroundColor = colors[i % colors.Length];
+                    Console.ForegroundColor = colors[colorIndex][i % colors.Length + 1];
                     Console.Write(" ");
                     Console.Write(args[i]);
                 }

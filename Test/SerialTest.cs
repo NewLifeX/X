@@ -33,8 +33,8 @@ namespace Test
             //}
 
             //OldBinaryTest();
-            //BinaryTest();
-            XmlTest();
+            BinaryTest();
+            //XmlTest();
             //JsonTest();
 
             //foreach (ConsoleColor item in Enum.GetValues(typeof(ConsoleColor)))

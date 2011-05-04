@@ -42,7 +42,7 @@ namespace NewLife.Serialization
         }
         #endregion
 
-        #region 基础元数据
+        #region 字节
         /// <summary>
         /// 写入字节
         /// </summary>
@@ -362,24 +362,24 @@ namespace NewLife.Serialization
         }
         #endregion
 
-        #region 字典
-        /// <summary>
-        /// 写入字典类型数据
-        /// </summary>
-        /// <param name="value">字典数据</param>
-        /// <param name="type">要写入的对象类型</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否写入成功</returns>
-        public override bool WriteDictionary(IDictionary value, Type type, WriteObjectCallback callback)
-        {
-            if (value == null) return true;
+        //#region 字典
+        ///// <summary>
+        ///// 写入字典类型数据
+        ///// </summary>
+        ///// <param name="value">字典数据</param>
+        ///// <param name="type">要写入的对象类型</param>
+        ///// <param name="callback">处理成员的方法</param>
+        ///// <returns>是否写入成功</returns>
+        //public override bool WriteDictionary(IDictionary value, Type type, WriteObjectCallback callback)
+        //{
+        //    if (value == null) return true;
 
-            Write(value.Count);
-            if (value.Count == 0) return true;
+        //    WriteSize(value.Count);
+        //    if (value.Count == 0) return true;
 
-            return base.WriteDictionary(value, type, callback);
-        }
-        #endregion
+        //    return base.WriteDictionary(value, type, callback);
+        //}
+        //#endregion
 
         #region 枚举
         /// <summary>
@@ -413,12 +413,12 @@ namespace NewLife.Serialization
             if (count == 0)
             {
                 // 写入0长度。至此，枚举类型前面就会有两个字节用于标识，一个是是否为空，或者是对象引用，第二个是长度，注意长度为0的枚举类型
-                Write(0);
+                WriteSize(0);
                 return true;
             }
 
             // 写入长度
-            Write(count);
+            WriteSize(count);
 
             return base.WriteEnumerable(value, type, callback);
         }

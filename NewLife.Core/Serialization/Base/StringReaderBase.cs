@@ -11,6 +11,14 @@ namespace NewLife.Serialization
     /// <typeparam name="TSettings">设置类</typeparam>
     public class StringReaderBase<TSettings> : ReaderBase<TSettings>, IReader where TSettings : StringReaderWriterSetting, new()
     {
+        #region 属性
+        /// <summary>是否使用大小，如果使用，将在写入数组、集合和字符串前预先写入大小。字符串类型读写器一般带有边界，不需要使用大小</summary>
+        protected override Boolean UseSize
+        {
+            get { return false; }
+        }
+        #endregion
+
         #region 基础元数据
         #region 字节
         /// <summary>
@@ -26,7 +34,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override byte[] ReadBytes(int count)
         {
-            if (count <= 0) return null;
+            //if (count <= 0) return null;
 
             //Byte[] buffer = new Byte[count];
             //Int32 n = Reader.ReadContentAsBase64(buffer, 0, count);

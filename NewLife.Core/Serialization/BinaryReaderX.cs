@@ -257,49 +257,49 @@ namespace NewLife.Serialization
         }
         #endregion
 
-        #region 字典
-        /// <summary>
-        /// 读取字典项集合，以读取键值失败作为读完字典项的标识，子类可以重载实现以字典项数量来读取
-        /// </summary>
-        /// <param name="keyType">键类型</param>
-        /// <param name="valueType">值类型</param>
-        /// <param name="count">元素个数</param>
-        /// <param name="callback">处理元素的方法</param>
-        /// <returns>字典项集合</returns>
-        protected override IEnumerable<DictionaryEntry> ReadDictionary(Type keyType, Type valueType, int count, ReadObjectCallback callback)
-        {
-            // 读取元素个数
-            count = ReadInt32();
-            if (count < 0) throw new InvalidOperationException("无效元素个数" + count + "！");
+        //#region 字典
+        ///// <summary>
+        ///// 读取字典项集合，以读取键值失败作为读完字典项的标识，子类可以重载实现以字典项数量来读取
+        ///// </summary>
+        ///// <param name="keyType">键类型</param>
+        ///// <param name="valueType">值类型</param>
+        ///// <param name="count">元素个数</param>
+        ///// <param name="callback">处理元素的方法</param>
+        ///// <returns>字典项集合</returns>
+        //protected override IEnumerable<DictionaryEntry> ReadDictionary(Type keyType, Type valueType, int count, ReadObjectCallback callback)
+        //{
+        //    // 读取元素个数
+        //    count = ReadSize();
+        //    if (count < 0) throw new InvalidOperationException("无效元素个数" + count + "！");
 
-            // 没有元素
-            if (count == 0) return null;
+        //    // 没有元素
+        //    if (count == 0) return null;
 
-            return base.ReadDictionary(keyType, valueType, count, callback);
-        }
-        #endregion
+        //    return base.ReadDictionary(keyType, valueType, count, callback);
+        //}
+        //#endregion
 
-        #region 枚举
-        /// <summary>
-        /// 读取元素集合
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="elementType"></param>
-        /// <param name="count">元素个数</param>
-        /// <param name="callback">处理元素的方法</param>
-        /// <returns></returns>
-        protected override IList ReadItems(Type type, Type elementType, Int32 count, ReadObjectCallback callback)
-        {
-            // 读取元素个数
-            count = ReadInt32();
-            if (count < 0) throw new InvalidOperationException("无效元素个数" + count + "！");
+        //#region 枚举
+        ///// <summary>
+        ///// 读取元素集合
+        ///// </summary>
+        ///// <param name="type"></param>
+        ///// <param name="elementType"></param>
+        ///// <param name="count">元素个数</param>
+        ///// <param name="callback">处理元素的方法</param>
+        ///// <returns></returns>
+        //protected override IList ReadItems(Type type, Type elementType, Int32 count, ReadObjectCallback callback)
+        //{
+        //    // 读取元素个数
+        //    count = ReadSize();
+        //    if (count < 0) throw new InvalidOperationException("无效元素个数" + count + "！");
 
-            // 没有元素
-            if (count == 0) return null;
+        //    // 没有元素
+        //    if (count == 0) return null;
 
-            return base.ReadItems(type, elementType, count, callback);
-        }
-        #endregion
+        //    return base.ReadItems(type, elementType, count, callback);
+        //}
+        //#endregion
 
         #region 读取对象
         /// <summary>
