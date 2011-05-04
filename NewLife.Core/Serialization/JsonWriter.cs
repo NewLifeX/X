@@ -50,129 +50,158 @@ namespace NewLife.Serialization
             }
         }
 
-        //private Boolean _Indent;
-        ///// <summary>缩进</summary>
-        //public Boolean Indent
-        //{
-        //    get { return _Indent; }
-        //    set { _Indent = value; }
-        //}
+        #endregion
+        #region 字节/字节数组
+        /// <summary>
+        /// 以0xff的格式写入字节
+        /// </summary>
+        /// <param name="value"></param>
+        public override void Write(byte value)
+        {
+            WriteLiteral(string.Format("0x{0:x2}", value));
+        }
+        /// <summary>
+        /// 将字节数组以[0xff,0xff,0xff]的格式写入
+        /// </summary>
+        /// <param name="buffer"></param>
+        public override void Write(byte[] buffer)
+        {
+            if (buffer == null)
+            {
+                WriteLiteral("null");
+            }
+            else
+            {
+                Write(buffer, 0, buffer.Length);
+            }
+        }
+        /// <summary>
+        /// 将字节数组部分写入当前流。
+        /// </summary>
+        /// <param name="buffer">包含要写入的数据的字节数组。</param>
+        /// <param name="index">buffer 中开始写入的起始点。</param>
+        /// <param name="count">要写入的字节数。</param>
+        public override void Write(byte[] buffer, int index, int count)
+        {
+            byte[] buf;
+            if (count == buffer.Length)
+            {
+                buf = buffer;
+            }
+            else
+            {
+                buf = new byte[count];
+                Array.Copy(buffer, index, buf, 0, count);
+            }
+            Write(buf as IEnumerable);
+        }
+        #endregion
 
-        //private Boolean _JsDateTimeFormat;
-        ///// <summary>Js时间日期格式</summary>
-        //public Boolean JsDateTimeFormat
-        //{
-        //    get { return _JsDateTimeFormat; }
-        //    set { _JsDateTimeFormat = value; }
-        //}
+        #region 布尔
+        /// <summary>
+        /// 将单字节 Boolean 值写入
+        /// </summary>
+        /// <param name="value">要写入的 Boolean 值</param>
+        public override void Write(bool value)
+        {
+            Depth++;
+            WriteLog("WriteValue", "bool", value);
+            WriteLiteral(value ? "true" : "false");
+            Depth--;
+        }
         #endregion
 
         #region 时间
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="value"></param>
-        //public override void Write(byte value)
-        //{
-        //    Writer.Write(value);
-        //}
-
-        ///// <summary>
-        ///// 将字节数组部分写入当前流。
-        ///// </summary>
-        ///// <param name="buffer">包含要写入的数据的字节数组。</param>
-        ///// <param name="index">buffer 中开始写入的起始点。</param>
-        ///// <param name="count">要写入的字节数。</param>
-        //public override void Write(byte[] buffer, int index, int count)
-        //{
-        //    Write(Settings.Encoding.GetString(buffer, index, count));
-        //}
-
-        ///// <summary>
-        ///// 将单字节 Boolean 值写入
-        ///// </summary>
-        ///// <param name="value">要写入的 Boolean 值</param>
-        //public override void Write(bool value)
-        //{
-        //    Writer.Write(value ? "true" : "false");
-        //}
-
         /// <summary>
         /// 将一个时间日期写入
         /// </summary>
         /// <param name="value"></param>
         public override void Write(DateTime value)
         {
-            String str = String.Format("Date({0})", Settings.ConvertDateTimeToInt64(value));
+            Depth++;
+            WriteLog("WriteValue", "DateTime", value);
             if (Settings.JsDateTimeFormat)
-                Write("new " + str);
+            {
+                DateTime utc = value.ToUniversalTime();
+                WriteLiteral(string.Format("new Date(Date.UTC({0},{1},{2},{3},{4},{5},{6}))",
+                    utc.Year, utc.Month - 1, utc.Day, utc.Hour, utc.Minute, utc.Second, utc.Millisecond));
+            }
             else
-                Write("/" + str + "/");
+            {
+                WriteLiteral(string.Format("new Date({0})", Settings.ConvertDateTimeToInt64(value)));
+            }
+            Depth--;
         }
         #endregion
 
         #region 数字
-        //void WriteNumber(Double value)
-        //{
-        //    Writer.Write(value);
-        //}
+        /// <summary>
+        /// 将 2 字节有符号整数写入当前流
+        /// </summary>
+        /// <param name="value">要写入的 2 字节有符号整数。</param>
+        public override void Write(short value)
+        {
+            WriteLiteral(value.ToString());
+        }
 
-        ///// <summary>
-        ///// 将 2 字节有符号整数写入当前流，并将流的位置提升 2 个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的 2 字节有符号整数。</param>
-        //public override void Write(short value)
-        //{
-        //    WriteNumber(value);
-        //}
+        /// <summary>
+        /// 将 4 字节有符号整数写入当前流
+        /// </summary>
+        /// <param name="value">要写入的 4 字节有符号整数。</param>
+        public override void Write(int value)
+        {
+            WriteLiteral(value.ToString());
+        }
 
-        ///// <summary>
-        ///// 将 4 字节有符号整数写入当前流，并将流的位置提升 4 个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的 4 字节有符号整数。</param>
-        //public override void Write(int value)
-        //{
-        //    WriteNumber(value);
-        //}
+        /// <summary>
+        /// 将 8 字节有符号整数写入当前流
+        /// </summary>
+        /// <param name="value">要写入的 8 字节有符号整数。</param>
+        public override void Write(long value)
+        {
+            WriteLiteral(value.ToString());
+        }
 
-        ///// <summary>
-        ///// 将 8 字节有符号整数写入当前流，并将流的位置提升 8 个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的 8 字节有符号整数。</param>
-        //public override void Write(long value)
-        //{
-        //    WriteNumber(value);
-        //}
+        /// <summary>
+        /// 将 4 字节浮点值写入当前流
+        /// </summary>
+        /// <param name="value">要写入的 4 字节浮点值。</param>
+        public override void Write(float value)
+        {
+            WriteLiteral(value.ToString());
+        }
 
-        ///// <summary>
-        ///// 将 4 字节浮点值写入当前流，并将流的位置提升 4 个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的 4 字节浮点值。</param>
-        //public override void Write(float value)
-        //{
-        //    WriteNumber(value);
-        //}
+        /// <summary>
+        /// 将 8 字节浮点值写入当前流
+        /// </summary>
+        /// <param name="value">要写入的 8 字节浮点值。</param>
+        public override void Write(double value)
+        {
+            WriteLiteral(value.ToString());
+        }
 
-        ///// <summary>
-        ///// 将 8 字节浮点值写入当前流，并将流的位置提升 8 个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的 8 字节浮点值。</param>
-        //public override void Write(double value)
-        //{
-        //    WriteNumber(value);
-        //}
-
-        ///// <summary>
-        ///// 将一个十进制值写入当前流，并将流位置提升十六个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的十进制值。</param>
-        //public override void Write(decimal value)
-        //{
-        //    Writer.Write(value);
-        //}
+        /// <summary>
+        /// 将一个十进制值写入当前流，并将流位置提升十六个字节。
+        /// </summary>
+        /// <param name="value">要写入的十进制值。</param>
+        public override void Write(decimal value)
+        {
+            WriteLiteral(value.ToString());
+        }
         #endregion
 
         #region 字符串
+        /// <summary>
+        /// 输出字符串字面值,不做编码处理
+        /// </summary>
+        /// <param name="value"></param>
+        void WriteLiteral(string value)
+        {
+            Depth++;
+            WriteLog("WriteValue", "Literal", value);
+            Writer.Write(value);
+            Depth--;
+        }
         /// <summary>
         /// 将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。
         /// </summary>
@@ -182,7 +211,7 @@ namespace NewLife.Serialization
             //Writer.Write(ch);
 
             if (ch == '\0')
-                Writer.Write("null");
+                WriteLiteral("null");
             else
                 Write(ch.ToString());
         }
@@ -193,12 +222,28 @@ namespace NewLife.Serialization
         /// <param name="value">要写入的值。</param>
         public override void Write(string value)
         {
-            value = Encode(value);
-
+            value = JsonStringEncode(value, this.Settings.JsEncodeUnicode);
+            Depth++;
+            WriteLog("WriteValue", "String", value);
             Writer.Write("\"" + value + "\"");
+            Depth--;
         }
-
-        static string Encode(string value)
+        /// <summary>
+        /// 将指定字符串编码成json中表示的字符串,将编码Unicode字符为\uXXXX
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string JsonStringEncode(string value)
+        {
+            return JsonStringEncode(value, true);
+        }
+        /// <summary>
+        /// 将指定字符串编码成json中表示的字符串,不包含字符串两边的双引号(必须是双引号,单引号不作转义)
+        /// </summary>
+        /// <param name="value">要编码的字符串,value为null时返回""</param>
+        /// <param name="encodeUnicode">是否将Unicode字符编码为\uXXXX的格式</param>
+        /// <returns></returns>
+        public static string JsonStringEncode(string value, bool encodeUnicode)
         {
             if (string.IsNullOrEmpty(value)) return string.Empty;
 
@@ -208,54 +253,48 @@ namespace NewLife.Serialization
             for (int i = 0; i < value.Length; i++)
             {
                 char c = value[i];
+                string estr = null;
                 // 拥有特殊字符时才编码处理
-                if (c == '\r' || c == '\t' || c == '"' || c == '\'' || c == '<' || c == '>' ||
-                    c == '\\' || c == '\n' || c == '\b' || c == '\f' || c < ' ')
+                switch (c) //根据json.org定义的string规范
+                {
+                    case '"':
+                        estr = "\\\""; break;
+                    case '\\':
+                        estr = "\\\\"; break;
+                    case '/':
+                        estr = "/"; break;
+                    case '\b':
+                        estr = "\\b"; break;
+                    case '\f':
+                        estr = "\\f"; break;
+                    case '\n':
+                        estr = "\\n"; break;
+                    case '\r':
+                        estr = "\\r"; break;
+                    case '\t':
+                        estr = "\\t"; break;
+                    default:
+                        if (c < ' ' || (encodeUnicode && c > 0x7e)) // 避免json直接输出中文乱码的情况
+                        {
+                            estr = string.Format("\\u{0:x4}", ((UInt16)c));
+                        }
+                        break;
+                }
+                if (estr != null)
                 {
                     if (builder == null) builder = new StringBuilder(value.Length + 5);
 
                     if (count > 0) builder.Append(value, startIndex, count);
 
                     startIndex = i + 1;
+
                     count = 0;
-                }
-                switch (c)
-                {
-                    case '<':
-                    case '>':
-                    case '\'':
-                        builder.Append(@"\u");
-                        builder.Append(((Int32)c).ToString("x4", CultureInfo.InvariantCulture));
-                        continue;
-                    case '\\':
-                        builder.Append(@"\\");
-                        continue;
-                    case '\b':
-                        builder.Append(@"\b");
-                        continue;
-                    case '\t':
-                        builder.Append(@"\t");
-                        continue;
-                    case '\n':
-                        builder.Append(@"\n");
-                        continue;
-                    case '\f':
-                        builder.Append(@"\f");
-                        continue;
-                    case '\r':
-                        builder.Append(@"\r");
-                        continue;
-                    case '"':
-                        builder.Append("\\\"");
-                        continue;
-                }
-                if (c < ' ')
-                {
-                    builder.Append(@"\u");
-                    builder.Append(((Int32)c).ToString("x4", CultureInfo.InvariantCulture));
+                    builder.Append(estr);
                 }
                 else
+                {
                     count++;
+                }
             }
             if (builder == null) return value;
             if (count > 0) builder.Append(value, startIndex, count);
@@ -311,7 +350,7 @@ namespace NewLife.Serialization
         {
             if (value == null)
             {
-                Writer.Write("null");
+                WriteLiteral("null");
                 return true;
             }
 
@@ -352,7 +391,7 @@ namespace NewLife.Serialization
                 Writer.WriteLine();
             }
 
-            Writer.Write("\"" + member.Name + "\": ");
+            Writer.Write("\"" + JsonStringEncode(member.Name) + "\": ");
 
             return base.OnWriteMember(value, member, index, callback);
         }

@@ -56,7 +56,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>
-        /// 转换时间为64位整数，默认返回毫秒数
+        /// 转换时间为64位整数，默认返回毫秒数,具体返回值取决于DateTimeFormat成员的值
         /// </summary>
         /// <param name="value">时间</param>
         /// <returns></returns>
@@ -67,8 +67,10 @@ namespace NewLife.Serialization
                 case DateTimeFormats.Ticks:
                     return value.Ticks;
                 case DateTimeFormats.Milliseconds:
+                    if (value.Kind != DateTimeKind.Utc) value = value.ToUniversalTime();
                     return (Int64)(value - BaseDateTime).TotalMilliseconds;
                 case DateTimeFormats.Seconds:
+                    if (value.Kind != DateTimeKind.Utc) value = value.ToUniversalTime();
                     return (Int64)(value - BaseDateTime).Seconds;
                 default:
                     break;
@@ -105,17 +107,17 @@ namespace NewLife.Serialization
         public enum DateTimeFormats
         {
             /// <summary>
-            /// 嘀嗒数。相对较精确，但是占用空间较大
+            /// 嘀嗒数。相对较精确，但是占用空间较大,非utc时间
             /// </summary>
             Ticks,
 
             /// <summary>
-            /// 毫秒数。Json常用格式
+            /// 毫秒数。Json常用格式.指定时间格式为与UTC时间1970.1.1 0:0:0之间的毫秒数
             /// </summary>
             Milliseconds,
 
             /// <summary>
-            /// 秒数。相对较不准确，但占用空间最小，能满足日常要求
+            /// 秒数。相对较不准确，但占用空间最小，能满足日常要求.指定时间格式为与UTC时间1970.1.1 0:0:0之间的秒数
             /// </summary>
             Seconds,
         }
