@@ -9,6 +9,7 @@ using NewLife.CommonEntity;
 using NewLife.Log;
 using NewLife.Serialization;
 using NewLife.Xml;
+using System.Collections;
 
 namespace Test
 {
@@ -183,7 +184,10 @@ namespace Test
             entity.Byte2 = b;
             Char[] a = { 'a', 'b', 'c' };
             entity.Char1 = a;
-
+            Hashtable ht = new Hashtable();
+            ht.Add("cc", "哈希1");
+            ht.Add("dd", "哈希2");
+            entity.Hashtable1 = ht;
             Department dp = new Department();
             dp.ID = 1;
             dp.Name = "部门一";
@@ -277,6 +281,14 @@ namespace Test
             {
                 get { return _Char1; }
                 set { _Char1 = value; }
+            }
+
+            private Hashtable _Hashtable1;
+            /// <summary>哈希表</summary>
+            public Hashtable Hashtable1
+            {
+                get { return _Hashtable1; }
+                set { _Hashtable1 = value; }
             }
 
             private Department _DP1;
