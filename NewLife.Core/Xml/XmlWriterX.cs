@@ -254,7 +254,7 @@ namespace NewLife.Xml
 
             AutoFlush();
 
-            Boolean rs = base.WriteItem(value, type, index, callback);
+            Boolean rs = base.OnWriteItem(value, type, index, callback);
 
             AutoFlush();
 
@@ -333,6 +333,21 @@ namespace NewLife.Xml
             AutoFlush();
 
             return rs;
+        }
+        #endregion
+
+        #region 未知对象
+        /// <summary>
+        /// 写入未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        public override bool WriteUnKnown(object value, Type type, WriteObjectCallback callback)
+        {
+            //TODO 请使用XmlSerialization处理这里
+            return base.WriteUnKnown(value, type, callback);
         }
         #endregion
 

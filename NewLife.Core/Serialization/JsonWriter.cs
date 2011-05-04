@@ -295,7 +295,7 @@ namespace NewLife.Serialization
                 Writer.Write(",");
             }
 
-            return base.WriteItem(value, type, index, callback);
+            return base.OnWriteItem(value, type, index, callback);
         }
         #endregion
 

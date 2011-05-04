@@ -428,6 +428,21 @@ namespace NewLife.Xml
         }
         #endregion
 
+        #region 未知对象
+        /// <summary>
+        /// 读取未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization
+        /// </summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public override bool ReadUnKnown(Type type, ref object value, ReadObjectCallback callback)
+        {
+            //TODO 请使用XmlSerialization处理这里
+            return base.ReadUnKnown(type, ref value, callback);
+        }
+        #endregion
+
         #region 方法
         /// <summary>
         /// 当前节点是否空。如果是空节点，则读一次，让指针移到下一个元素
