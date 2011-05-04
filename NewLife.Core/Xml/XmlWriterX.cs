@@ -217,7 +217,7 @@ namespace NewLife.Xml
         /// <param name="index">成员索引</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        public override bool WriteKeyValue(DictionaryEntry value, Type type, int index, WriteObjectCallback callback)
+        protected override bool OnWriteKeyValue(DictionaryEntry value, Type type, int index, WriteObjectCallback callback)
         {
             Writer.WriteStartElement("Item");
 
@@ -244,7 +244,7 @@ namespace NewLife.Xml
         /// <param name="index">成员索引</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        public override bool WriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
+        protected override bool OnWriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
             if (type == null && value != null) type = value.GetType();
             String name = null;

@@ -401,7 +401,7 @@ namespace NewLife.Serialization
         /// <param name="index">元素序号</param>
         /// <param name="callback">处理元素的方法</param>
         /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadDictionaryEntry(Type keyType, Type valueType, ref DictionaryEntry value, Int32 index, ReadObjectCallback callback)
+        protected virtual Boolean ReadDictionaryEntry(Type keyType, Type valueType, ref DictionaryEntry value, Int32 index, ReadObjectCallback callback)
         {
             Object key = null;
             Object val = null;
@@ -849,7 +849,7 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="type">类型</param>
         /// <returns>对象</returns>
-        public virtual Object ReadObject(Type type)
+        public Object ReadObject(Type type)
         {
             Object value = null;
             return ReadObject(type, ref value, null) ? value : null;
@@ -861,7 +861,7 @@ namespace NewLife.Serialization
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadObject(Type type, ref Object value)
+        public Boolean ReadObject(Type type, ref Object value)
         {
             return ReadObject(type, ref value, ReadMember);
         }
@@ -879,12 +879,19 @@ namespace NewLife.Serialization
             if (callback == null) callback = ReadMember;
 
             // 检查IAcessor接口
-            if (typeof(IAccessor).IsAssignableFrom(type))
-            {
-                IAccessor accessor = value as IAccessor;
-                if (accessor != null && accessor.Read(this)) return true;
-            }
+            IAccessor accessor = value as IAccessor;
+            if (accessor != null && accessor.Read(this)) return true;
 
+            Boolean rs = ReadObjectWithEvent(type, ref value, callback);
+
+            // 检查IAcessor接口
+            if (accessor != null) rs = accessor.ReadComplete(this, rs);
+
+            return rs;
+        }
+
+        Boolean ReadObjectWithEvent(Type type, ref Object value, ReadObjectCallback callback)
+        {
             // 事件
             SerialEventArgs<ReadObjectCallback> e = null;
             if (OnObjectReading != null)

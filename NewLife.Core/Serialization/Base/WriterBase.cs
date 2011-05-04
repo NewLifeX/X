@@ -12,6 +12,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// 写入器基类
     /// </summary>
+    /// <remarks>序列化框架的处理顺序为：IAccessor接口 => OnObjectWriting事件 => 扩展类型 => 基础类型 => 字典 => 枚举 => 序列化接口 => 自定义对象 => 未知类型 => OnObjectWrited事件</remarks>
     /// <typeparam name="TSettings">设置类</typeparam>
     public abstract class WriterBase<TSettings> : ReaderWriterBase<TSettings>, IWriter where TSettings : ReaderWriterSetting, new()
     {
@@ -394,7 +395,20 @@ namespace NewLife.Serialization
         /// <param name="index">成员索引</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteKeyValue(DictionaryEntry value, Type type, Int32 index, WriteObjectCallback callback)
+        protected Boolean WriteKeyValue(DictionaryEntry value, Type type, Int32 index, WriteObjectCallback callback)
+        {
+            return OnWriteKeyValue(value, type, index, callback);
+        }
+
+        /// <summary>
+        /// 写入字典项
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <param name="type">类型</param>
+        /// <param name="index">成员索引</param>
+        /// <param name="callback">使用指定委托方法处理复杂数据</param>
+        /// <returns>是否写入成功</returns>
+        protected virtual Boolean OnWriteKeyValue(DictionaryEntry value, Type type, Int32 index, WriteObjectCallback callback)
         {
             if (!WriteObject(value.Key, null, callback)) return false;
             if (!WriteObject(value.Value, null, callback)) return false;
@@ -452,7 +466,7 @@ namespace NewLife.Serialization
             foreach (Object item in value)
             {
                 Depth++;
-                if (!WriteItem(item, null, i++, callback)) return false;
+                if (!WriteItem(item, elementType, i++, callback)) return false;
                 Depth--;
             }
 
@@ -463,11 +477,24 @@ namespace NewLife.Serialization
         /// 写入枚举项
         /// </summary>
         /// <param name="value">对象</param>
-        /// <param name="type">类型</param>
-        /// <param name="index">成员索引</param>
+        /// <param name="type">元素类型</param>
+        /// <param name="index">元素索引</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
+        protected Boolean WriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
+        {
+            return OnWriteItem(value, type, index, callback);
+        }
+
+        /// <summary>
+        /// 写入枚举项
+        /// </summary>
+        /// <param name="value">对象</param>
+        /// <param name="type">元素类型</param>
+        /// <param name="index">元素索引</param>
+        /// <param name="callback">使用指定委托方法处理复杂数据</param>
+        /// <returns>是否写入成功</returns>
+        protected virtual Boolean OnWriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
             return WriteObject(value, null, callback);
         }
@@ -677,12 +704,19 @@ namespace NewLife.Serialization
             if (callback == null) callback = WriteMember;
 
             // 检查IAcessor接口
-            if (typeof(IAccessor).IsAssignableFrom(type))
-            {
-                IAccessor accessor = value as IAccessor;
-                if (accessor != null && accessor.Write(this)) return true;
-            }
+            IAccessor accessor = value as IAccessor;
+            if (accessor != null && accessor.Write(this)) return true;
 
+            Boolean rs = WriteObjectWithEvent(value, type, callback);
+
+            // 检查IAcessor接口
+            if (accessor != null) rs = accessor.WriteComplete(this, rs);
+
+            return rs;
+        }
+
+        Boolean WriteObjectWithEvent(Object value, Type type, WriteObjectCallback callback)
+        {
             // 事件
             SerialEventArgs<WriteObjectCallback> e = null;
             if (OnObjectWriting != null)

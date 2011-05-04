@@ -216,7 +216,7 @@ namespace NewLife.Xml
         /// <param name="index">元素序号</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        public override bool ReadDictionaryEntry(Type keyType, Type valueType, ref DictionaryEntry value, Int32 index, ReadObjectCallback callback)
+        protected override bool ReadDictionaryEntry(Type keyType, Type valueType, ref DictionaryEntry value, Int32 index, ReadObjectCallback callback)
         {
             if (Reader.NodeType == XmlNodeType.EndElement) return false;
 

@@ -288,7 +288,7 @@ namespace NewLife.Serialization
         /// <param name="index">成员索引</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        public override bool WriteItem(object value, Type type, int index, WriteObjectCallback callback)
+        protected override bool OnWriteItem(object value, Type type, int index, WriteObjectCallback callback)
         {
             if (index > 0)
             {
