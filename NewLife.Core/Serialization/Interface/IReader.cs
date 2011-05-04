@@ -220,22 +220,42 @@ namespace NewLife.Serialization
         /// <summary>
         /// 读对象前触发。
         /// </summary>
-        event EventHandler<SerialEventArgs<ReadObjectCallback>> OnObjectReading;
+        event EventHandler<ReadObjectEventArgs> OnObjectReading;
 
         /// <summary>
         /// 读对象后触发。
         /// </summary>
-        event EventHandler<SerialEventArgs<ReadObjectCallback>> OnObjectReaded;
+        event EventHandler<ReadObjectEventArgs> OnObjectReaded;
 
         /// <summary>
         /// 读成员前触发。
         /// </summary>
-        event EventHandler<SerialEventArgs<ReadObjectCallback>> OnMemberReading;
+        event EventHandler<ReadMemberEventArgs> OnMemberReading;
 
         /// <summary>
         /// 读成员后触发。
         /// </summary>
-        event EventHandler<SerialEventArgs<ReadObjectCallback>> OnMemberReaded;
+        event EventHandler<ReadMemberEventArgs> OnMemberReaded;
+
+        /// <summary>
+        /// 读字典项前触发。
+        /// </summary>
+        event EventHandler<ReadDictionaryEventArgs> OnDictionaryReading;
+
+        /// <summary>
+        /// 读字典项后触发。
+        /// </summary>
+        event EventHandler<ReadDictionaryEventArgs> OnDictionaryReaded;
+
+        /// <summary>
+        /// 读枚举项前触发。
+        /// </summary>
+        event EventHandler<ReadItemEventArgs> OnItemReading;
+
+        /// <summary>
+        /// 读枚举项后触发。
+        /// </summary>
+        event EventHandler<ReadItemEventArgs> OnItemReaded;
         #endregion
     }
 

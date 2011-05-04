@@ -397,7 +397,38 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected Boolean WriteKeyValue(DictionaryEntry value, Type type, Int32 index, WriteObjectCallback callback)
         {
-            return OnWriteKeyValue(value, type, index, callback);
+            // 写入成员前
+            WriteDictionaryEventArgs e = null;
+            if (OnDictionaryWriting != null)
+            {
+                e = new WriteDictionaryEventArgs(value, type, index, callback);
+
+                OnDictionaryWriting(this, e);
+
+                // 事件处理器可能已经成功写入对象
+                if (e.Success) return true;
+
+                // 事件里面有可能改变了参数
+                value = (DictionaryEntry)e.Value;
+                callback = e.Callback;
+                index = e.Index;
+            }
+
+            Boolean rs = OnWriteKeyValue(value, type, index, callback);
+
+            // 写入成员后
+            if (OnDictionaryWrited != null)
+            {
+                if (e == null) e = new WriteDictionaryEventArgs(value, type, index, callback);
+                e.Success = rs;
+
+                OnDictionaryWrited(this, e);
+
+                // 事件处理器可以影响结果
+                rs = e.Success;
+            }
+
+            return rs;
         }
 
         /// <summary>
@@ -483,7 +514,38 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected Boolean WriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
-            return OnWriteItem(value, type, index, callback);
+            // 写入成员前
+            WriteItemEventArgs e = null;
+            if (OnItemWriting != null)
+            {
+                e = new WriteItemEventArgs(value, type, index, callback);
+
+                OnItemWriting(this, e);
+
+                // 事件处理器可能已经成功写入对象
+                if (e.Success) return true;
+
+                // 事件里面有可能改变了参数
+                value = e.Value;
+                callback = e.Callback;
+                index = e.Index;
+            }
+
+            Boolean rs = OnWriteItem(value, type, index, callback);
+
+            // 写入成员后
+            if (OnItemWrited != null)
+            {
+                if (e == null) e = new WriteItemEventArgs(value, type, index, callback);
+                e.Success = rs;
+
+                OnItemWrited(this, e);
+
+                // 事件处理器可以影响结果
+                rs = e.Success;
+            }
+
+            return rs;
         }
 
         /// <summary>
@@ -718,10 +780,10 @@ namespace NewLife.Serialization
         Boolean WriteObjectWithEvent(Object value, Type type, WriteObjectCallback callback)
         {
             // 事件
-            SerialEventArgs<WriteObjectCallback> e = null;
+            WriteObjectEventArgs e = null;
             if (OnObjectWriting != null)
             {
-                e = new SerialEventArgs<WriteObjectCallback>(value, type, callback);
+                e = new WriteObjectEventArgs(value, type, callback);
 
                 OnObjectWriting(this, e);
 
@@ -739,7 +801,7 @@ namespace NewLife.Serialization
             // 事件
             if (OnObjectWrited != null)
             {
-                if (e == null) e = new SerialEventArgs<WriteObjectCallback>(value, type, callback);
+                if (e == null) e = new WriteObjectEventArgs(value, type, callback);
                 e.Success = rs;
 
                 OnObjectWrited(this, e);
@@ -862,12 +924,10 @@ namespace NewLife.Serialization
 #endif
             {
                 // 写入成员前
-                SerialEventArgs<WriteObjectCallback> e = null;
+                WriteMemberEventArgs e = null;
                 if (OnMemberWriting != null)
                 {
-                    e = new SerialEventArgs<WriteObjectCallback>(value, null, callback);
-                    e.Member = member;
-                    e.Index = index;
+                    e = new WriteMemberEventArgs(value, member, index, callback);
 
                     OnMemberWriting(this, e);
 
@@ -886,12 +946,7 @@ namespace NewLife.Serialization
                 // 写入成员后
                 if (OnMemberWrited != null)
                 {
-                    if (e == null)
-                    {
-                        e = new SerialEventArgs<WriteObjectCallback>(value, null, callback);
-                        e.Member = member;
-                        e.Index = index;
-                    }
+                    e = new WriteMemberEventArgs(value, member, index, callback);
                     e.Success = rs;
 
                     OnMemberWrited(this, e);
@@ -996,22 +1051,42 @@ namespace NewLife.Serialization
         /// <summary>
         /// 写对象前触发。
         /// </summary>
-        public event EventHandler<SerialEventArgs<WriteObjectCallback>> OnObjectWriting;
+        public event EventHandler<WriteObjectEventArgs> OnObjectWriting;
 
         /// <summary>
         /// 写对象后触发。
         /// </summary>
-        public event EventHandler<SerialEventArgs<WriteObjectCallback>> OnObjectWrited;
+        public event EventHandler<WriteObjectEventArgs> OnObjectWrited;
 
         /// <summary>
         /// 写成员前触发。
         /// </summary>
-        public event EventHandler<SerialEventArgs<WriteObjectCallback>> OnMemberWriting;
+        public event EventHandler<WriteMemberEventArgs> OnMemberWriting;
 
         /// <summary>
         /// 写成员后触发。
         /// </summary>
-        public event EventHandler<SerialEventArgs<WriteObjectCallback>> OnMemberWrited;
+        public event EventHandler<WriteMemberEventArgs> OnMemberWrited;
+
+        /// <summary>
+        /// 写字典项前触发。
+        /// </summary>
+        public event EventHandler<WriteDictionaryEventArgs> OnDictionaryWriting;
+
+        /// <summary>
+        /// 写字典项后触发。
+        /// </summary>
+        public event EventHandler<WriteDictionaryEventArgs> OnDictionaryWrited;
+
+        /// <summary>
+        /// 写枚举项前触发。
+        /// </summary>
+        public event EventHandler<WriteItemEventArgs> OnItemWriting;
+
+        /// <summary>
+        /// 写枚举项后触发。
+        /// </summary>
+        public event EventHandler<WriteItemEventArgs> OnItemWrited;
         #endregion
     }
 }

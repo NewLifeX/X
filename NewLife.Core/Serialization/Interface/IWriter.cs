@@ -246,22 +246,42 @@ namespace NewLife.Serialization
         /// <summary>
         /// 写对象前触发。
         /// </summary>
-        event EventHandler<SerialEventArgs<WriteObjectCallback>> OnObjectWriting;
+        event EventHandler<WriteObjectEventArgs> OnObjectWriting;
 
         /// <summary>
         /// 写对象后触发。
         /// </summary>
-        event EventHandler<SerialEventArgs<WriteObjectCallback>> OnObjectWrited;
+        event EventHandler<WriteObjectEventArgs> OnObjectWrited;
 
         /// <summary>
         /// 写成员前触发。
         /// </summary>
-        event EventHandler<SerialEventArgs<WriteObjectCallback>> OnMemberWriting;
+        event EventHandler<WriteMemberEventArgs> OnMemberWriting;
 
         /// <summary>
         /// 写成员后触发。
         /// </summary>
-        event EventHandler<SerialEventArgs<WriteObjectCallback>> OnMemberWrited;
+        event EventHandler<WriteMemberEventArgs> OnMemberWrited;
+
+        /// <summary>
+        /// 写字典项前触发。
+        /// </summary>
+        event EventHandler<WriteDictionaryEventArgs> OnDictionaryWriting;
+
+        /// <summary>
+        /// 写字典项后触发。
+        /// </summary>
+        event EventHandler<WriteDictionaryEventArgs> OnDictionaryWrited;
+
+        /// <summary>
+        /// 写枚举项前触发。
+        /// </summary>
+        event EventHandler<WriteItemEventArgs> OnItemWriting;
+
+        /// <summary>
+        /// 写枚举项后触发。
+        /// </summary>
+        event EventHandler<WriteItemEventArgs> OnItemWrited;
         #endregion
     }
 

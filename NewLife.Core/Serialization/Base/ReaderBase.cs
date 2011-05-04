@@ -401,7 +401,56 @@ namespace NewLife.Serialization
         /// <param name="index">元素序号</param>
         /// <param name="callback">处理元素的方法</param>
         /// <returns>是否读取成功</returns>
-        protected virtual Boolean ReadDictionaryEntry(Type keyType, Type valueType, ref DictionaryEntry value, Int32 index, ReadObjectCallback callback)
+        protected Boolean ReadDictionaryEntry(Type keyType, Type valueType, ref DictionaryEntry value, Int32 index, ReadObjectCallback callback)
+        {
+            // 读取成员前
+            ReadDictionaryEventArgs e = null;
+            if (OnDictionaryReading != null)
+            {
+                e = new ReadDictionaryEventArgs(value, keyType, valueType, index, callback);
+
+                OnDictionaryReading(this, e);
+
+                // 事件里面有可能改变了参数
+                value = e.Value;
+                callback = e.Callback;
+                keyType = e.KeyType;
+                valueType = e.ValueType;
+                index = e.Index;
+
+                // 事件处理器可能已经成功读取对象
+                if (e.Success) return true;
+            }
+
+            Boolean rs = OnReadDictionaryEntry(keyType, valueType, ref value, index, callback);
+
+            // 读取成员后
+            if (OnDictionaryReaded != null)
+            {
+                if (e == null) e = new ReadDictionaryEventArgs(value, keyType, valueType, index, callback);
+                e.Value = value;
+                e.Success = rs;
+
+                OnDictionaryReaded(this, e);
+
+                // 事件处理器可以影响结果
+                value = e.Value;
+                rs = e.Success;
+            }
+
+            return rs;
+        }
+
+        /// <summary>
+        /// 读取字典项
+        /// </summary>
+        /// <param name="keyType">键类型</param>
+        /// <param name="valueType">值类型</param>
+        /// <param name="value">字典项</param>
+        /// <param name="index">元素序号</param>
+        /// <param name="callback">处理元素的方法</param>
+        /// <returns>是否读取成功</returns>
+        protected virtual Boolean OnReadDictionaryEntry(Type keyType, Type valueType, ref DictionaryEntry value, Int32 index, ReadObjectCallback callback)
         {
             Object key = null;
             Object val = null;
@@ -559,7 +608,54 @@ namespace NewLife.Serialization
         /// <param name="index">元素序号</param>
         /// <param name="callback">处理元素的方法</param>
         /// <returns></returns>
-        protected virtual Boolean ReadItem(Type type, ref Object value, Int32 index, ReadObjectCallback callback)
+        protected Boolean ReadItem(Type type, ref Object value, Int32 index, ReadObjectCallback callback)
+        {
+            // 读取成员前
+            ReadItemEventArgs e = null;
+            if (OnItemReading != null)
+            {
+                e = new ReadItemEventArgs(value, type, index, callback);
+
+                OnItemReading(this, e);
+
+                // 事件里面有可能改变了参数
+                value = e.Value;
+                callback = e.Callback;
+                type = e.Type;
+                index = e.Index;
+
+                // 事件处理器可能已经成功读取对象
+                if (e.Success) return true;
+            }
+
+            Boolean rs = OnReadItem(type, ref value, index, callback);
+
+            // 读取成员后
+            if (OnItemReaded != null)
+            {
+                if (e == null) e = new ReadItemEventArgs(value, type, index, callback);
+                e.Value = value;
+                e.Success = rs;
+
+                OnItemReaded(this, e);
+
+                // 事件处理器可以影响结果
+                value = e.Value;
+                rs = e.Success;
+            }
+
+            return rs;
+        }
+
+        /// <summary>
+        /// 读取项
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <param name="index">元素序号</param>
+        /// <param name="callback">处理元素的方法</param>
+        /// <returns></returns>
+        protected virtual Boolean OnReadItem(Type type, ref Object value, Int32 index, ReadObjectCallback callback)
         {
             return ReadObject(type, ref value, callback);
         }
@@ -893,10 +989,10 @@ namespace NewLife.Serialization
         Boolean ReadObjectWithEvent(Type type, ref Object value, ReadObjectCallback callback)
         {
             // 事件
-            SerialEventArgs<ReadObjectCallback> e = null;
+            ReadObjectEventArgs e = null;
             if (OnObjectReading != null)
             {
-                e = new SerialEventArgs<ReadObjectCallback>(value, type, callback);
+                e = new ReadObjectEventArgs(value, type, callback);
 
                 OnObjectReading(this, e);
 
@@ -914,7 +1010,7 @@ namespace NewLife.Serialization
             // 事件
             if (OnObjectReaded != null)
             {
-                if (e == null) e = new SerialEventArgs<ReadObjectCallback>(value, type, callback);
+                if (e == null) e = new ReadObjectEventArgs(value, type, callback);
                 e.Value = value;
                 e.Success = rs;
 
@@ -1083,12 +1179,10 @@ namespace NewLife.Serialization
 #endif
             {
                 // 读取成员前
-                SerialEventArgs<ReadObjectCallback> e = null;
+                ReadMemberEventArgs e = null;
                 if (OnMemberReading != null)
                 {
-                    e = new SerialEventArgs<ReadObjectCallback>(value, null, callback);
-                    e.Member = member;
-                    e.Index = index;
+                    e = new ReadMemberEventArgs(value, member, index, callback);
 
                     OnMemberReading(this, e);
 
@@ -1108,12 +1202,7 @@ namespace NewLife.Serialization
                 // 读取成员后
                 if (OnMemberReaded != null)
                 {
-                    if (e == null)
-                    {
-                        e = new SerialEventArgs<ReadObjectCallback>(value, null, callback);
-                        e.Member = member;
-                        e.Index = index;
-                    }
+                    if (e == null) e = new ReadMemberEventArgs(value, member, index, callback);
                     e.Value = obj;
                     e.Success = rs;
 
@@ -1160,22 +1249,42 @@ namespace NewLife.Serialization
         /// <summary>
         /// 读对象前触发。
         /// </summary>
-        public event EventHandler<SerialEventArgs<ReadObjectCallback>> OnObjectReading;
+        public event EventHandler<ReadObjectEventArgs> OnObjectReading;
 
         /// <summary>
         /// 读对象后触发。
         /// </summary>
-        public event EventHandler<SerialEventArgs<ReadObjectCallback>> OnObjectReaded;
+        public event EventHandler<ReadObjectEventArgs> OnObjectReaded;
 
         /// <summary>
         /// 读成员前触发。
         /// </summary>
-        public event EventHandler<SerialEventArgs<ReadObjectCallback>> OnMemberReading;
+        public event EventHandler<ReadMemberEventArgs> OnMemberReading;
 
         /// <summary>
         /// 读成员后触发。
         /// </summary>
-        public event EventHandler<SerialEventArgs<ReadObjectCallback>> OnMemberReaded;
+        public event EventHandler<ReadMemberEventArgs> OnMemberReaded;
+
+        /// <summary>
+        /// 读字典项前触发。
+        /// </summary>
+        public event EventHandler<ReadDictionaryEventArgs> OnDictionaryReading;
+
+        /// <summary>
+        /// 读字典项后触发。
+        /// </summary>
+        public event EventHandler<ReadDictionaryEventArgs> OnDictionaryReaded;
+
+        /// <summary>
+        /// 读枚举项前触发。
+        /// </summary>
+        public event EventHandler<ReadItemEventArgs> OnItemReading;
+
+        /// <summary>
+        /// 读枚举项后触发。
+        /// </summary>
+        public event EventHandler<ReadItemEventArgs> OnItemReaded;
         #endregion
     }
 }

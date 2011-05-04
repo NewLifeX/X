@@ -13,6 +13,11 @@ namespace NewLife.Serialization
     {
         #region 属性
         /// <summary>
+        /// 读写器名称
+        /// </summary>
+        String Name { get; }
+
+        /// <summary>
         /// 数据流
         /// </summary>
         Stream Stream { get; set; }

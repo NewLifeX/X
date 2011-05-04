@@ -11,13 +11,23 @@ namespace NewLife.Serialization
     public abstract class ReaderWriterBase<TSettings> : NewLife.DisposeBase, IReaderWriter where TSettings : ReaderWriterSetting, new()
     {
         #region 属性
-        //private Encoding _Encoding;
-        ///// <summary>字符串编码</summary>
-        //public virtual Encoding Encoding
-        //{
-        //    get { return _Encoding ?? (_Encoding = Encoding.UTF8); }
-        //    set { _Encoding = value; }
-        //}
+        private String _Name;
+        /// <summary>读写器名称</summary>
+        public virtual String Name
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_Name))
+                {
+                    _Name = this.GetType().Name;
+                    if (_Name.EndsWith("Reader", StringComparison.OrdinalIgnoreCase))
+                        _Name = _Name.Substring(0, _Name.Length - "Reader".Length);
+                    if (_Name.EndsWith("Writer", StringComparison.OrdinalIgnoreCase))
+                        _Name = _Name.Substring(0, _Name.Length - "Writer".Length);
+                }
+                return _Name;
+            }
+        }
 
         private Stream _Stream;
         /// <summary>数据流。默认实例化一个MemoryStream，设置值时将重置Depth为1</summary>
