@@ -25,7 +25,7 @@ namespace NewLife.Serialization
         public abstract void Write(Byte value);
 
         /// <summary>
-        /// 将字节数组写入，先写入字节数组的长度
+        /// 将字节数组写入，如果设置了UseSize，则先写入数组长度。
         /// </summary>
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
         public virtual void Write(byte[] buffer)
@@ -50,7 +50,7 @@ namespace NewLife.Serialization
         public virtual void Write(sbyte value) { Write((Byte)value); }
 
         /// <summary>
-        /// 将字节数组部分写入当前流。
+        /// 将字节数组部分写入当前流，不写入数组长度。
         /// </summary>
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
         /// <param name="index">buffer 中开始写入的起始点。</param>
