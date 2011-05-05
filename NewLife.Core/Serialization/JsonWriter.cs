@@ -362,7 +362,7 @@ namespace NewLife.Serialization
             Writer.Write("}");
             return ret;
         }
-        protected override bool OnWriteKeyValue(DictionaryEntry value, Type type, int index, WriteObjectCallback callback)
+        protected override bool OnWriteKeyValue(DictionaryEntry value, Type keyType, Type valueType, int index, WriteObjectCallback callback)
         {
             if (index > 0)
             {
