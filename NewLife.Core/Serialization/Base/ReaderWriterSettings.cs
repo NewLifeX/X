@@ -67,10 +67,8 @@ namespace NewLife.Serialization
                 case DateTimeFormats.Ticks:
                     return value.Ticks;
                 case DateTimeFormats.Milliseconds:
-                    if (value.Kind != DateTimeKind.Utc) value = value.ToUniversalTime();
                     return (Int64)(value - BaseDateTime).TotalMilliseconds;
                 case DateTimeFormats.Seconds:
-                    if (value.Kind != DateTimeKind.Utc) value = value.ToUniversalTime();
                     return (Int64)(value - BaseDateTime).Seconds;
                 default:
                     break;
