@@ -18,12 +18,20 @@ namespace NewLife.Serialization
             set { _Value = value; }
         }
 
-        private Type _Type;
-        /// <summary>对象类型</summary>
-        public Type Type
+        private Type _KeyType;
+        /// <summary>键类型</summary>
+        public Type KeyType
         {
-            get { return _Type; }
-            set { _Type = value; }
+            get { return _KeyType; }
+            set { _KeyType = value; }
+        }
+
+        private Type _ValueType;
+        /// <summary>值类型</summary>
+        public Type ValueType
+        {
+            get { return _ValueType; }
+            set { _ValueType = value; }
         }
 
         #region 构造
@@ -31,14 +39,16 @@ namespace NewLife.Serialization
         /// 实例化
         /// </summary>
         /// <param name="value">对象</param>
-        /// <param name="type">对象类型</param>
+        /// <param name="keyType">键类型</param>
+        /// <param name="valueType">值类型</param>
         /// <param name="index"></param>
         /// <param name="callback"></param>
-        public WriteDictionaryEventArgs(DictionaryEntry value, Type type, Int32 index, WriteObjectCallback callback)
+        public WriteDictionaryEventArgs(DictionaryEntry value, Type keyType, Type valueType, Int32 index, WriteObjectCallback callback)
             : base(index, callback)
         {
             Value = value;
-            Type = type;
+            KeyType = keyType;
+            ValueType = valueType;
         }
         #endregion
     }

@@ -360,7 +360,10 @@ namespace NewLife.Serialization
 
             value = objRefs[index - 1];
 
-            WriteLog("ReadObjRef", index, value.ToString(), value.GetType().Name);
+            if (value != null)
+                WriteLog("ReadObjRef", index, value.ToString(), value.GetType().Name);
+            else
+                WriteLog("ReadObjRef", index, "", type == null ? "" : type.Name);
 
             return true;
         }
@@ -384,17 +387,18 @@ namespace NewLife.Serialization
         /// <summary>
         /// 读取成员
         /// </summary>
+        /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        protected override bool OnReadMember(ref object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
+        protected override bool OnReadMember(Type type, ref object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
             //todo 这里只是简单的判断名称是否相同，然后返回失败。实际上，应该根据名称来读取
             if (!Settings.IgnoreName && ReadString() != member.Name) return false;
 
-            return base.OnReadMember(ref value, member, index, callback);
+            return base.OnReadMember(type, ref value, member, index, callback);
         }
         #endregion
 

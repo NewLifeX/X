@@ -214,19 +214,29 @@ namespace NewLife.Xml
         /// 写入字典项
         /// </summary>
         /// <param name="value">对象</param>
-        /// <param name="type">类型</param>
+        /// <param name="keyType">键类型</param>
+        /// <param name="valueType">值类型</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        protected override bool OnWriteKeyValue(DictionaryEntry value, Type type, int index, WriteObjectCallback callback)
+        protected override bool OnWriteKeyValue(DictionaryEntry value, Type keyType, Type valueType, int index, WriteObjectCallback callback)
         {
+            // 如果无法取得字典项类型，则每个键值都单独写入类型
             Writer.WriteStartElement("Item");
 
             Writer.WriteStartElement("Key");
+            if (keyType == null && value.Key != null)
+            {
+                Writer.WriteAttributeString("Type", value.Key.GetType().FullName);
+            }
             if (!WriteObject(value.Key, null, callback)) return false;
             Writer.WriteEndElement();
 
             Writer.WriteStartElement("Value");
+            if (valueType == null && value.Value != null)
+            {
+                Writer.WriteAttributeString("Type", value.Value.GetType().FullName);
+            }
             if (!WriteObject(value.Value, null, callback)) return false;
             Writer.WriteEndElement();
 
@@ -300,16 +310,17 @@ namespace NewLife.Xml
             AutoFlush();
             return rs;
         }
-   
+
         /// <summary>
         /// 写入成员
         /// </summary>
         /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
         /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected override bool OnWriteMember(object value, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
+        protected override bool OnWriteMember(object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
         {
             // 检查成员的值，如果是默认值，则不输出
             if (value != null && Settings.IgnoreDefault && IsDefault(value, member)) return true;
@@ -321,7 +332,19 @@ namespace NewLife.Xml
 
             AutoFlush();
 
-            Boolean rs = base.OnWriteMember(value, member, index, callback);
+            if (type == typeof(Object))
+            {
+                Object obj = member[value];
+                if (obj != null)
+                {
+                    type = obj.GetType();
+                    Writer.WriteAttributeString("Type", obj.GetType().FullName);
+                }
+            }
+
+            AutoFlush();
+
+            Boolean rs = base.OnWriteMember(value, type, member, index, callback);
 
             //AutoFlush();
 

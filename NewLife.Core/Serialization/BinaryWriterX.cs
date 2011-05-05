@@ -350,15 +350,16 @@ namespace NewLife.Serialization
         /// 写入成员
         /// </summary>
         /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
         /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected override bool OnWriteMember(object value, IObjectMemberInfo member, int index, WriteObjectCallback callback)
+        protected override bool OnWriteMember(object value, Type type, IObjectMemberInfo member, int index, WriteObjectCallback callback)
         {
             if (!Settings.IgnoreName) Write(member.Name);
 
-            return base.OnWriteMember(value, member, index, callback);
+            return base.OnWriteMember(value, type, member, index, callback);
         }
         #endregion
 

@@ -5,6 +5,7 @@ using System.IO;
 using System.Xml;
 using NewLife.Serialization;
 using System.Xml.Serialization;
+using NewLife.Reflection;
 
 namespace NewLife.Xml
 {
@@ -230,6 +231,15 @@ namespace NewLife.Xml
 
             Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
             // <Key>
+            if (keyType == null)
+            {
+                if (Reader.MoveToAttribute("Type"))
+                {
+                    WriteLog("ReadKeyType");
+                    keyType = ReadType();
+                    WriteLog("ReadKeyType", keyType.Name);
+                }
+            }
             Reader.ReadStartElement();
             if (!ReadObject(keyType, ref key)) return false;
             // </Key>
@@ -237,6 +247,15 @@ namespace NewLife.Xml
 
             Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
             // <Value>
+            if (valueType == null)
+            {
+                if (Reader.MoveToAttribute("Type"))
+                {
+                    WriteLog("ReadValueType");
+                    valueType = ReadType();
+                    WriteLog("ReadValueType", valueType.Name);
+                }
+            }
             Reader.ReadStartElement();
             if (!ReadObject(valueType, ref val)) return false;
             // </Value>
@@ -301,6 +320,15 @@ namespace NewLife.Xml
             if (Reader.NodeType == XmlNodeType.EndElement || Reader.Name != type.Name) return false;
             if (SkipEmpty()) return true;
 
+            if (type == null)
+            {
+                if (Reader.MoveToAttribute("Type"))
+                {
+                    WriteLog("ReadItemType");
+                    type = ReadType();
+                    WriteLog("ReadItemType", type.Name);
+                }
+            }
             Reader.ReadStartElement();
 
             Boolean rs = base.OnReadItem(type, ref value, index, callback);
@@ -402,12 +430,13 @@ namespace NewLife.Xml
         /// <summary>
         /// 读取成员
         /// </summary>
+        /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        protected override bool OnReadMember(ref object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
+        protected override bool OnReadMember(Type type, ref object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
             if (Settings.MemberAsAttribute)
             {
@@ -419,9 +448,18 @@ namespace NewLife.Xml
             // 空元素直接返回
             if (SkipEmpty()) return true;
 
+            if (type == typeof(Object))
+            {
+                if (Reader.MoveToAttribute("Type"))
+                {
+                    WriteLog("ReadMemberType");
+                    type = ReadType();
+                    WriteLog("ReadMemberType", type.Name);
+                }
+            }
             Reader.ReadStartElement();
 
-            Boolean rs = base.OnReadMember(ref value, member, index, callback);
+            Boolean rs = base.OnReadMember(type, ref value, member, index, callback);
 
             if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 

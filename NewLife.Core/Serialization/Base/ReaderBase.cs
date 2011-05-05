@@ -370,7 +370,8 @@ namespace NewLife.Serialization
             Type valueType = null;
 
             // 无法取得键值类型
-            if (!GetDictionaryEntryType(type, ref keyType, ref valueType)) return false;
+            //if (!GetDictionaryEntryType(type, ref keyType, ref valueType)) return false;
+            GetDictionaryEntryType(type, ref keyType, ref valueType);
 
             // 读取键值对集合
             IEnumerable<DictionaryEntry> list = ReadDictionary(keyType, valueType, ReadSize(), callback);
@@ -438,10 +439,10 @@ namespace NewLife.Serialization
 
                 // 事件里面有可能改变了参数
                 value = e.Value;
-                callback = e.Callback;
                 keyType = e.KeyType;
                 valueType = e.ValueType;
                 index = e.Index;
+                callback = e.Callback;
 
                 // 事件处理器可能已经成功读取对象
                 if (e.Success) return true;
@@ -480,7 +481,21 @@ namespace NewLife.Serialization
             Object key = null;
             Object val = null;
 
+            // 如果无法取得字典项类型，则每个键值都单独写入类型
+            if (keyType == null)
+            {
+                WriteLog("ReadKeyType");
+                keyType = ReadType();
+                WriteLog("ReadKeyType", keyType.Name);
+            }
             if (!ReadObject(keyType, ref key)) return false;
+
+            if (valueType == null)
+            {
+                WriteLog("ReadValueType");
+                valueType = ReadType();
+                WriteLog("ReadValueType", valueType.Name);
+            }
             if (!ReadObject(valueType, ref val)) return false;
 
             value.Key = key;
@@ -563,7 +578,7 @@ namespace NewLife.Serialization
                 }
             }
 
-            if (elementType == null) return false;
+            //if (elementType == null) return false;
 
             if (!ReadEnumerable(type, elementType, ref value, callback)) return false;
 
@@ -648,9 +663,9 @@ namespace NewLife.Serialization
 
                 // 事件里面有可能改变了参数
                 value = e.Value;
-                callback = e.Callback;
                 type = e.Type;
                 index = e.Index;
+                callback = e.Callback;
 
                 // 事件处理器可能已经成功读取对象
                 if (e.Success) return true;
@@ -685,6 +700,13 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected virtual Boolean OnReadItem(Type type, ref Object value, Int32 index, ReadObjectCallback callback)
         {
+            // 如果无法取得元素类型，则每个元素都单独写入类型
+            if (type == null)
+            {
+                WriteLog("ReadItemType");
+                type = ReadType();
+                WriteLog("ReadItemType", type.Name);
+            }
             return ReadObject(type, ref value, callback);
         }
 
@@ -1185,7 +1207,7 @@ namespace NewLife.Serialization
                 Depth++;
                 WriteLog("ReadMember", mis[i].Name, mis[i].Type.Name);
 
-                if (!ReadMember(ref value, mis[i], i, callback)) return false;
+                if (!ReadMember(mis[i].Type, ref value, mis[i], i, callback)) return false;
                 Depth--;
             }
 
@@ -1195,12 +1217,13 @@ namespace NewLife.Serialization
         /// <summary>
         /// 读取成员
         /// </summary>
+        /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        protected Boolean ReadMember(ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
+        protected Boolean ReadMember(Type type, ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
 #if !DEBUG
             try
@@ -1210,27 +1233,28 @@ namespace NewLife.Serialization
                 ReadMemberEventArgs e = null;
                 if (OnMemberReading != null)
                 {
-                    e = new ReadMemberEventArgs(value, member, index, callback);
+                    e = new ReadMemberEventArgs(value, type, member, index, callback);
 
                     OnMemberReading(this, e);
 
                     // 事件里面有可能改变了参数
                     value = e.Value;
-                    callback = e.Callback;
+                    type = e.Type;
                     member = e.Member;
                     index = e.Index;
+                    callback = e.Callback;
 
                     // 事件处理器可能已经成功读取对象
                     if (e.Success) return true;
                 }
 
                 Object obj = null;
-                Boolean rs = OnReadMember(ref obj, member, index, callback);
+                Boolean rs = OnReadMember(type, ref obj, member, index, callback);
 
                 // 读取成员后
                 if (OnMemberReaded != null)
                 {
-                    if (e == null) e = new ReadMemberEventArgs(value, member, index, callback);
+                    if (e == null) e = new ReadMemberEventArgs(value, type, member, index, callback);
                     e.Value = obj;
                     e.Success = rs;
 
@@ -1257,14 +1281,21 @@ namespace NewLife.Serialization
         /// <summary>
         /// 读取成员
         /// </summary>
+        /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        protected virtual Boolean OnReadMember(ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
+        protected virtual Boolean OnReadMember(Type type, ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
-            return callback(this, member.Type, ref value, callback);
+            if (type == typeof(Object))
+            {
+                WriteLog("ReadMemberType");
+                type = ReadType();
+                WriteLog("ReadMemberType", type.Name);
+            }
+            return callback(this, type, ref value, callback);
         }
 
         private static Boolean ReadMember(IReader reader, Type type, ref Object value, ReadObjectCallback callback)

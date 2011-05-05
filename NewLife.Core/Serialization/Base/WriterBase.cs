@@ -386,6 +386,14 @@ namespace NewLife.Serialization
         {
             if (value == null) return true;
 
+            // 计算元素类型
+            Type keyType = null;
+            Type valueType = null;
+
+            // 取得键值类型
+            //if (!GetDictionaryEntryType(type, ref keyType, ref valueType)) return false;
+            GetDictionaryEntryType(type, ref keyType, ref valueType);
+
             WriteSize(value.Count);
             if (value.Count == 0) return true;
 
@@ -396,7 +404,7 @@ namespace NewLife.Serialization
             foreach (DictionaryEntry item in value)
             {
                 Depth++;
-                if (!WriteKeyValue(item, null, i++, callback)) return false;
+                if (!WriteKeyValue(item, keyType, valueType, i++, callback)) return false;
                 Depth--;
             }
 
@@ -407,17 +415,18 @@ namespace NewLife.Serialization
         /// 写入字典项
         /// </summary>
         /// <param name="value">对象</param>
-        /// <param name="type">类型</param>
+        /// <param name="keyType">键类型</param>
+        /// <param name="valueType">值类型</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        protected Boolean WriteKeyValue(DictionaryEntry value, Type type, Int32 index, WriteObjectCallback callback)
+        protected Boolean WriteKeyValue(DictionaryEntry value, Type keyType, Type valueType, Int32 index, WriteObjectCallback callback)
         {
             // 写入成员前
             WriteDictionaryEventArgs e = null;
             if (OnDictionaryWriting != null)
             {
-                e = new WriteDictionaryEventArgs(value, type, index, callback);
+                e = new WriteDictionaryEventArgs(value, keyType, valueType, index, callback);
 
                 OnDictionaryWriting(this, e);
 
@@ -426,16 +435,18 @@ namespace NewLife.Serialization
 
                 // 事件里面有可能改变了参数
                 value = (DictionaryEntry)e.Value;
-                callback = e.Callback;
+                keyType = e.KeyType;
+                valueType = e.ValueType;
                 index = e.Index;
+                callback = e.Callback;
             }
 
-            Boolean rs = OnWriteKeyValue(value, type, index, callback);
+            Boolean rs = OnWriteKeyValue(value, keyType, valueType, index, callback);
 
             // 写入成员后
             if (OnDictionaryWrited != null)
             {
-                if (e == null) e = new WriteDictionaryEventArgs(value, type, index, callback);
+                if (e == null) e = new WriteDictionaryEventArgs(value, keyType, valueType, index, callback);
                 e.Success = rs;
 
                 OnDictionaryWrited(this, e);
@@ -451,16 +462,54 @@ namespace NewLife.Serialization
         /// 写入字典项
         /// </summary>
         /// <param name="value">对象</param>
-        /// <param name="type">类型</param>
+        /// <param name="keyType">键类型</param>
+        /// <param name="valueType">值类型</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
         /// <returns>是否写入成功</returns>
-        protected virtual Boolean OnWriteKeyValue(DictionaryEntry value, Type type, Int32 index, WriteObjectCallback callback)
+        protected virtual Boolean OnWriteKeyValue(DictionaryEntry value, Type keyType, Type valueType, Int32 index, WriteObjectCallback callback)
         {
+            // 如果无法取得字典项类型，则每个键值都单独写入类型
+            if (keyType == null && value.Key != null)
+            {
+                WriteLog("WriteKeyType", value.Key.GetType().Name);
+                Write(value.Key.GetType());
+            }
             if (!WriteObject(value.Key, null, callback)) return false;
+
+            if (valueType == null && value.Value != null)
+            {
+                WriteLog("WriteValueType", value.Value.GetType().Name);
+                Write(value.Value.GetType());
+            }
             if (!WriteObject(value.Value, null, callback)) return false;
 
             return true;
+        }
+
+        /// <summary>
+        /// 取得字典的键值类型，默认只支持获取两个泛型参数的字典的键值类型
+        /// </summary>
+        /// <param name="type">字典类型</param>
+        /// <param name="keyType">键类型</param>
+        /// <param name="valueType">值类型</param>
+        /// <returns>是否获取成功，如果失败，则字典读取失败</returns>
+        protected virtual Boolean GetDictionaryEntryType(Type type, ref Type keyType, ref Type valueType)
+        {
+            // 两个泛型参数的泛型
+            if (type.IsGenericType)
+            {
+                Type[] ts = type.GetGenericArguments();
+                if (ts != null && ts.Length == 2)
+                {
+                    keyType = ts[0];
+                    valueType = ts[1];
+
+                    return true;
+                }
+            }
+
+            return false;
         }
         #endregion
 
@@ -507,7 +556,7 @@ namespace NewLife.Serialization
                 }
             }
 
-            if (elementType == null) return false;
+            //if (elementType == null) return false;
 
             Int32 i = 0;
             foreach (Object item in value)
@@ -543,8 +592,9 @@ namespace NewLife.Serialization
 
                 // 事件里面有可能改变了参数
                 value = e.Value;
-                callback = e.Callback;
+                type = e.Type;
                 index = e.Index;
+                callback = e.Callback;
             }
 
             Boolean rs = OnWriteItem(value, type, index, callback);
@@ -574,6 +624,12 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected virtual Boolean OnWriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
+            // 如果无法取得元素类型，则每个元素都单独写入类型
+            if (type == null && value != null)
+            {
+                WriteLog("WriteItemType", value.GetType().Name);
+                Write(value.GetType());
+            }
             return WriteObject(value, null, callback);
         }
         #endregion
@@ -918,7 +974,7 @@ namespace NewLife.Serialization
                 Depth++;
                 WriteLog("WriteMember", mis[i].Name, mis[i].Type.Name);
 
-                if (!WriteMember(value, mis[i], i, callback)) return false;
+                if (!WriteMember(value, mis[i].Type, mis[i], i, callback)) return false;
                 Depth--;
             }
 
@@ -929,11 +985,12 @@ namespace NewLife.Serialization
         /// 写入成员
         /// </summary>
         /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
         /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected Boolean WriteMember(Object value, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
+        protected Boolean WriteMember(Object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
         {
 #if !DEBUG
             try
@@ -943,7 +1000,7 @@ namespace NewLife.Serialization
                 WriteMemberEventArgs e = null;
                 if (OnMemberWriting != null)
                 {
-                    e = new WriteMemberEventArgs(value, member, index, callback);
+                    e = new WriteMemberEventArgs(value, type, member, index, callback);
 
                     OnMemberWriting(this, e);
 
@@ -952,17 +1009,18 @@ namespace NewLife.Serialization
 
                     // 事件里面有可能改变了参数
                     value = e.Value;
-                    callback = e.Callback;
+                    type = e.Type;
                     member = e.Member;
                     index = e.Index;
+                    callback = e.Callback;
                 }
 
-                Boolean rs = OnWriteMember(value, member, index, callback);
+                Boolean rs = OnWriteMember(value, type, member, index, callback);
 
                 // 写入成员后
                 if (OnMemberWrited != null)
                 {
-                    e = new WriteMemberEventArgs(value, member, index, callback);
+                    e = new WriteMemberEventArgs(value, type, member, index, callback);
                     e.Success = rs;
 
                     OnMemberWrited(this, e);
@@ -985,13 +1043,21 @@ namespace NewLife.Serialization
         /// 写入成员
         /// </summary>
         /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
         /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected virtual Boolean OnWriteMember(Object value, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
+        protected virtual Boolean OnWriteMember(Object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
         {
-            return callback(this, member[value], member.Type, callback);
+            Object obj = member[value];
+            if (type == typeof(Object) && obj != null)
+            {
+                type = obj.GetType();
+                WriteLog("WriteMemberType", type.Name);
+                Write(type);
+            }
+            return callback(this, obj, type, callback);
         }
 
         private static Boolean WriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback)

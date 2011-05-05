@@ -33,8 +33,8 @@ namespace Test
             //}
 
             //OldBinaryTest();
-            BinaryTest();
-            //XmlTest();
+            //BinaryTest();
+            XmlTest();
             //JsonTest();
 
             //foreach (ConsoleColor item in Enum.GetValues(typeof(ConsoleColor)))
@@ -187,11 +187,6 @@ namespace Test
             Char[] a = { 'a', 'b', 'c' };
             entity.Char1 = a;
 
-            //Hashtable ht = new Hashtable();
-            //ht.Add("cc", "哈希1");
-            //ht.Add("dd", "哈希2");
-            //entity.Hashtable1 = ht;
-
             entity.Color = ConsoleColor.Red;
             entity.Color2 = (ColorEnum)10;
 
@@ -202,6 +197,13 @@ namespace Test
             Department dp2 = new Department();
             dp2.ID = 2;
             dp2.Name = "部门二";
+
+            Hashtable ht = new Hashtable();
+            ht.Add("cc", "哈希1");
+            ht.Add("dd", dp);
+            entity.Hashtable1 = ht;
+
+            entity.Obj = dp2;
 
             entity.DP1 = dp;
             entity.DP2 = dp2;
@@ -290,14 +292,6 @@ namespace Test
                 set { _Char1 = value; }
             }
 
-            private Hashtable _Hashtable1;
-            /// <summary>哈希表</summary>
-            public Hashtable Hashtable1
-            {
-                get { return _Hashtable1; }
-                set { _Hashtable1 = value; }
-            }
-
             private ConsoleColor _Color;
             /// <summary>颜色</summary>
             public ConsoleColor Color
@@ -384,6 +378,22 @@ namespace Test
             {
                 get { return _SPS; }
                 set { _SPS = value; }
+            }
+
+            private Hashtable _Hashtable1;
+            /// <summary>哈希表</summary>
+            public Hashtable Hashtable1
+            {
+                get { return _Hashtable1; }
+                set { _Hashtable1 = value; }
+            }
+
+            private Object _Obj;
+            /// <summary>属性说明</summary>
+            public Object Obj
+            {
+                get { return _Obj; }
+                set { _Obj = value; }
             }
         }
 
