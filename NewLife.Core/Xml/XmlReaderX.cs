@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Xml;
 using NewLife.Serialization;
+using System.Xml.Serialization;
 
 namespace NewLife.Xml
 {
@@ -458,6 +459,23 @@ namespace NewLife.Xml
             }
 
             return false;
+        }
+        #endregion
+
+        #region 序列化接口
+        /// <summary>
+        /// 读取实现了可序列化接口的对象
+        /// </summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否读取成功</returns>
+        public override bool ReadSerializable(Type type, ref object value, ReadObjectCallback callback)
+        {
+            if (!typeof(IXmlSerializable).IsAssignableFrom(type))
+                return base.ReadSerializable(type, ref value, callback);
+            (type as IXmlSerializable).ReadXml(Reader);
+            return true;
         }
         #endregion
     }
