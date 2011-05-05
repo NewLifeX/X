@@ -8,29 +8,58 @@ namespace NewLife.CommonEntity
     /// <summary>
     /// 管理员接口
     /// </summary>
-    interface IAdministrator
+    partial interface IAdministrator : IEntity
     {
+        #region 属性
         /// <summary>
-        /// 根据权限名（权限路径）找到权限菜单实体
+        /// 编号
         /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        IEntity FindPermissionMenu(String name);
+        Int32 ID { get; set; }
 
         /// <summary>
-        /// 申请指定菜单指定操作的权限
+        /// 名称
         /// </summary>
-        /// <param name="menuID"></param>
-        /// <param name="flag"></param>
-        /// <returns></returns>
-        Boolean Acquire(Int32 menuID, PermissionFlags flag);
+        String Name { get; set; }
 
         /// <summary>
-        /// 创建指定类型指定动作的日志实体
+        /// 密码
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        IEntity CreateLog(Type type, String action);
+        String Password { get; set; }
+
+        /// <summary>
+        /// 显示名
+        /// </summary>
+        String DisplayName { get; set; }
+
+        /// <summary>
+        /// 角色
+        /// </summary>
+        Int32 RoleID { get; set; }
+
+        /// <summary>
+        /// 登录次数
+        /// </summary>
+        Int32 Logins { get; set; }
+
+        /// <summary>
+        /// 最后登录
+        /// </summary>
+        DateTime LastLogin { get; set; }
+
+        /// <summary>
+        /// 最后登陆IP
+        /// </summary>
+        String LastLoginIP { get; set; }
+
+        /// <summary>
+        /// 登录用户编号
+        /// </summary>
+        Int32 SSOUserID { get; set; }
+
+        /// <summary>
+        /// 是否使用
+        /// </summary>
+        Boolean IsEnable { get; set; }
+        #endregion
     }
 }
