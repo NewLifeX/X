@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using System.Xml;
 using NewLife.Serialization;
+using System.Xml.Serialization;
 
 namespace NewLife.Xml
 {
@@ -299,7 +300,7 @@ namespace NewLife.Xml
             AutoFlush();
             return rs;
         }
-
+   
         /// <summary>
         /// 写入成员
         /// </summary>
@@ -360,6 +361,23 @@ namespace NewLife.Xml
             Writer.Flush();
 
             base.Flush();
+        }
+        #endregion
+
+        #region 序列化接口
+        /// <summary>
+        /// 写入实现了可序列化接口的对象
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        public override bool WriteSerializable(object value, Type type, WriteObjectCallback callback)
+        {
+            if (!typeof(IXmlSerializable).IsAssignableFrom(type))
+                return base.WriteSerializable(value, type, callback);
+            ((IXmlSerializable)type).WriteXml(Writer);
+            return true;
         }
         #endregion
     }
