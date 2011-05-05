@@ -182,5 +182,27 @@ namespace NewLife.Serialization
             Write(value.ToString());
         }
         #endregion
+
+        #region 写入值类型
+        /// <summary>
+        /// 写入值类型，只能识别基础类型，对于不能识别的类型，方法返回false
+        /// </summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <returns>是否写入成功</returns>
+        public override bool WriteValue(object value, Type type)
+        {
+            if (value != null && Settings.UseEnumName)
+            {
+                type = value.GetType();
+                if (type != null && type.IsEnum)
+                {
+                    Write(value.ToString());
+                    return true;
+                }
+            }
+            return base.WriteValue(value, type);
+        }
+        #endregion
     }
 }

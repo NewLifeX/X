@@ -177,5 +177,24 @@ namespace NewLife.Serialization
             return base.ReadIPEndPoint();
         }
         #endregion
+
+        #region 读取值
+        /// <summary>
+        /// 尝试读取值类型数据，返回是否读取成功
+        /// </summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <returns></returns>
+        public override bool ReadValue(Type type, ref object value)
+        {
+            if (type != null && type.IsEnum && Settings.UseEnumName)
+            {
+                String str = ReadString();
+                value = Enum.Parse(type, str, true);
+                return true;
+            }
+            return base.ReadValue(type, ref value);
+        } 
+        #endregion
     }
 }

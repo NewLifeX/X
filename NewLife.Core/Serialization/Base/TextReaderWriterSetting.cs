@@ -16,5 +16,13 @@ namespace NewLife.Serialization
             get { return _UseBase64; }
             set { _UseBase64 = value; }
         }
+
+        private Boolean _UseEnumName = true;
+        /// <summary>是否使用名称表示枚举类型，默认使用名称</summary>
+        public Boolean UseEnumName
+        {
+            get { return _UseEnumName; }
+            set { _UseEnumName = value; }
+        }
     }
 }

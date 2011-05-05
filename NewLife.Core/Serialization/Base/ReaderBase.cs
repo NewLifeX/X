@@ -244,7 +244,7 @@ namespace NewLife.Serialization
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns></returns>
-        public Boolean ReadValue(Type type, ref Object value)
+        public virtual Boolean ReadValue(Type type, ref Object value)
         {
             TypeCode code = Type.GetTypeCode(type);
             switch (code)
