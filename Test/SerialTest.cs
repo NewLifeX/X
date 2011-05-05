@@ -185,12 +185,13 @@ namespace Test
             Char[] a = { 'a', 'b', 'c' };
             entity.Char1 = a;
 
-            Hashtable ht = new Hashtable();
-            ht.Add("cc", "哈希1");
-            ht.Add("dd", "哈希2");
-            entity.Hashtable1 = ht;
+            //Hashtable ht = new Hashtable();
+            //ht.Add("cc", "哈希1");
+            //ht.Add("dd", "哈希2");
+            //entity.Hashtable1 = ht;
 
             entity.Color = ConsoleColor.Red;
+            entity.Color2 = (ColorEnum)10;
 
             Department dp = new Department();
             dp.ID = 1;
@@ -303,6 +304,14 @@ namespace Test
                 set { _Color = value; }
             }
 
+            private ColorEnum _Color2;
+            /// <summary>颜色</summary>
+            public ColorEnum Color2
+            {
+                get { return _Color2; }
+                set { _Color2 = value; }
+            }
+
             private Department _DP1;
             /// <summary>属性说明</summary>
             public Department DP1
@@ -401,101 +410,12 @@ namespace Test
             }
         }
 
-        /// <summary>   
-        /// 支持XML序列化的泛型 Dictionary   
-        /// </summary>   
-        /// <typeparam name="TKey"></typeparam>   
-        /// <typeparam name="TValue"></typeparam>   
-        [XmlRoot("SerializableDictionary")]
-        public class SerializableDictionary<TKey, TValue>
-            : Dictionary<TKey, TValue>, IXmlSerializable
+        [Flags]
+        enum ColorEnum
         {
-
-            #region 构造函数
-            public SerializableDictionary()
-                : base()
-            {
-            }
-            public SerializableDictionary(IDictionary<TKey, TValue> dictionary)
-                : base(dictionary)
-            {
-            }
-
-            public SerializableDictionary(IEqualityComparer<TKey> comparer)
-                : base(comparer)
-            {
-            }
-
-            public SerializableDictionary(int capacity)
-                : base(capacity)
-            {
-            }
-            public SerializableDictionary(int capacity, IEqualityComparer<TKey> comparer)
-                : base(capacity, comparer)
-            {
-            }
-            protected SerializableDictionary(SerializationInfo info, StreamingContext context)
-                : base(info, context)
-            {
-            }
-            #endregion
-            #region IXmlSerializable Members
-            public XmlSchema GetSchema()
-            {
-                return null;
-            }
-            /// <summary>   
-            /// 从对象的 XML 表示形式生成该对象   
-            /// </summary>   
-            /// <param name="reader"></param>   
-            public void ReadXml(XmlReader reader)
-            {
-                XmlSerializer keySerializer = new XmlSerializer(typeof(TKey));
-                XmlSerializer valueSerializer = new XmlSerializer(typeof(TValue));
-                bool wasEmpty = reader.IsEmptyElement;
-                reader.Read();
-                if (wasEmpty)
-                    return;
-                while (reader.NodeType != XmlNodeType.EndElement)
-                {
-                    reader.ReadStartElement("item");
-                    TKey key = (TKey)keySerializer.Deserialize(reader);
-                    reader.ReadEndElement();
-                    reader.ReadStartElement("value");
-                    TValue value = (TValue)valueSerializer.Deserialize(reader);
-                    reader.ReadEndElement();
-                    this.Add(key, value);
-                    reader.ReadEndElement();
-                    reader.MoveToContent();
-                }
-                //临时办法，将来解决
-                if (reader.NodeType != XmlNodeType.None)
-                    reader.ReadEndElement();
-            }
-
-            /**/
-            /// <summary>   
-            /// 将对象转换为其 XML 表示形式   
-            /// </summary>   
-            /// <param name="writer"></param>   
-            public void WriteXml(System.Xml.XmlWriter writer)
-            {
-                XmlSerializer keySerializer = new XmlSerializer(typeof(TKey));
-                XmlSerializer valueSerializer = new XmlSerializer(typeof(TValue));
-                foreach (TKey key in this.Keys)
-                {
-                    writer.WriteStartElement("item");
-                    writer.WriteStartElement("key");
-                    keySerializer.Serialize(writer, key);
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("value");
-                    TValue value = this[key];
-                    valueSerializer.Serialize(writer, value);
-                    writer.WriteEndElement();
-                    writer.WriteEndElement();
-                }
-            }
-            #endregion
+            red = 2,
+            yellow = 4,
+            green = 8
         }
     }
 }
