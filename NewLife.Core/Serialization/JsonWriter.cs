@@ -9,7 +9,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// Json写入器
     /// </summary>
-    public class JsonWriter : StringWriterBase<JsonSettings>
+    public class JsonWriter : TextWriterBase<JsonSettings>
     {
         #region 属性
         private TextWriter _Writer;

@@ -8,7 +8,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// Json读取器
     /// </summary>
-    public class JsonReader : StringReaderBase<JsonSettings>
+    public class JsonReader : TextReaderBase<JsonSettings>
     {
         #region 属性
         private TextReader _Reader;

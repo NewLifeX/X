@@ -8,7 +8,7 @@ namespace NewLife.Xml
     /// <summary>
     /// Xml序列化设置
     /// </summary>
-    public class XmlReaderWriterSettings : StringReaderWriterSetting
+    public class XmlReaderWriterSettings : TextReaderWriterSetting
     {
         #region 属性
         private Boolean _MemberAsAttribute;

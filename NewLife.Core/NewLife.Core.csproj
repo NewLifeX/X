@@ -91,7 +91,7 @@
     <Compile Include="IOModule\StreamHttpHandler.cs" />
     <Compile Include="IOModule\IStreamHandler.cs" />
     <Compile Include="Log\TraceStream.cs" />
-    <Compile Include="Serialization\Base\StringReaderBase.cs" />
+    <Compile Include="Serialization\Base\TextReaderBase.cs" />
     <Compile Include="Serialization\BinaryReaderX.cs" />
     <Compile Include="Serialization\BinarySettings.cs" />
     <Compile Include="Serialization\BinaryWriterX.cs" />
@@ -142,8 +142,8 @@
     <Compile Include="Remoting\RemotingStreamHandler.cs" />
     <Compile Include="Serialization\Base\ReaderWriterSettings.cs" />
     <Compile Include="Serialization\Event\ReaderWriterEventArgs.cs" />
-    <Compile Include="Serialization\Base\StringWriterBase.cs" />
-    <Compile Include="Serialization\Base\StringReaderWriterSetting.cs" />
+    <Compile Include="Serialization\Base\TextWriterBase.cs" />
+    <Compile Include="Serialization\Base\TextReaderWriterSetting.cs" />
     <Compile Include="Serialization\Event\WriterEventArgs.cs" />
     <Compile Include="Serialization\Event\WriteDictionaryEventArgs.cs" />
     <Compile Include="Serialization\Event\WriteIndexEventArgs.cs" />

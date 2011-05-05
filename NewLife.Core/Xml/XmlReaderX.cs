@@ -10,7 +10,7 @@ namespace NewLife.Xml
     /// <summary>
     /// Xml读取器
     /// </summary>
-    public class XmlReaderX : StringReaderBase<XmlReaderWriterSettings>
+    public class XmlReaderX : TextReaderBase<XmlReaderWriterSettings>
     {
         #region 属性
         private XmlReader _Reader;

@@ -9,7 +9,7 @@ namespace NewLife.Xml
     /// <summary>
     /// Xml写入器
     /// </summary>
-    public class XmlWriterX : StringWriterBase<XmlReaderWriterSettings>
+    public class XmlWriterX : TextWriterBase<XmlReaderWriterSettings>
     {
         #region 属性
         private XmlWriter _Writer;
