@@ -107,7 +107,9 @@ namespace Test
         public static void JsonTest()
         {
             JsonWriter writer = GetWriter<JsonWriter>();
-
+            writer.Settings.JsEncodeUnicode = false;
+            writer.Settings.JsDateTimeFormat = false;
+            writer.Settings.JsMultiline = true;
             DoTest<JsonWriter, JsonReader>(writer);
         }
 

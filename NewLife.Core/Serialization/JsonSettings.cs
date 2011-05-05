@@ -44,6 +44,15 @@ namespace NewLife.Serialization
             get { return _JsEncodeUnicode; }
             set { _JsEncodeUnicode = value; }
         }
+        private bool _AllowMultiline;
+        /// <summary>
+        /// 是否允许输出多行结果,这会便于阅读结果,当为false是可以用作jsonp回调(需要额外再做字符串转义)
+        /// </summary>
+        public bool JsMultiline
+        {
+            get { return _AllowMultiline; }
+            set { _AllowMultiline = value; }
+        }
         #endregion
 
         #region 构造

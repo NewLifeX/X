@@ -202,6 +202,13 @@ namespace NewLife.Serialization
             Writer.Write(value);
             Depth--;
         }
+        void WriteLine()
+        {
+            if (Settings.JsMultiline)
+            {
+                Writer.WriteLine();
+            }
+        }
         /// <summary>
         /// 将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。
         /// </summary>
@@ -222,7 +229,7 @@ namespace NewLife.Serialization
         /// <param name="value">要写入的值。</param>
         public override void Write(string value)
         {
-            value = JsonStringEncode(value, this.Settings.JsEncodeUnicode);
+            value = JavascriptStringEncode(value, this.Settings.JsEncodeUnicode);
             Depth++;
             WriteLog("WriteValue", "String", value);
             Writer.Write("\"" + value + "\"");
@@ -235,15 +242,15 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public static string JsonStringEncode(string value)
         {
-            return JsonStringEncode(value, true);
+            return JavascriptStringEncode(value, true);
         }
         /// <summary>
-        /// 将指定字符串编码成json中表示的字符串,不包含字符串两边的双引号(必须是双引号,单引号不作转义)
+        /// 将指定字符串编码成javascript的字面字符串(即写入到js代码中的和value内容相同的代码),开始和结尾不包含双引号
         /// </summary>
         /// <param name="value">要编码的字符串,value为null时返回""</param>
         /// <param name="encodeUnicode">是否将Unicode字符编码为\uXXXX的格式</param>
         /// <returns></returns>
-        public static string JsonStringEncode(string value, bool encodeUnicode)
+        public static string JavascriptStringEncode(string value, bool encodeUnicode)
         {
             if (string.IsNullOrEmpty(value)) return string.Empty;
 
@@ -329,12 +336,45 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected override bool OnWriteItem(object value, Type type, int index, WriteObjectCallback callback)
         {
+            WriteLog("WriteEnumerableItem", "Index:", index);
             if (index > 0)
             {
                 Writer.Write(",");
             }
 
-            return base.OnWriteItem(value, type, index, callback);
+            bool ret = base.OnWriteItem(value, type, index, callback);
+            return ret;
+        }
+        #endregion
+
+        #region 字典
+        public override bool WriteDictionary(IDictionary value, Type type, WriteObjectCallback callback)
+        {
+            if (value == null)
+            {
+                WriteLiteral("null");
+                return true;
+            }
+            Writer.Write("{");
+            WriteLine();
+            bool ret = base.WriteDictionary(value, type, callback);
+            WriteLine();
+            Writer.Write("}");
+            return ret;
+        }
+        protected override bool OnWriteKeyValue(DictionaryEntry value, Type type, int index, WriteObjectCallback callback)
+        {
+            if (index > 0)
+            {
+                Writer.Write(",");
+                WriteLine();
+            }
+            WriteLog("WriteDictionaryEntry", "Key:", value.Key);
+            Write(value.Key.ToString());//json标准要求key必须是字符串
+            Writer.Write(": ");
+            WriteLog("WriteDictionaryEntry", "Value");
+            bool ret = WriteObject(value.Value, null, callback);
+            return ret;
         }
         #endregion
 
@@ -367,9 +407,9 @@ namespace NewLife.Serialization
         public override bool WriteCustomObject(object value, Type type, WriteObjectCallback callback)
         {
             Writer.Write("{");
-            Writer.WriteLine();
+            WriteLine();
             Boolean rs = base.WriteCustomObject(value, type, callback);
-            Writer.WriteLine();
+            WriteLine();
             Writer.Write("}");
 
             return rs;
@@ -388,7 +428,7 @@ namespace NewLife.Serialization
             if (index > 0)
             {
                 Writer.Write(",");
-                Writer.WriteLine();
+                WriteLine();
             }
 
             Writer.Write("\"" + JsonStringEncode(member.Name) + "\": ");
