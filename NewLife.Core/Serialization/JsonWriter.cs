@@ -120,15 +120,30 @@ namespace NewLife.Serialization
         {
             Depth++;
             WriteLog("WriteValue", "DateTime", value);
-            if (Settings.JsDateTimeFormat)
+
+            if (Settings.JsDateTimeKind != DateTimeKind.Unspecified && value.Kind != Settings.JsDateTimeKind)
             {
-                DateTime utc = value.ToUniversalTime();
-                WriteLiteral(string.Format("new Date(Date.UTC({0},{1},{2},{3},{4},{5},{6}))",
-                    utc.Year, utc.Month - 1, utc.Day, utc.Hour, utc.Minute, utc.Second, utc.Millisecond));
+                if (Settings.JsDateTimeKind == DateTimeKind.Local)
+                {
+                    value = value.ToLocalTime();
+                }
+                else
+                {
+                    value = value.ToUniversalTime();
+                }
             }
-            else
+
+            switch (Settings.JsDateTimeFormat)
             {
-                WriteLiteral(string.Format("new Date({0})", Settings.ConvertDateTimeToInt64(value)));
+                case JsDateTimeFormats.ISO8601:
+                    WriteLiteral("\"" + value.ToString("yyyy-MM-ddTHH:mm:ssZ") + "\"");
+                    break;
+                case JsDateTimeFormats.DotnetDateTick:
+                    WriteLiteral(string.Format("\"\\/Date({0})\\/\"", (long)(value - Settings.BaseDateTime).TotalMilliseconds));
+                    break;
+                case JsDateTimeFormats.Tick:
+                    Write(Settings.ConvertDateTimeToInt64(value));
+                    break;
             }
             Depth--;
         }
