@@ -9,7 +9,7 @@ namespace NewLife.Serialization
     /// 字符串类型写入器基类
     /// </summary>
     /// <typeparam name="TSettings">设置类</typeparam>
-    public class TextWriterBase<TSettings> : WriterBase<TSettings>, IWriter where TSettings : TextReaderWriterSetting, new()
+    public class TextWriterBase<TSettings> : WriterBase<TSettings> where TSettings : TextReaderWriterSetting, new()
     {
         #region 属性
         /// <summary>是否使用大小，如果使用，将在写入数组、集合和字符串前预先写入大小。字符串类型读写器一般带有边界，不需要使用大小</summary>

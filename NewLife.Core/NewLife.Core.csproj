@@ -171,6 +171,7 @@
     <Compile Include="Security\DataHelper.cs" />
     <Compile Include="Common\HardInfo.cs" />
     <Compile Include="Common\IdentityCard.cs" />
+    <None Include="Serialization\Event\事件参数.cd" />
     <None Include="Serialization\Protocol\Attributes\OnProtocol.cs" />
     <None Include="Serialization\Protocol\Attributes\ProtocolArrayAttribute.cs" />
     <None Include="Serialization\Protocol\Attributes\ProtocolAttribute.cs" />
