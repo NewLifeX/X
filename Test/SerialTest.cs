@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -9,7 +10,6 @@ using NewLife.CommonEntity;
 using NewLife.Log;
 using NewLife.Serialization;
 using NewLife.Xml;
-using System.Collections;
 
 namespace Test
 {
@@ -184,10 +184,14 @@ namespace Test
             entity.Byte2 = b;
             Char[] a = { 'a', 'b', 'c' };
             entity.Char1 = a;
+
             Hashtable ht = new Hashtable();
             ht.Add("cc", "哈希1");
             ht.Add("dd", "哈希2");
             entity.Hashtable1 = ht;
+
+            entity.Color = ConsoleColor.Red;
+
             Department dp = new Department();
             dp.ID = 1;
             dp.Name = "部门一";
@@ -289,6 +293,14 @@ namespace Test
             {
                 get { return _Hashtable1; }
                 set { _Hashtable1 = value; }
+            }
+
+            private ConsoleColor _Color;
+            /// <summary>颜色</summary>
+            public ConsoleColor Color
+            {
+                get { return _Color; }
+                set { _Color = value; }
             }
 
             private Department _DP1;
