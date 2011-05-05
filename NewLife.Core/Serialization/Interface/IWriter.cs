@@ -7,6 +7,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// 写入器接口
     /// </summary>
+    /// <remarks>序列化框架的处理顺序为：IAccessor接口 => OnObjectWriting事件 => 扩展类型 => 基础类型 => 字典 => 枚举 => 序列化接口 => 自定义对象 => 未知类型 => OnObjectWrited事件</remarks>
     public interface IWriter : IReaderWriter
     {
         #region 写入基础元数据

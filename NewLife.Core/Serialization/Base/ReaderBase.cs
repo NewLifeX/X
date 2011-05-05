@@ -14,6 +14,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// 读取器基类
     /// </summary>
+    /// <remarks>序列化框架的处理顺序为：IAccessor接口 => OnObjectReading事件 => 扩展类型 => 基础类型 => 字典 => 枚举 => 序列化接口 => 自定义对象 => 未知类型 => OnObjectReaded事件</remarks>
     /// <typeparam name="TSettings">设置类</typeparam>
     public abstract class ReaderBase<TSettings> : ReaderWriterBase<TSettings>, IReader where TSettings : ReaderWriterSetting, new()
     {

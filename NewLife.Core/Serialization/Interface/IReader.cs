@@ -6,6 +6,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// 读取器接口
     /// </summary>
+    /// <remarks>序列化框架的处理顺序为：IAccessor接口 => OnObjectReading事件 => 扩展类型 => 基础类型 => 字典 => 枚举 => 序列化接口 => 自定义对象 => 未知类型 => OnObjectReaded事件</remarks>
     public interface IReader : IReaderWriter
     {
         #region 读取基础元数据
