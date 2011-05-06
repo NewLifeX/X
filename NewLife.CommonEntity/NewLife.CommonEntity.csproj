@@ -59,18 +59,18 @@
     <Compile Include="实体\地区.Biz.cs" />
     <Compile Include="实体\地区.cs" />
     <Compile Include="实体\地区.Init.cs" />
-    <Compile Include="实体\日志.Biz.cs" />
-    <Compile Include="实体\日志.cs" />
-    <Compile Include="实体\管理员.Biz.cs" />
-    <Compile Include="实体\管理员.cs" />
+    <Compile Include="管理和授权\日志.Biz.cs" />
+    <Compile Include="管理和授权\日志.cs" />
+    <Compile Include="管理和授权\管理员.Biz.cs" />
+    <Compile Include="管理和授权\管理员.cs" />
     <Compile Include="实体\统计.Biz.cs" />
     <Compile Include="实体\统计.cs" />
-    <Compile Include="实体\菜单.Biz.cs" />
-    <Compile Include="实体\菜单.cs" />
-    <Compile Include="实体\角色.Biz.cs" />
-    <Compile Include="实体\角色.cs" />
-    <Compile Include="实体\角色和菜单.Biz.cs" />
-    <Compile Include="实体\角色和菜单.cs" />
+    <Compile Include="管理和授权\菜单.Biz.cs" />
+    <Compile Include="管理和授权\菜单.cs" />
+    <Compile Include="管理和授权\角色.Biz.cs" />
+    <Compile Include="管理和授权\角色.cs" />
+    <Compile Include="管理和授权\角色和菜单.Biz.cs" />
+    <Compile Include="管理和授权\角色和菜单.cs" />
     <Compile Include="实体\附件.Biz.cs" />
     <Compile Include="实体\附件.cs" />
     <Compile Include="实体\默认后台.cs" />
@@ -91,6 +91,7 @@
   <ItemGroup>
     <EmbeddedResource Include="UpdateInfo.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
