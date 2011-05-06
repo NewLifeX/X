@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Security.Principal;
 using System.Text;
+using System.Threading;
 using System.Web;
 using System.Xml.Serialization;
 using NewLife.Log;
@@ -132,10 +134,13 @@ namespace NewLife.CommonEntity
             set { SetExtend<TRoleEntity>("Role", value); }
         }
 
+        /// <summary>角色</summary>
+        internal protected override IRole RoleInternal { get { return Role; } set { Role = (TRoleEntity)value; } }
+
         /// <summary>
         /// 角色名
         /// </summary>
-        public virtual String RoleName { get { return Role == null ? null : Role.Name; } set { } }
+        public override String RoleName { get { return Role == null ? null : Role.Name; } set { } }
 
         /// <summary>
         /// 根据权限名（权限路径）找到权限菜单实体
@@ -273,7 +278,7 @@ namespace NewLife.CommonEntity
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
     /// <typeparam name="TEntity">管理员类型</typeparam>
-    public abstract partial class Administrator<TEntity> : CommonEntityBase<TEntity>, IAdministrator
+    public abstract partial class Administrator<TEntity> : CommonEntityBase<TEntity>, IAdministrator, IPrincipal, IIdentity
         where TEntity : Administrator<TEntity>, new()
     {
         #region 对象操作
@@ -535,7 +540,6 @@ namespace NewLife.CommonEntity
             else
                 return sb.ToString();
         }
-
         #endregion
 
         #region 扩展操作
@@ -603,6 +607,7 @@ namespace NewLife.CommonEntity
             user.Update();
 
             Current = user;
+            Thread.CurrentPrincipal = (IPrincipal)user;
 
             if (hashTimes == -1)
                 WriteLog("自动登录", username);
@@ -619,6 +624,7 @@ namespace NewLife.CommonEntity
         {
             WriteLog("注销", Name);
             Current = null;
+            Thread.CurrentPrincipal = null;
         }
 
         /// <summary>
@@ -692,5 +698,91 @@ namespace NewLife.CommonEntity
         ///// <returns></returns>
         //IEntity IAdministrator.CreateLog(Type type, String action) { return CreateLog(type, action); }
         #endregion
+
+        #region IAdministrator 成员
+        /// <summary>角色</summary>
+        [XmlIgnore]
+        IRole IAdministrator.Role { get { return RoleInternal; } set { RoleInternal = value; } }
+
+        /// <summary>角色</summary>
+        [XmlIgnore]
+        internal protected abstract IRole RoleInternal { get; set; }
+
+        /// <summary>
+        /// 角色名
+        /// </summary>
+        public abstract string RoleName { get; set; }
+        #endregion
+
+        #region IPrincipal 成员
+        [XmlIgnore]
+        IIdentity IPrincipal.Identity
+        {
+            get { return this; }
+        }
+
+        bool IPrincipal.IsInRole(string role)
+        {
+            return RoleName == role;
+        }
+        #endregion
+
+        #region IIdentity 成员
+        [XmlIgnore]
+        string IIdentity.AuthenticationType
+        {
+            get { return "CommonEntity"; }
+        }
+
+        [XmlIgnore]
+        bool IIdentity.IsAuthenticated
+        {
+            get { return true; }
+        }
+
+        //string IIdentity.Name
+        //{
+        //    get { return Name; }
+        //}
+        #endregion
+    }
+
+    public partial interface IAdministrator
+    {
+        /// <summary>
+        /// 友好名字
+        /// </summary>
+        String FriendName { get; }
+
+        /// <summary>角色</summary>
+        IRole Role { get; set; }
+
+        /// <summary>
+        /// 角色名
+        /// </summary>
+        String RoleName { get; set; }
+
+        /// <summary>
+        /// 根据权限名（权限路径）找到权限菜单实体
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        IEntity FindPermissionMenu(String name);
+
+        /// <summary>
+        /// 申请指定菜单指定操作的权限
+        /// </summary>
+        /// <param name="menuID"></param>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        Boolean Acquire(Int32 menuID, PermissionFlags flag);
+
+        /// <summary>
+        /// 创建指定类型指定动作的日志实体
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        IEntity CreateLog(Type type, String action);
     }
 }
