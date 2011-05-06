@@ -385,21 +385,49 @@ namespace NewLife.Serialization
 
         #region 自定义对象
         /// <summary>
-        /// 读取成员
+        /// 读取成员之前获取要读取的成员，默认是index处的成员，实现者可以重载，改变当前要读取的成员，如果当前成员不在数组里面，则实现者自己跳到下一个可读成员。
         /// </summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
-        /// <param name="member">成员</param>
-        /// <param name="index">成员索引</param>
-        /// <param name="callback">处理成员的方法</param>
-        /// <returns>是否读取成功</returns>
-        protected override bool OnReadMember(Type type, ref object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
+        /// <param name="members">可匹配成员数组</param>
+        /// <param name="index">索引</param>
+        /// <returns></returns>
+        protected override IObjectMemberInfo GetMemberBeforeRead(Type type, object value, IObjectMemberInfo[] members, int index)
         {
-            //todo 这里只是简单的判断名称是否相同，然后返回失败。实际上，应该根据名称来读取
-            if (!Settings.IgnoreName && ReadString() != member.Name) return false;
+            if (!Settings.IgnoreName)
+            {
+                while (true)
+                {
+                    String name = ReadString();
+                    IObjectMemberInfo member = GetMemberByName(members, name);
+                    if (member != null) return member;
 
-            return base.OnReadMember(type, ref value, member, index, callback);
+                    // 无法找到可匹配的成员，尝试跳过该成员
+                    if (Settings.IgnoreType) throw new XException("需要跳过成员" + name + "，但是无法确定其类型！");
+
+                    Object obj = null;
+                    ReadObject(null, ref obj, null);
+                }
+            }
+
+            return base.GetMemberBeforeRead(type, value, members, index);
         }
+
+        ///// <summary>
+        ///// 读取成员
+        ///// </summary>
+        ///// <param name="type">要读取的对象类型</param>
+        ///// <param name="value">要读取的对象</param>
+        ///// <param name="member">成员</param>
+        ///// <param name="index">成员索引</param>
+        ///// <param name="callback">处理成员的方法</param>
+        ///// <returns>是否读取成功</returns>
+        //protected override bool OnReadMember(Type type, ref object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
+        //{
+        //    if (!Settings.IgnoreName && ReadString() != member.Name) return false;
+
+        //    return base.OnReadMember(type, ref value, member, index, callback);
+        //}
         #endregion
 
         #region 获取成员
