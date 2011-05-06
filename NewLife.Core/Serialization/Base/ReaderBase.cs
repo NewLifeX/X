@@ -1205,13 +1205,47 @@ namespace NewLife.Serialization
             for (int i = 0; i < mis.Length; i++)
             {
                 Depth++;
-                WriteLog("ReadMember", mis[i].Name, mis[i].Type.Name);
 
-                if (!ReadMember(mis[i].Type, ref value, mis[i], i, callback)) return false;
+                IObjectMemberInfo member = GetMemberBeforeRead(type, value, mis, i);
+                // 没有可读成员
+                if (member == null) break;
+
+                WriteLog("ReadMember", member.Name, member.Type.Name);
+
+                if (!ReadMember(member.Type, ref value, member, i, callback)) return false;
                 Depth--;
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// 读取成员之前获取要读取的成员，默认是index处的成员，实现者可以重载，改变当前要读取的成员，如果当前成员不在数组里面，则实现者自己跳到下一个可读成员。
+        /// </summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="members">可匹配成员数组</param>
+        /// <param name="index">索引</param>
+        /// <returns></returns>
+        protected virtual IObjectMemberInfo GetMemberBeforeRead(Type type, Object value, IObjectMemberInfo[] members, Int32 index)
+        {
+            return members[index];
+        }
+
+        /// <summary>
+        /// 根据名称，从成员数组中查找成员
+        /// </summary>
+        /// <param name="members">可匹配成员数组</param>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        protected IObjectMemberInfo GetMemberByName(IObjectMemberInfo[] members, String name)
+        {
+            foreach (IObjectMemberInfo item in members)
+            {
+                if (item.Name == name) return item;
+            }
+
+            return null;
         }
 
         /// <summary>

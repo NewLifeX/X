@@ -428,6 +428,36 @@ namespace NewLife.Xml
         //}
 
         /// <summary>
+        /// 读取成员之前获取要读取的成员，默认是index处的成员，实现者可以重载，改变当前要读取的成员，如果当前成员不在数组里面，则实现者自己跳到下一个可读成员。
+        /// </summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <param name="members">可匹配成员数组</param>
+        /// <param name="index">索引</param>
+        /// <returns></returns>
+        protected override IObjectMemberInfo GetMemberBeforeRead(Type type, object value, IObjectMemberInfo[] members, int index)
+        {
+            //return base.GetMemberBeforeRead(type, value, members, index);
+
+            String name = String.Empty;
+
+            while (Reader.NodeType != XmlNodeType.None && Reader.IsStartElement())
+            {
+                name = Reader.Name;
+
+                IObjectMemberInfo member = GetMemberByName(members, name);
+                if (member != null) return member;
+
+                if (SkipEmpty()) continue;
+
+                Reader.ReadStartElement();
+                if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// 读取成员
         /// </summary>
         /// <param name="type">要读取的对象类型</param>
