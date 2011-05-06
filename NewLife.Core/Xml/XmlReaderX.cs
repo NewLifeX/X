@@ -542,7 +542,10 @@ namespace NewLife.Xml
         {
             if (!typeof(IXmlSerializable).IsAssignableFrom(type))
                 return base.ReadSerializable(type, ref value, callback);
-            (type as IXmlSerializable).ReadXml(Reader);
+
+            if (value == null) value = TypeX.CreateInstance(type);
+
+            ((IXmlSerializable)value).ReadXml(Reader);
             return true;
         }
         #endregion
