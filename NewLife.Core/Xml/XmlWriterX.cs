@@ -392,15 +392,28 @@ namespace NewLife.Xml
         /// 写入实现了可序列化接口的对象
         /// </summary>
         /// <param name="value">要写入的对象</param>
-        /// <param name="type">要写入的对象类型</param>
+        /// <param name="type">要写入的对象类型，如果type等于DataTable，需设置DataTable的名称</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
         public override bool WriteSerializable(object value, Type type, WriteObjectCallback callback)
         {
             if (!typeof(IXmlSerializable).IsAssignableFrom(type))
                 return base.WriteSerializable(value, type, callback);
-            ((IXmlSerializable)type).WriteXml(Writer);
-            return true;
+            try
+            {
+                IXmlSerializable xml = value as IXmlSerializable;
+                if (xml == null)
+                {
+                    base.WriteSerializable(value, type, callback);
+                    return true;
+                }
+                xml.WriteXml(Writer);
+                return true;
+            }
+            catch
+            {
+                return base.WriteSerializable(value, type, callback);
+            }
         }
         #endregion
     }
