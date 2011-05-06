@@ -53,12 +53,12 @@ namespace NewLife.Serialization
         #endregion
         #region 字节/字节数组
         /// <summary>
-        /// 以0xff的格式写入字节
+        /// 以数字的格式写入字节
         /// </summary>
         /// <param name="value"></param>
         public override void Write(byte value)
         {
-            WriteLiteral(string.Format("0x{0:x2}", value));
+            WriteLiteral(string.Format("{0}", value)); //json数字不包括16进制和8进制表示
         }
         /// <summary>
         /// 将字节数组以[0xff,0xff,0xff]的格式写入
