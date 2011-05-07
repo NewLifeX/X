@@ -7,13 +7,16 @@ using System.Web.UI.WebControls;
 using NewLife.Log;
 using XCode;
 using XCode.DataAccessLayer;
+using System.Threading;
+using NewLife.Web;
+using System.Security.Principal;
 
 namespace NewLife.CommonEntity.Web
 {
-    /// <summary>
-    /// 页面基类
-    /// </summary>
-    public class WebPageBase : WebPageBase<Administrator, Menu> { }
+    ///// <summary>
+    ///// 页面基类
+    ///// </summary>
+    //public class WebPageBase : WebPageBase<Administrator, Menu> { }
 
     /// <summary>
     /// 指定具体管理员类和菜单类的页面基类
@@ -82,7 +85,7 @@ namespace NewLife.CommonEntity.Web
             if (MyMenu == null) return base.Acquire(flag);
 
             // 当前管理员
-            IAdministrator entity = Administrator<TAdminEntity>.Current;
+            IAdministrator entity = Current;
             if (entity == null) return false;
 
             return entity.Acquire(MyMenu.ID, flag);
@@ -94,8 +97,25 @@ namespace NewLife.CommonEntity.Web
     /// 指定具体管理员类的页面基类
     /// </summary>
     /// <typeparam name="TAdminEntity"></typeparam>
-    public class WebPageBase<TAdminEntity> : System.Web.UI.Page
+    public class WebPageBase<TAdminEntity> : WebPageBase
         where TAdminEntity : Administrator<TAdminEntity>, new()
+    {
+        /// <summary>
+        /// 当前管理员
+        /// </summary>
+        public override IAdministrator Current
+        {
+            get
+            {
+                return Administrator<TAdminEntity>.Current;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 页面基类
+    /// </summary>
+    public class WebPageBase : System.Web.UI.Page
     {
         #region 权限控制
         private Boolean _ValidatePermission = true;
@@ -127,44 +147,13 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>
-        /// 已重载。
-        /// </summary>
-        /// <param name="e"></param>
-        protected override void OnPreLoad(EventArgs e)
-        {
-            base.OnPreLoad(e);
-
-            try
-            {
-                if (!CheckLogin())
-                {
-                    Response.StatusCode = 403;
-                    Response.StatusDescription = "没有登录！";
-                    Response.Write("没有登录！");
-                    Response.End();
-                }
-                else if (!CheckPermission())
-                {
-                    Response.StatusCode = 403;
-                    Response.StatusDescription = "没有权限访问该页！";
-                    Response.Write("没有权限访问该页！");
-                    Response.End();
-                }
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteLine(ex.ToString());
-            }
-        }
-
-        /// <summary>
         /// 检查是否已登录
         /// </summary>
         /// <returns></returns>
         public virtual Boolean CheckLogin()
         {
             // 当前管理员
-            IAdministrator entity = Administrator<TAdminEntity>.Current;
+            IAdministrator entity = Current;
             if (entity == null) return false;
 
             return true;
@@ -179,18 +168,6 @@ namespace NewLife.CommonEntity.Web
             return Acquire(PermissionFlags.None);
         }
 
-        //static HttpState<IAdministrator> http = new HttpState<IAdministrator>(typeof(TAdminEntity).Name + "_HttpStateKey");
-        ///// <summary>
-        ///// 当前管理员
-        ///// </summary>
-        //public virtual IAdministrator Current
-        //{
-        //    get
-        //    {
-        //        return http == null ? null : http.Current;
-        //    }
-        //}
-
         /// <summary>
         /// 申请指定操作的权限
         /// </summary>
@@ -202,7 +179,7 @@ namespace NewLife.CommonEntity.Web
             if (String.IsNullOrEmpty(name)) return false;
 
             // 当前管理员
-            IAdministrator entity = Administrator<TAdminEntity>.Current;
+            IAdministrator entity = Current;
             if (entity == null) return false;
 
             //return entity.HasMenu(name);
@@ -212,6 +189,66 @@ namespace NewLife.CommonEntity.Web
             if (menu == null) return false;
 
             return entity.Acquire((Int32)menu["ID"], flag);
+        }
+        #endregion
+
+        #region 登录用户控制
+        /// <summary>
+        /// Http状态，名称必须和管理员类中一致
+        /// </summary>
+        static HttpState<IAdministrator> http = new HttpState<IAdministrator>("Admin");
+        /// <summary>
+        /// 当前管理员
+        /// </summary>
+        public virtual IAdministrator Current
+        {
+            get
+            {
+                //return http == null ? null : http.Current;
+                return (IAdministrator)Thread.CurrentPrincipal;
+            }
+        }
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnPreLoad(EventArgs e)
+        {
+            //Thread.CurrentPrincipal = (IPrincipal)Current;
+            Thread.CurrentPrincipal = (IPrincipal)http.Current;
+
+            Unload += new EventHandler(WebPageBase_Unload);
+
+            base.OnPreLoad(e);
+
+            try
+            {
+                if (!CheckLogin())
+                {
+                    Response.StatusCode = 403;
+                    Response.StatusDescription = "没有登录！";
+                    Response.Write("没有登录！");
+                    Response.End();
+                }
+                else if (!CheckPermission())
+                {
+                    Response.StatusCode = 403;
+                    Response.SubStatusCode = 15;
+                    Response.StatusDescription = "没有权限访问该页！";
+                    Response.Write("没有权限访问该页！");
+                    Response.End();
+                }
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteLine(ex.ToString());
+            }
+        }
+
+        void WebPageBase_Unload(object sender, EventArgs e)
+        {
+            Thread.CurrentPrincipal = null;
         }
         #endregion
 
