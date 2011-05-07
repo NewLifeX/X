@@ -226,9 +226,9 @@
     <Content Include="架构设计\消息模型_数据处理流程.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config">
+    <EmbeddedResource Include="App.config">
       <SubType>Designer</SubType>
-    </None>
+    </EmbeddedResource>
     <None Include="Serialization\序列化架构.edx" />
     <None Include="Serialization\读写器模型.cd" />
     <None Include="IOModule\数据流总线模型.cd" />

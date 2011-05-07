@@ -158,7 +158,11 @@ namespace NewLife.CommonEntity
             if (Meta.Count > 0)
             {
                 // 检查是否所有人都没有权限
-                CheckNonePerssion(0);
+                //CheckNonePerssion(0);
+                foreach (Menu item in Menu.Root.AllChilds)
+                {
+                    CheckNonePerssion(item.ID);
+                }
                 return;
             }
         }
@@ -167,7 +171,7 @@ namespace NewLife.CommonEntity
         /// 检查指定菜单编号的权限，保证至少有一个角色有权限控制该菜单
         /// </summary>
         /// <param name="menuID"></param>
-        internal static void CheckNonePerssion(Int32 menuID)
+        public static void CheckNonePerssion(Int32 menuID)
         {
             if (Meta.Cache.Entities.Count < 1) return;
 

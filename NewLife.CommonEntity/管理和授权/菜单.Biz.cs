@@ -527,7 +527,12 @@ namespace NewLife.CommonEntity
                 }
                 foreach (String elm in files)
                 {
-                    String url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
+                    String url = null;
+                    if (String.Equals(dir, "Admin", StringComparison.OrdinalIgnoreCase))
+                        url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
+                    else
+                        url = String.Format(@"../../{2}/{0}/{1}", dirName, Path.GetFileName(elm), dir);
+
                     TEntity entity = Find(_.Url, url);
                     if (entity != null) continue;
 

@@ -86,7 +86,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <EmbeddedResource Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="UpdateInfo.txt" />

@@ -36,7 +36,7 @@ namespace NewLife.CommonEntity
             ClearRoleMenu();
 
             // 如果角色菜单对应关系为空或者只有一个，则授权第一个角色访问所有菜单
-            if (RoleMenu<TRoleMenuEntity>.Meta.Count > 1) return;
+            //if (RoleMenu<TRoleMenuEntity>.Meta.Count > 1) return;
 
             EntityList<TMenuEntity> ms = null;
             // 等一下菜单那边初始化
@@ -126,14 +126,14 @@ namespace NewLife.CommonEntity
             rms.Delete();
         }
 
-        /// <summary>
-        /// 检查是否所有人都没有权限
-        /// </summary>
-        static void CheckNonePerssion()
-        {
-            TMenuEntity entity = Menu<TMenuEntity>.FindByName("权限管理");
-            if (entity != null) RoleMenu<TRoleMenuEntity>.CheckNonePerssion(entity.ID);
-        }
+        ///// <summary>
+        ///// 检查是否所有人都没有权限
+        ///// </summary>
+        //static void CheckNonePerssion()
+        //{
+        //    TMenuEntity entity = Menu<TMenuEntity>.FindByName("权限管理");
+        //    if (entity != null) RoleMenu<TRoleMenuEntity>.CheckNonePerssion(entity.ID);
+        //}
 
         /// <summary>
         /// 已重载。关联删除权限项。
