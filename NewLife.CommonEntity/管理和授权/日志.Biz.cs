@@ -202,6 +202,33 @@ namespace NewLife.CommonEntity
                 return null;
             });
         }
+
+        /// <summary>
+        /// 写日志
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="action">操作</param>
+        /// <param name="remark">备注</param>
+        public void WriteLog(Type type, String action, String remark)
+        {
+            TEntity log = Create(type, action);
+            if (log != null)
+            {
+                log.Remark = remark;
+                log.Save();
+            }
+        }
         #endregion
+    }
+
+    public partial interface ILog
+    {
+        /// <summary>
+        /// 写日志
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="action">操作</param>
+        /// <param name="remark">备注</param>
+        void WriteLog(Type type, String action, String remark);
     }
 }

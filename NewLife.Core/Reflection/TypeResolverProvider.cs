@@ -65,14 +65,28 @@ namespace NewLife.Reflection
         /// <returns>返回自身，以便于连续注册</returns>
         public virtual ITypeResolverProvider Register(Type baseType, Type type)
         {
+            // 先找是否已注册，同时也是为了触发AssemblyX.FindAllPlugins扫描所有类
+            List<Type> list = FindTypes(baseType);
+            if (list.Contains(type))
+            {
+                // 如果已注册，将其调整到最后
+                lock (Maps)
+                {
+                    list.Remove(type);
+                    list.Add(type);
+                }
+                return this;
+            }
+
             lock (Maps)
             {
-                List<Type> list = null;
                 if (!Maps.TryGetValue(baseType, out list))
                 {
                     list = new List<Type>();
                     Maps.Add(baseType, list);
                 }
+                // 如果已注册，将其调整到最后
+                if (list.Contains(type)) list.Remove(type);
                 list.Add(type);
             }
             return this;

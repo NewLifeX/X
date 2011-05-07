@@ -11,6 +11,7 @@ using NewLife.Web;
 using XCode;
 using XCode.Configuration;
 using NewLife.Reflection;
+using NewLife.Configuration;
 
 namespace NewLife.CommonEntity
 {
@@ -735,6 +736,27 @@ namespace NewLife.CommonEntity
         /// 角色名
         /// </summary>
         public virtual String RoleName { get { return RoleInternal == null ? null : RoleInternal.Name; } set { } }
+
+        /// <summary>
+        /// 写日志
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="action">操作</param>
+        /// <param name="remark">备注</param>
+        public void WriteLog(Type type, String action, String remark)
+        {
+            if (!Config.GetConfig<Boolean>("NewLife.CommonEntity.WriteEntityLog", true)) return;
+
+            ILog log = CreateLog(type, action);
+            if (log != null)
+            {
+                //log.SetItem("Remark", remark);
+                //log.Save();
+
+                log.Remark = remark;
+                (log as IEntity).Save();
+            }
+        }
         #endregion
 
         #region IPrincipal 成员
@@ -807,5 +829,13 @@ namespace NewLife.CommonEntity
         /// <param name="action"></param>
         /// <returns></returns>
         ILog CreateLog(Type type, String action);
+
+        /// <summary>
+        /// 写日志
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="action">操作</param>
+        /// <param name="remark">备注</param>
+        void WriteLog(Type type, String action, String remark);
     }
 }

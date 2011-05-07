@@ -546,20 +546,20 @@ namespace NewLife.CommonEntity
         ///// </summary>
         //static HttpState<IAdministrator> http = new HttpState<IAdministrator>("Admin");
         //internal static IAdministrator DefaultAdministrator;
-        /// <summary>
-        /// 创建指定动作的日志实体。通过Http状态访问当前管理员对象，创建日志实体
-        /// </summary>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        public static ILog CreateLog(String action)
-        {
-            //IAdministrator admin = http.Current;
-            //if (admin == null) admin = DefaultAdministrator;
-            IAdministrator admin = Administrator.CurrentAdministrator;
-            if (admin == null) return null;
+        ///// <summary>
+        ///// 创建指定动作的日志实体。通过Http状态访问当前管理员对象，创建日志实体
+        ///// </summary>
+        ///// <param name="action"></param>
+        ///// <returns></returns>
+        //public static ILog CreateLog(String action)
+        //{
+        //    //IAdministrator admin = http.Current;
+        //    //if (admin == null) admin = DefaultAdministrator;
+        //    IAdministrator admin = Administrator.CurrentAdministrator;
+        //    if (admin == null) return null;
 
-            return admin.CreateLog(typeof(TEntity), action);
-        }
+        //    return admin.CreateLog(typeof(TEntity), action);
+        //}
 
         /// <summary>
         /// 写日志
@@ -568,17 +568,8 @@ namespace NewLife.CommonEntity
         /// <param name="remark">备注</param>
         public static void WriteLog(String action, String remark)
         {
-            if (!Config.GetConfig<Boolean>("NewLife.CommonEntity.WriteEntityLog", true)) return;
-
-            ILog log = CreateLog(action);
-            if (log != null)
-            {
-                //log.SetItem("Remark", remark);
-                //log.Save();
-
-                log.Remark = remark;
-                (log as IEntity).Save();
-            }
+            IAdministrator admin = Administrator.CurrentAdministrator;
+            if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
         }
         #endregion
 
