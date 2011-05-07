@@ -53,7 +53,7 @@ namespace <#=Config.NameSpace#>
 				if (_<#=className#> == null && <#=GetPropertyName(field)#> > 0 && !Dirtys.ContainsKey("<#=className#>"))
 				{
 					_<#=className#> = <#=className#>.FindByKey(<#=GetPropertyName(field)#>);
-					Dirtys.Add("<#=className#>", true);
+					Dirtys["<#=className#>"] = true;
 				}
 				return _<#=className#>;
 			}
@@ -73,7 +73,7 @@ namespace <#=Config.NameSpace#>
 				if (_Category == null && CategoryID > 0 && !Dirtys.ContainsKey("Category"))
 				{
 					_Category = Category.FindByKey(CategoryID);
-					Dirtys.Add("Category", true);
+					Dirtys["Category"] = true;
 				}
 				return _Category;
 			}
