@@ -31,12 +31,12 @@ namespace NewLife.CommonEntity
         where TLogEntity : Log<TLogEntity>, new()
     {
         #region 对象操作
-        static Administrator()
-        {
-            // 给菜单类设置一个默认管理员对象，用于写日志
-            if (DefaultAdministrator == null) DefaultAdministrator = new TEntity();
-            Menu<TMenuEntity>.DefaultAdministrator = DefaultAdministrator;
-        }
+        //static Administrator()
+        //{
+        //    // 给菜单类设置一个默认管理员对象，用于写日志
+        //    if (DefaultAdministrator == null) DefaultAdministrator = new TEntity();
+        //    Menu<TMenuEntity>.DefaultAdministrator = DefaultAdministrator;
+        //}
 
         ///// <summary>
         ///// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
@@ -138,10 +138,10 @@ namespace NewLife.CommonEntity
         /// <summary>角色</summary>
         internal protected override IRole RoleInternal { get { return Role; } set { Role = (TRoleEntity)value; } }
 
-        /// <summary>
-        /// 角色名
-        /// </summary>
-        public override String RoleName { get { return Role == null ? null : Role.Name; } set { } }
+        ///// <summary>
+        ///// 角色名
+        ///// </summary>
+        //public override String RoleName { get { return Role == null ? null : Role.Name; } set { } }
 
         /// <summary>
         /// 根据权限名（权限路径）找到权限菜单实体
@@ -226,22 +226,22 @@ namespace NewLife.CommonEntity
         //    return entity.Acquire(menuID, flag);
         //}
 
-        /// <summary>
-        /// 申请指定菜单指定操作的权限
-        /// </summary>
-        /// <param name="menuID"></param>
-        /// <param name="flag"></param>
-        /// <returns></returns>
-        public override Boolean Acquire(Int32 menuID, PermissionFlags flag)
-        {
-            if (menuID <= 0) throw new ArgumentNullException("menuID");
+        ///// <summary>
+        ///// 申请指定菜单指定操作的权限
+        ///// </summary>
+        ///// <param name="menuID"></param>
+        ///// <param name="flag"></param>
+        ///// <returns></returns>
+        //public override Boolean Acquire(Int32 menuID, PermissionFlags flag)
+        //{
+        //    if (menuID <= 0) throw new ArgumentNullException("menuID");
 
-            TRoleEntity entity = Role;
-            if (entity == null) return false;
+        //    TRoleEntity entity = Role;
+        //    if (entity == null) return false;
 
-            // 申请权限
-            return entity.Acquire(menuID, flag);
-        }
+        //    // 申请权限
+        //    return entity.Acquire(menuID, flag);
+        //}
 
         ///// <summary>
         ///// 写日志
@@ -283,37 +283,37 @@ namespace NewLife.CommonEntity
         where TEntity : Administrator<TEntity>, new()
     {
         #region 对象操作
-        static Administrator()
-        {
-            // 给基类设置一个默认管理员对象，用于写日志
-            if (DefaultAdministrator == null) DefaultAdministrator = new TEntity();
+        //static Administrator()
+        //{
+        //    // 给基类设置一个默认管理员对象，用于写日志
+        //    if (DefaultAdministrator == null) DefaultAdministrator = new TEntity();
 
-            //// 设置缓存时间为一个小时
-            //Meta.Cache.Expriod = 60 * 60;
+        //    //// 设置缓存时间为一个小时
+        //    //Meta.Cache.Expriod = 60 * 60;
 
-            //// 初始化数据
-            //try
-            //{
-            //    if (Meta.Count < 1)
-            //    {
-            //        if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}管理员数据……", typeof(TEntity).Name);
+        //    //// 初始化数据
+        //    //try
+        //    //{
+        //    //    if (Meta.Count < 1)
+        //    //    {
+        //    //        if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}管理员数据……", typeof(TEntity).Name);
 
-            //        TEntity user = new TEntity();
-            //        user.Name = "admin";
-            //        user.Password = DataHelper.Hash("admin");
-            //        user.DisplayName = "管理员";
-            //        user.RoleID = 1;
-            //        user.IsEnable = true;
-            //        user.Insert();
+        //    //        TEntity user = new TEntity();
+        //    //        user.Name = "admin";
+        //    //        user.Password = DataHelper.Hash("admin");
+        //    //        user.DisplayName = "管理员";
+        //    //        user.RoleID = 1;
+        //    //        user.IsEnable = true;
+        //    //        user.Insert();
 
-            //        if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}管理员数据！", typeof(TEntity).Name);
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    XTrace.WriteLine(ex.ToString());
-            //}
-        }
+        //    //        if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}管理员数据！", typeof(TEntity).Name);
+        //    //    }
+        //    //}
+        //    //catch (Exception ex)
+        //    //{
+        //    //    XTrace.WriteLine(ex.ToString());
+        //    //}
+        //}
 
         /// <summary>
         /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
@@ -417,9 +417,7 @@ namespace NewLife.CommonEntity
         {
             get
             {
-                return EntityShip.GetEntityPropertyValue<IAdministrator>("Current");
-                //Type type = EntityShip.GetEntityType(typeof(IAdministrator), typeof(Administrator));
-                //return PropertyInfoX.Create(type, "Current").GetValue() as IAdministrator;
+                return TypeResolver.GetPropertyValue(typeof(IAdministrator), "Current") as IAdministrator;
             }
         }
 
@@ -686,7 +684,16 @@ namespace NewLife.CommonEntity
         /// <param name="menuID"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
-        public abstract Boolean Acquire(Int32 menuID, PermissionFlags flag);
+        public virtual Boolean Acquire(Int32 menuID, PermissionFlags flag)
+        {
+            if (menuID <= 0) throw new ArgumentNullException("menuID");
+
+            IRole entity = (this as IAdministrator).Role;
+            if (entity == null) return false;
+
+            // 申请权限
+            return entity.Acquire(menuID, flag);
+        }
 
         ///// <summary>
         ///// 为当前管理员对象写日志
@@ -727,7 +734,7 @@ namespace NewLife.CommonEntity
         /// <summary>
         /// 角色名
         /// </summary>
-        public abstract string RoleName { get; set; }
+        public virtual String RoleName { get { return RoleInternal == null ? null : RoleInternal.Name; } set { } }
         #endregion
 
         #region IPrincipal 成员

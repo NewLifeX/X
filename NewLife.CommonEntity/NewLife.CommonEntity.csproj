@@ -59,8 +59,6 @@
     <Compile Include="实体\地区.Biz.cs" />
     <Compile Include="实体\地区.cs" />
     <Compile Include="实体\地区.Init.cs" />
-    <Compile Include="Common\EntityShip.cs" />
-    <Compile Include="Common\EntityShipProvider.cs" />
     <Compile Include="管理和授权\日志.Biz.cs" />
     <Compile Include="管理和授权\日志.cs" />
     <Compile Include="管理和授权\管理员.Biz.cs" />

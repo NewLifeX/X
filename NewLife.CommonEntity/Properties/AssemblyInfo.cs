@@ -39,7 +39,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("2.0.2011.0507")]
 
 /*
- * v2.0.2011.0507   建立实体资格提供者EntityShipProvider，构建一个提供者模型，弥补泛型基类带来的不足
+ * v2.0.2011.0507   核心类库实现IoC，配合接口变成弥补泛型基类带来的不足，实体类升级支持
  * 
  * v1.6.2011.0313   更新EntityForm，屏蔽SetNotAllowNull中可能出现的异常
  * 

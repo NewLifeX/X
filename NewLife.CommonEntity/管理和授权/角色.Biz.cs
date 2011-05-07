@@ -434,4 +434,15 @@ namespace NewLife.CommonEntity
         public abstract Boolean Acquire(Int32 menuID, PermissionFlags flag);
         #endregion
     }
+
+    public partial interface IRole
+    {
+        /// <summary>
+        /// 申请指定菜单指定操作的权限
+        /// </summary>
+        /// <param name="menuID"></param>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        Boolean Acquire(Int32 menuID, PermissionFlags flag);
+    }
 }
