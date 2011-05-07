@@ -24,7 +24,7 @@ namespace NewLife.IO
             set { _Encoding = value; }
         }
         #endregion
-        
+
         #region 构造
         /// <summary>
         /// 构造
@@ -815,7 +815,7 @@ namespace NewLife.IO
             String typeName = ReadString();
             if (String.IsNullOrEmpty(typeName)) return null;
 
-            Type type = TypeX.GetType(typeName);
+            Type type = TypeX.GetType(typeName, true);
             if (type != null) return type;
 
             throw new XException("无法找到名为{0}的类型！", typeName);

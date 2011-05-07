@@ -362,6 +362,17 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static ListX<Type> FindAllPlugins(Type type)
         {
+            return FindAllPlugins(type, false);
+        }
+
+        /// <summary>
+        /// 查找所有非系统程序集中的所有插件
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
+        /// <returns></returns>
+        public static ListX<Type> FindAllPlugins(Type type, Boolean isLoadAssembly)
+        {
             if (type == null) throw new ArgumentNullException("type");
 
             ListX<AssemblyX> asms = GetAssemblies();
@@ -372,6 +383,29 @@ namespace NewLife.Reflection
 
                 ListX<Type> ts = item.FindPlugins(type);
                 if (ts != null && ts.Count > 0) list.AddRange(ts);
+            }
+            if (isLoadAssembly)
+            {
+                // 尝试加载程序集
+                AssemblyX.ReflectionOnlyLoad();
+                asms = AssemblyX.ReflectionOnlyGetAssemblies();
+                if (asms != null && asms.Count > 0)
+                {
+                    foreach (AssemblyX item in asms)
+                    {
+                        if (item.IsSystemAssembly) continue;
+
+                        ListX<Type> ts = item.FindPlugins(type);
+                        if (ts != null && ts.Count > 0)
+                        {
+                            // 真实加载
+                            Assembly asm2 = Assembly.LoadFile(item.Asm.Location);
+                            ts = AssemblyX.Create(asm2).FindPlugins(type);
+
+                            if (ts != null && ts.Count > 0) list.AddRange(ts);
+                        }
+                    }
+                }
             }
             return list.Count > 0 ? list : null;
         }

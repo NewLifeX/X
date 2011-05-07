@@ -157,6 +157,7 @@ namespace NewLife.Reflection
                     }
                 }
             }
+            if (property == null && type.BaseType != typeof(Object)) return Create(type.BaseType, name);
             if (property == null) return null;
 
             return Create(property);

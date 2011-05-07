@@ -430,22 +430,25 @@ namespace NewLife.Reflection
                 }
             }
 
-            // 尝试加载程序集
-            AssemblyX.ReflectionOnlyLoad();
-            list = AssemblyX.ReflectionOnlyGetAssemblies();
-            if (list != null && list.Count > 0)
+            if (isLoadAssembly)
             {
-                foreach (AssemblyX asm in list)
+                // 尝试加载程序集
+                AssemblyX.ReflectionOnlyLoad();
+                list = AssemblyX.ReflectionOnlyGetAssemblies();
+                if (list != null && list.Count > 0)
                 {
-                    type = asm.Asm.GetType(typeName);
-                    if (type != null)
+                    foreach (AssemblyX asm in list)
                     {
-                        // 真实加载
-                        Assembly asm2 = Assembly.LoadFile(asm.Asm.Location);
-                        Type type2 = asm2.GetType(typeName);
-                        if (type2 != null) type = type2;
+                        type = asm.Asm.GetType(typeName);
+                        if (type != null)
+                        {
+                            // 真实加载
+                            Assembly asm2 = Assembly.LoadFile(asm.Asm.Location);
+                            Type type2 = asm2.GetType(typeName);
+                            if (type2 != null) type = type2;
 
-                        return type;
+                            return type;
+                        }
                     }
                 }
             }
