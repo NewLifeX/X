@@ -35,10 +35,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.6.*")]
-[assembly: AssemblyFileVersion("1.6.2011.0313")]
+[assembly: AssemblyVersion("2.0.*")]
+[assembly: AssemblyFileVersion("2.0.2011.0507")]
 
 /*
+ * v2.0.2011.0507   建立实体资格提供者EntityShipProvider，构建一个提供者模型，弥补泛型基类带来的不足
+ * 
  * v1.6.2011.0313   更新EntityForm，屏蔽SetNotAllowNull中可能出现的异常
  * 
  * v1.6.2011.0303   调整实体类数据初始化架构，统一由XCode支持

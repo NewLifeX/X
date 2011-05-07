@@ -9,6 +9,7 @@ using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Web;
 using XCode;
+using NewLife.Reflection;
 
 namespace NewLife.CommonEntity
 {
@@ -170,6 +171,17 @@ namespace NewLife.CommonEntity
 
                 String url = String.Format(@"../{0}/{1}", dirName, fileName);
                 return Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
+            }
+        }
+
+        /// <summary>当前页所对应的菜单项。通过实体资格提供者，保证取得正确的菜单项</summary>
+        public static IMenu CurrentMenu
+        {
+            get
+            {
+                return EntityShip.GetEntityPropertyValue<IMenu>("Current");
+                //Type type = EntityShip.GetEntityType(typeof(IMenu), typeof(Menu));
+                //return PropertyInfoX.Create(type, "Current").GetValue() as IMenu;
             }
         }
         #endregion

@@ -10,6 +10,7 @@ using NewLife.Security;
 using NewLife.Web;
 using XCode;
 using XCode.Configuration;
+using NewLife.Reflection;
 
 namespace NewLife.CommonEntity
 {
@@ -405,6 +406,17 @@ namespace NewLife.CommonEntity
         {
             get { return HttpState.Get(null, null); }
             //set { HttpState.Current = value; }
+        }
+
+        /// <summary>当前登录用户。通过实体资格提供者，保证取得正确的管理员</summary>
+        public static IAdministrator CurrentAdministrator
+        {
+            get
+            {
+                return EntityShip.GetEntityPropertyValue<IAdministrator>("Current");
+                //Type type = EntityShip.GetEntityType(typeof(IAdministrator), typeof(Administrator));
+                //return PropertyInfoX.Create(type, "Current").GetValue() as IAdministrator;
+            }
         }
 
         /// <summary>
