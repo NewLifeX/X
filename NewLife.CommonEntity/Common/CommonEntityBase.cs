@@ -24,7 +24,7 @@ namespace NewLife.CommonEntity
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public static IEntity CreateLog(String action)
+        public static ILog CreateLog(String action)
         {
             IAdministrator admin = http.Current;
             if (admin == null) admin = DefaultAdministrator;
@@ -42,11 +42,14 @@ namespace NewLife.CommonEntity
         {
             if (!Config.GetConfig<Boolean>("NewLife.CommonEntity.WriteEntityLog", true)) return;
 
-            IEntity log = CreateLog(action);
+            ILog log = CreateLog(action);
             if (log != null)
             {
-                log.SetItem("Remark", remark);
-                log.Save();
+                //log.SetItem("Remark", remark);
+                //log.Save();
+
+                log.Remark = remark;
+                (log as IEntity).Insert();
             }
         }
         #endregion

@@ -148,7 +148,7 @@ namespace NewLife.CommonEntity
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public override IEntity FindPermissionMenu(string name)
+        public override IMenu FindPermissionMenu(string name)
         {
             //return Menu<TMenuEntity>.FindForPerssion(name);
             TMenuEntity menu = Menu<TMenuEntity>.FindForPerssion(name);
@@ -261,7 +261,7 @@ namespace NewLife.CommonEntity
         /// <param name="type"></param>
         /// <param name="action"></param>
         /// <returns></returns>
-        public override IEntity CreateLog(Type type, string action)
+        public override ILog CreateLog(Type type, string action)
         {
             Log<TLogEntity> log = Log<TLogEntity>.Create(type, action);
             log.UserID = ID;
@@ -398,7 +398,11 @@ namespace NewLife.CommonEntity
                 if (HttpState.Get(null, null) != entity) HttpState.Current = entity;
                 return entity;
             }
-            set { HttpState.Current = value; }
+            set
+            {
+                HttpState.Current = value;
+                Thread.CurrentPrincipal = (IPrincipal)value;
+            }
         }
 
         /// <summary>当前登录用户，不带自动登录</summary>
@@ -619,7 +623,6 @@ namespace NewLife.CommonEntity
             user.Update();
 
             Current = user;
-            Thread.CurrentPrincipal = (IPrincipal)user;
 
             if (hashTimes == -1)
                 WriteLog("自动登录", username);
@@ -636,7 +639,7 @@ namespace NewLife.CommonEntity
         {
             WriteLog("注销", Name);
             Current = null;
-            Thread.CurrentPrincipal = null;
+            //Thread.CurrentPrincipal = null;
         }
 
         /// <summary>
@@ -644,7 +647,7 @@ namespace NewLife.CommonEntity
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public abstract IEntity FindPermissionMenu(String name);
+        public abstract IMenu FindPermissionMenu(String name);
 
         /// <summary>
         /// 拥有指定菜单的权限
@@ -655,10 +658,11 @@ namespace NewLife.CommonEntity
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            IEntity menu = FindPermissionMenu(name);
+            IMenu menu = FindPermissionMenu(name);
             if (menu == null) return false;
 
-            return Acquire((Int32)menu["ID"], PermissionFlags.None);
+            //return Acquire((Int32)menu["ID"], PermissionFlags.None);
+            return Acquire(menu.ID, PermissionFlags.None);
         }
 
         ///// <summary>
@@ -700,7 +704,7 @@ namespace NewLife.CommonEntity
         /// <param name="type"></param>
         /// <param name="action"></param>
         /// <returns></returns>
-        public abstract IEntity CreateLog(Type type, String action);
+        public abstract ILog CreateLog(Type type, String action);
 
         ///// <summary>
         ///// 创建指定类型指定动作的日志实体
@@ -779,7 +783,7 @@ namespace NewLife.CommonEntity
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        IEntity FindPermissionMenu(String name);
+        IMenu FindPermissionMenu(String name);
 
         /// <summary>
         /// 申请指定菜单指定操作的权限
@@ -795,6 +799,6 @@ namespace NewLife.CommonEntity
         /// <param name="type"></param>
         /// <param name="action"></param>
         /// <returns></returns>
-        IEntity CreateLog(Type type, String action);
+        ILog CreateLog(Type type, String action);
     }
 }

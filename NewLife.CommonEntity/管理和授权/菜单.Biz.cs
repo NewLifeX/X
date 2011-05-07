@@ -16,7 +16,7 @@ namespace NewLife.CommonEntity
     /// <summary>
     /// 菜单
     /// </summary>
-    public partial class Menu<TEntity> : EntityTree<TEntity> where TEntity : Menu<TEntity>, new()
+    public partial class Menu<TEntity> : EntityTree<TEntity>, IMenu where TEntity : Menu<TEntity>, new()
     {
         #region 对象操作
         ///// <summary>已重载。</summary>
@@ -553,7 +553,7 @@ namespace NewLife.CommonEntity
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public static IEntity CreateLog(String action)
+        public static ILog CreateLog(String action)
         {
             IAdministrator admin = http.Current;
             if (admin == null) admin = DefaultAdministrator;
@@ -571,13 +571,45 @@ namespace NewLife.CommonEntity
         {
             if (!Config.GetConfig<Boolean>("NewLife.CommonEntity.WriteEntityLog", true)) return;
 
-            IEntity log = CreateLog(action);
+            ILog log = CreateLog(action);
             if (log != null)
             {
-                log.SetItem("Remark", remark);
-                log.Save();
+                //log.SetItem("Remark", remark);
+                //log.Save();
+
+                log.Remark = remark;
+                (log as IEntity).Insert();
             }
         }
         #endregion
+
+        #region IMenu 成员
+        /// <summary>
+        /// 取得全路径的实体，由上向下排序
+        /// </summary>
+        /// <param name="includeSelf">是否包含自己</param>
+        /// <param name="separator">分隔符</param>
+        /// <param name="func">回调</param>
+        /// <returns></returns>
+        string IMenu.GetFullPath(bool includeSelf, string separator, Func<IMenu, string> func)
+        {
+            Func<TEntity, String> d = null;
+            if (func != null) d = delegate(TEntity item) { return func(item); };
+
+            return GetFullPath(includeSelf, separator, d);
+        }
+        #endregion
+    }
+
+    public partial interface IMenu
+    {
+        /// <summary>
+        /// 取得全路径的实体，由上向下排序
+        /// </summary>
+        /// <param name="includeSelf">是否包含自己</param>
+        /// <param name="separator">分隔符</param>
+        /// <param name="func">回调</param>
+        /// <returns></returns>
+        String GetFullPath(Boolean includeSelf, String separator, Func<IMenu, String> func);
     }
 }

@@ -72,6 +72,21 @@ namespace NewLife.CommonEntity
 
             return (T)PropertyInfoX.Create(type, propertyName).GetValue();
         }
+
+        /// <summary>
+        /// 调用指定实体类型的静态方法
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="methodName"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public static Object Invoke<T>(String methodName, params Object[] parameters)
+        {
+            Type type = EntityShip.GetEntityType(typeof(T), null);
+            if (type == null) throw new XException("无法找到实体" + typeof(T).FullName + "的实现者！");
+
+            return MethodInfoX.Create(type, methodName).Invoke(null, parameters);
+        }
         #endregion
     }
 }
