@@ -309,7 +309,9 @@ namespace NewLife.Reflection
             //    AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve -= new ResolveEventHandler(CurrentDomain_ReflectionOnlyAssemblyResolve);
             //}
         }
+        #endregion
 
+        #region 插件
         /// <summary>
         /// 查找插件
         /// </summary>

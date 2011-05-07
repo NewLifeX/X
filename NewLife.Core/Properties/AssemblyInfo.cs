@@ -33,11 +33,13 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.9.*")]
-[assembly: AssemblyFileVersion("1.9.2011.0507")]
+[assembly: AssemblyVersion("2.0.*")]
+[assembly: AssemblyFileVersion("2.0.2011.0507")]
 
 /*
- * v1.9.2011.0507   快速反射，AssemblyX增加一个FindAllPlugins(Type type, Boolean isLoadAssembly)方法
+ * v2.0.2011.0507   反序列化框架NewLife.Serialization命名空间，默认实现二进制、Xml和Json
+ *                  轻量级IoC，实现类型解析器TypeResolver，配合接口变成来解决泛型基类所带来的不足
+ *                  快速反射，AssemblyX增加一个FindAllPlugins(Type type, Boolean isLoadAssembly)方法
  *                  快速反射，PropertyInfoX的Create，在无法找到属性时递归处理基类，类似字段的处理方式
  *                  快速反射，修正TypeX的GetType方法没有使用isLoadAssembly参数的BUG
  * 
