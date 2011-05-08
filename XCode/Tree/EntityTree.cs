@@ -488,7 +488,10 @@ namespace XCode
             foreach (TEntity item in list)
             {
                 if (sb.Length > 0 && !String.IsNullOrEmpty(separator)) sb.Append(separator);
-                sb.Append(func(item));
+                if (func != null)
+                    sb.Append(func(item));
+                else
+                    sb.Append(item.ToString());
             }
             return sb.ToString();
         }
