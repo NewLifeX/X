@@ -259,7 +259,10 @@ namespace NewLife.CommonEntity.Web
                     SetFormItemListControl(field, wc as ListControl, canSave);
                 else
                 {
-                    PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Text");
+                    //PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Text");
+                    // 优先使用Value
+                    PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Value");
+                    if (pix == null) pix = PropertyInfoX.Create(control.GetType(), "Text");
                     if (pix != null) pix.SetValue(control, Entity[field.Name]);
                 }
             }
@@ -431,7 +434,10 @@ namespace NewLife.CommonEntity.Web
                     GetFormItemListControl(field, wc as ListControl);
                 else
                 {
-                    PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Text");
+                    //PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Text");
+                    // 优先使用Value
+                    PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Value");
+                    if (pix == null) pix = PropertyInfoX.Create(control.GetType(), "Text");
                     if (pix != null)
                     {
                         Object v = pix.GetValue(control);
