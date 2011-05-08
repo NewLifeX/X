@@ -251,12 +251,12 @@ namespace NewLife.CommonEntity.Web
                     SetFormItemTextBox(field, wc as TextBox, canSave);
                 else if (wc is Label)
                     SetFormItemLabel(field, wc as Label, canSave);
-                else if (wc is CheckBox)
-                    SetFormItemCheckBox(field, wc as CheckBox, canSave);
-                else if (wc is DropDownList)
-                    SetFormItemDropDownList(field, wc as DropDownList, canSave);
                 else if (wc is RadioButton)
                     SetFormItemRadioButton(field, wc as RadioButton, canSave);
+                else if (wc is CheckBox)
+                    SetFormItemCheckBox(field, wc as CheckBox, canSave);
+                else if (wc is ListControl)
+                    SetFormItemListControl(field, wc as ListControl, canSave);
                 else
                 {
                     PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Text");
@@ -315,12 +315,12 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>
-        /// 下拉框
+        /// 列表框
         /// </summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
-        protected virtual void SetFormItemDropDownList(FieldItem field, DropDownList control, Boolean canSave)
+        protected virtual void SetFormItemListControl(FieldItem field, ListControl control, Boolean canSave)
         {
             if (control.Items.Count < 1) control.DataBind();
             if (control.Items.Count < 1) return;
@@ -423,12 +423,12 @@ namespace NewLife.CommonEntity.Web
                     GetFormItemTextBox(field, wc as TextBox);
                 else if (wc is Label)
                     GetFormItemLabel(field, wc as Label);
-                else if (wc is CheckBox)
-                    GetFormItemCheckBox(field, wc as CheckBox);
-                else if (wc is DropDownList)
-                    GetFormItemDropDownList(field, wc as DropDownList);
                 else if (wc is RadioButton)
                     GetFormItemRadioButton(field, wc as RadioButton);
+                else if (wc is CheckBox)
+                    GetFormItemCheckBox(field, wc as CheckBox);
+                else if (wc is ListControl)
+                    GetFormItemListControl(field, wc as ListControl);
                 else
                 {
                     PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Text");
@@ -482,11 +482,11 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>
-        /// 下拉列表
+        /// 列表框
         /// </summary>
         /// <param name="field"></param>
         /// <param name="control"></param>
-        protected virtual void GetFormItemDropDownList(FieldItem field, DropDownList control)
+        protected virtual void GetFormItemListControl(FieldItem field, ListControl control)
         {
             //if (String.IsNullOrEmpty(control.SelectedValue)) return;
 
