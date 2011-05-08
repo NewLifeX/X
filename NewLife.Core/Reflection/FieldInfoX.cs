@@ -230,6 +230,9 @@ namespace NewLife.Reflection
         /// <param name="value"></param>
         public override void SetValue(Object obj, Object value)
         {
+            // 如果类型不匹配，先做类型转换
+            if (value != null && !Type.IsAssignableFrom(value.GetType())) value = Convert.ChangeType(value, Type);
+
             // SetHandler不支持值类型
             if (Field.DeclaringType.IsValueType)
             {
