@@ -62,6 +62,23 @@ namespace NewLife.CommonEntity
                 // 准备增加Admin目录下的所有页面
                 ScanAndAdd("Admin", top);
 
+                // 根据设置增加菜单
+                String str = Config.GetConfig<String>("NewLife.CommonEntity.AppDirs");
+                if (!String.IsNullOrEmpty(str))
+                {
+                    String[] AppDirs = str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (AppDirs != null && AppDirs.Length > 0)
+                    {
+                        foreach (String item in AppDirs)
+                        {
+                            if (String.Equals(item, "Admin")) continue;
+
+                            top = Root.AddChild(item, null, sort -= 10, null);
+                            ScanAndAdd(item, top);
+                        }
+                    }
+                }
+
                 Meta.Commit();
                 if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}菜单数据！", typeof(TEntity).Name);
             }
