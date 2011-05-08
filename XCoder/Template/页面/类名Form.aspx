@@ -19,7 +19,7 @@
                     if(pname.Equals("Password", StringComparison.OrdinalIgnoreCase) || pname.Equals("Pass", StringComparison.OrdinalIgnoreCase)){
                 #><asp:TextBox ID="<#=frmName#>" runat="server" TextMode="Password"></asp:TextBox><#
                     }else if(Field.Length>300 || Field.Length<0){
-                #><asp:TextBox ID="<#=frmName#>" runat="server" TextMode="MultiLine" Width="400px" Height="80px"></asp:TextBox><#
+                #><asp:TextBox ID="<#=frmName#>" runat="server" TextMode="MultiLine" Width="350px" Height="80px"></asp:TextBox><#
                     }else{
                 #><asp:TextBox ID="<#=frmName#>" runat="server" Width="300px"></asp:TextBox><#
                     }
