@@ -295,6 +295,7 @@ namespace NewLife.CommonEntity.Web
                     Response.End();
                 }
             }
+            catch (ThreadAbortException) { }
             catch (Exception ex)
             {
                 XTrace.WriteLine(ex.ToString());
