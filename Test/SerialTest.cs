@@ -108,8 +108,10 @@ namespace Test
         {
             JsonWriter writer = GetWriter<JsonWriter>();
             writer.Settings.JsEncodeUnicode = false;
-            writer.Settings.JsDateTimeFormat = false;
             writer.Settings.JsMultiline = true;
+            writer.Settings.JsDateTimeFormat = JsDateTimeFormats.DotnetDateTick;
+
+
             DoTest<JsonWriter, JsonReader>(writer);
         }
 
