@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Globalization;
 
 namespace NewLife.Serialization
 {
@@ -87,6 +88,9 @@ namespace NewLife.Serialization
             WriteLog("ReadString", str);
             return str;
         }
+        #endregion
+
+        #region 读取json的原子操作
         /// <summary>
         /// 读取下一个原子元素,非{} []这类复合元素
         /// </summary>
@@ -114,7 +118,7 @@ namespace NewLife.Serialization
                         {
                             Reader.Read();
                         }
-                        column = 0;
+                        column = 1;
                         line++;
                         continue;
                     case '{':
@@ -138,11 +142,10 @@ namespace NewLife.Serialization
                     case '"':
                         Reader.Read();
                         AtomElementType sret = ReadNextString(out str);
-                        column += str.Length + 1;
                         return sret;
                     default:
+                        column--; //因为没有调用Read() 所以实际的列应该-1
                         AtomElementType lret = ReadNextLiteral(out str);
-                        column += str.Length;
                         return lret;
                 }
             }
@@ -154,7 +157,87 @@ namespace NewLife.Serialization
         /// <returns></returns>
         AtomElementType ReadNextString(out string str)
         {
-            throw new NotImplementedException(); // TODO 读取字符串 处理字符串中的\开头的字符,包括\u,遇到单独的"时字符串结束,其它情况下遇到
+            StringBuilder sb = new StringBuilder();
+            bool isContinue = true;
+            int c = 0;
+            while (isContinue)
+            {
+                c = Reader.Peek();
+                column++;
+                switch (c)
+                {
+                    case '"':
+                        Reader.Read();
+                        isContinue = false;
+                        break;
+                    case '\\':
+                        Reader.Read();
+                        sb.Append(ReadNextEscapeChar());
+                        break;
+                    case '\b':
+                        Reader.Read();
+                        sb.Append('\b');
+                        break;
+                    case '\f':
+                        Reader.Read();
+                        sb.Append('\f');
+                        break;
+                    case '\t':
+                        Reader.Read();
+                        sb.Append('\t');
+                        break;
+                    default:
+                        if (c < 32)
+                        {
+                            column--;
+                            throw new JsonReaderParseException(line, column, "字符串未正确的结束");
+                        }
+                        Reader.Read();
+                        sb.Append((char)c);
+                        break;
+                }
+            }
+            str = sb.ToString();
+            return AtomElementType.STRING;
+        }
+        /// <summary>
+        /// 读取下一个转义字符,流已处于转义符\后
+        /// </summary>
+        /// <returns></returns>
+        string ReadNextEscapeChar()
+        {
+            int c = Reader.Read();
+            column++;
+            switch (c)
+            {
+                case 'b':
+                    return "\b";
+                case 'f':
+                    return "\f";
+                case 'n':
+                    return "\n";
+                case 'r':
+                    return "\r";
+                case 't':
+                    return "\t";
+                case 'u':
+                    char[] unicodeChar = new char[4];
+                    int n = Reader.ReadBlock(unicodeChar, 0, 4);
+                    column += n;
+                    if (n != 4)
+                    {
+                        throw new JsonReaderParseException(line, column, "Unicode转义字符长度应该是4");
+                    }
+                    string str = new string(unicodeChar);
+                    UInt16 charCode;
+                    if (UInt16.TryParse(str, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out charCode))
+                    {
+                        return "" + (char)charCode;
+                    }
+                    return "u" + str;//无法识别的将作为原始字符串输出
+                default:
+                    return "" + (char)c;
+            }
         }
         /// <summary>
         /// 读取下一个字面值,可能是true false null 数字 无法识别,调用时第一个字符一定是一个字面值
@@ -166,27 +249,30 @@ namespace NewLife.Serialization
             StringBuilder sb = new StringBuilder();
             bool isContinue = true;
             int c = 0;
-            bool hasDigit = false, hasLiteral = false;
+            bool hasDigit = false, hasLiteral = false, hasDot = false, hasExp = false;
+            int lastChar = -1;
             while (isContinue)
             {
                 c = Reader.Peek();
+                column++;
                 switch (c)
                 {
-                    case -1:
-                    case ' ':
-                    case ',':
-                    case '\t':
-                    case ':':
-                    case '{':
-                    case '}':
-                    case '[':
-                    case ']':
-                    case '\r':
-                    case '\n':
-                        isContinue = false;//避免将流位置移动到\r之后,使行列号计算始终在ReadNextAtomElement中
-                        break;
                     case '-':
                     case '+':
+                        // json.org中规定-能在第一位和e符号后出现,而+仅仅只能在e符号后出现,这里忽略了这样的差异,允许+出现在第一位
+                        Reader.Read();
+                        sb.Append((char)c);
+                        if (sb.Length == 1 || //第一个字符
+                            (sb.Length > 2 && hasDigit && !hasLiteral && hasExp && (lastChar == 'e' || lastChar == 'E')) //科学计数法e符号后
+                            )
+                        {
+                            hasDigit = true; //作为数字
+                        }
+                        else
+                        {
+                            hasLiteral = true;
+                        }
+                        break;
                     case '0':
                     case '1':
                     case '2':
@@ -196,30 +282,63 @@ namespace NewLife.Serialization
                     case '6':
                     case '7':
                     case '8':
-                    case '9':
-                    case '.':
-                    case 'e':
-                    case 'E':
-                        hasDigit = true;
-                        sb.Append((char)c);
+                    case '9': //数字
                         Reader.Read();
+                        sb.Append((char)c);
+                        hasDigit = true;
+                        break;
+                    case '.': //浮点数
+                        Reader.Read();
+                        sb.Append((char)c);
+                        if (!hasDot) //仅出现一次的.符号
+                        {
+                            hasDot = true;
+                        }
+                        else
+                        {
+                            hasLiteral = true;
+                        }
+                        break;
+                    case 'e':
+                    case 'E': //科学计数法的e符号
+                        Reader.Read();
+                        sb.Append((char)c);
+                        if (!hasExp) //仅出现一次的e符号
+                        {
+                            hasExp = true;
+                        }
+                        else
+                        {
+                            hasLiteral = true;
+                        }
                         break;
                     default:
-                        hasLiteral = true;
-                        sb.Append((char)c);
-                        Reader.Read();
+                        if (c < 32 || " ,{}[]:".IndexOf((char)c) != -1) //结束符号
+                        {
+                            isContinue = false;
+                            column--;
+                        }
+                        else //其它符号
+                        {
+                            Reader.Read();
+                            sb.Append((char)c);
+                            hasLiteral = true;
+                        }
                         break;
                 }
+                lastChar = c;
             }
             str = sb.ToString();
-            if (hasDigit && !hasLiteral)
-            {
-                // TODO 整型 浮点型解析
 
-                hasLiteral = true;// TODO 无法解析到有效的数字,作为字面字符
+            if (hasDigit && !hasDot && !hasLiteral)
+            {
+                return hasExp ? AtomElementType.NUMBER_EXP : AtomElementType.NUMBER;
             }
-            
-            if (hasLiteral)
+            else if (hasDigit && hasDot && !hasLiteral)
+            {
+                return hasExp ? AtomElementType.FLOAT_EXP : AtomElementType.FLOAT;
+            }
+            else
             {
                 if (!hasDigit && "true".Equals(str, StringComparison.OrdinalIgnoreCase))
                 {
@@ -238,7 +357,6 @@ namespace NewLife.Serialization
                     return AtomElementType.LITERAL;
                 }
             }
-            return AtomElementType.LITERAL;
         }
         #endregion
 
@@ -261,7 +379,7 @@ namespace NewLife.Serialization
         /// <summary>
         /// 原子元素类型
         /// </summary>
-        enum AtomElementType
+        public enum AtomElementType
         {
             /// <summary>
             /// 无 一般表示结尾
@@ -295,30 +413,64 @@ namespace NewLife.Serialization
             /// 字符串 "包含的
             /// </summary>
             STRING,
+            #region 字面值部分
             /// <summary>
             /// 字面值 无法识别的字面值
             /// </summary>
             LITERAL,
             /// <summary>
-            /// 字面值true
+            /// 字面值 true
             /// </summary>
             TRUE,
             /// <summary>
-            /// 字面值false
+            /// 字面值 false
             /// </summary>
             FALSE,
             /// <summary>
-            /// 字面值null
+            /// 字面值 null
             /// </summary>
             NULL,
             /// <summary>
-            /// 字面值整型数字
+            /// 字面值 数字,非科学计数法表示的
             /// </summary>
-            INTEGER,
+            NUMBER,
             /// <summary>
-            /// 字面值浮点数字
+            /// 字面值 数字,科学计数发表示的
             /// </summary>
-            FLOAT
+            NUMBER_EXP,
+            /// <summary>
+            /// 字面值 浮点数,非科学计数法表示的浮点数
+            /// </summary>
+            FLOAT,
+            /// <summary>
+            /// 字面值 浮点数,科学计数法表示的浮点数
+            /// </summary>
+            FLOAT_EXP
+            #endregion
+        }
+        /// <summary>
+        /// json reader解析异常,用于在遇到无法处理时抛出异常
+        /// </summary>
+        public class JsonReaderParseException : Exception
+        {
+            public JsonReaderParseException(long line, long column, string message)
+                : base(message)
+            {
+                this.Line = line;
+                this.Column = column;
+            }
+
+            public long Line { get; private set; }
+
+            public long Column { get; private set; }
+
+            public override string Message
+            {
+                get
+                {
+                    return string.Format("在解析第{0}行,{1}字符时发生了异常:{2}", Line, Column, base.Message);
+                }
+            }
         }
     }
 }
