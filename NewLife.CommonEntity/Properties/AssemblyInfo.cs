@@ -36,9 +36,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("2.0.*")]
-[assembly: AssemblyFileVersion("2.0.2011.0507")]
+[assembly: AssemblyFileVersion("2.0.2011.0509")]
 
 /*
+ * v2.0.2011.0509   解决多个菜单具有相同权限名的问题，尝试返回当前页面所在菜单，如果无法确定，则返回第一个，并写日志。
+ * 
  * v2.0.2011.0507   核心类库实现IoC，配合接口变成弥补泛型基类带来的不足，实体类升级支持
  * 
  * v1.6.2011.0313   更新EntityForm，屏蔽SetNotAllowNull中可能出现的异常

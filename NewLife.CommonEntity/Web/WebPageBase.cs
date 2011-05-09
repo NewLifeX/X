@@ -230,14 +230,14 @@ namespace NewLife.CommonEntity.Web
             if (admin == null) return false;
 
             IMenu menu = MyMenu;
-            if (menu == null)
-            {
-                String name = PermissionName;
-                if (String.IsNullOrEmpty(name)) return false;
+            //if (menu == null)
+            //{
+            //    String name = PermissionName;
+            //    if (String.IsNullOrEmpty(name)) return false;
 
-                // 当前权限菜单
-                menu = admin.FindPermissionMenu(name);
-            }
+            //    // 当前权限菜单
+            //    menu = admin.FindPermissionMenu(name);
+            //}
 
             if (menu == null) return false;
 

@@ -154,7 +154,7 @@ namespace NewLife.CommonEntity
 
                 // 计算当前文件路径
                 String p = HttpContext.Current.Request.PhysicalPath;
-                String dirName = new DirectoryInfo(Path.GetDirectoryName(p)).Name;
+                DirectoryInfo di = new DirectoryInfo(Path.GetDirectoryName(p));
                 String fileName = Path.GetFileName(p);
 
                 // 查找所有以该文件名结尾的菜单
@@ -186,8 +186,16 @@ namespace NewLife.CommonEntity
                 if (list2 == null || list2.Count < 1) return list[0];
                 if (list2.Count == 1) return list2[0];
 
-                String url = String.Format(@"../{0}/{1}", dirName, fileName);
-                return Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
+                if (di.Parent.Name.Equals(""))
+                {
+                    String url = String.Format(@"../{0}/{1}", di.Name, fileName);
+                    return Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
+                }
+                else
+                {
+                    String url = String.Format(@"../../{0}/{1}/{2}", di.Parent.Name, di.Name, fileName);
+                    return Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
+                }
             }
         }
 
@@ -279,10 +287,32 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static TEntity FindForPerssion(String name)
         {
-            TEntity entity = FindByPerssion(name);
-            if (entity != null) return entity;
+            // 计算集合，为了处理同名的菜单
+            EntityList<TEntity> list = Meta.Cache.Entities.FindAll(_.Permission, name);
+            if (list != null && list.Count == 1) return list[0];
 
-            entity = FindByPath(Meta.Cache.Entities, name, _.Permission);
+            // 如果菜单同名，则使用当前页
+            TEntity current = null;
+            if (list != null)
+            {
+                if (current == null) current = Current;
+                if (current != null)
+                {
+                    foreach (TEntity item in list)
+                    {
+                        if (current.ID == item.ID) return item;
+                    }
+                }
+
+                if (XTrace.Debug) XTrace.WriteLine("存在多个名为" + name + "的菜单，系统无法区分，请修改为不同的权限名，以免发生授权干扰！");
+
+                return list[0];
+            }
+
+            //TEntity entity = FindByPerssion(name);
+            //if (entity != null) return entity;
+
+            TEntity entity = FindByPath(Meta.Cache.Entities, name, _.Permission);
             // 找不到的时候，修改当前页面
             if (entity == null && Current != null)
             {
