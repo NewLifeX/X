@@ -33,8 +33,8 @@ namespace Test
             //}
 
             //OldBinaryTest();
-            //BinaryTest();
-            XmlTest();
+            BinaryTest();
+            //XmlTest();
             //JsonTest();
 
             //foreach (ConsoleColor item in Enum.GetValues(typeof(ConsoleColor)))
@@ -108,6 +108,7 @@ namespace Test
         {
             JsonWriter writer = GetWriter<JsonWriter>();
             writer.Settings.JsEncodeUnicode = false;
+            //writer.Settings.JsDateTimeFormat = false;
             writer.Settings.JsMultiline = true;
             writer.Settings.JsDateTimeFormat = JsDateTimeFormats.DotnetDateTick;
 
@@ -212,8 +213,8 @@ namespace Test
             entity.DP3 = dp;
 
             entity.DPS = new Department[] { dp, dp2, dp };
-            //entity.DPS2 = new Department[][] { new Department[] { dp, dp2, dp }, new Department[] { dp2, dp2, dp } };
-            //entity.DPS3 = new Department[2, 2] { { dp, dp2 }, { dp2, dp } };
+            entity.DPS2 = new Department[][] { new Department[] { dp, dp2, dp }, new Department[] { dp2, dp2, dp } };
+            entity.DPS3 = new Department[2, 2] { { dp, dp2 }, { dp2, dp } };
 
             entity.LPS = new List<Department>(entity.DPS);
 
