@@ -314,9 +314,13 @@ namespace NewLife.CommonEntity
 
             TEntity entity = FindByPath(Meta.Cache.Entities, name, _.Permission);
             // 找不到的时候，修改当前页面
-            if (entity == null && Current != null)
+            if (entity == null)
             {
-                if (Current.ResetName(name)) entity = Current;
+                if (current == null) current = Current;
+                if (current != null)
+                {
+                    if (current.ResetName(name)) entity = current;
+                }
             }
             return entity;
         }

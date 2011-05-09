@@ -158,7 +158,7 @@ namespace NewLife.CommonEntity.Web
                     //_MyMenu = EntityShip.Invoke<IMenu>("FindForPerssion", PermissionName) as IMenu;
 
                     _MyMenu = Current.FindPermissionMenu(PermissionName);
-                    if (_MyMenu == null) _MyMenu = Menu.CurrentMenu;
+                    //if (_MyMenu == null) _MyMenu = Menu.CurrentMenu;
                     hasLoaded.Add("MyMenu");
                 }
                 return _MyMenu;

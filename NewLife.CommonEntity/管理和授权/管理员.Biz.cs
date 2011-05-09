@@ -161,9 +161,13 @@ namespace NewLife.CommonEntity
             //}
 
             // 找不到的时候，修改当前页面
-            if (menu == null && Menu<TMenuEntity>.Current != null)
+            if (menu == null)
             {
-                if (Menu<TMenuEntity>.Current.ResetName(name)) menu = Menu<TMenuEntity>.Current;
+                TMenuEntity entity = Menu<TMenuEntity>.Current;
+                if (entity != null)
+                {
+                    if (entity.ResetName(name)) menu = entity;
+                }
             }
 
             return menu;
