@@ -383,11 +383,24 @@ namespace NewLife.CommonEntity.Web
             }
             if (list.Count < 1) return;
 
-            String value = String.Empty + Entity[field.Name];
-
-            foreach (RadioButton item in list)
+            // 特殊处理数字
+            if (field.Type == typeof(Int32))
             {
-                item.Checked = item.Text == value;
+                Int32 id = (Int32)Entity[field.Name];
+                if (id < 0 || id >= list.Count) id = 0;
+                for (int i = 0; i < list.Count; i++)
+                {
+                    list[i].Checked = (i == id);
+                }
+            }
+            else
+            {
+                String value = String.Empty + Entity[field.Name];
+
+                foreach (RadioButton item in list)
+                {
+                    item.Checked = item.Text == value;
+                }
             }
         }
 
@@ -541,11 +554,28 @@ namespace NewLife.CommonEntity.Web
             }
             if (list.Count < 1) return;
 
-            foreach (RadioButton item in list)
+            // 特殊处理数字
+            if (field.Type == typeof(Int32))
             {
-                if (item.Checked)
+                Int32 id = -1;
+                for (int i = 0; i < list.Count; i++)
                 {
-                    if (!Object.Equals(Entity[field.Name], item.Text)) Entity.SetItem(field.Name, item.Text);
+                    if (list[i].Checked)
+                    {
+                        id = i;
+                        break;
+                    }
+                }
+                if (id >= 0 && !Object.Equals(Entity[field.Name], id)) Entity.SetItem(field.Name, id);
+            }
+            else
+            {
+                foreach (RadioButton item in list)
+                {
+                    if (item.Checked)
+                    {
+                        if (!Object.Equals(Entity[field.Name], item.Text)) Entity.SetItem(field.Name, item.Text);
+                    }
                 }
             }
         }
