@@ -1208,7 +1208,7 @@ namespace NewLife.Serialization
 
                 IObjectMemberInfo member = GetMemberBeforeRead(type, value, mis, i);
                 // 没有可读成员
-                if (member == null) break;
+                if (member == null) continue;
 
                 WriteLog("ReadMember", member.Name, member.Type.Name);
 
