@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Threading;
 using NewLife.Reflection;
+using System.Text;
 
 namespace XCode.DataAccessLayer
 {
@@ -381,11 +382,98 @@ namespace XCode.DataAccessLayer
         public override string AlterColumnSQL(XField field, XField oldfield)
         {
             // SQLite的自增将会被识别为64位，而实际应用一般使用32位，不需要修改
-            if (field.DataType == typeof(Int64) && field.Identity &&
-                oldfield.DataType == typeof(Int32) && oldfield.Identity)
+            if (field.DataType == typeof(Int32) && field.Identity &&
+                oldfield.DataType == typeof(Int64) && oldfield.Identity)
                 return String.Empty;
 
-            return null;
+            return ReBuildTable(field.Table, field.Table.Fields, oldfield.Table.Fields);
+        }
+
+        public override string DropColumnSQL(XField field)
+        {
+            XTable table = field.Table;
+            List<XField> list = new List<XField>(table.Fields.ToArray());
+            if (list.Contains(field)) list.Remove(field);
+            return ReBuildTable(table, table.Fields, list);
+        }
+
+        String ReBuildTable(XTable table, List<XField> newFields, List<XField> oldFields)
+        {
+            // 通过重建表的方式修改字段
+            String tableName = table.Name;
+            String tempTableName = "Temp_" + tableName + "_" + new Random((Int32)DateTime.Now.Ticks).Next(0, 100).ToString("000");
+            tableName = FormatKeyWord(tableName);
+            tempTableName = FormatKeyWord(tempTableName);
+
+            // 每个分号后面故意加上空格，是为了让DbMetaData执行SQL时，不要按照分号加换行来拆分这个SQL语句
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("BEGIN TRANSACTION; ");
+            sb.AppendFormat("Alter Table {0} Rename To {1};", tableName, tempTableName);
+            sb.AppendLine("; ");
+            sb.Append(CreateTableSQL(table));
+            sb.AppendLine("; ");
+
+            // 如果指定了新列和旧列，则构建两个集合
+            if (newFields != null && newFields.Count > 0 && oldFields != null && oldFields.Count > 0)
+            {
+                StringBuilder sbName = new StringBuilder();
+                StringBuilder sbValue = new StringBuilder();
+                foreach (XField item in newFields)
+                {
+                    String name = item.Name;
+                    XField field = oldFields.Find(f => f.Name == name);
+                    if (field == null)
+                    {
+                        // 如果新增了不允许空的列，则处理一下默认值
+                        if (!item.Nullable)
+                        {
+                            if (item.DataType == typeof(String))
+                            {
+                                if (sbName.Length > 0) sbName.Append(", ");
+                                if (sbValue.Length > 0) sbValue.Append(", ");
+                                sbName.Append(FormatKeyWord(name));
+                                sbValue.Append("''");
+                            }
+                            else if (item.DataType == typeof(Int16) || item.DataType == typeof(Int32) || item.DataType == typeof(Int64) ||
+                                item.DataType == typeof(Single) || item.DataType == typeof(Double) || item.DataType == typeof(Decimal))
+                            {
+                                if (sbName.Length > 0) sbName.Append(", ");
+                                if (sbValue.Length > 0) sbValue.Append(", ");
+                                sbName.Append(FormatKeyWord(name));
+                                sbValue.Append("0");
+                            }
+                            else if (item.DataType == typeof(DateTime))
+                            {
+                                if (sbName.Length > 0) sbName.Append(", ");
+                                if (sbValue.Length > 0) sbValue.Append(", ");
+                                sbName.Append(FormatKeyWord(name));
+                                sbValue.Append(Database.FormatDateTime(Database.DateTimeMin));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (sbName.Length > 0) sbName.Append(", ");
+                        if (sbValue.Length > 0) sbValue.Append(", ");
+                        sbName.Append(FormatKeyWord(name));
+                        sbValue.Append(FormatKeyWord(name));
+
+                        // 处理字符串不允许空
+                        if (item.DataType == typeof(String) && !item.Nullable) sbValue.Append("+''");
+                    }
+                }
+                sb.AppendFormat("Insert Into {0}({2}) Select {3} From {1}", tableName, tempTableName, sbName.ToString(), sbValue.ToString());
+            }
+            else
+            {
+                sb.AppendFormat("Insert Into {0} Select * From {1}", tableName, tempTableName);
+            }
+            sb.AppendLine("; ");
+            sb.AppendFormat("Drop Table {0}", tempTableName);
+            sb.AppendLine("; ");
+            sb.Append("COMMIT;");
+
+            return sb.ToString();
         }
         #endregion
 
