@@ -451,6 +451,12 @@ namespace NewLife.Xml
                 if (SkipEmpty()) continue;
 
                 Reader.ReadStartElement();
+
+                if (!SkipEmpty())
+                {
+                    Reader.Read();
+                }
+
                 if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
             }
 
