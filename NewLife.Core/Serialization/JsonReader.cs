@@ -91,6 +91,64 @@ namespace NewLife.Serialization
         #endregion
 
         #region 读取json的原子操作
+        #region 原子元素类型分类
+        /// <summary>
+        /// 成员值类型
+        /// </summary>
+        public static readonly AtomElementType[] MEMBERVALUE_TYPES = { AtomElementType.TRUE, AtomElementType.FALSE,
+                                                                         AtomElementType.NUMBER,AtomElementType.NUMBER_EXP,
+                                                                         AtomElementType.FLOAT,AtomElementType.FLOAT_EXP,
+                                                                         AtomElementType.STRING,AtomElementType.NULL, 
+                                                                         //对象类型以{开始,数组类型以[开始
+                                                                         AtomElementType.CURLY_OPEN,AtomElementType.SQUARED_OPEN};
+        /// <summary>
+        /// 数字类型 包括整型和浮点型
+        /// </summary>
+        public static readonly AtomElementType[] NUMBER_TYPES = { AtomElementType.NUMBER, AtomElementType.NUMBER_EXP,
+                                                                    AtomElementType.FLOAT, AtomElementType.FLOAT_EXP };
+        /// <summary>
+        /// 整型类型
+        /// </summary>
+        public static readonly AtomElementType[] INTEGER_TYPES = { AtomElementType.NUMBER, AtomElementType.NUMBER_EXP };
+
+        /// <summary>
+        /// 布尔型
+        /// </summary>
+        public static readonly AtomElementType[] BOOLEAN_TYPES = { AtomElementType.TRUE, AtomElementType.FALSE };
+        #endregion
+        /// <summary>
+        /// 断言读取下一个原子元素,返回实际读到的原子元素类型,一般用于断言{}[]:,
+        /// 
+        /// 要得到具体读取到的值应使用另外一个重载
+        /// </summary>
+        /// <param name="msg">断言失败时的附加异常信息</param>
+        /// <param name="expected">期望的原子元素类型</param>
+        /// <exception cref="JsonReaderAssertException">如果断言失败</exception>
+        /// <returns></returns>
+        AtomElementType AssertReadNextAtomElement(string msg, params AtomElementType[] expected)
+        {
+            string s;
+            return AssertReadNextAtomElement(msg, out s, expected);
+        }
+        /// <summary>
+        /// 断言读取下一个原子元素,返回实际读到的原子元素类型
+        /// 
+        /// </summary>
+        /// <param name="msg">断言失败时的附加异常信息</param>
+        /// <param name="str">实际读到的内容,字面值是直接的字符串,字符串类型也是实际的字符串(不包括字符串头尾的双引号)</param>
+        /// <param name="expected">期望的原子元素类型</param>
+        /// <exception cref="JsonReaderAssertException">如果断言失败</exception>
+        /// <returns></returns>
+        AtomElementType AssertReadNextAtomElement(string msg, out string str, params AtomElementType[] expected)
+        {
+            AtomElementType t = ReadNextAtomElement(out str);
+            if (Array.IndexOf(expected, t) == -1)
+            {
+                throw new JsonReaderAssertException(line, column, expected, t, msg);
+            }
+            return t;
+        }
+
         /// <summary>
         /// 读取下一个原子元素,非{} []这类复合元素
         /// </summary>
@@ -362,20 +420,45 @@ namespace NewLife.Serialization
 
         #region 读取对象
 
-        public override bool ReadCustomObject(Type type, ref object value, ReadObjectCallback callback)
-        {
-            // TODO 待实现 将读取流位置移动到{之后
-            return base.ReadCustomObject(type, ref value, callback);
-        }
         protected override bool OnReadObject(Type type, ref object value, ReadObjectCallback callback)
         {
-            // TODO 根据请求的类型和读取到的内容分发处理读取到的数据
-
-
-
             return base.OnReadObject(type, ref value, callback);
         }
+        public override bool ReadCustomObject(Type type, ref object value, ReadObjectCallback callback)
+        {
+            AssertReadNextAtomElement("期望对象开始", AtomElementType.CURLY_OPEN);
+            bool ret = base.ReadCustomObject(type, ref value, callback);
+            AssertReadNextAtomElement("期望对象结束", AtomElementType.CURLY_CLOSE);
+            return ret;
+        }
+        protected override IObjectMemberInfo GetMemberBeforeRead(Type type, object value, IObjectMemberInfo[] members, int index)
+        {
+            IObjectMemberInfo ret = null;
+            AtomElementType atype;
+            string name;
+            while (true)
+            {
+                atype = AssertReadNextAtomElement("期望成员名称", out name, AtomElementType.COMMA, AtomElementType.STRING);
+                if (atype == AtomElementType.COMMA)
+                {
+                    atype = AssertReadNextAtomElement("期望成员名称", out name, AtomElementType.STRING);
+                }
+                ret = GetMemberByName(members, name);
+                if (ret != null)
+                {
+                    break;
+                }
+                //SkipMemberValue(); // TODO 考虑如何简单实现跳过成员值
+            }
+            return ret;
+        }
+        protected override bool OnReadMember(Type type, ref object value, IObjectMemberInfo member, int index, ReadObjectCallback callback)
+        {
+            // TODO 待实现
+            return base.OnReadMember(type, ref value, member, index, callback);
+        }
         #endregion
+
         /// <summary>
         /// 原子元素类型
         /// </summary>
@@ -460,17 +543,89 @@ namespace NewLife.Serialization
                 this.Column = column;
             }
 
-            public long Line { get; private set; }
+            public long Line { get; protected set; }
 
-            public long Column { get; private set; }
+            public long Column { get; protected set; }
 
             public override string Message
             {
                 get
                 {
-                    return string.Format("在解析第{0}行,{1}字符时发生了异常:{2}", Line, Column, base.Message);
+                    return string.Format("在解析行{0}:字符{1}时发生了异常:{2}", Line, Column, base.Message);
                 }
             }
         }
+        /// <summary>
+        /// json reader断言异常,属于解析异常的一部分,主要是提供的数据不符合约定
+        /// </summary>
+        public class JsonReaderAssertException : JsonReaderParseException
+        {
+            private string expectedMessage;
+            public string MessageInfo { get; protected set; }
+            public AtomElementType[] Expected { get; protected set; }
+            public AtomElementType Actual { get; protected set; }
+
+            public JsonReaderAssertException(long line, long column, AtomElementType[] expected, AtomElementType actual, string messageInfo)
+                : base(line, column, null)
+            {
+                this.Expected = expected;
+                this.expectedMessage = string.Join(",", Array.ConvertAll<AtomElementType, string>(expected, e => GetAtomElementTypeMessageString(e)));
+                this.Actual = actual;
+                this.MessageInfo = messageInfo;
+            }
+            public override string Message
+            {
+                get
+                {
+                    return string.Format("在行{0},字符{1}期望是{2} 实际是{3} 额外信息:{4}", Line, Column,
+                        expectedMessage,
+                        GetAtomElementTypeMessageString(Actual),
+                        MessageInfo
+                        );
+                }
+            }
+            static string GetAtomElementTypeMessageString(AtomElementType t)
+            {
+                switch (t)
+                {
+                    case AtomElementType.NONE:
+                        return "未知";
+                    case AtomElementType.CURLY_OPEN:
+                        return "{";
+                    case AtomElementType.CURLY_CLOSE:
+                        return "}";
+                    case AtomElementType.SQUARED_OPEN:
+                        return "[";
+                    case AtomElementType.SQUARED_CLOSE:
+                        return "]";
+                    case AtomElementType.COLON:
+                        return ":";
+                    case AtomElementType.COMMA:
+                        return ",";
+                    case AtomElementType.STRING:
+                        return "字符串";
+                    case AtomElementType.LITERAL:
+                        return "字面值";
+                    case AtomElementType.TRUE:
+                        return "true";
+                    case AtomElementType.FALSE:
+                        return "false";
+                    case AtomElementType.NULL:
+                        return "null";
+                    case AtomElementType.NUMBER:
+                        return "数字";
+                    case AtomElementType.NUMBER_EXP:
+                        return "数字(科学计数法)";
+                    case AtomElementType.FLOAT:
+                        return "浮点数";
+                    case AtomElementType.FLOAT_EXP:
+                        return "浮点数(科学计数法)";
+                    default:
+                        goto case AtomElementType.NONE;
+                }
+
+            }
+        }
+
     }
 }
