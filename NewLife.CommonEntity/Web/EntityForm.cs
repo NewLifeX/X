@@ -134,6 +134,24 @@ namespace NewLife.CommonEntity.Web
 
         #region 事件
         /// <summary>
+        /// 已重载。设置控件必填项
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnInitComplete(EventArgs e)
+        {
+            base.OnInitComplete(e);
+
+            foreach (FieldItem field in Entity<TEntity>.Meta.Fields)
+            {
+                Control control = Page.FindControl(FormItemPrefix + field.Name);
+                if (control == null) continue;
+
+                // 必填项
+                if (!field.IsNullable) SetNotAllowNull(field, control, true);
+            }
+        }
+
+        /// <summary>
         /// 已重载。
         /// </summary>
         /// <param name="e"></param>
@@ -234,11 +252,14 @@ namespace NewLife.CommonEntity.Web
                 if (String.IsNullOrEmpty(wc.ToolTip))
                 {
                     String des = String.IsNullOrEmpty(field.DisplayName) ? field.Name : field.DisplayName;
-                    wc.ToolTip = String.Format("请填写{0}！", des);
+                    if (field.IsNullable)
+                        wc.ToolTip = String.Format("请填写{0}！", des);
+                    else
+                        wc.ToolTip = String.Format("必须填写{0}！", des);
                 }
 
-                // 必填项
-                if (!field.IsNullable) SetNotAllowNull(field, control, canSave);
+                //// 必填项
+                //if (!field.IsNullable) SetNotAllowNull(field, control, canSave);
 
                 // 设置只读
                 if (wc is TextBox)
@@ -381,7 +402,7 @@ namespace NewLife.CommonEntity.Web
             if (field.IsNullable) return;
 
             LiteralControl lc = new LiteralControl();
-            lc.Text = "<font colore='red'>*</font>";
+            lc.Text = "<font style='color:#FF0000;font-size:16pt;'> *</font>";
 
             Int32 p = control.Parent.Controls.IndexOf(control);
             // 有时候可能无法添加，但是不影响使用，应该屏蔽异常
