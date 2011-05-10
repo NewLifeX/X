@@ -136,7 +136,7 @@ namespace NewLife.Serialization
             switch (Settings.JsDateTimeFormat)
             {
                 case JsDateTimeFormats.ISO8601:
-                    WriteLiteral("\"" + value.ToString("yyyy-MM-ddTHH:mm:ssZ") + "\"");
+                    WriteLiteral("\"" + value.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") + "\"");
                     break;
                 case JsDateTimeFormats.DotnetDateTick:
                     WriteLiteral(string.Format("\"\\/Date({0})\\/\"", (long)(value - Settings.BaseDateTime).TotalMilliseconds));
@@ -438,15 +438,15 @@ namespace NewLife.Serialization
             WriteLine();
             if (value != null && writeValueType == value) //写入明确的类型
             {
-                writeValueType = null;
                 string fullname = value.GetType().FullName;
                 Depth++;
                 WriteLog("WriteType", "__type", fullname);
-                WriteLiteral(string.Format("\"__type\":\"{0}\",", JavascriptStringEncode(fullname, this.Settings.JsEncodeUnicode)));
+                WriteLiteral(string.Format("\"__type\":\"{0}\"", JavascriptStringEncode(fullname, this.Settings.JsEncodeUnicode)));
+                //后续的逗号和换行符由WriteCustomObject中OnWriteMember输出,并将writeValueType置为null
                 Depth--;
-                WriteLine();
             }
             Boolean rs = base.WriteCustomObject(value, type, callback);
+            writeValueType = null;
             WriteLine();
             Writer.Write("}");
 
@@ -464,8 +464,9 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected override bool OnWriteMember(object value, Type memberType, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
         {
-            if (index > 0)
+            if (index > 0 || writeValueType != null)
             {
+                writeValueType = null;
                 Writer.Write(",");
                 WriteLine();
             }
