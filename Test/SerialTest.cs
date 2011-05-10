@@ -10,6 +10,9 @@ using NewLife.CommonEntity;
 using NewLife.Log;
 using NewLife.Serialization;
 using NewLife.Xml;
+using System.Text;
+using System.IO;
+using System.Data;
 
 namespace Test
 {
@@ -127,24 +130,28 @@ namespace Test
             Byte[] buffer = writer.ToArray();
             //Console.WriteLine(BitConverter.ToString(buffer));
             Console.WriteLine("写入完成！");
-
+            String str = Encoding.UTF8.GetString(buffer);
+            TraceStream ts = new TraceStream();
+            buffer = Encoding.UTF8.GetBytes(str);
+            ts.Write(buffer, 0, buffer.Length);
+            writer.Stream = ts;
             TReader reader = GetReader<TWriter, TReader>(writer);
 
             Object obj = null;
             reader.ReadObject(typeof(Admin), ref obj, null);
             Administrator admin = obj as Admin;
             //Console.WriteLine(admin != null);
-            if (admin != null)
-            {
-                Console.WriteLine("读取完成！");
+            //if (admin != null)
+            //{
+            //    Console.WriteLine("读取完成！");
 
-                TWriter writer2 = GetWriter<TWriter>();
-                writer2.Settings = reader.Settings;
-                writer2.WriteObject(admin, null, null);
+            //    TWriter writer2 = GetWriter<TWriter>();
+            //    writer2.Settings = reader.Settings;
+            //    writer2.WriteObject(admin, null, null);
 
-                Byte[] buffer2 = writer2.ToArray();
-                Console.WriteLine("校验结果：{0}", CompareByteArray(buffer, buffer2));
-            }
+            //    Byte[] buffer2 = writer2.ToArray();
+            //    Console.WriteLine("校验结果：{0}", CompareByteArray(buffer, buffer2));
+            //}
         }
 
         static T GetWriter<T>() where T : IWriter, new()
@@ -212,9 +219,9 @@ namespace Test
             entity.DP2 = dp2;
             entity.DP3 = dp;
 
-            entity.DPS = new Department[] { dp, dp2, dp };
-            entity.DPS2 = new Department[][] { new Department[] { dp, dp2, dp }, new Department[] { dp2, dp2, dp } };
-            entity.DPS3 = new Department[2, 2] { { dp, dp2 }, { dp2, dp } };
+            entity.DPS = new Department[] { dp, dp2,dp};
+            //entity.DPS2 = new Department[][] { new Department[] { dp, dp2, dp }, new Department[] { dp2, dp2, dp } };
+            //entity.DPS3 = new Department[2, 2] { { dp, dp2 }, { dp2, dp } };
 
             entity.LPS = new List<Department>(entity.DPS);
 
@@ -223,6 +230,23 @@ namespace Test
             entity.PPS.Add("bb", dp2);
 
             entity.SPS = new SortedList<string, Department>(entity.PPS);
+
+
+            DataTable dt = new DataTable("TestTable");
+            DataColumn dc1 = new DataColumn("Name", typeof(String));
+            DataColumn dc2 = new DataColumn("Grade", typeof(Int32));
+
+            dt.Columns.AddRange(new DataColumn[] { dc1, dc2 });
+
+            DataRow dr1 = dt.NewRow();
+            dr1[0] = "hehe"; dr1[1] = 1111;
+
+            DataRow dr2 = dt.NewRow();
+            dr2[0] = "呵呵"; dr2[1] = 2222;
+
+            dt.Rows.Add(dr1); dt.Rows.Add(dr2);
+            dt.AcceptChanges();
+            entity.Table1 = dt;
 
             return entity;
         }
@@ -246,7 +270,8 @@ namespace Test
 
         [Serializable]
         class Admin : Administrator
-        {
+        {        
+
             private float _float1;
             /// <summary>单精度</summary>
             public float float1
@@ -397,6 +422,14 @@ namespace Test
             {
                 get { return _Obj; }
                 set { _Obj = value; }
+            }
+
+            private DataTable _Table1;
+            /// <summary>属性说明</summary>
+            public DataTable Table1
+            {
+                get { return _Table1; }
+                set { _Table1 = value; }
             }
         }
 
