@@ -407,7 +407,11 @@ namespace NewLife.Xml
                     base.WriteSerializable(value, type, callback);
                     return true;
                 }
+                // 这里必须额外写一对标记，否则读取的时候只能读取得到模式而得不到数据
+                Writer.WriteStartElement("Data");
                 xml.WriteXml(Writer);
+                Writer.WriteEndElement();
+
                 return true;
             }
             catch
