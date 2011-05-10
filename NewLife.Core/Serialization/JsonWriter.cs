@@ -386,14 +386,23 @@ namespace NewLife.Serialization
             }
             WriteLog("WriteDictionaryEntry", "Key:", value.Key);
             Write(value.Key.ToString());//json标准要求key必须是字符串
-            Writer.Write(": ");
+            Writer.Write(":");
             WriteLog("WriteDictionaryEntry", "Value");
-            bool ret = WriteObject(value.Value, null, callback);
+            if (value.Value != null && (valueType == null || valueType == typeof(object))) //无法取得字典项的值类型
+            {
+                writeValueType = value.Value; //valueType会在WriteObject内部被重新赋值,所以不做额外处理
+            }
+            bool ret = WriteObject(value.Value, valueType, callback);
+            writeValueType = null;
             return ret;
         }
         #endregion
 
         #region 写入对象
+        /// <summary>
+        /// 是否需要写入值类型信息的标志,为null时表示不需要,非null时并且等于待写入的值时写入值类型
+        /// </summary>
+        object writeValueType = null;
         /// <summary>
         /// 写入对象。具体读写器可以重载该方法以修改写入对象前后的行为。
         /// </summary>
@@ -408,7 +417,6 @@ namespace NewLife.Serialization
                 WriteLiteral("null");
                 return true;
             }
-
             return base.OnWriteObject(value, type, callback);
         }
 
@@ -423,6 +431,16 @@ namespace NewLife.Serialization
         {
             Writer.Write("{");
             WriteLine();
+            if (value != null && writeValueType == value) //写入明确的类型
+            {
+                writeValueType = null;
+                string fullname = value.GetType().FullName;
+                Depth++;
+                WriteLog("WriteType", "__type", fullname);
+                WriteLiteral(string.Format("\"__type\":\"{0}\",", JavascriptStringEncode(fullname, this.Settings.JsEncodeUnicode)));
+                Depth--;
+                WriteLine();
+            }
             Boolean rs = base.WriteCustomObject(value, type, callback);
             WriteLine();
             Writer.Write("}");
@@ -434,12 +452,12 @@ namespace NewLife.Serialization
         /// 写入成员
         /// </summary>
         /// <param name="value">要写入的对象</param>
-        /// <param name="type">要写入的对象类型</param>
-        /// <param name="member">成员</param>
+        /// <param name="memberType">要写入的成员类型</param>
+        /// <param name="member">要写入的成员信息,可以通过[value]取得成员值</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected override bool OnWriteMember(object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
+        protected override bool OnWriteMember(object value, Type memberType, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
         {
             if (index > 0)
             {
@@ -449,7 +467,15 @@ namespace NewLife.Serialization
 
             Writer.Write("\"" + JsonStringEncode(member.Name) + "\": ");
 
-            return base.OnWriteMember(value, type, member, index, callback);
+            object obj = member[value];
+            if (obj != null && (memberType == null || memberType == typeof(object)))
+            {
+                memberType = obj.GetType();
+                writeValueType = obj;
+            }
+            bool ret = base.OnWriteMember(value, memberType, member, index, callback);
+            writeValueType = null;
+            return ret;
         }
         #endregion
 
