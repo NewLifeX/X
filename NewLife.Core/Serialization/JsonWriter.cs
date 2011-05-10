@@ -356,8 +356,13 @@ namespace NewLife.Serialization
             {
                 Writer.Write(",");
             }
-
+            if (value != null && (type == null || type == typeof(object)))
+            {
+                type = value.GetType(); //避免base.OnWriteItem中写入value.GetType()
+                writeValueType = value;
+            }
             bool ret = base.OnWriteItem(value, type, index, callback);
+            writeValueType = null;
             return ret;
         }
         #endregion
@@ -470,7 +475,7 @@ namespace NewLife.Serialization
             object obj = member[value];
             if (obj != null && (memberType == null || memberType == typeof(object)))
             {
-                memberType = obj.GetType();
+                memberType = obj.GetType(); //避免base.OnWriteMember中写入obj.GetType()
                 writeValueType = obj;
             }
             bool ret = base.OnWriteMember(value, memberType, member, index, callback);
