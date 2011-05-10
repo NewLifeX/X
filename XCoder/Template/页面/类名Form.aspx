@@ -21,7 +21,7 @@
                     }else if(Field.Length>300 || Field.Length<0){
                 #><asp:TextBox ID="<#=frmName#>" runat="server" TextMode="MultiLine" Width="350px" Height="80px"></asp:TextBox><#
                     }else{
-                #><asp:TextBox ID="<#=frmName#>" runat="server" Width="300px"></asp:TextBox><#
+                #><asp:TextBox ID="<#=frmName#>" runat="server" Width="<#=Field.Length+100#>px"></asp:TextBox><#
                     }
                 }else if(code == TypeCode.Int32){
                 #><XCL:NumberBox ID="<#=frmName#>" runat="server" Width="80px"></XCL:NumberBox><#
