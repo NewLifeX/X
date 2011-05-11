@@ -6,6 +6,7 @@ using System.Xml;
 using NewLife.Serialization;
 using System.Xml.Serialization;
 using NewLife.Reflection;
+using System.Data.SqlTypes;
 
 namespace NewLife.Xml
 {
@@ -349,7 +350,8 @@ namespace NewLife.Xml
         /// <returns>是否读取成功</returns>
         protected override bool OnReadObject(Type type, ref object value, ReadObjectCallback callback)
         {
-            if (SkipEmpty()) return true;
+            //当Department的第一个节点为空时，影响读取
+            //if (SkipEmpty()) return true;
 
             if (Depth > 1) return base.OnReadObject(type, ref value, callback);
 
@@ -550,7 +552,6 @@ namespace NewLife.Xml
                 return base.ReadSerializable(type, ref value, callback);
 
             if (value == null) value = TypeX.CreateInstance(type);
-
             ((IXmlSerializable)value).ReadXml(Reader);
             return true;
         }
