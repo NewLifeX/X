@@ -58,7 +58,7 @@ namespace NewLife.CommonEntity.Web
             Byte[] buffer = new Byte[pack];
             for (int i = 0; i < maxCount; i++)
             {
-                if (Response.IsClientConnected) break;
+                if (!Response.IsClientConnected) break;
 
                 Int32 count = stream.Read(buffer, 0, buffer.Length);
                 if (count == pack)

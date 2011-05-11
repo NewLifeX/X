@@ -54,7 +54,7 @@ namespace NewLife.CommonEntity.Web
         //    return entity;
         //}
 
-        static Stream nopic = null;
+        //static Stream nopic = null;
         /// <summary>
         /// 未找到
         /// </summary>
@@ -62,13 +62,19 @@ namespace NewLife.CommonEntity.Web
         protected override void OnNotFound(HttpContext context)
         {
             //读取资源
-            if (nopic == null) nopic = Assembly.GetExecutingAssembly().GetManifestResourceStream("NewLife.CommonEntity.Web.nopic.jpg");
+            //if (nopic == null)
+            //{
+            Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("NewLife.CommonEntity.Web.nopic.jpg");
+
+            //}
 
             Attachment entity = new Attachment();
             entity.FileName = "NoPic";
             entity.ContentType = "image/jpeg";
 
-            OnResponse(context, entity, nopic, null);
+            stream = MakeThumbnail(context, stream);
+
+            OnResponse(context, entity, stream, null);
         }
 
         /// <summary>
@@ -81,6 +87,13 @@ namespace NewLife.CommonEntity.Web
         {
             Stream stream = base.GetStream(context, attachment);
 
+            stream = MakeThumbnail(context, stream);
+
+            return stream;
+        }
+
+        Stream MakeThumbnail(HttpContext context, Stream stream)
+        {
             HttpRequest Request = context.Request;
             String type = Request["Type"];
             if (String.IsNullOrEmpty(type)) type = Request["t"];
@@ -94,9 +107,8 @@ namespace NewLife.CommonEntity.Web
                 if (Int32.TryParse(Request["Height"], out n)) Height = n;
                 if (Int32.TryParse(Request["h"], out n)) Height = n;
 
-                stream = MakeThumbnail(stream, Width, Height, "Cut");
+                stream = MakeThumbnail(stream, Width, Height, null);
             }
-
             return stream;
         }
 
@@ -110,6 +122,8 @@ namespace NewLife.CommonEntity.Web
         /// <returns>缩略图</returns>
         public static Stream MakeThumbnail(Stream stream, int width, int height, string mode)
         {
+            Int64 p = stream.Position;
+
             Image originalImage = Image.FromStream(stream);
 
             int towidth = width;
@@ -120,41 +134,75 @@ namespace NewLife.CommonEntity.Web
             int ow = originalImage.Width;
             int oh = originalImage.Height;
 
+            // 是否有必要做缩略图
+            if (ow <= width && oh <= height && stream.CanSeek)
+            {
+                originalImage.Dispose();
+                stream.Position = p;
+                return stream;
+            }
+
             switch (mode)
             {
                 case "HW"://指定高宽缩放（可能变形）                
+                    towidth = width;
+                    toheight = height;
                     break;
                 case "W"://指定宽，高按比例                    
-                    toheight = originalImage.Height * width / originalImage.Width;
+                    towidth = width;
+                    toheight = towidth * oh / ow;
                     break;
                 case "H"://指定高，宽按比例
-                    towidth = originalImage.Width * height / originalImage.Height;
+                    toheight = height;
+                    towidth = toheight * ow / oh;
                     break;
                 case "Cut"://指定高宽裁减（不变形）                
-                    if ((double)originalImage.Width / (double)originalImage.Height > (double)towidth / (double)toheight)
+                    if ((double)ow / (double)oh > (double)width / (double)height)
                     {
-                        oh = originalImage.Height;
-                        ow = originalImage.Height * towidth / toheight;
+                        ow = oh * width / height;
                         y = 0;
                         x = (originalImage.Width - ow) / 2;
                     }
                     else
                     {
-                        ow = originalImage.Width;
-                        oh = originalImage.Width * height / towidth;
+                        oh = ow * height / width;
                         x = 0;
                         y = (originalImage.Height - oh) / 2;
                     }
                     break;
-                default:
+                case "MaxHW"://指定最大高宽缩放（不变形）                
+                    if ((double)ow / (double)oh > (double)width / (double)height)
+                    {
+                        // 原始宽高比大于目标宽高比，如4/3 > 1/1，则以较小的目标宽为基准
+                        towidth = width;
+                        // 高按比例
+                        toheight = towidth * oh / ow;
+                    }
+                    else
+                    {
+                        // 原始宽高比小于目标宽高比，如1/1 < 4/3，则以较小的目标高为基准
+                        toheight = height;
+                        // 宽按比例
+                        towidth = toheight * ow / oh;
+                    }
                     break;
-            }
-
-            // 是否有必要做缩略图
-            if (towidth == width && toheight == height)
-            {
-                originalImage.Dispose();
-                return stream;
+                case "Auto"://指定最大高宽缩小（不变形）                
+                default:
+                    if ((double)ow / (double)oh > (double)width / (double)height)
+                    {
+                        // 原始宽高比大于目标宽高比，如4/3 > 1/1，则以较小的目标宽为基准
+                        towidth = width < ow ? width : ow;
+                        // 高按比例
+                        toheight = towidth * oh / ow;
+                    }
+                    else
+                    {
+                        // 原始宽高比小于目标宽高比，如1/1 < 4/3，则以较小的目标高为基准
+                        toheight = height < oh ? height : oh;
+                        // 宽按比例
+                        towidth = toheight * ow / oh;
+                    }
+                    break;
             }
 
             //新建一个bmp图片
@@ -180,6 +228,7 @@ namespace NewLife.CommonEntity.Web
                 //以jpg格式保存缩略图
                 MemoryStream ms = new MemoryStream();
                 bitmap.Save(ms, ImageFormat.Jpeg);
+                ms.Position = 0;
                 return ms;
             }
             finally

@@ -99,6 +99,23 @@ namespace NewLife.CommonEntity
             return base.Insert();
         }
          * */
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override int Delete()
+        {
+            if (File.Exists(FullFilePath))
+            {
+                try
+                {
+                    File.Delete(FullFilePath);
+                }
+                catch { }
+            }
+            return base.Delete();
+        }
         #endregion
 
         #region 扩展属性
@@ -286,7 +303,7 @@ namespace NewLife.CommonEntity
         }
 
         const String AttachmentFormatKey = "NewLife.Attachment.Format";
-        const String DefaultFormat = @"yyyy\MMdd";
+        const String DefaultFormat = @"yyyy\\MMdd";
 
         /// <summary>
         /// 取得时间格式化的路径
@@ -344,12 +361,12 @@ namespace NewLife.CommonEntity
         /// <param name="category"></param>
         /// <param name="userName"></param>
         /// <returns></returns>
-        public TEntity SaveFile(FileUpload fileUpload, String category, String userName)
+        public static TEntity SaveFile(FileUpload fileUpload, String category, String userName)
         {
-            if (fileUpload.HasFile == false) return null;
+            if (!fileUpload.HasFile) return null;
+
             //使用事务保护，保存文件不成功时，回滚记录
-            //Meta.DBO.BeginTransaction();
-            Entity<TEntity>.Meta.DBO.BeginTransaction();
+            Meta.BeginTrans();
             TEntity att = new TEntity();
             try
             {
@@ -370,18 +387,15 @@ namespace NewLife.CommonEntity
                 {
                     Directory.CreateDirectory(path);
                 }
-                fileUpload.SaveAs(att.FilePath);
 
-                //Meta.DBO.Commit();
-                Entity<TEntity>.Meta.DBO.Commit();
+                Meta.Commit();
+                fileUpload.SaveAs(att.FilePath);
             }
-            catch //(Exception e)
+            catch
             {
-                //Meta.DBO.Rollback();
-                Entity<TEntity>.Meta.DBO.Rollback();
-                throw;// e;
+                Meta.Rollback();
+                throw;
             }
-            //att.Save();
 
             return att;
         }
@@ -393,9 +407,9 @@ namespace NewLife.CommonEntity
         /// <param name="category"></param>
         /// <param name="userName"></param>
         /// <returns></returns>
-        public List<TEntity> SaveFile(HttpFileCollection fileUploads, String category, String userName)
+        public static EntityList<TEntity> SaveFile(HttpFileCollection fileUploads, String category, String userName)
         {
-            List<TEntity> atts = new List<TEntity>();
+            EntityList<TEntity> atts = new EntityList<TEntity>();
             foreach (FileUpload item in fileUploads)
             {
                 try
