@@ -402,11 +402,6 @@ namespace NewLife.Xml
             try
             {
                 IXmlSerializable xml = value as IXmlSerializable;
-                if (xml == null)
-                {
-                    base.WriteSerializable(value, type, callback);
-                    return true;
-                }
                 // 这里必须额外写一对标记，否则读取的时候只能读取得到模式而得不到数据
                 Writer.WriteStartElement("Data");
                 xml.WriteXml(Writer);
