@@ -56,14 +56,21 @@ namespace NewLife.Serialization
         }
         #endregion
 
-        #region 字节
+        #region 字节/字节数组
         /// <summary>
         /// 读取字节
         /// </summary>
         /// <returns></returns>
         public override byte ReadByte()
         {
-            throw new NotImplementedException();
+            string str;
+            byte ret;
+            AssertReadNextAtomElement("期望是0-255的数字", out str, AtomElementType.NUMBER);
+            if (!Byte.TryParse(str, out ret))
+            {
+                throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.NUMBER }, AtomElementType.NUMBER, "期望是0-255的数字,而实际是:" + str);
+            }
+            return ret;
         }
 
         /// <summary>
@@ -74,6 +81,68 @@ namespace NewLife.Serialization
         public override byte[] ReadBytes(int count)
         {
             return base.ReadBytes(count);
+            // TODO 待实现
+        }
+        #endregion
+
+        #region 布尔
+        public override bool ReadBoolean()
+        {
+            switch (AssertReadNextAtomElement("期望是true或者false", AtomElementType.TRUE, AtomElementType.FALSE))
+            {
+                case AtomElementType.TRUE:
+                    return true;
+                case AtomElementType.FALSE:
+                    return false;
+                default:
+                    return false; //实际执行不到,只是因为代码编译不通过
+            }
+        }
+        #endregion
+
+        #region 时间
+        public override DateTime ReadDateTime()
+        {
+            string str;
+            AtomElementType atype = AssertReadNextAtomElement("期望是包含日期时间内容的字符串", out str, AtomElementType.STRING, AtomElementType.LITERAL);
+            DateTime dt = ParseDateTimeString(str, atype);
+            return dt;
+        }
+        /// <summary>
+        /// 解析日期时间字符串,可以处理多种日期时间格式,包括JsDateTimeFormats枚举中的格式,以及js中toGMTString()的格式
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public DateTime ParseDateTimeString(string str, AtomElementType atype)
+        {
+            DateTime ret;
+            if (str.Length > 10 && str.Length < 26)
+            // 处理System.Web.Script.Serialization.JavaScriptSerializer日期时间格式,类似 \/Date(12345678)\/
+            // 因为MinDateTime和MaxDateTime的十进制毫秒数是15位长度的字符串,最少是1位长度字符串,所以预期长度是11位到25位
+            {
+                string[] s = str.Split('(', ')');
+                long ms;
+                if (s.Length >= 3 && s[0] == @"\/Date(" && s[2] == @")\/" && long.TryParse(s[1], out ms))
+                {
+                    return Settings.BaseDateTime.AddMilliseconds(ms);
+                }
+            }
+            string[] formats = { "yyyy-MM-ddTHH:mm:ss.fffZ", //包含毫秒部分的ISO8601格式
+                                   "yyyy-MM-ddTHH:mm:ssZ", //不包含毫秒部分的ISO8601格式,和json2.js的toJSON()格式相同(ff3.5 ie8已原生实现Date.toJSON())
+                                   "ddd, dd MMM yyyy HH:mm:ss GMT", //js中toGMTString()返回的格式
+                                   "yyyy-MM-dd HH:mm:ss", //一般是测试用途的手写格式,不建议使用,下同
+                                   "yyyy-MM-dd"
+                               };
+            if (DateTime.TryParseExact(str, formats, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out ret))
+            {
+                return ret;
+            }
+            long ticks;
+            if (long.TryParse(str, out ticks)) //dotnet中的Ticks,不建议
+            {
+                return new DateTime(ticks);
+            }
+            throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.LITERAL, AtomElementType.STRING }, atype, "期望是日期时间格式的内容,实际是" + str);
         }
         #endregion
 
@@ -84,9 +153,12 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override string ReadString()
         {
-            String str = Reader.ReadLine();
-            WriteLog("ReadString", str);
-            return str;
+            string ret;
+            if (AtomElementType.NULL == AssertReadNextAtomElement("期望字符串值", out ret, AtomElementType.STRING, AtomElementType.NULL))
+            {
+                return null;
+            }
+            return ret;
         }
         #endregion
 
@@ -116,6 +188,7 @@ namespace NewLife.Serialization
         /// </summary>
         public static readonly AtomElementType[] BOOLEAN_TYPES = { AtomElementType.TRUE, AtomElementType.FALSE };
         #endregion
+
         /// <summary>
         /// 断言读取下一个原子元素,返回实际读到的原子元素类型,一般用于断言{}[]:,
         /// 
@@ -428,7 +501,7 @@ namespace NewLife.Serialization
         {
             AssertReadNextAtomElement("期望对象开始", AtomElementType.CURLY_OPEN);
             bool ret = base.ReadCustomObject(type, ref value, callback);
-            AssertReadNextAtomElement("期望对象结束", AtomElementType.CURLY_CLOSE);
+            // TODO json成员比数量比类成员数量多(ReadCustomObject中的循环提前结束了)或者少(ReadCustomObject中的循环提前读取到}符号了) 正好(未读到} 正好下一个是})
             return ret;
         }
         protected override IObjectMemberInfo GetMemberBeforeRead(Type type, object value, IObjectMemberInfo[] members, int index)
@@ -438,24 +511,59 @@ namespace NewLife.Serialization
             string name;
             while (true)
             {
-                atype = AssertReadNextAtomElement("期望成员名称", out name, AtomElementType.COMMA, AtomElementType.STRING);
+                atype = AssertReadNextAtomElement("期望成员名称或者逗号分割符", out name, AtomElementType.COMMA, AtomElementType.STRING, AtomElementType.CURLY_CLOSE);
                 if (atype == AtomElementType.COMMA)
                 {
                     atype = AssertReadNextAtomElement("期望成员名称", out name, AtomElementType.STRING);
                 }
+                else if (atype == AtomElementType.CURLY_CLOSE)
+                {
+                    return null; //提前结束
+                }
+                AssertReadNextAtomElement("期望成员名值分割符:冒号", AtomElementType.COLON);
                 ret = GetMemberByName(members, name);
                 if (ret != null)
                 {
                     break;
                 }
-                //SkipMemberValue(); // TODO 考虑如何简单实现跳过成员值
+                SkipNextValue();
             }
             return ret;
         }
         protected override bool OnReadMember(Type type, ref object value, IObjectMemberInfo member, int index, ReadObjectCallback callback)
         {
-            // TODO 待实现
             return base.OnReadMember(type, ref value, member, index, callback);
+        }
+        /// <summary>
+        /// 跳过下一个值,可以是跳过对象声明(以及对象成员名称 成员值声明),数组声明,以及基础类型
+        /// </summary>
+        void SkipNextValue()
+        {
+            int skipDepth = 0;
+            string s;
+            do
+            {
+                switch (ReadNextAtomElement(out s))
+                {
+                    case AtomElementType.NONE:
+                        skipDepth = 0;//直接跳出
+                        break;
+                    case AtomElementType.CURLY_OPEN:
+                        skipDepth++;
+                        break;
+                    case AtomElementType.CURLY_CLOSE:
+                        skipDepth--;
+                        break;
+                    case AtomElementType.SQUARED_OPEN:
+                        skipDepth++;
+                        break;
+                    case AtomElementType.SQUARED_CLOSE:
+                        skipDepth--;
+                        break;
+                    default:
+                        break;
+                }
+            } while (skipDepth > 0);
         }
         #endregion
 

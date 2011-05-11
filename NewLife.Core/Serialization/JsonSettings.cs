@@ -79,7 +79,7 @@ namespace NewLife.Serialization
     public enum JsDateTimeFormats
     {
         /// <summary>
-        /// ISO 8601格式 类似"2011-05-05T05:12:19Z"格式的UTC时间
+        /// ISO 8601格式 类似"2011-05-05T05:12:19.123Z"格式的UTC时间
         /// 
         /// 在http://goo.gl/RZoaz中有js端实现,并且在ie8(ie8模式) ff3.5之后都内建提供toJSON()实现
         /// 

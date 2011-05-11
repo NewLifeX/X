@@ -136,7 +136,7 @@ namespace NewLife.Serialization
             switch (Settings.JsDateTimeFormat)
             {
                 case JsDateTimeFormats.ISO8601:
-                    WriteLiteral("\"" + value.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") + "\"");
+                    WriteLiteral("\"" + value.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture) + "\"");
                     break;
                 case JsDateTimeFormats.DotnetDateTick:
                     WriteLiteral(string.Format("\"\\/Date({0})\\/\"", (long)(value - Settings.BaseDateTime).TotalMilliseconds));
