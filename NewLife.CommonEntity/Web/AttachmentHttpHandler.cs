@@ -116,6 +116,7 @@ namespace NewLife.CommonEntity.Web
             attachment.Increment(null);
 
             Stream stream = GetStream(context, attachment);
+            if (stream.CanSeek && stream.Position >= stream.Length) stream.Position = 0;
             try
             {
                 OnResponse(context, attachment, stream, null);
@@ -178,6 +179,7 @@ namespace NewLife.CommonEntity.Web
             if (String.IsNullOrEmpty(dispositionMode)) dispositionMode = "inline"; // attachment/inline
             Response.AddHeader("Content-Disposition", dispositionMode + "; filename=" + HttpUtility.UrlEncode(attachment.FileName, Encoding.UTF8));
 
+            if (stream.CanSeek && stream.Position >= stream.Length) stream.Position = 0;
             Byte[] buffer = new Byte[pack];
             while (true)
             {

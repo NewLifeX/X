@@ -334,7 +334,12 @@ namespace NewLife.CommonEntity
                 file = String.Format("{0}_{1}{2}", Path.GetFileNameWithoutExtension(FileName), n++, Path.GetExtension(FileName));
             }
 
-            FilePath = Path.Combine(path, file);
+            file = Path.Combine(path, file);
+            // 减去类别路径
+            file = file.Substring(root.Length);
+            if (file.StartsWith(@"\")) file = file.Substring(1);
+            if (file.StartsWith(@"/")) file = file.Substring(1);
+            FilePath = file;
         }
         #endregion
 
@@ -405,14 +410,14 @@ namespace NewLife.CommonEntity
                 //att.Save();
                 att.GetFilePath();
                 att.Save();
-                String path = att.FilePath.Substring(0, att.FilePath.Length - att.FileName.Length);
-                if (!Directory.Exists(path))
-                {
-                    Directory.CreateDirectory(path);
-                }
+
 
                 Meta.Commit();
-                file.SaveAs(att.FilePath);
+
+                String path = Path.GetDirectoryName(att.FullFilePath);
+                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+
+                file.SaveAs(att.FullFilePath);
 
                 return att;
             }
