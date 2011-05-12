@@ -176,7 +176,6 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展查询
-
         /// <summary>
         /// 根据分类找附件
         /// </summary>
@@ -341,18 +340,28 @@ namespace NewLife.CommonEntity
 
         #region 上传
         /// <summary>
-        /// 保存文件
+        /// 图片分类
         /// </summary>
-        public void SaveFile()
-        {
-            //Request.Files
+        public static readonly String Category_Image = "Image";
 
-            // 1，根据文件上传控件创建附件实例
-            // 2，使用读取基本信息到附件实例
-            // 3，保存附件信息，取得ID
-            // 4，调用GetFilePath取得文件存放路径
-            // 5，保存文件并且再次保存附件信息
-        }
+        /// <summary>
+        /// 文件分类
+        /// </summary>
+        public static readonly String Category_File = "File";
+
+        ///// <summary>
+        ///// 保存文件
+        ///// </summary>
+        //public void SaveFile()
+        //{
+        //    //Request.Files
+
+        //    // 1，根据文件上传控件创建附件实例
+        //    // 2，使用读取基本信息到附件实例
+        //    // 3，保存附件信息，取得ID
+        //    // 4，调用GetFilePath取得文件存放路径
+        //    // 5，保存文件并且再次保存附件信息
+        //}
 
         /// <summary>
         /// 保存上传文件
@@ -365,18 +374,32 @@ namespace NewLife.CommonEntity
         {
             if (!fileUpload.HasFile) return null;
 
+            return SaveFile(fileUpload.PostedFile, category, userName);
+        }
+
+        /// <summary>
+        /// 保存上传文件
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="category"></param>
+        /// <param name="userName"></param>
+        /// <returns></returns>
+        public static TEntity SaveFile(HttpPostedFile file, String category, String userName)
+        {
+            if (file == null) return null;
+
             //使用事务保护，保存文件不成功时，回滚记录
             Meta.BeginTrans();
-            TEntity att = new TEntity();
             try
             {
-                att.FileName = fileUpload.FileName;
-                att.Size = fileUpload.PostedFile.ContentLength;// / 1024;
-                att.Extension = Path.GetExtension(fileUpload.FileName);
+                TEntity att = new TEntity();
+                att.FileName = file.FileName;
+                att.Size = file.ContentLength;// / 1024;
+                att.Extension = Path.GetExtension(file.FileName);
                 att.Category = category;
                 att.IsEnable = true;
                 //att.FilePath = 
-                att.ContentType = fileUpload.PostedFile.ContentType;
+                att.ContentType = file.ContentType;
                 att.UploadTime = DateTime.Now;
                 att.UserName = userName;
                 //att.Save();
@@ -389,15 +412,15 @@ namespace NewLife.CommonEntity
                 }
 
                 Meta.Commit();
-                fileUpload.SaveAs(att.FilePath);
+                file.SaveAs(att.FilePath);
+
+                return att;
             }
             catch
             {
                 Meta.Rollback();
                 throw;
             }
-
-            return att;
         }
 
         /// <summary>
