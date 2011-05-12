@@ -253,7 +253,9 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         if (dal == null) return;
 
         // 总行数
-        Int32 count = dal.SelectCount(sql, "");
+        SelectBuilder sb = new SelectBuilder();
+        sb.Parse(sql);
+        Int32 count = dal.SelectCount(sb, null);
         DataPager1.TotalRowCount = count;
         lbResult.Text = String.Format("总记录数：{0}", count);
 

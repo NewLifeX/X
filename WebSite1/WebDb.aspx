@@ -51,7 +51,7 @@
                 Visible='<%# !(Boolean)Eval("IsLastPage") %>'>尾页</asp:LinkButton>
             转到第
             <input type="textbox" id="txtNewPageIndex" style="width: 40px;" value='<%# Eval("PageIndex2") %>' />页
-            <input type="button" id="btnGo" value="GO" onclick="javascript:__doPostBack('<%# ((DataPager)Container.NamingContainer).UniqueID %>','Page$'+document.getElementById('txtNewPageIndex').value)" />
+            <input type="button" id="btnGo" value="GO" onclick="javascript:__doPostBack('<%# ((XControl.DataPager)Container.NamingContainer).UniqueID %>','Page$'+document.getElementById('txtNewPageIndex').value)" />
         </PagerTemplate>
     </XCL:DataPager>
     <asp:Literal ID="RunTime" runat="server"></asp:Literal>
