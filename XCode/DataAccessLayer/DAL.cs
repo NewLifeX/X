@@ -494,6 +494,23 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>
+        /// 执行SQL查询，返回总记录数
+        /// </summary>
+        /// <param name="sb">查询生成器</param>
+        /// <param name="tableNames">所依赖的表的表名</param>
+        /// <returns></returns>
+        public Int32 SelectCount(SelectBuilder sb, String[] tableNames)
+        {
+            String sql = sb.ToString();
+            String cacheKey = sql + "_SelectCount" + "_" + ConnName;
+            if (EnableCache && XCache.IntContain(cacheKey)) return XCache.IntItem(cacheKey);
+            Interlocked.Increment(ref _QueryTimes);
+            Int32 rs = Session.QueryCount(sb);
+            if (EnableCache) XCache.Add(cacheKey, rs, tableNames);
+            return rs;
+        }
+
+        /// <summary>
         /// 执行SQL语句，返回受影响的行数
         /// </summary>
         /// <param name="sql">SQL语句</param>

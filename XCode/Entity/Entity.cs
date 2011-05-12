@@ -410,7 +410,8 @@ namespace XCode
                     return Insert();
             }
 
-            Int32 count = Meta.QueryCount(SQL(this, DataObjectMethodType.Select));
+            //Int32 count = Meta.QueryCount(SQL(this, DataObjectMethodType.Select));
+            Int32 count = FindCount(DefaultCondition(this), null, null, 0, 0);
 
             if (count > 0)
                 return Update();
@@ -846,8 +847,16 @@ namespace XCode
             //Int32 count = Meta.Count;
             //if (count >= 1000) return count;
 
-            return Meta.QueryCount(SQL(null, DataObjectMethodType.Fill));
+            //return Meta.QueryCount(SQL(null, DataObjectMethodType.Fill));
             //return Meta.Count;
+
+            //SelectBuilder sb = new SelectBuilder(Meta.DbType);
+            //sb.Column = "Count(*)";
+            //sb.Table = Meta.FormatName(Meta.TableName);
+
+            //return Meta.QueryCount(sb);
+
+            return FindCount(null, null, null, 0, 0);
         }
 
         /// <summary>
@@ -862,11 +871,18 @@ namespace XCode
         [WebMethod(Description = "查询并返回总记录数")]
         public static Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
-            //如果不带Where字句，直接调用FindCount，可以借助快速算法取得总记录数
-            if (String.IsNullOrEmpty(whereClause)) return FindCount();
+            ////如果不带Where字句，直接调用FindCount，可以借助快速算法取得总记录数
+            //if (String.IsNullOrEmpty(whereClause)) return FindCount();
 
-            String sql = PageSplitSQL(whereClause, null, selects, 0, 0);
-            return Meta.QueryCount(sql);
+            //String sql = PageSplitSQL(whereClause, null, selects, 0, 0);
+            //return Meta.QueryCount(sql);
+
+            SelectBuilder sb = new SelectBuilder(Meta.DbType);
+            //sb.Column = "Count(*)";
+            sb.Table = Meta.FormatName(Meta.TableName);
+            sb.Where = whereClause;
+
+            return Meta.QueryCount(sb);
         }
 
         /// <summary>

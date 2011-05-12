@@ -13,8 +13,6 @@ namespace XCode.DataAccessLayer
     public class SelectBuilder
     {
         #region 属性
-        //private const String SelectRegex = @"^\s*Select\s+(?<选择列>(?:(?! From )[\w\W])+?)\s+From\s+(?<数据表>(?:(?! Where | Group\s+By | Having | Order\s+By )[\w\W])+?)(?:\s+Where\s+(?<条件>(?:(?! Group\s+By | Having | Order\s+By )[\w\W])+?))?(?:\s+Group\s+By\s+(?<分组>(?:(?! Having | Order\s+By )[\w\W])+?))?(?:\s+Having\s+(?<分组条件>(?:(?! Having | Order\s+By )[\w\W])+?))?(?:\s+Order\s+By\s+(?<排序>[\w\W]+?))?\s*$";
-
         private DatabaseType _DbType = DatabaseType.Access;
         /// <summary>
         /// 数据库类型
@@ -113,6 +111,9 @@ namespace XCode.DataAccessLayer
             DbType = dbType;
         }
 
+        //todo 使用正则平衡组分析sql
+        //todo 使用静态创建器，优化对象的创建
+
         ///// <summary>
         ///// 通过分析一条SQL语句来初始化一个实例
         ///// </summary>
@@ -148,36 +149,45 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 导入SQL
-        ///// <summary>
-        ///// 分析一条SQL
-        ///// </summary>
-        ///// <param name="sql"></param>
-        ///// <returns></returns>
-        //private Boolean Parse(String sql)
-        //{
-        //    sql = TranSql(sql);
+        private const String SelectRegex = @"(?isx-m)
+^
+\bSelect\s+(?<选择列>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!)))
+\s+From\s+(?<数据表>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!)))
+(?:\s+Where\s+(?<条件>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!))))?
+(?:\s+Group\s+By\s+(?<分组>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!))))?
+(?:\s+Having\s+(?<分组条件>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!))))?
+(?:\s+Order\s+By\s+(?<排序>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!))))?
+$";
+        static Regex regexSelect = new Regex(SelectRegex, RegexOptions.Compiled);
 
-        //    Regex reg = new Regex(SelectRegex, RegexOptions.IgnoreCase);
-        //    MatchCollection ms = reg.Matches(sql);
-        //    if (ms != null && ms.Count > 0 && ms[0].Success)
-        //    {
-        //        Match m = ms[0];
-        //        Column = RevTranSql(m.Groups["选择列"].Value);
-        //        Table = RevTranSql(m.Groups["数据表"].Value);
-        //        Where = RevTranSql(m.Groups["条件"].Value);
-        //        GroupBy = RevTranSql(m.Groups["分组"].Value);
-        //        Having = RevTranSql(m.Groups["分组条件"].Value);
-        //        OrderBy = RevTranSql(m.Groups["排序"].Value);
+        /// <summary>
+        /// 分析一条SQL
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <returns></returns>
+        public Boolean Parse(String sql)
+        {
+            Regex reg = new Regex(SelectRegex, RegexOptions.IgnoreCase);
+            MatchCollection ms = reg.Matches(sql);
+            if (ms != null && ms.Count > 0 && ms[0].Success)
+            {
+                Match m = ms[0];
+                Column = m.Groups["选择列"].Value;
+                Table = m.Groups["数据表"].Value;
+                Where = m.Groups["条件"].Value;
+                GroupBy = m.Groups["分组"].Value;
+                Having = m.Groups["分组条件"].Value;
+                OrderBy = m.Groups["排序"].Value;
 
-        //        if (Where == "1=1") Where = null;
+                if (Where == "1=1") Where = null;
 
-        //        return true;
-        //    }
+                return true;
+            }
 
-        //    return false;
+            return false;
 
-        //    //return Regex.IsMatch(sql, SelectRegex, RegexOptions.IgnoreCase);
-        //}
+            //return Regex.IsMatch(sql, SelectRegex, RegexOptions.IgnoreCase);
+        }
         #endregion
 
         #region 导出SQL

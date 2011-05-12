@@ -248,6 +248,18 @@ namespace XCode
             }
 
             /// <summary>
+            /// 查询记录数
+            /// </summary>
+            /// <param name="sb">查询生成器</param>
+            /// <returns>记录数</returns>
+            public static Int32 QueryCount(SelectBuilder sb)
+            {
+                CheckInitData();
+
+                return DBO.SelectCount(sb, new String[] { Meta.TableName });
+            }
+
+            /// <summary>
             /// 执行
             /// </summary>
             /// <param name="sql">SQL语句</param>
