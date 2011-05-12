@@ -255,7 +255,7 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static string JsonStringEncode(string value)
+        public static string JavascriptStringEncode(string value)
         {
             return JavascriptStringEncode(value, true);
         }
@@ -368,6 +368,13 @@ namespace NewLife.Serialization
         #endregion
 
         #region 字典
+        /// <summary>
+        /// 将字典类型数据写入到当前流位置
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="type"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
         public override bool WriteDictionary(IDictionary value, Type type, WriteObjectCallback callback)
         {
             if (value == null)
@@ -471,7 +478,7 @@ namespace NewLife.Serialization
                 WriteLine();
             }
 
-            Writer.Write("\"" + JsonStringEncode(member.Name) + "\": ");
+            Writer.Write("\"" + JavascriptStringEncode(member.Name) + "\": ");
 
             object obj = member[value];
             if (obj != null && (memberType == null || memberType == typeof(object)))
