@@ -339,7 +339,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override bool ReadEnumerable(Type type, ref object value)
         {
-            AssertReadNextAtomElement("期望是数组声明开始符号[", AtomElementType.SQUARED_OPEN);
+            AssertReadNextAtomElement("期望是数组声明开始符号[", AtomElementType.BRACKET_OPEN);
             return base.ReadEnumerable(type, ref value);
             // TODO 已读到]之后 是否需要做什么处理?
         }
@@ -363,7 +363,7 @@ namespace NewLife.Serialization
         {
             if (index > 0)
             {
-                if (AtomElementType.SQUARED_CLOSE == AssertReadNextAtomElement("期望是数组元素分割符号,", AtomElementType.COMMA, AtomElementType.SQUARED_CLOSE))
+                if (AtomElementType.BRACKET_CLOSE == AssertReadNextAtomElement("期望是数组元素分割符号,", AtomElementType.COMMA, AtomElementType.BRACKET_CLOSE))
                 {
                     // TODO 已读到]之后
                     return false;
@@ -381,8 +381,20 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override bool ReadDictionary(Type type, ref object value)
         {
-            // TODO 未实现
-            return base.ReadDictionary(type, ref value);
+            AssertReadNextAtomElement("期望字典开始", AtomElementType.BRACE_OPEN);
+            int d = ComplexObjectDepth++;
+            bool ret = base.ReadDictionary(type, ref value);
+
+            int n = ComplexObjectDepth - d;
+            if (n > 0)
+            {
+                SkipNext(n);
+            }
+            else if (n < 0)
+            {
+                throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.BRACE_CLOSE }, AtomElementType.NONE, "自定义对象解析异常,读取了过多的字典结束符:}");
+            }
+            return ret;
         }
         //public override bool ReadDictionary(Type type, ref object value, ReadObjectCallback callback)
         //{
@@ -403,7 +415,11 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected override bool OnReadDictionaryEntry(Type keyType, Type valueType, ref System.Collections.DictionaryEntry value, int index, ReadObjectCallback callback)
         {
-            // TODO 未实现
+            if (index > 0)
+            {
+                AssertReadNextAtomElement("期望字典元素分割符,逗号", AtomElementType.COMMA);
+            }
+            // TODO
             return base.OnReadDictionaryEntry(keyType, valueType, ref value, index, callback);
         }
 
@@ -475,16 +491,16 @@ namespace NewLife.Serialization
                         continue;
                     case '{':
                         Reader.Read();
-                        return AtomElementType.CURLY_OPEN;
+                        return AtomElementType.BRACE_OPEN;
                     case '}':
                         Reader.Read();
-                        return AtomElementType.CURLY_CLOSE;
+                        return AtomElementType.BRACE_CLOSE;
                     case '[':
                         Reader.Read();
-                        return AtomElementType.SQUARED_OPEN;
+                        return AtomElementType.BRACKET_OPEN;
                     case ']':
                         Reader.Read();
-                        return AtomElementType.SQUARED_CLOSE;
+                        return AtomElementType.BRACKET_CLOSE;
                     case ':':
                         Reader.Read();
                         return AtomElementType.COLON;
@@ -710,9 +726,53 @@ namespace NewLife.Serialization
                 }
             }
         }
+        /// <summary>
+        /// 跳过下一个值,可以是跳过对象声明(以及对象成员名称 成员值声明),数组声明,以及基础类型
+        /// </summary>
+        void SkipNext()
+        {
+            SkipNext(0);
+        }
+        /// <summary>
+        /// 跳过下面的值,并指定初始复合对象深度,通过提供大于0的初始深度可以跳过一直到 偏移指定深度 的复合对象位置,一般是读取到]或者}符号之后
+        /// </summary>
+        /// <param name="initDepth">初始化复合对象深度,应该是大于等于0的数字,小于0时将不做任何操作</param>
+        void SkipNext(int initDepth)
+        {
+            if (initDepth < 0) return;
+            int skipDepth = initDepth;
+            string s;
+            do
+            {
+                switch (ReadNextAtomElement(out s))
+                {
+                    case AtomElementType.NONE:
+                        skipDepth = 0;//直接跳出
+                        break;
+                    case AtomElementType.BRACE_OPEN:
+                        skipDepth++;
+                        break;
+                    case AtomElementType.BRACE_CLOSE:
+                        skipDepth--;
+                        break;
+                    case AtomElementType.BRACKET_OPEN:
+                        skipDepth++;
+                        break;
+                    case AtomElementType.BRACKET_CLOSE:
+                        skipDepth--;
+                        break;
+                    default:
+                        break;
+                }
+            } while (skipDepth > 0);
+        }
         #endregion
 
         #region 读取对象
+        /// <summary>
+        /// 复合对象深度,包括自定义对象和字典
+        /// </summary>
+        int ComplexObjectDepth = 0;
         /// <summary>
         /// 从当前流位置读取一个对象
         /// </summary>
@@ -733,9 +793,19 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override bool ReadCustomObject(Type type, ref object value, ReadObjectCallback callback)
         {
-            AssertReadNextAtomElement("期望对象开始", AtomElementType.CURLY_OPEN);
+            AssertReadNextAtomElement("期望对象开始", AtomElementType.BRACE_OPEN);
+            int d = ComplexObjectDepth++;
             bool ret = base.ReadCustomObject(type, ref value, callback);
-            // TODO json成员比数量比类成员数量多(ReadCustomObject中的循环提前结束了)或者少(ReadCustomObject中的循环提前读取到}符号了) 正好(未读到} 正好下一个是})
+
+            int n = ComplexObjectDepth - d;
+            if (n > 0) //尚未读到当前对象的结束符}
+            {
+                SkipNext(n);
+            }
+            else if (n < 0)
+            {
+                throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.BRACKET_CLOSE }, AtomElementType.NONE, "自定义对象解析异常,读取了过多的对象结束符:}");
+            }
             return ret;
         }
         /// <summary>
@@ -753,13 +823,14 @@ namespace NewLife.Serialization
             string name;
             while (true)
             {
-                atype = AssertReadNextAtomElement("期望成员名称或者逗号分割符", out name, AtomElementType.COMMA, AtomElementType.STRING, AtomElementType.CURLY_CLOSE);
+                atype = AssertReadNextAtomElement("期望成员名称或者逗号分割符", out name, AtomElementType.COMMA, AtomElementType.STRING, AtomElementType.BRACE_CLOSE);
                 if (atype == AtomElementType.COMMA)
                 {
                     atype = AssertReadNextAtomElement("期望成员名称", out name, AtomElementType.STRING);
                 }
-                else if (atype == AtomElementType.CURLY_CLOSE)
+                else if (atype == AtomElementType.BRACE_CLOSE)
                 {
+                    ComplexObjectDepth--;
                     return null; //提前结束
                 }
                 AssertReadNextAtomElement("期望成员名值分割符:冒号", AtomElementType.COLON);
@@ -768,7 +839,7 @@ namespace NewLife.Serialization
                 {
                     break;
                 }
-                SkipNextValue();
+                SkipNext();
             }
             return ret;
         }
@@ -785,38 +856,6 @@ namespace NewLife.Serialization
         {
             return base.OnReadMember(type, ref value, member, index, callback);
         }
-        /// <summary>
-        /// 跳过下一个值,可以是跳过对象声明(以及对象成员名称 成员值声明),数组声明,以及基础类型
-        /// </summary>
-        void SkipNextValue()
-        {
-            // TODO 考虑skipDepth可能初始值不为0时的需求,自定义对象未结束
-            int skipDepth = 0;
-            string s;
-            do
-            {
-                switch (ReadNextAtomElement(out s))
-                {
-                    case AtomElementType.NONE:
-                        skipDepth = 0;//直接跳出
-                        break;
-                    case AtomElementType.CURLY_OPEN:
-                        skipDepth++;
-                        break;
-                    case AtomElementType.CURLY_CLOSE:
-                        skipDepth--;
-                        break;
-                    case AtomElementType.SQUARED_OPEN:
-                        skipDepth++;
-                        break;
-                    case AtomElementType.SQUARED_CLOSE:
-                        skipDepth--;
-                        break;
-                    default:
-                        break;
-                }
-            } while (skipDepth > 0);
-        }
         #endregion
 
         /// <summary>
@@ -831,19 +870,19 @@ namespace NewLife.Serialization
             /// <summary>
             /// 大括号开始 {
             /// </summary>
-            CURLY_OPEN,
+            BRACE_OPEN,
             /// <summary>
             /// 大括号结束 }
             /// </summary>
-            CURLY_CLOSE,
+            BRACE_CLOSE,
             /// <summary>
             /// 方括号开始 [
             /// </summary>
-            SQUARED_OPEN,
+            BRACKET_OPEN,
             /// <summary>
             /// 方括号结束 ]
             /// </summary>
-            SQUARED_CLOSE,
+            BRACKET_CLOSE,
             /// <summary>
             /// 冒号 :
             /// </summary>
@@ -981,13 +1020,13 @@ namespace NewLife.Serialization
                 {
                     case AtomElementType.NONE:
                         return "未知";
-                    case AtomElementType.CURLY_OPEN:
+                    case AtomElementType.BRACE_OPEN:
                         return "{";
-                    case AtomElementType.CURLY_CLOSE:
+                    case AtomElementType.BRACE_CLOSE:
                         return "}";
-                    case AtomElementType.SQUARED_OPEN:
+                    case AtomElementType.BRACKET_OPEN:
                         return "[";
-                    case AtomElementType.SQUARED_CLOSE:
+                    case AtomElementType.BRACKET_CLOSE:
                         return "]";
                     case AtomElementType.COLON:
                         return ":";
