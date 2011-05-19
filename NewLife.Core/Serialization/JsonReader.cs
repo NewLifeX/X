@@ -80,8 +80,14 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override byte[] ReadBytes(int count)
         {
-            return base.ReadBytes(count);
-            // TODO 待实现
+            IList<byte> lst = null;
+            if (!ReadEnumerable<byte>(ref lst))
+            {
+                return new byte[] { };
+            }
+            byte[] ret = new byte[lst.Count];
+            lst.CopyTo(ret, 0);
+            return ret;
         }
         #endregion
 
@@ -112,7 +118,7 @@ namespace NewLife.Serialization
         public override DateTime ReadDateTime()
         {
             string str;
-            AtomElementType atype = AssertReadNextAtomElement("期望是包含日期时间内容的字符串", out str, AtomElementType.STRING, AtomElementType.LITERAL);
+            AtomElementType atype = AssertReadNextAtomElement("期望是包含日期时间内容的字符串", out str, AtomElementType.STRING);
             DateTime dt = ParseDateTimeString(str, atype);
             return dt;
         }
@@ -125,13 +131,13 @@ namespace NewLife.Serialization
         public DateTime ParseDateTimeString(string str, AtomElementType atype)
         {
             DateTime ret;
-            if (str.Length > 10 && str.Length < 26)
+            if (str.Length > 10 && str.Length < 26 && str.Substring(0, 7) == @"\/Date(")
             // 处理System.Web.Script.Serialization.JavaScriptSerializer日期时间格式,类似 \/Date(12345678)\/
             // 因为MinDateTime和MaxDateTime的十进制毫秒数是15位长度的字符串,最少是1位长度字符串,所以预期长度是11位到25位
             {
                 string[] s = str.Split('(', ')');
                 long ms;
-                if (s.Length >= 3 && s[0] == @"\/Date" && s[2] == @"\/" && long.TryParse(s[1], out ms))
+                if (s.Length >= 3 && s[2] == @"\/" && long.TryParse(s[1], out ms))
                 {
                     return Settings.BaseDateTime.AddMilliseconds(ms);
                 }
@@ -325,12 +331,33 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override char[] ReadChars(int count)
         {
-            // TODO 未实现
-            return base.ReadChars(count);
+            IList<char> lst = null;
+            if (!ReadEnumerable(ref lst))
+            {
+                return new char[] { };
+            }
+            char[] ret = new char[lst.Count];
+            ret.CopyTo(ret, 0);
+            return ret;
         }
         #endregion
 
         #region 枚举类型
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public bool ReadEnumerable<T>(ref IList<T> value)
+        {
+            object lst = null;
+            if (!ReadEnumerable(typeof(T[]), ref lst)) return false;
+            if (lst == null) return false;
+            if (!(lst is IList<T>)) return false;
+            value = (IList<T>)lst;
+            return true;
+        }
         /// <summary>
         /// 从当前流位置读取一个枚举类型
         /// </summary>
@@ -340,8 +367,18 @@ namespace NewLife.Serialization
         public override bool ReadEnumerable(Type type, ref object value)
         {
             AssertReadNextAtomElement("期望是数组声明开始符号[", AtomElementType.BRACKET_OPEN);
-            return base.ReadEnumerable(type, ref value);
-            // TODO 已读到]之后 是否需要做什么处理?
+            int d = ComplexObjectDepth++;
+            bool ret = base.ReadEnumerable(type, ref value);
+            int n = ComplexObjectDepth - d;
+            if (n > 0)
+            {
+                SkipNext(n);
+            }
+            else if (n < 0)
+            {
+                throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.BRACE_CLOSE }, AtomElementType.NONE, "数组解析异常,读取了过多的数组结束符:]");
+            }
+            return ret;
         }
         //public override bool ReadEnumerable(Type type, ref object value, ReadObjectCallback callback)
         //{
@@ -361,17 +398,26 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected override bool OnReadItem(Type type, ref object value, int index, ReadObjectCallback callback)
         {
-            if (index > 0)
+            string str;
+            AtomElementType atype = AssertReadNextAtomElement(true, "期望是枚举项目,可以是枚举结束符(]),分隔符逗号,或具体的数组项", out str,
+                AtomElementType.STRING, AtomElementType.LITERAL, AtomElementType.COMMA, AtomElementType.BRACE_OPEN, AtomElementType.BRACKET_OPEN, AtomElementType.BRACKET_CLOSE);
+            if (atype == AtomElementType.BRACKET_CLOSE)
             {
-                if (AtomElementType.BRACKET_CLOSE == AssertReadNextAtomElement("期望是数组元素分割符号,", AtomElementType.COMMA, AtomElementType.BRACKET_CLOSE))
-                {
-                    // TODO 已读到]之后
-                    return false;
-                }
+                AssertReadNextAtomElement("期望是枚举结束符号(])", AtomElementType.BRACKET_CLOSE);
+                ComplexObjectDepth--;
+                return false;
             }
-            return base.OnReadItem(type, ref value, index, callback);
+            else if (atype == AtomElementType.COMMA)
+            {
+                AssertReadNextAtomElement("期望是枚举项目分割符", AtomElementType.COMMA);
+            }
+
+            if (!ReadObject(type, ref value, callback)) return false;
+
+            return true;
         }
         #endregion
+
         #region 字典
         /// <summary>
         /// 从当前流位置读取一个字典类型
@@ -392,7 +438,7 @@ namespace NewLife.Serialization
             }
             else if (n < 0)
             {
-                throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.BRACE_CLOSE }, AtomElementType.NONE, "自定义对象解析异常,读取了过多的字典结束符:}");
+                throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.BRACE_CLOSE }, AtomElementType.NONE, "字典解析异常,读取了过多的字典结束符:}");
             }
             return ret;
         }
@@ -415,12 +461,27 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected override bool OnReadDictionaryEntry(Type keyType, Type valueType, ref System.Collections.DictionaryEntry value, int index, ReadObjectCallback callback)
         {
-            if (index > 0)
+            string str;
+            AtomElementType atype = AssertReadNextAtomElement("期望字典项分隔符(逗号)或字典结束或字典项名称", out str, AtomElementType.COMMA, AtomElementType.BRACE_CLOSE, AtomElementType.STRING);
+
+            if (atype == AtomElementType.COMMA)
             {
-                AssertReadNextAtomElement("期望字典元素分割符,逗号", AtomElementType.COMMA);
+                atype = AssertReadNextAtomElement("期望字典项名称", out str, AtomElementType.STRING);
             }
-            // TODO
-            return base.OnReadDictionaryEntry(keyType, valueType, ref value, index, callback);
+            else if (atype == AtomElementType.BRACE_CLOSE)
+            {
+                ComplexObjectDepth--;
+                return false;
+            }
+
+            AssertReadNextAtomElement("期望字典项名称值分割符(冒号)", AtomElementType.COLON);
+
+            object entryValue = null;
+            if (!ReadObject(valueType, ref entryValue, callback)) return false;
+
+            value.Key = str; // json的key必须是字符串
+            value.Value = entryValue;
+            return true;
         }
 
         #endregion
@@ -451,7 +512,21 @@ namespace NewLife.Serialization
         /// <returns></returns>
         AtomElementType AssertReadNextAtomElement(string msg, out string str, params AtomElementType[] expected)
         {
-            AtomElementType t = ReadNextAtomElement(out str);
+            return AssertReadNextAtomElement(false, msg, out str, expected);
+        }
+        /// <summary>
+        /// 断言读取下一个原子元素,返回实际读到的原子元素类型
+        /// 
+        /// 可以选择是否仅仅Peek而不移动流位置
+        /// </summary>
+        /// <param name="onlyPeek"></param>
+        /// <param name="msg"></param>
+        /// <param name="str"></param>
+        /// <param name="expected"></param>
+        /// <returns></returns>
+        AtomElementType AssertReadNextAtomElement(bool onlyPeek, string msg, out string str, params AtomElementType[] expected)
+        {
+            AtomElementType t = ReadNextAtomElement(onlyPeek, out str);
             if (Array.IndexOf(expected, t) == -1)
             {
                 throw new JsonReaderAssertException(line, column, expected, t, msg);
@@ -462,18 +537,28 @@ namespace NewLife.Serialization
         /// <summary>
         /// 读取下一个原子元素,非{} []这类复合元素
         /// </summary>
+        /// <param name="str"></param>
         /// <returns></returns>
         AtomElementType ReadNextAtomElement(out string str)
+        {
+            return ReadNextAtomElement(false, out str);
+        }
+        /// <summary>
+        /// 读取下一个原子元素,非{} []这类复合元素
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="onlyPeek">是否仅Peek而不移动流位置(不移动到有效值的位置),这将会使返回值不会返回字符串内容(仅双引号),数字,null,true,false</param>
+        /// <returns></returns>
+        AtomElementType ReadNextAtomElement(bool onlyPeek, out string str)
         {
             str = null;
             while (true)
             {
                 int c = Reader.Peek();
-                column++;
                 switch (c)
                 {
                     case -1:
-                        Reader.Read();
+                        if (!onlyPeek) MoveNextStreamPostition();
                         return AtomElementType.NONE;
                     case ' ':
                     case '\t':
@@ -490,33 +575,47 @@ namespace NewLife.Serialization
                         line++;
                         continue;
                     case '{':
-                        Reader.Read();
+                        if (!onlyPeek) MoveNextStreamPostition();
                         return AtomElementType.BRACE_OPEN;
                     case '}':
-                        Reader.Read();
+                        if (!onlyPeek) MoveNextStreamPostition();
                         return AtomElementType.BRACE_CLOSE;
                     case '[':
-                        Reader.Read();
+                        if (!onlyPeek) MoveNextStreamPostition();
                         return AtomElementType.BRACKET_OPEN;
                     case ']':
-                        Reader.Read();
+                        if (!onlyPeek) MoveNextStreamPostition();
                         return AtomElementType.BRACKET_CLOSE;
                     case ':':
-                        Reader.Read();
+                        if (!onlyPeek) MoveNextStreamPostition();
                         return AtomElementType.COLON;
                     case ',':
-                        Reader.Read();
+                        if (!onlyPeek) MoveNextStreamPostition();
                         return AtomElementType.COMMA;
                     case '"':
-                        Reader.Read();
+                        if (!onlyPeek) MoveNextStreamPostition();
+                        else
+                        {
+                            str = "\"";
+                            return AtomElementType.STRING;
+                        }
                         AtomElementType sret = ReadNextString(out str);
                         return sret;
                     default:
-                        column--; //因为没有调用Read() 所以实际的列应该-1
+                        if (onlyPeek)
+                        {
+                            str = "" + (char)c;
+                            return AtomElementType.LITERAL;
+                        }
                         AtomElementType lret = ReadNextLiteral(out str);
                         return lret;
                 }
             }
+        }
+        void MoveNextStreamPostition()
+        {
+            column++;
+            Reader.Read();
         }
         /// <summary>
         /// 读取下一个字符串,当前reader流已经在"之后,读取到的字符串应该是不包含结尾的双引号
@@ -604,6 +703,7 @@ namespace NewLife.Serialization
                     }
                     return "u" + str;//无法识别的将作为原始字符串输出
                 default:
+                    if (c > 2042) column++; //宽字符
                     return "" + (char)c;
             }
         }
@@ -688,6 +788,7 @@ namespace NewLife.Serialization
                         }
                         else //其它符号
                         {
+                            if (c > 2042) column++; //宽字符
                             Reader.Read();
                             sb.Append((char)c);
                             hasLiteral = true;
