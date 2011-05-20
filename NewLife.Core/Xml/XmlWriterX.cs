@@ -213,20 +213,20 @@ namespace NewLife.Xml
 		//#endregion
 		#endregion
 
-        #region 扩展类型
-        /// <summary>
-        /// 写对象类型
-        /// </summary>
-        /// <param name="type"></param>
-        protected override void WriteObjectType(Type type)
-        {
-            //base.WriteObjectType(type);
-            Writer.WriteAttributeString("Type", type.FullName);
-        }
-        #endregion
+		#region 扩展类型
+		/// <summary>
+		/// 写对象类型
+		/// </summary>
+		/// <param name="type"></param>
+		protected override void WriteObjectType(Type type)
+		{
+			//base.WriteObjectType(type);
+			Writer.WriteAttributeString("Type", type.FullName);
+		}
+		#endregion
 
-        #region 字典
-        /// <summary>
+		#region 字典
+		/// <summary>
 		/// 写入字典项
 		/// </summary>
 		/// <param name="value">对象</param>
@@ -351,17 +351,17 @@ namespace NewLife.Xml
 
 			AutoFlush();
 
-            //if (type == typeof(Object))
-            //{
-            //    Object obj = member[value];
-            //    if (obj != null)
-            //    {
-            //        type = obj.GetType();
-            //        Writer.WriteAttributeString("Type", obj.GetType().FullName);
-            //    }
-            //}
+			//if (type == typeof(Object))
+			//{
+			//    Object obj = member[value];
+			//    if (obj != null)
+			//    {
+			//        type = obj.GetType();
+			//        Writer.WriteAttributeString("Type", obj.GetType().FullName);
+			//    }
+			//}
 
-            //AutoFlush();
+			//AutoFlush();
 
 			Boolean rs = base.OnWriteMember(value, type, member, index, callback);
 
@@ -457,16 +457,19 @@ namespace NewLife.Xml
 		/// <returns>是否写入成功</returns>
 		public override bool WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
 		{
-            if (value == null) return true;
+			if (value == null) return true;
 
-            Type t = value.GetType();
+			Type t = value.GetType();
 			Type elementType = null;
 			if (t.HasElementType) elementType = t.GetElementType();
 			Boolean result = false;
 			if (typeof(IEnumerable).IsAssignableFrom(elementType))
 			{
-				elementType = elementType.GetElementType();
-				if (typeof(IEnumerable).IsAssignableFrom(elementType)) WriteEnumerable(value as IEnumerable, elementType, callback);
+				if (typeof(IEnumerable).IsAssignableFrom(elementType.GetElementType()))
+				{
+					elementType = elementType.GetElementType();
+					WriteEnumerable(value as IEnumerable, elementType, callback);
+				}
 				foreach (Object item in value)
 				{
 					WriteLog("WriteEnumerable", elementType.Name);
@@ -501,7 +504,7 @@ namespace NewLife.Xml
 
 						Writer.WriteStartElement("Data");
 						Writer.WriteAttributeString("Lengths", String.Join(",", list));
-						result = base.WriteEnumerable(objs as IEnumerable, elementType, callback);
+						result = base.WriteEnumerable(objs as IEnumerable, type, callback);
 						Writer.WriteEndElement();
 						objs = TypeX.CreateInstance(type, length) as Array;
 					}
