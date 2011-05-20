@@ -445,7 +445,9 @@ namespace NewLife.Xml
 		/// <returns>是否写入成功</returns>
 		public override bool WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
 		{
-			Type t = value.GetType();
+            if (value == null) return true;
+
+            Type t = value.GetType();
 			Type elementType = null;
 			if (t.HasElementType) elementType = t.GetElementType();
 			Boolean result = false;
