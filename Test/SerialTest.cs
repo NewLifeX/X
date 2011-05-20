@@ -130,11 +130,11 @@ namespace Test
             Byte[] buffer = writer.ToArray();
             //Console.WriteLine(BitConverter.ToString(buffer));
             Console.WriteLine("写入完成！");
-            String str = Encoding.UTF8.GetString(buffer);
-            TraceStream ts = new TraceStream();
-            buffer = Encoding.UTF8.GetBytes(str);
-            ts.Write(buffer, 0, buffer.Length);
-            writer.Stream = ts;
+            //String str = Encoding.UTF8.GetString(buffer);
+            //TraceStream ts = new TraceStream();
+            //buffer = Encoding.UTF8.GetBytes(str);
+            //ts.Write(buffer, 0, buffer.Length);
+            //writer.Stream = ts;
             TReader reader = GetReader<TWriter, TReader>(writer);
 
             Object obj = null;

@@ -248,8 +248,8 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public virtual Boolean WriteValue(Object value, Type type)
         {
-            // 对象不为空时，使用对象实际类型
-            if (value != null) type = value.GetType();
+            //// 对象不为空时，使用对象实际类型
+            //if (value != null) type = value.GetType();
 
             TypeCode code = Type.GetTypeCode(type);
             switch (code)
@@ -385,6 +385,7 @@ namespace NewLife.Serialization
         public virtual Boolean WriteDictionary(IDictionary value, Type type, WriteObjectCallback callback)
         {
             if (value == null) return true;
+            type = CheckAndWriteType(value, type);
 
             // 计算元素类型
             Type keyType = null;
@@ -397,8 +398,8 @@ namespace NewLife.Serialization
             WriteSize(value.Count);
             if (value.Count == 0) return true;
 
-            type = value.GetType();
-            if (type != null && !typeof(IDictionary).IsAssignableFrom(type)) throw new Exception("目标类型不是枚举类型！");
+            //type = value.GetType();
+            if (type != null && !typeof(IDictionary).IsAssignableFrom(type)) throw new Exception("目标类型不是字典类型！");
 
             Int32 i = 0;
             foreach (DictionaryEntry item in value)
@@ -534,8 +535,9 @@ namespace NewLife.Serialization
         public virtual Boolean WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
         {
             if (value == null) return true;
+            type = CheckAndWriteType(value, type);
 
-            type = value.GetType();
+            //type = value.GetType();
             if (type != null && !typeof(IEnumerable).IsAssignableFrom(type)) throw new Exception("目标类型不是枚举类型！");
 
             // 计算元素类型，如果无法计算，这里不能处理，否则能写不能读（因为不知道元素类型）
@@ -1091,12 +1093,12 @@ namespace NewLife.Serialization
             type = CheckAndWriteType(value, type);
 
             Object obj = member[value];
-            if (type == typeof(Object) && obj != null)
-            {
-                type = obj.GetType();
-                WriteLog("WriteMemberType", type.Name);
-                Write(type);
-            }
+            //if (type == typeof(Object) && obj != null)
+            //{
+            //    type = obj.GetType();
+            //    WriteLog("WriteMemberType", type.Name);
+            //    Write(type);
+            //}
             return callback(this, obj, type, callback);
         }
 

@@ -357,11 +357,12 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public virtual Boolean ReadDictionary(Type type, ref Object value, ReadObjectCallback callback)
         {
-            if (type == null)
-            {
-                if (value == null) throw new ArgumentNullException("type");
-                type = value.GetType();
-            }
+            //if (type == null)
+            //{
+            //    if (value == null) throw new ArgumentNullException("type");
+            //    type = value.GetType();
+            //}
+            type = CheckAndReadType(type, value);
 
             if (!typeof(IDictionary).IsAssignableFrom(type)) return false;
 
@@ -552,11 +553,12 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public virtual Boolean ReadEnumerable(Type type, ref Object value, ReadObjectCallback callback)
         {
-            if (type == null)
-            {
-                if (value == null) return false;
-                type = value.GetType();
-            }
+            //if (type == null)
+            //{
+            //    if (value == null) return false;
+            //    type = value.GetType();
+            //}
+            type = CheckAndReadType(type, value);
 
             if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
 
