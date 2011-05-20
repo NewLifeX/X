@@ -291,6 +291,73 @@ namespace NewLife.Xml
 
 			return rs;
 		}
+
+		/// <summary>
+		/// 写入枚举数据，复杂类型使用委托方法进行处理
+		/// </summary>
+		/// <param name="value">对象</param>
+		/// <param name="type">类型</param>
+		/// <param name="callback">使用指定委托方法处理复杂数据</param>
+		/// <returns>是否写入成功</returns>
+		public override bool WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
+		{
+			if (value == null) return true;
+
+			Type t = value.GetType();
+			Type elementType = null;
+			if (t.HasElementType) elementType = t.GetElementType();
+			Boolean result = false;
+			if (typeof(IEnumerable).IsAssignableFrom(elementType))
+			{
+				if (typeof(IEnumerable).IsAssignableFrom(elementType.GetElementType()))
+				{
+					elementType = elementType.GetElementType();
+					WriteEnumerable(value as IEnumerable, elementType, callback);
+				}
+				foreach (Object item in value)
+				{
+					WriteLog("WriteEnumerable", elementType.Name);
+					Writer.WriteStartElement("Data");
+					result = base.WriteEnumerable(item as IEnumerable, elementType, callback);
+					Writer.WriteEndElement();
+				}
+				return result;
+			}
+
+			if (t.IsArray && t.GetArrayRank() > 1)
+			{
+				Array array = value as Array;
+				List<String> lengths = new List<String>();
+				for (int i = 0; i < array.Rank; i++)
+				{
+					lengths.Add(array.GetLength(i).ToString());
+				}
+				String[] list = lengths.ToArray();
+
+				Int32 length = array.GetLength(array.Rank - 1);
+				Array objs = Array.CreateInstance(elementType, length);
+				Int32 j = 0;
+				foreach (object item in value)
+				{
+					objs.SetValue(item, j);
+					j++;
+					if (j == length)
+					{
+						j = 0;
+						WriteLog("WriteEnumerable", type.Name);
+
+						Writer.WriteStartElement("Data");
+						Writer.WriteAttributeString("Lengths", String.Join(",", list));
+						result = base.WriteEnumerable(objs as IEnumerable, type, callback);
+						Writer.WriteEndElement();
+						objs = TypeX.CreateInstance(type, length) as Array;
+					}
+				}
+				return result;
+			}
+
+			return base.WriteEnumerable(value, type, callback);
+		}
 		#endregion
 
 		#region 写入对象
@@ -448,71 +515,5 @@ namespace NewLife.Xml
 		}
 		#endregion
 
-		/// <summary>
-		/// 写入枚举数据，复杂类型使用委托方法进行处理
-		/// </summary>
-		/// <param name="value">对象</param>
-		/// <param name="type">类型</param>
-		/// <param name="callback">使用指定委托方法处理复杂数据</param>
-		/// <returns>是否写入成功</returns>
-		public override bool WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
-		{
-			if (value == null) return true;
-
-			Type t = value.GetType();
-			Type elementType = null;
-			if (t.HasElementType) elementType = t.GetElementType();
-			Boolean result = false;
-			if (typeof(IEnumerable).IsAssignableFrom(elementType))
-			{
-				if (typeof(IEnumerable).IsAssignableFrom(elementType.GetElementType()))
-				{
-					elementType = elementType.GetElementType();
-					WriteEnumerable(value as IEnumerable, elementType, callback);
-				}
-				foreach (Object item in value)
-				{
-					WriteLog("WriteEnumerable", elementType.Name);
-					Writer.WriteStartElement("Data");
-					result = base.WriteEnumerable(item as IEnumerable, elementType, callback);
-					Writer.WriteEndElement();
-				}
-				return result;
-			}
-
-			if (t.IsArray && t.GetArrayRank() > 1)
-			{
-				Array array = value as Array;
-				List<String> lengths = new List<String>();
-				for (int i = 0; i < array.Rank; i++)
-				{
-					lengths.Add(array.GetLength(i).ToString());
-				}
-				String[] list = lengths.ToArray();
-
-				Int32 length = array.GetLength(array.Rank - 1);
-				Array objs = Array.CreateInstance(elementType, length);
-				Int32 j = 0;
-				foreach (object item in value)
-				{
-					objs.SetValue(item, j);
-					j++;
-					if (j == length)
-					{
-						j = 0;
-						WriteLog("WriteEnumerable", type.Name);
-
-						Writer.WriteStartElement("Data");
-						Writer.WriteAttributeString("Lengths", String.Join(",", list));
-						result = base.WriteEnumerable(objs as IEnumerable, type, callback);
-						Writer.WriteEndElement();
-						objs = TypeX.CreateInstance(type, length) as Array;
-					}
-				}
-				return result;
-			}
-
-			return base.WriteEnumerable(value, type, callback);
-		}
 	}
 }
