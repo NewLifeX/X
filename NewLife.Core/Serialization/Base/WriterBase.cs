@@ -796,6 +796,35 @@ namespace NewLife.Serialization
                 Write(value.AssemblyQualifiedName);
         }
 
+        /// <summary>
+        /// 检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。同时返回对象实际类型。
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected Type CheckAndWriteType(Object value, Type type)
+        {
+            //if (value == null || type == null) return type;
+            if (type == null)
+            {
+                if (value == null) return null;
+
+                type = value.GetType();
+            }
+
+            //Type trueType = value.GetType();
+
+            //if (type != trueType)
+            if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
+            {
+                type = value.GetType();
+                WriteLog("WriteMemberType", type.Name);
+                Write(type);
+            }
+
+            return type;
+        }
+
         //public void Register<T>(Func<IWriter, T, Boolean> handler)
         //{
         //    Register(typeof(T), delegate(IWriter writer, Object value) { return handler(writer, (T)value); });
@@ -834,7 +863,8 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public Boolean WriteObject(Object value, Type type, WriteObjectCallback callback)
         {
-            if (value != null) type = value.GetType();
+            //if (value != null) type = value.GetType();
+            type = CheckAndWriteType(value, type);
             if (callback == null) callback = WriteMember;
 
             // 检查IAcessor接口
@@ -894,6 +924,8 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected virtual Boolean OnWriteObject(Object value, Type type, WriteObjectCallback callback)
         {
+            type = CheckAndWriteType(value, type);
+
             // 扩展类型
             if (WriteX(value, type)) return true;
 
@@ -918,6 +950,8 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected virtual Boolean WriteRefObject(Object value, Type type, WriteObjectCallback callback)
         {
+            type = CheckAndWriteType(value, type);
+
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
             {
@@ -965,6 +999,8 @@ namespace NewLife.Serialization
         public virtual Boolean WriteCustomObject(Object value, Type type, WriteObjectCallback callback)
         {
             if (value == null) return true;
+            //if (type == null) type = value.GetType();
+            type = CheckAndWriteType(value, type);
 
             IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
@@ -992,6 +1028,8 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected Boolean WriteMember(Object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
         {
+            type = CheckAndWriteType(value, type);
+
 #if !DEBUG
             try
 #endif
@@ -1050,6 +1088,8 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected virtual Boolean OnWriteMember(Object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
         {
+            type = CheckAndWriteType(value, type);
+
             Object obj = member[value];
             if (type == typeof(Object) && obj != null)
             {

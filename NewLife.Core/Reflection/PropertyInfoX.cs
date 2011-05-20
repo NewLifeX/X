@@ -226,7 +226,7 @@ namespace NewLife.Reflection
             if (SetHandler == null) throw new InvalidOperationException("不支持SetValue操作！");
 
             // 如果类型不匹配，先做类型转换
-            if (value != null && !Type.IsAssignableFrom(value.GetType())) value = Convert.ChangeType(value, Type);
+            if (value != null && !Type.IsAssignableFrom(value.GetType())) value = TypeX.ChangeType(value, Type);
 
             SetHandler.Invoke(obj, value);
         }

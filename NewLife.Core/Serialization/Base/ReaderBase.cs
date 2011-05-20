@@ -987,6 +987,32 @@ namespace NewLife.Serialization
 
             throw new XException("无法找到名为{0}的类型！", typeName);
         }
+
+        /// <summary>
+        /// 检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。同时返回对象实际类型。
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        protected Type CheckAndReadType(Type type, Object value)
+        {
+            //if (value != null) type = value.GetType();
+            if (type == null)
+            {
+                if (value == null) return null;
+
+                type = value.GetType();
+            }
+
+            if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
+            {
+                WriteLog("ReadObjectType");
+                type = ReadType();
+                WriteLog("ReadObjectType", type.Name);
+            }
+
+            return type;
+        }
         #endregion
 
         #region 读取对象
@@ -1021,7 +1047,8 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-            if (value != null) type = value.GetType();
+            //if (value != null) type = value.GetType();
+            type = CheckAndReadType(type, value);
             if (callback == null) callback = ReadMember;
 
             // 检查IAcessor接口
@@ -1083,7 +1110,8 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         protected virtual Boolean OnReadObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-            if (type == null && value != null) type = value.GetType();
+            //if (type == null && value != null) type = value.GetType();
+            type = CheckAndReadType(type, value);
             if (callback == null) callback = ReadMember;
 
             // 特殊类型
@@ -1196,6 +1224,8 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public virtual Boolean ReadCustomObject(Type type, ref Object value, ReadObjectCallback callback)
         {
+            type = CheckAndReadType(type, value);
+            
             IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
 
@@ -1259,6 +1289,8 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         protected Boolean ReadMember(Type type, ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
+            type = CheckAndReadType(type, value);
+
 #if !DEBUG
             try
 #endif
@@ -1323,6 +1355,8 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         protected virtual Boolean OnReadMember(Type type, ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
+            type = CheckAndReadType(type, value);
+            
             if (type == typeof(Object))
             {
                 WriteLog("ReadMemberType");

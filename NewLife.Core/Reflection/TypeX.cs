@@ -549,6 +549,17 @@ namespace NewLife.Reflection
         {
             return AttributeX.GetCustomAttributeValue<TAttribute, TResult>(BaseType, true);
         }
+
+        public static Object ChangeType(object value, Type conversionType)
+        {
+            if (value != null && value.GetType() == conversionType) return value;
+
+            if (conversionType.IsEnum) return Enum.ToObject(conversionType, value);
+
+            if (value is IConvertible) Convert.ChangeType(value, conversionType);
+
+            return value;
+        }
         #endregion
 
         #region 类型转换

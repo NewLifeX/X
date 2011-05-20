@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Configuration;
 using System.Collections.Specialized;
+using NewLife.Reflection;
 
 namespace NewLife.Configuration
 {
@@ -110,7 +111,7 @@ namespace NewLife.Configuration
 
             }
 
-            T value = (T)Convert.ChangeType(str, type);
+            T value = (T)TypeX.ChangeType(str, type);
 
             return value;
         }
