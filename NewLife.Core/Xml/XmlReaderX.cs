@@ -177,8 +177,25 @@ namespace NewLife.Xml
 		//#endregion
 		#endregion
 
-		#region 字典
-		/// <summary>
+        #region 扩展类型
+        /// <summary>
+        /// 读对象类型
+        /// </summary>
+        /// <returns></returns>
+        protected override Type ReadObjectType()
+        {
+            //return base.ReadObjectType();
+            if (Reader.MoveToAttribute("Type"))
+            {
+                return ReadType();
+            }
+
+            return null;
+        }
+        #endregion
+
+        #region 字典
+        /// <summary>
 		/// 尝试读取字典类型对象
 		/// </summary>
 		/// <param name="type">类型</param>

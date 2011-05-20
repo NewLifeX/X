@@ -820,11 +820,20 @@ namespace NewLife.Serialization
             if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
             {
                 type = value.GetType();
-                WriteLog("WriteMemberType", type.Name);
-                Write(type);
+                WriteLog("WriteObjectType", type.Name);
+                WriteObjectType(type);
             }
 
             return type;
+        }
+
+        /// <summary>
+        /// 写对象类型
+        /// </summary>
+        /// <param name="type"></param>
+        protected virtual void WriteObjectType(Type type)
+        {
+            Write(type);
         }
 
         //public void Register<T>(Func<IWriter, T, Boolean> handler)
@@ -1030,7 +1039,7 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected Boolean WriteMember(Object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
         {
-            type = CheckAndWriteType(value, type);
+            //type = CheckAndWriteType(value, type);
 
 #if !DEBUG
             try
@@ -1090,9 +1099,10 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected virtual Boolean OnWriteMember(Object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
         {
-            type = CheckAndWriteType(value, type);
-
             Object obj = member[value];
+
+            type = CheckAndWriteType(obj, type);
+
             //if (type == typeof(Object) && obj != null)
             //{
             //    type = obj.GetType();

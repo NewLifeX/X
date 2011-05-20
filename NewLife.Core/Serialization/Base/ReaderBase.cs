@@ -1015,6 +1015,15 @@ namespace NewLife.Serialization
 
             return type;
         }
+
+        /// <summary>
+        /// 读对象类型
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Type ReadObjectType()
+        {
+            return ReadType();
+        }
         #endregion
 
         #region 读取对象
@@ -1227,7 +1236,7 @@ namespace NewLife.Serialization
         public virtual Boolean ReadCustomObject(Type type, ref Object value, ReadObjectCallback callback)
         {
             type = CheckAndReadType(type, value);
-            
+
             IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
 
@@ -1291,7 +1300,7 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         protected Boolean ReadMember(Type type, ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
-            type = CheckAndReadType(type, value);
+            //type = CheckAndReadType(type, value);
 
 #if !DEBUG
             try
@@ -1358,7 +1367,7 @@ namespace NewLife.Serialization
         protected virtual Boolean OnReadMember(Type type, ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
             type = CheckAndReadType(type, value);
-            
+
             if (type == typeof(Object))
             {
                 WriteLog("ReadMemberType");

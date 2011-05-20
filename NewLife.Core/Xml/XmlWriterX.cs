@@ -213,8 +213,20 @@ namespace NewLife.Xml
 		//#endregion
 		#endregion
 
-		#region 字典
-		/// <summary>
+        #region 扩展类型
+        /// <summary>
+        /// 写对象类型
+        /// </summary>
+        /// <param name="type"></param>
+        protected override void WriteObjectType(Type type)
+        {
+            //base.WriteObjectType(type);
+            Writer.WriteAttributeString("Type", type.FullName);
+        }
+        #endregion
+
+        #region 字典
+        /// <summary>
 		/// 写入字典项
 		/// </summary>
 		/// <param name="value">对象</param>
@@ -339,17 +351,17 @@ namespace NewLife.Xml
 
 			AutoFlush();
 
-			if (type == typeof(Object))
-			{
-				Object obj = member[value];
-				if (obj != null)
-				{
-					type = obj.GetType();
-					Writer.WriteAttributeString("Type", obj.GetType().FullName);
-				}
-			}
+            //if (type == typeof(Object))
+            //{
+            //    Object obj = member[value];
+            //    if (obj != null)
+            //    {
+            //        type = obj.GetType();
+            //        Writer.WriteAttributeString("Type", obj.GetType().FullName);
+            //    }
+            //}
 
-			AutoFlush();
+            //AutoFlush();
 
 			Boolean rs = base.OnWriteMember(value, type, member, index, callback);
 
