@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Globalization;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
@@ -80,13 +81,11 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override byte[] ReadBytes(int count)
         {
-            IList<byte> lst = null;
-            if (!ReadEnumerable<byte>(ref lst))
+            byte[] ret = null;
+            if (!ReadEnumerable<byte>(ref ret))
             {
                 return new byte[] { };
             }
-            byte[] ret = new byte[lst.Count];
-            lst.CopyTo(ret, 0);
             return ret;
         }
         #endregion
@@ -122,6 +121,12 @@ namespace NewLife.Serialization
             DateTime dt = ParseDateTimeString(str, atype);
             return dt;
         }
+        static string[] DateTimeParseFormats = { "yyyy-MM-ddTHH:mm:ss.fffZ", //包含毫秒部分的ISO8601格式
+                                                   "yyyy-MM-ddTHH:mm:ssZ", //不包含毫秒部分的ISO8601格式,和json2.js的toJSON()格式相同(ff3.5 ie8已原生实现Date.toJSON())
+                                                   "ddd, dd MMM yyyy HH:mm:ss GMT", //js中toGMTString()返回的格式
+                                                   "yyyy-MM-dd HH:mm:ss", //一般是测试用途的手写格式,不建议使用,下同
+                                                   "yyyy-MM-dd"
+                                               };
         /// <summary>
         /// 解析日期时间字符串,可以处理多种日期时间格式,包括JsDateTimeFormats枚举中的格式,以及js中toGMTString()的格式
         /// </summary>
@@ -142,13 +147,7 @@ namespace NewLife.Serialization
                     return Settings.BaseDateTime.AddMilliseconds(ms);
                 }
             }
-            string[] formats = { "yyyy-MM-ddTHH:mm:ss.fffZ", //包含毫秒部分的ISO8601格式
-                                   "yyyy-MM-ddTHH:mm:ssZ", //不包含毫秒部分的ISO8601格式,和json2.js的toJSON()格式相同(ff3.5 ie8已原生实现Date.toJSON())
-                                   "ddd, dd MMM yyyy HH:mm:ss GMT", //js中toGMTString()返回的格式
-                                   "yyyy-MM-dd HH:mm:ss", //一般是测试用途的手写格式,不建议使用,下同
-                                   "yyyy-MM-dd"
-                               };
-            if (DateTime.TryParseExact(str, formats, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out ret))
+            if (DateTime.TryParseExact(str, DateTimeParseFormats, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out ret))
             {
                 return ret;
             }
@@ -203,12 +202,41 @@ namespace NewLife.Serialization
             string str;
             AtomElementType actual = AssertReadNextAtomElement(exceptMsg, out str, expected);
             NumberStyles numStyles = getNumStyles(str, expected, actual);
-            T ret;
-            if (!tryParse(str, numStyles, CultureInfo.InvariantCulture, out ret))
+            try
             {
-                throw new JsonReaderAssertException(line, column, expected, actual, exceptMsg);
+                return ReadNumber(str, numStyles, tryParse);
             }
-            return ret;
+            catch (Exception ex)
+            {
+                if (ex == ReadNumberFailException)
+                {
+                    throw new JsonReaderAssertException(line, column, expected, actual, exceptMsg);
+                }
+                throw new JsonReaderAssertException(line, column, expected, actual, string.Format("字符串{0} 不是有效的数字类型:{1}", str, typeof(T).FullName));
+            }
+        }
+        static JsonReaderAssertException ReadNumberFailException = null;
+        /// <summary>
+        /// 使用指定的str作为解析的输入,不访问输入流,且返回值是T,解析失败将抛出异常
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="str"></param>
+        /// <param name="numStyles"></param>
+        /// <param name="tryParse"></param>
+        /// <param name="ret"></param>
+        /// <returns></returns>
+        T ReadNumber<T>(string str, NumberStyles numStyles, TryParseNumber<T> tryParse)
+        {
+            T ret;
+            if (tryParse(str, numStyles, CultureInfo.InvariantCulture, out ret))
+            {
+                return ret;
+            }
+            if (ReadNumberFailException == null)
+            {
+                ReadNumberFailException = new JsonReaderAssertException(0, 0, null, AtomElementType.NONE, "ReadNumber方法内部使用的异常标识");
+            }
+            throw ReadNumberFailException;
         }
         NumberStyles GetExponentOrNotStyle(string str, AtomElementType[] expected, AtomElementType actual)
         {
@@ -282,7 +310,7 @@ namespace NewLife.Serialization
         public override string ReadString()
         {
             string ret;
-            if (AtomElementType.NULL == AssertReadNextAtomElement("期望字符串值", out ret, AtomElementType.STRING, AtomElementType.NULL))
+            if (AtomElementType.NULL == AssertReadNextAtomElement("期望字符串值或null", out ret, AtomElementType.STRING, AtomElementType.NULL))
             {
                 return null;
             }
@@ -331,14 +359,27 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override char[] ReadChars(int count)
         {
-            IList<char> lst = null;
-            if (!ReadEnumerable(ref lst))
+            string str;
+            AtomElementType atype = AssertReadNextAtomElement(true, "期望是字符数组,字符串或者null", out str, AtomElementType.BRACKET_OPEN, AtomElementType.STRING, AtomElementType.LITERAL);
+            if (atype == AtomElementType.STRING)
             {
+                AssertReadNextAtomElement("期望是字符串", out str, AtomElementType.STRING);
+                return str.ToCharArray();
+            }
+            else if (atype == AtomElementType.LITERAL)
+            {
+                AssertReadNextAtomElement("期望是null", out str, AtomElementType.NULL);
                 return new char[] { };
             }
-            char[] ret = new char[lst.Count];
-            ret.CopyTo(ret, 0);
-            return ret;
+            else
+            {
+                char[] ret = null;
+                if (!ReadEnumerable(ref ret))
+                {
+                    return new char[] { };
+                }
+                return ret;
+            }
         }
         #endregion
 
@@ -349,13 +390,13 @@ namespace NewLife.Serialization
         /// <typeparam name="T"></typeparam>
         /// <param name="value"></param>
         /// <returns></returns>
-        public bool ReadEnumerable<T>(ref IList<T> value)
+        public bool ReadEnumerable<T>(ref T[] value)
         {
             object lst = null;
             if (!ReadEnumerable(typeof(T[]), ref lst)) return false;
             if (lst == null) return false;
-            if (!(lst is IList<T>)) return false;
-            value = (IList<T>)lst;
+            if (!(lst is T[])) return false;
+            value = (T[])lst;
             return true;
         }
         /// <summary>
@@ -364,11 +405,16 @@ namespace NewLife.Serialization
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public override bool ReadEnumerable(Type type, ref object value)
+        public override bool ReadEnumerable(Type type, ref object value, ReadObjectCallback callback)
         {
-            AssertReadNextAtomElement("期望是数组声明开始符号[", AtomElementType.BRACKET_OPEN);
+            AtomElementType atype = AssertReadNextAtomElement("期望是数组声明开始符号[或null", AtomElementType.BRACKET_OPEN, AtomElementType.NULL);
+            if (atype == AtomElementType.NULL)
+            {
+                value = null;
+                return true;
+            }
             int d = ComplexObjectDepth++;
-            bool ret = base.ReadEnumerable(type, ref value);
+            bool ret = base.ReadEnumerable(type, ref value, callback);
             int n = ComplexObjectDepth - d;
             if (n > 0)
             {
@@ -380,10 +426,6 @@ namespace NewLife.Serialization
             }
             return ret;
         }
-        //public override bool ReadEnumerable(Type type, ref object value, ReadObjectCallback callback)
-        //{
-        //    return base.ReadEnumerable(type, ref value, callback);
-        //}
         //public override bool ReadEnumerable(Type type, Type elementType, ref object value, ReadObjectCallback callback)
         //{
         //    return base.ReadEnumerable(type, elementType, ref value, callback);
@@ -400,7 +442,10 @@ namespace NewLife.Serialization
         {
             string str;
             AtomElementType atype = AssertReadNextAtomElement(true, "期望是枚举项目,可以是枚举结束符(]),分隔符逗号,或具体的数组项", out str,
-                AtomElementType.STRING, AtomElementType.LITERAL, AtomElementType.COMMA, AtomElementType.BRACE_OPEN, AtomElementType.BRACKET_OPEN, AtomElementType.BRACKET_CLOSE);
+                AtomElementType.STRING, AtomElementType.TRUE, AtomElementType.FALSE, AtomElementType.NULL,
+                AtomElementType.NUMBER, AtomElementType.NUMBER_EXP, AtomElementType.FLOAT, AtomElementType.FLOAT_EXP,
+                AtomElementType.COMMA, AtomElementType.BRACE_OPEN, AtomElementType.BRACKET_OPEN,
+                AtomElementType.BRACKET_CLOSE, AtomElementType.LITERAL);
             if (atype == AtomElementType.BRACKET_CLOSE)
             {
                 AssertReadNextAtomElement("期望是枚举结束符号(])", AtomElementType.BRACKET_CLOSE);
@@ -412,6 +457,7 @@ namespace NewLife.Serialization
                 AssertReadNextAtomElement("期望是枚举项目分割符", AtomElementType.COMMA);
             }
 
+            WriteLog("ReadEnumerableItem", type != null ? type.FullName : "null Type");
             if (!ReadObject(type, ref value, callback)) return false;
 
             return true;
@@ -425,11 +471,16 @@ namespace NewLife.Serialization
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public override bool ReadDictionary(Type type, ref object value)
+        public override bool ReadDictionary(Type type, ref object value, ReadObjectCallback callback)
         {
-            AssertReadNextAtomElement("期望字典开始", AtomElementType.BRACE_OPEN);
+            AtomElementType atype = AssertReadNextAtomElement("期望字典开始符号{或null", AtomElementType.BRACE_OPEN, AtomElementType.NULL);
+            if (atype == AtomElementType.NULL)
+            {
+                value = null;
+                return true;
+            }
             int d = ComplexObjectDepth++;
-            bool ret = base.ReadDictionary(type, ref value);
+            bool ret = base.ReadDictionary(type, ref value, callback);
 
             int n = ComplexObjectDepth - d;
             if (n > 0)
@@ -442,10 +493,6 @@ namespace NewLife.Serialization
             }
             return ret;
         }
-        //public override bool ReadDictionary(Type type, ref object value, ReadObjectCallback callback)
-        //{
-        //    return base.ReadDictionary(type, ref value, callback);
-        //}
         //protected override IEnumerable<System.Collections.DictionaryEntry> ReadDictionary(Type keyType, Type valueType, int count, ReadObjectCallback callback)
         //{
         //    return base.ReadDictionary(keyType, valueType, count, callback);
@@ -519,7 +566,7 @@ namespace NewLife.Serialization
         /// 
         /// 可以选择是否仅仅Peek而不移动流位置
         /// </summary>
-        /// <param name="onlyPeek"></param>
+        /// <param name="onlyPeek">是否仅Peek而不移动流位置(不移动到有效值的位置),这将会使str不会返回字符串内容(仅一个双引号)</param>
         /// <param name="msg"></param>
         /// <param name="str"></param>
         /// <param name="expected"></param>
@@ -529,7 +576,12 @@ namespace NewLife.Serialization
             AtomElementType t = ReadNextAtomElement(onlyPeek, out str);
             if (Array.IndexOf(expected, t) == -1)
             {
-                throw new JsonReaderAssertException(line, column, expected, t, msg);
+                long col = column;
+                if (onlyPeek)
+                {
+                    col += str != null && str.Length > 0 ? str.Length : 1;
+                }
+                throw new JsonReaderAssertException(line, col, expected, t, msg);
             }
             return t;
         }
@@ -547,7 +599,7 @@ namespace NewLife.Serialization
         /// 读取下一个原子元素,非{} []这类复合元素
         /// </summary>
         /// <param name="str"></param>
-        /// <param name="onlyPeek">是否仅Peek而不移动流位置(不移动到有效值的位置),这将会使返回值不会返回字符串内容(仅双引号),数字,null,true,false</param>
+        /// <param name="onlyPeek">是否仅Peek而不移动流位置(不移动到有效值的位置),这将会使str不会返回字符串内容(仅一个双引号)</param>
         /// <returns></returns>
         AtomElementType ReadNextAtomElement(bool onlyPeek, out string str)
         {
@@ -562,14 +614,14 @@ namespace NewLife.Serialization
                         return AtomElementType.NONE;
                     case ' ':
                     case '\t':
-                        Reader.Read();
+                        MoveNextStreamPostition();
                         continue;
                     case '\r':
                     case '\n':
-                        Reader.Read();
+                        MoveNextStreamPostition();
                         if (c == '\r' && Reader.Peek() == '\n')
                         {
-                            Reader.Read();
+                            MoveNextStreamPostition();
                         }
                         column = 1;
                         line++;
@@ -602,20 +654,19 @@ namespace NewLife.Serialization
                         AtomElementType sret = ReadNextString(out str);
                         return sret;
                     default:
-                        if (onlyPeek)
-                        {
-                            str = "" + (char)c;
-                            return AtomElementType.LITERAL;
-                        }
-                        AtomElementType lret = ReadNextLiteral(out str);
+                        AtomElementType lret = ReadNextLiteral(onlyPeek, out str);
                         return lret;
                 }
             }
         }
-        void MoveNextStreamPostition()
+        /// <summary>
+        /// 将当前输入流位置向后移动一个字符,并返回读取到的字符
+        /// </summary>
+        /// <returns></returns>
+        int MoveNextStreamPostition()
         {
             column++;
-            Reader.Read();
+            return Reader.Read();
         }
         /// <summary>
         /// 读取下一个字符串,当前reader流已经在"之后,读取到的字符串应该是不包含结尾的双引号
@@ -630,37 +681,36 @@ namespace NewLife.Serialization
             while (isContinue)
             {
                 c = Reader.Peek();
-                column++;
                 switch (c)
                 {
                     case '"':
-                        Reader.Read();
+                        MoveNextStreamPostition();
                         isContinue = false;
                         break;
                     case '\\':
-                        Reader.Read();
+                        MoveNextStreamPostition();
                         sb.Append(ReadNextEscapeChar());
                         break;
                     case '\b':
-                        Reader.Read();
+                        MoveNextStreamPostition();
                         sb.Append('\b');
                         break;
                     case '\f':
-                        Reader.Read();
+                        MoveNextStreamPostition();
                         sb.Append('\f');
                         break;
                     case '\t':
-                        Reader.Read();
+                        MoveNextStreamPostition();
                         sb.Append('\t');
                         break;
                     default:
                         if (c < 32)
                         {
-                            column--;
                             throw new JsonReaderParseException(line, column, "字符串未正确的结束");
                         }
-                        Reader.Read();
+                        MoveNextStreamPostition();
                         sb.Append((char)c);
+                        if (c > 2042) column++; //宽字符
                         break;
                 }
             }
@@ -673,7 +723,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         string ReadNextEscapeChar()
         {
-            int c = Reader.Read();
+            int c = MoveNextStreamPostition();
             column++;
             switch (c)
             {
@@ -690,11 +740,11 @@ namespace NewLife.Serialization
                 case 'u':
                     char[] unicodeChar = new char[4];
                     int n = Reader.ReadBlock(unicodeChar, 0, 4);
-                    column += n;
                     if (n != 4)
                     {
                         throw new JsonReaderParseException(line, column, "Unicode转义字符长度应该是4");
                     }
+                    column += 4;
                     string str = new string(unicodeChar);
                     UInt16 charCode;
                     if (UInt16.TryParse(str, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out charCode))
@@ -710,9 +760,10 @@ namespace NewLife.Serialization
         /// <summary>
         /// 读取下一个字面值,可能是true false null 数字 无法识别,调用时第一个字符一定是一个字面值
         /// </summary>
+        /// <param name="onlyPeek">是否仅Peek而不移动流位置(不移动到有效值的位置),这将会使str不会返回字符串内容(仅一个双引号)</param>
         /// <param name="str"></param>
         /// <returns></returns>
-        AtomElementType ReadNextLiteral(out string str)
+        AtomElementType ReadNextLiteral(bool onlyPeek, out string str)
         {
             StringBuilder sb = new StringBuilder();
             bool isContinue = true;
@@ -722,13 +773,12 @@ namespace NewLife.Serialization
             while (isContinue)
             {
                 c = Reader.Peek();
-                column++;
                 switch (c)
                 {
                     case '-':
                     case '+':
                         // json.org中规定-能在第一位和e符号后出现,而+仅仅只能在e符号后出现,这里忽略了这样的差异,允许+出现在第一位
-                        Reader.Read();
+                        if (!onlyPeek) MoveNextStreamPostition();
                         sb.Append((char)c);
                         if (sb.Length == 1 || //第一个字符
                             (sb.Length > 2 && hasDigit && !hasLiteral && hasExp && (lastChar == 'e' || lastChar == 'E')) //科学计数法e符号后
@@ -751,12 +801,12 @@ namespace NewLife.Serialization
                     case '7':
                     case '8':
                     case '9': //数字
-                        Reader.Read();
+                        if (!onlyPeek) MoveNextStreamPostition();
                         sb.Append((char)c);
                         hasDigit = true;
                         break;
                     case '.': //浮点数
-                        Reader.Read();
+                        if (!onlyPeek) MoveNextStreamPostition();
                         sb.Append((char)c);
                         if (!hasDot) //仅出现一次的.符号
                         {
@@ -769,7 +819,7 @@ namespace NewLife.Serialization
                         break;
                     case 'e':
                     case 'E': //科学计数法的e符号
-                        Reader.Read();
+                        if (!onlyPeek) MoveNextStreamPostition();
                         sb.Append((char)c);
                         if (!hasExp) //仅出现一次的e符号
                         {
@@ -781,43 +831,46 @@ namespace NewLife.Serialization
                         }
                         break;
                     default:
-                        if (c < 32 || " ,{}[]:".IndexOf((char)c) != -1) //结束符号
+                        if (c < 32 || " \t,{}[]:".IndexOf((char)c) != -1) //结束符号
                         {
                             isContinue = false;
-                            column--;
                         }
                         else //其它符号
                         {
-                            if (c > 2042) column++; //宽字符
-                            Reader.Read();
+                            if (!onlyPeek)
+                            {
+                                if (c > 2042) column++; //宽字符
+                                MoveNextStreamPostition();
+                            }
                             sb.Append((char)c);
                             hasLiteral = true;
                         }
                         break;
                 }
                 lastChar = c;
+                if (onlyPeek) break;
             }
             str = sb.ToString();
 
-            if (hasDigit && !hasDot && !hasLiteral)
+            if (hasDigit && !hasDot && !hasLiteral || onlyPeek && hasDigit)
             {
                 return hasExp ? AtomElementType.NUMBER_EXP : AtomElementType.NUMBER;
             }
-            else if (hasDigit && hasDot && !hasLiteral)
+            else if (hasDigit && hasDot && !hasLiteral || onlyPeek && hasDot)
             {
                 return hasExp ? AtomElementType.FLOAT_EXP : AtomElementType.FLOAT;
             }
             else
             {
-                if (!hasDigit && "true".Equals(str, StringComparison.OrdinalIgnoreCase))
+                if (!hasDigit && str.ToLower() == "true" || onlyPeek && str.ToLower() == "t")
                 {
                     return AtomElementType.TRUE;
                 }
-                else if (!hasDigit && "false".Equals(str, StringComparison.OrdinalIgnoreCase))
+                else if (!hasDigit && str.ToLower() == "false" || onlyPeek && str.ToLower() == "f")
                 {
                     return AtomElementType.FALSE;
                 }
-                else if (!hasDigit && "null".Equals(str, StringComparison.OrdinalIgnoreCase))
+                else if (!hasDigit && str.ToLower() == "null" || onlyPeek && str.ToLower() == "n")
                 {
                     return AtomElementType.NULL;
                 }
@@ -866,6 +919,7 @@ namespace NewLife.Serialization
                         break;
                 }
             } while (skipDepth > 0);
+            ComplexObjectDepth -= initDepth;
         }
         #endregion
 
@@ -875,6 +929,16 @@ namespace NewLife.Serialization
         /// </summary>
         int ComplexObjectDepth = 0;
         /// <summary>
+        /// 自动探测类型时断言的原子元素类型
+        /// </summary>
+        AtomElementType[] AUTODETECT_TYPES = {
+                                                 AtomElementType.BRACE_OPEN, AtomElementType.BRACKET_OPEN,
+                                                 AtomElementType.STRING,
+                                                 AtomElementType.NUMBER, AtomElementType.FLOAT,
+                                                 AtomElementType.TRUE, AtomElementType.FALSE,
+                                                 AtomElementType.NULL, AtomElementType.LITERAL 
+                                             };
+        /// <summary>
         /// 从当前流位置读取一个对象
         /// </summary>
         /// <param name="type"></param>
@@ -883,6 +947,99 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected override bool OnReadObject(Type type, ref object value, ReadObjectCallback callback)
         {
+            if (type == null || type == typeof(object))
+            {
+                //探测类型 true,false,null,number,float这些返回类型不是可靠的
+                string str;
+                AtomElementType atype = AssertReadNextAtomElement(true, "期望是自动探测可接受的类型,包括对象,字符串,数字,{,[.无法解析的将会跳过", out str, AUTODETECT_TYPES);
+                switch (atype)
+                {
+                    case AtomElementType.BRACE_OPEN:
+                        type = typeof(object);
+                        break;
+                    case AtomElementType.BRACKET_OPEN:
+                        type = typeof(object[]);
+                        break;
+                    case AtomElementType.STRING:
+                        type = typeof(string); //这里会忽略DateTime类型
+                        break;
+                    case AtomElementType.TRUE:
+                    case AtomElementType.FALSE:
+                        try
+                        {
+                            value = ReadBoolean();
+                            return true;
+                        }
+                        catch (JsonReaderParseException)
+                        {
+                            goto default;
+                        }
+                    case AtomElementType.NULL:
+                        try
+                        {
+                            AssertReadNextAtomElement("期望是null", AtomElementType.NULL);
+                            value = null;
+                            return true;
+                        }
+                        catch (JsonReaderParseException)
+                        {
+                            goto default;
+                        }
+                    case AtomElementType.NUMBER:
+                    case AtomElementType.FLOAT:
+                        atype = AssertReadNextAtomElement("期望是数字,包括整型 浮点型", out str, NUMBER_TYPES);
+                        NumberStyles numStyles = GetExponentOrNotStyle(str, NUMBER_TYPES, atype);
+
+                        try
+                        {
+                            value = ReadNumber<short>(str, numStyles, short.TryParse);
+                            return true;
+                        }
+                        catch { }
+
+                        try
+                        {
+                            value = ReadNumber<int>(str, numStyles, int.TryParse);
+                            return true;
+                        }
+                        catch { }
+
+                        try
+                        {
+                            value = ReadNumber<long>(str, numStyles, long.TryParse);
+                            return true;
+                        }
+                        catch { }
+
+                        try
+                        {
+                            value = ReadNumber<float>(str, numStyles, float.TryParse);
+                            return true;
+                        }
+                        catch { }
+
+                        try
+                        {
+                            value = ReadNumber<decimal>(str, numStyles, decimal.TryParse);
+                            return true;
+                        }
+                        catch { }
+
+                        try
+                        {
+                            value = ReadNumber<double>(str, numStyles, double.TryParse);
+                            return true;
+                        }
+                        catch { }
+
+                        goto default;
+                    case AtomElementType.LITERAL:
+                        SkipNext();
+                        return true;
+                    default:
+                        return true;
+                }
+            }
             return base.OnReadObject(type, ref value, callback);
         }
         /// <summary>
@@ -894,7 +1051,33 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override bool ReadCustomObject(Type type, ref object value, ReadObjectCallback callback)
         {
-            AssertReadNextAtomElement("期望对象开始", AtomElementType.BRACE_OPEN);
+            AtomElementType atype = AssertReadNextAtomElement("期望对象开始符号或null", AtomElementType.BRACE_OPEN, AtomElementType.NULL);
+            if (atype == AtomElementType.NULL)
+            {
+                value = null;
+                return true;
+            }
+            if (type == typeof(object))
+            {
+                string str;
+                AssertReadNextAtomElement("期望是__type", out str, AtomElementType.STRING);
+                if (str.ToLower() == "__type")
+                {
+                    AssertReadNextAtomElement("期望是__type后的冒号", AtomElementType.COLON);
+                    AssertReadNextAtomElement("期望是__type的值,具体的类型全名", out str, AtomElementType.STRING);
+                    try
+                    {
+                        type = TypeX.GetType(str, true);
+                    }
+                    catch { }
+                }
+                if (type == typeof(object))
+                {
+                    type = typeof(IDictionary<string, object>);
+                    // TODO 不包含__type的自定义类型,作为字典处理,并初始化一个字典 并把刚刚读取到的数据写入
+                }
+            }
+
             int d = ComplexObjectDepth++;
             bool ret = base.ReadCustomObject(type, ref value, callback);
 
@@ -1130,9 +1313,9 @@ namespace NewLife.Serialization
                     case AtomElementType.BRACKET_CLOSE:
                         return "]";
                     case AtomElementType.COLON:
-                        return ":";
+                        return "冒号";
                     case AtomElementType.COMMA:
-                        return ",";
+                        return "逗号";
                     case AtomElementType.STRING:
                         return "字符串";
                     case AtomElementType.LITERAL:
