@@ -301,6 +301,8 @@ namespace XCode.DataAccessLayer
                     field.Length = n;
                     if (field.NumOfByte == 0) field.NumOfByte = field.Length;
                 }
+
+                if (field.Length <= 0 && field.DataType == typeof(String)) field.Length = Int32.MaxValue / 2;
             }
 
             // 处理格式参数
@@ -395,7 +397,10 @@ namespace XCode.DataAccessLayer
 
                 StringBuilder sb = new StringBuilder();
                 sb.AppendFormat("DataType='{0}' And ColumnSize>={1}", typeName, field.Length);
-                if (field.DataType == typeof(String) && field.Length > Database.LongTextLength) sb.AppendFormat(" And IsLong=1");
+                //if (field.DataType == typeof(String) && field.Length > Database.LongTextLength) sb.AppendFormat(" And IsLong=1");
+                // 如果字段的长度为0，则也算是大文本
+                if (field.DataType == typeof(String) && (field.Length > Database.LongTextLength || field.Length <= 0))
+                    sb.AppendFormat(" And IsLong=1");
 
                 drs2 = dt.Select(sb.ToString(), "IsBestMatch Desc, ColumnSize Asc, IsFixedLength Asc, IsLong Asc");
                 if (drs2 == null || drs2.Length < 1) return drs;
