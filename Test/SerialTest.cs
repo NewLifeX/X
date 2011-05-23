@@ -439,7 +439,7 @@ namespace Test
                 get
                 {
                     if (_Objs == null)
-                        _Objs = new Object[] { 1, "string", true, 1.2F };
+                        _Objs = new Object[] { 1, "string", true };
                     return _Objs;
                 }
                 set { _Objs = value; }
