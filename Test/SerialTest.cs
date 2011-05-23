@@ -66,7 +66,7 @@ namespace Test
             entity = bf.Deserialize(ts) as Admin;
             Console.WriteLine(entity != null);
         }
-        
+
         /// <summary>
         /// 二进制序列化测试
         /// </summary>
@@ -153,7 +153,7 @@ namespace Test
                 Console.WriteLine("校验结果：{0}", CompareByteArray(buffer, buffer2));
             }
         }
- 
+
         static T GetWriter<T>() where T : IWriter, new()
         {
             TraceStream ts = new TraceStream();
@@ -436,10 +436,12 @@ namespace Test
             /// <summary>属性说明</summary>
             public Object[] Objs
             {
-                get {
+                get
+                {
                     if (_Objs == null)
-                        _Objs = new Object[] { 1, "string", true };
-                    return _Objs; }
+                        _Objs = new Object[] { 1, "string", true, 1.2F };
+                    return _Objs;
+                }
                 set { _Objs = value; }
             }
         }
