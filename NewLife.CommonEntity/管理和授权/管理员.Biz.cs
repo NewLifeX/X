@@ -457,6 +457,20 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>
+        /// 根据编号查找
+        /// </summary>
+        /// <param name="__ID"></param>
+        /// <returns></returns>
+        public static TEntity FindByID(Int32 __ID)
+        {
+            //return Find(_.ID, __ID);
+            // 实体缓存
+            return Meta.Cache.Entities.Find(_.ID, __ID);
+            // 单对象缓存
+            //return Meta.SingleCache[__ID];
+        }
+
+        /// <summary>
         /// 根据名称查找
         /// </summary>
         /// <param name="name"></param>
