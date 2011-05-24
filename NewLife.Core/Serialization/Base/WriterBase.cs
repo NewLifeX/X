@@ -627,7 +627,7 @@ namespace NewLife.Serialization
         protected virtual Boolean OnWriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
             // 如果无法取得元素类型，则每个元素都单独写入类型
-            if (type == null && value != null)
+            if ((type == null || type == typeof(object)) && value != null)
             {
                 WriteLog("WriteItemType", value.GetType().Name);
                 Write(value.GetType());

@@ -703,7 +703,7 @@ namespace NewLife.Serialization
         protected virtual Boolean OnReadItem(Type type, ref Object value, Int32 index, ReadObjectCallback callback)
         {
             // 如果无法取得元素类型，则每个元素都单独写入类型
-            if (type == null)
+            if (type == null || type == typeof(object))
             {
                 WriteLog("ReadItemType");
                 type = ReadType();
