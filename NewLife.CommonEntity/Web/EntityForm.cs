@@ -261,11 +261,14 @@ namespace NewLife.CommonEntity.Web
                 //// 必填项
                 //if (!field.IsNullable) SetNotAllowNull(field, control, canSave);
 
-                // 设置只读
-                if (wc is TextBox)
-                    (wc as TextBox).ReadOnly = !canSave;
-                else
-                    wc.Enabled = canSave;
+                // 设置只读，只有不能保存时才设置，因为一般都不是只读，而前端可能自己设置了控件为只读，这种情况下这里再设置就会修改前端的意思
+                if (!canSave)
+                {
+                    if (wc is TextBox)
+                        (wc as TextBox).ReadOnly = !canSave;
+                    else
+                        wc.Enabled = canSave;
+                }
 
                 // 分控件处理
                 if (wc is TextBox)
