@@ -550,6 +550,12 @@ namespace NewLife.Reflection
             return AttributeX.GetCustomAttributeValue<TAttribute, TResult>(BaseType, true);
         }
 
+        /// <summary>
+        /// 类型转换
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="conversionType"></param>
+        /// <returns></returns>
         public static Object ChangeType(object value, Type conversionType)
         {
             if (value != null && value.GetType() == conversionType) return value;

@@ -125,7 +125,8 @@ namespace Test
         {
             Administrator entity = GetDemo();
 
-            writer.WriteObject(entity, null, null);
+            //writer.WriteObject(entity, null, null);
+            writer.WriteObject(entity, entity.GetType(), null);
 
             Byte[] buffer = writer.ToArray();
             //Console.WriteLine(BitConverter.ToString(buffer));

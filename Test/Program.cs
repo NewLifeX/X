@@ -35,9 +35,11 @@ namespace Test
             Console.WindowWidth = 80;
             Console.WindowHeight = 20;
 
-            //Console.BufferWidth *= 10;
-            //Console.BufferHeight *= 10;
-            
+            //Console.BufferWidth /= 10;
+            //Console.BufferHeight /= 10;
+            Console.BufferWidth = 160;
+            Console.BufferHeight = 500;
+
             XTrace.OnWriteLog += new EventHandler<WriteLogEventArgs>(XTrace_OnWriteLog);
             while (true)
             {

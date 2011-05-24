@@ -387,7 +387,7 @@ namespace NewLife.Serialization
         public virtual Boolean WriteDictionary(IDictionary value, Type type, WriteObjectCallback callback)
         {
             if (value == null) return true;
-            type = CheckAndWriteType(value, type);
+            type = CheckAndWriteType("WriteDictionaryType", value, type);
 
             // 计算元素类型
             Type keyType = null;
@@ -473,19 +473,21 @@ namespace NewLife.Serialization
         protected virtual Boolean OnWriteKeyValue(DictionaryEntry value, Type keyType, Type valueType, Int32 index, WriteObjectCallback callback)
         {
             // 如果无法取得字典项类型，则每个键值都单独写入类型
-            if (keyType == null && value.Key != null)
-            {
-                WriteLog("WriteKeyType", value.Key.GetType().Name);
-                Write(value.Key.GetType());
-            }
-            if (!WriteObject(value.Key, null, callback)) return false;
+            //if (keyType == null && value.Key != null)
+            //{
+            //    WriteLog("WriteKeyType", value.Key.GetType().Name);
+            //    Write(value.Key.GetType());
+            //}
+            keyType = CheckAndWriteType("WriteKeyType", value.Key, keyType);
+            if (!WriteObject(value.Key, keyType, callback)) return false;
 
-            if (valueType == null && value.Value != null)
-            {
-                WriteLog("WriteValueType", value.Value.GetType().Name);
-                Write(value.Value.GetType());
-            }
-            if (!WriteObject(value.Value, null, callback)) return false;
+            //if (valueType == null && value.Value != null)
+            //{
+            //    WriteLog("WriteValueType", value.Value.GetType().Name);
+            //    Write(value.Value.GetType());
+            //}
+            valueType = CheckAndWriteType("WriteValueType", value.Value, valueType);
+            if (!WriteObject(value.Value, valueType, callback)) return false;
 
             return true;
         }
@@ -537,7 +539,7 @@ namespace NewLife.Serialization
         public virtual Boolean WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
         {
             if (value == null) return true;
-            type = CheckAndWriteType(value, type);
+            type = CheckAndWriteType("WriteEnumerableType", value, type);
 
             //type = value.GetType();
             if (type != null && !typeof(IEnumerable).IsAssignableFrom(type)) throw new Exception("目标类型不是枚举类型！");
@@ -629,12 +631,13 @@ namespace NewLife.Serialization
         protected virtual Boolean OnWriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
             // 如果无法取得元素类型，则每个元素都单独写入类型
-            if ((type == null || type == typeof(object)) && value != null)
-            {
-                WriteLog("WriteItemType", value.GetType().Name);
-                Write(value.GetType());
-            }
-            return WriteObject(value, null, callback);
+            //if ((type == null || type == typeof(object)) && value != null)
+            //{
+            //    WriteLog("WriteItemType", value.GetType().Name);
+            //    Write(value.GetType());
+            //}
+            type = CheckAndWriteType("WriteItemType", value, type);
+            return WriteObject(value, type, callback);
         }
         #endregion
 
@@ -803,17 +806,18 @@ namespace NewLife.Serialization
         /// <summary>
         /// 检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。同时返回对象实际类型。
         /// </summary>
+        /// <param name="action"></param>
         /// <param name="value"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        protected Type CheckAndWriteType(Object value, Type type)
+        protected Type CheckAndWriteType(String action, Object value, Type type)
         {
             //if (value == null || type == null) return type;
             if (type == null)
             {
                 if (value == null) return null;
 
-                type = value.GetType();
+                //type = value.GetType();
             }
 
             //Type trueType = value.GetType();
@@ -822,7 +826,8 @@ namespace NewLife.Serialization
             if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
             {
                 type = value.GetType();
-                WriteLog("WriteObjectType", type.Name);
+                //WriteLog("WriteObjectType", type.Name);
+                WriteLog(action, type.Name);
                 WriteObjectType(type);
             }
 
@@ -877,7 +882,7 @@ namespace NewLife.Serialization
         public Boolean WriteObject(Object value, Type type, WriteObjectCallback callback)
         {
             //if (value != null) type = value.GetType();
-            type = CheckAndWriteType(value, type);
+            type = CheckAndWriteType("WriteObjectType", value, type);
             if (callback == null) callback = WriteMember;
 
             // 检查IAcessor接口
@@ -937,7 +942,7 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected virtual Boolean OnWriteObject(Object value, Type type, WriteObjectCallback callback)
         {
-            type = CheckAndWriteType(value, type);
+            type = CheckAndWriteType("WriteObjectType", value, type);
 
             // 扩展类型
             if (WriteX(value, type)) return true;
@@ -963,7 +968,7 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected virtual Boolean WriteRefObject(Object value, Type type, WriteObjectCallback callback)
         {
-            type = CheckAndWriteType(value, type);
+            type = CheckAndWriteType("WriteRefObjectType", value, type);
 
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
@@ -1013,7 +1018,7 @@ namespace NewLife.Serialization
         {
             if (value == null) return true;
             //if (type == null) type = value.GetType();
-            type = CheckAndWriteType(value, type);
+            type = CheckAndWriteType("WriteCustomObjectType", value, type);
 
             IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
@@ -1103,7 +1108,7 @@ namespace NewLife.Serialization
         {
             Object obj = member[value];
 
-            type = CheckAndWriteType(obj, type);
+            //type = CheckAndWriteType("WriteMemberType", obj, type);
 
             //if (type == typeof(Object) && obj != null)
             //{
@@ -1118,6 +1123,48 @@ namespace NewLife.Serialization
         {
             return writer.WriteObject(value, type, callback);
         }
+        #endregion
+
+        #region 事件
+        /// <summary>
+        /// 写对象前触发。
+        /// </summary>
+        public event EventHandler<WriteObjectEventArgs> OnObjectWriting;
+
+        /// <summary>
+        /// 写对象后触发。
+        /// </summary>
+        public event EventHandler<WriteObjectEventArgs> OnObjectWrited;
+
+        /// <summary>
+        /// 写成员前触发。
+        /// </summary>
+        public event EventHandler<WriteMemberEventArgs> OnMemberWriting;
+
+        /// <summary>
+        /// 写成员后触发。
+        /// </summary>
+        public event EventHandler<WriteMemberEventArgs> OnMemberWrited;
+
+        /// <summary>
+        /// 写字典项前触发。
+        /// </summary>
+        public event EventHandler<WriteDictionaryEventArgs> OnDictionaryWriting;
+
+        /// <summary>
+        /// 写字典项后触发。
+        /// </summary>
+        public event EventHandler<WriteDictionaryEventArgs> OnDictionaryWrited;
+
+        /// <summary>
+        /// 写枚举项前触发。
+        /// </summary>
+        public event EventHandler<WriteItemEventArgs> OnItemWriting;
+
+        /// <summary>
+        /// 写枚举项后触发。
+        /// </summary>
+        public event EventHandler<WriteItemEventArgs> OnItemWrited;
         #endregion
 
         #region 方法
@@ -1181,48 +1228,6 @@ namespace NewLife.Serialization
 
             return Settings.Encoding.GetString(buffer);
         }
-        #endregion
-
-        #region 事件
-        /// <summary>
-        /// 写对象前触发。
-        /// </summary>
-        public event EventHandler<WriteObjectEventArgs> OnObjectWriting;
-
-        /// <summary>
-        /// 写对象后触发。
-        /// </summary>
-        public event EventHandler<WriteObjectEventArgs> OnObjectWrited;
-
-        /// <summary>
-        /// 写成员前触发。
-        /// </summary>
-        public event EventHandler<WriteMemberEventArgs> OnMemberWriting;
-
-        /// <summary>
-        /// 写成员后触发。
-        /// </summary>
-        public event EventHandler<WriteMemberEventArgs> OnMemberWrited;
-
-        /// <summary>
-        /// 写字典项前触发。
-        /// </summary>
-        public event EventHandler<WriteDictionaryEventArgs> OnDictionaryWriting;
-
-        /// <summary>
-        /// 写字典项后触发。
-        /// </summary>
-        public event EventHandler<WriteDictionaryEventArgs> OnDictionaryWrited;
-
-        /// <summary>
-        /// 写枚举项前触发。
-        /// </summary>
-        public event EventHandler<WriteItemEventArgs> OnItemWriting;
-
-        /// <summary>
-        /// 写枚举项后触发。
-        /// </summary>
-        public event EventHandler<WriteItemEventArgs> OnItemWrited;
         #endregion
     }
 }

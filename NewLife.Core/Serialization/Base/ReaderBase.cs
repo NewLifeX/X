@@ -366,7 +366,7 @@ namespace NewLife.Serialization
             //    if (value == null) throw new ArgumentNullException("type");
             //    type = value.GetType();
             //}
-            type = CheckAndReadType(type, value);
+            type = CheckAndReadType("ReadDictionaryType", type, value);
 
             if (!typeof(IDictionary).IsAssignableFrom(type)) return false;
 
@@ -487,20 +487,24 @@ namespace NewLife.Serialization
             Object val = null;
 
             // 如果无法取得字典项类型，则每个键值都单独写入类型
-            if (keyType == null)
-            {
-                WriteLog("ReadKeyType");
-                keyType = ReadType();
-                WriteLog("ReadKeyType", keyType.Name);
-            }
+            //if (keyType == null)
+            //{
+            //    WriteLog("ReadKeyType");
+            //    keyType = ReadType();
+            //    WriteLog("ReadKeyType", keyType.Name);
+            //}
+            keyType = CheckAndReadType("ReadKeyType", keyType, value.Key);
+
             if (!ReadObject(keyType, ref key)) return false;
 
-            if (valueType == null)
-            {
-                WriteLog("ReadValueType");
-                valueType = ReadType();
-                WriteLog("ReadValueType", valueType.Name);
-            }
+            //if (valueType == null)
+            //{
+            //    WriteLog("ReadValueType");
+            //    valueType = ReadType();
+            //    WriteLog("ReadValueType", valueType.Name);
+            //}
+            valueType = CheckAndReadType("ReadValueType", valueType, value.Value);
+
             if (!ReadObject(valueType, ref val)) return false;
 
             value.Key = key;
@@ -562,7 +566,7 @@ namespace NewLife.Serialization
             //    if (value == null) return false;
             //    type = value.GetType();
             //}
-            type = CheckAndReadType(type, value);
+            type = CheckAndReadType("ReadEnumerableType", type, value);
 
             if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
 
@@ -707,12 +711,14 @@ namespace NewLife.Serialization
         protected virtual Boolean OnReadItem(Type type, ref Object value, Int32 index, ReadObjectCallback callback)
         {
             // 如果无法取得元素类型，则每个元素都单独写入类型
-            if (type == null || type == typeof(object))
-            {
-                WriteLog("ReadItemType");
-                type = ReadType();
-                WriteLog("ReadItemType", type.Name);
-            }
+            //if (type == null || type == typeof(object))
+            //{
+            //    WriteLog("ReadItemType");
+            //    type = ReadType();
+            //    WriteLog("ReadItemType", type.Name);
+            //}
+            type = CheckAndReadType("ReadItemType", type, value);
+
             return ReadObject(type, ref value, callback);
         }
 
@@ -997,24 +1003,25 @@ namespace NewLife.Serialization
         /// <summary>
         /// 检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。同时返回对象实际类型。
         /// </summary>
+        /// <param name="action"></param>
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        protected Type CheckAndReadType(Type type, Object value)
+        protected Type CheckAndReadType(String action, Type type, Object value)
         {
             //if (value != null) type = value.GetType();
-            if (type == null)
-            {
-                if (value == null) return null;
+            //if (type == null)
+            //{
+            //    if (value == null) return null;
 
-                type = value.GetType();
-            }
+            //    type = value.GetType();
+            //}
 
             if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
             {
-                WriteLog("ReadObjectType");
+                WriteLog(action);
                 type = ReadType();
-                WriteLog("ReadObjectType", type.Name);
+                WriteLog(action, type.Name);
             }
 
             return type;
@@ -1063,7 +1070,7 @@ namespace NewLife.Serialization
         public Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback)
         {
             //if (value != null) type = value.GetType();
-            type = CheckAndReadType(type, value);
+            type = CheckAndReadType("ReadObjectType", type, value);
             if (callback == null) callback = ReadMember;
 
             // 检查IAcessor接口
@@ -1126,7 +1133,7 @@ namespace NewLife.Serialization
         protected virtual Boolean OnReadObject(Type type, ref Object value, ReadObjectCallback callback)
         {
             //if (type == null && value != null) type = value.GetType();
-            type = CheckAndReadType(type, value);
+            type = CheckAndReadType("ReadObjectType", type, value);
             if (callback == null) callback = ReadMember;
 
             // 特殊类型
@@ -1155,6 +1162,8 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         protected virtual Boolean ReadRefObject(Type type, ref Object value, ReadObjectCallback callback)
         {
+            type = CheckAndReadType("ReadRefObjectType", type, value);
+
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
             {
@@ -1239,7 +1248,7 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public virtual Boolean ReadCustomObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-            type = CheckAndReadType(type, value);
+            type = CheckAndReadType("ReadCustomObjectType", type, value);
 
             IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
@@ -1370,14 +1379,14 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         protected virtual Boolean OnReadMember(Type type, ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
-            type = CheckAndReadType(type, value);
+            //type = CheckAndReadType("ReadMemberType", type, value);
 
-            if (type == typeof(Object))
-            {
-                WriteLog("ReadMemberType");
-                type = ReadType();
-                WriteLog("ReadMemberType", type.Name);
-            }
+            //if (type == typeof(Object))
+            //{
+            //    WriteLog("ReadMemberType");
+            //    type = ReadType();
+            //    WriteLog("ReadMemberType", type.Name);
+            //}
             return callback(this, type, ref value, callback);
         }
 
