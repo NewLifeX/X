@@ -171,13 +171,11 @@ namespace NewLife.Serialization
         /// </summary>
         public static readonly AtomElementType[] INTEGER_TYPES = { AtomElementType.NUMBER, AtomElementType.NUMBER_EXP };
         /// <summary>
-        /// 从当前流位置读取一个指定节点类型的数字,并尝试解析为T类型数字
+        /// 从当前流位置读取一个指定T类型的数字,T应该是int long float double及相关类型
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="getNumStyles">根据读取到的节点信息决定使用什么数字格式解析字符串</param>
-        /// <param name="tryParse">将读取到的字符串解析为T类型数字的方法</param>
-        /// <param name="exceptMsg">解析失败抛出异常时的附加信息</param>
-        /// <param name="expected">期望返回的节点类型,如果类型不匹配将返回异常信息</param>
+        /// <param name="exceptMsg">断言读取时断言失败的附加异常信息</param>
+        /// <param name="expected">期望的节点类型,和T参数有关,一般浮点数额外有AtomElementType.FLOAT</param>
         /// <returns></returns>
         T ReadNumber<T>(string exceptMsg, params AtomElementType[] expected) where T : IConvertible
         {
@@ -193,13 +191,12 @@ namespace NewLife.Serialization
             throw new JsonReaderAssertException(line, column, expected, actual, string.Format("字符串{0} 不是有效的数字类型:{1}", str, typeof(T).FullName));
         }
         /// <summary>
-        /// 将指定str解析为指定数字类型,使用tryParse解析方法,numStyles将作为数字格式
+        /// 从指定字符串中尝试读取指定T类型的数字,T应该是int long float double及相关类型
         /// </summary>
-        /// <typeparam name="T">需要是某个数字类型,因为这类数字类型可以提供tryParse参数</typeparam>
+        /// <typeparam name="T"></typeparam>
         /// <param name="str"></param>
         /// <param name="numStyles"></param>
-        /// <param name="tryParse"></param>
-        /// <param name="ret"></param>
+        /// <param name="result">返回值,可以直接强类型转换或者使用ToXXX转换</param>
         /// <returns></returns>
         bool ReadNumber<T>(string str, NumberStyles numStyles, out IConvertible result) where T : IConvertible
         {
@@ -439,6 +436,7 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="type"></param>
         /// <param name="value"></param>
+        /// <param name="callback"></param>
         /// <returns></returns>
         public override bool ReadEnumerable(Type type, ref object value, ReadObjectCallback callback)
         {
@@ -505,6 +503,7 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="type"></param>
         /// <param name="value"></param>
+        /// <param name="callback"></param>
         /// <returns></returns>
         public override bool ReadDictionary(Type type, ref object value, ReadObjectCallback callback)
         {

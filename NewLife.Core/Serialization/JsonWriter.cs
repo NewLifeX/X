@@ -389,6 +389,15 @@ namespace NewLife.Serialization
             Writer.Write("}");
             return ret;
         }
+        /// <summary>
+        /// 写入字典键和值
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="keyType"></param>
+        /// <param name="valueType"></param>
+        /// <param name="index"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
         protected override bool OnWriteKeyValue(DictionaryEntry value, Type keyType, Type valueType, int index, WriteObjectCallback callback)
         {
             if (index > 0)
