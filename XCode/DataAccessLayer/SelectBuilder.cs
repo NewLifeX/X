@@ -111,8 +111,8 @@ namespace XCode.DataAccessLayer
             DbType = dbType;
         }
 
-        //todo 使用正则平衡组分析sql
-        //todo 使用静态创建器，优化对象的创建
+        //TODO 使用正则平衡组分析sql
+        //TODO 使用静态创建器，优化对象的创建
 
         ///// <summary>
         ///// 通过分析一条SQL语句来初始化一个实例

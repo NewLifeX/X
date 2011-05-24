@@ -186,16 +186,14 @@ namespace NewLife.CommonEntity
                 if (list2 == null || list2.Count < 1) return list[0];
                 if (list2.Count == 1) return list2[0];
 
-                if (di.Parent.Name.Equals(""))
-                {
-                    String url = String.Format(@"../{0}/{1}", di.Name, fileName);
-                    return Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
-                }
-                else
-                {
-                    String url = String.Format(@"../../{0}/{1}/{2}", di.Parent.Name, di.Name, fileName);
-                    return Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
-                }
+                // 优先全路径
+                String url = String.Format(@"../../{0}/{1}/{2}", di.Parent.Name, di.Name, fileName);
+                TEntity entity = Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
+                if (entity != null) return entity;
+
+                // 兼容旧版本
+                url = String.Format(@"../{0}/{1}", di.Name, fileName);
+                return Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
             }
         }
 
@@ -579,10 +577,11 @@ namespace NewLife.CommonEntity
                 foreach (String elm in files)
                 {
                     String url = null;
-                    if (String.Equals(dir, "Admin", StringComparison.OrdinalIgnoreCase))
-                        url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
-                    else
-                        url = String.Format(@"../../{2}/{0}/{1}", dirName, Path.GetFileName(elm), dir);
+                    // 全部使用全路径
+                    //if (String.Equals(dir, "Admin", StringComparison.OrdinalIgnoreCase))
+                    //    url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
+                    //else
+                    url = String.Format(@"../../{2}/{0}/{1}", dirName, Path.GetFileName(elm), dir);
 
                     TEntity entity = Find(_.Url, url);
                     if (entity != null) continue;
