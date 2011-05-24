@@ -29,6 +29,15 @@ namespace Test
     {
         static void Main(string[] args)
         {
+            //Console.WindowWidth /= 2;
+            //Console.WindowHeight /= 2;
+
+            Console.WindowWidth = 80;
+            Console.WindowHeight = 20;
+
+            //Console.BufferWidth *= 10;
+            //Console.BufferHeight *= 10;
+            
             XTrace.OnWriteLog += new EventHandler<WriteLogEventArgs>(XTrace_OnWriteLog);
             while (true)
             {

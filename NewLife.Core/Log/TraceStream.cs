@@ -135,11 +135,26 @@ namespace NewLife.Log
             }
 
             if (e.Arg2.Length == 1)
-                Console.Write("{0:X2} ({0})", e.Arg2[0]);
+            {
+                Int32 n = Convert.ToInt32(e.Arg2[0]);
+                // 大于10才显示十进制
+                if (n >= 10)
+                    Console.Write("{0:X2} ({0})", n);
+                else
+                    Console.Write("{0:X2}", n);
+            }
             else
             {
                 if (count == 1)
-                    Console.Write("{0:X2} ({0})", Convert.ToInt32(buffer[0]));
+                {
+                    //Console.Write("{0:X2} ({0})", Convert.ToInt32(buffer[0]));
+                    Int32 n = Convert.ToInt32(buffer[0]);
+                    // 大于10才显示十进制
+                    if (n >= 10)
+                        Console.Write("{0:X2} ({0})", n);
+                    else
+                        Console.Write("{0:X2}", n);
+                }
                 else
                     Console.Write(BitConverter.ToString(buffer, offset, count));
             }
@@ -150,12 +165,18 @@ namespace NewLife.Log
             if (e.Arg2.Length == 1)
             {
                 Int32 n = Convert.ToInt32(e.Arg2[0]);
-                if (n >= 0) Console.Write(Convert.ToChar(n));
+                //if (n >= 0) Console.Write(Convert.ToChar(n));
+                // 只显示可见字符
+                if (n >= '0') Console.Write(Convert.ToChar(n));
             }
             else
             {
                 if (count == 1)
-                    Console.Write("{0} ({1})", Convert.ToChar(buffer[0]), Convert.ToInt32(buffer[0]));
+                {
+                    //Console.Write("{0} ({1})", Convert.ToChar(buffer[0]), Convert.ToInt32(buffer[0]));
+                    // 只显示可见字符
+                    if (buffer[0] >= '0') Console.Write("{0} ({1})", Convert.ToChar(buffer[0]), Convert.ToInt32(buffer[0]));
+                }
                 else
                     Console.Write(Encoding.GetString(buffer, offset, count));
             }

@@ -235,6 +235,8 @@ namespace NewLife.Serialization
         {
             if (!UseSize) return;
 
+            WriteLog("WriteSize", size);
+
             Write(size);
         }
         #endregion

@@ -248,6 +248,15 @@ namespace Test
             dt.AcceptChanges();
             //entity.Table1 = dt;
 
+            entity.AdminB = entity;
+            entity.IAdmin = entity;
+
+            List<IAdministrator> list = new List<IAdministrator>();
+            list.Add(entity);
+            list.Add(entity);
+            list.Add(entity);
+            entity.IAdmins = list;
+
             return entity;
         }
 
@@ -269,9 +278,11 @@ namespace Test
         }
 
         [Serializable]
-        class Admin : Administrator
-        {
+        abstract class AdminBase : Administrator { }
 
+        [Serializable]
+        class Admin : AdminBase
+        {
             private float _float1;
             /// <summary>单精度</summary>
             public float float1
@@ -443,6 +454,30 @@ namespace Test
                     return _Objs;
                 }
                 set { _Objs = value; }
+            }
+
+            private AdminBase _AdminB;
+            /// <summary>抽象类型</summary>
+            public AdminBase AdminB
+            {
+                get { return _AdminB; }
+                set { _AdminB = value; }
+            }
+
+            private IAdministrator _IAdmin;
+            /// <summary>接口类型</summary>
+            public IAdministrator IAdmin
+            {
+                get { return _IAdmin; }
+                set { _IAdmin = value; }
+            }
+
+            private IList<IAdministrator> _IAdmins;
+            /// <summary>接口集合</summary>
+            public IList<IAdministrator> IAdmins
+            {
+                get { return _IAdmins; }
+                set { _IAdmins = value; }
             }
         }
 

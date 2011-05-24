@@ -234,7 +234,7 @@ namespace NewLife.Serialization
                 if (value.IsArray)
                 {
                     // 数组类型
-                    Write((Byte)BinarySettings.TypeKinds.Array);
+                    WriteTypeKind(BinarySettings.TypeKinds.Array);
                     // 数组维数
                     Write(value.GetArrayRank());
                     // 数据元素类型
@@ -245,7 +245,7 @@ namespace NewLife.Serialization
                 if (value.IsNested)
                 {
                     // 内嵌类型
-                    Write((Byte)BinarySettings.TypeKinds.Nested);
+                    WriteTypeKind(BinarySettings.TypeKinds.Nested);
                     // 声明类
                     Write(value.DeclaringType);
                     // 本类类名
@@ -257,7 +257,7 @@ namespace NewLife.Serialization
                 if (value.IsGenericType && !value.IsGenericTypeDefinition)
                 {
                     // 泛型类型
-                    Write((Byte)BinarySettings.TypeKinds.Generic);
+                    WriteTypeKind(BinarySettings.TypeKinds.Generic);
 
                     Write(value.GetGenericTypeDefinition());
                     Type[] ts = value.GetGenericArguments();
@@ -278,10 +278,16 @@ namespace NewLife.Serialization
                 }
 
                 // 普通类型
-                Write((Byte)BinarySettings.TypeKinds.Normal);
+                WriteTypeKind(BinarySettings.TypeKinds.Normal);
             }
 
             base.OnWriteType(value);
+        }
+
+        void WriteTypeKind(BinarySettings.TypeKinds kind)
+        {
+            WriteLog("WriteTypeKind", kind);
+            Write((Byte)kind);
         }
         #endregion
 

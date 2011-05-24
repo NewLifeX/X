@@ -222,7 +222,11 @@ namespace NewLife.Serialization
         {
             if (!UseSize) return -1;
 
-            return ReadInt32();
+            Int32 size = ReadInt32();
+
+            WriteLog("ReadSize", size);
+
+            return size;
         }
         #endregion
 
