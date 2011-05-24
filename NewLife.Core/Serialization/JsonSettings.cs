@@ -59,6 +59,29 @@ namespace NewLife.Serialization
             get { return _AllowMultiline; }
             set { _AllowMultiline = value; }
         }
+        private RepeatedAction _RepeatedActionType;
+        /// <summary>
+        /// 重复对象的处理方式
+        /// </summary>
+        public RepeatedAction RepeatedActionType
+        {
+            get { return _RepeatedActionType; }
+            set { _RepeatedActionType = value; }
+        }
+
+        private int _DepthLimit;
+        /// <summary>
+        /// 复合对象的解析深度限制,只有在RepeatedActionType是RepeatedAction.DepthLimit
+        /// 
+        /// 默认1000,不建议设置过大
+        /// 
+        /// 关于1000的取值,测试调用堆栈极限程序中大概12273次调用时抛出StackOverflowException异常,而每处理一个ReadObject大概需要9个调用
+        /// </summary>
+        public int DepthLimit
+        {
+            get { return _DepthLimit; }
+            set { _DepthLimit = value; }
+        }
         #endregion
 
         #region 构造
@@ -70,8 +93,13 @@ namespace NewLife.Serialization
             // 指定时间的格式
             DateTimeFormat = DateTimeFormats.Milliseconds;
             JsDateTimeKind = DateTimeKind.Utc;
+            DepthLimit = 1000;
         }
         #endregion
+
+
+
+
     }
     /// <summary>
     /// json序列化时用于指定日期时间输出成什么格式
@@ -96,5 +124,17 @@ namespace NewLife.Serialization
         /// 数字,具体值依赖于DateTimeFormat的配置
         /// </summary>
         Tick
+    }
+    /// <summary>
+    /// 重复对象的处理方式
+    /// </summary>
+    public enum RepeatedAction
+    {
+        /// <summary>
+        /// 限制处理复合对象的深度
+        /// </summary>
+        DepthLimit
+
+        // TODO 其它的处理方式
     }
 }

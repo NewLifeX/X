@@ -171,24 +171,6 @@ namespace NewLife.Serialization
         /// </summary>
         public static readonly AtomElementType[] INTEGER_TYPES = { AtomElementType.NUMBER, AtomElementType.NUMBER_EXP };
         /// <summary>
-        /// 尝试解析数字的委托
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="str"></param>
-        /// <param name="styles"></param>
-        /// <param name="format"></param>
-        /// <param name="ret"></param>
-        /// <returns></returns>
-        delegate bool TryParseNumber<T>(string str, NumberStyles styles, IFormatProvider format, out T ret);
-        /// <summary>
-        /// 从指定的信息中返回尝试解析数字时使用的数字格式
-        /// </summary>
-        /// <param name="str"></param>
-        /// <param name="expected"></param>
-        /// <param name="actual"></param>
-        /// <returns></returns>
-        delegate NumberStyles GetNumberStyles(string str, AtomElementType[] expected, AtomElementType actual);
-        /// <summary>
         /// 从当前流位置读取一个指定节点类型的数字,并尝试解析为T类型数字
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -197,47 +179,100 @@ namespace NewLife.Serialization
         /// <param name="exceptMsg">解析失败抛出异常时的附加信息</param>
         /// <param name="expected">期望返回的节点类型,如果类型不匹配将返回异常信息</param>
         /// <returns></returns>
-        T ReadNumber<T>(GetNumberStyles getNumStyles, TryParseNumber<T> tryParse, string exceptMsg, params AtomElementType[] expected)
+        T ReadNumber<T>(string exceptMsg, params AtomElementType[] expected) where T : IConvertible
         {
             string str;
             AtomElementType actual = AssertReadNextAtomElement(exceptMsg, out str, expected);
-            NumberStyles numStyles = getNumStyles(str, expected, actual);
-            try
+            NumberStyles numStyles = GetExponentOrNotStyle(str, expected, actual);
+
+            IConvertible ret;
+            if (ReadNumber<T>(str, numStyles, out ret))
             {
-                return ReadNumber(str, numStyles, tryParse);
+                return (T)ret;
             }
-            catch (Exception ex)
-            {
-                if (ex == ReadNumberFailException)
-                {
-                    throw new JsonReaderAssertException(line, column, expected, actual, exceptMsg);
-                }
-                throw new JsonReaderAssertException(line, column, expected, actual, string.Format("字符串{0} 不是有效的数字类型:{1}", str, typeof(T).FullName));
-            }
+            throw new JsonReaderAssertException(line, column, expected, actual, string.Format("字符串{0} 不是有效的数字类型:{1}", str, typeof(T).FullName));
         }
-        static JsonReaderAssertException ReadNumberFailException = null;
         /// <summary>
-        /// 使用指定的str作为解析的输入,不访问输入流,且返回值是T,解析失败将抛出异常
+        /// 将指定str解析为指定数字类型,使用tryParse解析方法,numStyles将作为数字格式
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">需要是某个数字类型,因为这类数字类型可以提供tryParse参数</typeparam>
         /// <param name="str"></param>
         /// <param name="numStyles"></param>
         /// <param name="tryParse"></param>
         /// <param name="ret"></param>
         /// <returns></returns>
-        T ReadNumber<T>(string str, NumberStyles numStyles, TryParseNumber<T> tryParse)
+        bool ReadNumber<T>(string str, NumberStyles numStyles, out IConvertible result) where T : IConvertible
         {
-            T ret;
-            if (tryParse(str, numStyles, CultureInfo.InvariantCulture, out ret))
+            bool ret;
+            switch (Type.GetTypeCode(typeof(T)))
             {
-                return ret;
+                case TypeCode.Byte:
+                    byte b;
+                    ret = Byte.TryParse(str, numStyles, CultureInfo.InvariantCulture, out b);
+                    result = b;
+                    return ret;
+                case TypeCode.Decimal:
+                    decimal dec;
+                    ret = Decimal.TryParse(str, numStyles, CultureInfo.InvariantCulture, out dec);
+                    result = dec;
+                    return ret;
+                case TypeCode.Double:
+                    double d;
+                    ret = Double.TryParse(str, numStyles, CultureInfo.InvariantCulture, out d);
+                    result = d;
+                    return ret;
+                case TypeCode.Int16:
+                    short s;
+                    ret = Int16.TryParse(str, numStyles, CultureInfo.InvariantCulture, out s);
+                    result = s;
+                    return ret;
+                case TypeCode.Int32:
+                    int i;
+                    ret = Int32.TryParse(str, numStyles, CultureInfo.InvariantCulture, out i);
+                    result = i;
+                    return ret;
+                case TypeCode.Int64:
+                    long l;
+                    ret = Int64.TryParse(str, numStyles, CultureInfo.InvariantCulture, out l);
+                    result = l;
+                    return ret;
+                case TypeCode.SByte:
+                    sbyte sb;
+                    ret = SByte.TryParse(str, numStyles, CultureInfo.InvariantCulture, out sb);
+                    result = sb;
+                    return ret;
+                case TypeCode.Single:
+                    float f;
+                    ret = Single.TryParse(str, numStyles, CultureInfo.InvariantCulture, out f);
+                    result = f;
+                    return ret;
+                case TypeCode.UInt16:
+                    UInt16 us;
+                    ret = UInt16.TryParse(str, numStyles, CultureInfo.InvariantCulture, out us);
+                    result = us;
+                    return ret;
+                case TypeCode.UInt32:
+                    UInt32 ui;
+                    ret = UInt32.TryParse(str, numStyles, CultureInfo.InvariantCulture, out ui);
+                    result = ui;
+                    return ret;
+                case TypeCode.UInt64:
+                    UInt64 ul;
+                    ret = UInt64.TryParse(str, numStyles, CultureInfo.InvariantCulture, out ul);
+                    result = ul;
+                    return ret;
+                default:
+                    result = default(T);
+                    return false;
             }
-            if (ReadNumberFailException == null)
-            {
-                ReadNumberFailException = new JsonReaderAssertException(0, 0, null, AtomElementType.NONE, "ReadNumber方法内部使用的异常标识");
-            }
-            throw ReadNumberFailException;
         }
+        /// <summary>
+        /// 从给定的实际原子节点类型中返回对应的数字格式
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="expected"></param>
+        /// <param name="actual">实际原子节点类型</param>
+        /// <returns></returns>
         NumberStyles GetExponentOrNotStyle(string str, AtomElementType[] expected, AtomElementType actual)
         {
             return NumberStyles.AllowLeadingSign |
@@ -253,7 +288,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override short ReadInt16()
         {
-            return ReadNumber<short>(GetExponentOrNotStyle, short.TryParse, Int16AssertMsg, INTEGER_TYPES);
+            return ReadNumber<short>(Int16AssertMsg, INTEGER_TYPES);
         }
         static readonly string Int32AssertMsg = string.Format("期望是在{0}和{1}之间的数字", Int32.MinValue, Int32.MaxValue);
         /// <summary>
@@ -262,7 +297,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override int ReadInt32()
         {
-            return ReadNumber<int>(GetExponentOrNotStyle, int.TryParse, Int32AssertMsg, INTEGER_TYPES);
+            return ReadNumber<int>(Int32AssertMsg, INTEGER_TYPES);
         }
         static readonly string Int64AssertMsg = string.Format("期望是在{0}和{1}之间的数字", Int32.MinValue, Int32.MaxValue);
         /// <summary>
@@ -271,7 +306,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override long ReadInt64()
         {
-            return ReadNumber<long>(GetExponentOrNotStyle, long.TryParse, Int64AssertMsg, INTEGER_TYPES);
+            return ReadNumber<long>(Int64AssertMsg, INTEGER_TYPES);
         }
         static readonly string SingleAssertMsg = string.Format("期望是在{0}和{1}之间的单精度浮点数", Single.MinValue, Single.MaxValue);
         /// <summary>
@@ -280,7 +315,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override float ReadSingle()
         {
-            return ReadNumber<float>(GetExponentOrNotStyle, float.TryParse, SingleAssertMsg, NUMBER_TYPES);
+            return ReadNumber<float>(SingleAssertMsg, NUMBER_TYPES);
         }
         static readonly string DoubleAssertMsg = string.Format("期望是在{0}和{1}之间的双精度浮点数", Double.MinValue, Double.MaxValue);
         /// <summary>
@@ -289,7 +324,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override double ReadDouble()
         {
-            return ReadNumber<double>(GetExponentOrNotStyle, double.TryParse, DoubleAssertMsg, NUMBER_TYPES);
+            return ReadNumber<double>(DoubleAssertMsg, NUMBER_TYPES);
         }
         static readonly string DecimalAssertMsg = string.Format("期望是在{0}的{1}之间的十进制数", Decimal.MinValue, Decimal.MaxValue);
         /// <summary>
@@ -298,7 +333,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override decimal ReadDecimal()
         {
-            return ReadNumber<decimal>(GetExponentOrNotStyle, decimal.TryParse, DecimalAssertMsg, NUMBER_TYPES);
+            return ReadNumber<decimal>(DecimalAssertMsg, NUMBER_TYPES);
         }
         #endregion
 
@@ -414,7 +449,7 @@ namespace NewLife.Serialization
                 return true;
             }
             int d = ComplexObjectDepth++;
-            bool ret = base.ReadEnumerable(type, ref value, callback);
+            bool ret = ComplexObjectDepthIsOverflow() || base.ReadEnumerable(type, ref value, callback);
             int n = ComplexObjectDepth - d;
             if (n > 0)
             {
@@ -480,7 +515,7 @@ namespace NewLife.Serialization
                 return true;
             }
             int d = ComplexObjectDepth++;
-            bool ret = base.ReadDictionary(type, ref value, callback);
+            bool ret = ComplexObjectDepthIsOverflow() || base.ReadDictionary(type, ref value, callback);
 
             int n = ComplexObjectDepth - d;
             if (n > 0)
@@ -989,48 +1024,20 @@ namespace NewLife.Serialization
                     case AtomElementType.FLOAT:
                         atype = AssertReadNextAtomElement("期望是数字,包括整型 浮点型", out str, NUMBER_TYPES);
                         NumberStyles numStyles = GetExponentOrNotStyle(str, NUMBER_TYPES, atype);
-
-                        try
+                        bool ret;
+                        IConvertible ivalue;
+                        if (atype == AtomElementType.NUMBER)
                         {
-                            value = ReadNumber<short>(str, numStyles, short.TryParse);
-                            return true;
+                            ret = ReadNumber<short>(str, numStyles, out ivalue) ||
+                                ReadNumber<int>(str, numStyles, out ivalue) ||
+                                ReadNumber<long>(str, numStyles, out ivalue);
+                            if (ret) return true;
                         }
-                        catch { }
 
-                        try
-                        {
-                            value = ReadNumber<int>(str, numStyles, int.TryParse);
-                            return true;
-                        }
-                        catch { }
-
-                        try
-                        {
-                            value = ReadNumber<long>(str, numStyles, long.TryParse);
-                            return true;
-                        }
-                        catch { }
-
-                        try
-                        {
-                            value = ReadNumber<float>(str, numStyles, float.TryParse);
-                            return true;
-                        }
-                        catch { }
-
-                        try
-                        {
-                            value = ReadNumber<decimal>(str, numStyles, decimal.TryParse);
-                            return true;
-                        }
-                        catch { }
-
-                        try
-                        {
-                            value = ReadNumber<double>(str, numStyles, double.TryParse);
-                            return true;
-                        }
-                        catch { }
+                        ret = ReadNumber<float>(str, numStyles, out ivalue) ||
+                            ReadNumber<decimal>(str, numStyles, out ivalue) ||
+                            ReadNumber<double>(str, numStyles, out ivalue);
+                        if (ret) return true;
 
                         goto default;
                     case AtomElementType.LITERAL:
@@ -1061,9 +1068,9 @@ namespace NewLife.Serialization
             {
                 string str;
                 AssertReadNextAtomElement("期望是__type", out str, AtomElementType.STRING);
+                AssertReadNextAtomElement("期望是__type后的冒号", AtomElementType.COLON);
                 if (str.ToLower() == "__type")
                 {
-                    AssertReadNextAtomElement("期望是__type后的冒号", AtomElementType.COLON);
                     AssertReadNextAtomElement("期望是__type的值,具体的类型全名", out str, AtomElementType.STRING);
                     try
                     {
@@ -1071,16 +1078,20 @@ namespace NewLife.Serialization
                     }
                     catch { }
                 }
-                if (type == typeof(object))
+                if (type == typeof(object)) //无效的类型以及非__type将创建字典,并将刚读取到的数据写入新创建的字典
                 {
-                    type = typeof(IDictionary<string, object>);
-                    // TODO 不包含__type的自定义类型,作为字典处理,并初始化一个字典 并把刚刚读取到的数据写入
+                    object obj = null;
+                    if (!ReadObject(typeof(Object), ref obj, callback)) return false;
+
+                    Dictionary<string, object> dict = new Dictionary<string, object>();
+                    dict.Add(str, obj);
+                    value = dict;
+                    return true;
                 }
             }
 
             int d = ComplexObjectDepth++;
-            bool ret = base.ReadCustomObject(type, ref value, callback);
-
+            bool ret = ComplexObjectDepthIsOverflow() || base.ReadCustomObject(type, ref value, callback);
             int n = ComplexObjectDepth - d;
             if (n > 0) //尚未读到当前对象的结束符}
             {
@@ -1091,6 +1102,14 @@ namespace NewLife.Serialization
                 throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.BRACKET_CLOSE }, AtomElementType.NONE, "自定义对象解析异常,读取了过多的对象结束符:}");
             }
             return ret;
+        }
+        /// <summary>
+        /// 当前解析复合对象深度是否超出,用于避免循环引用可能引起的堆栈溢出,仅在Settings.RepeatedActionType是RepeatedAction.DepthLimit时才可能返回true
+        /// </summary>
+        /// <returns></returns>
+        public bool ComplexObjectDepthIsOverflow()
+        {
+            return Settings.RepeatedActionType == RepeatedAction.DepthLimit && ComplexObjectDepth > Settings.DepthLimit;
         }
         /// <summary>
         /// 读取当前成员名称
@@ -1138,6 +1157,10 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected override bool OnReadMember(Type type, ref object value, IObjectMemberInfo member, int index, ReadObjectCallback callback)
         {
+            if (type == typeof(object)) //避免父类进入ReadType的调用
+            {
+                type = null;
+            }
             return base.OnReadMember(type, ref value, member, index, callback);
         }
         #endregion
