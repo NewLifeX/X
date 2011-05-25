@@ -1333,7 +1333,7 @@ namespace NewLife.Serialization
         /// 读取对象引用计数
         /// </summary>
         /// <returns></returns>
-        protected Int32 OnReadObjRefIndex()
+        protected virtual Int32 OnReadObjRefIndex()
         {
             return ReadInt32();
         }
@@ -1345,7 +1345,7 @@ namespace NewLife.Serialization
         /// <param name="value">对象</param>
         protected virtual void AddObjRef(Int32 index, Object value)
         {
-            if (!Settings.UseObjRef) return;
+            if (!Settings.UseObjRef || index < 1) return;
             //if (value == null) return;
 
             while (index > objRefs.Count) objRefs.Add(null);
