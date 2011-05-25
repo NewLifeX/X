@@ -26,6 +26,14 @@ namespace NewLife.Serialization
             set { _UseTypeFullName = value; }
         }
 
+        private Boolean _UseObjRef = true;
+        /// <summary>是否使用对象引用</summary>
+        public virtual Boolean UseObjRef
+        {
+            get { return _UseObjRef; }
+            set { _UseObjRef = value; }
+        }
+
         private Boolean _AutoFlush;
         /// <summary>自动刷新输出</summary>
         public Boolean AutoFlush

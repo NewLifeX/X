@@ -320,67 +320,67 @@ namespace NewLife.Serialization
 
         List<Object> objRefs = new List<Object>();
 
-        /// <summary>
-        /// 读取对象引用。
-        /// </summary>
-        /// <param name="type">类型</param>
-        /// <param name="value">对象</param>
-        /// <param name="index">引用计数</param>
-        /// <returns>是否读取成功</returns>
-        public override Boolean ReadObjRef(Type type, ref object value, out Int32 index)
-        {
-            // 顶级特殊处理
-            if (Depth <= 1)
-                index = 1;
-            else
-                index = ReadInt32();
+        ///// <summary>
+        ///// 读取对象引用。
+        ///// </summary>
+        ///// <param name="type">类型</param>
+        ///// <param name="value">对象</param>
+        ///// <param name="index">引用计数</param>
+        ///// <returns>是否读取成功</returns>
+        //public override Boolean ReadObjRef(Type type, ref object value, out Int32 index)
+        //{
+        //    // 顶级特殊处理
+        //    if (Depth <= 1)
+        //        index = 1;
+        //    else
+        //        index = ReadInt32();
 
-            if (index < 0) return false;
+        //    if (index < 0) return false;
 
-            if (index == 0)
-            {
-                WriteLog("ReadObjRef", "null", type.Name);
+        //    if (index == 0)
+        //    {
+        //        WriteLog("ReadObjRef", "null", type.Name);
 
-                value = null;
-                return true;
-            }
+        //        value = null;
+        //        return true;
+        //    }
 
-            //// 如果引用计数刚好是下一个引用对象，说明这是该对象的第一次引用，返回false
-            //if (index == objRefs.Count + 1) return false;
+        //    //// 如果引用计数刚好是下一个引用对象，说明这是该对象的第一次引用，返回false
+        //    //if (index == objRefs.Count + 1) return false;
 
-            //if (index > objRefs.Count) throw new XException("对象引用错误，无法找到引用计数为" + index + "的对象！");
+        //    //if (index > objRefs.Count) throw new XException("对象引用错误，无法找到引用计数为" + index + "的对象！");
 
-            // 引用计数等于索引加一
-            if (index > objRefs.Count)
-            {
-                WriteLog("ReadObjRef", index, type.Name);
+        //    // 引用计数等于索引加一
+        //    if (index > objRefs.Count)
+        //    {
+        //        WriteLog("ReadObjRef", index, type.Name);
 
-                return false;
-            }
+        //        return false;
+        //    }
 
-            value = objRefs[index - 1];
+        //    value = objRefs[index - 1];
 
-            if (value != null)
-                WriteLog("ReadObjRef", index, value.ToString(), value.GetType().Name);
-            else
-                WriteLog("ReadObjRef", index, "", type == null ? "" : type.Name);
+        //    if (value != null)
+        //        WriteLog("ReadObjRef", index, value.ToString(), value.GetType().Name);
+        //    else
+        //        WriteLog("ReadObjRef", index, "", type == null ? "" : type.Name);
 
-            return true;
-        }
+        //    return true;
+        //}
 
-        /// <summary>
-        /// 添加对象引用
-        /// </summary>
-        /// <param name="index">引用计数</param>
-        /// <param name="value">对象</param>
-        protected override void AddObjRef(Int32 index, object value)
-        {
-            if (value == null) return;
+        ///// <summary>
+        ///// 添加对象引用
+        ///// </summary>
+        ///// <param name="index">引用计数</param>
+        ///// <param name="value">对象</param>
+        //protected override void AddObjRef(Int32 index, object value)
+        //{
+        //    if (value == null) return;
 
-            while (index > objRefs.Count) objRefs.Add(null);
+        //    while (index > objRefs.Count) objRefs.Add(null);
 
-            objRefs[index - 1] = value;
-        }
+        //    objRefs[index - 1] = value;
+        //}
         #endregion
 
         #region 自定义对象

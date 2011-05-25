@@ -995,14 +995,57 @@ namespace NewLife.Serialization
             return WriteUnKnown(value, type, callback);
         }
 
+        List<Object> objRefs = new List<Object>();
+
         /// <summary>
         /// 写入对象引用。
         /// </summary>
         /// <param name="value">对象</param>
         /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteObjRef(Object value)
+        public Boolean WriteObjRef(Object value)
         {
-            return false;
+            if (!Settings.UseObjRef) return false;
+
+            if (value == null)
+            {
+                WriteLog("WriteObjRef", "null");
+
+                // 顶级不需要
+                if (Depth > 1) OnWriteObjRefIndex(0);
+                return true;
+            }
+
+            // 在对象引用集合中找该对象
+            Int32 index = objRefs.IndexOf(value);
+
+            // 如果没找到，添加，返回false，通知上层继续处理
+            if (index < 0)
+            {
+                objRefs.Add(value);
+
+                WriteLog("AddObjRef", objRefs.Count, value.ToString(), value.GetType().Name);
+
+                // 写入引用计数
+                if (Depth > 1) OnWriteObjRefIndex(objRefs.Count);
+
+                return false;
+            }
+
+            WriteLog("WriteObjRef", index + 1, value.ToString(), value.GetType().Name);
+
+            // 如果找到，写入对象引用计数，返回true，通知上层不要再处理该对象，避免重写写入对象
+            OnWriteObjRefIndex(index + 1);
+
+            return true;
+        }
+
+        /// <summary>
+        /// 写对象引用计数
+        /// </summary>
+        /// <param name="index"></param>
+        protected virtual void OnWriteObjRefIndex(Int32 index)
+        {
+            Write(index);
         }
         #endregion
 
@@ -1182,6 +1225,16 @@ namespace NewLife.Serialization
         protected void AutoFlush()
         {
             if (Settings.AutoFlush) Flush();
+        }
+
+        /// <summary>
+        /// 重置
+        /// </summary>
+        public override void Reset()
+        {
+            objRefs.Clear();
+
+            base.Reset();
         }
 
         /// <summary>

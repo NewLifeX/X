@@ -308,47 +308,47 @@ namespace NewLife.Serialization
             return base.WriteRefObject(value, type, callback);
         }
 
-        List<Object> objRefs = new List<Object>();
+        //List<Object> objRefs = new List<Object>();
 
-        /// <summary>
-        /// 写入对象引用。
-        /// </summary>
-        /// <param name="value">对象</param>
-        /// <returns>是否写入成功。对象为空时写入0，否则写入对象的引用计数</returns>
-        public override Boolean WriteObjRef(object value)
-        {
-            if (value == null)
-            {
-                WriteLog("WriteObjRef", "null");
+        ///// <summary>
+        ///// 写入对象引用。
+        ///// </summary>
+        ///// <param name="value">对象</param>
+        ///// <returns>是否写入成功。对象为空时写入0，否则写入对象的引用计数</returns>
+        //public override Boolean WriteObjRef(object value)
+        //{
+        //    if (value == null)
+        //    {
+        //        WriteLog("WriteObjRef", "null");
 
-                // 顶级不需要
-                if (Depth > 1) Write(0);
-                return true;
-            }
+        //        // 顶级不需要
+        //        if (Depth > 1) Write(0);
+        //        return true;
+        //    }
 
-            // 在对象引用集合中找该对象
-            Int32 index = objRefs.IndexOf(value);
+        //    // 在对象引用集合中找该对象
+        //    Int32 index = objRefs.IndexOf(value);
 
-            // 如果没找到，添加，返回false，通知上层继续处理
-            if (index < 0)
-            {
-                objRefs.Add(value);
+        //    // 如果没找到，添加，返回false，通知上层继续处理
+        //    if (index < 0)
+        //    {
+        //        objRefs.Add(value);
 
-                WriteLog("AddObjRef", objRefs.Count, value.ToString(), value.GetType().Name);
+        //        WriteLog("AddObjRef", objRefs.Count, value.ToString(), value.GetType().Name);
 
-                // 写入引用计数
-                if (Depth > 1) Write(objRefs.Count);
+        //        // 写入引用计数
+        //        if (Depth > 1) Write(objRefs.Count);
 
-                return false;
-            }
+        //        return false;
+        //    }
 
-            WriteLog("WriteObjRef", index + 1, value.ToString(), value.GetType().Name);
+        //    WriteLog("WriteObjRef", index + 1, value.ToString(), value.GetType().Name);
 
-            // 如果找到，写入对象引用计数，返回true，通知上层不要再处理该对象，避免重写写入对象
-            Write(index + 1);
+        //    // 如果找到，写入对象引用计数，返回true，通知上层不要再处理该对象，避免重写写入对象
+        //    Write(index + 1);
 
-            return true;
-        }
+        //    return true;
+        //}
         #endregion
 
         #region 自定义对象
@@ -457,15 +457,15 @@ namespace NewLife.Serialization
             base.Flush();
         }
 
-        /// <summary>
-        /// 重置
-        /// </summary>
-        public override void Reset()
-        {
-            objRefs.Clear();
+        ///// <summary>
+        ///// 重置
+        ///// </summary>
+        //public override void Reset()
+        //{
+        //    objRefs.Clear();
 
-            base.Reset();
-        }
+        //    base.Reset();
+        //}
 
         /// <summary>
         /// 已重载。

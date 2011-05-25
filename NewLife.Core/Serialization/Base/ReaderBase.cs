@@ -8,6 +8,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using NewLife.Exceptions;
 using NewLife.Reflection;
+using NewLife.Log;
 
 namespace NewLife.Serialization
 {
@@ -378,11 +379,28 @@ namespace NewLife.Serialization
             //if (!GetDictionaryEntryType(type, ref keyType, ref valueType)) return false;
             GetDictionaryEntryType(type, ref keyType, ref valueType);
 
+            // 提前创建对象，因为对象引用可能用到
+            Int32 index = objRefIndex;
+            if (index > 0 && Settings.UseObjRef && value == null)
+            {
+                value = TypeX.CreateInstance(type);
+                if (value != null) AddObjRef(index, value);
+            }
+
             // 读取键值对集合
             IEnumerable<DictionaryEntry> list = ReadDictionary(keyType, valueType, ReadSize(), callback);
-            if (list == null) return true;
+            if (list == null)
+            {
+                value = null;
+
+                // 结果为空，重新把对象引用设为空。不用担心里面里面已经引用了有对象的对象引用，因为既然列表返回空，表明里面没有元素
+                if (index > 0 && Settings.UseObjRef) AddObjRef(index, value);
+
+                return true;
+            }
 
             if (value == null) value = TypeX.CreateInstance(type);
+
             IDictionary dic = value as IDictionary;
             foreach (DictionaryEntry item in list)
             {
@@ -608,10 +626,37 @@ namespace NewLife.Serialization
         {
             if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
 
-            IList list = ReadItems(type, elementType, ReadSize(), callback);
+            Int32 count = ReadSize();
+
+            // 提前创建对象，因为对象引用可能用到
+            Int32 index = objRefIndex;
+            if (index > 0 && Settings.UseObjRef && value == null)
+            {
+                if (type.IsArray && type.HasElementType && type.GetElementType() == elementType)
+                {
+                    //TODO 如果是数组，在不知道元素个数时，不处理
+                    if (count > 0)
+                    {
+                        Array arr = TypeX.CreateInstance(type, count) as Array;
+                        value = arr;
+                        if (value != null) AddObjRef(index, value);
+                    }
+                }
+                else
+                {
+                    value = TypeX.CreateInstance(type);
+                    if (value != null) AddObjRef(index, value);
+                }
+            }
+
+            IList list = ReadItems(type, elementType, count, callback);
             if (list == null)
             {
                 value = null;
+
+                // 结果为空，重新把对象引用设为空。不用担心里面里面已经引用了有对象的对象引用，因为既然列表返回空，表明里面没有元素
+                if (index > 0 && Settings.UseObjRef) AddObjRef(index, value);
+
                 return true;
             }
 
@@ -744,6 +789,21 @@ namespace NewLife.Serialization
             #region 如果源对象不为空，则尽量使用源对象
             if (value != null)
             {
+                if (type.IsArray)
+                {
+                    Array arr = value as Array;
+                    if (arr != null)
+                    {
+                        //if (XTrace.Debug && arr.Length != items.Count) throw new XSerializationException(null, "数组元素个数不匹配！");
+
+                        for (int i = 0; i < arr.Length && i < items.Count; i++)
+                        {
+                            arr.SetValue(items[i], i);
+                        }
+                        return true;
+                    }
+                }
+
                 if (typeof(IList).IsAssignableFrom(type))
                 {
                     IList list = value as IList;
@@ -1147,6 +1207,7 @@ namespace NewLife.Serialization
             if (ReadObjRef(type, ref value, out index)) return true;
 
             // 读取引用对象
+            objRefIndex = index;
             if (!ReadRefObject(type, ref value, callback)) return false;
 
             if (value != null) AddObjRef(index, value);
@@ -1214,6 +1275,9 @@ namespace NewLife.Serialization
             return default(T);
         }
 
+        List<Object> objRefs = new List<Object>();
+        Int32 objRefIndex = 0;
+
         /// <summary>
         /// 读取对象引用。
         /// </summary>
@@ -1221,10 +1285,57 @@ namespace NewLife.Serialization
         /// <param name="value">对象</param>
         /// <param name="index">引用计数</param>
         /// <returns>是否读取成功</returns>
-        public virtual Boolean ReadObjRef(Type type, ref Object value, out Int32 index)
+        public Boolean ReadObjRef(Type type, ref Object value, out Int32 index)
         {
             index = 0;
-            return false;
+            if (!Settings.UseObjRef) return false;
+
+            // 顶级特殊处理
+            if (Depth <= 1)
+                index = 1;
+            else
+                index = OnReadObjRefIndex();
+
+            if (index < 0) return false;
+
+            if (index == 0)
+            {
+                WriteLog("ReadObjRef", "null", type.Name);
+
+                value = null;
+                return true;
+            }
+
+            //// 如果引用计数刚好是下一个引用对象，说明这是该对象的第一次引用，返回false
+            //if (index == objRefs.Count + 1) return false;
+
+            //if (index > objRefs.Count) throw new XException("对象引用错误，无法找到引用计数为" + index + "的对象！");
+
+            // 引用计数等于索引加一
+            if (index > objRefs.Count)
+            {
+                WriteLog("ReadObjRef", index, type.Name);
+
+                return false;
+            }
+
+            value = objRefs[index - 1];
+
+            if (value != null)
+                WriteLog("ReadObjRef", index, value.ToString(), value.GetType().Name);
+            else
+                WriteLog("ReadObjRef", index, "", type == null ? "" : type.Name);
+
+            return true;
+        }
+
+        /// <summary>
+        /// 读取对象引用计数
+        /// </summary>
+        /// <returns></returns>
+        protected Int32 OnReadObjRefIndex()
+        {
+            return ReadInt32();
         }
 
         /// <summary>
@@ -1234,6 +1345,12 @@ namespace NewLife.Serialization
         /// <param name="value">对象</param>
         protected virtual void AddObjRef(Int32 index, Object value)
         {
+            if (!Settings.UseObjRef) return;
+            //if (value == null) return;
+
+            while (index > objRefs.Count) objRefs.Add(null);
+
+            objRefs[index - 1] = value;
         }
         #endregion
         #endregion
@@ -1254,7 +1371,12 @@ namespace NewLife.Serialization
             if (mis == null || mis.Length < 1) return true;
 
             // 如果为空，实例化并赋值。
-            if (value == null) value = TypeX.CreateInstance(type);
+            if (value == null)
+            {
+                value = TypeX.CreateInstance(type);
+
+                if (value != null) AddObjRef(objRefIndex, value);
+            }
 
             for (int i = 0; i < mis.Length; i++)
             {
