@@ -53,11 +53,11 @@ namespace NewLife.CommonEntity
                 Int32 sort = 1000;
                 TEntity top = Root.AddChild("管理平台", null, sort -= 10, null);
                 TEntity entity = top.AddChild("系统管理", null, sort -= 10, "System");
-                entity.AddChild("菜单管理", "../System/Menu.aspx", sort -= 10, "菜单管理");
-                entity.AddChild("管理员管理", "../System/Admin.aspx", sort -= 10, "管理员管理");
-                entity.AddChild("角色管理", "../System/Role.aspx", sort -= 10, "角色管理");
-                entity.AddChild("权限管理", "../System/RoleMenu.aspx", sort -= 10, "权限管理");
-                entity.AddChild("日志查看", "../System/Log.aspx", sort -= 10, "日志查看");
+                entity.AddChild("菜单管理", "../../AdminSystem/Menu.aspx", sort -= 10, "菜单管理");
+                entity.AddChild("管理员管理", "../../AdminSystem/Admin.aspx", sort -= 10, "管理员管理");
+                entity.AddChild("角色管理", "../../AdminSystem/Role.aspx", sort -= 10, "角色管理");
+                entity.AddChild("权限管理", "../../AdminSystem/RoleMenu.aspx", sort -= 10, "权限管理");
+                entity.AddChild("日志查看", "../../AdminSystem/Log.aspx", sort -= 10, "日志查看");
 
                 // 准备增加Admin目录下的所有页面
                 ScanAndAdd("Admin", top);
@@ -581,9 +581,12 @@ namespace NewLife.CommonEntity
                     //if (String.Equals(dir, "Admin", StringComparison.OrdinalIgnoreCase))
                     //    url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
                     //else
-                    url = String.Format(@"../../{2}/{0}/{1}", dirName, Path.GetFileName(elm), dir);
-
+                    url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
                     TEntity entity = Find(_.Url, url);
+                    if (entity != null) continue;
+
+                    url = String.Format(@"../../{2}/{0}/{1}", dirName, Path.GetFileName(elm), dir);
+                    entity = Find(_.Url, url);
                     if (entity != null) continue;
 
                     parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
