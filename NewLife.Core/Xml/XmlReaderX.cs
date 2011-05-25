@@ -406,10 +406,10 @@ namespace NewLife.Xml
 		/// <returns></returns>
 		protected override bool OnReadItem(Type type, ref object value, Int32 index, ReadObjectCallback callback)
 		{
-			if (Reader.IsStartElement() && Reader.Name == "Data")
+			if (Reader.IsStartElement() && Reader.Name == "Item")
 				Reader.ReadStartElement();
 
-			if (Reader.NodeType == XmlNodeType.EndElement && Reader.Name == "Data")
+			if (Reader.NodeType == XmlNodeType.EndElement && Reader.Name == "Item")
 			{
 				Reader.ReadEndElement();
 				return false;
