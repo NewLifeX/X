@@ -317,7 +317,7 @@ namespace NewLife.Xml
 				foreach (Object item in value)
 				{
 					WriteLog("WriteEnumerable", elementType.Name);
-					Writer.WriteStartElement("Data");
+					Writer.WriteStartElement("Item");
 					result = base.WriteEnumerable(item as IEnumerable, elementType, callback);
 					Writer.WriteEndElement();
 				}
@@ -346,7 +346,7 @@ namespace NewLife.Xml
 						j = 0;
 						WriteLog("WriteEnumerable", type.Name);
 
-						Writer.WriteStartElement("Data");
+						Writer.WriteStartElement("Item");
 						Writer.WriteAttributeString("Lengths", String.Join(",", list));
 						result = base.WriteEnumerable(objs as IEnumerable, type, callback);
 						Writer.WriteEndElement();
@@ -502,7 +502,7 @@ namespace NewLife.Xml
 			{
 				IXmlSerializable xml = value as IXmlSerializable;
 				// 这里必须额外写一对标记，否则读取的时候只能读取得到模式而得不到数据
-				Writer.WriteStartElement("Data");
+				Writer.WriteStartElement("Item");
 				xml.WriteXml(Writer);
 				Writer.WriteEndElement();
 
