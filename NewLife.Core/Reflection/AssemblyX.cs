@@ -226,7 +226,25 @@ namespace NewLife.Reflection
             get
             {
                 //if (_Types == null) _Types = ListX<TypeX>.From(new ListX<Type>(Asm.GetTypes()));
-                if (_Types == null) _Types = new ListX<Type>(Asm.GetTypes());
+                //if (_Types == null) _Types = new ListX<Type>(Asm.GetTypes());
+                if (_Types == null)
+                {
+                    ListX<Type> list = new ListX<Type>(Asm.GetTypes());
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        Type[] types = list[i].GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+                        if (types != null && types.Length > 0)
+                        {
+                            // 从下一个元素开始插入，让内嵌类紧挨着主类
+                            Int32 k = i + 1;
+                            foreach (Type item in types)
+                            {
+                                list.Insert(k++, item);
+                            }
+                        }
+                    }
+                    _Types = list;
+                }
                 return _Types == null ? null : _Types.Clone();
             }
         }
