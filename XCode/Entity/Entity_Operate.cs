@@ -124,13 +124,30 @@ namespace XCode
         /// 所有绑定到数据表的属性
         /// </summary>
         [XmlIgnore]
-        internal override List<FieldItem> FieldsInternal { get { return Meta.Fields; } }
+        internal override FieldItem[] FieldsInternal { get { return Meta.Fields; } }
 
         /// <summary>
         /// 字段名列表
         /// </summary>
         [XmlIgnore]
-        internal override List<String> FieldNamesInternal { get { return Meta.FieldNames; } }
+        internal override IList<String> FieldNamesInternal { get { return Meta.FieldNames; } }
         #endregion
+
+        //class EntityOperate : IEntityOperate
+        //{
+        //    #region 默认实体
+        //    static TEntity defEntity = new TEntity();
+        //    #endregion
+
+        //    #region 创建实体
+        //    /// <summary>
+        //    /// 创建一个实体对象
+        //    /// </summary>
+        //    /// <returns></returns>
+        //    IEntity IEntityOperate.Create() { return defEntity.CreateInstance(); }
+
+        //    void IEntityOperate.InitData() { defEntity.InitData(); }
+        //    #endregion
+        //}
     }
 }

@@ -724,7 +724,7 @@ namespace XCode
                 DataColumn dc = new DataColumn();
                 dc.ColumnName = item.Name;
                 dc.DataType = item.Type;
-                dc.Caption = item.DisplayName;
+                dc.Caption = item.Description;
                 dc.AutoIncrement = item.IsIdentity;
                 dc.Unique = item.PrimaryKey;
                 dc.AllowDBNull = item.IsNullable;

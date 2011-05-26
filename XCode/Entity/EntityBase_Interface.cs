@@ -167,9 +167,9 @@ namespace XCode
                 {
                     // 添加一个特性
                     FieldItem fi = null;
-                    if (dic.TryGetValue(item.Name, out fi) && !String.IsNullOrEmpty(fi.DisplayName))
+                    if (dic.TryGetValue(item.Name, out fi) && !String.IsNullOrEmpty(fi.Description))
                     {
-                        DisplayNameAttribute dis = new DisplayNameAttribute(fi.DisplayName);
+                        DisplayNameAttribute dis = new DisplayNameAttribute(fi.Description);
                         list.Add(TypeDescriptor.CreateProperty(type, item, dis));
                         hasChanged = true;
                         continue;

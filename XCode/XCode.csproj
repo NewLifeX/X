@@ -84,6 +84,7 @@
     <Compile Include="Code\EntityClass.cs" />
     <Compile Include="Code\EntityClassBiz.cs" />
     <Compile Include="Common\FileSource.cs" />
+    <Compile Include="Configuration\TableItem.cs" />
     <Compile Include="DataAccessLayer\Common\DatabaseType.cs" />
     <Compile Include="DataAccessLayer\Common\FileDb.cs" />
     <Compile Include="DataAccessLayer\Common\RemoteDb.cs" />
@@ -105,7 +106,6 @@
     <Compile Include="Exceptions\XDbMetaDataException.cs" />
     <Compile Include="Exceptions\XDbSessionException.cs" />
     <Compile Include="Exceptions\XSqlException.cs" />
-    <Compile Include="Configuration\XCodeConfig.cs" />
     <Compile Include="Configuration\FieldItem.cs" />
     <Compile Include="DataAccessLayer\DatabaseSchema.cs" />
     <Compile Include="DataAccessLayer\Database\Access.cs" />

@@ -9,6 +9,8 @@ using NewLife.Log;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using System.Text;
+using System.Collections.ObjectModel;
 
 namespace XCode
 {
@@ -30,42 +32,37 @@ namespace XCode
                 set { _ThisType = value; }
             }
 
-            /// <summary>
-            /// 实体链接名
-            /// </summary>
-            public static String DefaultConnName { get { return XCodeConfig.ConnName(ThisType); } }
+            /// <summary>表信息</summary>
+            public static TableItem Table
+            {
+                get { return TableItem.Create(ThisType); }
+            }
 
             [ThreadStatic]
             private static String _ConnName;
             /// <summary>链接名。线程内允许修改，修改者负责还原</summary>
             public static String ConnName
             {
-                get { return _ConnName ?? (_ConnName = DefaultConnName); }
+                get { return _ConnName ?? (_ConnName = Table.ConnName); }
                 set
                 {
                     //修改链接名，挂载当前表
                     if (!String.IsNullOrEmpty(value) && !String.Equals(_ConnName, value, StringComparison.OrdinalIgnoreCase))
                     {
                         CheckTable(value, TableName);
-
                     }
                     _ConnName = value;
 
-                    if (String.IsNullOrEmpty(_ConnName)) _ConnName = DefaultConnName;
+                    if (String.IsNullOrEmpty(_ConnName)) _ConnName = Table.ConnName;
                 }
             }
-
-            /// <summary>
-            /// 表名
-            /// </summary>
-            public static String DefaultTableName { get { return XCodeConfig.TableName(ThisType); } }
 
             [ThreadStatic]
             private static String _TableName;
             /// <summary>表名。线程内允许修改，修改者负责还原</summary>
             public static String TableName
             {
-                get { return _TableName ?? (_TableName = DefaultTableName); }
+                get { return _TableName ?? (_TableName = Table.TableName); }
                 set
                 {
                     //修改表名
@@ -75,86 +72,29 @@ namespace XCode
                     }
                     _TableName = value;
 
-                    if (String.IsNullOrEmpty(_TableName)) _TableName = DefaultTableName;
+                    if (String.IsNullOrEmpty(_TableName)) _TableName = Table.TableName;
                 }
             }
-
-            /// <summary>表注释</summary>
-            public static String Description { get { return XCodeConfig.GetTable(ThisType).Description; } }
 
             private static void CheckTable(String connName, String tableName)
             {
                 DatabaseSchema.Create(DAL.Create(connName).Db).CheckNewTable(ThisType, tableName);
-
-                //DatabaseSchema ds = DatabaseSchema.Create(DAL.Create(connName).Db);
-                //XTable table = null;
-
-                //lock (ds.EntityTables)
-                //{
-                //    //检查该表是否检查过
-                //    if (ds.EntityTables != null && ds.EntityTables.Count > 0)
-                //    {
-                //        table = ds.EntityTables.Find(delegate(XTable item)
-                //        {
-                //            return String.Equals(item.Name, tableName, StringComparison.OrdinalIgnoreCase);
-                //        });
-                //    }
-
-                //    if (table == null)
-                //    {
-                //        //检查新表名对应的数据表
-                //        table = DatabaseSchema.Create(ThisType, tableName);
-                //        ds.CheckTable(table);
-
-                //        ds.EntityTables.Add(table);
-                //    }
-                //}
             }
 
             /// <summary>
             /// 所有数据属性
             /// </summary>
-            public static List<FieldItem> AllFields { get { return FieldItem.AllFields(ThisType); } }
+            public static FieldItem[] AllFields { get { return Table.AllFields; } }
 
             /// <summary>
             /// 所有绑定到数据表的属性
             /// </summary>
-            public static List<FieldItem> Fields { get { return FieldItem.Fields(ThisType); } }
+            public static FieldItem[] Fields { get { return Table.Fields; } }
 
-            private static ReadOnlyList<String> _FieldNames;
             /// <summary>
             /// 字段名列表
             /// </summary>
-            public static List<String> FieldNames
-            {
-                get
-                {
-                    if (_FieldNames != null && !_FieldNames.Changed) return _FieldNames;
-                    lock (typeof(Meta))
-                    {
-                        if (_FieldNames != null)
-                        {
-                            if (_FieldNames.Changed) _FieldNames = _FieldNames.Keep();
-                            return _FieldNames;
-                        }
-
-                        List<String> list = new List<String>();
-                        //Fields.ForEach(delegate(FieldItem item) { if (!_FieldNames.Contains(item.Name))_FieldNames.Add(item.Name); });
-                        foreach (FieldItem item in Fields)
-                        {
-                            if (!list.Contains(item.Name)) list.Add(item.Name);
-                        }
-
-                        _FieldNames = new ReadOnlyList<String>(list);
-                        return _FieldNames;
-                    }
-                }
-            }
-
-            /// <summary>
-            /// 唯一键集合，返回标识列集合或主键集合
-            /// </summary>
-            public static List<FieldItem> Uniques { get { return FieldItem.Unique(ThisType); } }
+            public static IList<String> FieldNames { get { return Table.FieldNames; } }
 
             /// <summary>
             /// 唯一键，返回第一个标识列或者唯一的主键
@@ -163,26 +103,11 @@ namespace XCode
             {
                 get
                 {
-                    List<FieldItem> fis = Uniques;
-                    if (fis == null || fis.Count < 1) return null;
-                    foreach (FieldItem item in fis)
-                    {
-                        if (item.IsIdentity) return item;
-                    }
-                    if (fis.Count == 1) return fis[0];
+                    if (Table.Identity != null) return Table.Identity;
+                    if (Table.PrimaryKeys != null && Table.PrimaryKeys.Length > 0) return Table.PrimaryKeys[0];
                     return null;
                 }
             }
-
-            /// <summary>
-            /// 取得字段前缀
-            /// </summary>
-            public static String ColumnPrefix { get { return XCodeConfig.ColumnPrefix(ThisType); } }
-
-            ///// <summary>
-            ///// 取得指定类对应的Select字句字符串。
-            ///// </summary>
-            //public static String Selects { get { return XCodeConfig.Selects(ThisType); } }
 
             /// <summary>
             /// 实体操作者
@@ -472,15 +397,23 @@ namespace XCode
             /// <summary>
             /// 格式化数据为SQL数据
             /// </summary>
-            /// <param name="name"></param>
+            /// <param name="field"></param>
             /// <param name="value"></param>
             /// <returns></returns>
             public static String FormatValue(String name, Object value)
             {
-                XField field = XCodeConfig.GetField(Meta.ThisType, name);
-                if (field == null) return null;
+                return FormatValue(Table.FindByName(name), value);
+            }
 
-                return DBO.Db.FormatValue(field, value);
+            /// <summary>
+            /// 格式化数据为SQL数据
+            /// </summary>
+            /// <param name="fieldItem"></param>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            public static String FormatValue(FieldItem fieldItem, Object value)
+            {
+                return DBO.Db.FormatValue(fieldItem != null ? fieldItem.Field : null, value);
             }
             #endregion
 

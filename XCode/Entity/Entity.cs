@@ -87,36 +87,13 @@ namespace XCode
         public static EntityList<TEntity> LoadData(DataTable dt)
         {
             if (dt == null || dt.Rows.Count < 1) return null;
-            return LoadData(dt, null);
-        }
-
-        /// <summary>
-        /// 加载数据表
-        /// </summary>
-        /// <param name="dt">数据表</param>
-        /// <param name="jointypes">要关联的实体类型</param>
-        /// <returns>实体数组</returns>
-        protected static EntityList<TEntity> LoadData(DataTable dt, Type[] jointypes)
-        {
-            if (dt == null || dt.Rows.Count < 1) return null;
 
             // 准备好实体列表
             EntityList<TEntity> list = new EntityList<TEntity>(dt.Rows.Count);
 
-            // 计算关联的实体类型，绝大多数时候用不到
-            String prefix = null;
-            TableMapAttribute[] maps = null;
-            Boolean hasprefix = false;
-            if (jointypes != null && jointypes.Length > 0)
-            {
-                maps = XCodeConfig.TableMaps(Meta.ThisType, jointypes);
-                prefix = Meta.ColumnPrefix;
-                hasprefix = true;
-            }
-
             // 计算都有哪些字段可以加载数据，默认是使用了BindColumn特性的属性，然后才是别的属性
             // 当然，要数据集中有这个列才行，也就是取实体类和数据集的交集
-            List<FieldItem> ps = CheckColumn(dt, prefix);
+            List<FieldItem> ps = CheckColumn(dt);
 
             // 创建实体操作者，将由实体操作者创建实体对象
             IEntityOperate factory = Meta.Factory;
@@ -127,7 +104,7 @@ namespace XCode
                 //TEntity obj = new TEntity();
                 // 由实体操作者创建实体对象，因为实体操作者可能更换
                 TEntity obj = factory.Create() as TEntity;
-                obj.LoadData(dr, hasprefix, ps, maps);
+                obj.LoadData(dr, ps);
                 list.Add(obj);
             }
             return list;
@@ -140,65 +117,22 @@ namespace XCode
         public override void LoadData(DataRow dr)
         {
             if (dr == null) return;
-            LoadData(dr, null);
-        }
-
-        /// <summary>
-        /// 从一个数据行对象加载数据。指定要加载哪些关联的实体类对象。
-        /// </summary>
-        /// <param name="dr">数据行</param>
-        /// <param name="jointypes">多表关联</param>
-        protected virtual void LoadData(DataRow dr, Type[] jointypes)
-        {
-            if (dr == null) return;
-
-            // 计算关联的实体类型，绝大多数时候用不到
-            String prefix = null;
-            TableMapAttribute[] maps = null;
-            Boolean hasprefix = false;
-            if (jointypes != null && jointypes.Length > 0)
-            {
-                maps = XCodeConfig.TableMaps(Meta.ThisType, jointypes);
-                prefix = Meta.ColumnPrefix;
-                hasprefix = true;
-            }
 
             // 计算都有哪些字段可以加载数据
-            List<FieldItem> ps = CheckColumn(dr.Table, prefix);
-            LoadData(dr, hasprefix, ps, maps);
-        }
-
-        /// <summary>
-        /// 从一个数据行对象加载数据。带前缀。
-        /// </summary>
-        /// <param name="dr">数据行</param>
-        /// <param name="ps">要加载数据的字段</param>
-        /// <returns></returns>
-        protected virtual void LoadDataWithPrefix(DataRow dr, List<FieldItem> ps)
-        {
-            if (dr == null) return;
-            if (ps == null || ps.Count < 1) ps = Meta.Fields;
-            String prefix = Meta.ColumnPrefix;
-            foreach (FieldItem fi in ps)
-            {
-                // 两次dr[fi.ColumnName]简化为一次
-                Object v = dr[prefix + fi.ColumnName];
-                this[fi.Name] = v == DBNull.Value ? null : v;
-            }
+            List<FieldItem> ps = CheckColumn(dr.Table);
+            LoadData(dr, ps);
         }
 
         static String[] TrueString = new String[] { "true", "y", "yes", "1" };
         static String[] FalseString = new String[] { "false", "n", "no", "0" };
 
         /// <summary>
-        /// 从一个数据行对象加载数据。指定要加载数据的字段，以及要加载哪些关联的实体类对象。
+        /// 从一个数据行对象加载数据。指定要加载数据的字段。
         /// </summary>
         /// <param name="dr">数据行</param>
-        /// <param name="hasprefix">是否带有前缀</param>
         /// <param name="ps">要加载数据的字段</param>
-        /// <param name="maps">要关联的实体类</param>
         /// <returns></returns>
-        private void LoadData(DataRow dr, Boolean hasprefix, List<FieldItem> ps, TableMapAttribute[] maps)
+        private void LoadData(DataRow dr, IList<FieldItem> ps)
         {
             if (dr == null) return;
 
@@ -206,12 +140,10 @@ namespace XCode
             // 这种情况一般不会发生，最好也不好发生，因为很有可能导致报错
             if (ps == null || ps.Count < 1) ps = Meta.Fields;
 
-            String prefix = null;
-            if (hasprefix) prefix = Meta.ColumnPrefix;
             foreach (FieldItem fi in ps)
             {
                 // 两次dr[fi.ColumnName]简化为一次
-                Object v = dr[prefix + fi.ColumnName];
+                Object v = dr[fi.ColumnName];
                 Object v2 = this[fi.Name];
 
                 // 不处理相同数据的赋值
@@ -240,7 +172,6 @@ namespace XCode
                             else if (Array.IndexOf(FalseString, vs.ToLower()) >= 0)
                                 v = false;
 
-                            //if (NewLife.Configuration.Config.GetConfig<Boolean>("XCode.Debug")) NewLife.Log.XTrace.WriteLine("无法把字符串{0}转为布尔型！", vs);
                             if (DAL.Debug) DAL.WriteLog("无法把字符串{0}转为布尔型！", vs);
                         }
                     }
@@ -257,56 +188,23 @@ namespace XCode
                 else
                     Dirtys.Remove(fi.Name);
             }
-            //给关联属性赋值
-            if (maps != null && maps.Length > 0)
-            {
-                foreach (TableMapAttribute item in maps)
-                {
-                    LoadDataEx(dr, item);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 从一个数据行对象加载数据。现在用反射实现，为了更好性能，实体类应该重载该方法。
-        /// </summary>
-        /// <param name="dr"></param>
-        /// <param name="map"></param>
-        protected virtual void LoadDataEx(DataRow dr, TableMapAttribute map)
-        {
-            //创建一个对象
-            Object obj = Activator.CreateInstance(map.MapEntity);
-            //找到装载数据的方法
-            MethodInfo method = map.MapEntity.GetMethod("LoadDataWithPrefix");
-            //给这个对象装载数据
-            //method.Invoke(this, new Object[] { dr, null });
-            MethodInfoX.Create(method).Invoke(this, new Object[] { dr, null });
-            //给关联属性赋值
-            //map.LocalField.SetValue(this, obj, null);
-            PropertyInfoX.SetValue(this, map.LocalColumn, obj);
         }
 
         /// <summary>
         /// 检查实体类中的哪些字段在数据表中
         /// </summary>
         /// <param name="dt">数据表</param>
-        /// <param name="prefix">字段前缀</param>
         /// <returns></returns>
-        private static List<FieldItem> CheckColumn(DataTable dt, String prefix)
+        private static List<FieldItem> CheckColumn(DataTable dt)
         {
             List<FieldItem> ps = new List<FieldItem>();
             foreach (FieldItem item in Meta.AllFields)
             {
                 if (String.IsNullOrEmpty(item.ColumnName)) continue;
 
-                if (dt.Columns.Contains(prefix + item.ColumnName)) ps.Add(item);
+                if (dt.Columns.Contains(item.ColumnName)) ps.Add(item);
             }
             return ps;
-
-            //return Meta.AllFields.FindAll(delegate(FieldItem item)
-            //{
-            //    return dt.Columns.Contains(prefix + item.ColumnNameEx);
-            //});
         }
 
         /// <summary>
@@ -316,8 +214,8 @@ namespace XCode
         public virtual DataRow ToData(ref DataRow dr)
         {
             if (dr == null) return null;
-            List<FieldItem> ps = Meta.Fields;
-            foreach (FieldItem fi in ps)
+
+            foreach (FieldItem fi in Meta.AllFields)
             {
                 // 检查dr中是否有该属性的列。考虑到Select可能是不完整的，此时，只需要局部填充
                 if (dr.Table.Columns.Contains(fi.ColumnName))
@@ -340,7 +238,7 @@ namespace XCode
             Int32 rs = 0;
 
             //检查是否有标识列，标识列需要特殊处理
-            FieldItem field = Meta.Unique;
+            FieldItem field = Meta.Table.Identity;
             if (field != null && field.IsIdentity)
             {
                 Int64 res = Meta.InsertAndGetIdentity(sql);
@@ -400,10 +298,10 @@ namespace XCode
         public override Int32 Save()
         {
             //优先使用自增字段判断
-            FieldItem fi = Meta.Unique;
+            FieldItem fi = Meta.Table.Identity;
             if (fi != null && fi.IsIdentity || fi.Type == typeof(Int32))
             {
-                Int64 id = Convert.ToInt64(this[Meta.Unique.Name]);
+                Int64 id = Convert.ToInt64(this[fi.Name]);
                 if (id > 0)
                     return Update();
                 else
@@ -526,9 +424,9 @@ namespace XCode
             {
                 String msg = null;
                 if (IsInt(type) && IsInt(key.GetType()) && ((Int32)key) <= 0)
-                    msg = String.Format("参数错误！无法取得编号为{0}的{1}！可能未设置自增主键！", key, Meta.Description);
+                    msg = String.Format("参数错误！无法取得编号为{0}的{1}！可能未设置自增主键！", key, Meta.Table.Description);
                 else
-                    msg = String.Format("参数错误！无法取得编号为{0}的{1}！", key, Meta.Description);
+                    msg = String.Format("参数错误！无法取得编号为{0}的{1}！", key, Meta.Table.Description);
 
                 throw new XCodeException(msg);
             }
@@ -569,7 +467,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll()
         {
-            return LoadData(Meta.Query(SQL(null, DataObjectMethodType.Fill)));
+            return FindAll(SQL(null, DataObjectMethodType.Fill));
         }
 
         /// <summary>
@@ -608,8 +506,8 @@ namespace XCode
 
                     #region 排序倒序
                     // 默认是自增字段的降序
-                    if (String.IsNullOrEmpty(order) && Meta.Unique != null && Meta.Unique.IsIdentity)
-                        order = Meta.Unique.Name + " Desc";
+                    FieldItem fi = Meta.Unique;
+                    if (String.IsNullOrEmpty(order) && fi != null && fi.IsIdentity) order = fi.Name + " Desc";
 
                     if (!String.IsNullOrEmpty(order))
                     {
@@ -737,103 +635,6 @@ namespace XCode
         public static EntityList<TEntity> FindAll(String sql)
         {
             return LoadData(Meta.Query(sql));
-        }
-
-        /// <summary>
-        /// 查询并返回实体对象数组。
-        /// 如果指定了jointypes参数，则同时返回参数中指定的关联对象
-        /// </summary>
-        /// <param name="whereClause">条件，不带Where</param>
-        /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="selects">查询列</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <param name="jointypes">要关联的实体类型列表</param>
-        /// <returns>实体数组</returns>
-        public static EntityList<TEntity> FindAllMultiple(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows, Type[] jointypes)
-        {
-            if (jointypes == null || jointypes.Length < 1) return FindAll(whereClause, orderClause, selects, startRowIndex, maximumRows);
-
-            //根据传入的实体类型列表来决定处理哪些多表关联
-            TableMapAttribute[] maps = XCodeConfig.TableMaps(Meta.ThisType, jointypes);
-            //没有找到带有映射特性的字段
-            if (maps == null || maps.Length < 1) return FindAll(whereClause, orderClause, selects, startRowIndex, maximumRows);
-
-            String LocalTableName = Meta.TableName;
-            //准备拼接SQL查询语句
-            StringBuilder sb = new StringBuilder();
-            sb.Append("Select ");
-            //sb.Append(selects);
-            if (String.IsNullOrEmpty(selects) || selects == "*" || selects.Trim() == "*")
-            {
-                sb.Append(XCodeConfig.SelectsEx(Meta.ThisType));
-            }
-            else
-            {
-                String[] ss = selects.Split(',');
-                Boolean isfirst = false;
-                foreach (String item in ss)
-                {
-                    if (!isfirst)
-                    {
-                        sb.Append(", ");
-                        isfirst = true;
-                    }
-                    sb.AppendFormat("{0}.{1} as {2}{1}", LocalTableName, OqlToSql(item), Meta.ColumnPrefix);
-                }
-            }
-
-            //对于每一个关联的实体类型表进行处理
-            foreach (TableMapAttribute item in maps)
-            {
-                sb.Append(", ");
-                sb.Append(XCodeConfig.SelectsEx(item.MapEntity));
-            }
-            sb.Append(" From ");
-            sb.Append(LocalTableName);
-
-            List<String> tables = new List<string>();
-            tables.Add(LocalTableName);
-            //对于每一个关联的实体类型表进行处理
-            foreach (TableMapAttribute item in maps)
-            {
-                String tablename = XCodeConfig.TableName(item.MapEntity);
-                tables.Add(tablename);
-                sb.Append(" ");
-                //关联类型
-                sb.Append(item.MapType.ToString().Replace("_", " "));
-                sb.Append(" ");
-                //关联表
-                sb.Append(tablename);
-                sb.Append(" On ");
-                sb.AppendFormat("{0}.{1}={2}.{3}", LocalTableName, item.LocalColumn, tablename, item.MapColumn);
-            }
-
-            if (!String.IsNullOrEmpty(whereClause))
-            {
-                //加上前缀
-                whereClause = Regex.Replace(whereClause, "(w+)", "");
-                sb.AppendFormat(" Where {0} ", OqlToSql(whereClause));
-            }
-            if (!String.IsNullOrEmpty(orderClause))
-            {
-                //加上前缀
-                sb.AppendFormat(" Order By {0} ", OqlToSql(orderClause));
-            }
-
-            FieldItem fi = Meta.Unique;
-            String keyColumn = null;
-            if (fi != null)
-            {
-                keyColumn = Meta.ColumnPrefix + fi.ColumnName;
-                // 加上Desc标记，将使用MaxMin分页算法。标识列，单一主键且为数字类型
-                if (fi.IsIdentity || fi.Type == typeof(Int32)) keyColumn += " Desc";
-            }
-            String sql = Meta.PageSplit(sb.ToString(), startRowIndex, maximumRows, keyColumn);
-            DataSet ds = Meta.Query(sql, tables.ToArray());
-            if (ds == null || ds.Tables.Count < 1 || ds.Tables[0].Rows.Count < 1) return null;
-
-            return LoadData(ds.Tables[0], jointypes);
         }
         #endregion
 
@@ -1078,101 +879,6 @@ namespace XCode
         #endregion
 
         #region 辅助方法
-        //private static DateTime year1900 = new DateTime(1900, 1, 1);
-        //private static DateTime year1753 = new DateTime(1753, 1, 1);
-        //private static DateTime year9999 = new DateTime(9999, 1, 1);
-
-        /// <summary>
-        /// 取得一个值的Sql值。
-        /// 当这个值是字符串类型时，会在该值前后加单引号；
-        /// </summary>
-        /// <param name="obj">对象</param>
-        /// <param name="field">字段特性</param>
-        /// <returns>Sql值的字符串形式</returns>
-        [Obsolete("请改为使用Meta.FormatValue")]
-        public static String SqlDataFormat(Object obj, String field)
-        {
-            //foreach (FieldItem item in Meta.Fields)
-            //{
-            //    if (!String.Equals(item.Name, field, StringComparison.OrdinalIgnoreCase)) continue;
-
-            //    return SqlDataFormat(obj, item);
-            //}
-            //return null;
-
-            return Meta.FormatValue(field, obj);
-        }
-
-        /// <summary>
-        /// 取得一个值的Sql值。
-        /// 当这个值是字符串类型时，会在该值前后加单引号；
-        /// </summary>
-        /// <param name="obj">对象</param>
-        /// <param name="field">字段特性</param>
-        /// <returns>Sql值的字符串形式</returns>
-        [Obsolete("请改为使用Meta.FormatValue")]
-        public static String SqlDataFormat(Object obj, FieldItem field)
-        {
-            return Meta.FormatValue(field.Name, obj);
-
-            //Boolean isNullable = field.DataObjectField.IsNullable;
-            ////String typeName = field.Type.FullName;
-            //TypeCode code = Type.GetTypeCode(field.Type);
-            ////if (typeName.Contains("String"))
-            //if (code == TypeCode.String)
-            //{
-            //    if (obj == null) return isNullable ? "null" : "''";
-            //    if (String.IsNullOrEmpty(obj.ToString()) && isNullable) return "null";
-            //    return "'" + obj.ToString().Replace("'", "''") + "'";
-            //}
-            ////else if (typeName.Contains("DateTime"))
-            //else if (code == TypeCode.DateTime)
-            //{
-            //    if (obj == null) return isNullable ? "null" : "''";
-            //    DateTime dt = Convert.ToDateTime(obj);
-
-            //    //if (Meta.DbType == DatabaseType.Access) return "#" + dt.ToString("yyyy-MM-dd HH:mm:ss") + "#";
-            //    //if (Meta.DbType == DatabaseType.Access) return Meta.FormatDateTime(dt);
-
-            //    //if (Meta.DbType == DatabaseType.Oracle)
-            //    //    return String.Format("To_Date('{0}', 'YYYYMMDDHH24MISS')", dt.ToString("yyyyMMddhhmmss"));
-            //    // SqlServer拒绝所有其不能识别为 1753 年到 9999 年间的日期的值
-            //    if (Meta.DbType == DatabaseType.SqlServer)// || Meta.DbType == DatabaseType.SqlServer2005)
-            //    {
-            //        if (dt < year1753 || dt > year9999) return isNullable ? "null" : "''";
-            //    }
-            //    if ((dt == DateTime.MinValue || dt == year1900) && isNullable) return "null";
-            //    //return "'" + dt.ToString("yyyy-MM-dd HH:mm:ss") + "'";
-            //    return Meta.FormatDateTime(dt);
-            //}
-            ////else if (typeName.Contains("Boolean"))
-            //else if (code == TypeCode.Boolean)
-            //{
-            //    if (obj == null) return isNullable ? "null" : "";
-            //    //if (Meta.DbType == DatabaseType.SqlServer || Meta.DbType == DatabaseType.SqlServer2005)
-            //    //    return Convert.ToBoolean(obj) ? "1" : "0";
-            //    //else
-            //    //    return obj.ToString();
-
-            //    if (Meta.DbType == DatabaseType.Access)
-            //        return obj.ToString();
-            //    else
-            //        return Convert.ToBoolean(obj) ? "1" : "0";
-            //}
-            //else if (field.Type == typeof(Byte[]))
-            //{
-            //    Byte[] bts = (Byte[])obj;
-            //    if (bts == null || bts.Length < 1) return "0x0";
-
-            //    return "0x" + BitConverter.ToString(bts).Replace("-", null);
-            //}
-            //else
-            //{
-            //    if (obj == null) return isNullable ? "null" : "";
-            //    return obj.ToString();
-            //}
-        }
-
         /// <summary>
         /// 把SQL模版格式化为SQL语句
         /// </summary>
@@ -1205,7 +911,7 @@ namespace XCode
                         String idv = null;
                         if (fi.IsIdentity)
                         {
-                            idv = Meta.DBO.Db.FormatIdentity(XCodeConfig.GetField(Meta.ThisType, fi.Name), obj[fi.Name]);
+                            idv = Meta.DBO.Db.FormatIdentity(fi.Field, obj[fi.Name]);
                             //if (String.IsNullOrEmpty(idv)) continue;
                             // 允许返回String.Empty作为插入空
                             if (idv == null) continue;
@@ -1228,7 +934,7 @@ namespace XCode
                         //sbValues.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
 
                         if (!fi.IsIdentity)
-                            sbValues.Append(Meta.FormatValue(fi.Name, obj[fi.Name])); // 数据
+                            sbValues.Append(Meta.FormatValue(fi, obj[fi.Name])); // 数据
                         else
                             sbValues.Append(idv);
                     }
@@ -1250,7 +956,7 @@ namespace XCode
                         sbNames.Append(Meta.FormatName(fi.ColumnName));
                         sbNames.Append("=");
                         //sbNames.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
-                        sbNames.Append(Meta.FormatValue(fi.Name, obj[fi.Name])); // 数据
+                        sbNames.Append(Meta.FormatValue(fi, obj[fi.Name])); // 数据
                     }
 
                     if (sbNames.Length <= 0) return null;
@@ -1281,21 +987,18 @@ namespace XCode
         {
             if (names == null) throw new ArgumentNullException("names", "属性列表和值列表不能为空");
             if (values == null) throw new ArgumentNullException("values", "属性列表和值列表不能为空");
-
             if (names.Length != values.Length) throw new ArgumentException("属性列表必须和值列表一一对应");
-            Dictionary<String, FieldItem> fs = new Dictionary<String, FieldItem>();
-            foreach (FieldItem fi in Meta.Fields)
-                fs.Add(fi.Name.ToLower(), fi);
+
             StringBuilder sb = new StringBuilder();
             for (Int32 i = 0; i < names.Length; i++)
             {
-                FieldItem fi = null;
-                if (!fs.TryGetValue(names[i].ToLower(), out fi))
-                    throw new ArgumentException("类[" + Meta.ThisType.FullName + "]中不存在[" + names[i] + "]属性");
+                FieldItem fi = Meta.Table.FindByName(names[i]);
+                if (fi == null) throw new ArgumentException("类[" + Meta.ThisType.FullName + "]中不存在[" + names[i] + "]属性");
 
                 // 同时构造SQL语句。names是属性列表，必须转换成对应的字段列表
                 if (i > 0) sb.AppendFormat(" {0} ", action);
-                sb.AppendFormat("{0}={1}", Meta.FormatName(fi.ColumnName), Meta.FormatValue(fi.Name, values[i]));
+                //sb.AppendFormat("{0}={1}", Meta.FormatName(fi.ColumnName), Meta.FormatValue(fi, values[i]));
+                sb.Append(MakeCondition(fi, values[i], "="));
             }
             return sb.ToString();
         }
@@ -1309,17 +1012,25 @@ namespace XCode
         /// <returns></returns>
         public static String MakeCondition(String name, Object value, String action)
         {
-            //foreach (FieldItem item in Meta.Fields)
-            //{
-            //    if (item.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
-            //    {
-            //        return String.Format("{0}{1}{2}", item.Name, action, SqlDataFormat(value, item));
-            //    }
-            //}
+            FieldItem field = Meta.Table.FindByName(name);
+            if (field == null) return String.Format("{0}{1}{2}", Meta.FormatName(name), action, Meta.FormatValue(name, value));
 
-            return String.Format("{0}{1}{2}", Meta.FormatName(name), action, Meta.FormatValue(name, value));
+            return MakeCondition(field, value, action);
+        }
 
-            throw new Exception("找不到[" + name + "]属性！");
+        /// <summary>
+        /// 构造条件
+        /// </summary>
+        /// <param name="field">名称</param>
+        /// <param name="value">值</param>
+        /// <param name="action">大于小于等符号</param>
+        /// <returns></returns>
+        public static String MakeCondition(FieldItem field, Object value, String action)
+        {
+            if (!String.IsNullOrEmpty(action) && action.Contains("{0}"))
+                return Meta.FormatName(field.ColumnName) + String.Format(action, Meta.FormatValue(field, value));
+            else
+                return String.Format("{0}{1}{2}", Meta.FormatName(field.ColumnName), action, Meta.FormatValue(field, value));
         }
 
         /// <summary>
@@ -1331,45 +1042,24 @@ namespace XCode
         /// <returns>条件</returns>
         protected static String DefaultCondition(Entity<TEntity> obj)
         {
-            Type t = obj.GetType();
-            // 唯一键作为查询关键字
-            List<FieldItem> ps = Meta.Uniques;
-            // 没有标识列和主键，返回取所有数据的语句
-            if (ps == null || ps.Count < 1) return null;
             // 标识列作为查询关键字
-            if (ps[0].IsIdentity)
-            {
-                return String.Format("{0}={1}", Meta.FormatName(ps[0].ColumnName), Meta.FormatValue(ps[0].Name, obj[ps[0].Name]));
-            }
+            FieldItem fi = Meta.Table.Identity;
+            if (fi != null) return MakeCondition(fi, obj[fi.Name], "=");
+
             // 主键作为查询关键字
+            FieldItem[] ps = Meta.Table.PrimaryKeys;
+            // 没有标识列和主键，返回取所有数据的语句
+            if (ps == null || ps.Length < 1) return null;
+
             StringBuilder sb = new StringBuilder();
-            foreach (FieldItem fi in ps)
+            foreach (FieldItem item in ps)
             {
                 if (sb.Length > 0) sb.Append(" And ");
-                sb.Append(Meta.FormatName(fi.ColumnName));
+                sb.Append(Meta.FormatName(item.ColumnName));
                 sb.Append("=");
-                //sb.Append(SqlDataFormat(obj[fi.Name], fi));
-                sb.Append(Meta.FormatValue(fi.Name, obj[fi.Name]));
+                sb.Append(Meta.FormatValue(item, obj[item.Name]));
             }
             return sb.ToString();
-        }
-
-        /// <summary>
-        /// 把对象Oql转换称为标准TSql
-        /// </summary>
-        /// <param name="oql">实体对象oql</param>
-        /// <returns>Sql字符串</returns>
-        protected static String OqlToSql(String oql)
-        {
-            if (String.IsNullOrEmpty(oql)) return oql;
-            String sql = oql;
-            // 这个地方非常容易出错，有可能错误的修改了数据，而不仅仅是SQL
-            //if (Meta.ThisType.Name != Meta.TableName)
-            //    sql = Regex.Replace(sql, @"\b" + Meta.ThisType.Name + @"\b", Meta.TableName, RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            //foreach (FieldItem fi in Meta.Fields)
-            //    if (fi.Name != fi.ColumnName)
-            //        sql = Regex.Replace(sql, @"\b" + fi.Name + @"\b", fi.ColumnName, RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            return sql;
         }
 
         /// <summary>

@@ -54,7 +54,8 @@ namespace XCode.DataAccessLayer
                         {
                             //BindTableAttribute bt = Config.Table(item);
                             //if (bt == null || bt.ConnName != Database.ConnName) continue;
-                            String connName = XCodeConfig.ConnName(item);
+                            //String connName = XCodeConfig.ConnName(item);
+                            String connName = TableItem.Create(item).ConnName;
                             if (connName != ConnName) continue;
 
                             _Entities.Add(item);
@@ -547,7 +548,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         private static XTable Create(Type type, String tablename)
         {
-            XTable table = XCodeConfig.GetTable(type);
+            XTable table = TableItem.Create(type).XTable;
             if (table == null) return null;
 
             if (!String.IsNullOrEmpty(tablename)) table.Name = tablename;

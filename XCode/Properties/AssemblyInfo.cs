@@ -34,8 +34,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("7.8.*")]
-[assembly: AssemblyFileVersion("7.8.2011.0512")]
+[assembly: AssemblyVersion("7.9.*")]
+[assembly: AssemblyFileVersion("7.9.2011.0526")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.9.2011.0526   重构XCode实体层元数据部分，使用公开的TableItem替代保护的XCodeConfig，配合FieldItem形成完成的实体元数据结构
+ * 
  * v7.8.2011.0512   更新SelectBuilder，更新QueryCount相关代码，保证生成最精简的QueryCount查询语句，对于MySql而言，避开子查询，有巨大的性能优势
  * 
  * v7.8.2011.0510   增强SQLite的反向工程能力，SQLite不支持修改字段和删除字段，但是可以通过新建表然后复制数据的方式替代，并且解决了新增不允许空且又没有默认值的字段时出错的问题

@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Data;
 using System.IO;
 using System.Text;
-using System.Web.Services;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.IO;
@@ -437,9 +436,9 @@ namespace XCode
         public virtual Int32 CopyFrom(IEntity entity, Boolean setDirty)
         {
             IEntity src = this;
-            List<String> names1 = src.FieldNames;
+            IList<String> names1 = EntityFactory.CreateOperate(src.GetType()).FieldNames;
             if (names1 == null || names1.Count < 1) return 0;
-            List<String> names2 = entity.FieldNames;
+            IList<String> names2 = EntityFactory.CreateOperate(entity.GetType()).FieldNames;
             if (names2 == null || names2.Count < 1) return 0;
 
             Int32 n = 0;
@@ -741,25 +740,25 @@ namespace XCode
         /// <summary>
         /// 所有绑定到数据表的属性
         /// </summary>
-        List<FieldItem> IEntityOperate.Fields { get { return FieldsInternal; } }
+        FieldItem[] IEntityOperate.Fields { get { return FieldsInternal; } }
 
         /// <summary>
         /// 字段名列表
         /// </summary>
-        List<String> IEntityOperate.FieldNames { get { return FieldNamesInternal; } }
+        IList<String> IEntityOperate.FieldNames { get { return FieldNamesInternal; } }
 
-        /// <summary>
-        /// 所有绑定到数据表的属性
-        /// </summary>
-        List<FieldItem> IEntity.Fields { get { return FieldsInternal; } }
+        ///// <summary>
+        ///// 所有绑定到数据表的属性
+        ///// </summary>
+        //FieldItem[] IEntity.Fields { get { return FieldsInternal; } }
 
-        /// <summary>
-        /// 字段名列表
-        /// </summary>
-        List<String> IEntity.FieldNames { get { return FieldNamesInternal; } }
+        ///// <summary>
+        ///// 字段名列表
+        ///// </summary>
+        //IList<String> IEntity.FieldNames { get { return FieldNamesInternal; } }
 
-        internal abstract List<FieldItem> FieldsInternal { get; }
-        internal abstract List<String> FieldNamesInternal { get; }
+        internal abstract FieldItem[] FieldsInternal { get; }
+        internal abstract IList<String> FieldNamesInternal { get; }
         #endregion
     }
 }

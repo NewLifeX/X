@@ -62,15 +62,15 @@ namespace XCode
         /// <returns>返回是否成功设置了数据</returns>
         Boolean SetItem(String name, Object value);
 
-        /// <summary>
-        /// 所有绑定到数据表的属性
-        /// </summary>
-        List<FieldItem> Fields { get; }
+        ///// <summary>
+        ///// 所有绑定到数据表的属性
+        ///// </summary>
+        //List<FieldItem> Fields { get; }
 
-        /// <summary>
-        /// 字段名列表
-        /// </summary>
-        List<String> FieldNames { get; }
+        ///// <summary>
+        ///// 字段名列表
+        ///// </summary>
+        //List<String> FieldNames { get; }
         #endregion
 
         #region 导入导出XML
