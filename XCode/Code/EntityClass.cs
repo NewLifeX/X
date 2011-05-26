@@ -178,7 +178,7 @@ namespace XCode.Code
                 CodeConditionStatement cond = new CodeConditionStatement();
                 p.GetStatements.Add(cond);
                 cond.Condition = new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("name"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(item.Name));
-                cond.TrueStatements.Add(new CodeMethodReturnStatement(new CodePropertyReferenceExpression(null, item.Name)));
+                cond.TrueStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(null, "_" + item.Name)));
 
                 // 设置值
                 cond = new CodeConditionStatement();
