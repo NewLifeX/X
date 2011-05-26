@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Text;
 using System.Threading;
 using NewLife.Reflection;
-using System.Text;
 
 namespace XCode.DataAccessLayer
 {
@@ -356,6 +356,34 @@ namespace XCode.DataAccessLayer
             // 默认列出所有字段
             DataRow[] rows = dt.Select("TABLE_TYPE='table'");
             return GetTables(rows);
+        }
+
+        protected override DataRow[] FindDataType(XField field, string typeName, bool? isLong)
+        {
+            if (!String.IsNullOrEmpty(typeName))
+            {
+                Type type = Type.GetType(typeName);
+                if (type != null)
+                {
+                    switch (Type.GetTypeCode(type))
+                    {
+                        case TypeCode.UInt16:
+                            type = typeof(Int16);
+                            break;
+                        case TypeCode.UInt32:
+                            type = typeof(Int32);
+                            break;
+                        case TypeCode.UInt64:
+                            type = typeof(Int64);
+                            break;
+                        default:
+                            break;
+                    }
+                    typeName = type.FullName;
+                }
+            }
+
+            return base.FindDataType(field, typeName, isLong);
         }
 
         protected override string GetFieldType(XField field)
