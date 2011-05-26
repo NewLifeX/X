@@ -78,8 +78,14 @@ namespace NewLife.CommonEntity.Web
         /// <summary>数据实体</summary>
         public virtual TEntity Entity
         {
-            get { return _Entity ?? (_Entity = Entity<TEntity>.FindByKeyForEdit(EntityID)); }
+            get { return _Entity ?? (_Entity = GetEntity()); }
             set { _Entity = value; }
+        }
+
+        /// <summary>获取数据实体，允许页面重载改变实体</summary>
+        protected virtual TEntity GetEntity()
+        {
+            return Entity<TEntity>.FindByKeyForEdit(EntityID);
         }
 
         /// <summary>
@@ -194,7 +200,27 @@ namespace NewLife.CommonEntity.Web
             {
                 if (btn != null && btn is IButtonControl)
                     (btn as IButtonControl).Click += delegate { GetForm(); if (ValidForm()) SaveFormWithTrans(); };
-                else if (Page.AutoPostBackControl == null)
+                // 这里还不能保存表单，因为使用者习惯性在Load事件里面写业务代码，所以只能在Load完成后保存
+                //else if (Page.AutoPostBackControl == null)
+                //{
+                //    GetForm();
+                //    if (ValidForm()) SaveFormWithTrans();
+                //}
+            }
+        }
+
+        /// <summary>
+        /// 已重载。当没有按钮时保存表单
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnLoadComplete(EventArgs e)
+        {
+            base.OnLoadComplete(e);
+
+            if (Page.AutoPostBackControl == null)
+            {
+                Control btn = SaveButton;
+                if (btn == null || !(btn is IButtonControl))
                 {
                     GetForm();
                     if (ValidForm()) SaveFormWithTrans();
@@ -244,19 +270,18 @@ namespace NewLife.CommonEntity.Web
         {
             if (field == null || control == null) return;
 
+            String toolTip = String.IsNullOrEmpty(field.DisplayName) ? field.Name : field.DisplayName;
+            if (field.IsNullable)
+                toolTip = String.Format("请填写{0}！", toolTip);
+            else
+                toolTip = String.Format("必须填写{0}！", toolTip);
+
             if (control is WebControl)
             {
                 WebControl wc = control as WebControl;
 
                 // 设置ToolTip
-                if (String.IsNullOrEmpty(wc.ToolTip))
-                {
-                    String des = String.IsNullOrEmpty(field.DisplayName) ? field.Name : field.DisplayName;
-                    if (field.IsNullable)
-                        wc.ToolTip = String.Format("请填写{0}！", des);
-                    else
-                        wc.ToolTip = String.Format("必须填写{0}！", des);
-                }
+                if (String.IsNullOrEmpty(wc.ToolTip)) wc.ToolTip = toolTip;
 
                 //// 必填项
                 //if (!field.IsNullable) SetNotAllowNull(field, control, canSave);
@@ -288,6 +313,19 @@ namespace NewLife.CommonEntity.Web
                     PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Value");
                     if (pix == null) pix = PropertyInfoX.Create(control.GetType(), "Text");
                     if (pix != null) pix.SetValue(control, Entity[field.Name]);
+                }
+            }
+            else
+            {
+                // 优先使用Value
+                PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Value");
+                if (pix == null) pix = PropertyInfoX.Create(control.GetType(), "Text");
+                if (pix != null) pix.SetValue(control, Entity[field.Name]);
+
+                pix = PropertyInfoX.Create(control.GetType(), "ToolTip");
+                if (pix != null && String.IsNullOrEmpty((String)pix.GetValue(control)))
+                {
+                    pix.SetValue(control, toolTip);
                 }
             }
         }
@@ -480,6 +518,17 @@ namespace NewLife.CommonEntity.Web
                         Object v = pix.GetValue(control);
                         if (!Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
                     }
+                }
+            }
+            else
+            {
+                // 优先使用Value
+                PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Value");
+                if (pix == null) pix = PropertyInfoX.Create(control.GetType(), "Text");
+                if (pix != null)
+                {
+                    Object v = pix.GetValue(control);
+                    if (!Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
                 }
             }
         }
@@ -679,6 +728,14 @@ namespace NewLife.CommonEntity.Web
         /// <param name="ex"></param>
         protected virtual void SaveFormUnsuccess(Exception ex)
         {
+            // 如果是参数异常，参数名可能就是字段名，可以定位到具体控件
+            ArgumentException ae = ex as ArgumentException;
+            if (ae != null && !String.IsNullOrEmpty(ae.ParamName))
+            {
+                Control control = Page.FindControl(FormItemPrefix + ae.ParamName);
+                if (control != null) control.Focus();
+            }
+
             WebHelper.Alert("失败！" + ex.Message);
         }
         #endregion
