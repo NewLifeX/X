@@ -3,6 +3,7 @@ using System.Collections;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Diagnostics;
 
 namespace NewLife.Serialization
 {
@@ -51,6 +52,21 @@ namespace NewLife.Serialization
         }
 
         #endregion
+
+        #region 构造方法
+        /// <summary>
+        /// 构造方法
+        /// </summary>
+        public JsonWriter()
+            : base()
+        {
+            Settings.DepthLimit = 16;
+#if DEBUG
+            Settings.DepthLimit = 5;
+#endif
+        }
+        #endregion
+
         #region 字节/字节数组
         /// <summary>
         /// 以数字的格式写入字节
@@ -83,17 +99,7 @@ namespace NewLife.Serialization
         /// <param name="count">要写入的字节数。</param>
         public override void Write(byte[] buffer, int index, int count)
         {
-            byte[] buf;
-            if (count == buffer.Length)
-            {
-                buf = buffer;
-            }
-            else
-            {
-                buf = new byte[count];
-                Array.Copy(buffer, index, buf, 0, count);
-            }
-            Write(buf as IEnumerable);
+            WriteEnumerable(Slice(buffer, index, count), typeof(Byte[]), BaseWriteMember);
         }
         #endregion
 
@@ -105,7 +111,6 @@ namespace NewLife.Serialization
         public override void Write(bool value)
         {
             Depth++;
-            WriteLog("WriteValue", "bool", value);
             WriteLiteral(value ? "true" : "false");
             Depth--;
         }
@@ -136,10 +141,10 @@ namespace NewLife.Serialization
             switch (Settings.JsDateTimeFormat)
             {
                 case JsDateTimeFormats.ISO8601:
-                    WriteLiteral("\"" + value.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture) + "\"");
+                    Write(value.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture));
                     break;
                 case JsDateTimeFormats.DotnetDateTick:
-                    WriteLiteral(string.Format("\"\\/Date({0})\\/\"", (long)(value - Settings.BaseDateTime).TotalMilliseconds));
+                    Write(string.Format("\\/Date({0})\\/", (long)(value - Settings.BaseDateTime).TotalMilliseconds));
                     break;
                 case JsDateTimeFormats.Tick:
                     Write(Settings.ConvertDateTimeToInt64(value));
@@ -230,12 +235,39 @@ namespace NewLife.Serialization
         /// <param name="ch">要写入的非代理项 Unicode 字符。</param>
         public override void Write(char ch)
         {
-            //Writer.Write(ch);
-
             if (ch == '\0')
+            {
                 WriteLiteral("null");
+            }
             else
+            {
                 Write(ch.ToString());
+            }
+        }
+        /// <summary>
+        /// 将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。
+        /// </summary>
+        /// <param name="chars"></param>
+        public override void Write(char[] chars)
+        {
+            if (chars == null)
+            {
+                WriteLiteral("null");
+            }
+            else
+            {
+                Write(chars, 0, chars.Length);
+            }
+        }
+        /// <summary>
+        /// 将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。
+        /// </summary>
+        /// <param name="chars"></param>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        public override void Write(char[] chars, int index, int count)
+        {
+            WriteEnumerable(Slice(chars, index, count), typeof(char[]), BaseWriteMember);
         }
 
         /// <summary>
@@ -334,8 +366,21 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public override bool WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
         {
+            Boolean rs;
             Writer.Write("[");
-            Boolean rs = base.WriteEnumerable(value, type, callback);
+            ComplexObjectDepth++;
+            if (!ComplexObjectDepthIsOverflow())
+            {
+                rs = base.WriteEnumerable(value, type, callback);
+            }
+            else
+            {
+                Depth++;
+                WriteLog("WriteSkip", "ComplexObjectDepthIsOverflow");
+                Depth--;
+                rs = true;
+            }
+            ComplexObjectDepth--;
             Writer.Write("]");
 
             return rs;
@@ -351,18 +396,35 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected override bool OnWriteItem(object value, Type type, int index, WriteObjectCallback callback)
         {
-            WriteLog("WriteEnumerableItem", "Index:", index);
+            WriteLog("WriteEnumerableItem", index, type != null ? type.FullName : "Unknown type");
             if (index > 0)
             {
                 Writer.Write(",");
             }
-            if (value != null && (type == null || type == typeof(object)))
+            if (value != null && !IsCanCreateInstance(type))
             {
                 type = value.GetType(); //避免base.OnWriteItem中写入value.GetType()
                 writeValueType = value;
             }
             bool ret = base.OnWriteItem(value, type, index, callback);
             writeValueType = null;
+            return ret;
+        }
+        /// <summary>
+        /// 返回指定数组的一个片段,始终返回的是array参数的一个副本
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="array"></param>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static T[] Slice<T>(T[] array, int index, int count)
+        {
+            T[] ret = new T[count];
+            if (count > 0)
+            {
+                Array.Copy(array, index, ret, 0, count);
+            }
             return ret;
         }
         #endregion
@@ -382,10 +444,23 @@ namespace NewLife.Serialization
                 WriteLiteral("null");
                 return true;
             }
+            bool ret;
             Writer.Write("{");
-            WriteLine();
-            bool ret = base.WriteDictionary(value, type, callback);
-            WriteLine();
+            ComplexObjectDepth++;
+            if (!ComplexObjectDepthIsOverflow())
+            {
+                WriteLine();
+                ret = base.WriteDictionary(value, type, callback);
+                WriteLine();
+            }
+            else
+            {
+                Depth++;
+                WriteLog("WriteSkip", "ComplexObjectDepthIsOverflow");
+                Depth--;
+                ret = true;
+            }
+            ComplexObjectDepth--;
             Writer.Write("}");
             return ret;
         }
@@ -405,11 +480,11 @@ namespace NewLife.Serialization
                 Writer.Write(",");
                 WriteLine();
             }
-            WriteLog("WriteDictionaryEntry", "Key:", value.Key);
+            WriteLog("WriteDictionaryEntry", "Key");
             Write(value.Key.ToString());//json标准要求key必须是字符串
             Writer.Write(":");
             WriteLog("WriteDictionaryEntry", "Value");
-            if (value.Value != null && (valueType == null || valueType == typeof(object))) //无法取得字典项的值类型
+            if (value.Value != null && !IsCanCreateInstance(valueType)) //无法取得字典项的值类型
             {
                 writeValueType = value.Value; //valueType会在WriteObject内部被重新赋值,所以不做额外处理
             }
@@ -424,6 +499,17 @@ namespace NewLife.Serialization
         /// 是否需要写入值类型信息的标志,为null时表示不需要,非null时并且等于待写入的值时写入值类型
         /// </summary>
         object writeValueType = null;
+        /// <summary>
+        /// 写入的复合对象深度,指使用{} []包括的深度
+        /// </summary>
+        int ComplexObjectDepth = 0;
+        /// <summary>
+        /// JsonWriter的对象类型由writeValueType写入,作为第一个成员,所以不需要
+        /// </summary>
+        /// <param name="type"></param>
+        protected override void WriteObjectType(Type type)
+        {
+        }
         /// <summary>
         /// 写入对象。具体读写器可以重载该方法以修改写入对象前后的行为。
         /// </summary>
@@ -450,23 +536,44 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public override bool WriteCustomObject(object value, Type type, WriteObjectCallback callback)
         {
+            Boolean rs;
             Writer.Write("{");
-            WriteLine();
-            if (value != null && writeValueType == value) //写入明确的类型
+            ComplexObjectDepth++;
+            if (!ComplexObjectDepthIsOverflow())
             {
-                string fullname = value.GetType().FullName;
-                Depth++;
-                WriteLog("WriteType", "__type", fullname);
-                WriteLiteral(string.Format("\"__type\":\"{0}\"", JavascriptStringEncode(fullname, this.Settings.JsEncodeUnicode)));
-                //后续的逗号和换行符由WriteCustomObject中OnWriteMember输出,并将writeValueType置为null
-                Depth--;
+                WriteLine();
+                if (value != null && writeValueType == value) //写入明确的类型
+                {
+                    string fullname = value.GetType().FullName;
+                    Depth++;
+                    WriteLog("WriteType", "__type", fullname);
+                    WriteLiteral(string.Format("\"__type\":\"{0}\"", JavascriptStringEncode(fullname, this.Settings.JsEncodeUnicode)));
+                    //后续的逗号和换行符由WriteCustomObject中OnWriteMember输出,并将writeValueType置为null
+                    Depth--;
+                }
+                rs = base.WriteCustomObject(value, type, callback);
+                writeValueType = null;
+                WriteLine();
             }
-            Boolean rs = base.WriteCustomObject(value, type, callback);
-            writeValueType = null;
-            WriteLine();
+            else
+            {
+                Depth++;
+                WriteLog("WriteSkip", "ComplexObjectDepthIsOverflow");
+                Depth--;
+                rs = true;
+            }
+            ComplexObjectDepth--;
             Writer.Write("}");
 
             return rs;
+        }
+        /// <summary>
+        /// 当前解析复合对象深度是否超出,用于避免循环引用可能引起的堆栈溢出,仅在Settings.RepeatedActionType是RepeatedAction.DepthLimit时才可能返回true
+        /// </summary>
+        /// <returns></returns>
+        public bool ComplexObjectDepthIsOverflow()
+        {
+            return Settings.RepeatedActionType == RepeatedAction.DepthLimit && ComplexObjectDepth > Settings.DepthLimit;
         }
 
         /// <summary>
@@ -490,7 +597,7 @@ namespace NewLife.Serialization
             Writer.Write("\"" + JavascriptStringEncode(member.Name) + "\": ");
 
             object obj = member[value];
-            if (obj != null && (memberType == null || memberType == typeof(object)))
+            if (obj != null && !IsCanCreateInstance(memberType))
             {
                 memberType = obj.GetType(); //避免base.OnWriteMember中写入obj.GetType()
                 writeValueType = obj;
@@ -498,6 +605,27 @@ namespace NewLife.Serialization
             bool ret = base.OnWriteMember(value, memberType, member, index, callback);
             writeValueType = null;
             return ret;
+        }
+        /// <summary>
+        /// 模仿父类的WriteMember实现
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="value"></param>
+        /// <param name="type"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        protected static bool BaseWriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback)
+        {
+            return writer.WriteObject(value, type, callback); //模仿基类中的Boolean WriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback)
+        }
+        /// <summary>
+        /// 返回指定类型是否是可以实例化的,即反序列化时是否是可以实例化的类型,一般用于处理未知类型前
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static bool IsCanCreateInstance(Type type)
+        {
+            return type != null && type != typeof(object) && !type.IsInterface && !type.IsAbstract;
         }
         #endregion
 

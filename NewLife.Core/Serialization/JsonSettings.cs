@@ -73,7 +73,7 @@ namespace NewLife.Serialization
         /// <summary>
         /// 复合对象的解析深度限制,只有在RepeatedActionType是RepeatedAction.DepthLimit
         /// 
-        /// 默认1000,不建议设置过大
+        /// 对于JsonWriter,默认值是8. 对于JsonReader,默认值是1000
         /// 
         /// 关于1000的取值,测试调用堆栈极限程序中大概12273次调用时抛出StackOverflowException异常,而每处理一个ReadObject大概需要9个调用
         /// </summary>
@@ -93,7 +93,7 @@ namespace NewLife.Serialization
             // 指定时间的格式
             DateTimeFormat = DateTimeFormats.Milliseconds;
             JsDateTimeKind = DateTimeKind.Utc;
-            DepthLimit = 1000;
+            UseObjRef = false;
         }
         #endregion
 
@@ -133,8 +133,11 @@ namespace NewLife.Serialization
         /// <summary>
         /// 限制处理复合对象的深度
         /// </summary>
-        DepthLimit
-
-        // TODO 其它的处理方式
+        DepthLimit,
+        /// <summary>
+        /// 对象引用方式,暂未实现
+        /// </summary>
+        [Obsolete("暂未实现")]
+        ObjectRef
     }
 }
