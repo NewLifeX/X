@@ -270,7 +270,7 @@ namespace NewLife.CommonEntity.Web
         {
             if (field == null || control == null) return;
 
-            String toolTip = String.IsNullOrEmpty(field.DisplayName) ? field.Name : field.DisplayName;
+            String toolTip = String.IsNullOrEmpty(field.Description) ? field.Name : field.Description;
             if (field.IsNullable)
                 toolTip = String.Format("请填写{0}！", toolTip);
             else
@@ -665,7 +665,7 @@ namespace NewLife.CommonEntity.Web
                 {
                     if (String.IsNullOrEmpty((String)Entity[field.Name]))
                     {
-                        WebHelper.Alert(String.Format("{0}不能为空！", String.IsNullOrEmpty(field.DisplayName) ? field.Name : field.DisplayName));
+                        WebHelper.Alert(String.Format("{0}不能为空！", String.IsNullOrEmpty(field.Description) ? field.Name : field.Description));
                         control.Focus();
                         return false;
                     }
@@ -675,7 +675,7 @@ namespace NewLife.CommonEntity.Web
                     DateTime d = (DateTime)Entity[field.Name];
                     if (d == DateTime.MinValue || d == DateTime.MaxValue)
                     {
-                        WebHelper.Alert(String.Format("{0}不能为空！", String.IsNullOrEmpty(field.DisplayName) ? field.Name : field.DisplayName));
+                        WebHelper.Alert(String.Format("{0}不能为空！", String.IsNullOrEmpty(field.Description) ? field.Name : field.Description));
                         control.Focus();
                         return false;
                     }
