@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Reflection.Emit;
 using NewLife.Collections;
+using NewLife.Exceptions;
 
 namespace NewLife.Reflection
 {
@@ -105,6 +106,9 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public override Object CreateInstance(params Object[] parameters)
         {
+            if (BaseType.ContainsGenericParameters || BaseType.IsGenericTypeDefinition) 
+                throw new XException(BaseType.FullName + "类是泛型定义类，缺少泛型参数！");
+
             if (BaseType.IsValueType || BaseType.IsArray)
                 return Handler.Invoke(parameters);
             else
