@@ -134,7 +134,6 @@
     <Compile Include="Entity\Entity_Operate.cs" />
     <Compile Include="Entity\IEntity.cs" />
     <Compile Include="Entity\IEntityOperate.cs" />
-    <Compile Include="Entity\ReadOnlyList.cs" />
     <Compile Include="Cache\SingleEntityCache.cs" />
     <Compile Include="Expressions\AndExpression.cs" />
     <Compile Include="Expressions\ExpressionBase.cs" />
