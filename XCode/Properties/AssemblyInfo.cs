@@ -52,6 +52,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v7.9.2011.0526   重构XCode实体层元数据部分，使用公开的TableItem替代保护的XCodeConfig，配合FieldItem形成完成的实体元数据结构
+ *                  使用专用类实现IEntityOperator接口，避免原来臃肿的结构
  * 
  * v7.8.2011.0512   更新SelectBuilder，更新QueryCount相关代码，保证生成最精简的QueryCount查询语句，对于MySql而言，避开子查询，有巨大的性能优势
  * 

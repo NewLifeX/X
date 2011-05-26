@@ -397,7 +397,7 @@ namespace XCode
             /// <summary>
             /// 格式化数据为SQL数据
             /// </summary>
-            /// <param name="field"></param>
+            /// <param name="name"></param>
             /// <param name="value"></param>
             /// <returns></returns>
             public static String FormatValue(String name, Object value)
@@ -408,12 +408,12 @@ namespace XCode
             /// <summary>
             /// 格式化数据为SQL数据
             /// </summary>
-            /// <param name="fieldItem"></param>
+            /// <param name="field"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public static String FormatValue(FieldItem fieldItem, Object value)
+            public static String FormatValue(FieldItem field, Object value)
             {
-                return DBO.Db.FormatValue(fieldItem != null ? fieldItem.Field : null, value);
+                return DBO.Db.FormatValue(field != null ? field.Field : null, value);
             }
             #endregion
 

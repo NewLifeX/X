@@ -35,23 +35,14 @@ namespace XCode
             // 避免实际应用中，直接调用Entity的静态方法时，没有引发TEntity的静态构造函数。
             TEntity entity = new TEntity();
 
-            //! 大石头 2011-03-14 以下过程改为异步处理
-            //  已确认，当实体类静态构造函数中使用了EntityFactory.CreateOperate(Type)方法时，可能出现死锁。
-            //  因为两者都会争夺EntityFactory中的op_cache，而CreateOperate(Type)拿到op_cache后，还需要等待当前静态构造函数执行完成。
-            //  不确定这样子是否带来后遗症
-            ThreadPool.QueueUserWorkItem(delegate
-            {
-                EntityFactory.CreateOperate(Meta.ThisType, entity);
-            });
-        }
-
-        /// <summary>
-        /// 创建实体
-        /// </summary>
-        /// <returns></returns>
-        internal override IEntity CreateInternal()
-        {
-            return CreateInstance();
+            ////! 大石头 2011-03-14 以下过程改为异步处理
+            ////  已确认，当实体类静态构造函数中使用了EntityFactory.CreateOperate(Type)方法时，可能出现死锁。
+            ////  因为两者都会争夺EntityFactory中的op_cache，而CreateOperate(Type)拿到op_cache后，还需要等待当前静态构造函数执行完成。
+            ////  不确定这样子是否带来后遗症
+            //ThreadPool.QueueUserWorkItem(delegate
+            //{
+            //    EntityFactory.CreateOperate(Meta.ThisType, entity);
+            //});
         }
 
         /// <summary>

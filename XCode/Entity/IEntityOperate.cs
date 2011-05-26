@@ -12,6 +12,11 @@ namespace XCode
     {
         #region 创建实体
         /// <summary>
+        /// 默认实体
+        /// </summary>
+        IEntity Default { get; set; }
+
+        /// <summary>
         /// 创建一个实体对象
         /// </summary>
         /// <returns></returns>
@@ -224,13 +229,13 @@ namespace XCode
         /// <returns>Sql值的字符串形式</returns>
         String FormatValue(String name, Object value);
 
-        ///// <summary>
-        ///// 格式化数据为SQL数据
-        ///// </summary>
-        ///// <param name="fieldItem"></param>
-        ///// <param name="value"></param>
-        ///// <returns></returns>
-        //String FormatValue(FieldItem fieldItem, Object value);
+        /// <summary>
+        /// 格式化数据为SQL数据
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        String FormatValue(FieldItem field, Object value);
 
         /// <summary>
         /// 根据属性列表和值列表，构造查询条件。
@@ -251,14 +256,14 @@ namespace XCode
         /// <returns></returns>
         String MakeCondition(String name, Object value, String action);
 
-        ///// <summary>
-        ///// 构造条件
-        ///// </summary>
-        ///// <param name="field">名称</param>
-        ///// <param name="value">值</param>
-        ///// <param name="action">大于小于等符号</param>
-        ///// <returns></returns>
-        //String MakeCondition(FieldItem field, Object value, String action);
+        /// <summary>
+        /// 构造条件
+        /// </summary>
+        /// <param name="field">名称</param>
+        /// <param name="value">值</param>
+        /// <param name="action">大于小于等符号</param>
+        /// <returns></returns>
+        String MakeCondition(FieldItem field, Object value, String action);
 
         /// <summary>
         /// 所有绑定到数据表的属性

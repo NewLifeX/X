@@ -17,19 +17,9 @@ namespace XCode
     /// 数据实体基类的基类
     /// </summary>
     [Serializable]
-    public abstract partial class EntityBase : BinaryAccessor, IEntity, IEntityOperate, ICloneable
+    public abstract partial class EntityBase : BinaryAccessor, IEntity, ICloneable
     {
         #region 创建实体
-        /// <summary>
-        /// 创建一个实体对象
-        /// </summary>
-        /// <returns></returns>
-        IEntity IEntityOperate.Create() { return CreateInternal(); }
-
-        internal abstract IEntity CreateInternal();
-
-        void IEntityOperate.InitData() { InitData(); }
-
         /// <summary>
         /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
         /// </summary>
@@ -39,58 +29,10 @@ namespace XCode
 
         #region 填充数据
         /// <summary>
-        /// 加载记录集
-        /// </summary>
-        /// <param name="ds">记录集</param>
-        /// <returns>实体数组</returns>
-        EntityList<IEntity> IEntityOperate.LoadData(DataSet ds)
-        {
-            return ToList(LoadDataInternal(ds));
-        }
-
-        internal abstract ICollection LoadDataInternal(DataSet ds);
-
-        /// <summary>
         /// 从一个数据行对象加载数据。不加载关联对象。
         /// </summary>
         /// <param name="dr">数据行</param>
         public abstract void LoadData(DataRow dr);
-        #endregion
-
-        #region 查找单个实体
-        /// <summary>
-        /// 根据属性以及对应的值，查找单个实体
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        EntityBase IEntityOperate.Find(String name, Object value) { return FindInternal(name, value); }
-
-        /// <summary>
-        /// 根据条件查找单个实体
-        /// </summary>
-        /// <param name="whereClause"></param>
-        /// <returns></returns>
-        EntityBase IEntityOperate.Find(String whereClause) { return FindInternal(whereClause); }
-
-        /// <summary>
-        /// 根据主键查找单个实体
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        EntityBase IEntityOperate.FindByKey(Object key) { return FindByKeyInternal(key); }
-
-        /// <summary>
-        /// 根据主键查询一个实体对象用于表单编辑
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        EntityBase IEntityOperate.FindByKeyForEdit(Object key) { return FindByKeyForEditInternal(key); }
-
-        internal abstract EntityBase FindInternal(String name, Object value);
-        internal abstract EntityBase FindInternal(String whereClause);
-        internal abstract EntityBase FindByKeyInternal(Object key);
-        internal abstract EntityBase FindByKeyForEditInternal(Object key);
         #endregion
 
         #region 操作
@@ -119,200 +61,7 @@ namespace XCode
         public abstract Int32 Save();
         #endregion
 
-        #region 静态查询
-        /// <summary>
-        /// 获取所有实体对象。获取大量数据时会非常慢，慎用
-        /// </summary>
-        /// <returns>实体数组</returns>
-        EntityList<IEntity> IEntityOperate.FindAll()
-        {
-            return ToList(FindAllInternal());
-        }
-
-        /// <summary>
-        /// 查询并返回实体对象集合。
-        /// 表名以及所有字段名，请使用类名以及字段对应的属性名，方法内转换为表名和列名
-        /// </summary>
-        /// <param name="whereClause">条件，不带Where</param>
-        /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="selects">查询列</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>实体数组</returns>
-        EntityList<IEntity> IEntityOperate.FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return ToList(FindAllInternal(whereClause, orderClause, selects, startRowIndex, maximumRows));
-        }
-
-        /// <summary>
-        /// 根据属性列表以及对应的值列表，获取所有实体对象
-        /// </summary>
-        /// <param name="names">属性列表</param>
-        /// <param name="values">值列表</param>
-        /// <returns>实体数组</returns>
-        EntityList<IEntity> IEntityOperate.FindAll(String[] names, Object[] values)
-        {
-            return ToList(FindAllInternal(names, values));
-        }
-
-        /// <summary>
-        /// 根据属性以及对应的值，获取所有实体对象
-        /// </summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <returns>实体数组</returns>
-        EntityList<IEntity> IEntityOperate.FindAll(String name, Object value)
-        {
-            return ToList(FindAllInternal(name, value));
-        }
-
-        /// <summary>
-        /// 根据属性以及对应的值，获取所有实体对象
-        /// </summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>实体数组</returns>
-        EntityList<IEntity> IEntityOperate.FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return ToList(FindAllInternal(name, value, startRowIndex, maximumRows));
-        }
-
-        /// <summary>
-        /// 根据属性以及对应的值，获取所有实体对象
-        /// </summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>实体数组</returns>
-        EntityList<IEntity> IEntityOperate.FindAllByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return ToList(FindAllByNameInternal(name, value, orderClause, startRowIndex, maximumRows));
-        }
-
-        internal abstract ICollection FindAllInternal();
-        internal abstract ICollection FindAllInternal(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows);
-        internal abstract ICollection FindAllInternal(String[] names, Object[] values);
-        internal abstract ICollection FindAllInternal(String name, Object value);
-        internal abstract ICollection FindAllInternal(String name, Object value, Int32 startRowIndex, Int32 maximumRows);
-        internal abstract ICollection FindAllByNameInternal(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows);
-        #endregion
-
-        #region 取总记录数
-        /// <summary>
-        /// 返回总记录数
-        /// </summary>
-        /// <returns></returns>
-        Int32 IEntityOperate.FindCount() { return FindCountInternal(); }
-
-        /// <summary>
-        /// 返回总记录数
-        /// </summary>
-        /// <param name="whereClause">条件，不带Where</param>
-        /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="selects">查询列</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>总行数</returns>
-        Int32 IEntityOperate.FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return FindCountInternal(whereClause, orderClause, selects, startRowIndex, maximumRows);
-        }
-
-        /// <summary>
-        /// 根据属性列表以及对应的值列表，返回总记录数
-        /// </summary>
-        /// <param name="names">属性列表</param>
-        /// <param name="values">值列表</param>
-        /// <returns>总行数</returns>
-        Int32 IEntityOperate.FindCount(String[] names, Object[] values)
-        {
-            return FindCountInternal(names, values);
-        }
-
-        /// <summary>
-        /// 根据属性以及对应的值，返回总记录数
-        /// </summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <returns>总行数</returns>
-        Int32 IEntityOperate.FindCount(String name, Object value)
-        {
-            return FindCountInternal(name, value);
-        }
-
-        /// <summary>
-        /// 根据属性以及对应的值，返回总记录数
-        /// </summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>总行数</returns>
-        Int32 IEntityOperate.FindCount(String name, Object value, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return FindCountInternal(name, value, startRowIndex, maximumRows);
-        }
-
-        /// <summary>
-        /// 根据属性以及对应的值，返回总记录数
-        /// </summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>总行数</returns>
-        Int32 IEntityOperate.FindCountByName(String name, Object value, String orderClause, int startRowIndex, int maximumRows)
-        {
-            return FindCountByNameInternal(name, value, orderClause, startRowIndex, maximumRows);
-        }
-
-        internal abstract Int32 FindCountInternal();
-        internal abstract Int32 FindCountInternal(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows);
-        internal abstract Int32 FindCountInternal(String[] names, Object[] values);
-        internal abstract Int32 FindCountInternal(String name, Object value);
-        internal abstract Int32 FindCountInternal(String name, Object value, Int32 startRowIndex, Int32 maximumRows);
-        internal abstract Int32 FindCountByNameInternal(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows);
-        #endregion
-
-        #region 静态操作
-        ///// <summary>
-        ///// 把一个实体对象持久化到数据库
-        ///// </summary>
-        ///// <param name="obj">实体对象</param>
-        ///// <returns>返回受影响的行数</returns>
-        //[WebMethod(Description = "插入")]
-        //[DataObjectMethod(DataObjectMethodType.Insert, true)]
-        //public static Int32 Insert(EntityBase obj)
-        //{
-        //    return obj.Insert();
-        //}
-
-        ///// <summary>
-        ///// 把一个实体对象更新到数据库
-        ///// </summary>
-        ///// <param name="obj">实体对象</param>
-        ///// <returns>返回受影响的行数</returns>
-        //[WebMethod(Description = "更新")]
-        //[DataObjectMethod(DataObjectMethodType.Update, true)]
-        //public static Int32 Update(EntityBase obj)
-        //{
-        //    return obj.Update();
-        //}
-        #endregion
-
         #region 获取/设置 字段值
-        ///// <summary>
-        ///// 获取/设置 字段值。不影响脏数据。
-        ///// </summary>
-        ///// <param name="name">字段名</param>
-        ///// <returns></returns>
-        //public abstract Object this[String name] { get; set; }
-
         /// <summary>
         /// 设置字段值，该方法影响脏数据。
         /// </summary>
@@ -355,15 +104,6 @@ namespace XCode
                 return xml;
             }
         }
-
-        /// <summary>
-        /// 导入
-        /// </summary>
-        /// <param name="xml"></param>
-        /// <returns></returns>
-        EntityBase IEntityOperate.FromXml(String xml) { return FromXmlInternal(xml); }
-
-        internal abstract EntityBase FromXmlInternal(String xml);
         #endregion
 
         #region 导入导出Json
@@ -376,48 +116,6 @@ namespace XCode
             Json json = new Json();
             return json.Serialize(this);
         }
-
-        /// <summary>
-        /// 导入
-        /// </summary>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        EntityBase IEntityOperate.FromJson(String json) { return FromJsonInternal(json); }
-
-        internal abstract EntityBase FromJsonInternal(String json);
-        #endregion
-
-        #region 事务
-        /// <summary>
-        /// 开始事务
-        /// </summary>
-        /// <returns></returns>
-        Int32 IEntityOperate.BeginTransaction()
-        {
-            return BeginTransactionInternal();
-        }
-
-        /// <summary>
-        /// 提交事务
-        /// </summary>
-        /// <returns></returns>
-        Int32 IEntityOperate.Commit()
-        {
-            return CommitInternal();
-        }
-
-        /// <summary>
-        /// 回滚事务
-        /// </summary>
-        /// <returns></returns>
-        Int32 IEntityOperate.Rollback()
-        {
-            return RollbackInternal();
-        }
-
-        internal abstract Int32 BeginTransactionInternal();
-        internal abstract Int32 CommitInternal();
-        internal abstract Int32 RollbackInternal();
         #endregion
 
         #region 克隆
@@ -678,87 +376,6 @@ namespace XCode
                 }
             }
         }
-        #endregion
-
-        #region 辅助方法
-        /// <summary>
-        /// 取得一个值的Sql值。
-        /// 当这个值是字符串类型时，会在该值前后加单引号；
-        /// </summary>
-        /// <param name="name">字段</param>
-        /// <param name="value">对象</param>
-        /// <returns>Sql值的字符串形式</returns>
-        String IEntityOperate.FormatValue(String name, Object value) { return FormatValueInternal(name, value); }
-
-        /// <summary>
-        /// 根据属性列表和值列表，构造查询条件。
-        /// 例如构造多主键限制查询条件。
-        /// </summary>
-        /// <param name="names">属性列表</param>
-        /// <param name="values">值列表</param>
-        /// <param name="action">联合方式</param>
-        /// <returns>条件子串</returns>
-        String IEntityOperate.MakeCondition(String[] names, Object[] values, String action)
-        {
-            return MakeConditionInternal(names, values, action);
-        }
-
-        /// <summary>
-        /// 构造条件
-        /// </summary>
-        /// <param name="name">名称</param>
-        /// <param name="value">值</param>
-        /// <param name="action">大于小于等符号</param>
-        /// <returns></returns>
-        String IEntityOperate.MakeCondition(String name, Object value, String action)
-        {
-            return MakeConditionInternal(name, value, action);
-        }
-
-        internal abstract String FormatValueInternal(String name, Object value);
-        internal abstract String MakeConditionInternal(String[] names, Object[] values, String action);
-        internal abstract String MakeConditionInternal(String name, Object value, String action);
-
-        /// <summary>
-        /// 把一个FindAll返回的集合转为实体接口列表集合
-        /// </summary>
-        /// <param name="collection"></param>
-        /// <returns></returns>
-        EntityList<IEntity> ToList(ICollection collection)
-        {
-            if (collection == null || collection.Count < 1) return null;
-
-            EntityList<IEntity> list = new EntityList<IEntity>();
-            foreach (IEntity item in collection)
-            {
-                list.Add(item);
-            }
-
-            return list;
-        }
-
-        /// <summary>
-        /// 所有绑定到数据表的属性
-        /// </summary>
-        FieldItem[] IEntityOperate.Fields { get { return FieldsInternal; } }
-
-        /// <summary>
-        /// 字段名列表
-        /// </summary>
-        IList<String> IEntityOperate.FieldNames { get { return FieldNamesInternal; } }
-
-        ///// <summary>
-        ///// 所有绑定到数据表的属性
-        ///// </summary>
-        //FieldItem[] IEntity.Fields { get { return FieldsInternal; } }
-
-        ///// <summary>
-        ///// 字段名列表
-        ///// </summary>
-        //IList<String> IEntity.FieldNames { get { return FieldNamesInternal; } }
-
-        internal abstract FieldItem[] FieldsInternal { get; }
-        internal abstract IList<String> FieldNamesInternal { get; }
         #endregion
     }
 }
