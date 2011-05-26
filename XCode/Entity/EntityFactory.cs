@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using NewLife.Collections;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;
-using System.Reflection;
 
 namespace XCode
 {
@@ -33,7 +33,7 @@ namespace XCode
         /// <returns></returns>
         public static IEntity Create(Type type)
         {
-            if (type == null || type.IsInterface) return null;
+            if (type == null || type.IsInterface || type.IsAbstract) return null;
 
             //return Activator.CreateInstance(type) as IEntity;
             return TypeX.CreateInstance(type) as IEntity;
@@ -74,15 +74,8 @@ namespace XCode
             {
                 if (!typeof(IEntityOperate).IsAssignableFrom(key))
                 {
-                    Type t = key.GetNestedType("EntityOperate", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
-                    if (t != null)
-                        key = t;
-                    else
-                    {
-                        t = typeof(Entity<>).MakeGenericType(key);
-                        t = t.GetNestedType("EntityOperate", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
-                        if (t != null) key = t;
-                    }
+                    Type t = GetEntityOperateType();
+                    if (t != null) key = t.MakeGenericType(key);
                 }
                 if (key == null || !typeof(IEntityOperate).IsAssignableFrom(key))
                     throw new Exception(String.Format("无法创建{0}的实体操作接口！", key));
@@ -92,6 +85,12 @@ namespace XCode
 
                 return op;
             });
+        }
+
+        static Type GetEntityOperateType()
+        {
+            return typeof(Entity<>.EntityOperate);
+            //return typeof(Entity<>).GetNestedType("EntityOperate", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
         }
 
         /// <summary>
@@ -121,51 +120,6 @@ namespace XCode
         #endregion
 
         #region 加载插件
-        ////private static Int32 _AsmCount = 0;
-        //private static List<Type> _AllEntities;
-        ///// <summary>所有实体</summary>
-        //public static List<Type> AllEntities
-        //{
-        //    get
-        //    {
-        //        //Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
-        //        //if (_AllEntities != null && _AsmCount == asms.Length) return _AllEntities;
-        //        if (_AllEntities != null) return _AllEntities;
-        //        lock (typeof(EntityFactory))
-        //        {
-        //            if (_AllEntities != null) return _AllEntities;
-
-        //            _AllEntities = LoadEntities();
-        //            //_AsmCount = asms.Length;
-        //            AppDomain.CurrentDomain.AssemblyLoad += new AssemblyLoadEventHandler(CurrentDomain_AssemblyLoad);
-
-        //            return _AllEntities;
-        //        }
-        //    }
-        //}
-
-        //static void CurrentDomain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
-        //{
-        //    //_AllEntities = null;
-        //    AssemblyX asm = AssemblyX.Create(args.LoadedAssembly);
-        //    if (!asm.IsSystemAssembly)
-        //    {
-        //        ListX<TypeX> list = asm.FindPlugins<IEntity>();
-        //        if (list != null && list.Count > 0)
-        //        {
-        //            WriteLog("程序集{0}找到实体{1}个！", asm.ToString(), list.Count);
-
-        //            List<Type> list2 = new List<Type>();
-        //            if (_AllEntities != null) list2.AddRange(_AllEntities);
-        //            foreach (TypeX item in list)
-        //            {
-        //                list2.Add(item.BaseType);
-        //            }
-        //            _AllEntities = list2;
-        //        }
-        //    }
-        //}
-
         /// <summary>
         /// 列出所有实体类
         /// </summary>
@@ -173,92 +127,6 @@ namespace XCode
         public static List<Type> LoadEntities()
         {
             return AssemblyX.FindAllPlugins(typeof(IEntity));
-
-            //Assembly curAsm = Assembly.GetExecutingAssembly();
-            //String path = AppDomain.CurrentDomain.BaseDirectory;
-            //path = Path.GetDirectoryName(path);
-
-            //if (!String.IsNullOrEmpty(HttpRuntime.AppDomainAppId))
-            //{
-            //    path = HttpRuntime.BinDirectory;
-            //}
-
-            //WriteLog("程序集目录：" + path);
-
-            //List<Assembly> asms = new List<Assembly>(AppDomain.CurrentDomain.GetAssemblies());
-            //for (int i = asms.Count - 1; i >= 0; i--)
-            //{
-            //    Assembly asm = asms[i];
-
-            //    if (asm.GlobalAssemblyCache ||
-            //        asm.FullName.StartsWith("Interop.") || asm.FullName.StartsWith("System.") ||
-            //        asm.FullName.StartsWith("System,") || asm.FullName.StartsWith("Microsoft.") ||
-            //        asm.FullName.StartsWith("XCode,") || asm.FullName.StartsWith("XLog,"))
-            //        asms.RemoveAt(i);
-            //}
-
-            //List<Type> types = new List<Type>();
-            //if (asms != null) WriteLog("共找到程序集：" + asms.Count);
-            //foreach (Assembly item in asms)
-            //{
-            //    WriteLog("加载程序集：" + item.FullName);
-
-            //    try
-            //    {
-            //        Type[] ts = item.GetTypes();
-            //        if (ts != null && ts.Length > 0) types.AddRange(ts);
-            //    }
-            //    catch { }
-            //}
-            //if (types.Count < 1) return null;
-
-            //Type t = typeof(EntityBase);
-            ////查找插件类型，所有继承自Entity的类
-            //for (int i = types.Count - 1; i >= 0; i--)
-            //{
-            //    if (!t.IsAssignableFrom(types[i]) || !IsEntity(types[i])) types.RemoveAt(i);
-            //}
-
-            //if (types.Count < 1)
-            //    return null;
-            //else
-            //    return types;
-        }
-
-        /// <summary>
-        /// 是否实体类
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        private static Boolean IsEntity(Type type)
-        {
-            //为空、不是类、抽象类、泛型类 都不是实体类
-            if (type == null || !type.IsClass || type.IsAbstract || type.IsGenericType) return false;
-
-            //没有基类不是实体类
-            if (type.BaseType == null) return false;
-
-            //递归判断
-            Type t = type;
-            while (t != null && t != typeof(Object))
-            {
-                //基类必须是泛型，递归基类必须是Entity
-                if (t.BaseType.IsGenericType && t.BaseType.Name == "Entity`1")
-                {
-                    Type[] typeArguments = t.BaseType.GetGenericArguments();
-                    if (typeArguments != null && typeArguments.Length > 0)
-                    {
-                        //有泛型参数，并且泛型参数就是自己
-                        if (typeArguments[0] == type)
-                        {
-                            return true;
-                        }
-                    }
-                }
-                t = t.BaseType;
-            }
-
-            return false;
         }
 
         static DictionaryCache<String, Type> typeCache = new DictionaryCache<String, Type>();

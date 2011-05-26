@@ -7,7 +7,7 @@ namespace XCode
 {
     partial class Entity<TEntity>
     {
-        class EntityOperate : IEntityOperate
+        internal class EntityOperate : IEntityOperate
         {
             #region 属性
             private IEntity _Default;
