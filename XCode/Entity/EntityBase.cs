@@ -9,7 +9,6 @@ using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.IO;
 using NewLife.Reflection;
-using XCode.Configuration;
 
 namespace XCode
 {

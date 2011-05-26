@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using XCode.Configuration;
-using System.Xml.Serialization;
 
 namespace XCode
 {
@@ -11,9 +9,7 @@ namespace XCode
     {
         class EntityOperate : IEntityOperate
         {
-            #region 默认实体
-            //static TEntity defEntity = new TEntity();
-
+            #region 属性
             private IEntity _Default;
             /// <summary>默认实体</summary>
             public IEntity Default
@@ -21,6 +17,21 @@ namespace XCode
                 get { return _Default ?? (_Default = new TEntity()); }
                 set { _Default = value; }
             }
+
+            /// <summary>
+            /// 数据表元数据
+            /// </summary>
+            public TableItem Table { get { return Meta.Table; } }
+
+            /// <summary>
+            /// 所有绑定到数据表的属性
+            /// </summary>
+            public FieldItem[] Fields { get { return Fields; } }
+
+            /// <summary>
+            /// 字段名列表
+            /// </summary>
+            public IList<String> FieldNames { get { return FieldNames; } }
             #endregion
 
             #region 创建实体
@@ -299,16 +310,6 @@ namespace XCode
             /// <param name="action">大于小于等符号</param>
             /// <returns></returns>
             public String MakeCondition(FieldItem field, Object value, String action) { return MakeCondition(field, value, action); }
-
-            /// <summary>
-            /// 所有绑定到数据表的属性
-            /// </summary>
-            public FieldItem[] Fields { get { return Fields; } }
-
-            /// <summary>
-            /// 字段名列表
-            /// </summary>
-            public IList<String> FieldNames { get { return FieldNames; } }
             #endregion
         }
     }

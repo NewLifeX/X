@@ -11,7 +11,7 @@ using XCode.DataAccessLayer;
 namespace XCode.Configuration
 {
     /// <summary>
-    /// 表元数据
+    /// 数据表元数据
     /// </summary>
     public class TableItem
     {

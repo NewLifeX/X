@@ -10,12 +10,29 @@ namespace XCode
     /// </summary>
     public interface IEntityOperate
     {
-        #region 创建实体
+        #region 属性
         /// <summary>
         /// 默认实体
         /// </summary>
         IEntity Default { get; set; }
 
+        /// <summary>
+        /// 数据表元数据
+        /// </summary>
+        TableItem Table { get; }
+
+        /// <summary>
+        /// 所有绑定到数据表的属性
+        /// </summary>
+        FieldItem[] Fields { get; }
+
+        /// <summary>
+        /// 字段名列表
+        /// </summary>
+        IList<String> FieldNames { get; }
+        #endregion
+
+        #region 创建实体
         /// <summary>
         /// 创建一个实体对象
         /// </summary>
@@ -264,16 +281,6 @@ namespace XCode
         /// <param name="action">大于小于等符号</param>
         /// <returns></returns>
         String MakeCondition(FieldItem field, Object value, String action);
-
-        /// <summary>
-        /// 所有绑定到数据表的属性
-        /// </summary>
-        FieldItem[] Fields { get; }
-
-        /// <summary>
-        /// 字段名列表
-        /// </summary>
-        IList<String> FieldNames { get; }
         #endregion
     }
 }
