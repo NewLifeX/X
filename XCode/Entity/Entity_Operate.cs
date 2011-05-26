@@ -26,12 +26,12 @@ namespace XCode
             /// <summary>
             /// 所有绑定到数据表的属性
             /// </summary>
-            public FieldItem[] Fields { get { return Fields; } }
+            public FieldItem[] Fields { get { return Meta.Fields; } }
 
             /// <summary>
             /// 字段名列表
             /// </summary>
-            public IList<String> FieldNames { get { return FieldNames; } }
+            public IList<String> FieldNames { get { return Meta.FieldNames; } }
             #endregion
 
             #region 创建实体

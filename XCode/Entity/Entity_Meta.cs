@@ -9,8 +9,6 @@ using NewLife.Log;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-using System.Text;
-using System.Collections.ObjectModel;
 
 namespace XCode
 {

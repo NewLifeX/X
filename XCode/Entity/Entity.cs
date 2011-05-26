@@ -30,6 +30,8 @@ namespace XCode
         /// </summary>
         static Entity()
         {
+            EntityFactory.Register(Meta.ThisType, new EntityOperate());
+
             // 1，可以初始化该实体类型的操作工厂
             // 2，CreateOperate将会实例化一个TEntity对象，从而引发TEntity的静态构造函数，
             // 避免实际应用中，直接调用Entity的静态方法时，没有引发TEntity的静态构造函数。

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NewLife.Collections;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;
+using System.Reflection;
 
 namespace XCode
 {
@@ -67,54 +68,56 @@ namespace XCode
         /// <returns></returns>
         public static IEntityOperate CreateOperate(Type type)
         {
-            if (type == null) return null;
-
-            //if (op_cache.ContainsKey(type)) return op_cache[type];
-            //lock (op_cache)
-            //{
-            //    if (op_cache.ContainsKey(type)) return op_cache[type];
+            if (type == null) throw new ArgumentNullException("type");
 
             return op_cache.GetItem(type, delegate(Type key)
             {
-                //EntityBase entity = Create(key) as EntityBase;
+                if (!typeof(IEntityOperate).IsAssignableFrom(key))
+                {
+                    Type t = key.GetNestedType("EntityOperate", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+                    if (t != null)
+                        key = t;
+                    else
+                    {
+                        t = typeof(Entity<>).MakeGenericType(key);
+                        t = t.GetNestedType("EntityOperate", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+                        if (t != null) key = t;
+                    }
+                }
+                if (key == null || !typeof(IEntityOperate).IsAssignableFrom(key))
+                    throw new Exception(String.Format("无法创建{0}的实体操作接口！", key));
 
-                key = key.GetNestedType("EntityOperator");
                 IEntityOperate op = TypeX.CreateInstance(key) as IEntityOperate;
                 if (op == null) throw new Exception(String.Format("无法创建{0}的实体操作接口！", key));
-
-                //if (op_cache.ContainsKey(key))
-                //    op_cache[key] = entity;
-                //else
-                //    op_cache.Add(key, entity);
 
                 return op;
             });
         }
 
-        ///// <summary>
-        ///// 使用指定的实体对象创建实体操作接口，主要用于Entity内部调用，避免反射带来的损耗
-        ///// </summary>
-        ///// <param name="type"></param>
-        ///// <param name="entity"></param>
-        ///// <returns></returns>
-        //internal static IEntityOperate CreateOperate(Type type, IEntityOperate entity)
-        //{
-        //    if (entity == null) return CreateOperate(type);
+        /// <summary>
+        /// 使用指定的实体对象创建实体操作接口，主要用于Entity内部调用，避免反射带来的损耗
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        internal static IEntityOperate Register(Type type, IEntityOperate entity)
+        {
+            if (entity == null) return CreateOperate(type);
 
-        //    // 重新使用判断，减少锁争夺
-        //    if (op_cache.ContainsKey(type)) return op_cache[type];
-        //    lock (op_cache)
-        //    {
-        //        if (op_cache.ContainsKey(type)) return op_cache[type];
+            // 重新使用判断，减少锁争夺
+            if (op_cache.ContainsKey(type)) return op_cache[type];
+            lock (op_cache)
+            {
+                if (op_cache.ContainsKey(type)) return op_cache[type];
 
-        //        //if (op_cache.ContainsKey(type))
-        //        op_cache[type] = entity;
-        //        //else
-        //        //    op_cache.Add(type, entity);
+                //if (op_cache.ContainsKey(type))
+                op_cache[type] = entity;
+                //else
+                //    op_cache.Add(type, entity);
 
-        //        return entity;
-        //    }
-        //}
+                return entity;
+            }
+        }
         #endregion
 
         #region 加载插件

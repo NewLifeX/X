@@ -149,7 +149,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select)]
         public static EntityList<TEntity> FindAllByParent(TKey parentKey)
         {
-            TEntity entity = EntityFactory.CreateOperate(typeof(TEntity)) as TEntity;
+            TEntity entity = EntityFactory.CreateOperate(typeof(TEntity)).Default as TEntity;
 
             EntityList<TEntity> list = Meta.Cache.Entities.FindAll(entity.ParentKeyName, parentKey);
             // 如果是顶级，那么包含所有无头节点
@@ -186,7 +186,7 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<TEntity> FindAllNoParent()
         {
-            TEntity entity = EntityFactory.CreateOperate(typeof(TEntity)) as TEntity;
+            TEntity entity = EntityFactory.CreateOperate(typeof(TEntity)).Default as TEntity;
 
             EntityList<TEntity> noParents = new EntityList<TEntity>();
             foreach (TEntity item in Meta.Cache.Entities)
