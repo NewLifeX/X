@@ -19,7 +19,7 @@
                     if(pname.Equals("Password", StringComparison.OrdinalIgnoreCase) || pname.Equals("Pass", StringComparison.OrdinalIgnoreCase)){
                 #><asp:TextBox ID="<#=frmName#>" runat="server" TextMode="Password"></asp:TextBox><#
                     }else if(Field.Length>300 || Field.Length<0){
-                #><asp:TextBox ID="<#=frmName#>" runat="server" TextMode="MultiLine" Width="350px" Height="80px"></asp:TextBox><#
+                #><asp:TextBox ID="<#=frmName#>" runat="server" TextMode="MultiLine" Width="300px" Height="80px"></asp:TextBox><#
                     }else{
                 #><asp:TextBox ID="<#=frmName#>" runat="server" Width="<#=Field.Length+100#>px"></asp:TextBox><#
                     }
@@ -30,7 +30,7 @@
                 }else if(code == TypeCode.DateTime){
                 #><XCL:DateTimePicker ID="<#=frmName#>" runat="server"></XCL:DateTimePicker><#
                 }else if(code == TypeCode.Decimal){
-                #><XCL:NumberBox ID="<#=frmName#>" runat="server" Width="80px"></XCL:NumberBox><#
+                #><XCL:RealBox ID="<#=frmName#>" runat="server" Width="80px"></XCL:RealBox><#
                 }else if(code == TypeCode.Boolean){
                 #><asp:CheckBox ID="<#=frmName#>" runat="server" Text="<#=GetPropertyDescription(Field)#>" /><#}
             #></td>
