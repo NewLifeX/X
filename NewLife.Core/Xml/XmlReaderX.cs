@@ -177,25 +177,25 @@ namespace NewLife.Xml
 		//#endregion
 		#endregion
 
-        #region 扩展类型
-        /// <summary>
-        /// 读对象类型
-        /// </summary>
-        /// <returns></returns>
-        protected override Type ReadObjectType()
-        {
-            //return base.ReadObjectType();
-            if (Reader.MoveToAttribute("Type"))
-            {
-                return ReadType();
-            }
+		#region 扩展类型
+		/// <summary>
+		/// 读对象类型
+		/// </summary>
+		/// <returns></returns>
+		//protected override Type ReadObjectType()
+		//{
+		//    //return base.ReadObjectType();
+		//    if (Reader.MoveToAttribute("Type"))
+		//    {
+		//        ReadType
+		//    }
 
-            return null;
-        }
-        #endregion
+		//    return null;
+		//}
+		#endregion
 
-        #region 字典
-        /// <summary>
+		#region 字典
+		/// <summary>
 		/// 尝试读取字典类型对象
 		/// </summary>
 		/// <param name="type">类型</param>
@@ -251,35 +251,35 @@ namespace NewLife.Xml
 
 			Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
 			// <Key>
-            //if (keyType == null)
-            //{
-            //    if (Reader.MoveToAttribute("Type"))
-            //    {
-            //        WriteLog("ReadKeyType");
-            //        keyType = ReadType();
-            //        WriteLog("ReadKeyType", keyType.Name);
-            //    }
-            //}
-            keyType = CheckAndReadType("ReadKeyType", keyType, value.Key);
+			//if (keyType == null)
+			//{
+			//    if (Reader.MoveToAttribute("Type"))
+			//    {
+			//        WriteLog("ReadKeyType");
+			//        keyType = ReadType();
+			//        WriteLog("ReadKeyType", keyType.Name);
+			//    }
+			//}
+			keyType = CheckAndReadType("ReadKeyType", keyType, value.Key);
 			Reader.ReadStartElement();
-            if (!ReadObject(keyType, ref key)) return false;
+			if (!ReadObject(keyType, ref key)) return false;
 			// </Key>
 			if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
 			Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
 			// <Value>
-            //if (valueType == null)
-            //{
-            //    if (Reader.MoveToAttribute("Type"))
-            //    {
-            //        WriteLog("ReadValueType");
-            //        valueType = ReadType();
-            //        WriteLog("ReadValueType", valueType.Name);
-            //    }
-            //}
-            valueType = CheckAndReadType("ReadValueType", valueType, value.Value);
-            Reader.ReadStartElement();
-            if (!ReadObject(valueType, ref val)) return false;
+			//if (valueType == null)
+			//{
+			//    if (Reader.MoveToAttribute("Type"))
+			//    {
+			//        WriteLog("ReadValueType");
+			//        valueType = ReadType();
+			//        WriteLog("ReadValueType", valueType.Name);
+			//    }
+			//}
+			valueType = CheckAndReadType("ReadValueType", valueType, value.Value);
+			Reader.ReadStartElement();
+			if (!ReadObject(valueType, ref val)) return false;
 			// </Value>
 			if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
@@ -421,19 +421,19 @@ namespace NewLife.Xml
 				return false;
 			if (SkipEmpty()) return true;
 
-            //if (type == null)
-            //{
-            //    if (Reader.MoveToAttribute("Type"))
-            //    {
-            //        WriteLog("ReadItemType");
-            //        type = ReadType();
-            //        WriteLog("ReadItemType", type.Name);
-            //    }
-            //}
-            type = CheckAndReadType("ReadItemType", type, value);
-            Reader.ReadStartElement();
+			//if (type == null)
+			//{
+			//    if (Reader.MoveToAttribute("Type"))
+			//    {
+			//        WriteLog("ReadItemType");
+			//        type = ReadType();
+			//        WriteLog("ReadItemType", type.Name);
+			//    }
+			//}
+			type = CheckAndReadType("ReadItemType", type, value);
+			Reader.ReadStartElement();
 
-            Boolean rs = base.OnReadItem(type, ref value, index, callback);
+			Boolean rs = base.OnReadItem(type, ref value, index, callback);
 
 			if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 			return rs;
@@ -463,9 +463,9 @@ namespace NewLife.Xml
 			Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
 			Reader.ReadStartElement();
 
-            type = CheckAndReadType("ReadObjectType", type, value);
-            
-            Boolean rs = base.OnReadObject(type, ref value, callback);
+			type = CheckAndReadType("ReadObjectType", type, value);
+
+			Boolean rs = base.OnReadObject(type, ref value, callback);
 
 			if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
@@ -606,20 +606,20 @@ namespace NewLife.Xml
 			return rs;
 		}
 
-        /// <summary>
-        /// 读取对象引用计数
-        /// </summary>
-        /// <returns></returns>
-        protected override int OnReadObjRefIndex()
-        {
-            //return base.OnReadObjRefIndex();
-            if (Reader.MoveToAttribute("ObjRef"))
-            {
-                return ReadInt32();
-            }
+		/// <summary>
+		/// 读取对象引用计数
+		/// </summary>
+		/// <returns></returns>
+		protected override int OnReadObjRefIndex()
+		{
+			//return base.OnReadObjRefIndex();
+			if (Reader.MoveToAttribute("ObjRef"))
+			{
+				return ReadInt32();
+			}
 
-            return -1;
-        }
+			return -1;
+		}
 		#endregion
 
 		#region 未知对象
@@ -726,6 +726,15 @@ namespace NewLife.Xml
 				}
 			}
 		}
+		#endregion
+
+		#region 写入类型
+		public override Type ReadType()
+		{
+			if (Reader.MoveToAttribute("Type"))
+				return base.OnReadType();
+			return base.ReadType();
+		} 
 		#endregion
 	}
 }
