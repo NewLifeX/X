@@ -94,9 +94,10 @@
     <Compile Include="Reflection\TypeResolver.cs" />
     <Compile Include="Reflection\TypeResolverProvider.cs" />
     <Compile Include="Serialization\Base\TextReaderBase.cs" />
-    <Compile Include="Serialization\BinaryReaderX.cs" />
-    <Compile Include="Serialization\BinarySettings.cs" />
-    <Compile Include="Serialization\BinaryWriterX.cs" />
+    <Compile Include="Serialization\Binary\BinaryReaderX.cs" />
+    <Compile Include="Serialization\Binary\BinarySettings.cs" />
+    <Compile Include="Serialization\Binary\BinaryWriterX.cs" />
+    <Compile Include="Serialization\NameValue\NameValueReader.cs" />
     <Compile Include="Serialization\Interface\IAccessor.cs" />
     <Compile Include="Serialization\Info\IObjectMemberInfo.cs" />
     <Compile Include="Serialization\Interface\IReader.cs" />
@@ -120,6 +121,8 @@
     <Compile Include="Serialization\Event\ReadItemEventArgs.cs" />
     <Compile Include="Serialization\Event\ReadMemberEventArgs.cs" />
     <Compile Include="Serialization\Event\ReadObjectEventArgs.cs" />
+    <Compile Include="Serialization\NameValue\NameValueSetting.cs" />
+    <Compile Include="Serialization\NameValue\NameValueWriter.cs" />
     <Compile Include="Serialization\RWServices.cs" />
     <Compile Include="Serialization\Base\WriterBase.cs" />
     <Compile Include="Log\CodeTimer.cs" />

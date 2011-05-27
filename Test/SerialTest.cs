@@ -197,6 +197,7 @@ namespace Test
             entity.Byte2 = b;
             Char[] a = { 'a', 'b', 'c' };
             entity.Char1 = a;
+            entity.Char0 = a[1];
 
             entity.Color = ConsoleColor.Red;
             entity.Color2 = (ColorEnum)10;
@@ -322,6 +323,14 @@ namespace Test
             {
                 get { return _Byte2; }
                 set { _Byte2 = value; }
+            }
+
+            private Char _Char0;
+            /// <summary>字符</summary>
+            public Char Char0
+            {
+                get { return _Char0; }
+                set { _Char0 = value; }
             }
 
             private Char[] _Char1;

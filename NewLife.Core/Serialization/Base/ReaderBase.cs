@@ -127,7 +127,7 @@ namespace NewLife.Serialization
         /// 从当前流中读取下一个字符，并根据所使用的 Encoding 和从流中读取的特定字符，提升流的当前位置。
         /// </summary>
         /// <returns></returns>
-        public virtual char ReadChar() { return ReadChars(1)[0]; }
+        public virtual char ReadChar() { return Convert.ToChar(ReadByte()); }
 
         /// <summary>
         /// 从当前流中读取 count 个字符，以字符数组的形式返回数据，并根据所使用的 Encoding 和从流中读取的特定字符，提升当前位置。

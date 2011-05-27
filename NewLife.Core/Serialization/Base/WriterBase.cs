@@ -38,8 +38,6 @@ namespace NewLife.Serialization
 
             WriteSize(buffer.Length);
             Write(buffer, 0, buffer.Length);
-
-            //Write(buffer, 0, buffer == null ? 0 : buffer.Length);
         }
 
         /// <summary>
@@ -151,7 +149,7 @@ namespace NewLife.Serialization
         /// 将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。
         /// </summary>
         /// <param name="ch">要写入的非代理项 Unicode 字符。</param>
-        public virtual void Write(char ch) { Write(new Char[] { ch }); }
+        public virtual void Write(char ch) { Write(Convert.ToByte(ch)); }
 
         /// <summary>
         /// 将字符数组写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。
@@ -181,7 +179,6 @@ namespace NewLife.Serialization
 
             // 先用写入字节长度
             Byte[] buffer = Settings.Encoding.GetBytes(chars, index, count);
-            //Write(buffer.Length);
             Write(buffer);
         }
 
@@ -189,10 +186,7 @@ namespace NewLife.Serialization
         /// 写入字符串
         /// </summary>
         /// <param name="value">要写入的值。</param>
-        public virtual void Write(string value)
-        {
-            Write(value == null ? null : value.ToCharArray());
-        }
+        public virtual void Write(string value) { Write(value == null ? null : value.ToCharArray()); }
         #endregion
 
         #region 其它
@@ -219,10 +213,7 @@ namespace NewLife.Serialization
         /// 将一个时间日期写入
         /// </summary>
         /// <param name="value"></param>
-        public virtual void Write(DateTime value)
-        {
-            Write(Settings.ConvertDateTimeToInt64(value));
-        }
+        public virtual void Write(DateTime value) { Write(Settings.ConvertDateTimeToInt64(value)); }
         #endregion
         #endregion
 
