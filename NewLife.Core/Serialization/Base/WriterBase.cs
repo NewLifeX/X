@@ -253,6 +253,8 @@ namespace NewLife.Serialization
             //// 对象不为空时，使用对象实际类型
             //if (value != null) type = value.GetType();
 
+            type = CheckAndWriteType("WriteValueType", value, type);
+
             TypeCode code = Type.GetTypeCode(type);
             switch (code)
             {
@@ -328,42 +330,42 @@ namespace NewLife.Serialization
             return false;
         }
 
-        /// <summary>
-        /// 写入结构体
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns>是否写入成功</returns>
-        public Int32 WriteStruct(ValueType value)
-        {
-            if (value == null) return 0;
+        ///// <summary>
+        ///// 写入结构体
+        ///// </summary>
+        ///// <param name="value"></param>
+        ///// <returns>是否写入成功</returns>
+        //public Int32 WriteStruct(ValueType value)
+        //{
+        //    if (value == null) return 0;
 
-            Type type = value.GetType();
-            if (type.IsGenericType) return 0;
+        //    Type type = value.GetType();
+        //    if (type.IsGenericType) return 0;
 
-            Int32 len = Marshal.SizeOf(type);
+        //    Int32 len = Marshal.SizeOf(type);
 
-            // 分配全局内存，一并写入
-            IntPtr p = Marshal.AllocHGlobal(len);
-            try
-            {
-                Marshal.StructureToPtr(value, p, true);
+        //    // 分配全局内存，一并写入
+        //    IntPtr p = Marshal.AllocHGlobal(len);
+        //    try
+        //    {
+        //        Marshal.StructureToPtr(value, p, true);
 
-                Byte[] buffer = new Byte[len];
-                Marshal.Copy(p, buffer, 0, buffer.Length);
+        //        Byte[] buffer = new Byte[len];
+        //        Marshal.Copy(p, buffer, 0, buffer.Length);
 
-                Write(buffer, 0, buffer.Length);
+        //        Write(buffer, 0, buffer.Length);
 
-                return buffer.Length;
-            }
-            catch
-            {
-                return 0;
-            }
-            finally
-            {
-                Marshal.DestroyStructure(p, type);
-            }
-        }
+        //        return buffer.Length;
+        //    }
+        //    catch
+        //    {
+        //        return 0;
+        //    }
+        //    finally
+        //    {
+        //        Marshal.DestroyStructure(p, type);
+        //    }
+        //}
         #endregion
 
         #region 字典
@@ -693,7 +695,7 @@ namespace NewLife.Serialization
             // 对象为空，无法取得类型，无法写入
             if (value == null) return false;
 
-            return WriteX(value, value.GetType());
+            return WriteX(value, null);
         }
 
         /// <summary>
@@ -704,11 +706,25 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Boolean WriteX(Object value, Type type)
         {
-            if (type == null)
-            {
-                if (value == null) throw new Exception("没有指定写入类型，且写入对象为空，不知道如何写入！");
+            //if (type == null)
+            //{
+            //    if (value == null) throw new Exception("没有指定写入类型，且写入对象为空，不知道如何写入！");
 
-                type = value.GetType();
+            //    type = value.GetType();
+            //}
+
+            //type = CheckAndWriteType("WriteXType", value, type);
+            Type t = GetExactType(value, type);
+
+            if (t != typeof(Guid) && t != typeof(IPAddress) && t != typeof(IPEndPoint) && !typeof(Type).IsAssignableFrom(t)) return false;
+
+            if (WriteObjRef(value)) return true;
+
+            if (t != type)
+            {
+                type = t;
+                WriteLog("WriteXType", type.Name);
+                OnWriteType(type);
             }
 
             if (type == typeof(Guid))
@@ -743,6 +759,15 @@ namespace NewLife.Serialization
         {
             if (WriteObjRef(value)) return;
 
+            OnWrite(value);
+        }
+
+        /// <summary>
+        /// 写入Guid
+        /// </summary>
+        /// <param name="value"></param>
+        protected virtual void OnWrite(Guid value)
+        {
             Write(((Guid)value).ToByteArray(), -1);
         }
 
@@ -752,8 +777,6 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public virtual void Write(IPAddress value)
         {
-            if (WriteObjRef(value)) return;
-
             Byte[] buffer = (value as IPAddress).GetAddressBytes();
             //Write(buffer.Length);
             Write(buffer, -1);
@@ -765,8 +788,6 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public virtual void Write(IPEndPoint value)
         {
-            if (WriteObjRef(value)) return;
-
             Write(value.Address);
             //// 端口实际只占2字节
             //Write((UInt16)value.Port);
@@ -780,13 +801,10 @@ namespace NewLife.Serialization
         public void Write(Type value)
         {
             Depth++;
-            if (!WriteObjRef(value))
-            {
-                WriteLog("WriteType", value.FullName);
+            WriteLog("WriteType", value.FullName);
 
-                // 分离出去，便于重载，而又能有效利用对象引用
-                OnWriteType(value);
-            }
+            // 分离出去，便于重载，而又能有效利用对象引用
+            OnWriteType(value);
             Depth--;
         }
 
@@ -804,6 +822,24 @@ namespace NewLife.Serialization
         }
 
         /// <summary>
+        /// 获取精确类型
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected Type GetExactType(Object value, Type type)
+        {
+            if (type == null && value == null) return null;
+
+            if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
+            {
+                type = value.GetType();
+            }
+
+            return type;
+        }
+
+        /// <summary>
         /// 检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。同时返回对象实际类型。
         /// </summary>
         /// <param name="action"></param>
@@ -812,21 +848,11 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected Type CheckAndWriteType(String action, Object value, Type type)
         {
-            //if (value == null || type == null) return type;
-            if (type == null)
-            {
-                if (value == null) return null;
+            if (type == null && value == null) return null;
 
-                //type = value.GetType();
-            }
-
-            //Type trueType = value.GetType();
-
-            //if (type != trueType)
             if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
             {
                 type = value.GetType();
-                //WriteLog("WriteObjectType", type.Name);
                 WriteLog(action, type.Name);
                 WriteObjectType(type);
             }
@@ -842,23 +868,6 @@ namespace NewLife.Serialization
         {
             Write(type);
         }
-
-        //public void Register<T>(Func<IWriter, T, Boolean> handler)
-        //{
-        //    Register(typeof(T), delegate(IWriter writer, Object value) { return handler(writer, (T)value); });
-        //}
-
-        //Dictionary<Type, Func<IWriter, Object, Boolean>> handlerCache = new Dictionary<Type, Func<IWriter, Object, Boolean>>();
-        //public void Register(Type type, Func<IWriter, Object, Boolean> handler)
-        //{
-        //    if (handlerCache.ContainsKey(type)) return;
-        //    lock (handlerCache)
-        //    {
-        //        if (handlerCache.ContainsKey(type)) return;
-
-        //        handlerCache.Add(type, handler);
-        //    }
-        //}
         #endregion
 
         #region 写入对象
@@ -882,7 +891,7 @@ namespace NewLife.Serialization
         public Boolean WriteObject(Object value, Type type, WriteObjectCallback callback)
         {
             //if (value != null) type = value.GetType();
-            type = CheckAndWriteType("WriteObjectType", value, type);
+            //type = CheckAndWriteType("WriteObjectType", value, type);
             if (callback == null) callback = WriteMember;
 
             // 检查IAcessor接口
@@ -942,7 +951,7 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected virtual Boolean OnWriteObject(Object value, Type type, WriteObjectCallback callback)
         {
-            type = CheckAndWriteType("WriteObjectType", value, type);
+            //type = CheckAndWriteType("WriteObjectType", value, type);
 
             // 扩展类型
             if (WriteX(value, type)) return true;

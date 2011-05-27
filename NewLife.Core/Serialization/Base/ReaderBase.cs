@@ -1130,7 +1130,7 @@ namespace NewLife.Serialization
         public Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback)
         {
             //if (value != null) type = value.GetType();
-            type = CheckAndReadType("ReadObjectType", type, value);
+            //type = CheckAndReadType("ReadObjectType", type, value);
             if (callback == null) callback = ReadMember;
 
             // 检查IAcessor接口
