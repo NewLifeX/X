@@ -76,7 +76,7 @@ namespace XTemplate.Templating
                 else if ((group = match.Groups["statement"]).Success)
                     item.Type = BlockType.Statement;
 
-                if ((group != null) && group.Success)
+                if (group != null && group.Success)
                 {
                     item.Text = group.Value;
                     item.Name = name;
