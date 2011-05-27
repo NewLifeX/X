@@ -16,7 +16,7 @@ namespace NewLife.Serialization
     /// <typeparam name="TSettings">设置类</typeparam>
     public abstract class WriterBase<TSettings> : ReaderWriterBase<TSettings>, IWriter where TSettings : ReaderWriterSetting, new()
     {
-        #region 写入基础元数据
+        #region 基元类型
         #region 字节
         /// <summary>
         /// 将一个无符号字节写入
@@ -217,35 +217,16 @@ namespace NewLife.Serialization
         #endregion
         #endregion
 
-        #region 数组长度
-        /// <summary>
-        /// 写入大小
-        /// </summary>
-        /// <param name="size"></param>
-        protected virtual void WriteSize(Int32 size)
-        {
-            if (!UseSize) return;
-
-            WriteLog("WriteSize", size);
-
-            Write(size);
-        }
-        #endregion
-
-        #region 写入值类型
+        #region 值类型
         /// <summary>
         /// 写入值类型，只能识别基础类型，对于不能识别的类型，方法返回false
         /// </summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <returns>是否写入成功</returns>
-        public virtual Boolean WriteValue(Object value, Type type)
+        protected virtual Boolean WriteValue(Object value, Type type)
         {
-            //// 对象不为空时，使用对象实际类型
-            //if (value != null) type = value.GetType();
-
-            type = CheckAndWriteType("WriteValueType", value, type);
-
+            // 不用担心，外部保证type正确。同时，禁止外部直接调用WriteValue，因为那样就越过了对未知类型的处理
             TypeCode code = Type.GetTypeCode(type);
             switch (code)
             {
@@ -307,16 +288,16 @@ namespace NewLife.Serialization
                     break;
             }
 
-            if (type == typeof(Byte[]))
-            {
-                Write((Byte[])value);
-                return true;
-            }
-            if (type == typeof(Char[]))
-            {
-                Write((Char[])value);
-                return true;
-            }
+            //if (type == typeof(Byte[]))
+            //{
+            //    Write((Byte[])value);
+            //    return true;
+            //}
+            //if (type == typeof(Char[]))
+            //{
+            //    Write((Char[])value);
+            //    return true;
+            //}
 
             return false;
         }
@@ -680,44 +661,10 @@ namespace NewLife.Serialization
         /// 扩展写入，反射查找合适的写入方法
         /// </summary>
         /// <param name="value"></param>
-        /// <returns></returns>
-        public Boolean WriteX(Object value)
-        {
-            // 对象为空，无法取得类型，无法写入
-            if (value == null) return false;
-
-            return WriteX(value, null);
-        }
-
-        /// <summary>
-        /// 扩展写入，反射查找合适的写入方法
-        /// </summary>
-        /// <param name="value"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public Boolean WriteX(Object value, Type type)
+        protected virtual Boolean WriteX(Object value, Type type)
         {
-            //if (type == null)
-            //{
-            //    if (value == null) throw new Exception("没有指定写入类型，且写入对象为空，不知道如何写入！");
-
-            //    type = value.GetType();
-            //}
-
-            //type = CheckAndWriteType("WriteXType", value, type);
-            Type t = GetExactType(value, type);
-
-            if (t != typeof(Guid) && t != typeof(IPAddress) && t != typeof(IPEndPoint) && !typeof(Type).IsAssignableFrom(t)) return false;
-
-            if (WriteObjRef(value)) return true;
-
-            if (t != type)
-            {
-                type = t;
-                WriteLog("WriteXType", type.Name);
-                OnWriteType(type);
-            }
-
             if (type == typeof(Guid))
             {
                 Write((Guid)value);
@@ -824,6 +771,9 @@ namespace NewLife.Serialization
 
             if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
             {
+                //! 有可能是接口或Object类型，然后值也是null，这种情况建议写对象引用时用0
+                //if (value == null) return null;
+
                 type = value.GetType();
             }
 
@@ -861,7 +811,7 @@ namespace NewLife.Serialization
         }
         #endregion
 
-        #region 写入对象
+        #region 复杂对象
         /// <summary>
         /// 把对象写入数据流
         /// </summary>
@@ -881,8 +831,6 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public Boolean WriteObject(Object value, Type type, WriteObjectCallback callback)
         {
-            //if (value != null) type = value.GetType();
-            //type = CheckAndWriteType("WriteObjectType", value, type);
             if (callback == null) callback = WriteMember;
 
             // 检查IAcessor接口
@@ -942,16 +890,22 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected virtual Boolean OnWriteObject(Object value, Type type, WriteObjectCallback callback)
         {
+            //! 基元类型不写对象引用，但参与未知类型（空、接口、抽象、Object）。
+            //! 对于所有对象（引用类型和值类型）来说，只要是未知类型，都应该写入，读取的时候同步读出即可
             //type = CheckAndWriteType("WriteObjectType", value, type);
 
-            // 扩展类型
-            if (WriteX(value, type)) return true;
+            //! 2011-05-27 17:33
+            //! 精确类型，直接写入值
+            //! 未知类型，写对象引用，写类型，写对象
 
             // 基本类型
             if (WriteValue(value, type)) return true;
 
             // 写入对象引用
             if (WriteObjRef(value)) return true;
+
+            // 扩展类型
+            if (WriteX(value, type)) return true;
 
             // 写入引用对象
             if (WriteRefObject(value, type, callback)) return true;
@@ -1211,6 +1165,19 @@ namespace NewLife.Serialization
         #endregion
 
         #region 方法
+        /// <summary>
+        /// 写入大小
+        /// </summary>
+        /// <param name="size"></param>
+        protected virtual void WriteSize(Int32 size)
+        {
+            if (!UseSize) return;
+
+            WriteLog("WriteSize", size);
+
+            Write(size);
+        }
+        
         /// <summary>
         /// 刷新缓存中的数据
         /// </summary>

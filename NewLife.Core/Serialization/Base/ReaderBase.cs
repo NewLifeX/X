@@ -19,7 +19,7 @@ namespace NewLife.Serialization
     /// <typeparam name="TSettings">设置类</typeparam>
     public abstract class ReaderBase<TSettings> : ReaderWriterBase<TSettings>, IReader where TSettings : ReaderWriterSetting, new()
     {
-        #region 读取基础元数据
+        #region 基元类型
         #region 字节
         /// <summary>
         /// 从当前流中读取下一个字节，并使流的当前位置提升 1 个字节。
@@ -214,24 +214,7 @@ namespace NewLife.Serialization
         #endregion
         #endregion
 
-        #region 数组长度
-        /// <summary>
-        /// 读取大小
-        /// </summary>
-        /// <returns></returns>
-        protected virtual Int32 ReadSize()
-        {
-            if (!UseSize) return -1;
-
-            Int32 size = ReadInt32();
-
-            WriteLog("ReadSize", size);
-
-            return size;
-        }
-        #endregion
-
-        #region 读取值类型
+        #region 值类型
         /// <summary>
         /// 读取值类型数据
         /// </summary>
@@ -249,8 +232,9 @@ namespace NewLife.Serialization
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns></returns>
-        public virtual Boolean ReadValue(Type type, ref Object value)
+        protected virtual Boolean ReadValue(Type type, ref Object value)
         {
+            // 不用担心，外部保证type正确。同时，禁止外部直接调用ReadValue，因为那样就越过了对未知类型的处理
             TypeCode code = Type.GetTypeCode(type);
             switch (code)
             {
@@ -313,28 +297,28 @@ namespace NewLife.Serialization
                     break;
             }
 
-            if (type == typeof(Byte[]))
-            {
-                //Int32 len = ReadInt32();
-                //if (len < 0) throw new Exception("非法数据！字节数组长度不能为负数！");
-                //value = null;
-                //if (len > 0) value = ReadBytes(len);
-                //return true;
+            //if (type == typeof(Byte[]))
+            //{
+            //    //Int32 len = ReadInt32();
+            //    //if (len < 0) throw new Exception("非法数据！字节数组长度不能为负数！");
+            //    //value = null;
+            //    //if (len > 0) value = ReadBytes(len);
+            //    //return true;
 
-                value = ReadBytes(-1);
-                return true;
-            }
-            if (type == typeof(Char[]))
-            {
-                //Int32 len = ReadInt32();
-                //if (len < 0) throw new Exception("非法数据！字符数组长度不能为负数！");
-                //value = null;
-                //if (len > 0) value = ReadChars(len);
-                //return true;
+            //    value = ReadBytes(-1);
+            //    return true;
+            //}
+            //if (type == typeof(Char[]))
+            //{
+            //    //Int32 len = ReadInt32();
+            //    //if (len < 0) throw new Exception("非法数据！字符数组长度不能为负数！");
+            //    //value = null;
+            //    //if (len > 0) value = ReadChars(len);
+            //    //return true;
 
-                value = ReadChars(-1);
-                return true;
-            }
+            //    value = ReadChars(-1);
+            //    return true;
+            //}
 
             //value = null;
             return false;
@@ -1061,6 +1045,19 @@ namespace NewLife.Serialization
         }
 
         /// <summary>
+        /// 获取精确类型
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected Boolean IsExactType(Type type)
+        {
+            if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
+                return false;
+            else
+                return true;
+        }
+
+        /// <summary>
         /// 检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。同时返回对象实际类型。
         /// </summary>
         /// <param name="action"></param>
@@ -1069,14 +1066,6 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected Type CheckAndReadType(String action, Type type, Object value)
         {
-            //if (value != null) type = value.GetType();
-            //if (type == null)
-            //{
-            //    if (value == null) return null;
-
-            //    type = value.GetType();
-            //}
-
             if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
             {
                 WriteLog(action);
@@ -1097,7 +1086,7 @@ namespace NewLife.Serialization
         }
         #endregion
 
-        #region 读取对象
+        #region 复杂对象
         /// <summary>
         /// 从数据流中读取指定类型的对象
         /// </summary>
@@ -1129,8 +1118,6 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-            //if (value != null) type = value.GetType();
-            //type = CheckAndReadType("ReadObjectType", type, value);
             if (callback == null) callback = ReadMember;
 
             // 检查IAcessor接口
@@ -1192,19 +1179,29 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         protected virtual Boolean OnReadObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-            //if (type == null && value != null) type = value.GetType();
-            type = CheckAndReadType("ReadObjectType", type, value);
+            //! 基元类型不写对象引用，但参与未知类型（空、接口、抽象、Object）。
+            //! 对于所有对象（引用类型和值类型）来说，只要是未知类型，都应该写入，读取的时候同步读出即可
+            //type = CheckAndReadType("ReadObjectType", type, value);
+
+            //! 2011-05-27 17:33
+            //! 精确类型，直接写入值
+            //! 未知类型，写对象引用，写类型，写对象
+
+            Boolean b = IsExactType(type);
+
             if (callback == null) callback = ReadMember;
 
-            // 特殊类型
-            if (ReadX(type, ref value)) return true;
-
             // 基本类型
-            if (ReadValue(type, ref value)) return true;
+            if (b && ReadValue(type, ref value)) return true;
 
             // 读取对象引用
             Int32 index = 0;
             if (ReadObjRef(type, ref value, out index)) return true;
+
+            type = CheckAndReadType("ReadObjectType", type, value);
+
+            // 特殊类型
+            if (ReadX(type, ref value)) return true;
 
             // 读取引用对象
             objRefIndex = index;
@@ -1558,6 +1555,23 @@ namespace NewLife.Serialization
         /// 读枚举项后触发。
         /// </summary>
         public event EventHandler<ReadItemEventArgs> OnItemReaded;
+        #endregion
+
+        #region 方法
+        /// <summary>
+        /// 读取大小
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Int32 ReadSize()
+        {
+            if (!UseSize) return -1;
+
+            Int32 size = ReadInt32();
+
+            WriteLog("ReadSize", size);
+
+            return size;
+        }
         #endregion
     }
 }

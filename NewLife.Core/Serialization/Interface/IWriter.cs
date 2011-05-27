@@ -10,7 +10,7 @@ namespace NewLife.Serialization
     /// <remarks>序列化框架的处理顺序为：IAccessor接口 => OnObjectWriting事件 => 扩展类型 => 基础类型 => 字典 => 枚举 => 序列化接口 => 自定义对象 => 未知类型 => OnObjectWrited事件</remarks>
     public interface IWriter : IReaderWriter
     {
-        #region 写入基础元数据
+        #region 基元类型
         #region 字节
         /// <summary>
         /// 将一个无符号字节写入
@@ -168,7 +168,7 @@ namespace NewLife.Serialization
         void Write(Type value);
         #endregion
 
-        #region 写入对象
+        #region 复杂对象
         /// <summary>
         /// 写入对象。具体读写器可以重载该方法以修改写入对象前后的行为。
         /// </summary>
@@ -230,19 +230,6 @@ namespace NewLife.Serialization
         Boolean WriteUnKnown(Object value, Type type, WriteObjectCallback callback);
         #endregion
 
-        #region 方法
-        /// <summary>
-        /// 刷新缓存中的数据
-        /// </summary>
-        void Flush();
-
-        /// <summary>
-        /// 输出数据转为字节数组
-        /// </summary>
-        /// <returns></returns>
-        Byte[] ToArray();
-        #endregion
-
         #region 事件
         /// <summary>
         /// 写对象前触发。
@@ -283,6 +270,19 @@ namespace NewLife.Serialization
         /// 写枚举项后触发。
         /// </summary>
         event EventHandler<WriteItemEventArgs> OnItemWrited;
+        #endregion
+
+        #region 方法
+        /// <summary>
+        /// 刷新缓存中的数据
+        /// </summary>
+        void Flush();
+
+        /// <summary>
+        /// 输出数据转为字节数组
+        /// </summary>
+        /// <returns></returns>
+        Byte[] ToArray();
         #endregion
     }
 

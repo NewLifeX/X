@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Net;
 
 namespace NewLife.Serialization
@@ -185,7 +183,7 @@ namespace NewLife.Serialization
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns></returns>
-        public override bool ReadValue(Type type, ref object value)
+        protected override bool ReadValue(Type type, ref object value)
         {
             if (type != null && type.IsEnum && Settings.UseEnumName)
             {

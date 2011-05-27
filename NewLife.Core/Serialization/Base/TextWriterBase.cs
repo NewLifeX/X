@@ -190,11 +190,11 @@ namespace NewLife.Serialization
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <returns>是否写入成功</returns>
-        public override bool WriteValue(object value, Type type)
+        protected override bool WriteValue(object value, Type type)
         {
             if (value != null && Settings.UseEnumName)
             {
-                type = value.GetType();
+                //type = value.GetType();
                 if (type != null && type.IsEnum)
                 {
                     Write(value.ToString());

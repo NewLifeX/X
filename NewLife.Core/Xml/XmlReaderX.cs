@@ -3,12 +3,9 @@ using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.Xml;
-using NewLife.Serialization;
 using System.Xml.Serialization;
 using NewLife.Reflection;
-using System.Data.SqlTypes;
-using System.Collections.Generic;
-using System.Text;
+using NewLife.Serialization;
 
 namespace NewLife.Xml
 {
@@ -182,16 +179,12 @@ namespace NewLife.Xml
         /// 读对象类型
         /// </summary>
         /// <returns></returns>
-        //protected override Type ReadObjectType()
-        //{
-        //    //return base.ReadObjectType();
-        //    if (Reader.MoveToAttribute("Type"))
-        //    {
-        //        ReadType
-        //    }
+        protected override Type OnReadType()
+        {
+            if (Reader.MoveToAttribute("Type")) return base.OnReadType();
 
-        //    return null;
-        //}
+            return base.OnReadType();
+        }
         #endregion
 
         #region 字典
@@ -725,21 +718,6 @@ namespace NewLife.Xml
                     ix[rank]++;
                 }
             }
-        }
-        #endregion
-
-        #region 写入类型
-        //public override Type ReadType()
-        //{
-        //    if (Reader.MoveToAttribute("Type"))
-        //        return base.OnReadType();
-        //    return base.ReadType();
-        //}
-        protected override Type OnReadType()
-        {
-            if (Reader.MoveToAttribute("Type")) return base.OnReadType();
-
-            return base.OnReadType();
         }
         #endregion
     }
