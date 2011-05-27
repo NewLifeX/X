@@ -762,6 +762,19 @@ namespace NewLife.Serialization
         /// <summary>
         /// 获取精确类型
         /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected Boolean IsExactType(Type type)
+        {
+            if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
+                return false;
+            else
+                return true;
+        }
+
+        /// <summary>
+        /// 获取精确类型
+        /// </summary>
         /// <param name="value"></param>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -898,17 +911,36 @@ namespace NewLife.Serialization
             //! 精确类型，直接写入值
             //! 未知类型，写对象引用，写类型，写对象
 
-            // 基本类型
-            if (WriteValue(value, type)) return true;
+            if (!IsExactType(type))
+            {
+                // 基本类型
+                if (WriteValue(value, type)) return true;
 
-            // 写入对象引用
-            if (WriteObjRef(value)) return true;
+                // 写入对象引用
+                if (WriteObjRef(value)) return true;
 
-            // 扩展类型
-            if (WriteX(value, type)) return true;
+                // 扩展类型
+                if (WriteX(value, type)) return true;
 
-            // 写入引用对象
-            if (WriteRefObject(value, type, callback)) return true;
+                // 写入引用对象
+                if (WriteRefObject(value, type, callback)) return true;
+            }
+            else
+            {
+                // 写入对象引用
+                if (WriteObjRef(value)) return true;
+
+                type = CheckAndWriteType("WriteObjectType", value, type);
+
+                // 基本类型
+                if (WriteValue(value, type)) return true;
+
+                // 扩展类型
+                if (WriteX(value, type)) return true;
+
+                // 写入引用对象
+                if (WriteRefObject(value, type, callback)) return true;
+            }
 
             return true;
         }
