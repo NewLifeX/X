@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using XCode.Configuration;
+using System.Collections;
 
 namespace XCode
 {
@@ -50,7 +51,25 @@ namespace XCode
             /// </summary>
             /// <param name="ds">记录集</param>
             /// <returns>实体数组</returns>
-            public EntityList<IEntity> LoadData(DataSet ds) { return LoadData(ds); }
+            public EntityList<IEntity> LoadData(DataSet ds) { return ToList(Entity<TEntity>.LoadData(ds)); }
+
+            /// <summary>
+            /// 把一个FindAll返回的集合转为实体接口列表集合
+            /// </summary>
+            /// <param name="collection"></param>
+            /// <returns></returns>
+            EntityList<IEntity> ToList(ICollection collection)
+            {
+                if (collection == null || collection.Count < 1) return null;
+
+                EntityList<IEntity> list = new EntityList<IEntity>();
+                foreach (IEntity item in collection)
+                {
+                    list.Add(item);
+                }
+
+                return list;
+            }
             #endregion
 
             #region 查找单个实体
@@ -60,28 +79,28 @@ namespace XCode
             /// <param name="name"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public EntityBase Find(String name, Object value) { return Find(name, value); }
+            public EntityBase Find(String name, Object value) { return Entity<TEntity>.Find(name, value); }
 
             /// <summary>
             /// 根据条件查找单个实体
             /// </summary>
             /// <param name="whereClause"></param>
             /// <returns></returns>
-            public EntityBase Find(String whereClause) { return Find(whereClause); }
+            public EntityBase Find(String whereClause) { return Entity<TEntity>.Find(whereClause); }
 
             /// <summary>
             /// 根据主键查找单个实体
             /// </summary>
             /// <param name="key"></param>
             /// <returns></returns>
-            public EntityBase FindByKey(Object key) { return FindByKey(key); }
+            public EntityBase FindByKey(Object key) { return Entity<TEntity>.FindByKey(key); }
 
             /// <summary>
             /// 根据主键查询一个实体对象用于表单编辑
             /// </summary>
             /// <param name="key"></param>
             /// <returns></returns>
-            public EntityBase FindByKeyForEdit(Object key) { return FindByKeyForEdit(key); }
+            public EntityBase FindByKeyForEdit(Object key) { return Entity<TEntity>.FindByKeyForEdit(key); }
             #endregion
 
             #region 静态查询
@@ -89,7 +108,7 @@ namespace XCode
             /// 获取所有实体对象。获取大量数据时会非常慢，慎用
             /// </summary>
             /// <returns>实体数组</returns>
-            public EntityList<IEntity> FindAll() { return FindAll(); }
+            public EntityList<IEntity> FindAll() { return ToList(Entity<TEntity>.FindAll()); }
 
             /// <summary>
             /// 查询并返回实体对象集合。
@@ -103,7 +122,7 @@ namespace XCode
             /// <returns>实体数组</returns>
             public EntityList<IEntity> FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
             {
-                return FindAll(whereClause, orderClause, selects, startRowIndex, maximumRows);
+                return ToList(Entity<TEntity>.FindAll(whereClause, orderClause, selects, startRowIndex, maximumRows));
             }
 
             /// <summary>
@@ -114,7 +133,7 @@ namespace XCode
             /// <returns>实体数组</returns>
             public EntityList<IEntity> FindAll(String[] names, Object[] values)
             {
-                return FindAll(names, values);
+                return ToList(Entity<TEntity>.FindAll(names, values));
             }
 
             /// <summary>
@@ -125,7 +144,7 @@ namespace XCode
             /// <returns>实体数组</returns>
             public EntityList<IEntity> FindAll(String name, Object value)
             {
-                return FindAll(name, value);
+                return ToList(Entity<TEntity>.FindAll(name, value));
             }
 
             /// <summary>
@@ -138,7 +157,7 @@ namespace XCode
             /// <returns>实体数组</returns>
             public EntityList<IEntity> FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows)
             {
-                return FindAll(name, value, startRowIndex, maximumRows);
+                return ToList(Entity<TEntity>.FindAll(name, value, startRowIndex, maximumRows));
             }
 
             /// <summary>
@@ -152,7 +171,7 @@ namespace XCode
             /// <returns>实体数组</returns>
             public EntityList<IEntity> FindAllByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows)
             {
-                return FindAllByName(name, value, orderClause, startRowIndex, maximumRows);
+                return ToList(Entity<TEntity>.FindAllByName(name, value, orderClause, startRowIndex, maximumRows));
             }
             #endregion
 
@@ -161,7 +180,7 @@ namespace XCode
             /// 返回总记录数
             /// </summary>
             /// <returns></returns>
-            public Int32 FindCount() { return FindCount(); }
+            public Int32 FindCount() { return Entity<TEntity>.FindCount(); }
 
             /// <summary>
             /// 返回总记录数
@@ -174,7 +193,7 @@ namespace XCode
             /// <returns>总行数</returns>
             public Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
             {
-                return FindCount(whereClause, orderClause, selects, startRowIndex, maximumRows);
+                return Entity<TEntity>.FindCount(whereClause, orderClause, selects, startRowIndex, maximumRows);
             }
 
             /// <summary>
@@ -185,7 +204,7 @@ namespace XCode
             /// <returns>总行数</returns>
             public Int32 FindCount(String[] names, Object[] values)
             {
-                return FindCount(names, values);
+                return Entity<TEntity>.FindCount(names, values);
             }
 
             /// <summary>
@@ -196,7 +215,7 @@ namespace XCode
             /// <returns>总行数</returns>
             public Int32 FindCount(String name, Object value)
             {
-                return FindCount(name, value);
+                return Entity<TEntity>.FindCount(name, value);
             }
 
             /// <summary>
@@ -209,7 +228,7 @@ namespace XCode
             /// <returns>总行数</returns>
             public Int32 FindCount(String name, Object value, Int32 startRowIndex, Int32 maximumRows)
             {
-                return FindCount(name, value, startRowIndex, maximumRows);
+                return Entity<TEntity>.FindCount(name, value, startRowIndex, maximumRows);
             }
 
             /// <summary>
@@ -223,7 +242,7 @@ namespace XCode
             /// <returns>总行数</returns>
             public Int32 FindCountByName(String name, Object value, String orderClause, int startRowIndex, int maximumRows)
             {
-                return FindCountByName(name, value, orderClause, startRowIndex, maximumRows);
+                return Entity<TEntity>.FindCountByName(name, value, orderClause, startRowIndex, maximumRows);
             }
             #endregion
 
@@ -233,7 +252,7 @@ namespace XCode
             /// </summary>
             /// <param name="xml"></param>
             /// <returns></returns>
-            public EntityBase FromXml(String xml) { return FromXml(xml); }
+            public EntityBase FromXml(String xml) { return Entity<TEntity>.FromXml(xml); }
             #endregion
 
             #region 导入导出Json
@@ -242,7 +261,7 @@ namespace XCode
             /// </summary>
             /// <param name="json"></param>
             /// <returns></returns>
-            public EntityBase FromJson(String json) { return FromJson(json); }
+            public EntityBase FromJson(String json) { return Entity<TEntity>.FromJson(json); }
             #endregion
 
             #region 事务
@@ -250,19 +269,19 @@ namespace XCode
             /// 开始事务
             /// </summary>
             /// <returns></returns>
-            public Int32 BeginTransaction() { return BeginTransaction(); }
+            public Int32 BeginTransaction() { return Meta.BeginTrans(); }
 
             /// <summary>
             /// 提交事务
             /// </summary>
             /// <returns></returns>
-            public Int32 Commit() { return Commit(); }
+            public Int32 Commit() { return Meta.Commit(); }
 
             /// <summary>
             /// 回滚事务
             /// </summary>
             /// <returns></returns>
-            public Int32 Rollback() { return Rollback(); }
+            public Int32 Rollback() { return Meta.Rollback(); }
             #endregion
 
             #region 辅助方法
@@ -273,7 +292,7 @@ namespace XCode
             /// <param name="name">字段</param>
             /// <param name="value">对象</param>
             /// <returns>Sql值的字符串形式</returns>
-            public String FormatValue(String name, Object value) { return FormatValue(name, value); }
+            public String FormatValue(String name, Object value) { return Meta.FormatValue(name, value); }
 
             /// <summary>
             /// 格式化数据为SQL数据
@@ -281,7 +300,7 @@ namespace XCode
             /// <param name="field"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public String FormatValue(FieldItem field, Object value) { return FormatValue(field, value); }
+            public String FormatValue(FieldItem field, Object value) { return Meta.FormatValue(field, value); }
 
             /// <summary>
             /// 根据属性列表和值列表，构造查询条件。
@@ -291,7 +310,7 @@ namespace XCode
             /// <param name="values">值列表</param>
             /// <param name="action">联合方式</param>
             /// <returns>条件子串</returns>
-            public String MakeCondition(String[] names, Object[] values, String action) { return MakeCondition(names, values, action); }
+            public String MakeCondition(String[] names, Object[] values, String action) { return Entity<TEntity>.MakeCondition(names, values, action); }
 
             /// <summary>
             /// 构造条件
@@ -300,7 +319,7 @@ namespace XCode
             /// <param name="value">值</param>
             /// <param name="action">大于小于等符号</param>
             /// <returns></returns>
-            public String MakeCondition(String name, Object value, String action) { return MakeCondition(name, value, action); }
+            public String MakeCondition(String name, Object value, String action) { return Entity<TEntity>.MakeCondition(name, value, action); }
 
             /// <summary>
             /// 构造条件
@@ -309,7 +328,7 @@ namespace XCode
             /// <param name="value">值</param>
             /// <param name="action">大于小于等符号</param>
             /// <returns></returns>
-            public String MakeCondition(FieldItem field, Object value, String action) { return MakeCondition(field, value, action); }
+            public String MakeCondition(FieldItem field, Object value, String action) { return Entity<TEntity>.MakeCondition(field, value, action); }
             #endregion
         }
     }
