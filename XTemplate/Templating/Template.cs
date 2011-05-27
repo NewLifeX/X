@@ -102,8 +102,8 @@ namespace XTemplate.Templating
             {
                 if (String.IsNullOrEmpty(_NameSpace))
                 {
-                    String namespaceName = this.GetType().FullName;
-                    namespaceName = namespaceName.Substring(0, namespaceName.LastIndexOf("."));
+                    String namespaceName = this.GetType().Namespace;
+                    //namespaceName = namespaceName.Substring(0, namespaceName.LastIndexOf("."));
                     namespaceName += "s";
                     return namespaceName;
                 }
@@ -166,13 +166,22 @@ namespace XTemplate.Templating
         /// <returns></returns>
         public static Template Create(String name, params String[] templates)
         {
+            if (templates == null || templates.Length < 1) throw new ArgumentNullException("templates");
+
             Dictionary<String, String> dic = new Dictionary<string, string>();
 
             String prefix = !String.IsNullOrEmpty(name) ? name : "Class";
 
-            for (int i = 0; i < templates.Length; i++)
+            if (templates.Length == 1)
             {
-                dic.Add(prefix + (i + 1), templates[0]);
+                dic.Add(prefix, templates[0]);
+            }
+            else
+            {
+                for (int i = 0; i < templates.Length; i++)
+                {
+                    dic.Add(prefix + (i + 1), templates[i]);
+                }
             }
 
             return Create(dic);
