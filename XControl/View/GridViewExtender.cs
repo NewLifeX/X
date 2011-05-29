@@ -247,6 +247,22 @@ namespace XControl
         #region 点击
         void RenderOnClick(GridView gv)
         {
+            // 找到一个列，列头是编辑，列类型是LinkBoxField，双击时执行它的操作
+            String editclick = null;
+            foreach (DataControlField item in gv.Columns)
+            {
+                if (item.HeaderText == "编辑" && item is LinkBoxField)
+                {
+                    LinkBoxField link = item as LinkBoxField;
+                    if (link.Visible && !String.IsNullOrEmpty(link.OnClientClick))
+                    {
+                        editclick = link.OnClientClick;
+                        //editclick=String.Format("",link.)
+                        if (!editclick.EndsWith(";")) editclick += ";";
+                    }
+                }
+            }
+
             foreach (GridViewRow item in gv.Rows)
             {
                 if (item.RowType != DataControlRowType.DataRow) continue;
@@ -262,7 +278,10 @@ namespace XControl
                     String js = "function " + name + "(elm){ elm.style.backgroundColor=!elm.style.backgroundColor?'" + color + "':''; }";
 
                     Page.ClientScript.RegisterClientScriptBlock(this.GetType(), name, js, true);
-                    onclick = name + "(this);" + onclick;
+                    String onclick2 = name + "(this);";
+                    //onclick = name + "(this);" + onclick;
+                    // 避免同一个事件被添加多次
+                    if (onclick2 != onclick) onclick = onclick2 + onclick;
 
                     if (HttpContext.Current != null && HttpContext.Current.Request != null)
                     {
@@ -277,6 +296,10 @@ namespace XControl
                         }
                     }
                 }
+
+                // 找到一个列，列头是编辑，列类型是LinkBoxField，双击时执行它的操作
+                if (!String.IsNullOrEmpty(editclick)) ondblclick = editclick + ondblclick;
+
                 Format(item, "onclick", onclick);
                 Format(item, "ondblclick", ondblclick);
             }
