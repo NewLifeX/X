@@ -53,11 +53,11 @@ namespace NewLife.CommonEntity
                 Int32 sort = 1000;
                 TEntity top = Root.AddChild("管理平台", null, sort -= 10, null);
                 TEntity entity = top.AddChild("系统管理", null, sort -= 10, "System");
-                entity.AddChild("菜单管理", "../../AdminSystem/Menu.aspx", sort -= 10, "菜单管理");
-                entity.AddChild("管理员管理", "../../AdminSystem/Admin.aspx", sort -= 10, "管理员管理");
-                entity.AddChild("角色管理", "../../AdminSystem/Role.aspx", sort -= 10, "角色管理");
-                entity.AddChild("权限管理", "../../AdminSystem/RoleMenu.aspx", sort -= 10, "权限管理");
-                entity.AddChild("日志查看", "../../AdminSystem/Log.aspx", sort -= 10, "日志查看");
+                entity.AddChild("菜单管理", "../../Admin/System/Menu.aspx", sort -= 10, "菜单管理");
+                entity.AddChild("管理员管理", "../../Admin/System/Admin.aspx", sort -= 10, "管理员管理");
+                entity.AddChild("角色管理", "../../Admin/System/Role.aspx", sort -= 10, "角色管理");
+                entity.AddChild("权限管理", "../../Admin/System/RoleMenu.aspx", sort -= 10, "权限管理");
+                entity.AddChild("日志查看", "../../Admin/System/Log.aspx", sort -= 10, "日志查看");
 
                 // 准备增加Admin目录下的所有页面
                 ScanAndAdd("Admin", top);
