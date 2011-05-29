@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.9.*")]
-[assembly: AssemblyFileVersion("7.9.2011.0526")]
+[assembly: AssemblyFileVersion("7.9.2011.0529")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,10 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.9.2011.0529   实体类添删改拆分两部分，OnInsert/OnUpdate/Delete作为操作数据的真实操作，Insert/Update/Delete作为调用者，配合以数据验证和事务保护
+ *                  增加数据验证Valid，实体类可以重载，以实现Insert/Update前验证数据，将来可能根据数据字段特性进行自动化验证。
+ *                  增加数据存在判断Exist，开发者可根据需要调用，建议用于业务主键的存在性判断。CheckExist可以在判断后抛出异常。
+ * 
  * v7.9.2011.0526   重构XCode实体层元数据部分，使用公开的TableItem替代保护的XCodeConfig，配合FieldItem形成完成的实体元数据结构
  *                  使用专用类实现IEntityOperator接口，避免原来臃肿的结构
  * 

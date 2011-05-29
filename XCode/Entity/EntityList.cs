@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
 using System.IO;
 using System.Text;
 using System.Xml.Serialization;
+using NewLife.IO;
 using NewLife.Reflection;
 using XCode.Configuration;
-using XCode.DataAccessLayer;
-using System.ComponentModel;
-using NewLife.IO;
-using System.Data;
 
 namespace XCode
 {
@@ -874,7 +873,7 @@ namespace XCode
         #region IListSource接口
         bool IListSource.ContainsListCollection
         {
-            get { return false; }
+            get { return Count > 0; }
         }
 
         IList IListSource.GetList()

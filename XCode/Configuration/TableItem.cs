@@ -295,6 +295,18 @@ namespace XCode.Configuration
 
             return null;
         }
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            if (String.IsNullOrEmpty(Description))
+                return TableName;
+            else
+                return String.Format("{0}（{1}）", TableName, Description);
+        }
         #endregion
     }
 }

@@ -15,6 +15,7 @@ using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
+using NewLife;
 
 namespace XCode
 {
@@ -220,10 +221,30 @@ namespace XCode
 
         #region 操作
         /// <summary>
-        /// 把该对象持久化到数据库
+        /// 插入数据，通过调用OnInsert实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。
         /// </summary>
         /// <returns></returns>
         public override Int32 Insert()
+        {
+            Valid(true);
+
+            Meta.BeginTrans();
+            try
+            {
+                Int32 rs = OnInsert();
+
+                Meta.Commit();
+
+                return rs;
+            }
+            catch { Meta.Rollback(); throw; }
+        }
+
+        /// <summary>
+        /// 把该对象持久化到数据库。该方法提供原生的数据操作，不建议重载，建议重载Insert代替。
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Int32 OnInsert()
         {
             String sql = SQL(this, DataObjectMethodType.Insert);
             if (String.IsNullOrEmpty(sql)) return 0;
@@ -253,10 +274,30 @@ namespace XCode
         }
 
         /// <summary>
-        /// 更新数据库
+        /// 更新数据，通过调用OnUpdate实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。
         /// </summary>
         /// <returns></returns>
         public override Int32 Update()
+        {
+            Valid(false);
+
+            Meta.BeginTrans();
+            try
+            {
+                Int32 rs = OnUpdate();
+
+                Meta.Commit();
+
+                return rs;
+            }
+            catch { Meta.Rollback(); throw; }
+        }
+
+        /// <summary>
+        /// 更新数据库
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Int32 OnUpdate()
         {
             //没有脏数据，不需要更新
             if (Dirtys == null || Dirtys.Count <= 0) return 0;
@@ -276,10 +317,28 @@ namespace XCode
         }
 
         /// <summary>
-        /// 从数据库中删除该对象
+        /// 删除数据，通过调用OnDelete实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。
         /// </summary>
         /// <returns></returns>
         public override Int32 Delete()
+        {
+            Meta.BeginTrans();
+            try
+            {
+                Int32 rs = OnDelete();
+
+                Meta.Commit();
+
+                return rs;
+            }
+            catch { Meta.Rollback(); throw; }
+        }
+
+        /// <summary>
+        /// 从数据库中删除该对象
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Int32 OnDelete()
         {
             return Meta.Execute(SQL(this, DataObjectMethodType.Delete));
         }
@@ -292,7 +351,7 @@ namespace XCode
         {
             //优先使用自增字段判断
             FieldItem fi = Meta.Table.Identity;
-            if (fi != null && fi.IsIdentity || fi.Type == typeof(Int32))
+            if (fi != null)
             {
                 Int64 id = Convert.ToInt64(this[fi.Name]);
                 if (id > 0)
@@ -309,6 +368,69 @@ namespace XCode
             else
                 return Insert();
         }
+
+        /// <summary>
+        /// 验证数据，通过抛出异常的方式提示验证失败。建议重写者调用基类的实现，因为将来可能根据数据字段的特性进行数据验证。
+        /// </summary>
+        /// <param name="isNew">是否新数据</param>
+        public virtual void Valid(Boolean isNew)
+        {
+        }
+
+        /// <summary>
+        /// 根据指定键检查数据是否已存在，若不存在，抛出ArgumentOutOfRangeException异常
+        /// </summary>
+        /// <param name="names"></param>
+        public virtual void CheckExist(params String[] names)
+        {
+            if (Exist(names))
+            {
+                StringBuilder sb = new StringBuilder();
+                String name = null;
+                for (int i = 0; i < names.Length; i++)
+                {
+                    if (sb.Length > 0) sb.Append("，");
+
+                    FieldItem field = Meta.Table.FindByName(names[i]);
+                    if (field != null) name = field.Description;
+                    if (String.IsNullOrEmpty(name)) name = names[i];
+
+                    sb.AppendFormat("{0}={1}", name, this[names[i]]);
+                }
+
+                name = Meta.Table.Description;
+                if (String.IsNullOrEmpty(name)) name = Meta.ThisType.Name;
+                sb.AppendFormat(" 的{0}已存在！", name);
+
+                throw new ArgumentOutOfRangeException(names[0], this[names[0]], sb.ToString());
+            }
+        }
+
+        /// <summary>
+        /// 根据指定键检查数据，返回数据是否已存在
+        /// </summary>
+        /// <param name="names"></param>
+        /// <returns></returns>
+        public virtual Boolean Exist(params String[] names)
+        {
+            // 根据指定键查找所有符合的数据，然后比对。
+            // 当然，也可以通过指定键和主键配合，找到拥有指定键，但是不是当前主键的数据，只查记录数。
+            Object[] values = new Object[names.Length];
+            for (int i = 0; i < names.Length; i++)
+            {
+                values[i] = this[names[i]];
+            }
+            EntityList<TEntity> list = FindAll(names, values);
+            if (list == null) return false;
+            if (list.Count > 1) return true;
+
+            FieldItem field = Meta.Unique;
+
+            return !Object.Equals(this[field.Name], list[0][field.Name]);
+        }
+
+        //public event EventHandler<CancelEventArgs> Inserting;
+        //public event EventHandler<EventArgs<Int32>> Inserted;
         #endregion
 
         #region 查找单个实体
@@ -333,6 +455,17 @@ namespace XCode
         /// <returns></returns>
         public static TEntity Find(String[] names, Object[] values)
         {
+            if (names.Length == 1)
+            {
+                FieldItem field = Meta.Table.FindByName(names[0]);
+                if (field != null)
+                {
+                    // 唯一键为自增且参数小于等于0时，返回空
+                    Object key = values[0];
+                    if (field.IsIdentity && (key == null || IsInt(key.GetType())) && ((Int32)key) <= 0) return null;
+                }
+            }
+
             return Find(MakeCondition(names, values, "And"));
         }
 
