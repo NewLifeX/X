@@ -4,6 +4,7 @@ using System.Text;
 using System.IO;
 using System.Globalization;
 using NewLife.Reflection;
+using System.Collections;
 
 namespace NewLife.Serialization
 {
@@ -54,6 +55,20 @@ namespace NewLife.Serialization
                 if (base.Stream != value) _Reader = null;
                 base.Stream = value;
             }
+        }
+        #endregion
+
+        #region 构造方法
+        /// <summary>
+        /// 构造方法
+        /// </summary>
+        public JsonReader()
+            : base()
+        {
+            Settings.DepthLimit = 1000;
+#if DEBUG
+            Settings.DepthLimit = 10;
+#endif
         }
         #endregion
 
@@ -490,7 +505,11 @@ namespace NewLife.Serialization
                 AssertReadNextAtomElement("期望是枚举项目分割符", AtomElementType.COMMA);
             }
 
-            WriteLog("ReadEnumerableItem", type != null ? type.FullName : "null Type");
+            WriteLog("ReadEnumerableItem", type != null ? type.Name : "Not found item type", index);
+            if (!IsCanCreateInstance(type))
+            {
+                type = typeof(ReservedTypeClass);
+            }
             if (!ReadObject(type, ref value, callback)) return false;
 
             return true;
@@ -557,6 +576,12 @@ namespace NewLife.Serialization
 
             AssertReadNextAtomElement("期望字典项名称值分割符(冒号)", AtomElementType.COLON);
 
+            WriteLog("ReadDictionaryEntry", str, valueType != null ? valueType.Name : "Not found value type", index);
+
+            if (!IsCanCreateInstance(valueType))
+            {
+                valueType = typeof(ReservedTypeClass);
+            }
             object entryValue = null;
             if (!ReadObject(valueType, ref entryValue, callback)) return false;
 
@@ -564,7 +589,6 @@ namespace NewLife.Serialization
             value.Value = entryValue;
             return true;
         }
-
         #endregion
 
         #region 读取json的原子操作
@@ -965,13 +989,17 @@ namespace NewLife.Serialization
         /// <summary>
         /// 自动探测类型时断言的原子元素类型
         /// </summary>
-        AtomElementType[] AUTODETECT_TYPES = {
+        static AtomElementType[] AUTODETECT_TYPES = {
                                                  AtomElementType.BRACE_OPEN, AtomElementType.BRACKET_OPEN,
                                                  AtomElementType.STRING,
                                                  AtomElementType.NUMBER, AtomElementType.FLOAT,
                                                  AtomElementType.TRUE, AtomElementType.FALSE,
                                                  AtomElementType.NULL, AtomElementType.LITERAL 
                                              };
+        /// <summary>
+        /// 尝试读取成员时期望的原子元素类型
+        /// </summary>
+        static AtomElementType[] MEMBERNAME_EXPECTED_TYPES = { AtomElementType.COMMA, AtomElementType.STRING, AtomElementType.BRACE_CLOSE };
         /// <summary>
         /// 从当前流位置读取一个对象
         /// </summary>
@@ -981,7 +1009,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected override bool OnReadObject(Type type, ref object value, ReadObjectCallback callback)
         {
-            if (type == null || type == typeof(object))
+            if (type == typeof(ReservedTypeClass) || !IsCanCreateInstance(type))
             {
                 //探测类型 true,false,null,number,float这些返回类型不是可靠的
                 string str;
@@ -989,10 +1017,10 @@ namespace NewLife.Serialization
                 switch (atype)
                 {
                     case AtomElementType.BRACE_OPEN:
-                        type = typeof(object);
+                        type = typeof(ReservedTypeClass);
                         break;
                     case AtomElementType.BRACKET_OPEN:
-                        type = typeof(object[]);
+                        type = typeof(ReservedTypeClass[]);
                         break;
                     case AtomElementType.STRING:
                         type = typeof(string); //这里会忽略DateTime类型
@@ -1063,34 +1091,61 @@ namespace NewLife.Serialization
                 value = null;
                 return true;
             }
-            if (type == typeof(object))
+            if (type == typeof(ReservedTypeClass) || !IsCanCreateInstance(type))
             {
                 string str;
-                AssertReadNextAtomElement("期望是__type", out str, AtomElementType.STRING);
-                AssertReadNextAtomElement("期望是__type后的冒号", AtomElementType.COLON);
-                if (str.ToLower() == "__type")
+                bool hasType = false; ;
+                atype = AssertReadNextAtomElement(true, "期望是 __type 或者自定义对象结束符号", out str, AtomElementType.BRACE_CLOSE, AtomElementType.STRING);
+                if (atype == AtomElementType.STRING)
                 {
-                    AssertReadNextAtomElement("期望是__type的值,具体的类型全名", out str, AtomElementType.STRING);
-                    try
+                    AssertReadNextAtomElement("期望是 __type", out str, AtomElementType.STRING);
+                    AssertReadNextAtomElement("期望是 __type 后的冒号", AtomElementType.COLON);
+                    if (str.ToLower() == "__type")
                     {
-                        type = TypeX.GetType(str, true);
+                        AssertReadNextAtomElement("期望是 __type 的值,具体的类型全名", out str, AtomElementType.STRING);
+                        try
+                        {
+                            type = TypeX.GetType(str, true);
+                            hasType = true;
+                        }
+                        catch { }
+                        if (hasType)
+                        {
+                            Depth++;
+                            WriteLog("ReadCustomObjectType", type.Name);
+                            Depth--;
+                        }
                     }
-                    catch { }
                 }
-                if (type == typeof(object)) //无效的类型以及非__type将创建字典,并将刚读取到的数据写入新创建的字典
+                if (!hasType) //无效的类型以及非__type将创建字典,并将刚读取到的数据写入新创建的字典
                 {
-                    object obj = null;
-                    if (!ReadObject(typeof(Object), ref obj, callback)) return false;
-
+                    Depth++;
+                    WriteLog("ReadCustomObjectType", "Read type fail");
+                    Depth--;
                     Dictionary<string, object> dict = new Dictionary<string, object>();
-                    dict.Add(str, obj);
+                    if (atype == AtomElementType.STRING)
+                    {
+                        object obj = null;
+                        if (!ReadObject(typeof(ReservedTypeClass), ref obj, callback)) return false;
+                        dict.Add(str, obj);
+                    }
                     value = dict;
-                    return true;
                 }
             }
 
             int d = ComplexObjectDepth++;
-            bool ret = ComplexObjectDepthIsOverflow() || base.ReadCustomObject(type, ref value, callback);
+            bool ret = ComplexObjectDepthIsOverflow();
+            if (ret) // 即使达到了读取深度限制,并且对象尚未创建,也创建类实例,以避免产生null
+            {
+                if (value == null)
+                {
+                    value = TypeX.CreateInstance(type);
+                }
+            }
+            else
+            {
+                ret = base.ReadCustomObject(type, ref value, callback);
+            }
             int n = ComplexObjectDepth - d;
             if (n > 0) //尚未读到当前对象的结束符}
             {
@@ -1125,16 +1180,17 @@ namespace NewLife.Serialization
             string name;
             while (true)
             {
-                atype = AssertReadNextAtomElement("期望成员名称或者逗号分割符", out name, AtomElementType.COMMA, AtomElementType.STRING, AtomElementType.BRACE_CLOSE);
-                if (atype == AtomElementType.COMMA)
+                atype = AssertReadNextAtomElement(true, "期望成员名称,逗号分割符,对象结束符", out name, MEMBERNAME_EXPECTED_TYPES); //预读 不移动位置
+                switch (atype)
                 {
-                    atype = AssertReadNextAtomElement("期望成员名称", out name, AtomElementType.STRING);
+                    case AtomElementType.COMMA:
+                        AssertReadNextAtomElement("期望逗号分隔符", AtomElementType.COMMA);
+                        break;
+                    case AtomElementType.BRACE_CLOSE: //提前结束,不移动流位置
+                        Depth--; //continue需要使Depth--
+                        return null; //使父类上层调用处continue
                 }
-                else if (atype == AtomElementType.BRACE_CLOSE)
-                {
-                    ComplexObjectDepth--;
-                    return null; //提前结束
-                }
+                atype = AssertReadNextAtomElement("期望成员名称", out name, AtomElementType.STRING);
                 AssertReadNextAtomElement("期望成员名值分割符:冒号", AtomElementType.COLON);
                 ret = GetMemberByName(members, name);
                 if (ret != null)
@@ -1156,12 +1212,58 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected override bool OnReadMember(Type type, ref object value, IObjectMemberInfo member, int index, ReadObjectCallback callback)
         {
-            if (type == typeof(object)) //避免父类进入ReadType的调用
+            if (!IsCanCreateInstance(type)) //避免父类进入ReadType的调用
             {
-                type = null;
+                if (typeof(IDictionary).IsAssignableFrom(type)) //声明为无法实例化的类型,并且实现了IDictionary接口
+                {
+                    bool isGeneric = false;
+                    if (type.IsGenericType)
+                    {
+                        Type[] genericTypes = type.GetGenericArguments();
+                        if (genericTypes.Length == 2)
+                        {
+                            type = typeof(Dictionary<,>).MakeGenericType(genericTypes);
+                            isGeneric = true;
+                        }
+                    }
+                    if (!isGeneric)
+                    {
+                        type = typeof(Hashtable);
+                    }
+                }
+                else if (typeof(IEnumerable).IsAssignableFrom(type)) //声明为无法实例化的类型,并且实现了IEnumerable接口
+                {
+                    bool isGeneric = false;
+                    if (type.IsGenericType)
+                    {
+                        Type[] genericTypes = type.GetGenericArguments();
+                        if (genericTypes.Length == 1)
+                        {
+                            type = typeof(List<>).MakeGenericType(genericTypes);
+                            isGeneric = true;
+                        }
+                    }
+                    if (!isGeneric)
+                    {
+                        type = typeof(ArrayList);
+                    }
+                }
+                else
+                {
+                    type = typeof(ReservedTypeClass);
+                }
             }
             return base.OnReadMember(type, ref value, member, index, callback);
         }
+        /// <summary>
+        /// 返回指定类型是否是可以实例化的,即反序列化时是否是可以实例化的类型,一般用于处理未知类型前
+        /// </summary>
+        public readonly static Func<Type, bool> IsCanCreateInstance = JsonWriter.IsCanCreateInstance;
+
+        /// <summary>
+        /// 表示类型是无法实例化的类型,用于避免父类CheckAndReadType中的ReadType被执行,因为json的类型标识是另外的格式
+        /// </summary>
+        private class ReservedTypeClass { }
         #endregion
 
         /// <summary>
@@ -1277,7 +1379,6 @@ namespace NewLife.Serialization
         /// </summary>
         public class JsonReaderAssertException : JsonReaderParseException
         {
-            private string expectedMessage;
             /// <summary>
             /// 断言异常的额外异常信息
             /// </summary>
@@ -1302,7 +1403,6 @@ namespace NewLife.Serialization
                 : base(line, column, null)
             {
                 this.Expected = expected;
-                this.expectedMessage = string.Join(",", Array.ConvertAll<AtomElementType, string>(expected, e => GetAtomElementTypeMessageString(e)));
                 this.Actual = actual;
                 this.MessageInfo = messageInfo;
             }
@@ -1313,12 +1413,25 @@ namespace NewLife.Serialization
             {
                 get
                 {
-                    return string.Format("在行{0},字符{1}期望是{2} 实际是{3} 额外信息:{4}", Line, Column,
-                        expectedMessage,
-                        GetAtomElementTypeMessageString(Actual),
-                        MessageInfo
-                        );
+                    return FormatMessage(Line, Column, Expected, Actual, MessageInfo);
                 }
+            }
+            /// <summary>
+            /// 获取相似参数下JsonReaderAssertException类的异常信息,在不需要JsonReaderAssertException异常,但需要异常信息时使用
+            /// </summary>
+            /// <param name="line"></param>
+            /// <param name="column"></param>
+            /// <param name="expected"></param>
+            /// <param name="actual"></param>
+            /// <param name="messageInfo"></param>
+            /// <returns></returns>
+            public static string FormatMessage(long line, long column, AtomElementType[] expected, AtomElementType actual, string messageInfo)
+            {
+                return string.Format("在行{0},字符{1}期望是{2} 实际是{3} 额外信息:{4}", line, column,
+                        string.Join(",", Array.ConvertAll<AtomElementType, string>(expected, e => GetAtomElementTypeMessageString(e))),
+                        GetAtomElementTypeMessageString(actual),
+                        messageInfo
+                        );
             }
             static string GetAtomElementTypeMessageString(AtomElementType t)
             {
