@@ -538,19 +538,20 @@ namespace NewLife.Serialization
         {
             Boolean rs;
             Writer.Write("{");
+            if (value != null && writeValueType == value) //写入明确的类型
+            {
+                WriteLine();
+                string fullname = value.GetType().FullName;
+                Depth++;
+                WriteLog("WriteType", "__type", fullname);
+                WriteLiteral(string.Format("\"__type\":\"{0}\"", JavascriptStringEncode(fullname, this.Settings.JsEncodeUnicode)));
+                //后续的逗号和换行符由WriteCustomObject中OnWriteMember输出,并将writeValueType置为null
+                Depth--;
+            }
+
             ComplexObjectDepth++;
             if (!ComplexObjectDepthIsOverflow())
             {
-                WriteLine();
-                if (value != null && writeValueType == value) //写入明确的类型
-                {
-                    string fullname = value.GetType().FullName;
-                    Depth++;
-                    WriteLog("WriteType", "__type", fullname);
-                    WriteLiteral(string.Format("\"__type\":\"{0}\"", JavascriptStringEncode(fullname, this.Settings.JsEncodeUnicode)));
-                    //后续的逗号和换行符由WriteCustomObject中OnWriteMember输出,并将writeValueType置为null
-                    Depth--;
-                }
                 rs = base.WriteCustomObject(value, type, callback);
                 writeValueType = null;
                 WriteLine();
@@ -567,15 +568,6 @@ namespace NewLife.Serialization
 
             return rs;
         }
-        /// <summary>
-        /// 当前解析复合对象深度是否超出,用于避免循环引用可能引起的堆栈溢出,仅在Settings.RepeatedActionType是RepeatedAction.DepthLimit时才可能返回true
-        /// </summary>
-        /// <returns></returns>
-        public bool ComplexObjectDepthIsOverflow()
-        {
-            return Settings.RepeatedActionType == RepeatedAction.DepthLimit && ComplexObjectDepth > Settings.DepthLimit;
-        }
-
         /// <summary>
         /// 写入成员
         /// </summary>
@@ -607,6 +599,23 @@ namespace NewLife.Serialization
             return ret;
         }
         /// <summary>
+        /// 当前解析复合对象深度是否超出,用于避免循环引用可能引起的堆栈溢出,仅在Settings.RepeatedActionType是RepeatedAction.DepthLimit时才可能返回true
+        /// </summary>
+        /// <returns></returns>
+        public bool ComplexObjectDepthIsOverflow()
+        {
+            return Settings.RepeatedActionType == RepeatedAction.DepthLimit && ComplexObjectDepth > Settings.DepthLimit;
+        }
+        /// <summary>
+        /// 返回指定类型是否是可以实例化的,即反序列化时是否是可以实例化的类型,一般用于处理未知类型前
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static bool IsCanCreateInstance(Type type)
+        {
+            return type != null && type != typeof(object) && !type.IsInterface && !type.IsAbstract;
+        }
+        /// <summary>
         /// 模仿父类的WriteMember实现
         /// </summary>
         /// <param name="writer"></param>
@@ -617,15 +626,6 @@ namespace NewLife.Serialization
         protected static bool BaseWriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback)
         {
             return writer.WriteObject(value, type, callback); //模仿基类中的Boolean WriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback)
-        }
-        /// <summary>
-        /// 返回指定类型是否是可以实例化的,即反序列化时是否是可以实例化的类型,一般用于处理未知类型前
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static bool IsCanCreateInstance(Type type)
-        {
-            return type != null && type != typeof(object) && !type.IsInterface && !type.IsAbstract;
         }
         #endregion
 
