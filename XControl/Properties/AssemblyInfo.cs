@@ -39,9 +39,11 @@ using System.Web.UI;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("1.9.*")]
-[assembly: AssemblyFileVersion("1.9.2011.0525")]
+[assembly: AssemblyFileVersion("1.9.2011.0530")]
 
 /*
+ * v1.9.2011.0530   GridViewExtender控件，增加双击时执行编辑操作的功能
+ * 
  * v1.9.2011.0525   修正数字 浮点数输入控件的一些细节问题,使在firefox下可正常运行
  * 
  * v1.9.2011.0224   +扩展控件基类，修改GetPropertyValue方法，当没有设定的ViewState时，从全局Appconfig中读取
