@@ -17,6 +17,22 @@ namespace XCode.Code
     public class EntityClass
     {
         #region 属性
+        private String _ClassName;
+        /// <summary>类名</summary>
+        public String ClassName
+        {
+            get { return _ClassName; }
+            set { _ClassName = value; }
+        }
+
+        private Dictionary<String, String> _FieldNames;
+        /// <summary>属性名</summary>
+        public Dictionary<String, String> FieldNames
+        {
+            get { return _FieldNames; }
+            set { _FieldNames = value; }
+        }
+
         private XTable _Table;
         /// <summary>表</summary>
         public XTable Table
@@ -50,7 +66,7 @@ namespace XCode.Code
         /// </summary>
         public void Create()
         {
-            Class = new CodeTypeDeclaration(Table.Name);
+            Class = new CodeTypeDeclaration(ClassName);
             Class.IsClass = true;
             Class.IsPartial = true;
             Class.TypeAttributes = TypeAttributes.Public;
@@ -72,7 +88,7 @@ namespace XCode.Code
             Type type = typeof(Entity<>);
             //type=type.MakeGenericType(typeof())
             //Class.BaseTypes.Add(type);
-            Class.BaseTypes.Add(String.Format("Entity<{0}>", Table.Name));
+            Class.BaseTypes.Add(String.Format("Entity<{0}>", ClassName));
 
             Assembly.NameSpace.Types.Add(Class);
         }
@@ -101,7 +117,8 @@ namespace XCode.Code
         {
             CodeMemberField f = new CodeMemberField();
             f.Attributes = MemberAttributes.Private;
-            f.Name = "_" + field.Name;
+            //f.Name = "_" + field.Name;
+            f.Name = "_" + FieldNames[field.Name];
             f.Type = new CodeTypeReference(field.DataType);
             Class.Members.Add(f);
             return f;
@@ -113,9 +130,11 @@ namespace XCode.Code
         /// <param name="field"></param>
         public CodeMemberProperty AddProperty(XField field)
         {
+            String name = FieldNames[field.Name];
+
             CodeMemberProperty p = new CodeMemberProperty();
             p.Attributes = MemberAttributes.Public | MemberAttributes.Final;
-            p.Name = field.Name;
+            p.Name = name;
             p.Type = new CodeTypeReference(field.DataType);
             p.Comments.Add(AddSummary(field.Description));
 
@@ -138,7 +157,7 @@ namespace XCode.Code
             p.HasGet = true;
             p.HasSet = true;
 
-            p.GetStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(null, "_" + field.Name)));
+            p.GetStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(null, "_" + p.Name)));
 
             CodeMethodInvokeExpression invokeExp = new CodeMethodInvokeExpression();
             invokeExp.Method = new CodeMethodReferenceExpression(null, "OnPropertyChange");
@@ -174,16 +193,18 @@ namespace XCode.Code
 
             foreach (XField item in Table.Fields)
             {
+                String name = FieldNames[item.Name];
+
                 // 取值
                 CodeConditionStatement cond = new CodeConditionStatement();
                 p.GetStatements.Add(cond);
-                cond.Condition = new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("name"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(item.Name));
-                cond.TrueStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(null, "_" + item.Name)));
+                cond.Condition = new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("name"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(name));
+                cond.TrueStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(null, "_" + name)));
 
                 // 设置值
                 cond = new CodeConditionStatement();
                 p.SetStatements.Add(cond);
-                cond.Condition = new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("name"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(item.Name));
+                cond.Condition = new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("name"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(name));
 
                 Type type = typeof(Convert);
                 MethodInfo mi = type.GetMethod("To" + item.DataType.Name, new Type[] { typeof(Object) });
@@ -203,7 +224,7 @@ namespace XCode.Code
                     cce.Expression = new CodeArgumentReferenceExpression("value");
                     ce = cce;
                 }
-                cond.TrueStatements.Add(new CodeAssignStatement(new CodeFieldReferenceExpression(null, "_" + item.Name), ce));
+                cond.TrueStatements.Add(new CodeAssignStatement(new CodeFieldReferenceExpression(null, "_" + name), ce));
 
                 // return;
                 cond.TrueStatements.Add(new CodeMethodReturnStatement());
@@ -239,10 +260,10 @@ namespace XCode.Code
             foreach (XField item in Table.Fields)
             {
                 CodeMemberField f = new CodeMemberField();
-                f.Name = item.Name;
+                f.Name = FieldNames[item.Name];
                 f.Attributes = MemberAttributes.Public | MemberAttributes.Const;
                 f.Type = new CodeTypeReference(typeof(String));
-                f.InitExpression = new CodePrimitiveExpression(f.Name);
+                f.InitExpression = new CodePrimitiveExpression(item.Name);
                 f.Comments.Add(AddSummary(item.Description));
                 cs.Members.Add(f);
             }

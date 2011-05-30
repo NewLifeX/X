@@ -108,7 +108,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string FormatValue(XField field, object value)
         {
-            if (field.DataType == typeof(Boolean))
+            if (field != null && field.DataType == typeof(Boolean) || value != null && value.GetType() == typeof(Boolean))
             {
                 if (value == null) return field.Nullable ? "null" : "";
 

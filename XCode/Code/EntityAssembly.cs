@@ -2,12 +2,12 @@
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Reflection;
 using NewLife.Collections;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
-using System.Collections.Specialized;
 
 namespace XCode.Code
 {
@@ -111,13 +111,16 @@ namespace XCode.Code
         {
             // 复制一份，以免修改原来的结构
             XTable tb = table.Clone();
-            tb.Name = tb.Name.Replace("$", null);
+            String className = tb.Name.Replace("$", null);
 
             // 计算名称，防止属性名和类型名重名
             StringCollection list = new StringCollection();
             list.Add("Item");
             list.Add("System");
-            list.Add(tb.Name);
+            list.Add(className);
+
+            // 保存属性名，可能跟字段名不一致
+            Dictionary<String, String> fieldNames = new Dictionary<String, String>();
             foreach (XField item in tb.Fields)
             {
                 String name = item.Name;
@@ -125,12 +128,15 @@ namespace XCode.Code
                 {
                     name = item.Name + i;
                 }
-                item.Name = name;
+                //item.Name = name;
+                fieldNames.Add(item.Name, name);
             }
 
             EntityClass entity = new EntityClass();
             entity.Assembly = this;
+            entity.ClassName = className;
             entity.Table = tb;
+            entity.FieldNames = fieldNames;
             entity.Create();
             entity.AddProperties();
             entity.AddIndexs();
