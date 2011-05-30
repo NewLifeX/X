@@ -446,6 +446,7 @@ namespace NewLife.Serialization
             }
             bool ret;
             Writer.Write("{");
+
             ComplexObjectDepth++;
             if (!ComplexObjectDepthIsOverflow())
             {
@@ -504,6 +505,10 @@ namespace NewLife.Serialization
         /// </summary>
         int ComplexObjectDepth = 0;
         /// <summary>
+        /// 是否写入成员的计数器,用于控制换行输出
+        /// </summary>
+        int WriteMemberCount = 0;
+        /// <summary>
         /// JsonWriter的对象类型由writeValueType写入,作为第一个成员,所以不需要
         /// </summary>
         /// <param name="type"></param>
@@ -536,7 +541,7 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public override bool WriteCustomObject(object value, Type type, WriteObjectCallback callback)
         {
-            Boolean rs;
+            Boolean rs, writedType = false;
             Writer.Write("{");
             if (value != null && writeValueType == value) //写入明确的类型
             {
@@ -545,19 +550,26 @@ namespace NewLife.Serialization
                 Depth++;
                 WriteLog("WriteType", "__type", fullname);
                 WriteLiteral(string.Format("\"__type\":\"{0}\"", JavascriptStringEncode(fullname, this.Settings.JsEncodeUnicode)));
-                //后续的逗号和换行符由WriteCustomObject中OnWriteMember输出,并将writeValueType置为null
+                //后续的逗号和换行符由WriteCustomObject中OnWriteMember输出,并将writeValueType置为null 因为后续可能没有任何成员
                 Depth--;
+                writedType = true;
             }
 
             ComplexObjectDepth++;
             if (!ComplexObjectDepthIsOverflow())
             {
+                int i = WriteMemberCount;
                 rs = base.WriteCustomObject(value, type, callback);
                 writeValueType = null;
-                WriteLine();
+                if (WriteMemberCount > i)
+                {
+                    WriteLine();
+                }
+                WriteMemberCount = i;
             }
             else
             {
+                if (writedType) WriteLine();
                 Depth++;
                 WriteLog("WriteSkip", "ComplexObjectDepthIsOverflow");
                 Depth--;
@@ -583,10 +595,12 @@ namespace NewLife.Serialization
             {
                 writeValueType = null;
                 Writer.Write(",");
-                WriteLine();
             }
+            WriteMemberCount++;
 
-            Writer.Write("\"" + JavascriptStringEncode(member.Name) + "\": ");
+            WriteLine();
+
+            Writer.Write("\"" + JavascriptStringEncode(member.Name) + "\":");
 
             object obj = member[value];
             if (obj != null && !IsCanCreateInstance(memberType))
