@@ -110,10 +110,10 @@ namespace Test
         public static void JsonTest()
         {
             JsonWriter writer = GetWriter<JsonWriter>();
-            writer.Settings.JsEncodeUnicode = false;
+            writer.Settings.UseStringUnicodeEncode = false;
             //writer.Settings.JsDateTimeFormat = false;
-            writer.Settings.JsMultiline = true;
-            writer.Settings.JsDateTimeFormat = JsDateTimeFormats.DotnetDateTick;
+            writer.Settings.AllowMultiline = true;
+            writer.Settings.JsonDateTimeFormat = JsonDateTimeWriteFormat.ISO8601;
 
 
             DoTest<JsonWriter, JsonReader>(writer);
@@ -176,6 +176,11 @@ namespace Test
             reader.Stream.Position = 0;
 
             reader.Settings = writer.Settings;
+
+            if (reader is JsonReader)
+            {
+                (reader as JsonReader).Settings.DepthLimit = 10;
+            }
 
             return reader;
         }
