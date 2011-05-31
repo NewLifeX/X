@@ -101,9 +101,9 @@ namespace NewLife.CommonEntity
         public override int Save()
         {
             if (ID == 0)
-                WriteLog("添加", Name);
+                WriteLog(null, "添加", Name);
             else
-                WriteLog("修改", Name);
+                WriteLog(null, "修改", Name);
 
             return base.Save();
         }
@@ -120,7 +120,7 @@ namespace NewLife.CommonEntity
                 TEntity entity = Find(_.ID, ID);
                 if (entity != null) name = entity.Name;
             }
-            WriteLog("删除", name);
+            WriteLog(null, "删除", name);
 
             return base.Delete();
         }
@@ -284,7 +284,7 @@ namespace NewLife.CommonEntity
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
     /// <typeparam name="TEntity">管理员类型</typeparam>
-    public abstract partial class Administrator<TEntity> : CommonEntityBase<TEntity>, IAdministrator, IPrincipal, IIdentity
+    public abstract partial class Administrator<TEntity> : Entity<TEntity>, IAdministrator, IPrincipal, IIdentity
         where TEntity : Administrator<TEntity>, new()
     {
         #region 对象操作
@@ -732,13 +732,17 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public abstract ILog CreateLog(Type type, String action);
 
-        ///// <summary>
-        ///// 创建指定类型指定动作的日志实体
-        ///// </summary>
-        ///// <param name="type"></param>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //IEntity IAdministrator.CreateLog(Type type, String action) { return CreateLog(type, action); }
+        /// <summary>
+        /// 写日志
+        /// </summary>
+        /// <param name="action">操作</param>
+        /// <param name="remark">备注</param>
+        public static void WriteLog(String action, String remark)
+        {
+            IEntityOperate op = EntityFactory.CreateOperate(TypeResolver.Resolve(typeof(IAdministrator), null));
+            IAdministrator admin = op.Default as IAdministrator;
+            if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
+        }
         #endregion
 
         #region IAdministrator 成员
@@ -765,6 +769,7 @@ namespace NewLife.CommonEntity
         {
             if (!Config.GetConfig<Boolean>("NewLife.CommonEntity.WriteEntityLog", true)) return;
 
+            if (type == null) type = this.GetType();
             ILog log = CreateLog(type, action);
             if (log != null)
             {
