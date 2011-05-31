@@ -144,7 +144,7 @@ namespace XCode.Configuration
         [Description("数据字段")]
         public FieldItem[] Fields
         {
-            get { InitFields(); return _Fields; }
+            get { return _Fields; }
         }
 
         private FieldItem[] _AllFields;
@@ -152,7 +152,7 @@ namespace XCode.Configuration
         [XmlIgnore]
         public FieldItem[] AllFields
         {
-            get { InitFields(); return _AllFields; }
+            get { return _AllFields; }
         }
 
         private FieldItem _Identity;
@@ -160,7 +160,7 @@ namespace XCode.Configuration
         [XmlIgnore]
         public FieldItem Identity
         {
-            get { InitFields(); return _Identity; }
+            get { return _Identity; }
         }
 
         private FieldItem[] _PrimaryKeys;
@@ -168,34 +168,7 @@ namespace XCode.Configuration
         [XmlIgnore]
         public FieldItem[] PrimaryKeys
         {
-            get { InitFields(); return _PrimaryKeys; }
-        }
-
-        Boolean hasInitFields = false;
-        void InitFields()
-        {
-            if (hasInitFields) return;
-            hasInitFields = true;
-
-            List<FieldItem> list1 = new List<FieldItem>();
-            List<FieldItem> list2 = new List<FieldItem>();
-            List<FieldItem> list3 = new List<FieldItem>();
-            PropertyInfo[] pis = EntityType.GetProperties();
-            foreach (PropertyInfo item in pis)
-            {
-                // 排除索引器
-                if (item.GetIndexParameters().Length > 0) continue;
-
-                FieldItem fi = new FieldItem(item);
-                list1.Add(fi);
-
-                if (fi.DataObjectField != null) list2.Add(fi);
-                if (fi.PrimaryKey) list3.Add(fi);
-                if (fi.IsIdentity) _Identity = fi;
-            }
-            if (list1 != null && list1.Count > 0) _AllFields = list1.ToArray();
-            if (list2 != null && list2.Count > 0) _Fields = list2.ToArray();
-            if (list3 != null && list3.Count > 0) _PrimaryKeys = list3.ToArray();
+            get { return _PrimaryKeys; }
         }
 
         private IList<String> _FieldNames;
@@ -227,25 +200,55 @@ namespace XCode.Configuration
             {
                 if (_XTable == null)
                 {
-                    BindTableAttribute bt = Table;
-                    XTable table = new XTable();
-                    table.Name = bt.Name;
-                    table.DbType = bt.DbType;
-                    table.Description = bt.Description;
-
-                    table.Fields = new List<XField>();
-                    foreach (FieldItem fi in Fields)
-                    {
-                        XField f = table.CreateField();
-                        fi.Fill(f);
-
-                        table.Fields.Add(f);
-                    }
-
-                    _XTable = table;
                 }
                 return _XTable;
             }
+        }
+
+        //Boolean hasInitFields = false;
+        void InitFields()
+        {
+            //if (hasInitFields) return;
+            //hasInitFields = true;
+
+            BindTableAttribute bt = Table;
+            XTable table = new XTable();
+            table.Name = bt.Name;
+            table.DbType = bt.DbType;
+            table.Description = bt.Description;
+
+            table.Fields = new List<XField>();
+
+            List<FieldItem> list1 = new List<FieldItem>();
+            List<FieldItem> list2 = new List<FieldItem>();
+            List<FieldItem> list3 = new List<FieldItem>();
+            PropertyInfo[] pis = EntityType.GetProperties();
+            foreach (PropertyInfo item in pis)
+            {
+                // 排除索引器
+                if (item.GetIndexParameters().Length > 0) continue;
+
+                FieldItem fi = new FieldItem(item);
+                list1.Add(fi);
+
+                if (fi.DataObjectField != null)
+                {
+                    list2.Add(fi);
+
+                    XField f = table.CreateField();
+                    fi.Fill(f);
+
+                    table.Fields.Add(f);
+                }
+
+                if (fi.PrimaryKey) list3.Add(fi);
+                if (fi.IsIdentity) _Identity = fi;
+            }
+            if (list1 != null && list1.Count > 0) _AllFields = list1.ToArray();
+            if (list2 != null && list2.Count > 0) _Fields = list2.ToArray();
+            if (list3 != null && list3.Count > 0) _PrimaryKeys = list3.ToArray();
+
+            _XTable = table;
         }
         #endregion
 
@@ -255,6 +258,8 @@ namespace XCode.Configuration
             _EntityType = type;
             _Table = BindTableAttribute.GetCustomAttribute(EntityType);
             _Description = DescriptionAttribute.GetCustomAttribute(EntityType, typeof(DescriptionAttribute)) as DescriptionAttribute;
+
+            InitFields();
         }
 
         static DictionaryCache<Type, TableItem> cache = new DictionaryCache<Type, TableItem>();

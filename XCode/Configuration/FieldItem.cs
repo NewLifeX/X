@@ -128,7 +128,10 @@ namespace XCode.Configuration
         /// <returns></returns>
         public override string ToString()
         {
-            return Name;
+            if (String.IsNullOrEmpty(Description))
+                return Name;
+            else
+                return String.Format("{1}（{0}）", Name, Description);
         }
 
         /// <summary>
@@ -144,7 +147,7 @@ namespace XCode.Configuration
             field.Name = ColumnName;
             field.DataType = Property.PropertyType;
             field.Description = Description;
-            
+
             if (Column != null)
             {
                 field.ID = Column.Order;
