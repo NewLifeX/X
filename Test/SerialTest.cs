@@ -110,10 +110,9 @@ namespace Test
         public static void JsonTest()
         {
             JsonWriter writer = GetWriter<JsonWriter>();
-            writer.Settings.UseStringUnicodeEncode = false;
-            //writer.Settings.JsDateTimeFormat = false;
+            //writer.Settings.JsonDateTimeFormat = JsonDateTimeWriteFormat.DotnetDateTick;
+            //writer.Settings.UseStringUnicodeEncode = true;
             writer.Settings.AllowMultiline = true;
-            writer.Settings.JsonDateTimeFormat = JsonDateTimeWriteFormat.ISO8601;
 
 
             DoTest<JsonWriter, JsonReader>(writer);
@@ -148,6 +147,11 @@ namespace Test
 
                 TWriter writer2 = GetWriter<TWriter>();
                 writer2.Settings = reader.Settings;
+                if (writer2.Settings is JsonSettings)
+                {
+                    (writer2.Settings as JsonSettings).DepthLimit = 5; //因为writer的Settings.DepthLimit为5 需要确保writer和writer2配置相同
+                }
+
                 writer2.WriteObject(admin, null, null);
 
                 Byte[] buffer2 = writer2.ToArray();
