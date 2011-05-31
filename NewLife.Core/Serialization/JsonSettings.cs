@@ -18,55 +18,55 @@ namespace NewLife.Serialization
             set { _Indent = value; }
         }
 
-        private JsDateTimeFormats _JsDateTimeFormat;
+        private JsonDateTimeWriteFormat _JsonDateTimeFormat;
         /// <summary>
         /// 指定日期时间输出成什么格式,具体格式说明见JsDateTimeFormats,默认是ISO8601格式
         /// </summary>
-        public JsDateTimeFormats JsDateTimeFormat
+        public JsonDateTimeWriteFormat JsonDateTimeFormat
         {
-            get { return _JsDateTimeFormat; }
-            set { _JsDateTimeFormat = value; }
+            get { return _JsonDateTimeFormat; }
+            set { _JsonDateTimeFormat = value; }
         }
 
-        private DateTimeKind _JsDateTimeKind;
+        private DateTimeKind _JsonDateTimeKind;
         /// <summary>
         /// 指定日期时间输出成什么时间,本地还是UTC时间,默认是UTC时间
         /// </summary>
-        public DateTimeKind JsDateTimeKind
+        public DateTimeKind JsonDateTimeKind
         {
-            get { return _JsDateTimeKind; }
-            set { _JsDateTimeKind = value; }
+            get { return _JsonDateTimeKind; }
+            set { _JsonDateTimeKind = value; }
         }
 
-        private bool _JsEncodeUnicode;
+        private bool _UseStringUnicodeEncode;
         /// <summary>
         /// 是否编码字符串中Unicode字符为\uXXXX的格式
         /// 
         /// 可以避免乱码问题,但是会增加数据长度
         /// </summary>
-        public Boolean JsEncodeUnicode
+        public bool UseStringUnicodeEncode
         {
-            get { return _JsEncodeUnicode; }
-            set { _JsEncodeUnicode = value; }
+            get { return _UseStringUnicodeEncode; }
+            set { _UseStringUnicodeEncode = value; }
         }
 
         private bool _AllowMultiline;
         /// <summary>
         /// 是否允许输出多行结果,这会便于阅读结果,当为false时可以用作jsonp回调(还需要做字符串转义)
         /// </summary>
-        public bool JsMultiline
+        public bool AllowMultiline
         {
             get { return _AllowMultiline; }
             set { _AllowMultiline = value; }
         }
-        private RepeatedAction _RepeatedActionType;
+        private DuplicatedObjectWriteMode _DuplicatedObjectWriteMode;
         /// <summary>
-        /// 重复对象的处理方式
+        /// 重复对象的处理方式,仅用于JsonWriter
         /// </summary>
-        public RepeatedAction RepeatedActionType
+        public DuplicatedObjectWriteMode DuplicatedObjectWriteMode
         {
-            get { return _RepeatedActionType; }
-            set { _RepeatedActionType = value; }
+            get { return _DuplicatedObjectWriteMode; }
+            set { _DuplicatedObjectWriteMode = value; }
         }
 
         private int _DepthLimit;
@@ -82,6 +82,15 @@ namespace NewLife.Serialization
             get { return _DepthLimit; }
             set { _DepthLimit = value; }
         }
+        private bool _UseCharsWriteToString;
+        /// <summary>
+        /// 是否将char[]输出为string,这会减少数据长度,读取器始终会尝试不同的解析方式
+        /// </summary>
+        public bool UseCharsWriteToString
+        {
+            get { return _UseCharsWriteToString; }
+            set { _UseCharsWriteToString = value; }
+        }
         #endregion
 
         #region 构造
@@ -92,19 +101,17 @@ namespace NewLife.Serialization
         {
             // 指定时间的格式
             DateTimeFormat = DateTimeFormats.Milliseconds;
-            JsDateTimeKind = DateTimeKind.Utc;
+            JsonDateTimeKind = DateTimeKind.Utc;
             UseObjRef = false;
+            UseCharsWriteToString = true;
         }
         #endregion
-
-
-
 
     }
     /// <summary>
     /// json序列化时用于指定日期时间输出成什么格式
     /// </summary>
-    public enum JsDateTimeFormats
+    public enum JsonDateTimeWriteFormat
     {
         /// <summary>
         /// ISO 8601格式 类似"2011-05-05T05:12:19.123Z"格式的UTC时间
@@ -128,7 +135,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// 重复对象的处理方式
     /// </summary>
-    public enum RepeatedAction
+    public enum DuplicatedObjectWriteMode
     {
         /// <summary>
         /// 限制处理复合对象的深度

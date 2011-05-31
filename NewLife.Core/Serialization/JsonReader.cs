@@ -1032,13 +1032,11 @@ namespace NewLife.Serialization
                         DateTime dt;
                         if (TryParseDateTimeString(str, out dt)) //这里是硬编码,探测日期时间类型
                         {
-                            type = typeof(DateTime);
                             value = dt;
                             return true;
                         }
                         else
                         {
-                            type = typeof(string);
                             value = str;
                             return true;
                         }
@@ -1180,7 +1178,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public bool ComplexObjectDepthIsOverflow()
         {
-            return Settings.RepeatedActionType == RepeatedAction.DepthLimit && ComplexObjectDepth > Settings.DepthLimit;
+            return Settings.DuplicatedObjectWriteMode == DuplicatedObjectWriteMode.DepthLimit && ComplexObjectDepth > Settings.DepthLimit;
         }
         /// <summary>
         /// 读取当前成员名称

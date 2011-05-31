@@ -126,9 +126,9 @@ namespace NewLife.Serialization
             Depth++;
             WriteLog("WriteValue", "DateTime", value);
 
-            if (Settings.JsDateTimeKind != DateTimeKind.Unspecified && value.Kind != Settings.JsDateTimeKind)
+            if (Settings.JsonDateTimeKind != DateTimeKind.Unspecified && value.Kind != Settings.JsonDateTimeKind)
             {
-                if (Settings.JsDateTimeKind == DateTimeKind.Local)
+                if (Settings.JsonDateTimeKind == DateTimeKind.Local)
                 {
                     value = value.ToLocalTime();
                 }
@@ -138,15 +138,15 @@ namespace NewLife.Serialization
                 }
             }
 
-            switch (Settings.JsDateTimeFormat)
+            switch (Settings.JsonDateTimeFormat)
             {
-                case JsDateTimeFormats.ISO8601:
+                case JsonDateTimeWriteFormat.ISO8601:
                     Write(value.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture));
                     break;
-                case JsDateTimeFormats.DotnetDateTick:
+                case JsonDateTimeWriteFormat.DotnetDateTick:
                     Write(string.Format("\\/Date({0})\\/", (long)(value - Settings.BaseDateTime).TotalMilliseconds));
                     break;
-                case JsDateTimeFormats.Tick:
+                case JsonDateTimeWriteFormat.Tick:
                     Write(Settings.ConvertDateTimeToInt64(value));
                     break;
             }
@@ -224,7 +224,7 @@ namespace NewLife.Serialization
         }
         void WriteLine()
         {
-            if (Settings.JsMultiline)
+            if (Settings.AllowMultiline)
             {
                 Writer.WriteLine();
             }
@@ -267,7 +267,14 @@ namespace NewLife.Serialization
         /// <param name="count"></param>
         public override void Write(char[] chars, int index, int count)
         {
-            WriteEnumerable(Slice(chars, index, count), typeof(char[]), BaseWriteMember);
+            if (Settings.UseCharsWriteToString)
+            {
+                Write(new String(chars));
+            }
+            else
+            {
+                WriteEnumerable(Slice(chars, index, count), typeof(char[]), BaseWriteMember);
+            }
         }
 
         /// <summary>
@@ -276,7 +283,7 @@ namespace NewLife.Serialization
         /// <param name="value">要写入的值。</param>
         public override void Write(string value)
         {
-            value = JavascriptStringEncode(value, this.Settings.JsEncodeUnicode);
+            value = JavascriptStringEncode(value, this.Settings.UseStringUnicodeEncode);
             Depth++;
             WriteLog("WriteValue", "String", value);
             Writer.Write("\"" + value + "\"");
@@ -549,7 +556,7 @@ namespace NewLife.Serialization
                 string fullname = value.GetType().FullName;
                 Depth++;
                 WriteLog("WriteType", "__type", fullname);
-                WriteLiteral(string.Format("\"__type\":\"{0}\"", JavascriptStringEncode(fullname, this.Settings.JsEncodeUnicode)));
+                WriteLiteral(string.Format("\"__type\":\"{0}\"", JavascriptStringEncode(fullname, this.Settings.UseStringUnicodeEncode)));
                 //后续的逗号和换行符由WriteCustomObject中OnWriteMember输出,并将writeValueType置为null 因为后续可能没有任何成员
                 Depth--;
                 writedType = true;
@@ -618,7 +625,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public bool ComplexObjectDepthIsOverflow()
         {
-            return Settings.RepeatedActionType == RepeatedAction.DepthLimit && ComplexObjectDepth > Settings.DepthLimit;
+            return Settings.DuplicatedObjectWriteMode == DuplicatedObjectWriteMode.DepthLimit && ComplexObjectDepth > Settings.DepthLimit;
         }
         /// <summary>
         /// 返回指定类型是否是可以实例化的,即反序列化时是否是可以实例化的类型,一般用于处理未知类型前
