@@ -413,7 +413,16 @@ namespace NewLife.Serialization
                 type = value.GetType(); //避免base.OnWriteItem中写入value.GetType()
                 writeValueType = value;
             }
-            bool ret = base.OnWriteItem(value, type, index, callback);
+            bool ret;
+            if (value == null)
+            {
+                WriteLiteral("null");
+                ret = true;
+            }
+            else
+            {
+                ret = base.OnWriteItem(value, type, index, callback);
+            }
             writeValueType = null;
             return ret;
         }
@@ -535,6 +544,19 @@ namespace NewLife.Serialization
             {
                 WriteLiteral("null");
                 return true;
+            }else if (!IsCanCreateInstance(type))
+            {
+                type = value.GetType();
+            }
+            if (Type.GetTypeCode(type) == TypeCode.Int16) // 在基类WriteValue时 Int16将会被转换成Int32处理,所以这里需要针对Int16特殊处理
+            {
+                Int32 v = 0;
+                if (value != null)
+                {
+                    v = Convert.ToInt32(value.ToString());
+                }
+                value = v;
+                type = typeof(Int32);
             }
             return base.OnWriteObject(value, type, callback);
         }

@@ -7,7 +7,7 @@ namespace NewLife.Serialization
     /// <summary>
     /// Json设置
     /// </summary>
-    public class JsonSettings : TextReaderWriterSetting
+    public class JsonSettings : TextReaderWriterSetting, ICloneable
     {
         #region 属性
         private Boolean _Indent;
@@ -20,7 +20,7 @@ namespace NewLife.Serialization
 
         private JsonDateTimeWriteFormat _JsonDateTimeFormat;
         /// <summary>
-        /// 指定日期时间输出成什么格式,具体格式说明见JsDateTimeFormats,默认是ISO8601格式
+        /// 指定日期时间输出成什么格式,具体格式说明见JsonDateTimeWriteFormat,默认是ISO8601格式
         /// </summary>
         public JsonDateTimeWriteFormat JsonDateTimeFormat
         {
@@ -61,7 +61,7 @@ namespace NewLife.Serialization
         }
         private DuplicatedObjectWriteMode _DuplicatedObjectWriteMode;
         /// <summary>
-        /// 重复对象的处理方式,仅用于JsonWriter
+        /// 重复对象的处理方式,仅用于JsonWriter,默认是深度限制,使用DepthLimit执行的深度
         /// </summary>
         public DuplicatedObjectWriteMode DuplicatedObjectWriteMode
         {
@@ -71,7 +71,9 @@ namespace NewLife.Serialization
 
         private int _DepthLimit;
         /// <summary>
-        /// 复合对象的解析深度限制,只有在RepeatedActionType是RepeatedAction.DepthLimit
+        /// 复合对象的解析深度限制,只有在DuplicatedObjectWriteMode是DuplicatedObjectWriteMode.DepthLimit时生效
+        /// 
+        /// 复合对象主要是[]和{}的对象,可能是数组 集合 字典 自定义类型
         /// 
         /// 对于JsonWriter,默认值是16(调试时5). 对于JsonReader,默认值是1000(调试时10)
         /// 
@@ -84,7 +86,7 @@ namespace NewLife.Serialization
         }
         private bool _UseCharsWriteToString;
         /// <summary>
-        /// 是否将char[]输出为string,这会减少数据长度,读取器始终会尝试不同的解析方式
+        /// 是否将char[]输出为string,这会减少数据长度,仅会影响JsonWriter,默认true
         /// </summary>
         public bool UseCharsWriteToString
         {
@@ -102,11 +104,16 @@ namespace NewLife.Serialization
             // 指定时间的格式
             DateTimeFormat = DateTimeFormats.Milliseconds;
             JsonDateTimeKind = DateTimeKind.Utc;
-            UseObjRef = false;
+            UseObjRef = false; // TODO 如果实现ObjectRef则需要将这个设置为true
             UseCharsWriteToString = true;
         }
         #endregion
 
+
+        object ICloneable.Clone()
+        {
+            return MemberwiseClone();
+        }
     }
     /// <summary>
     /// json序列化时用于指定日期时间输出成什么格式

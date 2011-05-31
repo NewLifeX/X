@@ -368,7 +368,6 @@ namespace NewLife.Serialization
             }
             return ret;
         }
-        static readonly string CharAssertMsg = "期望字符字符串或数字,将转换成字符";
         /// <summary>
         /// 从当前流位置读取一个字符,如果读到的是字符串,将取第一个字符;如果读到的是数字,将作为Unicode字符处理;或者读到null
         /// </summary>
@@ -376,7 +375,7 @@ namespace NewLife.Serialization
         public override char ReadChar()
         {
             string str;
-            AtomElementType t = AssertReadNextAtomElement(CharAssertMsg, out str, AtomElementType.NULL, AtomElementType.STRING, AtomElementType.NUMBER);
+            AtomElementType t = AssertReadNextAtomElement("期望字符字符串或数字,将转换成字符", out str, AtomElementType.NULL, AtomElementType.STRING, AtomElementType.NUMBER);
             switch (t)
             {
                 case AtomElementType.NULL:
@@ -1073,13 +1072,21 @@ namespace NewLife.Serialization
                             ret = ReadNumber<short>(str, numStyles, out ivalue) ||
                                 ReadNumber<int>(str, numStyles, out ivalue) ||
                                 ReadNumber<long>(str, numStyles, out ivalue);
-                            if (ret) return true;
+                            if (ret)
+                            {
+                                value = ivalue;
+                                return true;
+                            }
                         }
 
                         ret = ReadNumber<float>(str, numStyles, out ivalue) ||
                             ReadNumber<decimal>(str, numStyles, out ivalue) ||
                             ReadNumber<double>(str, numStyles, out ivalue);
-                        if (ret) return true;
+                        if (ret)
+                        {
+                            value = ivalue;
+                            return true;
+                        }
 
                         goto default;
                     case AtomElementType.LITERAL:
