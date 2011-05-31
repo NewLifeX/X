@@ -132,8 +132,12 @@ namespace NewLife.Serialization
         public override DateTime ReadDateTime()
         {
             string str;
-            AtomElementType atype = AssertReadNextAtomElement("期望是包含日期时间内容的字符串", out str, AtomElementType.STRING);
-            DateTime dt = ParseDateTimeString(str, atype);
+            AtomElementType atype = AssertReadNextAtomElement("期望是包含日期时间内容的字符串", out str, AtomElementType.LITERAL, AtomElementType.STRING);
+            DateTime dt;
+            if (!TryParseDateTimeString(str, out dt))
+            {
+                throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.LITERAL, AtomElementType.STRING }, atype, "期望是日期时间格式的内容,实际是" + str);
+            }
             return dt;
         }
         static string[] DateTimeParseFormats = { "yyyy-MM-ddTHH:mm:ss.fffZ", //包含毫秒部分的ISO8601格式
@@ -146,11 +150,10 @@ namespace NewLife.Serialization
         /// 解析日期时间字符串,可以处理多种日期时间格式,包括JsDateTimeFormats枚举中的格式,以及js中toGMTString()的格式
         /// </summary>
         /// <param name="str"></param>
-        /// <param name="atype">用于无法解析时,异常信息中包含str所属的原子元素类型</param>
+        /// <param name="ret"></param>
         /// <returns></returns>
-        public DateTime ParseDateTimeString(string str, AtomElementType atype)
+        public bool TryParseDateTimeString(string str, out DateTime ret)
         {
-            DateTime ret;
             if (str.Length > 10 && str.Length < 26 && str.Substring(0, 7) == @"\/Date(")
             // 处理System.Web.Script.Serialization.JavaScriptSerializer日期时间格式,类似 \/Date(12345678)\/
             // 因为MinDateTime和MaxDateTime的十进制毫秒数是15位长度的字符串,最少是1位长度字符串,所以预期长度是11位到25位
@@ -159,19 +162,21 @@ namespace NewLife.Serialization
                 long ms;
                 if (s.Length >= 3 && s[2] == @"\/" && long.TryParse(s[1], out ms))
                 {
-                    return Settings.BaseDateTime.AddMilliseconds(ms);
+                    ret = Settings.BaseDateTime.AddMilliseconds(ms);
+                    return true;
                 }
             }
             if (DateTime.TryParseExact(str, DateTimeParseFormats, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out ret))
             {
-                return ret;
+                return true;
             }
             long ticks;
             if (long.TryParse(str, out ticks)) //dotnet中的Ticks,不建议
             {
-                return new DateTime(ticks);
+                ret = new DateTime(ticks);
+                return true;
             }
-            throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.LITERAL, AtomElementType.STRING }, atype, "期望是日期时间格式的内容,实际是" + str);
+            return false;
         }
         #endregion
 
@@ -1023,8 +1028,20 @@ namespace NewLife.Serialization
                         type = typeof(ReservedTypeClass[]);
                         break;
                     case AtomElementType.STRING:
-                        type = typeof(string); //这里会忽略DateTime类型
-                        break;
+                        str = ReadString();
+                        DateTime dt;
+                        if (TryParseDateTimeString(str, out dt)) //这里是硬编码,探测日期时间类型
+                        {
+                            type = typeof(DateTime);
+                            value = dt;
+                            return true;
+                        }
+                        else
+                        {
+                            type = typeof(string);
+                            value = str;
+                            return true;
+                        }
                     case AtomElementType.TRUE:
                     case AtomElementType.FALSE:
                         try
