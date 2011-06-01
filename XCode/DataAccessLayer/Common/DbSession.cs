@@ -666,21 +666,14 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region Sql日志输出
-        private static Boolean? _ShowSQL;
+        //private static Boolean? _ShowSQL;
         /// <summary>
         /// 是否输出SQL语句，默认为XCode调试开关XCode.Debug
         /// </summary>
         public static Boolean ShowSQL
         {
-            get
-            {
-                if (_ShowSQL != null) return _ShowSQL.Value;
-
-                _ShowSQL = Config.GetConfig<Boolean>("XCode.ShowSQL", DAL.Debug);
-
-                return _ShowSQL.Value;
-            }
-            set { _ShowSQL = value; }
+            get { return DAL.ShowSQL; }
+            set { DAL.ShowSQL = value; }
         }
 
         /// <summary>

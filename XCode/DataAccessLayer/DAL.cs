@@ -740,6 +740,23 @@ namespace XCode.DataAccessLayer
             set { _Debug = value; }
         }
 
+        private static Boolean? _ShowSQL;
+        /// <summary>
+        /// 是否输出SQL语句，默认为XCode调试开关XCode.Debug
+        /// </summary>
+        public static Boolean ShowSQL
+        {
+            get
+            {
+                if (_ShowSQL != null) return _ShowSQL.Value;
+
+                _ShowSQL = Config.GetConfig<Boolean>("XCode.ShowSQL", DAL.Debug);
+
+                return _ShowSQL.Value;
+            }
+            set { _ShowSQL = value; }
+        }
+
         /// <summary>
         /// 输出日志
         /// </summary>
