@@ -180,31 +180,35 @@ foreach (XField Field in Table.Fields){
 		/// <returns></returns>
 		private static String SearchWhere(String key)
 		{
-			if (String.IsNullOrEmpty(key)) return null;
-			key = key.Replace("'", "''");
-			String[] keys = key.Split(new Char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            StringBuilder sb = new StringBuilder();
+            sb.Append("1=1");
 
-			StringBuilder sb = new StringBuilder();
+            if (!String.IsNullOrEmpty(key))
+            {
+                key = key.Replace("'", "''");
+                String[] keys = key.Split(new Char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-			for (int i = 0; i < keys.Length; i++)
-			{
-				if (sb.Length > 0) sb.Append(" And ");
+                for (int i = 0; i < keys.Length; i++)
+                {
+                    if (sb.Length > 0) sb.Append(" And ");
 
-				if (keys.Length > 1) sb.Append("(");
-				Int32 n = 0;
-				foreach (FieldItem item in Meta.Fields)
-				{
-					if (item.Property.PropertyType != typeof(String)) continue;
-					// 只要前五项
-					if (++n > 5) break;
+                    if (keys.Length > 1) sb.Append("(");
+                    Int32 n = 0;
+                    foreach (FieldItem item in Meta.Fields)
+                    {
+                        if (item.Property.PropertyType != typeof(String)) continue;
+                        // 只要前五项
+                        if (++n > 5) break;
 
-					if (n > 1) sb.Append(" Or ");
-					sb.AppendFormat("{0} like '%{1}%'", Meta.FormatKeyWord(item.Name), keys[i]);
-				}
-				if (keys.Length > 1) sb.Append(")");
-			}
+                        if (n > 1) sb.Append(" Or ");
+                        sb.AppendFormat("{0} like '%{1}%'", Meta.FormatKeyWord(item.Name), keys[i]);
+                    }
+                    if (keys.Length > 1) sb.Append(")");
+                }
+            }
 
-			return sb.ToString();
+            if (sb.Length == "1=1".Length) return null;
+            return sb.ToString();
 		}
 		#endregion
 
