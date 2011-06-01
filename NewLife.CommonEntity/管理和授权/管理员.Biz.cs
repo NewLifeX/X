@@ -151,19 +151,17 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public override IMenu FindPermissionMenu(string name)
         {
-            //return Menu<TMenuEntity>.FindForPerssion(name);
+            // 优先使用当前页，除非当前页与权限名不同
+            TMenuEntity entity = Menu<TMenuEntity>.Current;
+            if (entity != null && entity.Permission == name) return entity;
+
+            // 根据权限名找
             TMenuEntity menu = Menu<TMenuEntity>.FindForPerssion(name);
-            //if (menu == null)
-            //{
-            //    //IEntity log = Menu<TMenuEntity>.CreateLog("检查权限");
-            //    //log["Remark"] = String.Format("系统中没有[{0}]的权限项", name);
-            //    //log.Save();
-            //}
+            if (menu != null) return menu;
 
             // 找不到的时候，修改当前页面
             if (menu == null)
             {
-                TMenuEntity entity = Menu<TMenuEntity>.Current;
                 if (entity != null)
                 {
                     if (entity.ResetName(name)) menu = entity;

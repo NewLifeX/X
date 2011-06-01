@@ -10,6 +10,7 @@ using NewLife.Log;
 using NewLife.Web;
 using XCode;
 using NewLife.Reflection;
+using System.Web.UI;
 
 namespace NewLife.CommonEntity
 {
@@ -152,48 +153,21 @@ namespace NewLife.CommonEntity
             {
                 if (HttpContext.Current == null || HttpContext.Current.Request == null) return null;
 
-                // 计算当前文件路径
-                String p = HttpContext.Current.Request.PhysicalPath;
-                DirectoryInfo di = new DirectoryInfo(Path.GetDirectoryName(p));
-                String fileName = Path.GetFileName(p);
-
-                // 查找所有以该文件名结尾的菜单
-                EntityList<TEntity> list = Meta.Cache.Entities;
-                list = list.FindAll(delegate(TEntity item)
+                String key = "CurrentMenu";
+                TEntity entity = HttpContext.Current.Items[key] as TEntity;
+                if (entity == null)
                 {
-                    return !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWith(fileName, StringComparison.OrdinalIgnoreCase);
-                });
-                if ((list == null || list.Count < 1) && Path.GetFileNameWithoutExtension(p).EndsWith("Form", StringComparison.OrdinalIgnoreCase))
-                {
-                    fileName = Path.GetFileNameWithoutExtension(p);
-                    fileName = fileName.Substring(0, fileName.Length - "Form".Length);
-                    fileName += Path.GetExtension(p);
-
-                    // 有可能是表单
-                    list = Meta.Cache.Entities.FindAll(delegate(TEntity item)
+                    entity = GetCurrentMenu();
+                    if (entity != null)
                     {
-                        return !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWith(fileName, StringComparison.OrdinalIgnoreCase);
-                    });
+                        // 根据页面标题，修正菜单名
+                        Page page = HttpContext.Current.Handler as Page;
+                        if (page != null && !String.IsNullOrEmpty(page.Title)) entity.ResetName(page.Title);
+                    }
+                    HttpContext.Current.Items[key] = entity;
                 }
-                if (list == null || list.Count < 1) return null;
-                if (list.Count == 1) return list[0];
 
-                // 查找所有以该文件名结尾的菜单
-                EntityList<TEntity> list2 = list.FindAll(delegate(TEntity item)
-                {
-                    return !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWith(@"/" + fileName, StringComparison.OrdinalIgnoreCase);
-                });
-                if (list2 == null || list2.Count < 1) return list[0];
-                if (list2.Count == 1) return list2[0];
-
-                // 优先全路径
-                String url = String.Format(@"../../{0}/{1}/{2}", di.Parent.Name, di.Name, fileName);
-                TEntity entity = Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
-                if (entity != null) return entity;
-
-                // 兼容旧版本
-                url = String.Format(@"../{0}/{1}", di.Name, fileName);
-                return Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
+                return entity;
             }
         }
 
@@ -204,6 +178,54 @@ namespace NewLife.CommonEntity
             {
                 return TypeResolver.GetPropertyValue(typeof(IMenu), "Current") as IMenu;
             }
+        }
+
+        static TEntity GetCurrentMenu()
+        {
+            if (HttpContext.Current == null || HttpContext.Current.Request == null) return null;
+
+            // 计算当前文件路径
+            String p = HttpContext.Current.Request.PhysicalPath;
+            DirectoryInfo di = new DirectoryInfo(Path.GetDirectoryName(p));
+            String fileName = Path.GetFileName(p);
+
+            // 查找所有以该文件名结尾的菜单
+            EntityList<TEntity> list = Meta.Cache.Entities;
+            list = list.FindAll(delegate(TEntity item)
+            {
+                return !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWith(fileName, StringComparison.OrdinalIgnoreCase);
+            });
+            if ((list == null || list.Count < 1) && Path.GetFileNameWithoutExtension(p).EndsWith("Form", StringComparison.OrdinalIgnoreCase))
+            {
+                fileName = Path.GetFileNameWithoutExtension(p);
+                fileName = fileName.Substring(0, fileName.Length - "Form".Length);
+                fileName += Path.GetExtension(p);
+
+                // 有可能是表单
+                list = Meta.Cache.Entities.FindAll(delegate(TEntity item)
+                {
+                    return !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWith(fileName, StringComparison.OrdinalIgnoreCase);
+                });
+            }
+            if (list == null || list.Count < 1) return null;
+            if (list.Count == 1) return list[0];
+
+            // 查找所有以该文件名结尾的菜单
+            EntityList<TEntity> list2 = list.FindAll(delegate(TEntity item)
+            {
+                return !String.IsNullOrEmpty(item.Url) && item.Url.Trim().EndsWith(@"/" + fileName, StringComparison.OrdinalIgnoreCase);
+            });
+            if (list2 == null || list2.Count < 1) return list[0];
+            if (list2.Count == 1) return list2[0];
+
+            // 优先全路径
+            String url = String.Format(@"../../{0}/{1}/{2}", di.Parent.Name, di.Name, fileName);
+            TEntity entity = Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
+            if (entity != null) return entity;
+
+            // 兼容旧版本
+            url = String.Format(@"../{0}/{1}", di.Name, fileName);
+            return Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
         }
         #endregion
 
@@ -394,8 +416,8 @@ namespace NewLife.CommonEntity
             if (name.Contains(@".") || name.Contains(@"/") || name.Contains(@"\")) return false;
 
             // 没有设置权限项或者权限项和名字相同时
-            //注意比较添加权限名称是否跟页面上所写Title相同（包括中文，英文）
-            //如果权限名称与页面中的Title不相同时修改权限名称为页面Title名称，疏漏可能造成日志重复写入
+            // 注意比较添加权限名称是否跟页面上所写Title相同（包括中文，英文）
+            // 如果权限名称与页面中的Title不相同时修改权限名称为页面Title名称，疏漏可能造成日志重复写入
             if (String.IsNullOrEmpty(Permission) || IsEnglish(Permission) || !String.Equals(Permission, name, StringComparison.OrdinalIgnoreCase)) Permission = name;
             if (String.IsNullOrEmpty(Name) || IsEnglish(Name)) Name = name;
 
