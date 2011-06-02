@@ -612,7 +612,9 @@ Dialog.CloseSelfDialog = function (frameElement) {
 Dialog.CloseAndRefresh = function (frameElement) {
     try {
         Dialog.CloseSelfDialog(frameElement);
-        window.frames["main"].location.reload()
+        //window.frames["main"].location.reload()
+        // 大石头 刷新本页面
+        location.reload();
     } catch (e) {
         //alert(e);
     }
