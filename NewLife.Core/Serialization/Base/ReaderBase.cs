@@ -932,6 +932,29 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Boolean ReadX(Type type, ref Object value)
         {
+            if (type == typeof(Byte[]))
+            {
+                //Int32 len = ReadInt32();
+                //if (len < 0) throw new Exception("非法数据！字节数组长度不能为负数！");
+                //value = null;
+                //if (len > 0) value = ReadBytes(len);
+                //return true;
+
+                value = ReadBytes(-1);
+                return true;
+            }
+            if (type == typeof(Char[]))
+            {
+                //Int32 len = ReadInt32();
+                //if (len < 0) throw new Exception("非法数据！字符数组长度不能为负数！");
+                //value = null;
+                //if (len > 0) value = ReadChars(len);
+                //return true;
+
+                value = ReadChars(-1);
+                return true;
+            }
+
             if (type == typeof(Guid))
             {
                 value = ReadGuid();

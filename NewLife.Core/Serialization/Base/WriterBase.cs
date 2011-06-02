@@ -665,6 +665,17 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected virtual Boolean WriteX(Object value, Type type)
         {
+            if (type == typeof(Byte[]))
+            {
+                Write((Byte[])value);
+                return true;
+            }
+            if (type == typeof(Char[]))
+            {
+                Write((Char[])value);
+                return true;
+            }
+
             //! 所有扩展类型的写入，分为Write和OnWrite两部分，Write供外部独立调用，单独提供对象应用，而OnWrite不写对象引用
             if (type == typeof(Guid))
             {
