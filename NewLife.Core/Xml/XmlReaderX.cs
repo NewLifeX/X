@@ -65,82 +65,7 @@ namespace NewLife.Xml
         #endregion
 
         #region 基础元数据
-        //#region 字节
-        ///// <summary>
-        ///// 从当前流中读取下一个字节，并使流的当前位置提升 1 个字节。
-        ///// </summary>
-        ///// <returns></returns>
-        //public override byte ReadByte() { return ReadBytes(1)[0]; }
-
-        ///// <summary>
-        ///// 从当前流中将 count 个字节读入字节数组，并使当前位置提升 count 个字节。
-        ///// </summary>
-        ///// <param name="count">要读取的字节数。</param>
-        ///// <returns></returns>
-        //public override byte[] ReadBytes(int count)
-        //{
-        //    if (count <= 0) return null;
-
-        //    Byte[] buffer = new Byte[count];
-        //    Int32 n = Reader.ReadContentAsBase64(buffer, 0, count);
-
-        //    if (n == count) return buffer;
-
-        //    Byte[] data = new Byte[n];
-        //    Buffer.BlockCopy(buffer, 0, data, 0, n);
-
-        //    return data;
-        //}
-        //#endregion
-
-        //#region 有符号整数
-        ///// <summary>
-        ///// 从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。
-        ///// </summary>
-        ///// <returns></returns>
-        //public override short ReadInt16() { return (Int16)ReadInt32(); }
-
-        ///// <summary>
-        ///// 从当前流中读取 4 字节有符号整数，并使流的当前位置提升 4 个字节。
-        ///// </summary>
-        ///// <returns></returns>
-        //public override int ReadInt32() { return Reader.ReadContentAsInt(); }
-
-        ///// <summary>
-        ///// 从当前流中读取 8 字节有符号整数，并使流的当前位置向前移动 8 个字节。
-        ///// </summary>
-        ///// <returns></returns>
-        //public override long ReadInt64() { return Reader.ReadContentAsLong(); }
-        //#endregion
-
-        //#region 浮点数
-        ///// <summary>
-        ///// 从当前流中读取 4 字节浮点值，并使流的当前位置提升 4 个字节。
-        ///// </summary>
-        ///// <returns></returns>
-        //public override float ReadSingle() { return Reader.ReadContentAsFloat(); }
-
-        ///// <summary>
-        ///// 从当前流中读取 8 字节浮点值，并使流的当前位置提升 8 个字节。
-        ///// </summary>
-        ///// <returns></returns>
-        //public override double ReadDouble() { return Reader.ReadContentAsDouble(); }
-        //#endregion
-
         #region 字符串
-        ///// <summary>
-        ///// 从当前流中读取 count 个字符，以字符数组的形式返回数据，并根据所使用的 Encoding 和从流中读取的特定字符，提升当前位置。
-        ///// </summary>
-        ///// <param name="count">要读取的字符数。</param>
-        ///// <returns></returns>
-        //public override char[] ReadChars(int count)
-        //{
-        //    String str = ReadString();
-        //    if (str == null) return null;
-
-        //    return str.ToCharArray();
-        //}
-
         /// <summary>
         /// 从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。
         /// </summary>
@@ -152,26 +77,6 @@ namespace NewLife.Xml
             return str;
         }
         #endregion
-
-        //#region 其它
-        ///// <summary>
-        ///// 从当前流中读取 Boolean 值，并使该流的当前位置提升 1 个字节。
-        ///// </summary>
-        ///// <returns></returns>
-        //public override bool ReadBoolean() { return Reader.ReadContentAsBoolean(); }
-
-        ///// <summary>
-        ///// 从当前流中读取十进制数值，并将该流的当前位置提升十六个字节。
-        ///// </summary>
-        ///// <returns></returns>
-        //public override decimal ReadDecimal() { return Reader.ReadContentAsDecimal(); }
-
-        ///// <summary>
-        ///// 读取一个时间日期
-        ///// </summary>
-        ///// <returns></returns>
-        //public override DateTime ReadDateTime() { return Reader.ReadContentAsDateTime(); }
-        //#endregion
         #endregion
 
         #region 扩展类型
@@ -202,26 +107,6 @@ namespace NewLife.Xml
             return base.ReadDictionary(type, ref value, callback);
         }
 
-        ///// <summary>
-        ///// 读取字典项集合，以读取键值失败作为读完字典项的标识，子类可以重载实现以字典项数量来读取
-        ///// </summary>
-        ///// <param name="keyType">键类型</param>
-        ///// <param name="valueType">值类型</param>
-        ///// <param name="count">元素个数</param>
-        ///// <param name="callback">处理元素的方法</param>
-        ///// <returns>字典项集合</returns>
-        //protected override IEnumerable<DictionaryEntry> ReadDictionary(Type keyType, Type valueType, int count, ReadObjectCallback callback)
-        //{
-        //    Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
-        //    Reader.ReadStartElement();
-
-        //    IEnumerable<DictionaryEntry> rs = base.ReadDictionary(keyType, valueType, count, callback);
-
-        //    if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
-
-        //    return rs;
-        //}
-
         /// <summary>
         /// 读取字典项
         /// </summary>
@@ -238,38 +123,20 @@ namespace NewLife.Xml
             Object key = null;
             Object val = null;
 
-            Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
+            //Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
             // <Item>
             Reader.ReadStartElement();
 
-            Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
+            //Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
             // <Key>
-            //if (keyType == null)
-            //{
-            //    if (Reader.MoveToAttribute("Type"))
-            //    {
-            //        WriteLog("ReadKeyType");
-            //        keyType = ReadType();
-            //        WriteLog("ReadKeyType", keyType.Name);
-            //    }
-            //}
             keyType = CheckAndReadType("ReadKeyType", keyType, value.Key);
             Reader.ReadStartElement();
             if (!ReadObject(keyType, ref key)) return false;
             // </Key>
             if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
-            Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
+            //Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
             // <Value>
-            //if (valueType == null)
-            //{
-            //    if (Reader.MoveToAttribute("Type"))
-            //    {
-            //        WriteLog("ReadValueType");
-            //        valueType = ReadType();
-            //        WriteLog("ReadValueType", valueType.Name);
-            //    }
-            //}
             valueType = CheckAndReadType("ReadValueType", valueType, value.Value);
             Reader.ReadStartElement();
             if (!ReadObject(valueType, ref val)) return false;
@@ -371,26 +238,6 @@ namespace NewLife.Xml
             return base.ReadEnumerable(type, ref value, callback);
         }
 
-        ///// <summary>
-        ///// 读取元素集合
-        ///// </summary>
-        ///// <param name="type"></param>
-        ///// <param name="elementType"></param>
-        ///// <param name="count">元素个数</param>
-        ///// <param name="callback">处理元素的方法</param>
-        ///// <returns></returns>
-        //protected override IEnumerable ReadItems(Type type, Type elementType, Int32 count, ReadObjectCallback callback)
-        //{
-        //    Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
-        //    Reader.ReadStartElement();
-
-        //    IEnumerable rs = base.ReadItems(type, elementType, count, callback);
-
-        //    if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
-
-        //    return rs;
-        //}
-
         /// <summary>
         /// 读取项
         /// </summary>
@@ -414,15 +261,6 @@ namespace NewLife.Xml
                 return false;
             if (SkipEmpty()) return true;
 
-            //if (type == null)
-            //{
-            //    if (Reader.MoveToAttribute("Type"))
-            //    {
-            //        WriteLog("ReadItemType");
-            //        type = ReadType();
-            //        WriteLog("ReadItemType", type.Name);
-            //    }
-            //}
             type = CheckAndReadType("ReadItemType", type, value);
             Reader.ReadStartElement();
 
@@ -464,65 +302,6 @@ namespace NewLife.Xml
 
             return rs;
         }
-
-        ///// <summary>
-        ///// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
-        ///// </summary>
-        ///// <param name="type">要读取的对象类型</param>
-        ///// <param name="value">要读取的对象</param>
-        ///// <param name="callback">处理成员的方法</param>
-        ///// <returns>是否读取成功</returns>
-        //public override Boolean ReadCustomObject(Type type, ref Object value, ReadObjectCallback callback)
-        //{
-        //    // 如果是属性，使用基类就足够了
-        //    if (Settings.MemberAsAttribute) return base.ReadCustomObject(type, ref value, callback);
-
-        //    IObjectMemberInfo[] mis = GetMembers(type, value);
-        //    if (mis == null || mis.Length < 1) return true;
-
-        //    Dictionary<String, IObjectMemberInfo> dic = new Dictionary<string, IObjectMemberInfo>();
-        //    foreach (IObjectMemberInfo item in mis)
-        //    {
-        //        if (!dic.ContainsKey(item.Name)) dic.Add(item.Name, item);
-        //    }
-
-        //    // 如果为空，实例化并赋值。
-        //    if (value == null) value = TypeX.CreateInstance(type);
-
-        //    // 当前节点名
-        //    String name = Reader.Name;
-
-        //    Reader.ReadStartElement();
-        //    //while (Reader.Read() && Reader.NodeType == XmlNodeType.Element)
-        //    Int32 index = 0;
-        //    while (!(Reader.NodeType == XmlNodeType.EndElement && Reader.Name == name))
-        //    {
-        //        //Reader.ReadStartElement();
-
-        //        if (Reader.IsEmptyElement)
-        //        {
-        //            Reader.Read();
-        //            continue;
-        //        }
-
-        //        if (!dic.ContainsKey(Reader.Name))
-        //        {
-        //            Reader.ReadEndElement();
-        //            continue;
-        //        }
-
-        //        Depth++;
-        //        IObjectMemberInfo member = dic[Reader.Name];
-        //        Debug("ReadMember", member.Name, member.Type.Name);
-
-        //        if (!ReadMember(ref value, member, index++, callback)) return false;
-        //        Depth--;
-
-        //        //if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
-        //    }
-
-        //    return true;
-        //}
 
         /// <summary>
         /// 读取成员之前获取要读取的成员，默认是index处的成员，实现者可以重载，改变当前要读取的成员，如果当前成员不在数组里面，则实现者自己跳到下一个可读成员。
@@ -681,7 +460,6 @@ namespace NewLife.Xml
         #endregion
 
         #region 辅助方法
-
         static void ArrEnum(Array arr, Action<Int32[]> func, Object value)
         {
             Int32[] ix = new Int32[arr.Rank];
