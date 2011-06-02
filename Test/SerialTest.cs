@@ -193,81 +193,81 @@ namespace Test
         static Administrator GetDemo()
         {
             Admin entity = new Admin();
-            entity.ID = 123;
-            entity.Name = "nnhy";
-            entity.DisplayName = "大石头";
-            entity.Logins = 65535;
-            entity.LastLogin = DateTime.Now;
-            entity.SSOUserID = 555;
-            entity.float1 = 1.3F;
-            entity.Double1 = 1.34;
-            entity.Decimal1 = 12.3M;
-            entity.Byte1 = 12;
-            Byte[] b = { 0, 2, 35 };
-            entity.Byte2 = b;
-            Char[] a = { 'a', 'b', 'c' };
-            entity.Char1 = a;
-            entity.Char0 = a[1];
+            //entity.ID = 123;
+            //entity.Name = "nnhy";
+            //entity.DisplayName = "大石头";
+            //entity.Logins = 65535;
+            //entity.LastLogin = DateTime.Now;
+            //entity.SSOUserID = 555;
+            //entity.float1 = 1.3F;
+            //entity.Double1 = 1.34;
+            //entity.Decimal1 = 12.3M;
+            //entity.Byte1 = 12;
+            //Byte[] b = { 0, 2, 35 };
+            //entity.Byte2 = b;
+            //Char[] a = { 'a', 'b', 'c' };
+            //entity.Char1 = a;
+            //entity.Char0 = a[1];
 
-            entity.Color = ConsoleColor.Red;
-            entity.Color2 = (ColorEnum)10;
+            //entity.Color = ConsoleColor.Red;
+            //entity.Color2 = (ColorEnum)10;
 
-            Department dp = new Department();
-            dp.ID = 1;
-            dp.Name = "部门一";
+            //Department dp = new Department();
+            //dp.ID = 1;
+            //dp.Name = "部门一";
 
-            Department dp2 = new Department();
-            dp2.ID = 2;
-            dp2.Name = "部门二";
+            //Department dp2 = new Department();
+            //dp2.ID = 2;
+            //dp2.Name = "部门二";
 
-            Hashtable ht = new Hashtable();
-            ht.Add("cc", "哈希1");
-            ht.Add("dd", dp);
-            entity.Hashtable1 = ht;
+            //Hashtable ht = new Hashtable();
+            //ht.Add("cc", "哈希1");
+            //ht.Add("dd", dp);
+            //entity.Hashtable1 = ht;
 
-            entity.Obj = dp2;
+            //entity.Obj = dp2;
 
-            entity.DP1 = dp;
-            entity.DP2 = dp2;
-            entity.DP3 = dp;
+            //entity.DP1 = dp;
+            //entity.DP2 = dp2;
+            //entity.DP3 = dp;
 
-            entity.DPS = new Department[] { dp, dp2, dp };
-            entity.DPS2 = new Department[][] { new Department[] { dp, dp2, dp }, new Department[] { dp2, dp2, dp } };
-            //entity.DPS3 = new Department[2, 2] { { dp, dp2 }, { dp2, dp } };
+            //entity.DPS = new Department[] { dp, dp2, dp };
+            //entity.DPS2 = new Department[][] { new Department[] { dp, dp2, dp }, new Department[] { dp2, dp2, dp } };
+            ////entity.DPS3 = new Department[2, 2] { { dp, dp2 }, { dp2, dp } };
 
-            entity.LPS = new List<Department>(entity.DPS);
+            //entity.LPS = new List<Department>(entity.DPS);
 
-            entity.PPS = new Dictionary<string, Department>();
-            entity.PPS.Add("aa", dp);
-            entity.PPS.Add("bb", dp2);
+            //entity.PPS = new Dictionary<string, Department>();
+            //entity.PPS.Add("aa", dp);
+            //entity.PPS.Add("bb", dp2);
 
-            entity.SPS = new SortedList<string, Department>(entity.PPS);
+            //entity.SPS = new SortedList<string, Department>(entity.PPS);
 
 
-            DataTable dt = new DataTable("TestTable");
-            DataColumn dc1 = new DataColumn("Name", typeof(String));
-            DataColumn dc2 = new DataColumn("Grade", typeof(Int32));
+            //DataTable dt = new DataTable("TestTable");
+            //DataColumn dc1 = new DataColumn("Name", typeof(String));
+            //DataColumn dc2 = new DataColumn("Grade", typeof(Int32));
 
-            dt.Columns.AddRange(new DataColumn[] { dc1, dc2 });
+            //dt.Columns.AddRange(new DataColumn[] { dc1, dc2 });
 
-            DataRow dr1 = dt.NewRow();
-            dr1[0] = "hehe"; dr1[1] = 1111;
+            //DataRow dr1 = dt.NewRow();
+            //dr1[0] = "hehe"; dr1[1] = 1111;
 
-            DataRow dr2 = dt.NewRow();
-            dr2[0] = "呵呵"; dr2[1] = 2222;
+            //DataRow dr2 = dt.NewRow();
+            //dr2[0] = "呵呵"; dr2[1] = 2222;
 
-            dt.Rows.Add(dr1); dt.Rows.Add(dr2);
-            dt.AcceptChanges();
+            //dt.Rows.Add(dr1); dt.Rows.Add(dr2);
+            //dt.AcceptChanges();
             //entity.Table1 = dt;
 
-            entity.AdminB = entity;
-            entity.IAdmin = entity;
+            //entity.AdminB = entity;
+            //entity.IAdmin = entity;
 
-            List<IAdministrator> list = new List<IAdministrator>();
-            list.Add(entity);
-            list.Add(entity);
-            list.Add(entity);
-            entity.IAdmins = list;
+            //List<IAdministrator> list = new List<IAdministrator>();
+            //list.Add(entity);
+            //list.Add(entity);
+            //list.Add(entity);
+            //entity.IAdmins = list;
 
             return entity;
         }
