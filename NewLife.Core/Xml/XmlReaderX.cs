@@ -456,7 +456,7 @@ namespace NewLife.Xml
             Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
             Reader.ReadStartElement();
 
-            type = CheckAndReadType("ReadObjectType", type, value);
+            //type = CheckAndReadType("ReadObjectType", type, value);
 
             Boolean rs = base.OnReadObject(type, ref value, callback);
 

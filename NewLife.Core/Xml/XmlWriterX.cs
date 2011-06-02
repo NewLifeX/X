@@ -68,106 +68,7 @@ namespace NewLife.Xml
         #endregion
 
         #region 基础元数据
-        //#region 字节
-        ///// <summary>
-        ///// 将一个无符号字节写入
-        ///// </summary>
-        ///// <param name="value">要写入的无符号字节。</param>
-        //public override void Write(Byte value)
-        //{
-        //    Write(new Byte[] { value }, 0, 1);
-        //}
-
-        ///// <summary>
-        ///// 将字节数组部分写入当前流。
-        ///// </summary>
-        ///// <param name="buffer">包含要写入的数据的字节数组。</param>
-        ///// <param name="index">buffer 中开始写入的起始点。</param>
-        ///// <param name="count">要写入的字节数。</param>
-        //public override void Write(byte[] buffer, int index, int count)
-        //{
-        //    if (buffer == null || buffer.Length < 1 || count <= 0 || index >= buffer.Length) return;
-
-        //    Writer.WriteBase64(buffer, index, count);
-
-        //    AutoFlush();
-        //}
-        //#endregion
-
-        //#region 有符号整数
-        ///// <summary>
-        ///// 将 2 字节有符号整数写入当前流，并将流的位置提升 2 个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的 2 字节有符号整数。</param>
-        //public override void Write(short value)
-        //{
-        //    Writer.WriteValue(value);
-        //    AutoFlush();
-        //}
-
-        ///// <summary>
-        ///// 将 4 字节有符号整数写入当前流，并将流的位置提升 4 个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的 4 字节有符号整数。</param>
-        //public override void Write(int value)
-        //{
-        //    Writer.WriteValue(value);
-        //    AutoFlush();
-        //}
-
-        ///// <summary>
-        ///// 将 8 字节有符号整数写入当前流，并将流的位置提升 8 个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的 8 字节有符号整数。</param>
-        //public override void Write(long value)
-        //{
-        //    Writer.WriteValue(value);
-        //    AutoFlush();
-        //}
-        //#endregion
-
-        //#region 浮点数
-        ///// <summary>
-        ///// 将 4 字节浮点值写入当前流，并将流的位置提升 4 个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的 4 字节浮点值。</param>
-        //public override void Write(float value)
-        //{
-        //    Writer.WriteValue(value);
-        //    AutoFlush();
-        //}
-
-        ///// <summary>
-        ///// 将 8 字节浮点值写入当前流，并将流的位置提升 8 个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的 8 字节浮点值。</param>
-        //public override void Write(double value)
-        //{
-        //    Writer.WriteValue(value);
-        //    AutoFlush();
-        //}
-        //#endregion
-
         #region 字符串
-        ///// <summary>
-        ///// 将字符数组部分写入当前流，并根据所使用的 Encoding（可能还根据向流中写入的特定字符），提升流的当前位置。
-        ///// </summary>
-        ///// <param name="chars">包含要写入的数据的字符数组。</param>
-        ///// <param name="index">chars 中开始写入的起始点。</param>
-        ///// <param name="count">要写入的字符数。</param>
-        //public override void Write(char[] chars, int index, int count)
-        //{
-        //    if (chars == null || chars.Length < 1 || count <= 0 || index >= chars.Length)
-        //    {
-        //        //Write(0);
-        //        return;
-        //    }
-
-        //    Writer.WriteChars(chars, index, count);
-
-        //    AutoFlush();
-        //}
-
         /// <summary>
         /// 写入字符串
         /// </summary>
@@ -179,38 +80,6 @@ namespace NewLife.Xml
             AutoFlush();
         }
         #endregion
-
-        //#region 其它
-        ///// <summary>
-        ///// 将单字节 Boolean 值写入
-        ///// </summary>
-        ///// <param name="value">要写入的 Boolean 值</param>
-        //public override void Write(Boolean value)
-        //{
-        //    Writer.WriteValue(value);
-        //    AutoFlush();
-        //}
-
-        ///// <summary>
-        ///// 将一个十进制值写入当前流，并将流位置提升十六个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的十进制值。</param>
-        //public override void Write(decimal value)
-        //{
-        //    Writer.WriteValue(value);
-        //    AutoFlush();
-        //}
-
-        ///// <summary>
-        ///// 将一个时间日期写入
-        ///// </summary>
-        ///// <param name="value"></param>
-        //public override void Write(DateTime value)
-        //{
-        //    Writer.WriteValue(value);
-        //    AutoFlush();
-        //}
-        //#endregion
         #endregion
 
         #region 扩展类型
@@ -240,23 +109,19 @@ namespace NewLife.Xml
             // 如果无法取得字典项类型，则每个键值都单独写入类型
             Writer.WriteStartElement("Item");
 
-            Writer.WriteStartElement("Key");
-            //if (keyType == null && value.Key != null)
-            //{
-            //    Writer.WriteAttributeString("Type", value.Key.GetType().FullName);
-            //}
-            keyType = CheckAndWriteType("WriteKeyType", value.Key, keyType);
-            if (!WriteObject(value.Key, keyType, callback)) return false;
-            Writer.WriteEndElement();
+            {
+                Writer.WriteStartElement("Key");
+                keyType = CheckAndWriteType("WriteKeyType", value.Key, keyType);
+                if (!WriteObject(value.Key, keyType, callback)) return false;
+                Writer.WriteEndElement();
+            }
 
-            Writer.WriteStartElement("Value");
-            //if (valueType == null && value.Value != null)
-            //{
-            //    Writer.WriteAttributeString("Type", value.Value.GetType().FullName);
-            //}
-            valueType = CheckAndWriteType("WriteValueType", value.Value, valueType);
-            if (!WriteObject(value.Value, valueType, callback)) return false;
-            Writer.WriteEndElement();
+            {
+                Writer.WriteStartElement("Value");
+                valueType = CheckAndWriteType("WriteValueType", value.Value, valueType);
+                if (!WriteObject(value.Value, valueType, callback)) return false;
+                Writer.WriteEndElement();
+            }
 
             Writer.WriteEndElement();
 
@@ -377,9 +242,10 @@ namespace NewLife.Xml
         {
             if (Depth > 1) return base.OnWriteObject(value, type, callback);
 
-            if (type == null && value != null) type = value.GetType();
+            Type t = type;
+            if (t == null && value != null) t = value.GetType();
             String name = null;
-            if (type != null) name = type.Name;
+            if (t != null) name = t.Name;
 
             if (String.IsNullOrEmpty(RootName)) RootName = name;
 
@@ -423,26 +289,8 @@ namespace NewLife.Xml
 
             AutoFlush();
 
-            //if (type == typeof(Object))
-            //{
-            //    Object obj = member[value];
-            //    if (obj != null)
-            //    {
-            //        type = obj.GetType();
-            //        Writer.WriteAttributeString("Type", obj.GetType().FullName);
-            //    }
-            //}
-
-            //AutoFlush();
-
             Boolean rs = base.OnWriteMember(value, type, member, index, callback);
 
-            //AutoFlush();
-
-            //if (MemberAsAttribute)
-            //    Writer.WriteEndAttribute();
-            //else
-            //    Writer.WriteEndElement();
             if (!Settings.MemberAsAttribute) Writer.WriteEndElement();
 
             AutoFlush();
@@ -472,14 +320,18 @@ namespace NewLife.Xml
         /// <returns>是否写入成功</returns>
         public override bool WriteUnKnown(object value, Type type, WriteObjectCallback callback)
         {
-            //TODO 请使用XmlSerialization处理这里
             try
             {
                 WriteLog("WriteUnKnown", type.Name);
                 XmlSerializer serial = new XmlSerializer(type);
-                Stream = new TraceStream();
-                AutoFlush();
-                serial.Serialize(Stream, value);
+                //Stream = new TraceStream();
+                MemoryStream ms = new MemoryStream();
+                //AutoFlush();
+                serial.Serialize(ms, value);
+
+                String xml = Encoding.UTF8.GetString(ms.ToArray());
+                Write(xml);
+
                 return true;
             }
             catch
@@ -530,6 +382,5 @@ namespace NewLife.Xml
             }
         }
         #endregion
-
     }
 }

@@ -301,43 +301,6 @@ namespace NewLife.Serialization
 
             return false;
         }
-
-        ///// <summary>
-        ///// 写入结构体
-        ///// </summary>
-        ///// <param name="value"></param>
-        ///// <returns>是否写入成功</returns>
-        //public Int32 WriteStruct(ValueType value)
-        //{
-        //    if (value == null) return 0;
-
-        //    Type type = value.GetType();
-        //    if (type.IsGenericType) return 0;
-
-        //    Int32 len = Marshal.SizeOf(type);
-
-        //    // 分配全局内存，一并写入
-        //    IntPtr p = Marshal.AllocHGlobal(len);
-        //    try
-        //    {
-        //        Marshal.StructureToPtr(value, p, true);
-
-        //        Byte[] buffer = new Byte[len];
-        //        Marshal.Copy(p, buffer, 0, buffer.Length);
-
-        //        Write(buffer, 0, buffer.Length);
-
-        //        return buffer.Length;
-        //    }
-        //    catch
-        //    {
-        //        return 0;
-        //    }
-        //    finally
-        //    {
-        //        Marshal.DestroyStructure(p, type);
-        //    }
-        //}
         #endregion
 
         #region 字典
@@ -447,19 +410,9 @@ namespace NewLife.Serialization
         protected virtual Boolean OnWriteKeyValue(DictionaryEntry value, Type keyType, Type valueType, Int32 index, WriteObjectCallback callback)
         {
             // 如果无法取得字典项类型，则每个键值都单独写入类型
-            //if (keyType == null && value.Key != null)
-            //{
-            //    WriteLog("WriteKeyType", value.Key.GetType().Name);
-            //    Write(value.Key.GetType());
-            //}
             keyType = CheckAndWriteType("WriteKeyType", value.Key, keyType);
             if (!WriteObject(value.Key, keyType, callback)) return false;
 
-            //if (valueType == null && value.Value != null)
-            //{
-            //    WriteLog("WriteValueType", value.Value.GetType().Name);
-            //    Write(value.Value.GetType());
-            //}
             valueType = CheckAndWriteType("WriteValueType", value.Value, valueType);
             if (!WriteObject(value.Value, valueType, callback)) return false;
 
@@ -605,11 +558,6 @@ namespace NewLife.Serialization
         protected virtual Boolean OnWriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
             // 如果无法取得元素类型，则每个元素都单独写入类型
-            //if ((type == null || type == typeof(object)) && value != null)
-            //{
-            //    WriteLog("WriteItemType", value.GetType().Name);
-            //    Write(value.GetType());
-            //}
             type = CheckAndWriteType("WriteItemType", value, type);
             return WriteObject(value, type, callback);
         }
