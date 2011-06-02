@@ -962,9 +962,9 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public virtual Guid ReadGuid()
         {
-            //return new Guid(ReadBytes(16));
+            return new Guid(ReadBytes(16));
 
-            return ReadObjRef<Guid>(delegate { return new Guid(ReadBytes(16)); });
+            //return ReadObjRef<Guid>(delegate { return new Guid(ReadBytes(16)); });
         }
 
         /// <summary>
@@ -977,13 +977,13 @@ namespace NewLife.Serialization
             //Int32 index = 0;
             //if (ReadObjRef(typeof(IPAddress), ref obj, out index)) return obj as IPAddress;
 
-            //Byte[] buffer = ReadBytes(-1);
+            Byte[] buffer = ReadBytes(-1);
 
-            //IPAddress address = new IPAddress(buffer);
+            IPAddress address = new IPAddress(buffer);
             //AddObjRef(index, address);
-            //return address;
+            return address;
 
-            return ReadObjRef<IPAddress>(delegate { return new IPAddress(ReadBytes(-1)); });
+            //return ReadObjRef<IPAddress>(delegate { return new IPAddress(ReadBytes(-1)); });
         }
 
         /// <summary>
@@ -995,22 +995,22 @@ namespace NewLife.Serialization
             ////if (ReadByte() == 0) return null;
             ////BaseStream.Seek(-1, SeekOrigin.Current);
 
-            //IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
-            //ep.Address = ReadIPAddress();
-            ////// 端口实际只占2字节
-            ////ep.Port = ReadUInt16();
-            //ep.Port = ReadInt32();
-            //return ep;
+            IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
+            ep.Address = ReadIPAddress();
+            //// 端口实际只占2字节
+            //ep.Port = ReadUInt16();
+            ep.Port = ReadInt32();
+            return ep;
 
-            return ReadObjRef<IPEndPoint>(delegate
-            {
-                IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
-                ep.Address = ReadIPAddress();
-                //// 端口实际只占2字节
-                //ep.Port = ReadUInt16();
-                ep.Port = ReadInt32();
-                return ep;
-            });
+            //return ReadObjRef<IPEndPoint>(delegate
+            //{
+            //    IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
+            //    ep.Address = ReadIPAddress();
+            //    //// 端口实际只占2字节
+            //    //ep.Port = ReadUInt16();
+            //    ep.Port = ReadInt32();
+            //    return ep;
+            //});
         }
 
         /// <summary>

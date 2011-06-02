@@ -13,6 +13,7 @@ using NewLife.Xml;
 using System.Text;
 using System.IO;
 using System.Data;
+using System.Net;
 
 namespace Test
 {
@@ -364,6 +365,30 @@ namespace Test
             {
                 get { return _Color2; }
                 set { _Color2 = value; }
+            }
+
+            private Guid _GUID = Guid.NewGuid();
+            /// <summary>属性说明</summary>
+            public Guid GUID
+            {
+                get { return _GUID; }
+                set { _GUID = value; }
+            }
+
+            private IPAddress _IPAddress = IPAddress.Parse("192.168.1.99");
+            /// <summary>属性说明</summary>
+            public IPAddress Address
+            {
+                get { return _IPAddress; }
+                set { _IPAddress = value; }
+            }
+
+            private IPEndPoint _EP = new IPEndPoint(IPAddress.Parse("192.168.1.77"), 8888);
+            /// <summary>属性说明</summary>
+            public IPEndPoint EP
+            {
+                get { return _EP; }
+                set { _EP = value; }
             }
 
             private Department _DP1;

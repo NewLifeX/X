@@ -695,19 +695,21 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public virtual void Write(Guid value)
         {
-            if (WriteObjRef(value)) return;
+            //if (WriteObjRef(value)) return;
 
-            OnWrite(value);
-        }
+            //OnWrite(value);
 
-        /// <summary>
-        /// 写入Guid
-        /// </summary>
-        /// <param name="value"></param>
-        protected virtual void OnWrite(Guid value)
-        {
             Write(((Guid)value).ToByteArray(), -1);
         }
+
+        ///// <summary>
+        ///// 写入Guid
+        ///// </summary>
+        ///// <param name="value"></param>
+        //protected virtual void OnWrite(Guid value)
+        //{
+        //    Write(((Guid)value).ToByteArray(), -1);
+        //}
 
         /// <summary>
         /// 写入IPAddress
@@ -716,8 +718,8 @@ namespace NewLife.Serialization
         public virtual void Write(IPAddress value)
         {
             Byte[] buffer = (value as IPAddress).GetAddressBytes();
-            //Write(buffer.Length);
-            Write(buffer, -1);
+            Write(buffer);
+            //Write(buffer, -1);
         }
 
         /// <summary>
