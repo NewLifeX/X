@@ -291,10 +291,10 @@ namespace NewLife.Xml
             while (Reader.NodeType != XmlNodeType.Element) { if (!Reader.Read())return false; }
             if (String.IsNullOrEmpty(RootName)) RootName = Reader.Name;
 
+            type = CheckAndReadType("ReadObjectType", type, value);
+
             Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
             Reader.ReadStartElement();
-
-            //type = CheckAndReadType("ReadObjectType", type, value);
 
             Boolean rs = base.OnReadObject(type, ref value, callback);
 
