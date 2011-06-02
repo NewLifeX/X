@@ -957,22 +957,22 @@ namespace NewLife.Serialization
 
             if (type == typeof(Guid))
             {
-                value = ReadGuid();
+                value = OnReadGuid();
                 return true;
             }
             if (type == typeof(IPAddress))
             {
-                value = ReadIPAddress();
+                value = OnReadIPAddress();
                 return true;
             }
             if (type == typeof(IPEndPoint))
             {
-                value = ReadIPEndPoint();
+                value = OnReadIPEndPoint();
                 return true;
             }
             if (typeof(Type).IsAssignableFrom(type))
             {
-                value = ReadType();
+                value = OnReadType();
                 return true;
             }
 
@@ -1237,11 +1237,12 @@ namespace NewLife.Serialization
                 Int32 index = 0;
                 if (ReadObjRef(type, ref value, out index)) return true;
 
+                // 读取引用对象
+                objRefIndex = index;
+
                 // 特殊类型
                 if (ReadX(type, ref value)) return true;
 
-                // 读取引用对象
-                objRefIndex = index;
                 if (!ReadRefObject(type, ref value, callback)) return false;
 
                 if (value != null) AddObjRef(index, value);
