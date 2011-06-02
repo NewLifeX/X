@@ -824,27 +824,6 @@ namespace NewLife.Serialization
         }
 
         /// <summary>
-        /// 获取精确类型
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        protected Type GetExactType(Object value, Type type)
-        {
-            if (type == null && value == null) return null;
-
-            if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
-            {
-                //! 有可能是接口或Object类型，然后值也是null，这种情况建议写对象引用时用0
-                //if (value == null) return null;
-
-                type = value.GetType();
-            }
-
-            return type;
-        }
-
-        /// <summary>
         /// 检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。同时返回对象实际类型。
         /// </summary>
         /// <param name="action"></param>

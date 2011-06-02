@@ -152,7 +152,7 @@ namespace NewLife.Serialization
         /// 读取Guid
         /// </summary>
         /// <returns></returns>
-        public override Guid ReadGuid()
+        protected override Guid OnReadGuid()
         {
             return new Guid(ReadString());
         }
@@ -161,7 +161,7 @@ namespace NewLife.Serialization
         /// 读取IPAddress
         /// </summary>
         /// <returns></returns>
-        public override IPAddress ReadIPAddress()
+        protected override IPAddress OnReadIPAddress()
         {
             //return base.ReadIPAddress();
 
@@ -175,7 +175,7 @@ namespace NewLife.Serialization
         /// 读取IPEndPoint
         /// </summary>
         /// <returns></returns>
-        public override IPEndPoint ReadIPEndPoint()
+        protected override IPEndPoint OnReadIPEndPoint()
         {
             //return base.ReadIPEndPoint();
 

@@ -962,9 +962,18 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public virtual Guid ReadGuid()
         {
-            return new Guid(ReadBytes(16));
+            //return new Guid(ReadBytes(16));
 
-            //return ReadObjRef<Guid>(delegate { return new Guid(ReadBytes(16)); });
+            return ReadObjRef<Guid>(OnReadGuid);
+        }
+
+        /// <summary>
+        /// 读取Guid
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Guid OnReadGuid()
+        {
+            return new Guid(ReadBytes(16));
         }
 
         /// <summary>
@@ -973,17 +982,26 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public virtual IPAddress ReadIPAddress()
         {
-            //Object obj = null;
-            //Int32 index = 0;
-            //if (ReadObjRef(typeof(IPAddress), ref obj, out index)) return obj as IPAddress;
+            //Byte[] buffer = ReadBytes(-1);
 
+            //IPAddress address = new IPAddress(buffer);
+            ////AddObjRef(index, address);
+            //return address;
+
+            return ReadObjRef<IPAddress>(OnReadIPAddress);
+        }
+
+        /// <summary>
+        /// 读取IPAddress
+        /// </summary>
+        /// <returns></returns>
+        protected virtual IPAddress OnReadIPAddress()
+        {
             Byte[] buffer = ReadBytes(-1);
 
             IPAddress address = new IPAddress(buffer);
             //AddObjRef(index, address);
             return address;
-
-            //return ReadObjRef<IPAddress>(delegate { return new IPAddress(ReadBytes(-1)); });
         }
 
         /// <summary>
@@ -992,25 +1010,27 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public virtual IPEndPoint ReadIPEndPoint()
         {
-            ////if (ReadByte() == 0) return null;
-            ////BaseStream.Seek(-1, SeekOrigin.Current);
+            //IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
+            //ep.Address = ReadIPAddress();
+            ////// 端口实际只占2字节
+            ////ep.Port = ReadUInt16();
+            //ep.Port = ReadInt32();
+            //return ep;
 
+            return ReadObjRef<IPEndPoint>(OnReadIPEndPoint);
+        }
+
+        /// <summary>
+        /// 读取IPEndPoint
+        /// </summary>
+        /// <returns></returns>
+        protected virtual IPEndPoint OnReadIPEndPoint()
+        {
             IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
-            ep.Address = ReadIPAddress();
-            //// 端口实际只占2字节
-            //ep.Port = ReadUInt16();
+            //! 直接调用OnWrite，不写对象引用，将来可能得考虑写对象引用
+            ep.Address = OnReadIPAddress();
             ep.Port = ReadInt32();
             return ep;
-
-            //return ReadObjRef<IPEndPoint>(delegate
-            //{
-            //    IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
-            //    ep.Address = ReadIPAddress();
-            //    //// 端口实际只占2字节
-            //    //ep.Port = ReadUInt16();
-            //    ep.Port = ReadInt32();
-            //    return ep;
-            //});
         }
 
         /// <summary>
