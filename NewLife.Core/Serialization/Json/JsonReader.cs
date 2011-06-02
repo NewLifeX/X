@@ -5,6 +5,7 @@ using System.IO;
 using System.Globalization;
 using NewLife.Reflection;
 using System.Collections;
+using System.Net;
 
 namespace NewLife.Serialization
 {
@@ -72,6 +73,7 @@ namespace NewLife.Serialization
         }
         #endregion
 
+        #region 基础元数据
         #region 字节/字节数组
         /// <summary>
         /// 读取字节
@@ -146,13 +148,16 @@ namespace NewLife.Serialization
                                                    "yyyy-MM-dd HH:mm:ss", //一般是测试用途的手写格式,不建议使用,下同
                                                    "yyyy-MM-dd"
                                                };
+
+        static DateTime BaseDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         /// <summary>
         /// 解析日期时间字符串,可以处理多种日期时间格式,包括JsDateTimeFormats枚举中的格式,以及js中toGMTString()的格式
         /// </summary>
         /// <param name="str"></param>
         /// <param name="ret"></param>
         /// <returns></returns>
-        public bool TryParseDateTimeString(string str, out DateTime ret)
+        public static bool TryParseDateTimeString(string str, out DateTime ret)
         {
             if (str.Length > 10 && str.Length < 26 && str.Substring(0, 7) == @"\/Date(")
             // 处理System.Web.Script.Serialization.JavaScriptSerializer日期时间格式,类似 \/Date(12345678)\/
@@ -162,7 +167,7 @@ namespace NewLife.Serialization
                 long ms;
                 if (s.Length >= 3 && s[2] == @"\/" && long.TryParse(s[1], out ms))
                 {
-                    ret = Settings.BaseDateTime.AddMilliseconds(ms);
+                    ret = BaseDateTime.AddMilliseconds(ms);
                     return true;
                 }
             }
@@ -431,6 +436,67 @@ namespace NewLife.Serialization
                 }
                 return ret;
             }
+        }
+        #endregion
+        #endregion
+
+        #region 扩展类型
+        public override Guid ReadGuid() // 父类实现可正常工作,这里不再需要
+        {
+            string s = ReadString();
+            if (s == null) return Guid.Empty;
+            try
+            {
+                return new Guid(s);
+            }
+            catch (Exception ex)
+            {
+                throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.STRING }, AtomElementType.STRING,
+                    string.Format("{0}不是有效的Guid格式. {1}", s, ex.Message));
+            }
+        }
+        public override IPAddress ReadIPAddress()
+        {
+            IPAddress ret;
+            string s = ReadString();
+            if (s == null) return null;
+            if (IPAddress.TryParse(s, out ret))
+            {
+                return ret;
+            }
+            throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.STRING }, AtomElementType.STRING, s + " 不是有效的IPAddress");
+        }
+        public override IPEndPoint ReadIPEndPoint()
+        {
+            string s = ReadString();
+            string msg;
+            if (s == null) return null;
+            string[] ss = s.Split(':');
+            if (ss.Length > 1)
+            {
+                IPAddress addr;
+                int port;
+                if (IPAddress.TryParse(ss[0], out addr))
+                {
+                    if (Int32.TryParse(ss[1], out port) && IPEndPoint.MinPort <= port && port <= IPEndPoint.MaxPort)
+                    {
+                        return new IPEndPoint(addr, port);
+                    }
+                    else
+                    {
+                        msg = ss[1] + "不是有效的端口号";
+                    }
+                }
+                else
+                {
+                    msg = ss[0] + "不是有效的IPAddress";
+                }
+            }
+            else
+            {
+                msg = s + "不是有效的IPEndPoint";
+            }
+            throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.STRING }, AtomElementType.STRING, msg);
         }
         #endregion
 

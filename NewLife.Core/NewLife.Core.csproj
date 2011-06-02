@@ -104,9 +104,9 @@
     <Compile Include="Serialization\Interface\IReaderWriter.cs" />
     <Compile Include="Serialization\Interface\IWriter.cs" />
     <Compile Include="IO\Json.cs" />
-    <Compile Include="Serialization\JsonReader.cs" />
-    <Compile Include="Serialization\JsonSettings.cs" />
-    <Compile Include="Serialization\JsonWriter.cs" />
+    <Compile Include="Serialization\Json\JsonReader.cs" />
+    <Compile Include="Serialization\Json\JsonSettings.cs" />
+    <Compile Include="Serialization\Json\JsonWriter.cs" />
     <Compile Include="Serialization\Base\ReaderBase.cs" />
     <Compile Include="Serialization\Base\ReaderWriterBase.cs" />
     <Compile Include="IO\ReadWriteStream.cs" />
