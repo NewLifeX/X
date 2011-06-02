@@ -125,8 +125,8 @@ namespace Test
         {
             Administrator entity = GetDemo();
 
-            //writer.WriteObject(entity, null, null);
-            writer.WriteObject(entity, entity.GetType(), null);
+            writer.WriteObject(entity, null, null);
+            //writer.WriteObject(entity, entity.GetType(), null);
 
             Byte[] buffer = writer.ToArray();
             //Console.WriteLine(BitConverter.ToString(buffer));
@@ -139,7 +139,8 @@ namespace Test
             TReader reader = GetReader<TWriter, TReader>(writer);
 
             Object obj = null;
-            reader.ReadObject(typeof(Admin), ref obj, null);
+            //reader.ReadObject(typeof(Admin), ref obj, null);
+            reader.ReadObject(null, ref obj, null);
             Administrator admin = obj as Admin;
             Console.WriteLine(admin != null);
             if (admin != null)
@@ -153,6 +154,7 @@ namespace Test
                     (writer2.Settings as JsonSettings).DepthLimit = 5; //因为writer的Settings.DepthLimit为5 需要确保writer和writer2配置相同
                 }
 
+                //writer2.WriteObject(admin, admin.GetType(), null);
                 writer2.WriteObject(admin, null, null);
 
                 Byte[] buffer2 = writer2.ToArray();

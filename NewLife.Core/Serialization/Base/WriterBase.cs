@@ -977,7 +977,10 @@ namespace NewLife.Serialization
                 // 写入对象引用
                 if (WriteObjRef(value)) return true;
 
+                // 写对象类型时增加缩进，避免写顶级对象类型的对象引用时无法写入（Depth=1的对象是不写对象引用的）
+                Depth++;
                 type = CheckAndWriteType("WriteObjectType", value, type);
+                Depth--;
 
                 // 基本类型
                 if (WriteValue(value, type)) return true;

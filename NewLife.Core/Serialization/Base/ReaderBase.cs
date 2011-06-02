@@ -1209,7 +1209,10 @@ namespace NewLife.Serialization
                 Int32 index = 0;
                 if (ReadObjRef(type, ref value, out index)) return true;
 
+                // 写对象类型时增加缩进，避免写顶级对象类型的对象引用时无法写入（Depth=1的对象是不写对象引用的）
+                Depth++;
                 type = CheckAndReadType("ReadObjectType", type, value);
+                Depth--;
 
                 // 基本类型
                 if (ReadValue(type, ref value)) return true;
@@ -1327,7 +1330,7 @@ namespace NewLife.Serialization
             // 引用计数等于索引加一
             if (index > objRefs.Count)
             {
-                WriteLog("ReadObjRef", index, type.Name);
+                WriteLog("ReadObjRef", index, type == null ? null : type.Name);
 
                 return false;
             }
