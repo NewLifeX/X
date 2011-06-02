@@ -163,7 +163,12 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override IPAddress ReadIPAddress()
         {
-            return base.ReadIPAddress();
+            //return base.ReadIPAddress();
+
+            String str = ReadString();
+            if (String.IsNullOrEmpty(str)) return null;
+
+            return IPAddress.Parse(str);
         }
 
         /// <summary>
@@ -172,7 +177,16 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override IPEndPoint ReadIPEndPoint()
         {
-            return base.ReadIPEndPoint();
+            //return base.ReadIPEndPoint();
+
+            String str = ReadString();
+            if (String.IsNullOrEmpty(str)) return null;
+
+            Int32 index = str.IndexOf(":");
+
+            IPAddress address = IPAddress.Parse(str.Substring(0, index));
+            Int32 port = Int32.Parse(str.Substring(index + 1));
+            return new IPEndPoint(address, port);
         }
         #endregion
 
@@ -192,7 +206,7 @@ namespace NewLife.Serialization
                 return true;
             }
             return base.ReadValue(type, ref value);
-        } 
+        }
         #endregion
     }
 }
