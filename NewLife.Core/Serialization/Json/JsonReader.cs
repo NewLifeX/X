@@ -829,6 +829,7 @@ namespace NewLife.Serialization
                         break;
                     case '\t':
                         MoveNextStreamPostition();
+                        column += 3; // 制表符宽度4列
                         sb.Append('\t');
                         break;
                     default:
@@ -852,7 +853,6 @@ namespace NewLife.Serialization
         string ReadNextEscapeChar()
         {
             int c = MoveNextStreamPostition();
-            column++;
             switch (c)
             {
                 case 'b':

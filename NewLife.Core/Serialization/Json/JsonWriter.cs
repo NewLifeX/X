@@ -544,9 +544,14 @@ namespace NewLife.Serialization
             {
                 WriteLiteral("null");
                 return true;
-            }else if (!IsCanCreateInstance(type))
+            }
+            else if (!IsCanCreateInstance(type))
             {
                 type = value.GetType();
+                if (Depth == 1)
+                {
+                    writeValueType = value;
+                }
             }
             if (Type.GetTypeCode(type) == TypeCode.Int16) // 在基类WriteValue时 Int16将会被转换成Int32处理,所以这里需要针对Int16特殊处理
             {
