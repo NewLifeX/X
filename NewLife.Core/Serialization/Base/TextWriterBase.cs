@@ -92,7 +92,7 @@ namespace NewLife.Serialization
         /// 将 4 字节浮点值写入当前流，并将流的位置提升 4 个字节。
         /// </summary>
         /// <param name="value">要写入的 4 字节浮点值。</param>
-        public override void Write(float value) { Write((Double)value); }
+        public override void Write(float value) { Write(value.ToString()); }
 
         /// <summary>
         /// 将 8 字节浮点值写入当前流，并将流的位置提升 8 个字节。
