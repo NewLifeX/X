@@ -49,15 +49,16 @@ namespace XCode
         {
             get
             {
-                if (_SortingKeyName != null)
+                if (_SortingKeyName == null)
                 {
                     // Empty与null不同，可用于区分是否已计算
                     _SortingKeyName = String.Empty;
 
                     String[] names = new String[] { "Sorting", "Sort", "Rank" };
+                    IList<String> fs = Meta.FieldNames;
                     foreach (String name in names)
                     {
-                        if (Meta.FieldNames.Contains(name))
+                        if (fs.Contains(name))
                         {
                             _SortingKeyName = name;
                             break;
@@ -66,6 +67,13 @@ namespace XCode
                 }
                 return _SortingKeyName;
             }
+        }
+
+        /// <summary>排序值</summary>
+        private Int32 Sort
+        {
+            get { return String.IsNullOrEmpty(SortingKeyName) ? 0 : (Int32)this[SortingKeyName]; }
+            set { if (!String.IsNullOrEmpty(SortingKeyName) && (Int32)this[SortingKeyName] != value) SetItem(SortingKeyName, value); }
         }
 
         /// <summary>子节点</summary>
@@ -166,13 +174,13 @@ namespace XCode
             }
             if (list == null || list.Count < 1) return null;
 
-            String sort = entity.SortingKeyName;
-            if (!String.IsNullOrEmpty(sort))
+            //String sort = entity.SortingKeyName;
+            if (!String.IsNullOrEmpty(entity.SortingKeyName))
             {
                 list.Sort(delegate(TEntity item1, TEntity item2)
                 {
-                    if (item1[sort] != item2[sort])
-                        return -1 * (item1[sort] as IComparable).CompareTo(item2[sort]);
+                    if (item1.Sort != item2.Sort)
+                        return -1 * item1.Sort.CompareTo(item2.Sort);
                     else
                         return (item1[entity.KeyName] as IComparable).CompareTo(item2[entity.KeyName]);
                 });
@@ -545,6 +553,46 @@ namespace XCode
                 Meta.Rollback();
                 throw;
             }
+        }
+
+        /// <summary>
+        /// 排序上升
+        /// </summary>
+        public void Up()
+        {
+            EntityList<TEntity> list = FindAllByParent((TKey)this[ParentKeyName]);
+            if (list == null || list.Count < 1 || list[0] == this) return;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                Int32 s = list.Count - i;
+                // 当前项，排序增加
+                if (list[i] == this) s++;
+                // 下一项是当前项，排序减少
+                if (i < list.Count - 1 && list[i + 1] == this) s--;
+                list[i].Sort = s;
+            }
+            list.Save();
+        }
+
+        /// <summary>
+        /// 排序下降
+        /// </summary>
+        public void Down()
+        {
+            EntityList<TEntity> list = FindAllByParent((TKey)this[ParentKeyName]);
+            if (list == null || list.Count < 1 || list[list.Count - 1] == this) return;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                Int32 s = list.Count - i;
+                // 当前项，排序减少
+                if (list[i] == this) s--;
+                // 上一项是当前项，排序增加
+                if (i >= 1 && list[i - 1] == this) s++;
+                list[i].Sort = s;
+            }
+            list.Save();
         }
         #endregion
 
