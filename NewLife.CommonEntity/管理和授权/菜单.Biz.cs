@@ -4,13 +4,12 @@ using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Web;
+using System.Web.UI;
 using System.Xml.Serialization;
 using NewLife.Configuration;
 using NewLife.Log;
-using NewLife.Web;
-using XCode;
 using NewLife.Reflection;
-using System.Web.UI;
+using XCode;
 
 namespace NewLife.CommonEntity
 {
@@ -538,13 +537,20 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static Int32 ScanAndAdd(String dir)
         {
-            TEntity top = Root;
-            if (Root.Childs != null && Root.Childs.Count > 0)
-                top = Root.Childs[0];
-            else
+            // 根据目录找菜单，它将作为顶级菜单
+            TEntity top = FindForName(dir);
+            if (top == null) top = Meta.Cache.Entities.Find(_.Remark, dir);
+
+            // 如果找不到，就取第一个作为顶级
+            if (top == null)
             {
-                EntityList<TEntity> list = FindAllByName(_.ParentID, 0, _.ID + " Desc", 0, 1);
-                if (list != null && list.Count > 1) top = list[0];
+                if (Root.Childs != null && Root.Childs.Count > 0)
+                    top = Root.Childs[0];
+                else
+                {
+                    EntityList<TEntity> list = FindAllByName(_.ParentID, 0, _.ID + " Desc", 0, 1);
+                    if (list != null && list.Count > 1) top = list[0];
+                }
             }
 
             return ScanAndAdd(dir, top);
@@ -561,9 +567,22 @@ namespace NewLife.CommonEntity
             if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("dir");
             if (top == null) throw new ArgumentNullException("top");
 
+            // 要扫描的目录
             String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dir);
             if (!Directory.Exists(p)) return 0;
 
+            // 处理Default.aspx，该顶级目录下的首页，一般是工作台
+            String defFile = Path.Combine(p, "Default.aspx");
+            if (File.Exists(defFile))
+            {
+                if (String.IsNullOrEmpty(top.Url))
+                {
+                    top.Url = String.Format(@"../{0}/{1}", dir, Path.GetFileName(defFile));
+                    top.Save();
+                }
+            }
+
+            // 找到子级目录
             String[] dis = Directory.GetDirectories(p);
             if (dis == null || dis.Length <= 0) return 0;
 
@@ -583,6 +602,7 @@ namespace NewLife.CommonEntity
                 {
                     // 过滤掉表单页面
                     if (Path.GetFileNameWithoutExtension(elm).EndsWith("Form", StringComparison.OrdinalIgnoreCase)) continue;
+                    //if (elm.EndsWith("Default.aspx", StringComparison.OrdinalIgnoreCase)) continue;
 
                     files.Add(elm);
                 }
@@ -596,9 +616,28 @@ namespace NewLife.CommonEntity
                     parent = top.AddChild(dirName, null);
                     num++;
                 }
+
+                // 处理Default.aspx
+                defFile = Path.Combine(item, "Default.aspx");
+                if (File.Exists(defFile))
+                {
+                    if (String.IsNullOrEmpty(parent.Url))
+                    {
+                        parent.Url = String.Format(@"../../{0}/{1}/{2}", dir, item, Path.GetFileName(defFile));
+                        parent.Save();
+                    }
+
+                    continue;
+                }
+
                 foreach (String elm in files)
                 {
                     String url = null;
+                    if (elm.EndsWith("Default.aspx", StringComparison.OrdinalIgnoreCase))
+                    {
+
+                    }
+
                     // 全部使用全路径
                     //if (String.Equals(dir, "Admin", StringComparison.OrdinalIgnoreCase))
                     //    url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
