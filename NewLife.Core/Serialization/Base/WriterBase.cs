@@ -665,24 +665,25 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected virtual Boolean WriteX(Object value, Type type)
         {
+            //! 所有扩展类型的写入，分为Write和OnWrite两部分，Write供外部独立调用，单独提供对象应用，而OnWrite不写对象引用
             if (type == typeof(Guid))
             {
-                Write((Guid)value);
+                OnWrite((Guid)value);
                 return true;
             }
             if (type == typeof(IPAddress))
             {
-                Write((IPAddress)value);
+                OnWrite((IPAddress)value);
                 return true;
             }
             if (type == typeof(IPEndPoint))
             {
-                Write((IPEndPoint)value);
+                OnWrite((IPEndPoint)value);
                 return true;
             }
             if (typeof(Type).IsAssignableFrom(type))
             {
-                Write((Type)value);
+                OnWrite((Type)value);
                 return true;
             }
 
@@ -695,21 +696,21 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public virtual void Write(Guid value)
         {
-            //if (WriteObjRef(value)) return;
+            if (WriteObjRef(value)) return;
 
-            //OnWrite(value);
+            OnWrite(value);
 
-            Write(((Guid)value).ToByteArray(), -1);
+            //Write(((Guid)value).ToByteArray(), -1);
         }
 
-        ///// <summary>
-        ///// 写入Guid
-        ///// </summary>
-        ///// <param name="value"></param>
-        //protected virtual void OnWrite(Guid value)
-        //{
-        //    Write(((Guid)value).ToByteArray(), -1);
-        //}
+        /// <summary>
+        /// 写入Guid
+        /// </summary>
+        /// <param name="value"></param>
+        protected virtual void OnWrite(Guid value)
+        {
+            Write(((Guid)value).ToByteArray(), -1);
+        }
 
         /// <summary>
         /// 写入IPAddress
@@ -717,9 +718,22 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public virtual void Write(IPAddress value)
         {
-            Byte[] buffer = (value as IPAddress).GetAddressBytes();
-            Write(buffer);
-            //Write(buffer, -1);
+            if (WriteObjRef(value)) return;
+
+            OnWrite(value);
+
+            //Byte[] buffer = (value as IPAddress).GetAddressBytes();
+            //Write(buffer);
+            ////Write(buffer, -1);
+        }
+
+        /// <summary>
+        /// 写入IPAddress
+        /// </summary>
+        /// <param name="value"></param>
+        protected virtual void OnWrite(IPAddress value)
+        {
+            Write((value as IPAddress).GetAddressBytes());
         }
 
         /// <summary>
@@ -728,7 +742,24 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         public virtual void Write(IPEndPoint value)
         {
-            Write(value.Address);
+            if (WriteObjRef(value)) return;
+
+            OnWrite(value);
+
+            //Write(value.Address);
+            ////// 端口实际只占2字节
+            ////Write((UInt16)value.Port);
+            //Write(value.Port);
+        }
+
+        /// <summary>
+        /// 写入IPEndPoint
+        /// </summary>
+        /// <param name="value"></param>
+        protected virtual void OnWrite(IPEndPoint value)
+        {
+            //! 直接调用OnWrite，不写对象引用，将来可能得考虑写对象引用
+            OnWrite(value.Address);
             //// 端口实际只占2字节
             //Write((UInt16)value.Port);
             Write(value.Port);
@@ -739,6 +770,24 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value"></param>
         public void Write(Type value)
+        {
+            if (WriteObjRef(value)) return;
+
+            OnWrite(value);
+
+            //Depth++;
+            //WriteLog("WriteType", value.FullName);
+
+            //// 分离出去，便于重载，而又能有效利用对象引用
+            //OnWriteType(value);
+            //Depth--;
+        }
+
+        /// <summary>
+        /// 写入Type
+        /// </summary>
+        /// <param name="value"></param>
+        protected virtual void OnWrite(Type value)
         {
             Depth++;
             WriteLog("WriteType", value.FullName);
@@ -1207,7 +1256,7 @@ namespace NewLife.Serialization
 
             Write(size);
         }
-        
+
         /// <summary>
         /// 刷新缓存中的数据
         /// </summary>
