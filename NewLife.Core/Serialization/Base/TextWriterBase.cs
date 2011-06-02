@@ -159,7 +159,7 @@ namespace NewLife.Serialization
         /// 写入Guid
         /// </summary>
         /// <param name="value"></param>
-        public override void Write(Guid value)
+        protected override void OnWrite(Guid value)
         {
             Write(value.ToString());
         }
@@ -168,7 +168,7 @@ namespace NewLife.Serialization
         /// 写入IPAddress
         /// </summary>
         /// <param name="value"></param>
-        public override void Write(IPAddress value)
+        protected override void OnWrite(IPAddress value)
         {
             Write(value.ToString());
         }
@@ -177,7 +177,7 @@ namespace NewLife.Serialization
         /// 写入IPEndPoint
         /// </summary>
         /// <param name="value"></param>
-        public override void Write(IPEndPoint value)
+        protected override void OnWrite(IPEndPoint value)
         {
             Write(value.ToString());
         }
