@@ -903,15 +903,11 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected virtual Boolean OnWriteObject(Object value, Type type, WriteObjectCallback callback)
         {
-            //! 基元类型不写对象引用，但参与未知类型（空、接口、抽象、Object）。
-            //! 对于所有对象（引用类型和值类型）来说，只要是未知类型，都应该写入，读取的时候同步读出即可
-            //type = CheckAndWriteType("WriteObjectType", value, type);
-
             //! 2011-05-27 17:33
             //! 精确类型，直接写入值
             //! 未知类型，写对象引用，写类型，写对象
 
-            if (!IsExactType(type))
+            if (IsExactType(type))
             {
                 // 基本类型
                 if (WriteValue(value, type)) return true;

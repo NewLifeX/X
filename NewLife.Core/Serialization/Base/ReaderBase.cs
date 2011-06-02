@@ -1179,35 +1179,51 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         protected virtual Boolean OnReadObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-            //! 基元类型不写对象引用，但参与未知类型（空、接口、抽象、Object）。
-            //! 对于所有对象（引用类型和值类型）来说，只要是未知类型，都应该写入，读取的时候同步读出即可
-            //type = CheckAndReadType("ReadObjectType", type, value);
+            if (callback == null) callback = ReadMember;
 
             //! 2011-05-27 17:33
             //! 精确类型，直接写入值
             //! 未知类型，写对象引用，写类型，写对象
 
-            Boolean b = IsExactType(type);
+            if (IsExactType(type))
+            {
+                // 基本类型
+                if (ReadValue(type, ref value)) return true;
 
-            if (callback == null) callback = ReadMember;
+                // 读取对象引用
+                Int32 index = 0;
+                if (ReadObjRef(type, ref value, out index)) return true;
 
-            // 基本类型
-            if (b && ReadValue(type, ref value)) return true;
+                // 特殊类型
+                if (ReadX(type, ref value)) return true;
 
-            // 读取对象引用
-            Int32 index = 0;
-            if (ReadObjRef(type, ref value, out index)) return true;
+                // 读取引用对象
+                objRefIndex = index;
+                if (!ReadRefObject(type, ref value, callback)) return false;
 
-            type = CheckAndReadType("ReadObjectType", type, value);
+                if (value != null) AddObjRef(index, value);
+            }
+            else
+            {
+                // 读取对象引用
+                Int32 index = 0;
+                if (ReadObjRef(type, ref value, out index)) return true;
 
-            // 特殊类型
-            if (ReadX(type, ref value)) return true;
+                type = CheckAndReadType("ReadObjectType", type, value);
 
-            // 读取引用对象
-            objRefIndex = index;
-            if (!ReadRefObject(type, ref value, callback)) return false;
+                // 基本类型
+                if (ReadValue(type, ref value)) return true;
 
-            if (value != null) AddObjRef(index, value);
+                // 特殊类型
+                if (ReadX(type, ref value)) return true;
+
+                // 读取引用对象
+                objRefIndex = index;
+                if (!ReadRefObject(type, ref value, callback)) return false;
+
+                if (value != null) AddObjRef(index, value);
+            }
+
             return true;
         }
 
