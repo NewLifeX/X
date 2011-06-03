@@ -263,6 +263,17 @@ namespace XTemplate.Templating
             get { return _Data ?? (_Data = new Dictionary<String, Object>()); }
             set { _Data = value; }
         }
+
+        /// <summary>
+        /// 获取数据，主要处理数据字典中不存在的元素
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        protected Object GetData(String name)
+        {
+            Object obj = null;
+            return Data.TryGetValue(name, out obj) ? obj : null;
+        }
         #endregion
     }
 }

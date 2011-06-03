@@ -81,6 +81,10 @@ namespace XTemplate.Templating
             get { return _Included; }
             set { _Included = value; }
         }
+
+        private Dictionary<String, Type> _Vars;
+        /// <summary>模版变量集合</summary>
+        public IDictionary<String, Type> Vars { get { return _Vars ?? (_Vars = new Dictionary<String, Type>()); } }
         #endregion
 
         #region 方法

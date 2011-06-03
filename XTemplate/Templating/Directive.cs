@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace XTemplate.Templating
 {
@@ -47,10 +48,17 @@ namespace XTemplate.Templating
         public String TryGetParameter(String name)
         {
             String str;
-            if (Parameters == null || Parameters.Count < 1 || !Parameters.TryGetValue(name, out str))
+            if (Parameters == null || Parameters.Count < 1)
                 throw new TemplateException(Block, String.Format("{0}指令缺少{1}参数！", Name, name));
 
-            return str;
+            if (Parameters.TryGetValue(name, out str) || Parameters.TryGetValue(name.ToLower(), out str)) return str;
+
+            foreach (String item in Parameters.Keys)
+            {
+                if (String.Equals(item, name, StringComparison.OrdinalIgnoreCase)) return Parameters[item];
+            }
+
+            throw new TemplateException(Block, String.Format("{0}指令缺少{1}参数！", Name, name));
         }
     }
 }

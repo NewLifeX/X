@@ -32,10 +32,13 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.4.*")]
-[assembly: AssemblyFileVersion("1.4.2011.0316")]
+[assembly: AssemblyVersion("1.5.*")]
+[assembly: AssemblyFileVersion("1.5.2011.0603")]
 
 /*
+ * v1.5.2011.0603   增加var指令，允许指定创建封装自Data的模版变量：<#@var name="pname" type="String"#>，然后<#=pname#>等同于<#=Data["pname"]#>
+ *                  template指令，增加name属性，允许指定模版名称
+ * 
  * v1.4.2011.0316   Template中原来的静态方法Process改为ProcessFile，另外根据需要增加常用的静态方法ProcessContent
  *                  核心类Template改为私有构造，统一由带缓存的静态Create创建实例，避免分析及编译模版带来的性能损耗
  * 

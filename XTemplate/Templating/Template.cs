@@ -11,6 +11,7 @@ using Microsoft.CSharp;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife;
+using NewLife.Reflection;
 
 namespace XTemplate.Templating
 {
@@ -441,7 +442,7 @@ namespace XTemplate.Templating
             Stack<String> IncludeStack = new Stack<string>();
             IncludeStack.Push(item.Name);
 
-            String[] directives = new String[] { "template", "assembly", "import", "include" };
+            String[] directives = new String[] { "template", "assembly", "import", "include", "property" };
 
             for (Int32 i = 0; i < item.Blocks.Count; i++)
             {
@@ -449,7 +450,7 @@ namespace XTemplate.Templating
                 if (block.Type != BlockType.Directive) continue;
 
                 // 弹出当前块的模版名
-                while ((IncludeStack.Count > 0) && (StringComparer.OrdinalIgnoreCase.Compare(IncludeStack.Peek(), block.Name) != 0))
+                while (IncludeStack.Count > 0 && StringComparer.OrdinalIgnoreCase.Compare(IncludeStack.Peek(), block.Name) != 0)
                 {
                     IncludeStack.Pop();
                 }
@@ -473,7 +474,8 @@ namespace XTemplate.Templating
 
         private List<Block> ProcessDirective(Directive directive, TemplateItem item)
         {
-            if (String.Compare(directive.Name, "include", StringComparison.OrdinalIgnoreCase) == 0)
+            #region 包含include
+            if (String.Equals(directive.Name, "include", StringComparison.OrdinalIgnoreCase))
             {
                 String name = directive.TryGetParameter("name");
 
@@ -503,24 +505,53 @@ namespace XTemplate.Templating
 
                 return TemplateParser.Parse(name, content);
             }
-            if (String.Compare(directive.Name, "assembly", StringComparison.OrdinalIgnoreCase) == 0)
+            #endregion
+
+            if (String.Equals(directive.Name, "assembly", StringComparison.OrdinalIgnoreCase))
             {
                 String name = directive.TryGetParameter("name");
                 if (!AssemblyReferences.Contains(name)) AssemblyReferences.Add(name);
             }
-            else if (String.Compare(directive.Name, "import", StringComparison.OrdinalIgnoreCase) == 0)
+            else if (String.Equals(directive.Name, "import", StringComparison.OrdinalIgnoreCase))
             {
                 item.Imports.Add(directive.TryGetParameter("namespace"));
             }
-            else if (String.Compare(directive.Name, "template", StringComparison.OrdinalIgnoreCase) == 0)
+            else if (String.Equals(directive.Name, "template", StringComparison.OrdinalIgnoreCase))
             {
                 if (!item.Processed)
                 {
+                    // 由模版指令指定类名
+                    String name = directive.TryGetParameter("name");
+                    if (!String.IsNullOrEmpty(name)) item.ClassName = name;
+
                     item.BaseClassName = directive.TryGetParameter("inherits");
                     item.Processed = true;
                 }
                 else
                     throw new TemplateException(directive.Block, "多个模版指令！");
+            }
+            else if (String.Equals(directive.Name, "var", StringComparison.OrdinalIgnoreCase))
+            {
+                String name = directive.TryGetParameter("name");
+                String type = directive.TryGetParameter("type");
+
+                if (Vars.ContainsKey(name)) throw new TemplateException(directive.Block, "模版变量" + name + "已存在！");
+
+                Type ptype = TypeX.GetType(type, true);
+                if (ptype == null) throw new TemplateException(directive.Block, "无法找到模版变量类型" + type + "！");
+
+                // 因为TypeX.GetType的强大，模版可能没有引用程序集和命名空间，甚至type位于未装载的程序集中它也会自动装载，所以这里需要加上
+                name = null;
+                try
+                {
+                    name = ptype.Assembly.Location;
+                }
+                catch { }
+                if (!String.IsNullOrEmpty(name) && !AssemblyReferences.Contains(name)) AssemblyReferences.Add(name);
+                name = ptype.Namespace;
+                if (!item.Imports.Contains(name)) item.Imports.Add(name);
+
+                Vars.Add(name, ptype);
             }
             return null;
         }
@@ -537,20 +568,20 @@ namespace XTemplate.Templating
             {
                 if (!String.IsNullOrEmpty(str)) codeNamespace.Imports.Add(new CodeNamespaceImport(str));
             }
-            CodeTypeDeclaration type = new CodeTypeDeclaration(item.ClassName);
-            type.IsClass = true;
-            codeNamespace.Types.Add(type);
+            CodeTypeDeclaration typeDec = new CodeTypeDeclaration(item.ClassName);
+            typeDec.IsClass = true;
+            codeNamespace.Types.Add(typeDec);
 
             // 基类
             if (String.IsNullOrEmpty(item.BaseClassName))
-                type.BaseTypes.Add(new CodeTypeReference(typeof(TemplateBase)));
+                typeDec.BaseTypes.Add(new CodeTypeReference(typeof(TemplateBase)));
             else
-                type.BaseTypes.Add(new CodeTypeReference(item.BaseClassName));
+                typeDec.BaseTypes.Add(new CodeTypeReference(item.BaseClassName));
 
-            if (!String.IsNullOrEmpty(item.Name)) type.LinePragma = new CodeLinePragma(item.Name, 1);
+            if (!String.IsNullOrEmpty(item.Name)) typeDec.LinePragma = new CodeLinePragma(item.Name, 1);
 
             // Render方法
-            ConstructRenderMethod(item.Blocks, lineNumbers, type);
+            ConstructRenderMethod(item.Blocks, lineNumbers, typeDec);
 
             // 代码生成选项
             CodeGeneratorOptions options = new CodeGeneratorOptions();
@@ -562,8 +593,38 @@ namespace XTemplate.Templating
             Boolean firstMemberFound = false;
             foreach (Block block in item.Blocks)
             {
-                firstMemberFound = GenerateMemberForBlock(block, type, lineNumbers, provider, options, firstMemberFound);
+                firstMemberFound = GenerateMemberForBlock(block, typeDec, lineNumbers, provider, options, firstMemberFound);
             }
+
+            // 模版变量
+            if (item.Vars != null && item.Vars.Count > 0)
+            {
+                //private Int32 _VarName;
+                //public Int32 VarName
+                //{
+                //    get { return GetData("VarName"); }
+                //    set { Data["VarName"] = value; }
+                //}
+                foreach (String v in item.Vars.Keys)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine();
+                    sb.AppendFormat("private {0} _{1};", item.Vars[v].FullName, item);
+                    sb.AppendLine();
+                    sb.AppendFormat("public {0} {1}", item.Vars[v].FullName, item);
+                    sb.AppendLine("{");
+                    sb.AppendFormat("    get { return GetData(\"{0}\"); }", item);
+                    sb.AppendLine();
+                    sb.AppendFormat("    set { Data[\"{0}\"] = value; }", item);
+                    sb.AppendLine();
+                    sb.AppendLine("}");
+
+                    CodeSnippetTypeMember member = new CodeSnippetTypeMember(sb.ToString());
+                    typeDec.Members.Add(member);
+                }
+            }
+
+            // 输出
             using (StringWriter writer = new StringWriter())
             {
                 provider.GenerateCodeFromNamespace(codeNamespace, new IndentedTextWriter(writer), options);
