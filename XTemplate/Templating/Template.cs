@@ -535,7 +535,7 @@ namespace XTemplate.Templating
                 String name = directive.TryGetParameter("name");
                 String type = directive.TryGetParameter("type");
 
-                if (Vars.ContainsKey(name)) throw new TemplateException(directive.Block, "模版变量" + name + "已存在！");
+                if (item.Vars.ContainsKey(name)) throw new TemplateException(directive.Block, "模版变量" + name + "已存在！");
 
                 Type ptype = TypeX.GetType(type, true);
                 if (ptype == null) throw new TemplateException(directive.Block, "无法找到模版变量类型" + type + "！");
@@ -551,7 +551,7 @@ namespace XTemplate.Templating
                 name = ptype.Namespace;
                 if (!item.Imports.Contains(name)) item.Imports.Add(name);
 
-                Vars.Add(name, ptype);
+                item.Vars.Add(name, ptype);
             }
             return null;
         }
@@ -602,18 +602,20 @@ namespace XTemplate.Templating
                 //private Int32 _VarName;
                 //public Int32 VarName
                 //{
-                //    get { return GetData("VarName"); }
+                //    get { return (Int32)GetData("VarName"); }
                 //    set { Data["VarName"] = value; }
                 //}
                 foreach (String v in item.Vars.Keys)
                 {
+                    Type vtype = item.Vars[v];
+
                     StringBuilder sb = new StringBuilder();
                     sb.AppendLine();
-                    sb.AppendFormat("private {0} _{1};", item.Vars[v].FullName, item);
+                    sb.AppendFormat("private {0} _{1};", vtype.FullName, item);
                     sb.AppendLine();
-                    sb.AppendFormat("public {0} {1}", item.Vars[v].FullName, item);
+                    sb.AppendFormat("public {0} {1}", vtype.FullName, item);
                     sb.AppendLine("{");
-                    sb.AppendFormat("    get { return GetData(\"{0}\"); }", item);
+                    sb.AppendFormat("    get { return ({0})GetData(\"{1}\"); }", vtype, item);
                     sb.AppendLine();
                     sb.AppendFormat("    set { Data[\"{0}\"] = value; }", item);
                     sb.AppendLine();
