@@ -6,6 +6,7 @@ using System.Globalization;
 using NewLife.Reflection;
 using System.Collections;
 using System.Net;
+using System.Runtime.Serialization;
 
 namespace NewLife.Serialization
 {
@@ -441,62 +442,50 @@ namespace NewLife.Serialization
         #endregion
 
         #region 扩展类型
-        public override Guid ReadGuid() // 父类实现可正常工作,这里不再需要
+        /// <summary>
+        /// 读取Guid
+        /// </summary>
+        /// <returns></returns>
+        protected override Guid OnReadGuid()
         {
-            string s = ReadString();
-            if (s == null) return Guid.Empty;
             try
             {
-                return new Guid(s);
+                return base.OnReadGuid();
             }
             catch (Exception ex)
             {
-                throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.STRING }, AtomElementType.STRING,
-                    string.Format("{0}不是有效的Guid格式. {1}", s, ex.Message));
+                throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.STRING }, AtomElementType.STRING, "不是有效的Guid格式" + ex.Message);
             }
         }
-        public override IPAddress ReadIPAddress()
+        /// <summary>
+        /// 读取IP地址
+        /// </summary>
+        /// <returns></returns>
+        protected override IPAddress OnReadIPAddress()
         {
-            IPAddress ret;
-            string s = ReadString();
-            if (s == null) return null;
-            if (IPAddress.TryParse(s, out ret))
+            try
             {
-                return ret;
+                return base.OnReadIPAddress();
             }
-            throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.STRING }, AtomElementType.STRING, s + " 不是有效的IPAddress");
+            catch (Exception ex)
+            {
+                throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.STRING }, AtomElementType.STRING, "不是有效的IP地址" + ex.Message);
+            }
         }
-        public override IPEndPoint ReadIPEndPoint()
+        /// <summary>
+        /// 读取IP端口地址
+        /// </summary>
+        /// <returns></returns>
+        protected override IPEndPoint OnReadIPEndPoint()
         {
-            string s = ReadString();
-            string msg;
-            if (s == null) return null;
-            string[] ss = s.Split(':');
-            if (ss.Length > 1)
+            try
             {
-                IPAddress addr;
-                int port;
-                if (IPAddress.TryParse(ss[0], out addr))
-                {
-                    if (Int32.TryParse(ss[1], out port) && IPEndPoint.MinPort <= port && port <= IPEndPoint.MaxPort)
-                    {
-                        return new IPEndPoint(addr, port);
-                    }
-                    else
-                    {
-                        msg = ss[1] + "不是有效的端口号";
-                    }
-                }
-                else
-                {
-                    msg = ss[0] + "不是有效的IPAddress";
-                }
+                return base.OnReadIPEndPoint();
             }
-            else
+            catch (Exception ex)
             {
-                msg = s + "不是有效的IPEndPoint";
+                throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.STRING }, AtomElementType.STRING, "不是有效的IP端口地址" + ex.Message);
             }
-            throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.STRING }, AtomElementType.STRING, msg);
         }
         #endregion
 
@@ -544,10 +533,6 @@ namespace NewLife.Serialization
             }
             return ret;
         }
-        //public override bool ReadEnumerable(Type type, Type elementType, ref object value, ReadObjectCallback callback)
-        //{
-        //    return base.ReadEnumerable(type, elementType, ref value, callback);
-        //}
         /// <summary>
         /// 从当前流位置读取枚举项目
         /// </summary>
@@ -576,13 +561,31 @@ namespace NewLife.Serialization
             }
 
             WriteLog("ReadEnumerableItem", type != null ? type.Name : "Not found item type", index);
-            if (!IsCanCreateInstance(type))
-            {
-                type = typeof(ReservedTypeClass);
-            }
+            //if (!IsCanCreateInstance(type)) //注释是因为ReadObject方法中已经没有ReadType的调用,最终将由OnReadObject方法处理
+            //{
+            //    type = typeof(ReservedTypeClass);
+            //}
             if (!ReadObject(type, ref value, callback)) return false;
 
             return true;
+        }
+        #endregion
+
+        #region 序列化接口
+        /// <summary>
+        /// 读取实现了序列化接口的类型
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public override bool ReadSerializable(Type type, ref object value, ReadObjectCallback callback)
+        {
+            if (!typeof(ISerializable).IsAssignableFrom(type)) return false;
+
+            // TODO ISerializable接口定义有GetObjectData,通过传入SerializationInfo(使用type构造) 和 StreamingContext可以得到包含序列化信息的SerializationInfo
+            // 反序列化需要调用 (SerializationInfo,StreamingContext)的构造方法 才能正确的反序列化
+            return base.ReadSerializable(type, ref value, callback);
         }
         #endregion
 
@@ -648,10 +651,10 @@ namespace NewLife.Serialization
 
             WriteLog("ReadDictionaryEntry", str, valueType != null ? valueType.Name : "Not found value type", index);
 
-            if (!IsCanCreateInstance(valueType))
-            {
-                valueType = typeof(ReservedTypeClass);
-            }
+            //if (!IsCanCreateInstance(valueType)) //注释是因为ReadObject方法中已经没有ReadType的调用,将最终由OnReadObject方法处理
+            //{
+            //    valueType = typeof(ReservedTypeClass);
+            //}
             object entryValue = null;
             if (!ReadObject(valueType, ref entryValue, callback)) return false;
 
@@ -1182,7 +1185,7 @@ namespace NewLife.Serialization
             if (type == typeof(ReservedTypeClass) || !IsCanCreateInstance(type))
             {
                 string str;
-                bool hasType = false; ;
+                bool hasType = false;
                 atype = AssertReadNextAtomElement(true, "期望是 __type 或者自定义对象结束符号", out str, AtomElementType.BRACE_CLOSE, AtomElementType.STRING);
                 if (atype == AtomElementType.STRING)
                 {
@@ -1214,7 +1217,7 @@ namespace NewLife.Serialization
                     if (atype == AtomElementType.STRING)
                     {
                         object obj = null;
-                        if (!ReadObject(typeof(ReservedTypeClass), ref obj, callback)) return false;
+                        if (!ReadObject(null, ref obj, callback)) return false;
                         dict.Add(str, obj);
                     }
                     value = dict;
@@ -1233,6 +1236,10 @@ namespace NewLife.Serialization
             else
             {
                 ret = base.ReadCustomObject(type, ref value, callback);
+                if (ret && value == null) //已进入{开始读取对象成员 并完成,但是读取到的是null,当前的type没有任何成员,为确保再次序列化保持一致,需要给value创建实例
+                {
+                    value = TypeX.CreateInstance(type);
+                }
             }
             int n = ComplexObjectDepth - d;
             if (n > 0) //尚未读到当前对象的结束符}
@@ -1338,7 +1345,7 @@ namespace NewLife.Serialization
                 }
                 else
                 {
-                    type = typeof(ReservedTypeClass);
+                    //type = typeof(ReservedTypeClass); //注释是因为base.OnReadMember方法中已经没有ReadType的调用,将最终由OnReadObject方法处理
                 }
             }
             return base.OnReadMember(type, ref value, member, index, callback);
