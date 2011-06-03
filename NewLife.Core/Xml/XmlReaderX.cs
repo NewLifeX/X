@@ -95,7 +95,12 @@ namespace NewLife.Xml
         /// <returns></returns>
         protected override Type OnReadType()
         {
-            if (Reader.MoveToAttribute("Type")) return base.OnReadType();
+            if (Reader.MoveToAttribute("Type"))
+            {
+                Type t = base.OnReadType();
+                if (Reader.NodeType == XmlNodeType.Attribute) Reader.MoveToElement();
+                return t;
+            }
 
             return base.OnReadType();
         }
@@ -138,7 +143,7 @@ namespace NewLife.Xml
 
             //Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
             // <Key>
-            keyType = CheckAndReadType("ReadKeyType", keyType, value.Key);
+         //   keyType = CheckAndReadType("ReadKeyType", keyType, value.Key);
             Reader.ReadStartElement();
             if (!ReadObject(keyType, ref key)) return false;
             // </Key>
@@ -146,11 +151,11 @@ namespace NewLife.Xml
 
             //Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
             // <Value>
-            valueType = CheckAndReadType("ReadValueType", valueType, value.Value);
-            Reader.ReadStartElement();
+            //valueType = CheckAndReadType("ReadValueType", valueType, value.Value);
+            // Reader.ReadStartElement();
             if (!ReadObject(valueType, ref val)) return false;
             // </Value>
-            if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
+            //  if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
             value.Key = key;
             value.Value = val;
@@ -295,7 +300,7 @@ namespace NewLife.Xml
             while (Reader.NodeType != XmlNodeType.Element) { if (!Reader.Read())return false; }
             if (String.IsNullOrEmpty(RootName)) RootName = Reader.Name;
 
-            type = CheckAndReadType("ReadObjectType", type, value);
+            //type = CheckAndReadType("ReadObjectType", type, value);
 
             return base.OnReadObject(type, ref value, callback);
         }
@@ -541,5 +546,6 @@ namespace NewLife.Xml
             }
         }
         #endregion
+
     }
 }
