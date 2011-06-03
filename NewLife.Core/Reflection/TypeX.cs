@@ -43,6 +43,19 @@ namespace NewLife.Reflection
                 return _Handler;
             }
         }
+
+        /// <summary>
+        /// 代码名称。包含命名空间，但是不包含程序集信息
+        /// </summary>
+        public String CodeName
+        {
+            get
+            {
+                //TODO 主要是处理泛型
+                throw new NotImplementedException();
+                //return null;
+            }
+        }
         #endregion
 
         #region 构造
@@ -106,7 +119,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public override Object CreateInstance(params Object[] parameters)
         {
-            if (BaseType.ContainsGenericParameters || BaseType.IsGenericTypeDefinition) 
+            if (BaseType.ContainsGenericParameters || BaseType.IsGenericTypeDefinition)
                 throw new XException(BaseType.FullName + "类是泛型定义类，缺少泛型参数！");
 
             if (BaseType.IsValueType || BaseType.IsArray)
@@ -407,6 +420,86 @@ namespace NewLife.Reflection
         {
             if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
 
+            #region 处理泛型
+            Int32 start = typeName.IndexOf("<");
+            if (start > 0)
+            {
+                Int32 end = typeName.LastIndexOf(">");
+                // <>也不行
+                if (end > start + 1)
+                {
+                    // GT<P1,P2,P3,P4>
+                    String gname = typeName.Substring(0, start);
+                    String pname = typeName.Substring(start + 1, end - start - 1);
+                    //pname = "P1,P2<aa,bb>,P3,P4";
+                    List<String> pnames = new List<String>();
+
+                    // 只能用栈来分析泛型参数了
+                    Int32 count = 0;
+                    Int32 last = 0;
+                    for (Int32 i = 0; i < pname.Length; i++)
+                    {
+                        Char item = pname[i];
+
+                        if (item == '<')
+                            count++;
+                        else if (item == '>')
+                            count--;
+                        else if (item == ',' && count == 0)
+                        {
+                            pnames.Add(pname.Substring(last, i - last).Trim());
+                            last = i + 1;
+                        }
+                    }
+                    if (last <= pname.Length) pnames.Add(pname.Substring(last, pname.Length - last).Trim());
+
+                    gname += "`" + pnames.Count;
+
+                    // 先找外部的，如果外部都找不到，那就没意义了
+                    Type gt = GetType(gname, isLoadAssembly);
+                    if (gt == null) return null;
+
+                    List<Type> ts = new List<Type>(pnames.Count);
+                    foreach (String item in pnames)
+                    {
+                        // 如果任何一个参数为空，说明这只是一个泛型定义而已
+                        if (String.IsNullOrEmpty(item)) return gt;
+
+                        Type t = GetType(item, isLoadAssembly);
+                        if (t == null) return null;
+
+                        ts.Add(t);
+                    }
+
+                    return gt.MakeGenericType(ts.ToArray());
+                }
+            }
+            #endregion
+
+            #region 处理数组
+            start = typeName.LastIndexOf("[");
+            if (start > 0)
+            {
+                Int32 end = typeName.LastIndexOf("]");
+                if (end > start)
+                {
+                    // Int32[][]  String[,,]
+                    String gname = typeName.Substring(0, start);
+                    String pname = typeName.Substring(start + 1, end - start - 1);
+                    //pname = ",,,";
+                    String[] pnames = pname.Split(new Char[] { ',' });
+
+                    // 先找外部的，如果外部都找不到，那就没意义了
+                    Type gt = GetType(gname, isLoadAssembly);
+                    if (gt == null) return null;
+
+                    return gt.MakeArrayType(pnames.Length);
+                }
+            }
+            #endregion
+
+            // 处理内嵌类型
+
             // 基本获取
             Type type = Type.GetType(typeName);
             if (type != null) return type;
@@ -429,7 +522,7 @@ namespace NewLife.Reflection
             {
                 foreach (AssemblyX asm in list)
                 {
-                    type = asm.Asm.GetType(typeName);
+                    type = FindByNameInAssembly(asm.Asm, typeName);
                     if (type != null) return type;
                 }
             }
@@ -438,17 +531,29 @@ namespace NewLife.Reflection
             {
                 // 尝试加载程序集
                 AssemblyX.ReflectionOnlyLoad();
+
+                // 再试一次
+                list = AssemblyX.GetAssemblies();
+                if (list != null && list.Count > 0)
+                {
+                    foreach (AssemblyX asm in list)
+                    {
+                        type = FindByNameInAssembly(asm.Asm, typeName);
+                        if (type != null) return type;
+                    }
+                }
+
                 list = AssemblyX.ReflectionOnlyGetAssemblies();
                 if (list != null && list.Count > 0)
                 {
                     foreach (AssemblyX asm in list)
                     {
-                        type = asm.Asm.GetType(typeName);
+                        type = FindByNameInAssembly(asm.Asm, typeName);
                         if (type != null)
                         {
                             // 真实加载
                             Assembly asm2 = Assembly.LoadFile(asm.Asm.Location);
-                            Type type2 = asm2.GetType(typeName);
+                            Type type2 = FindByNameInAssembly(asm2, typeName);
                             if (type2 != null) type = type2;
 
                             return type;
@@ -464,6 +569,27 @@ namespace NewLife.Reflection
                 if (type != null) return type;
                 type = Type.GetType("NewLife." + typeName);
                 if (type != null) return type;
+            }
+
+            return null;
+        }
+
+        static Type FindByNameInAssembly(Assembly asm, String typeName)
+        {
+            Type type = asm.GetType(typeName);
+            if (type != null) return type;
+
+            // 如果没有包含圆点，说明其不是FullName
+            if (!typeName.Contains("."))
+            {
+                Type[] types = asm.GetTypes();
+                if (types != null && types.Length > 0)
+                {
+                    foreach (Type item in types)
+                    {
+                        if (item.Name == typeName) return item;
+                    }
+                }
             }
 
             return null;
