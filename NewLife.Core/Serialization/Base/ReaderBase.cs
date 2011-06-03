@@ -1092,7 +1092,7 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        protected Boolean IsExactType(Type type)
+        protected static Boolean IsExactType(Type type)
         {
             if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
                 return false;
@@ -1112,11 +1112,79 @@ namespace NewLife.Serialization
             if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
             {
                 WriteLog(action);
-                type = ReadType();
+                Type t = ReadObjectType();
+                //TODO 可以在Xml和Json测试猜测类型，写入后，删除Type部分，再尝试读取
+                if (t == null && type != null) t = GuessType(type);
+                type = t;
                 WriteLog(action, type.Name);
             }
 
             return type;
+        }
+
+        /// <summary>
+        /// 猜测类型。对于无法读取到对象类型的类型，并且是接口之类的，可以猜测
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        static Type GuessType(Type type)
+        {
+            if (type.IsInterface || type.IsAbstract)
+            {
+                // IEnumerable
+                if (typeof(IEnumerable).IsAssignableFrom(type))
+                {
+                    if (!type.IsGenericType)
+                    {
+                        // IDictionary
+                        if (type == typeof(IDictionary)) return typeof(Hashtable);
+
+                        // IList
+                        if (type == typeof(IList)) return typeof(ArrayList);
+
+                        // IEnumerable
+                        if (type == typeof(ICollection) || type == typeof(IEnumerable)) return typeof(ArrayList);
+                    }
+                    else
+                    {
+                        // 处理泛型
+                        Type gt = type.GetGenericTypeDefinition();
+                        if (gt != null)
+                        {
+                            // 处理泛型参数
+                            Type[] gs = type.GetGenericArguments();
+
+                            // IDictionary<,>
+                            if (type == typeof(IDictionary<,>)) return typeof(Dictionary<,>).MakeGenericType(gs);
+
+                            // IList<>
+                            if (type == typeof(IList<>)) return typeof(List<>).MakeGenericType(gs);
+
+                            // IEnumerable<>
+                            if (type == typeof(ICollection<>) || type == typeof(IEnumerable<>)) typeof(List<>).MakeGenericType(gs);
+                        }
+                    }
+                }
+                return FindFirstExactType(type);
+            }
+
+            return type;
+        }
+
+        static Type FindFirstExactType(Type type)
+        {
+            if (IsExactType(type)) return type;
+
+            // 找到所有实现了该接口的类型，并返回第一个精确类型
+            Type[] ts = TypeResolver.ResolveAll(type);
+            if (ts != null && ts.Length > 0)
+            {
+                foreach (Type item in ts)
+                {
+                    if (IsExactType(item)) return item;
+                }
+            }
+            return null;
         }
 
         /// <summary>
