@@ -68,6 +68,12 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="UpdateInfo.txt" />
+    <Content Include="TA.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TB.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="XTemplate架构.jpg" />
   </ItemGroup>
   <ItemGroup>

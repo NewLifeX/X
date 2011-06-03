@@ -442,7 +442,7 @@ namespace XTemplate.Templating
             Stack<String> IncludeStack = new Stack<string>();
             IncludeStack.Push(item.Name);
 
-            String[] directives = new String[] { "template", "assembly", "import", "include", "property" };
+            String[] directives = new String[] { "template", "assembly", "import", "include", "var" };
 
             for (Int32 i = 0; i < item.Blocks.Count; i++)
             {
@@ -477,7 +477,7 @@ namespace XTemplate.Templating
             #region 包含include
             if (String.Equals(directive.Name, "include", StringComparison.OrdinalIgnoreCase))
             {
-                String name = directive.TryGetParameter("name");
+                String name = directive.GetParameter("name");
 
                 String content = null;
                 TemplateItem ti = FindTemplateItem(name);
@@ -509,22 +509,23 @@ namespace XTemplate.Templating
 
             if (String.Equals(directive.Name, "assembly", StringComparison.OrdinalIgnoreCase))
             {
-                String name = directive.TryGetParameter("name");
+                String name = directive.GetParameter("name");
                 if (!AssemblyReferences.Contains(name)) AssemblyReferences.Add(name);
             }
             else if (String.Equals(directive.Name, "import", StringComparison.OrdinalIgnoreCase))
             {
-                item.Imports.Add(directive.TryGetParameter("namespace"));
+                item.Imports.Add(directive.GetParameter("namespace"));
             }
             else if (String.Equals(directive.Name, "template", StringComparison.OrdinalIgnoreCase))
             {
                 if (!item.Processed)
                 {
                     // 由模版指令指定类名
-                    String name = directive.TryGetParameter("name");
+                    String name = directive.GetParameter("name");
                     if (!String.IsNullOrEmpty(name)) item.ClassName = name;
 
-                    item.BaseClassName = directive.TryGetParameter("inherits");
+                    //item.BaseClassName = directive.GetParameter("inherits");
+                    if (directive.TryGetParameter("inherits", out name)) item.BaseClassName = name;
                     item.Processed = true;
                 }
                 else
@@ -532,8 +533,8 @@ namespace XTemplate.Templating
             }
             else if (String.Equals(directive.Name, "var", StringComparison.OrdinalIgnoreCase))
             {
-                String name = directive.TryGetParameter("name");
-                String type = directive.TryGetParameter("type");
+                String name = directive.GetParameter("name");
+                String type = directive.GetParameter("type");
 
                 if (item.Vars.ContainsKey(name)) throw new TemplateException(directive.Block, "模版变量" + name + "已存在！");
 
@@ -541,15 +542,15 @@ namespace XTemplate.Templating
                 if (ptype == null) throw new TemplateException(directive.Block, "无法找到模版变量类型" + type + "！");
 
                 // 因为TypeX.GetType的强大，模版可能没有引用程序集和命名空间，甚至type位于未装载的程序集中它也会自动装载，所以这里需要加上
-                name = null;
+                String name2 = null;
                 try
                 {
-                    name = ptype.Assembly.Location;
+                    name2 = ptype.Assembly.Location;
                 }
                 catch { }
-                if (!String.IsNullOrEmpty(name) && !AssemblyReferences.Contains(name)) AssemblyReferences.Add(name);
-                name = ptype.Namespace;
-                if (!item.Imports.Contains(name)) item.Imports.Add(name);
+                if (!String.IsNullOrEmpty(name2) && !AssemblyReferences.Contains(name2)) AssemblyReferences.Add(name2);
+                name2 = ptype.Namespace;
+                if (!item.Imports.Contains(name2)) item.Imports.Add(name2);
 
                 item.Vars.Add(name, ptype);
             }
@@ -607,17 +608,17 @@ namespace XTemplate.Templating
                 //}
                 foreach (String v in item.Vars.Keys)
                 {
-                    Type vtype = item.Vars[v];
+                    TypeX vtype = TypeX.Create(item.Vars[v]);
 
                     StringBuilder sb = new StringBuilder();
                     sb.AppendLine();
-                    sb.AppendFormat("private {0} _{1};", vtype.FullName, item);
+                    sb.AppendFormat("private {0} _{1};", vtype.CodeName, v);
                     sb.AppendLine();
-                    sb.AppendFormat("public {0} {1}", vtype.FullName, item);
+                    sb.AppendFormat("public {0} {1}", vtype.CodeName, v);
                     sb.AppendLine("{");
-                    sb.AppendFormat("    get { return ({0})GetData(\"{1}\"); }", vtype, item);
+                    sb.AppendFormat("    get { return ({0})GetData(\"{1}\"); }", vtype.CodeName, v);
                     sb.AppendLine();
-                    sb.AppendFormat("    set { Data[\"{0}\"] = value; }", item);
+                    sb.AppendFormat("    set { Data[\"{0}\"] = value; }", v);
                     sb.AppendLine();
                     sb.AppendLine("}");
 

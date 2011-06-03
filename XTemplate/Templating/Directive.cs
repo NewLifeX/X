@@ -41,24 +41,40 @@ namespace XTemplate.Templating
         public IDictionary<String, String> Parameters { get { return _Parameters; } }
 
         /// <summary>
+        /// 读取参数值
+        /// </summary>
+        /// <param name="name">参数名</param>
+        /// <returns></returns>
+        public String GetParameter(String name)
+        {
+            String value;
+            if (TryGetParameter(name, out value)) return value;
+
+            throw new TemplateException(Block, String.Format("{0}指令缺少{1}参数！", Name, name));
+        }
+
+        /// <summary>
         /// 尝试读取参数值
         /// </summary>
         /// <param name="name">参数名</param>
         /// <returns></returns>
-        public String TryGetParameter(String name)
+        public Boolean TryGetParameter(String name, out String value)
         {
-            String str;
-            if (Parameters == null || Parameters.Count < 1)
-                throw new TemplateException(Block, String.Format("{0}指令缺少{1}参数！", Name, name));
+            value = null;
+            if (Parameters == null || Parameters.Count < 1) return false;
 
-            if (Parameters.TryGetValue(name, out str) || Parameters.TryGetValue(name.ToLower(), out str)) return str;
+            if (Parameters.TryGetValue(name, out value) || Parameters.TryGetValue(name.ToLower(), out value)) return true;
 
             foreach (String item in Parameters.Keys)
             {
-                if (String.Equals(item, name, StringComparison.OrdinalIgnoreCase)) return Parameters[item];
+                if (String.Equals(item, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    value = Parameters[item];
+                    return true;
+                }
             }
 
-            throw new TemplateException(Block, String.Format("{0}指令缺少{1}参数！", Name, name));
+            return false;
         }
     }
 }

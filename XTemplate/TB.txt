@@ -1,0 +1,3 @@
+﻿<#@template Name="Temp2" inherits="Temp1"#>
+
+这是第二模版
