@@ -351,7 +351,7 @@ namespace NewLife.Serialization
             //    if (value == null) throw new ArgumentNullException("type");
             //    type = value.GetType();
             //}
-            type = CheckAndReadType("ReadDictionaryType", type, value);
+            //type = CheckAndReadType("ReadDictionaryType", type, value);
 
             if (!typeof(IDictionary).IsAssignableFrom(type)) return false;
 
@@ -495,7 +495,7 @@ namespace NewLife.Serialization
             //    keyType = ReadType();
             //    WriteLog("ReadKeyType", keyType.Name);
             //}
-            keyType = CheckAndReadType("ReadKeyType", keyType, value.Key);
+           // keyType = CheckAndReadType("ReadKeyType", keyType, value.Key);
 
             if (!ReadObject(keyType, ref key)) return false;
 
@@ -505,7 +505,7 @@ namespace NewLife.Serialization
             //    valueType = ReadType();
             //    WriteLog("ReadValueType", valueType.Name);
             //}
-            valueType = CheckAndReadType("ReadValueType", valueType, value.Value);
+          //  valueType = CheckAndReadType("ReadValueType", valueType, value.Value);
 
             if (!ReadObject(valueType, ref val)) return false;
 
@@ -746,7 +746,7 @@ namespace NewLife.Serialization
             //    type = ReadType();
             //    WriteLog("ReadItemType", type.Name);
             //}
-            type = CheckAndReadType("ReadItemType", type, value);
+           // type = CheckAndReadType("ReadItemType", type, value);
 
             return ReadObject(type, ref value, callback);
         }
@@ -1351,7 +1351,7 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         protected virtual Boolean ReadRefObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-            type = CheckAndReadType("ReadRefObjectType", type, value);
+            //type = CheckAndReadType("ReadRefObjectType", type, value);
 
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
@@ -1493,7 +1493,7 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public virtual Boolean ReadCustomObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-            type = CheckAndReadType("ReadCustomObjectType", type, value);
+         //   type = CheckAndReadType("ReadCustomObjectType", type, value);
 
             IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
