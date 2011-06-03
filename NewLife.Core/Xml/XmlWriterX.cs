@@ -111,14 +111,14 @@ namespace NewLife.Xml
 
             {
                 Writer.WriteStartElement("Key");
-                keyType = CheckAndWriteType("WriteKeyType", value.Key, keyType);
+                //keyType = CheckAndWriteType("WriteKeyType", value.Key, keyType);
                 if (!WriteObject(value.Key, keyType, callback)) return false;
                 Writer.WriteEndElement();
             }
 
             {
                 Writer.WriteStartElement("Value");
-                valueType = CheckAndWriteType("WriteValueType", value.Value, valueType);
+                //valueType = CheckAndWriteType("WriteValueType", value.Value, valueType);
                 if (!WriteObject(value.Value, valueType, callback)) return false;
                 Writer.WriteEndElement();
             }
@@ -147,7 +147,7 @@ namespace NewLife.Xml
 
             Writer.WriteStartElement(name);
 
-            type = CheckAndWriteType("WriteItemType", value, type);
+           // type = CheckAndWriteType("WriteItemType", value, type);
 
             AutoFlush();
 
