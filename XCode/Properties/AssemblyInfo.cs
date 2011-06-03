@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.9.*")]
-[assembly: AssemblyFileVersion("7.9.2011.0602")]
+[assembly: AssemblyFileVersion("7.9.2011.0603")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.9.2011.0603   实体类增加三个根据实体缓存查找数据的方法，方便ObjectDataSource绑定
+ * 
  * v7.9.2011.0602   修正EntityTree中的排序错误，增加升降排序方法，支持同级升降排序
  * 
  * v7.9.2011.0529   实体类添删改拆分两部分，OnInsert/OnUpdate/Delete作为操作数据的真实操作，Insert/Update/Delete作为调用者，配合以数据验证和事务保护

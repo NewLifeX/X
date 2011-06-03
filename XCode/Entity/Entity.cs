@@ -762,6 +762,52 @@ namespace XCode
         {
             return LoadData(Meta.Query(sql));
         }
+
+        /// <summary>
+        /// 查找所有缓存
+        /// </summary>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static EntityList<TEntity> FindAllWithCache()
+        {
+            return Entity<TEntity>.Meta.Cache.Entities;
+        }
+        #endregion
+
+        #region 缓存查询
+        /// <summary>
+        /// 根据属性以及对应的值，在缓存中查找单个实体
+        /// </summary>
+        /// <param name="name">属性名称</param>
+        /// <param name="value">属性值</param>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static TEntity FindWithCache(String name, Object value)
+        {
+            return Entity<TEntity>.Meta.Cache.Entities.Find(name, value);
+        }
+
+        /// <summary>
+        /// 查找所有缓存
+        /// </summary>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static EntityList<TEntity> FindAllWithCache()
+        {
+            return Entity<TEntity>.Meta.Cache.Entities;
+        }
+
+        /// <summary>
+        /// 根据属性以及对应的值，在缓存中获取所有实体对象
+        /// </summary>
+        /// <param name="name">属性</param>
+        /// <param name="value">值</param>
+        /// <returns>实体数组</returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static EntityList<TEntity> FindAllWithCache(String name, Object value)
+        {
+            return Entity<TEntity>.Meta.Cache.Entities;
+        }
         #endregion
 
         #region 取总记录数
