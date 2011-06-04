@@ -317,7 +317,7 @@ namespace XControl
             BtnControl.Attributes.Add("val", HiddenControl.ClientID);
 
             string modalDialogOpts = !string.IsNullOrEmpty(ModalDialogOptions) ? "{" + ModalDialogOptions + "}" : "null";
-            string extraClientOpts = !string.IsNullOrEmpty(ExtraClientOptions) ? "{" + ExtraClientOptions + "}" : (AutoPostBack ? "after:'__doPostBack(\\\'" + ClientID + "\\\', \\\'\\\')'" : "null");
+            string extraClientOpts = !string.IsNullOrEmpty(ExtraClientOptions) ? "{" + ExtraClientOptions + "}" : (AutoPostBack ? "{after:'__doPostBack(\\\'" + ClientID + "\\\', \\\'\\\')'}" : "null");
 
             string otherClientClick = "return false;";
             //if (!String.IsNullOrEmpty(BtnControl.OnClientClick))
