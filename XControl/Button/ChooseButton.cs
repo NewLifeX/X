@@ -161,7 +161,7 @@ namespace XControl
         /// <summary>
         /// 扩展的客户端选项
         /// </summary>
-        [Category(" 专用属性"),DefaultValue(""),Description("扩展的客户端选项")]
+        [Category(" 专用属性"), DefaultValue(""), Description("扩展的客户端选项")]
         public string ExtraClientOptions
         {
             get
@@ -316,8 +316,8 @@ namespace XControl
 
             BtnControl.Attributes.Add("val", HiddenControl.ClientID);
 
-            string modalDialogOpts = string.IsNullOrEmpty(ModalDialogOptions) ? "null" : "{" + ModalDialogOptions + "}";
-            string extraClientOpts = string.IsNullOrEmpty(ExtraClientOptions) ? "null" : "{" + ExtraClientOptions + "}";
+            string modalDialogOpts = !string.IsNullOrEmpty(ModalDialogOptions) ? "{" + ModalDialogOptions + "}" : "null";
+            string extraClientOpts = !string.IsNullOrEmpty(ExtraClientOptions) ? "{" + ExtraClientOptions + "}" : (AutoPostBack ? "after:'__doPostBack(\\\'" + ClientID + "\\\', \\\'\\\')'" : "null");
 
             string otherClientClick = "return false;";
             //if (!String.IsNullOrEmpty(BtnControl.OnClientClick))
@@ -328,7 +328,7 @@ namespace XControl
             // 由于Button控件将OnClientClick值保存到ViewState,所以在post之后,OnClientClick属性值会恢复
             // 所以这里不需要考虑保留旧值,并且ChooseButton控件没提供OnClientClick属性,外部也无法访问到Button控件的OnClientClick
             // 原有代码会在post一次之后反复叠加Choose()的js调用
-            BtnControl.OnClientClick = string.Format("Choose(this,'{0}',{1},{2});{3}", ProcessedUrl, modalDialogOpts,extraClientOpts,otherClientClick);
+            BtnControl.OnClientClick = string.Format("Choose(this,'{0}',{1},{2});{3}", ProcessedUrl, modalDialogOpts, extraClientOpts, otherClientClick);
 
             //if (String.IsNullOrEmpty(BtnControl.OnClientClick))
             //    BtnControl.OnClientClick = "Choose(this,'" + Url + "');return false;";
