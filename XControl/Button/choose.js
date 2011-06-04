@@ -74,7 +74,11 @@
             };
 
             if (opts.ExtraClientOptions.before) {
-                opts.ExtraClientOptions.beforeResult = new Function("options", opts.ExtraClientOptions.before).call(opts.Element, opts);
+                var func = opts.ExtraClientOptions.before;
+                if (typeof func == 'string') {
+                    func = new Function('options', opts.ExtraClientOptions.before);
+                }
+                opts.ExtraClientOptions.beforeResult = func.call(opts.Element, opts);
             }
 
             if (opts.ExtraClientOptions.beforeResult == false) {
@@ -88,24 +92,31 @@
             opts.UrlProcessed = randomUrl(opts.UrlProcessed);
 
             var result = showModalDialog(opts.UrlProcessed, null, showModalDialogParams(opts.ModalDialogOptions));
+
+            var resultArray;
             if (result != undefined) {
-                var resultArray = result && typeof (result) == 'string' ? result.split('|||') : [];
-                var defaultProcess = function (extras) {
+                resultArray = result && typeof (result) == 'string' ? result.split('|||') : [];
+            }
+            var defaultProcess = function () {
+                try {
                     opts.Element.value = resultArray[1];
                     valEle.value = resultArray[0];
-                    defaultProcess = null;
-                };
+                } catch (e) { }
+            };
+            defaultProcess();
 
-                if (opts.ExtraClientOptions.after) {
-                    opts.ExtraClientOptions.afterResult = new Function("options", "result", opts.ExtraClientOptions.after)
-                    .call(opts.Element, opts, { result: result, resultArray: resultArray, defaultProcess: defaultProcess });
+            if (opts.ExtraClientOptions.after) {
+                var func = opts.ExtraClientOptions.after;
+                if (typeof func == 'string') {
+                    func = new Function("options", "result", func);
                 }
-
-                if (opts.ExtraClientOptions.afterResult == undefined || opts.ExtraClientOptions.afterResult) {
-                    defaultProcess && defaultProcess();
-                }
-
+                opts.ExtraClientOptions.afterResult = func.call(opts.Element, opts, { result: result, resultArray: resultArray, defaultProcess: defaultProcess });
             }
+            if (opts.ExtraClientOptions.afterResult == undefined || opts.ExtraClientOptions.afterResult) {
+                defaultProcess();
+            }
+
+
         } catch (e) {
             alert(e);
         }
