@@ -19,9 +19,9 @@ namespace XControl
     [Description("选择输入控件")]
     [ToolboxData("<{0}:ChooseButton runat=server></{0}:ChooseButton>")]
     [ToolboxBitmap(typeof(Button))]
-    [ControlValueProperty("Text")]
-    [DefaultProperty("Text"), ValidationProperty("Text"), DefaultEvent("TextChanged")]
-    public class ChooseButton : CompositeControl, IPostBackDataHandler, IEditableTextControl, ITextControl
+    [ControlValueProperty("Value")]
+    [DefaultProperty("Text"), ValidationProperty("Text"), DefaultEvent("ValueChanged")]
+    public class ChooseButton : CompositeControl, /*IPostBackDataHandler, IEditableTextControl,*/ ITextControl
     {
         #region 属性
         /// <summary>
@@ -278,6 +278,7 @@ namespace XControl
                 _HiddenControl = new HiddenField();
                 _HiddenControl.ID = "ChooseValue";
                 _HiddenControl.Value = Value;
+                _HiddenControl.ValueChanged += new EventHandler(OnValueChanged);
                 Controls.Add(_HiddenControl);
             }
         }
@@ -356,80 +357,27 @@ namespace XControl
         #endregion
 
         #region 回发事件处理
-        private static readonly object EventTextChanged = new object();
-
+        private static readonly object EventValueChanged = new object();
         /// <summary>
-        /// 文本内容改变事件
+        /// 值改变时触发
         /// </summary>
-        [WebSysDescription("TextBox_OnTextChanged"), WebCategory("Action")]
-        public event EventHandler TextChanged
+        [WebSysDescription("HiddenField_OnValueChanged"), WebCategory("Action")]
+        public event EventHandler ValueChanged
         {
             add
             {
-                base.Events.AddHandler(EventTextChanged, value);
+                base.Events.AddHandler(EventValueChanged, value);
             }
             remove
             {
-                base.Events.RemoveHandler(EventTextChanged, value);
+                base.Events.RemoveHandler(EventValueChanged, value);
             }
         }
 
-        bool IPostBackDataHandler.LoadPostData(string postDataKey, NameValueCollection postCollection)
+        void OnValueChanged(Object sender, EventArgs e)
         {
-            return LoadPostData(postDataKey, postCollection);
-        }
-
-        void IPostBackDataHandler.RaisePostDataChangedEvent()
-        {
-            RaisePostDataChangedEvent();
-        }
-
-        /// <summary>
-        /// 加载数据
-        /// </summary>
-        /// <param name="postDataKey"></param>
-        /// <param name="postCollection"></param>
-        /// <returns></returns>
-        protected virtual bool LoadPostData(string postDataKey, NameValueCollection postCollection)
-        {
-            //base.ValidateEvent(postDataKey);
-            string text = this.Text;
-            string str2 = postCollection[postDataKey];
-            if (!text.Equals(str2, StringComparison.Ordinal))
-            {
-                this.Text = str2;
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// 引发回发数据改变事件
-        /// </summary>
-        protected virtual void RaisePostDataChangedEvent()
-        {
-            if (this.AutoPostBack && !this.Page.IsPostBackEventControlRegistered)
-            {
-                this.Page.AutoPostBackControl = this;
-                //if (this.CausesValidation)
-                //{
-                //    this.Page.Validate(this.ValidationGroup);
-                //}
-            }
-            this.OnTextChanged(EventArgs.Empty);
-        }
-
-        /// <summary>
-        /// 文本内容改变事件
-        /// </summary>
-        /// <param name="e"></param>
-        protected virtual void OnTextChanged(EventArgs e)
-        {
-            EventHandler handler = (EventHandler)base.Events[EventTextChanged];
-            if (handler != null)
-            {
-                handler(this, e);
-            }
+            EventHandler handler = (EventHandler)base.Events[EventValueChanged];
+            if (handler != null) handler(this, e);
         }
         #endregion
     }
