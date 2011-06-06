@@ -762,16 +762,6 @@ namespace XCode
         {
             return LoadData(Meta.Query(sql));
         }
-
-        /// <summary>
-        /// 查找所有缓存
-        /// </summary>
-        /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAllWithCache()
-        {
-            return Entity<TEntity>.Meta.Cache.Entities;
-        }
         #endregion
 
         #region 缓存查询
