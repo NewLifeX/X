@@ -147,7 +147,7 @@ namespace NewLife.CommonEntity.Web
         {
             base.OnInitComplete(e);
 
-            foreach (FieldItem field in Entity<TEntity>.Meta.Fields)
+            foreach (FieldItem field in Entity<TEntity>.Meta.AllFields)
             {
                 Control control = Page.FindControl(FormItemPrefix + field.Name);
                 if (control == null) continue;
@@ -253,7 +253,7 @@ namespace NewLife.CommonEntity.Web
             // 是否有权限保存数据
             Boolean canSave = CanSave;
 
-            foreach (FieldItem item in Entity<TEntity>.Meta.Fields)
+            foreach (FieldItem item in Entity<TEntity>.Meta.AllFields)
             {
                 Control control = Page.FindControl(FormItemPrefix + item.Name);
                 if (control == null) continue;
@@ -372,7 +372,15 @@ namespace NewLife.CommonEntity.Web
         /// <param name="canSave"></param>
         protected virtual void SetFormItemLabel(FieldItem field, Label control, Boolean canSave)
         {
-            control.Text = String.Empty + Entity[field.Name];
+            Type type = field.Type;
+            if (type == typeof(DateTime))
+            {
+                DateTime d = (DateTime)Entity[field.Name];
+                if (IsNullKey && d == DateTime.MinValue) d = DateTime.Now;
+                control.Text = d.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            else
+                control.Text = String.Empty + Entity[field.Name];
         }
 
         /// <summary>
@@ -487,7 +495,7 @@ namespace NewLife.CommonEntity.Web
         /// </summary>
         protected virtual void GetForm()
         {
-            foreach (FieldItem item in Entity<TEntity>.Meta.Fields)
+            foreach (FieldItem item in Entity<TEntity>.Meta.AllFields)
             {
                 Control control = Page.FindControl(FormItemPrefix + item.Name);
                 if (control == null) continue;
@@ -653,7 +661,7 @@ namespace NewLife.CommonEntity.Web
         /// <returns></returns>
         protected virtual Boolean ValidForm()
         {
-            foreach (FieldItem item in Entity<TEntity>.Meta.Fields)
+            foreach (FieldItem item in Entity<TEntity>.Meta.AllFields)
             {
                 Control control = Page.FindControl(FormItemPrefix + item.Name);
                 if (control == null) continue;
