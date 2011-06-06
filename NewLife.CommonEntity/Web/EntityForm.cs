@@ -186,10 +186,12 @@ namespace NewLife.CommonEntity.Web
                 if (btn != null)
                 {
                     // 添加/编辑 按钮需要添加/编辑权限
-                    if (IsNullKey)
-                        btn.Visible = Acquire(PermissionFlags.Insert);
-                    else
-                        btn.Visible = Acquire(PermissionFlags.Update);
+                    //if (IsNullKey)
+                    //    btn.Visible = Acquire(PermissionFlags.Insert);
+                    //else
+                    //    btn.Visible = Acquire(PermissionFlags.Update);
+
+                    btn.Visible = CanSave;
 
                     if (btn is IButtonControl) (btn as IButtonControl).Text = IsNullKey ? "新增" : "更新";
                 }
@@ -249,7 +251,7 @@ namespace NewLife.CommonEntity.Web
         protected virtual void SetForm()
         {
             // 是否有权限保存数据
-            Boolean canSave = IsNullKey && Acquire(PermissionFlags.Insert) || Acquire(PermissionFlags.Update);
+            Boolean canSave = CanSave;
 
             foreach (FieldItem item in Entity<TEntity>.Meta.Fields)
             {
@@ -257,6 +259,17 @@ namespace NewLife.CommonEntity.Web
                 if (control == null) continue;
 
                 SetFormItem(item, control, canSave);
+            }
+        }
+
+        /// <summary>
+        /// 是否有权限保存数据
+        /// </summary>
+        protected virtual Boolean CanSave
+        {
+            get
+            {
+                return IsNullKey && Acquire(PermissionFlags.Insert) || Acquire(PermissionFlags.Update);
             }
         }
 
