@@ -616,9 +616,9 @@ namespace XTemplate.Templating
                     sb.AppendLine();
                     sb.AppendFormat("public {0} {1}", vtype.CodeName, v);
                     sb.AppendLine("{");
-                    sb.AppendFormat("    get { return ({0})GetData(\"{1}\"); }", vtype.CodeName, v);
+                    sb.AppendFormat("    get {{ return ({0})GetData(\"{1}\"); }}", vtype.CodeName, v);
                     sb.AppendLine();
-                    sb.AppendFormat("    set { Data[\"{0}\"] = value; }", v);
+                    sb.AppendFormat("    set {{ Data[\"{0}\"] = value; }}", v);
                     sb.AppendLine();
                     sb.AppendLine("}");
 
