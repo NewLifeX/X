@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
-using System.Text;
 
 namespace NewLife.Reflection
 {
@@ -436,6 +436,10 @@ namespace NewLife.Reflection
         {
             if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
 
+            // 基本获取
+            Type type = Type.GetType(typeName);
+            if (type != null) return type;
+
             #region 处理泛型
             Int32 start = typeName.IndexOf("<");
             if (start > 0)
@@ -515,10 +519,6 @@ namespace NewLife.Reflection
             #endregion
 
             // 处理内嵌类型
-
-            // 基本获取
-            Type type = Type.GetType(typeName);
-            if (type != null) return type;
 
             // 尝试本程序集
             Assembly[] asms = new[] { 
