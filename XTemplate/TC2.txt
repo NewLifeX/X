@@ -8,6 +8,7 @@ d1.Add("Where", "");
 d1.Add("Order", "");
 d1.Add("Start", 0);
 d1.Add("Max", 20);
+d1.Add("Template", "名称：<x:Item Name=\"FriendName\"/>");
 
 //AdminList v1=new AdminList();
 //v1.Data=d1;
@@ -24,5 +25,9 @@ AdminList v1=AdminList(d1)
 #>
 
 <x:AdminList Where="" Order="" Start=0 Max=20>
-    名称：<x:Item Name="FriendName"/>
+    <x:AdminList Where="" Order="[f:id]" Start=0 Max=20>
+    名称：<x:[f:id] Name="FriendName"/>
 </x:AdminList>
+</x:AdminList>
+
+<for..  t="" i="item" s

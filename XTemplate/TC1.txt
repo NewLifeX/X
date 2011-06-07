@@ -3,12 +3,25 @@
 <#@var Name="Order" Type="String"#>
 <#@var Name="Start" Type="Int32"#>
 <#@var Name="Max" Type="Int32"#>
-<#@var Name="Template" Type="String"#>
+<#@var Name="TemplateItemContent" Type="String"#>
 
 <#
 EntityList<Administrator> Admins=Administrator.FindAll(Where, null, Order, Start, Max);
 #>
 管理员列表：
-<#foreach(Administrator item in Admins){#>
-    <#=item.FriendName#>
+<#
+Template t1=Template.Create("", TemplateItemContent)
+foreach(Administrator item in Admins){
+Dictionary<String,Object> d1=new Dictionary<String,Object>();
+d1.Add("Item", item);
+#>
+    <#=t1.Render(d1)#>
+<#}#>
+
+<#
+foreach(Administrator item in Admins){
+#>
+foreach(Administrator item in Admins){
+    名称：<x:Item Name="FriendName"/>
+<#}#>
 <#}#>
