@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using NewLife.Collections;
 using NewLife.Exceptions;
+using System.Text;
 
 namespace NewLife.Reflection
 {
@@ -51,9 +52,24 @@ namespace NewLife.Reflection
         {
             get
             {
-                //TODO 主要是处理泛型
-                throw new NotImplementedException();
-                //return null;
+                Type type = BaseType;
+                if (type.IsGenericType)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    String name = type.GetGenericTypeDefinition().FullName;
+                    sb.Append(name.Substring(0, name.IndexOf("`")));
+                    sb.Append("<");
+                    Type[] ts = type.GetGenericArguments();
+                    for (int i = 0; i < ts.Length; i++)
+                    {
+                        if (i > 0) sb.Append(",");
+                        if (!ts[i].IsGenericParameter) sb.Append(TypeX.Create(ts[i]).CodeName);
+                    }
+                    sb.Append(">");
+                    return sb.ToString();
+                }
+                else
+                    return type.FullName;
             }
         }
         #endregion
