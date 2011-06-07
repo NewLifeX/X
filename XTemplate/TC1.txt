@@ -1,0 +1,14 @@
+﻿<#@template Name="AdminList"#>
+<#@var Name="Where" Type="String"#>
+<#@var Name="Order" Type="String"#>
+<#@var Name="Start" Type="Int32"#>
+<#@var Name="Max" Type="Int32"#>
+<#@var Name="Template" Type="String"#>
+
+<#
+EntityList<Administrator> Admins=Administrator.FindAll(Where, null, Order, Start, Max);
+#>
+管理员列表：
+<#foreach(Administrator item in Admins){#>
+    <#=item.FriendName#>
+<#}#>

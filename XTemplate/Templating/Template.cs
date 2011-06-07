@@ -542,19 +542,37 @@ namespace XTemplate.Templating
                 if (ptype == null) throw new TemplateException(directive.Block, "无法找到模版变量类型" + type + "！");
 
                 // 因为TypeX.GetType的强大，模版可能没有引用程序集和命名空间，甚至type位于未装载的程序集中它也会自动装载，所以这里需要加上
-                String name2 = null;
-                try
-                {
-                    name2 = ptype.Assembly.Location;
-                }
-                catch { }
-                if (!String.IsNullOrEmpty(name2) && !AssemblyReferences.Contains(name2)) AssemblyReferences.Add(name2);
-                name2 = ptype.Namespace;
-                if (!item.Imports.Contains(name2)) item.Imports.Add(name2);
-
+                ImportType(item, ptype);
                 item.Vars.Add(name, ptype);
             }
             return null;
+        }
+
+        /// <summary>
+        /// 导入某类型，导入程序集引用及命名空间引用，主要处理泛型
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="type"></param>
+        void ImportType(TemplateItem item, Type type)
+        {
+            String name = null;
+            try
+            {
+                name = type.Assembly.Location;
+            }
+            catch { }
+            if (!String.IsNullOrEmpty(name) && !AssemblyReferences.Contains(name)) AssemblyReferences.Add(name);
+            name = type.Namespace;
+            if (!item.Imports.Contains(name)) item.Imports.Add(name);
+
+            if (type.IsGenericType && !type.IsGenericTypeDefinition)
+            {
+                Type[] ts = type.GetGenericArguments();
+                foreach (Type elm in ts)
+                {
+                    if (!elm.IsGenericParameter) ImportType(item, elm);
+                }
+            }
         }
         #endregion
 
@@ -582,7 +600,7 @@ namespace XTemplate.Templating
             if (!String.IsNullOrEmpty(item.Name)) typeDec.LinePragma = new CodeLinePragma(item.Name, 1);
 
             // Render方法
-            ConstructRenderMethod(item.Blocks, lineNumbers, typeDec);
+            CreateRenderMethod(item.Blocks, lineNumbers, typeDec);
 
             // 代码生成选项
             CodeGeneratorOptions options = new CodeGeneratorOptions();
@@ -600,7 +618,9 @@ namespace XTemplate.Templating
             // 模版变量
             if (item.Vars != null && item.Vars.Count > 0)
             {
-                //private Int32 _VarName;
+                // 构建静态构造函数，初始化静态属性Vars
+                CreateCctorMethod(typeDec, item.Vars);
+
                 //public Int32 VarName
                 //{
                 //    get { return (Int32)GetData("VarName"); }
@@ -609,14 +629,13 @@ namespace XTemplate.Templating
                 foreach (String v in item.Vars.Keys)
                 {
                     TypeX vtype = TypeX.Create(item.Vars[v]);
+                    String codeName = vtype.CodeName;
 
                     StringBuilder sb = new StringBuilder();
                     sb.AppendLine();
-                    sb.AppendFormat("private {0} _{1};", vtype.CodeName, v);
-                    sb.AppendLine();
-                    sb.AppendFormat("public {0} {1}", vtype.CodeName, v);
+                    sb.AppendFormat("public {0} {1}", codeName, v);
                     sb.AppendLine("{");
-                    sb.AppendFormat("    get {{ return ({0})GetData(\"{1}\"); }}", vtype.CodeName, v);
+                    sb.AppendFormat("    get {{ return GetData<{0}>(\"{1}\"); }}", codeName, v);
                     sb.AppendLine();
                     sb.AppendFormat("    set {{ Data[\"{0}\"] = value; }}", v);
                     sb.AppendLine();
@@ -640,11 +659,11 @@ namespace XTemplate.Templating
         /// </summary>
         /// <param name="blocks"></param>
         /// <param name="lineNumbers"></param>
-        /// <param name="generatorType"></param>
-        private static void ConstructRenderMethod(List<Block> blocks, Boolean lineNumbers, CodeTypeDeclaration generatorType)
+        /// <param name="typeDec"></param>
+        private static void CreateRenderMethod(List<Block> blocks, Boolean lineNumbers, CodeTypeDeclaration typeDec)
         {
             CodeMemberMethod method = new CodeMemberMethod();
-            generatorType.Members.Add(method);
+            typeDec.Members.Add(method);
             method.Name = "Render";
             method.Attributes = MemberAttributes.Override | MemberAttributes.Public;
             method.ReturnType = new CodeTypeReference(typeof(String));
@@ -700,6 +719,23 @@ namespace XTemplate.Templating
             }
 
             statementsMain.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(new CodeMethodReferenceExpression(new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "Output"), "ToString"), new CodeExpression[0])));
+        }
+
+
+        private static void CreateCctorMethod(CodeTypeDeclaration typeDec, IDictionary<String, Type> vars)
+        {
+            CodeTypeConstructor method = new CodeTypeConstructor();
+            typeDec.Members.Add(method);
+            method.Attributes = MemberAttributes.Public;
+
+            // 生成代码
+            CodeStatementCollection statementsMain = method.Statements;
+            // vars.Add(item, vars[item]);
+            foreach (String item in vars.Keys)
+            {
+                CodeMethodReferenceExpression methodRef = new CodeMethodReferenceExpression(new CodePropertyReferenceExpression(null, "Vars"), "Add");
+                statementsMain.Add(new CodeMethodInvokeExpression(methodRef, new CodePrimitiveExpression(item), new CodeTypeOfExpression(vars[item])));
+            }
         }
 
         private static void AddStatementWithLinePragma(Block block, CodeStatementCollection statements, CodeStatement statement)

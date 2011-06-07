@@ -1,0 +1,28 @@
+﻿<x:AdminList Where="" Order="" Start=0 Max=20 />
+
+<x:AdminList Where="" Order="" Start=0 Max=20></x:AdminList>
+
+<#
+Dictionary<String,Object> d1=new Dictionary<String,Object>();
+d1.Add("Where", "");
+d1.Add("Order", "");
+d1.Add("Start", 0);
+d1.Add("Max", 20);
+
+//AdminList v1=new AdminList();
+//v1.Data=d1;
+//v1.Initialize();
+//Write(v1.Render());
+
+AdminList v1=AdminList(d1)
+#>
+<#=v1.Render()#>
+
+<#
+//TemplateBase t1=Create("AdminList", d1);
+//Write(t1.Render());
+#>
+
+<x:AdminList Where="" Order="" Start=0 Max=20>
+    名称：<x:Item Name="FriendName"/>
+</x:AdminList>

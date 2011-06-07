@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.IO;
+using System.Reflection;
+using NewLife.Reflection;
 
 namespace XTemplate.Templating
 {
@@ -273,6 +275,30 @@ namespace XTemplate.Templating
         {
             Object obj = null;
             return Data.TryGetValue(name, out obj) ? obj : null;
+        }
+
+        /// <summary>
+        /// 获取数据，主要处理类型转换
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        protected T GetData<T>(String name)
+        {
+            Object obj = GetData(name);
+            if (obj == null) return default(T);
+
+            return (T)TypeX.ChangeType(obj, typeof(T));
+        }
+        #endregion
+
+        #region 模版变量
+        private static IDictionary<String, Type> _Vars;
+        /// <summary>模版变量集合</summary>
+        public static IDictionary<String, Type> Vars
+        {
+            get { return _Vars ?? (_Vars = new Dictionary<String, Type>()); }
+            set { _Vars = value; }
         }
         #endregion
     }
