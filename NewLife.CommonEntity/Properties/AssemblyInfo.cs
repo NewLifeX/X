@@ -35,10 +35,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.0.*")]
-[assembly: AssemblyFileVersion("2.0.2011.0512")]
+[assembly: AssemblyVersion("2.1.*")]
+[assembly: AssemblyFileVersion("2.1.2011.0607")]
 
 /*
+ * v2.1.2011.0607   WebPageBase中增加ViewState压缩功能
+ * 
  * v2.0.2011.0512   完善附件上传、附件下载、图片附件展示、图片缩略图等相关功能
  * 
  * v2.0.2011.0509   解决多个菜单具有相同权限名的问题，尝试返回当前页面所在菜单，如果无法确定，则返回第一个，并写日志。

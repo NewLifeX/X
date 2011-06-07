@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Principal;
+using System.Threading;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Log;
-using XCode;
+using NewLife.Security;
 using XCode.DataAccessLayer;
-using System.Threading;
-using NewLife.Web;
-using System.Security.Principal;
+using NewLife.Configuration;
 
 namespace NewLife.CommonEntity.Web
 {
@@ -366,6 +366,67 @@ namespace NewLife.CommonEntity.Web
             else
                 Response.Write(str);
 
+        }
+        #endregion
+
+        #region 压缩ViewState
+        /// <summary>
+        /// 设定序列化后的字符串长度为多少后启用压缩
+        /// </summary>
+        private static Int32 LimitLength = 1096;
+
+        /// <summary>
+        /// 是否压缩ViewState
+        /// </summary>
+        protected virtual Boolean CompressViewState { get { return Config.GetConfig<Boolean>("NewLife.CommonEntity.CompressViewState", true); } }
+
+        /// <summary>
+        /// 重写保存页的所有视图状态信息
+        /// </summary>
+        /// <param name="state">要在其中存储视图状态信息的对象</param>
+        protected override void SavePageStateToPersistenceMedium(Object state)
+        {
+            if (!CompressViewState)
+            {
+                base.SavePageStateToPersistenceMedium(state);
+                return;
+            }
+
+            MemoryStream ms = new MemoryStream();
+            new LosFormatter().Serialize(ms, state);
+
+            String vs = null;
+
+            //判断序列化对象的字符串长度是否超出定义的长度界限
+            if (ms.Length > LimitLength)
+                vs = "1$" + Convert.ToBase64String(DataHelper.Compress(ms.ToArray()));
+            else
+                vs = Convert.ToBase64String(ms.ToArray());
+
+            //注册在页面储存ViewState状态的隐藏文本框，并将内容写入这个文本框
+            ClientScript.RegisterHiddenField("__VSTATE", vs);
+        }
+
+        /// <summary>
+        /// 重写将所有保存的视图状态信息加载到页面对象
+        /// </summary>
+        /// <returns>保存的视图状态</returns>
+        protected override Object LoadPageStateFromPersistenceMedium()
+        {
+            if (!CompressViewState) return base.LoadPageStateFromPersistenceMedium();
+
+            //使用Request方法获取序列化的ViewState字符串
+            String vs = Request.Form.Get("__VSTATE");
+
+            Byte[] bts = null;
+
+            if (vs.StartsWith("1$"))
+                bts = DataHelper.Decompress(Convert.FromBase64String(vs.Substring(2)));
+            else
+                bts = Convert.FromBase64String(vs);
+
+            //将指定的视图状态值转换为有限对象序列化 (LOS) 格式化的对象
+            return new LosFormatter().Deserialize(new MemoryStream(bts));
         }
         #endregion
     }

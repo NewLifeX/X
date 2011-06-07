@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Web;
 using System.IO.Compression;
+using NewLife.Configuration;
 
 namespace NewLife.Web
 {
@@ -38,18 +39,28 @@ namespace NewLife.Web
             HttpApplication app = sender as HttpApplication;
             //压缩
             String url = app.Request.Url.OriginalString.ToLower();
-            if (url.Contains(".aspx") || url.Contains(".axd") || url.Contains(".js") || url.Contains(".css"))
+            String files = Config.GetConfig<String>("NewLife.CommonEntity.CompressFiles", ".aspx,.axd,.js,.css");
+            Boolean b = false;
+            foreach (String item in files.Split(new String[] { ",", ";", " " }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (url.Contains(item))
+                {
+                    b = true;
+                    break;
+                }
+            }
+            if (b)
             {
                 //是否支持压缩协议
-                if (IsEncodingAccepted(DEFLATE))
-                {
-                    app.Response.Filter = new DeflateStream(app.Response.Filter, CompressionMode.Compress);
-                    SetEncoding(DEFLATE);
-                }
-                else if (IsEncodingAccepted(GZIP))
+                if (IsEncodingAccepted(GZIP))
                 {
                     app.Response.Filter = new GZipStream(app.Response.Filter, CompressionMode.Compress);
                     SetEncoding(GZIP);
+                }
+                else if (IsEncodingAccepted(DEFLATE))
+                {
+                    app.Response.Filter = new DeflateStream(app.Response.Filter, CompressionMode.Compress);
+                    SetEncoding(DEFLATE);
                 }
             }
         }
