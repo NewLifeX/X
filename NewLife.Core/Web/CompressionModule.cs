@@ -21,7 +21,7 @@ namespace NewLife.Web
         /// <param name="context"></param>
         void IHttpModule.Init(HttpApplication context)
         {
-            context.BeginRequest += new EventHandler(context_BeginRequest);
+            context.PostReleaseRequestState += new EventHandler(CompressContent);
         }
         #endregion
 
@@ -29,14 +29,11 @@ namespace NewLife.Web
         private const string GZIP = "gzip";
         private const string DEFLATE = "deflate";
 
-        /// <summary>
-        /// Handles the BeginRequest event of the context control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-        void context_BeginRequest(object sender, EventArgs e)
+        void CompressContent(object sender, EventArgs e)
         {
             HttpApplication app = sender as HttpApplication;
+            if (!(app.Context.CurrentHandler is System.Web.UI.Page) || app.Request["HTTP_X_MICROSOFTAJAX"] != null) return;
+
             //压缩
             String url = app.Request.Url.OriginalString.ToLower();
             String files = Config.GetConfig<String>("NewLife.CommonEntity.CompressFiles", ".aspx,.axd,.js,.css");
