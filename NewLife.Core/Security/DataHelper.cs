@@ -570,15 +570,16 @@ namespace NewLife.Security
             DeflateStream stream = new DeflateStream(ms, CompressionMode.Decompress, true);
 
             MemoryStream ms2 = new MemoryStream();
-            while (true)
-            {
-                Byte[] buffer = new Byte[1024];
-                Int32 count = stream.Read(buffer, 0, buffer.Length);
-                if (count <= 0) break;
+            //while (true)
+            //{
+            //    Byte[] buffer = new Byte[1024];
+            //    Int32 count = stream.Read(buffer, 0, buffer.Length);
+            //    if (count <= 0) break;
 
-                ms2.Write(buffer, 0, count);
-                if (count < buffer.Length) break;
-            }
+            //    ms2.Write(buffer, 0, count);
+            //    if (count < buffer.Length) break;
+            //}
+            CopyTo(stream, ms2, 0);
 
             data = ms2.ToArray();
 
@@ -587,6 +588,33 @@ namespace NewLife.Security
             ms2.Close();
 
             return data;
+        }
+        #endregion
+
+        #region 复制数据流
+        /// <summary>
+        /// 复制数据流
+        /// </summary>
+        /// <param name="src">源数据流</param>
+        /// <param name="des">目的数据流</param>
+        /// <param name="bufferSize">缓冲区大小，也就是每次复制的大小</param>
+        /// <returns>返回复制的总字节数</returns>
+        public static Int32 CopyTo(Stream src, Stream des, Int32 bufferSize)
+        {
+            if (bufferSize <= 0) bufferSize = 1024;
+
+            Int32 total = 0;
+            while (true)
+            {
+                Byte[] buffer = new Byte[bufferSize];
+                Int32 count = src.Read(buffer, 0, buffer.Length);
+                if (count <= 0) break;
+                total += count;
+
+                des.Write(buffer, 0, count);
+            }
+
+            return total;
         }
         #endregion
     }

@@ -1,0 +1,76 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Web;
+using System.IO.Compression;
+
+namespace NewLife.Web
+{
+    /// <summary>
+    /// 页面压缩模块
+    /// </summary>
+    public class CompressionModule : IHttpModule
+    {
+        #region IHttpModule Members
+        void IHttpModule.Dispose() { }
+
+        /// <summary>
+        /// 初始化模块，准备拦截请求。
+        /// </summary>
+        /// <param name="context"></param>
+        void IHttpModule.Init(HttpApplication context)
+        {
+            context.BeginRequest += new EventHandler(context_BeginRequest);
+        }
+        #endregion
+
+        #region Compression
+        private const string GZIP = "gzip";
+        private const string DEFLATE = "deflate";
+
+        /// <summary>
+        /// Handles the BeginRequest event of the context control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        void context_BeginRequest(object sender, EventArgs e)
+        {
+            HttpApplication app = sender as HttpApplication;
+            //压缩
+            String url = app.Request.Url.OriginalString.ToLower();
+            if (url.Contains(".aspx") || url.Contains(".axd") || url.Contains(".js") || url.Contains(".css"))
+            {
+                //是否支持压缩协议
+                if (IsEncodingAccepted(DEFLATE))
+                {
+                    app.Response.Filter = new DeflateStream(app.Response.Filter, CompressionMode.Compress);
+                    SetEncoding(DEFLATE);
+                }
+                else if (IsEncodingAccepted(GZIP))
+                {
+                    app.Response.Filter = new GZipStream(app.Response.Filter, CompressionMode.Compress);
+                    SetEncoding(GZIP);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks the request headers to see if the specified
+        /// encoding is accepted by the client.
+        /// </summary>
+        private static bool IsEncodingAccepted(string encoding)
+        {
+            return HttpContext.Current.Request.Headers["Accept-encoding"] != null && HttpContext.Current.Request.Headers["Accept-encoding"].Contains(encoding);
+        }
+
+        /// <summary>
+        /// Adds the specified encoding to the response headers.
+        /// </summary>
+        /// <param name="encoding"></param>
+        private static void SetEncoding(string encoding)
+        {
+            HttpContext.Current.Response.AppendHeader("Content-encoding", encoding);
+        }
+        #endregion
+    }
+}
