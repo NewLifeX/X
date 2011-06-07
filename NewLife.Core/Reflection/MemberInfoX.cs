@@ -23,7 +23,7 @@ namespace NewLife.Reflection
         }
 
         /// <summary>名称</summary>
-        public String Name
+        public virtual String Name
         {
             get { return Member.Name; }
         }

@@ -629,7 +629,7 @@ namespace XTemplate.Templating
                 foreach (String v in item.Vars.Keys)
                 {
                     TypeX vtype = TypeX.Create(item.Vars[v]);
-                    String codeName = vtype.CodeName;
+                    String codeName = vtype.FullName;
 
                     StringBuilder sb = new StringBuilder();
                     sb.AppendLine();

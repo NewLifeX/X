@@ -46,9 +46,37 @@ namespace NewLife.Reflection
         }
 
         /// <summary>
-        /// 代码名称。包含命名空间，但是不包含程序集信息
+        /// 类型名称。主要处理泛型
         /// </summary>
-        public String CodeName
+        public override String Name
+        {
+            get
+            {
+                Type type = BaseType;
+                if (type.IsGenericType)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    String name = type.GetGenericTypeDefinition().Name;
+                    sb.Append(name.Substring(0, name.IndexOf("`")));
+                    sb.Append("<");
+                    Type[] ts = type.GetGenericArguments();
+                    for (int i = 0; i < ts.Length; i++)
+                    {
+                        if (i > 0) sb.Append(",");
+                        if (!ts[i].IsGenericParameter) sb.Append(TypeX.Create(ts[i]).Name);
+                    }
+                    sb.Append(">");
+                    return sb.ToString();
+                }
+                else
+                    return type.Name;
+            }
+        }
+
+        /// <summary>
+        /// 完整类型名称。包含命名空间，但是不包含程序集信息
+        /// </summary>
+        public String FullName
         {
             get
             {
@@ -63,7 +91,7 @@ namespace NewLife.Reflection
                     for (int i = 0; i < ts.Length; i++)
                     {
                         if (i > 0) sb.Append(",");
-                        if (!ts[i].IsGenericParameter) sb.Append(TypeX.Create(ts[i]).CodeName);
+                        if (!ts[i].IsGenericParameter) sb.Append(TypeX.Create(ts[i]).FullName);
                     }
                     sb.Append(">");
                     return sb.ToString();
