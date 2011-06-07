@@ -26,7 +26,7 @@
           序号 <%=i%> 
           <%
       } %>
-
+    <p><%=Request["ID"] %></p>
     </div>
     </form>
 </body>

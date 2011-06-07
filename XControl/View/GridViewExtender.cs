@@ -248,21 +248,16 @@ namespace XControl
         void RenderOnClick(GridView gv)
         {
             // 找到一个列，列头是编辑，列类型是LinkBoxField，双击时执行它的操作
-            String editclick = null;
-            foreach (DataControlField item in gv.Columns)
+            int editColumIndex = -1;
+            for (int i = 0; i < gv.Columns.Count; i++)
             {
+                DataControlField item = gv.Columns[i];
                 if (item.HeaderText == "编辑" && item is LinkBoxField)
                 {
-                    LinkBoxField link = item as LinkBoxField;
-                    if (link.Visible && !String.IsNullOrEmpty(link.OnClientClick))
-                    {
-                        editclick = link.OnClientClick;
-                        //editclick=String.Format("",link.)
-                        if (!editclick.EndsWith(";")) editclick += ";";
-                    }
+                    editColumIndex = i;
+                    break;
                 }
             }
-
             foreach (GridViewRow item in gv.Rows)
             {
                 if (item.RowType != DataControlRowType.DataRow) continue;
@@ -298,8 +293,23 @@ namespace XControl
                 }
 
                 // 找到一个列，列头是编辑，列类型是LinkBoxField，双击时执行它的操作
-                if (!String.IsNullOrEmpty(editclick)) ondblclick = editclick + ondblclick;
-
+                string editclick = null;
+                if (editColumIndex >= 0)
+                {
+                    ControlCollection ctls = item.Cells[editColumIndex].Controls;
+                    foreach (Control ctl in ctls)
+                    {
+                        if (ctl is HyperLink)
+                        {
+                            editclick = ("" + (ctl as HyperLink).Attributes["onclick"]).Trim();
+                            if (!string.IsNullOrEmpty(editclick))
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(editclick)) ondblclick = editclick + ondblclick;
+                }
                 Format(item, "onclick", onclick);
                 Format(item, "ondblclick", ondblclick);
             }

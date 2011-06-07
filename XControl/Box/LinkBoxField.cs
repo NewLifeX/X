@@ -221,8 +221,9 @@ namespace XControl
             sb.AppendFormat("MessageTitle:'{0}', ", MessageTitle);
             sb.AppendFormat("Message:'{0}', ", Message);
             sb.AppendFormat("ShowButtonRow:{0}", ShowButtonRow.ToString().ToLower());
+            string stopPropagation = this.Control is GridView ? " if(event.stopPropagation){ event.stopPropagation(); } else { event.cancelBubble=1; };" : "";
 
-            OnClientClick = "ShowDialog({" + sb.ToString() + "}); return false;";
+            OnClientClick = "ShowDialog({" + sb.ToString() + "});" + stopPropagation + " return false;";
         }
 
         /// <summary>
