@@ -4,10 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.IO;
-using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Web.Services;
 using System.Xml.Serialization;
 using NewLife.IO;
@@ -15,7 +12,6 @@ using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
-using NewLife;
 
 namespace XCode
 {
@@ -458,11 +454,17 @@ namespace XCode
             if (names.Length == 1)
             {
                 FieldItem field = Meta.Table.FindByName(names[0]);
-                if (field != null)
+                if (field != null && (field.IsIdentity || field.PrimaryKey))
                 {
                     // 唯一键为自增且参数小于等于0时，返回空
-                    Object key = values[0];
-                    if (field.IsIdentity && (key == null || IsInt(key.GetType())) && ((Int32)key) <= 0) return null;
+                    if (IsNullKey(values[0])) return null;
+
+                    // 自增或者主键查询，记录集肯定是唯一的，不需要指定记录数和排序
+                    IList<TEntity> list = FindAll(MakeCondition(field, values[0], "="), null, null, 0, 0);
+                    if (list == null || list.Count < 1)
+                        return null;
+                    else
+                        return list[0];
                 }
             }
 
@@ -496,7 +498,7 @@ namespace XCode
             if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKey方法要求该表有唯一主键！");
 
             // 唯一键为自增且参数小于等于0时，返回空
-            if (field.IsIdentity && (key == null || IsInt(key.GetType())) && ((Int32)key) <= 0) return null;
+            if (IsNullKey(key)) return null;
 
             return Find(field.Name, key);
         }
@@ -522,23 +524,10 @@ namespace XCode
             Type type = field.Type;
 
             // 唯一键为自增且参数小于等于0时，返回新实例
-            if (IsInt(type) && IsInt(key.GetType()) && ((Int32)key) <= 0)
+            if (IsNullKey(key))
             {
-                if (field.IsIdentity)
-                {
-                    //IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
-                    return Meta.Factory.Create() as TEntity;
-                }
-                else
-                {
-                    if (DAL.Debug) DAL.WriteLog("{0}的{1}字段是整型主键，你是否忘记了设置自增？", Meta.TableName, field.ColumnName);
-                }
-            }
+                if (IsInt(type) && !field.IsIdentity && DAL.Debug) DAL.WriteLog("{0}的{1}字段是整型主键，你是否忘记了设置自增？", Meta.TableName, field.ColumnName);
 
-            // 唯一键是字符串且为空时，返回新实例
-            if (type == typeof(String) && (key is String) && String.IsNullOrEmpty((String)key))
-            {
-                //IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
                 return Meta.Factory.Create() as TEntity;
             }
 
@@ -549,7 +538,7 @@ namespace XCode
             if (entity == null)
             {
                 String msg = null;
-                if (IsInt(type) && IsInt(key.GetType()) && ((Int32)key) <= 0)
+                if (IsNullKey(key))
                     msg = String.Format("参数错误！无法取得编号为{0}的{1}！可能未设置自增主键！", key, Meta.Table.Description);
                 else
                     msg = String.Format("参数错误！无法取得编号为{0}的{1}！", key, Meta.Table.Description);
@@ -581,6 +570,23 @@ namespace XCode
                 default:
                     break;
             }
+            return false;
+        }
+
+        /// <summary>
+        /// 指定键是否为空。一般业务系统设计不允许主键为空，包括自增的0和字符串的空
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        static Boolean IsNullKey(Object key)
+        {
+            if (key == null) return true;
+
+            Type type = key.GetType();
+            if (IsInt(type)) return ((Int32)key) <= 0;
+
+            if (type == typeof(String)) return String.IsNullOrEmpty((String)key);
+
             return false;
         }
         #endregion
@@ -746,10 +752,19 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select, true)]
         public static EntityList<TEntity> FindAllByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         {
-            if (String.IsNullOrEmpty(name))
-                return FindAll(null, orderClause, null, startRowIndex, maximumRows);
-            else
-                return FindAll(MakeCondition(new String[] { name }, new Object[] { value }, "And"), orderClause, null, startRowIndex, maximumRows);
+            if (String.IsNullOrEmpty(name)) return FindAll(null, orderClause, null, startRowIndex, maximumRows);
+
+            FieldItem field = Meta.Table.FindByName(name);
+            if (field != null && (field.IsIdentity || field.PrimaryKey))
+            {
+                // 唯一键为自增且参数小于等于0时，返回空
+                if (IsNullKey(value)) return null;
+
+                // 自增或者主键查询，记录集肯定是唯一的，不需要指定记录数和排序
+                return FindAll(MakeCondition(field, value, "="), null, null, 0, 0);
+            }
+
+            return FindAll(MakeCondition(new String[] { name }, new Object[] { value }, "And"), orderClause, null, startRowIndex, maximumRows);
         }
 
         /// <summary>
@@ -1235,31 +1250,8 @@ namespace XCode
         /// <returns>分页SQL</returns>
         protected static String PageSplitSQL(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
-            //StringBuilder sb = new StringBuilder();
-            //sb.Append("Select ");
-
-            //// MSSQL和Access数据库，适合使用Top
-            //Boolean isTop = (Meta.DbType == DatabaseType.Access || Meta.DbType == DatabaseType.SqlServer || Meta.DbType == DatabaseType.SqlServer2005) && startRowIndex <= 0 && maximumRows > 0;
-            //if (isTop) sb.AppendFormat("Top {0} ", maximumRows);
-
-            //sb.Append(String.IsNullOrEmpty(selects) ? "*" : OqlToSql(selects));
-            //sb.Append(" From ");
-            //sb.Append(Meta.FormatKeyWord(Meta.TableName));
-            //if (!String.IsNullOrEmpty(whereClause)) sb.AppendFormat(" Where {0} ", OqlToSql(whereClause));
-            //if (!String.IsNullOrEmpty(orderClause)) sb.AppendFormat(" Order By {0} ", OqlToSql(orderClause));
-            //String sql = sb.ToString();
-
-            //// 返回所有记录
-            //if (startRowIndex <= 0 && maximumRows <= 0) return sql;
-
-            //// 使用Top
-            //if (isTop) return sql;
-
-            //return PageSplitSQL(sql, startRowIndex, maximumRows);
-
             SelectBuilder builder = new SelectBuilder();
             builder.Column = selects;
-            //builder.Table = Meta.TableName;
             builder.Table = Meta.FormatName(Meta.TableName);
             builder.OrderBy = orderClause;
             // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
@@ -1286,9 +1278,10 @@ namespace XCode
             {
                 keyColumn = fi.ColumnName;
                 // 加上Desc标记，将使用MaxMin分页算法。标识列，单一主键且为数字类型
-                if (fi.IsIdentity || fi.Type == typeof(Int32)) keyColumn += " Desc";
+                if (fi.IsIdentity || IsInt(fi.Type)) keyColumn += " Desc";
+                //if (fi.IsIdentity || IsInt(fi.Type)) keyColumn += " Unknown";
 
-                if (String.IsNullOrEmpty(builder.OrderBy)) builder.OrderBy = keyColumn;
+                //if (String.IsNullOrEmpty(builder.OrderBy)) builder.OrderBy = keyColumn;
             }
             return Meta.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
         }

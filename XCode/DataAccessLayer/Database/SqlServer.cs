@@ -139,7 +139,8 @@ namespace XCode.DataAccessLayer
 
             #region Max/Min分页
             // 如果要使用max/min分页法，首先keyColumn必须有asc或者desc
-            if (keyColumn.ToLower().EndsWith(" desc") || keyColumn.ToLower().EndsWith(" asc") || keyColumn.ToLower().EndsWith(" unknown"))
+            String kc = keyColumn.ToLower();
+            if (kc.EndsWith(" desc") || kc.EndsWith(" asc") || kc.EndsWith(" unknown"))
             {
                 String str = PageSplitMaxMin(sql, startRowIndex, maximumRows, keyColumn);
                 if (!String.IsNullOrEmpty(str)) return str;
@@ -198,7 +199,11 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            if (String.IsNullOrEmpty(orderBy)) orderBy = "Order By " + keyColumn;
+            if (String.IsNullOrEmpty(orderBy))
+            {
+                //if (keyColumn.EndsWith(" Unknown", StringComparison.OrdinalIgnoreCase)) keyColumn = keyColumn.Substring(0, keyColumn.LastIndexOf(" "));
+                orderBy = "Order By " + keyColumn;
+            }
             sql = CheckSimpleSQL(sql);
 
             //row_number()从1开始
