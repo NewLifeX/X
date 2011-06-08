@@ -215,20 +215,85 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
+        ///// <summary>
+        ///// 已重写。获取分页
+        ///// </summary>
+        ///// <param name="builder">查询生成器</param>
+        ///// <param name="startRowIndex">开始行，0表示第一行</param>
+        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        ///// <param name="keyColumn">主键列。用于not in分页</param>
+        ///// <returns></returns>
+        //static String PageSplitRowNumber(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
+        //{
+        //    // 从第一行开始，不需要分页
+        //    if (startRowIndex <= 0)
+        //    {
+        //        if (maximumRows < 1)
+        //            return builder.ToString();
+        //        else
+        //            return PageSplitTop(builder, maximumRows, null).ToString();
+        //    }
+
+        //    //String orderBy = String.Empty;
+        //    //if (sql.ToLower().Contains(" order "))
+        //    //{
+        //    //    // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
+        //    //    //MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        //    //    //if (ms != null && ms.Count > 0 && ms[0].Index > 0)
+        //    //    String sql2 = sql;
+        //    //    String orderBy2 = CheckOrderClause(ref sql2);
+        //    //    if (String.IsNullOrEmpty(orderBy))
+        //    //    {
+        //    //        // 已确定该sql最外层含有order by，再检查最外层是否有top。因为没有top的order by是不允许作为子查询的
+        //    //        if (!Regex.IsMatch(sql, @"^[^(]+\btop\b", RegexOptions.Compiled | RegexOptions.IgnoreCase))
+        //    //        {
+        //    //            //orderBy = sql.Substring(ms[0].Index).Trim();
+        //    //            //sql = sql.Substring(0, ms[0].Index).Trim();
+        //    //            orderBy = orderBy2.Trim();
+        //    //            sql = sql2.Trim();
+        //    //        }
+        //    //    }
+        //    //}
+
+        //    //if (String.IsNullOrEmpty(orderBy))
+        //    //{
+        //    //    //if (keyColumn.EndsWith(" Unknown", StringComparison.OrdinalIgnoreCase)) keyColumn = keyColumn.Substring(0, keyColumn.LastIndexOf(" "));
+        //    //    orderBy = "Order By " + keyColumn;
+        //    //}
+        //    //sql = CheckSimpleSQL(sql);
+
+        //    //row_number()从1开始
+        //    //if (maximumRows < 1)
+        //    //    sql = String.Format("Select * From (Select *, row_number() over({2}) as rowNumber From {1}) XCode_Temp_b Where rowNumber>={0}", startRowIndex + 1, sql, orderBy);
+        //    //else
+        //    //    sql = String.Format("Select * From (Select *, row_number() over({3}) as rowNumber From {1}) XCode_Temp_b Where rowNumber Between {0} And {2}", startRowIndex + 1, sql, startRowIndex + maximumRows, orderBy);
+
+        //    return sql;
+        //}
+
         public override string PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows, string keyColumn)
         {
-            if (String.IsNullOrEmpty(builder.GroupBy) && startRowIndex <= 0 && maximumRows > 0) return PageSplit(builder, maximumRows);
+            // 从第一行开始，不需要分页
+            if (startRowIndex <= 0 && maximumRows < 1) return builder.ToString();
 
-            return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
+            if (String.IsNullOrEmpty(builder.GroupBy))
+            {
+                // 指定了起始行，并且是SQL2005及以上版本，使用RowNumber算法
+                if (startRowIndex > 0 && IsSQL2005) return PageSplitRowNumber(builder.ToString(), startRowIndex, maximumRows, keyColumn);
+
+                return PageSplitTopNotIn(builder, startRowIndex, maximumRows, keyColumn);
+            }
+
+            return base.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
         }
 
-        String PageSplit(SelectBuilder builder, Int32 maximumRows)
-        {
-            SelectBuilder sb = builder.Clone();
-            if (String.IsNullOrEmpty(builder.Column)) builder.Column = "*";
-            builder.Column = String.Format("Top {0} {1}", maximumRows, builder.Column);
-            return builder.ToString();
-        }
+        //String PageSplit(SelectBuilder builder, Int32 maximumRows)
+        //{
+        //    SelectBuilder sb = builder.Clone();
+        //    if (String.IsNullOrEmpty(builder.Column)) builder.Column = "*";
+        //    builder.Column = String.Format("Top {0} {1}", maximumRows, builder.Column);
+        //    return builder.ToString();
+        //}
         #endregion
 
         #region 数据库特性
