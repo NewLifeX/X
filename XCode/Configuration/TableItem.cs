@@ -257,6 +257,9 @@ namespace XCode.Configuration
         {
             _EntityType = type;
             _Table = BindTableAttribute.GetCustomAttribute(EntityType);
+            if (_Table == null)
+                throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
+            
             _Description = DescriptionAttribute.GetCustomAttribute(EntityType, typeof(DescriptionAttribute)) as DescriptionAttribute;
 
             InitFields();
@@ -271,8 +274,8 @@ namespace XCode.Configuration
         public static TableItem Create(Type type)
         {
             if (type == null) throw new ArgumentNullException("type");
-            if (BindTableAttribute.GetCustomAttribute(type) == null)
-                throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
+            //if (BindTableAttribute.GetCustomAttribute(type) == null)
+            //    throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
 
             return cache.GetItem(type, key => new TableItem(key));
         }
