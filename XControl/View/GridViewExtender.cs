@@ -339,7 +339,7 @@ namespace XControl
             if (String.IsNullOrEmpty(value)) return;
 
             if (!value.EndsWith(";")) value = value + ";";
-            row.Attributes[att] = value + row.Attributes[att];
+            row.Attributes[att] = value;//+ row.Attributes[att];
         }
         #endregion
 

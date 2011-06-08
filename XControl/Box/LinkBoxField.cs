@@ -207,6 +207,12 @@ namespace XControl
 
         void UpdateOnClientClick()
         {
+            Control.Page.ClientScript.RegisterClientScriptBlock(this.GetType(), "stopEventPropagation", @"
+function stopEventPropagation(e){
+  event.stopPropagation && event.stopPropagation() || (event.cancelBubble=1);
+}
+".Replace("\r", "").Replace("\n", ""), true);
+
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat("ID:'win{0}', ", new Random((Int32)DateTime.Now.Ticks).Next(1, 1000));
             sb.AppendFormat("Title:'{0}', ", Title);
@@ -221,7 +227,7 @@ namespace XControl
             sb.AppendFormat("MessageTitle:'{0}', ", MessageTitle);
             sb.AppendFormat("Message:'{0}', ", Message);
             sb.AppendFormat("ShowButtonRow:{0}", ShowButtonRow.ToString().ToLower());
-            string stopPropagation = this.Control is GridView ? " if(event.stopPropagation){ event.stopPropagation(); } else { event.cancelBubble=1; };" : "";
+            string stopPropagation = this.Control is GridView ? "stopEventPropagation(event);" : "";
 
             OnClientClick = "ShowDialog({" + sb.ToString() + "});" + stopPropagation + " return false;";
         }

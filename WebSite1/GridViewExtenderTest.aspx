@@ -11,6 +11,7 @@
     <asp:GridView ID="GridView1" runat="server" AllowPaging="True" PageSize="3" AutoGenerateColumns="false" DataKeyNames="ID"
         DataSourceID="ObjectDataSource1" EnableModelValidation="True">
         <Columns>
+            <asp:BoundField DataField="ID" HeaderText="ID" />
             <asp:BoundField DataField="Code" HeaderText="Code" />
             <asp:BoundField DataField="Name" HeaderText="Name" />
             <asp:BoundField DataField="ParentCode" HeaderText="ParentCode" />
@@ -34,6 +35,8 @@
     </asp:ObjectDataSource>
     <XCL:GridViewExtender ID="GridViewExtender1" runat="server">
     </XCL:GridViewExtender>
+    <br />
+    <asp:Button ID="Button1" runat="server" Text="Postback" />
     </form>
 </body>
 </html>
