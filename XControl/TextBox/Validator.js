@@ -298,7 +298,7 @@ function GetEvent()
         return window.event;
     }
 
-    func = GetEvent.caller; // 返回调用本函数的函数 
+    var func = GetEvent.caller; // 返回调用本函数的函数 
     while (func != null)
     {
         // Firefox 中一个隐含的对象 arguments，第一个参数为 event 对象  
@@ -319,5 +319,5 @@ function GetEvent()
 // 返回 keyCode 对象
 function GetkeyCode(e)
 {
-    return keyCode = e.which || e.keyCode;
+    return e.which || e.keyCode;
 }
