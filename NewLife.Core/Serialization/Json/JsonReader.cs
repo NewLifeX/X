@@ -583,9 +583,35 @@ namespace NewLife.Serialization
         {
             if (!typeof(ISerializable).IsAssignableFrom(type)) return false;
 
-            // TODO ISerializable接口定义有GetObjectData,通过传入SerializationInfo(使用type构造) 和 StreamingContext可以得到包含序列化信息的SerializationInfo
-            // 反序列化需要调用 (SerializationInfo,StreamingContext)的构造方法 才能正确的反序列化
-            return base.ReadSerializable(type, ref value, callback);
+            AtomElementType atype = AssertReadNextAtomElement("期望实现了序列化接口的对象开始符号或null", AtomElementType.BRACE_OPEN, AtomElementType.NULL);
+            if (atype == AtomElementType.NULL)
+            {
+                value = null;
+                return true;
+            }
+            int d = ComplexObjectDepth++;
+            bool ret = ComplexObjectDepthIsOverflow();
+            if (ret) // 即使达到了读取深度限制,并且对象尚未创建,也创建类实例,以避免产生null
+            {
+                if (value == null)
+                {
+                    value = TypeX.CreateInstance(type);
+                }
+            }
+            else
+            {
+                ret = base.ReadSerializable(type, ref value, callback);
+            }
+            int n = ComplexObjectDepth - d;
+            if (n > 0) //尚未读到当前对象的结束符}
+            {
+                SkipNext(n);
+            }
+            else if (n < 0)
+            {
+                throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.BRACKET_CLOSE }, AtomElementType.NONE, "实现了序列化接口的对象解析异常,读取了过多的对象结束符:}");
+            }
+            return ret;
         }
         #endregion
 
@@ -1056,7 +1082,7 @@ namespace NewLife.Serialization
 
         #region 读取对象
         /// <summary>
-        /// 复合对象深度,包括自定义对象和字典
+        /// 复合对象深度,包括自定义对象和字典,主要用于平衡[]{},用于成员数量不一致时
         /// </summary>
         int ComplexObjectDepth = 0;
         /// <summary>
@@ -1576,7 +1602,7 @@ namespace NewLife.Serialization
             String lengths = base.ReadLengths();
             //if (lengths.StartsWith("\"") || lengths.EndsWith("\""))
             //{
-               // lengths = lengths.Substring(1, lengths.Length - 1);
+            // lengths = lengths.Substring(1, lengths.Length - 1);
             //}
             //lengths.Replace("\"", "");
             return lengths;
