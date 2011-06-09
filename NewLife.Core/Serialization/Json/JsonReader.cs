@@ -1571,5 +1571,16 @@ namespace NewLife.Serialization
             }
         }
 
+        protected override string ReadLengths()
+        {
+            String lengths = base.ReadLengths();
+            //if (lengths.StartsWith("\"") || lengths.EndsWith("\""))
+            //{
+               // lengths = lengths.Substring(1, lengths.Length - 1);
+            //}
+            //lengths.Replace("\"", "");
+            return lengths;
+        }
+
     }
 };
