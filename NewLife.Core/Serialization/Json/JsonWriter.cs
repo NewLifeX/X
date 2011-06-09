@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace NewLife.Serialization
 {
@@ -378,6 +379,17 @@ namespace NewLife.Serialization
             ComplexObjectDepth++;
             if (!ComplexObjectDepthIsOverflow())
             {
+                if (type.IsArray && value.GetType().GetArrayRank() > 1)
+                {
+                    Array array = value as Array;
+                    List<String> lengths = new List<String>();
+                    for (int i = 0; i < array.Rank; i++)
+                    {
+                        lengths.Add(array.GetLength(i).ToString());
+                    }
+                    WriteLengths(String.Join(",", lengths.ToArray()));
+                    Writer.Write(",");
+                }
                 rs = base.WriteEnumerable(value, type, callback);
             }
             else
