@@ -194,37 +194,47 @@ namespace NewLife.Xml
                 return result;
             }
 
-            if (t.IsArray && t.GetArrayRank() > 1)
+            if (value.GetType().IsArray && value.GetType().GetArrayRank() > 1)
             {
-                Array array = value as Array;
+                Array arr = value as Array;
                 List<String> lengths = new List<String>();
-                for (int i = 0; i < array.Rank; i++)
+                for (int j = 0; j < value.GetType().GetArrayRank(); j++)
                 {
-                    lengths.Add(array.GetLength(i).ToString());
+                    lengths.Add(arr.GetLength(j).ToString());
                 }
-                String[] list = lengths.ToArray();
-
-                Int32 length = array.GetLength(array.Rank - 1);
-                Array objs = Array.CreateInstance(elementType, length);
-                Int32 j = 0;
-                foreach (object item in value)
-                {
-                    objs.SetValue(item, j);
-                    j++;
-                    if (j == length)
-                    {
-                        j = 0;
-                        WriteLog("WriteEnumerable", type.Name);
-
-                        Writer.WriteStartElement("Item");
-                        Writer.WriteAttributeString("Lengths", String.Join(",", list));
-                        result = base.WriteEnumerable(objs as IEnumerable, type, callback);
-                        Writer.WriteEndElement();
-                        objs = TypeX.CreateInstance(type, length) as Array;
-                    }
-                }
-                return result;
+                WriteLengths(String.Join(",", lengths.ToArray()));
             }
+            //if (t.IsArray && t.GetArrayRank() > 1)
+            //{
+            //    Array array = value as Array;
+            //    List<String> lengths = new List<String>();
+            //    for (int i = 0; i < array.Rank; i++)
+            //    {
+            //        lengths.Add(array.GetLength(i).ToString());
+            //    }
+            //    String[] list = lengths.ToArray();
+
+            //    Int32 length = array.GetLength(array.Rank - 1);
+            //    Array objs = Array.CreateInstance(elementType, length);
+            //    Int32 j = 0;
+            //    foreach (object item in value)
+            //    {
+            //        objs.SetValue(item, j);
+            //        j++;
+            //        if (j == length)
+            //        {
+            //            j = 0;
+            //            WriteLog("WriteEnumerable", type.Name);
+
+            //            Writer.WriteStartElement("Item");
+            //            Writer.WriteAttributeString("Lengths", String.Join(",", list));
+            //            result = base.WriteEnumerable(objs as IEnumerable, type, callback);
+            //            Writer.WriteEndElement();
+            //            objs = TypeX.CreateInstance(type, length) as Array;
+            //        }
+            //    }
+            //    return result;
+            //}
 
             return base.WriteEnumerable(value, type, callback);
         }
@@ -351,6 +361,15 @@ namespace NewLife.Xml
             Writer.Flush();
 
             base.Flush();
+        }
+
+        /// <summary>
+        /// 写入长度
+        /// </summary>
+        /// <param name="lengths"></param>
+        protected override void WriteLengths(string lengths)
+        {
+            Writer.WriteAttributeString("Lengths", lengths);
         }
         #endregion
 

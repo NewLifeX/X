@@ -62,6 +62,14 @@ namespace NewLife.Xml
             get { return _RootName; }
             set { _RootName = value; }
         }
+
+        private String _Lengths;
+        /// <summary>多维数组长度</summary>
+        public String Lengths
+        {
+            get { return _Lengths; }
+            set { _Lengths = value; }
+        }
         #endregion
 
         #region 基础元数据
@@ -143,7 +151,7 @@ namespace NewLife.Xml
 
             //Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
             // <Key>
-         //   keyType = CheckAndReadType("ReadKeyType", keyType, value.Key);
+            //   keyType = CheckAndReadType("ReadKeyType", keyType, value.Key);
             Reader.ReadStartElement();
             if (!ReadObject(keyType, ref key)) return false;
             // </Key>
@@ -213,41 +221,47 @@ namespace NewLife.Xml
             }
             #endregion
 
-            if (type.IsArray && type.GetArrayRank() > 1)
-            {
-                if (Reader.MoveToAttribute("Lengths"))
-                {
-                    WriteLog("ReadLengths");
+            //if (type.IsArray && type.GetArrayRank() > 1)
+            //{
+            //    if (Reader.MoveToAttribute("Lengths"))
+            //    {
+            //        WriteLog("ReadLengths");
 
-                    String str = ReadString();
-                    String[] strs = str.Split(',');
-                    Int32[] lengths = new Int32[strs.Length];
-                    for (int i = 0; i < strs.Length; i++)
-                    {
-                        lengths[i] = Convert.ToInt32(strs[i]);
-                    }
-                    Array array = Array.CreateInstance(type.GetElementType(), lengths);
-                    for (int i = 0; i < array.Length; i++)
-                    {
-                        if (base.ReadEnumerable(type, ref value, callback) && value != null)
-                        {
-                            Array sub = value as Array;
+            //        String str = ReadString();
+            //        if (String.IsNullOrEmpty(str)) return false;
+            //        String[] strs = str.Split(',');
 
-                            //数据读取完毕
-                            if (sub.Length == 0) break;
+            //        Int32[] lengths = new Int32[strs.Length];
+            //        for (int i = 0; i < strs.Length; i++)
+            //        {
+            //            lengths[i] = Convert.ToInt32(strs[i]);
+            //        }
 
-                            foreach (Object item in sub)
-                            {
-                                ArrEnum(array, ix => array.SetValue(item, ix), item);
-                            }
-                            value = null;
-                        }
-                        else break;
-                    }
-                    if (array.Length > 0) value = array;
-                    WriteLog("ReadLengths", str);
-                }
-            }
+            //        Array array = Array.CreateInstance(type.GetElementType(), lengths);
+            //        if (array == null) return false;
+
+            //        for (int i = 0; i < array.Length; i++)
+            //        {
+            //            if (base.ReadEnumerable(type, ref value, callback) && value != null)
+            //            {
+            //                Array sub = value as Array;
+
+            //                //数据读取完毕
+            //                if (sub.Length == 0) break;
+
+            //                foreach (Object item in sub)
+            //                {
+            //                    ArrEnum(array, ix => array.SetValue(item, ix), item);
+            //                }
+            //                value = null;
+            //            }
+            //            else break;
+            //        }
+            //        if (array.Length > 0) value = array;
+            //        WriteLog("ReadLengths", str);
+            //        return true;
+            //    }
+            //}
 
             return base.ReadEnumerable(type, ref value, callback);
         }
@@ -318,6 +332,12 @@ namespace NewLife.Xml
             if (isElement)
             {
                 if (SkipEmpty()) return true;
+                if (Reader.MoveToAttribute("Lengths"))
+                {
+                    WriteLog("ReadLengths");
+                    Lengths = ReadString();
+                    if (Reader.NodeType == XmlNodeType.Attribute) Reader.MoveToElement();
+                }
                 Reader.ReadStartElement();
             }
 
@@ -486,6 +506,11 @@ namespace NewLife.Xml
 
             return false;
         }
+
+        protected override string ReadLengths()
+        {
+            return Lengths;
+        }
         #endregion
 
         #region 序列化接口
@@ -504,46 +529,6 @@ namespace NewLife.Xml
             if (value == null) value = TypeX.CreateInstance(type);
             ((IXmlSerializable)value).ReadXml(Reader);
             return true;
-        }
-        #endregion
-
-        #region 辅助方法
-        static void ArrEnum(Array arr, Action<Int32[]> func, Object value)
-        {
-            Int32[] ix = new Int32[arr.Rank];
-            Int32 rank = 0;
-
-            for (int i = 0; i < arr.Length; i++)
-            {
-                // 当前层以下都清零
-                for (int j = rank + 1; j < arr.Rank; j++)
-                {
-                    ix[j] = 0;
-                }
-
-                // 设置为最底层
-                rank = arr.Rank - 1;
-
-                //do something
-                //arr.SetValue(i, ix);
-                Object val = arr.GetValue(ix);
-                if (val == null || (val.Equals(0) && val != value))
-                {
-                    func(ix);
-                    return;
-                }
-
-                // 当前层递加
-                ix[rank]++;
-
-                // 如果超过上限，则减少层次
-                while (ix[rank] >= arr.GetLength(rank))
-                {
-                    rank--;
-                    if (rank < 0) break;
-                    ix[rank]++;
-                }
-            }
         }
         #endregion
 
