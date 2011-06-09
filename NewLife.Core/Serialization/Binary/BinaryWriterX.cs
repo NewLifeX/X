@@ -398,6 +398,17 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public override bool WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
         {
+            if (value.GetType().IsArray && value.GetType().GetArrayRank() > 1)
+            {
+                Array arr = value as Array;
+                List<String> lengths = new List<String>();
+                for (int j = 0; j < value.GetType().GetArrayRank(); j++)
+                {
+                    lengths.Add(arr.GetLength(j).ToString());
+                }
+                WriteLengths(String.Join(",", lengths.ToArray()));
+            }
+
             Int32 count = 0;
 
             if (type.IsArray)
