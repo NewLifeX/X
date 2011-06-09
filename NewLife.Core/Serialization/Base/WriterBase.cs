@@ -324,7 +324,7 @@ namespace NewLife.Serialization
         public virtual Boolean WriteDictionary(IDictionary value, Type type, WriteObjectCallback callback)
         {
             if (value == null) return true;
-           // type = CheckAndWriteType("WriteDictionaryType", value, type);
+            // type = CheckAndWriteType("WriteDictionaryType", value, type);
 
             // 计算元素类型
             Type keyType = null;
@@ -413,7 +413,7 @@ namespace NewLife.Serialization
             //keyType = CheckAndWriteType("WriteKeyType", value.Key, keyType);
             if (!WriteObject(value.Key, keyType, callback)) return false;
 
-           // valueType = CheckAndWriteType("WriteValueType", value.Value, valueType);
+            // valueType = CheckAndWriteType("WriteValueType", value.Value, valueType);
             if (!WriteObject(value.Value, valueType, callback)) return false;
 
             return true;
@@ -465,7 +465,8 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public virtual Boolean WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
         {
-            if (value == null) return true;
+            if (value == null) return true;           
+
             type = CheckAndWriteType("WriteEnumerableType", value, type);
 
             //type = value.GetType();
@@ -498,7 +499,6 @@ namespace NewLife.Serialization
                 if (!WriteItem(item, elementType, i++, callback)) return false;
                 Depth--;
             }
-
             return true;
         }
 
@@ -558,7 +558,7 @@ namespace NewLife.Serialization
         protected virtual Boolean OnWriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
             // 如果无法取得元素类型，则每个元素都单独写入类型
-           // type = CheckAndWriteType("WriteItemType", value, type);
+            // type = CheckAndWriteType("WriteItemType", value, type);
             return WriteObject(value, type, callback);
         }
         #endregion
@@ -942,7 +942,7 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected virtual Boolean WriteRefObject(Object value, Type type, WriteObjectCallback callback)
         {
-          //  type = CheckAndWriteType("WriteRefObjectType", value, type);
+            //  type = CheckAndWriteType("WriteRefObjectType", value, type);
 
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
@@ -1035,7 +1035,7 @@ namespace NewLife.Serialization
         {
             if (value == null) return true;
             //if (type == null) type = value.GetType();
-          //  type = CheckAndWriteType("WriteCustomObjectType", value, type);
+            //  type = CheckAndWriteType("WriteCustomObjectType", value, type);
 
             IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
@@ -1196,6 +1196,19 @@ namespace NewLife.Serialization
             WriteLog("WriteSize", size);
 
             Write(size);
+        }
+
+        /// <summary>
+        /// 写入长度
+        /// </summary>
+        /// <param name="lengths"></param>
+        protected virtual void WriteLengths(string lengths)
+        {
+            //if (!UseSize) return;
+
+            WriteLog("WriteLengths", lengths);
+
+            Write(lengths);
         }
 
         /// <summary>
