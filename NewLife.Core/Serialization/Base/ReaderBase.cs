@@ -561,6 +561,7 @@ namespace NewLife.Serialization
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
+
         public virtual Boolean ReadEnumerable(Type type, ref Object value, ReadObjectCallback callback)
         {
             //if (type == null)
@@ -568,6 +569,9 @@ namespace NewLife.Serialization
             //    if (value == null) return false;
             //    type = value.GetType();
             //}
+            String lengths = null;
+            if (type.IsArray && type.GetArrayRank() > 1) lengths = ReadLengths();//lengths放在前面读取，主要是xml序列化时，lengths是写在父节点内的属性
+
             type = CheckAndReadType("ReadEnumerableType", type, value);
 
             if (!typeof(IEnumerable).IsAssignableFrom(type)) return false;
@@ -590,9 +594,27 @@ namespace NewLife.Serialization
                 }
             }
 
-            //if (elementType == null) return false;
-
             if (!ReadEnumerable(type, elementType, ref value, callback)) return false;
+
+            if (type.IsArray && type.GetArrayRank() > 1)
+            {
+                if (String.IsNullOrEmpty(lengths)) return false;
+                String[] strs = lengths.Split(',');
+                Int32[] param = new Int32[strs.Length];
+                for (int i = 0; i < strs.Length; i++)
+                {
+                    param[i] = Convert.ToInt32(strs[i]);
+                }
+
+                Array array = Array.CreateInstance(type.GetElementType(), param);
+
+                Array sub = value as Array;
+                foreach (Object item in sub)
+                {
+                    ArrEnum(array, ix => array.SetValue(item, ix), item);
+                }
+                if (array.Length > 0) value = array;
+            }
 
             return true;
         }
@@ -1733,6 +1755,52 @@ namespace NewLife.Serialization
             WriteLog("ReadSize", size);
 
             return size;
+        }
+        protected virtual String ReadLengths()
+        {
+            String lengths = ReadString();
+            WriteLog("ReadLengths", lengths);
+            return lengths;
+        }
+        #endregion
+
+        #region 辅助方法
+        protected void ArrEnum(Array arr, Action<Int32[]> func, Object value)
+        {
+            Int32[] ix = new Int32[arr.Rank];
+            Int32 rank = 0;
+
+            for (int i = 0; i < arr.Length; i++)
+            {
+                // 当前层以下都清零
+                for (int j = rank + 1; j < arr.Rank; j++)
+                {
+                    ix[j] = 0;
+                }
+
+                // 设置为最底层
+                rank = arr.Rank - 1;
+
+                //do something
+                //arr.SetValue(i, ix);
+                Object val = arr.GetValue(ix);
+                if (val == null || (val.Equals(0) && val != value))
+                {
+                    func(ix);
+                    return;
+                }
+
+                // 当前层递加
+                ix[rank]++;
+
+                // 如果超过上限，则减少层次
+                while (ix[rank] >= arr.GetLength(rank))
+                {
+                    rank--;
+                    if (rank < 0) break;
+                    ix[rank]++;
+                }
+            }
         }
         #endregion
     }
