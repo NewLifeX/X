@@ -235,7 +235,7 @@ namespace Test
 
             entity.DPS = new Department[] { dp, dp2, dp };
             entity.DPS2 = new Department[][] { new Department[] { dp, dp2, dp }, new Department[] { dp2, dp2, dp } };
-            //entity.DPS3 = new Department[2, 2] { { dp, dp2 }, { dp2, dp } };
+            entity.DPS3 = new Department[2, 2] { { dp, dp2 }, { dp2, dp } };
 
             entity.LPS = new List<Department>(entity.DPS);
 
