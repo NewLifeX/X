@@ -7,6 +7,11 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Web;
 using NewLife;
+using System.Net;
+using NewLife.IO;
+using System.ComponentModel;
+using System.Threading;
+using NewLife.Web;
 
 namespace XCode.DataAccessLayer
 {
@@ -270,7 +275,21 @@ namespace XCode.DataAccessLayer
             else
                 file = Path.Combine(HttpRuntime.BinDirectory, file);
 
-            if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
+            if (!File.Exists(file))
+            {
+                // 从网上下载文件
+                String file2 = Path.GetFileName(file + ".zip");
+                String url = String.Format("http://files.cnblogs.com/nnhy/{0}", file2);
+                DAL.WriteLog("准备从{0}下载相关文件到{1}！", url, file2);
+                WebClient client = new WebClientX();
+                client.DownloadFileCompleted += new AsyncCompletedEventHandler(client_DownloadFileCompleted);
+                client.DownloadFileAsync(new Uri(url), file2, file2);
+
+                // 等3秒
+                Thread.Sleep(3000);
+                // 如果还没有，就写异常
+                if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
+            }
 
             Assembly asm = Assembly.LoadFile(file);
             if (asm == null) return null;
@@ -282,6 +301,19 @@ namespace XCode.DataAccessLayer
             if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;
 
             return field.GetValue(null) as DbProviderFactory;
+        }
+
+        static void client_DownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
+        {
+            if (e.Cancelled) return;
+
+            String file = (String)e.UserState;
+            if (File.Exists(file))
+            {
+                IOHelper.DecompressFile(file, null, false);
+
+                File.Delete(file);
+            }
         }
         #endregion
 

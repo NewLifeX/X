@@ -34,8 +34,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("7.10.*")]
-[assembly: AssemblyFileVersion("7.10.2011.0608")]
+[assembly: AssemblyVersion("7.11.*")]
+[assembly: AssemblyFileVersion("7.11.2011.0610")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.11.2011.0610  修改DbBase，对于需要外部提供者的数据库类型，在没有提供者程序集时，自动从网络上下载，等待3秒
+ * 
  * v7.10.2011.0608  Entity中自增或者主键查询，记录集肯定是唯一的，不需要指定记录数和排序
  * 
  * v7.9.2011.0603   实体类增加三个根据实体缓存查找数据的方法，方便ObjectDataSource绑定
