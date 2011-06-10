@@ -11,7 +11,6 @@ namespace NewLife.Web
     public class WebClientX : WebClient
     {
         #region 为了Cookie而重写
-        #endregion
         private CookieContainer _Cookie;
         /// <summary>Cookie容器</summary>
         public CookieContainer Cookie
@@ -32,6 +31,11 @@ namespace NewLife.Web
             if (request is HttpWebRequest)
                 (request as HttpWebRequest).CookieContainer = Cookie;
 
+            if (Timeout > 0)
+                request.Timeout = request.Timeout;
+            else
+                Timeout = request.Timeout;
+
             return request;
         }
 
@@ -48,6 +52,7 @@ namespace NewLife.Web
 
             return response;
         }
+        #endregion
 
         #region 属性
         ///// <summary>可接受类型</summary>
@@ -56,6 +61,14 @@ namespace NewLife.Web
         //    get { return Headers[HttpRequestHeader.Accept]; }
         //    set { Headers[HttpRequestHeader.Accept] = value; }
         //}
+
+        private Int32 _Timeout;
+        /// <summary>超时，毫秒</summary>
+        public Int32 Timeout
+        {
+            get { return _Timeout; }
+            set { _Timeout = value; }
+        }
         #endregion
 
         #region 构造

@@ -281,12 +281,21 @@ namespace XCode.DataAccessLayer
                 String file2 = Path.GetFileName(file + ".zip");
                 String url = String.Format("http://files.cnblogs.com/nnhy/{0}", file2);
                 DAL.WriteLog("准备从{0}下载相关文件到{1}！", url, file2);
-                WebClient client = new WebClientX();
-                client.DownloadFileCompleted += new AsyncCompletedEventHandler(client_DownloadFileCompleted);
-                client.DownloadFileAsync(new Uri(url), file2, file2);
+                WebClientX client = new WebClientX();
+                //client.DownloadFileCompleted += new AsyncCompletedEventHandler(client_DownloadFileCompleted);
+                //client.DownloadFileAsync(new Uri(url), file2, file2);
+                // 同步下载，3秒超时
+                client.Timeout = 3000;
+                client.DownloadFile(url, file2);
+                if (File.Exists(file2))
+                {
+                    IOHelper.DecompressFile(file2, null, false);
 
-                // 等3秒
-                Thread.Sleep(3000);
+                    File.Delete(file2);
+                }
+
+                //// 等3秒
+                //Thread.Sleep(3000);
                 // 如果还没有，就写异常
                 if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
             }
