@@ -365,40 +365,6 @@ namespace NewLife.Security
 
             return data;
         }
-
-        /// <summary>
-        /// 先压缩再加密
-        /// </summary>
-        /// <param name="content"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static String BigEncrypt(String content, String key)
-        {
-            if (String.IsNullOrEmpty(content)) throw new ArgumentNullException("content");
-            Byte[] data = Encoding.UTF8.GetBytes(content);
-
-            data = Compress(data);
-            data = Encrypt(data, key);
-
-            return Convert.ToBase64String(data);
-        }
-
-        /// <summary>
-        /// 先解密再解压缩
-        /// </summary>
-        /// <param name="content"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static String BigDescrypt(String content, String key)
-        {
-            if (String.IsNullOrEmpty(content)) throw new ArgumentNullException("content");
-            Byte[] data = Convert.FromBase64String(content);
-
-            data = Descrypt(data, key);
-            data = Decompress(data);
-
-            return Encoding.UTF8.GetString(data);
-        }
         #endregion
 
         #region RC4加密
@@ -536,85 +502,6 @@ namespace NewLife.Security
                 bts[i] = (Byte)Convert.ToInt32(data.Substring(2 * i, 2), 16);
             }
             return bts;
-        }
-        #endregion
-
-        #region 压缩/解压缩
-        /// <summary>
-        /// 压缩
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public static Byte[] Compress(Byte[] data)
-        {
-            MemoryStream ms = new MemoryStream();
-            DeflateStream stream = new DeflateStream(ms, CompressionMode.Compress, true);
-            stream.Write(data, 0, data.Length);
-            stream.Flush();
-            stream.Close();
-
-            data = ms.ToArray();
-            ms.Close();
-
-            return data;
-        }
-
-        /// <summary>
-        /// 解压缩
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public static Byte[] Decompress(Byte[] data)
-        {
-            MemoryStream ms = new MemoryStream(data);
-            DeflateStream stream = new DeflateStream(ms, CompressionMode.Decompress, true);
-
-            MemoryStream ms2 = new MemoryStream();
-            //while (true)
-            //{
-            //    Byte[] buffer = new Byte[1024];
-            //    Int32 count = stream.Read(buffer, 0, buffer.Length);
-            //    if (count <= 0) break;
-
-            //    ms2.Write(buffer, 0, count);
-            //    if (count < buffer.Length) break;
-            //}
-            CopyTo(stream, ms2, 0);
-
-            data = ms2.ToArray();
-
-            stream.Close();
-            ms.Close();
-            ms2.Close();
-
-            return data;
-        }
-        #endregion
-
-        #region 复制数据流
-        /// <summary>
-        /// 复制数据流
-        /// </summary>
-        /// <param name="src">源数据流</param>
-        /// <param name="des">目的数据流</param>
-        /// <param name="bufferSize">缓冲区大小，也就是每次复制的大小</param>
-        /// <returns>返回复制的总字节数</returns>
-        public static Int32 CopyTo(Stream src, Stream des, Int32 bufferSize)
-        {
-            if (bufferSize <= 0) bufferSize = 1024;
-
-            Int32 total = 0;
-            while (true)
-            {
-                Byte[] buffer = new Byte[bufferSize];
-                Int32 count = src.Read(buffer, 0, buffer.Length);
-                if (count <= 0) break;
-                total += count;
-
-                des.Write(buffer, 0, count);
-            }
-
-            return total;
         }
         #endregion
     }

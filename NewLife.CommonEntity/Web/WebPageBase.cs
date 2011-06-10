@@ -10,6 +10,7 @@ using NewLife.Log;
 using NewLife.Security;
 using XCode.DataAccessLayer;
 using NewLife.Configuration;
+using NewLife.IO;
 
 namespace NewLife.CommonEntity.Web
 {
@@ -399,7 +400,7 @@ namespace NewLife.CommonEntity.Web
 
             //判断序列化对象的字符串长度是否超出定义的长度界限
             if (ms.Length > LimitLength)
-                vs = "1$" + Convert.ToBase64String(DataHelper.Compress(ms.ToArray()));
+                vs = "1$" + Convert.ToBase64String(IOHelper.Compress(ms.ToArray()));
             else
                 vs = Convert.ToBase64String(ms.ToArray());
 
@@ -421,7 +422,7 @@ namespace NewLife.CommonEntity.Web
             Byte[] bts = null;
 
             if (vs.StartsWith("1$"))
-                bts = DataHelper.Decompress(Convert.FromBase64String(vs.Substring(2)));
+                bts = IOHelper.Decompress(Convert.FromBase64String(vs.Substring(2)));
             else
                 bts = Convert.FromBase64String(vs);
 

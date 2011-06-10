@@ -90,6 +90,7 @@
     <Compile Include="IO\BinaryTest.cs" />
     <Compile Include="IOModule\StreamHttpHandler.cs" />
     <Compile Include="IOModule\IStreamHandler.cs" />
+    <Compile Include="IO\IOHelper.cs" />
     <Compile Include="Log\TraceStream.cs" />
     <Compile Include="Reflection\TypeResolver.cs" />
     <Compile Include="Reflection\TypeResolverProvider.cs" />
