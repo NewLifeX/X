@@ -101,7 +101,8 @@ namespace NewLife.IO
         /// </summary>
         /// <param name="src"></param>
         /// <param name="des"></param>
-        public static void CompressFile(String src, String des)
+        /// <returns></returns>
+        public static String CompressFile(String src, String des)
         {
             if (String.IsNullOrEmpty(des)) des = src + ".gz";
 
@@ -111,6 +112,8 @@ namespace NewLife.IO
             {
                 CopyTo(inStream, stream);
             }
+
+            return des;
         }
 
         /// <summary>
@@ -131,6 +134,7 @@ namespace NewLife.IO
         /// <returns>压缩的文件名</returns>
         public static String CompressFile(String root, String[] files)
         {
+            if (files == null) files = Directory.GetFiles(root, "*.*", SearchOption.AllDirectories);
             String des = GetDesFile(root, files);
             CompressFile(root, files, des);
             return des;
@@ -138,16 +142,18 @@ namespace NewLife.IO
 
         static String GetDesFile(String root, String[] files)
         {
+            DirectoryInfo di = new DirectoryInfo(root);
             String des = null;
             if (files != null && files.Length == 1)
                 des = files[0];
             else if (!String.IsNullOrEmpty(root))
-                des = new DirectoryInfo(root).Name;
+                des = di.Name;
 
-            String f = des + ".gz";
+            di = di.Parent;
+            String f = Path.Combine(di.FullName, des + ".gz");
             for (int i = 0; i < 100 && File.Exists(f); i++)
             {
-                f = des + (i + 1) + ".gz";
+                f = Path.Combine(di.FullName, des + (i + 1) + ".gz");
             }
             // 占位
             File.Create(f).Close();
@@ -160,9 +166,11 @@ namespace NewLife.IO
         /// <param name="root">根目录</param>
         /// <param name="files">文件集合</param>
         /// <param name="des">输出文件</param>
-        public static void CompressFile(String root, String[] files, String des)
+        /// <returns></returns>
+        public static String CompressFile(String root, String[] files, String des)
         {
             if (String.IsNullOrEmpty(root)) root = AppDomain.CurrentDomain.BaseDirectory;
+            if (files == null) files = Directory.GetFiles(root, "*.*", SearchOption.AllDirectories);
 
             if (String.IsNullOrEmpty(des)) des = GetDesFile(root, files);
             if (!String.IsNullOrEmpty(root) && !root.StartsWith(@"\")) root += @"\";
@@ -172,6 +180,8 @@ namespace NewLife.IO
             {
                 CompressFile(root, files, outStream);
             }
+
+            return des;
         }
 
         /// <summary>
@@ -183,6 +193,7 @@ namespace NewLife.IO
         public static void CompressFile(String root, String[] files, Stream outStream)
         {
             if (String.IsNullOrEmpty(root)) root = AppDomain.CurrentDomain.BaseDirectory;
+            if (files == null) files = Directory.GetFiles(root, "*.*", SearchOption.AllDirectories);
 
             using (Stream stream = new GZipStream(outStream, CompressionMode.Compress, true))
             {
@@ -191,7 +202,8 @@ namespace NewLife.IO
                     BinaryWriter writer = new BinaryWriter(stream);
                     //writer.Stream = stream;
                     // 幻数
-                    writer.Write("XGZip".ToCharArray());
+                    Byte[] bts = Encoding.ASCII.GetBytes("XGZip");
+                    writer.Write(bts, 0, bts.Length);
                     // 文件个数
                     writer.Write(files.Length);
 
@@ -227,9 +239,13 @@ namespace NewLife.IO
         /// </summary>
         /// <param name="src"></param>
         /// <param name="des"></param>
-        public static void DecompressFile(String src, String des)
+        /// <returns></returns>
+        public static String DecompressFile(String src, String des)
         {
+            String targetPath = Path.GetDirectoryName(src);
             if (String.IsNullOrEmpty(des)) des = Path.GetFileNameWithoutExtension(src);
+            if (String.IsNullOrEmpty(targetPath) && !String.IsNullOrEmpty(des)) targetPath = Path.GetDirectoryName(des);
+            if (String.IsNullOrEmpty(targetPath)) targetPath = AppDomain.CurrentDomain.BaseDirectory;
 
             //using (FileStream inStream = new FileStream(src, FileMode.Create, FileAccess.Write))
             //using (Stream stream = new GZipStream(inStream, CompressionMode.Decompress, true))
@@ -237,10 +253,12 @@ namespace NewLife.IO
             //{
             //    CopyTo(stream, outStream);
             //}
-            using (FileStream inStream = new FileStream(src, FileMode.Create, FileAccess.Write))
+            using (FileStream inStream = new FileStream(src, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                DecompressFile(inStream, null, des);
+                DecompressFile(inStream, targetPath, des);
             }
+
+            return des;
         }
 
         /// <summary>
@@ -253,16 +271,23 @@ namespace NewLife.IO
             DecompressFile(inStream, targetPath, null);
         }
 
+        /// <summary>
+        /// 解压缩。如果单文件，就解压到targetPath下的des文件；如果多文件，就解压到targetPath的des子目录下，此时des可以为空。
+        /// </summary>
+        /// <param name="inStream"></param>
+        /// <param name="targetPath"></param>
+        /// <param name="des"></param>
         static void DecompressFile(Stream inStream, String targetPath, String des)
         {
+            if (String.IsNullOrEmpty(targetPath) && !String.IsNullOrEmpty(des)) targetPath = Path.GetDirectoryName(des);
+
             using (Stream stream = new GZipStream(inStream, CompressionMode.Decompress, true))
             {
                 BinaryReader reader = new BinaryReader(stream);
-                Int64 pos = stream.Position;
 
                 // 读幻数
                 Byte[] bts = reader.ReadBytes(5);
-                if (bts == Encoding.ASCII.GetBytes("XGZip"))
+                if ("XGZip" == Encoding.ASCII.GetString(bts))
                 {
                     // 文件个数
                     Int32 count = reader.ReadInt32();
@@ -277,13 +302,14 @@ namespace NewLife.IO
                         sizes[i] = reader.ReadInt32();
                     }
 
-                    if (String.IsNullOrEmpty(targetPath) && !String.IsNullOrEmpty(des)) targetPath = Path.GetDirectoryName(des);
+                    if (!String.IsNullOrEmpty(des)) targetPath = Path.Combine(targetPath, des);
 
                     for (int i = 0; i < count; i++)
                     {
                         String item = files[i];
                         if (!String.IsNullOrEmpty(targetPath)) item = Path.Combine(targetPath, item);
                         if (File.Exists(item)) File.Delete(item);
+                        if (!Directory.Exists(Path.GetDirectoryName(item))) Directory.CreateDirectory(Path.GetDirectoryName(item));
                         using (FileStream outStream = new FileStream(item, FileMode.Create, FileAccess.Write))
                         {
                             CopyTo(stream, outStream, 0, sizes[i]);
@@ -292,6 +318,9 @@ namespace NewLife.IO
                 }
                 else
                 {
+                    if (String.IsNullOrEmpty(targetPath)) des = Path.Combine(targetPath, des);
+                    if (!Directory.Exists(Path.GetDirectoryName(des))) Directory.CreateDirectory(Path.GetDirectoryName(des));
+
                     // 特殊处理，要把那个bts当作数据写入到输出流里面去
                     using (FileStream outStream = new FileStream(des, FileMode.Create, FileAccess.Write))
                     {
