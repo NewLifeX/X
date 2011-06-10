@@ -195,6 +195,20 @@ namespace NewLife.IO
             if (String.IsNullOrEmpty(root)) root = AppDomain.CurrentDomain.BaseDirectory;
             if (files == null) files = Directory.GetFiles(root, "*.*", SearchOption.AllDirectories);
 
+            // 要压缩的文件集合中可能包括目录
+            List<String> list = new List<string>();
+            foreach (String item in files)
+            {
+                if (!File.Exists(item) && Directory.Exists(item))
+                {
+                    String[] ss = Directory.GetFiles(item, "*.*", SearchOption.AllDirectories);
+                    if (ss != null && ss.Length > 0) list.AddRange(ss);
+                }
+                else
+                    list.Add(item);
+            }
+            files = list.ToArray();
+
             using (Stream stream = new GZipStream(outStream, CompressionMode.Compress, true))
             {
                 if (files.Length > 1)
