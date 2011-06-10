@@ -104,7 +104,7 @@ namespace NewLife.IO
         /// <returns></returns>
         public static String CompressFile(String src, String des)
         {
-            if (String.IsNullOrEmpty(des)) des = src + ".gz";
+            if (String.IsNullOrEmpty(des)) des = src + ".zip";
 
             using (FileStream outStream = new FileStream(des, FileMode.Create, FileAccess.Write))
             using (Stream stream = new GZipStream(outStream, CompressionMode.Compress, true))
@@ -150,10 +150,10 @@ namespace NewLife.IO
                 des = di.Name;
 
             di = di.Parent;
-            String f = Path.Combine(di.FullName, des + ".gz");
+            String f = Path.Combine(di.FullName, des + ".zip");
             for (int i = 0; i < 100 && File.Exists(f); i++)
             {
-                f = Path.Combine(di.FullName, des + (i + 1) + ".gz");
+                f = Path.Combine(di.FullName, des + (i + 1) + ".zip");
             }
             // 占位
             File.Create(f).Close();
@@ -249,30 +249,64 @@ namespace NewLife.IO
         }
 
         /// <summary>
-        /// 单个文件解压缩，纯文件流解压缩
+        /// 解压缩单个文件，纯文件流解压缩
         /// </summary>
         /// <param name="src"></param>
         /// <param name="des"></param>
         /// <returns></returns>
-        public static String DecompressFile(String src, String des)
+        public static String DecompressSingleFile(String src, String des)
         {
-            String targetPath = Path.GetDirectoryName(src);
             if (String.IsNullOrEmpty(des)) des = Path.GetFileNameWithoutExtension(src);
-            if (String.IsNullOrEmpty(targetPath) && !String.IsNullOrEmpty(des)) targetPath = Path.GetDirectoryName(des);
-            if (String.IsNullOrEmpty(targetPath)) targetPath = AppDomain.CurrentDomain.BaseDirectory;
 
-            //using (FileStream inStream = new FileStream(src, FileMode.Create, FileAccess.Write))
-            //using (Stream stream = new GZipStream(inStream, CompressionMode.Decompress, true))
-            //using (FileStream outStream = new FileStream(des, FileMode.Open, FileAccess.Read, FileShare.Read))
-            //{
-            //    CopyTo(stream, outStream);
-            //}
             using (FileStream inStream = new FileStream(src, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (Stream stream = new GZipStream(inStream, CompressionMode.Decompress, true))
+            using (FileStream outStream = new FileStream(des, FileMode.Create, FileAccess.Write))
             {
-                DecompressFile(inStream, targetPath, des);
+                CopyTo(stream, outStream);
             }
 
             return des;
+        }
+
+        /// <summary>
+        /// 解压缩，并指定是否解压到子目录中
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="targetPath"></param>
+        /// <param name="isSub">是否解压到子目录中，仅对多文件有效</param>
+        /// <returns></returns>
+        public static String DecompressFile(String src, String targetPath, Boolean isSub)
+        {
+            if (String.IsNullOrEmpty(targetPath)) targetPath = Path.GetDirectoryName(src);
+            String des = Path.GetFileNameWithoutExtension(src);
+
+            using (FileStream inStream = new FileStream(src, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                DecompressFile(inStream, targetPath, des, isSub);
+            }
+
+            return targetPath;
+        }
+
+        /// <summary>
+        /// 解压缩
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="targetPath"></param>
+        /// <returns></returns>
+        public static String DecompressFile(String src, String targetPath)
+        {
+            //String des = null;
+            //if (!String.IsNullOrEmpty(targetPath)) des = Path.GetFileName(src);
+
+            //using (FileStream inStream = new FileStream(src, FileMode.Open, FileAccess.Read, FileShare.Read))
+            //{
+            //    DecompressFile(inStream, targetPath, des);
+            //}
+
+            //return targetPath;
+
+            return DecompressFile(src, targetPath, false);
         }
 
         /// <summary>
@@ -282,7 +316,7 @@ namespace NewLife.IO
         /// <param name="targetPath"></param>
         public static void DecompressFile(Stream inStream, String targetPath)
         {
-            DecompressFile(inStream, targetPath, null);
+            DecompressFile(inStream, targetPath, null, false);
         }
 
         /// <summary>
@@ -290,8 +324,9 @@ namespace NewLife.IO
         /// </summary>
         /// <param name="inStream"></param>
         /// <param name="targetPath"></param>
-        /// <param name="des"></param>
-        static void DecompressFile(Stream inStream, String targetPath, String des)
+        /// <param name="des">多文件时，指代子目录，为空表示当前目录；单文件时表示目标文件</param>
+        /// <param name="isSub">是否解压到子目录中，仅对多文件有效</param>
+        static void DecompressFile(Stream inStream, String targetPath, String des, Boolean isSub)
         {
             if (String.IsNullOrEmpty(targetPath) && !String.IsNullOrEmpty(des)) targetPath = Path.GetDirectoryName(des);
 
@@ -303,6 +338,10 @@ namespace NewLife.IO
                 Byte[] bts = reader.ReadBytes(5);
                 if ("XGZip" == Encoding.ASCII.GetString(bts))
                 {
+                    // 多文件
+                    // targetPath是必须的，代表目标根目录。如果空，使用当前目录
+                    // 当isSub时，使用des作为子目录
+
                     // 文件个数
                     Int32 count = reader.ReadInt32();
 
@@ -316,14 +355,16 @@ namespace NewLife.IO
                         sizes[i] = reader.ReadInt32();
                     }
 
-                    if (!String.IsNullOrEmpty(des)) targetPath = Path.Combine(targetPath, des);
+                    if (String.IsNullOrEmpty(targetPath)) targetPath = Environment.CurrentDirectory;
+                    if (isSub && !String.IsNullOrEmpty(des)) targetPath = Path.Combine(targetPath, des);
 
                     for (int i = 0; i < count; i++)
                     {
-                        String item = files[i];
-                        if (!String.IsNullOrEmpty(targetPath)) item = Path.Combine(targetPath, item);
+                        String item = Path.Combine(targetPath, files[i]);
+
                         if (File.Exists(item)) File.Delete(item);
                         if (!Directory.Exists(Path.GetDirectoryName(item))) Directory.CreateDirectory(Path.GetDirectoryName(item));
+
                         using (FileStream outStream = new FileStream(item, FileMode.Create, FileAccess.Write))
                         {
                             CopyTo(stream, outStream, 0, sizes[i]);
@@ -332,8 +373,19 @@ namespace NewLife.IO
                 }
                 else
                 {
-                    if (String.IsNullOrEmpty(targetPath)) des = Path.Combine(targetPath, des);
-                    if (!Directory.Exists(Path.GetDirectoryName(des))) Directory.CreateDirectory(Path.GetDirectoryName(des));
+                    // 单文件
+                    // 目标文件des是必须的，如果有targetPath，则加上，否则就用当前目录
+                    // 目标文件夹targetPath不是必须的，如果有，而des又不是绝对路径，则加上
+
+                    // 如果des不是绝对路径，则加上目标文件夹
+                    if (!Path.IsPathRooted(des))
+                    {
+                        if (String.IsNullOrEmpty(targetPath)) targetPath = Environment.CurrentDirectory;
+                        des = Path.Combine(targetPath, des);
+                    }
+
+                    targetPath = Path.GetDirectoryName(des);
+                    if (!Directory.Exists(targetPath)) Directory.CreateDirectory(targetPath);
 
                     // 特殊处理，要把那个bts当作数据写入到输出流里面去
                     using (FileStream outStream = new FileStream(des, FileMode.Create, FileAccess.Write))

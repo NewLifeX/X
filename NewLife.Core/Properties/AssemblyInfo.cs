@@ -38,6 +38,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v2.2.2011.0610   增加IO操作工具类IOHelper，支持数据流复制CopyTo，支持数据流压缩（Deflate压缩更小一点），支持单文件GZip压缩（WinRar可解压），支持多文件GZip压缩（自定义格式）
+ *                  增加增强版Web客户端WebClientX，支持Cookie，默认增加若干请求头
  * 
  * v2.1.2011.0607   实现Http压缩模块CompressionModule，减少网络传输大小
  * 
