@@ -460,7 +460,11 @@ namespace XCode
                     if (IsNullKey(values[0])) return null;
 
                     // 自增或者主键查询，记录集肯定是唯一的，不需要指定记录数和排序
-                    IList<TEntity> list = FindAll(MakeCondition(field, values[0], "="), null, null, 0, 0);
+                    //IList<TEntity> list = FindAll(MakeCondition(field, values[0], "="), null, null, 0, 0);
+                    SelectBuilder builder = new SelectBuilder();
+                    builder.Table = Meta.FormatName(Meta.TableName);
+                    builder.Where = MakeCondition(field, values[0], "=");
+                    IList<TEntity> list = FindAll(builder.ToString());
                     if (list == null || list.Count < 1)
                         return null;
                     else
@@ -761,7 +765,11 @@ namespace XCode
                 if (IsNullKey(value)) return null;
 
                 // 自增或者主键查询，记录集肯定是唯一的，不需要指定记录数和排序
-                return FindAll(MakeCondition(field, value, "="), null, null, 0, 0);
+                //return FindAll(MakeCondition(field, value, "="), null, null, 0, 0);
+                SelectBuilder builder = new SelectBuilder();
+                builder.Table = Meta.FormatName(Meta.TableName);
+                builder.Where = MakeCondition(field, value, "=");
+                return FindAll(builder.ToString());
             }
 
             return FindAll(MakeCondition(new String[] { name }, new Object[] { value }, "And"), orderClause, null, startRowIndex, maximumRows);
@@ -1278,7 +1286,13 @@ namespace XCode
             {
                 keyColumn = fi.ColumnName;
                 // 加上Desc标记，将使用MaxMin分页算法。标识列，单一主键且为数字类型
-                if (fi.IsIdentity || IsInt(fi.Type)) keyColumn += " Desc";
+                if (fi.IsIdentity || IsInt(fi.Type))
+                {
+                    keyColumn += " Desc";
+
+                    // 默认获取数据时，还是需要指定安装自增字段降序，符合使用习惯
+                    if (String.IsNullOrEmpty(builder.OrderBy)) builder.OrderBy = keyColumn;
+                }
                 //if (fi.IsIdentity || IsInt(fi.Type)) keyColumn += " Unknown";
 
                 //if (String.IsNullOrEmpty(builder.OrderBy)) builder.OrderBy = keyColumn;

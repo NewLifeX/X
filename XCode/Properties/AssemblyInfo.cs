@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.11.*")]
-[assembly: AssemblyFileVersion("7.11.2011.0610")]
+[assembly: AssemblyFileVersion("7.11.2011.0611")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.11.2011.0611  修正v7.10.2011.0608中修改时遗留下的问题，获取列表时默认使用自增字段降序，根据主键获取单记录的方法绕过此处，免受影响
+ *                  非常重要：修改EntityBase，给实体类数据属性赋值时，如果新旧值相等，不影响脏数据，剐需要影响脏数据，请使用SetItem
+ * 
  * v7.11.2011.0610  修改DbBase，对于需要外部提供者的数据库类型，在没有提供者程序集时，自动从网络上下载，等待3秒
  * 
  * v7.10.2011.0608  Entity中自增或者主键查询，记录集肯定是唯一的，不需要指定记录数和排序

@@ -19,7 +19,9 @@ namespace XCode
         protected virtual Boolean OnPropertyChanging(String fieldName, Object newValue)
         {
             if (_PropertyChanging != null) _PropertyChanging(this, new PropertyChangingEventArgs(fieldName));
-            Dirtys[fieldName] = true;
+            // 如果数据没有改变，不应该影响脏数据
+            //Dirtys[fieldName] = true;
+            if (!Object.Equals(this[fieldName], newValue)) Dirtys[fieldName] = true;
             return true;
         }
 

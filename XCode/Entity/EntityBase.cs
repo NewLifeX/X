@@ -69,8 +69,14 @@ namespace XCode
         /// <returns>返回是否成功设置了数据</returns>
         public Boolean SetItem(String name, Object value)
         {
-            Boolean b = OnPropertyChange(name, value);
-            if (b) this[name] = value;
+            Boolean b = OnPropertyChanging(name, value);
+            if (b)
+            {
+                // OnPropertyChanging中根据新旧值是否相同来影响脏数据
+                // SetItem作为必定影响脏数据的代替者
+                this[name] = value;
+                Dirtys[name] = true;
+            }
             return b;
         }
         #endregion
@@ -201,7 +207,9 @@ namespace XCode
         protected virtual Boolean OnPropertyChange(String fieldName, Object newValue)
         {
             if (_PropertyChanging != null) _PropertyChanging(this, new PropertyChangingEventArgs(fieldName));
-            Dirtys[fieldName] = true;
+            // 如果数据没有改变，不应该影响脏数据
+            //Dirtys[fieldName] = true;
+            if (!Object.Equals(this[fieldName], newValue)) Dirtys[fieldName] = true;
             return true;
         }
         #endregion
