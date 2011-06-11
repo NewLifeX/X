@@ -379,6 +379,11 @@ namespace NewLife.CommonEntity.Web
                 if (IsNullKey && d == DateTime.MinValue) d = DateTime.Now;
                 control.Text = d.ToString("yyyy-MM-dd HH:mm:ss");
             }
+            else if (type == typeof(Decimal))
+            {
+                Decimal d = (Decimal)Entity[field.Name];
+                control.Text = d.ToString("c");
+            }
             else
                 control.Text = String.Empty + Entity[field.Name];
         }
