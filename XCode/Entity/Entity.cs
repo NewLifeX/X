@@ -1291,7 +1291,8 @@ namespace XCode
                     keyColumn += " Desc";
 
                     // 默认获取数据时，还是需要指定安装自增字段降序，符合使用习惯
-                    if (String.IsNullOrEmpty(builder.OrderBy)) builder.OrderBy = keyColumn;
+                    // 有GroupBy也不能加排序
+                    if (String.IsNullOrEmpty(builder.OrderBy) && String.IsNullOrEmpty(builder.GroupBy)) builder.OrderBy = keyColumn;
                 }
                 //if (fi.IsIdentity || IsInt(fi.Type)) keyColumn += " Unknown";
 

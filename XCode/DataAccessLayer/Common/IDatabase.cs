@@ -61,6 +61,11 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 构造分页SQL
         /// </summary>
+        /// <remarks>
+        /// 两个构造分页SQL的方法，区别就在于查询生成器能够构造出来更好的分页语句，尽可能的避免子查询。
+        /// MS体系的分页精髓就在于唯一键，当唯一键带有Asc/Desc/Unkown等排序结尾时，就采用最大最小值分页，否则使用较次的TopNotIn分页。
+        /// TopNotIn分页和MaxMin分页的弊端就在于无法完美的支持GroupBy查询分页，只能查到第一页，往后分页就不行了，因为没有主键。
+        /// </remarks>
         /// <param name="sql">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
@@ -71,6 +76,11 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 构造分页SQL
         /// </summary>
+        /// <remarks>
+        /// 两个构造分页SQL的方法，区别就在于查询生成器能够构造出来更好的分页语句，尽可能的避免子查询。
+        /// MS体系的分页精髓就在于唯一键，当唯一键带有Asc/Desc/Unkown等排序结尾时，就采用最大最小值分页，否则使用较次的TopNotIn分页。
+        /// TopNotIn分页和MaxMin分页的弊端就在于无法完美的支持GroupBy查询分页，只能查到第一页，往后分页就不行了，因为没有主键。
+        /// </remarks>
         /// <param name="builder">查询生成器</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>

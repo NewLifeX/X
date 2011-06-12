@@ -275,6 +275,7 @@ namespace XCode.DataAccessLayer
         {
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0 && maximumRows < 1) return builder.ToString();
+            if (startRowIndex <= 0 && maximumRows > 0) return PageSplitTop(builder, maximumRows, null).ToString();
 
             if (String.IsNullOrEmpty(builder.GroupBy))
             {

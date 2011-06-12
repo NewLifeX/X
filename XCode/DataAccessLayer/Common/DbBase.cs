@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.Common;
 using System.Data.OleDb;
 using System.IO;
@@ -7,10 +8,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Web;
 using NewLife;
-using System.Net;
 using NewLife.IO;
-using System.ComponentModel;
-using System.Threading;
 using NewLife.Web;
 
 namespace XCode.DataAccessLayer
@@ -330,6 +328,11 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 构造分页SQL，优先选择max/min，然后选择not in
         /// </summary>
+        /// <remarks>
+        /// 两个构造分页SQL的方法，区别就在于查询生成器能够构造出来更好的分页语句，尽可能的避免子查询。
+        /// MS体系的分页精髓就在于唯一键，当唯一键带有Asc/Desc/Unkown等排序结尾时，就采用最大最小值分页，否则使用较次的TopNotIn分页。
+        /// TopNotIn分页和MaxMin分页的弊端就在于无法完美的支持GroupBy查询分页，只能查到第一页，往后分页就不行了，因为没有主键。
+        /// </remarks>
         /// <param name="sql">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
@@ -349,6 +352,8 @@ namespace XCode.DataAccessLayer
                 {
                     String str = PageSplitMaxMin(sql, startRowIndex, maximumRows, keyColumn);
                     if (!String.IsNullOrEmpty(str)) return str;
+
+                    // 如果不能使用最大最小值分页，则砍掉排序，为TopNotIn分页做准备
                     keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
                 }
             }
@@ -394,6 +399,7 @@ namespace XCode.DataAccessLayer
             MatchCollection ms = reg_Order.Matches(sql);
             if (ms != null && ms.Count > 0 && ms[0].Index > 0)
             {
+                #region 有OrderBy
                 // 取第一页也不用分页。把这代码放到这里，主要是数字分页中要自己处理这种情况
                 if (startRowIndex <= 0 && maximumRows > 0)
                     return String.Format("Select Top {0} * From {1}", maximumRows, CheckSimpleSQL(sql));
@@ -436,6 +442,7 @@ namespace XCode.DataAccessLayer
                         }
                     }
                 }
+                #endregion
             }
             else
             {
@@ -505,6 +512,11 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 构造分页SQL
         /// </summary>
+        /// <remarks>
+        /// 两个构造分页SQL的方法，区别就在于查询生成器能够构造出来更好的分页语句，尽可能的避免子查询。
+        /// MS体系的分页精髓就在于唯一键，当唯一键带有Asc/Desc/Unkown等排序结尾时，就采用最大最小值分页，否则使用较次的TopNotIn分页。
+        /// TopNotIn分页和MaxMin分页的弊端就在于无法完美的支持GroupBy查询分页，只能查到第一页，往后分页就不行了，因为没有主键。
+        /// </remarks>
         /// <param name="builder">查询生成器</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
@@ -518,6 +530,7 @@ namespace XCode.DataAccessLayer
             return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
         }
 
+        #region MS分页
         /// <summary>
         /// 构造分页SQL，优先选择max/min，然后选择not in
         /// </summary>
@@ -532,6 +545,7 @@ namespace XCode.DataAccessLayer
 
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0 && maximumRows < 1) return builder.ToString();
+            if (startRowIndex <= 0 && maximumRows > 0) return PageSplitTop(builder, maximumRows, null).ToString();
 
             #region Max/Min分页
             // 如果要使用max/min分页法，首先keyColumn必须有asc或者desc
@@ -542,16 +556,16 @@ namespace XCode.DataAccessLayer
                 {
                     String str = PageSplitMaxMin(builder, startRowIndex, maximumRows, keyColumn);
                     if (!String.IsNullOrEmpty(str)) return str;
+
+                    // 如果不能使用最大最小值分页，则砍掉排序，为TopNotIn分页做准备
                     keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
                 }
             }
             #endregion
 
-            if (startRowIndex <= 0 && maximumRows > 0) return PageSplitTop(builder, maximumRows, null).ToString();
+            //if (startRowIndex <= 0 && maximumRows > 0) return PageSplitTop(builder, maximumRows, null).ToString();
 
             if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "这里用的not in分页算法要求指定主键列！");
-
-            SelectBuilder builder2 = PageSplitTop(builder, startRowIndex, keyColumn);
 
             //if (maximumRows < 1)
             //{
@@ -562,10 +576,14 @@ namespace XCode.DataAccessLayer
             //    sql = String.Format("Select Top {0} * From {1} Where {2} Not In(Select Top {3} {2} From {1})", maximumRows, sql, keyColumn, startRowIndex);
             //}
 
+            SelectBuilder builder2 = PageSplitTop(builder, startRowIndex, keyColumn);
+
+            // maximumRows > 0时加个Top，别的一样
             if (maximumRows > 0) builder = PageSplitTop(builder, maximumRows, null);
+            // 如果本来有Where字句，加上And，当然，要区分情况按是否有必要加圆括号
             if (!String.IsNullOrEmpty(builder.Where))
             {
-                if (builder.Where.Contains(" "))
+                if (builder.Where.Contains(" ") && builder.Where.ToLower().Contains("or"))
                     builder.Where = String.Format("({0}) And ", builder.Where);
                 else
                     builder.Where = builder.Where + " And ";
@@ -670,16 +688,33 @@ namespace XCode.DataAccessLayer
                 keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
             }
 
-            if (canMaxMin)
+            if (!canMaxMin) return null;
+
+            //if (maximumRows < 1)
+            //    sql = String.Format("Select * From {1} Where {2}{3}(Select {4}({2}) From (Select Top {0} {2} From {1} Order By {2} {5}) XCode_Temp_a) Order By {2} {5}", startRowIndex, CheckSimpleSQL(sql), keyColumn, isAscOrder ? ">" : "<", isAscOrder ? "max" : "min", isAscOrder ? "Asc" : "Desc");
+            //else
+            //    sql = String.Format("Select Top {0} * From {1} Where {2}{4}(Select {5}({2}) From (Select Top {3} {2} From {1} Order By {2} {6}) XCode_Temp_a) Order By {2} {6}", maximumRows, CheckSimpleSQL(sql), keyColumn, startRowIndex, isAscOrder ? ">" : "<", isAscOrder ? "max" : "min", isAscOrder ? "Asc" : "Desc");
+            //return sql;
+
+            SelectBuilder builder2 = PageSplitTop(builder, startRowIndex, keyColumn);
+            builder2.OrderBy = keyColumn + " " + (isAscOrder ? "Asc" : "Desc");
+            String sql = String.Format("Select {0}({1}) From ({2})", isAscOrder ? "max" : "min", keyColumn, builder2.ToString());
+
+            // maximumRows > 0时加个Top，别的一样
+            if (maximumRows > 0) builder = PageSplitTop(builder, maximumRows, null);
+            // 如果本来有Where字句，加上And，当然，要区分情况按是否有必要加圆括号
+            if (!String.IsNullOrEmpty(builder.Where))
             {
-                //if (maximumRows < 1)
-                //    sql = String.Format("Select * From {1} Where {2}{3}(Select {4}({2}) From (Select Top {0} {2} From {1} Order By {2} {5}) XCode_Temp_a) Order By {2} {5}", startRowIndex, CheckSimpleSQL(sql), keyColumn, isAscOrder ? ">" : "<", isAscOrder ? "max" : "min", isAscOrder ? "Asc" : "Desc");
-                //else
-                //    sql = String.Format("Select Top {0} * From {1} Where {2}{4}(Select {5}({2}) From (Select Top {3} {2} From {1} Order By {2} {6}) XCode_Temp_a) Order By {2} {6}", maximumRows, CheckSimpleSQL(sql), keyColumn, startRowIndex, isAscOrder ? ">" : "<", isAscOrder ? "max" : "min", isAscOrder ? "Asc" : "Desc");
-                //return sql;
+                if (builder.Where.Contains(" ") && builder.Where.ToLower().Contains("or"))
+                    builder.Where = String.Format("({0}) And ", builder.Where);
+                else
+                    builder.Where = builder.Where + " And ";
             }
-            return null;
+            builder.Where += String.Format("{0}{2}({1})", keyColumn, sql, isAscOrder ? ">" : "<");
+
+            return builder.ToString();
         }
+        #endregion
         #endregion
 
         #region 数据库特性

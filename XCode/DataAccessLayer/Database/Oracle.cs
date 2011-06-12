@@ -128,7 +128,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
-            // return base.Query(sql, startRowIndex, maximumRows, key);
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
             {
