@@ -6,11 +6,11 @@ using System.Threading;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using NewLife.Log;
-using NewLife.Security;
-using XCode.DataAccessLayer;
 using NewLife.Configuration;
 using NewLife.IO;
+using NewLife.Log;
+using XCode.DataAccessLayer;
+using System.Text;
 
 namespace NewLife.CommonEntity.Web
 {
@@ -271,6 +271,8 @@ namespace NewLife.CommonEntity.Web
         /// <param name="e"></param>
         protected override void OnPreLoad(EventArgs e)
         {
+            CheckStarting();
+
             Thread.CurrentPrincipal = (IPrincipal)Current;
             //Thread.CurrentPrincipal = (IPrincipal)http.Current;
 
@@ -400,7 +402,11 @@ namespace NewLife.CommonEntity.Web
 
             //判断序列化对象的字符串长度是否超出定义的长度界限
             if (ms.Length > LimitLength)
-                vs = "1$" + Convert.ToBase64String(IOHelper.Compress(ms.ToArray()));
+            {
+                MemoryStream ms2 = new MemoryStream();
+                IOHelper.Compress(ms, ms2);
+                vs = "1$" + Convert.ToBase64String(ms2.ToArray());
+            }
             else
                 vs = Convert.ToBase64String(ms.ToArray());
 
@@ -428,6 +434,62 @@ namespace NewLife.CommonEntity.Web
 
             //将指定的视图状态值转换为有限对象序列化 (LOS) 格式化的对象
             return new LosFormatter().Deserialize(new MemoryStream(bts));
+        }
+        #endregion
+
+        #region 系统启动中
+        static Boolean SystemStarted = false;
+        void CheckStarting()
+        {
+            // 只处理GET，因为处理POST可能丢失提交的表单数据
+            if (Request.HttpMethod != "GET") return;
+
+            if (SystemStarted) return;
+            SystemStarted = true;
+
+            #region 输出脚本
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("<html><head>");
+            sb.AppendLine("<script language=JavaScript type=text/javascript>");
+            sb.AppendLine("var t_id = setInterval(animate,20);");
+            sb.AppendLine("var pos=0;var dir=2;var len=0;");
+            sb.AppendLine("function animate(){");
+            sb.AppendLine("var elem = document.getElementById('progress');");
+            sb.AppendLine("if(elem != null) {");
+            sb.AppendLine("if (pos==0) len += dir;");
+            sb.AppendLine("if (len>32 || pos>79) pos += dir;");
+            sb.AppendLine("if (pos>79) len -= dir;");
+            sb.AppendLine("if (pos>79 && len==0) pos=0;");
+            sb.AppendLine("elem.style.left = pos;");
+            sb.AppendLine("elem.style.width = len;");
+            sb.AppendLine("}");
+            //sb.AppendLine("function remove_loading() {");
+            //sb.AppendLine(" this.clearInterval(t_id);");
+            //sb.AppendLine("var targelem = document.getElementById('loader_container');");
+            //sb.AppendLine("targelem.style.display='none';");
+            //sb.AppendLine("targelem.style.visibility='hidden';");
+            //sb.AppendLine("}");
+            //sb.AppendLine("document.onload=function(){ location.reload(); }");
+            //sb.AppendLine("document.onload=remove_loading;");
+            sb.AppendLine("</script>");
+            sb.AppendLine("<style>");
+            sb.AppendLine("#loader_container {text-align:center; position:absolute; top:40%; width:100%; left: 0;}");
+            sb.AppendLine("#loader {font-family:Tahoma, Helvetica, sans; font-size:11.5px; color:#000000; background-color:#FFFFFF; padding:10px 0 16px 0; margin:0 auto; display:block; width:130px; border:1px solid #5a667b; text-align:left; z-index:2;}");
+            sb.AppendLine("#progress {height:5px; font-size:1px; width:1px; position:relative; top:1px; left:0px; background-color:#8894a8;}");
+            sb.AppendLine("#loader_bg {background-color:#e4e7eb; position:relative; top:8px; left:8px; height:7px; width:113px; font-size:1px;}");
+            sb.AppendLine("</style>");
+            sb.AppendLine("</head><body onload='location.reload();'>");
+            sb.AppendLine("<div id=loader_container>");
+            sb.AppendLine("<div id=loader>");
+            sb.AppendLine("<div align=center>系统正在启动中 ...</div>");
+            sb.AppendLine("<div id=loader_bg><div id=progress> </div></div>");
+            sb.AppendLine("</div></div>");
+            sb.AppendLine("</body></html>");
+
+            Response.Write(sb.ToString());
+            Response.Flush();
+            Response.End();
+            #endregion
         }
         #endregion
     }
