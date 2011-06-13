@@ -420,7 +420,13 @@ namespace XCode.DataAccessLayer
             #region 新增列
             foreach (XField item in entitytable.Fields)
             {
-                if (!dbdic.ContainsKey(item.Name.ToLower())) AddColumn(sb, item, onlySql);
+                if (!dbdic.ContainsKey(item.Name.ToLower()))
+                {
+                    AddColumn(sb, item, onlySql);
+
+                    // 这里必须给dbtable加加上当前列，否则下面如果刚好有删除列的话，会导致增加列成功，然后删除列重建表的时候没有新加的列
+                    dbtable.Fields.Add(item.Clone(dbtable));
+                }
             }
             #endregion
 

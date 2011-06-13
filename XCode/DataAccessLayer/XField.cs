@@ -165,7 +165,7 @@ namespace XCode.DataAccessLayer
         public XTable Table
         {
             get { return _Table; }
-            internal set { _Table = value; }
+            private set { _Table = value; }
         }
         #endregion
 

@@ -111,7 +111,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("{0}({1})", Description, Name);
+            if (!String.IsNullOrEmpty(Description))
+                return String.Format("{0}({1})", Description, Name);
+            else
+                return Name;
         }
         #endregion
 

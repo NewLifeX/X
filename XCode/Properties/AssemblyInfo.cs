@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.11.*")]
-[assembly: AssemblyFileVersion("7.11.2011.0612")]
+[assembly: AssemblyFileVersion("7.11.2011.0613")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.11.2011.0613  修正v7.8.2011.0510中修改时遗留下来的问题，一个是SQLite.DropColumnSQL中把两个参数写反了，一个是DatabaseSchema中，如果先增加字段后删除字段会出错
+ * 
  * v7.11.2011.0612  修正v7.10.2011.0608中修改时遗留下的问题，完整实现最大最小值分页，同时发现TopNotIn分页和MaxMin分页无法完美的支持GroupBy查询分页，只能查到第一页
  * 
  * v7.11.2011.0611  修正v7.10.2011.0608中修改时遗留下的问题，获取列表时默认使用自增字段降序，根据主键获取单记录的方法绕过此处，免受影响

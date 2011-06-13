@@ -696,10 +696,16 @@ namespace XCode.DataAccessLayer
             {
                 if (item.Fields == null || item.Fields.Count < 1) continue;
 
+                //foreach (XField field in item.Fields)
+                //{
+                //    if (field.Table == null) field.Table = item;
+                //}
+                List<XField> fs = new List<XField>();
                 foreach (XField field in item.Fields)
                 {
-                    if (field.Table == null) field.Table = item;
+                    fs.Add(field.Clone(item));
                 }
+                item.Fields = fs;
             }
 
             return list;

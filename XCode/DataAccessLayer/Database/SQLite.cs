@@ -422,7 +422,8 @@ namespace XCode.DataAccessLayer
             XTable table = field.Table;
             List<XField> list = new List<XField>(table.Fields.ToArray());
             if (list.Contains(field)) list.Remove(field);
-            return ReBuildTable(table, table.Fields, list);
+
+            return ReBuildTable(table, list, table.Fields);
         }
 
         String ReBuildTable(XTable table, List<XField> newFields, List<XField> oldFields)
