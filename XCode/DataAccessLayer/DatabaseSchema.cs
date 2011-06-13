@@ -433,8 +433,13 @@ namespace XCode.DataAccessLayer
             #region 删除列
             StringBuilder sbDelete = new StringBuilder();
             Dictionary<String, FieldItem> names = new Dictionary<String, FieldItem>();
-            foreach (XField item in dbtable.Fields)
+            //foreach (XField item in dbtable.Fields)
+            //{
+            //    if (!entitydic.ContainsKey(item.Name.ToLower())) DropColumn(sbDelete, item, onlySql);
+            //}
+            for (int i = dbtable.Fields.Count - 1; i >= 0; i--)
             {
+                XField item = dbtable.Fields[i];
                 if (!entitydic.ContainsKey(item.Name.ToLower())) DropColumn(sbDelete, item, onlySql);
             }
             if (sbDelete.Length > 0)

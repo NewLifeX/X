@@ -421,9 +421,9 @@ namespace XCode.DataAccessLayer
         {
             XTable table = field.Table;
             List<XField> list = new List<XField>(table.Fields.ToArray());
-            if (list.Contains(field)) list.Remove(field);
+            if (table.Fields.Contains(field)) table.Fields.Remove(field);
 
-            return ReBuildTable(table, list, table.Fields);
+            return ReBuildTable(table, table.Fields, list);
         }
 
         String ReBuildTable(XTable table, List<XField> newFields, List<XField> oldFields)
