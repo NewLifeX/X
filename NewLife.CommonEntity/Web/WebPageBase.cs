@@ -404,6 +404,8 @@ namespace NewLife.CommonEntity.Web
             if (ms.Length > LimitLength)
             {
                 MemoryStream ms2 = new MemoryStream();
+                // 必须移到第一位，否则后面读不到数据
+                ms.Position = 0;
                 IOHelper.Compress(ms, ms2);
                 vs = "1$" + Convert.ToBase64String(ms2.ToArray());
             }
