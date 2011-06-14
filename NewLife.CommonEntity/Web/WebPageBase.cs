@@ -459,12 +459,13 @@ var pos=0;var dir=2;var len=0;
 function animate(){
     var elem = document.getElementById('progress');
     if(elem != null) {
-    if (pos==0) len += dir;
-    if (len>32 || pos>79) pos += dir;
-    if (pos>79) len -= dir;
-    if (pos>79 && len==0) pos=0;
-    elem.style.left = pos;
-    elem.style.width = len;
+        if (pos==0) len += dir;
+        if (len>32 || pos>79) pos += dir;
+        if (pos>79) len -= dir;
+        if (pos>79 && len==0) pos=0;
+        elem.style.left = pos;
+        elem.style.width = len;
+    }
 }
 </script>
 
