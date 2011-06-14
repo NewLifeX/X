@@ -65,6 +65,7 @@
     <Compile Include="Box\LinkBox.cs" />
     <Compile Include="Box\LinkBoxField.cs" />
     <Compile Include="Button\LinkButtonField.cs" />
+    <Compile Include="TextBox\DecimalBox.cs" />
     <Compile Include="View\GridViewExtenderDesigner.cs" />
     <Compile Include="扩展\ExtenderControl.cs" />
     <Compile Include="Helper.cs" />
