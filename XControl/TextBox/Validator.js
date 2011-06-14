@@ -250,7 +250,20 @@ function ValidReal2()
     obj.select();
     return false;
 }
+//鼠标悬停在控件上时
+function VaildDecimal1()
+{
+    var obj = GetEvent();
 
+    if (!obj || !obj.value) return true;
+
+    var value = parseFloat(obj.value, 10);
+    if (!isNaN(value)) return true;
+    alert("这里只能输入价格数！");
+    obj.focus();
+    obj.select();
+    return false;
+}
 //验证IP地址
 function ValidIP()
 {
