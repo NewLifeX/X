@@ -289,12 +289,14 @@ namespace NewLife.CommonEntity.Web
             else
                 toolTip = String.Format("必须填写{0}！", toolTip);
 
+            if (control is Label) toolTip = null;
+
             if (control is WebControl)
             {
                 WebControl wc = control as WebControl;
 
                 // 设置ToolTip
-                if (String.IsNullOrEmpty(wc.ToolTip)) wc.ToolTip = toolTip;
+                if (String.IsNullOrEmpty(wc.ToolTip) && !String.IsNullOrEmpty(toolTip)) wc.ToolTip = toolTip;
 
                 //// 必填项
                 //if (!field.IsNullable) SetNotAllowNull(field, control, canSave);
@@ -480,6 +482,8 @@ namespace NewLife.CommonEntity.Web
         protected virtual void SetNotAllowNull(FieldItem field, Control control, Boolean canSave)
         {
             if (field.IsNullable) return;
+            // Label后面不需要
+            if (control is Label) return;
 
             LiteralControl lc = new LiteralControl();
             lc.Text = "<font style='color:#FF0000;font-size:16pt;'> *</font>";
