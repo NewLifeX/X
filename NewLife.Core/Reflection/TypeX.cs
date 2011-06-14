@@ -736,7 +736,7 @@ namespace NewLife.Reflection
 
             if (conversionType.IsEnum) return Enum.ToObject(conversionType, value);
 
-            if (value is IConvertible) Convert.ChangeType(value, conversionType);
+            if (value is IConvertible) value = Convert.ChangeType(value, conversionType);
 
             return value;
         }

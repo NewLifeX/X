@@ -546,7 +546,7 @@ namespace NewLife.CommonEntity.Web
                     if (pix != null)
                     {
                         Object v = pix.GetValue(control);
-                        if (!Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
+                        if (!Object.Equals(Entity[field.Name], v)) SetEntityItem(field, v);
                     }
                 }
             }
@@ -558,9 +558,18 @@ namespace NewLife.CommonEntity.Web
                 if (pix != null)
                 {
                     Object v = pix.GetValue(control);
-                    if (!Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
+                    if (!Object.Equals(Entity[field.Name], v)) SetEntityItem(field, v);
                 }
             }
+        }
+
+        void SetEntityItem(FieldItem field, Object value)
+        {
+            // 先转为目标类型
+            value = TypeX.ChangeType(value, field.Type);
+            // 如果是字符串，并且为空，则让它等于实体里面的值，避免影响脏数据
+            if (field.Type == typeof(String) && String.IsNullOrEmpty((String)value)) value = Entity[field.Name];
+            Entity.SetItem(field.Name, value);
         }
 
         /// <summary>
@@ -571,7 +580,7 @@ namespace NewLife.CommonEntity.Web
         protected virtual void GetFormItemTextBox(FieldItem field, TextBox control)
         {
             String v = control.Text;
-            if (!Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
+            if (!Object.Equals(Entity[field.Name], v)) SetEntityItem(field, v);
         }
 
         /// <summary>
@@ -600,7 +609,7 @@ namespace NewLife.CommonEntity.Web
             else
                 v = control.Checked;
 
-            if (!Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
+            if (!Object.Equals(Entity[field.Name], v)) SetEntityItem(field, v);
         }
 
         /// <summary>
@@ -613,7 +622,7 @@ namespace NewLife.CommonEntity.Web
             //if (String.IsNullOrEmpty(control.SelectedValue)) return;
 
             String v = control.SelectedValue;
-            if (!Object.Equals(Entity[field.Name], v)) Entity.SetItem(field.Name, v);
+            if (!Object.Equals(Entity[field.Name], v)) SetEntityItem(field, v);
         }
 
         /// <summary>
@@ -648,7 +657,7 @@ namespace NewLife.CommonEntity.Web
                         break;
                     }
                 }
-                if (id >= 0 && !Object.Equals(Entity[field.Name], id)) Entity.SetItem(field.Name, id);
+                if (id >= 0 && !Object.Equals(Entity[field.Name], id)) SetEntityItem(field, id);
             }
             else
             {
@@ -656,7 +665,7 @@ namespace NewLife.CommonEntity.Web
                 {
                     if (item.Checked)
                     {
-                        if (!Object.Equals(Entity[field.Name], item.Text)) Entity.SetItem(field.Name, item.Text);
+                        if (!Object.Equals(Entity[field.Name], item.Text)) SetEntityItem(field, item.Text);
                     }
                 }
             }
