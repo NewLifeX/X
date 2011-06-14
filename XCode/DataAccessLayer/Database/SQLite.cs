@@ -39,6 +39,18 @@ namespace XCode.DataAccessLayer
         {
             get { return dbProviderFactory; }
         }
+
+        /// <summary>是否内存数据库</summary>
+        public Boolean IsMemoryDatabase { get { return String.Equals(FileName, MemoryDatabase, StringComparison.OrdinalIgnoreCase); } }
+
+        static readonly String MemoryDatabase = ":memory:";
+
+        protected internal override string ResoleFile(string file)
+        {
+            if (String.IsNullOrEmpty(file) || String.Equals(file, MemoryDatabase, StringComparison.OrdinalIgnoreCase)) return MemoryDatabase;
+
+            return base.ResoleFile(file);
+        }
         #endregion
 
         #region 方法
@@ -150,6 +162,16 @@ namespace XCode.DataAccessLayer
     /// </summary>
     internal class SQLiteSession : FileDbSession
     {
+        #region 方法
+        protected override void CreateDatabase()
+        {
+            // 内存数据库不需要创建
+            if ((Database as SQLite).IsMemoryDatabase) return;
+
+            base.CreateDatabase();
+        }
+        #endregion
+
         #region 基本方法 查询/执行
         //private ReadWriteLock _lock = null;
         //private ReadWriteLock rwLock

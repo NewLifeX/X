@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Data.Common;
+using System.Collections.Generic;
 using System.Data.OleDb;
 using System.IO;
-using XCode.Exceptions;
-using System.Collections.Generic;
 
 namespace XCode.DataAccessLayer
 {
@@ -59,14 +57,15 @@ namespace XCode.DataAccessLayer
             base.OnSetConnectionString(builder);
 
             String file;
-            if (!builder.TryGetValue("Data Source", out file)) return;
-
+            //if (!builder.TryGetValue("Data Source", out file)) return;
+            // 允许空，当作内存数据库处理
+            builder.TryGetValue("Data Source", out file);
             file = ResoleFile(file);
             builder["Data Source"] = file;
             FileName = file;
         }
 
-        protected internal String ResoleFile(String file)
+        protected internal virtual String ResoleFile(String file)
         {
             if (file.StartsWith("~/") || file.StartsWith("~\\"))
             {
@@ -127,7 +126,7 @@ namespace XCode.DataAccessLayer
             base.Open();
         }
 
-        protected void CreateDatabase()
+        protected virtual void CreateDatabase()
         {
             if (!File.Exists(FileName)) Database.CreateMetaData().SetSchema(DDLSchema.CreateDatabase, null);
         }
