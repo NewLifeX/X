@@ -419,8 +419,9 @@ namespace NewLife.CommonEntity
             // 如果权限名称与页面中的Title不相同时修改权限名称为页面Title名称，疏漏可能造成日志重复写入
             if (String.IsNullOrEmpty(Permission) || IsEnglish(Permission) || !String.Equals(Permission, name, StringComparison.OrdinalIgnoreCase)) Permission = name;
             if (String.IsNullOrEmpty(Name) || IsEnglish(Name)) Name = name;
-
-            return Save() > 0;
+            if (Dirtys[Permission] == true)
+                return Save() > 0;
+            return false;
         }
 
         /// <summary>
