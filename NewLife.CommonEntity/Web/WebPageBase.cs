@@ -292,7 +292,7 @@ namespace NewLife.CommonEntity.Web
                 else if (!CheckPermission())
                 {
                     Response.StatusCode = 403;
-                    Response.SubStatusCode = 15;
+                    //Response.SubStatusCode = 15;
                     Response.StatusDescription = "没有权限访问该页！";
                     Response.Write("没有权限访问该页！");
                     Response.End();
