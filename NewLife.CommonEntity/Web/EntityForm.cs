@@ -219,7 +219,7 @@ namespace NewLife.CommonEntity.Web
         {
             base.OnLoadComplete(e);
 
-            if (Page.AutoPostBackControl == null)
+            if (Page.IsPostBack && Page.AutoPostBackControl == null)
             {
                 Control btn = SaveButton;
                 if (btn == null || !(btn is IButtonControl))
