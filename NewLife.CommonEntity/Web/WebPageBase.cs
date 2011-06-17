@@ -441,8 +441,16 @@ namespace NewLife.CommonEntity.Web
 
         #region 系统启动中
         static Boolean SystemStarted = false;
-        void CheckStarting()
+        /// <summary>
+        /// 检查系统是否启动中，如果启动中，则显示进度条
+        /// </summary>
+        public static void CheckStarting()
         {
+            if (HttpContext.Current == null) return;
+
+            HttpRequest Request = HttpContext.Current.Request;
+            HttpResponse Response = HttpContext.Current.Response;
+
             // 只处理GET，因为处理POST可能丢失提交的表单数据
             if (Request.HttpMethod != "GET") return;
 
