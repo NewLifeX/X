@@ -153,6 +153,26 @@ namespace XControl
             }
         }
 
+        /// <summary>被选择行的整型键值，因为整型最常用</summary>
+        [Browsable(false)]
+        public Int32[] SelectedIntValues
+        {
+            get
+            {
+                Int32[] indexes = SelectedIndexes;
+                if (indexes == null || indexes.Length < 1) return null;
+
+                GridView gv = TargetControl;
+                List<Int32> list = new List<Int32>();
+                foreach (Int32 item in indexes)
+                {
+                    list.Add((Int32)gv.DataKeys[item].Value);
+                }
+
+                return list.Count > 0 ? list.ToArray() : null;
+            }
+        }
+
         /// <summary>被选择行的键值</summary>
         [Browsable(false)]
         public String SelectedValuesString
