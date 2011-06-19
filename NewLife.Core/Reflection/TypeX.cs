@@ -740,6 +740,19 @@ namespace NewLife.Reflection
 
             return value;
         }
+
+        /// <summary>
+        /// 类型转换
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static TResult ChangeType<TResult>(Object value)
+        {
+            if (value is TResult) return (TResult)value;
+
+            return (TResult)ChangeType(value, typeof(TResult));
+        }
         #endregion
 
         #region 类型转换
