@@ -416,11 +416,14 @@ namespace XCode
             {
                 values[i] = this[names[i]];
             }
+
+            FieldItem field = Meta.Unique;
+            // 如果是空主键，则采用直接判断记录数的方式，以加快速度
+            if (IsNullKey(this[field.Name])) return FindCount(names, values) > 0;
+
             EntityList<TEntity> list = FindAll(names, values);
             if (list == null) return false;
             if (list.Count > 1) return true;
-
-            FieldItem field = Meta.Unique;
 
             return !Object.Equals(this[field.Name], list[0][field.Name]);
         }

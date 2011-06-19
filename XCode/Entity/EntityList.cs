@@ -538,10 +538,18 @@ namespace XCode
             if (Count < 1) return null;
 
             List<TResult> list = new List<TResult>();
+            Type type = typeof(TResult);
             foreach (T item in this)
             {
                 if (item == null) continue;
-                list.Add((TResult)item[name]);
+
+                //Object obj = item[name];
+                //if (obj is TResult)
+                //    list.Add((TResult)item[name]);
+                //else
+                //    list.Add((TResult)TypeX.ChangeType(obj, type));
+
+                list.Add(TypeX.ChangeType<TResult>(item[name]));
             }
             return list;
         }
