@@ -1596,7 +1596,10 @@ namespace NewLife.Serialization
 
             }
         }
-
+        /// <summary>
+        /// 读取多维数组的维度
+        /// </summary>
+        /// <returns></returns>
         protected override string ReadLengths()
         {
             String lengths = base.ReadLengths();
