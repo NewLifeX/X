@@ -20,7 +20,7 @@ namespace NewLife.CommonEntity
     public class Menu : Menu<Menu> { }
 
     /// <summary>
-    /// 地区
+    /// 角色
     /// </summary>
     [Serializable]
     public class Role : Role<Role, Menu, RoleMenu> { }
