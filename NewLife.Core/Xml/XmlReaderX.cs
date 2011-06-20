@@ -507,6 +507,10 @@ namespace NewLife.Xml
             return false;
         }
 
+        /// <summary>
+        /// 读取多维数组相关参数
+        /// </summary>
+        /// <returns></returns>
         protected override string ReadLengths()
         {
             return Lengths;
