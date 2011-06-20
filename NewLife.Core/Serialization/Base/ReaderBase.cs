@@ -1756,6 +1756,11 @@ namespace NewLife.Serialization
 
             return size;
         }
+
+        /// <summary>
+        /// 读取多维数组相关参数
+        /// </summary>
+        /// <returns></returns>
         protected virtual String ReadLengths()
         {
             String lengths = ReadString();
@@ -1765,6 +1770,12 @@ namespace NewLife.Serialization
         #endregion
 
         #region 辅助方法
+        /// <summary>
+        /// 给多维数组赋值
+        /// </summary>
+        /// <param name="arr"></param>
+        /// <param name="func"></param>
+        /// <param name="value"></param>
         protected void ArrEnum(Array arr, Action<Int32[]> func, Object value)
         {
             Int32[] ix = new Int32[arr.Rank];
