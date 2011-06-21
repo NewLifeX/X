@@ -214,7 +214,7 @@ function stopEventPropagation(e){
             if(typeof e.stopPropagation != 'undefined'){
                 e.stopPropagation();
             }else if(typeof e.cancelBubble != 'undefined'){
-                e.cancelBubble = 1;
+                e.cancelBubble = true;
             }
         }
     }catch(ex){}
