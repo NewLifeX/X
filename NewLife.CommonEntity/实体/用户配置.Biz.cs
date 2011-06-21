@@ -17,7 +17,7 @@ namespace NewLife.CommonEntity
 	/// <summary>
 	/// 用户配置
 	/// </summary>
-    public partial class UserProfile<TEntity> : Entity<TEntity> where TEntity : Area<TEntity>, new()
+    public partial class UserProfile<TEntity> : Entity<TEntity> where TEntity : UserProfile<TEntity>, new()
 	{
 		#region 对象操作
 		//基类Entity中包含三个对象操作：Insert、Update、Delete

@@ -1,7 +1,7 @@
 ﻿/*
  * XCoder v3.4.2011.0329
  * 作者：nnhy/X
- * 时间：2011-06-21 21:07:11
+ * 时间：2011-06-21 23:11:58
  * 版权：版权所有 (C) 新生命开发团队 2010
 */
 using System;
@@ -48,30 +48,30 @@ namespace NewLife.CommonEntity
 			set { if (OnPropertyChanging("Name", value)) { _Name = value; OnPropertyChanged("Name"); } }
 		}
 
+		private Int32 _Kind;
+		/// <summary>
+		/// 种类
+		/// </summary>
+		[Description("种类")]
+		[DataObjectField(false, false, true, 10)]
+		[BindColumn(3, "Kind", "种类", "", "int", 10, 0, false)]
+		public Int32 Kind
+		{
+			get { return _Kind; }
+			set { if (OnPropertyChanging("Kind", value)) { _Kind = value; OnPropertyChanged("Kind"); } }
+		}
+
 		private Int32 _Num;
 		/// <summary>
 		/// 数字
 		/// </summary>
 		[Description("数字")]
 		[DataObjectField(false, false, true, 10)]
-		[BindColumn(3, "Num", "数字", "", "int", 10, 0, false)]
+		[BindColumn(4, "Num", "数字", "", "int", 10, 0, false)]
 		public Int32 Num
 		{
 			get { return _Num; }
 			set { if (OnPropertyChanging("Num", value)) { _Num = value; OnPropertyChanged("Num"); } }
-		}
-
-		private String _Code;
-		/// <summary>
-		/// 代码
-		/// </summary>
-		[Description("代码")]
-		[DataObjectField(false, false, true, 50)]
-		[BindColumn(4, "Code", "代码", "", "nvarchar(50)", 0, 0, true)]
-		public String Code
-		{
-			get { return _Code; }
-			set { if (OnPropertyChanging("Code", value)) { _Code = value; OnPropertyChanged("Code"); } }
 		}
 
 		private DateTime _LastUpdate;
@@ -104,8 +104,8 @@ namespace NewLife.CommonEntity
 				{
 					case "ID" : return _ID;
 					case "Name" : return _Name;
+					case "Kind" : return _Kind;
 					case "Num" : return _Num;
-					case "Code" : return _Code;
 					case "LastUpdate" : return _LastUpdate;
 					default: return base[name];
 				}
@@ -116,8 +116,8 @@ namespace NewLife.CommonEntity
 				{
 					case "ID" : _ID = Convert.ToInt32(value); break;
 					case "Name" : _Name = Convert.ToString(value); break;
+					case "Kind" : _Kind = Convert.ToInt32(value); break;
 					case "Num" : _Num = Convert.ToInt32(value); break;
-					case "Code" : _Code = Convert.ToString(value); break;
 					case "LastUpdate" : _LastUpdate = Convert.ToDateTime(value); break;
 					default: base[name] = value; break;
 				}
@@ -143,14 +143,14 @@ namespace NewLife.CommonEntity
 			public const String Name = "Name";
 
 			///<summary>
+			/// 种类
+			///</summary>
+			public const String Kind = "Kind";
+
+			///<summary>
 			/// 数字
 			///</summary>
 			public const String Num = "Num";
-
-			///<summary>
-			/// 代码
-			///</summary>
-			public const String Code = "Code";
 
 			///<summary>
 			/// 最后更新
