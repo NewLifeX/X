@@ -14,7 +14,12 @@ using XCode.Configuration;
 
 namespace NewLife.CommonEntity
 {
-	/// <summary>
+    /// <summary>
+    /// 用户配置
+    /// </summary>
+    public class UserProfile : UserProfile<UserProfile> { }
+
+    /// <summary>
 	/// 用户配置
 	/// </summary>
     public partial class UserProfile<TEntity> : Entity<TEntity> where TEntity : UserProfile<TEntity>, new()

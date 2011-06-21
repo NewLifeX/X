@@ -44,6 +44,11 @@ namespace NewLife.CommonEntity
     /// <summary>
     /// 序列
     /// </summary>
+    public class Sequence : Sequence<Sequence> { }
+
+    /// <summary>
+    /// 序列
+    /// </summary>
     public partial class Sequence<TEntity> : Entity<TEntity> where TEntity : Sequence<TEntity>, new()
     {
         #region 对象操作
