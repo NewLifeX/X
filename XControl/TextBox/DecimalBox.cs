@@ -24,12 +24,13 @@ namespace XControl
         /// </summary>
         [Description("小数点右边精度值（默认为2位）")]
         [DefaultValue(2)]
-        public Int32 CurrencyDecimalDigits
+        public Int32? CurrencyDecimalDigits
         {
             get
             {
+                //从ViewState中取值，所以第一次无法取到默认值
                 String num = (String)ViewState["CurrencyDecimalDigits"];
-                if (String.IsNullOrEmpty(num)) return 0;
+                if (String.IsNullOrEmpty(num)) return 2;
                 Int32 k = 0;
                 if (!Int32.TryParse(num, out k)) return 0;
                 return k;
@@ -77,7 +78,7 @@ namespace XControl
             get
             {
                 String str = (String)ViewState["CurrencyGroupSeparator"];
-                if (String.IsNullOrEmpty(str)) return null;
+                if (String.IsNullOrEmpty(str)) return ",";
                 return str;
             }
             set
@@ -101,18 +102,14 @@ namespace XControl
             get
             {
                 String symbol = (String)ViewState["CurrencySymbol"];
-                if (String.IsNullOrEmpty(symbol))
-                {
-                    symbol="￥";
-                }
+                if (String.IsNullOrEmpty(symbol)) symbol = "￥";
+
                 return symbol;
             }
             set
             {
-                if (String.IsNullOrEmpty(value))
-                {
-                    ViewState["CurrencySymbol"] = "￥";
-                }
+                if (String.IsNullOrEmpty(value)) ViewState["CurrencySymbol"] = "￥";
+
                 ViewState["CurrencySymbol"] = value;
             }
         }
@@ -125,11 +122,13 @@ namespace XControl
         {
             this.ToolTip = "只能输入数字价格！";
             BorderWidth = Unit.Pixel(0);
-            BorderColor = Color.Red;
+            BorderColor = Color.Black;
             BorderStyle = BorderStyle.Solid;
             Font.Size = FontUnit.Point(10);
             Width = Unit.Pixel(70);
             if (String.IsNullOrEmpty(Attributes["style"])) this.Attributes.Add("style", "border-bottom-width:1px;text-align : right ");
+            //if (String.IsNullOrEmpty(Attributes["CurrencyDecimalDigits"])) this.Attributes.Add("CurrencyDecimalDigits","2"); 
+
         }
 
         /// <summary>
@@ -188,8 +187,8 @@ namespace XControl
                     }
                     nf.CurrencyGroupSizes = intArray;
                 }
-
-                nf.CurrencyDecimalDigits = CurrencyDecimalDigits;
+                if (CurrencyDecimalDigits == null) CurrencyDecimalDigits = 2;
+                nf.CurrencyDecimalDigits = (Int32)CurrencyDecimalDigits;
                 if (!String.IsNullOrEmpty(CurrencyGroupSeparator))
                     nf.CurrencyGroupSeparator = CurrencyGroupSeparator;
                 nf.CurrencySymbol = CurrencySymbol;
