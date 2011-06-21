@@ -211,9 +211,9 @@ namespace XControl
 function stopEventPropagation(e){
     try{
         if(typeof e != 'undefined'){
-            if(e.stopPropagation){
+            if(typeof e.stopPropagation != 'undefined'){
                 e.stopPropagation();
-            }else if(e.cancelBubble){
+            }else if(typeof e.cancelBubble != 'undefined'){
                 e.cancelBubble = 1;
             }
         }
