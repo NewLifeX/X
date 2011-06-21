@@ -96,6 +96,10 @@ namespace NewLife.Reflection
                     sb.Append(">");
                     return sb.ToString();
                 }
+                else if (type.IsNested)
+                {
+                    return TypeX.Create(type.DeclaringType).FullName + "." + type.Name;
+                }
                 else
                     return type.FullName;
             }
