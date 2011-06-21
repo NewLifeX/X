@@ -209,7 +209,15 @@ namespace XControl
         {
             Control.Page.ClientScript.RegisterClientScriptBlock(this.GetType(), "stopEventPropagation", @"
 function stopEventPropagation(e){
-  e.stopPropagation && e.stopPropagation() || (e.cancelBubble=1);
+    try{
+        if(typeof e != 'undefined'){
+            if(e.stopPropagation){
+                e.stopPropagation();
+            }else if(e.cancelBubble){
+                e.cancelBubble = 1;
+            }
+        }
+    }catch(ex){}
 }
 ".Replace("\r", "").Replace("\n", ""), true);
 
