@@ -60,7 +60,9 @@ Array.prototype.remove = function(s)
         }
     }
 }
-if (window.HTMLElement)
+if (typeof window.HTMLElement != 'undefined' &&
+    typeof HTMLElement.prototype.__defineGetter__ != 'undefined' &&
+    typeof HTMLElement.prototype.outerHTML == 'undefined' )
 {//给FF添加IE专有的属性和方法
     HTMLElement.prototype.__defineGetter__("parentElement", function()
     {
