@@ -62,6 +62,12 @@
     <Compile Include="实体\地区.Biz.cs" />
     <Compile Include="实体\地区.cs" />
     <Compile Include="实体\地区.Init.cs" />
+    <Compile Include="实体\序列.Biz.cs" />
+    <Compile Include="实体\序列.cs" />
+    <Compile Include="实体\用户配置.Biz.cs" />
+    <Compile Include="实体\用户配置.cs" />
+    <Compile Include="实体\设置.Biz.cs" />
+    <Compile Include="实体\设置.cs" />
     <Compile Include="管理和授权\日志.Biz.cs" />
     <Compile Include="管理和授权\日志.cs" />
     <Compile Include="管理和授权\管理员.Biz.cs" />
@@ -76,7 +82,7 @@
     <Compile Include="管理和授权\角色和菜单.cs" />
     <Compile Include="实体\附件.Biz.cs" />
     <Compile Include="实体\附件.cs" />
-    <Compile Include="实体\默认后台.cs" />
+    <Compile Include="管理和授权\默认后台.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
