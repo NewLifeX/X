@@ -23,6 +23,7 @@
     void Session_Start(object sender, EventArgs e) 
     {
         // 在新会话启动时运行的代码
+        string sessionId = Session.SessionID;
 
     }
 
