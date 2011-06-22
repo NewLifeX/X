@@ -460,7 +460,7 @@ namespace NewLife.CommonEntity.Web
             #region 输出脚本
             StringBuilder sb = new StringBuilder();
             sb.Append(@"<html><head>
-<script language=JavaScript type=text/javascript>
+<script language=""javascript"" type=""text/javascript"">
 var t_id = setInterval(animate,20);
 var pos=0;var dir=2;var len=0;
 
@@ -474,6 +474,11 @@ function animate(){
         elem.style.left = pos;
         elem.style.width = len;
     }
+}
+function stopAnimate(){
+    clearInterval(t_id);
+    var elem = document.getElementById('loader_container');
+    elem.style.display='none';
 }
 </script>
 
@@ -490,8 +495,52 @@ function animate(){
     <div align=center>系统正在启动中 ...</div>
     <div id=loader_bg><div id=progress> </div></div>
     </div>
-    <iframe src='?iframe=1' style='display:none' onload='location.reload()'></iframe>
 </div>
+<div style=""position:absolute; left:1em; top:1em; width:320px; padding:.3em; background:#900; color:#fff; display:none;"">
+<strong>系统启动发生异常</strong>
+<div id=""start_fail""></div>
+</div>
+
+<script type=""text/javascript"" language=""javascript"">
+(function(w){
+    var xhr;
+    if(w.XMLHttpRequest && !w.ActiveXObject){
+        xhr=new w.XMLHttpRequest();
+    }else{
+        try{
+            xhr=new w.ActiveXObject('Microsoft.XMLHTTP');
+        }catch(e){}
+    }
+
+    if(xhr){
+        xhr.open('GET','?ajax=1');
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.onreadystatechange=function(){
+            if(xhr.readyState===4){
+                //只有返回http 200时才表示正常
+                if(xhr.status===200){
+                    xhr=null;
+                    location.reload();
+                }else{
+                    //否则输出http状态码和状态说明,以及返回的html
+                    stopAnimate();
+                    var ele=document.getElementById('start_fail');
+                    ele.innerHTML='HTTP '+xhr.status+' '+xhr.statusText+'<br/>'+xhr.responseText;
+                    var par=ele.parentNode;
+                    if(par){
+                        par.style.display='block';
+                    }
+                }
+                xhr=null;
+            }
+        };
+        xhr.send();
+    }else{
+        // 不支持的浏览器将直接刷新 不再显示动画
+        location.reload();
+    }
+})(window);
+</script>
 </body></html>");
             //还可以选择使用<script src="?script=1" type="text/javascript"></script>的方式 只是对返回内容有要求
 
