@@ -36,6 +36,14 @@ namespace XCode.DataAccessLayer
         [Description("表名")]
         public String Name { get { return _Name; } set { _Name = value; } }
 
+        private String _Alias;
+        /// <summary>
+        /// 别名
+        /// </summary>
+        [XmlAttribute]
+        [Description("别名")]
+        public String Alias { get { return _Alias ?? (_Alias = GetAlias(Name)); } set { _Alias = value; } }
+
         private String _Description;
         /// <summary>
         /// 表说明
@@ -245,6 +253,19 @@ namespace XCode.DataAccessLayer
                 }
             }
             return table;
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>
+        /// 获取别名
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static String GetAlias(String name)
+        {
+            //TODO 很多时候，这个别名就是表名
+            return name;
         }
         #endregion
     }

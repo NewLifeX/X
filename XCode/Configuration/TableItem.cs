@@ -214,6 +214,7 @@ namespace XCode.Configuration
             BindTableAttribute bt = Table;
             XTable table = new XTable();
             table.Name = bt.Name;
+            table.Alias = EntityType.Name;
             table.DbType = bt.DbType;
             table.Description = bt.Description;
 
