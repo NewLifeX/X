@@ -51,6 +51,17 @@ namespace XCode.DataAccessLayer
 
             return base.ResoleFile(file);
         }
+
+        protected internal override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        {
+            base.OnSetConnectionString(builder);
+
+            // 优化SQLite，如果原始字符串里面没有这些参数，就设置这些参数
+            if (!builder.ContainsKey("Pooling")) builder["Pooling"] = "true";
+            if (!builder.ContainsKey("Cache Size")) builder["Cache Size"] = "50000";
+            if (!builder.ContainsKey("Synchronous")) builder["Synchronous"] = "Off";
+            if (!builder.ContainsKey("Journal Mode")) builder["Journal Mode"] = "Memory";
+        }
         #endregion
 
         #region 方法
