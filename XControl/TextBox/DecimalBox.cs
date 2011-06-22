@@ -153,15 +153,22 @@ namespace XControl
         {
             get
             {
-                if (String.IsNullOrEmpty(Text)) return Decimal.Zero;
-                Decimal d = 0;
+                if (ViewState["Value"] == null) return Decimal.Zero;
 
-                if (!Decimal.TryParse(Text, out d)) return Decimal.Zero;
-                //if (!Decimal.TryParse(Text, out d)) return Decimal.Zero;
+                Decimal value = (Decimal)ViewState["Value"];
 
-                return d;
+                return value;
             }
             set
+            {
+                ViewState["Value"] = value;
+            }
+        }
+
+        //重新包装Text属性，数据转换以及格式化部分在Text内完成
+        public override string Text
+        {
+            get
             {
                 Int32[] intArray = new Int32[] { };
                 NumberFormatInfo nf = new NumberFormatInfo();
@@ -193,7 +200,20 @@ namespace XControl
                     nf.CurrencyGroupSeparator = CurrencyGroupSeparator;
                 nf.CurrencySymbol = CurrencySymbol;
 
-                Text = value.ToString("c", nf);
+                return Value.ToString("c", nf);
+            }
+            set
+            {
+                Decimal d = 0;
+                if (!String.IsNullOrEmpty(value))
+                {
+                    if (value.Contains(CurrencySymbol))
+                        value=value.Substring(1);
+                    value.Trim();
+                    if (Decimal.TryParse(value, out d))
+                        Value = d;
+                }
+
             }
         }
     }
