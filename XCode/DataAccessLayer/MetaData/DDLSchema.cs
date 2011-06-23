@@ -82,6 +82,16 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 删除默认值
         /// </summary>
-        DropDefault
+        DropDefault,
+
+        /// <summary>
+        /// 建立索引
+        /// </summary>
+        CreateIndex,
+
+        /// <summary>
+        /// 删除索引
+        /// </summary>
+        DropIndex
     }
 }

@@ -797,6 +797,52 @@ namespace XCode.DataAccessLayer
         {
             return null;
         }
+
+        public virtual String CreateIndexSQL(XField[] fields, Boolean unique, Boolean?[] isAscs)
+        {
+            String table = fields[0].Table.Name;
+
+            StringBuilder sb = new StringBuilder();
+            if (unique)
+                sb.Append("Create Unique Index ");
+            else
+                sb.Append("Create Index ");
+
+            //sb.AppendFormat("\"IX_{0}", table);
+            String indexName = "IX_";
+            for (int i = 0; i < fields.Length; i++)
+            {
+                //sb.AppendFormat("_{0}", fields[i]);
+                indexName += "_" + fields[i].Name;
+            }
+            sb.Append(FormatKeyWord(indexName));
+            sb.AppendFormat(" On {0} (", FormatKeyWord(table));
+            for (int i = 0; i < fields.Length; i++)
+            {
+                if (i > 0) sb.Append(", ");
+                if (isAscs[i] == null)
+                    sb.Append(fields[i]);
+                else
+                    sb.AppendFormat("{0} {1}", FormatKeyWord(fields[i].Name), isAscs[i].Value ? "Asc" : "Desc");
+            }
+            sb.Append(")");
+
+            return sb.ToString();
+        }
+
+        public virtual String DropIndexSQL(XField[] fields)
+        {
+            String table = fields[0].Table.Name;
+
+            String indexName = "IX_";
+            for (int i = 0; i < fields.Length; i++)
+            {
+                //sb.AppendFormat("_{0}", fields[i]);
+                indexName += "_" + fields[i].Name;
+            }
+
+            return String.Format("Drop Index {0} On {1}", FormatKeyWord(indexName), FormatKeyWord(table));
+        }
         #endregion
 
         #region 数据定义操作
