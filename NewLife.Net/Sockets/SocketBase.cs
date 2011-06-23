@@ -70,7 +70,7 @@ namespace NewLife.Net.Sockets
                 // 根据地址族选择合适的本地地址
                 if (value == AddressFamily.InterNetworkV6 && _Address == IPAddress.Any)
                     _Address = IPAddress.IPv6Any;
-                else if (_Address == IPAddress.IPv6Any)
+                else if (value != AddressFamily.InterNetworkV6 && _Address == IPAddress.IPv6Any)
                     _Address = IPAddress.Any;
             }
         }
