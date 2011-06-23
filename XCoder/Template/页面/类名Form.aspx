@@ -30,7 +30,7 @@
                 }else if(code == TypeCode.DateTime){
                 #><XCL:DateTimePicker ID="<#=frmName#>" runat="server"></XCL:DateTimePicker><#
                 }else if(code == TypeCode.Decimal){
-                #><XCL:RealBox ID="<#=frmName#>" runat="server" Width="80px"></XCL:RealBox><#
+                #><XCL:DecimalBox ID="<#=frmName#>" runat="server" Width="80px"></XCL:DecimalBox><#
                 }else if(code == TypeCode.Boolean){
                 #><asp:CheckBox ID="<#=frmName#>" runat="server" Text="<#=GetPropertyDescription(Field)#>" /><#}
             #></td>
