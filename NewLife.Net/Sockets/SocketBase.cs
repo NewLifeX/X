@@ -63,7 +63,16 @@ namespace NewLife.Net.Sockets
         public AddressFamily AddressFamily
         {
             get { return _AddressFamily; }
-            set { _AddressFamily = value; }
+            set
+            {
+                _AddressFamily = value;
+
+                // 根据地址族选择合适的本地地址
+                if (value == AddressFamily.InterNetworkV6 && _Address == IPAddress.Any)
+                    _Address = IPAddress.IPv6Any;
+                else if (_Address == IPAddress.IPv6Any)
+                    _Address = IPAddress.Any;
+            }
         }
 
         private Boolean _NoDelay = true;
