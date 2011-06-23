@@ -43,7 +43,9 @@ namespace NewLife.Net.Application
             //WriteLog("{0} {1}", e.RemoteEndPoint, Encoding.UTF8.GetString(e.Buffer, e.Offset, e.BytesTransferred));
             WriteLog("{0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString());
 
-            if ((e.RemoteEndPoint as IPEndPoint).Address != IPAddress.Any)
+            // 兼容IPV6
+            IPEndPoint remote = e.RemoteEndPoint as IPEndPoint;
+            if (remote != null && remote.Address != IPAddress.Any && remote.Address != IPAddress.IPv6Any)
             {
                 UdpServer us = sender as UdpServer;
                 us.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);

@@ -43,6 +43,7 @@ namespace NewLife.Net.Sockets
         /// <param name="port"></param>
         public virtual void Connect(IPAddress address, Int32 port)
         {
+            AddressFamily = address.AddressFamily;
             Client.Connect(address, port);
         }
 
@@ -52,6 +53,7 @@ namespace NewLife.Net.Sockets
         /// <param name="remoteEP">表示远程设备。</param>
         public void Connect(EndPoint remoteEP)
         {
+            AddressFamily = remoteEP.AddressFamily;
             Client.Connect(remoteEP);
         }
         #endregion

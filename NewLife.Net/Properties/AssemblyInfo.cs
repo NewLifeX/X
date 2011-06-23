@@ -32,10 +32,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.5.*")]
-[assembly: AssemblyFileVersion("1.5.2011.0413")]
+[assembly: AssemblyVersion("1.6.*")]
+[assembly: AssemblyFileVersion("1.6.2011.0624")]
 
 /*
+ * v1.6.2011.0624   全面支持IPV6，并实现了隐式探测支持，只要用到IPV6的地址（本地和远程），就自动采用IPV6通信
+ * 
  * v1.5.2011.0413   改善NetServer，不再作为抽象基类，通过指定协议类型可直接创建Tcp/Udp服务器
  *                  重写Echo服务器和数据流服务器，把Tcp/Udp的实现统一起来
  *                  实现另外四个简单网络服务器

@@ -53,7 +53,7 @@ namespace NewLife.Net.Tcp
         /// </summary>
         protected override void OnStart()
         {
-            EnsureCreate();
+            //EnsureCreate();
             //// 地址重用，允许该Socket收发同时进行
             //ReuseAddress = true;
             // 开始监听

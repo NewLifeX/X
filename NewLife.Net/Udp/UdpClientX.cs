@@ -32,7 +32,10 @@ namespace NewLife.Net.Udp
 
             // 如果没有传入网络事件参数，从对象池借用
             if (e == null) e = Pop();
-            e.RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            //e.RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            // 兼容IPV6
+            IPAddress address = AddressFamily == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
+            e.RemoteEndPoint = new IPEndPoint(address, 0);
 
             if (!Client.ReceiveFromAsync(e)) RaiseCompleteAsync(e);
         }
@@ -46,6 +49,7 @@ namespace NewLife.Net.Udp
         /// <param name="endPoint"></param>
         public void Send(Byte[] buffer, IPEndPoint endPoint)
         {
+            if (Socket == null) AddressFamily = endPoint.AddressFamily;
             Client.SendTo(buffer, buffer.Length, SocketFlags.None, endPoint);
         }
 
@@ -59,6 +63,7 @@ namespace NewLife.Net.Udp
             if (String.IsNullOrEmpty(msg)) return;
 
             Byte[] buffer = Encoding.UTF8.GetBytes(msg);
+            if (Socket == null) AddressFamily = endPoint.AddressFamily;
             Client.SendTo(buffer, buffer.Length, SocketFlags.None, endPoint);
         }
 

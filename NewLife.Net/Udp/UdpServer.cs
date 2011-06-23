@@ -79,9 +79,19 @@ namespace NewLife.Net.Udp
 
             // 如果没有传入网络事件参数，从对象池借用
             if (e == null) e = Pop();
-            e.RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
-            if (!Server.ReceiveFromAsync(e)) RaiseCompleteAsync(e);
+            //e.RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            // 兼容IPV6
+            IPAddress address = AddressFamily == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
+            e.RemoteEndPoint = new IPEndPoint(address, 0);
+
+            if (!Server.ReceiveFromAsync(e))
+            {
+                if (e.BytesTransferred > 0)
+                    RaiseCompleteAsync(e);
+                else
+                    Push(e);
+            }
         }
 
         /// <summary>

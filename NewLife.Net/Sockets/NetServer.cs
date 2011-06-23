@@ -24,7 +24,11 @@ namespace NewLife.Net.Sockets
         public IPAddress Address
         {
             get { return _Address; }
-            set { _Address = value; }
+            set
+            {
+                _Address = value;
+                if (value != null) AddressFamily = value.AddressFamily;
+            }
         }
 
         private Int32 _Port;
@@ -33,6 +37,14 @@ namespace NewLife.Net.Sockets
         {
             get { return _Port; }
             set { _Port = value; }
+        }
+
+        private AddressFamily _AddressFamily = AddressFamily.InterNetwork;
+        /// <summary>地址族</summary>
+        public AddressFamily AddressFamily
+        {
+            get { return _AddressFamily; }
+            set { _AddressFamily = value; }
         }
 
         private SocketServer _Server;
@@ -120,6 +132,7 @@ namespace NewLife.Net.Sockets
                 if (ProtocolType == ProtocolType.Tcp)
                 {
                     TcpServer svr = new TcpServer(Address, Port);
+                    svr.AddressFamily = AddressFamily;
                     svr.Accepted += new EventHandler<NetEventArgs>(OnAccepted);
 
                     Server = svr;
@@ -127,6 +140,7 @@ namespace NewLife.Net.Sockets
                 else if (ProtocolType == ProtocolType.Udp)
                 {
                     UdpServer svr = new UdpServer(Address, Port);
+                    svr.AddressFamily = AddressFamily;
                     svr.Received += new EventHandler<NetEventArgs>(OnAccepted);
                     svr.Received += new EventHandler<NetEventArgs>(OnReceived);
 
@@ -241,7 +255,10 @@ namespace NewLife.Net.Sockets
             }
             else if (ProtocolType == ProtocolType.Udp)
             {
-                if ((remoteEP as IPEndPoint).Address != IPAddress.Any)
+                //if ((remoteEP as IPEndPoint).Address != IPAddress.Any)
+                // 兼容IPV6
+                IPEndPoint remote = remoteEP as IPEndPoint;
+                if (remote != null && remote.Address != IPAddress.Any && remote.Address != IPAddress.IPv6Any)
                 {
                     UdpServer us = sender as UdpServer;
                     us.Send(buffer, offset, size, remoteEP);

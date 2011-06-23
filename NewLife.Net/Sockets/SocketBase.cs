@@ -43,7 +43,11 @@ namespace NewLife.Net.Sockets
         public IPAddress Address
         {
             get { return _Address; }
-            set { _Address = value; }
+            set
+            {
+                _Address = value;
+                if (value != null) AddressFamily = value.AddressFamily;
+            }
         }
 
         private Int32 _Port;
@@ -54,6 +58,14 @@ namespace NewLife.Net.Sockets
             set { _Port = value; }
         }
 
+        private AddressFamily _AddressFamily = AddressFamily.InterNetwork;
+        /// <summary>地址族</summary>
+        public AddressFamily AddressFamily
+        {
+            get { return _AddressFamily; }
+            set { _AddressFamily = value; }
+        }
+
         private Boolean _NoDelay = true;
         /// <summary>禁用接收延迟，收到数据后马上建立异步读取再处理本次数据</summary>
         public Boolean NoDelay
@@ -62,7 +74,7 @@ namespace NewLife.Net.Sockets
             set { _NoDelay = value; }
         }
 
-        private Boolean _UseThreadPool;
+        private Boolean _UseThreadPool = true;
         /// <summary>是否使用线程池处理事件。建议仅在事件处理非常耗时时使用线程池来处理。</summary>
         public Boolean UseThreadPool
         {
@@ -107,13 +119,13 @@ namespace NewLife.Net.Sockets
             switch (ProtocolType)
             {
                 case ProtocolType.Tcp:
-                    Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType);
+                    Socket = new Socket(AddressFamily, SocketType.Stream, ProtocolType);
                     break;
                 case ProtocolType.Udp:
-                    Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType);
+                    Socket = new Socket(AddressFamily, SocketType.Dgram, ProtocolType);
                     break;
                 default:
-                    Socket = new Socket(AddressFamily.InterNetwork, SocketType.Unknown, ProtocolType);
+                    Socket = new Socket(AddressFamily, SocketType.Unknown, ProtocolType);
                     break;
             }
         }
@@ -125,7 +137,15 @@ namespace NewLife.Net.Sockets
         /// </summary>
         public void Bind()
         {
-            if (Socket != null && !Socket.IsBound) Socket.Bind(new IPEndPoint(Address, Port));
+            if (Socket != null && !Socket.IsBound)
+            {
+                //if (Socket.AddressFamily != Address.AddressFamily)
+                //{
+                //    Socket = null;
+                //    EnsureCreate();
+                //}
+                Socket.Bind(new IPEndPoint(Address, Port));
+            }
         }
         #endregion
 

@@ -92,7 +92,8 @@ namespace NewLife.Net.Sockets
         /// <param name="count"></param>
         public override void Write(byte[] buffer, int offset, int count)
         {
-            if (RemoteEndPoint.Address != IPAddress.Any && RemoteEndPoint.Port != 0)
+            // 兼容IPV6
+            if (RemoteEndPoint.Address != IPAddress.Any && RemoteEndPoint.Address != IPAddress.IPv6Any && RemoteEndPoint.Port != 0)
                 Socket.SendTo(buffer, offset, count, SocketFlags.None, RemoteEndPoint);
             else
                 Socket.Send(buffer, offset, count, SocketFlags.None);

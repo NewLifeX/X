@@ -74,6 +74,8 @@ namespace NewLife.Net.Sockets
         /// </summary>
         protected virtual void OnStart()
         {
+            EnsureCreate();
+
             Bind();
         }
 
