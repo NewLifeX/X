@@ -78,6 +78,8 @@ namespace XCode.DataAccessLayer
             else if (!Path.IsPathRooted(file))
             {
                 file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file.Replace("/", "\\"));
+                // 过滤掉不必要的符号
+                file = new FileInfo(file).FullName;
             }
 
             return file;
