@@ -30,7 +30,7 @@ namespace NewLife.Log
             if (String.IsNullOrEmpty(path)) path = "Log";
 
             String key = path.ToLower();
-            return cache.GetItem(key, k => new TextFileLog(k));
+            return cache.GetItem<String>(key, path, (k, p) => new TextFileLog(p));
         }
         #endregion
 
@@ -59,7 +59,7 @@ namespace NewLife.Log
                 //保证\结尾
                 if (!String.IsNullOrEmpty(dir) && dir.Substring(dir.Length - 1, 1) != @"\") dir += @"\";
 
-                _LogPath = dir;
+                _LogPath = new DirectoryInfo(dir).FullName;
                 return _LogPath;
             }
         }

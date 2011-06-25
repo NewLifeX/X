@@ -24,11 +24,11 @@ namespace NewLife.Log
     public class XTrace
     {
         #region 写日志
-        private static TextFileLog Log = TextFileLog.Create(null);
+        private static TextFileLog Log = TextFileLog.Create(Config.GetConfig<String>("NewLife.LogPath"));
         /// <summary>
         /// 日志路径
         /// </summary>
-        public String LogPath { get { return Log.LogPath; } }
+        public static String LogPath { get { return Log.LogPath; } }
 
         /// <summary>
         /// 输出日志
