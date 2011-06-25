@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Principal;
+using System.Text;
 using System.Threading;
 using System.Web;
 using System.Web.UI;
@@ -10,7 +11,6 @@ using NewLife.Configuration;
 using NewLife.IO;
 using NewLife.Log;
 using XCode.DataAccessLayer;
-using System.Text;
 
 namespace NewLife.CommonEntity.Web
 {

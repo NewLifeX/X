@@ -1,4 +1,6 @@
-﻿v2.3.2011.0623   增加证书类Certificate，用于创建自签名X509证书
+﻿v2.4.2011.0625   重写日志模块，拆分出来TextFileLog，以便于多种日志用途
+
+v2.3.2011.0623   增加证书类Certificate，用于创建自签名X509证书
 
 v2.2.2011.0610   增加IO操作工具类IOHelper，支持数据流复制CopyTo，支持数据流压缩（Deflate压缩更小一点），支持单文件GZip压缩（WinRar可解压），支持多文件GZip压缩（自定义格式）
                  增加增强版Web客户端WebClientX，支持Cookie，默认增加若干请求头

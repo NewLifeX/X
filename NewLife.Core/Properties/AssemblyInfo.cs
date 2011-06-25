@@ -33,10 +33,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.3.*")]
-[assembly: AssemblyFileVersion("2.3.2011.0623")]
+[assembly: AssemblyVersion("2.4.*")]
+[assembly: AssemblyFileVersion("2.4.2011.0625")]
 
 /*
+ * v2.4.2011.0625   重写日志模块，拆分出来TextFileLog，以便于多种日志用途
+ * 
  * v2.3.2011.0623   增加证书类Certificate，用于创建自签名X509证书
  * 
  * v2.2.2011.0610   增加IO操作工具类IOHelper，支持数据流复制CopyTo，支持数据流压缩（Deflate压缩更小一点），支持单文件GZip压缩（WinRar可解压），支持多文件GZip压缩（自定义格式）
