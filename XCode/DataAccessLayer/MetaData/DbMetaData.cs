@@ -566,6 +566,10 @@ namespace XCode.DataAccessLayer
                     return AddDefaultSQL((XField)values[0]);
                 case DDLSchema.DropDefault:
                     return DropDefaultSQL((XField)values[0]);
+                case DDLSchema.CreateIndex:
+                    return CreateIndexSQL((XField[])values[0], (Boolean)values[1], (Boolean?[])values[2]);
+                case DDLSchema.DropIndex:
+                    return DropIndexSQL((XField[])values[0]);
                 default:
                     break;
             }
