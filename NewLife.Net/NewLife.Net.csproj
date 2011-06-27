@@ -63,6 +63,9 @@
     <Compile Include="IO\FileClient.cs" />
     <Compile Include="IO\FileFormat.cs" />
     <Compile Include="IO\FileServer.cs" />
+    <Compile Include="Protocols\DNS\DNSBase.cs" />
+    <Compile Include="Protocols\DNS\DNSQueryType.cs" />
+    <Compile Include="Protocols\DNS\DNS_A.cs" />
     <Compile Include="Sockets\Netbase.cs" />
     <Compile Include="Sockets\NetServer.cs" />
     <Compile Include="Sockets\SocketBase.cs" />
