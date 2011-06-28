@@ -244,6 +244,36 @@ namespace NewLife.CommonEntity.Web
 
             return admin.Acquire(menu.ID, flag);
         }
+
+        /// <summary>
+        /// 申请指定操作的权限
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public virtual Boolean Acquire(String name, PermissionFlags flag)
+        {
+            // 当前管理员
+            IAdministrator admin = Current;
+            if (admin == null) return false;
+
+            //IMenu menu = admin.FindPermissionMenu(name);
+            //if (menu == null) return false;
+
+            //return admin.Acquire(menu.ID, flag);
+
+            return admin.Acquire(name, flag);
+        }
+
+        /// <summary>
+        /// 申请指定操作的权限
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public virtual Boolean Acquire(String name)
+        {
+            return Acquire(name, PermissionFlags.None);
+        }
         #endregion
 
         #region 登录用户控制

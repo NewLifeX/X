@@ -35,10 +35,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.2.*")]
-[assembly: AssemblyFileVersion("2.2.2011.0621")]
+[assembly: AssemblyVersion("2.3.*")]
+[assembly: AssemblyFileVersion("2.3.2011.0628")]
 
 /*
+ * v2.3.2011.0628   管理员类和页面基类，增加根据权限名称来控制权限的方法
+ * 
  * v2.2.2011.0621   增加序列、设置、用户配置等三个实体类
  * 
  * v2.1.2011.0607   WebPageBase中增加ViewState压缩功能

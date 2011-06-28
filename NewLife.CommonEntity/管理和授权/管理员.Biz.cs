@@ -680,20 +680,29 @@ namespace NewLife.CommonEntity
             return Acquire(menu.ID, PermissionFlags.None);
         }
 
-        ///// <summary>
-        ///// 拥有指定菜单的权限
-        ///// </summary>
-        ///// <param name="menuID"></param>
-        ///// <returns></returns>
-        //public virtual Boolean HasMenu(Int32 menuID) { return false; }
+        /// <summary>
+        /// 申请指定菜单指定操作的权限
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public virtual Boolean Acquire(String name, PermissionFlags flag)
+        {
+            IMenu menu = FindPermissionMenu(name);
+            if (menu == null) return false;
 
-        ///// <summary>
-        ///// 申请指定菜单指定操作的权限
-        ///// </summary>
-        ///// <param name="name"></param>
-        ///// <param name="flag"></param>
-        ///// <returns></returns>
-        //public virtual Boolean Acquire(String name, PermissionFlags flag) { return false; }
+            return Acquire(menu.ID, flag);
+        }
+
+        /// <summary>
+        /// 申请指定菜单指定操作的权限
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public virtual Boolean Acquire(String name)
+        {
+            return Acquire(name, PermissionFlags.None);
+        }
 
         /// <summary>
         /// 申请指定菜单指定操作的权限
@@ -842,6 +851,21 @@ namespace NewLife.CommonEntity
         /// <param name="flag"></param>
         /// <returns></returns>
         Boolean Acquire(Int32 menuID, PermissionFlags flag);
+
+        /// <summary>
+        /// 申请指定菜单指定操作的权限
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        Boolean Acquire(String name, PermissionFlags flag);
+
+        /// <summary>
+        /// 申请指定菜单指定操作的权限
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        Boolean Acquire(String name);
 
         /// <summary>
         /// 创建指定类型指定动作的日志实体
