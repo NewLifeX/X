@@ -17,6 +17,7 @@ namespace XControl
     [Description("价格输入控件")]
     [ToolboxData("<{0}:DecimalBox runat=server></{0}:DecimalBox>")]
     [ToolboxBitmap(typeof(TextBox))]
+    [ControlValueProperty("Value")]
     public class DecimalBox : TextBox
     {
         /// <summary>
@@ -208,10 +209,10 @@ namespace XControl
                 if (!String.IsNullOrEmpty(value))
                 {
                     //去除空字符干扰
-                    value=value.Trim();
+                    value = value.Trim();
                     if (value.Contains(CurrencySymbol))
                         //去除当前CurrencySymbol设置的符号
-                        value=value.Substring(1);
+                        value = value.Substring(1);
 
                     if (Decimal.TryParse(value, out d))
                         Value = d;

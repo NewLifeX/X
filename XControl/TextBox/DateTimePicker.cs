@@ -49,6 +49,7 @@ namespace XControl
     /// </summary>
     [DefaultProperty("Text")]
     [ToolboxData("<{0}:DateTimePicker runat=server></{0}:DateTimePicker>")]
+    [ControlValueProperty("Value")]
     public class DateTimePicker : TextBox
     {
         #region 属性

@@ -16,6 +16,7 @@ namespace XControl
     [Description("Êý×ÖÊäÈë¿Ø¼þ")]
     [ToolboxData("<{0}:NumberBox runat=server></{0}:NumberBox>")]
     [ToolboxBitmap(typeof(TextBox))]
+    [ControlValueProperty("Value")]
     public class NumberBox : TextBox
     {
         /// <summary>

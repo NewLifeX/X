@@ -15,6 +15,7 @@ namespace XControl
     [Description("浮点数输入控件")]
     [ToolboxData("<{0}:RealBox runat=server></{0}:RealBox>")]
     [ToolboxBitmap(typeof(TextBox))]
+    [ControlValueProperty("Value")]
     public class RealBox : TextBox
     {
         /// <summary>

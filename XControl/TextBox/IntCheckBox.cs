@@ -12,6 +12,7 @@ namespace XControl
     [Description("整型选择控件")]
     [ToolboxData("<{0}:IntCheckBox runat=server></{0}:IntCheckBox>")]
     [ToolboxBitmap(typeof(CheckBox))]
+    [ControlValueProperty("Value")]
     public class IntCheckBox : CheckBox
     {
 
