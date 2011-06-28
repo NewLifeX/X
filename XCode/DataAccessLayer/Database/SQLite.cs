@@ -165,7 +165,10 @@ namespace XCode.DataAccessLayer
 
             return base.FormatValue(field, value);
         }
+
         #endregion
+
+        
     }
 
     /// <summary>
@@ -457,6 +460,24 @@ namespace XCode.DataAccessLayer
             if (table.Fields.Contains(field)) table.Fields.Remove(field);
 
             return ReBuildTable(table, table.Fields, list);
+        }
+        /// <summary>
+        /// 删除索引方法
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <returns></returns>
+        public override string DropIndexSQL(XField[] fields)
+        {
+            String table = fields[0].Table.Name;
+
+            String indexName = "IX_";
+            for (int i = 0; i < fields.Length; i++)
+            {
+                //sb.AppendFormat("_{0}", fields[i]);
+                indexName += "_" + fields[i].Name;
+            }
+
+            return String.Format("Drop Index {0}", FormatKeyWord(indexName));
         }
 
         String ReBuildTable(XTable table, List<XField> newFields, List<XField> oldFields)
