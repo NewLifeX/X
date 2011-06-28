@@ -30,7 +30,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         [XmlAttribute]
         [Description("名称")]
-        public String Name { get { return _Name; } set { _Name = value; } }
+        public String Name { get { return _Name; } set { _Name = value; _Alias = null; } }
 
         private String _Alias;
         /// <summary>

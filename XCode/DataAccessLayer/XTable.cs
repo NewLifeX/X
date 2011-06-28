@@ -8,6 +8,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.IO;
 using System.ComponentModel;
+using NewLife.Collections;
 
 namespace XCode.DataAccessLayer
 {
@@ -34,7 +35,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         [XmlAttribute]
         [Description("表名")]
-        public String Name { get { return _Name; } set { _Name = value; } }
+        public String Name { get { return _Name; } set { _Name = value; _Alias = null; } }
 
         private String _Alias;
         /// <summary>
@@ -87,7 +88,23 @@ namespace XCode.DataAccessLayer
         /// </summary>
         [XmlArray]
         [Description("字段集合")]
-        public List<XField> Fields { get { return _Fields; } set { _Fields = value; } }
+        public List<XField> Fields { get { return _Fields ?? (_Fields = new List<XField>()); } set { _Fields = value; } }
+
+        private List<Triplet<String, String, String>> _Foreigns;
+        /// <summary>
+        /// 外键集合。
+        /// </summary>
+        [XmlArray]
+        [Description("外键集合")]
+        public List<Triplet<String, String, String>> Foreigns { get { return _Foreigns ?? (_Foreigns = new List<Triplet<String, String, String>>()); } set { _Foreigns = value; } }
+
+        private List<XIndex> _Indexes;
+        /// <summary>
+        /// 字段集合。
+        /// </summary>
+        [XmlArray]
+        [Description("索引集合")]
+        public List<XIndex> Indexes { get { return _Indexes ?? (_Indexes = new List<XIndex>()); } set { _Indexes = value; } }
         #endregion
 
         #region 构造
@@ -127,69 +144,69 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 比较
-        /// <summary>
-        /// 重载相等操作符
-        /// </summary>
-        public static bool operator ==(XTable table1, XTable table2)
-        {
-            return Object.Equals(table1, table2);
-        }
-        /// <summary>
-        /// 重载不等操作符
-        /// </summary>
-        public static bool operator !=(XTable table1, XTable table2)
-        {
-            return !(table1 == table2);//调用==，取反
-        }
+        ///// <summary>
+        ///// 重载相等操作符
+        ///// </summary>
+        //public static bool operator ==(XTable table1, XTable table2)
+        //{
+        //    return Object.Equals(table1, table2);
+        //}
+        ///// <summary>
+        ///// 重载不等操作符
+        ///// </summary>
+        //public static bool operator !=(XTable table1, XTable table2)
+        //{
+        //    return !(table1 == table2);//调用==，取反
+        //}
 
-        /// <summary>
-        /// 用作特定类型的哈希函数。
-        /// </summary>
-        /// <returns></returns>
-        public override Int32 GetHashCode()
-        {
-            return base.GetHashCode();
-        }
+        ///// <summary>
+        ///// 用作特定类型的哈希函数。
+        ///// </summary>
+        ///// <returns></returns>
+        //public override Int32 GetHashCode()
+        //{
+        //    return base.GetHashCode();
+        //}
 
-        /// <summary>
-        /// 确定指定的 Object 是否等于当前的 Object。
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public override bool Equals(object obj)
-        {
-            if (obj == null) return false;
-            XTable table = obj as XTable;
-            if (table == null) return false;
+        ///// <summary>
+        ///// 确定指定的 Object 是否等于当前的 Object。
+        ///// </summary>
+        ///// <param name="obj"></param>
+        ///// <returns></returns>
+        //public override bool Equals(object obj)
+        //{
+        //    if (obj == null) return false;
+        //    XTable table = obj as XTable;
+        //    if (table == null) return false;
 
-            if (this.Name != table.Name) return false;
-            if (this.Description != table.Description) return false;
-            if (this.IsView != table.IsView) return false;
+        //    if (this.Name != table.Name) return false;
+        //    if (this.Description != table.Description) return false;
+        //    if (this.IsView != table.IsView) return false;
 
-            //比较字段
-            List<XField> list1 = new List<XField>(Fields);
-            List<XField> list2 = new List<XField>(table.Fields);
-            foreach (XField item in list1)
-            {
-                XField match = null;
-                //在第二个列表里面找该字段
-                foreach (XField elm in list2)
-                {
-                    if (item == elm)
-                    {
-                        match = elm;
-                        break;
-                    }
-                }
-                //如果找不到，表明第二个列表没有该字段
-                if (match == null) return false;
-                list2.Remove(match);
-            }
-            //如果第二个列表还不为空，表明字段数不对应
-            if (list2.Count > 0) return false;
+        //    //比较字段
+        //    List<XField> list1 = new List<XField>(Fields);
+        //    List<XField> list2 = new List<XField>(table.Fields);
+        //    foreach (XField item in list1)
+        //    {
+        //        XField match = null;
+        //        //在第二个列表里面找该字段
+        //        foreach (XField elm in list2)
+        //        {
+        //            if (item == elm)
+        //            {
+        //                match = elm;
+        //                break;
+        //            }
+        //        }
+        //        //如果找不到，表明第二个列表没有该字段
+        //        if (match == null) return false;
+        //        list2.Remove(match);
+        //    }
+        //    //如果第二个列表还不为空，表明字段数不对应
+        //    if (list2.Count > 0) return false;
 
-            return true;
-        }
+        //    return true;
+        //}
         #endregion
 
         #region 导入导出
@@ -247,9 +264,6 @@ namespace XCode.DataAccessLayer
                 foreach (XField item in Fields)
                 {
                     table.Fields.Add(item.Clone(table));
-                    //XField field = item.Clone();
-                    //field.Table = table;
-                    //table.Fields.Add(field);
                 }
             }
             return table;
