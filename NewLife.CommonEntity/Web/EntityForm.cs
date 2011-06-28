@@ -258,7 +258,15 @@ namespace NewLife.CommonEntity.Web
                 Control control = Page.FindControl(FormItemPrefix + item.Name);
                 if (control == null) continue;
 
-                SetFormItem(item, control, canSave);
+                try
+                {
+                    SetFormItem(item, control, canSave);
+                }
+                catch (Exception ex)
+                {
+                    WebHelper.Alert("设置" + item.Name + "的数据时出错！" + ex.Message);
+                    return;
+                }
             }
         }
 
@@ -323,21 +331,14 @@ namespace NewLife.CommonEntity.Web
                     SetFormItemListControl(field, wc as ListControl, canSave);
                 else
                 {
-                    //PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Text");
-                    // 优先使用Value
-                    PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Value");
-                    if (pix == null) pix = PropertyInfoX.Create(control.GetType(), "Text");
-                    if (pix != null) pix.SetValue(control, Entity[field.Name]);
+                    SetControlValue(control, Entity[field.Name]);
                 }
             }
             else
             {
-                // 优先使用Value
-                PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Value");
-                if (pix == null) pix = PropertyInfoX.Create(control.GetType(), "Text");
-                if (pix != null) pix.SetValue(control, Entity[field.Name]);
+                SetControlValue(control, Entity[field.Name]);
 
-                pix = PropertyInfoX.Create(control.GetType(), "ToolTip");
+                PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "ToolTip");
                 if (pix != null && String.IsNullOrEmpty((String)pix.GetValue(control)))
                 {
                     pix.SetValue(control, toolTip);
@@ -354,16 +355,20 @@ namespace NewLife.CommonEntity.Web
         protected virtual void SetFormItemTextBox(FieldItem field, TextBox control, Boolean canSave)
         {
             Type type = field.Type;
+            Object value = Entity[field.Name];
             if (type == typeof(DateTime))
             {
-                DateTime d = (DateTime)Entity[field.Name];
+                DateTime d = (DateTime)value;
                 if (IsNullKey && d == DateTime.MinValue) d = DateTime.Now;
-                control.Text = d.ToString("yyyy-MM-dd HH:mm:ss");
+                //control.Text = d.ToString("yyyy-MM-dd HH:mm:ss");
                 //else
                 //    control.Text = null;
+                value = d.ToString("yyyy-MM-dd HH:mm:ss");
             }
-            else
-                control.Text = String.Empty + Entity[field.Name];
+            //else
+            //    control.Text = String.Empty + Entity[field.Name];
+
+            if (!SetControlValue(control, value)) control.Text = value.ToString();
         }
 
         /// <summary>
@@ -509,7 +514,15 @@ namespace NewLife.CommonEntity.Web
                 Control control = Page.FindControl(FormItemPrefix + item.Name);
                 if (control == null) continue;
 
-                GetFormItem(item, control);
+                try
+                {
+                    GetFormItem(item, control);
+                }
+                catch (Exception ex)
+                {
+                    WebHelper.Alert("读取" + item.Name + "的数据时出错！" + ex.Message);
+                    return;
+                }
             }
         }
 
@@ -539,27 +552,14 @@ namespace NewLife.CommonEntity.Web
                     GetFormItemListControl(field, wc as ListControl);
                 else
                 {
-                    //PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Text");
-                    // 优先使用Value
-                    PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Value");
-                    if (pix == null) pix = PropertyInfoX.Create(control.GetType(), "Text");
-                    if (pix != null)
-                    {
-                        Object v = pix.GetValue(control);
-                        if (!Object.Equals(Entity[field.Name], v)) SetEntityItem(field, v);
-                    }
+                    Object v = null;
+                    if (GetControlValue(control, out v) && !Object.Equals(Entity[field.Name], v)) SetEntityItem(field, v);
                 }
             }
             else
             {
-                // 优先使用Value
-                PropertyInfoX pix = PropertyInfoX.Create(control.GetType(), "Value");
-                if (pix == null) pix = PropertyInfoX.Create(control.GetType(), "Text");
-                if (pix != null)
-                {
-                    Object v = pix.GetValue(control);
-                    if (!Object.Equals(Entity[field.Name], v)) SetEntityItem(field, v);
-                }
+                Object v = null;
+                if (GetControlValue(control, out v) && !Object.Equals(Entity[field.Name], v)) SetEntityItem(field, v);
             }
         }
 
@@ -579,7 +579,11 @@ namespace NewLife.CommonEntity.Web
         /// <param name="control"></param>
         protected virtual void GetFormItemTextBox(FieldItem field, TextBox control)
         {
-            String v = control.Text;
+            //String v = control.Text;
+            //if (!Object.Equals(Entity[field.Name], v)) SetEntityItem(field, v);
+
+            Object v = null;
+            if (!GetControlValue(control, out v)) v = control.Text;
             if (!Object.Equals(Entity[field.Name], v)) SetEntityItem(field, v);
         }
 
@@ -776,6 +780,43 @@ namespace NewLife.CommonEntity.Web
             }
 
             WebHelper.Alert("失败！" + ex.Message);
+        }
+        #endregion
+
+        #region 辅助
+        static Boolean GetControlValue(Control control, out Object value)
+        {
+            TypeX tx = control.GetType();
+            String name = tx.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
+            PropertyInfoX pix = null;
+            if (!String.IsNullOrEmpty(name)) pix = PropertyInfoX.Create(tx.BaseType, name);
+            if (pix == null) pix = PropertyInfoX.Create(tx.BaseType, "Value");
+            if (pix == null) pix = PropertyInfoX.Create(tx.BaseType, "Text");
+            if (pix != null)
+            {
+                value = pix.GetValue(control);
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
+
+        static Boolean SetControlValue(Control control, Object value)
+        {
+            TypeX tx = control.GetType();
+            String name = tx.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
+            PropertyInfoX pix = null;
+            if (!String.IsNullOrEmpty(name)) pix = PropertyInfoX.Create(tx.BaseType, name);
+            if (pix == null) pix = PropertyInfoX.Create(tx.BaseType, "Value");
+            if (pix == null) pix = PropertyInfoX.Create(tx.BaseType, "Text");
+            if (pix != null)
+            {
+                pix.SetValue(control, value);
+                return true;
+            }
+
+            return false;
         }
         #endregion
     }

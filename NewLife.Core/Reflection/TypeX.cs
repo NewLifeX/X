@@ -736,9 +736,18 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Object ChangeType(object value, Type conversionType)
         {
-            if (value != null && value.GetType() == conversionType) return value;
+            Type vtype = null;
+            if (value != null) vtype = value.GetType();
+            if (vtype == conversionType) return value;
 
             if (conversionType.IsEnum) return Enum.ToObject(conversionType, value);
+
+            // 字符串转为货币类型，处理一下
+            if (vtype == typeof(String) && Type.GetTypeCode(conversionType) == TypeCode.Decimal)
+            {
+                String str = (String)value;
+                value = str.TrimStart(new Char[] { '$', '￥' });
+            }
 
             if (value is IConvertible) value = Convert.ChangeType(value, conversionType);
 

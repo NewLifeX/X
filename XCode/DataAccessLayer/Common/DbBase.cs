@@ -10,6 +10,7 @@ using System.Web;
 using NewLife;
 using NewLife.IO;
 using NewLife.Web;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -857,6 +858,11 @@ namespace XCode.DataAccessLayer
             else
             {
                 if (value == null) return isNullable ? "null" : "";
+
+                // 转为目标类型，比如枚举转为数字
+                value = TypeX.ChangeType(value, type);
+                if (value == null) return isNullable ? "null" : "";
+
                 return value.ToString();
             }
         }

@@ -40,6 +40,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v2.3.2011.0628   管理员类和页面基类，增加根据权限名称来控制权限的方法
+ *                  调整CommonEntity.EntityForm中对自定义控件的处理
  * 
  * v2.2.2011.0621   增加序列、设置、用户配置等三个实体类
  * 
