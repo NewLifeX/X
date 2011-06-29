@@ -357,7 +357,7 @@ namespace NewLife.CommonEntity
                 {
                     if (cookie == null) return null;
 
-                    String user = cookie["u"];
+                    String user = HttpUtility.UrlDecode(cookie["u"]);
                     String pass = cookie["p"];
                     if (String.IsNullOrEmpty(user) || String.IsNullOrEmpty(pass)) return null;
 
@@ -376,7 +376,7 @@ namespace NewLife.CommonEntity
                     HttpCookie cookie = HttpContext.Current.Response.Cookies[_httpState.Key];
                     if (entity != null)
                     {
-                        cookie["u"] = entity.Name;
+                        cookie["u"] = HttpUtility.UrlEncode(entity.Name);
                         cookie["p"] = DataHelper.Hash(entity.Password);
                     }
                     else
