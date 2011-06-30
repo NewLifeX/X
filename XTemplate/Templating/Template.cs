@@ -724,7 +724,8 @@ namespace XTemplate.Templating
 
         private static void CreateCctorMethod(CodeTypeDeclaration typeDec, IDictionary<String, Type> vars)
         {
-            CodeTypeConstructor method = new CodeTypeConstructor();
+            //CodeTypeConstructor method = new CodeTypeConstructor();
+            CodeConstructor method = new CodeConstructor();
             typeDec.Members.Add(method);
             method.Attributes = MemberAttributes.Public;
 

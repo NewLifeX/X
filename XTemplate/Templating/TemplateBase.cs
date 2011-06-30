@@ -293,9 +293,9 @@ namespace XTemplate.Templating
         #endregion
 
         #region 模版变量
-        private static IDictionary<String, Type> _Vars;
+        private IDictionary<String, Type> _Vars;
         /// <summary>模版变量集合</summary>
-        public static IDictionary<String, Type> Vars
+        public IDictionary<String, Type> Vars
         {
             get { return _Vars ?? (_Vars = new Dictionary<String, Type>()); }
             set { _Vars = value; }
