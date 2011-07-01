@@ -568,7 +568,7 @@ namespace NewLife.CommonEntity.Web
             // 先转为目标类型
             value = TypeX.ChangeType(value, field.Type);
             // 如果是字符串，并且为空，则让它等于实体里面的值，避免影响脏数据
-            if (field.Type == typeof(String) && String.IsNullOrEmpty((String)value)) value = Entity[field.Name];
+            if (field.Type == typeof(String) && String.IsNullOrEmpty((String)value) && String.IsNullOrEmpty((String)Entity[field.Name])) value = Entity[field.Name];
             Entity.SetItem(field.Name, value);
         }
 
