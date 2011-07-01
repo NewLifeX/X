@@ -61,7 +61,12 @@ namespace NewLife.Log
         /// <summary>
         /// 写日志事件。绑定该事件后，XTrace将不再把日志写到日志文件中去。
         /// </summary>
-        public static event EventHandler<WriteLogEventArgs> OnWriteLog;
+        public static event EventHandler<WriteLogEventArgs> OnWriteLog
+        {
+            add { Log.OnWriteLog += value; }
+            remove { Log.OnWriteLog -= value; }
+        }
+        //public static event EventHandler<WriteLogEventArgs> OnWriteLog;
 
         /// <summary>
         /// 写日志
