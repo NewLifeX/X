@@ -42,7 +42,17 @@ namespace NewLife.Net.Application
         /// <param name="e"></param>
         protected override void OnReceived(object sender, NetEventArgs e)
         {
-            WriteLog("Discard {0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString());
+            try
+            {
+                if (e.BytesTransferred > 100)
+                    WriteLog("Discard {0} [{1}]", e.RemoteEndPoint, e.BytesTransferred);
+                else
+                    WriteLog("Discard {0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString());
+            }
+            finally
+            {
+                Disconnect(e.UserToken as SocketBase);
+            }
         }
     }
 }

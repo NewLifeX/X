@@ -42,23 +42,19 @@ namespace NewLife.Net.Application
         /// <param name="e"></param>
         protected override void OnReceived(object sender, NetEventArgs e)
         {
-            //try
-            //{
-            if (e.BytesTransferred > 1024)
+            try
             {
-                WriteLog("Echo {0}的数据包大于1k，抛弃！", e.RemoteEndPoint);
-            }
-            else
-            {
-                WriteLog("Echo {0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString());
+                if (e.BytesTransferred > 100)
+                    WriteLog("Echo {0} [{1}]", e.RemoteEndPoint, e.BytesTransferred);
+                else
+                    WriteLog("Echo {0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString());
 
                 Send(e.UserToken as SocketBase, e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
             }
-            //}
-            //finally
-            //{
-            //    Disconnect(sender as SocketBase);
-            //}
+            finally
+            {
+                Disconnect(e.UserToken as SocketBase);
+            }
         }
     }
 }

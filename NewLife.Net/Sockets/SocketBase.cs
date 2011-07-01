@@ -455,6 +455,15 @@ namespace NewLife.Net.Sockets
         //        }
         //    }, new Object[] { handler, e });
         //}
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return String.Format("{0}://{1}:{2}", ProtocolType, Address.ToString(), Port);
+        }
         #endregion
     }
 }

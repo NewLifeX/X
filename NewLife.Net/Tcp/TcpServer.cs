@@ -160,11 +160,24 @@ namespace NewLife.Net.Tcp
         #endregion
 
         #region 会话
+        private Object _Sessions_lock = new object();
         private TcpSessionCollection _Sessions;
         /// <summary>会话集合</summary>
         public TcpSessionCollection Sessions
         {
-            get { return _Sessions ?? (_Sessions = new TcpSessionCollection()); }
+            //get { return _Sessions ?? (_Sessions = new TcpSessionCollection()); }
+            get
+            {
+                if (_Sessions != null) return _Sessions;
+                lock (_Sessions_lock)
+                {
+                    if (_Sessions != null) return _Sessions;
+
+                    _Sessions = new TcpSessionCollection();
+                    _Sessions.Server = this;
+                    return _Sessions;
+                }
+            }
         }
 
         /// <summary>
