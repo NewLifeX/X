@@ -174,7 +174,7 @@ namespace NewLife.Net.Tcp
                     if (_Sessions != null) return _Sessions;
 
                     _Sessions = new TcpSessionCollection();
-                    _Sessions.Server = this;
+                    //_Sessions.Server = this;
                     return _Sessions;
                 }
             }

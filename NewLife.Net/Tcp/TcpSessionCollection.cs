@@ -12,13 +12,13 @@ namespace NewLife.Net.Tcp
     /// </summary>
     public class TcpSessionCollection : Dictionary<Int32, WeakReference<TcpSession>>
     {
-        private TcpServer _Server;
-        /// <summary>服务器</summary>
-        public TcpServer Server
-        {
-            get { return _Server; }
-            set { _Server = value; }
-        }
+        //private TcpServer _Server;
+        ///// <summary>服务器</summary>
+        //public TcpServer Server
+        //{
+        //    get { return _Server; }
+        //    set { _Server = value; }
+        //}
 
         private Int32 sessionID = 0;
         /// <summary>
@@ -141,7 +141,7 @@ namespace NewLife.Net.Tcp
         void RemoveNotAlive(Object state)
         {
             RemoveNotAliveInternal();
-            Console.WriteLine("{0} {1}", DateTime.Now, Server.ToString());
+            //Console.WriteLine("{0} {1}", DateTime.Now, Server.ToString());
         }
 
         /// <summary>
