@@ -31,7 +31,19 @@ namespace NewLife.Net.Application
                 list.Add(server);
 
                 server = Activator.CreateInstance(item) as NetServer;
-                server.ProtocolType = server.ProtocolType == ProtocolType.Tcp ? ProtocolType.Udp : ProtocolType.Tcp;
+                server.AddressFamily = AddressFamily.InterNetworkV6;
+                server.Start();
+                list.Add(server);
+
+                ProtocolType pt = server.ProtocolType == ProtocolType.Tcp ? ProtocolType.Udp : ProtocolType.Tcp;
+                server = Activator.CreateInstance(item) as NetServer;
+                server.ProtocolType = pt;
+                server.Start();
+                list.Add(server);
+
+                server = Activator.CreateInstance(item) as NetServer;
+                server.ProtocolType = pt;
+                server.AddressFamily = AddressFamily.InterNetworkV6;
                 server.Start();
                 list.Add(server);
 
@@ -86,6 +98,7 @@ namespace NewLife.Net.Application
             if (protocol == ProtocolType.Tcp)
             {
                 TcpClientX tc = CreateClient<TcpClientX>();
+                tc.AddressFamily = ep.AddressFamily;
                 tc.Connect(ep);
                 if (isAsync && isReceiveData) tc.ReceiveAsync();
                 if (isSendData) tc.Send(msg);
@@ -94,6 +107,7 @@ namespace NewLife.Net.Application
             else if (protocol == ProtocolType.Udp)
             {
                 UdpClientX uc = CreateClient<UdpClientX>();
+                uc.AddressFamily = ep.AddressFamily;
                 if (isAsync && isReceiveData) uc.ReceiveAsync();
                 if (isSendData) uc.Send(msg, ep);
                 client = uc;
@@ -124,33 +138,9 @@ namespace NewLife.Net.Application
 
             TestSends("Echo", ep, true);
 
-            //// Tcp同步
-            //TcpClientX tc = CreateClient<TcpClientX>();
-            //tc.Connect(ep);
-            //tc.Send("EchoTest_Tcp同步!");
-            //XTrace.WriteLine(tc.ReceiveString());
-            //tc.Close();
+            ep = new IPEndPoint(IPAddress.IPv6Loopback, port);
 
-            //// Tcp异步
-            //tc = CreateClient<TcpClientX>();
-            //tc.ReceiveAsync();
-            //tc.Connect(ep);
-            //tc.Send("EchoTest_Tcp异步!");
-            //Thread.Sleep(1000);
-            //tc.Close();
-
-            //// Udp同步
-            //UdpClientX uc = CreateClient<UdpClientX>();
-            //uc.Send("EchoTest_Udp同步!", ep);
-            //XTrace.WriteLine(uc.ReceiveString());
-            //uc.Close();
-
-            //// Udp同步
-            //uc = CreateClient<UdpClientX>();
-            //uc.ReceiveAsync();
-            //uc.Send("EchoTest_Udp同步!", ep);
-            //Thread.Sleep(1000);
-            //uc.Close();
+            TestSends("Echo IPv6", ep, true);
         }
 
         static void StartDaytimeServer(Int32 port)
@@ -158,6 +148,10 @@ namespace NewLife.Net.Application
             IPEndPoint ep = new IPEndPoint(IPAddress.Loopback, port);
 
             TestSends("Daytime", ep, true);
+
+            ep = new IPEndPoint(IPAddress.IPv6Loopback, port);
+
+            TestSends("Daytime IPv6", ep, true);
         }
 
         static void StartTimeServer(Int32 port)
@@ -165,6 +159,10 @@ namespace NewLife.Net.Application
             IPEndPoint ep = new IPEndPoint(IPAddress.Loopback, port);
 
             TestSends("Time", ep, true);
+
+            ep = new IPEndPoint(IPAddress.IPv6Loopback, port);
+
+            TestSends("Time IPv6", ep, true);
         }
 
         static void StartDiscardServer(Int32 port)
@@ -172,6 +170,10 @@ namespace NewLife.Net.Application
             IPEndPoint ep = new IPEndPoint(IPAddress.Loopback, port);
 
             TestSends("Discard", ep, true, false);
+
+            ep = new IPEndPoint(IPAddress.IPv6Loopback, port);
+
+            TestSends("Discard IPv6", ep, true);
         }
 
         static void StartChargenServer(Int32 port)
@@ -179,6 +181,10 @@ namespace NewLife.Net.Application
             IPEndPoint ep = new IPEndPoint(IPAddress.Loopback, port);
 
             TestSends("Chargen", ep, true);
+
+            ep = new IPEndPoint(IPAddress.IPv6Loopback, port);
+
+            TestSends("Chargen IPv6", ep, true);
         }
     }
 }

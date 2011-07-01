@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using NewLife.Net.Sockets;
+using System.Threading;
 
 namespace NewLife.Net.Application
 {
@@ -50,6 +51,9 @@ namespace NewLife.Net.Application
                     WriteLog("Echo {0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString());
 
                 Send(e.UserToken as SocketBase, e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
+
+                // 等一秒，等客户端接收数据
+                Thread.Sleep(1000);
             }
             finally
             {
