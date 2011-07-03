@@ -632,10 +632,7 @@ namespace NewLife.CommonEntity
                 if (!String.Equals(p, password)) throw new Exception("密码不正确！");
             }
 
-            user.Logins++;
-            user.LastLogin = DateTime.Now;
-            user.LastLoginIP = WebHelper.UserHost;
-            user.Update();
+            user.SaveLoginInfo();
 
             Current = user;
 
@@ -648,9 +645,21 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>
+        /// 保存登录信息
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Int32 SaveLoginInfo()
+        {
+            Logins++;
+            LastLogin = DateTime.Now;
+            LastLoginIP = WebHelper.UserHost;
+            return Update();
+        }
+
+        /// <summary>
         /// 注销
         /// </summary>
-        public void Logout()
+        public virtual void Logout()
         {
             WriteLog("注销", Name);
             Current = null;
