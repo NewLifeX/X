@@ -683,7 +683,8 @@ namespace NewLife.CommonEntity.Web
         /// <returns></returns>
         protected virtual Boolean ValidForm()
         {
-            foreach (FieldItem item in Entity<TEntity>.Meta.AllFields)
+            //foreach (FieldItem item in Entity<TEntity>.Meta.AllFields)
+            foreach (FieldItem item in Entity<TEntity>.Meta.Fields)
             {
                 Control control = Page.FindControl(FormItemPrefix + item.Name);
                 if (control == null) continue;
