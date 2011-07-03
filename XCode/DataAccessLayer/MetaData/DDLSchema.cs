@@ -92,6 +92,16 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 删除索引
         /// </summary>
-        DropIndex
+        DropIndex,
+
+        /// <summary>
+        /// 备份数据库
+        /// </summary>
+        BackupDatabase,
+
+        /// <summary>
+        /// 还原数据库
+        /// </summary>
+        RestoreDatabase
     }
 }
