@@ -420,7 +420,7 @@ namespace NewLife.CommonEntity
             if (String.IsNullOrEmpty(Permission) || IsEnglish(Permission) || !String.Equals(Permission, name, StringComparison.OrdinalIgnoreCase)) Permission = name;
             if (String.IsNullOrEmpty(Name) || IsEnglish(Name)) Name = name;
             //检查是否有菜单名称或权限是否有变动如无变动不做记录
-            if (Dirtys[Permission] == true || Dirtys[Name] == true)
+            if (Dirtys[_.Permission] || Dirtys[_.Name])
                 return Save() > 0;
             return false;
         }
