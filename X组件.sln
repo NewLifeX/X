@@ -25,13 +25,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.PeerToPeer", "NewLi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XCodeTest", "XCodeTest\XCodeTest.csproj", "{6AB57657-0627-40AC-ACC2-FF697E45FAF1}"
 EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebSite1", "WebSite1", "{62F668FB-41DE-4F2A-870F-AD6827C0EF27}"
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebSite1", "WebSite1\", "{62F668FB-41DE-4F2A-870F-AD6827C0EF27}"
 	ProjectSection(WebsiteProperties) = preProject
 		SccProjectName = ""
 		SccAuxPath = ""
 		SccLocalPath = ""
 		SccProvider = ""
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv2.0"
+		ProjectReferences = "{50D7FAE5-2304-4395-A6FA-7D35279D9D84}|NewLife.CommonEntity.dll;{5813C22E-EEB3-4DEE-A45C-BB218041193A}|NewLife.Core.dll;{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}|XCode.dll;{A82E3AA8-6181-460D-A6EE-CC453B83D340}|XControl.dll;"
 		Debug.AspNetCompiler.VirtualPath = "/WebSite1"
 		Debug.AspNetCompiler.PhysicalPath = "WebSite1\"
 		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\WebSite1\"
@@ -46,8 +47,10 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebSite1", "WebSite1", "{62
 		Release.AspNetCompiler.ForceOverwrite = "true"
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "36716"
+		VWDPort = "47844"
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test2", "Test2\Test2.csproj", "{181FE587-CA12-49DF-9A7C-96697C41F32D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -189,6 +192,16 @@ Global
 		{62F668FB-41DE-4F2A-870F-AD6827C0EF27}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{62F668FB-41DE-4F2A-870F-AD6827C0EF27}.Release|Mixed Platforms.Build.0 = Debug|Any CPU
 		{62F668FB-41DE-4F2A-870F-AD6827C0EF27}.Release|x86.ActiveCfg = Debug|Any CPU
+		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Debug|x86.ActiveCfg = Debug|x86
+		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Debug|x86.Build.0 = Debug|x86
+		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Release|Any CPU.ActiveCfg = Release|x86
+		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Release|Mixed Platforms.Build.0 = Release|x86
+		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Release|x86.ActiveCfg = Release|x86
+		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

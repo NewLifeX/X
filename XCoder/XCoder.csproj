@@ -150,6 +150,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Template\页面\类名Form.aspx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>ASPXCodeBehind</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Template\表单2\类名Form.aspx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
