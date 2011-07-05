@@ -13,7 +13,7 @@ namespace XCode.DataAccessLayer
     /// 字段构架
     /// </summary>
     [Serializable]
-    public class XField : ICloneable, IXmlSerializable
+    public class XField : IDataColumn, ICloneable, IXmlSerializable
     {
         #region 属性
         private Int32 _ID;
@@ -175,6 +175,8 @@ namespace XCode.DataAccessLayer
             get { return _Table; }
             private set { _Table = value; }
         }
+
+        IDataTable IDataColumn.Table { get { return Table; } }
         #endregion
 
         #region 方法

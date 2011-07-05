@@ -36,7 +36,7 @@ namespace XCode.DataAccessLayer
         /// 取得所有表构架
         /// </summary>
         /// <returns></returns>
-        public virtual List<XTable> GetTables()
+        public virtual List<IDataTable> GetTables()
         {
             try
             {
@@ -59,14 +59,14 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="rows">数据行</param>
         /// <returns></returns>
-        protected virtual List<XTable> GetTables(DataRow[] rows)
+        protected virtual List<IDataTable> GetTables(DataRow[] rows)
         {
             try
             {
-                List<XTable> list = new List<XTable>();
+                List<IDataTable> list = new List<IDataTable>();
                 foreach (DataRow dr in rows)
                 {
-                    XTable table = new XTable();
+                    IDataTable table = new XTable();
                     table.Name = GetDataRowValue<String>(dr, "TABLE_NAME");
 
                     // 顺序、编号
@@ -90,7 +90,7 @@ namespace XCode.DataAccessLayer
                     // 字段的获取可能有异常，但不应该影响整体架构的获取
                     try
                     {
-                        table.Fields = GetFields(table);
+                        table.Columns = GetFields(table).ToArray();
                     }
                     catch (Exception ex)
                     {
@@ -115,7 +115,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="table"></param>
         /// <param name="dr"></param>
-        protected virtual void FixTable(XTable table, DataRow dr)
+        protected virtual void FixTable(IDataTable table, DataRow dr)
         {
         }
 
@@ -124,7 +124,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="table"></param>
         /// <returns></returns>
-        protected virtual List<XField> GetFields(XTable table)
+        protected virtual List<IDataColumn> GetFields(IDataTable table)
         {
             //DataColumnCollection columns = GetColumns(table.Name);
 
@@ -136,7 +136,7 @@ namespace XCode.DataAccessLayer
             else
                 drs = dt.Select("");
 
-            List<XField> list = GetFields(table, drs);
+            List<IDataColumn> list = GetFields(table, drs);
 
             return list;
         }
@@ -147,16 +147,16 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         /// <param name="rows"></param>
         /// <returns></returns>
-        protected virtual List<XField> GetFields(XTable table, DataRow[] rows)
+        protected virtual List<IDataColumn> GetFields(IDataTable table, DataRow[] rows)
         {
             Dictionary<DataRow, String> pks = GetPrimaryKeys(table.Name);
 
-            List<XField> list = new List<XField>();
+            List<IDataColumn> list = new List<IDataColumn>();
             // 开始序号
             Int32 startIndex = 0;
             foreach (DataRow dr in rows)
             {
-                XField field = table.CreateField();
+                IDataColumn field = table.CreateColumn();
 
                 // 序号
                 Int32 n = 0;
@@ -261,7 +261,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="field"></param>
         /// <param name="dr"></param>
-        protected virtual void FixField(XField field, DataRow dr)
+        protected virtual void FixField(IDataColumn field, DataRow dr)
         {
             ////String typeName = GetDataRowValue<String>(dr, "DATA_TYPE");
             //SetFieldType(field, field.RawType);
@@ -282,7 +282,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field">字段</param>
         /// <param name="drColumn">字段元数据</param>
         /// <param name="drDataType">字段匹配的数据类型</param>
-        protected virtual void FixField(XField field, DataRow drColumn, DataRow drDataType)
+        protected virtual void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
         {
             String typeName = field.RawType;
 
@@ -370,7 +370,7 @@ namespace XCode.DataAccessLayer
         /// <param name="typeName"></param>
         /// <param name="isLong"></param>
         /// <returns></returns>
-        protected virtual DataRow[] FindDataType(XField field, String typeName, Boolean? isLong)
+        protected virtual DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
         {
             if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
             // 去掉类型中，长度等限制条件
@@ -416,7 +416,7 @@ namespace XCode.DataAccessLayer
         ///// </summary>
         ///// <param name="field"></param>
         ///// <param name="typeName"></param>
-        //protected virtual void SetFieldType(XField field, String typeName)
+        //protected virtual void SetFieldType(IDataColumn field, String typeName)
         //{
         //    DataTable dt = DataTypes;
         //    if (dt == null) return;
@@ -440,7 +440,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="field"></param>
         /// <returns></returns>
-        protected virtual String GetFieldType(XField field)
+        protected virtual String GetFieldType(IDataColumn field)
         {
             String typeName = field.DataType.FullName;
 
@@ -465,7 +465,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field"></param>
         /// <param name="dr"></param>
         /// <returns></returns>
-        protected virtual String GetFormatParam(XField field, DataRow dr)
+        protected virtual String GetFormatParam(IDataColumn field, DataRow dr)
         {
             String ps = null;
             if (!TryGetDataRowValue<String>(dr, "CreateParameters", out ps) || String.IsNullOrEmpty(ps)) return null;
@@ -492,7 +492,7 @@ namespace XCode.DataAccessLayer
         /// <param name="dr"></param>
         /// <param name="item"></param>
         /// <returns></returns>
-        protected virtual Int32 GetFormatParamItem(XField field, DataRow dr, String item)
+        protected virtual Int32 GetFormatParamItem(IDataColumn field, DataRow dr, String item)
         {
             if (item.Contains("length") || item.Contains("size")) return field.Length;
 
@@ -522,7 +522,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String GetSchemaSQL(DDLSchema schema, params Object[] values)
         {
-            XTable table;
+            IDataTable table;
 
             switch (schema)
             {
@@ -533,43 +533,43 @@ namespace XCode.DataAccessLayer
                 case DDLSchema.DatabaseExist:
                     return DatabaseExistSQL(values == null || values.Length < 1 ? null : (String)values[0]);
                 case DDLSchema.CreateTable:
-                    return CreateTableSQL((XTable)values[0]);
+                    return CreateTableSQL((IDataTable)values[0]);
                 case DDLSchema.DropTable:
-                    if (values[0] is XTable)
-                        table = values[0] as XTable;
+                    if (values[0] is IDataTable)
+                        table = values[0] as IDataTable;
                     else
                         table = new XTable(values[0].ToString());
 
                     return DropTableSQL(table);
                 case DDLSchema.TableExist:
-                    if (values[0] is XTable)
-                        table = values[0] as XTable;
+                    if (values[0] is IDataTable)
+                        table = values[0] as IDataTable;
                     else
                         table = new XTable(values[0].ToString());
 
                     return TableExistSQL(table);
                 case DDLSchema.AddTableDescription:
-                    return AddTableDescriptionSQL((XTable)values[0]);
+                    return AddTableDescriptionSQL((IDataTable)values[0]);
                 case DDLSchema.DropTableDescription:
-                    return DropTableDescriptionSQL((XTable)values[0]);
+                    return DropTableDescriptionSQL((IDataTable)values[0]);
                 case DDLSchema.AddColumn:
-                    return AddColumnSQL((XField)values[0]);
+                    return AddColumnSQL((IDataColumn)values[0]);
                 case DDLSchema.AlterColumn:
-                    return AlterColumnSQL((XField)values[0], values.Length > 1 ? (XField)values[1] : null);
+                    return AlterColumnSQL((IDataColumn)values[0], values.Length > 1 ? (IDataColumn)values[1] : null);
                 case DDLSchema.DropColumn:
-                    return DropColumnSQL((XField)values[0]);
+                    return DropColumnSQL((IDataColumn)values[0]);
                 case DDLSchema.AddColumnDescription:
-                    return AddColumnDescriptionSQL((XField)values[0]);
+                    return AddColumnDescriptionSQL((IDataColumn)values[0]);
                 case DDLSchema.DropColumnDescription:
-                    return DropColumnDescriptionSQL((XField)values[0]);
+                    return DropColumnDescriptionSQL((IDataColumn)values[0]);
                 case DDLSchema.AddDefault:
-                    return AddDefaultSQL((XField)values[0]);
+                    return AddDefaultSQL((IDataColumn)values[0]);
                 case DDLSchema.DropDefault:
-                    return DropDefaultSQL((XField)values[0]);
+                    return DropDefaultSQL((IDataColumn)values[0]);
                 case DDLSchema.CreateIndex:
-                    return CreateIndexSQL((XField[])values[0], (Boolean)values[1], (Boolean?[])values[2]);
+                    return CreateIndexSQL((IDataColumn[])values[0], (Boolean)values[1], (Boolean?[])values[2]);
                 case DDLSchema.DropIndex:
-                    return DropIndexSQL((XField[])values[0]);
+                    return DropIndexSQL((IDataColumn[])values[0]);
                 default:
                     break;
             }
@@ -589,12 +589,12 @@ namespace XCode.DataAccessLayer
             switch (schema)
             {
                 //case DDLSchema.CreateTable:
-                //    CreateTable((XTable)values[0]);
+                //    CreateTable((IDataTable)values[0]);
                 //    return true;
                 case DDLSchema.TableExist:
                     String name;
-                    if (values[0] is XTable)
-                        name = (values[0] as XTable).Name;
+                    if (values[0] is IDataTable)
+                        name = (values[0] as IDataTable).Name;
                     else
                         name = values[0].ToString();
 
@@ -636,7 +636,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field"></param>
         /// <param name="onlyDefine">仅仅定义。定义操作才允许设置自增和使用默认值</param>
         /// <returns></returns>
-        public virtual String FieldClause(XField field, Boolean onlyDefine)
+        public virtual String FieldClause(IDataColumn field, Boolean onlyDefine)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -668,7 +668,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field"></param>
         /// <param name="onlyDefine">仅仅定义</param>
         /// <returns></returns>
-        protected virtual String GetFieldConstraints(XField field, Boolean onlyDefine)
+        protected virtual String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             if (field.PrimaryKey)
             {
@@ -691,7 +691,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field"></param>
         /// <param name="onlyDefine">仅仅定义</param>
         /// <returns></returns>
-        protected virtual String GetFieldDefault(XField field, Boolean onlyDefine)
+        protected virtual String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
         {
             if (String.IsNullOrEmpty(field.Default)) return null;
 
@@ -726,10 +726,10 @@ namespace XCode.DataAccessLayer
             throw new NotSupportedException("该功能未实现！");
         }
 
-        public virtual String CreateTableSQL(XTable table)
+        public virtual String CreateTableSQL(IDataTable table)
         {
-            List<XField> Fields = new List<XField>(table.Fields);
-            Fields.Sort(delegate(XField item1, XField item2) { return item1.ID.CompareTo(item2.ID); });
+            List<IDataColumn> Fields = new List<IDataColumn>(table.Columns);
+            Fields.Sort(delegate(IDataColumn item1, IDataColumn item2) { return item1.ID.CompareTo(item2.ID); });
 
             StringBuilder sb = new StringBuilder();
 
@@ -747,62 +747,62 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public virtual String DropTableSQL(XTable table)
+        public virtual String DropTableSQL(IDataTable table)
         {
             return String.Format("Drop Table {0}", FormatKeyWord(table.Name));
         }
 
-        public virtual String TableExistSQL(XTable table)
+        public virtual String TableExistSQL(IDataTable table)
         {
             throw new NotSupportedException("该功能未实现！");
         }
 
-        public virtual String AddTableDescriptionSQL(XTable table)
+        public virtual String AddTableDescriptionSQL(IDataTable table)
         {
             return null;
         }
 
-        public virtual String DropTableDescriptionSQL(XTable table)
+        public virtual String DropTableDescriptionSQL(IDataTable table)
         {
             return null;
         }
 
-        public virtual String AddColumnSQL(XField field)
+        public virtual String AddColumnSQL(IDataColumn field)
         {
             return String.Format("Alter Table {0} Add {1}", FormatKeyWord(field.Table.Name), FieldClause(field, true));
         }
 
-        public virtual String AlterColumnSQL(XField field, XField oldfield)
+        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
             return String.Format("Alter Table {0} Alter Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
         }
 
-        public virtual String DropColumnSQL(XField field)
+        public virtual String DropColumnSQL(IDataColumn field)
         {
             return String.Format("Alter Table {0} Drop Column {1}", FormatKeyWord(field.Table.Name), field.Name);
         }
 
-        public virtual String AddColumnDescriptionSQL(XField field)
+        public virtual String AddColumnDescriptionSQL(IDataColumn field)
         {
             return null;
         }
 
-        public virtual String DropColumnDescriptionSQL(XField field)
+        public virtual String DropColumnDescriptionSQL(IDataColumn field)
         {
             return null;
         }
 
-        public virtual String AddDefaultSQL(XField field)
+        public virtual String AddDefaultSQL(IDataColumn field)
         {
             return null;
         }
 
-        public virtual String DropDefaultSQL(XField field)
+        public virtual String DropDefaultSQL(IDataColumn field)
         {
             return null;
         }
 
-        public virtual String CreateIndexSQL(XField[] fields, Boolean unique, Boolean?[] isAscs)
+        public virtual String CreateIndexSQL(IDataColumn[] fields, Boolean unique, Boolean?[] isAscs)
         {
             String table = fields[0].Table.Name;
 
@@ -834,7 +834,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public virtual String DropIndexSQL(XField[] fields)
+        public virtual String DropIndexSQL(IDataColumn[] fields)
         {
             String table = fields[0].Table.Name;
 

@@ -17,7 +17,7 @@ namespace XCode.DataAccessLayer
     /// </summary>
     [DebuggerDisplay("ID={ID} Name={Name} Description={Description}")]
     [Serializable]
-    public class XTable : ICloneable
+    public class XTable : IDataTable, ICloneable
     {
         #region 属性
         #region 基本属性
@@ -82,29 +82,47 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        private List<XField> _Fields;
+        private IDataColumn[] _Columns;
         /// <summary>
         /// 字段集合。
         /// </summary>
         [XmlArray]
         [Description("字段集合")]
-        public List<XField> Fields { get { return _Fields ?? (_Fields = new List<XField>()); } set { _Fields = value; } }
+        public IDataColumn[] Columns { get { return _Columns; } set { _Columns = value; } }
 
-        private List<Triplet<String, String, String>> _Foreigns;
+        private List<XField> _Fields;
+        /// <summary>
+        /// 字段集合。
+        /// </summary>
+        [XmlIgnore]
+        [Obsolete("建议使用Columns")]
+        public List<XField> Fields
+        {
+            get
+            {
+                return _Fields;
+            }
+            set
+            {
+                _Fields = value;
+            }
+        }
+
+        private IDataForeignKey[] _ForeignKeys;
         /// <summary>
         /// 外键集合。
         /// </summary>
         [XmlArray]
         [Description("外键集合")]
-        public List<Triplet<String, String, String>> Foreigns { get { return _Foreigns ?? (_Foreigns = new List<Triplet<String, String, String>>()); } set { _Foreigns = value; } }
+        public IDataForeignKey[] ForeignKeys { get { return _ForeignKeys; } set { _ForeignKeys = value; } }
 
-        private List<XIndex> _Indexes;
+        private IDataIndex[] _Indexes;
         /// <summary>
         /// 字段集合。
         /// </summary>
         [XmlArray]
         [Description("索引集合")]
-        public List<XIndex> Indexes { get { return _Indexes ?? (_Indexes = new List<XIndex>()); } set { _Indexes = value; } }
+        public IDataIndex[] Indexes { get { return _Indexes; } set { _Indexes = value; } }
         #endregion
 
         #region 构造
@@ -125,9 +143,19 @@ namespace XCode.DataAccessLayer
         /// 创建字段
         /// </summary>
         /// <returns></returns>
-        public virtual XField CreateField()
+        public virtual IDataColumn CreateColumn()
         {
             return XField.Create(this);
+        }
+
+        public virtual IDataForeignKey CreateForeignKey()
+        {
+            return null;
+        }
+
+        public virtual IDataIndex CreateIndex()
+        {
+            return null;
         }
 
         /// <summary>
@@ -258,13 +286,14 @@ namespace XCode.DataAccessLayer
         public XTable Clone()
         {
             XTable table = base.MemberwiseClone() as XTable;
-            if (table != null && Fields != null)
+            if (table != null && Columns != null)
             {
-                table.Fields = new List<XField>();
-                foreach (XField item in Fields)
+                List<IDataColumn> list = new List<IDataColumn>();
+                foreach (XField item in Columns)
                 {
-                    table.Fields.Add(item.Clone(table));
+                    list.Add(item.Clone(table));
                 }
+                table.Columns = list.ToArray();
             }
             return table;
         }

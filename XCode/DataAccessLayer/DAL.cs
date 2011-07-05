@@ -694,18 +694,18 @@ namespace XCode.DataAccessLayer
             // 修正字段中的Table引用
             foreach (XTable item in list)
             {
-                if (item.Fields == null || item.Fields.Count < 1) continue;
+                if (item.Columns == null || item.Columns.Length < 1) continue;
 
                 //foreach (XField field in item.Fields)
                 //{
                 //    if (field.Table == null) field.Table = item;
                 //}
-                List<XField> fs = new List<XField>();
-                foreach (XField field in item.Fields)
+                List<IDataColumn> fs = new List<IDataColumn>();
+                foreach (XField field in item.Columns)
                 {
                     fs.Add(field.Clone(item));
                 }
-                item.Fields = fs;
+                item.Columns = fs.ToArray();
             }
 
             return list;

@@ -130,7 +130,7 @@ namespace XCode
             XTable table = new XTable();
             table.Name = "xtest";
             table.DbType = DatabaseType.Access;
-            table.Fields = new List<XField>();
+            table.Columns = new List<XField>();
             table.Description = "测试表";
 
             //检查数据表
@@ -143,69 +143,69 @@ namespace XCode
             //创建字段
             #region 创建字段
             XField field = table.CreateField();
-            field.ID = table.Fields.Count + 1;
+            field.ID = table.Columns.Count + 1;
             field.Name = "ID";
             field.DataType = typeof(Int32);
             field.Identity = true;
             field.PrimaryKey = true;
             field.Description = "编号";
-            table.Fields.Add(field);
+            table.Columns.Add(field);
 
             field = table.CreateField();
-            field.ID = table.Fields.Count + 1;
+            field.ID = table.Columns.Count + 1;
             field.Name = "Name";
             field.DataType = typeof(String);
             field.Length = 55;
             field.Nullable = false;
             field.Description = "名称";
-            table.Fields.Add(field);
+            table.Columns.Add(field);
 
             field = table.CreateField();
-            field.ID = table.Fields.Count + 1;
+            field.ID = table.Columns.Count + 1;
             field.Name = "ParentID";
             field.DataType = typeof(Int32);
             field.Nullable = false;
             field.Default = "99";
             field.Description = "父编号";
-            table.Fields.Add(field);
+            table.Columns.Add(field);
 
             field = table.CreateField();
-            field.ID = table.Fields.Count + 1;
+            field.ID = table.Columns.Count + 1;
             field.Name = "Value";
             field.DataType = typeof(Double);
             field.Scale = 10;
             field.Nullable = false;
             field.Default = "1.8";
             field.Description = "值";
-            table.Fields.Add(field);
+            table.Columns.Add(field);
 
             field = table.CreateField();
-            field.ID = table.Fields.Count + 1;
+            field.ID = table.Columns.Count + 1;
             field.Name = "OccurTime";
             field.DataType = typeof(DateTime);
             field.Nullable = false;
             field.Default = "now()";
             field.Description = "时间";
-            table.Fields.Add(field);
+            table.Columns.Add(field);
 
             field = table.CreateField();
-            field.ID = table.Fields.Count + 1;
+            field.ID = table.Columns.Count + 1;
             field.Name = "IsEnable";
             field.DataType = typeof(Boolean);
             field.Nullable = false;
             field.Default = "1";
             field.Description = "有效";
-            table.Fields.Add(field);
+            table.Columns.Add(field);
 
             field = table.CreateField();
-            field.ID = table.Fields.Count + 1;
+            field.ID = table.Columns.Count + 1;
             field.Name = "Description";
             field.DataType = typeof(String);
             field.Length = 5000;
             field.Nullable = true;
             field.Default = "无";
             field.Description = "描述";
-            table.Fields.Add(field);
+            table.Columns.Add(field);
 
             XTrace.WriteLine("创建数据表：{0}", table.Name);
             MetaData.SetSchema(DDLSchema.CreateTable, table);
@@ -327,7 +327,7 @@ namespace XCode
 
             //新增字段
             field = table.CreateField();
-            field.ID = table.Fields.Count + 1;
+            field.ID = table.Columns.Count + 1;
             field.Name = "Extend";
             field.DataType = typeof(String);
             field.Length = 99;

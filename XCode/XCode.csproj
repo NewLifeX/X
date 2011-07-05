@@ -96,10 +96,14 @@
     <Compile Include="DataAccessLayer\Common\DbBase.cs" />
     <Compile Include="DataAccessLayer\Common\DbFactory.cs" />
     <Compile Include="DataAccessLayer\Common\IDatabase.cs" />
+    <Compile Include="DataAccessLayer\Model\IDataColumn.cs" />
+    <Compile Include="DataAccessLayer\Model\IDataForeignKey.cs" />
+    <Compile Include="DataAccessLayer\Model\IDataIndex.cs" />
+    <Compile Include="DataAccessLayer\Model\IDataTable.cs" />
     <Compile Include="DataAccessLayer\MetaData\DbMetaData.cs" />
     <Compile Include="DataAccessLayer\MetaData\IMetaData.cs" />
     <Compile Include="DataAccessLayer\XDbConnectionStringBuilder.cs" />
-    <Compile Include="DataAccessLayer\XIndex.cs" />
+    <Compile Include="DataAccessLayer\Model\XIndex.cs" />
     <Compile Include="Entity\EntityListView.cs" />
     <Compile Include="Entity\EntityBase_Interface.cs" />
     <Compile Include="Exceptions\XDbException.cs" />
@@ -119,8 +123,8 @@
     <Compile Include="DataAccessLayer\Database\SQLite.cs" />
     <Compile Include="DataAccessLayer\Database\SqlServer.cs" />
     <Compile Include="DataAccessLayer\MetaData\DDLSchema.cs" />
-    <Compile Include="DataAccessLayer\XField.cs" />
-    <Compile Include="DataAccessLayer\XTable.cs" />
+    <Compile Include="DataAccessLayer\Model\XField.cs" />
+    <Compile Include="DataAccessLayer\Model\XTable.cs" />
     <Compile Include="Cache\CacheItem.cs" />
     <Compile Include="Cache\XCache.cs" />
     <Compile Include="Cache\SqlCache.cs" />
@@ -146,7 +150,7 @@
     <Compile Include="Tree\EntityTree.cs" />
     <Compile Include="Tree\IEntityTree.cs" />
     <Compile Include="Tree\IEntityTreeExtend.cs" />
-    <Compile Include="XCodeTest.cs" />
+    <None Include="XCodeTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="App.config">
@@ -213,6 +217,7 @@
     <EmbeddedResource Include="UpdateInfo.txt" />
     <Content Include="说明.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

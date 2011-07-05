@@ -131,7 +131,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public override string FormatValue(XField field, object value)
+        public override string FormatValue(IDataColumn field, object value)
         {
             //if (field.DataType == typeof(String))
             //{
@@ -197,7 +197,7 @@ namespace XCode.DataAccessLayer
     /// </summary>
     class MySqlMetaData : RemoteDbMetaData
     {
-        protected override void FixTable(XTable table, DataRow dr)
+        protected override void FixTable(IDataTable table, DataRow dr)
         {
             // 注释
             String comment = null;
@@ -206,7 +206,7 @@ namespace XCode.DataAccessLayer
             base.FixTable(table, dr);
         }
 
-        protected override void FixField(XField field, DataRow dr)
+        protected override void FixField(IDataColumn field, DataRow dr)
         {
             // 修正原始类型
             String rawType = null;
@@ -246,7 +246,7 @@ namespace XCode.DataAccessLayer
             base.FixField(field, dr);
         }
 
-        protected override DataRow[] FindDataType(XField field, string typeName, bool? isLong)
+        protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
         {
             DataRow[] drs = base.FindDataType(field, typeName, isLong);
             if (drs != null && drs.Length > 1)
@@ -299,7 +299,7 @@ namespace XCode.DataAccessLayer
             return drs;
         }
 
-        //protected override void SetFieldType(XField field, string typeName)
+        //protected override void SetFieldType(IDataColumn field, string typeName)
         //{
         //    if (typeName == "enum")
         //    {
@@ -322,14 +322,14 @@ namespace XCode.DataAccessLayer
         //    base.SetFieldType(field, typeName);
         //}
 
-        protected override string GetFieldType(XField field)
+        protected override string GetFieldType(IDataColumn field)
         {
             if (field.DataType == typeof(Boolean)) return "enum('N','Y')";
 
             return base.GetFieldType(field);
         }
 
-        public override string FieldClause(XField field, bool onlyDefine)
+        public override string FieldClause(IDataColumn field, bool onlyDefine)
         {
             String sql = base.FieldClause(field, onlyDefine);
             // 加上注释
@@ -337,7 +337,7 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        protected override string GetFieldConstraints(XField field, Boolean onlyDefine)
+        protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             String str = null;
             if (!field.Nullable) str = " NOT NULL";
@@ -347,7 +347,7 @@ namespace XCode.DataAccessLayer
             return str;
         }
 
-        protected override string GetFieldDefault(XField field, bool onlyDefine)
+        protected override string GetFieldDefault(IDataColumn field, bool onlyDefine)
         {
             if (String.IsNullOrEmpty(field.Default)) return null;
 
@@ -368,7 +368,7 @@ namespace XCode.DataAccessLayer
             return base.GetFieldDefault(field, onlyDefine);
         }
 
-        //protected override void SetFieldType(XField field, string typeName)
+        //protected override void SetFieldType(IDataColumn field, string typeName)
         //{
         //    DataTable dt = DataTypes;
         //    if (dt == null) return;
@@ -408,10 +408,10 @@ namespace XCode.DataAccessLayer
             return String.Format("Drop Database If Exists {0}", FormatKeyWord(dbname));
         }
 
-        public override String CreateTableSQL(XTable table)
+        public override String CreateTableSQL(IDataTable table)
         {
-            List<XField> Fields = new List<XField>(table.Fields);
-            Fields.Sort(delegate(XField item1, XField item2) { return item1.ID.CompareTo(item2.ID); });
+            List<IDataColumn> Fields = new List<IDataColumn>(table.Columns);
+            Fields.Sort(delegate(IDataColumn item1, IDataColumn item2) { return item1.ID.CompareTo(item2.ID); });
 
             StringBuilder sb = new StringBuilder();
             String key = null;
@@ -437,19 +437,19 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public override string AddTableDescriptionSQL(XTable table)
+        public override string AddTableDescriptionSQL(IDataTable table)
         {
             if (String.IsNullOrEmpty(table.Description)) return null;
 
             return String.Format("Alter Table {0} Comment '{1}'", FormatKeyWord(table.Name), table.Description);
         }
 
-        public override string AlterColumnSQL(XField field, XField oldfield)
+        public override string AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
             return String.Format("Alter Table {0} Modify Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
         }
 
-        public override string AddColumnDescriptionSQL(XField field)
+        public override string AddColumnDescriptionSQL(IDataColumn field)
         {
             // 返回String.Empty表示已经在别的SQL中处理
             return String.Empty;

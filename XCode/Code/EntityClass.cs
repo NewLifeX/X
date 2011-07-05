@@ -99,7 +99,7 @@ namespace XCode.Code
         public void AddProperties()
         {
             Int32 n = Class.Members.Count;
-            foreach (XField item in Table.Fields)
+            foreach (XField item in Table.Columns)
             {
                 AddField(item);
                 AddProperty(item);
@@ -191,7 +191,7 @@ namespace XCode.Code
             p.HasGet = true;
             p.HasSet = true;
 
-            foreach (XField item in Table.Fields)
+            foreach (XField item in Table.Columns)
             {
                 String name = FieldNames[item.Name];
 
@@ -257,7 +257,7 @@ namespace XCode.Code
             cs.Attributes = MemberAttributes.Public;
             cs.Comments.Add(AddSummary("取得字段名的快捷方式"));
 
-            foreach (XField item in Table.Fields)
+            foreach (XField item in Table.Columns)
             {
                 CodeMemberField f = new CodeMemberField();
                 f.Name = FieldNames[item.Name];

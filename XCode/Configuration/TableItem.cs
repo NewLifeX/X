@@ -218,7 +218,7 @@ namespace XCode.Configuration
             table.DbType = bt.DbType;
             table.Description = bt.Description;
 
-            table.Fields = new List<XField>();
+            List<IDataColumn> list = new List<IDataColumn>();
 
             List<FieldItem> list1 = new List<FieldItem>();
             List<FieldItem> list2 = new List<FieldItem>();
@@ -236,15 +236,16 @@ namespace XCode.Configuration
                 {
                     list2.Add(fi);
 
-                    XField f = table.CreateField();
+                    IDataColumn f = table.CreateColumn();
                     fi.Fill(f);
 
-                    table.Fields.Add(f);
+                    list.Add(f);
                 }
 
                 if (fi.PrimaryKey) list3.Add(fi);
                 if (fi.IsIdentity) _Identity = fi;
             }
+            table.Columns = list.ToArray();
             if (list1 != null && list1.Count > 0) _AllFields = list1.ToArray();
             if (list2 != null && list2.Count > 0) _Fields = list2.ToArray();
             if (list3 != null && list3.Count > 0) _PrimaryKeys = list3.ToArray();
@@ -260,7 +261,7 @@ namespace XCode.Configuration
             _Table = BindTableAttribute.GetCustomAttribute(EntityType);
             if (_Table == null)
                 throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
-            
+
             _Description = DescriptionAttribute.GetCustomAttribute(EntityType, typeof(DescriptionAttribute)) as DescriptionAttribute;
 
             InitFields();

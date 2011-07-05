@@ -346,7 +346,7 @@ namespace XCode.DataAccessLayer
         /// <summary>系统数据库名</summary>
         public override String SystemDatabaseName { get { return "master"; } }
 
-        public override string FormatValue(XField field, object value)
+        public override string FormatValue(IDataColumn field, object value)
         {
             TypeCode code = Type.GetTypeCode(field.DataType);
             Boolean isNullable = field.Nullable;
@@ -455,7 +455,7 @@ namespace XCode.DataAccessLayer
         /// 取得所有表构架
         /// </summary>
         /// <returns></returns>
-        public override List<XTable> GetTables()
+        public override List<IDataTable> GetTables()
         {
             try
             {
@@ -472,11 +472,11 @@ namespace XCode.DataAccessLayer
 
                 // 列出用户表
                 DataRow[] rows = dt.Select(String.Format("{0}='BASE TABLE' Or {0}='VIEW'", "TABLE_TYPE"));
-                List<XTable> list = GetTables(rows);
+                List<IDataTable> list = GetTables(rows);
                 if (list == null || list.Count < 1) return list;
 
                 // 修正备注
-                foreach (XTable item in list)
+                foreach (IDataTable item in list)
                 {
                     DataRow[] drs = DescriptionTable == null ? null : DescriptionTable.Select("n='" + item.Name + "'");
                     item.Description = drs == null || drs.Length < 1 ? "" : drs[0][1].ToString();
@@ -492,7 +492,7 @@ namespace XCode.DataAccessLayer
 
         private DataTable AllFields = null;
 
-        protected override void FixField(XField field, DataRow dr)
+        protected override void FixField(IDataColumn field, DataRow dr)
         {
             base.FixField(field, dr);
 
@@ -550,7 +550,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        //protected override string GetFieldType(XField field)
+        //protected override string GetFieldType(IDataColumn field)
         //{
         //    String typeName = base.GetFieldType(field);
 
@@ -559,7 +559,7 @@ namespace XCode.DataAccessLayer
         //    return typeName;
         //}
 
-        protected override string GetFieldConstraints(XField field, Boolean onlyDefine)
+        protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             // 非定义时（修改字段），主键字段没有约束
             if (!onlyDefine && field.PrimaryKey) return null;
@@ -572,14 +572,14 @@ namespace XCode.DataAccessLayer
             return str;
         }
 
-        protected override string GetFormatParam(XField field, DataRow dr)
+        protected override string GetFormatParam(IDataColumn field, DataRow dr)
         {
             String str = base.GetFormatParam(field, dr);
             if (str == "(0)") return null;
             return str;
         }
 
-        //protected override int GetFormatParamItem(XField field, DataRow dr, string item)
+        //protected override int GetFormatParamItem(IDataColumn field, DataRow dr, string item)
         //{
         //    Int32 n = base.GetFormatParamItem(field, dr, item);
         //    if (n <= 0)
@@ -714,7 +714,7 @@ namespace XCode.DataAccessLayer
                     session.DatabaseName = dbname;
                     return obj;
                 case DDLSchema.TableExist:
-                    return TableExist((XTable)values[0]);
+                    return TableExist((IDataTable)values[0]);
                 default:
                     break;
             }
@@ -766,7 +766,7 @@ namespace XCode.DataAccessLayer
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
-        public override string TableExistSQL(XTable table)
+        public override string TableExistSQL(IDataTable table)
         {
             if (IsSQL2005)
                 return String.Format("select * from sysobjects where xtype='U' and name='{0}'", table.Name);
@@ -779,28 +779,28 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="table"></param>
         /// <returns></returns>
-        public Boolean TableExist(XTable table)
+        public Boolean TableExist(IDataTable table)
         {
             DataTable dt = GetSchema("Tables", new String[] { null, null, table.Name, null });
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
-        public override string AddTableDescriptionSQL(XTable table)
+        public override string AddTableDescriptionSQL(IDataTable table)
         {
             return String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.Name, table.Description, level0type);
         }
 
-        public override string DropTableDescriptionSQL(XTable table)
+        public override string DropTableDescriptionSQL(IDataTable table)
         {
             return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{1}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.Name, level0type);
         }
 
-        public override string AddColumnSQL(XField field)
+        public override string AddColumnSQL(IDataColumn field)
         {
             return String.Format("Alter Table {0} Add {1}", FormatKeyWord(field.Table.Name), FieldClause(field, true));
         }
 
-        public override string AlterColumnSQL(XField field, XField oldfield)
+        public override string AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
             // 创建为自增，先删后加
             if (field.Identity && !oldfield.Identity)
@@ -833,7 +833,7 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        public override string DropColumnSQL(XField field)
+        public override string DropColumnSQL(IDataColumn field)
         {
             //删除默认值
             String sql = DropDefaultSQL(field);
@@ -847,7 +847,7 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        public override string AddColumnDescriptionSQL(XField field)
+        public override string AddColumnDescriptionSQL(IDataColumn field)
         {
             //String sql = DropColumnDescriptionSQL(tablename, columnname);
             //if (!String.IsNullOrEmpty(sql)) sql += ";" + Environment.NewLine;
@@ -855,7 +855,7 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        public override string DropColumnDescriptionSQL(XField field)
+        public override string DropColumnDescriptionSQL(IDataColumn field)
         {
             //String sql = String.Empty;
             //if (!IsSQL2005)
@@ -868,7 +868,7 @@ namespace XCode.DataAccessLayer
             return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{1}'", field.Table.Name, field.Name, level0type);
         }
 
-        public override string AddDefaultSQL(XField field)
+        public override string AddDefaultSQL(IDataColumn field)
         {
             String sql = DropDefaultSQL(field);
             if (!String.IsNullOrEmpty(sql)) sql += ";" + Environment.NewLine;
@@ -887,7 +887,7 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        public override string DropDefaultSQL(XField field)
+        public override string DropDefaultSQL(IDataColumn field)
         {
             if (String.IsNullOrEmpty(field.Default)) return String.Empty;
 
@@ -910,7 +910,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        String DeletePrimaryKeySQL(XField field)
+        String DeletePrimaryKeySQL(IDataColumn field)
         {
             if (!field.PrimaryKey) return String.Empty;
 

@@ -161,7 +161,7 @@ namespace XCode.DataAccessLayer
             return String.Format("To_Date('{0}', 'YYYY-MM-DD HH24:MI:SS')", dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
         }
 
-        public override string FormatValue(XField field, object value)
+        public override string FormatValue(IDataColumn field, object value)
         {
             TypeCode code = Type.GetTypeCode(field.DataType);
             Boolean isNullable = field.Nullable;
@@ -186,7 +186,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public override string FormatIdentity(XField field, Object value)
+        public override string FormatIdentity(IDataColumn field, Object value)
         {
             return String.Format("SEQ_{0}.nextval", field.Table.Name);
         }
@@ -290,17 +290,17 @@ namespace XCode.DataAccessLayer
         ///// </summary>
         ///// <param name="table"></param>
         ///// <returns></returns>
-        //protected override List<XField> GetFields(XTable table)
+        //protected override List<IDataColumn> GetFields(IDataTable table)
         //{
         //    //DataColumnCollection columns = GetColumns(xt.Name);
         //    DataTable dt = GetSchema("Columns", new String[] { table.Owner, table.Name });
 
-        //    List<XField> list = new List<XField>();
+        //    List<IDataColumn> list = new List<IDataColumn>();
         //    DataRow[] drs = dt.Select("", "ID");
         //    List<String> pks = GetPrimaryKeys(table);
         //    foreach (DataRow dr in drs)
         //    {
-        //        XField field = table.CreateField();
+        //        IDataColumn field = table.CreateField();
         //        field.ID = Int32.Parse(dr["ID"].ToString());
         //        field.Name = dr["COLUMN_NAME"].ToString();
         //        field.RawType = dr["DATA_TYPE"].ToString();
@@ -408,7 +408,7 @@ namespace XCode.DataAccessLayer
         /// 取得所有表构架
         /// </summary>
         /// <returns></returns>
-        public override List<XTable> GetTables()
+        public override List<IDataTable> GetTables()
         {
             try
             {
@@ -429,7 +429,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected override void FixTable(XTable table, DataRow dr)
+        protected override void FixTable(IDataTable table, DataRow dr)
         {
             base.FixTable(table, dr);
 
@@ -439,11 +439,11 @@ namespace XCode.DataAccessLayer
             String comment = GetTableComment(table.Name);
             if (!String.IsNullOrEmpty(comment)) table.Description = comment;
 
-            if (table == null || table.Fields == null || table.Fields.Count < 1) return;
+            if (table == null || table.Columns == null || table.Columns.Length < 1) return;
 
             // 自增
             Boolean exists = false;
-            foreach (XField field in table.Fields)
+            foreach (IDataColumn field in table.Columns)
             {
                 // 不管是否主键
                 if (field.DataType != typeof(Int16) &&
@@ -464,7 +464,7 @@ namespace XCode.DataAccessLayer
                 String name = String.Format("SEQ_{0}", table.Name);
                 if (CheckSeqExists(name))
                 {
-                    foreach (XField field in table.Fields)
+                    foreach (IDataColumn field in table.Columns)
                     {
                         if (!field.PrimaryKey ||
                             (field.DataType != typeof(Int16) &&
@@ -480,7 +480,7 @@ namespace XCode.DataAccessLayer
             if (!exists)
             {
                 // 处理自增，整型、主键、名为ID认为是自增
-                foreach (XField field in table.Fields)
+                foreach (IDataColumn field in table.Columns)
                 {
                     TypeCode code = Type.GetTypeCode(field.DataType);
                     if (code == TypeCode.Int16 || code == TypeCode.UInt16 ||
@@ -550,7 +550,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="table"></param>
         /// <returns></returns>
-        protected override List<XField> GetFields(XTable table)
+        protected override List<IDataColumn> GetFields(IDataTable table)
         {
             DataTable dt = GetSchema("Columns", new String[] { Owner, table.Name, null });
 
@@ -560,14 +560,14 @@ namespace XCode.DataAccessLayer
             else
                 drs = dt.Select("");
 
-            List<XField> list = GetFields(table, drs);
+            List<IDataColumn> list = GetFields(table, drs);
 
             // 字段注释
             if (list != null && list.Count > 0)
             {
                 //String sql = String.Format("Select COLUMN_NAME, COMMENTS From USER_COL_COMMENTS Where TABLE_NAME='{0}'", table.Name);
                 //dt = Database.CreateSession().Query(sql).Tables[0];
-                foreach (XField field in list)
+                foreach (IDataColumn field in list)
                 {
                     //drs = dt.Select(String.Format("COLUMN_NAME='{0}'", field.Name));
                     //if (drs != null && drs.Length > 0) field.Description = GetDataRowValue<String>(drs[0], "COMMENTS");
@@ -598,7 +598,7 @@ namespace XCode.DataAccessLayer
             return null;
         }
 
-        protected override void FixField(XField field, DataRow drColumn, DataRow drDataType)
+        protected override void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
         {
             base.FixField(field, drColumn, drDataType);
 
@@ -631,7 +631,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected override string GetFieldType(XField field)
+        protected override string GetFieldType(IDataColumn field)
         {
             Int32 precision = field.Precision;
             Int32 scale = field.Scale;
@@ -672,7 +672,7 @@ namespace XCode.DataAccessLayer
             return base.GetFieldType(field);
         }
 
-        protected override DataRow[] FindDataType(XField field, string typeName, bool? isLong)
+        protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
         {
             DataRow[] drs = base.FindDataType(field, typeName, isLong);
             if (drs != null && drs.Length > 1)
@@ -728,7 +728,7 @@ namespace XCode.DataAccessLayer
         }
 
         #region 架构定义
-        protected override string GetFieldConstraints(XField field, bool onlyDefine)
+        protected override string GetFieldConstraints(IDataColumn field, bool onlyDefine)
         {
             // 有默认值时直接返回，待会在默认值里面加约束
             // 因为Oracle的声明是先有默认值再有约束的
@@ -737,14 +737,14 @@ namespace XCode.DataAccessLayer
             return base.GetFieldConstraints(field, onlyDefine);
         }
 
-        protected override string GetFieldDefault(XField field, bool onlyDefine)
+        protected override string GetFieldDefault(IDataColumn field, bool onlyDefine)
         {
             if (String.IsNullOrEmpty(field.Default)) return null;
 
             return base.GetFieldDefault(field, onlyDefine) + base.GetFieldConstraints(field, onlyDefine);
         }
 
-        public override string CreateTableSQL(XTable table)
+        public override string CreateTableSQL(IDataTable table)
         {
             String sql = base.CreateTableSQL(table);
             if (String.IsNullOrEmpty(sql)) return sql;
@@ -753,7 +753,7 @@ namespace XCode.DataAccessLayer
             return sql + ";" + Environment.NewLine + sqlSeq;
         }
 
-        public override string DropTableSQL(XTable table)
+        public override string DropTableSQL(IDataTable table)
         {
             String sql = base.DropTableSQL(table);
             if (String.IsNullOrEmpty(sql)) return sql;
@@ -762,33 +762,33 @@ namespace XCode.DataAccessLayer
             return sql + ";" + Environment.NewLine + sqlSeq;
         }
 
-        public override String AlterColumnSQL(XField field, XField oldfield)
+        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
             return String.Format("Alter Table {0} Modify Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
         }
 
-        public override string AddTableDescriptionSQL(XTable table)
+        public override string AddTableDescriptionSQL(IDataTable table)
         {
             //return String.Format("Update USER_TAB_COMMENTS Set COMMENTS='{0}' Where TABLE_NAME='{1}'", table.Description, table.Name);
 
             return String.Format("Comment On Table {0} is '{1}'", FormatKeyWord(table.Name), table.Description);
         }
 
-        public override string DropTableDescriptionSQL(XTable table)
+        public override string DropTableDescriptionSQL(IDataTable table)
         {
             //return String.Format("Update USER_TAB_COMMENTS Set COMMENTS='' Where TABLE_NAME='{0}'", table.Name);
 
             return String.Format("Comment On Table {0} is ''", FormatKeyWord(table.Name));
         }
 
-        public override string AddColumnDescriptionSQL(XField field)
+        public override string AddColumnDescriptionSQL(IDataColumn field)
         {
             //return String.Format("Update USER_COL_COMMENTS Set COMMENTS='{0}' Where TABLE_NAME='{1}' AND COLUMN_NAME='{2}'", field.Description, field.Table.Name, field.Name);
 
             return String.Format("Comment On Column {0}.{1} is '{2}'", FormatKeyWord(field.Table.Name), FormatKeyWord(field.Name), field.Description);
         }
 
-        public override string DropColumnDescriptionSQL(XField field)
+        public override string DropColumnDescriptionSQL(IDataColumn field)
         {
             //return String.Format("Update USER_COL_COMMENTS Set COMMENTS='' Where TABLE_NAME='{0}' AND COLUMN_NAME='{1}'", field.Table.Name, field.Name);
 

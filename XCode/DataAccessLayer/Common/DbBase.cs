@@ -811,7 +811,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public virtual String FormatValue(XField field, Object value)
+        public virtual String FormatValue(IDataColumn field, Object value)
         {
             Boolean isNullable = true;
             Type type = null;
@@ -873,7 +873,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public virtual String FormatIdentity(XField field, Object value) { return null; }
+        public virtual String FormatIdentity(IDataColumn field, Object value) { return null; }
 
         /// <summary>
         /// 是否Unicode编码

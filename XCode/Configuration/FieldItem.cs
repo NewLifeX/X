@@ -96,9 +96,9 @@ namespace XCode.Configuration
             }
         }
 
-        private XField _Field;
+        private IDataColumn _Field;
         /// <summary>字段</summary>
-        public XField Field
+        public IDataColumn Field
         {
             get { return _Field; }
             //set { _Field = value; }
@@ -138,7 +138,7 @@ namespace XCode.Configuration
         /// 填充到XField中去
         /// </summary>
         /// <param name="field"></param>
-        public void Fill(XField field)
+        public void Fill(IDataColumn field)
         {
             _Field = field;
 

@@ -66,20 +66,20 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private List<XTable> _EntityTables;
+        private List<IDataTable> _EntityTables;
         /// <summary>实体表集合</summary>
-        private List<XTable> EntityTables
+        private List<IDataTable> EntityTables
         {
             get
             {
                 if (_EntityTables == null)
                 {
-                    List<XTable> tables = new List<XTable>();
+                    List<IDataTable> tables = new List<IDataTable>();
                     // 记录每个表名对应的实体类
                     Dictionary<String, Type> dic = new Dictionary<String, Type>();
                     foreach (Type item in Entities)
                     {
-                        XTable table = Create(item, null);
+                        IDataTable table = Create(item, null);
 
                         // 判断表名是否已存在
                         Type type = null;
@@ -137,9 +137,9 @@ namespace XCode.DataAccessLayer
             return false;
         }
 
-        private Dictionary<String, XTable> _DBTables;
+        private Dictionary<String, IDataTable> _DBTables;
         /// <summary>数据库表集合</summary>
-        private Dictionary<String, XTable> DBTables
+        private Dictionary<String, IDataTable> DBTables
         {
             get
             {
@@ -148,12 +148,12 @@ namespace XCode.DataAccessLayer
                 {
                     if (_DBTables != null) return _DBTables;
 
-                    List<XTable> list = MetaData.GetTables();
+                    List<IDataTable> list = MetaData.GetTables();
 
-                    _DBTables = new Dictionary<String, XTable>();
+                    _DBTables = new Dictionary<String, IDataTable>();
                     if (list != null && list.Count > 0)
                     {
-                        foreach (XTable item in list)
+                        foreach (IDataTable item in list)
                         {
                             _DBTables.Add(item.Name, item);
                         }
@@ -295,7 +295,7 @@ namespace XCode.DataAccessLayer
 
             lock (EntityTables)
             {
-                foreach (XTable item in EntityTables)
+                foreach (IDataTable item in EntityTables)
                 {
                     if (IsExclude(item.Name)) continue;
 
@@ -313,16 +313,16 @@ namespace XCode.DataAccessLayer
         {
             lock (EntityTables)
             {
-                List<XTable> list = EntityTables;
+                List<IDataTable> list = EntityTables;
                 if (list == null || list.Count < 1) return;
 
-                foreach (XTable item in list)
+                foreach (IDataTable item in list)
                 {
                     if (String.Equals(tableName, item.Name, StringComparison.OrdinalIgnoreCase)) return;
                 }
 
                 //检查新表名对应的数据表
-                XTable table = DatabaseSchema.Create(type, tableName);
+                IDataTable table = DatabaseSchema.Create(type, tableName);
 
                 EntityTables.Add(table);
 
@@ -334,9 +334,9 @@ namespace XCode.DataAccessLayer
         /// 检查实体表
         /// </summary>
         /// <param name="table"></param>
-        private void CheckTable(XTable table)
+        private void CheckTable(IDataTable table)
         {
-            Dictionary<String, XTable> dic = DBTables;
+            Dictionary<String, IDataTable> dic = DBTables;
 
             try
             {
@@ -358,7 +358,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private void CheckTable(XTable entitytable, XTable dbtable)
+        private void CheckTable(IDataTable entitytable, IDataTable dbtable)
         {
             Boolean onlySql = !(Enable != null && Enable.Value);
 
@@ -394,23 +394,23 @@ namespace XCode.DataAccessLayer
         /// <param name="dbtable"></param>
         /// <param name="onlySql"></param>
         /// <returns></returns>
-        private String AlterTable(XTable entitytable, XTable dbtable, Boolean onlySql)
+        private String AlterTable(IDataTable entitytable, IDataTable dbtable, Boolean onlySql)
         {
             #region 准备工作
             String sql = String.Empty;
             StringBuilder sb = new StringBuilder();
-            Dictionary<String, XField> entitydic = new Dictionary<String, XField>();
-            if (entitytable.Fields != null && entitytable.Fields.Count > 0)
+            Dictionary<String, IDataColumn> entitydic = new Dictionary<String, IDataColumn>();
+            if (entitytable.Columns != null)
             {
-                foreach (XField item in entitytable.Fields)
+                foreach (IDataColumn item in entitytable.Columns)
                 {
                     entitydic.Add(item.Name.ToLower(), item);
                 }
             }
-            Dictionary<String, XField> dbdic = new Dictionary<String, XField>();
-            if (dbtable.Fields != null && dbtable.Fields.Count > 0)
+            Dictionary<String, IDataColumn> dbdic = new Dictionary<String, IDataColumn>();
+            if (dbtable.Columns != null)
             {
-                foreach (XField item in dbtable.Fields)
+                foreach (IDataColumn item in dbtable.Columns)
                 {
                     dbdic.Add(item.Name.ToLower(), item);
                 }
@@ -418,14 +418,17 @@ namespace XCode.DataAccessLayer
             #endregion
 
             #region 新增列
-            foreach (XField item in entitytable.Fields)
+            foreach (IDataColumn item in entitytable.Columns)
             {
                 if (!dbdic.ContainsKey(item.Name.ToLower()))
                 {
                     AddColumn(sb, item, onlySql);
 
                     // 这里必须给dbtable加加上当前列，否则下面如果刚好有删除列的话，会导致增加列成功，然后删除列重建表的时候没有新加的列
-                    dbtable.Fields.Add(item.Clone(dbtable));
+                    //dbtable.Columns.Add(item.Clone(dbtable));
+                    List<IDataColumn> dcs = new List<IDataColumn>(dbtable.Columns);
+                    dcs.Add(item.Clone(dbtable));
+                    dbtable.Columns = dcs.ToArray();
                 }
             }
             #endregion
@@ -433,13 +436,13 @@ namespace XCode.DataAccessLayer
             #region 删除列
             StringBuilder sbDelete = new StringBuilder();
             Dictionary<String, FieldItem> names = new Dictionary<String, FieldItem>();
-            //foreach (XField item in dbtable.Fields)
+            //foreach (IDataColumn item in dbtable.Fields)
             //{
             //    if (!entitydic.ContainsKey(item.Name.ToLower())) DropColumn(sbDelete, item, onlySql);
             //}
-            for (int i = dbtable.Fields.Count - 1; i >= 0; i--)
+            for (int i = dbtable.Columns.Length - 1; i >= 0; i--)
             {
-                XField item = dbtable.Fields[i];
+                IDataColumn item = dbtable.Columns[i];
                 if (!entitydic.ContainsKey(item.Name.ToLower())) DropColumn(sbDelete, item, onlySql);
             }
             if (sbDelete.Length > 0)
@@ -461,10 +464,10 @@ namespace XCode.DataAccessLayer
             // 开发时的实体数据库
             IDatabase entityDb = DbFactory.Create(entitytable.DbType);
 
-            foreach (XField item in entitytable.Fields)
+            foreach (IDataColumn item in entitytable.Columns)
             {
                 if (!dbdic.ContainsKey(item.Name.ToLower())) continue;
-                XField dbf = dbdic[item.Name.ToLower()];
+                IDataColumn dbf = dbdic[item.Name.ToLower()];
 
                 // 是否已改变
                 Boolean isChanged = false;
@@ -557,14 +560,14 @@ namespace XCode.DataAccessLayer
         /// <param name="type"></param>
         /// <param name="tablename"></param>
         /// <returns></returns>
-        private static XTable Create(Type type, String tablename)
+        private static IDataTable Create(Type type, String tablename)
         {
-            XTable table = TableItem.Create(type).XTable;
+            IDataTable table = TableItem.Create(type).XTable;
             if (table == null) return null;
 
             if (!String.IsNullOrEmpty(tablename)) table.Name = tablename;
 
-            foreach (XField f in table.Fields)
+            foreach (IDataColumn f in table.Columns)
             {
                 if (!String.IsNullOrEmpty(f.Default))
                 {
@@ -629,7 +632,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        void CreateTable(StringBuilder sb, XTable table, Boolean onlySql)
+        void CreateTable(StringBuilder sb, IDataTable table, Boolean onlySql)
         {
             GetSchemaSQL(sb, onlySql, DDLSchema.CreateTable, table);
 
@@ -637,47 +640,47 @@ namespace XCode.DataAccessLayer
             if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(sb, table, onlySql);
 
             // 加上字段注释
-            foreach (XField item in table.Fields)
+            foreach (IDataColumn item in table.Columns)
             {
                 if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(sb, item, onlySql);
             }
         }
 
-        void AddTableDescription(StringBuilder sb, XTable table, Boolean onlySql)
+        void AddTableDescription(StringBuilder sb, IDataTable table, Boolean onlySql)
         {
             GetSchemaSQL(sb, onlySql, DDLSchema.AddTableDescription, table);
         }
 
-        void DropTableDescription(StringBuilder sb, XTable table, Boolean onlySql)
+        void DropTableDescription(StringBuilder sb, IDataTable table, Boolean onlySql)
         {
             GetSchemaSQL(sb, onlySql, DDLSchema.DropTableDescription, table);
         }
 
-        void AddColumn(StringBuilder sb, XField field, Boolean onlySql)
+        void AddColumn(StringBuilder sb, IDataColumn field, Boolean onlySql)
         {
             GetSchemaSQL(sb, onlySql, DDLSchema.AddColumn, field);
 
             if (!String.IsNullOrEmpty(field.Description)) AddColumnDescription(sb, field, onlySql);
         }
 
-        void AddColumnDescription(StringBuilder sb, XField field, Boolean onlySql)
+        void AddColumnDescription(StringBuilder sb, IDataColumn field, Boolean onlySql)
         {
             GetSchemaSQL(sb, onlySql, DDLSchema.AddColumnDescription, field);
         }
 
-        void DropColumn(StringBuilder sb, XField field, Boolean onlySql)
+        void DropColumn(StringBuilder sb, IDataColumn field, Boolean onlySql)
         {
             if (!String.IsNullOrEmpty(field.Description)) DropColumnDescription(sb, field, onlySql);
 
             GetSchemaSQL(sb, onlySql, DDLSchema.DropColumn, field);
         }
 
-        void DropColumnDescription(StringBuilder sb, XField field, Boolean onlySql)
+        void DropColumnDescription(StringBuilder sb, IDataColumn field, Boolean onlySql)
         {
             GetSchemaSQL(sb, onlySql, DDLSchema.DropColumnDescription, field);
         }
 
-        void AlterColumn(StringBuilder sb, XField field, XField oldfield, Boolean onlySql)
+        void AlterColumn(StringBuilder sb, IDataColumn field, IDataColumn oldfield, Boolean onlySql)
         {
             GetSchemaSQL(sb, onlySql, DDLSchema.AlterColumn, field, oldfield);
         }

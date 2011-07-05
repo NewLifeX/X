@@ -106,7 +106,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public override string FormatValue(XField field, object value)
+        public override string FormatValue(IDataColumn field, object value)
         {
             if (field != null && field.DataType == typeof(Boolean) || value != null && value.GetType() == typeof(Boolean))
             {
@@ -229,7 +229,7 @@ namespace XCode.DataAccessLayer
     class AccessMetaData : FileDbMetaData
     {
         #region 构架
-        public override List<XTable> GetTables()
+        public override List<IDataTable> GetTables()
         {
             DataTable dt = GetSchema("Tables", null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
@@ -239,13 +239,13 @@ namespace XCode.DataAccessLayer
             return GetTables(rows);
         }
 
-        protected override List<XField> GetFields(XTable xt)
+        protected override List<IDataColumn> GetFields(IDataTable xt)
         {
-            List<XField> list = base.GetFields(xt);
+            List<IDataColumn> list = base.GetFields(xt);
             if (list == null || list.Count < 1) return null;
 
-            Dictionary<String, XField> dic = new Dictionary<String, XField>();
-            foreach (XField xf in list)
+            Dictionary<String, IDataColumn> dic = new Dictionary<String, IDataColumn>();
+            foreach (IDataColumn xf in list)
             {
                 dic.Add(xf.Name, xf);
             }
@@ -271,7 +271,7 @@ namespace XCode.DataAccessLayer
             return list;
         }
 
-        protected override void FixField(XField field, DataRow drColumn)
+        protected override void FixField(IDataColumn field, DataRow drColumn)
         {
             base.FixField(field, drColumn);
 
@@ -312,7 +312,7 @@ namespace XCode.DataAccessLayer
             //}
         }
 
-        protected override void FixField(XField field, DataRow drColumn, DataRow drDataType)
+        protected override void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
         {
             base.FixField(field, drColumn, drDataType);
 
@@ -342,7 +342,7 @@ namespace XCode.DataAccessLayer
             return pks;
         }
 
-        protected override string GetFieldConstraints(XField field, Boolean onlyDefine)
+        protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             String str = base.GetFieldConstraints(field, onlyDefine);
 
@@ -357,7 +357,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field"></param>
         /// <param name="onlyDefine">仅仅定义</param>
         /// <returns></returns>
-        protected override string GetFieldDefault(XField field, bool onlyDefine)
+        protected override string GetFieldDefault(IDataColumn field, bool onlyDefine)
         {
             // Access不能通过DDL来操作默认值
             return null;
@@ -385,19 +385,19 @@ namespace XCode.DataAccessLayer
                 //    return File.Exists(FileName);
                 case DDLSchema.CreateTable:
                     obj = base.SetSchema(DDLSchema.CreateTable, values);
-                    XTable table = values[0] as XTable;
+                    IDataTable table = values[0] as IDataTable;
 
                     // Access建表语句的不能操作默认值，所以在这里操作
 
                     // 默认值
-                    foreach (XField item in table.Fields)
+                    foreach (IDataColumn item in table.Columns)
                     {
                         if (!String.IsNullOrEmpty(item.Default)) AddDefault(item, item.Default);
                     }
 
                     //// 表说明
                     //if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(table, table.Description);
-                    //foreach (XField item in table.Fields)
+                    //foreach (IDataColumn item in table.Fields)
                     //{
                     //    if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(item, item.Description);
                     //}
@@ -410,25 +410,25 @@ namespace XCode.DataAccessLayer
                 //    if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
                 //    return true;
                 case DDLSchema.AddTableDescription:
-                    return AddTableDescription((XTable)values[0], ((XTable)values[0]).Description);
+                    return AddTableDescription((IDataTable)values[0], ((IDataTable)values[0]).Description);
                 case DDLSchema.DropTableDescription:
-                    return DropTableDescription((XTable)values[0]);
+                    return DropTableDescription((IDataTable)values[0]);
                 //case DDLSchema.AddColumn:
                 //    obj = base.SetSchema(DDLSchema.AddColumn, values);
-                //    AddColumnDescription((String)values[0], ((XField)values[1]).Name, ((XField)values[1]).Description);
+                //    AddColumnDescription((String)values[0], ((IDataColumn)values[1]).Name, ((IDataColumn)values[1]).Description);
                 //    return obj;
                 //case DDLSchema.AlterColumn:
                 //    break;
                 //case DDLSchema.DropColumn:
                 //    break;
                 case DDLSchema.AddColumnDescription:
-                    return AddColumnDescription((XField)values[0], ((XField)values[0]).Description);
+                    return AddColumnDescription((IDataColumn)values[0], ((IDataColumn)values[0]).Description);
                 case DDLSchema.DropColumnDescription:
-                    return DropColumnDescription((XField)values[0]);
+                    return DropColumnDescription((IDataColumn)values[0]);
                 case DDLSchema.AddDefault:
-                    return AddDefault((XField)values[0], ((XField)values[0]).Default);
+                    return AddDefault((IDataColumn)values[0], ((IDataColumn)values[0]).Default);
                 case DDLSchema.DropDefault:
-                    return DropDefault((XField)values[0]);
+                    return DropDefault((IDataColumn)values[0]);
                 default:
                     break;
             }
@@ -447,7 +447,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 表和字段备注
-        public Boolean AddTableDescription(XTable table, String value)
+        public Boolean AddTableDescription(IDataTable table, String value)
         {
             try
             {
@@ -460,12 +460,12 @@ namespace XCode.DataAccessLayer
             catch { return false; }
         }
 
-        public Boolean DropTableDescription(XTable table)
+        public Boolean DropTableDescription(IDataTable table)
         {
             return AddTableDescription(table, null);
         }
 
-        public Boolean AddColumnDescription(XField field, String value)
+        public Boolean AddColumnDescription(IDataColumn field, String value)
         {
             try
             {
@@ -488,14 +488,14 @@ namespace XCode.DataAccessLayer
             catch { return false; }
         }
 
-        public Boolean DropColumnDescription(XField field)
+        public Boolean DropColumnDescription(IDataColumn field)
         {
             return AddColumnDescription(field, null);
         }
         #endregion
 
         #region 默认值
-        public virtual Boolean AddDefault(XField field, String value)
+        public virtual Boolean AddDefault(IDataColumn field, String value)
         {
             if (field.DataType == typeof(DateTime))
             {
@@ -523,7 +523,7 @@ namespace XCode.DataAccessLayer
             catch { return false; }
         }
 
-        public virtual Boolean DropDefault(XField field)
+        public virtual Boolean DropDefault(IDataColumn field)
         {
             return AddDefault(field, null);
         }
@@ -549,7 +549,7 @@ namespace XCode.DataAccessLayer
         //    return drs;
         //}
 
-        protected override DataRow[] FindDataType(XField field, string typeName, bool? isLong)
+        protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
         {
             DataRow[] drs = base.FindDataType(field, typeName, isLong);
             if (drs != null && drs.Length > 0) return drs;
@@ -571,7 +571,7 @@ namespace XCode.DataAccessLayer
             return drs;
         }
 
-        //protected override void SetFieldType(XField field, string typeName)
+        //protected override void SetFieldType(IDataColumn field, string typeName)
         //{
         //    DataTable dt = DataTypes;
         //    if (dt == null) return;
@@ -585,7 +585,7 @@ namespace XCode.DataAccessLayer
         //    base.SetFieldType(field, typeName);
         //}
 
-        protected override string GetFieldType(XField field)
+        protected override string GetFieldType(IDataColumn field)
         {
             String typeName = base.GetFieldType(field);
 

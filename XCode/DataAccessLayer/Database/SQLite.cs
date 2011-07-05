@@ -153,7 +153,7 @@ namespace XCode.DataAccessLayer
             //return keyWord;
         }
 
-        public override string FormatValue(XField field, object value)
+        public override string FormatValue(IDataColumn field, object value)
         {
             if (field.DataType == typeof(Byte[]))
             {
@@ -168,7 +168,7 @@ namespace XCode.DataAccessLayer
 
         #endregion
 
-        
+
     }
 
     /// <summary>
@@ -384,7 +384,7 @@ namespace XCode.DataAccessLayer
     class SQLiteMetaData : FileDbMetaData
     {
         #region 构架
-        public override List<XTable> GetTables()
+        public override List<IDataTable> GetTables()
         {
             DataTable dt = GetSchema("Tables", null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
@@ -394,7 +394,7 @@ namespace XCode.DataAccessLayer
             return GetTables(rows);
         }
 
-        protected override DataRow[] FindDataType(XField field, string typeName, bool? isLong)
+        protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
         {
             if (!String.IsNullOrEmpty(typeName))
             {
@@ -422,7 +422,7 @@ namespace XCode.DataAccessLayer
             return base.FindDataType(field, typeName, isLong);
         }
 
-        protected override string GetFieldType(XField field)
+        protected override string GetFieldType(IDataColumn field)
         {
             String typeName = base.GetFieldType(field);
 
@@ -432,7 +432,7 @@ namespace XCode.DataAccessLayer
             return typeName;
         }
 
-        protected override string GetFieldConstraints(XField field, Boolean onlyDefine)
+        protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             String str = base.GetFieldConstraints(field, onlyDefine);
 
@@ -443,30 +443,30 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据定义
-        public override string AlterColumnSQL(XField field, XField oldfield)
+        public override string AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
             // SQLite的自增将会被识别为64位，而实际应用一般使用32位，不需要修改
             if (field.DataType == typeof(Int32) && field.Identity &&
                 oldfield.DataType == typeof(Int64) && oldfield.Identity)
                 return String.Empty;
 
-            return ReBuildTable(field.Table, field.Table.Fields, oldfield.Table.Fields);
+            return ReBuildTable(field.Table, field.Table.Columns, oldfield.Table.Columns);
         }
 
-        public override string DropColumnSQL(XField field)
+        public override string DropColumnSQL(IDataColumn field)
         {
-            XTable table = field.Table;
-            List<XField> list = new List<XField>(table.Fields.ToArray());
-            if (table.Fields.Contains(field)) table.Fields.Remove(field);
+            IDataTable table = field.Table;
+            List<IDataColumn> list = new List<IDataColumn>(table.Columns);
+            if (list.Contains(field)) list.Remove(field);
 
-            return ReBuildTable(table, table.Fields, list);
+            return ReBuildTable(table, list.ToArray(), table.Columns);
         }
         /// <summary>
         /// 删除索引方法
         /// </summary>
         /// <param name="fields"></param>
         /// <returns></returns>
-        public override string DropIndexSQL(XField[] fields)
+        public override string DropIndexSQL(IDataColumn[] fields)
         {
             String table = fields[0].Table.Name;
 
@@ -480,7 +480,7 @@ namespace XCode.DataAccessLayer
             return String.Format("Drop Index {0}", FormatKeyWord(indexName));
         }
 
-        String ReBuildTable(XTable table, List<XField> newFields, List<XField> oldFields)
+        String ReBuildTable(IDataTable table, IDataColumn[] newFields, IDataColumn[] oldFields)
         {
             // 通过重建表的方式修改字段
             String tableName = table.Name;
@@ -497,14 +497,23 @@ namespace XCode.DataAccessLayer
             sb.AppendLine("; ");
 
             // 如果指定了新列和旧列，则构建两个集合
-            if (newFields != null && newFields.Count > 0 && oldFields != null && oldFields.Count > 0)
+            if (newFields != null && newFields.Length > 0 && oldFields != null && oldFields.Length > 0)
             {
                 StringBuilder sbName = new StringBuilder();
                 StringBuilder sbValue = new StringBuilder();
-                foreach (XField item in newFields)
+                foreach (IDataColumn item in newFields)
                 {
                     String name = item.Name;
-                    XField field = oldFields.Find(f => f.Name == name);
+                    //IDataColumn field = oldFields.Find(f => f.Name == name);
+                    IDataColumn field = null;
+                    foreach (IDataColumn dc in oldFields)
+                    {
+                        if (dc.Name == name)
+                        {
+                            field = dc;
+                            break;
+                        }
+                    }
                     if (field == null)
                     {
                         // 如果新增了不允许空的列，则处理一下默认值
@@ -561,35 +570,35 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 表和字段备注
-        public override string AddTableDescriptionSQL(XTable table)
+        public override string AddTableDescriptionSQL(IDataTable table)
         {
             // 返回Empty，告诉反向工程，该数据库类型不支持该功能，请不要输出日志
             return String.Empty;
         }
 
-        public override string DropTableDescriptionSQL(XTable table)
+        public override string DropTableDescriptionSQL(IDataTable table)
         {
             return String.Empty;
         }
 
-        public override string AddColumnDescriptionSQL(XField field)
+        public override string AddColumnDescriptionSQL(IDataColumn field)
         {
             return String.Empty;
         }
 
-        public override string DropColumnDescriptionSQL(XField field)
+        public override string DropColumnDescriptionSQL(IDataColumn field)
         {
             return String.Empty;
         }
         #endregion
 
         #region 默认值
-        public override string AddDefaultSQL(XField field)
+        public override string AddDefaultSQL(IDataColumn field)
         {
             return String.Empty;
         }
 
-        public override string DropDefaultSQL(XField field)
+        public override string DropDefaultSQL(IDataColumn field)
         {
             return String.Empty;
         }

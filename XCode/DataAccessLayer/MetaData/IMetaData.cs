@@ -22,7 +22,7 @@ namespace XCode.DataAccessLayer
         /// 取得所有表构架
         /// </summary>
         /// <returns></returns>
-        List<XTable> GetTables();
+        List<IDataTable> GetTables();
 
         /// <summary>
         /// 获取数据定义语句

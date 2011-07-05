@@ -121,7 +121,7 @@ namespace XCode.Code
 
             // 保存属性名，可能跟字段名不一致
             Dictionary<String, String> fieldNames = new Dictionary<String, String>();
-            foreach (XField item in tb.Fields)
+            foreach (XField item in tb.Columns)
             {
                 String name = item.Name;
                 for (int i = 2; list.Contains(name); i++)
