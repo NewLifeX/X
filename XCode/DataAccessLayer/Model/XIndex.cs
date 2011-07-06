@@ -15,7 +15,11 @@ namespace XCode.DataAccessLayer
         /// <summary>名称</summary>
         public String Name
         {
-            get { return _Name; }
+            get
+            {
+                if (String.IsNullOrEmpty(_Name)) _Name = GetIndexName();
+                return _Name;
+            }
             set { _Name = value; }
         }
 
@@ -24,7 +28,7 @@ namespace XCode.DataAccessLayer
         public String[] Columns
         {
             get { return _Columns; }
-            set { _Columns = value; }
+            set { _Columns = value; Name = null; }
         }
 
         private Boolean _Unique;
@@ -42,7 +46,22 @@ namespace XCode.DataAccessLayer
         public IDataTable Table
         {
             get { return _Table; }
-            set { _Table = value; }
+            set { _Table = value; Name = null; }
+        }
+        #endregion
+
+        #region 方法名
+        String GetIndexName()
+        {
+            if (Columns == null || Columns.Length < 1) return null;
+
+            String indexName = "IX";
+            if (Table != null) indexName += Table.Name + "_";
+            for (int i = 0; i < Columns.Length; i++)
+            {
+                indexName += "_" + Columns[i];
+            }
+            return indexName;
         }
         #endregion
     }

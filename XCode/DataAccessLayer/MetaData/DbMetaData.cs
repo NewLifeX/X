@@ -103,7 +103,7 @@ namespace XCode.DataAccessLayer
                     }
                     catch (Exception ex)
                     {
-                        if (Debug) WriteLog(ex.ToString());
+                        if (DAL.Debug) DAL.WriteLog(ex.ToString());
                     }
 
                     FixTable(table, dr);
@@ -124,9 +124,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="table"></param>
         /// <param name="dr"></param>
-        protected virtual void FixTable(IDataTable table, DataRow dr)
-        {
-        }
+        protected virtual void FixTable(IDataTable table, DataRow dr) { }
 
         /// <summary>
         /// 取得指定表的所有列构架
@@ -135,8 +133,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual List<IDataColumn> GetFields(IDataTable table)
         {
-            //DataColumnCollection columns = GetColumns(table.Name);
-
             DataTable dt = GetSchema("Columns", new String[] { null, null, table.Name });
 
             DataRow[] drs = null;
@@ -570,9 +566,9 @@ namespace XCode.DataAccessLayer
                 case DDLSchema.DropDefault:
                     return DropDefaultSQL((IDataColumn)values[0]);
                 case DDLSchema.CreateIndex:
-                    return CreateIndexSQL((IDataColumn[])values[0], (Boolean)values[1], (Boolean?[])values[2]);
+                    return CreateIndexSQL((IDataIndex)values[0]);
                 case DDLSchema.DropIndex:
-                    return DropIndexSQL((IDataColumn[])values[0]);
+                    return DropIndexSQL((IDataIndex)values[0]);
                 default:
                     break;
             }
@@ -750,119 +746,58 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        String DropTableSQL(IDataTable table)
-        {
-            return DropTableSQL(table.Name);
-        }
+        String DropTableSQL(IDataTable table) { return DropTableSQL(table.Name); }
 
-        public virtual String DropTableSQL(String tableName)
-        {
-            return String.Format("Drop Table {0}", FormatKeyWord(tableName));
-        }
+        public virtual String DropTableSQL(String tableName) { return String.Format("Drop Table {0}", FormatKeyWord(tableName)); }
 
-        String TableExistSQL(IDataTable table)
-        {
-            return TableExistSQL(table.Name);
-        }
+        String TableExistSQL(IDataTable table) { return TableExistSQL(table.Name); }
 
-        public virtual String TableExistSQL(String tableName)
-        {
-            throw new NotSupportedException("该功能未实现！");
-        }
+        public virtual String TableExistSQL(String tableName) { throw new NotSupportedException("该功能未实现！"); }
 
-        public virtual String AddTableDescriptionSQL(IDataTable table)
-        {
-            return null;
-        }
+        public virtual String AddTableDescriptionSQL(IDataTable table) { return null; }
 
-        public virtual String DropTableDescriptionSQL(IDataTable table)
-        {
-            return null;
-        }
+        public virtual String DropTableDescriptionSQL(IDataTable table) { return null; }
 
-        public virtual String AddColumnSQL(IDataColumn field)
-        {
-            return String.Format("Alter Table {0} Add {1}", FormatKeyWord(field.Table.Name), FieldClause(field, true));
-        }
+        public virtual String AddColumnSQL(IDataColumn field) { return String.Format("Alter Table {0} Add {1}", FormatKeyWord(field.Table.Name), FieldClause(field, true)); }
 
-        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
-        {
-            return String.Format("Alter Table {0} Alter Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
-        }
+        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) { return String.Format("Alter Table {0} Alter Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false)); }
 
-        public virtual String DropColumnSQL(IDataColumn field)
-        {
-            return String.Format("Alter Table {0} Drop Column {1}", FormatKeyWord(field.Table.Name), field.Name);
-        }
+        public virtual String DropColumnSQL(IDataColumn field) { return String.Format("Alter Table {0} Drop Column {1}", FormatKeyWord(field.Table.Name), field.Name); }
 
-        public virtual String AddColumnDescriptionSQL(IDataColumn field)
-        {
-            return null;
-        }
+        public virtual String AddColumnDescriptionSQL(IDataColumn field) { return null; }
 
-        public virtual String DropColumnDescriptionSQL(IDataColumn field)
-        {
-            return null;
-        }
+        public virtual String DropColumnDescriptionSQL(IDataColumn field) { return null; }
 
-        public virtual String AddDefaultSQL(IDataColumn field)
-        {
-            return null;
-        }
+        public virtual String AddDefaultSQL(IDataColumn field) { return null; }
 
-        public virtual String DropDefaultSQL(IDataColumn field)
-        {
-            return null;
-        }
+        public virtual String DropDefaultSQL(IDataColumn field) { return null; }
 
-        public virtual String CreateIndexSQL(IDataColumn[] fields, Boolean unique, Boolean?[] isAscs)
+        public virtual String CreateIndexSQL(IDataIndex index)
         {
-            String table = fields[0].Table.Name;
-
             StringBuilder sb = new StringBuilder();
-            if (unique)
+            if (index.Unique)
                 sb.Append("Create Unique Index ");
             else
                 sb.Append("Create Index ");
 
-            //sb.AppendFormat("\"IX_{0}", table);
-            String indexName = "IX_";
-            for (int i = 0; i < fields.Length; i++)
-            {
-                //sb.AppendFormat("_{0}", fields[i]);
-                indexName += "_" + fields[i].Name;
-            }
-            sb.Append(FormatKeyWord(indexName));
-            sb.AppendFormat(" On {0} (", FormatKeyWord(table));
-            for (int i = 0; i < fields.Length; i++)
+            sb.Append(FormatKeyWord(index.Name));
+            sb.AppendFormat(" On {0} (", FormatKeyWord(index.Table.Name));
+            for (int i = 0; i < index.Columns.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
-                if (isAscs[i] == null)
-                    sb.Append(fields[i]);
-                else
-                    sb.AppendFormat("{0} {1}", FormatKeyWord(fields[i].Name), isAscs[i].Value ? "Asc" : "Desc");
+                sb.Append(index.Columns[i]);
+                //else
+                //    sb.AppendFormat("{0} {1}", FormatKeyWord(index.Columns[i].Name), isAscs[i].Value ? "Asc" : "Desc");
             }
             sb.Append(")");
 
             return sb.ToString();
         }
 
-        public virtual String DropIndexSQL(IDataColumn[] fields)
+        public virtual String DropIndexSQL(IDataIndex index)
         {
-            String table = fields[0].Table.Name;
-
-            String indexName = "IX_";
-            for (int i = 0; i < fields.Length; i++)
-            {
-                //sb.AppendFormat("_{0}", fields[i]);
-                indexName += "_" + fields[i].Name;
-            }
-
-            return String.Format("Drop Index {0} On {1}", FormatKeyWord(indexName), FormatKeyWord(table));
+            return String.Format("Drop Index {0} On {1}", FormatKeyWord(index.Name), FormatKeyWord(index.Table.Name));
         }
-        #endregion
-
-        #region 数据定义操作
         #endregion
 
         #region 辅助函数
@@ -942,7 +877,7 @@ namespace XCode.DataAccessLayer
             }
             catch (Exception ex)
             {
-                if (Debug) WriteLog(ex.ToString());
+                if (DAL.Debug) DAL.WriteLog(ex.ToString());
                 return null;
             }
         }
@@ -975,26 +910,6 @@ namespace XCode.DataAccessLayer
 
             return Database.DateTimeNow;
         }
-        #endregion
-
-        #region Sql日志输出
-        /// <summary>
-        /// 是否调试
-        /// </summary>
-        public static Boolean Debug { get { return DAL.Debug; } }
-
-        /// <summary>
-        /// 输出日志
-        /// </summary>
-        /// <param name="msg"></param>
-        public static void WriteLog(String msg) { DAL.WriteLog(msg); }
-
-        /// <summary>
-        /// 输出日志
-        /// </summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public static void WriteLog(String format, params Object[] args) { DAL.WriteLog(format, args); }
         #endregion
     }
 }

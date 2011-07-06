@@ -461,23 +461,15 @@ namespace XCode.DataAccessLayer
 
             return ReBuildTable(table, list.ToArray(), table.Columns);
         }
+
         /// <summary>
         /// 删除索引方法
         /// </summary>
-        /// <param name="fields"></param>
+        /// <param name="index"></param>
         /// <returns></returns>
-        public override string DropIndexSQL(IDataColumn[] fields)
+        public override string DropIndexSQL(IDataIndex index)
         {
-            String table = fields[0].Table.Name;
-
-            String indexName = "IX_";
-            for (int i = 0; i < fields.Length; i++)
-            {
-                //sb.AppendFormat("_{0}", fields[i]);
-                indexName += "_" + fields[i].Name;
-            }
-
-            return String.Format("Drop Index {0}", FormatKeyWord(indexName));
+            return String.Format("Drop Index {0}", FormatKeyWord(index.Name));
         }
 
         String ReBuildTable(IDataTable table, IDataColumn[] newFields, IDataColumn[] oldFields)

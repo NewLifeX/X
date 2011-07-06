@@ -96,8 +96,6 @@
     <Compile Include="DataAccessLayer\Common\DbBase.cs" />
     <Compile Include="DataAccessLayer\Common\DbFactory.cs" />
     <Compile Include="DataAccessLayer\Common\IDatabase.cs" />
-    <Compile Include="DataAccessLayer\Model\DataFactory.cs" />
-    <Compile Include="DataAccessLayer\Model\IDataFactory.cs" />
     <Compile Include="DataAccessLayer\Model\IDataColumn.cs" />
     <Compile Include="DataAccessLayer\Model\IDataForeignKey.cs" />
     <Compile Include="DataAccessLayer\Model\IDataIndex.cs" />

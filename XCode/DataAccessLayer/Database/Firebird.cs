@@ -504,7 +504,7 @@ namespace XCode.DataAccessLayer
 
         public override string CreateDatabaseSQL(string dbname, string file)
         {
-            return String.Format("Create Database {0}", FormatKeyWord(dbname));
+            return String.Empty;
         }
 
         //public override string DropDatabaseSQL(string dbname)
