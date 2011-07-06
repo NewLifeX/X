@@ -8,23 +8,23 @@ namespace XCode.DataAccessLayer
     /// 索引
     /// </summary>
     [Serializable]
-    public class XIndex
+    class XIndex : IDataIndex
     {
         #region 属性
-        private XTable _Table;
-        /// <summary>表</summary>
-        public XTable Table
+        private String _Name;
+        /// <summary>名称</summary>
+        public String Name
         {
-            get { return _Table; }
-            set { _Table = value; }
+            get { return _Name; }
+            set { _Name = value; }
         }
 
-        private Dictionary<XField, Boolean> _Fields;
-        /// <summary>索引列</summary>
-        public Dictionary<XField, Boolean> Fields
+        private String[] _Columns;
+        /// <summary>数据列集合</summary>
+        public String[] Columns
         {
-            get { return _Fields; }
-            set { _Fields = value; }
+            get { return _Columns; }
+            set { _Columns = value; }
         }
 
         private Boolean _Unique;
@@ -33,6 +33,16 @@ namespace XCode.DataAccessLayer
         {
             get { return _Unique; }
             set { _Unique = value; }
+        }
+        #endregion
+
+        #region 扩展属性
+        private IDataTable _Table;
+        /// <summary>表</summary>
+        public IDataTable Table
+        {
+            get { return _Table; }
+            set { _Table = value; }
         }
         #endregion
     }

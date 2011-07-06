@@ -7,7 +7,7 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// 数据表
     /// </summary>
-    public interface IDataTable
+    public interface IDataTable : ICloneable
     {
         #region 属性
         /// <summary>

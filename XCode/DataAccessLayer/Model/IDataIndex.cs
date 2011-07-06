@@ -11,6 +11,11 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>
+        /// 名称
+        /// </summary>
+        String Name { get; set; }
+
+        /// <summary>
         /// 数据列集合
         /// </summary>
         String[] Columns { get; set; }
@@ -18,7 +23,7 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 是否唯一
         /// </summary>
-        Boolean IsUnique { get; set; }
+        Boolean Unique { get; set; }
         #endregion
 
         #region 扩展属性

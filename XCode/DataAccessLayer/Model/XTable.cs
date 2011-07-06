@@ -148,14 +148,26 @@ namespace XCode.DataAccessLayer
             return XField.Create(this);
         }
 
+        /// <summary>
+        /// 创建外键
+        /// </summary>
+        /// <returns></returns>
         public virtual IDataForeignKey CreateForeignKey()
         {
-            return null;
+            XForeignKey fk = new XForeignKey();
+            fk.Table = this;
+            return fk;
         }
 
+        /// <summary>
+        /// 创建索引
+        /// </summary>
+        /// <returns></returns>
         public virtual IDataIndex CreateIndex()
         {
-            return null;
+            XIndex idx = new XIndex();
+            idx.Table = this;
+            return idx;
         }
 
         /// <summary>

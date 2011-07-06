@@ -191,10 +191,10 @@ namespace XCode.Configuration
             }
         }
 
-        private XTable _XTable;
+        private IDataTable _XTable;
         /// <summary>数据表架构</summary>
         [XmlIgnore]
-        public XTable XTable
+        public IDataTable DataTable
         {
             get
             {
@@ -212,7 +212,7 @@ namespace XCode.Configuration
             //hasInitFields = true;
 
             BindTableAttribute bt = Table;
-            XTable table = new XTable();
+            IDataTable table = new XTable();
             table.Name = bt.Name;
             table.Alias = EntityType.Name;
             table.DbType = bt.DbType;

@@ -562,7 +562,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         private static IDataTable Create(Type type, String tablename)
         {
-            IDataTable table = TableItem.Create(type).XTable;
+            IDataTable table = TableItem.Create(type).DataTable;
             if (table == null) return null;
 
             if (!String.IsNullOrEmpty(tablename)) table.Name = tablename;

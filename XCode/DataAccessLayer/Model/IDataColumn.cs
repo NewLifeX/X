@@ -92,5 +92,13 @@ namespace XCode.DataAccessLayer
         /// </summary>
         IDataTable Table { get; }
         #endregion
+
+        #region 方法
+        /// <summary>
+        /// 克隆到指定的数据表
+        /// </summary>
+        /// <param name="table"></param>
+        IDataColumn Clone(IDataTable table);
+        #endregion
     }
 }

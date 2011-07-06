@@ -593,13 +593,13 @@ namespace XCode.DataAccessLayer
             return ret;
         }
 
-        private List<XTable> _Tables;
+        private List<IDataTable> _Tables;
         /// <summary>
         /// 取得所有表和视图的构架信息，为了提高性能，得到的只是准实时信息，可能会有1秒到3秒的延迟
         /// </summary>
         /// <remarks>如果不存在缓存，则获取后返回；否则使用线程池线程获取，而主线程返回缓存</remarks>
         /// <returns></returns>
-        public List<XTable> Tables
+        public List<IDataTable> Tables
         {
             get
             {
@@ -613,10 +613,10 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private List<XTable> GetTables()
+        private List<IDataTable> GetTables()
         {
-            List<XTable> list = Db.CreateMetaData().GetTables();
-            if (list != null && list.Count > 0) list.Sort(delegate(XTable item1, XTable item2) { return item1.Name.CompareTo(item2.Name); });
+            List<IDataTable> list = Db.CreateMetaData().GetTables();
+            if (list != null && list.Count > 0) list.Sort(delegate(IDataTable item1, IDataTable item2) { return item1.Name.CompareTo(item2.Name); });
             return list;
         }
         #endregion
@@ -658,14 +658,14 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public String Export()
         {
-            List<XTable> list = Tables;
+            List<IDataTable> list = Tables;
 
             if (list == null || list.Count < 1) return null;
 
             // 排序
             list.Sort((item1, item2) => item1.ID.CompareTo(item2.ID));
 
-            XmlSerializer serializer = new XmlSerializer(typeof(List<XTable>));
+            XmlSerializer serializer = new XmlSerializer(typeof(List<IDataTable>));
             using (StringWriter sw = new StringWriter())
             {
                 serializer.Serialize(sw, list);
@@ -678,30 +678,30 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="xml"></param>
         /// <returns></returns>
-        public static List<XTable> Import(String xml)
+        public static List<IDataTable> Import(String xml)
         {
             if (String.IsNullOrEmpty(xml)) return null;
 
-            List<XTable> list = null;
-            XmlSerializer serializer = new XmlSerializer(typeof(List<XTable>));
+            List<IDataTable> list = null;
+            XmlSerializer serializer = new XmlSerializer(typeof(List<IDataTable>));
             using (StringReader sr = new StringReader(xml))
             {
-                list = serializer.Deserialize(sr) as List<XTable>;
+                list = serializer.Deserialize(sr) as List<IDataTable>;
             }
 
             if (list == null || list.Count < 1) return list;
 
             // 修正字段中的Table引用
-            foreach (XTable item in list)
+            foreach (IDataTable item in list)
             {
                 if (item.Columns == null || item.Columns.Length < 1) continue;
 
-                //foreach (XField field in item.Fields)
+                //foreach (IDataColumn field in item.Fields)
                 //{
                 //    if (field.Table == null) field.Table = item;
                 //}
                 List<IDataColumn> fs = new List<IDataColumn>();
-                foreach (XField field in item.Columns)
+                foreach (IDataColumn field in item.Columns)
                 {
                     fs.Add(field.Clone(item));
                 }

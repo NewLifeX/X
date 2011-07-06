@@ -753,12 +753,12 @@ namespace XCode.DataAccessLayer
             return sql + ";" + Environment.NewLine + sqlSeq;
         }
 
-        public override string DropTableSQL(IDataTable table)
+        public override string DropTableSQL(String tableName)
         {
-            String sql = base.DropTableSQL(table);
+            String sql = base.DropTableSQL(tableName);
             if (String.IsNullOrEmpty(sql)) return sql;
 
-            String sqlSeq = String.Format("Drop Sequence SEQ_{0}", table.Name);
+            String sqlSeq = String.Format("Drop Sequence SEQ_{0}", tableName);
             return sql + ";" + Environment.NewLine + sqlSeq;
         }
 

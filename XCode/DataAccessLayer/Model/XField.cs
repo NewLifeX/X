@@ -336,10 +336,10 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="table"></param>
         /// <returns></returns>
-        public XField Clone(XTable table)
+        public IDataColumn Clone(IDataTable table)
         {
             XField field = base.MemberwiseClone() as XField;
-            field.Table = table;
+            field.Table = table as XTable;
             return field;
         }
         #endregion

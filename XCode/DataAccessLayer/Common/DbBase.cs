@@ -699,7 +699,7 @@ namespace XCode.DataAccessLayer
 
             SelectBuilder builder2 = PageSplitTop(builder, startRowIndex, keyColumn);
             builder2.OrderBy = keyColumn + " " + (isAscOrder ? "Asc" : "Desc");
-            String sql = String.Format("Select {0}({1}) From ({2})", isAscOrder ? "max" : "min", keyColumn, builder2.ToString());
+            String sql = String.Format("Select {0}({1}) From ({2}) XCode_Temp_a", isAscOrder ? "max" : "min", keyColumn, builder2.ToString());
 
             // maximumRows > 0时加个Top，别的一样
             if (maximumRows > 0) builder = PageSplitTop(builder, maximumRows, null);

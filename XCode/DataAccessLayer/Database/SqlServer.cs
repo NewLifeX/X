@@ -766,12 +766,12 @@ namespace XCode.DataAccessLayer
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
-        public override string TableExistSQL(IDataTable table)
+        public override string TableExistSQL(String tableName)
         {
             if (IsSQL2005)
-                return String.Format("select * from sysobjects where xtype='U' and name='{0}'", table.Name);
+                return String.Format("select * from sysobjects where xtype='U' and name='{0}'", tableName);
             else
-                return String.Format("SELECT * FROM sysobjects WHERE id = OBJECT_ID(N'[dbo].{0}') AND OBJECTPROPERTY(id, N'IsUserTable') = 1", FormatKeyWord(table.Name));
+                return String.Format("SELECT * FROM sysobjects WHERE id = OBJECT_ID(N'[dbo].{0}') AND OBJECTPROPERTY(id, N'IsUserTable') = 1", FormatKeyWord(tableName));
         }
 
         /// <summary>

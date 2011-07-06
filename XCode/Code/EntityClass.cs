@@ -13,7 +13,7 @@ namespace XCode.Code
     /// <summary>
     /// 实体类
     /// </summary>
-    /// <remarks>提供由XTable生成实体类的支持</remarks>
+    /// <remarks>提供由IDataTable生成实体类的支持</remarks>
     public class EntityClass
     {
         #region 属性
@@ -33,9 +33,9 @@ namespace XCode.Code
             set { _FieldNames = value; }
         }
 
-        private XTable _Table;
+        private IDataTable _Table;
         /// <summary>表</summary>
-        public XTable Table
+        public IDataTable Table
         {
             get { return _Table; }
             set { _Table = value; }
@@ -99,7 +99,7 @@ namespace XCode.Code
         public void AddProperties()
         {
             Int32 n = Class.Members.Count;
-            foreach (XField item in Table.Columns)
+            foreach (IDataColumn item in Table.Columns)
             {
                 AddField(item);
                 AddProperty(item);
@@ -113,7 +113,7 @@ namespace XCode.Code
         /// 添加私有字段
         /// </summary>
         /// <param name="field"></param>
-        public CodeMemberField AddField(XField field)
+        public CodeMemberField AddField(IDataColumn field)
         {
             CodeMemberField f = new CodeMemberField();
             f.Attributes = MemberAttributes.Private;
@@ -128,7 +128,7 @@ namespace XCode.Code
         /// 添加单个属性
         /// </summary>
         /// <param name="field"></param>
-        public CodeMemberProperty AddProperty(XField field)
+        public CodeMemberProperty AddProperty(IDataColumn field)
         {
             String name = FieldNames[field.Name];
 
@@ -191,7 +191,7 @@ namespace XCode.Code
             p.HasGet = true;
             p.HasSet = true;
 
-            foreach (XField item in Table.Columns)
+            foreach (IDataColumn item in Table.Columns)
             {
                 String name = FieldNames[item.Name];
 
@@ -257,7 +257,7 @@ namespace XCode.Code
             cs.Attributes = MemberAttributes.Public;
             cs.Comments.Add(AddSummary("取得字段名的快捷方式"));
 
-            foreach (XField item in Table.Columns)
+            foreach (IDataColumn item in Table.Columns)
             {
                 CodeMemberField f = new CodeMemberField();
                 f.Name = FieldNames[item.Name];

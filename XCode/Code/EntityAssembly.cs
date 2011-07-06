@@ -107,10 +107,10 @@ namespace XCode.Code
         /// </summary>
         /// <param name="table"></param>
         /// <returns></returns>
-        public EntityClass Create(XTable table)
+        public EntityClass Create(IDataTable table)
         {
             // 复制一份，以免修改原来的结构
-            XTable tb = table.Clone();
+            IDataTable tb = table.Clone() as IDataTable;
             String className = tb.Name.Replace("$", null);
 
             // 计算名称，防止属性名和类型名重名
@@ -121,7 +121,7 @@ namespace XCode.Code
 
             // 保存属性名，可能跟字段名不一致
             Dictionary<String, String> fieldNames = new Dictionary<String, String>();
-            foreach (XField item in tb.Columns)
+            foreach (IDataColumn item in tb.Columns)
             {
                 String name = item.Name;
                 for (int i = 2; list.Contains(name); i++)
@@ -153,7 +153,7 @@ namespace XCode.Code
         /// <returns></returns>
         public EntityClass Create(String name)
         {
-            foreach (XTable item in Dal.Tables)
+            foreach (IDataTable item in Dal.Tables)
             {
                 if (item.Name == name) return Create(item);
             }
@@ -165,7 +165,7 @@ namespace XCode.Code
         /// </summary>
         public void CreateAll()
         {
-            foreach (XTable item in Dal.Tables)
+            foreach (IDataTable item in Dal.Tables)
             {
                 EntityClass entity = Create(item);
                 //entity.Create();

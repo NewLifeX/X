@@ -32,6 +32,15 @@ namespace XCode.DataAccessLayer
             return Database.CreateSession().GetSchema(collectionName, restrictionValues);
         }
 
+        ///// <summary>
+        ///// 创建数据表
+        ///// </summary>
+        ///// <returns></returns>
+        //public virtual IDataTable CreateTable()
+        //{
+        //    return new XTable();
+        //}
+
         /// <summary>
         /// 取得所有表构架
         /// </summary>
@@ -522,8 +531,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String GetSchemaSQL(DDLSchema schema, params Object[] values)
         {
-            IDataTable table;
-
             switch (schema)
             {
                 case DDLSchema.CreateDatabase:
@@ -536,18 +543,14 @@ namespace XCode.DataAccessLayer
                     return CreateTableSQL((IDataTable)values[0]);
                 case DDLSchema.DropTable:
                     if (values[0] is IDataTable)
-                        table = values[0] as IDataTable;
+                        return DropTableSQL((IDataTable)values[0]);
                     else
-                        table = new XTable(values[0].ToString());
-
-                    return DropTableSQL(table);
+                        return DropTableSQL(values[0].ToString());
                 case DDLSchema.TableExist:
                     if (values[0] is IDataTable)
-                        table = values[0] as IDataTable;
+                        return TableExistSQL((IDataTable)values[0]);
                     else
-                        table = new XTable(values[0].ToString());
-
-                    return TableExistSQL(table);
+                        return TableExistSQL(values[0].ToString());
                 case DDLSchema.AddTableDescription:
                     return AddTableDescriptionSQL((IDataTable)values[0]);
                 case DDLSchema.DropTableDescription:
@@ -747,12 +750,22 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public virtual String DropTableSQL(IDataTable table)
+        String DropTableSQL(IDataTable table)
         {
-            return String.Format("Drop Table {0}", FormatKeyWord(table.Name));
+            return DropTableSQL(table.Name);
         }
 
-        public virtual String TableExistSQL(IDataTable table)
+        public virtual String DropTableSQL(String tableName)
+        {
+            return String.Format("Drop Table {0}", FormatKeyWord(tableName));
+        }
+
+        String TableExistSQL(IDataTable table)
+        {
+            return TableExistSQL(table.Name);
+        }
+
+        public virtual String TableExistSQL(String tableName)
         {
             throw new NotSupportedException("该功能未实现！");
         }

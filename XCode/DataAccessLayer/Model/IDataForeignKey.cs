@@ -13,12 +13,12 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 引用表
         /// </summary>
-        String ReferencedTable { get; set; }
+        String ForeignTable { get; set; }
 
         /// <summary>
         /// 引用列
         /// </summary>
-        String ReferencedColumn { get; set; }
+        String ForeignColumn { get; set; }
         #endregion
 
         #region 扩展属性
