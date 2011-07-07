@@ -740,6 +740,14 @@ namespace NewLife.Reflection
             if (value != null) vtype = value.GetType();
             if (vtype == conversionType) return value;
 
+            // 处理可空类型
+            if (IsNullable(conversionType))
+            {
+                if (value == null) return null;
+
+                conversionType = Nullable.GetUnderlyingType(conversionType);
+            }
+
             if (conversionType.IsEnum) return Enum.ToObject(conversionType, value);
 
             // 字符串转为货币类型，处理一下
@@ -774,6 +782,33 @@ namespace NewLife.Reflection
 
             return (TResult)ChangeType(value, typeof(TResult));
         }
+
+        /// <summary>
+        /// 判断某个类型是否可空类型
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static Boolean IsNullable(Type type)
+        {
+            if (type.IsGenericType && !type.IsGenericTypeDefinition &&
+                object.ReferenceEquals(type.GetGenericTypeDefinition(), typeof(Nullable<>))) return true;
+
+            return false;
+        }
+
+        ///// <summary>
+        ///// 获取可空类型的真是类型
+        ///// </summary>
+        ///// <param name="nullableType"></param>
+        ///// <returns></returns>
+        //public static Type GetUnderlyingType(Type nullableType)
+        //{
+        //    if (nullableType == null) throw new ArgumentNullException("nullableType");
+        //    Type type = null;
+        //    if (nullableType.IsGenericType && !nullableType.IsGenericTypeDefinition &&
+        //        object.ReferenceEquals(nullableType.GetGenericTypeDefinition(), typeof(Nullable<>))) type = nullableType.GetGenericArguments()[0];
+        //    return type;
+        //}
         #endregion
 
         #region 类型转换
