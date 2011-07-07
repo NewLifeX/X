@@ -749,7 +749,15 @@ namespace NewLife.Reflection
                 value = str.TrimStart(new Char[] { '$', '￥' });
             }
 
-            if (value is IConvertible) value = Convert.ChangeType(value, conversionType);
+            if (value != null)
+            {
+                if (value is IConvertible) value = Convert.ChangeType(value, conversionType);
+            }
+            else
+            {
+                // 如果原始值是null，要转为值类型，则new一个空白的返回
+                if (conversionType.IsValueType) value = CreateInstance(conversionType);
+            }
 
             return value;
         }
