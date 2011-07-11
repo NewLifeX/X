@@ -13,7 +13,8 @@ namespace XCode.DataAccessLayer
     /// 字段构架
     /// </summary>
     [Serializable]
-    public class XField : SerializableDataMember, IDataColumn, ICloneable
+    [XmlRoot("Column")]
+    public class XField : IDataColumn, ICloneable
     {
         #region 属性
         private Int32 _ID;

@@ -5,6 +5,10 @@ using NewLife.Log;
 using NewLife.Net.Tcp;
 using System.Net;
 using NewLife.Net.Sockets;
+using test;
+using XCode;
+using XCode.DataAccessLayer;
+using System.IO;
 
 namespace Test2
 {
@@ -19,7 +23,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test1();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -60,6 +64,12 @@ namespace Test2
 
         static void Test2()
         {
+            DAL dal = DAL.Create("Common1");
+            IList<IDataTable> list = dal.Tables;
+            String xml = dal.Export();
+            Console.WriteLine(xml);
+
+            File.WriteAllText("dal.xml", xml);
         }
     }
 }

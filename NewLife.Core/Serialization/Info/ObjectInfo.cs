@@ -265,7 +265,13 @@ namespace NewLife.Serialization
         public static Object GetDefaultObject(Type type)
         {
             // 使用FormatterServices.GetSafeUninitializedObject创建对象，该方法创建的对象不执行构造函数
-            return defCache.GetItem(type, delegate(Type t) { return FormatterServices.GetSafeUninitializedObject(t); });
+            return defCache.GetItem(type, delegate(Type t)
+            {
+                if (t == typeof(String)) return null;
+                //return FormatterServices.GetSafeUninitializedObject(t);
+
+                return TypeX.CreateInstance(t);
+            });
         }
         #endregion
     }

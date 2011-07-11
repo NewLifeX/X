@@ -9,6 +9,7 @@ namespace XCode.DataAccessLayer
     /// 数据关系
     /// </summary>
     [Serializable]
+    [XmlRoot("Relation")]
     public class XRelation : IDataRelation
     {
         #region 属性

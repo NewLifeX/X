@@ -13,6 +13,7 @@ using NewLife.Reflection;
 using XCode.Cache;
 using XCode.Code;
 using XCode.Exceptions;
+using NewLife.Xml;
 
 namespace XCode.DataAccessLayer
 {
@@ -665,12 +666,21 @@ namespace XCode.DataAccessLayer
             // ÅÅÐò
             list.Sort((item1, item2) => item1.ID.CompareTo(item2.ID));
 
-            XmlSerializer serializer = new XmlSerializer(typeof(List<IDataTable>));
-            using (StringWriter sw = new StringWriter())
-            {
-                serializer.Serialize(sw, list);
-                return sw.ToString();
-            }
+            //XmlSerializer serializer = new XmlSerializer(typeof(List<IDataTable>));
+            //using (StringWriter sw = new StringWriter())
+            //{
+            //    serializer.Serialize(sw, list);
+            //    return sw.ToString();
+            //}
+
+            XmlWriterX writer = new XmlWriterX();
+            writer.Settings.WriteType = false;
+            writer.Settings.UseObjRef = false;
+            writer.Settings.IgnoreDefault = true;
+            writer.Settings.MemberAsAttribute = true;
+            writer.RootName = "Tables";
+            writer.WriteObject(list);
+            return writer.ToString();
         }
 
         ///// <summary>

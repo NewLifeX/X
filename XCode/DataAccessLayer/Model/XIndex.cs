@@ -9,6 +9,7 @@ namespace XCode.DataAccessLayer
     /// 索引
     /// </summary>
     [Serializable]
+    [XmlRoot("Index")]
     public class XIndex : SerializableDataMember, IDataIndex
     {
         #region 属性

@@ -90,7 +90,7 @@ namespace NewLife.Xml
         protected override void WriteObjectType(Type type)
         {
             //base.WriteObjectType(type);
-            Writer.WriteAttributeString("Type", type.FullName);
+            if (Settings.WriteType) Writer.WriteAttributeString("Type", type.FullName);
         }
         #endregion
 
@@ -141,13 +141,14 @@ namespace NewLife.Xml
         protected override bool OnWriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
             Type t = type;
-            if (t == null && value != null) t = value.GetType();
-            String name = null;
-            if (t != null) name = t.Name;
+            //if (t == null && value != null) t = value.GetType();
+            if (value != null) t = value.GetType();
+            String name = AttributeX.GetCustomAttributeValue<XmlRootAttribute, String>(t, true);
+            if (String.IsNullOrEmpty(name) && t != null) name = t.Name;
 
             Writer.WriteStartElement(name);
 
-           // type = CheckAndWriteType("WriteItemType", value, type);
+            // type = CheckAndWriteType("WriteItemType", value, type);
 
             AutoFlush();
 
@@ -254,10 +255,19 @@ namespace NewLife.Xml
 
             Type t = type;
             if (t == null && value != null) t = value.GetType();
-            String name = null;
-            if (t != null) name = t.Name;
+            String name = RootName;
 
-            if (String.IsNullOrEmpty(RootName)) RootName = name;
+            if (String.IsNullOrEmpty(name))
+            {
+                // 优先采用类型上的XmlRoot特性
+                name = AttributeX.GetCustomAttributeValue<XmlRootAttribute, String>(type, true);
+                if (String.IsNullOrEmpty(name))
+                {
+                    if (t != null) name = GetName(t);
+
+                    if (String.IsNullOrEmpty(RootName)) RootName = name;
+                }
+            }
 
             if (Depth == 1) Writer.WriteStartDocument();
             Writer.WriteStartElement(name);
@@ -389,9 +399,10 @@ namespace NewLife.Xml
             {
                 IXmlSerializable xml = value as IXmlSerializable;
                 // 这里必须额外写一对标记，否则读取的时候只能读取得到模式而得不到数据
-                Writer.WriteStartElement("Data");
+                Boolean b = xml.GetSchema() != null;
+                if (b) Writer.WriteStartElement("Data");
                 xml.WriteXml(Writer);
-                Writer.WriteEndElement();
+                if (b) Writer.WriteEndElement();
 
                 return true;
             }
@@ -399,6 +410,18 @@ namespace NewLife.Xml
             {
                 return base.WriteSerializable(value, type, callback);
             }
+        }
+        #endregion
+
+        #region 辅助方法
+        static String GetName(Type type)
+        {
+            if (type.HasElementType) return "ArrayOf" + GetName(type.GetElementType());
+
+            String name = TypeX.Create(type).Name;
+            name = name.Replace("<", "_");
+            name = name.Replace(">", "_");
+            return name;
         }
         #endregion
     }

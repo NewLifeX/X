@@ -17,6 +17,7 @@ namespace XCode.DataAccessLayer
     /// </summary>
     [DebuggerDisplay("ID={ID} Name={Name} Description={Description}")]
     [Serializable]
+    [XmlRoot("Table")]
     public class XTable : IDataTable, ICloneable
     {
         #region 基本属性

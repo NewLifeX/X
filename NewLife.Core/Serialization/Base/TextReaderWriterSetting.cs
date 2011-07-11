@@ -24,5 +24,13 @@ namespace NewLife.Serialization
             get { return _UseEnumName; }
             set { _UseEnumName = value; }
         }
+
+        private Boolean _WriteType = true;
+        /// <summary>是否输出类型</summary>
+        public Boolean WriteType
+        {
+            get { return _WriteType; }
+            set { _WriteType = value; }
+        }
     }
 }

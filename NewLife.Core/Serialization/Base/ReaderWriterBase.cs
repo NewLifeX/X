@@ -143,8 +143,11 @@ namespace NewLife.Serialization
             if (value == null) return false;
 
             Object def = ObjectInfo.GetDefaultObject(value.GetType());
-
             return Object.Equals(member[value], member[def]);
+            
+            //Object def = ObjectInfo.GetDefaultObject(member.Type);
+
+            //return Object.Equals(member[value], def);
         }
         #endregion
 
