@@ -13,77 +13,77 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 顺序编号
         /// </summary>
-        Int32 ID { get; set; }
+        Int32 ID { get; }
 
         /// <summary>
         /// 名称
         /// </summary>
-        String Name { get; set; }
+        String Name { get; }
 
         /// <summary>
         /// 别名
         /// </summary>
-        String Alias { get; set; }
+        String Alias { get; }
 
         /// <summary>
         /// 数据类型
         /// </summary>
-        Type DataType { get; set; }
+        Type DataType { get; }
 
         /// <summary>
         /// 原始数据类型
         /// </summary>
-        String RawType { get; set; }
+        String RawType { get; }
 
         /// <summary>
         /// 标识
         /// </summary>
-        Boolean Identity { get; set; }
+        Boolean Identity { get; }
 
         /// <summary>
         /// 主键
         /// </summary>
-        Boolean PrimaryKey { get; set; }
+        Boolean PrimaryKey { get; }
 
         /// <summary>
         /// 长度
         /// </summary>
-        Int32 Length { get; set; }
+        Int32 Length { get; }
 
         /// <summary>
         /// 字节数
         /// </summary>
-        Int32 NumOfByte { get; set; }
+        Int32 NumOfByte { get; }
 
         /// <summary>
         /// 精度
         /// </summary>
-        Int32 Precision { get; set; }
+        Int32 Precision { get; }
 
         /// <summary>
         /// 位数
         /// </summary>
-        Int32 Scale { get; set; }
+        Int32 Scale { get; }
 
         /// <summary>
         /// 允许空
         /// </summary>
-        Boolean Nullable { get; set; }
+        Boolean Nullable { get; }
 
         /// <summary>
         /// 是否Unicode
         /// </summary>
-        Boolean IsUnicode { get; set; }
+        Boolean IsUnicode { get; }
 
         /// <summary>
         /// 默认值
         /// </summary>
-        String Default { get; set; }
+        String Default { get; }
 
         /// <summary>
         /// 说明
         /// </summary>
-        String Description { get; set; }
+        String Description { get; }
         #endregion
 
         #region 扩展属性

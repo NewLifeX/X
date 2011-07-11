@@ -424,11 +424,11 @@ namespace XCode.DataAccessLayer
                 {
                     AddColumn(sb, item, onlySql);
 
-                    // 这里必须给dbtable加加上当前列，否则下面如果刚好有删除列的话，会导致增加列成功，然后删除列重建表的时候没有新加的列
-                    //dbtable.Columns.Add(item.Clone(dbtable));
-                    List<IDataColumn> dcs = new List<IDataColumn>(dbtable.Columns);
-                    dcs.Add(item.Clone(dbtable));
-                    dbtable.Columns = dcs.ToArray();
+                    //// 这里必须给dbtable加加上当前列，否则下面如果刚好有删除列的话，会导致增加列成功，然后删除列重建表的时候没有新加的列
+                    ////dbtable.Columns.Add(item.Clone(dbtable));
+                    //List<IDataColumn> dcs = new List<IDataColumn>(dbtable.Columns);
+                    //dcs.Add(item.Clone(dbtable));
+                    //dbtable.Columns = dcs.ToArray();
                 }
             }
             #endregion
@@ -517,12 +517,12 @@ namespace XCode.DataAccessLayer
                             // 特殊处理时间
                             String dv = item.Default;
                             // 如果当前默认值是开发数据库的时间默认值，则修改为当前数据库的时间默认值
-                            if (entityDb.DateTimeNow == item.Default) item.Default = Database.DateTimeNow;
+                            if (entityDb.DateTimeNow == item.Default) (item as XField).Default = Database.DateTimeNow;
 
                             GetSchemaSQL(sb, onlySql, DDLSchema.AddDefault, item);
 
                             // 还原
-                            item.Default = dv;
+                            (item as XField).Default = dv;
                         }
                         else
                             GetSchemaSQL(sb, onlySql, DDLSchema.AddDefault, item);
@@ -565,17 +565,17 @@ namespace XCode.DataAccessLayer
             IDataTable table = TableItem.Create(type).DataTable;
             if (table == null) return null;
 
-            if (!String.IsNullOrEmpty(tablename)) table.Name = tablename;
+            if (!String.IsNullOrEmpty(tablename)) (table as XTable).Name = tablename;
 
-            foreach (IDataColumn f in table.Columns)
-            {
-                if (!String.IsNullOrEmpty(f.Default))
-                {
-                    f.Default = DbBase.Trim(f.Default, "\"", "\"");
-                    f.Default = DbBase.Trim(f.Default, "\'", "\'");
-                    f.Default = DbBase.Trim(f.Default, "(", ")");
-                }
-            }
+            //foreach (IDataColumn f in table.Columns)
+            //{
+            //    if (!String.IsNullOrEmpty(f.Default))
+            //    {
+            //        f.Default = DbBase.Trim(f.Default, "\"", "\"");
+            //        f.Default = DbBase.Trim(f.Default, "\'", "\'");
+            //        f.Default = DbBase.Trim(f.Default, "(", ")");
+            //    }
+            //}
 
             return table;
         }

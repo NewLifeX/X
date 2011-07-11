@@ -75,7 +75,7 @@ namespace XCode.DataAccessLayer
                 List<IDataTable> list = new List<IDataTable>();
                 foreach (DataRow dr in rows)
                 {
-                    IDataTable table = new XTable();
+                    XTable table = new XTable();
                     table.Name = GetDataRowValue<String>(dr, "TABLE_NAME");
 
                     // 顺序、编号
@@ -124,7 +124,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="table"></param>
         /// <param name="dr"></param>
-        protected virtual void FixTable(IDataTable table, DataRow dr) { }
+        protected virtual void FixTable(XTable table, DataRow dr) { }
 
         /// <summary>
         /// 取得指定表的所有列构架
@@ -161,7 +161,8 @@ namespace XCode.DataAccessLayer
             Int32 startIndex = 0;
             foreach (DataRow dr in rows)
             {
-                IDataColumn field = table.CreateColumn();
+                //IDataColumn field = table.CreateColumn();
+                XField field = table.CreateColumn() as XField;
 
                 // 序号
                 Int32 n = 0;
@@ -266,7 +267,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="field"></param>
         /// <param name="dr"></param>
-        protected virtual void FixField(IDataColumn field, DataRow dr)
+        protected virtual void FixField(XField field, DataRow dr)
         {
             ////String typeName = GetDataRowValue<String>(dr, "DATA_TYPE");
             //SetFieldType(field, field.RawType);
@@ -287,7 +288,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field">字段</param>
         /// <param name="drColumn">字段元数据</param>
         /// <param name="drDataType">字段匹配的数据类型</param>
-        protected virtual void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
+        protected virtual void FixField(XField field, DataRow drColumn, DataRow drDataType)
         {
             String typeName = field.RawType;
 

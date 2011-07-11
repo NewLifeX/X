@@ -89,8 +89,8 @@
     <Compile Include="Event\WeakEventHandler.cs" />
     <Compile Include="Exceptions\XException.cs" />
     <Compile Include="IO\BinaryTest.cs" />
-    <Compile Include="IOModule\StreamHttpHandler.cs" />
-    <Compile Include="IOModule\IStreamHandler.cs" />
+    <Compile Include="IOModel\StreamHttpHandler.cs" />
+    <Compile Include="IOModel\IStreamHandler.cs" />
     <Compile Include="IO\IOHelper.cs" />
     <Compile Include="Log\TraceStream.cs" />
     <Compile Include="Log\TextFileLog.cs" />
@@ -114,8 +114,8 @@
     <Compile Include="Serialization\Base\ReaderBase.cs" />
     <Compile Include="Serialization\Base\ReaderWriterBase.cs" />
     <Compile Include="IO\ReadWriteStream.cs" />
-    <Compile Include="IOModule\StreamClient.cs" />
-    <Compile Include="IOModule\HttpStreamClient.cs" />
+    <Compile Include="IOModel\StreamClient.cs" />
+    <Compile Include="IOModel\HttpStreamClient.cs" />
     <Compile Include="Serialization\Info\ReflectMemberInfo.cs" />
     <Compile Include="Serialization\Info\SimpleMemberInfo.cs" />
     <Compile Include="Serialization\Info\ObjectInfo.cs" />
@@ -243,7 +243,7 @@
     </EmbeddedResource>
     <None Include="Serialization\序列化架构.edx" />
     <None Include="Serialization\读写器模型.cd" />
-    <None Include="IOModule\数据流总线模型.cd" />
+    <None Include="IOModel\数据流总线模型.cd" />
     <None Include="Messaging\消息总线模型.cd" />
   </ItemGroup>
   <ItemGroup />

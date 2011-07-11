@@ -429,7 +429,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected override void FixTable(IDataTable table, DataRow dr)
+        protected override void FixTable(XTable table, DataRow dr)
         {
             base.FixTable(table, dr);
 
@@ -453,7 +453,7 @@ namespace XCode.DataAccessLayer
                 String name = String.Format("SEQ_{0}_{1}", table.Name, field.Name);
                 if (CheckSeqExists(name))
                 {
-                    field.Identity = true;
+                    (field as XField).Identity = true;
                     exists = true;
                     break;
                 }
@@ -471,7 +471,7 @@ namespace XCode.DataAccessLayer
                             field.DataType != typeof(Int32) &&
                             field.DataType != typeof(Int64))) continue;
 
-                        field.Identity = true;
+                        (field as XField).Identity = true;
                         exists = true;
                         break;
                     }
@@ -488,7 +488,7 @@ namespace XCode.DataAccessLayer
                         code == TypeCode.Int64 || code == TypeCode.UInt64
                         )
                     {
-                        if (field.PrimaryKey && field.Name.ToLower().Contains("id")) field.Identity = true;
+                        if (field.PrimaryKey && field.Name.ToLower().Contains("id")) (field as XField).Identity = true;
                     }
                 }
             }
@@ -572,7 +572,7 @@ namespace XCode.DataAccessLayer
                     //drs = dt.Select(String.Format("COLUMN_NAME='{0}'", field.Name));
                     //if (drs != null && drs.Length > 0) field.Description = GetDataRowValue<String>(drs[0], "COMMENTS");
 
-                    field.Description = GetColumnComment(table.Name, field.Name);
+                    (field as XField).Description = GetColumnComment(table.Name, field.Name);
                 }
             }
 
@@ -598,7 +598,7 @@ namespace XCode.DataAccessLayer
             return null;
         }
 
-        protected override void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
+        protected override void FixField(XField field, DataRow drColumn, DataRow drDataType)
         {
             base.FixField(field, drColumn, drDataType);
 

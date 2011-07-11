@@ -431,7 +431,8 @@ namespace NewLife.Reflection
             }
             else
             {
-                if (!type.IsAssignableFrom(BaseType)) return false;
+                //if (!type.IsAssignableFrom(BaseType)) return false;
+                if (!BaseType.IsAssignableFrom(type)) return false;
             }
 
             return true;
@@ -751,10 +752,17 @@ namespace NewLife.Reflection
             if (conversionType.IsEnum) return Enum.ToObject(conversionType, value);
 
             // 字符串转为货币类型，处理一下
-            if (vtype == typeof(String) && Type.GetTypeCode(conversionType) == TypeCode.Decimal)
+            if (vtype == typeof(String))
             {
-                String str = (String)value;
-                value = str.TrimStart(new Char[] { '$', '￥' });
+                if (Type.GetTypeCode(conversionType) == TypeCode.Decimal)
+                {
+                    String str = (String)value;
+                    value = str.TrimStart(new Char[] { '$', '￥' });
+                }
+                else if (typeof(Type).IsAssignableFrom(conversionType))
+                {
+                    return GetType((String)value, true);
+                }
             }
 
             if (value != null)

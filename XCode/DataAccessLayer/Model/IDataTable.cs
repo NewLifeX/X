@@ -13,54 +13,54 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 编号
         /// </summary>
-        Int32 ID { get; set; }
+        Int32 ID { get; }
 
         /// <summary>
         /// 名称
         /// </summary>
-        String Name { get; set; }
+        String Name { get; }
 
         /// <summary>
         /// 别名
         /// </summary>
-        String Alias { get; set; }
+        String Alias { get; }
 
         /// <summary>
         /// 所有者
         /// </summary>
-        String Owner { get; set; }
+        String Owner { get; }
 
         /// <summary>
         /// 数据库类型
         /// </summary>
-        DatabaseType DbType { get; set; }
+        DatabaseType DbType { get; }
 
         /// <summary>
         /// 是否视图
         /// </summary>
-        Boolean IsView { get; set; }
+        Boolean IsView { get; }
 
         /// <summary>
         /// 说明
         /// </summary>
-        String Description { get; set; }
+        String Description { get; }
         #endregion
 
         #region 扩展属性
         /// <summary>
         /// 数据列集合
         /// </summary>
-        IDataColumn[] Columns { get; set; }
+        IDataColumn[] Columns { get; }
 
         /// <summary>
-        /// 数据外键集合
+        /// 数据关系集合
         /// </summary>
-        IDataForeignKey[] ForeignKeys { get; set; }
+        IDataRelation[] Relations { get; }
 
         /// <summary>
         /// 数据索引集合
         /// </summary>
-        IDataIndex[] Indexes { get; set; }
+        IDataIndex[] Indexes { get; }
         #endregion
 
         #region 方法
@@ -71,10 +71,10 @@ namespace XCode.DataAccessLayer
         IDataColumn CreateColumn();
 
         /// <summary>
-        /// 创建数据外键
+        /// 创建数据关系
         /// </summary>
         /// <returns></returns>
-        IDataForeignKey CreateForeignKey();
+        IDataRelation CreateRelation();
 
         /// <summary>
         /// 创建数据索引

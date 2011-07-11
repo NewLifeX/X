@@ -8,7 +8,7 @@ namespace XCode.DataAccessLayer
     /// 索引
     /// </summary>
     [Serializable]
-    class XIndex : IDataIndex
+    public class XIndex : IDataIndex
     {
         #region 属性
         private String _Name;

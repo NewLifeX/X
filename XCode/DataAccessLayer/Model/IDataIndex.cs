@@ -13,17 +13,17 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 名称
         /// </summary>
-        String Name { get; set; }
+        String Name { get; }
 
         /// <summary>
         /// 数据列集合
         /// </summary>
-        String[] Columns { get; set; }
+        String[] Columns { get; }
 
         /// <summary>
         /// 是否唯一
         /// </summary>
-        Boolean Unique { get; set; }
+        Boolean Unique { get; }
         #endregion
 
         #region 扩展属性

@@ -144,25 +144,28 @@ namespace XCode.Configuration
 
             if (field == null) return;
 
-            field.Name = ColumnName;
-            field.DataType = Property.PropertyType;
-            field.Description = Description;
+            XField xf = field as XField;
+            if (xf == null) return;
+
+            xf.Name = ColumnName;
+            xf.DataType = Property.PropertyType;
+            xf.Description = Description;
 
             if (Column != null)
             {
-                field.ID = Column.Order;
-                field.RawType = Column.RawType;
-                field.Precision = Column.Precision;
-                field.Scale = Column.Scale;
-                field.IsUnicode = Column.IsUnicode;
-                field.Default = Column.DefaultValue;
+                xf.ID = Column.Order;
+                xf.RawType = Column.RawType;
+                xf.Precision = Column.Precision;
+                xf.Scale = Column.Scale;
+                xf.IsUnicode = Column.IsUnicode;
+                xf.Default = Column.DefaultValue;
             }
             if (DataObjectField != null)
             {
-                field.Length = DataObjectField.Length;
-                field.Identity = DataObjectField.IsIdentity;
-                field.PrimaryKey = DataObjectField.PrimaryKey;
-                field.Nullable = DataObjectField.IsNullable;
+                xf.Length = DataObjectField.Length;
+                xf.Identity = DataObjectField.IsIdentity;
+                xf.PrimaryKey = DataObjectField.PrimaryKey;
+                xf.Nullable = DataObjectField.IsNullable;
             }
         }
         #endregion

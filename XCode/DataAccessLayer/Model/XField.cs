@@ -176,138 +176,8 @@ namespace XCode.DataAccessLayer
             private set { _Table = value; }
         }
 
+        [XmlIgnore]
         IDataTable IDataColumn.Table { get { return Table; } }
-        #endregion
-
-        #region 方法
-        ///// <summary>
-        ///// 取得经过修饰的属性名，由子类实现
-        ///// </summary>
-        ///// <returns></returns>
-        //public virtual String GetPropertyName()
-        //{
-        //    return Name;
-        //}
-
-        ///// <summary>
-        ///// 取得经过修饰的属性说明，由子类实现
-        ///// </summary>
-        ///// <returns></returns>
-        //public virtual String GetPropertyDescription()
-        //{
-        //    return Description;
-        //}
-        #endregion
-
-        #region 中英对照表
-        /// <summary>
-        /// 英文名
-        /// </summary>
-        public static readonly String[] ENames = new String[] { "ID", "Name", "DataType", "FieldType", "RawType", "Identity", "PrimaryKey", "Length", "NumOfByte", "Digit", "Nullable", "Default", "Description" };
-
-        /// <summary>
-        /// 中文名
-        /// </summary>
-        public static readonly String[] CNames = new String[] { "字段序号", "字段名", "数据类型", "类型", "原始数据类型", "标识", "主键", "长度", "占用字节数", "小数位数", "允许空", "默认值", "字段说明" };
-        #endregion
-
-        #region 属性信息
-        private static IList<PropertyInfo> _PropertyInfos;
-        /// <summary>
-        /// 属性信息
-        /// </summary>
-        private static IList<PropertyInfo> PropertyInfos
-        {
-            get
-            {
-                if (_PropertyInfos != null) return _PropertyInfos;
-                _PropertyInfos = new List<PropertyInfo>(typeof(XField).GetProperties());
-                return _PropertyInfos;
-            }
-        }
-        #endregion
-
-        #region 加载数据
-        /// <summary>
-        /// 英文名转中文名
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public static String CNameByEName(String name)
-        {
-            if (String.IsNullOrEmpty(name)) return null;
-            for (Int32 i = 0; i < ENames.Length; i++)
-            {
-                if (ENames[i] == name) return CNames[i];
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// 中文名转英文名
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public static String ENameByCName(String name)
-        {
-            if (String.IsNullOrEmpty(name)) return null;
-            for (Int32 i = 0; i < CNames.Length; i++)
-            {
-                if (CNames[i] == name) return ENames[i];
-            }
-            return null;
-        }
-        #endregion
-
-        #region 比较
-        /// <summary>
-        /// 重载相等操作符
-        /// </summary>
-        public static bool operator ==(XField field1, XField field2)
-        {
-            return Object.Equals(field1, field2);
-        }
-        /// <summary>
-        /// 重载不等操作符
-        /// </summary>
-        public static bool operator !=(XField field1, XField field2)
-        {
-            return !(field1 == field2);//调用==，取反
-        }
-
-        /// <summary>
-        /// 用作特定类型的哈希函数。
-        /// </summary>
-        /// <returns></returns>
-        public override Int32 GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-
-        /// <summary>
-        /// 确定指定的 Object 是否等于当前的 Object。
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public override bool Equals(object obj)
-        {
-            if (obj == null) return false;
-            XField field = obj as XField;
-            if (field == null) return false;
-
-            if (this.Name != field.Name) return false;
-            if (this.DataType != field.DataType) return false;
-            if (this.Identity != field.Identity) return false;
-            if (this.PrimaryKey != field.PrimaryKey) return false;
-            if (this.Length != field.Length) return false;
-            if (this.NumOfByte != field.NumOfByte) return false;
-            if (this.Scale != field.Scale) return false;
-            if (this.Nullable != field.Nullable) return false;
-            if (this.Default != field.Default) return false;
-            if (this.Description != field.Description) return false;
-
-            return true;
-        }
         #endregion
 
         #region 方法
@@ -323,7 +193,7 @@ namespace XCode.DataAccessLayer
 
         #region ICloneable 成员
         /// <summary>
-        /// /// 克隆
+        /// 克隆
         /// </summary>
         /// <returns></returns>
         object ICloneable.Clone()
@@ -360,11 +230,12 @@ namespace XCode.DataAccessLayer
                 String v = reader.GetAttribute(item.Name);
                 if (String.IsNullOrEmpty(v)) continue;
 
-                Object obj = null;
-                if (item.Type == typeof(Type))
-                    obj = TypeX.GetType(v);
-                else
-                    obj = Convert.ChangeType(v, item.Type);
+                //Object obj = null;
+                //if (item.Type == typeof(Type))
+                //    obj = TypeX.GetType(v);
+                //else
+                //    obj = Convert.ChangeType(v, item.Type);
+                Object obj = TypeX.ChangeType(v, item.Type);
                 item.SetValue(this, obj);
             }
             reader.Skip();

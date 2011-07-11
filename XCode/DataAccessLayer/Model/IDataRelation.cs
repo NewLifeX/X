@@ -5,20 +5,20 @@ using System.Text;
 namespace XCode.DataAccessLayer
 {
     /// <summary>
-    /// 数据外键
+    /// 数据关系
     /// </summary>
-    public interface IDataForeignKey
+    public interface IDataRelation
     {
         #region 属性
         /// <summary>
         /// 引用表
         /// </summary>
-        String ForeignTable { get; set; }
+        String RelationTable { get; }
 
         /// <summary>
         /// 引用列
         /// </summary>
-        String ForeignColumn { get; set; }
+        String RelationColumn { get; }
         #endregion
 
         #region 扩展属性

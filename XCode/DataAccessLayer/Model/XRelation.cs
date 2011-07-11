@@ -5,15 +5,15 @@ using System.Text;
 namespace XCode.DataAccessLayer
 {
     /// <summary>
-    /// 外键
+    /// 数据关系
     /// </summary>
     [Serializable]
-    class XForeignKey : IDataForeignKey
+    public class XRelation : IDataRelation
     {
-        #region IDataForeignKey 成员
+        #region 属性
         private String _ForeignTable;
         /// <summary>外部表</summary>
-        public String ForeignTable
+        public String RelationTable
         {
             get { return _ForeignTable; }
             set { _ForeignTable = value; }
@@ -21,7 +21,7 @@ namespace XCode.DataAccessLayer
 
         private String _ForeignColumn;
         /// <summary>外部列</summary>
-        public String ForeignColumn
+        public String RelationColumn
         {
             get { return _ForeignColumn; }
             set { _ForeignColumn = value; }

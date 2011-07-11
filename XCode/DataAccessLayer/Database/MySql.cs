@@ -197,7 +197,7 @@ namespace XCode.DataAccessLayer
     /// </summary>
     class MySqlMetaData : RemoteDbMetaData
     {
-        protected override void FixTable(IDataTable table, DataRow dr)
+        protected override void FixTable(XTable table, DataRow dr)
         {
             // 注释
             String comment = null;
@@ -206,7 +206,7 @@ namespace XCode.DataAccessLayer
             base.FixTable(table, dr);
         }
 
-        protected override void FixField(IDataColumn field, DataRow dr)
+        protected override void FixField(XField field, DataRow dr)
         {
             // 修正原始类型
             String rawType = null;

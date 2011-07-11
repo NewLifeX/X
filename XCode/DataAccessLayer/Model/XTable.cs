@@ -19,7 +19,6 @@ namespace XCode.DataAccessLayer
     [Serializable]
     public class XTable : IDataTable, ICloneable
     {
-        #region 属性
         #region 基本属性
         private Int32 _ID;
         /// <summary>
@@ -82,13 +81,31 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
+        #region 扩展属性
         private IDataColumn[] _Columns;
         /// <summary>
         /// 字段集合。
         /// </summary>
         [XmlArray]
         [Description("字段集合")]
-        public IDataColumn[] Columns { get { return _Columns; } set { _Columns = value; } }
+        public IDataColumn[] Columns
+        {
+            get { return _Columns; }
+            set
+            {
+                _Columns = value;
+                if (value == null)
+                    _Fields = null;
+                else
+                {
+                    _Fields = new List<XField>();
+                    foreach (IDataColumn item in value)
+                    {
+                        if (item is XField) _Fields.Add(item as XField);
+                    }
+                }
+            }
+        }
 
         private List<XField> _Fields;
         /// <summary>
@@ -105,16 +122,27 @@ namespace XCode.DataAccessLayer
             set
             {
                 _Fields = value;
+                if (value == null)
+                    _Columns = null;
+                else
+                {
+                    List<IDataColumn> list = new List<IDataColumn>();
+                    foreach (XField item in value)
+                    {
+                        list.Add(item);
+                    }
+                    _Columns = list.ToArray();
+                }
             }
         }
 
-        private IDataForeignKey[] _ForeignKeys;
+        private IDataRelation[] _ForeignKeys;
         /// <summary>
         /// 外键集合。
         /// </summary>
         [XmlArray]
         [Description("外键集合")]
-        public IDataForeignKey[] ForeignKeys { get { return _ForeignKeys; } set { _ForeignKeys = value; } }
+        public IDataRelation[] Relations { get { return _ForeignKeys; } set { _ForeignKeys = value; } }
 
         private IDataIndex[] _Indexes;
         /// <summary>
@@ -152,9 +180,9 @@ namespace XCode.DataAccessLayer
         /// 创建外键
         /// </summary>
         /// <returns></returns>
-        public virtual IDataForeignKey CreateForeignKey()
+        public virtual IDataRelation CreateRelation()
         {
-            XForeignKey fk = new XForeignKey();
+            XRelation fk = new XRelation();
             fk.Table = this;
             return fk;
         }
@@ -181,72 +209,6 @@ namespace XCode.DataAccessLayer
             else
                 return Name;
         }
-        #endregion
-
-        #region 比较
-        ///// <summary>
-        ///// 重载相等操作符
-        ///// </summary>
-        //public static bool operator ==(XTable table1, XTable table2)
-        //{
-        //    return Object.Equals(table1, table2);
-        //}
-        ///// <summary>
-        ///// 重载不等操作符
-        ///// </summary>
-        //public static bool operator !=(XTable table1, XTable table2)
-        //{
-        //    return !(table1 == table2);//调用==，取反
-        //}
-
-        ///// <summary>
-        ///// 用作特定类型的哈希函数。
-        ///// </summary>
-        ///// <returns></returns>
-        //public override Int32 GetHashCode()
-        //{
-        //    return base.GetHashCode();
-        //}
-
-        ///// <summary>
-        ///// 确定指定的 Object 是否等于当前的 Object。
-        ///// </summary>
-        ///// <param name="obj"></param>
-        ///// <returns></returns>
-        //public override bool Equals(object obj)
-        //{
-        //    if (obj == null) return false;
-        //    XTable table = obj as XTable;
-        //    if (table == null) return false;
-
-        //    if (this.Name != table.Name) return false;
-        //    if (this.Description != table.Description) return false;
-        //    if (this.IsView != table.IsView) return false;
-
-        //    //比较字段
-        //    List<XField> list1 = new List<XField>(Fields);
-        //    List<XField> list2 = new List<XField>(table.Fields);
-        //    foreach (XField item in list1)
-        //    {
-        //        XField match = null;
-        //        //在第二个列表里面找该字段
-        //        foreach (XField elm in list2)
-        //        {
-        //            if (item == elm)
-        //            {
-        //                match = elm;
-        //                break;
-        //            }
-        //        }
-        //        //如果找不到，表明第二个列表没有该字段
-        //        if (match == null) return false;
-        //        list2.Remove(match);
-        //    }
-        //    //如果第二个列表还不为空，表明字段数不对应
-        //    if (list2.Count > 0) return false;
-
-        //    return true;
-        //}
         #endregion
 
         #region 导入导出

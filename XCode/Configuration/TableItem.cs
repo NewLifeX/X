@@ -212,7 +212,7 @@ namespace XCode.Configuration
             //hasInitFields = true;
 
             BindTableAttribute bt = Table;
-            IDataTable table = new XTable();
+            XTable table = new XTable();
             table.Name = bt.Name;
             table.Alias = EntityType.Name;
             table.DbType = bt.DbType;

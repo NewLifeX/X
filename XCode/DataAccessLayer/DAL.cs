@@ -673,43 +673,43 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 导入架构信息
-        /// </summary>
-        /// <param name="xml"></param>
-        /// <returns></returns>
-        public static List<IDataTable> Import(String xml)
-        {
-            if (String.IsNullOrEmpty(xml)) return null;
+        ///// <summary>
+        ///// 导入架构信息
+        ///// </summary>
+        ///// <param name="xml"></param>
+        ///// <returns></returns>
+        //public static List<IDataTable> Import(String xml)
+        //{
+        //    if (String.IsNullOrEmpty(xml)) return null;
 
-            List<IDataTable> list = null;
-            XmlSerializer serializer = new XmlSerializer(typeof(List<IDataTable>));
-            using (StringReader sr = new StringReader(xml))
-            {
-                list = serializer.Deserialize(sr) as List<IDataTable>;
-            }
+        //    List<IDataTable> list = null;
+        //    XmlSerializer serializer = new XmlSerializer(typeof(List<IDataTable>));
+        //    using (StringReader sr = new StringReader(xml))
+        //    {
+        //        list = serializer.Deserialize(sr) as List<IDataTable>;
+        //    }
 
-            if (list == null || list.Count < 1) return list;
+        //    if (list == null || list.Count < 1) return list;
 
-            // 修正字段中的Table引用
-            foreach (IDataTable item in list)
-            {
-                if (item.Columns == null || item.Columns.Length < 1) continue;
+        //    // 修正字段中的Table引用
+        //    foreach (IDataTable item in list)
+        //    {
+        //        if (item.Columns == null || item.Columns.Length < 1) continue;
 
-                //foreach (IDataColumn field in item.Fields)
-                //{
-                //    if (field.Table == null) field.Table = item;
-                //}
-                List<IDataColumn> fs = new List<IDataColumn>();
-                foreach (IDataColumn field in item.Columns)
-                {
-                    fs.Add(field.Clone(item));
-                }
-                item.Columns = fs.ToArray();
-            }
+        //        //foreach (IDataColumn field in item.Fields)
+        //        //{
+        //        //    if (field.Table == null) field.Table = item;
+        //        //}
+        //        List<IDataColumn> fs = new List<IDataColumn>();
+        //        foreach (IDataColumn field in item.Columns)
+        //        {
+        //            fs.Add(field.Clone(item));
+        //        }
+        //        item.Columns = fs.ToArray();
+        //    }
 
-            return list;
-        }
+        //    return list;
+        //}
         #endregion
 
         #region 创建数据操作实体

@@ -450,16 +450,50 @@ namespace XCode.DataAccessLayer
                 oldfield.DataType == typeof(Int64) && oldfield.Identity)
                 return String.Empty;
 
-            return ReBuildTable(field.Table, field.Table.Columns, oldfield.Table.Columns);
+            // 重新拿字段，得到最新的
+            List<IDataColumn> list = GetFields(field.Table);
+            Int32 n = -1;
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].Name == oldfield.Name)
+                {
+                    n = i;
+                    break;
+                }
+            }
+            if (n < 0) return null;
+
+            IDataColumn[] oldColumns = list.ToArray();
+            list[n] = field;
+            IDataColumn[] newColumns = list.ToArray();
+
+            return ReBuildTable(field.Table, newColumns, oldColumns);
         }
 
         public override string DropColumnSQL(IDataColumn field)
         {
             IDataTable table = field.Table;
-            List<IDataColumn> list = new List<IDataColumn>(table.Columns);
-            if (list.Contains(field)) list.Remove(field);
+            //List<IDataColumn> list = new List<IDataColumn>(table.Columns);
+            //if (list.Contains(field)) list.Remove(field);
 
-            return ReBuildTable(table, list.ToArray(), table.Columns);
+            // 重新拿字段，得到最新的
+            List<IDataColumn> list = GetFields(table);
+            Int32 n = -1;
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].Name == field.Name)
+                {
+                    n = i;
+                    break;
+                }
+            }
+            if (n < 0) return null;
+
+            IDataColumn[] oldColumns = list.ToArray();
+            list.RemoveAt(n);
+            IDataColumn[] newColumns = list.ToArray();
+
+            return ReBuildTable(table, newColumns, oldColumns);
         }
 
         /// <summary>
