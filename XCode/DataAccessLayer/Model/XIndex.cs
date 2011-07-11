@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace XCode.DataAccessLayer
 {
@@ -8,7 +9,7 @@ namespace XCode.DataAccessLayer
     /// 索引
     /// </summary>
     [Serializable]
-    public class XIndex : IDataIndex
+    public class XIndex : SerializableDataMember, IDataIndex
     {
         #region 属性
         private String _Name;
@@ -23,14 +24,6 @@ namespace XCode.DataAccessLayer
             set { _Name = value; }
         }
 
-        private String[] _Columns;
-        /// <summary>数据列集合</summary>
-        public String[] Columns
-        {
-            get { return _Columns; }
-            set { _Columns = value; Name = null; }
-        }
-
         private Boolean _Unique;
         /// <summary>是否唯一</summary>
         public Boolean Unique
@@ -38,11 +31,21 @@ namespace XCode.DataAccessLayer
             get { return _Unique; }
             set { _Unique = value; }
         }
+
+        private String[] _Columns;
+        /// <summary>数据列集合</summary>
+        public String[] Columns
+        {
+            get { return _Columns; }
+            set { _Columns = value; Name = null; }
+        }
         #endregion
 
         #region 扩展属性
+        [NonSerialized]
         private IDataTable _Table;
         /// <summary>表</summary>
+        [XmlIgnore]
         public IDataTable Table
         {
             get { return _Table; }

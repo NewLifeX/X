@@ -13,7 +13,7 @@ namespace XCode.DataAccessLayer
     /// 字段构架
     /// </summary>
     [Serializable]
-    public class XField : IDataColumn, ICloneable, IXmlSerializable
+    public class XField : SerializableDataMember, IDataColumn, ICloneable
     {
         #region 属性
         private Int32 _ID;
@@ -144,6 +144,21 @@ namespace XCode.DataAccessLayer
         public String Description { get { return _Description; } set { _Description = value; } }
         #endregion
 
+        #region 扩展属性
+        [NonSerialized]
+        private XTable _Table;
+        /// <summary>表架构</summary>
+        [XmlIgnore]
+        public XTable Table
+        {
+            get { return _Table; }
+            private set { _Table = value; }
+        }
+
+        [XmlIgnore]
+        IDataTable IDataColumn.Table { get { return Table; } }
+        #endregion
+
         #region 构造
         private XField() { }
 
@@ -163,21 +178,6 @@ namespace XCode.DataAccessLayer
 
             return new XField(table);
         }
-        #endregion
-
-        #region 扩展属性
-        [NonSerialized]
-        private XTable _Table;
-        /// <summary>表架构</summary>
-        [XmlIgnore]
-        public XTable Table
-        {
-            get { return _Table; }
-            private set { _Table = value; }
-        }
-
-        [XmlIgnore]
-        IDataTable IDataColumn.Table { get { return Table; } }
         #endregion
 
         #region 方法
@@ -211,52 +211,6 @@ namespace XCode.DataAccessLayer
             XField field = base.MemberwiseClone() as XField;
             field.Table = table as XTable;
             return field;
-        }
-        #endregion
-
-        #region IXmlSerializable 成员
-        XmlSchema IXmlSerializable.GetSchema()
-        {
-            return null;
-        }
-
-        void IXmlSerializable.ReadXml(XmlReader reader)
-        {
-            foreach (PropertyInfoX item in TypeX.Create(this.GetType()).Properties)
-            {
-                if (!item.Property.CanRead) continue;
-                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;
-
-                String v = reader.GetAttribute(item.Name);
-                if (String.IsNullOrEmpty(v)) continue;
-
-                //Object obj = null;
-                //if (item.Type == typeof(Type))
-                //    obj = TypeX.GetType(v);
-                //else
-                //    obj = Convert.ChangeType(v, item.Type);
-                Object obj = TypeX.ChangeType(v, item.Type);
-                item.SetValue(this, obj);
-            }
-            reader.Skip();
-        }
-
-        static XField def = new XField();
-
-        void IXmlSerializable.WriteXml(XmlWriter writer)
-        {
-            foreach (PropertyInfoX item in TypeX.Create(this.GetType()).Properties)
-            {
-                if (!item.Property.CanWrite) continue;
-                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;
-
-                Object obj = item.GetValue(this);
-                // 默认值不参与序列化，节省空间
-                if (Object.Equals(obj, item.GetValue(def))) continue;
-
-                if (item.Type == typeof(Type)) obj = (obj as Type).Name;
-                writer.WriteAttributeString(item.Name, obj == null ? null : obj.ToString());
-            }
         }
         #endregion
     }

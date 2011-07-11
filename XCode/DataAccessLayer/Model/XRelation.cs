@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace XCode.DataAccessLayer
 {
@@ -27,8 +28,10 @@ namespace XCode.DataAccessLayer
             set { _ForeignColumn = value; }
         }
 
+        [NonSerialized]
         private IDataTable _Table;
         /// <summary>表</summary>
+        [XmlIgnore]
         public IDataTable Table
         {
             get { return _Table; }
