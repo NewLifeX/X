@@ -817,6 +817,26 @@ namespace NewLife.Reflection
         //        object.ReferenceEquals(nullableType.GetGenericTypeDefinition(), typeof(Nullable<>))) type = nullableType.GetGenericArguments()[0];
         //    return type;
         //}
+
+        /// <summary>
+        /// 从参数数组中获取类型数组
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static Type[] GetTypeArray(object[] args)
+        {
+            if (args == null) return Type.EmptyTypes;
+
+            Type[] typeArray = new Type[args.Length];
+            for (int i = 0; i < typeArray.Length; i++)
+            {
+                if (args[i] == null)
+                    typeArray[i] = typeof(Object);
+                else
+                    typeArray[i] = args[i].GetType();
+            }
+            return typeArray;
+        }
         #endregion
 
         #region 类型转换

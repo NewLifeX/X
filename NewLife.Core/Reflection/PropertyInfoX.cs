@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using NewLife.Collections;
+using NewLife.Exceptions;
 
 namespace NewLife.Reflection
 {
@@ -231,6 +232,22 @@ namespace NewLife.Reflection
             SetHandler.Invoke(obj, value);
         }
 
+        static Object GetValue(Type type, Object target, String name)
+        {
+            PropertyInfoX pix = Create(type, name);
+            if (pix == null) throw new XException("类{0}中无法找到{1}属性！", type.Name, name);
+
+            return pix.GetValue(target);
+        }
+
+        static void SetValue(Type type, Object target, String name, Object value)
+        {
+            PropertyInfoX pix = Create(type, name);
+            if (pix == null) throw new XException("类{0}中无法找到{1}属性！", type.Name, name);
+
+            pix.SetValue(target, value);
+        }
+
         /// <summary>
         /// 静态快速取值
         /// </summary>
@@ -240,12 +257,25 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static TResult GetValue<TResult>(Object target, String name)
         {
-            if (target == null || String.IsNullOrEmpty(name)) return default(TResult);
+            //if (target == null || String.IsNullOrEmpty(name)) return default(TResult);
+            if (target == null) throw new ArgumentNullException("target");
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            PropertyInfoX pix = Create(target.GetType(), name);
-            if (pix == null) return default(TResult);
+            return (TResult)GetValue(target.GetType(), target, name);
+        }
 
-            return (TResult)pix.GetValue(target);
+        /// <summary>
+        /// 快速获取静态属性
+        /// </summary>
+        /// <typeparam name="TTarget"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static TResult GetValue<TTarget, TResult>(String name)
+        {
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
+            return (TResult)GetValue(typeof(TTarget), null, name);
         }
 
         /// <summary>
@@ -256,12 +286,24 @@ namespace NewLife.Reflection
         /// <param name="value"></param>
         public static void SetValue(Object target, String name, Object value)
         {
-            if (target == null || String.IsNullOrEmpty(name)) return;
+            //if (target == null || String.IsNullOrEmpty(name)) return;
+            if (target == null) throw new ArgumentNullException("target");
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            PropertyInfoX pix = Create(target.GetType(), name);
-            if (pix == null) return;
+            SetValue(target.GetType(), target, name, value);
+        }
 
-            pix.SetValue(target, value);
+        /// <summary>
+        /// 快速设置静态属性
+        /// </summary>
+        /// <typeparam name="TTarget"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public static void SetValue<TTarget>(String name, Object value)
+        {
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
+            SetValue(typeof(TTarget), null, name, value);
         }
         #endregion
 

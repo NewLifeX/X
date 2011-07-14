@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using NewLife.Collections;
 using System.Collections;
+using NewLife.Exceptions;
 
 namespace NewLife.Reflection
 {
@@ -214,12 +215,11 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static TResult Invoke<TResult>(Object target, String name, params  Object[] parameters)
         {
-            if (target == null || String.IsNullOrEmpty(name)) return default(TResult);
+            if (target == null) throw new ArgumentNullException("target");
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            //// 如果传入的是Type，则调用静态方法，也就是说该方法无法处理Type及其子类
-            //Type type = (target is Type) ? (target as Type) : target.GetType();
-            MethodInfoX mix = Create(target.GetType(), name);
-            if (mix == null) return default(TResult);
+            MethodInfoX mix = Create(target.GetType(), name, TypeX.GetTypeArray(parameters));
+            if (mix == null) throw new XException("类{0}中无法找到{1}方法！", target.GetType().Name, name);
 
             return (TResult)mix.Invoke(target, parameters);
         }
@@ -232,12 +232,12 @@ namespace NewLife.Reflection
         /// <param name="name"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public static TResult InvokeStatic<TTarget, TResult>(String name, params  Object[] parameters)
+        public static TResult Invoke<TTarget, TResult>(String name, params  Object[] parameters)
         {
-            if (String.IsNullOrEmpty(name)) return default(TResult);
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            MethodInfoX mix = Create(typeof(TTarget), name);
-            if (mix == null) return default(TResult);
+            MethodInfoX mix = Create(typeof(TTarget), name, TypeX.GetTypeArray(parameters));
+            if (mix == null) throw new XException("类{0}中无法找到{1}方法！", typeof(TTarget).Name, name);
 
             return (TResult)mix.Invoke(null, parameters);
         }
@@ -252,10 +252,11 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static TResult InvokeByDictionaryParameter<TResult>(Object target, String name, IDictionary parameters)
         {
-            if (target == null || String.IsNullOrEmpty(name)) return default(TResult);
+            if (target == null) throw new ArgumentNullException("target");
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
             MethodInfoX mix = Create(target.GetType(), name);
-            if (mix == null) return default(TResult);
+            if (mix == null) throw new XException("类{0}中无法找到{1}方法！", target.GetType().Name, name);
 
             return (TResult)mix.InvokeByDictionaryParameter(target, parameters);
         }
@@ -268,12 +269,12 @@ namespace NewLife.Reflection
         /// <param name="name"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public static TResult InvokeStaticByDictionaryParameter<TTarget, TResult>(String name, IDictionary parameters)
+        public static TResult InvokeByDictionaryParameter<TTarget, TResult>(String name, IDictionary parameters)
         {
-            if (String.IsNullOrEmpty(name)) return default(TResult);
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
             MethodInfoX mix = Create(typeof(TTarget), name);
-            if (mix == null) return default(TResult);
+            if (mix == null) throw new XException("类{0}中无法找到{1}方法！", typeof(TTarget).Name, name);
 
             return (TResult)mix.InvokeByDictionaryParameter(null, parameters);
         }

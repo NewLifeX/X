@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using NewLife.Collections;
+using NewLife.Exceptions;
 
 namespace NewLife.Reflection
 {
@@ -244,21 +245,49 @@ namespace NewLife.Reflection
                 SetHandler.Invoke(obj, value);
         }
 
+        static Object GetValue(Type type, Object target, String name)
+        {
+            FieldInfoX fix = Create(type, name);
+            if (fix == null) throw new XException("类{0}中无法找到{1}字段！", type.Name, name);
+
+            return fix.GetValue(target);
+        }
+
+        static void SetValue(Type type, Object target, String name, Object value)
+        {
+            FieldInfoX fix = Create(type, name);
+            if (fix == null) throw new XException("类{0}中无法找到{1}字段！", type.Name, name);
+
+            fix.SetValue(target, value);
+        }
+
         /// <summary>
         /// 静态快速取值
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
         /// <param name="target"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static T GetValue<T>(Object target, String name)
+        public static TResult GetValue<TResult>(Object target, String name)
         {
-            if (target == null || String.IsNullOrEmpty(name)) return default(T);
+            if (target == null) throw new ArgumentNullException("target");
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            FieldInfoX fix = Create(target.GetType(), name);
-            if (fix == null) return default(T);
+            return (TResult)GetValue(target.GetType(), target, name);
+        }
 
-            return (T)fix.GetValue(target);
+        /// <summary>
+        /// 快速获取静态字段
+        /// </summary>
+        /// <typeparam name="TTarget"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static TResult GetValue<TTarget, TResult>(String name)
+        {
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
+            return (TResult)GetValue(typeof(TTarget), null, name);
         }
 
         /// <summary>
@@ -269,12 +298,23 @@ namespace NewLife.Reflection
         /// <param name="value"></param>
         public static void SetValue(Object target, String name, Object value)
         {
-            if (target == null || String.IsNullOrEmpty(name)) return;
+            if (target == null) throw new ArgumentNullException("target");
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            FieldInfoX fix = Create(target.GetType(), name);
-            if (fix == null) return;
+            SetValue(target.GetType(), target, name, value);
+        }
 
-            fix.SetValue(target, value);
+        /// <summary>
+        /// 快速设置静态字段
+        /// </summary>
+        /// <typeparam name="TTarget"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public static void SetValue<TTarget>(String name, Object value)
+        {
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+
+            SetValue(typeof(TTarget), null, name, value);
         }
 
         delegate Object FastGetValueHandler(Object obj);
