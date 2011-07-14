@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using NewLife.Collections;
+using System.Collections;
 
 namespace NewLife.Reflection
 {
@@ -164,7 +165,43 @@ namespace NewLife.Reflection
             if (parameters != null && parameters.Length == 0)
                 return Handler.Invoke(obj, null);
             else
+            {
+                // 预处理参数类型
+                ParameterInfo[] pis = Method.GetParameters();
+                for (int i = 0; i < parameters.Length && i < pis.Length; i++)
+                {
+                    parameters[i] = TypeX.ChangeType(parameters[i], pis[i].ParameterType);
+                }
+
                 return Handler.Invoke(obj, parameters);
+            }
+        }
+
+        /// <summary>
+        /// 通过字典参数调用
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public Object InvokeByDictionaryParameter(Object obj, IDictionary parameters)
+        {
+            //// 没有传入参数
+            //if (parameters == null || parameters.Count < 1) return Invoke(obj, null);
+            //! 注意：有可能没有传入参数，但是该方法是需要参数的，这个时候采用全部null的方法
+
+            // 该方法没有参数，无视外部传入参数
+            ParameterInfo[] pis = Method.GetParameters();
+            if (pis == null || pis.Length < 1) return Invoke(obj, null);
+
+            Object[] ps = new Object[pis.Length];
+            for (int i = 0; i < pis.Length; i++)
+            {
+                Object v = null;
+                if (parameters != null && parameters.Contains(pis[i].Name)) v = parameters[pis[i].Name];
+                ps[i] = TypeX.ChangeType(v, pis[i].ParameterType);
+            }
+
+            return Handler.Invoke(obj, ps);
         }
 
         /// <summary>
@@ -179,10 +216,66 @@ namespace NewLife.Reflection
         {
             if (target == null || String.IsNullOrEmpty(name)) return default(TResult);
 
+            //// 如果传入的是Type，则调用静态方法，也就是说该方法无法处理Type及其子类
+            //Type type = (target is Type) ? (target as Type) : target.GetType();
             MethodInfoX mix = Create(target.GetType(), name);
             if (mix == null) return default(TResult);
 
             return (TResult)mix.Invoke(target, parameters);
+        }
+
+        /// <summary>
+        /// 快速调用静态方法
+        /// </summary>
+        /// <typeparam name="TTarget">目标类型</typeparam>
+        /// <typeparam name="TResult">返回类型</typeparam>
+        /// <param name="name"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public static TResult InvokeStatic<TTarget, TResult>(String name, params  Object[] parameters)
+        {
+            if (String.IsNullOrEmpty(name)) return default(TResult);
+
+            MethodInfoX mix = Create(typeof(TTarget), name);
+            if (mix == null) return default(TResult);
+
+            return (TResult)mix.Invoke(null, parameters);
+        }
+
+        /// <summary>
+        /// 通过传入参数字典快速调用方法
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="target"></param>
+        /// <param name="name"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public static TResult InvokeByDictionaryParameter<TResult>(Object target, String name, IDictionary parameters)
+        {
+            if (target == null || String.IsNullOrEmpty(name)) return default(TResult);
+
+            MethodInfoX mix = Create(target.GetType(), name);
+            if (mix == null) return default(TResult);
+
+            return (TResult)mix.InvokeByDictionaryParameter(target, parameters);
+        }
+
+        /// <summary>
+        /// 通过传入参数字典快速调用静态方法
+        /// </summary>
+        /// <typeparam name="TTarget"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public static TResult InvokeStaticByDictionaryParameter<TTarget, TResult>(String name, IDictionary parameters)
+        {
+            if (String.IsNullOrEmpty(name)) return default(TResult);
+
+            MethodInfoX mix = Create(typeof(TTarget), name);
+            if (mix == null) return default(TResult);
+
+            return (TResult)mix.InvokeByDictionaryParameter(null, parameters);
         }
         #endregion
 
