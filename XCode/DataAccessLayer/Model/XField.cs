@@ -6,6 +6,8 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.Xml.Schema;
 using NewLife.Reflection;
+using NewLife.Serialization;
+using NewLife.Xml;
 
 namespace XCode.DataAccessLayer
 {
@@ -14,7 +16,7 @@ namespace XCode.DataAccessLayer
     /// </summary>
     [Serializable]
     [XmlRoot("Column")]
-    public class XField : IDataColumn, ICloneable
+    public class XField : SerializableDataMember, IDataColumn, ICloneable
     {
         #region 属性
         private Int32 _ID;

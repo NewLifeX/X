@@ -14,6 +14,8 @@ using XCode.Cache;
 using XCode.Code;
 using XCode.Exceptions;
 using NewLife.Xml;
+using System.Xml;
+using System.Text;
 
 namespace XCode.DataAccessLayer
 {
@@ -677,49 +679,55 @@ namespace XCode.DataAccessLayer
             writer.Settings.WriteType = false;
             writer.Settings.UseObjRef = false;
             writer.Settings.IgnoreDefault = true;
-            writer.Settings.MemberAsAttribute = true;
+            //writer.Settings.MemberAsAttribute = true;
             writer.RootName = "Tables";
             writer.WriteObject(list);
             return writer.ToString();
         }
 
-        ///// <summary>
-        ///// 导入架构信息
-        ///// </summary>
-        ///// <param name="xml"></param>
-        ///// <returns></returns>
-        //public static List<IDataTable> Import(String xml)
-        //{
-        //    if (String.IsNullOrEmpty(xml)) return null;
+        /// <summary>
+        /// 导入架构信息
+        /// </summary>
+        /// <param name="xml"></param>
+        /// <returns></returns>
+        public static List<IDataTable> Import(String xml)
+        {
+            if (String.IsNullOrEmpty(xml)) return null;
 
-        //    List<IDataTable> list = null;
-        //    XmlSerializer serializer = new XmlSerializer(typeof(List<IDataTable>));
-        //    using (StringReader sr = new StringReader(xml))
-        //    {
-        //        list = serializer.Deserialize(sr) as List<IDataTable>;
-        //    }
+            List<IDataTable> list = null;
+            //XmlSerializer serializer = new XmlSerializer(typeof(List<IDataTable>));
+            //using (StringReader sr = new StringReader(xml))
+            //{
+            //    list = serializer.Deserialize(sr) as List<IDataTable>;
+            //}
 
-        //    if (list == null || list.Count < 1) return list;
+            XmlReaderX reader = new XmlReaderX();
+            reader.Stream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
+            //list = reader.ReadObject(typeof(List<IDataTable>)) as List<IDataTable>;
+            List<XTable> list2 = reader.ReadObject(typeof(List<XTable>)) as List<XTable>;
+            if (list2 == null || list2.Count < 1) return list;
 
-        //    // 修正字段中的Table引用
-        //    foreach (IDataTable item in list)
-        //    {
-        //        if (item.Columns == null || item.Columns.Length < 1) continue;
+            if (list == null || list.Count < 1) return list;
 
-        //        //foreach (IDataColumn field in item.Fields)
-        //        //{
-        //        //    if (field.Table == null) field.Table = item;
-        //        //}
-        //        List<IDataColumn> fs = new List<IDataColumn>();
-        //        foreach (IDataColumn field in item.Columns)
-        //        {
-        //            fs.Add(field.Clone(item));
-        //        }
-        //        item.Columns = fs.ToArray();
-        //    }
+            //// 修正字段中的Table引用
+            //foreach (IDataTable item in list)
+            //{
+            //    if (item.Columns == null || item.Columns.Length < 1) continue;
 
-        //    return list;
-        //}
+            //    //foreach (IDataColumn field in item.Fields)
+            //    //{
+            //    //    if (field.Table == null) field.Table = item;
+            //    //}
+            //    List<IDataColumn> fs = new List<IDataColumn>();
+            //    foreach (IDataColumn field in item.Columns)
+            //    {
+            //        fs.Add(field.Clone(item));
+            //    }
+            //    item.Columns = fs.ToArray();
+            //}
+
+            return list;
+        }
         #endregion
 
         #region 创建数据操作实体

@@ -87,7 +87,7 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 字段集合。
         /// </summary>
-        [XmlArray]
+        [XmlArray("Columns")]
         [Description("字段集合")]
         public IDataColumn[] Columns
         {
