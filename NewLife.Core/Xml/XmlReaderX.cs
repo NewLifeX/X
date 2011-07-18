@@ -285,6 +285,9 @@ namespace NewLife.Xml
             //    return false;
             //}
 
+            String name = AttributeX.GetCustomAttributeValue<XmlRootAttribute, String>(type, true);
+            if (String.IsNullOrEmpty(name) && type != null) name = type.Name;
+
             if (Reader.NodeType == XmlNodeType.EndElement || Reader.Name != type.Name)
                 return false;
             //if (SkipEmpty()) return true;

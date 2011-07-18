@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
 using NewLife.Reflection;
+using System.Xml.Serialization;
 
 namespace NewLife.Serialization
 {
@@ -43,7 +44,7 @@ namespace NewLife.Serialization
         /// <summary>
         /// 名称
         /// </summary>
-        public string Name { get { return Member.Name; } }
+        public string Name { get { return GetName(); } }
 
         /// <summary>
         /// 类型
@@ -91,6 +92,33 @@ namespace NewLife.Serialization
                 if (Member.MemberType == MemberTypes.Property) return (Member as PropertyInfo).CanWrite;
                 return false;
             }
+        }
+        #endregion
+
+        #region 方法
+        String GetName()
+        {
+            String name = null;
+            if (String.IsNullOrEmpty(name)) name = GetCustomAttributeValue<XmlAttributeAttribute>(Member, "AttributeName");
+            //if (String.IsNullOrEmpty(name)) name = GetCustomAttributeValue<XmlArrayItemAttribute>(Member, "ElementName");
+            if (String.IsNullOrEmpty(name)) name = GetCustomAttributeValue<XmlArrayAttribute>(Member, "ElementName");
+            if (String.IsNullOrEmpty(name)) name = GetCustomAttributeValue<XmlElementAttribute>(Member, "ElementName");
+            if (String.IsNullOrEmpty(name)) name = GetCustomAttributeValue<XmlAnyElementAttribute>(Member, "Name");
+            if (String.IsNullOrEmpty(name)) name = GetCustomAttributeValue<XmlRootAttribute>(Mix.Type, "ElementName");
+
+            if (String.IsNullOrEmpty(name)) name = Member.Name;
+            return name;
+        }
+
+        static String GetCustomAttributeValue<TAttribute>(MemberInfo member, String name)
+        {
+            TAttribute att = AttributeX.GetCustomAttribute<TAttribute>(member, true);
+            if (att == null) return null;
+
+            PropertyInfoX pix = PropertyInfoX.Create(typeof(TAttribute), name);
+            if (pix == null) return null;
+
+            return (String)pix.GetValue(att);
         }
         #endregion
 
