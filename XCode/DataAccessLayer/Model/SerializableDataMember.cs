@@ -14,7 +14,7 @@ namespace XCode.DataAccessLayer
     /// <summary>
     /// 可序列化数据成员
     /// </summary>
-    public abstract class SerializableDataMember : IAccessor//， IXmlSerializable
+    public abstract class SerializableDataMember //: IAccessor//， IXmlSerializable
     {
         #region IXmlSerializable 成员
         //XmlSchema IXmlSerializable.GetSchema()
@@ -74,50 +74,50 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region IAccessor 成员
-        [NonSerialized]
-        Boolean isAtt = false;
+        //[NonSerialized]
+        //Boolean isAtt = false;
 
-        bool IAccessor.Read(IReader reader)
-        {
-            if (reader is XmlReaderX)
-            {
-                XmlReaderX rx = reader as XmlReaderX;
-                isAtt = rx.Settings.MemberAsAttribute;
-                rx.Settings.MemberAsAttribute = true;
-            }
-            return false;
-        }
+        //bool IAccessor.Read(IReader reader)
+        //{
+        //    if (reader is XmlReaderX)
+        //    {
+        //        XmlReaderX rx = reader as XmlReaderX;
+        //        isAtt = rx.Settings.MemberAsAttribute;
+        //        rx.Settings.MemberAsAttribute = true;
+        //    }
+        //    return false;
+        //}
 
-        bool IAccessor.ReadComplete(IReader reader, bool success)
-        {
-            if (reader is XmlReaderX)
-            {
-                XmlReaderX rx = reader as XmlReaderX;
-                rx.Settings.MemberAsAttribute = isAtt;
-            }
-            return success;
-        }
+        //bool IAccessor.ReadComplete(IReader reader, bool success)
+        //{
+        //    if (reader is XmlReaderX)
+        //    {
+        //        XmlReaderX rx = reader as XmlReaderX;
+        //        rx.Settings.MemberAsAttribute = isAtt;
+        //    }
+        //    return success;
+        //}
 
-        bool IAccessor.Write(IWriter writer)
-        {
-            if (writer is XmlWriterX)
-            {
-                XmlWriterX rx = writer as XmlWriterX;
-                isAtt = rx.Settings.MemberAsAttribute;
-                rx.Settings.MemberAsAttribute = true;
-            }
-            return false;
-        }
+        //bool IAccessor.Write(IWriter writer)
+        //{
+        //    if (writer is XmlWriterX)
+        //    {
+        //        XmlWriterX rx = writer as XmlWriterX;
+        //        isAtt = rx.Settings.MemberAsAttribute;
+        //        rx.Settings.MemberAsAttribute = true;
+        //    }
+        //    return false;
+        //}
 
-        bool IAccessor.WriteComplete(IWriter writer, bool success)
-        {
-            if (writer is XmlWriterX)
-            {
-                XmlWriterX rx = writer as XmlWriterX;
-                rx.Settings.MemberAsAttribute = isAtt;
-            }
-            return success;
-        }
+        //bool IAccessor.WriteComplete(IWriter writer, bool success)
+        //{
+        //    if (writer is XmlWriterX)
+        //    {
+        //        XmlWriterX rx = writer as XmlWriterX;
+        //        rx.Settings.MemberAsAttribute = isAtt;
+        //    }
+        //    return success;
+        //}
         #endregion
     }
 }

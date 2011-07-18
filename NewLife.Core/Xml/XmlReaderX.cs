@@ -55,6 +55,20 @@ namespace NewLife.Xml
             }
         }
 
+        /// <summary>
+        /// 初始化
+        /// </summary>
+        public XmlReaderX() { }
+
+        /// <summary>
+        /// 使用xml字符串初始化
+        /// </summary>
+        /// <param name="xml"></param>
+        public XmlReaderX(String xml)
+        {
+            Stream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
+        }
+
         private String _RootName;
         /// <summary>根元素名</summary>
         public String RootName
@@ -288,7 +302,7 @@ namespace NewLife.Xml
             String name = AttributeX.GetCustomAttributeValue<XmlRootAttribute, String>(type, true);
             if (String.IsNullOrEmpty(name) && type != null) name = type.Name;
 
-            if (Reader.NodeType == XmlNodeType.EndElement || Reader.Name != type.Name)
+            if (Reader.NodeType == XmlNodeType.EndElement || Reader.Name != name)
                 return false;
             //if (SkipEmpty()) return true;
 
@@ -332,7 +346,8 @@ namespace NewLife.Xml
         protected override bool ReadRefObject(Type type, ref object value, ReadObjectCallback callback)
         {
             Boolean isElement = Reader.NodeType == XmlNodeType.Element;
-            if (isElement)
+            Boolean isAtt = Settings.MemberAsAttribute && XmlWriterX.IsAttributeType(type);
+            if (isElement && !isAtt)
             {
                 if (SkipEmpty()) return true;
                 if (Reader.MoveToAttribute("Lengths"))
@@ -346,7 +361,7 @@ namespace NewLife.Xml
 
             Boolean b = base.ReadRefObject(type, ref value, callback);
 
-            if (isElement && Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
+            if (isElement && !isAtt && Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
             return b;
         }
@@ -398,7 +413,8 @@ namespace NewLife.Xml
         /// <returns>是否读取成功</returns>
         protected override bool OnReadMember(Type type, ref object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
-            if (Settings.MemberAsAttribute)
+            Boolean isAtt = Settings.MemberAsAttribute && XmlWriterX.IsAttributeType(member.Type);
+            if (isAtt)
             {
                 Reader.MoveToAttribute(member.Name);
             }

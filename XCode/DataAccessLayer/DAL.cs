@@ -5,17 +5,15 @@ using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Threading;
-using System.Xml.Serialization;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Xml;
 using XCode.Cache;
 using XCode.Code;
 using XCode.Exceptions;
-using NewLife.Xml;
-using System.Xml;
-using System.Text;
 
 namespace XCode.DataAccessLayer
 {
@@ -694,39 +692,36 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(xml)) return null;
 
-            List<IDataTable> list = null;
-            //XmlSerializer serializer = new XmlSerializer(typeof(List<IDataTable>));
-            //using (StringReader sr = new StringReader(xml))
-            //{
-            //    list = serializer.Deserialize(sr) as List<IDataTable>;
-            //}
-
-            XmlReaderX reader = new XmlReaderX();
-            reader.Stream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
+            XmlReaderX reader = new XmlReaderX(xml);
+            //reader.Stream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
+            //reader.Settings.MemberAsAttribute = true;
             //list = reader.ReadObject(typeof(List<IDataTable>)) as List<IDataTable>;
-            List<XTable> list2 = reader.ReadObject(typeof(List<XTable>)) as List<XTable>;
-            if (list2 == null || list2.Count < 1) return list;
+            List<XTable> list = reader.ReadObject(typeof(List<XTable>)) as List<XTable>;
+            if (list == null || list.Count < 1) return null;
 
-            if (list == null || list.Count < 1) return list;
+            //if (list == null || list.Count < 1) return list;
 
-            //// 修正字段中的Table引用
-            //foreach (IDataTable item in list)
-            //{
-            //    if (item.Columns == null || item.Columns.Length < 1) continue;
+            List<IDataTable> dts = new List<IDataTable>();
+            // 修正字段中的Table引用
+            foreach (XTable item in list)
+            {
+                if (item.Columns == null || item.Columns.Length < 1) continue;
 
-            //    //foreach (IDataColumn field in item.Fields)
-            //    //{
-            //    //    if (field.Table == null) field.Table = item;
-            //    //}
-            //    List<IDataColumn> fs = new List<IDataColumn>();
-            //    foreach (IDataColumn field in item.Columns)
-            //    {
-            //        fs.Add(field.Clone(item));
-            //    }
-            //    item.Columns = fs.ToArray();
-            //}
+                //foreach (IDataColumn field in item.Fields)
+                //{
+                //    if (field.Table == null) field.Table = item;
+                //}
+                List<IDataColumn> fs = new List<IDataColumn>();
+                foreach (IDataColumn field in item.Columns)
+                {
+                    fs.Add(field.Clone(item));
+                }
+                item.Columns = fs.ToArray();
 
-            return list;
+                dts.Add(item);
+            }
+
+            return dts;
         }
         #endregion
 

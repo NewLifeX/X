@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections;
-using System.IO;
-using System.Xml;
-using NewLife.Serialization;
-using System.Xml.Serialization;
 using System.Collections.Generic;
-using NewLife.Reflection;
+using System.IO;
 using System.Text;
-using NewLife.Log;
+using System.Xml;
+using System.Xml.Serialization;
+using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Xml
 {
@@ -302,7 +301,9 @@ namespace NewLife.Xml
             // 检查成员的值，如果是默认值，则不输出
             if (value != null && Settings.IgnoreDefault && IsDefault(value, member)) return true;
 
-            if (Settings.MemberAsAttribute)
+            // 特殊处理特性，只有普通值类型才能输出为特性
+            Boolean isAtt = Settings.MemberAsAttribute && IsAttributeType(member.Type);
+            if (isAtt)
                 Writer.WriteStartAttribute(member.Name);
             else
                 Writer.WriteStartElement(member.Name);
@@ -311,7 +312,7 @@ namespace NewLife.Xml
 
             Boolean rs = base.OnWriteMember(value, type, member, index, callback);
 
-            if (!Settings.MemberAsAttribute) Writer.WriteEndElement();
+            if (!isAtt) Writer.WriteEndElement();
 
             AutoFlush();
 
@@ -422,6 +423,19 @@ namespace NewLife.Xml
             name = name.Replace("<", "_");
             name = name.Replace(">", "_");
             return name;
+        }
+
+        /// <summary>
+        /// 是否可以作为属性写入Xml的类型
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        internal static Boolean IsAttributeType(Type type)
+        {
+            if (typeof(Type).IsAssignableFrom(type)) return true;
+
+            TypeCode code = Type.GetTypeCode(type);
+            return code != TypeCode.Object;
         }
         #endregion
     }

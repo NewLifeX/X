@@ -9,6 +9,8 @@ using System.Xml.Serialization;
 using System.IO;
 using System.ComponentModel;
 using NewLife.Collections;
+using NewLife.Serialization;
+using NewLife.Xml;
 
 namespace XCode.DataAccessLayer
 {
@@ -18,7 +20,7 @@ namespace XCode.DataAccessLayer
     [DebuggerDisplay("ID={ID} Name={Name} Description={Description}")]
     [Serializable]
     [XmlRoot("Table")]
-    public class XTable : IDataTable, ICloneable
+    public class XTable : IDataTable, ICloneable//, IAccessor
     {
         #region 基本属性
         private Int32 _ID;
@@ -285,6 +287,42 @@ namespace XCode.DataAccessLayer
             //TODO 很多时候，这个别名就是表名
             return name;
         }
+        #endregion
+
+        #region IAccessor 成员
+
+        //bool IAccessor.Read(IReader reader)
+        //{
+        //    XmlReaderX xr = reader as XmlReaderX;
+        //    if (xr != null)
+        //    {
+        //        xr.Settings.MemberAsAttribute = true;
+        //    }
+
+        //    return false;
+        //}
+
+        //bool IAccessor.ReadComplete(IReader reader, bool success)
+        //{
+        //    return success;
+        //}
+
+        //bool IAccessor.Write(IWriter writer)
+        //{
+        //    XmlWriterX xw = writer as XmlWriterX;
+        //    if (xw != null)
+        //    {
+        //        xw.Settings.MemberAsAttribute = true;
+        //    }
+
+        //    return false;
+        //}
+
+        //bool IAccessor.WriteComplete(IWriter writer, bool success)
+        //{
+        //    return success;
+        //}
+
         #endregion
     }
 }
