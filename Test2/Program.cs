@@ -5,7 +5,6 @@ using NewLife.Log;
 using NewLife.Net.Tcp;
 using System.Net;
 using NewLife.Net.Sockets;
-using test;
 using XCode;
 using XCode.DataAccessLayer;
 using System.IO;
@@ -70,6 +69,9 @@ namespace Test2
             Console.WriteLine(xml);
 
             File.WriteAllText("dal.xml", xml);
+
+            list = DAL.Import(xml);
+            Console.WriteLine(list != null);
         }
     }
 }
