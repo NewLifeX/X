@@ -143,7 +143,7 @@ namespace NewLife.Configuration
         {
             if (AppSettings == null || AppSettings.Count < 1) return null;
 
-            return GetConfigSplit<T>(name, null);
+            return GetConfigSplit<T>(name, split, null);
         }
 
         /// <summary>
