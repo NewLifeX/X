@@ -32,10 +32,14 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.5.*")]
-[assembly: AssemblyFileVersion("1.5.2010.0127")]
+[assembly: AssemblyVersion("2.0.*")]
+[assembly: AssemblyFileVersion("2.0.2011.0720")]
 
 /*
+ * v2.0.2011.0720   可以通过设置任务的时间间隔小于0来关闭指定任务
+ *                  可以通过配置文件指定服务名、显示名、描述等信息
+ *                  可以通过XAgent.AttachServers设置附加代理服务，任何XAgent服务程序都可以附加代理实现了IServer接口的服务
+ * 
  * v1.5.2010.0127   允许执行线程名
  * 
  * v1.4.2010.0114   生成批处理的方法，允许子类重载

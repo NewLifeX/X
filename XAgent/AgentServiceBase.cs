@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.ServiceProcess;
 using System.Threading;
+using NewLife.Configuration;
 using NewLife.Log;
-using System.Reflection;
+using NewLife.Model;
+using NewLife.Reflection;
 
 namespace XAgent
 {
@@ -19,22 +21,19 @@ namespace XAgent
          where ServiceType : AgentServiceBase<ServiceType>, new()
     {
         #region 属性
+        /// <summary>显示名</summary>
+        public virtual String DisplayName { get { return AgentServiceName; } }
+
         /// <summary>描述</summary>
         public virtual String Description { get { return AgentServiceName + "服务"; } }
 
-        /// <summary>
-        /// 线程数
-        /// </summary>
+        /// <summary>线程数</summary>
         public virtual Int32 ThreadCount { get { return 1; } }
 
-        /// <summary>
-        /// 线程名
-        /// </summary>
+        /// <summary>线程名</summary>
         public virtual String[] ThreadNames { get { return null; } }
 
-        /// <summary>
-        /// Exe程序名
-        /// </summary>
+        /// <summary>Exe程序名</summary>
         private static String ExeName
         {
             get
@@ -58,37 +57,37 @@ namespace XAgent
         /// </summary>
         protected static ServiceType Instance = new ServiceType();
 
-        private static ServiceController _Controller;
-        /// <summary>控制器</summary>
-        protected static ServiceController Controller
-        {
-            get
-            {
-                if (_Controller == null)
-                {
-                    try
-                    {
-                        ServiceController control = GetService(AgentServiceName);
-                        if (control != null)
-                        {
-                            try
-                            {
-                                //尝试访问一下才知道是否已安装
-                                Boolean b = control.CanShutdown;
-                                _Controller = control;
-                            }
-                            catch { }
-                        }
-                    }
-                    catch { }
-                }
-                return _Controller;
-            }
-            set
-            {
-                _Controller = null;
-            }
-        }
+        //private static ServiceController _Controller;
+        ///// <summary>控制器</summary>
+        //protected static ServiceController Controller
+        //{
+        //    get
+        //    {
+        //        if (_Controller == null)
+        //        {
+        //            try
+        //            {
+        //                ServiceController control = GetService(AgentServiceName);
+        //                if (control != null)
+        //                {
+        //                    try
+        //                    {
+        //                        //尝试访问一下才知道是否已安装
+        //                        Boolean b = control.CanShutdown;
+        //                        _Controller = control;
+        //                    }
+        //                    catch { }
+        //                }
+        //            }
+        //            catch { }
+        //        }
+        //        return _Controller;
+        //    }
+        //    set
+        //    {
+        //        _Controller = null;
+        //    }
+        //}
         #endregion
 
         #region 服务安装和启动
@@ -98,9 +97,14 @@ namespace XAgent
         public static String AgentServiceName { get { return Instance.ServiceName; } }
 
         /// <summary>
+        /// 显示名
+        /// </summary>
+        public static String AgentDisplayName { get { return Config.GetConfig<String>("XAgent.DisplayName", Instance.DisplayName); } }
+
+        /// <summary>
         /// 服务描述
         /// </summary>
-        public static String AgentDescription { get { return Instance.Description; } }
+        public static String AgentDescription { get { return Config.GetConfig<String>("XAgent.Description", Instance.Description); } }
 
         /// <summary>
         /// 安装、卸载 服务
@@ -108,11 +112,35 @@ namespace XAgent
         /// <param name="isinstall">是否安装</param>
         public static void Install(Boolean isinstall)
         {
-            String filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ExeName);
             if (isinstall)
-                InstallService(AgentServiceName, filename, AgentDescription);
+                InstallService(AgentServiceName, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ExeName), AgentDisplayName, AgentDescription);
             else
-                RunSC("Delete " + AgentServiceName);
+                UnInstalService(AgentServiceName);
+
+            //try
+            //{
+            //    ServiceInstaller installer = new ServiceInstaller();
+            //    installer.ServiceName = AgentServiceName;
+            //    installer.DisplayName = AgentDisplayName;
+            //    installer.Description = AgentDescription;
+            //    installer.StartType = ServiceStartMode.Automatic;
+
+            //    ServiceProcessInstaller spi = new ServiceProcessInstaller();
+            //    installer.Parent = spi;
+            //    spi.Account = ServiceAccount.LocalSystem;
+
+            //    installer.Context = new InstallContext();
+            //    installer.Context.Parameters["assemblypath"] = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ExeName) + " -s";
+
+            //    if (isinstall)
+            //        installer.Install(new Hashtable());
+            //    else
+            //        installer.Uninstall(null);
+            //}
+            //catch (Exception ex)
+            //{
+            //    WriteLine(ex.ToString());
+            //}
         }
 
         /// <summary>
@@ -120,11 +148,12 @@ namespace XAgent
         /// </summary>
         /// <param name="name"></param>
         /// <param name="filename"></param>
+        /// <param name="displayname"></param>
         /// <param name="description"></param>
-        public static void InstallService(String name, String filename, String description)
+        public static void InstallService(String name, String filename, String displayname, String description)
         {
-            RunSC("create " + name + " BinPath= \"" + filename + " -s\" start= auto DisplayName= " + description);
-            RunSC("description " + name + " " + description);
+            RunSC("create " + name + " BinPath= \"" + filename + " -s\" start= auto DisplayName= \"" + displayname + "\"");
+            RunSC("description " + name + " \"" + description + "\"");
         }
 
         /// <summary>
@@ -133,6 +162,8 @@ namespace XAgent
         /// <param name="name"></param>
         public static void UnInstalService(String name)
         {
+            ControlService(false);
+
             RunSC("Delete " + name);
         }
 
@@ -146,6 +177,29 @@ namespace XAgent
                 RunCmd("net start " + AgentServiceName, false, true);
             else
                 RunCmd("net stop " + AgentServiceName, false, true);
+
+            //try
+            //{
+            //    ServiceController control = GetService(AgentServiceName);
+            //    if (control != null)
+            //    {
+            //        if (isstart)
+            //            control.Start();
+            //        else
+            //            control.Stop();
+            //    }
+            //    //else
+            //    //{
+            //    //    if (isstart)
+            //    //        StartService(AgentServiceName);
+            //    //    else
+            //    //        StopService(AgentServiceName);
+            //    //}
+            //}
+            //catch (Exception ex)
+            //{
+            //    WriteLine(ex.ToString());
+            //}
         }
 
         /// <summary>
@@ -156,6 +210,8 @@ namespace XAgent
         /// <param name="waitForExit"></param>
         protected static void RunCmd(String cmd, Boolean showWindow, Boolean waitForExit)
         {
+            WriteLine("RunCmd " + cmd);
+
             Process p = new Process();
             ProcessStartInfo si = new ProcessStartInfo();
             String path = Environment.SystemDirectory;
@@ -256,17 +312,35 @@ namespace XAgent
         {
             get
             {
+                ServiceController control = null;
                 try
                 {
                     //ServiceController control = GetService(AgentServiceName);
-                    ServiceController control = Controller;
+                    //ServiceController control = Controller;
+                    try
+                    {
+                        control = GetService(AgentServiceName);
+                        if (control != null)
+                        {
+                            try
+                            {
+                                //尝试访问一下才知道是否已安装
+                                Boolean b = control.CanShutdown;
+                            }
+                            catch { }
+                        }
+                    }
+                    catch { }
+
                     if (control == null) return null;
+
                     control.Refresh();
                     if (control.Status == ServiceControllerStatus.Running) return true;
                     if (control.Status == ServiceControllerStatus.Stopped) return false;
                     return null;
                 }
                 catch { return null; }
+                finally { if (control != null)control.Dispose(); }
             }
         }
         #endregion
@@ -295,7 +369,11 @@ namespace XAgent
             //提升进程优先级
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
 
-            Instance.MakeBat();
+            // 根据配置修改服务名
+            String name = Config.GetConfig<String>("XAgent.ServiceName");
+            if (!String.IsNullOrEmpty(name)) Instance.ServiceName = name;
+
+            //Instance.MakeBat();
 
             String[] Args = Environment.GetCommandLineArgs();
 
@@ -304,7 +382,9 @@ namespace XAgent
                 #region 命令
                 if (Args[1].ToLower() == "-s")  //启动服务
                 {
-                    ServiceBase[] ServicesToRun = new ServiceBase[] { new ServiceType() };
+                    //ServiceBase[] ServicesToRun = new ServiceBase[] { new ServiceType() };
+                    ServiceBase[] ServicesToRun = new ServiceBase[] { Instance };
+
                     try
                     {
                         ServiceBase.Run(ServicesToRun);
@@ -339,7 +419,7 @@ namespace XAgent
                 {
                     ServiceType service = new ServiceType();
                     service.StartWork();
-                    Console.ReadKey();
+                    Console.ReadKey(true);
                     return;
                 }
                 else if (Args[1].ToLower() == "-step") //单步执行任务
@@ -358,14 +438,17 @@ namespace XAgent
                 #region 命令行
                 XTrace.OnWriteLog += new EventHandler<WriteLogEventArgs>(XTrace_OnWriteLog);
 
+                //输出状态
+                Instance.ShowStatus();
+
                 while (true)
                 {
                     //输出菜单
                     Instance.ShowMenu();
-                    Console.Write("请选择操作：");
+                    Console.Write("请选择操作（-x是命令行参数）：");
 
                     //读取命令
-                    ConsoleKeyInfo key = Console.ReadKey(true);
+                    ConsoleKeyInfo key = Console.ReadKey();
                     if (key.KeyChar == '0') break;
                     Console.WriteLine();
                     Console.WriteLine();
@@ -450,7 +533,8 @@ namespace XAgent
 
         static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
         {
-            Console.WriteLine(e.Message);
+            //Console.WriteLine(e.Message);
+            Console.WriteLine(e.ToString());
         }
 
         /// <summary>
@@ -458,7 +542,10 @@ namespace XAgent
         /// </summary>
         protected virtual void ShowStatus()
         {
-            Console.WriteLine("服务：{0}", AgentServiceName);
+            if (AgentServiceName != AgentDisplayName)
+                Console.WriteLine("服务：{0}({1})", AgentDisplayName, AgentServiceName);
+            else
+                Console.WriteLine("服务：{0}", AgentServiceName);
             Console.WriteLine("描述：{0}", AgentDescription);
             Console.Write("状态：");
             if (IsInstalled == null)
@@ -477,68 +564,13 @@ namespace XAgent
                         Console.WriteLine("运行中");
                 }
             }
-            Console.WriteLine("程序：{0}", Version);
-            Console.WriteLine("文件：{0}", FileVersion);
-            Console.WriteLine("发布：{0}", Compile.ToString("yyyy-MM-dd HH:mm:ss"));
+
+            AssemblyX asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            Console.WriteLine("程序：{0}", asm.Version);
+            Console.WriteLine("文件：{0}", asm.FileVersion);
+            Console.WriteLine("发布：{0:yyyy-MM-dd HH:mm:ss}", asm.Compile);
         }
 
-        private static String _Version;
-        /// <summary>
-        /// 程序集版本
-        /// </summary>
-        public static String Version
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_Version))
-                {
-                    Assembly asm = Assembly.GetExecutingAssembly();
-                    _Version = asm.GetName().Version.ToString();
-                    if (String.IsNullOrEmpty(_Version)) _Version = "1.0";
-                }
-                return _Version;
-            }
-        }
-
-        private static String _FileVersion;
-        /// <summary>
-        /// 文件版本
-        /// </summary>
-        public static String FileVersion
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_FileVersion))
-                {
-                    Assembly asm = Assembly.GetExecutingAssembly();
-                    AssemblyFileVersionAttribute av = Attribute.GetCustomAttribute(asm, typeof(AssemblyFileVersionAttribute)) as AssemblyFileVersionAttribute;
-                    if (av != null) _FileVersion = av.Version;
-                    if (String.IsNullOrEmpty(_FileVersion)) _FileVersion = "1.0";
-                }
-                return _FileVersion;
-            }
-        }
-
-        private static DateTime _Compile;
-        /// <summary>编译</summary>
-        public static DateTime Compile
-        {
-            get
-            {
-                if (_Compile <= DateTime.MinValue)
-                {
-                    String[] ss = Version.Split(new Char[] { '.' });
-                    Int32 d = Convert.ToInt32(ss[2]);
-                    Int32 s = Convert.ToInt32(ss[3]);
-
-                    DateTime dt = new DateTime(2000, 1, 1);
-                    dt = dt.AddDays(d).AddSeconds(s * 2);
-
-                    _Compile = dt;
-                }
-                return _Compile;
-            }
-        }
         /// <summary>
         /// 显示菜单
         /// </summary>
@@ -551,24 +583,24 @@ namespace XAgent
             {
                 if (IsRunning == true)
                 {
-                    Console.WriteLine("3 停止服务");
+                    Console.WriteLine("3 停止服务 -stop");
                 }
                 else
                 {
-                    Console.WriteLine("2 卸载服务");
+                    Console.WriteLine("2 卸载服务 -u");
 
-                    Console.WriteLine("3 启动服务");
+                    Console.WriteLine("3 启动服务 -start");
                 }
             }
             else
             {
-                Console.WriteLine("2 安装服务");
+                Console.WriteLine("2 安装服务 -i");
             }
 
             if (IsRunning != true)
             {
-                Console.WriteLine("4 单步调试");
-                Console.WriteLine("5 循环调试");
+                Console.WriteLine("4 单步调试 -step");
+                Console.WriteLine("5 循环调试 -run");
             }
 
             Console.WriteLine("0 退出");
@@ -584,7 +616,12 @@ namespace XAgent
             List<ServiceController> list = new List<ServiceController>(ServiceController.GetServices());
             if (list == null || list.Count < 1) return null;
 
-            return list.Find(delegate(ServiceController item) { return item.ServiceName == name; });
+            //return list.Find(delegate(ServiceController item) { return item.ServiceName == name; });
+            foreach (ServiceController item in list)
+            {
+                if (item.ServiceName == name) return item;
+            }
+            return null;
         }
         #endregion
 
@@ -601,6 +638,14 @@ namespace XAgent
             set { _Threads = value; }
         }
 
+        private IServer[] _AttachServers;
+        /// <summary>附加服务</summary>
+        public IServer[] AttachServers
+        {
+            get { return _AttachServers; }
+            set { _AttachServers = value; }
+        }
+
         /// <summary>
         /// 服务启动事件
         /// </summary>
@@ -608,6 +653,22 @@ namespace XAgent
         protected override void OnStart(string[] args)
         {
             StartWork();
+
+            // 处理附加服务
+            Type[] ts = Config.GetConfigSplit<Type>("XAgent.AttachServers", null);
+            if (ts != null && ts.Length > 0)
+            {
+                AttachServers = new IServer[ts.Length];
+                for (int i = 0; i < ts.Length; i++)
+                {
+                    if (ts[i] != null) AttachServers[i] = TypeX.CreateInstance(ts[i]) as IServer;
+                }
+
+                foreach (IServer item in AttachServers)
+                {
+                    if (item != null) item.Start();
+                }
+            }
         }
 
         /// <summary>
@@ -616,6 +677,31 @@ namespace XAgent
         protected override void OnStop()
         {
             StopWork();
+
+            if (AttachServers != null && AttachServers.Length > 0)
+            {
+                foreach (IServer item in AttachServers)
+                {
+                    if (item != null) item.Stop();
+                }
+            }
+        }
+
+        /// <summary>
+        /// 销毁资源
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected override void Dispose(bool disposing)
+        {
+            if (AttachServers != null && AttachServers.Length > 0)
+            {
+                foreach (IServer item in AttachServers)
+                {
+                    if (item != null && item is IDisposable) (item as IDisposable).Dispose();
+                }
+            }
+
+            base.Dispose(disposing);
         }
 
         /// <summary>
@@ -649,8 +735,14 @@ namespace XAgent
         {
             if (index < 0 || index >= ThreadCount) throw new ArgumentOutOfRangeException("index");
 
+            // 可以通过设置任务的时间间隔小于0来关闭指定任务
+            Int32 time = Intervals[0];
+            // 使用专用的时间间隔
+            if (index < Intervals.Length) time = Intervals[index];
+            if (time < 0) return;
+
             Threads[index] = new Thread(workWaper);
-            String name = "服务工作线程" + index;
+            String name = "XAgent_" + index;
             if (ThreadNames != null && ThreadNames.Length > index && !String.IsNullOrEmpty(ThreadNames[index]))
                 name = ThreadNames[index];
             Threads[index].Name = name;
@@ -659,10 +751,10 @@ namespace XAgent
             Threads[index].Start(index);
         }
 
-        /// <summary>
-        /// 是否有数据库连接错误。只是为了使得数据库连接出错时少报错误日志
-        /// </summary>
-        Boolean hasdberr = false;
+        ///// <summary>
+        ///// 是否有数据库连接错误。只是为了使得数据库连接出错时少报错误日志
+        ///// </summary>
+        //Boolean hasdberr = false;
 
         /// <summary>
         /// 线程包装
@@ -671,6 +763,9 @@ namespace XAgent
         private void workWaper(Object data)
         {
             Int32 index = (Int32)data;
+
+            // 旧异常
+            Exception oldEx = null;
 
             while (true)
             {
@@ -681,7 +776,8 @@ namespace XAgent
                 {
                     isContinute = Work(index);
 
-                    hasdberr = false;
+                    //hasdberr = false;
+                    oldEx = null;
                 }
                 catch (ThreadAbortException) //线程被取消
                 {
@@ -693,18 +789,24 @@ namespace XAgent
                     WriteLine("线程" + index + "中断错误！");
                     break;
                 }
-                catch (DbException ex)
-                {
-                    //确保只报一次数据库错误
-                    if (!hasdberr)
-                    {
-                        hasdberr = true;
-                        WriteLine(ex.ToString());
-                    }
-                }
+                //catch (DbException ex)
+                //{
+                //    //确保只报一次数据库错误
+                //    if (!hasdberr)
+                //    {
+                //        hasdberr = true;
+                //        WriteLine(ex.ToString());
+                //    }
+                //}
                 catch (Exception ex) //确保拦截了所有的异常，保证服务稳定运行
                 {
-                    WriteLine(ex.ToString());
+                    // 避免同样的异常信息连续出现，造成日志膨胀
+                    if (oldEx == null || oldEx.GetType() != ex.GetType() || oldEx.Message != ex.Message)
+                    {
+                        oldEx = ex;
+
+                        WriteLine(ex.ToString());
+                    }
                 }
                 Active[index] = DateTime.Now;
 
@@ -715,14 +817,15 @@ namespace XAgent
                     break;
                 }
 
-                Int32 time = Interval;
+                Int32 time = Intervals[0];
                 //使用专用的时间间隔
                 if (index < Intervals.Length) time = Intervals[index];
 
                 //如果有数据库连接错误，则将等待间隔放大十倍
-                if (hasdberr) time *= 10;
+                //if (hasdberr) time *= 10;
+                if (oldEx != null) time *= 10;
 
-                if (!isContinute) Thread.Sleep(time * 1000);
+                if (oldEx == null && !isContinute) Thread.Sleep(time * 1000);
             }
         }
 
@@ -794,7 +897,7 @@ namespace XAgent
         public void StartManagerThread()
         {
             ManagerThread = new Thread(ManagerThreadWaper);
-            ManagerThread.Name = "服务管理线程";
+            ManagerThread.Name = "XAgent_Manager";
             ManagerThread.IsBackground = true;
             ManagerThread.Priority = ThreadPriority.Highest;
             ManagerThread.Start();
@@ -1029,25 +1132,24 @@ namespace XAgent
         #endregion
 
         #region 辅助函数及属性
-
         void Service_OnWriteLog(object sender, WriteLogEventArgs e)
         {
             if (XTrace.Debug) XTrace.WriteLine(e.Message);
         }
 
-        /// <summary>
-        /// 间隔。默认60秒
-        /// </summary>
-        public static Int32 Interval
-        {
-            get
-            {
-                if (Intervals == null || Intervals.Length < 1)
-                    return 60;
-                else
-                    return Intervals[0];
-            }
-        }
+        ///// <summary>
+        ///// 间隔。默认60秒
+        ///// </summary>
+        //public static Int32 Interval
+        //{
+        //    get
+        //    {
+        //        if (Intervals == null || Intervals.Length < 1)
+        //            return 60;
+        //        else
+        //            return Intervals[0];
+        //    }
+        //}
 
         private static Int32[] _Intervals;
         /// <summary>
@@ -1059,27 +1161,30 @@ namespace XAgent
             {
                 if (_Intervals != null) return _Intervals;
 
-                String str = ConfigurationManager.AppSettings["Interval"];
-                if (String.IsNullOrEmpty(str))
-                {
-                    _Intervals = new Int32[] { 60 };
-                }
-                else
-                {
-                    String[] ss = str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                    List<Int32> list = new List<Int32>(ss.Length);
-                    foreach (String item in ss)
-                    {
-                        str = item.Trim();
-                        if (String.IsNullOrEmpty(str)) continue;
+                _Intervals = Config.GetConfigSplit<Int32>("XAgent.Interval", null, Config.GetConfigSplit<Int32>("Interval", null, new Int32[] { 60 }));
+                //if (_Intervals == null) _Intervals = new Int32[] { 60 };
 
-                        Int32 result = 60;
-                        if (!Int32.TryParse(str, out result)) result = 60;
-                        if (result <= 0) result = 60;
-                        list.Add(result);
-                    }
-                    _Intervals = list.ToArray();
-                }
+                //String str = Config.GetConfig<String>("XAgent.Interval", Config.GetConfig<String>("Interval"));
+                //if (String.IsNullOrEmpty(str))
+                //{
+                //    _Intervals = new Int32[] { 60 };
+                //}
+                //else
+                //{
+                //    String[] ss = str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                //    List<Int32> list = new List<Int32>(ss.Length);
+                //    foreach (String item in ss)
+                //    {
+                //        str = item.Trim();
+                //        if (String.IsNullOrEmpty(str)) continue;
+
+                //        Int32 result = 60;
+                //        if (!Int32.TryParse(str, out result)) result = 60;
+                //        if (result <= 0) result = 60;
+                //        list.Add(result);
+                //    }
+                //    _Intervals = list.ToArray();
+                //}
                 return _Intervals;
             }
             set { _Intervals = value; }
@@ -1093,7 +1198,7 @@ namespace XAgent
         {
             get
             {
-                if (_MaxActive == null) _MaxActive = GetConfigInt32("MaxActive", 0);
+                if (_MaxActive == null) _MaxActive = Config.GetConfig<Int32>("XAgent.MaxActive", Config.GetConfig<Int32>("MaxActive", 0));
                 return _MaxActive.Value;
             }
             set { _MaxActive = value; }
@@ -1107,7 +1212,7 @@ namespace XAgent
         {
             get
             {
-                if (_MaxMemory == null) _MaxMemory = GetConfigInt32("MaxMemory", 0);
+                if (_MaxMemory == null) _MaxMemory = Config.GetConfig<Int32>("XAgent.MaxMemory", Config.GetConfig<Int32>("MaxMemory", 0));
                 return _MaxMemory.Value;
             }
             set { _MaxMemory = value; }
@@ -1121,7 +1226,7 @@ namespace XAgent
         {
             get
             {
-                if (_MaxThread == null) _MaxThread = GetConfigInt32("MaxThread", 0);
+                if (_MaxThread == null) _MaxThread = Config.GetConfig<Int32>("XAgent.MaxThread", Config.GetConfig<Int32>("MaxThread", 0));
                 return _MaxThread.Value;
             }
             set { _MaxThread = value; }
@@ -1135,31 +1240,14 @@ namespace XAgent
         {
             get
             {
-                if (_AutoRestart == null) _AutoRestart = GetConfigInt32("AutoRestart", 0);
+                if (_AutoRestart == null) _AutoRestart = Config.GetConfig<Int32>("XAgent.AutoRestart", Config.GetConfig<Int32>("AutoRestart", 0));
                 return _AutoRestart.Value;
             }
             set { _AutoRestart = value; }
         }
-
-        /// <summary>
-        /// 从配置文件中读取整型配置值
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="defaultValue"></param>
-        /// <returns></returns>
-        private static Int32 GetConfigInt32(String name, Int32 defaultValue)
-        {
-            String str = ConfigurationManager.AppSettings[name];
-            if (String.IsNullOrEmpty(str)) return defaultValue;
-
-            Int32 result = defaultValue;
-            if (!Int32.TryParse(str, out result) && result > 0) result = defaultValue;
-
-            return result;
-        }
         #endregion
 
-        #region IWriteLog 成员
+        #region 日志
         /// <summary>
         /// 写日志
         /// </summary>
@@ -1187,6 +1275,159 @@ namespace XAgent
         {
             if (XTrace.Debug) XTrace.WriteLine(msg);
         }
+        #endregion
+
+        #region 导入
+        //[DllImport("advapi32.dll")]
+        //private static extern IntPtr OpenSCManager(string lpMachineName, string lpSCDB, int scParameter);
+
+        //[DllImport("Advapi32.dll")]
+        //private static extern IntPtr CreateService(IntPtr SC_HANDLE, string lpSvcName, string lpDisplayName,
+        //int dwDesiredAccess, int dwServiceType, int dwStartType, int dwErrorControl, string lpPathName,
+        //string lpLoadOrderGroup, int lpdwTagId, string lpDependencies, string lpServiceStartName, string lpPassword);
+
+        //[DllImport("advapi32.dll")]
+        //private static extern void CloseServiceHandle(IntPtr SCHANDLE);
+
+        //[DllImport("advapi32.dll")]
+        //private static extern int StartService(IntPtr SVHANDLE, int dwNumServiceArgs, string lpServiceArgVectors);
+
+        //[DllImport("advapi32.dll", SetLastError = true)]
+        //private static extern IntPtr OpenService(IntPtr SCHANDLE, string lpSvcName, int dwNumServiceArgs);
+
+        //[DllImport("advapi32.dll")]
+        //private static extern int DeleteService(IntPtr SVHANDLE);
+
+        //[DllImport("kernel32.dll")]
+        //private static extern int GetLastError();
+        #endregion
+
+        #region 服务控制
+        ///// <summary>
+        ///// 安装服务程序并运行
+        ///// </summary>
+        ///// <param name="svcName">服务名称</param>
+        ///// <param name="svcPath">程序路径</param>
+        ///// <param name="svcDispName">显示服务名称</param>
+        ///// <returns>服务是否安装成功</returns>
+        //public static bool InstallService(string svcName, string svcPath, string svcDispName)
+        //{
+        //    #region Constants declaration.
+        //    int SC_MANAGER_CREATE_SERVICE = 0x0002;
+        //    int SERVICE_WIN32_OWN_PROCESS = 0x00000010;
+        //    //int SERVICE_DEMAND_START = 0x00000003;
+        //    int SERVICE_ERROR_NORMAL = 0x00000001;
+        //    int STANDARD_RIGHTS_REQUIRED = 0xF0000;
+        //    int SERVICE_QUERY_CONFIG = 0x0001;
+        //    int SERVICE_CHANGE_CONFIG = 0x0002;
+        //    int SERVICE_QUERY_STATUS = 0x0004;
+        //    int SERVICE_ENUMERATE_DEPENDENTS = 0x0008;
+        //    int SERVICE_START = 0x0010;
+        //    int SERVICE_STOP = 0x0020;
+        //    int SERVICE_PAUSE_CONTINUE = 0x0040;
+        //    int SERVICE_INTERROGATE = 0x0080;
+        //    int SERVICE_USER_DEFINED_CONTROL = 0x0100;
+        //    int SERVICE_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED |
+        //     SERVICE_QUERY_CONFIG |
+        //     SERVICE_CHANGE_CONFIG |
+        //     SERVICE_QUERY_STATUS |
+        //     SERVICE_ENUMERATE_DEPENDENTS |
+        //     SERVICE_START |
+        //     SERVICE_STOP |
+        //     SERVICE_PAUSE_CONTINUE |
+        //     SERVICE_INTERROGATE |
+        //     SERVICE_USER_DEFINED_CONTROL);
+        //    int SERVICE_AUTO_START = 0x00000002;
+        //    #endregion Constants declaration.
+
+        //    IntPtr sc = OpenSCManager(null, null, SC_MANAGER_CREATE_SERVICE);
+        //    if (sc == IntPtr.Zero) return false;
+
+        //    try
+        //    {
+        //        IntPtr svc = CreateService(sc, svcName, svcDispName, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS, SERVICE_AUTO_START, SERVICE_ERROR_NORMAL, svcPath, null, 0, null, null, null);
+        //        if (svc == IntPtr.Zero) return false;
+
+        //        //try
+        //        //{
+        //        //    //试尝启动服务
+        //        //    int i = StartService(svc, 0, null);
+        //        //    if (i == 0) return false;
+
+        //        //    return true;
+        //        //}
+        //        //finally { CloseServiceHandle(svc); }
+
+        //        CloseServiceHandle(svc);
+        //        return true;
+        //    }
+        //    finally { CloseServiceHandle(sc); }
+        //}
+
+        ///// <summary>
+        ///// 卸载服务程序
+        ///// </summary>
+        ///// <param name="svcName">服务名称</param>
+        ///// <returns>服务是否卸载成功</returns>
+        //public static bool UnInstallService(string svcName)
+        //{
+        //    int GENERIC_WRITE = 0x40000000;
+        //    IntPtr sc = OpenSCManager(null, null, GENERIC_WRITE);
+        //    if (sc == IntPtr.Zero) return false;
+
+        //    try
+        //    {
+        //        int DELETE = 0x10000;
+        //        IntPtr svc = OpenService(sc, svcName, DELETE);
+        //        if (svc == IntPtr.Zero) return false;
+
+        //        int i = DeleteService(svc);
+        //        return i != 0;
+        //    }
+        //    finally { CloseServiceHandle(sc); }
+        //}
+
+        //public static Boolean StartService(String svcName)
+        //{
+        //    int SC_MANAGER_CONNECT = 0x0001;
+        //    IntPtr sc = OpenSCManager(null, null, SC_MANAGER_CONNECT);
+        //    if (sc == IntPtr.Zero) return false;
+
+        //    try
+        //    {
+        //        int SERVICE_START = 0x0010;
+        //        IntPtr svc = OpenService(sc, svcName, SERVICE_START);
+        //        if (svc == IntPtr.Zero) return false;
+
+        //        try
+        //        {
+        //            return StartService(svc, 0, null) != 0;
+        //        }
+        //        finally { CloseServiceHandle(svc); }
+        //    }
+        //    finally { CloseServiceHandle(sc); }
+        //}
+
+        //public static Boolean StopService(String svcName)
+        //{
+        //    int SC_MANAGER_CONNECT = 0x0001;
+        //    IntPtr sc = OpenSCManager(null, null, SC_MANAGER_CONNECT);
+        //    if (sc == IntPtr.Zero) return false;
+
+        //    try
+        //    {
+        //        int SERVICE_STOP = 0x0020;
+        //        IntPtr svc = OpenService(sc, svcName, SERVICE_STOP);
+        //        if (svc == IntPtr.Zero) return false;
+
+        //        try
+        //        {
+        //            return ControlService(svc,SERVICE_CONTROL_STOP,&ServiceStatus); != 0;
+        //        }
+        //        finally { CloseServiceHandle(svc); }
+        //    }
+        //    finally { CloseServiceHandle(sc); }
+        //}
         #endregion
     }
 }

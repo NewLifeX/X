@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Configuration;
 using System.Collections.Specialized;
+using System.Configuration;
 using NewLife.Reflection;
 
 namespace NewLife.Configuration
@@ -131,6 +130,60 @@ namespace NewLife.Configuration
                 if (item.StartsWith(prefix, StringComparison.Ordinal)) list.Add(AppSettings[item]);
             }
             return list.Count > 0 ? list.ToArray() : null;
+        }
+
+        /// <summary>
+        /// 取得指定名称的设置项，并分割为指定类型数组
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="split"></param>
+        /// <returns></returns>
+        public static T[] GetConfigSplit<T>(String name, String split)
+        {
+            if (AppSettings == null || AppSettings.Count < 1) return null;
+
+            return GetConfigSplit<T>(name, null);
+        }
+
+        /// <summary>
+        /// 取得指定名称的设置项，并分割为指定类型数组
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="split"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static T[] GetConfigSplit<T>(String name, String split, T[] defaultValue)
+        {
+            if (AppSettings == null || AppSettings.Count < 1) return defaultValue;
+
+            String str = GetConfig<String>(name);
+            if (String.IsNullOrEmpty(str)) return defaultValue;
+
+            String[] sps = String.IsNullOrEmpty(split) ? new String[] { ",", ";" } : new String[] { split };
+            String[] ss = str.Split(sps, StringSplitOptions.RemoveEmptyEntries);
+            if (ss == null || ss.Length < 1) return defaultValue;
+
+            //List<T> list = new List<T>(ss.Length);
+            //foreach (String item in ss)
+            //{
+            //    str = item.Trim();
+            //    if (String.IsNullOrEmpty(str)) continue;
+
+            //    T result = TypeX.ChangeType<T>(str);
+            //    list.Add(result);
+            //}
+            T[] arr = new T[ss.Length];
+            for (int i = 0; i < ss.Length; i++)
+            {
+                str = ss[i].Trim();
+                if (String.IsNullOrEmpty(str)) continue;
+
+                arr[i] = TypeX.ChangeType<T>(str);
+            }
+
+            return arr;
         }
         #endregion
     }
