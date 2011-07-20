@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
+using NewLife.Model;
 
 namespace NewLife.Net.Sockets
 {
@@ -16,7 +17,7 @@ namespace NewLife.Net.Sockets
     /// <remarks>
     /// 使用方法：重载方法EnsureCreateServer来创建一个SocketServer并赋值给Server属性，EnsureCreateServer将会在OnStart时首先被调用
     /// </remarks>
-    public class NetServer : Netbase
+    public class NetServer : Netbase, IServer
     {
         #region 属性
         private IPAddress _Address = IPAddress.Any;
