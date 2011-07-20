@@ -663,21 +663,11 @@ namespace XCode.DataAccessLayer
 
             if (list == null || list.Count < 1) return null;
 
-            // 排序
-            list.Sort((item1, item2) => item1.ID.CompareTo(item2.ID));
-
-            //XmlSerializer serializer = new XmlSerializer(typeof(List<IDataTable>));
-            //using (StringWriter sw = new StringWriter())
-            //{
-            //    serializer.Serialize(sw, list);
-            //    return sw.ToString();
-            //}
-
             XmlWriterX writer = new XmlWriterX();
             writer.Settings.WriteType = false;
             writer.Settings.UseObjRef = false;
             writer.Settings.IgnoreDefault = true;
-            //writer.Settings.MemberAsAttribute = true;
+            writer.Settings.MemberAsAttribute = true;
             writer.RootName = "Tables";
             writer.WriteObject(list);
             return writer.ToString();
@@ -693,13 +683,9 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(xml)) return null;
 
             XmlReaderX reader = new XmlReaderX(xml);
-            //reader.Stream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
-            //reader.Settings.MemberAsAttribute = true;
-            //list = reader.ReadObject(typeof(List<IDataTable>)) as List<IDataTable>;
+            reader.Settings.MemberAsAttribute = true;
             List<XTable> list = reader.ReadObject(typeof(List<XTable>)) as List<XTable>;
             if (list == null || list.Count < 1) return null;
-
-            //if (list == null || list.Count < 1) return list;
 
             List<IDataTable> dts = new List<IDataTable>();
             // 修正字段中的Table引用
@@ -707,10 +693,6 @@ namespace XCode.DataAccessLayer
             {
                 if (item.Columns == null || item.Columns.Length < 1) continue;
 
-                //foreach (IDataColumn field in item.Fields)
-                //{
-                //    if (field.Table == null) field.Table = item;
-                //}
                 List<IDataColumn> fs = new List<IDataColumn>();
                 foreach (IDataColumn field in item.Columns)
                 {
