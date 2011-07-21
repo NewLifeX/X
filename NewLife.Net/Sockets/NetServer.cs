@@ -1,12 +1,90 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using NewLife.Model;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
-using NewLife.Model;
 
 namespace NewLife.Net.Sockets
 {
+    /// <summary>
+    /// 封装为TcpIPV4服务
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class TcpV4Server<T> : NetServer<T> where T : NetServer, new()
+    {
+        /// <summary>网络服务</summary>
+        public TcpV4Server() : base(ProtocolType.Tcp, AddressFamily.InterNetwork) { }
+    }
+
+    /// <summary>
+    /// 封装为TcpIPV6服务
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class TcpV6Server<T> : NetServer<T> where T : NetServer, new()
+    {
+        /// <summary>网络服务</summary>
+        public TcpV6Server() : base(ProtocolType.Tcp, AddressFamily.InterNetworkV6) { }
+    }
+
+    /// <summary>
+    /// 封装为UdpIPV4服务
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class UdpV4Server<T> : NetServer<T> where T : NetServer, new()
+    {
+        /// <summary>网络服务</summary>
+        public UdpV4Server() : base(ProtocolType.Udp, AddressFamily.InterNetwork) { }
+    }
+
+    /// <summary>
+    /// 封装为UdpIPV6服务
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class UdpV6Server<T> : NetServer<T> where T : NetServer, new()
+    {
+        /// <summary>网络服务</summary>
+        public UdpV6Server() : base(ProtocolType.Udp, AddressFamily.InterNetworkV6) { }
+    }
+
+    /// <summary>
+    /// 指定协议类型和地址类型的网络服务
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class NetServer<T> : IServer where T : NetServer, new()
+    {
+        private T _Server;
+        /// <summary>网络服务</summary>
+        public T Server
+        {
+            get { return _Server ?? (_Server = new T()); }
+            set { _Server = value; }
+        }
+
+        /// <summary>
+        /// 通过指定协议类型和地址类型来构造网络服务
+        /// </summary>
+        /// <param name="protocol"></param>
+        /// <param name="family"></param>
+        public NetServer(ProtocolType protocol, AddressFamily family)
+        {
+            Server.ProtocolType = protocol;
+            Server.AddressFamily = family;
+        }
+
+        #region IServer 成员
+        /// <summary>
+        /// 开始
+        /// </summary>
+        public void Start() { Server.Start(); }
+
+        /// <summary>
+        /// 停止
+        /// </summary>
+        public void Stop() { Server.Stop(); }
+        #endregion
+    }
+
     /// <summary>
     /// 网络服务器
     /// </summary>

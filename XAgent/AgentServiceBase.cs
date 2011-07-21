@@ -513,7 +513,7 @@ namespace XAgent
                                 Instance.StartWork();
 
                                 Console.WriteLine("任意键结束循环调试！");
-                                Console.ReadKey();
+                                Console.ReadKey(true);
 
                                 Instance.StopWork();
                             }
@@ -521,6 +521,17 @@ namespace XAgent
                             {
                                 Console.WriteLine(ex.ToString());
                             }
+                            #endregion
+                            break;
+                        case '6':
+                            #region 附加服务
+                            Console.WriteLine("正在附加服务调试……");
+                            Instance.StartAttachServers();
+
+                            Console.WriteLine("任意键结束附加服务调试！");
+                            Console.ReadKey(true);
+
+                            Instance.StopAttachServers();
                             #endregion
                             break;
                         default:
@@ -601,6 +612,7 @@ namespace XAgent
             {
                 Console.WriteLine("4 单步调试 -step");
                 Console.WriteLine("5 循环调试 -run");
+                Console.WriteLine("6 附加服务调试");
             }
 
             Console.WriteLine("0 退出");
@@ -655,6 +667,35 @@ namespace XAgent
             StartWork();
 
             // 处理附加服务
+            try
+            {
+                StartAttachServers();
+            }
+            catch (Exception ex)
+            {
+                WriteLine(ex.ToString());
+            }
+        }
+
+        /// <summary>
+        /// 服务停止事件
+        /// </summary>
+        protected override void OnStop()
+        {
+            StopWork();
+
+            try
+            {
+                StopAttachServers();
+            }
+            catch (Exception ex)
+            {
+                WriteLine(ex.ToString());
+            }
+        }
+
+        private void StartAttachServers()
+        {
             Type[] ts = Config.GetConfigSplit<Type>("XAgent.AttachServers", null);
             if (ts != null && ts.Length > 0)
             {
@@ -671,13 +712,8 @@ namespace XAgent
             }
         }
 
-        /// <summary>
-        /// 服务停止事件
-        /// </summary>
-        protected override void OnStop()
+        private void StopAttachServers()
         {
-            StopWork();
-
             if (AttachServers != null && AttachServers.Length > 0)
             {
                 foreach (IServer item in AttachServers)
