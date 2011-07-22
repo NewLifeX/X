@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Collections.Generic;
 
 namespace NewLife.Serialization
 {
@@ -287,17 +286,6 @@ namespace NewLife.Serialization
                 default:
                     break;
             }
-
-            //if (type == typeof(Byte[]))
-            //{
-            //    Write((Byte[])value);
-            //    return true;
-            //}
-            //if (type == typeof(Char[]))
-            //{
-            //    Write((Char[])value);
-            //    return true;
-            //}
 
             return false;
         }

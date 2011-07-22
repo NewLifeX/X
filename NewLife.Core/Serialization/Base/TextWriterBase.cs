@@ -21,11 +21,6 @@ namespace NewLife.Serialization
 
         #region 基础元数据
         #region 字节
-        //protected virtual void WriteBase64(Byte[] buffer, Int32 index, Int32 count)
-        //{
-
-        //}
-
         /// <summary>
         /// 将一个无符号字节写入
         /// </summary>

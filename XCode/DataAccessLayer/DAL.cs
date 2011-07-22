@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.Common;
-using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using NewLife.Configuration;
 using NewLife.Log;
@@ -617,7 +615,7 @@ namespace XCode.DataAccessLayer
         private List<IDataTable> GetTables()
         {
             List<IDataTable> list = Db.CreateMetaData().GetTables();
-            if (list != null && list.Count > 0) list.Sort(delegate(IDataTable item1, IDataTable item2) { return item1.Name.CompareTo(item2.Name); });
+            //if (list != null && list.Count > 0) list.Sort(delegate(IDataTable item1, IDataTable item2) { return item1.Name.CompareTo(item2.Name); });
             return list;
         }
         #endregion
@@ -683,6 +681,9 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(xml)) return null;
 
             XmlReaderX reader = new XmlReaderX(xml);
+            //XmlSerializer serial = new XmlSerializer(typeof(List<XTable>));
+            //List<XTable> ts = serial.Deserialize(reader.Stream) as List<XTable>;
+
             reader.Settings.MemberAsAttribute = true;
             List<XTable> list = reader.ReadObject(typeof(List<XTable>)) as List<XTable>;
             if (list == null || list.Count < 1) return null;

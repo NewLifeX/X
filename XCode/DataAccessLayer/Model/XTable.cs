@@ -20,7 +20,10 @@ namespace XCode.DataAccessLayer
     [DebuggerDisplay("ID={ID} Name={Name} Description={Description}")]
     [Serializable]
     [XmlRoot("Table")]
-    public class XTable : IDataTable, ICloneable, IAccessor
+    [XmlInclude(typeof(XField))]
+    [XmlInclude(typeof(XIndex))]
+    [XmlInclude(typeof(XRelation))]
+    public class XTable : IDataTable, ICloneable
     {
         #region 基本属性
         private Int32 _ID;
@@ -290,49 +293,47 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region IAccessor 成员
+        //bool IAccessor.Read(IReader reader)
+        //{
+        //    //XmlReaderX xr = reader as XmlReaderX;
+        //    //if (xr != null)
+        //    //{
+        //    //    xr.Settings.MemberAsAttribute = true;
+        //    //}
 
-        bool IAccessor.Read(IReader reader)
-        {
-            //XmlReaderX xr = reader as XmlReaderX;
-            //if (xr != null)
-            //{
-            //    xr.Settings.MemberAsAttribute = true;
-            //}
+        //    return false;
+        //}
 
-            return false;
-        }
+        //bool IAccessor.ReadComplete(IReader reader, bool success)
+        //{
+        //    return success;
+        //}
 
-        bool IAccessor.ReadComplete(IReader reader, bool success)
-        {
-            return success;
-        }
+        //bool IAccessor.Write(IWriter writer)
+        //{
+        //    //XmlWriterX xw = writer as XmlWriterX;
+        //    //if (xw != null)
+        //    //{
+        //    //    xw.Settings.MemberAsAttribute = true;
+        //    //}
 
-        bool IAccessor.Write(IWriter writer)
-        {
-            //XmlWriterX xw = writer as XmlWriterX;
-            //if (xw != null)
-            //{
-            //    xw.Settings.MemberAsAttribute = true;
-            //}
+        //    writer.OnMemberWriting += new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
 
-            writer.OnMemberWriting += new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
+        //    return false;
+        //}
 
-            return false;
-        }
+        //void writer_OnMemberWriting(object sender, WriteMemberEventArgs e)
+        //{
+        //    //if (e.Member.Type == typeof(IDataColumn[]))
+        //    //{
+        //    //    e.Member.Name = "";
+        //    //}
+        //}
 
-        void writer_OnMemberWriting(object sender, WriteMemberEventArgs e)
-        {
-            //if (e.Member.Type == typeof(IDataColumn[]))
-            //{
-            //    e.Member.Name = "";
-            //}
-        }
-
-        bool IAccessor.WriteComplete(IWriter writer, bool success)
-        {
-            return success;
-        }
-
+        //bool IAccessor.WriteComplete(IWriter writer, bool success)
+        //{
+        //    return success;
+        //}
         #endregion
     }
 }
