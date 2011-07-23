@@ -891,5 +891,10 @@ namespace NewLife.CommonEntity
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
         void WriteLog(Type type, String action, String remark);
+
+        /// <summary>
+        /// 注销
+        /// </summary>
+        void Logout();
     }
 }

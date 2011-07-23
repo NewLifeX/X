@@ -604,6 +604,8 @@ namespace NewLife.CommonEntity
                 {
                     // 过滤掉表单页面
                     if (Path.GetFileNameWithoutExtension(elm).EndsWith("Form", StringComparison.OrdinalIgnoreCase)) continue;
+                    // 过滤掉选择页面
+                    if (Path.GetFileNameWithoutExtension(elm).StartsWith("Select", StringComparison.OrdinalIgnoreCase)) continue;
                     //if (elm.EndsWith("Default.aspx", StringComparison.OrdinalIgnoreCase)) continue;
 
                     files.Add(elm);

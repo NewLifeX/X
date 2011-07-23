@@ -301,6 +301,25 @@ namespace NewLife.CommonEntity
 
             return list;
         }
+
+        /// <summary>
+        /// 取得当前角色的子菜单，有权限、可显示、排序
+        /// </summary>
+        /// <param name="parentID"></param>
+        /// <returns></returns>
+        protected internal override List<IMenu> GetMySubMenusInternal(int parentID)
+        {
+            EntityList<TMenuEntity> list = GetMySubMenus(parentID);
+            if (list == null || list.Count < 1) return null;
+
+            List<IMenu> list2 = new List<IMenu>();
+            foreach (TMenuEntity item in list)
+            {
+                list2.Add(item);
+            }
+
+            return list2;
+        }
         #endregion
     }
 
@@ -432,6 +451,20 @@ namespace NewLife.CommonEntity
         /// <param name="flag"></param>
         /// <returns></returns>
         public abstract Boolean Acquire(Int32 menuID, PermissionFlags flag);
+
+        /// <summary>
+        /// 取得当前角色的子菜单，有权限、可显示、排序
+        /// </summary>
+        /// <param name="parentID"></param>
+        /// <returns></returns>
+        List<IMenu> IRole.GetMySubMenus(Int32 parentID) { return GetMySubMenusInternal(parentID); }
+
+        /// <summary>
+        /// 取得当前角色的子菜单，有权限、可显示、排序
+        /// </summary>
+        /// <param name="parentID"></param>
+        /// <returns></returns>
+        internal protected abstract List<IMenu> GetMySubMenusInternal(Int32 parentID);
         #endregion
     }
 
@@ -444,5 +477,12 @@ namespace NewLife.CommonEntity
         /// <param name="flag"></param>
         /// <returns></returns>
         Boolean Acquire(Int32 menuID, PermissionFlags flag);
+
+        /// <summary>
+        /// 取得当前角色的子菜单，有权限、可显示、排序
+        /// </summary>
+        /// <param name="parentID"></param>
+        /// <returns></returns>
+        List<IMenu> GetMySubMenus(Int32 parentID);
     }
 }
