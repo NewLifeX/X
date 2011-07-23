@@ -24,6 +24,7 @@ namespace NewLife.CommonEntity.Web
     /// </summary>
     /// <typeparam name="TAdminEntity"></typeparam>
     /// <typeparam name="TMenuEntity"></typeparam>
+    [Obsolete("不再需要指定管理员类和菜单类，请改用WebPageBase类替代！")]
     public class WebPageBase<TAdminEntity, TMenuEntity> : WebPageBase<TAdminEntity>
         where TAdminEntity : Administrator<TAdminEntity>, new()
         where TMenuEntity : Menu<TMenuEntity>, new()
@@ -98,6 +99,7 @@ namespace NewLife.CommonEntity.Web
     /// 指定具体管理员类的页面基类
     /// </summary>
     /// <typeparam name="TAdminEntity"></typeparam>
+    [Obsolete("不再需要指定管理员类和菜单类，请改用WebPageBase类替代！")]
     public class WebPageBase<TAdminEntity> : WebPageBase
         where TAdminEntity : Administrator<TAdminEntity>, new()
     {
