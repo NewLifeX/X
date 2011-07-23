@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using XCode.Configuration;
+using XCode.Cache;
 
 namespace XCode
 {
@@ -30,6 +31,21 @@ namespace XCode
         /// 字段名列表
         /// </summary>
         IList<String> FieldNames { get; }
+
+        /// <summary>连接名</summary>
+        String ConnName { get; set; }
+
+        /// <summary>表名</summary>
+        String TableName { get; set; }
+
+        /// <summary>实体缓存</summary>
+        IEntityCache Cache { get; }
+
+        /// <summary>单对象实体缓存</summary>
+        ISingleEntityCache SingleCache { get; }
+
+        /// <summary>总记录数</summary>
+        Int32 Count { get; }
         #endregion
 
         #region 创建实体

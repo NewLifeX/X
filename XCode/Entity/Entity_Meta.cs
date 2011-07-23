@@ -519,9 +519,7 @@ namespace XCode
             }
 
             private static Int32? _Count;
-            /// <summary>
-            /// 总数
-            /// </summary>
+            /// <summary>总记录数</summary>
             public static Int32 Count
             {
                 get

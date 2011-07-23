@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Web.UI;
+using System.Web;
+using NewLife.Reflection;
+using System.Reflection;
 
 namespace NewLife.Web
 {
@@ -99,6 +102,47 @@ namespace NewLife.Web
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// 在页面查找指定ID的控件，采用反射字段的方法，避免遍历Controls引起子控件构造
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public static T FindControlInPage<T>(String id) where T : Control
+        {
+            if (HttpContext.Current == null) return null;
+
+            IHttpHandler handler = HttpContext.Current.Handler;
+            if (handler == null) return null;
+
+            FieldInfoX fix = null;
+            if (!String.IsNullOrEmpty(id))
+            {
+                fix = FieldInfoX.Create(handler.GetType(), id);
+
+                //foreach (FieldInfo item in TypeX.Create(handler.GetType()).Fields)
+                //{
+
+                //}
+            }
+            else
+            {
+                Type t = typeof(T);
+                foreach (FieldInfo item in TypeX.Create(handler.GetType()).Fields)
+                {
+                    if (item.FieldType == t)
+                    {
+                        fix = item;
+                        break;
+                    }
+                }
+            }
+
+            if (fix == null) return null;
+
+            return fix.GetValue(handler) as T;
         }
     }
 }

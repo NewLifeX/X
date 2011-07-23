@@ -277,15 +277,18 @@ namespace XCode.DataAccessLayer
             if (!File.Exists(file))
             {
                 // 从网上下载文件
-                String file2 = Path.GetFileName(file + ".zip");
-                String url = String.Format("http://files.cnblogs.com/nnhy/{0}", file2);
-                DAL.WriteLog("准备从{0}下载相关文件到{1}！", url, file2);
-                WebClientX client = new WebClientX();
-                //client.DownloadFileCompleted += new AsyncCompletedEventHandler(client_DownloadFileCompleted);
-                //client.DownloadFileAsync(new Uri(url), file2, file2);
-                // 同步下载，3秒超时
-                client.Timeout = 3000;
-                client.DownloadFile(url, file2);
+                String file2 = file + ".zip";
+                if (!File.Exists(file2))
+                {
+                    String url = String.Format("http://files.cnblogs.com/nnhy/{0}", Path.GetFileName(file2));
+                    DAL.WriteLog("准备从{0}下载相关文件到{1}！", url, file2);
+                    WebClientX client = new WebClientX();
+                    //client.DownloadFileCompleted += new AsyncCompletedEventHandler(client_DownloadFileCompleted);
+                    //client.DownloadFileAsync(new Uri(url), file2, file2);
+                    // 同步下载，3秒超时
+                    client.Timeout = 3000;
+                    client.DownloadFile(url, file2);
+                }
                 if (File.Exists(file2))
                 {
                     IOHelper.DecompressFile(file2, null, false);

@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using XCode.Cache;
 using XCode.Configuration;
-using System.Collections;
 
 namespace XCode
 {
@@ -33,6 +34,21 @@ namespace XCode
             /// 字段名列表
             /// </summary>
             public IList<String> FieldNames { get { return Meta.FieldNames; } }
+
+            /// <summary>连接名</summary>
+            public String ConnName { get { return Meta.ConnName; } set { Meta.ConnName = value; } }
+
+            /// <summary>表名</summary>
+            public String TableName { get { return Meta.TableName; } set { Meta.TableName = value; } }
+
+            /// <summary>实体缓存</summary>
+            public IEntityCache Cache { get { return Meta.Cache; } }
+
+            /// <summary>单对象实体缓存</summary>
+            public ISingleEntityCache SingleCache { get { return Meta.SingleCache; } }
+
+            /// <summary>总记录数</summary>
+            public Int32 Count { get { return Meta.Count; } }
             #endregion
 
             #region 创建实体

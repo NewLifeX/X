@@ -34,8 +34,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("7.13.*")]
-[assembly: AssemblyFileVersion("7.13.2011.0622")]
+[assembly: AssemblyVersion("7.14.*")]
+[assembly: AssemblyFileVersion("7.14.2011.0714")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.14.2011.0714  增加实体缓存接口IEntityCache和单对象缓存接口ISingleEntityCache
+ *                  IEntityOperate增加缓存等操作支持
+ * 
  * v7.13.2011.0622  优化SQLite，如果外部不指定缓存大小等参数，则自动使用最高性能的参数
  * 
  * v7.12.2011.0614  SQLite增加对内存数据库的支持，数据源设置为:memory:或者空，即表示使用内存数据库

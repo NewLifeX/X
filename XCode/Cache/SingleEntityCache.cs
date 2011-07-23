@@ -11,7 +11,7 @@ namespace XCode.Cache
     /// </summary>
     /// <typeparam name="TKey">键值类型</typeparam>
     /// <typeparam name="TEntity">实体类型</typeparam>
-    public class SingleEntityCache<TKey, TEntity> : CacheBase<TEntity> where TEntity : Entity<TEntity>, new()
+    public class SingleEntityCache<TKey, TEntity> : CacheBase<TEntity>, ISingleEntityCache where TEntity : Entity<TEntity>, new()
     {
         #region 属性
         private Int32 _Expriod = 60;
@@ -339,6 +339,15 @@ namespace XCode.Cache
 
             Entities.Clear();
         }
+        #endregion
+
+        #region ISingleEntityCache 成员
+
+        IEntity ISingleEntityCache.this[object key]
+        {
+            get { return GetItem((TKey)key); }
+        }
+
         #endregion
     }
 

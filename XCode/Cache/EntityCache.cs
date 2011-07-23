@@ -10,7 +10,7 @@ namespace XCode.Cache
     /// 实体缓存
     /// </summary>
     /// <typeparam name="TEntity">实体类型</typeparam>
-    public class EntityCache<TEntity> : CacheBase<TEntity> where TEntity : Entity<TEntity>, new()
+    public class EntityCache<TEntity> : CacheBase<TEntity>, IEntityCache where TEntity : Entity<TEntity>, new()
     {
         #region 基本
         private EntityList<TEntity> _Entities;
@@ -175,6 +175,55 @@ namespace XCode.Cache
                 XTrace.WriteLine(sb.ToString());
             }
         }
+        #endregion
+
+        #region IEntityCache 成员
+        EntityList<IEntity> IEntityCache.Entities
+        {
+            get
+            {
+                List<TEntity> old = Entities;
+                if (old == null) return null;
+
+                EntityList<IEntity> list = new EntityList<IEntity>();
+                foreach (TEntity item in old)
+                {
+                    list.Add(item);
+                }
+                return list;
+            }
+        }
+
+        /// <summary>
+        /// 根据指定项查找
+        /// </summary>
+        /// <param name="name">属性名</param>
+        /// <param name="value">属性值</param>
+        /// <returns></returns>
+        public IEntity Find(string name, object value)
+        {
+            return Entities.Find(name, value);
+        }
+
+        /// <summary>
+        /// 根据指定项查找
+        /// </summary>
+        /// <param name="name">属性名</param>
+        /// <param name="value">属性值</param>
+        /// <returns></returns>
+        public EntityList<IEntity> FindAll(string name, object value)
+        {
+            List<TEntity> old = Entities.FindAll(name, value);
+            if (old == null) return null;
+
+            EntityList<IEntity> list = new EntityList<IEntity>();
+            foreach (TEntity item in old)
+            {
+                list.Add(item);
+            }
+            return list;
+        }
+
         #endregion
     }
 
