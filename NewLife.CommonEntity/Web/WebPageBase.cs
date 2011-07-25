@@ -305,10 +305,10 @@ namespace NewLife.CommonEntity.Web
         {
             CheckStarting();
 
-            Thread.CurrentPrincipal = (IPrincipal)Current;
-            //Thread.CurrentPrincipal = (IPrincipal)http.Current;
+            //Thread.CurrentPrincipal = (IPrincipal)Current;
+            ////Thread.CurrentPrincipal = (IPrincipal)http.Current;
 
-            Unload += new EventHandler(WebPageBase_Unload);
+            //Unload += new EventHandler(WebPageBase_Unload);
 
             base.OnPreLoad(e);
 
@@ -337,10 +337,10 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        void WebPageBase_Unload(object sender, EventArgs e)
-        {
-            Thread.CurrentPrincipal = null;
-        }
+        //void WebPageBase_Unload(object sender, EventArgs e)
+        //{
+        //    Thread.CurrentPrincipal = null;
+        //}
         #endregion
 
         #region 运行时输出

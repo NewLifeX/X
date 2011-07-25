@@ -282,7 +282,7 @@ namespace NewLife.CommonEntity
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
     /// <typeparam name="TEntity">管理员类型</typeparam>
-    public abstract partial class Administrator<TEntity> : Entity<TEntity>, IAdministrator, IPrincipal, IIdentity
+    public abstract partial class Administrator<TEntity> : Entity<TEntity>, IAdministrator//, IPrincipal//, IIdentity
         where TEntity : Administrator<TEntity>, new()
     {
         #region 对象操作
@@ -404,7 +404,7 @@ namespace NewLife.CommonEntity
             set
             {
                 HttpState.Current = value;
-                Thread.CurrentPrincipal = (IPrincipal)value;
+                //Thread.CurrentPrincipal = (IPrincipal)value;
             }
         }
 
@@ -799,30 +799,32 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region IPrincipal 成员
-        [XmlIgnore]
-        IIdentity IPrincipal.Identity
-        {
-            get { return this; }
-        }
+        //[NonSerialized]
+        //private IIdentity idt;
+        //[XmlIgnore]
+        //IIdentity IPrincipal.Identity
+        //{
+        //    get { return idt ?? (idt = new GenericIdentity(Name, "CommonEntity")); }
+        //}
 
-        bool IPrincipal.IsInRole(string role)
-        {
-            return RoleName == role;
-        }
+        //bool IPrincipal.IsInRole(string role)
+        //{
+        //    return RoleName == role;
+        //}
         #endregion
 
         #region IIdentity 成员
-        [XmlIgnore]
-        string IIdentity.AuthenticationType
-        {
-            get { return "CommonEntity"; }
-        }
+        //[XmlIgnore]
+        //string IIdentity.AuthenticationType
+        //{
+        //    get { return "CommonEntity"; }
+        //}
 
-        [XmlIgnore]
-        bool IIdentity.IsAuthenticated
-        {
-            get { return true; }
-        }
+        //[XmlIgnore]
+        //bool IIdentity.IsAuthenticated
+        //{
+        //    get { return true; }
+        //}
 
         //string IIdentity.Name
         //{
