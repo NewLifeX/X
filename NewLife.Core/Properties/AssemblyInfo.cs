@@ -33,10 +33,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.5.*")]
-[assembly: AssemblyFileVersion("2.5.2011.0701")]
+[assembly: AssemblyVersion("2.6.*")]
+[assembly: AssemblyFileVersion("2.6.2011.0725")]
 
 /*
+ * v2.6.2011.0725   修正TypeX中计算内嵌类型会重复计算的BUG
+ * 
  * v2.5.2011.0701   增加可重入计时器TimerX
  * 
  * v2.4.2011.0625   重写日志模块，拆分出来TextFileLog，以便于多种日志用途

@@ -239,7 +239,7 @@ namespace NewLife.Reflection
                             Int32 k = i + 1;
                             foreach (Type item in types)
                             {
-                                list.Insert(k++, item);
+                                if (!list.Contains(item)) list.Insert(k++, item);
                             }
                         }
                     }
@@ -402,7 +402,14 @@ namespace NewLife.Reflection
                 if (item.IsSystemAssembly) continue;
 
                 ListX<Type> ts = item.FindPlugins(type);
-                if (ts != null && ts.Count > 0) list.AddRange(ts);
+                if (ts != null && ts.Count > 0)
+                {
+                    //list.AddRange(ts);
+                    foreach (Type elm in ts)
+                    {
+                        if (!list.Contains(elm)) list.Add(elm);
+                    }
+                }
             }
             if (isLoadAssembly)
             {
