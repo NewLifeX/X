@@ -13,6 +13,14 @@ namespace XCode.DataAccessLayer
     public class XRelation : SerializableDataMember, IDataRelation
     {
         #region 属性
+        private String _Column;
+        /// <summary>数据列</summary>
+        public String Column
+        {
+            get { return _Column; }
+            set { _Column = value; }
+        }
+
         private String _ForeignTable;
         /// <summary>外部表</summary>
         public String RelationTable
@@ -27,6 +35,14 @@ namespace XCode.DataAccessLayer
         {
             get { return _ForeignColumn; }
             set { _ForeignColumn = value; }
+        }
+
+        private Boolean _Unique;
+        /// <summary>是否唯一</summary>
+        public Boolean Unique
+        {
+            get { return _Unique; }
+            set { _Unique = value; }
         }
 
         [NonSerialized]

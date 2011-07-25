@@ -10,6 +10,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Reflection;
 using NewLife.Web;
+
 using XCode.DataAccessLayer;
 
 public partial class Admin_System_WebDb : System.Web.UI.Page
@@ -55,6 +56,20 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         {
             txtConnStr.Text = dal.ConnStr;
 
+            // 数据表
+            ddlTable.Items.Clear();
+            IList<IDataTable> tables = dal.Tables;
+            if (tables != null && tables.Count > 0)
+            {
+                foreach (IDataTable item in tables)
+                {
+                    String des = String.IsNullOrEmpty(item.Description) ? item.Name : String.Format("{1}({0})", item.Name, item.Description);
+                    ddlTable.Items.Add(new ListItem(des, item.Name));
+                }
+
+                ddlTable.Items.Insert(0, "--请选择--");
+            }
+
             // 数据架构
             ddlSchema.Items.Clear();
             DataTable dt = dal.Session.GetSchema(null, null);
@@ -65,24 +80,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
                     ddlSchema.Items.Add(dr[0].ToString());
                 }
 
-                ddlSchema.Items.Insert(0, new ListItem("--请选择--", ""));
-            }
-
-            //// 数据库信息架构
-            //DatabaseSchema.Create(dal.Db).CheckDatabaseOnce().CheckAllTables();
-
-            // 数据表
-            ddlTable.Items.Clear();
-            IList<XTable> tables = dal.Tables;
-            if (tables != null && tables.Count > 0)
-            {
-                foreach (XTable item in tables)
-                {
-                    String des = String.IsNullOrEmpty(item.Description) ? item.Name : String.Format("{1}({0})", item.Name, item.Description);
-                    ddlTable.Items.Add(new ListItem(des, item.Name));
-                }
-
-                ddlTable.Items.Insert(0, new ListItem("--请选择--", ""));
+                ddlSchema.Items.Insert(0, "--请选择--");
             }
         }
         catch (Exception ex)
@@ -93,15 +91,13 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
 
     protected void ddlTable_SelectedIndexChanged(object sender, EventArgs e)
     {
-        if (String.IsNullOrEmpty(ddlTable.SelectedValue)) return;
-
         DAL dal = GetDAL();
         if (dal == null) return;
 
-        XTable table = dal.Tables.Find(delegate(XTable item) { return item.Name == ddlTable.SelectedValue; });
+        IDataTable table = dal.Tables.Find(delegate(IDataTable item) { return item.Name == ddlTable.SelectedValue; });
         if (table == null) return;
 
-        gvTable.DataSource = table.Fields;
+        gvTable.DataSource = table.Columns;
         gvTable.DataBind();
 
         txtSql.Text = String.Format("Select * From {0}", dal.Db.FormatKeyWord(table.Name));
@@ -110,7 +106,6 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
     protected void ddlSchema_SelectedIndexChanged(object sender, EventArgs e)
     {
         if (String.IsNullOrEmpty(ddlConn.SelectedValue)) return;
-        if (String.IsNullOrEmpty(ddlSchema.SelectedValue)) return;
 
         DAL dal = GetDAL();
         if (dal == null) return;
@@ -153,7 +148,6 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
     void CreateRestrictions()
     {
         if (String.IsNullOrEmpty(ddlConn.SelectedValue)) return;
-        if (String.IsNullOrEmpty(ddlSchema.SelectedValue)) return;
 
         DAL dal = GetDAL();
         if (dal == null) return;
@@ -253,9 +247,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         if (dal == null) return;
 
         // 总行数
-        SelectBuilder sb = new SelectBuilder();
-        sb.Parse(sql);
-        Int32 count = dal.SelectCount(sb, null);
+        Int32 count = dal.SelectCount(sql, "");
         DataPager1.TotalRowCount = count;
         lbResult.Text = String.Format("总记录数：{0}", count);
 
@@ -289,8 +281,6 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
 
     protected void gvTable_RowDataBound(object sender, GridViewRowEventArgs e)
     {
-        if (String.IsNullOrEmpty(ddlTable.SelectedValue)) return;
-
         if (e.Row.RowType == DataControlRowType.Header)
         {
             GridView gv = sender as GridView;
@@ -311,10 +301,8 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
                 String fsql = String.Format("Select * From {0}", dal.Db.FormatKeyWord(tableName));
                 if (!sql.ToLower().StartsWith(fsql.ToLower())) return;
 
-                if (dal.Tables == null || dal.Tables.Count < 1) return;
-
-                XTable table = dal.Tables.Find(delegate(XTable item) { return item.Name == ddlTable.SelectedValue; });
-                if (table == null || table.Fields == null) return;
+                IDataTable table = dal.Tables.Find(delegate(IDataTable item) { return item.Name == ddlTable.SelectedValue; });
+                if (table == null) return;
 
                 // 更新表头
                 foreach (TableCell item in e.Row.Cells)
@@ -322,7 +310,17 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
                     String name = item.Text;
                     if (String.IsNullOrEmpty(name)) continue;
 
-                    XField field = table.Fields.Find(delegate(XField elm) { return elm.Name == name; });
+                    //XField field = table.Fields.Find(delegate(XField elm) { return elm.Name == name; });
+                    //if (field == null) continue;
+                    IDataColumn field = null;
+                    foreach (IDataColumn elm in table.Columns)
+                    {
+                        if (elm.Name == name)
+                        {
+                            field = elm;
+                            break;
+                        }
+                    }
                     if (field == null) continue;
 
                     if (!String.IsNullOrEmpty(field.Description)) item.Text = field.Description;
@@ -353,31 +351,4 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
             }
         }
     }
-
-    #region 运行时输出
-    private Int32 StartQueryTimes = DAL.QueryTimes;
-    private Int32 StartExecuteTimes = DAL.ExecuteTimes;
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="writer"></param>
-    protected override void Render(HtmlTextWriter writer)
-    {
-        WriteRunTime();
-        base.Render(writer);
-    }
-
-    /// <summary>
-    /// 输出运行时间
-    /// </summary>
-    protected virtual void WriteRunTime()
-    {
-        TimeSpan ts = DateTime.Now - HttpContext.Current.Timestamp;
-
-        String str = String.Format("查询{0}次，执行{1}次，耗时{2}毫秒！", DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds);
-
-        RunTime.Text = str;
-    }
-    #endregion
 }

@@ -5,7 +5,7 @@ using System.Text;
 namespace XCode.DataAccessLayer
 {
     /// <summary>
-    /// 索引
+    /// 数据索引。可根据索引生成查询方法，是否唯一决定该索引返回的是单个实体还是实体集合。
     /// </summary>
     public interface IDataIndex
     {

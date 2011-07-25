@@ -153,6 +153,7 @@
     <Compile Include="Tree\EntityTree.cs" />
     <Compile Include="Tree\IEntityTree.cs" />
     <Compile Include="Tree\IEntityTreeExtend.cs" />
+    <None Include="DataAccessLayer\Model\数据模型.cd" />
     <None Include="XCodeTest.cs" />
   </ItemGroup>
   <ItemGroup>
