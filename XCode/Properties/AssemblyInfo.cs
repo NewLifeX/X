@@ -34,8 +34,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("7.14.*")]
-[assembly: AssemblyFileVersion("7.14.2011.0714")]
+[assembly: AssemblyVersion("7.15.*")]
+[assembly: AssemblyFileVersion("7.15.2011.0725")]
 
 /*
  * XCode的重大改进
@@ -51,7 +51,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
- * v7.14.2011.0714  增加实体缓存接口IEntityCache和单对象缓存接口ISingleEntityCache
+ * v7.15.2011.0725  修正EntityFactory中创建实体操作者可能出现的BUG，解决非泛型继承的问题，如Admin=>Administrator=>Administrator<Administrator>
+ * 
+ * v7.14.2011.0723  增加实体缓存接口IEntityCache和单对象缓存接口ISingleEntityCache
  *                  IEntityOperate增加缓存等操作支持
  * 
  * v7.13.2011.0622  优化SQLite，如果外部不指定缓存大小等参数，则自动使用最高性能的参数

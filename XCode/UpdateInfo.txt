@@ -9,6 +9,8 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
+v7.15.2011.0725  修正EntityFactory中创建实体操作者可能出现的BUG，解决非泛型继承的问题，如Admin=>Administrator=>Administrator<Administrator>
+
 v7.14.2011.0714  增加实体缓存接口IEntityCache和单对象缓存接口ISingleEntityCache
                  IEntityOperate增加缓存等操作支持
 

@@ -36,7 +36,8 @@ namespace XCode
             if (type == null || type.IsInterface || type.IsAbstract) return null;
 
             //return Activator.CreateInstance(type) as IEntity;
-            return TypeX.CreateInstance(type) as IEntity;
+            //return TypeX.CreateInstance(type) as IEntity;
+            return CreateOperate(type).Create();
         }
         #endregion
 
@@ -72,16 +73,26 @@ namespace XCode
 
             return op_cache.GetItem(type, delegate(Type key)
             {
-                if (!typeof(IEntityOperate).IsAssignableFrom(key))
+                Type optype = null;
+                if (typeof(IEntityOperate).IsAssignableFrom(key))
                 {
-                    Type t = GetEntityOperateType();
-                    if (t != null) key = t.MakeGenericType(key);
+                    optype = key;
                 }
-                if (key == null || !typeof(IEntityOperate).IsAssignableFrom(key))
+                else
+                {
+                    //Type t = GetEntityOperateType();
+                    //if (t != null) key = t.MakeGenericType(key);
+                    optype = GetEntityOperateType(key);
+                }
+                if (optype == null || !typeof(IEntityOperate).IsAssignableFrom(optype))
                     throw new Exception(String.Format("无法创建{0}的实体操作接口！", key));
 
-                IEntityOperate op = TypeX.CreateInstance(key) as IEntityOperate;
+                IEntityOperate op = TypeX.CreateInstance(optype) as IEntityOperate;
                 if (op == null) throw new Exception(String.Format("无法创建{0}的实体操作接口！", key));
+
+                // 如果源实体类型实现了IEntity接口，则以它的对象为操作者的默认值
+                // 因为可能存在非泛型继承，比如Admin=>Administrator=>Administrator<Administrator>
+                if (typeof(IEntity).IsAssignableFrom(key)) op.Default = TypeX.CreateInstance(key) as IEntity;
 
                 return op;
             });
@@ -91,6 +102,33 @@ namespace XCode
         {
             return typeof(Entity<>.EntityOperate);
             //return typeof(Entity<>).GetNestedType("EntityOperate", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+        }
+
+        static Type GetEntityOperateType(Type type)
+        {
+            //return type.GetNestedType("EntityOperate", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+            Type[] ts = type.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+            if (ts != null && ts.Length > 0)
+            {
+                foreach (Type item in ts)
+                {
+                    if (typeof(IEntityOperate).IsAssignableFrom(item))
+                    {
+                        Type optype = item;
+                        if (optype.IsGenericType && optype.IsGenericTypeDefinition)
+                        {
+                            if (type.IsGenericType && !type.IsGenericTypeDefinition)
+                            {
+                                optype = optype.MakeGenericType(type.GetGenericArguments());
+                            }
+                        }
+                        return optype;
+                    }
+                }
+            }
+            if (type.BaseType != typeof(Object)) return GetEntityOperateType(type.BaseType);
+
+            return null;
         }
 
         /// <summary>
