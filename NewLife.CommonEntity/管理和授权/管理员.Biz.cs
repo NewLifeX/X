@@ -286,37 +286,11 @@ namespace NewLife.CommonEntity
         where TEntity : Administrator<TEntity>, new()
     {
         #region 对象操作
-        //static Administrator()
-        //{
-        //    // 给基类设置一个默认管理员对象，用于写日志
-        //    if (DefaultAdministrator == null) DefaultAdministrator = new TEntity();
-
-        //    //// 设置缓存时间为一个小时
-        //    //Meta.Cache.Expriod = 60 * 60;
-
-        //    //// 初始化数据
-        //    //try
-        //    //{
-        //    //    if (Meta.Count < 1)
-        //    //    {
-        //    //        if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}管理员数据……", typeof(TEntity).Name);
-
-        //    //        TEntity user = new TEntity();
-        //    //        user.Name = "admin";
-        //    //        user.Password = DataHelper.Hash("admin");
-        //    //        user.DisplayName = "管理员";
-        //    //        user.RoleID = 1;
-        //    //        user.IsEnable = true;
-        //    //        user.Insert();
-
-        //    //        if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}管理员数据！", typeof(TEntity).Name);
-        //    //    }
-        //    //}
-        //    //catch (Exception ex)
-        //    //{
-        //    //    XTrace.WriteLine(ex.ToString());
-        //    //}
-        //}
+        static Administrator()
+        {
+            // 用于引发基类的静态构造函数
+            TEntity entity = new TEntity();
+        }
 
         /// <summary>
         /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
