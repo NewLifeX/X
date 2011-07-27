@@ -96,7 +96,7 @@
             </ItemTemplate>
         </asp:Repeater>
         <br />
-        <XCL:LinkBox runat="server" IconLeft="aa.jpg" IconRight="bb.gif">Test</XCL:LinkBox>
+        <XCL:LinkBox runat="server" Url="~/TestShowDialog.aspx" IconLeft="aa.jpg" IconRight="bb.gif">Test</XCL:LinkBox>
     </div>
     </form>
 </body>
