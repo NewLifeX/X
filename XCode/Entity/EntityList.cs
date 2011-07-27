@@ -549,7 +549,11 @@ namespace XCode
                 //else
                 //    list.Add((TResult)TypeX.ChangeType(obj, type));
 
-                list.Add(TypeX.ChangeType<TResult>(item[name]));
+                //list.Add(TypeX.ChangeType<TResult>(item[name]));
+
+                // 避免集合插入了重复项
+                TResult obj = TypeX.ChangeType<TResult>(item[name]);
+                if (!list.Contains(obj)) list.Add(obj);
             }
             return list;
         }
