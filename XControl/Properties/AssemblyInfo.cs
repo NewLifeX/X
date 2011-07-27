@@ -39,9 +39,11 @@ using System.Web.UI;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("1.10.*")]
-[assembly: AssemblyFileVersion("1.10.2011.0628")]
+[assembly: AssemblyFileVersion("1.10.2011.0727")]
 
 /*
+ * v1.10.2011.0727   修正弹窗组件在第二次打开时z-index显示错误的bug
+ * 
  * v1.10.2011.0628  给每一个Box控件加上默认值属性的特性，以便于自定义表单处理
  * 
  * v1.9.2011.0530   GridViewExtender控件，增加双击时执行编辑操作的功能
