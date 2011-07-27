@@ -115,11 +115,31 @@ $E.$A = function(attr, ele)
 }
 $E.getTopLevelWindow = function()
 {
-    var pw = window;
-    //while (pw != pw.parent)
-    //{
-    //    pw = pw.parent;
-    //}
+    var pw = window, lastPW;
+    while (pw != pw.parent)
+    {
+        lastPW = pw;
+        pw = pw.parent;
+        try
+        {
+            // 想上层找顶级窗口,如果发现某个顶级窗口不包含弹窗相关的js 则去上一次找到的窗口 可以避免弹窗调用失败的情况
+            if(typeof pw.$E !=='object' ||
+               typeof pw.$E.$A !== 'function' ||
+               typeof pw.$E.getTopLevelWindow !== 'function' ||
+               typeof pw.$E.show !== 'function' ||
+               typeof pw.$E.hide !== 'function' ||
+               typeof pw.$E.visible !== 'function')
+            {
+                pw = lastPW;
+                break;
+            }
+        }
+        catch(e)
+        {
+            pw = lastPW;
+            break;
+        }
+    }
     return pw;
 }
 $E.hide = function(ele)
