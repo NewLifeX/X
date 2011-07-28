@@ -347,22 +347,12 @@ namespace XCode
         {
             //优先使用自增字段判断
             FieldItem fi = Meta.Table.Identity;
-            if (fi != null)
-            {
-                Int64 id = Convert.ToInt64(this[fi.Name]);
-                if (id > 0)
-                    return Update();
-                else
-                    return Insert();
-            }
+            if (fi != null) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
 
-            //Int32 count = Meta.QueryCount(SQL(this, DataObjectMethodType.Select));
-            Int32 count = FindCount(DefaultCondition(this), null, null, 0, 0);
+            fi = Meta.Unique;
+            if (fi != null) return IsNullKey(this[fi.Name]) ? Insert() : Update();
 
-            if (count > 0)
-                return Update();
-            else
-                return Insert();
+            return FindCount(DefaultCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
 
         /// <summary>
@@ -590,7 +580,7 @@ namespace XCode
             if (key == null) return true;
 
             Type type = key.GetType();
-            if (IsInt(type)) return ((Int32)key) <= 0;
+            if (IsInt(type)) return ((Int64)key) <= 0;
 
             if (type == typeof(String)) return String.IsNullOrEmpty((String)key);
 
