@@ -10,13 +10,13 @@ namespace <#=Config.NameSpace#>
 	public interface I<#=ClassName#>
 	{
 		#region 属性<#
-		foreach(XField Field in Table.Fields)
+		foreach(IDataColumn Field in Table.Columns)
 		{
 #>
 		/// <summary>
 		/// <#=GetPropertyDescription(Field)#>
 		/// </summary>
-		<#=Field.FieldType#> <#=GetPropertyName(Field)#> { get; set; }
+		<#=Field.DataType.Name#> <#=GetPropertyName(Field)#> { get; set; }
 <#
 		}
 #>		#endregion

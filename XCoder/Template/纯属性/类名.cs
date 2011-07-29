@@ -13,16 +13,16 @@ namespace <#=Config.NameSpace#>
 	public partial class <#=ClassName#>
 	{
 		#region 属性<#
-        foreach(XField Field in Table.Fields)
+        foreach(IDataColumn Field in Table.Columns)
         {
 #>
-		private <#=Field.FieldType#> _<#=GetPropertyName(Field)#>;
+		private <#=Field.DataType.Name#> _<#=GetPropertyName(Field)#>;
 		/// <summary>
 		/// <#=GetPropertyDescription(Field)#>
 		/// </summary>
 		[Description("<#=GetPropertyDescription(Field)#>")]
 		[DataObjectField(<#=Field.Identity.ToString().ToLower()#>, <#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
-		public <#=Field.FieldType#> <#=GetPropertyName(Field)#>
+		public <#=Field.DataType.Name#> <#=GetPropertyName(Field)#>
 		{
 			get { return _<#=GetPropertyName(Field)#>; }
 			set { _<#=GetPropertyName(Field)#> = value; }
@@ -45,7 +45,7 @@ namespace <#=Config.NameSpace#>
 			{
 				switch (name)
 				{<#
-        foreach(XField Field in Table.Fields)
+        foreach(IDataColumn Field in Table.Columns)
         {
 #>
 					case "<#=GetPropertyName(Field)#>": return <#=GetPropertyName(Field)#>;<#
@@ -58,10 +58,10 @@ namespace <#=Config.NameSpace#>
 			{
 				switch (name)
 				{<#
-        foreach(XField Field in Table.Fields)
+        foreach(IDataColumn Field in Table.Columns)
         {
 #>
-					case "<#=GetPropertyName(Field)#>": _<#=GetPropertyName(Field)#> = Convert.To<#=Field.FieldType#>(value); break;<#
+					case "<#=GetPropertyName(Field)#>": _<#=GetPropertyName(Field)#> = Convert.To<#=Field.DataType.Name#>(value); break;<#
         }
 #>
 				}

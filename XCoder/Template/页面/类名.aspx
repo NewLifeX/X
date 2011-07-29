@@ -10,7 +10,7 @@ Int32 LineHeight2=90;
 // 表单窗口高度，初始值（Toolbar、表单头、提交按钮、运行时）
 Int32 boxHeight = 31+29+29+14;
 
-foreach(XField Field in Table.Fields){
+foreach(IDataColumn Field in Table.Columns){
     if(Field.PrimaryKey) continue;
     if(Field.DataType==typeof(String) && (Field.Length>300 || Field.Length<0))
         boxHeight += LineHeight2;
@@ -26,7 +26,7 @@ foreach(XField Field in Table.Fields){
     <asp:GridView ID="gv<#=ClassName#>" runat="server" AutoGenerateColumns="False" DataKeyNames="ID" DataSourceID="ObjectDataSource1" AllowPaging="True" AllowSorting="True" CssClass="m_table" PageSize="20" CellPadding="0" GridLines="None" EnableModelValidation="True">
         <Columns><#
 String PKName=null; 
-foreach(XField Field in Table.Fields){
+foreach(IDataColumn Field in Table.Columns){
     String pname = GetPropertyName(Field);
     if(Field.PrimaryKey) { PKName=pname; } 
     if(Field.Identity){#>

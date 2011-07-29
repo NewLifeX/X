@@ -16,17 +16,17 @@ namespace <#=Config.NameSpace#>
 	public partial class <#=ClassName#> : I<#=ClassName#>
 	{
 		#region 属性<#
-		foreach(XField Field in Table.Fields)
+		foreach(IDataColumn Field in Table.Columns)
 	{
 #>
-		private <#=Field.FieldType#> _<#=GetPropertyName(Field)#>;
+		private <#=Field.DataType.Name#> _<#=GetPropertyName(Field)#>;
 		/// <summary>
 		/// <#=GetPropertyDescription(Field)#>
 		/// </summary>
 		[Description("<#=GetPropertyDescription(Field)#>")]
 		[DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
 		[BindColumn(<#=Field.ID#>, "<#=Field.Name#>", "<#=GetPropertyDescription(Field)#>", "<#=Field.Default#>", "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
-		public <#=Field.FieldType#> <#=GetPropertyName(Field)#>
+		public <#=Field.DataType.Name#> <#=GetPropertyName(Field)#>
 		{
 			get { return _<#=GetPropertyName(Field)#>; }
 			set { if (OnPropertyChanging("<#=GetPropertyName(Field)#>", value)) { _<#=GetPropertyName(Field)#> = value; OnPropertyChanged("<#=GetPropertyName(Field)#>"); } }
@@ -49,7 +49,7 @@ namespace <#=Config.NameSpace#>
 			{
 				switch (name)
 				{<#
-	foreach(XField Field in Table.Fields)
+	foreach(IDataColumn Field in Table.Columns)
 	{
 #>
 					case "<#=GetPropertyName(Field)#>" : return _<#=GetPropertyName(Field)#>;<#
@@ -63,14 +63,14 @@ namespace <#=Config.NameSpace#>
 				switch (name)
 				{<#
 Type conv=typeof(Convert);
-	foreach(XField Field in Table.Fields)
+	foreach(IDataColumn Field in Table.Columns)
 	{ 
-if(conv.GetMethod("To"+Field.FieldType, new Type[]{typeof(Object)})!=null){
+if(conv.GetMethod("To"+Field.DataType.Name, new Type[]{typeof(Object)})!=null){
 #>
-					case "<#=GetPropertyName(Field)#>" : _<#=GetPropertyName(Field)#> = Convert.To<#=Field.FieldType#>(value); break;<#
+					case "<#=GetPropertyName(Field)#>" : _<#=GetPropertyName(Field)#> = Convert.To<#=Field.DataType.Name#>(value); break;<#
 }else{
 #>
-					case "<#=GetPropertyName(Field)#>" : _<#=GetPropertyName(Field)#> = (<#=Field.FieldType#>)value; break;<#
+					case "<#=GetPropertyName(Field)#>" : _<#=GetPropertyName(Field)#> = (<#=Field.DataType.Name#>)value; break;<#
 	}
 }
 #>
@@ -87,7 +87,7 @@ if(conv.GetMethod("To"+Field.FieldType, new Type[]{typeof(Object)})!=null){
         [CLSCompliant(false)]
 		public class _
 		{<#
-	   foreach(XField Field in Table.Fields)
+	   foreach(IDataColumn Field in Table.Columns)
 	  {
 #>
 			///<summary>
@@ -106,13 +106,13 @@ if(conv.GetMethod("To"+Field.FieldType, new Type[]{typeof(Object)})!=null){
 	public partial interface I<#=ClassName#>
 	{
 		#region 属性<#
-		foreach(XField Field in Table.Fields)
+		foreach(IDataColumn Field in Table.Columns)
 		{
 #>
 		/// <summary>
 		/// <#=GetPropertyDescription(Field)#>
 		/// </summary>
-		<#=Field.FieldType#> <#=GetPropertyName(Field)#> { get; set; }
+		<#=Field.DataType.Name#> <#=GetPropertyName(Field)#> { get; set; }
 <#
 		}
 #>		#endregion

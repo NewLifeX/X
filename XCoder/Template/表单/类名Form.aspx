@@ -13,7 +13,7 @@
             <EditItemTemplate>
                 <table><#
                 String PKName=null;
-                foreach(XField Field in Table.Fields)
+                foreach(IDataColumn Field in Table.Columns)
                 {
             String pname = GetPropertyName(Field);
             if(Field.PrimaryKey) { PKName=pname; continue; } 

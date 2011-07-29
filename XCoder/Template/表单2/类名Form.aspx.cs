@@ -50,14 +50,14 @@ public partial class <#=ClassName#>Form : PageBase
         }
 
 <# 
-        foreach(XField Field in Table.Fields) { 
+        foreach(IDataColumn Field in Table.Columns) { 
             String pname = GetPropertyName(Field);
             if(Field.PrimaryKey) continue;
             String frmName = "frm" + pname;
         #>
         //if (!WebHelper.CheckEmptyAndFocus(<#=frmName#>, null)) return;<#}#>
         <# 
-        foreach(XField Field in Table.Fields) { 
+        foreach(IDataColumn Field in Table.Columns) { 
             if(Field.PrimaryKey) continue;
             String pname = GetPropertyName(Field);
             String frmName = "frm" + pname;

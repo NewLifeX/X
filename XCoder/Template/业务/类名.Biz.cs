@@ -33,11 +33,11 @@ namespace <#=Config.NameSpace#>
 <#
 		// 探测以ID结尾的字段是否为类名，如果是，则输出扩展属性
 		Boolean hasExtendProperty = false;
-		foreach(XField field in Table.Fields){
+		foreach(IDataColumn field in Table.Columns){
 			if (field.DataType != typeof(Int32)) continue;
 			if (!field.Name.EndsWith("ID", StringComparison.Ordinal)) continue;
 			String tableName = field.Name.Substring(0, field.Name.Length - 2);
-			XTable table = FindTable(tableName);
+			IDataTable table = FindTable(tableName);
 			if (table == null) continue;
 			hasExtendProperty = true;
 			String className = GetClassName(table);
@@ -85,7 +85,7 @@ namespace <#=Config.NameSpace#>
 		/// </summary>
 <#
 Int32 n=0;
-		foreach(XField Field in Table.Fields)
+		foreach(IDataColumn Field in Table.Columns)
 	   {
 		if (!Field.PrimaryKey) continue;    
 #>		///<param name="__<#=GetPropertyName(Field)#>"><#=GetPropertyDescription(Field)#></param>
@@ -93,9 +93,9 @@ Int32 n=0;
 	   }
 #>		/// <returns></returns>
 		[DataObjectMethod(DataObjectMethodType.Select, false)]
-		public static <#=ClassName#> FindByKeyForEdit(<# n=0;foreach(XField Field in Table.Fields){if(!Field.PrimaryKey) continue;#><#if(n++>0){#>, <#}#><#=Field.FieldType#> __<#=GetPropertyName(Field)#><#}#>)
+		public static <#=ClassName#> FindByKeyForEdit(<# n=0;foreach(IDataColumn Field in Table.Columns){if(!Field.PrimaryKey) continue;#><#if(n++>0){#>, <#}#><#=Field.DataType.Name#> __<#=GetPropertyName(Field)#><#}#>)
 		{
-			<#=ClassName#> entity=Find(new String[]{<#n=0;foreach(XField Field in Table.Fields){if(!Field.PrimaryKey) continue;#><#if(n++>0){#>, <#}#>_.<#=GetPropertyName(Field)#><#}#>}, new Object[]{<#n=0;foreach(XField Field in Table.Fields){if(!Field.PrimaryKey) continue;#><#if(n++>0){#>, <#}#>__<#=GetPropertyName(Field)#><#}#>});
+			<#=ClassName#> entity=Find(new String[]{<#n=0;foreach(IDataColumn Field in Table.Columns){if(!Field.PrimaryKey) continue;#><#if(n++>0){#>, <#}#>_.<#=GetPropertyName(Field)#><#}#>}, new Object[]{<#n=0;foreach(IDataColumn Field in Table.Columns){if(!Field.PrimaryKey) continue;#><#if(n++>0){#>, <#}#>__<#=GetPropertyName(Field)#><#}#>});
 			if (entity == null)
 			{
 				entity = new <#=ClassName#>();
@@ -103,7 +103,7 @@ Int32 n=0;
 			return entity;
 		}     
 <#
-foreach (XField Field in Table.Fields){
+foreach (IDataColumn Field in Table.Columns){
     String pname=GetPropertyName(Field);
     if (pname.Equals("ID", StringComparison.OrdinalIgnoreCase)){
 #>

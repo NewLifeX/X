@@ -14,7 +14,7 @@
 -->
 </style>
 <#
-foreach(XTable table in Tables){
+foreach(IDataTable table in Tables){
 #>
 <#=table.Name#>：
 <strong><#=table.Description#> （<#=table.Name#>）</strong> <BR>
@@ -29,13 +29,13 @@ foreach(XTable table in Tables){
     <td width="75">是否必填</td>
     <td width="75">默认值</td>
   </tr><#
-  foreach(XField Field in table.Fields)
+  foreach(IDataColumn Field in table.Columns)
   {
   #>
   <tr class="dbbody">
     <td><#=GetPropertyDescription(Field)#></td>
     <td><#=Field.Name#></td>
-    <td><#=Field.FieldType#></td>
+    <td><#=Field.DataType.Name#></td>
     <td><#=Field.Length#></td>
     <td align="center"><#=Field.PrimaryKey?"是":"&nbsp;"#></td>
     <td align="center"><#=Field.Identity?"是":(Field.PrimaryKey?"是":"&nbsp;")#></td>

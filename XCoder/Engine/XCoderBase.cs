@@ -12,9 +12,9 @@ namespace XCoder
     public class XCoderBase : TemplateBase
     {
         #region 属性
-        private XTable _Table;
+        private IDataTable _Table;
         /// <summary>表架构</summary>
-        public virtual XTable Table
+        public virtual IDataTable Table
         {
             get { return _Table; }
             set { _Table = value; }
@@ -28,9 +28,9 @@ namespace XCoder
             set { _Config = value; }
         }
 
-        private List<XTable> _Tables;
+        private List<IDataTable> _Tables;
         /// <summary>表集合</summary>
-        public List<XTable> Tables
+        public List<IDataTable> Tables
         {
             get { return _Tables; }
             set { _Tables = value; }
@@ -83,9 +83,9 @@ namespace XCoder
         {
             base.Initialize();
 
-            if (Data.ContainsKey("Table")) Table = (XTable)Data["Table"];
+            if (Data.ContainsKey("Table")) Table = (IDataTable)Data["Table"];
             if (Data.ContainsKey("Config")) Config = (XConfig)Data["Config"];
-            if (Data.ContainsKey("Tables")) Tables = (List<XTable>)Data["Tables"];
+            if (Data.ContainsKey("Tables")) Tables = (List<IDataTable>)Data["Tables"];
         }
         #endregion
 
@@ -125,25 +125,25 @@ namespace XCoder
         /// </summary>
         /// <param name="field"></param>
         /// <returns></returns>
-        public virtual String GetPropertyName(XField field)
+        public virtual String GetPropertyName(IDataColumn field)
         {
             String name = field.Name;
             if (Config.AutoCutPrefix)
             {
                 String s = CutPrefix(name);
-                if (!field.Table.Fields.Exists(delegate(XField item) { return item.Name == s; })) name = s;
+                if (!Array.Exists<IDataColumn>(field.Table.Columns, delegate(IDataColumn item) { return item.Name == s; })) name = s;
                 String str = ClassName;
                 if (!s.Equals(str, StringComparison.OrdinalIgnoreCase) &&
                     s.StartsWith(str, StringComparison.OrdinalIgnoreCase) &&
                     s.Length > str.Length && Char.IsLetter(s, str.Length))
                     s = s.Substring(str.Length);
-                if (!field.Table.Fields.Exists(delegate(XField item) { return item.Name == s; })) name = s;
+                if (!Array.Exists<IDataColumn>(field.Table.Columns, delegate(IDataColumn item) { return item.Name == s; })) name = s;
             }
             if (Config.AutoFixWord)
             {
                 name = FixWord(name);
             }
-
+            
             return name;
         }
 
@@ -152,7 +152,7 @@ namespace XCoder
         /// </summary>
         /// <param name="field"></param>
         /// <returns></returns>
-        public virtual String GetPropertyDescription(XField field)
+        public virtual String GetPropertyDescription(IDataColumn field)
         {
             if (!String.IsNullOrEmpty(field.Description) || !Config.UseCNFileName) return field.Description;
             return XCoder.ENameToCName(field.Name);
@@ -163,7 +163,7 @@ namespace XCoder
         /// </summary>
         /// <param name="table"></param>
         /// <returns></returns>
-        public virtual String GetClassName(XTable table)
+        public virtual String GetClassName(IDataTable table)
         {
             String name = table.Name;
             if (Config.AutoCutPrefix) name = CutPrefix(name);
@@ -176,7 +176,7 @@ namespace XCoder
         /// </summary>
         /// <param name="table"></param>
         /// <returns></returns>
-        public virtual String GetClassDescription(XTable table)
+        public virtual String GetClassDescription(IDataTable table)
         {
             if (!Config.UseCNFileName) return table.Description;
 
@@ -193,9 +193,9 @@ namespace XCoder
         /// </summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public XTable FindTable(String tableName)
+        public IDataTable FindTable(String tableName)
         {
-            return Tables.Find(delegate(XTable item)
+            return Tables.Find(delegate(IDataTable item)
             {
                 String name = item.Name;
                 if (String.Equals(name, tableName, StringComparison.OrdinalIgnoreCase)) return true;
@@ -206,6 +206,16 @@ namespace XCoder
                 return false;
 
             });
+        }
+
+        public void foo()
+        {
+            foreach (IDataColumn item in Table.Columns)
+            {
+                bool b=item.PrimaryKey;
+                //item.RawType
+                String str = item.DataType.Name;
+            }
         }
         #endregion
     }

@@ -254,7 +254,7 @@ namespace XCoder
             {
                 try
                 {
-                    IList<XTable> tables = DAL.Create(name).Tables;
+                    IList<IDataTable> tables = DAL.Create(name).Tables;
                 }
                 catch (Exception ex)
                 {
@@ -296,7 +296,7 @@ namespace XCoder
 
             if (cb_Template.SelectedValue == null || cb_Table.Items.Count < 1) return;
 
-            IList<XTable> tables = Coder.Tables;
+            IList<IDataTable> tables = Coder.Tables;
             if (tables == null || tables.Count < 1) return;
 
             pg_Process.Minimum = 0;
@@ -311,7 +311,7 @@ namespace XCoder
             //{
             //    param.Add(cb_Table.GetItemText(cb_Table.Items[i]));
             //}
-            foreach (XTable item in tables)
+            foreach (IDataTable item in tables)
             {
                 param.Add(item.Name);
             }
@@ -425,13 +425,13 @@ namespace XCoder
         #region 导出映射文件
         private void button1_Click(object sender, EventArgs e)
         {
-            IList<XTable> tables = DAL.Create(Config.ConnName).Tables;
+            IList<IDataTable> tables = DAL.Create(Config.ConnName).Tables;
             if (tables == null || tables.Count < 1) return;
 
-            foreach (XTable table in tables)
+            foreach (IDataTable table in tables)
             {
                 XCoder.AddWord(table.Name, table.Description);
-                foreach (XField field in table.Fields)
+                foreach (IDataColumn field in table.Columns)
                 {
                     XCoder.AddWord(field.Name, field.Description);
                 }

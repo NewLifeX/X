@@ -29,9 +29,9 @@ namespace XCoder
             set { _Config = value; }
         }
 
-        private List<XTable> _Tables;
+        private List<IDataTable> _Tables;
         /// <summary>ËùÓÐ±í</summary>
-        public List<XTable> Tables
+        public List<IDataTable> Tables
         {
             get
             {
@@ -39,7 +39,7 @@ namespace XCoder
                 {
                     try
                     {
-                        _Tables = DAL.Create(Config.ConnName).Tables as List<XTable>;
+                        _Tables = DAL.Create(Config.ConnName).Tables;
                     }
                     catch (Exception ex)
                     {
@@ -259,7 +259,7 @@ namespace XCoder
         {
             if (Tables == null && Tables.Count < 1) return null;
 
-            XTable table = Tables.Find(delegate(XTable item) { return String.Equals(item.Name, tableName, StringComparison.OrdinalIgnoreCase); });
+            IDataTable table = Tables.Find(delegate(IDataTable item) { return String.Equals(item.Name, tableName, StringComparison.OrdinalIgnoreCase); });
             if (tableName == null) return null;
 
             String path = Path.Combine(TemplatePath, Config.TemplateName);

@@ -16,7 +16,7 @@
             DataSourceID="ObjectDataSource1" AllowPaging="True" AllowSorting="True" CssClass="table" PageSize="20">
             <Columns><#
 String PKName=null; 
-foreach(XField Field in Table.Fields){
+foreach(IDataColumn Field in Table.Columns){
     String pname = GetPropertyName(Field);
     if(Field.PrimaryKey) { PKName=pname; } 
     // 密码字段和大文本字段不输出
