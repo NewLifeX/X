@@ -580,7 +580,13 @@ namespace XCode
             if (key == null) return true;
 
             Type type = key.GetType();
-            if (IsInt(type)) return ((Int64)key) <= 0;
+            
+            if (IsInt(type))
+            {
+                int i = (int)key;
+                //这里需要转换城明确类型否则会引发类型转换异常
+                return ((Int64)i) <= 0;
+            }
 
             if (type == typeof(String)) return String.IsNullOrEmpty((String)key);
 
