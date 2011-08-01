@@ -580,14 +580,28 @@ namespace XCode
             if (key == null) return true;
 
             Type type = key.GetType();
-            
+
+            //if (IsInt(type))
+            //{
+            //    int i = (int)key;
+            //    //这里需要转换城明确类型否则会引发类型转换异常
+            //    return ((Int64)i) <= 0;
+            //}
             if (IsInt(type))
             {
-                int i = (int)key;
-                //这里需要转换城明确类型否则会引发类型转换异常
-                return ((Int64)i) <= 0;
+                //由于key的实际类型是由类型推倒而来，所以必须根据实际传入的参数类型分别进行装箱操作
+                //如果不根据类型分别进行会导致类型转换失败抛出异常
+                switch (Type.GetTypeCode(type))
+                {
+                    case TypeCode.Int16: return ((Int16)key) <= 0;
+                    case TypeCode.Int32: return ((Int32)key) <= 0;
+                    case TypeCode.Int64: return ((Int64)key) <= 0;
+                    case TypeCode.UInt16: return ((UInt16)key) <= 0;
+                    case TypeCode.UInt32: return ((UInt32)key) <= 0;
+                    case TypeCode.UInt64: return ((UInt64)key) <= 0;
+                    default: return false;
+                }
             }
-
             if (type == typeof(String)) return String.IsNullOrEmpty((String)key);
 
             return false;
