@@ -34,8 +34,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("7.15.*")]
-[assembly: AssemblyFileVersion("7.15.2011.0725")]
+[assembly: AssemblyVersion("7.16.*")]
+[assembly: AssemblyFileVersion("7.16.2011.0803")]
 
 /*
  * XCode的重大改进
@@ -51,6 +51,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v7.16.2011.0803  修正MSSQL中创建数据库指定文件位置时出错的BUG
+ *                  增加设置项SQLPath，允许把SQL日志写入到单独的SQL日志中
+ * 
  * v7.15.2011.0725  修正EntityFactory中创建实体操作者可能出现的BUG，解决非泛型继承的问题，如Admin=>Administrator=>Administrator<Administrator>
  * 
  * v7.14.2011.0723  增加实体缓存接口IEntityCache和单对象缓存接口ISingleEntityCache

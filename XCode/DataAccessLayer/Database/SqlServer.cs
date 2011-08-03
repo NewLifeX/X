@@ -729,25 +729,26 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(file)) return String.Format("CREATE DATABASE {0}", FormatKeyWord(dbname));
 
             String logfile = String.Empty;
-            if (!String.IsNullOrEmpty(file))
-            {
-                if ((file.Length < 2 || file[1] != Path.VolumeSeparatorChar))
-                {
-                    file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
-                }
-                file = String.Format("FILENAME = N'{0}' , ", file);
-                logfile = file.Substring(0, file.Length - 3) + "ldf";
-            }
+
+            //if ((file.Length < 2 || file[1] != Path.VolumeSeparatorChar))
+            if (!Path.IsPathRooted(file)) file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
+            if (String.IsNullOrEmpty(Path.GetExtension(file))) file += ".mdf";
+            logfile = Path.ChangeExtension(file, ".ldf");
+            //file = String.Format("FILENAME = N'{0}' , ", file);
+            //logfile = String.Format("FILENAME = N'{0}' , ", logfile);
+
+            String dir = Path.GetDirectoryName(file);
+            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
             StringBuilder sb = new StringBuilder();
 
             sb.AppendFormat("CREATE DATABASE {0} ON  PRIMARY", FormatKeyWord(dbname));
             sb.AppendLine();
-            sb.AppendFormat(@"( NAME = N'{0}_Data', {1}SIZE = 1024 , MAXSIZE = UNLIMITED, FILEGROWTH = 10%)", dbname, file);
+            sb.AppendFormat(@"( NAME = N'{0}', FILENAME = N'{1}', SIZE = 10 , MAXSIZE = UNLIMITED, FILEGROWTH = 10%)", dbname, file);
             sb.AppendLine();
             sb.Append("LOG ON ");
             sb.AppendLine();
-            sb.AppendFormat(@"( NAME = N'{0}_Log', {1}SIZE = 1024 , MAXSIZE = UNLIMITED, FILEGROWTH = 10%)", dbname, logfile);
+            sb.AppendFormat(@"( NAME = N'{0}_Log', FILENAME = N'{1}', SIZE = 10 , MAXSIZE = UNLIMITED, FILEGROWTH = 10%)", dbname, logfile);
             sb.AppendLine();
 
             return sb.ToString();
