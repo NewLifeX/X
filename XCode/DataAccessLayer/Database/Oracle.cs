@@ -446,8 +446,11 @@ namespace XCode.DataAccessLayer
             foreach (IDataColumn field in table.Columns)
             {
                 // 不管是否主键
-                if (field.DataType != typeof(Int16) &&
+                if (field.DataType != typeof(UInt16) &&
+                    field.DataType != typeof(Int16) &&
+                    field.DataType != typeof(UInt32) &&
                     field.DataType != typeof(Int32) &&
+                    field.DataType != typeof(UInt64) &&
                     field.DataType != typeof(Int64)) continue;
 
                 String name = String.Format("SEQ_{0}_{1}", table.Name, field.Name);
@@ -467,8 +470,11 @@ namespace XCode.DataAccessLayer
                     foreach (IDataColumn field in table.Columns)
                     {
                         if (!field.PrimaryKey ||
-                            (field.DataType != typeof(Int16) &&
+                            (field.DataType != typeof(UInt16) &&
+                            field.DataType != typeof(Int16) &&
+                            field.DataType != typeof(UInt32) &&
                             field.DataType != typeof(Int32) &&
+                            field.DataType != typeof(UInt64) &&
                             field.DataType != typeof(Int64))) continue;
 
                         (field as XField).Identity = true;
