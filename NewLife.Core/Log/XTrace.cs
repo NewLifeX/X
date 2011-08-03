@@ -1,11 +1,4 @@
 using System;
-using System.Configuration;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Web;
 using NewLife.Configuration;
 
 //namespace XLog

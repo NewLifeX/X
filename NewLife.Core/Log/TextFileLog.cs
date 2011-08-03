@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Collections;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Diagnostics;
+using System.Text;
 using System.Threading;
-using NewLife.Configuration;
-using System.Web;
+using NewLife.Collections;
 
 namespace NewLife.Log
 {
@@ -103,51 +100,57 @@ namespace NewLife.Log
             }
             if (i >= 10) throw new Exception("无法写入日志！");
 
-            #region 日志头
             if (!isFirst)
             {
                 isFirst = true;
 
-                Process process = Process.GetCurrentProcess();
-                String name = String.Empty;
-                Assembly asm = Assembly.GetEntryAssembly();
-                if (asm != null)
-                {
-                    if (String.IsNullOrEmpty(name))
-                    {
-                        AssemblyTitleAttribute att = Attribute.GetCustomAttribute(asm, typeof(AssemblyTitleAttribute)) as AssemblyTitleAttribute;
-                        if (att != null) name = att.Title;
-                    }
+                WriteHead();
+            }
+        }
 
-                    if (String.IsNullOrEmpty(name))
-                    {
-                        AssemblyProductAttribute att = Attribute.GetCustomAttribute(asm, typeof(AssemblyProductAttribute)) as AssemblyProductAttribute;
-                        if (att != null) name = att.Product;
-                    }
-
-                    if (String.IsNullOrEmpty(name))
-                    {
-                        AssemblyDescriptionAttribute att = Attribute.GetCustomAttribute(asm, typeof(AssemblyDescriptionAttribute)) as AssemblyDescriptionAttribute;
-                        if (att != null) name = att.Description;
-                    }
-                }
+        private void WriteHead()
+        {
+            Process process = Process.GetCurrentProcess();
+            String name = String.Empty;
+            Assembly asm = Assembly.GetEntryAssembly();
+            if (asm != null)
+            {
                 if (String.IsNullOrEmpty(name))
                 {
-                    try
-                    {
-                        name = process.MachineName;
-                    }
-                    catch { }
+                    AssemblyTitleAttribute att = Attribute.GetCustomAttribute(asm, typeof(AssemblyTitleAttribute)) as AssemblyTitleAttribute;
+                    if (att != null) name = att.Title;
                 }
-                // 通过判断LogWriter.BaseStream.Length，解决有时候日志文件为空但仍然加空行的问题
-                if (File.Exists(logfile) && LogWriter.BaseStream.Length > 0) LogWriter.WriteLine();
-                LogWriter.WriteLine("#Software: {0}", name);
-                LogWriter.WriteLine("#ProcessID: {0}", process.Id);
-                LogWriter.WriteLine("#BaseDirectory: {0}", AppDomain.CurrentDomain.BaseDirectory);
-                LogWriter.WriteLine("#Date: {0:yyyy-MM-dd}", DateTime.Now);
-                LogWriter.WriteLine("#Fields: Time ThreadID IsPoolThread ThreadName Message");
+
+                if (String.IsNullOrEmpty(name))
+                {
+                    AssemblyProductAttribute att = Attribute.GetCustomAttribute(asm, typeof(AssemblyProductAttribute)) as AssemblyProductAttribute;
+                    if (att != null) name = att.Product;
+                }
+
+                if (String.IsNullOrEmpty(name))
+                {
+                    AssemblyDescriptionAttribute att = Attribute.GetCustomAttribute(asm, typeof(AssemblyDescriptionAttribute)) as AssemblyDescriptionAttribute;
+                    if (att != null) name = att.Description;
+                }
             }
-            #endregion
+            if (String.IsNullOrEmpty(name))
+            {
+                try
+                {
+                    name = process.MachineName;
+                }
+                catch { }
+            }
+            // 通过判断LogWriter.BaseStream.Length，解决有时候日志文件为空但仍然加空行的问题
+            //if (File.Exists(logfile) && LogWriter.BaseStream.Length > 0) LogWriter.WriteLine();
+            // 因为指定了编码，比如UTF8，开头就会写入3个字节，所以这里不能拿长度跟0比较
+            if (LogWriter.BaseStream.Length > 10) LogWriter.WriteLine();
+            LogWriter.WriteLine("#Software: {0}", name);
+            LogWriter.WriteLine("#ProcessID: {0}", process.Id);
+            LogWriter.WriteLine("#AppDomain: {0}", AppDomain.CurrentDomain.FriendlyName);
+            LogWriter.WriteLine("#BaseDirectory: {0}", AppDomain.CurrentDomain.BaseDirectory);
+            LogWriter.WriteLine("#Date: {0:yyyy-MM-dd}", DateTime.Now);
+            LogWriter.WriteLine("#Fields: Time ThreadID IsPoolThread ThreadName Message");
         }
 
         /// <summary>
