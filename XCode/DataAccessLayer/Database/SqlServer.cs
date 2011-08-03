@@ -399,7 +399,7 @@ namespace XCode.DataAccessLayer
             QueryTimes++;
             DbCommand cmd = CreateCommand();
             cmd.CommandText = sql;
-            if (ShowSQL) WriteLog(cmd.CommandText);
+            WriteSQL(cmd.CommandText);
             try
             {
                 return Convert.ToInt32(cmd.ExecuteScalar());

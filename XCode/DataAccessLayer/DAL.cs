@@ -759,6 +759,23 @@ namespace XCode.DataAccessLayer
             set { _ShowSQL = value; }
         }
 
+        private static String _SQLPath;
+        /// <summary>
+        /// 设置SQL输出的单独目录，默认为空，SQL输出到当前日志中
+        /// </summary>
+        public static String SQLPath
+        {
+            get
+            {
+                if (_SQLPath != null) return _SQLPath;
+
+                _SQLPath = Config.GetConfig<String>("XCode.SQLPath", String.Empty);
+
+                return _SQLPath;
+            }
+            set { _SQLPath = value; }
+        }
+
         /// <summary>
         /// 输出日志
         /// </summary>

@@ -6,6 +6,7 @@ using NewLife;
 using XCode.Exceptions;
 using System.Threading;
 using NewLife.Configuration;
+using NewLife.Log;
 
 namespace XCode.DataAccessLayer
 {
@@ -342,7 +343,7 @@ namespace XCode.DataAccessLayer
         public virtual DataSet Query(String sql)
         {
             QueryTimes++;
-            if (ShowSQL) WriteLog(sql);
+            WriteSQL(sql);
             try
             {
                 DbCommand cmd = CreateCommand();
@@ -373,7 +374,7 @@ namespace XCode.DataAccessLayer
         public virtual DataSet QueryWithKey(String sql)
         {
             QueryTimes++;
-            if (ShowSQL) WriteLog(sql);
+            WriteSQL(sql);
             try
             {
                 DbCommand cmd = CreateCommand();
@@ -451,7 +452,7 @@ namespace XCode.DataAccessLayer
             QueryTimes++;
             DbCommand cmd = CreateCommand();
             cmd.CommandText = sql;
-            if (ShowSQL) WriteLog(cmd.CommandText);
+            WriteSQL(cmd.CommandText);
             try
             {
                 return Convert.ToInt32(cmd.ExecuteScalar());
@@ -523,7 +524,7 @@ namespace XCode.DataAccessLayer
         public virtual Int32 Execute(String sql)
         {
             ExecuteTimes++;
-            if (ShowSQL) WriteLog(sql);
+            WriteSQL(sql);
             try
             {
                 DbCommand cmd = CreateCommand();
@@ -568,7 +569,7 @@ namespace XCode.DataAccessLayer
         {
             ExecuteTimes++;
 
-            if (ShowSQL) WriteLog(sql);
+            WriteSQL(sql);
             try
             {
                 DbCommand cmd = CreateCommand();
@@ -674,6 +675,25 @@ namespace XCode.DataAccessLayer
         {
             get { return DAL.ShowSQL; }
             set { DAL.ShowSQL = value; }
+        }
+
+        static TextFileLog logger;
+
+        /// <summary>
+        /// 写入SQL到文本中
+        /// </summary>
+        /// <param name="sql"></param>
+        public static void WriteSQL(String sql)
+        {
+            if (!ShowSQL) return;
+
+            if (String.IsNullOrEmpty(DAL.SQLPath))
+                WriteLog(sql);
+            else
+            {
+                if (logger == null) logger = TextFileLog.Create(DAL.SQLPath);
+                logger.WriteLine(sql);
+            }
         }
 
         /// <summary>
