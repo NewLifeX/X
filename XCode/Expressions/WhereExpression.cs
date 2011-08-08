@@ -33,12 +33,12 @@ namespace XCode.Expressions
         }
         #endregion
 
-        public WhereExpression And(WhereExpression exp)
-        {
-            if (!String.IsNullOrEmpty(sql)) Append("And", sql);
+        //public WhereExpression And(WhereExpression exp)
+        //{
+        //    if (!String.IsNullOrEmpty(sql)) Append("And", sql);
 
-            return this;
-        }
+        //    return this;
+        //}
 
         public WhereExpression And(String sql)
         {

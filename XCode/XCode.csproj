@@ -147,6 +147,8 @@
     <Compile Include="Expressions\ExpressionBase.cs" />
     <Compile Include="Expressions\FieldExpression.cs" />
     <Compile Include="Expressions\WhereExpression.cs" />
+    <Compile Include="Model\EntityField.cs" />
+    <Compile Include="Model\FieldOperators.cs" />
     <Compile Include="Model\IField.cs" />
     <Compile Include="Model\WhereExpression.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

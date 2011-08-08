@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using XCode.Expressions;
+using XCode.Configuration;
 
 namespace XCode.Model
 {
@@ -11,10 +12,15 @@ namespace XCode.Model
     public interface IField
     {
         #region 属性
+        /// <summary>名称</summary>
+        String Name { get; }
+
+        FieldItem Field { get; }
         #endregion
 
         #region 方法
         FieldExpression Equal(Object value);
+        FieldExpression NotEqual(Object value);
         FieldExpression LargeThan(Object value);
         FieldExpression LessThan(Object value);
         FieldExpression LargeOrEqual(Object value);

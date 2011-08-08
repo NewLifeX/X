@@ -254,6 +254,13 @@ namespace XCode
 
         #region 辅助方法
         /// <summary>
+        /// 格式化关键字
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        String FormatName(String name);
+
+        /// <summary>
         /// 取得一个值的Sql值。
         /// 当这个值是字符串类型时，会在该值前后加单引号；
         /// </summary>

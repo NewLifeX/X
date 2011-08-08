@@ -101,6 +101,14 @@ namespace XCode.Configuration
             }
         }
 
+        private TableItem _Table;
+        /// <summary>表</summary>
+        public TableItem Table
+        {
+            get { return _Table; }
+            //set { _Field = value; }
+        }
+
         private IDataColumn _Field;
         /// <summary>字段</summary>
         public IDataColumn Field
