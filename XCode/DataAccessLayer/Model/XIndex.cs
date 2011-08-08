@@ -10,7 +10,7 @@ namespace XCode.DataAccessLayer
     /// </summary>
     [Serializable]
     [XmlRoot("Index")]
-    public class XIndex : SerializableDataMember, IDataIndex
+    class XIndex : SerializableDataMember, IDataIndex
     {
         #region 属性
         private String _Name;

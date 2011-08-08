@@ -13,54 +13,54 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 编号
         /// </summary>
-        Int32 ID { get; }
+        Int32 ID { get; set; }
 
         /// <summary>
         /// 名称
         /// </summary>
-        String Name { get; }
+        String Name { get; set; }
 
         /// <summary>
         /// 别名
         /// </summary>
-        String Alias { get; }
+        String Alias { get; set; }
 
         /// <summary>
         /// 所有者
         /// </summary>
-        String Owner { get; }
+        String Owner { get; set; }
 
         /// <summary>
         /// 数据库类型
         /// </summary>
-        DatabaseType DbType { get; }
+        DatabaseType DbType { get; set; }
 
         /// <summary>
         /// 是否视图
         /// </summary>
-        Boolean IsView { get; }
+        Boolean IsView { get; set; }
 
         /// <summary>
         /// 说明
         /// </summary>
-        String Description { get; }
+        String Description { get; set; }
         #endregion
 
         #region 扩展属性
         /// <summary>
         /// 数据列集合
         /// </summary>
-        IDataColumn[] Columns { get; }
+        List<IDataColumn> Columns { get; }
 
         /// <summary>
         /// 数据关系集合
         /// </summary>
-        IDataRelation[] Relations { get; }
+        List<IDataRelation> Relations { get; }
 
         /// <summary>
         /// 数据索引集合
         /// </summary>
-        IDataIndex[] Indexes { get; }
+        List<IDataIndex> Indexes { get; }
         #endregion
 
         #region 方法

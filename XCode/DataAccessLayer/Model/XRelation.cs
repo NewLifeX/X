@@ -10,7 +10,7 @@ namespace XCode.DataAccessLayer
     /// </summary>
     [Serializable]
     [XmlRoot("Relation")]
-    public class XRelation : SerializableDataMember, IDataRelation
+    class XRelation : SerializableDataMember, IDataRelation
     {
         #region 属性
         private String _Column;

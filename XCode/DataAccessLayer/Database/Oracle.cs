@@ -5,6 +5,7 @@ using System.Data.Common;
 using XCode.Exceptions;
 using System.IO;
 using System.Text.RegularExpressions;
+using XCode.Common;
 
 namespace XCode.DataAccessLayer
 {
@@ -429,7 +430,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected override void FixTable(XTable table, DataRow dr)
+        protected override void FixTable(IDataTable table, DataRow dr)
         {
             base.FixTable(table, dr);
 
@@ -439,24 +440,19 @@ namespace XCode.DataAccessLayer
             String comment = GetTableComment(table.Name);
             if (!String.IsNullOrEmpty(comment)) table.Description = comment;
 
-            if (table == null || table.Columns == null || table.Columns.Length < 1) return;
+            if (table == null || table.Columns == null || table.Columns.Count < 1) return;
 
             // 自增
             Boolean exists = false;
             foreach (IDataColumn field in table.Columns)
             {
                 // 不管是否主键
-                if (field.DataType != typeof(UInt16) &&
-                    field.DataType != typeof(Int16) &&
-                    field.DataType != typeof(UInt32) &&
-                    field.DataType != typeof(Int32) &&
-                    field.DataType != typeof(UInt64) &&
-                    field.DataType != typeof(Int64)) continue;
+                if (!Helper.IsIntType(field.DataType)) continue;
 
                 String name = String.Format("SEQ_{0}_{1}", table.Name, field.Name);
                 if (CheckSeqExists(name))
                 {
-                    (field as XField).Identity = true;
+                    field.Identity = true;
                     exists = true;
                     break;
                 }
@@ -469,15 +465,9 @@ namespace XCode.DataAccessLayer
                 {
                     foreach (IDataColumn field in table.Columns)
                     {
-                        if (!field.PrimaryKey ||
-                            (field.DataType != typeof(UInt16) &&
-                            field.DataType != typeof(Int16) &&
-                            field.DataType != typeof(UInt32) &&
-                            field.DataType != typeof(Int32) &&
-                            field.DataType != typeof(UInt64) &&
-                            field.DataType != typeof(Int64))) continue;
+                        if (!field.PrimaryKey || !Helper.IsIntType(field.DataType)) continue;
 
-                        (field as XField).Identity = true;
+                        field.Identity = true;
                         exists = true;
                         break;
                     }
@@ -488,13 +478,9 @@ namespace XCode.DataAccessLayer
                 // 处理自增，整型、主键、名为ID认为是自增
                 foreach (IDataColumn field in table.Columns)
                 {
-                    TypeCode code = Type.GetTypeCode(field.DataType);
-                    if (code == TypeCode.Int16 || code == TypeCode.UInt16 ||
-                        code == TypeCode.Int32 || code == TypeCode.UInt32 ||
-                        code == TypeCode.Int64 || code == TypeCode.UInt64
-                        )
+                    if (Helper.IsIntType(field.DataType))
                     {
-                        if (field.PrimaryKey && field.Name.ToLower().Contains("id")) (field as XField).Identity = true;
+                        if (field.PrimaryKey && field.Name.ToLower().Contains("id")) field.Identity = true;
                     }
                 }
             }
@@ -578,7 +564,7 @@ namespace XCode.DataAccessLayer
                     //drs = dt.Select(String.Format("COLUMN_NAME='{0}'", field.Name));
                     //if (drs != null && drs.Length > 0) field.Description = GetDataRowValue<String>(drs[0], "COMMENTS");
 
-                    (field as XField).Description = GetColumnComment(table.Name, field.Name);
+                    field.Description = GetColumnComment(table.Name, field.Name);
                 }
             }
 
@@ -604,7 +590,7 @@ namespace XCode.DataAccessLayer
             return null;
         }
 
-        protected override void FixField(XField field, DataRow drColumn, DataRow drDataType)
+        protected override void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
         {
             base.FixField(field, drColumn, drDataType);
 

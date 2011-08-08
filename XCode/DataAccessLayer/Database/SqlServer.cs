@@ -478,11 +478,8 @@ namespace XCode.DataAccessLayer
                 // ÐÞÕý±¸×¢
                 foreach (IDataTable item in list)
                 {
-                    if (item is XTable)
-                    {
-                        DataRow[] drs = DescriptionTable == null ? null : DescriptionTable.Select("n='" + item.Name + "'");
-                        (item as XTable).Description = drs == null || drs.Length < 1 ? "" : drs[0][1].ToString();
-                    }
+                    DataRow[] drs = DescriptionTable == null ? null : DescriptionTable.Select("n='" + item.Name + "'");
+                    item.Description = drs == null || drs.Length < 1 ? "" : drs[0][1].ToString();
                 }
 
                 return list;
@@ -495,7 +492,7 @@ namespace XCode.DataAccessLayer
 
         private DataTable AllFields = null;
 
-        protected override void FixField(XField field, DataRow dr)
+        protected override void FixField(IDataColumn field, DataRow dr)
         {
             base.FixField(field, dr);
 

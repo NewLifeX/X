@@ -18,10 +18,7 @@ namespace XCode.Configuration
         #region 特性
         private Type _EntityType;
         /// <summary>实体类型</summary>
-        public Type EntityType
-        {
-            get { return _EntityType; }
-        }
+        public Type EntityType { get { return _EntityType; } }
 
         private BindTableAttribute _Table;
         /// <summary>绑定表特性</summary>
@@ -51,11 +48,7 @@ namespace XCode.Configuration
                 if (String.IsNullOrEmpty(_TableName))
                 {
                     BindTableAttribute table = Table;
-                    String str;
-                    if (table != null)
-                        str = table.Name;
-                    else
-                        str = EntityType.Name;
+                    String str = table != null ? table.Name : EntityType.Name;
 
                     // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
                     DAL dal = DAL.Create(ConnName);
@@ -72,7 +65,6 @@ namespace XCode.Configuration
                 }
                 return _TableName;
             }
-            //set { _TableName = value; }
         }
 
         private String _ConnName;
@@ -91,13 +83,10 @@ namespace XCode.Configuration
                 }
                 return _ConnName;
             }
-            //set { _ConnName = value; }
         }
 
         private static List<String> _ConnMaps;
-        /// <summary>
-        /// 连接名映射
-        /// </summary>
+        /// <summary>连接名映射</summary>
         private static List<String> ConnMaps
         {
             get
@@ -142,34 +131,22 @@ namespace XCode.Configuration
         /// <summary>数据字段</summary>
         [XmlArray]
         [Description("数据字段")]
-        public FieldItem[] Fields
-        {
-            get { return _Fields; }
-        }
+        public FieldItem[] Fields { get { return _Fields; } }
 
         private FieldItem[] _AllFields;
         /// <summary>所有字段</summary>
         [XmlIgnore]
-        public FieldItem[] AllFields
-        {
-            get { return _AllFields; }
-        }
+        public FieldItem[] AllFields { get { return _AllFields; } }
 
         private FieldItem _Identity;
         /// <summary>标识列</summary>
         [XmlIgnore]
-        public FieldItem Identity
-        {
-            get { return _Identity; }
-        }
+        public FieldItem Identity { get { return _Identity; } }
 
         private FieldItem[] _PrimaryKeys;
         /// <summary>主键</summary>
         [XmlIgnore]
-        public FieldItem[] PrimaryKeys
-        {
-            get { return _PrimaryKeys; }
-        }
+        public FieldItem[] PrimaryKeys { get { return _PrimaryKeys; } }
 
         private IList<String> _FieldNames;
         /// <summary>字段名集合</summary>
@@ -191,67 +168,31 @@ namespace XCode.Configuration
             }
         }
 
-        private IDataTable _XTable;
-        /// <summary>数据表架构</summary>
-        [XmlIgnore]
-        public IDataTable DataTable
+        private Dictionary<String, FieldItem> _FieldItems;
+        /// <summary>数据字段字典，字段名不区分大小写</summary>
+        public Dictionary<String, FieldItem> FieldItems
         {
             get
             {
-                if (_XTable == null)
+                if (_FieldItems == null)
                 {
+                    Dictionary<String, FieldItem> dic = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
+                    foreach (FieldItem item in Fields)
+                    {
+                        if (!dic.ContainsKey(item.Name)) dic.Add(item.Name, item);
+                        if (!dic.ContainsKey(item.ColumnName)) dic.Add(item.ColumnName, item);
+                    }
+                    _FieldItems = dic;
                 }
-                return _XTable;
+
+                return _FieldItems;
             }
         }
 
-        //Boolean hasInitFields = false;
-        void InitFields()
-        {
-            //if (hasInitFields) return;
-            //hasInitFields = true;
-
-            BindTableAttribute bt = Table;
-            XTable table = new XTable();
-            table.Name = bt.Name;
-            table.Alias = EntityType.Name;
-            table.DbType = bt.DbType;
-            table.Description = bt.Description;
-
-            List<IDataColumn> list = new List<IDataColumn>();
-
-            List<FieldItem> list1 = new List<FieldItem>();
-            List<FieldItem> list2 = new List<FieldItem>();
-            List<FieldItem> list3 = new List<FieldItem>();
-            PropertyInfo[] pis = EntityType.GetProperties();
-            foreach (PropertyInfo item in pis)
-            {
-                // 排除索引器
-                if (item.GetIndexParameters().Length > 0) continue;
-
-                FieldItem fi = new FieldItem(item);
-                list1.Add(fi);
-
-                if (fi.DataObjectField != null)
-                {
-                    list2.Add(fi);
-
-                    IDataColumn f = table.CreateColumn();
-                    fi.Fill(f);
-
-                    list.Add(f);
-                }
-
-                if (fi.PrimaryKey) list3.Add(fi);
-                if (fi.IsIdentity) _Identity = fi;
-            }
-            table.Columns = list.ToArray();
-            if (list1 != null && list1.Count > 0) _AllFields = list1.ToArray();
-            if (list2 != null && list2.Count > 0) _Fields = list2.ToArray();
-            if (list3 != null && list3.Count > 0) _PrimaryKeys = list3.ToArray();
-
-            _XTable = table;
-        }
+        private IDataTable _XTable;
+        /// <summary>数据表架构</summary>
+        [XmlIgnore]
+        public IDataTable DataTable { get { return _XTable; } }
         #endregion
 
         #region 构造
@@ -259,8 +200,7 @@ namespace XCode.Configuration
         {
             _EntityType = type;
             _Table = BindTableAttribute.GetCustomAttribute(EntityType);
-            if (_Table == null)
-                throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
+            if (_Table == null) throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
 
             _Description = DescriptionAttribute.GetCustomAttribute(EntityType, typeof(DescriptionAttribute)) as DescriptionAttribute;
 
@@ -281,6 +221,54 @@ namespace XCode.Configuration
 
             return cache.GetItem(type, key => new TableItem(key));
         }
+
+        //Boolean hasInitFields = false;
+        void InitFields()
+        {
+            //if (hasInitFields) return;
+            //hasInitFields = true;
+
+            BindTableAttribute bt = Table;
+            IDataTable table = DAL.CreateTable();
+            _XTable = table;
+            table.Name = bt.Name;
+            table.Alias = EntityType.Name;
+            table.DbType = bt.DbType;
+            table.Description = Description;
+
+            //List<IDataColumn> list = new List<IDataColumn>();
+
+            List<FieldItem> allfields = new List<FieldItem>();
+            List<FieldItem> fields = new List<FieldItem>();
+            List<FieldItem> pkeys = new List<FieldItem>();
+            PropertyInfo[] pis = EntityType.GetProperties();
+            foreach (PropertyInfo item in pis)
+            {
+                // 排除索引器
+                if (item.GetIndexParameters().Length > 0) continue;
+
+                FieldItem fi = new FieldItem(item);
+                allfields.Add(fi);
+
+                if (fi.DataObjectField != null)
+                {
+                    fields.Add(fi);
+
+                    IDataColumn f = table.CreateColumn();
+                    fi.Fill(f);
+
+                    //list.Add(f);
+                    table.Columns.Add(f);
+                }
+
+                if (fi.PrimaryKey) pkeys.Add(fi);
+                if (fi.IsIdentity) _Identity = fi;
+            }
+            //table.Columns = list.ToArray();
+            if (allfields != null && allfields.Count > 0) _AllFields = allfields.ToArray();
+            if (fields != null && fields.Count > 0) _Fields = fields.ToArray();
+            if (pkeys != null && pkeys.Count > 0) _PrimaryKeys = pkeys.ToArray();
+        }
         #endregion
 
         #region 方法
@@ -289,6 +277,7 @@ namespace XCode.Configuration
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
+        [Obsolete("请使用FieldItems！")]
         public FieldItem FindByName(String name)
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");

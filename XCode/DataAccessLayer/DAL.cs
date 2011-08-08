@@ -651,61 +651,62 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 导入导出
-        /// <summary>
-        /// 导出架构信息
-        /// </summary>
-        /// <returns></returns>
-        public String Export()
-        {
-            List<IDataTable> list = Tables;
+        ///// <summary>
+        ///// 导出架构信息
+        ///// </summary>
+        ///// <returns></returns>
+        //public String Export()
+        //{
+        //    List<IDataTable> list = Tables;
 
-            if (list == null || list.Count < 1) return null;
+        //    if (list == null || list.Count < 1) return null;
 
-            XmlWriterX writer = new XmlWriterX();
-            writer.Settings.WriteType = false;
-            writer.Settings.UseObjRef = false;
-            writer.Settings.IgnoreDefault = true;
-            writer.Settings.MemberAsAttribute = true;
-            writer.RootName = "Tables";
-            writer.WriteObject(list);
-            return writer.ToString();
-        }
+        //    XmlWriterX writer = new XmlWriterX();
+        //    writer.Settings.WriteType = false;
+        //    writer.Settings.UseObjRef = false;
+        //    writer.Settings.IgnoreDefault = true;
+        //    writer.Settings.MemberAsAttribute = true;
+        //    writer.RootName = "Tables";
+        //    writer.WriteObject(list);
+        //    return writer.ToString();
+        //}
 
-        /// <summary>
-        /// 导入架构信息
-        /// </summary>
-        /// <param name="xml"></param>
-        /// <returns></returns>
-        public static List<IDataTable> Import(String xml)
-        {
-            if (String.IsNullOrEmpty(xml)) return null;
+        ///// <summary>
+        ///// 导入架构信息
+        ///// </summary>
+        ///// <param name="xml"></param>
+        ///// <returns></returns>
+        //public static List<IDataTable> Import(String xml)
+        //{
+        //    if (String.IsNullOrEmpty(xml)) return null;
 
-            XmlReaderX reader = new XmlReaderX(xml);
-            //XmlSerializer serial = new XmlSerializer(typeof(List<XTable>));
-            //List<XTable> ts = serial.Deserialize(reader.Stream) as List<XTable>;
+        //    XmlReaderX reader = new XmlReaderX(xml);
+        //    //XmlSerializer serial = new XmlSerializer(typeof(List<XTable>));
+        //    //List<XTable> ts = serial.Deserialize(reader.Stream) as List<XTable>;
 
-            reader.Settings.MemberAsAttribute = true;
-            List<XTable> list = reader.ReadObject(typeof(List<XTable>)) as List<XTable>;
-            if (list == null || list.Count < 1) return null;
+        //    reader.Settings.MemberAsAttribute = true;
+        //    List<XTable> list = reader.ReadObject(typeof(List<XTable>)) as List<XTable>;
+        //    if (list == null || list.Count < 1) return null;
 
-            List<IDataTable> dts = new List<IDataTable>();
-            // 修正字段中的Table引用
-            foreach (XTable item in list)
-            {
-                if (item.Columns == null || item.Columns.Length < 1) continue;
+        //    List<IDataTable> dts = new List<IDataTable>();
+        //    // 修正字段中的Table引用
+        //    foreach (XTable item in list)
+        //    {
+        //        if (item.Columns == null || item.Columns.Count < 1) continue;
 
-                List<IDataColumn> fs = new List<IDataColumn>();
-                foreach (IDataColumn field in item.Columns)
-                {
-                    fs.Add(field.Clone(item));
-                }
-                item.Columns = fs.ToArray();
+        //        List<IDataColumn> fs = new List<IDataColumn>();
+        //        foreach (IDataColumn field in item.Columns)
+        //        {
+        //            //fs.Add(field.Clone(item));
+        //            item.Columns.Add(field.Clone(item));
+        //        }
+        //        //item.Columns = fs.ToArray();
 
-                dts.Add(item);
-            }
+        //        dts.Add(item);
+        //    }
 
-            return dts;
-        }
+        //    return dts;
+        //}
         #endregion
 
         #region 创建数据操作实体
@@ -816,6 +817,15 @@ namespace XCode.DataAccessLayer
         public override string ToString()
         {
             return ConnName;
+        }
+
+        /// <summary>
+        /// 建立数据表对象
+        /// </summary>
+        /// <returns></returns>
+        public static IDataTable CreateTable()
+        {
+            return new XTable();
         }
         #endregion
     }

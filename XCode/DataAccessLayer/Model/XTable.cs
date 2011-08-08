@@ -1,16 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Data;
-using System.Data.Common;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
-using System.IO;
-using System.ComponentModel;
-using NewLife.Collections;
-using NewLife.Serialization;
-using NewLife.Xml;
 
 namespace XCode.DataAccessLayer
 {
@@ -20,10 +14,10 @@ namespace XCode.DataAccessLayer
     [DebuggerDisplay("ID={ID} Name={Name} Description={Description}")]
     [Serializable]
     [XmlRoot("Table")]
-    [XmlInclude(typeof(XField))]
-    [XmlInclude(typeof(XIndex))]
-    [XmlInclude(typeof(XRelation))]
-    public class XTable : IDataTable, ICloneable
+    //[XmlInclude(typeof(XField))]
+    //[XmlInclude(typeof(XIndex))]
+    //[XmlInclude(typeof(XRelation))]
+    class XTable : IDataTable, ICloneable
     {
         #region 基本属性
         private Int32 _ID;
@@ -70,93 +64,39 @@ namespace XCode.DataAccessLayer
         /// <summary>所有者</summary>
         [XmlAttribute]
         [Description("所有者")]
-        public String Owner
-        {
-            get { return _Owner; }
-            set { _Owner = value; }
-        }
+        public String Owner { get { return _Owner; } set { _Owner = value; } }
 
         private DatabaseType _DbType;
         /// <summary>数据库类型</summary>
         [XmlAttribute]
         [Description("数据库类型")]
-        public DatabaseType DbType
-        {
-            get { return _DbType; }
-            set { _DbType = value; }
-        }
+        public DatabaseType DbType { get { return _DbType; } set { _DbType = value; } }
         #endregion
 
         #region 扩展属性
-        private IDataColumn[] _Columns;
+        private List<IDataColumn> _Columns;
         /// <summary>
         /// 字段集合。
         /// </summary>
         [XmlArray("Columns")]
         [Description("字段集合")]
-        public IDataColumn[] Columns
-        {
-            get { return _Columns; }
-            set
-            {
-                _Columns = value;
-                if (value == null && value.Length <= 0)
-                    _Fields = null;
-                else
-                {
-                    _Fields = new List<XField>();
-                    foreach (IDataColumn item in value)
-                    {
-                        if (item is XField) _Fields.Add(item as XField);
-                    }
-                }
-            }
-        }
+        public List<IDataColumn> Columns { get { return _Columns ?? (_Columns = new List<IDataColumn>()); } }
 
-        private List<XField> _Fields;
-        /// <summary>
-        /// 字段集合。
-        /// </summary>
-        [XmlIgnore]
-        [Obsolete("建议使用Columns")]
-        public List<XField> Fields
-        {
-            get
-            {
-                return _Fields;
-            }
-            set
-            {
-                _Fields = value;
-                if (value == null && value.Count <= 0)
-                    _Columns = null;
-                else
-                {
-                    List<IDataColumn> list = new List<IDataColumn>();
-                    foreach (XField item in value)
-                    {
-                        list.Add(item);
-                    }
-                    _Columns = list.ToArray();
-                }
-            }
-        }
-
-        private IDataRelation[] _ForeignKeys;
+        private List<IDataRelation> _ForeignKeys;
         /// <summary>
         /// 外键集合。
         /// </summary>
         [XmlArray]
         [Description("外键集合")]
-        public IDataRelation[] Relations { get { return _ForeignKeys; } set { _ForeignKeys = value; } }
+        public List<IDataRelation> Relations { get { return _ForeignKeys ?? (_ForeignKeys = new List<IDataRelation>()); } }
 
-        private IDataIndex[] _Indexes;
+        private List<IDataIndex> _Indexes;
         /// <summary>
         /// 字段集合。
         /// </summary>
         [XmlArray]
         [Description("索引集合")]
-        public IDataIndex[] Indexes { get { return _Indexes; } set { _Indexes = value; } }
+        public List<IDataIndex> Indexes { get { return _Indexes ?? (_Indexes = new List<IDataIndex>()); } }
         #endregion
 
         #region 构造
@@ -251,7 +191,7 @@ namespace XCode.DataAccessLayer
 
         #region ICloneable 成员
         /// <summary>
-        /// /// 克隆
+        /// 克隆
         /// </summary>
         /// <returns></returns>
         object ICloneable.Clone()
@@ -268,12 +208,12 @@ namespace XCode.DataAccessLayer
             XTable table = base.MemberwiseClone() as XTable;
             if (table != null && Columns != null)
             {
-                List<IDataColumn> list = new List<IDataColumn>();
-                foreach (XField item in Columns)
+                //List<IDataColumn> list = new List<IDataColumn>();
+                foreach (IDataColumn item in Columns)
                 {
-                    list.Add(item.Clone(table));
+                    table.Columns.Add(item.Clone(table));
                 }
-                table.Columns = list.ToArray();
+                //table.Columns = list.ToArray();
             }
             return table;
         }

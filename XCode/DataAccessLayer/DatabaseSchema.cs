@@ -440,7 +440,7 @@ namespace XCode.DataAccessLayer
             //{
             //    if (!entitydic.ContainsKey(item.Name.ToLower())) DropColumn(sbDelete, item, onlySql);
             //}
-            for (int i = dbtable.Columns.Length - 1; i >= 0; i--)
+            for (int i = dbtable.Columns.Count - 1; i >= 0; i--)
             {
                 IDataColumn item = dbtable.Columns[i];
                 if (!entitydic.ContainsKey(item.Name.ToLower())) DropColumn(sbDelete, item, onlySql);
@@ -517,12 +517,12 @@ namespace XCode.DataAccessLayer
                             // 特殊处理时间
                             String dv = item.Default;
                             // 如果当前默认值是开发数据库的时间默认值，则修改为当前数据库的时间默认值
-                            if (entityDb.DateTimeNow == item.Default) (item as XField).Default = Database.DateTimeNow;
+                            if (entityDb.DateTimeNow == item.Default) item.Default = Database.DateTimeNow;
 
                             GetSchemaSQL(sb, onlySql, DDLSchema.AddDefault, item);
 
                             // 还原
-                            (item as XField).Default = dv;
+                            item.Default = dv;
                         }
                         else
                             GetSchemaSQL(sb, onlySql, DDLSchema.AddDefault, item);
@@ -565,7 +565,7 @@ namespace XCode.DataAccessLayer
             IDataTable table = TableItem.Create(type).DataTable;
             if (table == null) return null;
 
-            if (!String.IsNullOrEmpty(tablename)) (table as XTable).Name = tablename;
+            if (!String.IsNullOrEmpty(tablename)) table.Name = tablename;
 
             //foreach (IDataColumn f in table.Columns)
             //{

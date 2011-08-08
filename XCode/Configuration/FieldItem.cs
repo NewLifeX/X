@@ -80,6 +80,7 @@ namespace XCode.Configuration
         /// <summary>字段名要过滤掉的标识符，考虑MSSQL、MySql、SQLite、Oracle等</summary>
         static Char[] COLUMNNAME_FLAG = new Char[] { '[', ']', '\'', '"', '`' };
 
+        private String _ColumnName;
         /// <summary>
         /// 用于数据绑定的字段名。
         /// 默认使用BindColumn特性中指定的字段名，如果没有指定，则使用属性名。
@@ -88,11 +89,15 @@ namespace XCode.Configuration
         {
             get
             {
+                if (_ColumnName != null) return _ColumnName;
+
                 // 字段名可能两边带有方括号等标识符
                 if (Column != null && !String.IsNullOrEmpty(Column.Name))
-                    return Column.Name.Trim(COLUMNNAME_FLAG);
+                    _ColumnName = Column.Name.Trim(COLUMNNAME_FLAG);
                 else
-                    return Property.Name;
+                    _ColumnName = Property.Name;
+
+                return _ColumnName;
             }
         }
 
@@ -144,7 +149,7 @@ namespace XCode.Configuration
 
             if (field == null) return;
 
-            XField xf = field as XField;
+            IDataColumn xf = field;
             if (xf == null) return;
 
             xf.Name = ColumnName;

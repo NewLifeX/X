@@ -32,15 +32,6 @@ namespace XCode.DataAccessLayer
             return Database.CreateSession().GetSchema(collectionName, restrictionValues);
         }
 
-        ///// <summary>
-        ///// 创建数据表
-        ///// </summary>
-        ///// <returns></returns>
-        //public virtual IDataTable CreateTable()
-        //{
-        //    return new XTable();
-        //}
-
         /// <summary>
         /// 取得所有表构架
         /// </summary>
@@ -68,14 +59,14 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="rows">数据行</param>
         /// <returns></returns>
-        protected virtual List<IDataTable> GetTables(DataRow[] rows)
+        protected List<IDataTable> GetTables(DataRow[] rows)
         {
             try
             {
                 List<IDataTable> list = new List<IDataTable>();
                 foreach (DataRow dr in rows)
                 {
-                    XTable table = new XTable();
+                    IDataTable table = DAL.CreateTable();
                     table.Name = GetDataRowValue<String>(dr, "TABLE_NAME");
 
                     // 顺序、编号
@@ -99,7 +90,9 @@ namespace XCode.DataAccessLayer
                     // 字段的获取可能有异常，但不应该影响整体架构的获取
                     try
                     {
-                        table.Columns = GetFields(table).ToArray();
+                        //table.Columns = GetFields(table).ToArray();
+                        List<IDataColumn> columns = GetFields(table);
+                        if (columns != null && columns.Count > 0) table.Columns.AddRange(columns);
                     }
                     catch (Exception ex)
                     {
@@ -124,7 +117,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="table"></param>
         /// <param name="dr"></param>
-        protected virtual void FixTable(XTable table, DataRow dr) { }
+        protected virtual void FixTable(IDataTable table, DataRow dr) { }
 
         /// <summary>
         /// 取得指定表的所有列构架
@@ -162,7 +155,7 @@ namespace XCode.DataAccessLayer
             foreach (DataRow dr in rows)
             {
                 //IDataColumn field = table.CreateColumn();
-                XField field = table.CreateColumn() as XField;
+                IDataColumn field = table.CreateColumn();
 
                 // 序号
                 Int32 n = 0;
@@ -267,7 +260,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="field"></param>
         /// <param name="dr"></param>
-        protected virtual void FixField(XField field, DataRow dr)
+        protected virtual void FixField(IDataColumn field, DataRow dr)
         {
             ////String typeName = GetDataRowValue<String>(dr, "DATA_TYPE");
             //SetFieldType(field, field.RawType);
@@ -288,7 +281,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field">字段</param>
         /// <param name="drColumn">字段元数据</param>
         /// <param name="drDataType">字段匹配的数据类型</param>
-        protected virtual void FixField(XField field, DataRow drColumn, DataRow drDataType)
+        protected virtual void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
         {
             String typeName = field.RawType;
 

@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Reflection;
 using System.Xml;
 using System.Xml.Serialization;
-using System.Xml.Schema;
-using NewLife.Reflection;
-using NewLife.Serialization;
-using NewLife.Xml;
 
 namespace XCode.DataAccessLayer
 {
@@ -16,7 +10,7 @@ namespace XCode.DataAccessLayer
     /// </summary>
     [Serializable]
     [XmlRoot("Column")]
-    public class XField : SerializableDataMember, IDataColumn, ICloneable
+    class XField : SerializableDataMember, IDataColumn, ICloneable
     {
         #region 属性
         private Int32 _ID;
@@ -149,23 +143,20 @@ namespace XCode.DataAccessLayer
 
         #region 扩展属性
         [NonSerialized]
-        private XTable _Table;
-        /// <summary>表架构</summary>
+        private IDataTable _Table;
+        /// <summary>表</summary>
         [XmlIgnore]
-        public XTable Table
+        public IDataTable Table
         {
             get { return _Table; }
-            private set { _Table = value; }
+            set { _Table = value; }
         }
-
-        [XmlIgnore]
-        IDataTable IDataColumn.Table { get { return Table; } }
         #endregion
 
         #region 构造
         private XField() { }
 
-        private XField(XTable table)
+        private XField(IDataTable table)
         {
             Table = table;
         }
@@ -175,7 +166,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="table"></param>
         /// <returns></returns>
-        internal static XField Create(XTable table)
+        internal static XField Create(IDataTable table)
         {
             if (table == null) throw new ArgumentNullException("table");
 
@@ -212,7 +203,7 @@ namespace XCode.DataAccessLayer
         public IDataColumn Clone(IDataTable table)
         {
             XField field = base.MemberwiseClone() as XField;
-            field.Table = table as XTable;
+            field.Table = table;
             return field;
         }
         #endregion

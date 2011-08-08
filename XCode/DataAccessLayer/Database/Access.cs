@@ -260,7 +260,7 @@ namespace XCode.DataAccessLayer
                         {
                             if (!dic.ContainsKey(item.Name)) continue;
 
-                            XField field = dic[item.Name] as XField;
+                            IDataColumn field = dic[item.Name];
                             field.Identity = item.AutoIncrement;
                             if (!field.Identity) field.Nullable = item.Nullable;
                         }
@@ -272,7 +272,7 @@ namespace XCode.DataAccessLayer
             return list;
         }
 
-        protected override void FixField(XField field, DataRow drColumn)
+        protected override void FixField(IDataColumn field, DataRow drColumn)
         {
             base.FixField(field, drColumn);
 
@@ -313,7 +313,7 @@ namespace XCode.DataAccessLayer
             //}
         }
 
-        protected override void FixField(XField field, DataRow drColumn, DataRow drDataType)
+        protected override void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
         {
             base.FixField(field, drColumn, drDataType);
 
