@@ -144,12 +144,11 @@
     <Compile Include="Entity\IEntity.cs" />
     <Compile Include="Entity\IEntityOperate.cs" />
     <Compile Include="Cache\SingleEntityCache.cs" />
-    <Compile Include="Expressions\AndExpression.cs" />
     <Compile Include="Expressions\ExpressionBase.cs" />
     <Compile Include="Expressions\FieldExpression.cs" />
-    <Compile Include="Expressions\LeftBracketExpression.cs" />
-    <Compile Include="Expressions\OrExpression.cs" />
     <Compile Include="Expressions\WhereExpression.cs" />
+    <Compile Include="Model\IField.cs" />
+    <Compile Include="Model\WhereExpression.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tree\EntityTree.cs" />
     <Compile Include="Tree\IEntityTree.cs" />

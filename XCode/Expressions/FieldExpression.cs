@@ -5,7 +5,7 @@ using XCode.Configuration;
 
 namespace XCode.Expressions
 {
-    class FieldExpression<TEntity> where TEntity : Entity<TEntity>, new()
+    class FieldExpression
     {
         private FieldItem _Field;
         /// <summary>字段</summary>
@@ -19,10 +19,10 @@ namespace XCode.Expressions
 
         private String SqlDataFormat(String name, Object value) { return Entity<TEntity>.Meta.FormatValue(name, value); }
 
-        //WhereExpression Equal(Object obj)
-        //{
-        //    WhereExpression ep = new WhereExpression();
-        //    String str = String.Format("{0}={1}", Field.Name, SqlDataFormat(obj, Field));
-        //}
+        WhereExpression Equal(Object obj)
+        {
+            WhereExpression ep = new WhereExpression();
+            String str = String.Format("{0}={1}", Field.Name, SqlDataFormat(obj, Field));
+        }
     }
 }
