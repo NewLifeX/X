@@ -21,9 +21,9 @@ namespace XCode.Model
         #region 方法
         FieldExpression Equal(Object value);
         FieldExpression NotEqual(Object value);
-        FieldExpression LargeThan(Object value);
-        FieldExpression LessThan(Object value);
-        FieldExpression LargeOrEqual(Object value);
+        FieldExpression Greater(Object value);
+        FieldExpression Less(Object value);
+        FieldExpression GreaterOrEqual(Object value);
         FieldExpression LessOrEqual(Object value);
         FieldExpression StartWith(Object value);
         FieldExpression EndWith(Object value);

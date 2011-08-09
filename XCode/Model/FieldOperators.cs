@@ -10,11 +10,11 @@ namespace XCode.Model
 
         NotEqual,
 
-        LargeThan,
+        Greater,
 
-        LessThan,
+        Less,
 
-        LargeOrEqual,
+        GreaterOrEqual,
 
         LessOrEqual,
 

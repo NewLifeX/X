@@ -122,10 +122,13 @@ namespace XCode.Configuration
         /// <summary>
         /// 构造函数
         /// </summary>
+        /// <param name="table"></param>
         /// <param name="property"></param>
-        public FieldItem(PropertyInfo property)
+        public FieldItem(TableItem table, PropertyInfo property)
         {
             if (property == null) throw new ArgumentNullException("property");
+
+            _Table = table;
 
             Property = property;
             Column = BindColumnAttribute.GetCustomAttribute(Property);

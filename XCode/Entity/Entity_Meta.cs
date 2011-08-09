@@ -9,6 +9,7 @@ using NewLife.Log;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using XCode.Model;
 
 namespace XCode
 {
@@ -119,6 +120,18 @@ namespace XCode
 
                     return EntityFactory.CreateOperate(type);
                 }
+            }
+            #endregion
+
+            #region 方法
+            private static DictionaryCache<String, EntityField> fcache = new DictionaryCache<string, EntityField>();
+            public static EntityField GetField(String name)
+            {
+                return fcache.GetItem(name, delegate(String key)
+                {
+                    FieldItem fi = Table.FieldItems[key];
+                    return new EntityField(fi);
+                });
             }
             #endregion
 

@@ -73,5 +73,18 @@ namespace XCode.Expressions
         {
             return obj != null ? obj.ToString() : null;
         }
+
+        #region 重载运算符
+        public static WhereExpression operator &(WhereExpression field, Object value)
+        {
+            field.And(value.ToString());
+            return field;
+        }
+        public static WhereExpression operator |(WhereExpression field, Object value)
+        {
+            field.Or(value.ToString());
+            return field;
+        }
+        #endregion
     }
 }

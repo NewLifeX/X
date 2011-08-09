@@ -64,15 +64,21 @@ namespace XCode.Expressions
             {
                 case FieldOperators.Equal:
                     if (Value == null) return String.Format("{0} is null", name);
-                    if (Value is IField) return String.Format("{0}={1}", name, name2);
-                    return op.MakeCondition(Field.Field, Value, "=");
+                    if (isValueField)
+                        return String.Format("{0}={1}", name, name2);
+                    else
+                        return op.MakeCondition(Field.Field, Value, "=");
                 case FieldOperators.NotEqual:
+                    if (Value == null) return String.Format("{0} is not null", name);
+                    if (isValueField)
+                        return String.Format("{0}={1}", name, name2);
+                    else
+                        return op.MakeCondition(Field.Field, Value, "<>");
+                case FieldOperators.Greater:
                     break;
-                case FieldOperators.LargeThan:
+                case FieldOperators.Less:
                     break;
-                case FieldOperators.LessThan:
-                    break;
-                case FieldOperators.LargeOrEqual:
+                case FieldOperators.GreaterOrEqual:
                     break;
                 case FieldOperators.LessOrEqual:
                     break;
@@ -88,6 +94,23 @@ namespace XCode.Expressions
                     break;
             }
             return base.ToString();
+        }
+        #endregion
+
+        #region 重载运算符
+        public static WhereExpression operator &(FieldExpression field, Object value)
+        {
+            WhereExpression exp = new WhereExpression();
+            exp.And(field);
+            exp.And(value.ToString());
+            return exp;
+        }
+        public static WhereExpression operator |(FieldExpression field, Object value)
+        {
+            WhereExpression exp = new WhereExpression();
+            exp.And(field);
+            exp.Or(value.ToString());
+            return exp;
         }
         #endregion
 

@@ -12,6 +12,7 @@ using NewLife.Security;
 using NewLife.Web;
 using XCode;
 using XCode.Configuration;
+using XCode.Expressions;
 
 namespace NewLife.CommonEntity
 {
@@ -805,6 +806,17 @@ namespace NewLife.CommonEntity
         //    get { return Name; }
         //}
         #endregion
+
+        public static String Test()
+        {
+            //return _.Name == "nnhy" & _.Password == "NewLife";
+            WhereExpression exp=new WhereExpression();
+            String name=null;
+            String pass=null;
+            return exp
+                & !String.IsNullOrEmpty(name) & _.Name == name
+                & !String.IsNullOrEmpty(pass) & _.Name == pass;
+        }
     }
 
     public partial interface IAdministrator

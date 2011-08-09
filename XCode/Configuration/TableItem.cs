@@ -247,7 +247,7 @@ namespace XCode.Configuration
                 // 排除索引器
                 if (item.GetIndexParameters().Length > 0) continue;
 
-                FieldItem fi = new FieldItem(item);
+                FieldItem fi = new FieldItem(this, item);
                 allfields.Add(fi);
 
                 if (fi.DataObjectField != null)
