@@ -250,7 +250,7 @@ namespace XCode.Configuration
                 FieldItem fi = new FieldItem(this, item);
                 allfields.Add(fi);
 
-                if (fi.DataObjectField != null)
+                if (fi.IsDataObjectField)
                 {
                     fields.Add(fi);
 
@@ -277,7 +277,7 @@ namespace XCode.Configuration
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        [Obsolete("请使用FieldItems！")]
+        //[Obsolete("请使用FieldItems替代。")]
         public FieldItem FindByName(String name)
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");

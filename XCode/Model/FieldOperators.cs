@@ -1,29 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿//using System;
+//using System.Collections.Generic;
+//using System.Text;
 
-namespace XCode.Model
-{
-    public enum FieldOperators
-    {
-        Equal,
+//namespace XCode.Model
+//{
+//    public enum FieldOperators
+//    {
+//        Equal,
 
-        NotEqual,
+//        NotEqual,
 
-        Greater,
+//        Greater,
 
-        Less,
+//        Less,
 
-        GreaterOrEqual,
+//        GreaterOrEqual,
 
-        LessOrEqual,
+//        LessOrEqual,
 
-        StartWith,
+//        StartWith,
 
-        EndWith,
+//        EndWith,
 
-        Contain,
+//        Contain,
 
-        In
-    }
-}
+//        In
+//    }
+//}

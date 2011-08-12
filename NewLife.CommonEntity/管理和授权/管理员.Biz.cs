@@ -1,8 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Security.Principal;
 using System.Text;
-using System.Threading;
 using System.Web;
 using System.Xml.Serialization;
 using NewLife.Configuration;
@@ -12,7 +10,6 @@ using NewLife.Security;
 using NewLife.Web;
 using XCode;
 using XCode.Configuration;
-using XCode.Expressions;
 
 namespace NewLife.CommonEntity
 {
@@ -810,12 +807,20 @@ namespace NewLife.CommonEntity
         public static String Test()
         {
             //return _.Name == "nnhy" & _.Password == "NewLife";
-            WhereExpression exp=new WhereExpression();
-            String name=null;
-            String pass=null;
-            return exp
-                & !String.IsNullOrEmpty(name) & _.Name == name
-                & !String.IsNullOrEmpty(pass) & _.Name == pass;
+            //WhereExpression exp = new WhereExpression();
+            String name = "nnhy";
+            String pass = null;
+            return new WhereExpression()
+                & !String.IsNullOrEmpty(name) & _.Name.Equal(name)
+                & !String.IsNullOrEmpty(pass) & _.Password.NotEqual(pass)
+                & _.Logins < 2
+                & _.LastLogin >= DateTime.Now;
+
+            return new WhereExpression()
+                .AndIf(!String.IsNullOrEmpty(name), _.Name.Equal(name))
+                .AndIf(!String.IsNullOrEmpty(pass), _.Password.NotEqual(pass))
+                .And(_.Logins < 2)
+                .And(_.LastLogin >= DateTime.Now);
         }
     }
 

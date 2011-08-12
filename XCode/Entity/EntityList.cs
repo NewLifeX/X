@@ -664,7 +664,7 @@ namespace XCode
                 XmlAttributes atts = new XmlAttributes();
                 atts.XmlAttribute = new XmlAttributeAttribute();
                 atts.XmlDefaultValue = entity[item.Name];
-                ovs.Add(item.Property.DeclaringType, item.Name, atts);
+                ovs.Add(item.DeclaringType, item.Name, atts);
             }
             return new XmlSerializer(type, ovs);
         }

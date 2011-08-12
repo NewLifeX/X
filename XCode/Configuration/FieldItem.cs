@@ -13,26 +13,26 @@ namespace XCode.Configuration
         #region 属性
         private PropertyInfo _Property;
         /// <summary>属性元数据</summary>
-        public PropertyInfo Property
+        private PropertyInfo Property
         {
             get { return _Property; }
-            private set { _Property = value; }
+            set { _Property = value; }
         }
 
         private BindColumnAttribute _Column;
         /// <summary>绑定列特性</summary>
-        public BindColumnAttribute Column
+        private BindColumnAttribute Column
         {
             get { return _Column; }
-            private set { _Column = value; }
+            set { _Column = value; }
         }
 
         private DataObjectFieldAttribute _DataObjectField;
         /// <summary>数据字段特性</summary>
-        public DataObjectFieldAttribute DataObjectField
+        private DataObjectFieldAttribute DataObjectField
         {
             get { return _DataObjectField; }
-            private set { _DataObjectField = value; }
+            set { _DataObjectField = value; }
         }
 
         private DescriptionAttribute _Description;
@@ -55,6 +55,9 @@ namespace XCode.Configuration
         /// <summary>属性类型</summary>
         public Type Type { get { return Property == null ? null : Property.PropertyType; } }
 
+        /// <summary>属性类型</summary>
+        internal Type DeclaringType { get { return Property == null ? null : Property.DeclaringType; } }
+
         /// <summary>是否标识列</summary>
         public Boolean IsIdentity { get { return DataObjectField == null ? false : DataObjectField.IsIdentity; } }
 
@@ -63,6 +66,9 @@ namespace XCode.Configuration
 
         /// <summary>是否允许空</summary>
         public Boolean IsNullable { get { return DataObjectField == null ? false : DataObjectField.IsNullable; } }
+
+        /// <summary>是否数据绑定列</summary>
+        internal Boolean IsDataObjectField { get { return DataObjectField != null; } }
 
         /// <summary>显示名</summary>
         [Obsolete("请改为使用Description属性！")]
@@ -100,6 +106,9 @@ namespace XCode.Configuration
                 return _ColumnName;
             }
         }
+
+        /// <summary>默认值</summary>
+        public String DefaultValue { get { return Column == null ? null : Column.DefaultValue; } }
 
         private TableItem _Table;
         /// <summary>表</summary>
@@ -183,6 +192,75 @@ namespace XCode.Configuration
                 xf.PrimaryKey = DataObjectField.PrimaryKey;
                 xf.Nullable = DataObjectField.IsNullable;
             }
+        }
+        #endregion
+
+        #region 重载运算符
+        /// <summary>
+        /// 等于
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public String Equal(object value) { return MakeCondition(this, value, "=="); }
+
+        /// <summary>
+        /// 不等于
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public String NotEqual(object value) { return MakeCondition(this, value, "<>"); }
+
+        //public static String operator ==(FieldItem field, Object value) { return MakeCondition(field, value, "=="); }
+        //public static String operator !=(FieldItem field, Object value) { return MakeCondition(field, value, "<>"); }
+
+        /// <summary>
+        /// 大于
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static String operator >(FieldItem field, Object value) { return MakeCondition(field, value, ">"); }
+
+        /// <summary>
+        /// 小于
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static String operator <(FieldItem field, Object value) { return MakeCondition(field, value, "<"); }
+
+        /// <summary>
+        /// 大于等于
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static String operator >=(FieldItem field, Object value) { return MakeCondition(field, value, ">="); }
+
+        /// <summary>
+        /// 小于等于
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static String operator <=(FieldItem field, Object value) { return MakeCondition(field, value, "<="); }
+
+        static String MakeCondition(FieldItem field, Object value, String action)
+        {
+            IEntityOperate op = EntityFactory.CreateOperate(field.Table.EntityType);
+            return String.Format("{0}{1}{2}", op.FormatName(field.ColumnName), action, op.FormatValue(field, value));
+        }
+        #endregion
+
+        #region 类型转换
+        /// <summary>
+        /// 类型转换
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static implicit operator String(FieldItem obj)
+        {
+            return !obj.Equals(null) ? obj.ColumnName : null;
         }
         #endregion
     }

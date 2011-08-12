@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using XCode;
 using XCode.DataAccessLayer;
-using XCode.Model;
+using XCode.Configuration;
 
 namespace NewLife.CommonEntity
 {
@@ -216,12 +216,12 @@ namespace NewLife.CommonEntity
             ///<summary>
             /// 名称
             ///</summary>
-            public static readonly EntityField Name = Meta.GetField("Name");
+            public static readonly FieldItem Name = Meta.Table.FindByName("Name");
 
             ///<summary>
             /// 密码
             ///</summary>
-            public static readonly EntityField Password = Meta.GetField("Password");
+            public static readonly FieldItem Password = Meta.Table.FindByName("Password");
 
             ///<summary>
             /// 显示名
@@ -236,12 +236,12 @@ namespace NewLife.CommonEntity
             ///<summary>
             /// 登录次数
             ///</summary>
-            public const String Logins = "Logins";
+            public static readonly FieldItem Logins = Meta.Table.FindByName("Logins");
 
             ///<summary>
             /// 最后登录
             ///</summary>
-            public const String LastLogin = "LastLogin";
+            public static readonly FieldItem LastLogin = Meta.Table.FindByName("LastLogin");
 
             ///<summary>
             /// 最后登陆IP

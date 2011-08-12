@@ -9,7 +9,6 @@ using NewLife.Log;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-using XCode.Model;
 
 namespace XCode
 {
@@ -22,20 +21,11 @@ namespace XCode
         {
             #region 基本属性
             private static Type _ThisType;
-            /// <summary>
-            /// 实体类型
-            /// </summary>
-            public static Type ThisType
-            {
-                get { return _ThisType ?? (_ThisType = typeof(TEntity)); }
-                set { _ThisType = value; }
-            }
+            /// <summary>实体类型</summary>
+            public static Type ThisType { get { return _ThisType ?? (_ThisType = typeof(TEntity)); } set { _ThisType = value; } }
 
             /// <summary>表信息</summary>
-            public static TableItem Table
-            {
-                get { return TableItem.Create(ThisType); }
-            }
+            public static TableItem Table { get { return TableItem.Create(ThisType); } }
 
             [ThreadStatic]
             private static String _ConnName;
@@ -123,17 +113,17 @@ namespace XCode
             }
             #endregion
 
-            #region 方法
-            private static DictionaryCache<String, EntityField> fcache = new DictionaryCache<string, EntityField>();
-            public static EntityField GetField(String name)
-            {
-                return fcache.GetItem(name, delegate(String key)
-                {
-                    FieldItem fi = Table.FieldItems[key];
-                    return new EntityField(fi);
-                });
-            }
-            #endregion
+            //#region 方法
+            //private static DictionaryCache<String, EntityField> fcache = new DictionaryCache<string, EntityField>();
+            //public static EntityField GetField(String name)
+            //{
+            //    return fcache.GetItem(name, delegate(String key)
+            //    {
+            //        FieldItem fi = Table.FieldItems[key];
+            //        return new EntityField(fi);
+            //    });
+            //}
+            //#endregion
 
             #region 数据库操作
             /// <summary>

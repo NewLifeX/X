@@ -1,27 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
-using System.Threading;
-using NewLife;
+using System.Runtime.Serialization.Formatters.Binary;
 using NewLife.CommonEntity;
-using NewLife.IO;
 using NewLife.Log;
-using NewLife.Messaging;
-using NewLife.Net.Common;
-using NewLife.Net.Sockets;
-using NewLife.Net.Udp;
-using NewLife.Net.UPnP;
-using NewLife.Reflection;
-using NewLife.Remoting;
-using NewLife.Threading;
 using XCode.DataAccessLayer;
-using XCode;
-using System.Runtime.InteropServices;
-using NewLife.Net.Application;
 
 namespace Test
 {
@@ -49,7 +32,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test2();
                     //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
@@ -74,7 +57,37 @@ namespace Test
 
         static void Test1()
         {
-            
+            Administrator admin = Administrator.Login("admin", "admin");
+            Int32 id = admin.ID;
+            admin = Administrator.Find(new String[] { Administrator._.ID, Administrator._.Name }, new Object[] { id, "admin" });
+            admin = Administrator.Find(new String[] { Administrator._.ID, Administrator._.Name }, new String[] { id.ToString(), "admin" });
+
+            BinaryFormatter bf = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream();
+            bf.Serialize(ms, admin);
+            ms.Position = 0;
+            bf = new BinaryFormatter();
+            IAdministrator admin2 = bf.Deserialize(ms) as IAdministrator;
+            Console.WriteLine(admin2);
+        }
+
+        static void Test2()
+        {
+            ////FieldItem fi = Administrator.Meta.Fields[1];
+            ////IField fd = Administrator.Meta.GetField("Name");
+            ////EntityField fd = new EntityField(fi);
+            //EntityField fd = Administrator.Meta.GetField("Name");
+            //String str = fd.Equal("nnhy");
+            //Console.WriteLine(str);
+            //str = fd == "nnhy";
+            //Console.WriteLine(str);
+
+            DAL dal = Administrator.Meta.DBO;
+            Console.Clear();
+            Console.WriteLine("数据库：{0}", dal.DbType);
+
+            String sql = Administrator.Test();
+            Console.WriteLine(sql);
         }
     }
 }

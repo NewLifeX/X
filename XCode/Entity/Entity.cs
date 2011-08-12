@@ -589,19 +589,19 @@ namespace XCode
             //}
             //if (IsInt(type))
             //{
-                //由于key的实际类型是由类型推倒而来，所以必须根据实际传入的参数类型分别进行装箱操作
-                //如果不根据类型分别进行会导致类型转换失败抛出异常
-                switch (Type.GetTypeCode(type))
-                {
-                    case TypeCode.Int16: return ((Int16)key) <= 0;
-                    case TypeCode.Int32: return ((Int32)key) <= 0;
-                    case TypeCode.Int64: return ((Int64)key) <= 0;
-                    case TypeCode.UInt16: return ((UInt16)key) <= 0;
-                    case TypeCode.UInt32: return ((UInt32)key) <= 0;
-                    case TypeCode.UInt64: return ((UInt64)key) <= 0;
-                    case TypeCode.String: return String.IsNullOrEmpty((String)key);
-                    default: break;
-                }
+            //由于key的实际类型是由类型推倒而来，所以必须根据实际传入的参数类型分别进行装箱操作
+            //如果不根据类型分别进行会导致类型转换失败抛出异常
+            switch (Type.GetTypeCode(type))
+            {
+                case TypeCode.Int16: return ((Int16)key) <= 0;
+                case TypeCode.Int32: return ((Int32)key) <= 0;
+                case TypeCode.Int64: return ((Int64)key) <= 0;
+                case TypeCode.UInt16: return ((UInt16)key) <= 0;
+                case TypeCode.UInt32: return ((UInt32)key) <= 0;
+                case TypeCode.UInt64: return ((UInt64)key) <= 0;
+                case TypeCode.String: return String.IsNullOrEmpty((String)key);
+                default: break;
+            }
             //}
             //if (type == typeof(String)) return String.IsNullOrEmpty((String)key);
 
@@ -1117,7 +1117,7 @@ namespace XCode
                         }
 
                         // 有默认值，并且没有设置值时，不参与插入操作
-                        if (!String.IsNullOrEmpty(fi.Column.DefaultValue) && !obj.Dirtys[fi.Name]) continue;
+                        if (!String.IsNullOrEmpty(fi.DefaultValue) && !obj.Dirtys[fi.Name]) continue;
 
                         if (!isFirst) sbNames.Append(", "); // 加逗号
                         sbNames.Append(Meta.FormatName(fi.ColumnName));
@@ -1341,6 +1341,9 @@ namespace XCode
                 PropertyInfoX property = PropertyInfoX.Create(this.GetType(), name);
                 if (property != null) return property.GetValue(this);
 
+                Object obj = null;
+                if (Extends.TryGetValue(name, out obj)) return obj;
+
                 throw new ArgumentException("类[" + this.GetType().FullName + "]中不存在[" + name + "]属性");
             }
             set
@@ -1364,8 +1367,13 @@ namespace XCode
                     return;
                 }
 
-                foreach (FieldItem fi in Meta.AllFields)
-                    if (fi.Name == name) { fi.Property.SetValue(this, value, null); return; }
+                //foreach (FieldItem fi in Meta.AllFields)
+                //    if (fi.Name == name) { fi.Property.SetValue(this, value, null); return; }
+
+                if (Extends.ContainsKey(name))
+                    Extends[name] = value;
+                else
+                    Extends.Add(name, value);
 
                 throw new ArgumentException("类[" + this.GetType().FullName + "]中不存在[" + name + "]属性");
             }
@@ -1387,7 +1395,7 @@ namespace XCode
                 XmlAttributes atts = new XmlAttributes();
                 atts.XmlAttribute = new XmlAttributeAttribute();
                 atts.XmlDefaultValue = entity[item.Name];
-                ovs.Add(item.Property.DeclaringType, item.Name, atts);
+                ovs.Add(item.DeclaringType, item.Name, atts);
             }
             return new XmlSerializer(this.GetType(), ovs);
         }

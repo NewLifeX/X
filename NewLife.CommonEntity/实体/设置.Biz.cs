@@ -158,7 +158,7 @@ namespace NewLife.CommonEntity
                 Int32 n = 0;
                 foreach (FieldItem item in Meta.Fields)
                 {
-                    if (item.Property.PropertyType != typeof(String)) continue;
+                    if (item.Type != typeof(String)) continue;
                     // 只要前五项
                     if (++n > 5) break;
 
