@@ -12,6 +12,29 @@ namespace NewLife.Collections
     public class DictionaryCache<TKey, TValue> : Dictionary<TKey, TValue>
     {
         /// <summary>
+        /// 重写索引器。取值时如果没有该项则返回默认值；赋值时如果已存在该项则覆盖，否则添加。
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public new TValue this[TKey key]
+        {
+            get
+            {
+                TValue value;
+                if (TryGetValue(key, out value)) return value;
+
+                return default(TValue);
+            }
+            set
+            {
+                if (ContainsKey(key))
+                    base[key] = value;
+                else
+                    base.Add(key, value);
+            }
+        }
+
+        /// <summary>
         /// 扩展获取数据项，当数据项不存在时，通过调用委托获取数据项。线程安全。
         /// </summary>
         /// <param name="key">键</param>
