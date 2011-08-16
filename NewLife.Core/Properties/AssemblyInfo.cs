@@ -38,6 +38,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v2.7.2011.0815   增加鸭子类型DuckTyping，但不对外公开，通过TypeX.ChangeType来使用！
+ *                  增加ServiceProvider等服务模型
  * 
  * v2.6.2011.0725   修正TypeX中计算内嵌类型会重复计算的BUG
  * 
