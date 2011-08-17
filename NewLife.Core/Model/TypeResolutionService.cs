@@ -82,7 +82,7 @@ namespace NewLife.Model
         {
             // 从上一个服务中找
             ITypeResolutionService service = _baseservice;
-            if (service != null)
+            if (service != null && service != this)
             {
                 Assembly asm = service.GetAssembly(name, throwOnError);
                 if (asm != null) return asm;
@@ -91,7 +91,7 @@ namespace NewLife.Model
             if (_provider != null)
             {
                 service = ServiceProvider.GetService<ITypeResolutionService>(_provider);
-                if (service != null)
+                if (service != null && service != this)
                 {
                     Assembly asm = service.GetAssembly(name, throwOnError);
                     if (asm != null) return asm;
@@ -132,7 +132,7 @@ namespace NewLife.Model
         {
             // 从上一个服务中找
             ITypeResolutionService service = _baseservice;
-            if (service != null)
+            if (service != null && service != this)
             {
                 String path = service.GetPathOfAssembly(name);
                 if (path != null) return path;
@@ -141,7 +141,7 @@ namespace NewLife.Model
             if (_provider != null)
             {
                 service = ServiceProvider.GetService<ITypeResolutionService>(_provider);
-                if (service != null)
+                if (service != null && service != this)
                 {
                     String path = service.GetPathOfAssembly(name);
                     if (path != null) return path;
@@ -178,7 +178,7 @@ namespace NewLife.Model
         {
             // 从上一个服务中找
             ITypeResolutionService service = _baseservice;
-            if (service != null)
+            if (service != null && service != this)
             {
                 Type type = service.GetType(name, throwOnError, ignoreCase);
                 if (type != null) return type;
@@ -187,7 +187,7 @@ namespace NewLife.Model
             if (_provider != null)
             {
                 service = ServiceProvider.GetService<ITypeResolutionService>(_provider);
-                if (service != null)
+                if (service != null && service != this)
                 {
                     Type type = service.GetType(name, throwOnError, ignoreCase);
                     if (type != null) return type;
@@ -232,12 +232,12 @@ namespace NewLife.Model
         {
             // 从上一个服务中找
             ITypeResolutionService service = _baseservice;
-            if (service != null) service.ReferenceAssembly(name);
+            if (service != null && service != this) service.ReferenceAssembly(name);
             // 从服务提供者中找
             if (_provider != null)
             {
                 service = ServiceProvider.GetService<ITypeResolutionService>(_provider);
-                if (service != null) service.ReferenceAssembly(name);
+                if (service != null && service != this) service.ReferenceAssembly(name);
             }
         }
         #endregion

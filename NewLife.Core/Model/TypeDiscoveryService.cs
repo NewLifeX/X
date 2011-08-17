@@ -42,7 +42,7 @@ namespace NewLife.Model
             List<Type> list = new List<Type>();
 
             // 从上一个发现服务中获取
-            if (_baseservice != null)
+            if (_baseservice != null && _baseservice != this)
             {
                 ICollection ts = _baseservice.GetTypes(baseType, excludeGlobalTypes);
                 if (ts != null)
@@ -58,7 +58,7 @@ namespace NewLife.Model
             if (_provider != null)
             {
                 ITypeDiscoveryService service = ServiceProvider.GetService<ITypeDiscoveryService>(_provider);
-                if (service != null)
+                if (service != null & service != this)
                 {
                     ICollection ts = service.GetTypes(baseType, excludeGlobalTypes);
                     if (ts != null)
