@@ -217,7 +217,7 @@ namespace XCode.Code
                 options = new CompilerParameters();
                 options.GenerateInMemory = true;
 
-                if (DbBase.Debug)
+                if (DAL.Debug)
                 {
                     options.GenerateInMemory = false;
                     options.OutputAssembly = String.Format("XCode.{0}.dll", Dal.ConnName);

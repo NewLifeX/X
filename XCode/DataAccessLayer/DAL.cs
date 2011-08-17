@@ -49,7 +49,7 @@ namespace XCode.DataAccessLayer
             }
             catch (Exception ex)
             {
-                if (DbBase.Debug) DbBase.WriteLog(ex.ToString());
+                if (Debug) WriteLog(ex.ToString());
             }
         }
 
@@ -814,10 +814,7 @@ namespace XCode.DataAccessLayer
         /// 已重载。
         /// </summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return ConnName;
-        }
+        public override string ToString() { return Db.ToString(); }
 
         /// <summary>
         /// 建立数据表对象

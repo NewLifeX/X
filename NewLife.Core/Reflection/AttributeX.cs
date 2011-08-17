@@ -20,6 +20,8 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static TAttribute GetCustomAttribute<TAttribute>(MemberInfo member, Boolean inherit)
         {
+            if (member == null) return default(TAttribute);
+
             TAttribute[] avs = member.GetCustomAttributes(typeof(TAttribute), inherit) as TAttribute[];
             if (avs == null || avs.Length < 1) return default(TAttribute);
 
@@ -34,6 +36,8 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static TResult GetCustomAttributeValue<TAttribute, TResult>(Assembly target)
         {
+            if (target == null) return default(TResult);
+
             IList<CustomAttributeData> list = CustomAttributeData.GetCustomAttributes(target);
             if (list == null || list.Count < 1) return default(TResult);
 
@@ -58,6 +62,8 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static TResult GetCustomAttributeValue<TAttribute, TResult>(Type target, Boolean inherit)
         {
+            if (target == null) return default(TResult);
+
             IList<CustomAttributeData> list = CustomAttributeData.GetCustomAttributes(target);
 
             if (list != null && list.Count > 0)

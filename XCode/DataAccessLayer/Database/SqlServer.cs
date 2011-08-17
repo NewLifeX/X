@@ -511,9 +511,9 @@ namespace XCode.DataAccessLayer
             if (!String.IsNullOrEmpty(field.Default))
             {
                 //field.Default = field.Default.Trim(new Char[] { '(', ')' });
-                field.Default = DbBase.Trim(field.Default, "\"", "\"");
-                field.Default = DbBase.Trim(field.Default, "\'", "\'");
-                field.Default = DbBase.Trim(field.Default, "(", ")");
+                field.Default = Trim(field.Default, "\"", "\"");
+                field.Default = Trim(field.Default, "\'", "\'");
+                field.Default = Trim(field.Default, "(", ")");
             }
         }
 
@@ -945,6 +945,27 @@ namespace XCode.DataAccessLayer
             sb.AppendLine(";");
             sb.AppendFormat("Drop Database {0}", FormatKeyWord(dbname));
             return sb.ToString();
+        }
+        #endregion
+
+        #region 辅助函数
+        /// <summary>
+        /// 除去字符串两端成对出现的符号
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="prefix"></param>
+        /// <param name="suffix"></param>
+        /// <returns></returns>
+        public static String Trim(String str, String prefix, String suffix)
+        {
+            while (!String.IsNullOrEmpty(str))
+            {
+                if (!str.StartsWith(prefix)) return str;
+                if (!str.EndsWith(suffix)) return str;
+
+                str = str.Substring(prefix.Length, str.Length - suffix.Length - prefix.Length);
+            }
+            return str;
         }
         #endregion
     }

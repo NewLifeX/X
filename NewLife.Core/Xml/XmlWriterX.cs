@@ -259,7 +259,8 @@ namespace NewLife.Xml
             if (String.IsNullOrEmpty(name))
             {
                 // 优先采用类型上的XmlRoot特性
-                name = AttributeX.GetCustomAttributeValue<XmlRootAttribute, String>(type, true);
+                if (type != null) name = AttributeX.GetCustomAttributeValue<XmlRootAttribute, String>(type, true);
+                if (String.IsNullOrEmpty(name) && t != null) name = AttributeX.GetCustomAttributeValue<XmlRootAttribute, String>(t, true);
                 if (String.IsNullOrEmpty(name))
                 {
                     if (t != null) name = GetName(t);
@@ -421,7 +422,8 @@ namespace NewLife.Xml
 
             String name = TypeX.Create(type).Name;
             name = name.Replace("<", "_");
-            name = name.Replace(">", "_");
+            //name = name.Replace(">", "_");
+            name = name.Replace(">", "");
             return name;
         }
 

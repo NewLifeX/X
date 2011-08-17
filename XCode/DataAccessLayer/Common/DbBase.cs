@@ -9,8 +9,8 @@ using System.Text.RegularExpressions;
 using System.Web;
 using NewLife;
 using NewLife.IO;
-using NewLife.Web;
 using NewLife.Reflection;
+using NewLife.Web;
 
 namespace XCode.DataAccessLayer
 {
@@ -82,11 +82,7 @@ namespace XCode.DataAccessLayer
 
         private String _ConnName;
         /// <summary>连接名</summary>
-        public String ConnName
-        {
-            get { return _ConnName; }
-            set { _ConnName = value; }
-        }
+        public String ConnName { get { return _ConnName; } set { _ConnName = value; } }
 
         private String _ConnectionString;
         /// <summary>链接字符串</summary>
@@ -95,19 +91,6 @@ namespace XCode.DataAccessLayer
             get { return _ConnectionString; }
             set
             {
-                //_ConnectionString = value;
-                //if (!String.IsNullOrEmpty(_ConnectionString))
-                //{
-                //    DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
-                //    builder.ConnectionString = _ConnectionString;
-                //    if (builder.ContainsKey("owner"))
-                //    {
-                //        if (builder["owner"] != null) Owner = builder["owner"].ToString();
-                //        builder.Remove("owner");
-                //    }
-                //    _ConnectionString = builder.ToString();
-                //}
-
                 XDbConnectionStringBuilder builder = new XDbConnectionStringBuilder();
                 builder.ConnectionString = value;
 
@@ -124,23 +107,13 @@ namespace XCode.DataAccessLayer
         /// <param name="builder"></param>
         internal protected virtual void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
-            //if (builder.ContainsKey(KEY_OWNER))
-            //{
-            //    if (!String.IsNullOrEmpty(builder[KEY_OWNER])) Owner = builder[KEY_OWNER];
-            //    builder.Remove(KEY_OWNER);
-            //}
-
             String value;
             if (builder.TryGetAndRemove(KEY_OWNER, out value) && !String.IsNullOrEmpty(value)) Owner = value;
         }
 
         private String _Owner;
         /// <summary>拥有者</summary>
-        public virtual String Owner
-        {
-            get { return _Owner; }
-            set { _Owner = value; }
-        }
+        public virtual String Owner { get { return _Owner; } set { _Owner = value; } }
 
         private String _ServerVersion;
         /// <summary>
@@ -312,19 +285,6 @@ namespace XCode.DataAccessLayer
             if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;
 
             return field.GetValue(null) as DbProviderFactory;
-        }
-
-        static void client_DownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
-        {
-            if (e.Cancelled) return;
-
-            String file = (String)e.UserState;
-            if (File.Exists(file))
-            {
-                IOHelper.DecompressFile(file, null, false);
-
-                File.Delete(file);
-            }
         }
         #endregion
 
@@ -752,12 +712,12 @@ namespace XCode.DataAccessLayer
             {
                 if (_ReservedWords == null)
                 {
-                    //_ReservedWords = new List<String>((ReservedWordsStr + "").ToLower().Split(','));
-                    _ReservedWords = new Dictionary<String, Boolean>();
+                    _ReservedWords = new Dictionary<String, Boolean>(StringComparer.OrdinalIgnoreCase);
                     String[] ss = (ReservedWordsStr + "").Split(',');
                     foreach (String item in ss)
                     {
-                        _ReservedWords.Add(item.Trim().ToLower(), true);
+                        String key = item.Trim();
+                        if (!_ReservedWords.ContainsKey(key)) _ReservedWords.Add(key, true);
                     }
                 }
                 return _ReservedWords;
@@ -769,44 +729,28 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="word"></param>
         /// <returns></returns>
-        private Boolean IsReservedWord(String word)
-        {
-            return ReservedWords.ContainsKey(word.ToLower());
-        }
+        private Boolean IsReservedWord(String word) { return String.IsNullOrEmpty(word) ? false : ReservedWords.ContainsKey(word); }
 
         /// <summary>
         /// 格式化时间为SQL字符串
         /// </summary>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
-        public virtual String FormatDateTime(DateTime dateTime)
-        {
-            return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime);
-        }
+        public virtual String FormatDateTime(DateTime dateTime) { return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime); }
 
         /// <summary>
         /// 格式化关键字
         /// </summary>
         /// <param name="keyWord">表名</param>
         /// <returns></returns>
-        public virtual String FormatKeyWord(String keyWord)
-        {
-            return keyWord;
-        }
+        public virtual String FormatKeyWord(String keyWord) { return keyWord; }
 
         /// <summary>
         /// 格式化名称，如果是关键字，则原样返回
         /// </summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public virtual String FormatName(String name)
-        {
-            if (String.IsNullOrEmpty(name)) return name;
-
-            if (IsReservedWord(name)) return FormatKeyWord(name);
-
-            return name;
-        }
+        public virtual String FormatName(String name) { return IsReservedWord(name) ? FormatKeyWord(name) : name; }
 
         /// <summary>
         /// 格式化数据为SQL数据
@@ -901,47 +845,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string ToString()
         {
-            return ConnName;
+            return String.Format("[{0}] {1} {2}", ConnName, DbType, ServerVersion);
         }
-
-        /// <summary>
-        /// 除去字符串两端成对出现的符号
-        /// </summary>
-        /// <param name="str"></param>
-        /// <param name="prefix"></param>
-        /// <param name="suffix"></param>
-        /// <returns></returns>
-        public static String Trim(String str, String prefix, String suffix)
-        {
-            while (!String.IsNullOrEmpty(str))
-            {
-                if (!str.StartsWith(prefix)) return str;
-                if (!str.EndsWith(suffix)) return str;
-
-                str = str.Substring(prefix.Length, str.Length - suffix.Length - prefix.Length);
-            }
-            return str;
-        }
-        #endregion
-
-        #region Sql日志输出
-        /// <summary>
-        /// 是否调试
-        /// </summary>
-        public static Boolean Debug { get { return DAL.Debug; } }
-
-        /// <summary>
-        /// 输出日志
-        /// </summary>
-        /// <param name="msg"></param>
-        public static void WriteLog(String msg) { DAL.WriteLog(msg); }
-
-        /// <summary>
-        /// 输出日志
-        /// </summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public static void WriteLog(String format, params Object[] args) { DAL.WriteLog(format, args); }
         #endregion
     }
 }

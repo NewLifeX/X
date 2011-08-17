@@ -38,7 +38,7 @@ namespace XCode.DataAccessLayer
                     catch (FileNotFoundException) { }
                     catch (Exception ex)
                     {
-                        if (Debug) WriteLog(ex.ToString());
+                        if (DAL.Debug) DAL.WriteLog(ex.ToString());
                     }
                 }
 
