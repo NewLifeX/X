@@ -293,14 +293,14 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected override DataTable PrimaryKeys
-        {
-            get
-            {
-                if (_PrimaryKeys == null) _PrimaryKeys = GetSchema("IndexColumns", new String[] { null, null, null });
-                return _PrimaryKeys;
-            }
-        }
+        //protected override DataTable PrimaryKeys
+        //{
+        //    get
+        //    {
+        //        if (_PrimaryKeys == null) _PrimaryKeys = GetSchema("IndexColumns", new String[] { null, null, null });
+        //        return _PrimaryKeys;
+        //    }
+        //}
 
         protected override string GetFieldType(IDataColumn field)
         {

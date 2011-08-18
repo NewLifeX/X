@@ -44,13 +44,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 打开/关闭
-        ///// <summary>
-        ///// 是否自动关闭。
-        ///// 启用事务后，该设置无效。
-        ///// 在提交或回滚事务时，如果IsAutoClose为true，则会自动关闭
-        ///// </summary>
-        //bool IsAutoClose { get; set; }
-
         /// <summary>
         /// 连接是否已经打开
         /// </summary>

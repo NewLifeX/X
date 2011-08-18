@@ -18,12 +18,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 构架
-        ///// <summary>
-        ///// 创建数据表
-        ///// </summary>
-        ///// <returns></returns>
-        //IDataTable CreateTable();
-
         /// <summary>
         /// 取得所有表构架
         /// </summary>

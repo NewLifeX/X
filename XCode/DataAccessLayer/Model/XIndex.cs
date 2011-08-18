@@ -38,7 +38,7 @@ namespace XCode.DataAccessLayer
         public String[] Columns
         {
             get { return _Columns; }
-            set { _Columns = value; Name = null; }
+            set { _Columns = value; }
         }
         #endregion
 
@@ -50,7 +50,7 @@ namespace XCode.DataAccessLayer
         public IDataTable Table
         {
             get { return _Table; }
-            set { _Table = value; Name = null; }
+            set { _Table = value; }
         }
         #endregion
 
@@ -60,12 +60,26 @@ namespace XCode.DataAccessLayer
             if (Columns == null || Columns.Length < 1) return null;
 
             String indexName = "IX";
-            if (Table != null) indexName += Table.Name + "_";
+            if (Table != null) indexName += "_" + Table.Name;
             for (int i = 0; i < Columns.Length; i++)
             {
                 indexName += "_" + Columns[i];
             }
             return indexName;
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            if (Columns != null && Columns.Length > 0)
+                return String.Format("{0}({1}) {2}", Name, String.Join(",", Columns), Unique ? "U" : "");
+            else
+                return String.Format("{0} {1}", Name, Unique ? "U" : "");
         }
         #endregion
     }

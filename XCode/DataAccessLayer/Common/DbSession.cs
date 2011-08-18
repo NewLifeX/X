@@ -98,20 +98,6 @@ namespace XCode.DataAccessLayer
             set { _ExecuteTimes = value; }
         }
 
-        ///// <summary>
-        ///// 数据库服务器版本
-        ///// </summary>
-        //public String ServerVersion
-        //{
-        //    get
-        //    {
-        //        if (!Opened) Open();
-        //        String ver = Conn.ServerVersion;
-        //        AutoClose();
-        //        return ver;
-        //    }
-        //}
-
         private Int32 _ThreadID = Thread.CurrentThread.ManagedThreadId;
         /// <summary>线程编号，每个数据库会话应该只属于一个线程，该属性用于检查错误的跨线程操作</summary>
         public Int32 ThreadID
@@ -220,8 +206,6 @@ namespace XCode.DataAccessLayer
         protected virtual XDbException OnException(Exception ex)
         {
             if (Trans == null && Opened) Close(); // 强制关闭数据库
-            //return new XException("内部数据库实体" + this.GetType().FullName + "异常，执行" + Environment.StackTrace + "方法出错！", ex);
-            //String err = "内部数据库实体" + DbType.ToString() + "异常，执行方法出错！" + Environment.NewLine + ex.Message;
             if (ex != null)
                 return new XDbSessionException(this, ex);
             else
@@ -237,10 +221,6 @@ namespace XCode.DataAccessLayer
         protected virtual XSqlException OnException(Exception ex, String sql)
         {
             if (Trans == null && Opened) Close(); // 强制关闭数据库
-            //return new XException("内部数据库实体" + this.GetType().FullName + "异常，执行" + Environment.StackTrace + "方法出错！", ex);
-            //String err = "内部数据库实体" + DbType.ToString() + "异常，执行方法出错！" + Environment.NewLine;
-            //if (!String.IsNullOrEmpty(sql)) err += "SQL语句：" + sql + Environment.NewLine;
-            //err += ex.Message;
             if (ex != null)
                 return new XSqlException(sql, this, ex);
             else

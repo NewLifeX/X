@@ -124,7 +124,7 @@ namespace XCode.DataAccessLayer
         {
             //if (String.IsNullOrEmpty(builder.GroupBy) && startRowIndex <= 0 && maximumRows > 0) return PageSplit(builder, maximumRows);
 
-            if (String.IsNullOrEmpty(builder.GroupBy) || startRowIndex <= 0) return PageSplitTopNotIn(builder, startRowIndex, maximumRows, keyColumn);
+            if (String.IsNullOrEmpty(builder.GroupBy) || startRowIndex <= 0) return SqlServer.PageSplitTopNotIn(builder, startRowIndex, maximumRows, keyColumn);
 
             return base.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
         }
@@ -322,26 +322,26 @@ namespace XCode.DataAccessLayer
             if (TryGetDataRowValue<String>(drDataType, "TypeName", out typeName)) field.RawType = typeName;
         }
 
-        protected override Dictionary<DataRow, String> GetPrimaryKeys(string tableName)
-        {
-            Dictionary<DataRow, String> pks = base.GetPrimaryKeys(tableName);
-            if (pks == null || pks.Count < 1) return null;
-            if (pks.Count == 1) return pks;
+        //protected override Dictionary<DataRow, String> GetPrimaryKeys(string tableName)
+        //{
+        //    Dictionary<DataRow, String> pks = base.GetPrimaryKeys(tableName);
+        //    if (pks == null || pks.Count < 1) return null;
+        //    if (pks.Count == 1) return pks;
 
-            // 避免把索引错当成主键
-            List<DataRow> list = new List<DataRow>();
-            foreach (DataRow item in pks.Keys)
-            {
-                if (!GetDataRowValue<Boolean>(item, "PRIMARY_KEY")) list.Add(item);
-            }
-            if (list.Count == pks.Count) return pks;
+        //    // 避免把索引错当成主键
+        //    List<DataRow> list = new List<DataRow>();
+        //    foreach (DataRow item in pks.Keys)
+        //    {
+        //        if (!GetDataRowValue<Boolean>(item, "PRIMARY_KEY")) list.Add(item);
+        //    }
+        //    if (list.Count == pks.Count) return pks;
 
-            foreach (DataRow item in list)
-            {
-                pks.Remove(item);
-            }
-            return pks;
-        }
+        //    foreach (DataRow item in list)
+        //    {
+        //        pks.Remove(item);
+        //    }
+        //    return pks;
+        //}
 
         protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {

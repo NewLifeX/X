@@ -98,7 +98,7 @@ namespace XCode.DataAccessLayer
         {
             //if (String.IsNullOrEmpty(builder.GroupBy) && startRowIndex <= 0 && maximumRows > 0) return PageSplit(builder, maximumRows);
 
-            if (String.IsNullOrEmpty(builder.GroupBy) || startRowIndex <= 0) return PageSplitTopNotIn(builder, startRowIndex, maximumRows, keyColumn);
+            if (String.IsNullOrEmpty(builder.GroupBy) || startRowIndex <= 0) return SqlServer.PageSplitTopNotIn(builder, startRowIndex, maximumRows, keyColumn);
 
             return base.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
         }

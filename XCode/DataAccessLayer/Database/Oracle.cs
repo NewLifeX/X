@@ -701,23 +701,23 @@ namespace XCode.DataAccessLayer
             return drs;
         }
 
-        /// <summary>
-        /// 已重载。主键构架
-        /// </summary>
-        protected override DataTable PrimaryKeys
-        {
-            get
-            {
-                if (_PrimaryKeys == null)
-                {
-                    DataTable pks = GetSchema("IndexColumns", new String[] { Owner, null, null, null, null });
-                    if (pks == null) return null;
+        ///// <summary>
+        ///// 已重载。主键构架
+        ///// </summary>
+        //protected override DataTable PrimaryKeys
+        //{
+        //    get
+        //    {
+        //        if (_PrimaryKeys == null)
+        //        {
+        //            DataTable pks = GetSchema("IndexColumns", new String[] { Owner, null, null, null, null });
+        //            if (pks == null) return null;
 
-                    _PrimaryKeys = pks;
-                }
-                return _PrimaryKeys;
-            }
-        }
+        //            _PrimaryKeys = pks;
+        //        }
+        //        return _PrimaryKeys;
+        //    }
+        //}
 
         #region 架构定义
         protected override string GetFieldConstraints(IDataColumn field, bool onlyDefine)

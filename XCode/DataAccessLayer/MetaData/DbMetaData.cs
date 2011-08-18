@@ -63,6 +63,9 @@ namespace XCode.DataAccessLayer
         {
             try
             {
+                _indexes = GetSchema("Indexes", null);
+                _indexColumns = GetSchema("IndexColumns", null);
+
                 List<IDataTable> list = new List<IDataTable>();
                 foreach (DataRow dr in rows)
                 {
@@ -93,6 +96,41 @@ namespace XCode.DataAccessLayer
                         //table.Columns = GetFields(table).ToArray();
                         List<IDataColumn> columns = GetFields(table);
                         if (columns != null && columns.Count > 0) table.Columns.AddRange(columns);
+
+                        List<IDataIndex> indexes = GetIndexes(table);
+                        if (indexes != null && indexes.Count > 0) table.Indexes.AddRange(indexes);
+
+                        #region 修正主键
+                        Boolean hasPrimary = false;
+                        foreach (IDataColumn item in table.Columns)
+                        {
+                            if (item.PrimaryKey)
+                            {
+                                hasPrimary = true;
+                                break;
+                            }
+                        }
+                        if (!hasPrimary)
+                        {
+                            // 在索引中找唯一索引作为主键
+                            foreach (IDataIndex item in table.Indexes)
+                            {
+                                if (!item.Unique || item.Columns == null || item.Columns.Length < 1) continue;
+
+                                SetIndexAsPrimary(item);
+                            }
+                            // 如果还没有主键，把第一个索引作为主键
+                            if (!hasPrimary)
+                            {
+                                foreach (IDataIndex item in table.Indexes)
+                                {
+                                    if (item.Columns == null || item.Columns.Length < 1) continue;
+
+                                    SetIndexAsPrimary(item);
+                                }
+                            }
+                        }
+                        #endregion
                     }
                     catch (Exception ex)
                     {
@@ -104,11 +142,30 @@ namespace XCode.DataAccessLayer
                     list.Add(table);
                 }
 
+                _indexes = null;
+
                 return list;
             }
             catch (DbException ex)
             {
                 throw new XDbMetaDataException(this, "取得所有表构架出错！", ex);
+            }
+        }
+
+        static void SetIndexAsPrimary(IDataIndex index)
+        {
+            if (index == null || index.Columns == null || index.Columns.Length < 1) return;
+
+            foreach (String item in index.Columns)
+            {
+                foreach (IDataColumn dc in index.Table.Columns)
+                {
+                    if (String.Equals(dc.Name, item, StringComparison.OrdinalIgnoreCase))
+                    {
+                        dc.PrimaryKey = true;
+                        break;
+                    }
+                }
             }
         }
 
@@ -147,7 +204,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual List<IDataColumn> GetFields(IDataTable table, DataRow[] rows)
         {
-            Dictionary<DataRow, String> pks = GetPrimaryKeys(table.Name);
+            //Dictionary<DataRow, String> pks = GetPrimaryKeys(table.Name);
 
             List<IDataColumn> list = new List<IDataColumn>();
             // 开始序号
@@ -181,8 +238,8 @@ namespace XCode.DataAccessLayer
 
                 if (TryGetDataRowValue<Boolean>(dr, "PRIMARY_KEY", out  b))
                     field.PrimaryKey = b;
-                else
-                    field.PrimaryKey = pks != null && pks.ContainsValue(field.Name);
+                //else
+                //    field.PrimaryKey = pks != null && pks.ContainsValue(field.Name);
 
                 // 原始数据类型
                 //field.RawType = GetDataRowValue<String>(dr, "DATA_TYPE");
@@ -311,47 +368,107 @@ namespace XCode.DataAccessLayer
                 if (!String.IsNullOrEmpty(param)) field.RawType += param;
             }
         }
+
+        DataTable _indexes;
+        DataTable _indexColumns;
+        /// <summary>
+        /// 获取索引
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        protected virtual List<IDataIndex> GetIndexes(IDataTable table)
+        {
+            if (_indexes == null) return null;
+
+            DataRow[] drs = _indexes.Select("table_name='" + table.Name + "'");
+            if (drs == null || drs.Length < 1) return null;
+
+            List<IDataIndex> list = new List<IDataIndex>();
+            foreach (DataRow dr in drs)
+            {
+                String name = null;
+
+                if (!TryGetDataRowValue<String>(dr, "INDEX_NAME", out name)) continue;
+
+                IDataIndex di = table.CreateIndex();
+                di.Name = name;
+
+                if (TryGetDataRowValue<string>(dr, "COLUMN_NAME", out name) && !String.IsNullOrEmpty(name))
+                    di.Columns = name.Split(new String[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+                else if (_indexColumns != null)
+                {
+                    DataRow[] dics = _indexColumns.Select("table_name='" + table.Name + "' And index_name='" + di.Name + "'");
+                    if (dics != null && dics.Length > 0)
+                    {
+                        List<String> ns = new List<string>();
+                        foreach (DataRow item in dics)
+                        {
+                            String dcname = null;
+                            if (TryGetDataRowValue<String>(item, "column_name", out dcname) &&
+                                !String.IsNullOrEmpty(dcname) && !ns.Contains(dcname)) ns.Add(dcname);
+                        }
+                        di.Columns = ns.ToArray();
+                    }
+                }
+
+                Boolean b = false;
+                if (TryGetDataRowValue<Boolean>(dr, "UNIQUE", out b))
+                    di.Unique = b;
+
+                FixIndex(di, dr);
+
+                list.Add(di);
+            }
+            return list != null && list.Count > 0 ? list : null;
+        }
+
+        /// <summary>
+        /// 修正索引
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="dr"></param>
+        protected virtual void FixIndex(IDataIndex index, DataRow dr) { }
         #endregion
 
         #region 主键构架
-        /// <summary>
-        /// 取得指定表的所有主键构架
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        protected virtual Dictionary<DataRow, String> GetPrimaryKeys(String tableName)
-        {
-            DataTable dt = PrimaryKeys;
-            if (dt == null) return null;
-            try
-            {
-                DataRow[] drs = dt.Select("TABLE_NAME='" + tableName + "'");
-                if (drs == null || drs.Length < 1) return null;
-                Dictionary<DataRow, String> list = new Dictionary<DataRow, String>();
-                foreach (DataRow dr in drs)
-                {
-                    String name = null;
+        ///// <summary>
+        ///// 取得指定表的所有主键构架
+        ///// </summary>
+        ///// <param name="tableName"></param>
+        ///// <returns></returns>
+        //protected virtual Dictionary<DataRow, String> GetPrimaryKeys(String tableName)
+        //{
+        //    DataTable dt = PrimaryKeys;
+        //    if (dt == null) return null;
+        //    try
+        //    {
+        //        DataRow[] drs = dt.Select("TABLE_NAME='" + tableName + "'");
+        //        if (drs == null || drs.Length < 1) return null;
+        //        Dictionary<DataRow, String> list = new Dictionary<DataRow, String>();
+        //        foreach (DataRow dr in drs)
+        //        {
+        //            String name = null;
 
-                    if (TryGetDataRowValue<String>(dr, "COLUMN_NAME", out name)) list.Add(dr, name);
-                    //list.Add(dr["COLUMN_NAME"] == DBNull.Value ? "" : dr["COLUMN_NAME"].ToString());
-                }
-                return list;
-            }
-            catch { return null; }
-        }
+        //            if (TryGetDataRowValue<String>(dr, "COLUMN_NAME", out name)) list.Add(dr, name);
+        //            //list.Add(dr["COLUMN_NAME"] == DBNull.Value ? "" : dr["COLUMN_NAME"].ToString());
+        //        }
+        //        return list;
+        //    }
+        //    catch { return null; }
+        //}
 
-        protected DataTable _PrimaryKeys;
-        /// <summary>
-        /// 主键构架
-        /// </summary>
-        protected virtual DataTable PrimaryKeys
-        {
-            get
-            {
-                if (_PrimaryKeys == null) _PrimaryKeys = GetSchema("Indexes", new String[] { null, null, null });
-                return _PrimaryKeys;
-            }
-        }
+        //protected DataTable _PrimaryKeys;
+        ///// <summary>
+        ///// 主键构架
+        ///// </summary>
+        //protected virtual DataTable PrimaryKeys
+        //{
+        //    get
+        //    {
+        //        if (_PrimaryKeys == null) _PrimaryKeys = GetSchema("Indexes", new String[] { null, null, null });
+        //        return _PrimaryKeys;
+        //    }
+        //}
         #endregion
 
         #region 数据类型
