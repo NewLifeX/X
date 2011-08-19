@@ -265,7 +265,9 @@ namespace XCode.DataAccessLayer
                 Type type = ProviderType;
                 if (type != null)
                 {
-                    _Db = TypeX.CreateInstance(type) as IDatabase;
+                    //_Db = TypeX.CreateInstance(type) as IDatabase;
+                    // 使用鸭子类型，避免因接口版本差异而导致无法使用
+                    _Db = TypeX.ChangeType<IDatabase>(TypeX.CreateInstance(type));
                     _Db.ConnName = ConnName;
                     _Db.ConnectionString = ConnStr;
                 }

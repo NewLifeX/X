@@ -8,6 +8,7 @@ using NewLife.Net.Sockets;
 using XCode;
 using XCode.DataAccessLayer;
 using System.IO;
+using NewLife.Xml;
 
 namespace Test2
 {
@@ -22,7 +23,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test2();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -65,13 +66,35 @@ namespace Test2
         {
             DAL dal = DAL.Create("Common1");
             IList<IDataTable> list = dal.Tables;
-            String xml = dal.Export();
-            Console.WriteLine(xml);
+            //foreach (IDataTable item in list)
+            //{
 
-            File.WriteAllText("dal.xml", xml);
+            //}
 
-            list = DAL.Import(xml);
-            Console.WriteLine(list != null);
+            XmlWriterX writer = new XmlWriterX();
+            writer.WriteObject(list);
+
+            Console.WriteLine(writer.ToString());
+        }
+
+        static void Test3()
+        {
+            DAL.AddConnStr("ndb", null, typeof(NewLifeDb), null);
+            DAL dal = DAL.Create("ndb");
+            IDbSession session = dal.Db.CreateSession();
+            Console.WriteLine(dal.Tables.Count);
+        }
+    }
+
+    public class NewLifeDb
+    {
+        public IDatabase _obj = DAL.Create("Common1").Db;
+
+        public IDbSession CreateSession()
+        {
+            IDbSession session = _obj.CreateSession();
+            Console.WriteLine("为{0}创建会话", session.DatabaseName);
+            return session;
         }
     }
 }
