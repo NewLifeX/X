@@ -71,7 +71,8 @@ namespace XCode.DataAccessLayer
                 if (_Conn == null)
                 {
                     _Conn = Factory.CreateConnection();
-                    _Conn.ConnectionString = Database.ConnectionString;
+                    //_Conn.ConnectionString = Database.ConnectionString;
+                    _Conn.ConnectionString = ConnectionString;
                 }
                 return _Conn;
             }

@@ -67,6 +67,8 @@ namespace XCode.DataAccessLayer
 
         protected internal virtual String ResoleFile(String file)
         {
+            if (String.IsNullOrEmpty(file)) return file;
+
             if (file.StartsWith("~/") || file.StartsWith("~\\"))
             {
                 file = file.Replace("/", "\\").Replace("~\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
