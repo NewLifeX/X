@@ -100,7 +100,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
         gvTable.DataSource = table.Columns;
         gvTable.DataBind();
 
-        txtSql.Text = String.Format("Select * From {0}", dal.Db.FormatKeyWord(table.Name));
+        txtSql.Text = String.Format("Select * From {0}", dal.Db.FormatName(table.Name));
     }
 
     protected void ddlSchema_SelectedIndexChanged(object sender, EventArgs e)
@@ -298,7 +298,7 @@ public partial class Admin_System_WebDb : System.Web.UI.Page
                 if (dal == null) return;
 
                 String tableName = ddlTable.SelectedValue;
-                String fsql = String.Format("Select * From {0}", dal.Db.FormatKeyWord(tableName));
+                String fsql = String.Format("Select * From {0}", dal.Db.FormatName(tableName));
                 if (!sql.ToLower().StartsWith(fsql.ToLower())) return;
 
                 IDataTable table = dal.Tables.Find(delegate(IDataTable item) { return item.Name == ddlTable.SelectedValue; });

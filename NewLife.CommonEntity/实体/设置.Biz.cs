@@ -163,7 +163,7 @@ namespace NewLife.CommonEntity
                     if (++n > 5) break;
 
                     if (n > 1) sb.Append(" Or ");
-                    sb.AppendFormat("{0} like '%{1}%'", Meta.FormatKeyWord(item.Name), keys[i]);
+                    sb.AppendFormat("{0} like '%{1}%'", Meta.FormatName(item.Name), keys[i]);
                 }
                 if (keys.Length > 1) sb.Append(")");
             }

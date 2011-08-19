@@ -85,6 +85,7 @@
     <Compile Include="Code\EntityClass.cs" />
     <Compile Include="Code\EntityClassBiz.cs" />
     <Compile Include="Common\FileSource.cs" />
+    <Compile Include="Common\HashSet.cs" />
     <Compile Include="Common\Helper.cs" />
     <Compile Include="Configuration\TableItem.cs" />
     <Compile Include="DataAccessLayer\Common\DatabaseType.cs" />

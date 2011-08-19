@@ -6,6 +6,7 @@ using System.Text;
 using NewLife;
 using NewLife.Reflection;
 using XCode.Exceptions;
+using XCode.Common;
 
 namespace XCode.DataAccessLayer
 {
@@ -18,6 +19,60 @@ namespace XCode.DataAccessLayer
         private IDatabase _Database;
         /// <summary>数据库</summary>
         public virtual IDatabase Database { get { return _Database; } set { _Database = value; } }
+
+        private ICollection<String> _MetaDataCollections;
+        /// <summary>所有元数据集合</summary>
+        protected ICollection<String> MetaDataCollections
+        {
+            get
+            {
+                if (_MetaDataCollections == null)
+                {
+                    ICollection<String> list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+                    DataTable dt = GetSchema(DbMetaDataCollectionNames.MetaDataCollections, null);
+                    if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
+                    {
+                        //String name = null;
+                        foreach (DataRow dr in dt.Rows)
+                        {
+                            //if (TryGetDataRowValue<String>(dr, "CollectionName", out name)) list.Add(name);
+
+                            String name = "" + dr[0];
+                            if (!String.IsNullOrEmpty(name) && !list.Contains(name)) list.Add(name);
+                        }
+                    }
+                    _MetaDataCollections = list;
+                }
+                return _MetaDataCollections;
+            }
+        }
+
+        private ICollection<String> _ReservedWords;
+        /// <summary>保留关键字</summary>
+        internal protected virtual ICollection<String> ReservedWords
+        {
+            get
+            {
+                if (_ReservedWords == null)
+                {
+                    ICollection<String> list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+                    if (MetaDataCollections.Contains(DbMetaDataCollectionNames.ReservedWords))
+                    {
+                        DataTable dt = GetSchema(DbMetaDataCollectionNames.ReservedWords, null);
+                        if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
+                        {
+                            foreach (DataRow dr in dt.Rows)
+                            {
+                                String name = "" + dr[0];
+                                if (!String.IsNullOrEmpty(name) && !list.Contains(name)) list.Add(name);
+                            }
+                        }
+                    }
+                    _ReservedWords = list;
+                }
+                return _ReservedWords;
+            }
+        }
         #endregion
 
         #region 构架
@@ -29,6 +84,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DataTable GetSchema(string collectionName, string[] restrictionValues)
         {
+            // 如果不是MetaDataCollections，并且MetaDataCollections中没有该集合，则返回空
+            if (!String.Equals(collectionName, DbMetaDataCollectionNames.MetaDataCollections, StringComparison.OrdinalIgnoreCase))
+            {
+                if (!MetaDataCollections.Contains(collectionName)) return null;
+            }
             return Database.CreateSession().GetSchema(collectionName, restrictionValues);
         }
 

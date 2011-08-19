@@ -112,12 +112,12 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         String FormatDateTime(DateTime dateTime);
 
-        /// <summary>
-        /// 格式化关键字
-        /// </summary>
-        /// <param name="keyWord">关键字</param>
-        /// <returns></returns>
-        String FormatKeyWord(String keyWord);
+        ///// <summary>
+        ///// 格式化关键字
+        ///// </summary>
+        ///// <param name="keyWord">关键字</param>
+        ///// <returns></returns>
+        //String FormatKeyWord(String keyWord);
 
         /// <summary>
         /// 格式化名称，如果是关键字，则原样返回

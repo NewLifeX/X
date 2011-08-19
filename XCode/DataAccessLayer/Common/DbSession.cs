@@ -471,7 +471,7 @@ namespace XCode.DataAccessLayer
                 }
             }
             else
-                sql = String.Format("Select Count(*) From {0}", Database.FormatKeyWord(sql));
+                sql = String.Format("Select Count(*) From {0}", Database.FormatName(sql));
 
             return QueryCountInternal(sql);
         }
@@ -579,18 +579,18 @@ namespace XCode.DataAccessLayer
             return 0;
         }
 
-        /// <summary>
-        /// 获取一个DbCommand。
-        /// 配置了连接，并关联了事务。
-        /// 连接已打开。
-        /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
-        /// </summary>
-        /// <returns></returns>
-        [Obsolete("改名为CreateCommand")]
-        public DbCommand PrepareCommand()
-        {
-            return CreateCommand();
-        }
+        ///// <summary>
+        ///// 获取一个DbCommand。
+        ///// 配置了连接，并关联了事务。
+        ///// 连接已打开。
+        ///// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
+        ///// </summary>
+        ///// <returns></returns>
+        //[Obsolete("改名为CreateCommand")]
+        //public DbCommand PrepareCommand()
+        //{
+        //    return CreateCommand();
+        //}
 
         /// <summary>
         /// 获取一个DbCommand。
