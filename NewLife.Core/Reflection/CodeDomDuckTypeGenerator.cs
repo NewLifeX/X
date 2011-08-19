@@ -1,12 +1,11 @@
-#define DEBUG_GENERATED_CODE // uncommend this line to print the generated code to the console
-
 using System;
-using System.IO;
-using System.Text;
-using System.Collections.Generic;
 using System.CodeDom;
 using System.CodeDom.Compiler;
+using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
+using System.Text;
+using Microsoft.CSharp;
 
 namespace NewLife.Reflection
 {
@@ -15,11 +14,8 @@ namespace NewLife.Reflection
         public Type[] CreateDuckTypes(Type interfaceType, Type[] duckedTypes)
         {
             const string TYPE_PREFIX = "Duck";
-            const string COMMON_NAMESPACE = "DynamicDucks";
 
-            Type[] ret = new Type[duckedTypes.Length];
-
-            string namespaceName = COMMON_NAMESPACE + "." + interfaceType.Name;
+            String namespaceName = this.GetType().Namespace + "." + interfaceType.Name;
 
             CodeCompileUnit codeCU = new CodeCompileUnit();
             CodeNamespace codeNsp = new CodeNamespace(namespaceName);
@@ -29,6 +25,7 @@ namespace NewLife.Reflection
             CodeTypeReference codeTRInterface = new CodeTypeReference(TypeX.Create(interfaceType).FullName);
             ReferenceList references = new ReferenceList();
 
+            // 遍历处理每一个需要代理的类
             for (int i = 0; i < duckedTypes.Length; i++)
             {
                 Type objectType = duckedTypes[i];
@@ -37,16 +34,18 @@ namespace NewLife.Reflection
                 CodeTypeReference codeTRObject = new CodeTypeReference(TypeX.Create(objectType).FullName);
                 references.AddReference(objectType);
 
-                CodeTypeDeclaration codeType = new CodeTypeDeclaration(TYPE_PREFIX + i.ToString());
+                CodeTypeDeclaration codeType = new CodeTypeDeclaration(TYPE_PREFIX + i);
                 codeNsp.Types.Add(codeType);
 
                 codeType.TypeAttributes = TypeAttributes.Public;
                 codeType.BaseTypes.Add(codeTRInterface);
 
+                // 声明一个字段
                 CodeMemberField codeFldObj = new CodeMemberField(codeTRObject, "_obj");
                 codeType.Members.Add(codeFldObj);
                 CodeFieldReferenceExpression codeFldRef = new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), codeFldObj.Name);
 
+                // 创建一个构造函数
                 CodeConstructor codeCtor = new CodeConstructor();
                 codeType.Members.Add(codeCtor);
                 codeCtor.Attributes = MemberAttributes.Public;
@@ -58,162 +57,20 @@ namespace NewLife.Reflection
                     )
                 );
 
-                #region Implement Methods
-                foreach (MethodInfo miInterface in interfaceType.GetMethods())
-                {
-                    if ((miInterface.Attributes & MethodAttributes.SpecialName) != 0) continue; // ignore set_PROPERTY and get_PROPERTY methods
-
-                    CodeMemberMethod codeMethod = new CodeMemberMethod();
-                    codeType.Members.Add(codeMethod);
-
-                    codeMethod.Name = miInterface.Name;
-                    codeMethod.ReturnType = new CodeTypeReference(miInterface.ReturnType);
-                    codeMethod.PrivateImplementationType = codeTRInterface;
-
-                    references.AddReference(miInterface.ReturnType);
-
-                    ParameterInfo[] parameters = miInterface.GetParameters();
-                    CodeArgumentReferenceExpression[] codeArgs = new CodeArgumentReferenceExpression[parameters.Length];
-
-                    int n = 0;
-                    foreach (ParameterInfo parameter in parameters)
-                    {
-                        references.AddReference(parameter.ParameterType);
-                        CodeParameterDeclarationExpression codeParam = new CodeParameterDeclarationExpression(parameter.ParameterType, parameter.Name);
-                        codeMethod.Parameters.Add(codeParam);
-                        codeArgs[n++] = new CodeArgumentReferenceExpression(parameter.Name);
-                    }
-
-                    CodeMethodInvokeExpression codeMethodInvoke = new CodeMethodInvokeExpression(codeFldRef, miInterface.Name, codeArgs);
-                    if (miInterface.ReturnType == typeof(void))
-                    {
-                        codeMethod.Statements.Add(codeMethodInvoke);
-                    }
-                    else
-                    {
-                        codeMethod.Statements.Add(new CodeMethodReturnStatement(codeMethodInvoke));
-                    }
-                }
-                #endregion
-
-                #region Implement Properties
-                foreach (PropertyInfo piInterface in interfaceType.GetProperties())
-                {
-
-                    CodeMemberProperty property = new CodeMemberProperty();
-                    codeType.Members.Add(property);
-
-                    property.Name = piInterface.Name;
-                    property.Type = new CodeTypeReference(piInterface.PropertyType);
-                    property.Attributes = MemberAttributes.Public;
-                    property.PrivateImplementationType = new CodeTypeReference(interfaceType);
-
-                    references.AddReference(piInterface.PropertyType);
-
-                    ParameterInfo[] parameters = piInterface.GetIndexParameters();
-                    CodeArgumentReferenceExpression[] args = new CodeArgumentReferenceExpression[parameters.Length];
-
-                    int n = 0;
-                    foreach (ParameterInfo parameter in parameters)
-                    {
-                        CodeParameterDeclarationExpression codeParam = new CodeParameterDeclarationExpression(parameter.ParameterType, parameter.Name);
-                        property.Parameters.Add(codeParam);
-
-                        references.AddReference(parameter.ParameterType);
-
-                        CodeArgumentReferenceExpression codeArgRef = new CodeArgumentReferenceExpression(parameter.Name);
-                        args[n++] = codeArgRef;
-                    }
-
-                    if (piInterface.CanRead)
-                    {
-                        property.HasGet = true;
-
-                        if (args.Length == 0)
-                        {
-                            property.GetStatements.Add(
-                                new CodeMethodReturnStatement(
-                                    new CodePropertyReferenceExpression(
-                                        codeFldRef,
-                                        piInterface.Name
-                                    )
-                                )
-                            );
-                        }
-                        else
-                        {
-                            property.GetStatements.Add(
-                                new CodeMethodReturnStatement(
-                                    new CodeIndexerExpression(
-                                        codeFldRef,
-                                        args
-                                    )
-                                )
-                            );
-                        }
-                    }
-
-                    if (piInterface.CanWrite)
-                    {
-                        property.HasSet = true;
-
-                        if (args.Length == 0)
-                        {
-                            property.SetStatements.Add(
-                                new CodeAssignStatement(
-                                    new CodePropertyReferenceExpression(
-                                        codeFldRef,
-                                        piInterface.Name
-                                    ),
-                                    new CodePropertySetValueReferenceExpression()
-                                )
-                            );
-                        }
-                        else
-                        {
-                            property.SetStatements.Add(
-                                new CodeAssignStatement(
-                                    new CodeIndexerExpression(
-                                        codeFldRef,
-                                        args
-                                    ),
-                                    new CodePropertySetValueReferenceExpression()
-                                )
-                            );
-                        }
-
-                    }
-                }
-
-                #endregion
-
-                #region Implement Events
-                foreach (EventInfo eiEvent in interfaceType.GetEvents())
-                {
-
-                    // no declaration of Events (including custom add / remove handlers) is supported by CodeDom
-                    // a simplet has to be used
-
-                    StringBuilder sbCode = new StringBuilder();
-                    sbCode.Append("public event " + eiEvent.EventHandlerType.FullName + " @" + eiEvent.Name + "{");
-                    sbCode.Append("add    {" + codeFldObj.Name + "." + eiEvent.Name + "+=value;}");
-                    sbCode.Append("remove {" + codeFldObj.Name + "." + eiEvent.Name + "-=value;}");
-                    sbCode.Append("}");
-
-                    references.AddReference(eiEvent.EventHandlerType);
-
-                    codeType.Members.Add(new CodeSnippetTypeMember(sbCode.ToString()));
-                }
-                #endregion
+                // 创建成员
+                CreateMember(interfaceType, objectType, codeType, references, codeFldRef);
             }
 
-            Microsoft.CSharp.CSharpCodeProvider codeprov = new Microsoft.CSharp.CSharpCodeProvider();
+            #region 编译
+            CSharpCodeProvider codeprov = new CSharpCodeProvider();
 
-#if DEBUG_GENERATED_CODE
-            System.IO.StringWriter sw = new System.IO.StringWriter();
-            codeprov.GenerateCodeFromCompileUnit(codeCU, sw, new CodeGeneratorOptions());
-            string code = sw.ToString();
-            Console.WriteLine(code);
+#if DEBUG
+            {
+                StringWriter sw = new StringWriter();
+                codeprov.GenerateCodeFromCompileUnit(codeCU, sw, new CodeGeneratorOptions());
+                string code = sw.ToString();
+                Console.WriteLine(code);
+            }
 #endif
 
             CompilerParameters compilerParams = new CompilerParameters();
@@ -225,11 +82,11 @@ namespace NewLife.Reflection
             CompilerResults cres = codeprov.CompileAssemblyFromDom(compilerParams, codeCU);
             if (cres.Errors.Count > 0)
             {
-                StringWriter swErrors = new StringWriter();
+                StringWriter sw = new StringWriter();
                 foreach (CompilerError err in cres.Errors)
-                    swErrors.WriteLine(err.ErrorText);
+                    sw.WriteLine(err.ErrorText);
 
-                throw new Exception("Compiler-Errors: \n\n" + swErrors.ToString());
+                throw new Exception("编译错误: \n\n" + sw.ToString());
             }
 
             Assembly assembly = cres.CompiledAssembly;
@@ -237,10 +94,209 @@ namespace NewLife.Reflection
             Type[] res = new Type[duckedTypes.Length];
             for (int i = 0; i < duckedTypes.Length; i++)
             {
-                res[i] = assembly.GetType(namespaceName + "." + TYPE_PREFIX + i.ToString());
+                res[i] = assembly.GetType(namespaceName + "." + TYPE_PREFIX + i);
             }
 
             return res;
+            #endregion
+        }
+
+        void CreateMember(Type interfaceType, Type duckType, CodeTypeDeclaration codeType, ReferenceList references, CodeFieldReferenceExpression codeFldRef)
+        {
+            CodeTypeReference codeTRInterface = new CodeTypeReference(TypeX.Create(interfaceType).FullName);
+
+            //// 找到duckType里面是否有公共的_obj;
+            //FieldInfo fiObj = duckType.GetField("_obj", BindingFlags.Public | BindingFlags.Instance);
+            //Type innerType = fiObj != null ? fiObj.FieldType : null;
+
+            CodeFieldReferenceExpression fdRef = null;
+
+            #region 方法
+            foreach (MethodInfo mi in interfaceType.GetMethods())
+            {
+                // 忽略专用名字的方法，如属性的get/set，还有构造函数
+                if ((mi.Attributes & MethodAttributes.SpecialName) != 0) continue;
+
+                CodeMemberMethod codeMethod = new CodeMemberMethod();
+                codeType.Members.Add(codeMethod);
+
+                codeMethod.Name = mi.Name;
+                codeMethod.ReturnType = new CodeTypeReference(mi.ReturnType);
+                codeMethod.PrivateImplementationType = codeTRInterface;
+
+                references.AddReference(mi.ReturnType);
+
+                ParameterInfo[] parameters = mi.GetParameters();
+                CodeArgumentReferenceExpression[] codeArgs = new CodeArgumentReferenceExpression[parameters.Length];
+
+                int n = 0;
+                Type[] pits = new Type[parameters.Length];
+                foreach (ParameterInfo parameter in parameters)
+                {
+                    pits[n] = parameter.ParameterType;
+
+                    references.AddReference(parameter.ParameterType);
+                    CodeParameterDeclarationExpression codeParam = new CodeParameterDeclarationExpression(parameter.ParameterType, parameter.Name);
+                    codeMethod.Parameters.Add(codeParam);
+                    codeArgs[n++] = new CodeArgumentReferenceExpression(parameter.Name);
+                }
+
+                CodeMethodInvokeExpression codeMethodInvoke = new CodeMethodInvokeExpression(FindMember(duckType, mi, codeFldRef), mi.Name, codeArgs);
+
+                if (mi.ReturnType == typeof(void))
+                    codeMethod.Statements.Add(codeMethodInvoke);
+                else
+                    codeMethod.Statements.Add(new CodeMethodReturnStatement(codeMethodInvoke));
+            }
+            #endregion
+
+            #region 属性
+            foreach (PropertyInfo pi in interfaceType.GetProperties())
+            {
+                CodeMemberProperty property = new CodeMemberProperty();
+                codeType.Members.Add(property);
+
+                property.Name = pi.Name;
+                property.Type = new CodeTypeReference(pi.PropertyType);
+                property.Attributes = MemberAttributes.Public;
+                property.PrivateImplementationType = codeTRInterface;
+
+                references.AddReference(pi.PropertyType);
+
+                ParameterInfo[] parameters = pi.GetIndexParameters();
+                CodeArgumentReferenceExpression[] args = new CodeArgumentReferenceExpression[parameters.Length];
+
+                int n = 0;
+                foreach (ParameterInfo parameter in parameters)
+                {
+                    CodeParameterDeclarationExpression codeParam = new CodeParameterDeclarationExpression(parameter.ParameterType, parameter.Name);
+                    property.Parameters.Add(codeParam);
+
+                    references.AddReference(parameter.ParameterType);
+
+                    CodeArgumentReferenceExpression codeArgRef = new CodeArgumentReferenceExpression(parameter.Name);
+                    args[n++] = codeArgRef;
+                }
+
+                fdRef = FindMember(duckType, pi, codeFldRef);
+
+                if (pi.CanRead)
+                {
+                    property.HasGet = true;
+
+                    if (args.Length == 0)
+                    {
+                        property.GetStatements.Add(
+                            new CodeMethodReturnStatement(
+                                new CodePropertyReferenceExpression(
+                                    fdRef,
+                                    pi.Name
+                                )
+                            )
+                        );
+                    }
+                    else
+                    {
+                        property.GetStatements.Add(
+                            new CodeMethodReturnStatement(
+                                new CodeIndexerExpression(
+                                    fdRef,
+                                    args
+                                )
+                            )
+                        );
+                    }
+                }
+
+                if (pi.CanWrite)
+                {
+                    property.HasSet = true;
+
+                    if (args.Length == 0)
+                    {
+                        property.SetStatements.Add(
+                            new CodeAssignStatement(
+                                new CodePropertyReferenceExpression(
+                                    fdRef,
+                                    pi.Name
+                                ),
+                                new CodePropertySetValueReferenceExpression()
+                            )
+                        );
+                    }
+                    else
+                    {
+                        property.SetStatements.Add(
+                            new CodeAssignStatement(
+                                new CodeIndexerExpression(
+                                    fdRef,
+                                    args
+                                ),
+                                new CodePropertySetValueReferenceExpression()
+                            )
+                        );
+                    }
+
+                }
+            }
+            #endregion
+
+            #region 事件
+            foreach (EventInfo ei in interfaceType.GetEvents())
+            {
+                fdRef = FindMember(duckType, ei, codeFldRef);
+
+                StringBuilder sbCode = new StringBuilder();
+                sbCode.Append("public event " + ei.EventHandlerType.FullName + " @" + ei.Name + "{");
+                //sbCode.Append("add    {" + codeFldObj.Name + "." + ei.Name + "+=value;}");
+                //sbCode.Append("remove {" + codeFldObj.Name + "." + ei.Name + "-=value;}");
+                if (fdRef == codeFldRef)
+                {
+                    sbCode.Append("add    {" + codeFldRef.FieldName + "." + ei.Name + "+=value;}");
+                    sbCode.Append("remove {" + codeFldRef.FieldName + "." + ei.Name + "-=value;}");
+                }
+                else
+                {
+                    sbCode.Append("add    {" + fdRef.FieldName + "." + codeFldRef.FieldName + "." + ei.Name + "+=value;}");
+                    sbCode.Append("remove {" + fdRef.FieldName + "." + codeFldRef.FieldName + "." + ei.Name + "-=value;}");
+                }
+                sbCode.Append("}");
+
+                references.AddReference(ei.EventHandlerType);
+
+                codeType.Members.Add(new CodeSnippetTypeMember(sbCode.ToString()));
+            }
+            #endregion
+
+            #region 递归基接口
+            Type[] ts = interfaceType.GetInterfaces();
+            if (ts != null && ts.Length > 0)
+            {
+                foreach (Type item in ts)
+                {
+                    CreateMember(item, duckType, codeType, references, codeFldRef);
+                }
+            }
+            #endregion
+        }
+
+        CodeFieldReferenceExpression FindMember(Type duckType, MemberInfo mi, CodeFieldReferenceExpression codeFldRef)
+        {
+            MemberInfo[] infos = duckType.GetMember(mi.Name);
+            if (infos != null && infos.Length > 0)
+                return codeFldRef;
+            else
+            {
+                // 找到duckType里面是否有公共的_obj;
+                FieldInfo fiObj = duckType.GetField("_obj", BindingFlags.Public | BindingFlags.Instance);
+                if (fiObj != null)
+                {
+                    Type innerType = fiObj.FieldType;
+                    if (mi.DeclaringType.IsAssignableFrom(innerType)) return new CodeFieldReferenceExpression(codeFldRef, fiObj.Name);
+                }
+            }
+
+            return codeFldRef;
         }
 
         class ReferenceList
@@ -263,7 +319,7 @@ namespace NewLife.Reflection
             public void AddReference(Type type)
             {
                 AddReference(type.Assembly);
-                if (type.BaseType.Assembly != mscorlib)
+                if (type.BaseType != null && type.BaseType.Assembly != mscorlib)
                     AddReference(type.BaseType);
             }
 
