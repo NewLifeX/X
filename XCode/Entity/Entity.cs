@@ -643,7 +643,7 @@ namespace XCode
 
             // 如下优化，避免了每次都调用Meta.Count而导致形成一次查询，虽然这次查询时间损耗不大
             // 但是绝大多数查询，都不需要进行类似的海量数据优化，显然，这个startRowIndex将会挡住99%以上的浪费
-            Int32 count = 0;
+            Int64 count = 0;
             if (startRowIndex > 500000 && (count = Meta.Count) > 1000000)
             {
                 // 计算本次查询的结果行数
@@ -702,9 +702,9 @@ namespace XCode
                     if (!String.IsNullOrEmpty(order))
                     {
                         // 最大可用行数改为实际最大可用行数
-                        Int32 max = Math.Min(maximumRows, count - startRowIndex);
+                        Int32 max = (Int32)Math.Min(maximumRows, count - startRowIndex);
                         if (max <= 0) return null;
-                        Int32 start = count - (startRowIndex + maximumRows);
+                        Int32 start = (Int32)(count - (startRowIndex + maximumRows));
 
                         String sql2 = PageSplitSQL(whereClause, order, selects, start, max);
                         EntityList<TEntity> list = LoadData(Meta.Query(sql2));

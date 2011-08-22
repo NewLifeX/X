@@ -521,19 +521,19 @@ namespace XCode
                 }
             }
 
-            private static Int32? _Count;
+            private static Int64? _Count;
             /// <summary>总记录数</summary>
-            public static Int32 Count
+            public static Int64 Count
             {
                 get
                 {
-                    Int32? n = _Count;
+                    Int64? n = _Count;
                     if (n != null && n.HasValue) return n.Value;
 
                     //if (_Count <= 1000)
                     //    _Count = QueryCount(SQL(null, DataObjectMethodType.Fill));
                     //else
-                    Int32 m = DBO.Session.QueryCountFast(TableName);
+                    Int64 m = DBO.Session.QueryCountFast(TableName);
                     _Count = m;
 
                     // 先拿到记录数再初始化，因为初始化时会用到记录数，同时也避免了死循环

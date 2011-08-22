@@ -45,7 +45,7 @@ namespace XCode
         ISingleEntityCache SingleCache { get; }
 
         /// <summary>总记录数</summary>
-        Int32 Count { get; }
+        Int64 Count { get; }
         #endregion
 
         #region 创建实体

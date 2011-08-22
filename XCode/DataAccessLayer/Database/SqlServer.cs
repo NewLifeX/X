@@ -17,16 +17,10 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 返回数据库类型。外部DAL数据库类请使用Other
         /// </summary>
-        public override DatabaseType DbType
-        {
-            get { return DatabaseType.SqlServer; }
-        }
+        public override DatabaseType DbType { get { return DatabaseType.SqlServer; } }
 
         /// <summary>工厂</summary>
-        public override DbProviderFactory Factory
-        {
-            get { return SqlClientFactory.Instance; }
-        }
+        public override DbProviderFactory Factory { get { return SqlClientFactory.Instance; } }
 
         private Boolean? _IsSQL2005;
         /// <summary>是否SQL2005及以上</summary>
@@ -73,19 +67,13 @@ namespace XCode.DataAccessLayer
         /// 创建数据库会话
         /// </summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession()
-        {
-            return new SqlServerSession();
-        }
+        protected override IDbSession OnCreateSession() { return new SqlServerSession(); }
 
         /// <summary>
         /// 创建元数据对象
         /// </summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData()
-        {
-            return new SqlServerMetaData();
-        }
+        protected override IMetaData OnCreateMetaData() { return new SqlServerMetaData(); }
         #endregion
 
         #region 分页
@@ -215,62 +203,6 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        ///// <summary>
-        ///// 已重写。获取分页
-        ///// </summary>
-        ///// <param name="builder">查询生成器</param>
-        ///// <param name="startRowIndex">开始行，0表示第一行</param>
-        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        ///// <param name="keyColumn">主键列。用于not in分页</param>
-        ///// <returns></returns>
-        //static String PageSplitRowNumber(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
-        //{
-        //    // 从第一行开始，不需要分页
-        //    if (startRowIndex <= 0)
-        //    {
-        //        if (maximumRows < 1)
-        //            return builder.ToString();
-        //        else
-        //            return PageSplitTop(builder, maximumRows, null).ToString();
-        //    }
-
-        //    //String orderBy = String.Empty;
-        //    //if (sql.ToLower().Contains(" order "))
-        //    //{
-        //    //    // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
-        //    //    //MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        //    //    //if (ms != null && ms.Count > 0 && ms[0].Index > 0)
-        //    //    String sql2 = sql;
-        //    //    String orderBy2 = CheckOrderClause(ref sql2);
-        //    //    if (String.IsNullOrEmpty(orderBy))
-        //    //    {
-        //    //        // 已确定该sql最外层含有order by，再检查最外层是否有top。因为没有top的order by是不允许作为子查询的
-        //    //        if (!Regex.IsMatch(sql, @"^[^(]+\btop\b", RegexOptions.Compiled | RegexOptions.IgnoreCase))
-        //    //        {
-        //    //            //orderBy = sql.Substring(ms[0].Index).Trim();
-        //    //            //sql = sql.Substring(0, ms[0].Index).Trim();
-        //    //            orderBy = orderBy2.Trim();
-        //    //            sql = sql2.Trim();
-        //    //        }
-        //    //    }
-        //    //}
-
-        //    //if (String.IsNullOrEmpty(orderBy))
-        //    //{
-        //    //    //if (keyColumn.EndsWith(" Unknown", StringComparison.OrdinalIgnoreCase)) keyColumn = keyColumn.Substring(0, keyColumn.LastIndexOf(" "));
-        //    //    orderBy = "Order By " + keyColumn;
-        //    //}
-        //    //sql = CheckSimpleSQL(sql);
-
-        //    //row_number()从1开始
-        //    //if (maximumRows < 1)
-        //    //    sql = String.Format("Select * From (Select *, row_number() over({2}) as rowNumber From {1}) XCode_Temp_b Where rowNumber>={0}", startRowIndex + 1, sql, orderBy);
-        //    //else
-        //    //    sql = String.Format("Select * From (Select *, row_number() over({3}) as rowNumber From {1}) XCode_Temp_b Where rowNumber Between {0} And {2}", startRowIndex + 1, sql, startRowIndex + maximumRows, orderBy);
-
-        //    return sql;
-        //}
-
         public override string PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows, string keyColumn)
         {
             // 从第一行开始，不需要分页
@@ -287,14 +219,6 @@ namespace XCode.DataAccessLayer
 
             return base.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
         }
-
-        //String PageSplit(SelectBuilder builder, Int32 maximumRows)
-        //{
-        //    SelectBuilder sb = builder.Clone();
-        //    if (String.IsNullOrEmpty(builder.Column)) builder.Column = "*";
-        //    builder.Column = String.Format("Top {0} {1}", maximumRows, builder.Column);
-        //    return builder.ToString();
-        //}
         #endregion
 
         #region MS分页
@@ -490,20 +414,12 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public override Int32 LongTextLength { get { return 4000; } }
 
-        //protected override string ReservedWordsStr
-        //{
-        //    get { return "ADD,EXCEPT,PERCENT,ALL,EXEC,PLAN,ALTER,EXECUTE,PRECISION,AND,EXISTS,PRIMARY,ANY,EXIT,PRINT,AS,FETCH,PROC,ASC,FILE,PROCEDURE,AUTHORIZATION,FILLFACTOR,PUBLIC,BACKUP,FOR,RAISERROR,BEGIN,FOREIGN,READ,BETWEEN,FREETEXT,READTEXT,BREAK,FREETEXTTABLE,RECONFIGURE,BROWSE,FROM,REFERENCES,BULK,FULL,REPLICATION,BY,FUNCTION,RESTORE,CASCADE,GOTO,RESTRICT,CASE,GRANT,RETURN,CHECK,GROUP,REVOKE,CHECKPOINT,HAVING,RIGHT,CLOSE,HOLDLOCK,ROLLBACK,CLUSTERED,IDENTITY,ROWCOUNT,COALESCE,IDENTITY_INSERT,ROWGUIDCOL,COLLATE,IDENTITYCOL,RULE,COLUMN,IF,SAVE,COMMIT,IN,SCHEMA,COMPUTE,INDEX,SELECT,CONSTRAINT,INNER,SESSION_USER,CONTAINS,INSERT,SET,CONTAINSTABLE,INTERSECT,SETUSER,CONTINUE,INTO,SHUTDOWN,CONVERT,IS,SOME,CREATE,JOIN,STATISTICS,CROSS,KEY,SYSTEM_USER,CURRENT,KILL,TABLE,CURRENT_DATE,LEFT,TEXTSIZE,CURRENT_TIME,LIKE,THEN,CURRENT_TIMESTAMP,LINENO,TO,CURRENT_USER,LOAD,TOP,CURSOR,NATIONAL ,TRAN,DATABASE,NOCHECK,TRANSACTION,DBCC,NONCLUSTERED,TRIGGER,DEALLOCATE,NOT,TRUNCATE,DECLARE,NULL,TSEQUAL,DEFAULT,NULLIF,UNION,DELETE,OF,UNIQUE,DENY,OFF,UPDATE,DESC,OFFSETS,UPDATETEXT,DISK,ON,USE,DISTINCT,OPEN,USER,DISTRIBUTED,OPENDATASOURCE,VALUES,DOUBLE,OPENQUERY,VARYING,DROP,OPENROWSET,VIEW,DUMMY,OPENXML,WAITFOR,DUMP,OPTION,WHEN,ELSE,OR,WHERE,END,ORDER,WHILE,ERRLVL,OUTER,WITH,ESCAPE,OVER,WRITETEXT,ABSOLUTE,FOUND,PRESERVE,ACTION,FREE,PRIOR,ADMIN,GENERAL,PRIVILEGES,AFTER,GET,READS,AGGREGATE,GLOBAL,REAL,ALIAS,GO,RECURSIVE,ALLOCATE,GROUPING,REF,ARE,HOST,REFERENCING,ARRAY,HOUR,RELATIVE,ASSERTION,IGNORE,RESULT,AT,IMMEDIATE,RETURNS,BEFORE,INDICATOR,ROLE,BINARY,INITIALIZE,ROLLUP,BIT,INITIALLY,ROUTINE,BLOB,INOUT,ROW,BOOLEAN,INPUT,ROWS,BOTH,INT,SAVEPOINT,BREADTH,INTEGER,SCROLL,CALL,INTERVAL,SCOPE,CASCADED,ISOLATION,SEARCH,CAST,ITERATE,SECOND,CATALOG,LANGUAGE,SECTION,CHAR,LARGE,SEQUENCE,CHARACTER,LAST,SESSION,CLASS,LATERAL,SETS,CLOB,LEADING,SIZE,COLLATION,LESS,SMALLINT,COMPLETION,LEVEL,SPACE,CONNECT,LIMIT,SPECIFIC,CONNECTION,LOCAL,SPECIFICTYPE,CONSTRAINTS,LOCALTIME,SQL,CONSTRUCTOR,LOCALTIMESTAMP,SQLEXCEPTION,CORRESPONDING,LOCATOR,SQLSTATE,CUBE,MAP,SQLWARNING,CURRENT_PATH,MATCH,START,CURRENT_ROLE,MINUTE,STATE,CYCLE,MODIFIES,STATEMENT,DATA,MODIFY,STATIC,DATE,MODULE,STRUCTURE,DAY,MONTH,TEMPORARY,DEC,NAMES,TERMINATE,DECIMAL,NATURAL,THAN,DEFERRABLE,NCHAR,TIME,DEFERRED,NCLOB,TIMESTAMP,DEPTH,NEW,TIMEZONE_HOUR,DEREF,NEXT,TIMEZONE_MINUTE,DESCRIBE,NO,TRAILING,DESCRIPTOR,NONE,TRANSLATION,DESTROY,NUMERIC,TREAT,DESTRUCTOR,OBJECT,TRUE,DETERMINISTIC,OLD,UNDER,DICTIONARY,ONLY,UNKNOWN,DIAGNOSTICS,OPERATION,UNNEST,DISCONNECT,ORDINALITY,USAGE,DOMAIN,OUT,USING,DYNAMIC,OUTPUT,VALUE,EACH,PAD,VARCHAR,END-EXEC,PARAMETER,VARIABLE,EQUALS,PARAMETERS,WHENEVER,EVERY,PARTIAL,WITHOUT,EXCEPTION,PATH,WORK,EXTERNAL,POSTFIX,WRITE,FALSE,PREFIX,YEAR,FIRST,PREORDER,ZONE,FLOAT,PREPARE,ADA,AVG,BIT_LENGTH,CHAR_LENGTH,CHARACTER_LENGTH,COUNT,EXTRACT,FORTRAN,INCLUDE,INSENSITIVE,LOWER,MAX,MIN,OCTET_LENGTH,OVERLAPS,PASCAL,POSITION,SQLCA,SQLCODE,SQLERROR,SUBSTRING,SUM,TRANSLATE,TRIM,UPPER"; }
-        //}
-
         /// <summary>
         /// 格式化时间为SQL字符串
         /// </summary>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
-        public override String FormatDateTime(DateTime dateTime)
-        {
-            return "{ts" + String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime) + "}";
-        }
+        public override String FormatDateTime(DateTime dateTime) { return "{ts" + String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime) + "}"; }
 
         /// <summary>
         /// 格式化关键字
@@ -569,7 +485,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public override int QueryCountFast(string tableName)
+        public override Int64 QueryCountFast(string tableName)
         {
             String sql = String.Format("select rows from sysindexes where id = object_id('{0}') and indid in (0,1)", tableName);
 
@@ -579,7 +495,7 @@ namespace XCode.DataAccessLayer
             WriteSQL(cmd.CommandText);
             try
             {
-                return Convert.ToInt32(cmd.ExecuteScalar());
+                return Convert.ToInt64(cmd.ExecuteScalar());
             }
             catch (DbException ex)
             {

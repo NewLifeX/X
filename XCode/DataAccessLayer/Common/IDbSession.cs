@@ -117,21 +117,21 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>总记录数</returns>
-        Int32 QueryCount(String sql);
+        Int64 QueryCount(String sql);
 
         /// <summary>
         /// 执行SQL查询，返回总记录数
         /// </summary>
         /// <param name="builder">查询生成器</param>
         /// <returns>总记录数</returns>
-        Int32 QueryCount(SelectBuilder builder);
+        Int64 QueryCount(SelectBuilder builder);
 
         /// <summary>
         /// 快速查询单表记录数，稍有偏差
         /// </summary>
         /// <param name="tableName">表名</param>
         /// <returns></returns>
-        Int32 QueryCountFast(String tableName);
+        Int64 QueryCountFast(String tableName);
 
         /// <summary>
         /// 执行SQL语句，返回受影响的行数

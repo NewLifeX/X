@@ -107,7 +107,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
-        protected override int QueryCountInternal(string sql)
+        protected override Int64 QueryCountInternal(string sql)
         {
             return base.QueryCountInternal(sql);
         }
@@ -117,7 +117,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public override int QueryCountFast(string tableName)
+        public override Int64 QueryCountFast(string tableName)
         {
             return base.QueryCountFast(tableName);
         }

@@ -428,7 +428,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
-        protected virtual Int32 QueryCountInternal(String sql)
+        protected virtual Int64 QueryCountInternal(String sql)
         {
             QueryTimes++;
             DbCommand cmd = CreateCommand();
@@ -436,7 +436,7 @@ namespace XCode.DataAccessLayer
             WriteSQL(cmd.CommandText);
             try
             {
-                return Convert.ToInt32(cmd.ExecuteScalar());
+                return Convert.ToInt64(cmd.ExecuteScalar());
             }
             catch (DbException ex)
             {
@@ -454,7 +454,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
-        public virtual Int32 QueryCount(String sql)
+        public virtual Int64 QueryCount(String sql)
         {
             if (sql.Contains(" "))
             {
@@ -482,7 +482,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="builder">查询生成器</param>
         /// <returns>总记录数</returns>
-        public virtual Int32 QueryCount(SelectBuilder builder)
+        public virtual Int64 QueryCount(SelectBuilder builder)
         {
             return QueryCountInternal(builder.SelectCount().ToString());
         }
@@ -492,7 +492,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public virtual Int32 QueryCountFast(String tableName)
+        public virtual Int64 QueryCountFast(String tableName)
         {
             return QueryCount(tableName);
         }

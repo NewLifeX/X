@@ -234,7 +234,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public override int QueryCountFast(string tableName)
+        public override Int64 QueryCountFast(string tableName)
         {
             String sql = String.Format("select NUM_ROWS from sys.all_indexes where TABLE_OWNER='{0}' and TABLE_NAME='{1}'", (Database as Oracle).Owner.ToUpper(), tableName);
 
@@ -244,7 +244,7 @@ namespace XCode.DataAccessLayer
             WriteSQL(cmd.CommandText);
             try
             {
-                return Convert.ToInt32(cmd.ExecuteScalar());
+                return Convert.ToInt64(cmd.ExecuteScalar());
             }
             catch (DbException ex)
             {

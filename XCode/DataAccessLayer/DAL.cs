@@ -479,7 +479,8 @@ namespace XCode.DataAccessLayer
             String cacheKey = sql + "_SelectCount" + "_" + ConnName;
             if (EnableCache && XCache.IntContain(cacheKey)) return XCache.IntItem(cacheKey);
             Interlocked.Increment(ref _QueryTimes);
-            Int32 rs = Session.QueryCount(sql);
+            // 为了向前兼容，这里转为Int32，如果需要获取Int64，可直接调用Session
+            Int32 rs = (Int32)Session.QueryCount(sql);
             if (EnableCache) XCache.Add(cacheKey, rs, tableNames);
             return rs;
         }
@@ -507,7 +508,7 @@ namespace XCode.DataAccessLayer
             String cacheKey = sql + "_SelectCount" + "_" + ConnName;
             if (EnableCache && XCache.IntContain(cacheKey)) return XCache.IntItem(cacheKey);
             Interlocked.Increment(ref _QueryTimes);
-            Int32 rs = Session.QueryCount(sb);
+            Int32 rs = (Int32)Session.QueryCount(sb);
             if (EnableCache) XCache.Add(cacheKey, rs, tableNames);
             return rs;
         }
