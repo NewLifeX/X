@@ -268,8 +268,9 @@ namespace XCode.DataAccessLayer
                     //_Db = TypeX.CreateInstance(type) as IDatabase;
                     // 使用鸭子类型，避免因接口版本差异而导致无法使用
                     _Db = TypeX.ChangeType<IDatabase>(TypeX.CreateInstance(type));
-                    _Db.ConnName = ConnName;
-                    _Db.ConnectionString = ConnStr;
+                    // 不为空才设置连接字符串，因为可能有内部包装
+                    if (!String.IsNullOrEmpty(ConnName)) _Db.ConnName = ConnName;
+                    if (!String.IsNullOrEmpty(ConnStr)) _Db.ConnectionString = ConnStr;
                 }
 
                 return _Db;
