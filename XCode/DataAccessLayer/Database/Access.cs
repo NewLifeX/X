@@ -184,41 +184,20 @@ namespace XCode.DataAccessLayer
             // 禁用自动关闭，保证两次在同一会话
             IsAutoClose = false;
 
+            BeginTransaction();
             try
             {
-                Int32 rs = Execute(sql);
-                if (rs <= 0) return rs;
-
-                return Int64.Parse(ExecuteScalar("Select @@Identity").ToString());
+                Int64 rs = Execute(sql);
+                if (rs > 0) rs = ExecuteScalar<Int64>("Select @@Identity");
+                Commit();
+                return rs;
             }
+            catch { Rollback(); throw; }
             finally
             {
                 IsAutoClose = b;
                 AutoClose();
             }
-
-            //ExecuteTimes++;
-            //if (Debug) WriteLog(sql);
-            //try
-            //{
-            //    DbCommand cmd = PrepareCommand();
-            //    cmd.CommandText = sql;
-            //    Int64 rs = cmd.ExecuteNonQuery();
-            //    if (rs > 0)
-            //    {
-            //        cmd.CommandText = "Select @@Identity";
-            //        rs = Int64.Parse(cmd.ExecuteScalar().ToString());
-            //    }
-            //    return rs;
-            //}
-            //catch (DbException ex)
-            //{
-            //    throw OnException(ex, sql);
-            //}
-            //finally
-            //{
-            //    AutoClose();
-            //}
         }
         #endregion
     }

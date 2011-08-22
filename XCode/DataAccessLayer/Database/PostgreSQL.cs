@@ -168,26 +168,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>新增行的自动编号</returns>
-        public override Int64 InsertAndGetIdentity(string sql)
-        {
-            return Int64.Parse(ExecuteScalar(sql + ";Select LAST_INSERT_ID()").ToString());
-
-            //ExecuteTimes++;
-            ////SQLServer写法
-            //sql = "SET NOCOUNT ON;" + sql + ";Select LAST_INSERT_ID()";
-            //if (Debug) WriteLog(sql);
-            //try
-            //{
-            //    DbCommand cmd = PrepareCommand();
-            //    cmd.CommandText = sql;
-            //    return Int64.Parse(cmd.ExecuteScalar().ToString());
-            //}
-            //catch (DbException ex)
-            //{
-            //    throw OnException(ex, sql);
-            //}
-            //finally { AutoClose(); }
-        }
+        public override Int64 InsertAndGetIdentity(string sql) { return ExecuteScalar<Int64>(sql + ";Select LAST_INSERT_ID()"); }
         #endregion
     }
 

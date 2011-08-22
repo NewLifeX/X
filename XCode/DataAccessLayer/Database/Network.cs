@@ -102,15 +102,15 @@ namespace XCode.DataAccessLayer
             throw new NotSupportedException();
         }
 
-        /// <summary>
-        /// 执行SQL查询，返回总记录数
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns></returns>
-        protected override Int64 QueryCountInternal(string sql)
-        {
-            return base.QueryCountInternal(sql);
-        }
+        ///// <summary>
+        ///// 执行SQL查询，返回总记录数
+        ///// </summary>
+        ///// <param name="sql">SQL语句</param>
+        ///// <returns></returns>
+        //protected override Int64 QueryCountInternal(string sql)
+        //{
+        //    return base.QueryCountInternal(sql);
+        //}
 
         /// <summary>
         /// 快速查询单表记录数，稍有偏差

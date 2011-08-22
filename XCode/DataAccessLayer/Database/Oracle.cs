@@ -237,20 +237,21 @@ namespace XCode.DataAccessLayer
         public override Int64 QueryCountFast(string tableName)
         {
             String sql = String.Format("select NUM_ROWS from sys.all_indexes where TABLE_OWNER='{0}' and TABLE_NAME='{1}'", (Database as Oracle).Owner.ToUpper(), tableName);
+            return ExecuteScalar<Int64>(sql);
 
-            QueryTimes++;
-            DbCommand cmd = CreateCommand();
-            cmd.CommandText = sql;
-            WriteSQL(cmd.CommandText);
-            try
-            {
-                return Convert.ToInt64(cmd.ExecuteScalar());
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, cmd.CommandText);
-            }
-            finally { AutoClose(); }
+            //QueryTimes++;
+            //DbCommand cmd = CreateCommand();
+            //cmd.CommandText = sql;
+            //WriteSQL(cmd.CommandText);
+            //try
+            //{
+            //    return Convert.ToInt64(cmd.ExecuteScalar());
+            //}
+            //catch (DbException ex)
+            //{
+            //    throw OnException(ex, cmd.CommandText);
+            //}
+            //finally { AutoClose(); }
         }
 
         static Regex reg_SEQ = new Regex(@"\b(\w+)\.nextval\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -265,135 +266,26 @@ namespace XCode.DataAccessLayer
             // 禁用自动关闭，保证两次在同一会话
             IsAutoClose = false;
 
+            BeginTransaction();
             try
             {
                 Int64 rs = base.InsertAndGetIdentity(sql);
-                if (rs <= 1) return rs;
-
-                Match m = reg_SEQ.Match(sql);
-                if (m == null || m.Groups == null || m.Groups.Count < 1) return rs;
-
-                String name = m.Groups[1].Value;
-                return (Int64)ExecuteScalar(String.Format("Select {0}.currval", name));
+                if (rs > 0)
+                {
+                    Match m = reg_SEQ.Match(sql);
+                    if (m != null && m.Groups != null && m.Groups.Count > 0)
+                        rs = ExecuteScalar<Int64>(String.Format("Select {0}.currval", m.Groups[1].Value));
+                }
+                Commit();
+                return rs;
             }
+            catch { Rollback(); throw; }
             finally
             {
                 IsAutoClose = b;
                 AutoClose();
             }
-
-            //throw new NotSupportedException("Oracle数据库不支持插入后返回新增行的自动编号！");
         }
-        #endregion
-
-        ///// <summary>
-        ///// 取得指定表的所有列构架
-        ///// </summary>
-        ///// <param name="table"></param>
-        ///// <returns></returns>
-        //protected override List<IDataColumn> GetFields(IDataTable table)
-        //{
-        //    //DataColumnCollection columns = GetColumns(xt.Name);
-        //    DataTable dt = GetSchema("Columns", new String[] { table.Owner, table.Name });
-
-        //    List<IDataColumn> list = new List<IDataColumn>();
-        //    DataRow[] drs = dt.Select("", "ID");
-        //    List<String> pks = GetPrimaryKeys(table);
-        //    foreach (DataRow dr in drs)
-        //    {
-        //        IDataColumn field = table.CreateField();
-        //        field.ID = Int32.Parse(dr["ID"].ToString());
-        //        field.Name = dr["COLUMN_NAME"].ToString();
-        //        field.RawType = dr["DATA_TYPE"].ToString();
-        //        //xf.DataType = FieldTypeToClassType(dr["DATATYPE"].ToString());
-        //        //field.DataType = FieldTypeToClassType(field);
-        //        field.Identity = false;
-
-        //        //if (columns != null && columns.Contains(xf.Name))
-        //        //{
-        //        //    DataColumn dc = columns[xf.Name];
-        //        //    xf.DataType = dc.DataType;
-        //        //}
-
-        //        field.Length = dr["LENGTH"] == DBNull.Value ? 0 : Int32.Parse(dr["LENGTH"].ToString());
-        //        field.Digit = dr["SCALE"] == DBNull.Value ? 0 : Int32.Parse(dr["SCALE"].ToString());
-
-        //        field.PrimaryKey = pks != null && pks.Contains(field.Name);
-
-        //        if (Type.GetTypeCode(field.DataType) == TypeCode.Int32 && field.Digit > 0)
-        //        {
-        //            field.DataType = typeof(Double);
-        //        }
-        //        else if (Type.GetTypeCode(field.DataType) == TypeCode.DateTime)
-        //        {
-        //            //xf.Length = dr["DATETIME_PRECISION"] == DBNull.Value ? 0 : Int32.Parse(dr["DATETIME_PRECISION"].ToString());
-        //            field.NumOfByte = 0;
-        //            field.Digit = 0;
-        //        }
-        //        else
-        //        {
-        //            //if (dr["DATA_TYPE"].ToString() == "130" && dr["COLUMN_FLAGS"].ToString() == "234") //备注类型
-        //            //{
-        //            //    xf.Length = Int32.MaxValue;
-        //            //    xf.NumOfByte = Int32.MaxValue;
-        //            //}
-        //            //else
-        //            {
-        //                field.Length = dr["LENGTH"] == DBNull.Value ? 0 : Int32.Parse(dr["LENGTH"].ToString());
-        //                field.NumOfByte = 0;
-        //            }
-        //            field.Digit = 0;
-        //        }
-
-        //        try
-        //        {
-        //            field.Nullable = Boolean.Parse(dr["NULLABLE"].ToString());
-        //        }
-        //        catch
-        //        {
-        //            field.Nullable = dr["NULLABLE"].ToString() == "Y";
-        //        }
-
-        //        list.Add(field);
-        //    }
-
-        //    return list;
-        //}
-
-        #region 字段类型到数据类型对照表
-        ///// <summary>
-        ///// 字段类型到数据类型对照表
-        ///// </summary>
-        ///// <param name="type"></param>
-        ///// <returns></returns>
-        //public override Type FieldTypeToClassType(String type)
-        //{
-        //    switch (type)
-        //    {
-        //        case "CHAR":
-        //        case "VARCHAR2":
-        //        case "NCHAR":
-        //        case "NVARCHAR2":
-        //        case "CLOB":
-        //        case "NCLOB":
-        //            return typeof(String);
-        //        case "NUMBER":
-        //            return typeof(Int32);
-        //        case "FLOAT":
-        //            return typeof(Double);
-        //        case "DATE":
-        //        case "TIMESTAMP":
-        //        case "TIMESTAMP(6)":
-        //            return typeof(DateTime);
-        //        case "LONG":
-        //        case "LOB":
-        //        case "RAW":
-        //        case "BLOB":
-        //            return typeof(Byte[]);
-        //        default:
-        //            return typeof(String);
-        //    }
-        //}
         #endregion
     }
 

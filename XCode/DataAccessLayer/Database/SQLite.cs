@@ -11,23 +11,15 @@ namespace XCode.DataAccessLayer
     class SQLite : FileDbBase
     {
         #region 属性
-        /// <summary>
-        /// 返回数据库类型。
-        /// </summary>
-        public override DatabaseType DbType
-        {
-            get { return DatabaseType.SQLite; }
-        }
+        /// <summary>返回数据库类型。</summary>
+        public override DatabaseType DbType { get { return DatabaseType.SQLite; } }
 
         private static DbProviderFactory _dbProviderFactory;
-        /// <summary>
-        /// 提供者工厂
-        /// </summary>
+        /// <summary>提供者工厂</summary>
         static DbProviderFactory dbProviderFactory
         {
             get
             {
-                //if (_dbProviderFactory == null) _dbProviderFactory = DbProviderFactories.GetFactory("System.Data.OracleClient");
                 if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.SQLite.dll", "System.Data.SQLite.SQLiteFactory");
 
                 return _dbProviderFactory;
@@ -69,19 +61,13 @@ namespace XCode.DataAccessLayer
         /// 创建数据库会话
         /// </summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession()
-        {
-            return new SQLiteSession();
-        }
+        protected override IDbSession OnCreateSession() { return new SQLiteSession(); }
 
         /// <summary>
         /// 创建元数据对象
         /// </summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData()
-        {
-            return new SQLiteMetaData();
-        }
+        protected override IMetaData OnCreateMetaData() { return new SQLiteMetaData(); }
         #endregion
 
         #region 分页
@@ -122,20 +108,12 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
 
-        //protected override string ReservedWordsStr
-        //{
-        //    get { return "ALL,ALTER,AND,AS,AUTOINCREMENT,BETWEEN,BY,CASE,CHECK,COLLATE,COMMIT,CONSTRAINT,CREATE,CROSS,DEFAULT,DEFERRABLE,DELETE,DISTINCT,DROP,ELSE,ESCAPE,EXCEPT,FOREIGN,FROM,FULL,GROUP,HAVING,IN,INDEX,INNER,INSERT,INTERSECT,INTO,IS,ISNULL,JOIN,LEFT,LIMIT,NATURAL,NOT,NOTNULL,NULL,ON,OR,ORDER,OUTER,PRIMARY,REFERENCES,RIGHT,ROLLBACK,SELECT,SET,TABLE,THEN,TO,TRANSACTION,UNION,UNIQUE,UPDATE,USING,VALUES,WHEN,WHERE"; }
-        //}
-
         /// <summary>
         /// 格式化时间为SQL字符串
         /// </summary>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
-        public override String FormatDateTime(DateTime dateTime)
-        {
-            return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime);
-        }
+        public override String FormatDateTime(DateTime dateTime) { return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime); }
 
         /// <summary>
         /// 格式化关键字
@@ -167,8 +145,6 @@ namespace XCode.DataAccessLayer
         }
 
         #endregion
-
-
     }
 
     /// <summary>
@@ -187,42 +163,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 基本方法 查询/执行
-        //private ReadWriteLock _lock = null;
-        //private ReadWriteLock rwLock
-        //{
-        //    get
-        //    {
-        //        // 以文件名为键创建读写锁，表示多线程将会争夺文件的写入操作
-        //        return _lock ?? (_lock = ReadWriteLock.Create(FileName));
-        //    }
-        //}
-
-        //public override DataSet Query(string sql)
-        //{
-        //    rwLock.AcquireRead();
-        //    try
-        //    {
-        //        return base.Query(sql);
-        //    }
-        //    finally
-        //    {
-        //        rwLock.ReleaseRead();
-        //    }
-        //}
-
-        //public override DataSet Query(DbCommand cmd)
-        //{
-        //    rwLock.AcquireRead();
-        //    try
-        //    {
-        //        return base.Query(cmd);
-        //    }
-        //    finally
-        //    {
-        //        rwLock.ReleaseRead();
-        //    }
-        //}
-
         /// <summary>
         /// 文件锁定重试次数
         /// </summary>
@@ -233,7 +173,6 @@ namespace XCode.DataAccessLayer
             //! 如果异常是文件锁定，则重试
             for (int i = 0; i < RetryTimes; i++)
             {
-                //rwLock.AcquireWrite();
                 try
                 {
                     return func(arg);
@@ -250,10 +189,6 @@ namespace XCode.DataAccessLayer
 
                     throw;
                 }
-                //finally
-                //{
-                //    rwLock.ReleaseWrite();
-                //}
             }
             return default(TResult);
         }
@@ -263,66 +198,14 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql"></param>
         /// <returns></returns>
-        public override Int32 Execute(string sql)
-        {
-            return Retry<String, Int32>(base.Execute, sql);
-
-            ////! 如果异常是文件锁定，则重试
-            //for (int i = 0; i < RetryTimes; i++)
-            //{
-            //    //rwLock.AcquireWrite();
-            //    try
-            //    {
-            //        return base.Execute(sql);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        if (i >= RetryTimes - 1) throw;
-
-            //        if (ex.Message == "The database file is locked") continue;
-
-            //        throw;
-            //    }
-            //    //finally
-            //    //{
-            //    //    rwLock.ReleaseWrite();
-            //    //}
-            //}
-            //return -1;
-        }
+        public override Int32 Execute(string sql) { return Retry<String, Int32>(base.Execute, sql); }
 
         /// <summary>
         /// 已重载。增加锁
         /// </summary>
         /// <param name="cmd"></param>
         /// <returns></returns>
-        public override Int32 Execute(DbCommand cmd)
-        {
-            return Retry<DbCommand, Int32>(base.Execute, cmd);
-
-            ////! 如果异常是文件锁定，则重试
-            //for (int i = 0; i < RetryTimes; i++)
-            //{
-            //    rwLock.AcquireWrite();
-            //    try
-            //    {
-            //        return base.Execute(cmd);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        if (i >= RetryTimes - 1) throw;
-
-            //        if (ex.Message == "The database file is locked") continue;
-
-            //        throw;
-            //    }
-            //    finally
-            //    {
-            //        rwLock.ReleaseWrite();
-            //    }
-            //}
-            //return -1;
-        }
+        public override Int32 Execute(DbCommand cmd) { return Retry<DbCommand, Int32>(base.Execute, cmd); }
 
         /// <summary>
         /// 执行插入语句并返回新增行的自动编号
@@ -333,47 +216,8 @@ namespace XCode.DataAccessLayer
         {
             return Retry<String, Int64>(delegate(String sql2)
             {
-                return Int64.Parse(ExecuteScalar(sql2 + ";Select last_insert_rowid() newid").ToString());
+                return ExecuteScalar<Int64>(sql2 + ";Select last_insert_rowid() newid");
             }, sql);
-
-            ////! 如果异常是文件锁定，则重试
-            //for (int i = 0; i < RetryTimes; i++)
-            //{
-            //    rwLock.AcquireWrite();
-            //    try
-            //    {
-            //        ExecuteTimes++;
-            //        sql = sql + ";Select last_insert_rowid() newid";
-            //        if (Debug) WriteLog(sql);
-            //        try
-            //        {
-            //            DbCommand cmd = PrepareCommand();
-            //            cmd.CommandText = sql;
-            //            Object obj = cmd.ExecuteScalar();
-            //            if (obj == null) return 0;
-
-            //            return Int64.Parse(obj.ToString());
-            //        }
-            //        catch (DbException ex)
-            //        {
-            //            throw OnException(ex, sql);
-            //        }
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        if (i >= RetryTimes - 1) throw;
-
-            //        if (ex.Message == "The database file is locked") continue;
-
-            //        throw;
-            //    }
-            //    finally
-            //    {
-            //        AutoClose();
-            //        rwLock.ReleaseWrite();
-            //    }
-            //}
-            //return -1;
         }
         #endregion
     }

@@ -423,30 +423,30 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 执行SQL查询，返回总记录数
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns></returns>
-        protected virtual Int64 QueryCountInternal(String sql)
-        {
-            QueryTimes++;
-            DbCommand cmd = CreateCommand();
-            cmd.CommandText = sql;
-            WriteSQL(cmd.CommandText);
-            try
-            {
-                return Convert.ToInt64(cmd.ExecuteScalar());
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, cmd.CommandText);
-            }
-            finally
-            {
-                AutoClose();
-            }
-        }
+        ///// <summary>
+        ///// 执行SQL查询，返回总记录数
+        ///// </summary>
+        ///// <param name="sql">SQL语句</param>
+        ///// <returns></returns>
+        //protected virtual Int64 QueryCountInternal(String sql)
+        //{
+        //    QueryTimes++;
+        //    DbCommand cmd = CreateCommand();
+        //    cmd.CommandText = sql;
+        //    WriteSQL(cmd.CommandText);
+        //    try
+        //    {
+        //        return Convert.ToInt64(cmd.ExecuteScalar());
+        //    }
+        //    catch (DbException ex)
+        //    {
+        //        throw OnException(ex, cmd.CommandText);
+        //    }
+        //    finally
+        //    {
+        //        AutoClose();
+        //    }
+        //}
 
         private static Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>
@@ -474,7 +474,8 @@ namespace XCode.DataAccessLayer
             else
                 sql = String.Format("Select Count(*) From {0}", Database.FormatName(sql));
 
-            return QueryCountInternal(sql);
+            //return QueryCountInternal(sql);
+            return ExecuteScalar<Int64>(sql);
         }
 
         /// <summary>
@@ -484,7 +485,8 @@ namespace XCode.DataAccessLayer
         /// <returns>总记录数</returns>
         public virtual Int64 QueryCount(SelectBuilder builder)
         {
-            return QueryCountInternal(builder.SelectCount().ToString());
+            //return QueryCountInternal(builder.SelectCount().ToString());
+            return ExecuteScalar<Int64>(builder.SelectCount().ToString());
         }
 
         /// <summary>
@@ -542,33 +544,6 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>
-        /// 执行SQL语句，返回结果中的第一行第一列
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns></returns>
-        public virtual Object ExecuteScalar(String sql)
-        {
-            ExecuteTimes++;
-
-            WriteSQL(sql);
-            try
-            {
-                DbCommand cmd = CreateCommand();
-                cmd.CommandText = sql;
-                Object rs = cmd.ExecuteScalar();
-                return rs == DBNull.Value ? null : rs;
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, sql);
-            }
-            finally
-            {
-                AutoClose();
-            }
-        }
-
-        /// <summary>
         /// 执行插入语句并返回新增行的自动编号
         /// </summary>
         /// <param name="sql">SQL语句</param>
@@ -580,18 +555,36 @@ namespace XCode.DataAccessLayer
             return 0;
         }
 
-        ///// <summary>
-        ///// 获取一个DbCommand。
-        ///// 配置了连接，并关联了事务。
-        ///// 连接已打开。
-        ///// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
-        ///// </summary>
-        ///// <returns></returns>
-        //[Obsolete("改名为CreateCommand")]
-        //public DbCommand PrepareCommand()
-        //{
-        //    return CreateCommand();
-        //}
+        /// <summary>
+        /// 执行SQL语句，返回结果中的第一行第一列
+        /// </summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="sql">SQL语句</param>
+        /// <returns></returns>
+        public virtual T ExecuteScalar<T>(String sql)
+        {
+            QueryTimes++;
+
+            WriteSQL(sql);
+            try
+            {
+                DbCommand cmd = CreateCommand();
+                cmd.CommandText = sql;
+                Object rs = cmd.ExecuteScalar();
+                //return rs == DBNull.Value ? null : rs;
+                if (rs == DBNull.Value) return default(T);
+                if (rs is T) return (T)rs;
+                return (T)Convert.ChangeType(rs, typeof(T));
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, sql);
+            }
+            finally
+            {
+                AutoClose();
+            }
+        }
 
         /// <summary>
         /// 获取一个DbCommand。

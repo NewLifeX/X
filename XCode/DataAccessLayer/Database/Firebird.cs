@@ -243,17 +243,20 @@ namespace XCode.DataAccessLayer
             // 禁用自动关闭，保证两次在同一会话
             IsAutoClose = false;
 
+            BeginTransaction();
             try
             {
                 Int64 rs = base.InsertAndGetIdentity(sql);
-                if (rs <= 1) return rs;
-
-                Match m = reg_SEQ.Match(sql);
-                if (m == null || m.Groups == null || m.Groups.Count < 1) return rs;
-
-                String name = m.Groups[1].Value;
-                return (Int64)ExecuteScalar(String.Format("Select {0}.currval", name));
+                if (rs > 0)
+                {
+                    Match m = reg_SEQ.Match(sql);
+                    if (m != null && m.Groups != null && m.Groups.Count > 0)
+                        rs = ExecuteScalar<Int64>(String.Format("Select {0}.currval", m.Groups[1].Value));
+                }
+                Commit();
+                return rs;
             }
+            catch { Rollback(); throw; }
             finally
             {
                 IsAutoClose = b;

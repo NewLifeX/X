@@ -488,20 +488,21 @@ namespace XCode.DataAccessLayer
         public override Int64 QueryCountFast(string tableName)
         {
             String sql = String.Format("select rows from sysindexes where id = object_id('{0}') and indid in (0,1)", tableName);
+            return ExecuteScalar<Int64>(sql);
 
-            QueryTimes++;
-            DbCommand cmd = CreateCommand();
-            cmd.CommandText = sql;
-            WriteSQL(cmd.CommandText);
-            try
-            {
-                return Convert.ToInt64(cmd.ExecuteScalar());
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, cmd.CommandText);
-            }
-            finally { AutoClose(); }
+            //QueryTimes++;
+            //DbCommand cmd = CreateCommand();
+            //cmd.CommandText = sql;
+            //WriteSQL(cmd.CommandText);
+            //try
+            //{
+            //    return Convert.ToInt64(cmd.ExecuteScalar());
+            //}
+            //catch (DbException ex)
+            //{
+            //    throw OnException(ex, cmd.CommandText);
+            //}
+            //finally { AutoClose(); }
         }
 
         /// <summary>
@@ -509,12 +510,9 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>新增行的自动编号</returns>
-        public override long InsertAndGetIdentity(string sql)
+        public override Int64 InsertAndGetIdentity(string sql)
         {
-            //SQLServer写法
-            sql = "SET NOCOUNT ON;" + sql + ";Select SCOPE_IDENTITY()";
-
-            return Int64.Parse(ExecuteScalar(sql).ToString());
+            return ExecuteScalar<Int64>("SET NOCOUNT ON;" + sql + ";Select SCOPE_IDENTITY()");
         }
         #endregion
     }
