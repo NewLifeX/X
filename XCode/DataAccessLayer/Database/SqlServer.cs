@@ -532,13 +532,6 @@ namespace XCode.DataAccessLayer
         /// 0级类型
         /// </summary>
         public String level0type { get { return IsSQL2005 ? "SCHEMA" : "USER"; } }
-
-        ///// <summary>数据库名</summary>
-        //public String DatabaseName
-        //{
-        //    get { return Database.CreateSession().DatabaseName; }
-        //    set { Database.CreateSession().DatabaseName = value; }
-        //}
         #endregion
 
         #region 构架
@@ -601,7 +594,6 @@ namespace XCode.DataAccessLayer
             // 整理默认值
             if (!String.IsNullOrEmpty(field.Default))
             {
-                //field.Default = field.Default.Trim(new Char[] { '(', ')' });
                 field.Default = Trim(field.Default, "\"", "\"");
                 field.Default = Trim(field.Default, "\'", "\'");
                 field.Default = Trim(field.Default, "(", ")");
@@ -616,45 +608,6 @@ namespace XCode.DataAccessLayer
 
             base.FixIndex(index, dr);
         }
-
-        //protected override DataTable PrimaryKeys
-        //{
-        //    get
-        //    {
-        //        if (_PrimaryKeys == null)
-        //        {
-        //            DataTable pks = GetSchema("IndexColumns", new String[] { null, null, null });
-        //            if (pks == null) return null;
-
-        //            //// 取得所有索引
-        //            //DataTable dt = GetSchema("Indexes", new String[] { null, null, null });
-        //            //// 取得所有拥有索引的表名
-        //            //Dictionary<String, Int32> dic = new Dictionary<string, int>();
-        //            //foreach (DataRow item in dt.Rows)
-        //            //{
-        //            //    String name = GetDataRowValue<String>(item, "table_name");
-        //            //}
-
-        //            //DataRow[] drs = dt.Select("type_desc='NONCLUSTERED'");
-        //            //if (drs != null && drs.Length > 0)
-        //            //{
-
-        //            //}
-
-        //            _PrimaryKeys = pks;
-        //        }
-        //        return _PrimaryKeys;
-        //    }
-        //}
-
-        //protected override string GetFieldType(IDataColumn field)
-        //{
-        //    String typeName = base.GetFieldType(field);
-
-        //    if (field.Identity) typeName += " IDENTITY(1,1)";
-
-        //    return typeName;
-        //}
 
         protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
@@ -675,34 +628,11 @@ namespace XCode.DataAccessLayer
             if (str == "(0)") return null;
             return str;
         }
-
-        //protected override int GetFormatParamItem(IDataColumn field, DataRow dr, string item)
-        //{
-        //    Int32 n = base.GetFormatParamItem(field, dr, item);
-        //    if (n <= 0)
-        //    {
-        //        if (item.Contains("scale") || item.Contains("bits"))
-        //        {
-        //            // 如果没有设置位数，则使用最大位数
-        //            Int32 d = field.Scale;
-        //            if (d < 0)
-        //            {
-        //                if (!TryGetDataRowValue<Int32>(dr, "MaximumScale", out d)) d = field.Scale;
-        //            }
-        //            return d;
-        //        }
-
-        //        if (field.Length > 0) return field.Length;
-        //    }
-        //    return n;
-        //}
         #endregion
 
         #region 取得字段信息的SQL模版
         private String _SchemaSql = "";
-        /// <summary>
-        /// 构架SQL
-        /// </summary>
+        /// <summary>构架SQL</summary>
         public virtual String SchemaSql
         {
             get
@@ -747,9 +677,7 @@ namespace XCode.DataAccessLayer
 
         private readonly String _DescriptionSql2000 = "select b.name n, a.value v from sysproperties a inner join sysobjects b on a.id=b.id where a.smallid=0";
         private readonly String _DescriptionSql2005 = "select b.name n, a.value v from sys.extended_properties a inner join sysobjects b on a.major_id=b.id and a.minor_id=0 and a.name = 'MS_Description'";
-        /// <summary>
-        /// 取表说明SQL
-        /// </summary>
+        /// <summary>取表说明SQL</summary>
         public virtual String DescriptionSql { get { return IsSQL2005 ? _DescriptionSql2005 : _DescriptionSql2000; } }
         #endregion
 
@@ -824,12 +752,9 @@ namespace XCode.DataAccessLayer
 
             String logfile = String.Empty;
 
-            //if ((file.Length < 2 || file[1] != Path.VolumeSeparatorChar))
             if (!Path.IsPathRooted(file)) file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
             if (String.IsNullOrEmpty(Path.GetExtension(file))) file += ".mdf";
             logfile = Path.ChangeExtension(file, ".ldf");
-            //file = String.Format("FILENAME = N'{0}' , ", file);
-            //logfile = String.Format("FILENAME = N'{0}' , ", logfile);
 
             String dir = Path.GetDirectoryName(file);
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
@@ -947,22 +872,12 @@ namespace XCode.DataAccessLayer
 
         public override string AddColumnDescriptionSQL(IDataColumn field)
         {
-            //String sql = DropColumnDescriptionSQL(tablename, columnname);
-            //if (!String.IsNullOrEmpty(sql)) sql += ";" + Environment.NewLine;
             String sql = String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{3}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{2}'", field.Table.Name, field.Description, field.Name, level0type);
             return sql;
         }
 
         public override string DropColumnDescriptionSQL(IDataColumn field)
         {
-            //String sql = String.Empty;
-            //if (!IsSQL2005)
-            //    sql = String.Format("select * from syscolumns a inner join sysproperties g on a.id=g.id and a.colid=g.smallid and g.name='MS_Description' inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}'", tablename, columnname);
-            //else
-            //    sql = String.Format("select * from syscolumns a inner join sys.extended_properties g on a.id=g.major_id and a.colid=g.minor_id and g.name = 'MS_Description' inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}'", tablename, columnname);
-            //Int32 count = Database.CreateSession().QueryCount(sql);
-            //if (count <= 0) return null;
-
             return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{1}'", field.Table.Name, field.Name, level0type);
         }
 
@@ -974,10 +889,7 @@ namespace XCode.DataAccessLayer
                 sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT N'{2}' FOR {1}", field.Table.Name, field.Name, field.Default);
             else if (Type.GetTypeCode(field.DataType) == TypeCode.DateTime)
             {
-                //String dv = field.Default;
-                //if (!String.IsNullOrEmpty(dv) && dv.Equals("now()", StringComparison.OrdinalIgnoreCase)) dv = "getdate()";
                 String dv = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
-
                 sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.Name, field.Name, dv);
             }
             else

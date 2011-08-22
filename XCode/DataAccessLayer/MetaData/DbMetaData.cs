@@ -5,8 +5,8 @@ using System.Data.Common;
 using System.Text;
 using NewLife;
 using NewLife.Reflection;
-using XCode.Exceptions;
 using XCode.Common;
+using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
@@ -32,11 +32,8 @@ namespace XCode.DataAccessLayer
                     DataTable dt = GetSchema(DbMetaDataCollectionNames.MetaDataCollections, null);
                     if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
                     {
-                        //String name = null;
                         foreach (DataRow dr in dt.Rows)
                         {
-                            //if (TryGetDataRowValue<String>(dr, "CollectionName", out name)) list.Add(name);
-
                             String name = "" + dr[0];
                             if (!String.IsNullOrEmpty(name) && !list.Contains(name)) list.Add(name);
                         }
@@ -1033,25 +1030,6 @@ namespace XCode.DataAccessLayer
             if (TryGetDataRowValue<T>(dr, name, out value)) return value;
             return default(T);
         }
-
-        ///// <summary>
-        ///// 使用DataTable获取架构信息
-        ///// </summary>
-        ///// <param name="tableName"></param>
-        ///// <returns></returns>
-        //protected DataColumnCollection GetColumns(String tableName)
-        //{
-        //    //return Query(PageSplit("Select * from " + tableName, 0, 1, null)).Tables[0].Columns;
-        //    try
-        //    {
-        //        return (Database.CreateSession() as DbSession).QueryWithKey(Database.PageSplit("Select * from " + FormatKeyWord(tableName), 0, 1, null)).Tables[0].Columns;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (DAL.Debug) DAL.WriteLog(ex.ToString());
-        //        return null;
-        //    }
-        //}
 
         /// <summary>
         /// 格式化关键字

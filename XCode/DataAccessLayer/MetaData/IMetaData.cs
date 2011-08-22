@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Data;
 
 namespace XCode.DataAccessLayer
 {
@@ -15,9 +13,6 @@ namespace XCode.DataAccessLayer
         /// 数据库
         /// </summary>
         IDatabase Database { get; }
-
-        ///// <summary>保留关键字</summary>
-        //ICollection<String> ReservedWords { get; }
         #endregion
 
         #region 构架

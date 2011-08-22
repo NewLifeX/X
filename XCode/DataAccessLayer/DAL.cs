@@ -8,10 +8,10 @@ using System.Threading;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
-using NewLife.Xml;
 using XCode.Cache;
 using XCode.Code;
 using XCode.Exceptions;
+using XCode.Model;
 
 namespace XCode.DataAccessLayer
 {
@@ -276,18 +276,6 @@ namespace XCode.DataAccessLayer
                 return _Db;
             }
         }
-
-        ///// <summary>
-        ///// 数据库会话
-        ///// </summary>
-        //[Obsolete("请改为使用Session属性！")]
-        //public IDbSession DB
-        //{
-        //    get
-        //    {
-        //        return Session;
-        //    }
-        //}
 
         /// <summary>
         /// 数据库会话
@@ -820,13 +808,21 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string ToString() { return Db.ToString(); }
 
+        /// <summary>服务提供者</summary>
+        public static IServiceProvider ServiceProvider
+        {
+            get { return XCodeServiceProvider.Current; }
+            set { XCodeServiceProvider.Current = value; }
+        }
+
         /// <summary>
         /// 建立数据表对象
         /// </summary>
         /// <returns></returns>
         public static IDataTable CreateTable()
         {
-            return new XTable();
+            //return new XTable();
+            return ServiceProvider.GetService(typeof(IDataTable)) as IDataTable;
         }
         #endregion
     }
