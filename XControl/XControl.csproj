@@ -65,6 +65,8 @@
     <Compile Include="Box\LinkBox.cs" />
     <Compile Include="Box\LinkBoxField.cs" />
     <Compile Include="Button\LinkButtonField.cs" />
+    <Compile Include="ScriptHelper.cs" />
+    <Compile Include="TextBox\DateTime.cs" />
     <Compile Include="TextBox\DecimalBox.cs" />
     <Compile Include="View\GridViewExtenderDesigner.cs" />
     <Compile Include="扩展\ExtenderControl.cs" />
@@ -146,6 +148,14 @@
     <EmbeddedResource Include="Box\Dialog\window.gif" />
     <EmbeddedResource Include="TextBox\VerifyCode.js" />
     <EmbeddedResource Include="UpdateInfo.txt" />
+    <Content Include="TextBox\DateTime\images\datePicker.gif" />
+    <EmbeddedResource Include="TextBox\DateTime\images\lhgcal_bg.gif" />
+    <EmbeddedResource Include="TextBox\DateTime\images\lhgcal_month.gif" />
+    <EmbeddedResource Include="TextBox\DateTime\images\lhgcal_x.gif" />
+    <EmbeddedResource Include="TextBox\DateTime\images\lhgcal_year.gif" />
+    <EmbeddedResource Include="TextBox\DateTime\lhgcalendar.css" />
+    <EmbeddedResource Include="TextBox\DateTime\lhgcalendar.min.js" />
+    <EmbeddedResource Include="TextBox\DateTime\lhgcore.min.js" />
     <Content Include="说明.txt" />
   </ItemGroup>
   <ItemGroup>
