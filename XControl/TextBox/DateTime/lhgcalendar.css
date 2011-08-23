@@ -1,0 +1,61 @@
+﻿/*!
+ * lhgcore Calendar Plugin StyleSheet
+ * Copyright (c) 2009 - 2011 By Li Hui Gang
+ */
+.lhgcal{position:absolute;margin:0;padding:0;width:182px;font:12px Verdana,Arial,sans-serif;background-color:#fff;cursor:default;}
+.lhgcalWdate{
+	border:#999 1px solid;
+	height:20px;
+	background:#fff url(<%= WebResource("XControl.TextBox.DateTime.images.datePicker.gif") %>) no-repeat right;
+}
+.lhgcal_leftTop,.lhgcal_rightTop,.lhgcal_leftBottom,.lhgcal_rightBottom{width:3px;background:url(<%=WebResource("XControl.TextBox.DateTime.images.lhgcal_bg.gif") %>) no-repeat;}
+.lhgcal_leftTop{height:10px;background-position:-39px -11px;}
+.lhgcal_rightTop{height:10px;background-position:-45px -11px;}
+.lhgcal_leftBottom{height:3px;background-position:-25px -14px;}
+.lhgcal_rightBottom{height:3px;background-position:-31px -14px;}
+
+.lhgcal_left,.lhgcal_right{width:3px;background:url(<%=WebResource("XControl.TextBox.DateTime.images.lhgcal_bg.gif") %>) repeat-y;}
+.lhgcal_left{background-position:-65px 0;}
+.lhgcal_right{background-position:-69px 0;}
+
+.lhgcal_top,.lhgcal_bottom{background:url(<%=WebResource("XControl.TextBox.DateTime.images.lhgcal_x.gif") %>) repeat-x;font-size:0;}
+.lhgcal_bottom{height:3px;background-position:0 -10px;}
+.lhgcal_top{height:10px;background-position:0 0;}
+
+.lhgcal_head{height:28px;}
+.lhgcal_foot{height:25px;}
+
+.lhgcal_head_preyear,.lhgcal_head_premonth{font-size:0;float:left;}
+.lhgcal_head_preyear{padding:8px 3px 5px 8px;}
+.lhgcal_head_premonth{padding:8px 5px 5px 3px;}
+.lhgcal_head_preyear a,.lhgcal_head_premonth a{width:9px;height:10px;background:url(<%=WebResource("XControl.TextBox.DateTime.images.lhgcal_bg.gif") %>) no-repeat;display:block;}
+.lhgcal_head_preyear a{background-position:-25px 0;}
+.lhgcal_head_premonth a{background-position:-35px 0;}
+
+
+.lhgcal_head_nextmonth{padding:8px 3px 5px 8px;font-size:0;float:right;}
+.lhgcal_head_nextyear{padding:8px 8px 5px 3px;font-size:0;float:right;}
+.lhgcal_head_nextmonth a,.lhgcal_head_nextyear a{width:9px;height:10px;background:url(<%=WebResource("XControl.TextBox.DateTime.images.lhgcal_bg.gif") %>) no-repeat;display:block;}
+.lhgcal_head_nextmonth a{background-position:-45px 0;}
+.lhgcal_head_nextyear a{background-position:-55px 0;}
+
+.lhgcal_head_year{float:left;padding:4px 3px 3px 8px;font-size:12px;}
+.lhgcal_head_month{float:left;padding:4px 3px 3px 0px;font-size:12px;}
+.lhgcal_head_year input,.lhgcal_head_month input{border:1px solid #fff;height:14px;font:12px Tahoma,Arial;cursor:pointer;margin:0;padding:0 0 0 2px;}
+.lhgcal_head_year input{width:45px;background:url(<%=WebResource("XControl.TextBox.DateTime.images.lhgcal_year.gif") %>) center right no-repeat;}
+.lhgcal_head_month input{width:26px;background:url(<%=WebResource("XControl.TextBox.DateTime.images.lhgcal_month.gif") %>) center right no-repeat;}
+
+.lhgcal_yearlist,.lhgcal_monthlist{position:absolute;margin:0;padding:0px;border:1px solid #0093d1;background:#fff;top:32px;}
+.lhgcal_yearlist{width:90px;height:133px;overflow-x:hidden;overflow-y:auto;left:48px;}
+.lhgcal_monthlist{width:90px;height:133px;overflow-x:hidden;overflow-y:auto;left:100px;}
+.lhgcal_yearlist table td,.lhgcal_monthlist table td{font:12px Tahoma,Arial;padding:3px 5px;}
+
+
+.lhgcal_body thead{text-align:center;font:14px "幼圆",Tahoma,Arial,sans-serif;font-weight:bold;color:#0597db;height:18px;vertical-align:top;}
+.lhgcal_body tbody td{text-align:center;background-color:#f3f3f3;font:11px Verdana, Arial, sans-serif;height:22px;}
+.lhgcal_td_back,.lhgcal_td_today{background:url(<%=WebResource("XControl.TextBox.DateTime.images.lhgcal_bg.gif") %>) no-repeat;background-position:0 0;}
+
+.lhgcal_foot_today,.lhgcal_foot_del{height:25px;width:44px;font:12px Tahoma,Arial;}
+.lhgcal_foot_today a,.lhgcal_foot_del a{display:block;border:1px solid #999;color:#000;text-decoration:none;background-color:#f2f2f2;width:38px;height:19px;line-height:19px;line-height:22px\0;}
+.lhgcal_foot_today a:hover,.lhgcal_foot_del a:hover{border:1px solid #0a246a;background-color:#c2cbe0;}
+.lhgcal_foot_time input{margin:0;padding:0;border:1px solid #999;width:20px;height:17px;font:11px Verdana,Arial;text-align:center;background-color:#f2f2f2;line-height:17px;}
