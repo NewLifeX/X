@@ -53,6 +53,7 @@
     <Compile Include="Application\DaytimeServer.cs" />
     <Compile Include="Application\DiscardServer.cs" />
     <Compile Include="Application\EchoServer.cs" />
+    <Compile Include="Protocols\NTP\NTPClient.cs" />
     <Compile Include="Application\StreamServer.cs" />
     <Compile Include="Application\TcpEchoServer.cs" />
     <Compile Include="Application\TcpStreamServer.cs" />
@@ -66,6 +67,8 @@
     <Compile Include="Protocols\DNS\DNSBase.cs" />
     <Compile Include="Protocols\DNS\DNSQueryType.cs" />
     <Compile Include="Protocols\DNS\DNS_A.cs" />
+    <Compile Include="Protocols\NTPEnum.cs" />
+    <Compile Include="Protocols\NTP\NTP.cs" />
     <Compile Include="Sockets\Netbase.cs" />
     <Compile Include="Sockets\NetServer.cs" />
     <Compile Include="Sockets\SocketBase.cs" />
