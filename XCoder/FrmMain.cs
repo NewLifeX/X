@@ -12,6 +12,9 @@ using System.Windows.Forms;
 using System.Xml;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
+using NewLife.Web;
+using NewLife.IO;
+using NewLife.Log;
 
 namespace XCoder
 {
@@ -564,6 +567,90 @@ namespace XCoder
             public String Link;
             public DateTime PubDate;
             public String Description;
+        }
+        #endregion
+
+        #region 在线更新模版
+        readonly String BaseUpdateUrl = @"http://files.cnblogs.com/nnhy";
+
+        private void btnUpdateTemplate_Click(object sender, EventArgs e)
+        {
+            Button btn = sender as Button;
+            btn.Enabled = false;
+            ThreadPool.QueueUserWorkItem(UpdateTemplate, new WaitCallback(delegate(Object state)
+            {
+                MessageBox.Show("更新模版完成！", this.Text);
+            }));
+        }
+
+        void UpdateTemplate(Object state)
+        {
+            Object[] objs = (Object[])state;
+            String upfile = (String)objs[0];
+            try
+            {
+                // 从网上下载文件
+                upfile = Path.Combine("Update", upfile);
+                String file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, upfile);
+                String dir = Path.GetDirectoryName(file);
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+
+                if (!File.Exists(file))
+                {
+                    String url = BaseUpdateUrl;
+                    if (!url.EndsWith(@"/")) url += @"\";
+                    url += Path.GetFileName(file);
+                    XTrace.WriteLine("准备从{0}下载相关文件到{1}！", url, file);
+                    WebClientX client = new WebClientX();
+                    // 同步下载，3秒超时
+                    client.Timeout = 3000;
+                    client.DownloadFile(url, file);
+                }
+                if (File.Exists(file))
+                {
+                    // 删除旧的Update\Template目录
+                    dir = Path.Combine(dir, Path.GetFileNameWithoutExtension(file));
+                    if (Directory.Exists(dir)) Directory.Delete(dir, true);
+
+                    // 解压缩，删除压缩文件
+                    IOHelper.DecompressFile(file, null, false);
+                    File.Delete(file);
+
+                    // 复制文件
+                    String[] files = Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories);
+                    if (files != null && files.Length > 0)
+                    {
+                        String MyTemplate = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Template");
+                        foreach (String item in files)
+                        {
+                            String ap = item.Substring(dir.Length);
+                            if (ap.EndsWith(@"\")) ap = ap.Substring(0, ap.Length - 1);
+
+                            ap = Path.Combine(MyTemplate, ap);
+                            String ad = Path.GetDirectoryName(ap);
+                            if (!Directory.Exists(ad)) Directory.CreateDirectory(ad);
+
+                            File.Copy(item, ap, true);
+                        }
+                    }
+
+                    // 删除Update\Template目录
+                    if (Directory.Exists(dir)) Directory.Delete(dir, true);
+
+                    if (objs[1] is Delegate) this.Invoke(objs[1] as Delegate);
+                }
+            }
+            finally
+            {
+                this.Invoke(new WaitCallback(delegate(Object state2) { btnUpdateTemplate.Enabled = true; }));
+            }
+        }
+        #endregion
+
+        #region 自动更新
+        void AutoUpdate()
+        {
+
         }
         #endregion
     }

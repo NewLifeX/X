@@ -24,6 +24,10 @@ namespace XCode.Configuration
         /// <summary>绑定表特性</summary>
         public BindTableAttribute Table { get { return _Table; } }
 
+        private BindIndexAttribute[] _Indexes;
+        /// <summary>绑定索引特性</summary>
+        public BindIndexAttribute[] Indexes { get { return _Indexes; } }
+
         private DescriptionAttribute _Description;
         /// <summary>说明</summary>
         public String Description
@@ -202,6 +206,8 @@ namespace XCode.Configuration
             _Table = BindTableAttribute.GetCustomAttribute(EntityType);
             if (_Table == null) throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
 
+            _Indexes = BindIndexAttribute.GetCustomAttributes(EntityType);
+
             _Description = DescriptionAttribute.GetCustomAttribute(EntityType, typeof(DescriptionAttribute)) as DescriptionAttribute;
 
             InitFields();
@@ -236,8 +242,6 @@ namespace XCode.Configuration
             table.DbType = bt.DbType;
             table.Description = Description;
 
-            //List<IDataColumn> list = new List<IDataColumn>();
-
             List<FieldItem> allfields = new List<FieldItem>();
             List<FieldItem> fields = new List<FieldItem>();
             List<FieldItem> pkeys = new List<FieldItem>();
@@ -264,7 +268,16 @@ namespace XCode.Configuration
                 if (fi.PrimaryKey) pkeys.Add(fi);
                 if (fi.IsIdentity) _Identity = fi;
             }
-            //table.Columns = list.ToArray();
+            if (_Indexes != null && _Indexes.Length > 0)
+            {
+                foreach (BindIndexAttribute item in _Indexes)
+                {
+                    IDataIndex di = table.CreateIndex();
+                    item.Fill(di);
+
+                    table.Indexes.Add(di);
+                }
+            }
             if (allfields != null && allfields.Count > 0) _AllFields = allfields.ToArray();
             if (fields != null && fields.Count > 0) _Fields = fields.ToArray();
             if (pkeys != null && pkeys.Count > 0) _PrimaryKeys = pkeys.ToArray();

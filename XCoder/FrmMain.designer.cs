@@ -68,6 +68,7 @@
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.label3 = new System.Windows.Forms.Label();
             this.timer2 = new System.Windows.Forms.Timer(this.components);
+            this.btnUpdateTemplate = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -178,9 +179,9 @@
             // 
             // richTextBox1
             // 
-            this.richTextBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.richTextBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.richTextBox1.Location = new System.Drawing.Point(2, 268);
             this.richTextBox1.Name = "richTextBox1";
             this.richTextBox1.Size = new System.Drawing.Size(725, 295);
@@ -229,6 +230,7 @@
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.btnUpdateTemplate);
             this.groupBox3.Controls.Add(this.checkBox5);
             this.groupBox3.Controls.Add(this.richTextBox2);
             this.groupBox3.Controls.Add(this.checkBox4);
@@ -268,8 +270,8 @@
             this.richTextBox2.Size = new System.Drawing.Size(374, 110);
             this.richTextBox2.TabIndex = 40;
             this.richTextBox2.Text = "/*\n * XCoder v<#=Version#>\n * 作者：<#=Environment.UserName + \"/\" + Environment.Mach" +
-                "ineName#>\n * 时间：<#=DateTime.Now.ToString(\"yyyy-MM-dd HH:mm:ss\")#>\n * 版权：版权所有 (C)" +
-                " 新生命开发团队 2010\n*/\n\n\n";
+    "ineName#>\n * 时间：<#=DateTime.Now.ToString(\"yyyy-MM-dd HH:mm:ss\")#>\n * 版权：版权所有 (C)" +
+    " 新生命开发团队 2010\n*/\n\n\n";
             // 
             // checkBox4
             // 
@@ -394,7 +396,7 @@
             this.cb_Template.FormattingEnabled = true;
             this.cb_Template.Location = new System.Drawing.Point(71, 20);
             this.cb_Template.Name = "cb_Template";
-            this.cb_Template.Size = new System.Drawing.Size(173, 20);
+            this.cb_Template.Size = new System.Drawing.Size(90, 20);
             this.cb_Template.TabIndex = 26;
             // 
             // timer1
@@ -428,6 +430,16 @@
             this.timer2.Enabled = true;
             this.timer2.Interval = 2000;
             this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
+            // 
+            // btnUpdateTemplate
+            // 
+            this.btnUpdateTemplate.Location = new System.Drawing.Point(180, 19);
+            this.btnUpdateTemplate.Name = "btnUpdateTemplate";
+            this.btnUpdateTemplate.Size = new System.Drawing.Size(75, 23);
+            this.btnUpdateTemplate.TabIndex = 43;
+            this.btnUpdateTemplate.Text = "更新模版";
+            this.btnUpdateTemplate.UseVisualStyleBackColor = true;
+            this.btnUpdateTemplate.Click += new System.EventHandler(this.btnUpdateTemplate_Click);
             // 
             // FrmMain
             // 
@@ -503,6 +515,7 @@
         private System.Windows.Forms.LinkLabel linkLabel1;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Timer timer2;
+        private System.Windows.Forms.Button btnUpdateTemplate;
 	}
 }
 

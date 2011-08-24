@@ -58,11 +58,16 @@ namespace <#=Config.NameSpace#>
 			{
 				switch (name)
 				{<#
-        foreach(IDataColumn Field in Table.Columns)
-        {
+    foreach(IDataColumn Field in Table.Columns)
+    {
+        if(conv.GetMethod("To"+Field.DataType.Name, new Type[]{typeof(Object)})!=null){
 #>
-					case "<#=GetPropertyName(Field)#>": _<#=GetPropertyName(Field)#> = Convert.To<#=Field.DataType.Name#>(value); break;<#
-        }
+					case "<#=GetPropertyName(Field)#>" : _<#=GetPropertyName(Field)#> = Convert.To<#=Field.DataType.Name#>(value); break;<#
+        }else{
+#>
+					case "<#=GetPropertyName(Field)#>" : _<#=GetPropertyName(Field)#> = (<#=Field.DataType.Name#>)value; break;<#
+	    }
+    }
 #>
 				}
 			}

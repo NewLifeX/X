@@ -11,8 +11,10 @@ namespace <#=Config.NameSpace#>
 	/// </summary>
 	[Serializable]
 	[DataObject]
-	[Description("<#=ClassDescription#>")]
-	[BindTable("<#=Table.Name#>", Description = "<#=ClassDescription#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#>)]
+	[Description("<#=ClassDescription#>")]<#
+foreach(IDataIndex di in Table.Indexes){#>
+    [BindIndex("<#=di.Name#>", <#=di.Unique#>, "<#=String.Join(",", di.Columns)#>")]<#}#>
+    [BindTable("<#=Table.Name#>", Description = "<#=ClassDescription#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#>)]
 	public partial class <#=ClassName#>
 	{
 		#region 属性<#
@@ -65,14 +67,14 @@ namespace <#=Config.NameSpace#>
 Type conv=typeof(Convert);
 	foreach(IDataColumn Field in Table.Columns)
 	{ 
-if(conv.GetMethod("To"+Field.DataType.Name, new Type[]{typeof(Object)})!=null){
+        if(conv.GetMethod("To"+Field.DataType.Name, new Type[]{typeof(Object)})!=null){
 #>
 					case "<#=GetPropertyName(Field)#>" : _<#=GetPropertyName(Field)#> = Convert.To<#=Field.DataType.Name#>(value); break;<#
-}else{
+        }else{
 #>
 					case "<#=GetPropertyName(Field)#>" : _<#=GetPropertyName(Field)#> = (<#=Field.DataType.Name#>)value; break;<#
-	}
-}
+	    }
+    }
 #>
 					default: base[name] = value; break;
 				}
@@ -92,7 +94,7 @@ if(conv.GetMethod("To"+Field.DataType.Name, new Type[]{typeof(Object)})!=null){
 			///<summary>
 			/// <#=GetPropertyDescription(Field)#>
 			///</summary>
-			public const String <#=GetPropertyName(Field)#> = "<#=Field.Name#>";
+            public static readonly FieldItem <#=GetPropertyName(Field)#> = Meta.Table.FindByName("<#=GetPropertyName(Field)#>");
 <#
 	  }
 #>		}

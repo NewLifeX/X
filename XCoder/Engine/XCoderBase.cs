@@ -131,19 +131,21 @@ namespace XCoder
             if (Config.AutoCutPrefix)
             {
                 String s = CutPrefix(name);
-                if (!Array.Exists<IDataColumn>(field.Table.Columns, delegate(IDataColumn item) { return item.Name == s; })) name = s;
+                if (field.Table.Columns.Exists(item => item.Name == s)) name = s;
+                //if (!Array.Exists<IDataColumn>(field.Table.Columns, delegate(IDataColumn item) { return item.Name == s; })) name = s;
                 String str = ClassName;
                 if (!s.Equals(str, StringComparison.OrdinalIgnoreCase) &&
                     s.StartsWith(str, StringComparison.OrdinalIgnoreCase) &&
                     s.Length > str.Length && Char.IsLetter(s, str.Length))
                     s = s.Substring(str.Length);
-                if (!Array.Exists<IDataColumn>(field.Table.Columns, delegate(IDataColumn item) { return item.Name == s; })) name = s;
+                //if (!Array.Exists<IDataColumn>(field.Table.Columns, delegate(IDataColumn item) { return item.Name == s; })) name = s;
+                if (field.Table.Columns.Exists(item => item.Name == s)) name = s;
             }
             if (Config.AutoFixWord)
             {
                 name = FixWord(name);
             }
-            
+
             return name;
         }
 
@@ -206,16 +208,6 @@ namespace XCoder
                 return false;
 
             });
-        }
-
-        public void foo()
-        {
-            foreach (IDataColumn item in Table.Columns)
-            {
-                bool b=item.PrimaryKey;
-                //item.RawType
-                String str = item.DataType.Name;
-            }
         }
         #endregion
     }
