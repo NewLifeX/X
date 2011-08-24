@@ -347,7 +347,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string DropIndexSQL(IDataIndex index)
         {
-            return String.Format("Drop Index {0}", FormatKeyWord(index.Name));
+            return String.Format("Drop Index {0}", FormatName(index.Name));
         }
 
         String ReBuildTable(IDataTable table, IDataColumn[] newFields, IDataColumn[] oldFields)
@@ -355,8 +355,8 @@ namespace XCode.DataAccessLayer
             // 通过重建表的方式修改字段
             String tableName = table.Name;
             String tempTableName = "Temp_" + tableName + "_" + new Random((Int32)DateTime.Now.Ticks).Next(0, 100).ToString("000");
-            tableName = FormatKeyWord(tableName);
-            tempTableName = FormatKeyWord(tempTableName);
+            tableName = FormatName(tableName);
+            tempTableName = FormatName(tempTableName);
 
             // 每个分号后面故意加上空格，是为了让DbMetaData执行SQL时，不要按照分号加换行来拆分这个SQL语句
             StringBuilder sb = new StringBuilder();
@@ -393,7 +393,7 @@ namespace XCode.DataAccessLayer
                             {
                                 if (sbName.Length > 0) sbName.Append(", ");
                                 if (sbValue.Length > 0) sbValue.Append(", ");
-                                sbName.Append(FormatKeyWord(name));
+                                sbName.Append(FormatName(name));
                                 sbValue.Append("''");
                             }
                             else if (item.DataType == typeof(Int16) || item.DataType == typeof(Int32) || item.DataType == typeof(Int64) ||
@@ -401,14 +401,14 @@ namespace XCode.DataAccessLayer
                             {
                                 if (sbName.Length > 0) sbName.Append(", ");
                                 if (sbValue.Length > 0) sbValue.Append(", ");
-                                sbName.Append(FormatKeyWord(name));
+                                sbName.Append(FormatName(name));
                                 sbValue.Append("0");
                             }
                             else if (item.DataType == typeof(DateTime))
                             {
                                 if (sbName.Length > 0) sbName.Append(", ");
                                 if (sbValue.Length > 0) sbValue.Append(", ");
-                                sbName.Append(FormatKeyWord(name));
+                                sbName.Append(FormatName(name));
                                 sbValue.Append(Database.FormatDateTime(Database.DateTimeMin));
                             }
                         }
@@ -417,8 +417,8 @@ namespace XCode.DataAccessLayer
                     {
                         if (sbName.Length > 0) sbName.Append(", ");
                         if (sbValue.Length > 0) sbValue.Append(", ");
-                        sbName.Append(FormatKeyWord(name));
-                        sbValue.Append(FormatKeyWord(name));
+                        sbName.Append(FormatName(name));
+                        sbValue.Append(FormatName(name));
 
                         // 处理字符串不允许空
                         if (item.DataType == typeof(String) && !item.Nullable) sbValue.Append("+''");

@@ -648,35 +648,35 @@ namespace XCode.DataAccessLayer
 
         public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
-            return String.Format("Alter Table {0} Modify Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
+            return String.Format("Alter Table {0} Modify Column {1}", FormatName(field.Table.Name), FieldClause(field, false));
         }
 
         public override string AddTableDescriptionSQL(IDataTable table)
         {
             //return String.Format("Update USER_TAB_COMMENTS Set COMMENTS='{0}' Where TABLE_NAME='{1}'", table.Description, table.Name);
 
-            return String.Format("Comment On Table {0} is '{1}'", FormatKeyWord(table.Name), table.Description);
+            return String.Format("Comment On Table {0} is '{1}'", FormatName(table.Name), table.Description);
         }
 
         public override string DropTableDescriptionSQL(IDataTable table)
         {
             //return String.Format("Update USER_TAB_COMMENTS Set COMMENTS='' Where TABLE_NAME='{0}'", table.Name);
 
-            return String.Format("Comment On Table {0} is ''", FormatKeyWord(table.Name));
+            return String.Format("Comment On Table {0} is ''", FormatName(table.Name));
         }
 
         public override string AddColumnDescriptionSQL(IDataColumn field)
         {
             //return String.Format("Update USER_COL_COMMENTS Set COMMENTS='{0}' Where TABLE_NAME='{1}' AND COLUMN_NAME='{2}'", field.Description, field.Table.Name, field.Name);
 
-            return String.Format("Comment On Column {0}.{1} is '{2}'", FormatKeyWord(field.Table.Name), FormatKeyWord(field.Name), field.Description);
+            return String.Format("Comment On Column {0}.{1} is '{2}'", FormatName(field.Table.Name), FormatName(field.Name), field.Description);
         }
 
         public override string DropColumnDescriptionSQL(IDataColumn field)
         {
             //return String.Format("Update USER_COL_COMMENTS Set COMMENTS='' Where TABLE_NAME='{0}' AND COLUMN_NAME='{1}'", field.Table.Name, field.Name);
 
-            return String.Format("Comment On Column {0}.{1} is ''", FormatKeyWord(field.Table.Name), FormatKeyWord(field.Name));
+            return String.Format("Comment On Column {0}.{1} is ''", FormatName(field.Table.Name), FormatName(field.Name));
         }
         #endregion
     }

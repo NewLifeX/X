@@ -188,6 +188,30 @@ namespace XCode.DataAccessLayer
                             }
                         }
                         #endregion
+
+                        #region 移除主键对应的索引，因为主键会自动创建索引
+                        if (hasPrimary)
+                        {
+                            List<String> ps = new List<string>();
+                            foreach (IDataColumn item in table.Columns)
+                            {
+                                if (item.PrimaryKey) ps.Add(item.Name);
+                            }
+                            for (int i = table.Indexes.Count - 1; i >= 0; i--)
+                            {
+                                Boolean b = true;
+                                foreach (String item in table.Indexes[i].Columns)
+                                {
+                                    if (!ps.Contains(item))
+                                    {
+                                        b = false;
+                                        break;
+                                    }
+                                }
+                                if (b) table.Indexes.RemoveAt(i);
+                            }
+                        }
+                        #endregion
                     }
                     catch (Exception ex)
                     {
@@ -487,47 +511,6 @@ namespace XCode.DataAccessLayer
         protected virtual void FixIndex(IDataIndex index, DataRow dr) { }
         #endregion
 
-        #region 主键构架
-        ///// <summary>
-        ///// 取得指定表的所有主键构架
-        ///// </summary>
-        ///// <param name="tableName"></param>
-        ///// <returns></returns>
-        //protected virtual Dictionary<DataRow, String> GetPrimaryKeys(String tableName)
-        //{
-        //    DataTable dt = PrimaryKeys;
-        //    if (dt == null) return null;
-        //    try
-        //    {
-        //        DataRow[] drs = dt.Select("TABLE_NAME='" + tableName + "'");
-        //        if (drs == null || drs.Length < 1) return null;
-        //        Dictionary<DataRow, String> list = new Dictionary<DataRow, String>();
-        //        foreach (DataRow dr in drs)
-        //        {
-        //            String name = null;
-
-        //            if (TryGetDataRowValue<String>(dr, "COLUMN_NAME", out name)) list.Add(dr, name);
-        //            //list.Add(dr["COLUMN_NAME"] == DBNull.Value ? "" : dr["COLUMN_NAME"].ToString());
-        //        }
-        //        return list;
-        //    }
-        //    catch { return null; }
-        //}
-
-        //protected DataTable _PrimaryKeys;
-        ///// <summary>
-        ///// 主键构架
-        ///// </summary>
-        //protected virtual DataTable PrimaryKeys
-        //{
-        //    get
-        //    {
-        //        if (_PrimaryKeys == null) _PrimaryKeys = GetSchema("Indexes", new String[] { null, null, null });
-        //        return _PrimaryKeys;
-        //    }
-        //}
-        #endregion
-
         #region 数据类型
         private DataTable _DataTypes;
         /// <summary>数据类型</summary>
@@ -808,7 +791,7 @@ namespace XCode.DataAccessLayer
             StringBuilder sb = new StringBuilder();
 
             //字段名
-            sb.AppendFormat("{0} ", FormatKeyWord(field.Name));
+            sb.AppendFormat("{0} ", FormatName(field.Name));
 
             String typeName = null;
             // 如果还是原来的数据库类型，则直接使用
@@ -880,12 +863,12 @@ namespace XCode.DataAccessLayer
         #region 数据定义语句
         public virtual String CreateDatabaseSQL(String dbname, String file)
         {
-            return String.Format("Create Database {0}", FormatKeyWord(dbname));
+            return String.Format("Create Database {0}", FormatName(dbname));
         }
 
         public virtual String DropDatabaseSQL(String dbname)
         {
-            return String.Format("Drop Database {0}", FormatKeyWord(dbname));
+            return String.Format("Drop Database {0}", FormatName(dbname));
         }
 
         public virtual String DatabaseExistSQL(String dbname)
@@ -900,7 +883,7 @@ namespace XCode.DataAccessLayer
 
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendFormat("Create Table {0}(", FormatKeyWord(table.Name));
+            sb.AppendFormat("Create Table {0}(", FormatName(table.Name));
             for (Int32 i = 0; i < Fields.Count; i++)
             {
                 sb.AppendLine();
@@ -916,7 +899,7 @@ namespace XCode.DataAccessLayer
 
         String DropTableSQL(IDataTable table) { return DropTableSQL(table.Name); }
 
-        public virtual String DropTableSQL(String tableName) { return String.Format("Drop Table {0}", FormatKeyWord(tableName)); }
+        public virtual String DropTableSQL(String tableName) { return String.Format("Drop Table {0}", FormatName(tableName)); }
 
         String TableExistSQL(IDataTable table) { return TableExistSQL(table.Name); }
 
@@ -926,11 +909,11 @@ namespace XCode.DataAccessLayer
 
         public virtual String DropTableDescriptionSQL(IDataTable table) { return null; }
 
-        public virtual String AddColumnSQL(IDataColumn field) { return String.Format("Alter Table {0} Add {1}", FormatKeyWord(field.Table.Name), FieldClause(field, true)); }
+        public virtual String AddColumnSQL(IDataColumn field) { return String.Format("Alter Table {0} Add {1}", FormatName(field.Table.Name), FieldClause(field, true)); }
 
-        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) { return String.Format("Alter Table {0} Alter Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false)); }
+        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) { return String.Format("Alter Table {0} Alter Column {1}", FormatName(field.Table.Name), FieldClause(field, false)); }
 
-        public virtual String DropColumnSQL(IDataColumn field) { return String.Format("Alter Table {0} Drop Column {1}", FormatKeyWord(field.Table.Name), field.Name); }
+        public virtual String DropColumnSQL(IDataColumn field) { return String.Format("Alter Table {0} Drop Column {1}", FormatName(field.Table.Name), field.Name); }
 
         public virtual String AddColumnDescriptionSQL(IDataColumn field) { return null; }
 
@@ -948,8 +931,8 @@ namespace XCode.DataAccessLayer
             else
                 sb.Append("Create Index ");
 
-            sb.Append(FormatKeyWord(index.Name));
-            sb.AppendFormat(" On {0} (", FormatKeyWord(index.Table.Name));
+            sb.Append(FormatName(index.Name));
+            sb.AppendFormat(" On {0} (", FormatName(index.Table.Name));
             for (int i = 0; i < index.Columns.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
@@ -964,7 +947,7 @@ namespace XCode.DataAccessLayer
 
         public virtual String DropIndexSQL(IDataIndex index)
         {
-            return String.Format("Drop Index {0} On {1}", FormatKeyWord(index.Name), FormatKeyWord(index.Table.Name));
+            return String.Format("Drop Index {0} On {1}", FormatName(index.Name), FormatName(index.Table.Name));
         }
         #endregion
 
@@ -1034,12 +1017,12 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 格式化关键字
         /// </summary>
-        /// <param name="keyWord"></param>
+        /// <param name="name"></param>
         /// <returns></returns>
-        protected String FormatKeyWord(String keyWord)
+        protected String FormatName(String name)
         {
             //return Database.FormatKeyWord(keyWord);
-            return Database.FormatName(keyWord);
+            return Database.FormatName(name);
         }
 
         /// <summary>

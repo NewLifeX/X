@@ -733,7 +733,7 @@ namespace XCode.DataAccessLayer
                     Int32 count = 0;
                     try { count = session.Execute(sb.ToString()); }
                     catch { }
-                    obj = session.Execute(String.Format("Drop Database {0}", FormatKeyWord(dbname))) > 0;
+                    obj = session.Execute(String.Format("Drop Database {0}", FormatName(dbname))) > 0;
                     //sb.AppendFormat("Drop Database [{0}]", dbname);
 
                     session.DatabaseName = dbname;
@@ -748,7 +748,7 @@ namespace XCode.DataAccessLayer
 
         public override string CreateDatabaseSQL(string dbname, string file)
         {
-            if (String.IsNullOrEmpty(file)) return String.Format("CREATE DATABASE {0}", FormatKeyWord(dbname));
+            if (String.IsNullOrEmpty(file)) return String.Format("CREATE DATABASE {0}", FormatName(dbname));
 
             String logfile = String.Empty;
 
@@ -761,7 +761,7 @@ namespace XCode.DataAccessLayer
 
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendFormat("CREATE DATABASE {0} ON  PRIMARY", FormatKeyWord(dbname));
+            sb.AppendFormat("CREATE DATABASE {0} ON  PRIMARY", FormatName(dbname));
             sb.AppendLine();
             sb.AppendFormat(@"( NAME = N'{0}', FILENAME = N'{1}', SIZE = 10 , MAXSIZE = UNLIMITED, FILEGROWTH = 10%)", dbname, file);
             sb.AppendLine();
@@ -794,7 +794,7 @@ namespace XCode.DataAccessLayer
             if (IsSQL2005)
                 return String.Format("select * from sysobjects where xtype='U' and name='{0}'", tableName);
             else
-                return String.Format("SELECT * FROM sysobjects WHERE id = OBJECT_ID(N'[dbo].{0}') AND OBJECTPROPERTY(id, N'IsUserTable') = 1", FormatKeyWord(tableName));
+                return String.Format("SELECT * FROM sysobjects WHERE id = OBJECT_ID(N'[dbo].{0}') AND OBJECTPROPERTY(id, N'IsUserTable') = 1", FormatName(tableName));
         }
 
         /// <summary>
@@ -820,7 +820,7 @@ namespace XCode.DataAccessLayer
 
         public override string AddColumnSQL(IDataColumn field)
         {
-            return String.Format("Alter Table {0} Add {1}", FormatKeyWord(field.Table.Name), FieldClause(field, true));
+            return String.Format("Alter Table {0} Add {1}", FormatName(field.Table.Name), FieldClause(field, true));
         }
 
         public override string AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
@@ -831,7 +831,7 @@ namespace XCode.DataAccessLayer
                 return DropColumnSQL(oldfield) + ";" + Environment.NewLine + AddColumnSQL(field);
             }
 
-            String sql = String.Format("Alter Table {0} Alter Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
+            String sql = String.Format("Alter Table {0} Alter Column {1}", FormatName(field.Table.Name), FieldClause(field, false));
             String pk = DeletePrimaryKeySQL(field);
             if (field.PrimaryKey)
             {
@@ -840,7 +840,7 @@ namespace XCode.DataAccessLayer
                 if (!oldfield.PrimaryKey)
                 {
                     // 增加主键约束
-                    pk = String.Format("Alter Table {0} ADD CONSTRAINT PK_{0} PRIMARY KEY {2}({1}) ON [PRIMARY]", FormatKeyWord(field.Table.Name), FormatKeyWord(field.Name), field.Identity ? "CLUSTERED" : "");
+                    pk = String.Format("Alter Table {0} ADD CONSTRAINT PK_{0} PRIMARY KEY {2}({1}) ON [PRIMARY]", FormatName(field.Table.Name), FormatName(field.Name), field.Identity ? "CLUSTERED" : "");
                     sql += ";" + Environment.NewLine + pk;
                 }
             }
@@ -915,7 +915,7 @@ namespace XCode.DataAccessLayer
             {
                 String name = dr[0].ToString();
                 if (sb.Length > 0) sb.AppendLine(";");
-                sb.AppendFormat("Alter Table {0} Drop CONSTRAINT {1}", FormatKeyWord(field.Table.Name), name);
+                sb.AppendFormat("Alter Table {0} Drop CONSTRAINT {1}", FormatName(field.Table.Name), name);
             }
             return sb.ToString();
         }
@@ -943,7 +943,7 @@ namespace XCode.DataAccessLayer
             }
             if (di == null) return String.Empty;
 
-            return String.Format("Alter Table {0} Drop CONSTRAINT {1}", FormatKeyWord(field.Table.Name), di.Name);
+            return String.Format("Alter Table {0} Drop CONSTRAINT {1}", FormatName(field.Table.Name), di.Name);
         }
 
         public override String DropDatabaseSQL(String dbname)
@@ -965,7 +965,7 @@ namespace XCode.DataAccessLayer
             sb.AppendLine("close   #spid");
             sb.AppendLine("deallocate   #spid");
             sb.AppendLine(";");
-            sb.AppendFormat("Drop Database {0}", FormatKeyWord(dbname));
+            sb.AppendFormat("Drop Database {0}", FormatName(dbname));
             return sb.ToString();
         }
         #endregion

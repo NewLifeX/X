@@ -386,7 +386,7 @@ namespace XCode.DataAccessLayer
 
         public override string DropDatabaseSQL(string dbname)
         {
-            return String.Format("Drop Database If Exists {0}", FormatKeyWord(dbname));
+            return String.Format("Drop Database If Exists {0}", FormatName(dbname));
         }
 
         public override String CreateTableSQL(IDataTable table)
@@ -397,7 +397,7 @@ namespace XCode.DataAccessLayer
             StringBuilder sb = new StringBuilder();
             String key = null;
 
-            sb.AppendFormat("Create Table If Not Exists {0}(", FormatKeyWord(table.Name));
+            sb.AppendFormat("Create Table If Not Exists {0}(", FormatName(table.Name));
             for (Int32 i = 0; i < Fields.Count; i++)
             {
                 sb.AppendLine();
@@ -410,7 +410,7 @@ namespace XCode.DataAccessLayer
             if (!String.IsNullOrEmpty(key))
             {
                 sb.AppendLine(",");
-                sb.AppendFormat("\tPrimary Key ({0})", FormatKeyWord(key));
+                sb.AppendFormat("\tPrimary Key ({0})", FormatName(key));
             }
             sb.AppendLine();
             sb.Append(")");
@@ -422,12 +422,12 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(table.Description)) return null;
 
-            return String.Format("Alter Table {0} Comment '{1}'", FormatKeyWord(table.Name), table.Description);
+            return String.Format("Alter Table {0} Comment '{1}'", FormatName(table.Name), table.Description);
         }
 
         public override string AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
-            return String.Format("Alter Table {0} Modify Column {1}", FormatKeyWord(field.Table.Name), FieldClause(field, false));
+            return String.Format("Alter Table {0} Modify Column {1}", FormatName(field.Table.Name), FieldClause(field, false));
         }
 
         public override string AddColumnDescriptionSQL(IDataColumn field)
