@@ -30,7 +30,8 @@ namespace NewLife.Net.Sockets
             get { return _ProtocolType; }
         }
 
-        private Int32 _BufferSize = 10240;
+        //private Int32 _BufferSize = 10240;
+        private Int32 _BufferSize = 1500;
         /// <summary>缓冲区大小</summary>
         public Int32 BufferSize
         {

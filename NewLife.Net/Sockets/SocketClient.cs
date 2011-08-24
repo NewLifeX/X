@@ -141,6 +141,14 @@ namespace NewLife.Net.Sockets
         {
             if (NoDelay) ReceiveAsync();
 
+#if DEBUG
+            Int32 n = e.BytesTransferred;
+            if (n >= e.Buffer.Length || ProtocolType == ProtocolType.Tcp && n >= 1452 || ProtocolType == ProtocolType.Udp && n >= 1464)
+            {
+                WriteLog("接收的实际数据大小{0}超过了缓冲区大小，需要根据真实MTU调整缓冲区大小以提高效率！", n);
+            }
+#endif
+
             if (Received != null) Received(this, e);
 
             if (NoDelay)
@@ -199,6 +207,13 @@ namespace NewLife.Net.Sockets
             {
                 Int32 n = stream.Read(buffer, 0, buffer.Length);
                 if (n <= 0) break;
+
+#if DEBUG
+                if (n >= buffer.Length || ProtocolType == ProtocolType.Tcp && n >= 1452 || ProtocolType == ProtocolType.Udp && n >= 1464)
+                {
+                    WriteLog("接收的实际数据大小{0}超过了缓冲区大小，需要根据真实MTU调整缓冲区大小以提高效率！", n);
+                }
+#endif
 
                 Send(buffer, 0, n);
                 total += n;
