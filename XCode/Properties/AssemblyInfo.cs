@@ -34,12 +34,13 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("7.16.*")]
-[assembly: AssemblyFileVersion("7.16.2011.0803")]
+[assembly: AssemblyVersion("8.0.*")]
+[assembly: AssemblyFileVersion("8.0.2011.0910")]
 
 /*
  * XCode的重大改进
  * 
+ * v8.0 标准化开放的接口，增强定制能力
  * v7.0 增强数据库架构的支持，支持更多数据库
  * v6.0 增强的缓存和扩展属性支持
  * v5.0 弱类型支持
@@ -51,6 +52,12 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.0.2011.0910   数据层使用全新的接口IDataTable、IDataColumn、IDataIndex、IDataRelation
+ *                  尝试使用服务提供者，外部可替代内部各接口实现
+ *                  数据层/实体层、正向/反向工程 增加索引支持，在部署到生成环境时同步创建索引，保证系统最佳性能
+ *                  丰富实体类的添删改查，增加多种常见页面用法
+ *                  重点：把数据库=>实体类+页面的用法，改为模型+模版=>数据库+实体类+页面的使用方式，扩大数据架构的表现能力，全力支持魔方平台
+ * 
  * v7.16.2011.0803  修正MSSQL中创建数据库指定文件位置时出错的BUG
  *                  增加设置项SQLPath，允许把SQL日志写入到单独的SQL日志中
  * 
