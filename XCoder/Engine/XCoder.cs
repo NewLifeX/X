@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows.Forms;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
+using System.Reflection;
 
 namespace XCoder
 {
@@ -335,6 +336,27 @@ namespace XCoder
         //    data["Table"] = table;
         //    return Template.Process(tempFile, data);
         //}
+        #endregion
+
+        #region ¾²Ì¬
+        private static String _FileVersion;
+        /// <summary>
+        /// ÎÄ¼þ°æ±¾
+        /// </summary>
+        public static String FileVersion
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_FileVersion))
+                {
+                    Assembly asm = Assembly.GetExecutingAssembly();
+                    AssemblyFileVersionAttribute av = Attribute.GetCustomAttribute(asm, typeof(AssemblyFileVersionAttribute)) as AssemblyFileVersionAttribute;
+                    if (av != null) _FileVersion = av.Version;
+                    if (String.IsNullOrEmpty(_FileVersion)) _FileVersion = "1.0";
+                }
+                return _FileVersion;
+            }
+        }
         #endregion
     }
 }

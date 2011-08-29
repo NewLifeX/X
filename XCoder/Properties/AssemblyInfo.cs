@@ -29,10 +29,15 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("3.4.*")]
-[assembly: AssemblyFileVersion("3.4.2011.0329")]
+[assembly: AssemblyVersion("4.0.*")]
+[assembly: AssemblyFileVersion("4.0.2011.0829")]
 
 /*
+ * v4.0.2011.0829   升级XCode到v8
+ *                  增加自动更新功能
+ *                  删除代码视图
+ *                  集成www.7765.com在线音乐
+ * 
  * v3.4.2011.0329   修正自动尝试加载表时的错误
  *                  更新实体模版，以兼容最新版本的XCode v7.5
  * 

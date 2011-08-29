@@ -47,42 +47,12 @@ namespace XCoder
 
         private void FrmMain_Shown(object sender, EventArgs e)
         {
-            Text = "新生命代码生成器 V" + FileVersion;
+            Text = "新生命代码生成器 V" + XCoder.FileVersion;
             Template.BaseClassName = typeof(XCoderBase).FullName;
-        }
-
-        private static String _FileVersion;
-        /// <summary>
-        /// 文件版本
-        /// </summary>
-        public static String FileVersion
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_FileVersion))
-                {
-                    Assembly asm = Assembly.GetExecutingAssembly();
-                    AssemblyFileVersionAttribute av = Attribute.GetCustomAttribute(asm, typeof(AssemblyFileVersionAttribute)) as AssemblyFileVersionAttribute;
-                    if (av != null) _FileVersion = av.Version;
-                    if (String.IsNullOrEmpty(_FileVersion)) _FileVersion = "1.0";
-                }
-                return _FileVersion;
-            }
         }
 
         private void FrmMain_Load(object sender, EventArgs e)
         {
-            //ConnectionStringSettingsCollection conns = ConfigurationManager.ConnectionStrings;
-            //if (conns != null && conns.Count > 0)
-            //{
-            //    foreach (ConnectionStringSettings item in conns)
-            //    {
-            //        if (item.Name.Equals("LocalSqlServer", StringComparison.OrdinalIgnoreCase)) continue;
-            //        cbConn.Items.Add(item.Name);
-            //    }
-            //    cbConn.SelectedIndex = 0;
-            //}
-
             List<String> list = new List<String>();
             foreach (String item in DAL.ConnStrs.Keys)
             {
@@ -96,6 +66,19 @@ namespace XCoder
 
             ThreadPool.QueueUserWorkItem(AutoDetectDatabase);
             ThreadPool.QueueUserWorkItem(UpdateArticles);
+
+            if (Config.LastUpdate.Date < DateTime.Now.Date)
+            {
+                Config.LastUpdate = DateTime.Now;
+
+                AutoUpdate au = new AutoUpdate();
+                au.VerSrc = "http://files.cnblogs.com/nnhy/XCoderVer.xml";
+                au.ProcessAsync();
+            }
+
+            String url = "http://www.7765.com/api/";
+            url += String.Format("?tag=XCoder_v{0}&r={1}", XCoder.FileVersion, DateTime.Now.Ticks);
+            webBrowser1.Navigate(url);
         }
 
         /// <summary>
@@ -282,7 +265,7 @@ namespace XCoder
             try
             {
                 String[] ss = Coder.Render(cb_Table.Text);
-                richTextBox1.Text = ss[0];
+                //richTextBox1.Text = ss[0];
             }
             catch (Exception ex)
             {
@@ -308,12 +291,6 @@ namespace XCoder
             pg_Process.Value = pg_Process.Minimum;
 
             List<String> param = new List<string>();
-            //param.Add(cb_Template.Text);
-            //param.Add(txt_OutPath.Text);
-            //for (int i = 0; i < cb_Table.Items.Count; i++)
-            //{
-            //    param.Add(cb_Table.GetItemText(cb_Table.Items[i]));
-            //}
             foreach (IDataTable item in tables)
             {
                 param.Add(item.Name);
@@ -567,90 +544,6 @@ namespace XCoder
             public String Link;
             public DateTime PubDate;
             public String Description;
-        }
-        #endregion
-
-        #region 在线更新模版
-        readonly String BaseUpdateUrl = @"http://files.cnblogs.com/nnhy";
-
-        private void btnUpdateTemplate_Click(object sender, EventArgs e)
-        {
-            Button btn = sender as Button;
-            btn.Enabled = false;
-            ThreadPool.QueueUserWorkItem(UpdateTemplate, new WaitCallback(delegate(Object state)
-            {
-                MessageBox.Show("更新模版完成！", this.Text);
-            }));
-        }
-
-        void UpdateTemplate(Object state)
-        {
-            Object[] objs = (Object[])state;
-            String upfile = (String)objs[0];
-            try
-            {
-                // 从网上下载文件
-                upfile = Path.Combine("Update", upfile);
-                String file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, upfile);
-                String dir = Path.GetDirectoryName(file);
-                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-
-                if (!File.Exists(file))
-                {
-                    String url = BaseUpdateUrl;
-                    if (!url.EndsWith(@"/")) url += @"\";
-                    url += Path.GetFileName(file);
-                    XTrace.WriteLine("准备从{0}下载相关文件到{1}！", url, file);
-                    WebClientX client = new WebClientX();
-                    // 同步下载，3秒超时
-                    client.Timeout = 3000;
-                    client.DownloadFile(url, file);
-                }
-                if (File.Exists(file))
-                {
-                    // 删除旧的Update\Template目录
-                    dir = Path.Combine(dir, Path.GetFileNameWithoutExtension(file));
-                    if (Directory.Exists(dir)) Directory.Delete(dir, true);
-
-                    // 解压缩，删除压缩文件
-                    IOHelper.DecompressFile(file, null, false);
-                    File.Delete(file);
-
-                    // 复制文件
-                    String[] files = Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories);
-                    if (files != null && files.Length > 0)
-                    {
-                        String MyTemplate = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Template");
-                        foreach (String item in files)
-                        {
-                            String ap = item.Substring(dir.Length);
-                            if (ap.EndsWith(@"\")) ap = ap.Substring(0, ap.Length - 1);
-
-                            ap = Path.Combine(MyTemplate, ap);
-                            String ad = Path.GetDirectoryName(ap);
-                            if (!Directory.Exists(ad)) Directory.CreateDirectory(ad);
-
-                            File.Copy(item, ap, true);
-                        }
-                    }
-
-                    // 删除Update\Template目录
-                    if (Directory.Exists(dir)) Directory.Delete(dir, true);
-
-                    if (objs[1] is Delegate) this.Invoke(objs[1] as Delegate);
-                }
-            }
-            finally
-            {
-                this.Invoke(new WaitCallback(delegate(Object state2) { btnUpdateTemplate.Enabled = true; }));
-            }
-        }
-        #endregion
-
-        #region 自动更新
-        void AutoUpdate()
-        {
-
         }
         #endregion
     }

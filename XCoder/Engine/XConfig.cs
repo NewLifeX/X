@@ -103,6 +103,14 @@ namespace XCoder
             get { return _Debug; }
             set { _Debug = value; }
         }
+
+        private DateTime _LastUpdate;
+        /// <summary>最后更新时间</summary>
+        public DateTime LastUpdate
+        {
+            get { return _LastUpdate; }
+            set { _LastUpdate = value; }
+        }
         #endregion
 
         #region 全局

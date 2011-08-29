@@ -40,13 +40,15 @@
             this.bt_GenTable = new System.Windows.Forms.Button();
             this.cb_Table = new System.Windows.Forms.ComboBox();
             this.label5 = new System.Windows.Forms.Label();
-            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lb_Status = new System.Windows.Forms.ToolStripStatusLabel();
             this.pg_Process = new System.Windows.Forms.ToolStripProgressBar();
             this.proc_percent = new System.Windows.Forms.ToolStripStatusLabel();
             this.bw = new System.ComponentModel.BackgroundWorker();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.btnOpenOutputDir = new System.Windows.Forms.Button();
+            this.label9 = new System.Windows.Forms.Label();
+            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.checkBox5 = new System.Windows.Forms.CheckBox();
             this.richTextBox2 = new System.Windows.Forms.RichTextBox();
             this.checkBox4 = new System.Windows.Forms.CheckBox();
@@ -68,7 +70,6 @@
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.label3 = new System.Windows.Forms.Label();
             this.timer2 = new System.Windows.Forms.Timer(this.components);
-            this.btnUpdateTemplate = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -151,7 +152,7 @@
             // 
             // bt_GenTable
             // 
-            this.bt_GenTable.Location = new System.Drawing.Point(274, 19);
+            this.bt_GenTable.Location = new System.Drawing.Point(283, 19);
             this.bt_GenTable.Name = "bt_GenTable";
             this.bt_GenTable.Size = new System.Drawing.Size(75, 23);
             this.bt_GenTable.TabIndex = 19;
@@ -177,24 +178,13 @@
             this.label5.TabIndex = 16;
             this.label5.Text = "数据表：";
             // 
-            // richTextBox1
-            // 
-            this.richTextBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.richTextBox1.Location = new System.Drawing.Point(2, 268);
-            this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(725, 295);
-            this.richTextBox1.TabIndex = 17;
-            this.richTextBox1.Text = "";
-            // 
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lb_Status,
             this.pg_Process,
             this.proc_percent});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 545);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 328);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(730, 22);
             this.statusStrip1.TabIndex = 23;
@@ -230,7 +220,9 @@
             // 
             // groupBox3
             // 
-            this.groupBox3.Controls.Add(this.btnUpdateTemplate);
+            this.groupBox3.Controls.Add(this.btnOpenOutputDir);
+            this.groupBox3.Controls.Add(this.label9);
+            this.groupBox3.Controls.Add(this.webBrowser1);
             this.groupBox3.Controls.Add(this.checkBox5);
             this.groupBox3.Controls.Add(this.richTextBox2);
             this.groupBox3.Controls.Add(this.checkBox4);
@@ -249,14 +241,44 @@
             this.groupBox3.Controls.Add(this.cb_Template);
             this.groupBox3.Location = new System.Drawing.Point(2, 100);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(725, 162);
+            this.groupBox3.Size = new System.Drawing.Size(725, 224);
             this.groupBox3.TabIndex = 26;
             this.groupBox3.TabStop = false;
+            // 
+            // btnOpenOutputDir
+            // 
+            this.btnOpenOutputDir.Location = new System.Drawing.Point(283, 75);
+            this.btnOpenOutputDir.Name = "btnOpenOutputDir";
+            this.btnOpenOutputDir.Size = new System.Drawing.Size(75, 23);
+            this.btnOpenOutputDir.TabIndex = 45;
+            this.btnOpenOutputDir.Text = "打开目录";
+            this.btnOpenOutputDir.UseVisualStyleBackColor = true;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(491, 19);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(125, 12);
+            this.label9.TabIndex = 44;
+            this.label9.Text = "出现在每一个文件头部";
+            // 
+            // webBrowser1
+            // 
+            this.webBrowser1.AllowWebBrowserDrop = false;
+            this.webBrowser1.IsWebBrowserContextMenuEnabled = false;
+            this.webBrowser1.Location = new System.Drawing.Point(13, 156);
+            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
+            this.webBrowser1.Name = "webBrowser1";
+            this.webBrowser1.ScrollBarsEnabled = false;
+            this.webBrowser1.Size = new System.Drawing.Size(360, 60);
+            this.webBrowser1.TabIndex = 43;
+            this.webBrowser1.Url = new System.Uri("", System.UriKind.Relative);
             // 
             // checkBox5
             // 
             this.checkBox5.AutoSize = true;
-            this.checkBox5.Location = new System.Drawing.Point(491, 22);
+            this.checkBox5.Location = new System.Drawing.Point(387, 18);
             this.checkBox5.Name = "checkBox5";
             this.checkBox5.Size = new System.Drawing.Size(84, 16);
             this.checkBox5.TabIndex = 42;
@@ -265,9 +287,9 @@
             // 
             // richTextBox2
             // 
-            this.richTextBox2.Location = new System.Drawing.Point(342, 46);
+            this.richTextBox2.Location = new System.Drawing.Point(387, 40);
             this.richTextBox2.Name = "richTextBox2";
-            this.richTextBox2.Size = new System.Drawing.Size(374, 110);
+            this.richTextBox2.Size = new System.Drawing.Size(338, 176);
             this.richTextBox2.TabIndex = 40;
             this.richTextBox2.Text = "/*\n * XCoder v<#=Version#>\n * 作者：<#=Environment.UserName + \"/\" + Environment.Mach" +
     "ineName#>\n * 时间：<#=DateTime.Now.ToString(\"yyyy-MM-dd HH:mm:ss\")#>\n * 版权：版权所有 (C)" +
@@ -276,7 +298,7 @@
             // checkBox4
             // 
             this.checkBox4.AutoSize = true;
-            this.checkBox4.Location = new System.Drawing.Point(387, 22);
+            this.checkBox4.Location = new System.Drawing.Point(178, 22);
             this.checkBox4.Name = "checkBox4";
             this.checkBox4.Size = new System.Drawing.Size(48, 16);
             this.checkBox4.TabIndex = 27;
@@ -286,7 +308,7 @@
             // checkBox3
             // 
             this.checkBox3.AutoSize = true;
-            this.checkBox3.Location = new System.Drawing.Point(274, 22);
+            this.checkBox3.Location = new System.Drawing.Point(178, 78);
             this.checkBox3.Name = "checkBox3";
             this.checkBox3.Size = new System.Drawing.Size(84, 16);
             this.checkBox3.TabIndex = 39;
@@ -296,7 +318,7 @@
             // checkBox2
             // 
             this.checkBox2.AutoSize = true;
-            this.checkBox2.Location = new System.Drawing.Point(194, 140);
+            this.checkBox2.Location = new System.Drawing.Point(178, 134);
             this.checkBox2.Name = "checkBox2";
             this.checkBox2.Size = new System.Drawing.Size(132, 16);
             this.checkBox2.TabIndex = 38;
@@ -306,7 +328,7 @@
             // checkBox1
             // 
             this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(11, 140);
+            this.checkBox1.Location = new System.Drawing.Point(13, 134);
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(162, 16);
             this.checkBox1.TabIndex = 37;
@@ -332,7 +354,7 @@
             // 
             // txt_ConnName
             // 
-            this.txt_ConnName.Location = new System.Drawing.Point(71, 78);
+            this.txt_ConnName.Location = new System.Drawing.Point(276, 49);
             this.txt_ConnName.Name = "txt_ConnName";
             this.txt_ConnName.Size = new System.Drawing.Size(97, 21);
             this.txt_ConnName.TabIndex = 34;
@@ -341,7 +363,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(11, 82);
+            this.label1.Location = new System.Drawing.Point(216, 53);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(53, 12);
             this.label1.TabIndex = 33;
@@ -351,7 +373,7 @@
             // 
             this.txt_NameSpace.Location = new System.Drawing.Point(71, 49);
             this.txt_NameSpace.Name = "txt_NameSpace";
-            this.txt_NameSpace.Size = new System.Drawing.Size(184, 21);
+            this.txt_NameSpace.Size = new System.Drawing.Size(134, 21);
             this.txt_NameSpace.TabIndex = 32;
             this.txt_NameSpace.Text = "XData";
             // 
@@ -366,7 +388,7 @@
             // 
             // txt_OutPath
             // 
-            this.txt_OutPath.Location = new System.Drawing.Point(239, 78);
+            this.txt_OutPath.Location = new System.Drawing.Point(71, 76);
             this.txt_OutPath.Name = "txt_OutPath";
             this.txt_OutPath.Size = new System.Drawing.Size(97, 21);
             this.txt_OutPath.TabIndex = 29;
@@ -375,7 +397,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(178, 82);
+            this.label7.Location = new System.Drawing.Point(10, 80);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(65, 12);
             this.label7.TabIndex = 28;
@@ -431,26 +453,15 @@
             this.timer2.Interval = 2000;
             this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
             // 
-            // btnUpdateTemplate
-            // 
-            this.btnUpdateTemplate.Location = new System.Drawing.Point(180, 19);
-            this.btnUpdateTemplate.Name = "btnUpdateTemplate";
-            this.btnUpdateTemplate.Size = new System.Drawing.Size(75, 23);
-            this.btnUpdateTemplate.TabIndex = 43;
-            this.btnUpdateTemplate.Text = "更新模版";
-            this.btnUpdateTemplate.UseVisualStyleBackColor = true;
-            this.btnUpdateTemplate.Click += new System.EventHandler(this.btnUpdateTemplate_Click);
-            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(730, 567);
+            this.ClientSize = new System.Drawing.Size(730, 350);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.linkLabel1);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.statusStrip1);
-            this.Controls.Add(this.richTextBox1);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.bt_Connection);
@@ -458,7 +469,7 @@
             this.Name = "FrmMain";
             this.RightToLeftLayout = true;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "新生命代码生成器 v2.1.2009.0714";
+            this.Text = "新生命代码生成器";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmMain_FormClosing);
             this.Load += new System.EventHandler(this.FrmMain_Load);
             this.Shown += new System.EventHandler(this.FrmMain_Shown);
@@ -483,7 +494,6 @@
 		private System.Windows.Forms.Button bt_GenTable;
 		private System.Windows.Forms.ComboBox cb_Table;
         private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.RichTextBox richTextBox1;
         private System.Windows.Forms.Label label4;
 		private System.Windows.Forms.Button bt_GenAll;
 		private System.Windows.Forms.StatusStrip statusStrip1;
@@ -515,7 +525,9 @@
         private System.Windows.Forms.LinkLabel linkLabel1;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Timer timer2;
-        private System.Windows.Forms.Button btnUpdateTemplate;
+        private System.Windows.Forms.WebBrowser webBrowser1;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.Button btnOpenOutputDir;
 	}
 }
 

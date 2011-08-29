@@ -68,7 +68,7 @@ namespace XCoder
         /// </summary>
         /// <param name="name"></param>
         /// <param name="fileName"></param>
-        static void ReleaseFile(String name, String fileName)
+        public static void ReleaseFile(String name, String fileName)
         {
             try
             {
