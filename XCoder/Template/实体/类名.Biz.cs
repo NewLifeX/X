@@ -8,9 +8,7 @@ using XCode.Configuration;
 
 namespace <#=Config.NameSpace#>
 {
-	/// <summary>
-	/// <#=ClassDescription#>
-	/// </summary>
+	/// <summary><#=ClassDescription#></summary>
 	public partial class <#=ClassName#> : Entity<<#=ClassName#>>
 	{
 		#region 对象操作

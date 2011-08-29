@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using XCode;
+using XCode.Configuration;
 using XCode.DataAccessLayer;
 
 namespace <#=Config.NameSpace#>
 {
-	/// <summary>
-	/// <#=ClassDescription#>
-	/// </summary>
+	/// <summary><#=ClassDescription#></summary>
 	[Serializable]
 	[DataObject]
 	[Description("<#=ClassDescription#>")]<#
@@ -22,9 +21,7 @@ foreach(IDataIndex di in Table.Indexes){#>
 	{
 #>
 		private <#=Field.DataType.Name#> _<#=GetPropertyName(Field)#>;
-		/// <summary>
-		/// <#=GetPropertyDescription(Field)#>
-		/// </summary>
+		/// <summary><#=GetPropertyDescription(Field)#></summary>
 		[Description("<#=GetPropertyDescription(Field)#>")]
 		[DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
 		[BindColumn(<#=Field.ID#>, "<#=Field.Name#>", "<#=GetPropertyDescription(Field)#>", "<#=Field.Default#>", "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
@@ -83,9 +80,7 @@ Type conv=typeof(Convert);
 		#endregion
 
 		#region 字段名
-		/// <summary>
-		/// 取得<#=ClassDescription#>字段名的快捷方式
-		/// </summary>
+		/// <summary>取得<#=ClassDescription#>字段信息的快捷方式</summary>
 		public class _
 		{<#
 	   foreach(IDataColumn Field in Table.Columns)
