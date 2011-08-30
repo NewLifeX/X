@@ -5,6 +5,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
+using System.CodeDom.Compiler;
+using Microsoft.CSharp;
+using Microsoft.VisualBasic;
 
 namespace XCode.DataAccessLayer
 {
@@ -14,9 +17,6 @@ namespace XCode.DataAccessLayer
     [DebuggerDisplay("ID={ID} Name={Name} Description={Description}")]
     [Serializable]
     [XmlRoot("Table")]
-    //[XmlInclude(typeof(XField))]
-    //[XmlInclude(typeof(XIndex))]
-    //[XmlInclude(typeof(XRelation))]
     class XTable : IDataTable, ICloneable
     {
         #region 基本属性
@@ -256,7 +256,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public virtual void Fix()
         {
-            // 给所有关系字段建立索引
+            #region 给所有关系字段建立索引
             foreach (IDataRelation dr in Relations)
             {
                 // 跳过主键
@@ -281,6 +281,7 @@ namespace XCode.DataAccessLayer
                     Indexes.Add(di);
                 }
             }
+            #endregion
 
             #region 修正主键
             IDataColumn[] pks = PrimaryKeys;
@@ -419,7 +420,105 @@ namespace XCode.DataAccessLayer
         public static String GetAlias(String name)
         {
             //TODO 很多时候，这个别名就是表名
+            return FixWord(CutPrefix(name));
+        }
+
+        static String CutPrefix(String name)
+        {
+            if (String.IsNullOrEmpty(name)) return null;
+
+            // 自动去掉前缀
+            Int32 n = name.IndexOf("_");
+            // _后至少要有2个字母
+            if (n >= 0 && n < name.Length - 2)
+            {
+                String str = name.Substring(n + 1);
+                if (!IsKeyWord(str)) name = str;
+            }
+
+            String[] ss = new String[] { "tbl", "table" };
+            foreach (String s in ss)
+            {
+                if (name.StartsWith(s))
+                {
+                    String str = name.Substring(s.Length);
+                    if (!IsKeyWord(str)) name = str;
+                }
+                else if (name.EndsWith(s))
+                {
+                    String str = name.Substring(0, name.Length - s.Length);
+                    if (!IsKeyWord(str)) name = str;
+                }
+            }
+
             return name;
+        }
+
+        /// <summary>
+        /// 自动处理大小写
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        static String FixWord(String name)
+        {
+            Int32 count1 = 0;
+            Int32 count2 = 0;
+            foreach (Char item in name.ToCharArray())
+            {
+                if (item >= 'a' && item <= 'z')
+                    count1++;
+                else if (item >= 'A' && item <= 'Z')
+                    count2++;
+            }
+
+            //没有或者只有一个小写字母的，需要修正
+            //没有大写的，也要修正
+            if (count1 <= 1 || count2 < 1)
+            {
+                name = name.ToLower();
+                Char c = name[0];
+                c = (Char)(c - 'a' + 'A');
+                name = c + name.Substring(1);
+            }
+
+            //处理Is开头的，第三个字母要大写
+            if (name.StartsWith("Is") && name.Length >= 3)
+            {
+                Char c = name[2];
+                if (c >= 'a' && c <= 'z')
+                {
+                    c = (Char)(c - 'a' + 'A');
+                    name = name.Substring(0, 2) + c + name.Substring(3);
+                }
+            }
+
+            return name;
+        }
+
+        private static CodeDomProvider[] _CGS;
+        /// <summary>代码生成器</summary>
+        public static CodeDomProvider[] CGS
+        {
+            get
+            {
+                if (_CGS == null)
+                {
+                    _CGS = new CodeDomProvider[] { new CSharpCodeProvider(), new VBCodeProvider() };
+                }
+                return _CGS;
+            }
+        }
+
+        static Boolean IsKeyWord(String name)
+        {
+            if (String.IsNullOrEmpty(name)) return false;
+
+            foreach (CodeDomProvider item in CGS)
+            {
+                if (item.IsValidIdentifier(name)) return true;
+            }
+
+            return false;
         }
         #endregion
 
