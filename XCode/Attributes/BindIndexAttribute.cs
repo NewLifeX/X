@@ -59,7 +59,7 @@ namespace XCode
         /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>
-        public static BindIndexAttribute[] GetCustomAttributes(MemberInfo element)
+        public new static BindIndexAttribute[] GetCustomAttributes(MemberInfo element)
         {
             Attribute[] atts = GetCustomAttributes(element, typeof(BindIndexAttribute), true);
             if (atts == null || atts.Length < 1) return null;

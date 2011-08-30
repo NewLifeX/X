@@ -28,6 +28,10 @@ namespace XCode.Configuration
         /// <summary>绑定索引特性</summary>
         public BindIndexAttribute[] Indexes { get { return _Indexes; } }
 
+        private BindRelationAttribute[] _Relations;
+        /// <summary>绑定关系特性</summary>
+        public BindRelationAttribute[] Relations { get { return _Relations; } }
+
         private DescriptionAttribute _Description;
         /// <summary>说明</summary>
         public String Description
@@ -207,6 +211,7 @@ namespace XCode.Configuration
             if (_Table == null) throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
 
             _Indexes = BindIndexAttribute.GetCustomAttributes(EntityType);
+            _Relations = BindRelationAttribute.GetCustomAttributes(EntityType);
 
             _Description = DescriptionAttribute.GetCustomAttribute(EntityType, typeof(DescriptionAttribute)) as DescriptionAttribute;
 
@@ -276,6 +281,16 @@ namespace XCode.Configuration
                     item.Fill(di);
 
                     table.Indexes.Add(di);
+                }
+            }
+            if (_Relations != null && _Relations.Length > 0)
+            {
+                foreach (BindRelationAttribute item in _Relations)
+                {
+                    IDataRelation dr = table.CreateRelation();
+                    item.Fill(dr);
+
+                    table.Relations.Add(dr);
                 }
             }
             if (allfields != null && allfields.Count > 0) _AllFields = allfields.ToArray();

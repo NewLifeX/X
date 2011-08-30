@@ -77,7 +77,7 @@ namespace XCode.DataAccessLayer
         public override string ToString()
         {
             if (Columns != null && Columns.Length > 0)
-                return String.Format("{0}({1}) {2}", Name, String.Join(",", Columns), Unique ? "U" : "");
+                return String.Format("{0}=>{1} {2}", Name, String.Join(",", Columns), Unique ? "U" : "");
             else
                 return String.Format("{0} {1}", Name, Unique ? "U" : "");
         }

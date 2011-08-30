@@ -819,7 +819,7 @@ namespace XCode.DataAccessLayer
         /// 建立数据表对象
         /// </summary>
         /// <returns></returns>
-        public static IDataTable CreateTable()
+        internal static IDataTable CreateTable()
         {
             //return new XTable();
             return ServiceProvider.GetService(typeof(IDataTable)) as IDataTable;

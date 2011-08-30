@@ -47,20 +47,17 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 扩展属性
-        /// <summary>
-        /// 数据列集合
-        /// </summary>
+        /// <summary>数据列集合</summary>
         List<IDataColumn> Columns { get; }
 
-        /// <summary>
-        /// 数据关系集合
-        /// </summary>
+        /// <summary>数据关系集合</summary>
         List<IDataRelation> Relations { get; }
 
-        /// <summary>
-        /// 数据索引集合
-        /// </summary>
+        /// <summary>数据索引集合</summary>
         List<IDataIndex> Indexes { get; }
+
+        /// <summary>主键集合</summary>
+        IDataColumn[] PrimaryKeys { get; }
         #endregion
 
         #region 方法
@@ -81,6 +78,31 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <returns></returns>
         IDataIndex CreateIndex();
+
+        /// <summary>
+        /// 根据字段名获取字段
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        IDataColumn GetColumn(String name);
+
+        /// <summary>
+        /// 根据字段名数组获取字段数组
+        /// </summary>
+        /// <param name="names"></param>
+        /// <returns></returns>
+        IDataColumn[] GetColumns(String[] names);
+
+        /// <summary>
+        /// 连接另一个表，处理两表间关系
+        /// </summary>
+        /// <param name="table"></param>
+        void Connect(IDataTable table);
+
+        /// <summary>
+        /// 修正数据
+        /// </summary>
+        void Fix();
         #endregion
     }
 }

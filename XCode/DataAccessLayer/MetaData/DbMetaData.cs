@@ -150,68 +150,14 @@ namespace XCode.DataAccessLayer
                     // 字段的获取可能有异常，但不应该影响整体架构的获取
                     try
                     {
-                        //table.Columns = GetFields(table).ToArray();
                         List<IDataColumn> columns = GetFields(table);
                         if (columns != null && columns.Count > 0) table.Columns.AddRange(columns);
 
                         List<IDataIndex> indexes = GetIndexes(table);
                         if (indexes != null && indexes.Count > 0) table.Indexes.AddRange(indexes);
 
-                        #region 修正主键
-                        Boolean hasPrimary = false;
-                        foreach (IDataColumn item in table.Columns)
-                        {
-                            if (item.PrimaryKey)
-                            {
-                                hasPrimary = true;
-                                break;
-                            }
-                        }
-                        if (!hasPrimary)
-                        {
-                            // 在索引中找唯一索引作为主键
-                            foreach (IDataIndex item in table.Indexes)
-                            {
-                                if (!item.Unique || item.Columns == null || item.Columns.Length < 1) continue;
-
-                                SetIndexAsPrimary(item);
-                            }
-                            // 如果还没有主键，把第一个索引作为主键
-                            if (!hasPrimary)
-                            {
-                                foreach (IDataIndex item in table.Indexes)
-                                {
-                                    if (item.Columns == null || item.Columns.Length < 1) continue;
-
-                                    SetIndexAsPrimary(item);
-                                }
-                            }
-                        }
-                        #endregion
-
-                        #region 移除主键对应的索引，因为主键会自动创建索引
-                        if (hasPrimary)
-                        {
-                            List<String> ps = new List<string>();
-                            foreach (IDataColumn item in table.Columns)
-                            {
-                                if (item.PrimaryKey) ps.Add(item.Name);
-                            }
-                            for (int i = table.Indexes.Count - 1; i >= 0; i--)
-                            {
-                                Boolean b = true;
-                                foreach (String item in table.Indexes[i].Columns)
-                                {
-                                    if (!ps.Contains(item))
-                                    {
-                                        b = false;
-                                        break;
-                                    }
-                                }
-                                if (b) table.Indexes.RemoveAt(i);
-                            }
-                        }
-                        #endregion
+                        // 先修正一次关系数据
+                        table.Fix();
                     }
                     catch (Exception ex)
                     {
@@ -223,6 +169,23 @@ namespace XCode.DataAccessLayer
                     list.Add(table);
                 }
 
+                #region 表间关系处理
+                // 某字段名，为另一个表的（表名+单主键名）形式时，作为关联字段处理
+                foreach (IDataTable table in list)
+                {
+                    foreach (IDataTable rtable in list)
+                    {
+                        if (table != rtable) table.Connect(rtable);
+                    }
+                }
+
+                // 因为可能修改了表间关系，再修正一次
+                foreach (IDataTable table in list)
+                {
+                    table.Fix();
+                }
+                #endregion
+
                 _indexes = null;
 
                 return list;
@@ -230,23 +193,6 @@ namespace XCode.DataAccessLayer
             catch (DbException ex)
             {
                 throw new XDbMetaDataException(this, "取得所有表构架出错！", ex);
-            }
-        }
-
-        static void SetIndexAsPrimary(IDataIndex index)
-        {
-            if (index == null || index.Columns == null || index.Columns.Length < 1) return;
-
-            foreach (String item in index.Columns)
-            {
-                foreach (IDataColumn dc in index.Table.Columns)
-                {
-                    if (String.Equals(dc.Name, item, StringComparison.OrdinalIgnoreCase))
-                    {
-                        dc.PrimaryKey = true;
-                        break;
-                    }
-                }
             }
         }
 

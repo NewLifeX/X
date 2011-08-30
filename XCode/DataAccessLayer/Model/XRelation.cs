@@ -21,20 +21,20 @@ namespace XCode.DataAccessLayer
             set { _Column = value; }
         }
 
-        private String _ForeignTable;
-        /// <summary>外部表</summary>
+        private String _RelationTable;
+        /// <summary>引用表</summary>
         public String RelationTable
         {
-            get { return _ForeignTable; }
-            set { _ForeignTable = value; }
+            get { return _RelationTable; }
+            set { _RelationTable = value; }
         }
 
-        private String _ForeignColumn;
-        /// <summary>外部列</summary>
+        private String _RelationColumn;
+        /// <summary>引用列</summary>
         public String RelationColumn
         {
-            get { return _ForeignColumn; }
-            set { _ForeignColumn = value; }
+            get { return _RelationColumn; }
+            set { _RelationColumn = value; }
         }
 
         private Boolean _Unique;
@@ -53,6 +53,17 @@ namespace XCode.DataAccessLayer
         {
             get { return _Table; }
             set { _Table = value; }
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return String.Format("{0}=>{1}.{2} {3}", Column, RelationTable, RelationColumn, Unique ? "U" : "");
         }
         #endregion
     }

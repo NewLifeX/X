@@ -97,6 +97,17 @@ namespace XCode.DataAccessLayer
         [XmlArray]
         [Description("索引集合")]
         public List<IDataIndex> Indexes { get { return _Indexes ?? (_Indexes = new List<IDataIndex>()); } }
+
+        //private IDataColumn[] _PrimaryKeys;
+        /// <summary>主键集合</summary>
+        public IDataColumn[] PrimaryKeys
+        {
+            get
+            {
+                List<IDataColumn> list = Columns.FindAll(item => item.PrimaryKey);
+                return list == null || list.Count < 1 ? null : list.ToArray();
+            }
+        }
         #endregion
 
         #region 构造
@@ -142,6 +153,182 @@ namespace XCode.DataAccessLayer
             XIndex idx = new XIndex();
             idx.Table = this;
             return idx;
+        }
+
+        /// <summary>
+        /// 根据字段名获取字段
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public virtual IDataColumn GetColumn(String name)
+        {
+            if (String.IsNullOrEmpty(name)) return null;
+
+            foreach (IDataColumn item in Columns)
+            {
+                if (String.Equals(name, item.Name, StringComparison.OrdinalIgnoreCase)) return item;
+            }
+
+            foreach (IDataColumn item in Columns)
+            {
+                if (String.Equals(name, item.Alias, StringComparison.OrdinalIgnoreCase)) return item;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 根据字段名数组获取字段数组
+        /// </summary>
+        /// <param name="names"></param>
+        /// <returns></returns>
+        public virtual IDataColumn[] GetColumns(String[] names)
+        {
+            if (names == null || names.Length < 1) return null;
+
+            List<IDataColumn> list = new List<IDataColumn>();
+            foreach (String item in names)
+            {
+                IDataColumn dc = GetColumn(item);
+                if (dc != null) list.Add(dc);
+            }
+
+            if (list.Count < 1) return null;
+            return list.ToArray(); ;
+        }
+
+        /// <summary>
+        /// 连接另一个表，处理两表间关系
+        /// </summary>
+        /// <param name="table"></param>
+        public virtual void Connect(IDataTable table)
+        {
+            foreach (IDataColumn dc in Columns)
+            {
+                if (dc.PrimaryKey || dc.Identity) continue;
+
+                if (FindRelation(table, table.Name, dc, dc.Name) != null) continue;
+                if (!String.IsNullOrEmpty(dc.Alias) && !String.Equals(dc.Alias, dc.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (FindRelation(table, table.Name, dc, dc.Alias) != null) continue;
+                }
+
+                if (FindRelation(table, table.Alias, dc, dc.Name) != null) continue;
+                if (!String.IsNullOrEmpty(dc.Alias) && !String.Equals(dc.Alias, dc.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (FindRelation(table, table.Alias, dc, dc.Alias) != null) continue;
+                }
+            }
+        }
+
+        IDataRelation FindRelation(IDataTable rtable, String rname, IDataColumn column, String name)
+        {
+            if (name.Length <= rtable.Name.Length || !name.StartsWith(rtable.Name, StringComparison.OrdinalIgnoreCase)) return null;
+
+            String key = name.Substring(rtable.Name.Length);
+            IDataColumn dc = rtable.GetColumn(key);
+            if (dc == null) return null;
+
+            // 建立关系
+            IDataRelation dr = CreateRelation();
+            dr.Column = column.Name;
+            dr.RelationTable = rtable.Name;
+            dr.RelationColumn = dc.Name;
+            // 表关系这里一般是多对一，比如管理员的RoleID，所以是唯一的
+            dr.Unique = true;
+
+            Relations.Add(dr);
+
+            // 给另一方建立关系
+            dr = rtable.CreateRelation();
+            dr.Column = dc.Name;
+            dr.RelationTable = Name;
+            dr.RelationColumn = column.Name;
+            // 那么这里就不是唯一的啦
+            dr.Unique = false;
+
+            rtable.Relations.Add(dr);
+
+            return dr;
+        }
+
+        /// <summary>
+        /// 修正数据
+        /// </summary>
+        public virtual void Fix()
+        {
+            // 给所有关系字段建立索引
+            foreach (IDataRelation dr in Relations)
+            {
+                Boolean hasIndex = false;
+                foreach (IDataIndex item in Indexes)
+                {
+                    if (item.Columns != null && item.Columns.Length > 0 && String.Equals(item.Columns[0], dr.Column, StringComparison.OrdinalIgnoreCase))
+                    {
+                        hasIndex = true;
+                        break;
+                    }
+                }
+                if (!hasIndex)
+                {
+                    IDataIndex di = CreateIndex();
+                    di.Columns = new String[] { dr.Column };
+                    // 这两个的关系，是反过来的
+                    di.Unique = !dr.Unique;
+                    Indexes.Add(di);
+                }
+            }
+
+            #region 修正主键
+            IDataColumn[] pks = PrimaryKeys;
+            if (pks == null || pks.Length < 1)
+            {
+                // 在索引中找唯一索引作为主键
+                foreach (IDataIndex item in Indexes)
+                {
+                    if (!item.Unique || item.Columns == null || item.Columns.Length < 1) continue;
+
+                    pks = GetColumns(item.Columns);
+                    Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
+                }
+                // 如果还没有主键，把第一个索引作为主键
+                if (pks == null || pks.Length < 1)
+                {
+                    foreach (IDataIndex item in Indexes)
+                    {
+                        if (item.Columns == null || item.Columns.Length < 1) continue;
+
+                        pks = GetColumns(item.Columns);
+                        Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
+                    }
+                }
+            }
+            #endregion
+
+            #region 移除主键对应的索引，因为主键会自动创建索引
+            pks = PrimaryKeys;
+            if (pks != null && pks.Length > 0)
+            {
+                for (int i = Indexes.Count - 1; i >= 0; i--)
+                {
+                    // 判断索引的字段是否就是主键的字段
+                    // 假设就是，需要在索引字段中找到一个不是主键的字段
+                    Boolean b = true;
+                    foreach (String item in Indexes[i].Columns)
+                    {
+                        foreach (IDataColumn pk in pks)
+                        {
+                            if (!String.Equals(pk.Name, item, StringComparison.OrdinalIgnoreCase))
+                            {
+                                b = false;
+                                break;
+                            }
+                        }
+                        if (!b) break;
+                    }
+                    if (b) Indexes.RemoveAt(i);
+                }
+            }
+            #endregion
         }
 
         /// <summary>

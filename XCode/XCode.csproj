@@ -80,6 +80,7 @@
     <Compile Include="Attributes\BindColumnAttribute.cs" />
     <Compile Include="Attributes\BindIndexAttribute.cs" />
     <Compile Include="Attributes\BindTableAttribute.cs" />
+    <Compile Include="Attributes\BindRelationAttribute.cs" />
     <Compile Include="Cache\IEntityCache.cs" />
     <Compile Include="Code\EntityAssembly.cs" />
     <Compile Include="Code\EntityClass.cs" />
