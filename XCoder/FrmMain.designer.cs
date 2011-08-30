@@ -253,6 +253,7 @@
             this.btnOpenOutputDir.TabIndex = 45;
             this.btnOpenOutputDir.Text = "打开目录";
             this.btnOpenOutputDir.UseVisualStyleBackColor = true;
+            this.btnOpenOutputDir.Click += new System.EventHandler(this.btnOpenOutputDir_Click);
             // 
             // label9
             // 

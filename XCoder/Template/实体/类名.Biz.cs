@@ -41,6 +41,7 @@ namespace <#=Config.NameSpace#>
 			hasExtendProperty = true;
 			String className = GetClassName(table);
 #>
+        [NonSerialized]
 		private <#=className#> _<#=className#>;
 		/// <summary>该<#=ClassDescription#>所对应的<#=GetClassDescription(table)#></summary>
 		[XmlIgnore]
@@ -56,7 +57,8 @@ namespace <#=Config.NameSpace#>
 				return _<#=className#>;
 			}
 			set { _<#=className#> = value; }
-		}<#
+		}
+<#
 		}
 		if (!hasExtendProperty){
 #>
@@ -96,7 +98,7 @@ Int32 n=0;
 		[DataObjectMethod(DataObjectMethodType.Select, false)]
 		public static <#=ClassName#> FindByKeyForEdit(<# n=0;foreach(IDataColumn Field in Table.Columns){if(!Field.PrimaryKey) continue;#><#if(n++>0){#>, <#}#><#=Field.DataType.Name#> __<#=GetPropertyName(Field)#><#}#>)
 		{
-			<#=ClassName#> entity=Find(new String[]{<#n=0;foreach(IDataColumn Field in Table.Columns){if(!Field.PrimaryKey) continue;#><#if(n++>0){#>, <#}#>_.<#=GetPropertyName(Field)#><#}#>}, new Object[]{<#n=0;foreach(IDataColumn Field in Table.Columns){if(!Field.PrimaryKey) continue;#><#if(n++>0){#>, <#}#>__<#=GetPropertyName(Field)#><#}#>});
+			<#=ClassName#> entity = Find(new String[]{<#n=0;foreach(IDataColumn Field in Table.Columns){if(!Field.PrimaryKey) continue;#><#if(n++>0){#>, <#}#>_.<#=GetPropertyName(Field)#><#}#>}, new Object[]{<#n=0;foreach(IDataColumn Field in Table.Columns){if(!Field.PrimaryKey) continue;#><#if(n++>0){#>, <#}#>__<#=GetPropertyName(Field)#><#}#>});
 			if (entity == null)
 			{
 				entity = new <#=ClassName#>();

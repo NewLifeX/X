@@ -547,5 +547,16 @@ namespace XCoder
             public String Description;
         }
         #endregion
+
+        #region 打开输出目录
+        private void btnOpenOutputDir_Click(object sender, EventArgs e)
+        {
+            String dir = txt_OutPath.Text;
+            dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dir);
+
+            Process.Start("explorer.exe", "/root,\"" + dir + "\"");
+            //Process.Start("explorer.exe", "/select," + dir);
+        }
+        #endregion
     }
 }
