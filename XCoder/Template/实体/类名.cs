@@ -10,9 +10,7 @@ namespace <#=Config.NameSpace#>
 	/// <summary><#=ClassDescription#></summary>
 	[Serializable]
 	[DataObject]
-	[Description("<#=ClassDescription#>")]<#
-foreach(IDataIndex di in Table.Indexes){#>
-    [BindIndex("<#=di.Name#>", <#=di.Unique#>, "<#=String.Join(",", di.Columns)#>")]<#}#>
+	[Description("<#=ClassDescription#>")]
     [BindTable("<#=Table.Name#>", Description = "<#=ClassDescription#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#>)]
 	public partial class <#=ClassName#>
 	{
@@ -94,5 +92,5 @@ Type conv=typeof(Convert);
 	  }
 #>		}
 		#endregion
-	}
+    }
 }

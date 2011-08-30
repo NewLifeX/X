@@ -233,8 +233,8 @@ namespace XCode.DataAccessLayer
             dr.Column = column.Name;
             dr.RelationTable = rtable.Name;
             dr.RelationColumn = dc.Name;
-            // 表关系这里一般是多对一，比如管理员的RoleID，所以是唯一的
-            dr.Unique = true;
+            // 表关系这里一般是多对一，比如管理员的RoleID，对于索引来说，不是唯一的
+            dr.Unique = false;
 
             Relations.Add(dr);
 
@@ -243,8 +243,8 @@ namespace XCode.DataAccessLayer
             dr.Column = dc.Name;
             dr.RelationTable = Name;
             dr.RelationColumn = column.Name;
-            // 那么这里就不是唯一的啦
-            dr.Unique = false;
+            // 那么这里就是唯一的啦
+            dr.Unique = true;
 
             rtable.Relations.Add(dr);
 
@@ -259,10 +259,14 @@ namespace XCode.DataAccessLayer
             // 给所有关系字段建立索引
             foreach (IDataRelation dr in Relations)
             {
+                // 跳过主键
+                IDataColumn dc = GetColumn(dr.Column);
+                if (dc == null || dc.PrimaryKey) continue;
+
                 Boolean hasIndex = false;
                 foreach (IDataIndex item in Indexes)
                 {
-                    if (item.Columns != null && item.Columns.Length > 0 && String.Equals(item.Columns[0], dr.Column, StringComparison.OrdinalIgnoreCase))
+                    if (item.Columns != null && item.Columns.Length == 1 && String.Equals(item.Columns[0], dr.Column, StringComparison.OrdinalIgnoreCase))
                     {
                         hasIndex = true;
                         break;
@@ -273,7 +277,7 @@ namespace XCode.DataAccessLayer
                     IDataIndex di = CreateIndex();
                     di.Columns = new String[] { dr.Column };
                     // 这两个的关系，是反过来的
-                    di.Unique = !dr.Unique;
+                    di.Unique = dr.Unique;
                     Indexes.Add(di);
                 }
             }

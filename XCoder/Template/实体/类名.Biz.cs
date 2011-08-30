@@ -8,7 +8,12 @@ using XCode.Configuration;
 
 namespace <#=Config.NameSpace#>
 {
-	/// <summary><#=ClassDescription#></summary>
+	/// <summary><#=ClassDescription#></summary><#
+foreach(IDataIndex di in Table.Indexes){#>
+    [BindIndex("<#=di.Name#>", <#=di.Unique.ToString().ToLower()#>, "<#=String.Join(",", di.Columns)#>")]<#
+}
+foreach(IDataRelation dr in Table.Relations){#>
+    [BindRelation("<#=dr.Column#>", <#=dr.Unique.ToString().ToLower()#>, "<#=dr.RelationTable#>", "<#=dr.RelationColumn#>")]<#}#>
 	public partial class <#=ClassName#> : Entity<<#=ClassName#>>
 	{
 		#region 对象操作
@@ -26,60 +31,71 @@ namespace <#=Config.NameSpace#>
 		}
 		 * */
 		#endregion
-		
-		#region 扩展属性
-		// 本类与哪些类有关联，可以在这里放置一个属性，使用延迟加载的方式获取关联对象
-<#
-		// 探测以ID结尾的字段是否为类名，如果是，则输出扩展属性
-		Boolean hasExtendProperty = false;
-		foreach(IDataColumn field in Table.Columns){
-			if (field.DataType != typeof(Int32)) continue;
-			if (!field.Name.EndsWith("ID", StringComparison.Ordinal)) continue;
-			String tableName = field.Name.Substring(0, field.Name.Length - 2);
-			IDataTable table = FindTable(tableName);
-			if (table == null) continue;
-			hasExtendProperty = true;
-			String className = GetClassName(table);
+
+		#region 扩展属性<#
+if(Table.Relations!=null && Table.Relations.Count>0)
+{
+	foreach(IDataRelation dr in Table.Relations)
+    {
+		IDataTable rtable = FindTable(dr.RelationTable);
+		if (rtable == null) continue;
+
+        IDataColumn rcolumn = rtable.GetColumn(dr.RelationColumn);
+        if(rcolumn == null) continue;
+
+        IDataColumn field = Table.GetColumn(dr.Column);
+
+		String className = GetClassName(rtable);
+
+        if(!dr.Unique)
+        {
 #>
+
         [NonSerialized]
 		private <#=className#> _<#=className#>;
-		/// <summary>该<#=ClassDescription#>所对应的<#=GetClassDescription(table)#></summary>
+		/// <summary>该<#=ClassDescription#>所对应的<#=GetClassDescription(rtable)#></summary>
 		[XmlIgnore]
 		public <#=className#> <#=className#>
 		{
 			get
 			{
-				if (_<#=className#> == null && <#=GetPropertyName(field)#> > 0 && !Dirtys.ContainsKey("<#=className#>"))
-				{
-					_<#=className#> = <#=className#>.FindByKey(<#=GetPropertyName(field)#>);
-					Dirtys["<#=className#>"] = true;
+				<#
+                if(field.DataType == typeof(String)){
+                #>if (_<#=className#> == null && !String.IsNullOrEmpty(<#=GetPropertyName(field)#>) && !Dirtys.ContainsKey("<#=className#>s"))<#
+                }else{#>if (_<#=className#> == null && <#=GetPropertyName(field)#> > 0 && !Dirtys.ContainsKey("<#=className#>s"))<#
+                }#>{
+					_<#=className#> = <#=className#>.FindBy<#=GetPropertyName(rcolumn)#>(<#=GetPropertyName(field)#>);
+					Dirtys["<#=className#>s"] = true;
 				}
 				return _<#=className#>;
 			}
 			set { _<#=className#> = value; }
-		}
-<#
-		}
-		if (!hasExtendProperty){
+		}<#
+        }else
+        {
 #>
-		/*
-		private Category _Category;
-		/// <summary>该商品所对应的类别</summary>
-        [XmlIgnore]
-		public Category Category
+
+        [NonSerialized]
+		private EntityList<<#=className#>> _<#=className#>s;
+		/// <summary>该<#=ClassDescription#>所拥有的<#=GetClassDescription(rtable)#>集合</summary>
+		[XmlIgnore]
+		public EntityList<<#=className#>> <#=className#>s
 		{
 			get
 			{
-				if (_Category == null && CategoryID > 0 && !Dirtys.ContainsKey("Category"))
+				if (_<#=className#>s == null && <#=GetPropertyName(field)#> > 0 && !Dirtys.ContainsKey("<#=className#>"))
 				{
-					_Category = Category.FindByKey(CategoryID);
-					Dirtys["Category"] = true;
+					_<#=className#>s = <#=className#>.FindAllBy<#=GetPropertyName(rcolumn)#>(<#=GetPropertyName(field)#>);
+					Dirtys["<#=className#>"] = true;
 				}
-				return _Category;
+				return _<#=className#>s;
 			}
-			set { _Category = value; }
-		}
-		 * */<#}#>
+			set { _<#=className#>s = value; }
+		}<#
+        }
+	}
+}
+#>
 		#endregion
 
 		#region 扩展查询
