@@ -173,6 +173,14 @@ namespace XCoder
                 get { return _Src; }
                 set { _Src = value; }
             }
+
+            private String _Description;
+            /// <summary>描述</summary>
+            public String Description
+            {
+                get { return _Description; }
+                set { _Description = value; }
+            }
             #endregion
 
             public VerFile(String xml)
@@ -189,6 +197,8 @@ namespace XCoder
                 if (node != null) Ver = node.InnerText;
                 node = doc.SelectSingleNode(@"//src");
                 if (node != null) Src = node.InnerText;
+                node = doc.SelectSingleNode(@"//description");
+                if (node != null) Description = node.InnerText;
             }
 
             public Version GetVersion()
