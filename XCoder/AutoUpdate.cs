@@ -78,6 +78,21 @@ namespace XCoder
             if (LocalVersion >= ver.GetVersion()) return;
             #endregion
 
+            #region 提示更新
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendFormat("是否更新到最新版本：{0}", ver.Ver);
+                sb.AppendLine();
+                if (!String.IsNullOrEmpty(ver.Description))
+                {
+                    sb.AppendLine("更新内容：");
+                    sb.Append(ver.Description);
+                }
+
+                if (MessageBox.Show(sb.ToString(), "发现新版本", MessageBoxButtons.OKCancel) == DialogResult.Cancel) return;
+            }
+            #endregion
+
             #region 更新
             String upfile = String.Format("XCoder_{0}.zip", ver.Ver);
             upfile = Path.Combine("Update", upfile);
@@ -143,7 +158,14 @@ namespace XCoder
                     if (File.Exists(ph)) File.Delete(ph);
                     FileSource.ReleaseFile("XCoder.NewLife.ProcessHelper.exe", ph);
 
-                    Process.Start(ph, Process.GetCurrentProcess().Id + " " + tmpfile);
+                    ProcessStartInfo si = new ProcessStartInfo();
+                    si.FileName = ph;
+                    si.Arguments = Process.GetCurrentProcess().Id + " " + tmpfile;
+                    si.CreateNoWindow = true;
+                    si.WindowStyle = ProcessWindowStyle.Hidden;
+                    Process.Start(si);
+
+                    //Process.Start(ph, Process.GetCurrentProcess().Id + " " + tmpfile);
                     Application.Exit();
                 }
 

@@ -72,6 +72,7 @@ namespace XCoder
                 Config.LastUpdate = DateTime.Now;
 
                 AutoUpdate au = new AutoUpdate();
+                au.LocalVersion = new Version(XCoder.FileVersion);
                 au.VerSrc = "http://files.cnblogs.com/nnhy/XCoderVer.xml";
                 au.ProcessAsync();
             }
