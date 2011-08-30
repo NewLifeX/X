@@ -265,6 +265,7 @@ namespace XCoder
 
             try
             {
+                Coder.FixTable();
                 String[] ss = Coder.Render(cb_Table.Text);
                 //richTextBox1.Text = ss[0];
             }
@@ -314,6 +315,7 @@ namespace XCoder
         {
             List<String> param = e.Argument as List<String>;
             int i = 1;
+            Coder.FixTable();
             foreach (String tableName in param)
             {
                 try

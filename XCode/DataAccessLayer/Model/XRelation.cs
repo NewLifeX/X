@@ -10,7 +10,7 @@ namespace XCode.DataAccessLayer
     /// </summary>
     [Serializable]
     [XmlRoot("Relation")]
-    class XRelation : SerializableDataMember, IDataRelation
+    class XRelation : SerializableDataMember, IDataRelation, ICloneable
     {
         #region 属性
         private String _Column;
@@ -53,6 +53,29 @@ namespace XCode.DataAccessLayer
         {
             get { return _Table; }
             set { _Table = value; }
+        }
+        #endregion
+
+        #region ICloneable 成员
+        /// <summary>
+        /// 克隆
+        /// </summary>
+        /// <returns></returns>
+        object ICloneable.Clone()
+        {
+            return Clone(Table);
+        }
+
+        /// <summary>
+        /// 克隆
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        public IDataRelation Clone(IDataTable table)
+        {
+            XRelation field = base.MemberwiseClone() as XRelation;
+            field.Table = table;
+            return field;
         }
         #endregion
 

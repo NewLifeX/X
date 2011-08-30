@@ -8,13 +8,13 @@ using XCode.Configuration;
 
 namespace <#=Config.NameSpace#>
 {
-	/// <summary><#=ClassDescription#></summary><#
+	/// <summary><#=Table.Description#></summary><#
 foreach(IDataIndex di in Table.Indexes){#>
     [BindIndex("<#=di.Name#>", <#=di.Unique.ToString().ToLower()#>, "<#=String.Join(",", di.Columns)#>")]<#
 }
 foreach(IDataRelation dr in Table.Relations){#>
     [BindRelation("<#=dr.Column#>", <#=dr.Unique.ToString().ToLower()#>, "<#=dr.RelationTable#>", "<#=dr.RelationColumn#>")]<#}#>
-	public partial class <#=ClassName#> : Entity<<#=ClassName#>>
+	public partial class <#=Table.Alias#> : Entity<<#=Table.Alias#>>
 	{
 		#region 对象操作
 		//基类Entity中包含三个对象操作：Insert、Update、Delete
@@ -45,52 +45,59 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 
         IDataColumn field = Table.GetColumn(dr.Column);
 
-		String className = GetClassName(rtable);
+		String className = rtable.Alias;
+        String keyName=className;
 
         if(!dr.Unique)
         {
 #>
 
         [NonSerialized]
-		private <#=className#> _<#=className#>;
-		/// <summary>该<#=ClassDescription#>所对应的<#=GetClassDescription(rtable)#></summary>
+		private <#=className#> _<#=keyName#>;
+		/// <summary>该<#=Table.Description#>所对应的<#=rtable.Description#></summary>
 		[XmlIgnore]
-		public <#=className#> <#=className#>
+		public <#=className#> <#=keyName#>
 		{
 			get
 			{
 				<#
                 if(field.DataType == typeof(String)){
-                #>if (_<#=className#> == null && !String.IsNullOrEmpty(<#=GetPropertyName(field)#>) && !Dirtys.ContainsKey("<#=className#>s"))<#
-                }else{#>if (_<#=className#> == null && <#=GetPropertyName(field)#> > 0 && !Dirtys.ContainsKey("<#=className#>s"))<#
-                }#>{
-					_<#=className#> = <#=className#>.FindBy<#=GetPropertyName(rcolumn)#>(<#=GetPropertyName(field)#>);
-					Dirtys["<#=className#>s"] = true;
+                #>if (_<#=keyName#> == null && !String.IsNullOrEmpty(<#=field.Alias#>) && !Dirtys.ContainsKey("<#=keyName#>"))<#
+                }else{#>if (_<#=keyName#> == null && <#=field.Alias#> > 0 && !Dirtys.ContainsKey("<#=keyName#>"))<#
+                }#>
+                {
+					_<#=keyName#> = <#=className#>.FindBy<#=rcolumn.Alias#>(<#=field.Alias#>);
+					Dirtys["<#=keyName#>"] = true;
 				}
-				return _<#=className#>;
+				return _<#=keyName#>;
 			}
-			set { _<#=className#> = value; }
+			set { _<#=keyName#> = value; }
 		}<#
         }else
         {
+            keyName+="s";
 #>
 
         [NonSerialized]
-		private EntityList<<#=className#>> _<#=className#>s;
-		/// <summary>该<#=ClassDescription#>所拥有的<#=GetClassDescription(rtable)#>集合</summary>
+		private EntityList<<#=className#>> _<#=keyName#>;
+		/// <summary>该<#=Table.Description#>所拥有的<#=rtable.Description#>集合</summary>
 		[XmlIgnore]
-		public EntityList<<#=className#>> <#=className#>s
+		public EntityList<<#=className#>> <#=keyName#>
 		{
 			get
 			{
-				if (_<#=className#>s == null && <#=GetPropertyName(field)#> > 0 && !Dirtys.ContainsKey("<#=className#>"))
-				{
-					_<#=className#>s = <#=className#>.FindAllBy<#=GetPropertyName(rcolumn)#>(<#=GetPropertyName(field)#>);
-					Dirtys["<#=className#>"] = true;
+				<#
+                if(field.DataType == typeof(String)){
+                #>if (_<#=keyName#> == null && !String.IsNullOrEmpty(<#=field.Alias#>) && !Dirtys.ContainsKey("<#=keyName#>"))<#
+                }else{#>if (_<#=keyName#> == null && <#=field.Alias#> > 0 && !Dirtys.ContainsKey("<#=keyName#>"))<#
+                }#>
+                {
+					_<#=keyName#> = <#=className#>.FindAllBy<#=rcolumn.Alias#>(<#=field.Alias#>);
+					Dirtys["<#=keyName#>"] = true;
 				}
-				return _<#=className#>s;
+				return _<#=keyName#>;
 			}
-			set { _<#=className#>s = value; }
+			set { _<#=keyName#> = value; }
 		}<#
         }
 	}
@@ -98,23 +105,41 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 #>
 		#endregion
 
-		#region 扩展查询
+		#region 扩展查询<#
+if(Table.PrimaryKeys!=null&&Table.PrimaryKeys.Length>0)
+{
+#>
 		/// <summary>
-		/// 根据主键查询一个<#=ClassDescription#>实体对象用于表单编辑
+		/// 根据主键查询一个<#=Table.Description#>实体对象用于表单编辑
 		/// </summary>
 <#
 Int32 n=0;
-		foreach(IDataColumn Field in Table.Columns)
-	   {
-		if (!Field.PrimaryKey) continue;    
-#>		///<param name="__<#=GetPropertyName(Field)#>"><#=GetPropertyDescription(Field)#></param>
+StringBuilder sb1=new StringBuilder();
+StringBuilder sb2=new StringBuilder();
+StringBuilder sb3=new StringBuilder();
+
+		foreach(IDataColumn Field in Table.PrimaryKeys)
+	    {
+            if(sb1.Length>0) sb1.Append(", ");
+            sb1.Append(Field.DataType.Name+" ");
+            String argName=Field.Alias.ToLower();
+            if(argName==Field.Alias) argName="__"+Field.Alias;
+            sb1.Append(argName);
+   
+            if(sb2.Length>0) sb2.Append(", ");
+            sb2.Append("_."+Field.Alias);
+            
+            if(sb3.Length>0) sb3.Append(", ");
+            sb3.Append(argName);
+
+#>		///<param name="__<#=Field.Alias#>"><#=Field.Description#></param>
 <#  
-	   }
+	    }
 #>		/// <returns></returns>
 		[DataObjectMethod(DataObjectMethodType.Select, false)]
-		public static <#=ClassName#> FindByKeyForEdit(<# n=0;foreach(IDataColumn Field in Table.Columns){if(!Field.PrimaryKey) continue;#><#if(n++>0){#>, <#}#><#=Field.DataType.Name#> __<#=GetPropertyName(Field)#><#}#>)
+		public static <#=ClassName#> FindByKeyForEdit(<#=sb1#>)
 		{
-			<#=ClassName#> entity = Find(new String[]{<#n=0;foreach(IDataColumn Field in Table.Columns){if(!Field.PrimaryKey) continue;#><#if(n++>0){#>, <#}#>_.<#=GetPropertyName(Field)#><#}#>}, new Object[]{<#n=0;foreach(IDataColumn Field in Table.Columns){if(!Field.PrimaryKey) continue;#><#if(n++>0){#>, <#}#>__<#=GetPropertyName(Field)#><#}#>});
+			<#=ClassName#> entity = Find(new String[]{<#=sb2#>}, new Object[]{<#=sb3#>});
 			if (entity == null)
 			{
 				entity = new <#=ClassName#>();
@@ -122,12 +147,13 @@ Int32 n=0;
 			return entity;
 		}     
 <#
+}
 foreach (IDataColumn Field in Table.Columns){
-    String pname=GetPropertyName(Field);
+    String pname=Field.Alias;
     if (pname.Equals("ID", StringComparison.OrdinalIgnoreCase)){
 #>
 		/// <summary>
-		/// 根据<#=GetPropertyDescription(Field)#>查找
+		/// 根据<#=Field.Description#>查找
 		/// </summary>
 		/// <param name="__<#=pname#>"></param>
 		/// <returns></returns>
@@ -144,7 +170,7 @@ foreach (IDataColumn Field in Table.Columns){
     else if(pname.Equals("Name", StringComparison.OrdinalIgnoreCase)){
 #>
 		/// <summary>
-		/// 根据<#=GetPropertyDescription(Field)#>查找
+		/// 根据<#=Field.Description#>查找
 		/// </summary>
 		/// <param name="__<#=pname#>"></param>
 		/// <returns></returns>

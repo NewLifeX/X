@@ -10,7 +10,7 @@ namespace XCode.DataAccessLayer
     /// </summary>
     [Serializable]
     [XmlRoot("Index")]
-    class XIndex : SerializableDataMember, IDataIndex
+    class XIndex : SerializableDataMember, IDataIndex, ICloneable
     {
         #region 属性
         private String _Name;
@@ -66,6 +66,29 @@ namespace XCode.DataAccessLayer
                 indexName += "_" + Columns[i];
             }
             return indexName;
+        }
+        #endregion
+
+        #region ICloneable 成员
+        /// <summary>
+        /// 克隆
+        /// </summary>
+        /// <returns></returns>
+        object ICloneable.Clone()
+        {
+            return Clone(Table);
+        }
+
+        /// <summary>
+        /// 克隆
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        public IDataIndex Clone(IDataTable table)
+        {
+            XIndex field = base.MemberwiseClone() as XIndex;
+            field.Table = table;
+            return field;
         }
         #endregion
 

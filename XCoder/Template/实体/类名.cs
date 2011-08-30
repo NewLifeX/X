@@ -7,26 +7,26 @@ using XCode.DataAccessLayer;
 
 namespace <#=Config.NameSpace#>
 {
-	/// <summary><#=ClassDescription#></summary>
+	/// <summary><#=Table.Description#></summary>
 	[Serializable]
 	[DataObject]
-	[Description("<#=ClassDescription#>")]
-    [BindTable("<#=Table.Name#>", Description = "<#=ClassDescription#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#>)]
-	public partial class <#=ClassName#>
+	[Description("<#=Table.Description#>")]
+    [BindTable("<#=Table.Name#>", Description = "<#=Table.Description#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#>)]
+	public partial class <#=Table.Alias#>
 	{
 		#region 属性<#
 		foreach(IDataColumn Field in Table.Columns)
 	{
 #>
-		private <#=Field.DataType.Name#> _<#=GetPropertyName(Field)#>;
-		/// <summary><#=GetPropertyDescription(Field)#></summary>
-		[Description("<#=GetPropertyDescription(Field)#>")]
+		private <#=Field.DataType.Name#> _<#=Field.Alias#>;
+		/// <summary><#=Field.Description#></summary>
+		[Description("<#=Field.Description#>")]
 		[DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
-		[BindColumn(<#=Field.ID#>, "<#=Field.Name#>", "<#=GetPropertyDescription(Field)#>", "<#=Field.Default#>", "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
-		public <#=Field.DataType.Name#> <#=GetPropertyName(Field)#>
+		[BindColumn(<#=Field.ID#>, "<#=Field.Name#>", "<#=Field.Description#>", "<#=Field.Default#>", "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
+		public <#=Field.DataType.Name#> <#=Field.Alias#>
 		{
-			get { return _<#=GetPropertyName(Field)#>; }
-			set { if (OnPropertyChanging("<#=GetPropertyName(Field)#>", value)) { _<#=GetPropertyName(Field)#> = value; OnPropertyChanged("<#=GetPropertyName(Field)#>"); } }
+			get { return _<#=Field.Alias#>; }
+			set { if (OnPropertyChanging("<#=Field.Alias#>", value)) { _<#=Field.Alias#> = value; OnPropertyChanged("<#=Field.Alias#>"); } }
 		}
 <#
 	}
@@ -49,7 +49,7 @@ namespace <#=Config.NameSpace#>
 	foreach(IDataColumn Field in Table.Columns)
 	{
 #>
-					case "<#=GetPropertyName(Field)#>" : return _<#=GetPropertyName(Field)#>;<#
+					case "<#=Field.Alias#>" : return _<#=Field.Alias#>;<#
 	}
 #>
 					default: return base[name];
@@ -64,10 +64,10 @@ Type conv=typeof(Convert);
 	{ 
         if(conv.GetMethod("To"+Field.DataType.Name, new Type[]{typeof(Object)})!=null){
 #>
-					case "<#=GetPropertyName(Field)#>" : _<#=GetPropertyName(Field)#> = Convert.To<#=Field.DataType.Name#>(value); break;<#
+					case "<#=Field.Alias#>" : _<#=Field.Alias#> = Convert.To<#=Field.DataType.Name#>(value); break;<#
         }else{
 #>
-					case "<#=GetPropertyName(Field)#>" : _<#=GetPropertyName(Field)#> = (<#=Field.DataType.Name#>)value; break;<#
+					case "<#=Field.Alias#>" : _<#=Field.Alias#> = (<#=Field.DataType.Name#>)value; break;<#
 	    }
     }
 #>
@@ -78,16 +78,16 @@ Type conv=typeof(Convert);
 		#endregion
 
 		#region 字段名
-		/// <summary>取得<#=ClassDescription#>字段信息的快捷方式</summary>
+		/// <summary>取得<#=Table.Description#>字段信息的快捷方式</summary>
 		public class _
 		{<#
 	   foreach(IDataColumn Field in Table.Columns)
 	  {
 #>
 			///<summary>
-			/// <#=GetPropertyDescription(Field)#>
+			/// <#=Field.Description#>
 			///</summary>
-            public static readonly FieldItem <#=GetPropertyName(Field)#> = Meta.Table.FindByName("<#=GetPropertyName(Field)#>");
+            public static readonly FieldItem <#=Field.Alias#> = Meta.Table.FindByName("<#=Field.Alias#>");
 <#
 	  }
 #>		}

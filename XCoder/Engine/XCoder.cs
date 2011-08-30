@@ -328,14 +328,58 @@ namespace XCoder
             return rs.ToArray();
         }
 
-        //private String RenderFile(XTable table, String tempFile, Dictionary<String, Object> data)
-        //{
-        //    if (!Path.IsPathRooted(tempFile) && !tempFile.StartsWith(TemplatePath, StringComparison.OrdinalIgnoreCase))
-        //        tempFile = Path.Combine(TemplatePath, tempFile);
+        /// <summary>
+        /// 预先修正表名等各种东西，简化模版编写。
+        /// 因为与设置相关，所以，每次更改设置后，都应该调用一次该方法。
+        /// </summary>
+        public void FixTable()
+        {
+            List<IDataTable> list = new List<IDataTable>();
+            foreach (IDataTable item in DAL.Create(Config.ConnName).Tables)
+            {
+                list.Add(item.Clone() as IDataTable);
+            }
+            Tables = list;
 
-        //    data["Table"] = table;
-        //    return Template.Process(tempFile, data);
-        //}
+            foreach (IDataTable table in list)
+            {
+                // 别名、类名
+                String name = table.Name;
+                if (Config.AutoCutPrefix) name = CutPrefix(name);
+                if (Config.AutoFixWord) name = FixWord(name);
+                table.Alias = name;
+
+                // 描述
+                if (Config.UseCNFileName && String.IsNullOrEmpty(table.Description)) table.Description = XCoder.ENameToCName(table.Alias);
+
+                // 字段
+                foreach (IDataColumn dc in table.Columns)
+                {
+                    name = dc.Name;
+                    if (Config.AutoCutPrefix)
+                    {
+                        String s = CutPrefix(name);
+                        if (dc.Table.Columns.Exists(item => item.Name == s)) name = s;
+                        String str = table.Alias;
+                        if (!s.Equals(str, StringComparison.OrdinalIgnoreCase) &&
+                            s.StartsWith(str, StringComparison.OrdinalIgnoreCase) &&
+                            s.Length > str.Length && Char.IsLetter(s, str.Length))
+                            s = s.Substring(str.Length);
+                        if (dc.Table.Columns.Exists(item => item.Name == s)) name = s;
+                    }
+                    if (Config.AutoFixWord)
+                    {
+                        name = FixWord(name);
+                    }
+
+                    dc.Alias = name;
+
+                    // 描述
+                    if (Config.UseCNFileName && String.IsNullOrEmpty(dc.Description)) dc.Description = XCoder.ENameToCName(dc.Alias);
+
+                }
+            }
+        }
         #endregion
 
         #region 静态

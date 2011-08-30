@@ -239,6 +239,10 @@ namespace XCode.DataAccessLayer
             Relations.Add(dr);
 
             // 给另一方建立关系
+            foreach (IDataRelation item in rtable.Relations)
+            {
+                if (item.Column == dc.Name && item.RelationTable == Name && item.RelationColumn == column.Name) return dr;
+            }
             dr = rtable.CreateRelation();
             dr.Column = dc.Name;
             dr.RelationTable = Name;
@@ -334,6 +338,27 @@ namespace XCode.DataAccessLayer
                 }
             }
             #endregion
+
+            #region 修正可能错误的别名
+            List<String> ns = new List<string>();
+            ns.Add(Alias);
+            foreach (IDataColumn item in Columns)
+            {
+                if (ns.Contains(item.Alias) || IsKeyWord(item.Alias))
+                {
+                    for (int i = 2; i < Columns.Count; i++)
+                    {
+                        String name = item.Alias + i;
+                        // 加了数字后，不可能是关键字
+                        if (ns.Contains(name)) continue;
+
+                        item.Alias = name;
+                    }
+                }
+
+                ns.Add(item.Alias);
+            }
+            #endregion
         }
 
         /// <summary>
@@ -398,15 +423,16 @@ namespace XCode.DataAccessLayer
         public XTable Clone()
         {
             XTable table = base.MemberwiseClone() as XTable;
-            if (table != null && Columns != null)
-            {
-                //List<IDataColumn> list = new List<IDataColumn>();
-                foreach (IDataColumn item in Columns)
-                {
-                    table.Columns.Add(item.Clone(table));
-                }
-                //table.Columns = list.ToArray();
-            }
+            //if (table != null)
+            //{
+            //    if (Columns != null)
+            //    {
+            //        foreach (IDataColumn item in Columns)
+            //        {
+            //            table.Columns.Add(item.Clone(table));
+            //        }
+            //    }
+            //}
             return table;
         }
         #endregion

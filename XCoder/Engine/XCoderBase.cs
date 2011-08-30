@@ -38,47 +38,24 @@ namespace XCoder
         #endregion
 
         #region 扩展属性
-        /// <summary>
-        /// 经过修正的表名
-        /// </summary>
+        /// <summary>经过修正的表名</summary>
         public virtual String ClassName
         {
             get { return GetClassName(Table); }
         }
 
-        /// <summary>
-        /// 经过修正的表说明
-        /// </summary>
+        /// <summary>经过修正的表说明</summary>
         public virtual String ClassDescription
         {
             get { return GetClassDescription(Table); }
         }
 
-        private static String _Version;
-        /// <summary>
-        /// 文件版本
-        /// </summary>
-        public static String Version
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_Version))
-                {
-                    Assembly asm = Assembly.GetExecutingAssembly();
-                    AssemblyFileVersionAttribute av = Attribute.GetCustomAttribute(asm, typeof(AssemblyFileVersionAttribute)) as AssemblyFileVersionAttribute;
-                    if (av != null) _Version = av.Version;
-                    if (String.IsNullOrEmpty(_Version)) _Version = "1.0";
-
-                }
-                return _Version;
-            }
-        }
+        /// <summary>文件版本</summary>
+        public static String Version { get { return XCoder.FileVersion; } }
         #endregion
 
         #region 重载
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化</summary>
         public override void Initialize()
         {
             base.Initialize();

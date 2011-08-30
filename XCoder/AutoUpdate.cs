@@ -115,10 +115,6 @@ namespace XCoder
             }
             if (File.Exists(file))
             {
-                //// 删除旧的Update\Template目录
-                //dir = Path.Combine(dir, Path.GetFileNameWithoutExtension(file));
-                //if (Directory.Exists(dir)) Directory.Delete(dir, true);
-
                 // 解压缩，删除压缩文件
                 IOHelper.DecompressFile(file, null, false);
                 File.Delete(file);
@@ -149,7 +145,7 @@ namespace XCoder
                     // 删除dir目录
                     sb.AppendLine("rd \"" + dir + "\" /s /q");
                     // 删除模版目录
-                    dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Template");
+                    dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, XCoder.TemplatePath);
                     sb.AppendLine("rd \"" + dir + "\" /s /q");
 
                     String tmpfile = Path.GetTempFileName() + ".bat";
