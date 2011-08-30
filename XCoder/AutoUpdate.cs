@@ -148,6 +148,9 @@ namespace XCoder
                     sb.AppendLine("start " + Application.ExecutablePath);
                     // 删除dir目录
                     sb.AppendLine("rd \"" + dir + "\" /s /q");
+                    // 删除模版目录
+                    dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Template");
+                    sb.AppendLine("rd \"" + dir + "\" /s /q");
 
                     String tmpfile = Path.GetTempFileName() + ".bat";
                     //String tmpfile = "Update_" + DateTime.Now.ToString("yyMMddHHmmss") + ".bat";
