@@ -698,12 +698,12 @@ namespace XTemplate.Templating
                     if (!String.IsNullOrEmpty(block.Text))
                     {
                         CodeMethodInvokeExpression exp = new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "Write", new CodeExpression[] { new CodePrimitiveExpression(block.Text) });
-                        statementsMain.Add(exp);
-                        //CodeExpressionStatement statement = new CodeExpressionStatement(exp);
-                        ////if (lineNumbers)
-                        ////    AddStatementWithLinePragma(block, statementsMain, statement);
-                        ////else
-                        //statementsMain.Add(statement);
+                        //statementsMain.Add(exp);
+                        CodeExpressionStatement statement = new CodeExpressionStatement(exp);
+                        if (lineNumbers)
+                            AddStatementWithLinePragma(block, statementsMain, statement);
+                        else
+                            statementsMain.Add(statement);
                     }
                 }
                 else
@@ -848,7 +848,7 @@ namespace XTemplate.Templating
             }
 
             if (References != null) AssemblyReferences.AddRange(References);
-            Assembly asm = Compile(AssemblyName, sources.ToArray(), AssemblyReferences, Provider, Errors);
+            Assembly asm = Compile(AssemblyName, sources.ToArray(), AssemblyReferences, Provider, Errors, this);
             if (asm != null) Assembly = asm;
 
             // 释放提供者
@@ -860,7 +860,7 @@ namespace XTemplate.Templating
         }
 
         private static Dictionary<String, Assembly> asmCache = new Dictionary<String, Assembly>();
-        private static Assembly Compile(String outputAssembly, String[] sources, IEnumerable<String> references, CodeDomProvider provider, CompilerErrorCollection errors)
+        private static Assembly Compile(String outputAssembly, String[] sources, IEnumerable<String> references, CodeDomProvider provider, CompilerErrorCollection errors, Template tmp)
         {
             String key = outputAssembly;
             if (String.IsNullOrEmpty(key)) key = Hash(String.Join(Environment.NewLine, sources));
@@ -879,7 +879,7 @@ namespace XTemplate.Templating
                     catch { }
                 }
 
-                assembly = CompileInternal(outputAssembly, sources, references, provider, errors);
+                assembly = CompileInternal(outputAssembly, sources, references, provider, errors, tmp);
                 //if (assembly != null && !asmCache.ContainsKey(key)) asmCache.Add(key, assembly);
                 if (assembly != null) asmCache.Add(key, assembly);
 
@@ -887,7 +887,7 @@ namespace XTemplate.Templating
             }
         }
 
-        private static Assembly CompileInternal(String outputAssembly, String[] sources, IEnumerable<String> references, CodeDomProvider provider, CompilerErrorCollection Errors)
+        private static Assembly CompileInternal(String outputAssembly, String[] sources, IEnumerable<String> references, CodeDomProvider provider, CompilerErrorCollection Errors, Template tmp)
         {
             CompilerParameters options = new CompilerParameters();
             foreach (String str in references)
@@ -929,7 +929,15 @@ namespace XTemplate.Templating
 
                     if (!error.IsWarning)
                     {
-                        TemplateException ex = new TemplateException(error.ToString());
+                        //TemplateException ex = new TemplateException(error.ToString());
+                        String msg = error.ToString();
+                        String code = tmp.FindBlockCode(error.FileName, error.Line);
+                        if (code != null)
+                        {
+                            msg += Environment.NewLine;
+                            msg += code;
+                        }
+                        TemplateException ex = new TemplateException(msg);
                         ex.Error = error;
                         throw ex;
                     }
@@ -948,6 +956,108 @@ namespace XTemplate.Templating
             if (!results.Errors.HasErrors && String.IsNullOrEmpty(outputAssembly)) return results.CompiledAssembly;
 
             return null;
+        }
+
+        /// <summary>
+        /// 找到指定文件指定位置上下三行的代码
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="lineNumber"></param>
+        /// <returns></returns>
+        String FindBlockCode(String name, Int32 lineNumber)
+        {
+            if (!String.IsNullOrEmpty(name))
+            {
+                // 先根据文件名找
+                foreach (TemplateItem item in Templates)
+                {
+                    if (item.Name != name) continue;
+
+                    String str = FindBlockCodeInItem(name, lineNumber, item);
+                    if (!String.IsNullOrEmpty(str)) return str;
+                }
+                // 然后，模版里面可能包含有模版
+                foreach (TemplateItem item in Templates)
+                {
+                    if (item.Name == name) continue;
+
+                    String str = FindBlockCodeInItem(name, lineNumber, item);
+                    if (!String.IsNullOrEmpty(str)) return str;
+                }
+            }
+
+            // 第一个符合行号的模版内容，在找不到对应文件的模版时使用
+            foreach (TemplateItem item in Templates)
+            {
+                // 找到第一个符合行号的模版内容
+                if (item.Blocks[item.Blocks.Count - 1].StartLine > lineNumber)
+                {
+                    String str = FindBlockCodeInItem(null, lineNumber, item);
+                    if (!String.IsNullOrEmpty(str)) return str;
+                }
+            }
+            return null;
+        }
+
+        static String FindBlockCodeInItem(String name, Int32 lineNumber, TemplateItem item)
+        {
+            Boolean nocmpName = String.IsNullOrEmpty(name);
+            for (int i = 0; i < item.Blocks.Count; i++)
+            {
+                Int32 line = item.Blocks[i].StartLine;
+                if (line >= lineNumber && (nocmpName || item.Blocks[i].Name == name))
+                {
+                    // 错误所在段
+                    Int32 n = i;
+                    if (line > lineNumber)
+                    {
+                        n--;
+                        line = item.Blocks[n].StartLine;
+                    }
+
+                    String code = item.Blocks[n].Text;
+                    String[] codeLines = code.Split(new String[] { Environment.NewLine }, StringSplitOptions.None);
+
+                    StringBuilder sb = new StringBuilder();
+                    // 错误行在第一行，需要上一段的最后一行
+                    if (n > 0 && line == lineNumber)
+                    {
+                        String code2 = item.Blocks[n - 1].Text;
+                        String[] codeLines2 = code2.Split(new String[] { Environment.NewLine }, StringSplitOptions.None);
+                        sb.AppendLine((lineNumber - 1) + ":" + codeLines2[codeLines2.Length - 1]);
+                    }
+                    // 错误行代码段
+                    {
+                        // 错误行不在第一行，需要上一行
+                        if (line < lineNumber) sb.AppendLine((lineNumber - 1) + ":" + codeLines[lineNumber - line - 1]);
+                        // 错误行
+                        sb.AppendLine(lineNumber + ":" + codeLines[lineNumber - line]);
+                        // 错误行不在最后一行，需要下一行
+                        if (line + codeLines.Length > lineNumber) sb.AppendLine((lineNumber + 1) + ":" + codeLines[lineNumber - line + 1]);
+                    }
+                    // 错误行在最后一行以后的，需要下一段的第一行
+                    if (n < item.Blocks.Count - 1 && line + codeLines.Length <= lineNumber)
+                    {
+                        String code2 = item.Blocks[n + 1].Text;
+                        String[] codeLines2 = code2.Split(new String[] { Environment.NewLine }, StringSplitOptions.None);
+                        sb.AppendLine((lineNumber + 1) + ":" + codeLines2[0]);
+                    }
+                    return sb.ToString();
+                }
+            }
+            return null;
+        }
+
+        static String StrLeft(String str, Int32 len)
+        {
+            if (str.Length <= len) return str;
+            return str.Substring(0, len) + "...";
+        }
+
+        static String StrRight(String str, Int32 len)
+        {
+            if (str.Length <= len) return str;
+            return "..." + str.Substring(str.Length - len, len);
         }
         #endregion
 

@@ -1,4 +1,6 @@
-﻿v1.5.2011.0603   增加var指令，允许指定创建封装自Data的模版变量：<#@var name="pname" type="String"#>，然后<#=pname#>等同于<#=Data["pname"]#>
+﻿v1.6.2011.0831   改善编译错误提示，增加提示错误行及上下行共三行源代码
+
+v1.5.2011.0603   增加var指令，允许指定创建封装自Data的模版变量：<#@var name="pname" type="String"#>，然后<#=pname#>等同于<#=Data["pname"]#>
                  template指令，增加name属性，允许指定模版名称
 
 v1.4.2011.0316   Template中原来的静态方法Process改为ProcessFile，另外根据需要增加常用的静态方法ProcessContent

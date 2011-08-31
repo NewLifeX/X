@@ -32,10 +32,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.5.*")]
-[assembly: AssemblyFileVersion("1.5.2011.0603")]
+[assembly: AssemblyVersion("1.6.*")]
+[assembly: AssemblyFileVersion("1.6.2011.0831")]
 
 /*
+ * v1.6.2011.0831   改善编译错误提示，增加提示错误行及上下行共三行源代码
+ * 
  * v1.5.2011.0603   增加var指令，允许指定创建封装自Data的模版变量：<#@var name="pname" type="String"#>，然后<#=pname#>等同于<#=Data["pname"]#>
  *                  template指令，增加name属性，允许指定模版名称
  * 

@@ -106,7 +106,9 @@ namespace XTemplate.Templating
             foreach (Block block in blocks)
             {
                 // 类成员以<#!开始，指令以<#@开始，表达式以<#=开始，所以它们的列数加3
-                if (((block.Type == BlockType.Member) || (block.Type == BlockType.Directive)) || (block.Type == BlockType.Expression))
+                if (block.Type == BlockType.Member ||
+                    block.Type == BlockType.Directive ||
+                    block.Type == BlockType.Expression)
                 {
                     j += 3;
                 }
