@@ -17,7 +17,7 @@ namespace XCode.DataAccessLayer
     [DebuggerDisplay("ID={ID} Name={Name} Description={Description}")]
     [Serializable]
     [XmlRoot("Table")]
-    class XTable : IDataTable, ICloneable
+    class XTable : IDataTable, ICloneable, IXmlSerializable
     {
         #region 基本属性
         private Int32 _ID;
@@ -487,6 +487,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         static String FixWord(String name)
         {
+            if (String.IsNullOrEmpty(name)) return null;
+
             Int32 count1 = 0;
             Int32 count2 = 0;
             foreach (Char item in name.ToCharArray())
@@ -590,6 +592,155 @@ namespace XCode.DataAccessLayer
         //{
         //    return success;
         //}
+        #endregion
+
+        #region IXmlSerializable 成员
+        /// <summary>
+        /// 获取架构
+        /// </summary>
+        /// <returns></returns>
+        System.Xml.Schema.XmlSchema IXmlSerializable.GetSchema()
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// 读取
+        /// </summary>
+        /// <param name="reader"></param>
+        public virtual void ReadXml(XmlReader reader)
+        {
+            reader.ReadStartElement();
+
+            // 读属性
+            if (reader.ReadAttributeValue())
+            {
+                do
+                {
+                    switch (reader.Name)
+                    {
+                        case "ID":
+                            ID = reader.ReadContentAsInt();
+                            break;
+                        case "Name":
+                            Name = reader.ReadContentAsString();
+                            break;
+                        case "Alias":
+                            Alias = reader.ReadContentAsString();
+                            break;
+                        case "Owner":
+                            Owner = reader.ReadContentAsString();
+                            break;
+                        case "DbType":
+                            DbType = (DatabaseType)Enum.Parse(typeof(DatabaseType), reader.ReadContentAsString());
+                            break;
+                        case "IsView":
+                            IsView = Boolean.Parse(reader.ReadContentAsString());
+                            break;
+                        case "Description":
+                            Description = reader.ReadContentAsString();
+                            break;
+                        default:
+                            break;
+                    }
+                } while (reader.MoveToNextAttribute());
+            }
+
+            // 读字段
+            reader.MoveToElement();
+            switch (reader.Name)
+            {
+                case "Columns":
+                    reader.ReadStartElement();
+                    while (reader.IsStartElement())
+                    {
+                        IDataColumn dc = CreateColumn();
+                        (dc as IXmlSerializable).ReadXml(reader);
+                        Columns.Add(dc);
+                    }
+                    reader.ReadEndElement();
+                    break;
+                case "Indexes":
+                    reader.ReadStartElement();
+                    while (reader.IsStartElement())
+                    {
+                        IDataIndex di = CreateIndex();
+                        (di as IXmlSerializable).ReadXml(reader);
+                        Indexes.Add(di);
+                    }
+                    reader.ReadEndElement();
+                    break;
+                case "Relations":
+                    reader.ReadStartElement();
+                    while (reader.IsStartElement())
+                    {
+                        IDataRelation dr = CreateRelation();
+                        (dr as IXmlSerializable).ReadXml(reader);
+                        Relations.Add(dr);
+                    }
+                    reader.ReadEndElement();
+                    break;
+                default:
+                    break;
+            }
+
+            reader.ReadEndElement();
+        }
+
+        /// <summary>
+        /// 写入
+        /// </summary>
+        /// <param name="writer"></param>
+        public virtual void WriteXml(XmlWriter writer)
+        {
+            //writer.WriteStartElement("Table");
+
+            // 写属性
+            writer.WriteAttributeString("ID", ID.ToString());
+            writer.WriteAttributeString("Name", Name);
+            writer.WriteAttributeString("Alias", Alias);
+            writer.WriteAttributeString("Owner", Owner);
+            writer.WriteAttributeString("DbType", DbType.ToString());
+            writer.WriteAttributeString("IsView", IsView.ToString().ToLower());
+            writer.WriteAttributeString("Description", Description);
+
+            // 写字段
+            if (Columns != null && Columns.Count > 0 && Columns[0] is IXmlSerializable)
+            {
+                writer.WriteStartElement("Columns");
+                foreach (IXmlSerializable item in Columns)
+                {
+                    writer.WriteStartElement("Column");
+                    item.WriteXml(writer);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            if (Indexes != null && Indexes.Count > 0 && Indexes[0] is IXmlSerializable)
+            {
+                writer.WriteStartElement("Indexes");
+                foreach (IXmlSerializable item in Indexes)
+                {
+                    writer.WriteStartElement("Index");
+                    item.WriteXml(writer);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            if (Relations != null && Relations.Count > 0 && Relations[0] is IXmlSerializable)
+            {
+                writer.WriteStartElement("Relations");
+                foreach (IXmlSerializable item in Relations)
+                {
+                    writer.WriteStartElement("Relation");
+                    item.WriteXml(writer);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+
+            //writer.WriteEndElement();
+        }
         #endregion
     }
 }

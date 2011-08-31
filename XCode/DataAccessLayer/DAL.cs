@@ -12,6 +12,10 @@ using XCode.Cache;
 using XCode.Code;
 using XCode.Exceptions;
 using XCode.Model;
+using System.Xml;
+using System.Text;
+using System.Xml.Serialization;
+using System.IO;
 
 namespace XCode.DataAccessLayer
 {
@@ -643,62 +647,97 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 导入导出
-        ///// <summary>
-        ///// 导出架构信息
-        ///// </summary>
-        ///// <returns></returns>
-        //public String Export()
-        //{
-        //    List<IDataTable> list = Tables;
+        /// <summary>
+        /// 导出架构信息
+        /// </summary>
+        /// <returns></returns>
+        public String Export()
+        {
+            List<IDataTable> list = Tables;
 
-        //    if (list == null || list.Count < 1) return null;
+            if (list == null || list.Count < 1) return null;
 
-        //    XmlWriterX writer = new XmlWriterX();
-        //    writer.Settings.WriteType = false;
-        //    writer.Settings.UseObjRef = false;
-        //    writer.Settings.IgnoreDefault = true;
-        //    writer.Settings.MemberAsAttribute = true;
-        //    writer.RootName = "Tables";
-        //    writer.WriteObject(list);
-        //    return writer.ToString();
-        //}
+            //XmlWriterX writer = new XmlWriterX();
+            //writer.Settings.WriteType = false;
+            //writer.Settings.UseObjRef = false;
+            //writer.Settings.IgnoreDefault = true;
+            //writer.Settings.MemberAsAttribute = true;
+            //writer.RootName = "Tables";
+            //writer.WriteObject(list);
+            //return writer.ToString();
 
-        ///// <summary>
-        ///// 导入架构信息
-        ///// </summary>
-        ///// <param name="xml"></param>
-        ///// <returns></returns>
-        //public static List<IDataTable> Import(String xml)
-        //{
-        //    if (String.IsNullOrEmpty(xml)) return null;
+            MemoryStream ms = new MemoryStream();
 
-        //    XmlReaderX reader = new XmlReaderX(xml);
-        //    //XmlSerializer serial = new XmlSerializer(typeof(List<XTable>));
-        //    //List<XTable> ts = serial.Deserialize(reader.Stream) as List<XTable>;
+            XmlWriterSettings settings = new XmlWriterSettings();
+            settings.Encoding = Encoding.UTF8;
+            settings.Indent = true;
 
-        //    reader.Settings.MemberAsAttribute = true;
-        //    List<XTable> list = reader.ReadObject(typeof(List<XTable>)) as List<XTable>;
-        //    if (list == null || list.Count < 1) return null;
+            XmlWriter writer = XmlWriter.Create(ms, settings);
+            writer.WriteStartDocument();
+            writer.WriteStartElement("Tables");
+            foreach (IDataTable item in list)
+            {
+                writer.WriteStartElement("Table");
+                (item as IXmlSerializable).WriteXml(writer);
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
+            writer.WriteEndDocument();
+            writer.Flush();
 
-        //    List<IDataTable> dts = new List<IDataTable>();
-        //    // 修正字段中的Table引用
-        //    foreach (XTable item in list)
-        //    {
-        //        if (item.Columns == null || item.Columns.Count < 1) continue;
+            return Encoding.UTF8.GetString(ms.ToArray());
+        }
 
-        //        List<IDataColumn> fs = new List<IDataColumn>();
-        //        foreach (IDataColumn field in item.Columns)
-        //        {
-        //            //fs.Add(field.Clone(item));
-        //            item.Columns.Add(field.Clone(item));
-        //        }
-        //        //item.Columns = fs.ToArray();
+        /// <summary>
+        /// 导入架构信息
+        /// </summary>
+        /// <param name="xml"></param>
+        /// <returns></returns>
+        public static List<IDataTable> Import(String xml)
+        {
+            if (String.IsNullOrEmpty(xml)) return null;
 
-        //        dts.Add(item);
-        //    }
+            XmlReader reader = XmlReader.Create(new MemoryStream(Encoding.UTF8.GetBytes(xml)));
+            while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read())return null; }
+            reader.ReadStartElement();
 
-        //    return dts;
-        //}
+            List<IDataTable> list = new List<IDataTable>();
+            while (reader.IsStartElement())
+            {
+                IDataTable table = CreateTable();
+                list.Add(table);
+
+                (table as IXmlSerializable).ReadXml(reader);
+            }
+            return list;
+
+            //XmlReaderX reader = new XmlReaderX(xml);
+            ////XmlSerializer serial = new XmlSerializer(typeof(List<XTable>));
+            ////List<XTable> ts = serial.Deserialize(reader.Stream) as List<XTable>;
+
+            //reader.Settings.MemberAsAttribute = true;
+            //List<XTable> list = reader.ReadObject(typeof(List<XTable>)) as List<XTable>;
+            //if (list == null || list.Count < 1) return null;
+
+            //List<IDataTable> dts = new List<IDataTable>();
+            //// 修正字段中的Table引用
+            //foreach (XTable item in list)
+            //{
+            //    if (item.Columns == null || item.Columns.Count < 1) continue;
+
+            //    List<IDataColumn> fs = new List<IDataColumn>();
+            //    foreach (IDataColumn field in item.Columns)
+            //    {
+            //        //fs.Add(field.Clone(item));
+            //        item.Columns.Add(field.Clone(item));
+            //    }
+            //    //item.Columns = fs.ToArray();
+
+            //    dts.Add(item);
+            //}
+
+            //return dts;
+        }
         #endregion
 
         #region 创建数据操作实体

@@ -79,10 +79,17 @@ namespace Test2
 
         static void Test3()
         {
-            DAL.AddConnStr("ndb", null, typeof(NewLifeDb), null);
-            DAL dal = DAL.Create("ndb");
-            IDbSession session = dal.Db.CreateSession();
-            Console.WriteLine(dal.Tables.Count);
+            //DAL.AddConnStr("ndb", null, typeof(NewLifeDb), null);
+            //DAL dal = DAL.Create("ndb");
+            //IDbSession session = dal.Db.CreateSession();
+            //Console.WriteLine(dal.Tables.Count);
+
+            DAL dal = DAL.Create("Common1");
+            String xml = dal.Export();
+            Console.WriteLine(xml);
+
+            List<IDataTable> tables = DAL.Import(xml);
+            Console.WriteLine(tables);
         }
     }
 
