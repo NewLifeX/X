@@ -88,8 +88,13 @@ namespace Test2
             String xml = dal.Export();
             Console.WriteLine(xml);
 
+            File.WriteAllText(dal.ConnName + ".xml", xml);
+
             List<IDataTable> tables = DAL.Import(xml);
             Console.WriteLine(tables);
+
+            String xml2 = DAL.Export(tables);
+            Console.WriteLine(xml == xml2);
         }
     }
 
