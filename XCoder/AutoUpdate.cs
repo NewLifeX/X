@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Web;
-using System.Threading;
+using System.Diagnostics;
 using System.IO;
-using NewLife.Log;
+using System.Text;
+using System.Threading;
+using System.Windows.Forms;
 using System.Xml;
 using NewLife.IO;
-using System.Diagnostics;
-using System.Windows.Forms;
+using NewLife.Log;
+using NewLife.Web;
 
 namespace XCoder
 {
@@ -120,25 +119,30 @@ namespace XCoder
                 File.Delete(file);
 
                 // 复制文件
-                String[] files = Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories);
-                if (files != null && files.Length > 0)
+                //String[] files = Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories);
+                //if (files != null && files.Length > 0)
                 {
                     StringBuilder sb = new StringBuilder();
-                    foreach (String item in files)
-                    {
-                        String ap = item.Substring(dir.Length);
-                        if (ap.StartsWith(@"\")) ap = ap.Substring(1);
+                    //foreach (String item in files)
+                    //{
+                    //    String ap = item.Substring(dir.Length);
+                    //    if (ap.StartsWith(@"\")) ap = ap.Substring(1);
 
-                        ap = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ap);
-                        String ad = Path.GetDirectoryName(ap);
-                        if (!Directory.Exists(ad)) Directory.CreateDirectory(ad);
+                    //    ap = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ap);
+                    //    String ad = Path.GetDirectoryName(ap);
+                    //    if (!Directory.Exists(ad)) Directory.CreateDirectory(ad);
 
-                        //File.Copy(item, ap, true);
-                        sb.AppendFormat("xcopy {0} {1} /y /r", item, ap);
-                        sb.AppendLine();
-                        sb.AppendFormat("del {0} /f /q", item);
-                        sb.AppendLine();
-                    }
+                    //    //File.Copy(item, ap, true);
+                    //    sb.AppendFormat("xcopy {0} {1} /y /r", item, ap);
+                    //    sb.AppendLine();
+                    //    sb.AppendFormat("del {0} /f /q", item);
+                    //    sb.AppendLine();
+                    //}
+
+                    // 复制
+                    sb.AppendFormat("xcopy {0}\\*.* {1} /s /y /r", dir, AppDomain.CurrentDomain.BaseDirectory);
+                    sb.AppendLine();
+                    sb.AppendLine("rd \"" + dir + "\" /s /q");
 
                     // 启动XCoder
                     sb.AppendLine("start " + Application.ExecutablePath);
@@ -160,8 +164,11 @@ namespace XCoder
                     ProcessStartInfo si = new ProcessStartInfo();
                     si.FileName = ph;
                     si.Arguments = Process.GetCurrentProcess().Id + " " + tmpfile;
-                    si.CreateNoWindow = true;
-                    si.WindowStyle = ProcessWindowStyle.Hidden;
+                    if (!XTrace.Debug)
+                    {
+                        si.CreateNoWindow = true;
+                        si.WindowStyle = ProcessWindowStyle.Hidden;
+                    }
                     Process.Start(si);
 
                     //Process.Start(ph, Process.GetCurrentProcess().Id + " " + tmpfile);
