@@ -9,6 +9,7 @@ using NewLife.Collections;
 using NewLife.Serialization;
 using NewLife.Xml;
 using System.Reflection;
+using System.Collections;
 
 namespace XCode.DataAccessLayer
 {
@@ -33,7 +34,13 @@ namespace XCode.DataAccessLayer
                 String v = reader.GetAttribute(item.Name);
                 if (String.IsNullOrEmpty(v)) continue;
 
-                item.SetValue(this, TypeX.ChangeType(v, item.Type));
+                if (item.Type == typeof(String[]))
+                {
+                    String[] ss = v.Split(new String[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+                    item.SetValue(this, ss);
+                }
+                else
+                    item.SetValue(this, TypeX.ChangeType(v, item.Type));
             }
             reader.Skip();
         }
@@ -79,6 +86,17 @@ namespace XCode.DataAccessLayer
                 // 默认值不参与序列化，节省空间
                 if (!WriteDefaultValueMember && Object.Equals(obj, item.GetValue(def))) continue;
 
+                if (item.Type.IsArray || typeof(IEnumerable).IsAssignableFrom(item.Type) || obj is IEnumerable)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    IEnumerable arr = obj as IEnumerable;
+                    foreach (Object elm in arr)
+                    {
+                        if (sb.Length > 0) sb.Append(",");
+                        sb.Append(elm);
+                    }
+                    obj = sb.ToString();
+                }
                 if (item.Type == typeof(Type)) obj = (obj as Type).Name;
                 writer.WriteAttributeString(item.Name, obj == null ? null : obj.ToString());
             }

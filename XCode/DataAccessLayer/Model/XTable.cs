@@ -350,9 +350,11 @@ namespace XCode.DataAccessLayer
                     {
                         String name = item.Alias + i;
                         // 加了数字后，不可能是关键字
-                        if (ns.Contains(name)) continue;
-
-                        item.Alias = name;
+                        if (!ns.Contains(name))
+                        {
+                            item.Alias = name;
+                            break;
+                        }
                     }
                 }
 
@@ -489,6 +491,10 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return null;
 
+            if (name.Equals("ID", StringComparison.OrdinalIgnoreCase)) return "ID";
+
+            if (name.Length <= 2) return name;
+
             Int32 count1 = 0;
             Int32 count2 = 0;
             foreach (Char item in name.ToCharArray())
@@ -543,7 +549,7 @@ namespace XCode.DataAccessLayer
 
             foreach (CodeDomProvider item in CGS)
             {
-                if (item.IsValidIdentifier(name)) return true;
+                if (!item.IsValidIdentifier(name)) return true;
             }
 
             return false;
@@ -610,11 +616,12 @@ namespace XCode.DataAccessLayer
         /// <param name="reader"></param>
         public virtual void ReadXml(XmlReader reader)
         {
-            reader.ReadStartElement();
+            //reader.ReadStartElement();
 
             // 读属性
-            if (reader.ReadAttributeValue())
+            if (reader.HasAttributes)
             {
+                reader.MoveToFirstAttribute();
                 do
                 {
                     switch (reader.Name)
@@ -646,45 +653,51 @@ namespace XCode.DataAccessLayer
                 } while (reader.MoveToNextAttribute());
             }
 
+            reader.ReadStartElement();
+
             // 读字段
             reader.MoveToElement();
-            switch (reader.Name)
+            while (reader.NodeType != XmlNodeType.EndElement)
             {
-                case "Columns":
-                    reader.ReadStartElement();
-                    while (reader.IsStartElement())
-                    {
-                        IDataColumn dc = CreateColumn();
-                        (dc as IXmlSerializable).ReadXml(reader);
-                        Columns.Add(dc);
-                    }
-                    reader.ReadEndElement();
-                    break;
-                case "Indexes":
-                    reader.ReadStartElement();
-                    while (reader.IsStartElement())
-                    {
-                        IDataIndex di = CreateIndex();
-                        (di as IXmlSerializable).ReadXml(reader);
-                        Indexes.Add(di);
-                    }
-                    reader.ReadEndElement();
-                    break;
-                case "Relations":
-                    reader.ReadStartElement();
-                    while (reader.IsStartElement())
-                    {
-                        IDataRelation dr = CreateRelation();
-                        (dr as IXmlSerializable).ReadXml(reader);
-                        Relations.Add(dr);
-                    }
-                    reader.ReadEndElement();
-                    break;
-                default:
-                    break;
+                switch (reader.Name)
+                {
+                    case "Columns":
+                        reader.ReadStartElement();
+                        while (reader.IsStartElement())
+                        {
+                            IDataColumn dc = CreateColumn();
+                            (dc as IXmlSerializable).ReadXml(reader);
+                            Columns.Add(dc);
+                        }
+                        reader.ReadEndElement();
+                        break;
+                    case "Indexes":
+                        reader.ReadStartElement();
+                        while (reader.IsStartElement())
+                        {
+                            IDataIndex di = CreateIndex();
+                            (di as IXmlSerializable).ReadXml(reader);
+                            Indexes.Add(di);
+                        }
+                        reader.ReadEndElement();
+                        break;
+                    case "Relations":
+                        reader.ReadStartElement();
+                        while (reader.IsStartElement())
+                        {
+                            IDataRelation dr = CreateRelation();
+                            (dr as IXmlSerializable).ReadXml(reader);
+                            Relations.Add(dr);
+                        }
+                        reader.ReadEndElement();
+                        break;
+                    default:
+                        break;
+                }
             }
 
-            reader.ReadEndElement();
+            //reader.ReadEndElement();
+            if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
         }
 
         /// <summary>
@@ -701,7 +714,7 @@ namespace XCode.DataAccessLayer
             writer.WriteAttributeString("Alias", Alias);
             writer.WriteAttributeString("Owner", Owner);
             writer.WriteAttributeString("DbType", DbType.ToString());
-            writer.WriteAttributeString("IsView", IsView.ToString().ToLower());
+            writer.WriteAttributeString("IsView", IsView.ToString());
             writer.WriteAttributeString("Description", Description);
 
             // 写字段

@@ -666,6 +666,16 @@ namespace XCode.DataAccessLayer
             //writer.WriteObject(list);
             //return writer.ToString();
 
+            return Export(list);
+        }
+
+        /// <summary>
+        /// µ¼³ö
+        /// </summary>
+        /// <param name="tables"></param>
+        /// <returns></returns>
+        public static String Export(List<IDataTable> tables)
+        {
             MemoryStream ms = new MemoryStream();
 
             XmlWriterSettings settings = new XmlWriterSettings();
@@ -675,7 +685,7 @@ namespace XCode.DataAccessLayer
             XmlWriter writer = XmlWriter.Create(ms, settings);
             writer.WriteStartDocument();
             writer.WriteStartElement("Tables");
-            foreach (IDataTable item in list)
+            foreach (IDataTable item in tables)
             {
                 writer.WriteStartElement("Table");
                 (item as IXmlSerializable).WriteXml(writer);
@@ -697,7 +707,11 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(xml)) return null;
 
-            XmlReader reader = XmlReader.Create(new MemoryStream(Encoding.UTF8.GetBytes(xml)));
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.IgnoreWhitespace = true;
+            settings.IgnoreComments = true;
+
+            XmlReader reader = XmlReader.Create(new MemoryStream(Encoding.UTF8.GetBytes(xml)), settings);
             while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read())return null; }
             reader.ReadStartElement();
 
@@ -707,7 +721,9 @@ namespace XCode.DataAccessLayer
                 IDataTable table = CreateTable();
                 list.Add(table);
 
+                //reader.ReadStartElement();
                 (table as IXmlSerializable).ReadXml(reader);
+                //if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
             }
             return list;
 
