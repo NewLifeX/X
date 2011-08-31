@@ -269,6 +269,10 @@ namespace XCoder
                 String[] ss = Coder.Render(cb_Table.Text);
                 //richTextBox1.Text = ss[0];
             }
+            catch (TemplateException ex)
+            {
+                MessageBox.Show(ex.Message, "Ä£°æ´íÎó", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString(), this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -321,6 +325,11 @@ namespace XCoder
                 try
                 {
                     Coder.Render(tableName);
+                }
+                catch (TemplateException ex)
+                {
+                    bw.ReportProgress(i++, "³ö´í£º" + ex.Message);
+                    break;
                 }
                 catch (Exception ex)
                 {
