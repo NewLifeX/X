@@ -106,6 +106,7 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 		#endregion
 
 		#region 扩展查询<#
+// 这里是FindByKeyForEdit，用C#代码拼好了再输出，那样好看点
 if(Table.PrimaryKeys!=null&&Table.PrimaryKeys.Length>0)
 {
 #>
@@ -113,10 +114,9 @@ if(Table.PrimaryKeys!=null&&Table.PrimaryKeys.Length>0)
 		/// 根据主键查询一个<#=Table.Description#>实体对象用于表单编辑
 		/// </summary>
 <#
-Int32 n=0;
-StringBuilder sb1=new StringBuilder();
-StringBuilder sb2=new StringBuilder();
-StringBuilder sb3=new StringBuilder();
+        StringBuilder sb1=new StringBuilder();
+        StringBuilder sb2=new StringBuilder();
+        StringBuilder sb3=new StringBuilder();
 
 		foreach(IDataColumn Field in Table.PrimaryKeys)
 	    {
@@ -132,7 +132,7 @@ StringBuilder sb3=new StringBuilder();
             if(sb3.Length>0) sb3.Append(", ");
             sb3.Append(argName);
 
-#>		///<param name="__<#=Field.Alias#>"><#=Field.Description#></param>
+#>		/// <param name="<#=argName#>"><#=Field.Description#></param>
 <#  
 	    }
 #>		/// <returns></returns>
@@ -148,39 +148,74 @@ StringBuilder sb3=new StringBuilder();
 		}     
 <#
 }
-foreach (IDataColumn Field in Table.Columns){
-    String pname=Field.Alias;
-    if (pname.Equals("ID", StringComparison.OrdinalIgnoreCase)){
+
+// 根据索引，增加多个方法
+if(Table.Indexes!=null&&Table.Indexes.Count>0){
+    foreach (IDataIndex di in Table.Indexes){
+        if(di.Columns==null||di.Columns.Length<1)continue;
+
+        IDataColumn[] columns=Table.GetColumns(di.Columns);
+
+        String returnType=Table.Alias;
+        String action="Find";
+        if (!di.Unique){
+            returnType=String.Format("Entity<{0}>",Table.Alias);
+            action="FindAll";
+        }
+        StringBuilder sb1=new StringBuilder();
+        StringBuilder sb2=new StringBuilder();
+        StringBuilder sb3=new StringBuilder();
+        StringBuilder sb4=new StringBuilder();
+        StringBuilder sb5=new StringBuilder();
+        String[] Args=new String[columns.Length];
+
+		for(int i=0;i<columns.Length;i++)
+	    {
+            IDataColumn Field=columns[i];
+
+            if(sb1.Length>0) sb1.Append(", ");
+            sb1.Append(Field.DataType.Name+" ");
+            String argName=Field.Alias.ToLower();
+            if(argName==Field.Alias) argName="__"+Field.Alias;
+            sb1.Append(argName);
+            Args[i]=argName;
+   
+            if(sb2.Length>0) sb2.Append(", ");
+            sb2.Append("_."+Field.Alias);
+            
+            if(sb3.Length>0) sb3.Append(", ");
+            sb3.Append(argName);
+            
+            if(sb4.Length>0) sb4.Append("And");
+            sb4.Append(Field.Alias);
+            
+            if(sb5.Length>0) sb5.Append("、");
+            if(!String.IsNullOrEmpty(Field.Description))
+                sb5.Append(Field.Description);
+            else
+                sb5.Append(Field.Alias);
+        }
 #>
 		/// <summary>
-		/// 根据<#=Field.Description#>查找
+		/// 根据<#=sb5#>查找
 		/// </summary>
-		/// <param name="__<#=pname#>"></param>
-		/// <returns></returns>
-		public static <#=ClassName#> FindByID(Int32 __<#=pname#>)
-		{
-			return Find(_.<#=pname#>, __<#=pname#>);
-			// 实体缓存
-			//return Meta.Cache.Entities.Find(_.<#=pname#>, __<#=pname#>);
-			// 单对象缓存
-			//return Meta.SingleCache[__<#=pname#>];
-		}
 <#
-    }
-    else if(pname.Equals("Name", StringComparison.OrdinalIgnoreCase)){
-#>
-		/// <summary>
-		/// 根据<#=Field.Description#>查找
-		/// </summary>
-		/// <param name="__<#=pname#>"></param>
-		/// <returns></returns>
-		public static <#=ClassName#> FindByName(String __<#=pname#>)
+		for(int i=0;i<columns.Length;i++)
+	    {
+#>		/// <param name="<#=Args[i]#>"><#=columns[i].Description#></param>
+<#  
+	    }
+#>		/// <returns></returns>
+		public static <#=returnType#> FindBy<#=sb4#>(<#=sb1#>)
 		{
-			return Find(_.<#=pname#>, __<#=pname#>);
+			return <#=action#>(new String[]{<#=sb2#>}, new Object[]{<#=sb3#>});<#
+        if(columns.Length==1){
+            String pname=columns[0].Alias;
+#>
 			// 实体缓存
-			//return Meta.Cache.Entities.Find(_.<#=pname#>, __<#=pname#>);
+			//return Meta.Cache.Entities.<#=action#>(_.<#=pname#>, <#=Args[0]#>);<#if(di.Unique){#>
 			// 单对象缓存
-			//return Meta.SingleCache[__<#=pname#>];
+			//return Meta.SingleCache[<#=Args[0]#>];<#}}#>
 		}
 <#
     }

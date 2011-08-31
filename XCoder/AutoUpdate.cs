@@ -118,65 +118,41 @@ namespace XCoder
                 IOHelper.DecompressFile(file, null, false);
                 File.Delete(file);
 
-                // 复制文件
-                //String[] files = Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories);
-                //if (files != null && files.Length > 0)
+                StringBuilder sb = new StringBuilder();
+                // 复制
+                sb.AppendFormat("xcopy {0}\\*.* {1} /s /y /r", dir, AppDomain.CurrentDomain.BaseDirectory);
+                sb.AppendLine();
+                sb.AppendLine("rd \"" + dir + "\" /s /q");
+
+                // 启动XCoder
+                sb.AppendLine("start " + Application.ExecutablePath);
+                // 删除dir目录
+                sb.AppendLine("rd \"" + dir + "\" /s /q");
+                // 删除模版目录
+                dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, XCoder.TemplatePath);
+                sb.AppendLine("rd \"" + dir + "\" /s /q");
+
+                String tmpfile = Path.GetTempFileName() + ".bat";
+                //String tmpfile = "Update_" + DateTime.Now.ToString("yyMMddHHmmss") + ".bat";
+                //tmpfile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, tmpfile);
+                File.WriteAllText(tmpfile, sb.ToString(), Encoding.Default);
+
+                String ph = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NewLife.ProcessHelper.exe");
+                if (File.Exists(ph)) File.Delete(ph);
+                FileSource.ReleaseFile("XCoder.NewLife.ProcessHelper.exe", ph);
+
+                ProcessStartInfo si = new ProcessStartInfo();
+                si.FileName = ph;
+                si.Arguments = Process.GetCurrentProcess().Id + " " + tmpfile;
+                if (!XTrace.Debug)
                 {
-                    StringBuilder sb = new StringBuilder();
-                    //foreach (String item in files)
-                    //{
-                    //    String ap = item.Substring(dir.Length);
-                    //    if (ap.StartsWith(@"\")) ap = ap.Substring(1);
-
-                    //    ap = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ap);
-                    //    String ad = Path.GetDirectoryName(ap);
-                    //    if (!Directory.Exists(ad)) Directory.CreateDirectory(ad);
-
-                    //    //File.Copy(item, ap, true);
-                    //    sb.AppendFormat("xcopy {0} {1} /y /r", item, ap);
-                    //    sb.AppendLine();
-                    //    sb.AppendFormat("del {0} /f /q", item);
-                    //    sb.AppendLine();
-                    //}
-
-                    // 复制
-                    sb.AppendFormat("xcopy {0}\\*.* {1} /s /y /r", dir, AppDomain.CurrentDomain.BaseDirectory);
-                    sb.AppendLine();
-                    sb.AppendLine("rd \"" + dir + "\" /s /q");
-
-                    // 启动XCoder
-                    sb.AppendLine("start " + Application.ExecutablePath);
-                    // 删除dir目录
-                    sb.AppendLine("rd \"" + dir + "\" /s /q");
-                    // 删除模版目录
-                    dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, XCoder.TemplatePath);
-                    sb.AppendLine("rd \"" + dir + "\" /s /q");
-
-                    String tmpfile = Path.GetTempFileName() + ".bat";
-                    //String tmpfile = "Update_" + DateTime.Now.ToString("yyMMddHHmmss") + ".bat";
-                    //tmpfile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, tmpfile);
-                    File.WriteAllText(tmpfile, sb.ToString(), Encoding.Default);
-
-                    String ph = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NewLife.ProcessHelper.exe");
-                    if (File.Exists(ph)) File.Delete(ph);
-                    FileSource.ReleaseFile("XCoder.NewLife.ProcessHelper.exe", ph);
-
-                    ProcessStartInfo si = new ProcessStartInfo();
-                    si.FileName = ph;
-                    si.Arguments = Process.GetCurrentProcess().Id + " " + tmpfile;
-                    if (!XTrace.Debug)
-                    {
-                        si.CreateNoWindow = true;
-                        si.WindowStyle = ProcessWindowStyle.Hidden;
-                    }
-                    Process.Start(si);
-
-                    //Process.Start(ph, Process.GetCurrentProcess().Id + " " + tmpfile);
-                    Application.Exit();
+                    si.CreateNoWindow = true;
+                    si.WindowStyle = ProcessWindowStyle.Hidden;
                 }
+                Process.Start(si);
 
-                //// 删除Update\Template目录
-                //if (Directory.Exists(dir)) Directory.Delete(dir, true);
+                //Process.Start(ph, Process.GetCurrentProcess().Id + " " + tmpfile);
+                Application.Exit();
             }
             #endregion
         }
