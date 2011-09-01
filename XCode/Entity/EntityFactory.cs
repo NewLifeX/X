@@ -107,16 +107,20 @@ namespace XCode
         static Type GetEntityOperateType(Type type)
         {
             //return type.GetNestedType("EntityOperate", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+            // 所有内嵌类
             Type[] ts = type.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
             if (ts != null && ts.Length > 0)
             {
                 foreach (Type item in ts)
                 {
+                    // 实现了IEntityOperate接口的内嵌类
                     if (typeof(IEntityOperate).IsAssignableFrom(item))
                     {
                         Type optype = item;
+                        // 此时这个内嵌类只是泛型声明而已
                         if (optype.IsGenericType && optype.IsGenericTypeDefinition)
                         {
+                            // 从声明类中找到真正的实体类型，组建泛型内嵌类
                             if (type.IsGenericType && !type.IsGenericTypeDefinition)
                             {
                                 optype = optype.MakeGenericType(type.GetGenericArguments());

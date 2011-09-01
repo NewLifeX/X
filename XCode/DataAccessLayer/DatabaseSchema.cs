@@ -46,15 +46,11 @@ namespace XCode.DataAccessLayer
                 {
                     _Entities = new List<Type>();
 
-                    //IList<Type> list = EntityFactory.AllEntities;
                     IList<Type> list = EntityFactory.LoadEntities();
                     if (list != null && list.Count > 0)
                     {
                         foreach (Type item in list)
                         {
-                            //BindTableAttribute bt = Config.Table(item);
-                            //if (bt == null || bt.ConnName != Database.ConnName) continue;
-                            //String connName = XCodeConfig.ConnName(item);
                             String connName = TableItem.Create(item).ConnName;
                             if (connName != ConnName) continue;
 
