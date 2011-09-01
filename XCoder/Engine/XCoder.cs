@@ -6,6 +6,9 @@ using System.Windows.Forms;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
 using System.Reflection;
+using System.CodeDom.Compiler;
+using Microsoft.CSharp;
+using Microsoft.VisualBasic;
 
 namespace XCoder
 {
@@ -84,6 +87,8 @@ namespace XCoder
         /// <returns></returns>
         public static String CutPrefix(String name)
         {
+            String oldname = name;
+
             if (String.IsNullOrEmpty(name)) return null;
 
             //自动去掉前缀
@@ -92,7 +97,11 @@ namespace XCoder
                 name = name.Substring(name.IndexOf("_") + 1);
             }
 
-            if (String.IsNullOrEmpty(XConfig.Current.Prefix)) return name;
+            if (String.IsNullOrEmpty(XConfig.Current.Prefix))
+            {
+                if (IsKeyWord(name)) return oldname;
+                return name;
+            }
             String[] ss = XConfig.Current.Prefix.Split(new Char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (String s in ss)
             {
@@ -106,7 +115,40 @@ namespace XCoder
                 }
             }
 
+            if (IsKeyWord(name)) return oldname;
+
             return name;
+        }
+
+        private static CodeDomProvider[] _CGS;
+        /// <summary>代码生成器</summary>
+        public static CodeDomProvider[] CGS
+        {
+            get
+            {
+                if (_CGS == null)
+                {
+                    _CGS = new CodeDomProvider[] { new CSharpCodeProvider(), new VBCodeProvider() };
+                }
+                return _CGS;
+            }
+        }
+
+        /// <summary>
+        /// 检查是否为c#关键字
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        static Boolean IsKeyWord(String name)
+        {
+            if (String.IsNullOrEmpty(name)) return false;
+
+            foreach (CodeDomProvider item in CGS)
+            {
+                if (!item.IsValidIdentifier(name)) return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -345,6 +387,7 @@ namespace XCoder
             {
                 // 别名、类名
                 String name = table.Name;
+                if (IsKeyWord(name)) name = name + "1";
                 if (Config.AutoCutPrefix) name = CutPrefix(name);
                 if (Config.AutoFixWord) name = FixWord(name);
                 table.Alias = name;
