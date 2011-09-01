@@ -137,14 +137,59 @@ if(Table.PrimaryKeys!=null&&Table.PrimaryKeys.Length>0)
 	    }
 #>		/// <returns></returns>
 		[DataObjectMethod(DataObjectMethodType.Select, false)]
-		public static <#=ClassName#> FindByKeyForEdit(<#=sb1#>)
+		public static <#=Table.Alias#> FindByKeyForEdit(<#=sb1#>)
 		{
-			<#=ClassName#> entity = Find(new String[]{<#=sb2#>}, new Object[]{<#=sb3#>});
+			<#=Table.Alias#> entity = Find(new String[]{<#=sb2#>}, new Object[]{<#=sb3#>});
 			if (entity == null)
 			{
-				entity = new <#=ClassName#>();
+				entity = new <#=Table.Alias#>();
 			}
 			return entity;
+		}
+
+		/// <summary>
+		/// 根据主键查询一个<#=Table.Description#>实体对象
+		/// </summary>
+<#
+        sb1=new StringBuilder();
+        sb2=new StringBuilder();
+        sb3=new StringBuilder();
+        StringBuilder sb4=new StringBuilder();
+        String[] Args=new String[Table.PrimaryKeys.Length];
+        Int32 i=0;
+
+		foreach(IDataColumn Field in Table.PrimaryKeys)
+	    {
+            if(sb1.Length>0) sb1.Append(", ");
+            sb1.Append(Field.DataType.Name+" ");
+            String argName=Field.Alias.ToLower();
+            if(argName==Field.Alias) argName="__"+Field.Alias;
+            sb1.Append(argName);
+            Args[i++]=argName;
+
+            if(sb2.Length>0) sb2.Append(", ");
+            sb2.Append("_."+Field.Alias);
+            
+            if(sb3.Length>0) sb3.Append(", ");
+            sb3.Append(argName);
+            
+            if(sb4.Length>0) sb4.Append("And");
+            sb4.Append(Field.Alias);
+
+#>		/// <param name="<#=argName#>"><#=Field.Description#></param>
+<#  
+	    }
+#>		/// <returns></returns>
+		[DataObjectMethod(DataObjectMethodType.Select, false)]
+		public static <#=Table.Alias#> FindBy<#=sb4#>(<#=sb1#>)
+		{
+			return Find(new String[]{<#=sb2#>}, new Object[]{<#=sb3#>});<#
+            if(Table.PrimaryKeys.Length==1){
+#>
+			// 实体缓存
+			//return Meta.Cache.Entities.Find(_.<#=Table.PrimaryKeys[0].Alias#>, <#=Args[0]#>);
+			// 单对象缓存
+			//return Meta.SingleCache[<#=Args[0]#>];<#}#>
 		}     
 <#
 }
@@ -206,6 +251,7 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
 <#  
 	    }
 #>		/// <returns></returns>
+		[DataObjectMethod(DataObjectMethodType.Select, false)]
 		public static <#=returnType#> FindBy<#=sb4#>(<#=sb1#>)
 		{
 			return <#=action#>(new String[]{<#=sb2#>}, new Object[]{<#=sb3#>});<#
@@ -232,7 +278,7 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
 		/// <param name="maximumRows">最大返回行数，0表示所有行</param>
 		/// <returns>实体集</returns>
 		[DataObjectMethod(DataObjectMethodType.Select, true)]
-		public static EntityList<<#=ClassName#>> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+		public static EntityList<<#=Table.Alias#>> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
 		{
 		    return FindAll(SearchWhere(key), orderClause, null, startRowIndex, maximumRows);
 		}
