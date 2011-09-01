@@ -539,12 +539,16 @@ namespace NewLife.Reflection
                     // Int32[][]  String[,,]
                     String gname = typeName.Substring(0, start);
                     String pname = typeName.Substring(start + 1, end - start - 1);
-                    //pname = ",,,";
-                    String[] pnames = pname.Split(new Char[] { ',' });
 
                     // 先找外部的，如果外部都找不到，那就没意义了
                     Type gt = GetType(gname, isLoadAssembly);
                     if (gt == null) return null;
+
+                    if (String.IsNullOrEmpty(pname)) return gt.MakeArrayType();
+
+                    //pname = ",,,";
+                    String[] pnames = pname.Split(new Char[] { ',' });
+                    if (pnames == null || pnames.Length < 1) return gt.MakeArrayType();
 
                     return gt.MakeArrayType(pnames.Length);
                 }

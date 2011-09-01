@@ -33,10 +33,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.7.*")]
-[assembly: AssemblyFileVersion("2.7.2011.0815")]
+[assembly: AssemblyVersion("2.8.*")]
+[assembly: AssemblyFileVersion("2.8.2011.0901")]
 
 /*
+ * v2.8.2011.0901   修正TypeX.GetType中识别一维数组时的一个错误，如TypeX.GetType("Byte[]")会被错误识别为Byte[*]
+ * 
  * v2.7.2011.0815   增加鸭子类型DuckTyping，但不对外公开，通过TypeX.ChangeType来使用！
  *                  增加ServiceProvider等服务模型
  * 
