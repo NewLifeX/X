@@ -173,6 +173,7 @@ namespace XCode.Configuration
             if (xf == null) return;
 
             xf.Name = ColumnName;
+            xf.Alias = Name;
             xf.DataType = Property.PropertyType;
             xf.Description = Description;
 

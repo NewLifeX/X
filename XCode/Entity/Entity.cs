@@ -22,9 +22,7 @@ namespace XCode
     public partial class Entity<TEntity> : EntityBase where TEntity : Entity<TEntity>, new()
     {
         #region 构造函数
-        /// <summary>
-        /// 静态构造
-        /// </summary>
+        /// <summary>静态构造</summary>
         static Entity()
         {
             EntityFactory.Register(Meta.ThisType, new EntityOperate());
@@ -83,7 +81,8 @@ namespace XCode
 
             // 计算都有哪些字段可以加载数据，默认是使用了BindColumn特性的属性，然后才是别的属性
             // 当然，要数据集中有这个列才行，也就是取实体类和数据集的交集
-            List<FieldItem> ps = CheckColumn(dt);
+            List<String> exts = null;
+            List<FieldItem> ps = CheckColumn(dt, out exts);
 
             // 创建实体操作者，将由实体操作者创建实体对象
             IEntityOperate factory = Meta.Factory;
@@ -94,7 +93,7 @@ namespace XCode
                 //TEntity obj = new TEntity();
                 // 由实体操作者创建实体对象，因为实体操作者可能更换
                 TEntity obj = factory.Create() as TEntity;
-                obj.LoadData(dr, ps);
+                obj.LoadData(dr, ps, exts);
                 list.Add(obj);
             }
             return list;
@@ -109,8 +108,9 @@ namespace XCode
             if (dr == null) return;
 
             // 计算都有哪些字段可以加载数据
-            List<FieldItem> ps = CheckColumn(dr.Table);
-            LoadData(dr, ps);
+            List<String> exts = null;
+            List<FieldItem> ps = CheckColumn(dr.Table, out exts);
+            LoadData(dr, ps, exts);
         }
 
         static String[] TrueString = new String[] { "true", "y", "yes", "1" };
@@ -121,8 +121,9 @@ namespace XCode
         /// </summary>
         /// <param name="dr">数据行</param>
         /// <param name="ps">要加载数据的字段</param>
+        /// <param name="exts">扩展字段</param>
         /// <returns></returns>
-        private void LoadData(DataRow dr, IList<FieldItem> ps)
+        private void LoadData(DataRow dr, IList<FieldItem> ps, List<String> exts)
         {
             if (dr == null) return;
 
@@ -178,6 +179,12 @@ namespace XCode
                 else
                     Dirtys.Remove(fi.Name);
             }
+            // 多余的数据，存入扩展字段里面
+            foreach (String item in exts)
+            {
+                Object v = dr[item];
+                Extends[item] = v;
+            }
         }
 
         /// <summary>
@@ -185,14 +192,18 @@ namespace XCode
         /// </summary>
         /// <param name="dt">数据表</param>
         /// <returns></returns>
-        private static List<FieldItem> CheckColumn(DataTable dt)
+        private static List<FieldItem> CheckColumn(DataTable dt, out List<String> exts)
         {
             List<FieldItem> ps = new List<FieldItem>();
+            exts = new List<String>();
             foreach (FieldItem item in Meta.AllFields)
             {
                 if (String.IsNullOrEmpty(item.ColumnName)) continue;
 
-                if (dt.Columns.Contains(item.ColumnName)) ps.Add(item);
+                if (dt.Columns.Contains(item.ColumnName))
+                    ps.Add(item);
+                else if (!exts.Contains(item))
+                    exts.Add(item);
             }
             return ps;
         }
@@ -210,6 +221,8 @@ namespace XCode
                 // 检查dr中是否有该属性的列。考虑到Select可能是不完整的，此时，只需要局部填充
                 if (dr.Table.Columns.Contains(fi.ColumnName))
                     dr[fi.ColumnName] = this[fi.Name];
+                else if (Extends.ContainsKey(fi.Name))
+                    dr[fi.Name] = Extends[fi.Name];
             }
             return dr;
         }
