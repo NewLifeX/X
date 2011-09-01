@@ -67,6 +67,7 @@
     <EmbeddedResource Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="说明.txt" />
     <EmbeddedResource Include="UpdateInfo.txt" />
     <Content Include="TA.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
