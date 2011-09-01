@@ -32,7 +32,8 @@ foreach(IDataRelation dr in Table.Relations){#>
 		 * */
 		#endregion
 
-		#region 扩展属性<#
+		#region 扩展属性
+        <#
 if(Table.Relations!=null && Table.Relations.Count>0)
 {
 	foreach(IDataRelation dr in Table.Relations)
@@ -203,8 +204,10 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
 
         String returnType=Table.Alias;
         String action="Find";
+        String IsAll=String.Empty;
         if (!di.Unique){
-            returnType=String.Format("Entity<{0}>",Table.Alias);
+            returnType=String.Format("EntityList<{0}>",Table.Alias);
+            IsAll="All";
             action="FindAll";
         }
         StringBuilder sb1=new StringBuilder();
@@ -252,7 +255,7 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
 	    }
 #>		/// <returns></returns>
 		[DataObjectMethod(DataObjectMethodType.Select, false)]
-		public static <#=returnType#> FindBy<#=sb4#>(<#=sb1#>)
+		public static <#=returnType#> Find<#=IsAll#>By<#=sb4#>(<#=sb1#>)
 		{
 			return <#=action#>(new String[]{<#=sb2#>}, new Object[]{<#=sb3#>});<#
         if(columns.Length==1){
@@ -319,12 +322,12 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
                     Int32 n = 0;
                     foreach (FieldItem item in Meta.Fields)
                     {
-                        if (item.Property.PropertyType != typeof(String)) continue;
+                        if (item.Type != typeof(String)) continue;
                         // 只要前五项
                         if (++n > 5) break;
 
                         if (n > 1) sb.Append(" Or ");
-                        sb.AppendFormat("{0} like '%{1}%'", Meta.FormatKeyWord(item.Name), keys[i]);
+                        sb.AppendFormat("{0} like '%{1}%'", Meta.FormatName(item.Name), keys[i]);
                     }
                     if (keys.Length > 1) sb.Append(")");
                 }
