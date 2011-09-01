@@ -17,4 +17,14 @@
 XTemplate如果这样做的话，应该分三次处理：平衡组正则递归匹配标签元素、非标签内容变量元素匹配（如{$:i}）、T4解析
 
 3，VTemplate的标签可以指定id和name
- ElementCollection<Tag> ListCt = this.Document.DocumentElement.GetChildTagsByName("Category");这个可以定位到模版里面的某一个标签，这是取模板里所有名为 Category 的标签这个设计，显然是仿照浏览器Dom的4，高级的变量表达式{$user.name length="5" bytelength="8"}{$user.last format="yyyy-MM-dd HH:mm:ss"}5，很好的架构，标签可以由订制的标签解析器完成解析6，XTemplate也应该考虑可以注册函数，允许模版调用外部方法
+ ElementCollection<Tag> ListCt = this.Document.DocumentElement.GetChildTagsByName("Category");
+这个可以定位到模版里面的某一个标签，这是取模板里所有名为 Category 的标签
+这个设计，显然是仿照浏览器Dom的
+
+4，高级的变量表达式
+{$user.name length="5" bytelength="8"}
+{$user.last format="yyyy-MM-dd HH:mm:ss"}
+
+5，很好的架构，标签可以由订制的标签解析器完成解析
+
+6，XTemplate也应该考虑可以注册函数，允许模版调用外部方法

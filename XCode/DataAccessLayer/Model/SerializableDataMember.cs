@@ -60,6 +60,8 @@ namespace XCode.DataAccessLayer
         {
             Object def = GetDefault(this.GetType());
 
+            String name = null;
+
             List<PropertyInfo> list = TypeX.Create(this.GetType()).Properties;
             // 基本类型，输出为特性
             foreach (PropertyInfoX item in list)
@@ -70,7 +72,18 @@ namespace XCode.DataAccessLayer
 
                 Object obj = item.GetValue(this);
                 // 默认值不参与序列化，节省空间
-                if (!WriteDefaultValueMember && Object.Equals(obj, item.GetValue(def))) continue;
+                if (!WriteDefaultValueMember)
+                {
+                    Object dobj = item.GetValue(def);
+                    if (Object.Equals(obj, dobj)) continue;
+                    if (item.Type == typeof(String) && "" + obj == "" + dobj) continue;
+                }
+
+                // 如果别名与名称相同，则跳过
+                if (item.Name == "Name")
+                    name = (String)obj;
+                else if (item.Name == "Alias")
+                    if (name == (String)obj) continue;
 
                 if (item.Type == typeof(Type)) obj = (obj as Type).Name;
                 writer.WriteAttributeString(item.Name, obj == null ? null : obj.ToString());
