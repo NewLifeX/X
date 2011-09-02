@@ -35,6 +35,7 @@ using System.Runtime.InteropServices;
 /*
  * v4.1.2011.0902   修改自动更新逻辑，先下载，再询问是否更新
  *                  改善自动发现机制，自动发现本地SQLite和Access文件
+ *                  增加自动在线翻译功能，调用Bing翻译
  * 
  * v4.0.2011.0829   升级XCode到v8
  *                  增加自动更新功能

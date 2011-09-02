@@ -71,6 +71,8 @@
     <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Web.Services" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.XML" />
     <Reference Include="XTemplate, Version=1.2.3938.32236, Culture=neutral, processorArchitecture=MSIL">
@@ -80,6 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutoUpdate.cs" />
+    <Compile Include="BingTranslate.cs" />
     <Compile Include="Engine\FileSource.cs" />
     <Compile Include="Engine\XConfig.cs" />
     <Compile Include="Engine\XCoderBase.cs" />
@@ -90,8 +93,19 @@
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
     <Compile Include="Engine\Engine.cs" />
+    <Compile Include="ITranslate.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="Web References\com.microsofttranslator.api\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.map</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="Template\实体\类名.Biz.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
@@ -137,6 +151,34 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="Web References\com.microsofttranslator.api\GetTranslationsResponse.datasource">
+      <DependentUpon>Reference.map</DependentUpon>
+    </None>
+    <None Include="Web References\com.microsofttranslator.api\Reference.map">
+      <Generator>MSDiscoCodeGenerator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+    <None Include="Web References\com.microsofttranslator.api\soap.wsdl" />
+    <None Include="Web References\com.microsofttranslator.api\soap.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Web References\com.microsofttranslator.api\soap0.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Web References\com.microsofttranslator.api\soap1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Web References\com.microsofttranslator.api\soap2.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Web References\com.microsofttranslator.api\SoapService.wsdl" />
+    <None Include="Web References\com.microsofttranslator.api\TranslateArrayResponse.datasource">
+      <DependentUpon>Reference.map</DependentUpon>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
@@ -164,6 +206,22 @@
       <Project>{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}</Project>
       <Name>XCode</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WebReferences Include="Web References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WebReferenceUrl Include="http://api.microsofttranslator.com/V2/Soap.svc">
+      <UrlBehavior>Dynamic</UrlBehavior>
+      <RelPath>Web References\com.microsofttranslator.api\</RelPath>
+      <UpdateFromURL>http://api.microsofttranslator.com/V2/Soap.svc</UpdateFromURL>
+      <ServiceLocationURL>
+      </ServiceLocationURL>
+      <CachedDynamicPropName>
+      </CachedDynamicPropName>
+      <CachedAppSettingsObjectName>Settings</CachedAppSettingsObjectName>
+      <CachedSettingsPropName>XCoder_com_microsofttranslator_api_SoapService</CachedSettingsPropName>
+    </WebReferenceUrl>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

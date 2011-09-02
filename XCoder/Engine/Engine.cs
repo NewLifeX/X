@@ -9,6 +9,8 @@ using Microsoft.CSharp;
 using Microsoft.VisualBasic;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
+using System.Threading;
+using NewLife.Log;
 
 namespace XCoder
 {
@@ -175,7 +177,7 @@ namespace XCoder
             {
                 name = name.ToLower();
                 Char c = name[0];
-                c = (Char)(c - 'a' + 'A');
+                if (c >= 'a' && c <= 'z') c = (Char)(c - 'a' + 'A');
                 name = c + name.Substring(1);
             }
 
@@ -390,6 +392,9 @@ namespace XCoder
             }
             //Tables = list;
 
+            Dictionary<Object, String> noCNDic = new Dictionary<object, string>();
+
+            #region 修正数据
             foreach (IDataTable table in list)
             {
                 // 别名、类名
@@ -400,7 +405,12 @@ namespace XCoder
                 table.Alias = name;
 
                 // 描述
-                if (Config.UseCNFileName && String.IsNullOrEmpty(table.Description)) table.Description = Engine.ENameToCName(table.Alias);
+                if (Config.UseCNFileName)
+                {
+                    if (String.IsNullOrEmpty(table.Description)) table.Description = ENameToCName(table.Alias);
+
+                    if (String.IsNullOrEmpty(table.Description)) noCNDic.Add(table, table.Alias);
+                }
 
                 // 字段
                 foreach (IDataColumn dc in table.Columns)
@@ -425,12 +435,88 @@ namespace XCoder
                     dc.Alias = name;
 
                     // 描述
-                    if (Config.UseCNFileName && String.IsNullOrEmpty(dc.Description)) dc.Description = Engine.ENameToCName(dc.Alias);
+                    if (Config.UseCNFileName)
+                    {
+                        if (String.IsNullOrEmpty(dc.Description)) dc.Description = Engine.ENameToCName(dc.Alias);
 
+                        if (String.IsNullOrEmpty(dc.Description)) noCNDic.Add(dc, dc.Alias);
+                    }
                 }
             }
+            #endregion
+
+            #region 异步调用接口修正中文名
+            if (Config.UseCNFileName && noCNDic.Count > 0)
+            {
+                ThreadPool.QueueUserWorkItem(TranslateWords, noCNDic);
+            }
+            #endregion
 
             return list;
+        }
+
+        void TranslateWords(Object state)
+        {
+            try
+            {
+                Dictionary<Object, String> dic = state as Dictionary<Object, String>;
+                List<String> words = new List<string>();
+                foreach (String item in dic.Values)
+                {
+                    if (Encoding.UTF8.GetByteCount(item) != item.Length) continue;
+
+                    // 分词
+                    String str = item;
+                    List<String> ks = new List<string>();
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < str.Length; i++)
+                    {
+                        // 如果不是小写，作为边界，拆分
+                        if (!(str[i] >= 'a' && str[i] <= 'z'))
+                        {
+                            if (sb.Length > 0)
+                            {
+                                ks.Add(sb.ToString());
+                                sb.Remove(0, sb.Length);
+                            }
+                        }
+                        sb.Append(str[i]);
+                    }
+                    if (sb.Length > 0)
+                    {
+                        ks.Add(sb.ToString());
+                        sb.Remove(0, sb.Length);
+                    }
+                    str = String.Join(" ", ks.ToArray());
+
+                    if (!String.IsNullOrEmpty(str) && !words.Contains(str)) words.Add(str);
+                }
+
+                ITranslate trs = new BingTranslate();
+                String[] rs = trs.Translate(words.ToArray());
+                if (rs == null || rs.Length < 1) return;
+
+                Dictionary<String, String> ts = new Dictionary<string, string>();
+                for (int i = 0; i < words.Count && i < rs.Length; i++)
+                {
+                    String key = words[i].Replace(" ", null);
+                    if (!ts.ContainsKey(key) && !String.IsNullOrEmpty(rs[i]) && words[i] != rs[i] && key != rs[i].Replace(" ", null)) ts.Add(key, rs[i].Replace(" ", null));
+                }
+
+                foreach (KeyValuePair<Object, String> item in dic)
+                {
+                    if (!ts.ContainsKey(item.Value) || String.IsNullOrEmpty(ts[item.Value])) continue;
+
+                    if (item.Key is IDataTable)
+                        (item.Key as IDataTable).Description = ts[item.Value];
+                    else if (item.Key is IDataColumn)
+                        (item.Key as IDataColumn).Description = ts[item.Value];
+                }
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteLine(ex.ToString());
+            }
         }
         #endregion
 
