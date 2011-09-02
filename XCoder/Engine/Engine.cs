@@ -1,26 +1,26 @@
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
-using XCode.DataAccessLayer;
-using XTemplate.Templating;
-using System.Reflection;
-using System.CodeDom.Compiler;
 using Microsoft.CSharp;
 using Microsoft.VisualBasic;
+using XCode.DataAccessLayer;
+using XTemplate.Templating;
 
 namespace XCoder
 {
     /// <summary>
     /// 代码生成器类
     /// </summary>
-    public class XCoder
+    public class Engine
     {
         #region 属性
         public const String TemplatePath = "Template";
 
-        public XCoder(XConfig config)
+        public Engine(XConfig config)
         {
             Config = config;
         }
@@ -37,21 +37,22 @@ namespace XCoder
         /// <summary>所有表</summary>
         public List<IDataTable> Tables
         {
-            get
-            {
-                if (_Tables == null)
-                {
-                    try
-                    {
-                        _Tables = DAL.Create(Config.ConnName).Tables;
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.ToString());
-                    }
-                }
-                return _Tables;
-            }
+            get { return _Tables; }
+            //get
+            //{
+            //    if (_Tables == null)
+            //    {
+            //        try
+            //        {
+            //            _Tables = DAL.Create(Config.ConnName).Tables;
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            MessageBox.Show(ex.ToString());
+            //        }
+            //    }
+            //    return _Tables;
+            //}
             set { _Tables = value; }
         }
 
@@ -393,7 +394,7 @@ namespace XCoder
                 table.Alias = name;
 
                 // 描述
-                if (Config.UseCNFileName && String.IsNullOrEmpty(table.Description)) table.Description = XCoder.ENameToCName(table.Alias);
+                if (Config.UseCNFileName && String.IsNullOrEmpty(table.Description)) table.Description = Engine.ENameToCName(table.Alias);
 
                 // 字段
                 foreach (IDataColumn dc in table.Columns)
@@ -418,7 +419,7 @@ namespace XCoder
                     dc.Alias = name;
 
                     // 描述
-                    if (Config.UseCNFileName && String.IsNullOrEmpty(dc.Description)) dc.Description = XCoder.ENameToCName(dc.Alias);
+                    if (Config.UseCNFileName && String.IsNullOrEmpty(dc.Description)) dc.Description = Engine.ENameToCName(dc.Alias);
 
                 }
             }

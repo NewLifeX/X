@@ -51,7 +51,7 @@ namespace XCoder
         }
 
         /// <summary>文件版本</summary>
-        public static String Version { get { return XCoder.FileVersion; } }
+        public static String Version { get { return Engine.FileVersion; } }
         #endregion
 
         #region 重载
@@ -84,7 +84,7 @@ namespace XCoder
         /// <returns></returns>
         public virtual String CutPrefix(String name)
         {
-            return XCoder.CutPrefix(name);
+            return Engine.CutPrefix(name);
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace XCoder
         /// <returns></returns>
         public virtual String FixWord(String name)
         {
-            return XCoder.FixWord(name);
+            return Engine.FixWord(name);
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace XCoder
         public virtual String GetPropertyDescription(IDataColumn field)
         {
             if (!String.IsNullOrEmpty(field.Description) || !Config.UseCNFileName) return field.Description;
-            return XCoder.ENameToCName(field.Name);
+            return Engine.ENameToCName(field.Name);
         }
 
         /// <summary>
@@ -160,7 +160,7 @@ namespace XCoder
             if (!Config.UseCNFileName) return table.Description;
 
             String remark = table.Description;
-            if (Config.UseCNFileName && String.IsNullOrEmpty(remark)) remark = XCoder.ENameToCName(GetClassName(table));
+            if (Config.UseCNFileName && String.IsNullOrEmpty(remark)) remark = Engine.ENameToCName(GetClassName(table));
 
             return remark;
         }

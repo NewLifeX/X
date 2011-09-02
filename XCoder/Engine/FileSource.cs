@@ -20,7 +20,7 @@ namespace XCoder
             {
                 try
                 {
-                    String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, XCoder.TemplatePath);
+                    String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Engine.TemplatePath);
                     if (!Directory.Exists(path))
                         ReleaseTemplateFiles();
                 }
@@ -36,7 +36,7 @@ namespace XCoder
         /// </summary>
         public static void ReleaseTemplateFiles()
         {
-            String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, XCoder.TemplatePath);
+            String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Engine.TemplatePath);
             //if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
             String[] ss = Assembly.GetExecutingAssembly().GetManifestResourceNames();

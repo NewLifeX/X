@@ -31,21 +31,21 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
             this.bt_Connection = new System.Windows.Forms.Button();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.gbConnect = new System.Windows.Forms.GroupBox();
             this.cbConn = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.gbTable = new System.Windows.Forms.GroupBox();
             this.button1 = new System.Windows.Forms.Button();
             this.bt_GenAll = new System.Windows.Forms.Button();
             this.bt_GenTable = new System.Windows.Forms.Button();
-            this.cb_Table = new System.Windows.Forms.ComboBox();
+            this.cbTableList = new System.Windows.Forms.ComboBox();
             this.label5 = new System.Windows.Forms.Label();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lb_Status = new System.Windows.Forms.ToolStripStatusLabel();
             this.pg_Process = new System.Windows.Forms.ToolStripProgressBar();
             this.proc_percent = new System.Windows.Forms.ToolStripStatusLabel();
             this.bw = new System.ComponentModel.BackgroundWorker();
-            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.gbConfig = new System.Windows.Forms.GroupBox();
             this.btnOpenOutputDir = new System.Windows.Forms.Button();
             this.label9 = new System.Windows.Forms.Label();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
@@ -66,19 +66,22 @@
             this.label6 = new System.Windows.Forms.Label();
             this.cb_Template = new System.Windows.Forms.ComboBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.btnImport = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.label3 = new System.Windows.Forms.Label();
             this.timer2 = new System.Windows.Forms.Timer(this.components);
-            this.groupBox1.SuspendLayout();
-            this.groupBox2.SuspendLayout();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.gbConnect.SuspendLayout();
+            this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
-            this.groupBox3.SuspendLayout();
+            this.gbConfig.SuspendLayout();
             this.SuspendLayout();
             // 
             // bt_Connection
             // 
-            this.bt_Connection.Location = new System.Drawing.Point(283, 10);
+            this.bt_Connection.Location = new System.Drawing.Point(183, 12);
             this.bt_Connection.Name = "bt_Connection";
             this.bt_Connection.Size = new System.Drawing.Size(52, 23);
             this.bt_Connection.TabIndex = 6;
@@ -87,23 +90,23 @@
             this.bt_Connection.UseVisualStyleBackColor = true;
             this.bt_Connection.Click += new System.EventHandler(this.bt_Connection_Click);
             // 
-            // groupBox1
+            // gbConnect
             // 
-            this.groupBox1.Controls.Add(this.cbConn);
-            this.groupBox1.Controls.Add(this.label4);
-            this.groupBox1.Location = new System.Drawing.Point(2, 0);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(262, 38);
-            this.groupBox1.TabIndex = 7;
-            this.groupBox1.TabStop = false;
+            this.gbConnect.Controls.Add(this.cbConn);
+            this.gbConnect.Controls.Add(this.label4);
+            this.gbConnect.Location = new System.Drawing.Point(2, 0);
+            this.gbConnect.Name = "gbConnect";
+            this.gbConnect.Size = new System.Drawing.Size(175, 38);
+            this.gbConnect.TabIndex = 7;
+            this.gbConnect.TabStop = false;
             // 
             // cbConn
             // 
             this.cbConn.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbConn.FormattingEnabled = true;
-            this.cbConn.Location = new System.Drawing.Point(71, 13);
+            this.cbConn.Location = new System.Drawing.Point(58, 13);
             this.cbConn.Name = "cbConn";
-            this.cbConn.Size = new System.Drawing.Size(173, 20);
+            this.cbConn.Size = new System.Drawing.Size(110, 20);
             this.cbConn.TabIndex = 13;
             this.cbConn.SelectedIndexChanged += new System.EventHandler(this.cbConn_SelectedIndexChanged);
             // 
@@ -116,19 +119,19 @@
             this.label4.TabIndex = 12;
             this.label4.Text = "连接：";
             // 
-            // groupBox2
+            // gbTable
             // 
-            this.groupBox2.Controls.Add(this.button1);
-            this.groupBox2.Controls.Add(this.bt_GenAll);
-            this.groupBox2.Controls.Add(this.bt_GenTable);
-            this.groupBox2.Controls.Add(this.cb_Table);
-            this.groupBox2.Controls.Add(this.label5);
-            this.groupBox2.Enabled = false;
-            this.groupBox2.Location = new System.Drawing.Point(2, 45);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(725, 49);
-            this.groupBox2.TabIndex = 14;
-            this.groupBox2.TabStop = false;
+            this.gbTable.Controls.Add(this.button1);
+            this.gbTable.Controls.Add(this.bt_GenAll);
+            this.gbTable.Controls.Add(this.bt_GenTable);
+            this.gbTable.Controls.Add(this.cbTableList);
+            this.gbTable.Controls.Add(this.label5);
+            this.gbTable.Enabled = false;
+            this.gbTable.Location = new System.Drawing.Point(2, 45);
+            this.gbTable.Name = "gbTable";
+            this.gbTable.Size = new System.Drawing.Size(725, 49);
+            this.gbTable.TabIndex = 14;
+            this.gbTable.TabStop = false;
             // 
             // button1
             // 
@@ -160,14 +163,14 @@
             this.bt_GenTable.UseVisualStyleBackColor = true;
             this.bt_GenTable.Click += new System.EventHandler(this.bt_GenTable_Click);
             // 
-            // cb_Table
+            // cbTableList
             // 
-            this.cb_Table.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_Table.FormattingEnabled = true;
-            this.cb_Table.Location = new System.Drawing.Point(71, 20);
-            this.cb_Table.Name = "cb_Table";
-            this.cb_Table.Size = new System.Drawing.Size(173, 20);
-            this.cb_Table.TabIndex = 17;
+            this.cbTableList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbTableList.FormattingEnabled = true;
+            this.cbTableList.Location = new System.Drawing.Point(58, 20);
+            this.cbTableList.Name = "cbTableList";
+            this.cbTableList.Size = new System.Drawing.Size(173, 20);
+            this.cbTableList.TabIndex = 17;
             // 
             // label5
             // 
@@ -218,32 +221,32 @@
             this.bw.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.bw_ProgressChanged);
             this.bw.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bw_RunWorkerCompleted);
             // 
-            // groupBox3
+            // gbConfig
             // 
-            this.groupBox3.Controls.Add(this.btnOpenOutputDir);
-            this.groupBox3.Controls.Add(this.label9);
-            this.groupBox3.Controls.Add(this.webBrowser1);
-            this.groupBox3.Controls.Add(this.checkBox5);
-            this.groupBox3.Controls.Add(this.richTextBox2);
-            this.groupBox3.Controls.Add(this.checkBox4);
-            this.groupBox3.Controls.Add(this.checkBox3);
-            this.groupBox3.Controls.Add(this.checkBox2);
-            this.groupBox3.Controls.Add(this.checkBox1);
-            this.groupBox3.Controls.Add(this.txtPrefix);
-            this.groupBox3.Controls.Add(this.label2);
-            this.groupBox3.Controls.Add(this.txt_ConnName);
-            this.groupBox3.Controls.Add(this.label1);
-            this.groupBox3.Controls.Add(this.txt_NameSpace);
-            this.groupBox3.Controls.Add(this.label8);
-            this.groupBox3.Controls.Add(this.txt_OutPath);
-            this.groupBox3.Controls.Add(this.label7);
-            this.groupBox3.Controls.Add(this.label6);
-            this.groupBox3.Controls.Add(this.cb_Template);
-            this.groupBox3.Location = new System.Drawing.Point(2, 100);
-            this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(725, 224);
-            this.groupBox3.TabIndex = 26;
-            this.groupBox3.TabStop = false;
+            this.gbConfig.Controls.Add(this.btnOpenOutputDir);
+            this.gbConfig.Controls.Add(this.label9);
+            this.gbConfig.Controls.Add(this.webBrowser1);
+            this.gbConfig.Controls.Add(this.checkBox5);
+            this.gbConfig.Controls.Add(this.richTextBox2);
+            this.gbConfig.Controls.Add(this.checkBox4);
+            this.gbConfig.Controls.Add(this.checkBox3);
+            this.gbConfig.Controls.Add(this.checkBox2);
+            this.gbConfig.Controls.Add(this.checkBox1);
+            this.gbConfig.Controls.Add(this.txtPrefix);
+            this.gbConfig.Controls.Add(this.label2);
+            this.gbConfig.Controls.Add(this.txt_ConnName);
+            this.gbConfig.Controls.Add(this.label1);
+            this.gbConfig.Controls.Add(this.txt_NameSpace);
+            this.gbConfig.Controls.Add(this.label8);
+            this.gbConfig.Controls.Add(this.txt_OutPath);
+            this.gbConfig.Controls.Add(this.label7);
+            this.gbConfig.Controls.Add(this.label6);
+            this.gbConfig.Controls.Add(this.cb_Template);
+            this.gbConfig.Location = new System.Drawing.Point(2, 100);
+            this.gbConfig.Name = "gbConfig";
+            this.gbConfig.Size = new System.Drawing.Size(725, 224);
+            this.gbConfig.TabIndex = 26;
+            this.gbConfig.TabStop = false;
             // 
             // btnOpenOutputDir
             // 
@@ -417,10 +420,21 @@
             // 
             this.cb_Template.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cb_Template.FormattingEnabled = true;
-            this.cb_Template.Location = new System.Drawing.Point(71, 20);
+            this.cb_Template.Location = new System.Drawing.Point(58, 20);
             this.cb_Template.Name = "cb_Template";
             this.cb_Template.Size = new System.Drawing.Size(90, 20);
             this.cb_Template.TabIndex = 26;
+            // 
+            // btnImport
+            // 
+            this.btnImport.Location = new System.Drawing.Point(245, 12);
+            this.btnImport.Name = "btnImport";
+            this.btnImport.Size = new System.Drawing.Size(80, 23);
+            this.btnImport.TabIndex = 30;
+            this.btnImport.Text = "导入架构";
+            this.toolTip1.SetToolTip(this.btnImport, "数据库结构带有缓存，如不能获取最新结构，请稍候重试！");
+            this.btnImport.UseVisualStyleBackColor = true;
+            this.btnImport.Click += new System.EventHandler(this.btnImport_Click);
             // 
             // timer1
             // 
@@ -454,17 +468,26 @@
             this.timer2.Interval = 2000;
             this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
             // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.Filter = "架构文件|*.xml";
+            // 
+            // saveFileDialog1
+            // 
+            this.saveFileDialog1.Filter = "架构文件|*.xml";
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(730, 350);
+            this.Controls.Add(this.btnImport);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.linkLabel1);
-            this.Controls.Add(this.groupBox3);
+            this.Controls.Add(this.gbConfig);
             this.Controls.Add(this.statusStrip1);
-            this.Controls.Add(this.groupBox2);
-            this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.gbTable);
+            this.Controls.Add(this.gbConnect);
             this.Controls.Add(this.bt_Connection);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FrmMain";
@@ -474,14 +497,14 @@
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmMain_FormClosing);
             this.Load += new System.EventHandler(this.FrmMain_Load);
             this.Shown += new System.EventHandler(this.FrmMain_Shown);
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
+            this.gbConnect.ResumeLayout(false);
+            this.gbConnect.PerformLayout();
+            this.gbTable.ResumeLayout(false);
+            this.gbTable.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
-            this.groupBox3.ResumeLayout(false);
-            this.groupBox3.PerformLayout();
+            this.gbConfig.ResumeLayout(false);
+            this.gbConfig.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -490,10 +513,10 @@
 		#endregion
 
 		private System.Windows.Forms.Button bt_Connection;
-		private System.Windows.Forms.GroupBox groupBox1;
-		private System.Windows.Forms.GroupBox groupBox2;
+		private System.Windows.Forms.GroupBox gbConnect;
+		private System.Windows.Forms.GroupBox gbTable;
 		private System.Windows.Forms.Button bt_GenTable;
-		private System.Windows.Forms.ComboBox cb_Table;
+		private System.Windows.Forms.ComboBox cbTableList;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label4;
 		private System.Windows.Forms.Button bt_GenAll;
@@ -502,7 +525,7 @@
 		private System.Windows.Forms.ToolStripProgressBar pg_Process;
 		private System.ComponentModel.BackgroundWorker bw;
         private System.Windows.Forms.ToolStripStatusLabel proc_percent;
-        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.GroupBox gbConfig;
         private System.Windows.Forms.TextBox txt_ConnName;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txt_NameSpace;
@@ -529,6 +552,9 @@
         private System.Windows.Forms.WebBrowser webBrowser1;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Button btnOpenOutputDir;
+        private System.Windows.Forms.Button btnImport;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
+        private System.Windows.Forms.SaveFileDialog saveFileDialog1;
 	}
 }
 

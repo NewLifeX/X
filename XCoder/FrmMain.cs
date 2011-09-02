@@ -26,12 +26,12 @@ namespace XCoder
         /// </summary>
         public static XConfig Config { get { return XConfig.Current; } }
 
-        private XCoder _Coder;
+        private Engine _Engine;
         /// <summary>生成器</summary>
-        public XCoder Coder
+        public Engine Engine
         {
-            get { return _Coder ?? (_Coder = new XCoder(Config)); }
-            set { _Coder = value; }
+            get { return _Engine ?? (_Engine = new Engine(Config)); }
+            set { _Engine = value; }
         }
         #endregion
 
@@ -47,7 +47,7 @@ namespace XCoder
 
         private void FrmMain_Shown(object sender, EventArgs e)
         {
-            Text = "新生命代码生成器 V" + XCoder.FileVersion;
+            Text = "新生命代码生成器 V" + Engine.FileVersion;
             Template.BaseClassName = typeof(XCoderBase).FullName;
         }
 
@@ -72,13 +72,13 @@ namespace XCoder
                 Config.LastUpdate = DateTime.Now;
 
                 AutoUpdate au = new AutoUpdate();
-                au.LocalVersion = new Version(XCoder.FileVersion);
+                au.LocalVersion = new Version(Engine.FileVersion);
                 au.VerSrc = "http://files.cnblogs.com/nnhy/XCoderVer.xml";
                 au.ProcessAsync();
             }
 
             String url = "http://www.7765.com/api/";
-            url += String.Format("?tag=XCoder_v{0}&r={1}", XCoder.FileVersion, DateTime.Now.Ticks);
+            url += String.Format("?tag=XCoder_v{0}&r={1}", Engine.FileVersion, DateTime.Now.Ticks);
             webBrowser1.Navigate(url);
         }
 
@@ -168,7 +168,7 @@ namespace XCoder
         /// </summary>
         public void BindTemplate(ComboBox cb)
         {
-            String TemplatePath = XCoder.TemplatePath;
+            String TemplatePath = Engine.TemplatePath;
 
             cb.Items.Clear();
 
@@ -210,25 +210,85 @@ namespace XCoder
 
             if (bt_Connection.Text == "连接")
             {
-                cb_Table.Items.Clear();
+                cbTableList.Items.Clear();
 
-                Coder = null;
-                cb_Table.DataSource = Coder.Tables;
-                cb_Table.DisplayMember = "Name";
-                cb_Table.ValueMember = "Name";
+                Engine = null;
+                Engine.Tables = DAL.Create(Config.ConnName).Tables;
 
-                groupBox1.Enabled = false;
-                groupBox2.Enabled = true;
+                cbTableList.DataSource = Engine.Tables;
+                cbTableList.DisplayMember = "Name";
+                cbTableList.ValueMember = "Name";
+
+                gbConnect.Enabled = false;
+                gbTable.Enabled = true;
                 bt_Connection.Text = "断开";
+
+                btnImport.Text = "导出架构";
             }
             else
             {
-                cb_Table.DataSource = null;
-                cb_Table.Items.Clear();
+                cbTableList.DataSource = null;
+                cbTableList.Items.Clear();
 
-                groupBox1.Enabled = true;
-                groupBox2.Enabled = false;
+                gbConnect.Enabled = true;
+                gbTable.Enabled = false;
                 bt_Connection.Text = "连接";
+
+                btnImport.Text = "导入架构";
+            }
+        }
+
+        private void btnImport_Click(object sender, EventArgs e)
+        {
+            if (btnImport.Text == "导入架构")
+            {
+                if (openFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(openFileDialog1.FileName)) return;
+                try
+                {
+                    List<IDataTable> list = DAL.Import(File.ReadAllText(openFileDialog1.FileName));
+
+                    Engine = null;
+                    Engine.Tables = list;
+
+                    cbTableList.DataSource = Engine.Tables;
+                    cbTableList.DisplayMember = "Name";
+                    cbTableList.ValueMember = "Name";
+
+                    gbTable.Enabled = true;
+
+                    MessageBox.Show("导入架构成功！共" + (list == null ? 0 : list.Count) + "张表！", "导入架构", MessageBoxButtons.OK);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+            else
+            {
+                if (!String.IsNullOrEmpty(Config.ConnName))
+                {
+                    String file = Config.ConnName + ".xml";
+                    String dir = null;
+                    if (!String.IsNullOrEmpty(saveFileDialog1.FileName))
+                        dir = Path.GetDirectoryName(saveFileDialog1.FileName);
+                    if (String.IsNullOrEmpty(dir)) dir = AppDomain.CurrentDomain.BaseDirectory;
+                    saveFileDialog1.FileName = Path.Combine(dir, file);
+                }
+                if (saveFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(saveFileDialog1.FileName)) return;
+                try
+                {
+                    //String xml = DAL.Create(Config.ConnName).Export();
+                    String xml = DAL.Export(Engine.Tables);
+                    File.WriteAllText(saveFileDialog1.FileName, xml);
+
+                    MessageBox.Show("导出架构成功！", "导出架构", MessageBoxButtons.OK);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
             }
         }
 
@@ -243,7 +303,7 @@ namespace XCoder
                 {
                     IList<IDataTable> tables = DAL.Create(name).Tables;
                 }
-                catch (Exception ex)
+                catch //(Exception ex)
                 {
                     //MessageBox.Show(ex.ToString(), this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     //lb_Status.Text = ex.Message;
@@ -258,15 +318,15 @@ namespace XCoder
         {
             SaveConfig();
 
-            if (cb_Template.SelectedValue == null || cb_Table.SelectedValue == null) return;
+            if (cb_Template.SelectedValue == null || cbTableList.SelectedValue == null) return;
 
             sw.Reset();
             sw.Start();
 
             try
             {
-                Coder.FixTable();
-                String[] ss = Coder.Render(cb_Table.Text);
+                Engine.FixTable();
+                String[] ss = Engine.Render(cbTableList.Text);
                 //richTextBox1.Text = ss[0];
             }
             catch (TemplateException ex)
@@ -279,16 +339,16 @@ namespace XCoder
             }
 
             sw.Stop();
-            lb_Status.Text = "生成 " + cb_Table.Text + " 完成！耗时：" + sw.Elapsed.ToString();
+            lb_Status.Text = "生成 " + cbTableList.Text + " 完成！耗时：" + sw.Elapsed.ToString();
         }
 
         private void bt_GenAll_Click(object sender, EventArgs e)
         {
             SaveConfig();
 
-            if (cb_Template.SelectedValue == null || cb_Table.Items.Count < 1) return;
+            if (cb_Template.SelectedValue == null || cbTableList.Items.Count < 1) return;
 
-            IList<IDataTable> tables = Coder.Tables;
+            IList<IDataTable> tables = Engine.Tables;
             if (tables == null || tables.Count < 1) return;
 
             pg_Process.Minimum = 0;
@@ -319,12 +379,12 @@ namespace XCoder
         {
             List<String> param = e.Argument as List<String>;
             int i = 1;
-            Coder.FixTable();
+            Engine.FixTable();
             foreach (String tableName in param)
             {
                 try
                 {
-                    Coder.Render(tableName);
+                    Engine.Render(tableName);
                 }
                 catch (TemplateException ex)
                 {
@@ -355,10 +415,10 @@ namespace XCoder
         {
             pg_Process.Value = pg_Process.Maximum;
             proc_percent.Text = (int)(100 * pg_Process.Value / pg_Process.Maximum) + "%";
-            Coder = null;
+            Engine = null;
 
             sw.Stop();
-            lb_Status.Text = "生成 " + cb_Table.Items.Count + " 个类完成！耗时：" + sw.Elapsed.ToString();
+            lb_Status.Text = "生成 " + cbTableList.Items.Count + " 个类完成！耗时：" + sw.Elapsed.ToString();
 
             bt_GenAll.Enabled = true;
         }
@@ -422,10 +482,10 @@ namespace XCoder
 
             foreach (IDataTable table in tables)
             {
-                XCoder.AddWord(table.Name, table.Description);
+                Engine.AddWord(table.Name, table.Description);
                 foreach (IDataColumn field in table.Columns)
                 {
-                    XCoder.AddWord(field.Name, field.Description);
+                    Engine.AddWord(field.Name, field.Description);
                 }
             }
 

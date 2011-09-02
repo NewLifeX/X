@@ -129,7 +129,7 @@ namespace XCoder
                 // 删除dir目录
                 sb.AppendLine("rd \"" + dir + "\" /s /q");
                 // 删除模版目录
-                dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, XCoder.TemplatePath);
+                dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Engine.TemplatePath);
                 sb.AppendLine("rd \"" + dir + "\" /s /q");
 
                 String tmpfile = Path.GetTempFileName() + ".bat";
