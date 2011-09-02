@@ -106,7 +106,8 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 #>
 		#endregion
 
-		#region 扩展查询<#
+		#region 扩展查询
+<#
 // 这里是FindByKeyForEdit，用C#代码拼好了再输出，那样好看点
 if(Table.PrimaryKeys!=null&&Table.PrimaryKeys.Length>0)
 {
@@ -269,7 +270,8 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
 <#
     }
 }
-#>		#endregion
+#>
+        #endregion
 
 		#region 高级查询
 		/// <summary>
