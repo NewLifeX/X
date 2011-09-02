@@ -77,22 +77,7 @@ namespace XCoder
             if (LocalVersion >= ver.GetVersion()) return;
             #endregion
 
-            #region 提示更新
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.AppendFormat("是否更新到最新版本：{0}", ver.Ver);
-                sb.AppendLine();
-                if (!String.IsNullOrEmpty(ver.Description))
-                {
-                    sb.AppendLine("更新内容：");
-                    sb.Append(ver.Description);
-                }
-
-                if (MessageBox.Show(sb.ToString(), "发现新版本", MessageBoxButtons.OKCancel) == DialogResult.Cancel) return;
-            }
-            #endregion
-
-            #region 更新
+            #region 下载
             String upfile = String.Format("XCoder_{0}.zip", ver.Ver);
             upfile = Path.Combine("Update", upfile);
             String file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, upfile);
@@ -112,6 +97,24 @@ namespace XCoder
 
                 client.DownloadFile(url, file);
             }
+            #endregion
+
+            #region 提示更新
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendFormat("是否更新到最新版本：{0}", ver.Ver);
+                sb.AppendLine();
+                if (!String.IsNullOrEmpty(ver.Description))
+                {
+                    sb.AppendLine("更新内容：");
+                    sb.Append(ver.Description);
+                }
+
+                if (MessageBox.Show(sb.ToString(), "发现新版本", MessageBoxButtons.OKCancel) == DialogResult.Cancel) return;
+            }
+            #endregion
+
+            #region 更新
             if (File.Exists(file))
             {
                 // 解压缩，删除压缩文件

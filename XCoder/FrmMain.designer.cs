@@ -81,7 +81,7 @@
             // 
             // bt_Connection
             // 
-            this.bt_Connection.Location = new System.Drawing.Point(183, 12);
+            this.bt_Connection.Location = new System.Drawing.Point(217, 12);
             this.bt_Connection.Name = "bt_Connection";
             this.bt_Connection.Size = new System.Drawing.Size(52, 23);
             this.bt_Connection.TabIndex = 6;
@@ -96,7 +96,7 @@
             this.gbConnect.Controls.Add(this.label4);
             this.gbConnect.Location = new System.Drawing.Point(2, 0);
             this.gbConnect.Name = "gbConnect";
-            this.gbConnect.Size = new System.Drawing.Size(175, 38);
+            this.gbConnect.Size = new System.Drawing.Size(205, 38);
             this.gbConnect.TabIndex = 7;
             this.gbConnect.TabStop = false;
             // 
@@ -106,7 +106,7 @@
             this.cbConn.FormattingEnabled = true;
             this.cbConn.Location = new System.Drawing.Point(58, 13);
             this.cbConn.Name = "cbConn";
-            this.cbConn.Size = new System.Drawing.Size(110, 20);
+            this.cbConn.Size = new System.Drawing.Size(141, 20);
             this.cbConn.TabIndex = 13;
             this.cbConn.SelectedIndexChanged += new System.EventHandler(this.cbConn_SelectedIndexChanged);
             // 
@@ -427,12 +427,12 @@
             // 
             // btnImport
             // 
-            this.btnImport.Location = new System.Drawing.Point(245, 12);
+            this.btnImport.Location = new System.Drawing.Point(279, 12);
             this.btnImport.Name = "btnImport";
             this.btnImport.Size = new System.Drawing.Size(80, 23);
             this.btnImport.TabIndex = 30;
             this.btnImport.Text = "导入架构";
-            this.toolTip1.SetToolTip(this.btnImport, "数据库结构带有缓存，如不能获取最新结构，请稍候重试！");
+            this.toolTip1.SetToolTip(this.btnImport, "把数据库架构信息导出到xml文件，或者从xml文件导入");
             this.btnImport.UseVisualStyleBackColor = true;
             this.btnImport.Click += new System.EventHandler(this.btnImport_Click);
             // 

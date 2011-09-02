@@ -6,15 +6,12 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
-using NewLife.Web;
-using NewLife.IO;
-using NewLife.Log;
+using System.Text;
 
 namespace XCoder
 {
@@ -58,7 +55,8 @@ namespace XCoder
             {
                 list.Add(item);
             }
-            Conns = list;
+            //Conns = list;
+            SetDatabaseList(list);
 
             BindTemplate(cb_Template);
 
@@ -89,8 +87,40 @@ namespace XCoder
         void AutoDetectDatabase(Object state)
         {
             List<String> list = new List<String>();
-            // 加上本机
-            DAL.AddConnStr("localhost", "server=.;Integrated Security=SSPI;Database=master", null, "sqlclient");
+
+            // 加上本机MSSQL
+            String localstr = "Data Source=.;Initial Catalog=master;Integrated Security=True;";
+            if (!ContainConnStr(localstr)) DAL.AddConnStr("local_MSSQL", localstr, null, "sqlclient");
+
+            // 添加本地Access和SQLite
+            String[] ss = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.*", SearchOption.TopDirectoryOnly);
+            foreach (String item in ss)
+            {
+                String access = "Standard Jet DB";
+                String sqlite = "SQLite";
+
+                using (FileStream fs = new FileStream(item, FileMode.Open, FileAccess.Read))
+                {
+                    BinaryReader reader = new BinaryReader(fs);
+                    Byte[] bts = reader.ReadBytes(sqlite.Length);
+                    if (bts[0] == 'S' && bts[1] == 'Q' && Encoding.ASCII.GetString(bts) == sqlite)
+                    {
+                        localstr = String.Format("Data Source={0};", item);
+                        if (!ContainConnStr(localstr)) DAL.AddConnStr("SQLite_" + Path.GetFileNameWithoutExtension(item), localstr, null, "SQLite");
+                    }
+                    else if (bts[4] == 'S' && bts[5] == 't')
+                    {
+                        fs.Seek(4, SeekOrigin.Begin);
+                        bts = reader.ReadBytes(access.Length);
+                        if (Encoding.ASCII.GetString(bts) == access)
+                        {
+                            localstr = String.Format("Provider=Microsoft.Jet.OLEDB.4.0; Data Source={0};Persist Security Info=False;OLE DB Services=-1", item);
+                            if (!ContainConnStr(localstr)) DAL.AddConnStr("Access_" + Path.GetFileNameWithoutExtension(item), localstr, null, "Access");
+                        }
+                    }
+                }
+            }
+
             foreach (String item in DAL.ConnStrs.Keys)
             {
                 if (!String.IsNullOrEmpty(DAL.ConnStrs[item].ConnectionString)) list.Add(item);
@@ -154,8 +184,30 @@ namespace XCoder
             {
                 list.AddRange(names);
 
-                Conns = list;
+                //Conns = list;
+                this.Invoke(new Action<List<String>>(SetDatabaseList), list);
             }
+        }
+
+        Boolean ContainConnStr(String connstr)
+        {
+            foreach (String item in DAL.ConnStrs.Keys)
+            {
+                if (String.Equals(connstr, DAL.ConnStrs[item].ConnectionString, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+            return false;
+        }
+
+        void SetDatabaseList(List<String> list)
+        {
+            String str = cbConn.Text;
+
+            cbConn.DataSource = list;
+            cbConn.DisplayMember = "value";
+            cbConn.Update();
+
+            //Conns = null;
+            if (!String.IsNullOrEmpty(str)) cbConn.Text = str;
         }
 
         /// <summary>
@@ -325,7 +377,7 @@ namespace XCoder
 
             try
             {
-                Engine.FixTable();
+                //Engine.FixTable();
                 String[] ss = Engine.Render(cbTableList.Text);
                 //richTextBox1.Text = ss[0];
             }
@@ -379,7 +431,7 @@ namespace XCoder
         {
             List<String> param = e.Argument as List<String>;
             int i = 1;
-            Engine.FixTable();
+            //Engine.FixTable();
             foreach (String tableName in param)
             {
                 try
@@ -496,21 +548,23 @@ namespace XCoder
         #region 自动化
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (Conns != null)
-            {
-                String str = cbConn.Text;
+            //if (Conns != null)
+            //{
+            //    String str = cbConn.Text;
 
-                cbConn.DataSource = Conns;
-                cbConn.DisplayMember = "value";
-                cbConn.Update();
+            //    cbConn.DataSource = Conns;
+            //    cbConn.DisplayMember = "value";
+            //    cbConn.Update();
 
-                Conns = null;
-                if (!String.IsNullOrEmpty(str)) cbConn.Text = str;
-            }
+            //    Conns = null;
+            //    if (!String.IsNullOrEmpty(str)) cbConn.Text = str;
+            //}
         }
 
         private void cbConn_SelectedIndexChanged(object sender, EventArgs e)
         {
+            toolTip1.SetToolTip(cbConn, DAL.Create(cbConn.Text).ConnStr);
+
             AutoLoadTables(cbConn.Text);
 
             if (String.IsNullOrEmpty(cb_Template.Text)) cb_Template.Text = cbConn.Text;

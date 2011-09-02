@@ -53,7 +53,7 @@ namespace XCoder
             //    }
             //    return _Tables;
             //}
-            set { _Tables = value; }
+            set { _Tables = FixTable(value); }
         }
 
         private String _OuputPath;
@@ -301,7 +301,7 @@ namespace XCoder
         /// <returns></returns>
         public String[] Render(String tableName)
         {
-            if (Tables == null && Tables.Count < 1) return null;
+            if (Tables == null || Tables.Count < 1) return null;
 
             IDataTable table = Tables.Find(delegate(IDataTable item) { return String.Equals(item.Name, tableName, StringComparison.OrdinalIgnoreCase); });
             if (tableName == null) return null;
@@ -375,14 +375,20 @@ namespace XCoder
         /// 预先修正表名等各种东西，简化模版编写。
         /// 因为与设置相关，所以，每次更改设置后，都应该调用一次该方法。
         /// </summary>
-        public void FixTable()
+        List<IDataTable> FixTable(List<IDataTable> tables)
         {
+            if (tables == null || tables.Count < 1) return tables;
+
             List<IDataTable> list = new List<IDataTable>();
-            foreach (IDataTable item in DAL.Create(Config.ConnName).Tables)
+            //foreach (IDataTable item in DAL.Create(Config.ConnName).Tables)
+            //{
+            //    list.Add(item.Clone() as IDataTable);
+            //}
+            foreach (IDataTable item in tables)
             {
                 list.Add(item.Clone() as IDataTable);
             }
-            Tables = list;
+            //Tables = list;
 
             foreach (IDataTable table in list)
             {
@@ -423,6 +429,8 @@ namespace XCoder
 
                 }
             }
+
+            return list;
         }
         #endregion
 

@@ -29,10 +29,13 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("4.0.*")]
-[assembly: AssemblyFileVersion("4.0.2011.0829")]
+[assembly: AssemblyVersion("4.1.*")]
+[assembly: AssemblyFileVersion("4.1.2011.0902")]
 
 /*
+ * v4.1.2011.0902   修改自动更新逻辑，先下载，再询问是否更新
+ *                  改善自动发现机制，自动发现本地SQLite和Access文件
+ * 
  * v4.0.2011.0829   升级XCode到v8
  *                  增加自动更新功能
  *                  删除代码视图
