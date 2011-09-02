@@ -57,6 +57,7 @@ namespace XTemplate.Templating
         /// 尝试读取参数值
         /// </summary>
         /// <param name="name">参数名</param>
+        /// <param name="value">参数值</param>
         /// <returns></returns>
         public Boolean TryGetParameter(String name, out String value)
         {
