@@ -26,6 +26,11 @@ namespace XCode
             public TableItem Table { get { return Meta.Table; } }
 
             /// <summary>
+            /// 所有数据属性
+            /// </summary>
+            public FieldItem[] AllFields { get { return Meta.AllFields; } }
+
+            /// <summary>
             /// 所有绑定到数据表的属性
             /// </summary>
             public FieldItem[] Fields { get { return Meta.Fields; } }
@@ -58,7 +63,7 @@ namespace XCode
             /// <returns></returns>
             public IEntity Create() { return (Default as TEntity).CreateInstance(); }
 
-            public void InitData() { (Default as TEntity).InitData(); }
+            //public void InitData() { (Default as TEntity).InitData(); }
             #endregion
 
             #region 填充数据
@@ -95,28 +100,28 @@ namespace XCode
             /// <param name="name"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public EntityBase Find(String name, Object value) { return Entity<TEntity>.Find(name, value); }
+            public IEntity Find(String name, Object value) { return Entity<TEntity>.Find(name, value); }
 
             /// <summary>
             /// 根据条件查找单个实体
             /// </summary>
             /// <param name="whereClause"></param>
             /// <returns></returns>
-            public EntityBase Find(String whereClause) { return Entity<TEntity>.Find(whereClause); }
+            public IEntity Find(String whereClause) { return Entity<TEntity>.Find(whereClause); }
 
             /// <summary>
             /// 根据主键查找单个实体
             /// </summary>
             /// <param name="key"></param>
             /// <returns></returns>
-            public EntityBase FindByKey(Object key) { return Entity<TEntity>.FindByKey(key); }
+            public IEntity FindByKey(Object key) { return Entity<TEntity>.FindByKey(key); }
 
             /// <summary>
             /// 根据主键查询一个实体对象用于表单编辑
             /// </summary>
             /// <param name="key"></param>
             /// <returns></returns>
-            public EntityBase FindByKeyForEdit(Object key) { return Entity<TEntity>.FindByKeyForEdit(key); }
+            public IEntity FindByKeyForEdit(Object key) { return Entity<TEntity>.FindByKeyForEdit(key); }
             #endregion
 
             #region 静态查询
@@ -268,7 +273,7 @@ namespace XCode
             /// </summary>
             /// <param name="xml"></param>
             /// <returns></returns>
-            public EntityBase FromXml(String xml) { return Entity<TEntity>.FromXml(xml); }
+            public IEntity FromXml(String xml) { return Entity<TEntity>.FromXml(xml); }
             #endregion
 
             #region 导入导出Json
@@ -277,7 +282,7 @@ namespace XCode
             /// </summary>
             /// <param name="json"></param>
             /// <returns></returns>
-            public EntityBase FromJson(String json) { return Entity<TEntity>.FromJson(json); }
+            public IEntity FromJson(String json) { return Entity<TEntity>.FromJson(json); }
             #endregion
 
             #region 事务

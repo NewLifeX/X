@@ -1,17 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using NewLife.IO;
 using NewLife.Reflection;
-using XCode.Configuration;
+using System.Collections.Generic;
 
 namespace XCode
 {
-    /// <summary>
-    /// 数据实体接口
-    /// </summary>
+    /// <summary>数据实体接口</summary>
     public interface IEntity : IIndexAccessor, IBinaryAccessor
     {
+        #region 属性
+        /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
+        IDictionary<String, Boolean> Dirtys { get; }
+
+        /// <summary>扩展属性</summary>
+        IDictionary<String, Object> Extends { get; }
+        #endregion
+
         #region 填充数据
         /// <summary>
         /// 从一个数据行对象加载数据。不加载关联对象。
@@ -61,21 +66,9 @@ namespace XCode
         /// <param name="value">值</param>
         /// <returns>返回是否成功设置了数据</returns>
         Boolean SetItem(String name, Object value);
-
-        ///// <summary>
-        ///// 所有绑定到数据表的属性
-        ///// </summary>
-        //List<FieldItem> Fields { get; }
-
-        ///// <summary>
-        ///// 字段名列表
-        ///// </summary>
-        //List<String> FieldNames { get; }
         #endregion
 
         #region 导入导出XML
-        //void ToXml(XmlWriter writer);
-
         /// <summary>
         /// 导出XML
         /// </summary>

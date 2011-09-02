@@ -113,6 +113,7 @@
     <Compile Include="Entity\DataRowEntityAccessor.cs" />
     <Compile Include="Entity\EntityListView.cs" />
     <Compile Include="Entity\EntityBase_Interface.cs" />
+    <Compile Include="Entity\IEntityList.cs" />
     <Compile Include="Exceptions\XDbException.cs" />
     <Compile Include="Exceptions\XCodeException.cs" />
     <Compile Include="Exceptions\XDbMetaDataException.cs" />

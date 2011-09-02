@@ -25,6 +25,13 @@ namespace XCode.Exceptions
         /// <summary>
         /// 初始化
         /// </summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public XCodeException(String format, params Object[] args) : base(format, args) { }
+
+        /// <summary>
+        /// 初始化
+        /// </summary>
         /// <param name="message"></param>
         /// <param name="innerException"></param>
         public XCodeException(String message, Exception innerException) : base(message, innerException) { }

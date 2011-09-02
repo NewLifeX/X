@@ -9,6 +9,7 @@ using System.Xml.Serialization;
 using NewLife.IO;
 using NewLife.Reflection;
 using XCode.Configuration;
+using XCode.Exceptions;
 
 namespace XCode
 {
@@ -16,7 +17,7 @@ namespace XCode
     /// 实体集合
     /// </summary>
     [Serializable]
-    public partial class EntityList<T> : List<T>, IListSource where T : IEntity
+    public partial class EntityList<T> : List<T>, IEntityList, IList, IList<IEntity>, IListSource where T : IEntity
     {
         #region 构造函数
         /// <summary>
@@ -212,6 +213,40 @@ namespace XCode
             }
             return default(T);
         }
+
+        #region IEntityList接口
+        /// <summary>
+        /// 根据指定项查找
+        /// </summary>
+        /// <param name="name">属性名</param>
+        /// <param name="value">属性值</param>
+        /// <returns></returns>
+        IEntityList IEntityList.FindAll(String name, Object value) { return FindAll(name, value); }
+
+        /// <summary>
+        /// 根据指定项查找
+        /// </summary>
+        /// <param name="name">属性名</param>
+        /// <param name="value">属性值</param>
+        /// <returns></returns>
+        IEntity IEntityList.Find(String name, Object value) { return Find(name, value); }
+
+        /// <summary>
+        /// 根据指定项查找字符串。忽略大小写
+        /// </summary>
+        /// <param name="name">属性名</param>
+        /// <param name="value">属性值</param>
+        /// <returns></returns>
+        IEntityList IEntityList.FindAllIgnoreCase(String name, String value) { return FindAllIgnoreCase(name, value); }
+
+        /// <summary>
+        /// 根据指定项查找字符串。忽略大小写
+        /// </summary>
+        /// <param name="name">属性名</param>
+        /// <param name="value">属性值</param>
+        /// <returns></returns>
+        IEntity IEntityList.FindIgnoreCase(String name, String value) { return FindIgnoreCase(name, value); }
+        #endregion
 
         /// <summary>
         /// 集合是否包含指定项
@@ -833,28 +868,6 @@ namespace XCode
             return new EntityList<T>(collection);
         }
 
-        ///// <summary>
-        ///// 拥有指定类型转换器的转换
-        ///// </summary>
-        ///// <param name="collection"></param>
-        ///// <param name="func"></param>
-        ///// <returns></returns>
-        //public static EntityList<T> From(IEnumerable collection, Func<Object, T> func)
-        //{
-        //    if (collection == null || collection.GetEnumerator() == null || collection.GetEnumerator().Current == null) return null;
-
-        //    EntityList<T> list = new EntityList<T>();
-        //    foreach (Object item in collection)
-        //    {
-        //        if (func == null)
-        //            list.Add((T)item);
-        //        else
-        //            list.Add(func(item));
-        //    }
-        //    if (list == null || list.Count < 1) return null;
-        //    return list;
-        //}
-
         /// <summary>
         /// 拥有指定类型转换器的转换
         /// </summary>
@@ -951,5 +964,156 @@ namespace XCode
             }
         }
         #endregion
+
+        #region IList<IEntity> 成员
+        private static bool IsCompatibleObject(IEntity value)
+        {
+            if (!(value is T) && value != null || typeof(T).IsValueType) return false;
+            return true;
+        }
+
+        private static void VerifyValueType(IEntity value)
+        {
+            if (!IsCompatibleObject(value)) throw new ArgumentException(String.Format("期待{0}类型的参数！", typeof(T).Name), "value");
+        }
+
+        int IList<IEntity>.IndexOf(IEntity item)
+        {
+            if (!IsCompatibleObject(item)) return -1;
+            return IndexOf((T)item);
+        }
+
+        void IList<IEntity>.Insert(int index, IEntity item)
+        {
+            VerifyValueType(item);
+            Insert(index, (T)item);
+        }
+
+        //void IList<IEntity>.RemoveAt(int index)
+        //{
+        //    RemoveAt(index);
+        //}
+
+        IEntity IList<IEntity>.this[int index]
+        {
+            get { return this[index]; }
+            set
+            {
+                VerifyValueType(value);
+                this[index] = (T)value;
+            }
+        }
+        #endregion
+
+        #region ICollection<IEntity> 成员
+
+        void ICollection<IEntity>.Add(IEntity item)
+        {
+            VerifyValueType(item);
+            Add((T)item);
+        }
+
+        //void ICollection<IEntity>.Clear()
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        bool ICollection<IEntity>.Contains(IEntity item)
+        {
+            if (!IsCompatibleObject(item)) return false;
+
+            return Contains((T)item);
+        }
+
+        void ICollection<IEntity>.CopyTo(IEntity[] array, int arrayIndex)
+        {
+            VerifyValueType(array[0]);
+            T[] arr = new T[array.Length];
+            CopyTo(arr, arrayIndex);
+            for (int i = arrayIndex; i < array.Length; i++)
+            {
+                array[i] = arr[i];
+            }
+        }
+
+        //int ICollection<IEntity>.Count
+        //{
+        //    get { throw new NotImplementedException(); }
+        //}
+
+        bool ICollection<IEntity>.IsReadOnly
+        {
+            get { return (this as ICollection<T>).IsReadOnly; }
+        }
+
+        bool ICollection<IEntity>.Remove(IEntity item)
+        {
+            if (!IsCompatibleObject(item)) return false;
+
+            return Remove((T)item);
+        }
+
+        #endregion
+
+        #region IEnumerable<IEntity> 成员
+        IEnumerator<IEntity> IEnumerable<IEntity>.GetEnumerator()
+        {
+            return new EntityEnumerator(this);
+        }
+
+        class EntityEnumerator : IEnumerator<IEntity>
+        {
+            EntityList<T> _list;
+            Int32 index;
+            T current;
+
+            public EntityEnumerator(EntityList<T> list) { _list = list; }
+
+            #region IEnumerator<IEntity> 成员
+
+            public IEntity Current
+            {
+                get { return current; }
+            }
+
+            #endregion
+
+            #region IDisposable 成员
+            public void Dispose() { }
+            #endregion
+
+            #region IEnumerator 成员
+
+            object IEnumerator.Current
+            {
+                get { return current; }
+            }
+
+            public bool MoveNext()
+            {
+                if (index >= _list.Count) return false;
+
+                current = _list[index++];
+
+                return true;
+            }
+
+            public void Reset()
+            {
+                index = 0;
+                current = default(T);
+            }
+            #endregion
+        }
+        #endregion
+
+        //#region IEnumerable 成员
+
+        //IEnumerator IEnumerable.GetEnumerator()
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //#endregion
     }
 }

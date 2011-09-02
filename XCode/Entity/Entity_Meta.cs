@@ -70,19 +70,13 @@ namespace XCode
                 DatabaseSchema.Create(DAL.Create(connName).Db).CheckNewTable(ThisType, tableName);
             }
 
-            /// <summary>
-            /// 所有数据属性
-            /// </summary>
+            /// <summary>所有数据属性</summary>
             public static FieldItem[] AllFields { get { return Table.AllFields; } }
 
-            /// <summary>
-            /// 所有绑定到数据表的属性
-            /// </summary>
+            /// <summary>所有绑定到数据表的属性</summary>
             public static FieldItem[] Fields { get { return Table.Fields; } }
 
-            /// <summary>
-            /// 字段名列表
-            /// </summary>
+            /// <summary>字段名列表</summary>
             public static IList<String> FieldNames { get { return Table.FieldNames; } }
 
             /// <summary>
@@ -112,18 +106,6 @@ namespace XCode
                 }
             }
             #endregion
-
-            //#region 方法
-            //private static DictionaryCache<String, EntityField> fcache = new DictionaryCache<string, EntityField>();
-            //public static EntityField GetField(String name)
-            //{
-            //    return fcache.GetItem(name, delegate(String key)
-            //    {
-            //        FieldItem fi = Table.FieldItems[key];
-            //        return new EntityField(fi);
-            //    });
-            //}
-            //#endregion
 
             #region 数据库操作
             /// <summary>
@@ -327,7 +309,8 @@ namespace XCode
                 //}
                 try
                 {
-                    Factory.InitData();
+                    //Factory.InitData();
+                    if (Factory.Default is EntityBase) (Factory.Default as EntityBase).InitData();
                 }
                 catch (Exception ex)
                 {

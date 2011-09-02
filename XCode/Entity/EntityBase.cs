@@ -23,7 +23,7 @@ namespace XCode
         /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        protected virtual void InitData() { }
+        internal protected virtual void InitData() { }
         #endregion
 
         #region 填充数据
@@ -166,15 +166,18 @@ namespace XCode
         private DirtyCollection _Dirtys;
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
         [XmlIgnore]
-        protected DirtyCollection Dirtys
+        internal protected DirtyCollection Dirtys
         {
             get
             {
                 if (_Dirtys == null) _Dirtys = new DirtyCollection();
                 return _Dirtys;
             }
-            set { _Dirtys = value; }
+            //set { _Dirtys = value; }
         }
+
+        /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
+        IDictionary<String, Boolean> IEntity.Dirtys { get { return Dirtys; } }
 
         /// <summary>
         /// 设置所有数据的脏属性
@@ -224,6 +227,9 @@ namespace XCode
         {
             get { return _Extends ?? (_Extends = new DictionaryCache<String, Object>()); }
         }
+
+        /// <summary>扩展属性</summary>
+        IDictionary<String, Object> IEntity.Extends { get { return Extends; } }
 
         [NonSerialized]
         private Dictionary<Type, List<String>> _depends;

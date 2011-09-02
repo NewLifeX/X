@@ -23,6 +23,11 @@ namespace XCode
         TableItem Table { get; }
 
         /// <summary>
+        /// 所有数据属性
+        /// </summary>
+        FieldItem[] AllFields { get; }
+
+        /// <summary>
         /// 所有绑定到数据表的属性
         /// </summary>
         FieldItem[] Fields { get; }
@@ -55,10 +60,10 @@ namespace XCode
         /// <returns></returns>
         IEntity Create();
 
-        /// <summary>
-        /// 首次连接数据库时初始化数据
-        /// </summary>
-        void InitData();
+        ///// <summary>
+        ///// 首次连接数据库时初始化数据
+        ///// </summary>
+        //void InitData();
         #endregion
 
         #region 填充数据
@@ -77,28 +82,28 @@ namespace XCode
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        EntityBase Find(String name, Object value);
+        IEntity Find(String name, Object value);
 
         /// <summary>
         /// 根据条件查找单个实体
         /// </summary>
         /// <param name="whereClause"></param>
         /// <returns></returns>
-        EntityBase Find(String whereClause);
+        IEntity Find(String whereClause);
 
         /// <summary>
         /// 根据主键查找单个实体
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        EntityBase FindByKey(Object key);
+        IEntity FindByKey(Object key);
 
         /// <summary>
         /// 根据主键查询一个实体对象用于表单编辑
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        EntityBase FindByKeyForEdit(Object key);
+        IEntity FindByKeyForEdit(Object key);
         #endregion
 
         #region 静态查询
@@ -220,7 +225,7 @@ namespace XCode
         /// </summary>
         /// <param name="xml"></param>
         /// <returns></returns>
-        EntityBase FromXml(String xml);
+        IEntity FromXml(String xml);
         #endregion
 
         #region 导入导出Json
@@ -229,7 +234,7 @@ namespace XCode
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        EntityBase FromJson(String json);
+        IEntity FromJson(String json);
         #endregion
 
         #region 事务

@@ -56,6 +56,8 @@ namespace XCode
         #endregion
 
         #region 填充数据
+        private static IDataRowEntityAccessor dreAccessor = new DataRowEntityAccessor();
+
         /// <summary>
         /// 加载记录集
         /// </summary>
@@ -76,27 +78,10 @@ namespace XCode
         {
             if (dt == null || dt.Rows.Count < 1) return null;
 
-            // 准备好实体列表
-            EntityList<TEntity> list = new EntityList<TEntity>(dt.Rows.Count);
+            IEntityList list = dreAccessor.LoadData(dt);
+            if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
 
-            // 计算都有哪些字段可以加载数据，默认是使用了BindColumn特性的属性，然后才是别的属性
-            // 当然，要数据集中有这个列才行，也就是取实体类和数据集的交集
-            List<String> exts = null;
-            List<FieldItem> ps = CheckColumn(dt, out exts);
-
-            // 创建实体操作者，将由实体操作者创建实体对象
-            IEntityOperate factory = Meta.Factory;
-
-            // 遍历每一行数据，填充成为实体
-            foreach (DataRow dr in dt.Rows)
-            {
-                //TEntity obj = new TEntity();
-                // 由实体操作者创建实体对象，因为实体操作者可能更换
-                TEntity obj = factory.Create() as TEntity;
-                obj.LoadData(dr, ps, exts);
-                list.Add(obj);
-            }
-            return list;
+            return new EntityList<TEntity>(list);
         }
 
         /// <summary>
@@ -107,105 +92,7 @@ namespace XCode
         {
             if (dr == null) return;
 
-            // 计算都有哪些字段可以加载数据
-            List<String> exts = null;
-            List<FieldItem> ps = CheckColumn(dr.Table, out exts);
-            LoadData(dr, ps, exts);
-        }
-
-        static String[] TrueString = new String[] { "true", "y", "yes", "1" };
-        static String[] FalseString = new String[] { "false", "n", "no", "0" };
-
-        /// <summary>
-        /// 从一个数据行对象加载数据。指定要加载数据的字段。
-        /// </summary>
-        /// <param name="dr">数据行</param>
-        /// <param name="ps">要加载数据的字段</param>
-        /// <param name="exts">扩展字段</param>
-        /// <returns></returns>
-        private void LoadData(DataRow dr, IList<FieldItem> ps, List<String> exts)
-        {
-            if (dr == null) return;
-
-            // 如果没有传入要加载数据的字段，则使用全部数据属性
-            // 这种情况一般不会发生，最好也不好发生，因为很有可能导致报错
-            if (ps == null || ps.Count < 1) ps = Meta.Fields;
-
-            foreach (FieldItem fi in ps)
-            {
-                // 两次dr[fi.ColumnName]简化为一次
-                Object v = dr[fi.ColumnName];
-                Object v2 = this[fi.Name];
-
-                // 不处理相同数据的赋值
-                if (Object.Equals(v, v2)) continue;
-
-                if (fi.Type == typeof(String))
-                {
-                    // 不处理空字符串对空字符串的赋值
-                    if (v != null && String.IsNullOrEmpty(v.ToString()))
-                    {
-                        if (v2 == null || String.IsNullOrEmpty(v2.ToString())) continue;
-                    }
-                }
-                else if (fi.Type == typeof(Boolean))
-                {
-                    // 处理字符串转为布尔型
-                    if (v != null && v.GetType() == typeof(String))
-                    {
-                        String vs = v.ToString();
-                        if (String.IsNullOrEmpty(vs))
-                            v = false;
-                        else
-                        {
-                            if (Array.IndexOf(TrueString, vs.ToLower()) >= 0)
-                                v = true;
-                            else if (Array.IndexOf(FalseString, vs.ToLower()) >= 0)
-                                v = false;
-
-                            if (DAL.Debug) DAL.WriteLog("无法把字符串{0}转为布尔型！", vs);
-                        }
-                    }
-                }
-
-                //不影响脏数据的状态
-                Boolean? b = null;
-                if (Dirtys.ContainsKey(fi.Name)) b = Dirtys[fi.Name];
-
-                this[fi.Name] = v == DBNull.Value ? null : v;
-
-                if (b != null)
-                    Dirtys[fi.Name] = b.Value;
-                else
-                    Dirtys.Remove(fi.Name);
-            }
-            // 多余的数据，存入扩展字段里面
-            foreach (String item in exts)
-            {
-                Object v = dr[item];
-                Extends[item] = v;
-            }
-        }
-
-        /// <summary>
-        /// 检查实体类中的哪些字段在数据表中
-        /// </summary>
-        /// <param name="dt">数据表</param>
-        /// <returns></returns>
-        private static List<FieldItem> CheckColumn(DataTable dt, out List<String> exts)
-        {
-            List<FieldItem> ps = new List<FieldItem>();
-            exts = new List<String>();
-            foreach (FieldItem item in Meta.AllFields)
-            {
-                if (String.IsNullOrEmpty(item.ColumnName)) continue;
-
-                if (dt.Columns.Contains(item.ColumnName))
-                    ps.Add(item);
-                else if (!exts.Contains(item))
-                    exts.Add(item);
-            }
-            return ps;
+            dreAccessor.LoadData(dr, this);
         }
 
         /// <summary>
@@ -216,15 +103,7 @@ namespace XCode
         {
             if (dr == null) return null;
 
-            foreach (FieldItem fi in Meta.AllFields)
-            {
-                // 检查dr中是否有该属性的列。考虑到Select可能是不完整的，此时，只需要局部填充
-                if (dr.Table.Columns.Contains(fi.ColumnName))
-                    dr[fi.ColumnName] = this[fi.Name];
-                else if (Extends.ContainsKey(fi.Name))
-                    dr[fi.Name] = Extends[fi.Name];
-            }
-            return dr;
+            return dreAccessor.ToData(this, ref dr);
         }
         #endregion
 
@@ -274,11 +153,8 @@ namespace XCode
             }
 
             //清除脏数据，避免连续两次调用Save造成重复提交
-            if (Dirtys != null)
-            {
-                Dirtys.Clear();
-                Dirtys = null;
-            }
+            if (Dirtys != null) Dirtys.Clear();
+
             return rs;
         }
 
@@ -317,11 +193,8 @@ namespace XCode
             Int32 rs = Meta.Execute(sql);
 
             //清除脏数据，避免重复提交
-            if (Dirtys != null)
-            {
-                Dirtys.Clear();
-                Dirtys = null;
-            }
+            if (Dirtys != null) Dirtys.Clear();
+
             return rs;
         }
 
