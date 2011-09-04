@@ -343,7 +343,7 @@ namespace XControl
                 sb.AppendLine("");
                 new ScriptHelper().RegisterScript(sb.ToString());
                 CssClass = "lhgcalWdate";
-                ReadOnly = true;
+
                 if (LongTime)
                 {
                     if (Width == Unit.Empty)
