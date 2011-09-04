@@ -488,7 +488,8 @@ namespace XTemplate.Templating
                 }
                 else
                 {
-                    // 尝试读取文件
+                    // 尝试读取文件，可能采用了相对路径
+                    if (!File.Exists(name)) name = Path.Combine(Path.GetDirectoryName(item.Name), name);
                     if (File.Exists(name))
                     {
                         ti = new TemplateItem();

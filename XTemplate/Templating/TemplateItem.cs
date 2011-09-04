@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace XTemplate.Templating
 {
@@ -76,10 +75,10 @@ namespace XTemplate.Templating
 
         private Boolean _Included;
         /// <summary>是否被包含，被包含的模版不生成类</summary>
-        internal Boolean Included
+        public Boolean Included
         {
             get { return _Included; }
-            set { _Included = value; }
+            internal set { _Included = value; }
         }
 
         private Dictionary<String, Type> _Vars;
