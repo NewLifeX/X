@@ -438,9 +438,9 @@ namespace XTemplate.Templating
         /// <returns>返回指令集合</returns>
         private void ProcessDirectives(TemplateItem item)
         {
-            // 使用包含堆栈处理包含
-            Stack<String> IncludeStack = new Stack<string>();
-            IncludeStack.Push(item.Name);
+            // 使用包含堆栈处理包含，检测循环包含
+            Stack<String> includeStack = new Stack<String>();
+            includeStack.Push(item.Name);
 
             String[] directives = new String[] { "template", "assembly", "import", "include", "var" };
 
@@ -450,34 +450,42 @@ namespace XTemplate.Templating
                 if (block.Type != BlockType.Directive) continue;
 
                 // 弹出当前块的模版名
-                while (IncludeStack.Count > 0 && StringComparer.OrdinalIgnoreCase.Compare(IncludeStack.Peek(), block.Name) != 0)
+                while (includeStack.Count > 0 && !String.Equals(includeStack.Peek(), block.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    IncludeStack.Pop();
+                    includeStack.Pop();
                 }
                 Directive directive = TemplateParser.ParseDirectiveBlock(block);
                 if (directive == null || Array.IndexOf(directives, directive.Name.ToLower()) < 0)
                     throw new TemplateException(block, String.Format("无法识别的指令：{0}！", block.Text));
 
                 // 包含指令时，返回多个代码块
-                List<Block> list = ProcessDirective(directive, item);
-                if ((list == null) || (list.Count == 0)) continue;
+                //List<Block> list = ProcessDirective(directive, item);
+                TemplateItem ti = ProcessDirective(directive, item);
+                //List<Block> list = TemplateParser.Parse(ti.Name, ti.Content);
+                // 拆分成块
+                if (ti.Blocks == null || ti.Blocks.Count < 1) ti.Blocks = TemplateParser.Parse(ti.Name, ti.Content);
+                if (ti.Blocks == null || ti.Blocks.Count < 1) continue;
 
-                if (IncludeStack.Contains(list[0].Name))
-                    throw new TemplateException(block, String.Format("循环包含名为[{0}]的模版！", list[0].Name));
+                List<Block> list = ti.Blocks;
+                String name = ti.Name;
+                if (includeStack.Contains(name))
+                    throw new TemplateException(block, String.Format("循环包含名为[{0}]的模版！", name));
 
-                IncludeStack.Push(list[0].Name);
+                includeStack.Push(name);
 
                 // 包含模版并入当前模版
                 item.Blocks.InsertRange(i + 1, list);
             }
         }
 
-        private List<Block> ProcessDirective(Directive directive, TemplateItem item)
+        private TemplateItem ProcessDirective(Directive directive, TemplateItem item)
         {
             #region 包含include
             if (String.Equals(directive.Name, "include", StringComparison.OrdinalIgnoreCase))
             {
                 String name = directive.GetParameter("name");
+                // 可能采用了相对路径
+                if (!File.Exists(name)) name = Path.Combine(Path.GetDirectoryName(item.Name), name);
 
                 String content = null;
                 TemplateItem ti = FindTemplateItem(name);
@@ -488,8 +496,7 @@ namespace XTemplate.Templating
                 }
                 else
                 {
-                    // 尝试读取文件，可能采用了相对路径
-                    if (!File.Exists(name)) name = Path.Combine(Path.GetDirectoryName(item.Name), name);
+                    // 尝试读取文件
                     if (File.Exists(name))
                     {
                         ti = new TemplateItem();
@@ -504,7 +511,8 @@ namespace XTemplate.Templating
                 if (String.IsNullOrEmpty(content))
                     throw new TemplateException(directive.Block, String.Format("加载模版[{0}]失败！", name));
 
-                return TemplateParser.Parse(name, content);
+                //return TemplateParser.Parse(name, content);
+                return ti;
             }
             #endregion
 
