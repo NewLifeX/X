@@ -16,6 +16,7 @@ using System.Xml;
 using System.Text;
 using System.Xml.Serialization;
 using System.IO;
+using System.Diagnostics;
 
 namespace XCode.DataAccessLayer
 {
@@ -840,6 +841,29 @@ namespace XCode.DataAccessLayer
         /// <param name="format"></param>
         /// <param name="args"></param>
         public static void WriteLog(String format, params Object[] args)
+        {
+            InitLog();
+            XTrace.WriteLine(format, args);
+        }
+
+        /// <summary>
+        /// 输出日志
+        /// </summary>
+        /// <param name="msg"></param>
+        [Conditional("DEBUG")]
+        public static void WriteDebugLog(String msg)
+        {
+            InitLog();
+            XTrace.WriteLine(msg);
+        }
+
+        /// <summary>
+        /// 输出日志
+        /// </summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        [Conditional("DEBUG")]
+        public static void WriteDebugLog(String format, params Object[] args)
         {
             InitLog();
             XTrace.WriteLine(format, args);

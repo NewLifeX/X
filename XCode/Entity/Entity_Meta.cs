@@ -264,15 +264,6 @@ namespace XCode
                 if (hasCheckInitData.Contains(key)) return;
                 hasCheckInitData.Add(key);
 
-                //try
-                //{
-                //    DatabaseSchema.Create(DBO.Db).CheckDatabaseOnce().CheckTable(TableName);
-                //}
-                //catch (Exception ex)
-                //{
-                //    if (XTrace.Debug) XTrace.WriteLine("检查数据表" + TableName + "信息架构出错！" + ex.ToString());
-                //}
-
                 // 异步执行，并捕获错误日志
                 if (Config.GetConfig<Boolean>("XCode.InitDataAsync", true) && !InitDataHelper.Running)
                 {
@@ -299,18 +290,12 @@ namespace XCode
 
             private static void CheckInitData2()
             {
-                //try
-                //{
-                //    DatabaseSchema.Create(DBO.Db).CheckDatabaseOnce().CheckTable(TableName);
-                //}
-                //catch (Exception ex)
-                //{
-                //    if (XTrace.Debug) XTrace.WriteLine("检查数据表" + TableName + "信息架构出错！" + ex.ToString());
-                //}
                 try
                 {
                     //Factory.InitData();
-                    if (Factory.Default is EntityBase) (Factory.Default as EntityBase).InitData();
+                    //if (Factory.Default is EntityBase) (Factory.Default as EntityBase).InitData();
+                    EntityBase entity = Factory.Default as EntityBase;
+                    if (entity != null) entity.InitData();
                 }
                 catch (Exception ex)
                 {

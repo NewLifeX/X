@@ -71,6 +71,9 @@ namespace XCode
         {
             if (type == null) throw new ArgumentNullException("type");
 
+            // 确保实体类已被初始化，实际上，因为实体类静态构造函数中会注册IEntityOperate，所以下面的委托按理应该再也不会被执行了
+            EnsureInit(type);
+
             return op_cache.GetItem(type, delegate(Type key)
             {
                 Type optype = null;
@@ -96,12 +99,6 @@ namespace XCode
 
                 return op;
             });
-        }
-
-        static Type GetEntityOperateType()
-        {
-            return typeof(Entity<>.EntityOperate);
-            //return typeof(Entity<>).GetNestedType("EntityOperate", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
         }
 
         static Type GetEntityOperateType(Type type)
@@ -147,14 +144,14 @@ namespace XCode
 
             // 重新使用判断，减少锁争夺
             if (op_cache.ContainsKey(type)) return op_cache[type];
-            lock (op_cache)
+            //lock (op_cache)
+            // op_cache曾经是两次非常严重的死锁的核心所在
+            // 事实上，不管怎么样处理，只要这里还锁定op_cache，那么实体类静态构造函数和CreateOperate方法，就有可能导致死锁产生
+            lock ("op_cache" + type.FullName)
             {
                 if (op_cache.ContainsKey(type)) return op_cache[type];
 
-                //if (op_cache.ContainsKey(type))
                 op_cache[type] = entity;
-                //else
-                //    op_cache.Add(type, entity);
 
                 return entity;
             }
@@ -192,6 +189,28 @@ namespace XCode
                 }
             }
             return type;
+        }
+        #endregion
+
+        #region 确保实体类已初始化
+        static List<Type> _hasInited = new List<Type>();
+        /// <summary>
+        /// 确保实体类已经执行完静态构造函数，因为那里实在是太容易导致死锁了
+        /// </summary>
+        /// <param name="type"></param>
+        internal static void EnsureInit(Type type)
+        {
+            if (_hasInited.Contains(type)) return;
+            //lock (_hasInited)
+            // 如果这里锁定_hasInited，还是有可能死锁，因为可能实体类A的静态构造函数中可能导致调用另一个实体类的EnsureInit
+            // 其实我们这里加锁的目的，本来就是为了避免重复添加同一个type而已
+            lock ("_hasInited" + type.FullName)
+            {
+                if (_hasInited.Contains(type)) return;
+
+                Object obj = TypeX.CreateInstance(type);
+                _hasInited.Add(type);
+            }
         }
         #endregion
 
