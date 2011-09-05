@@ -9,6 +9,7 @@ using System.Web.Services;
 using System.Xml.Serialization;
 using NewLife.IO;
 using NewLife.Reflection;
+using XCode.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
@@ -236,7 +237,7 @@ namespace XCode
             if (fi != null) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
 
             fi = Meta.Unique;
-            if (fi != null) return IsNullKey(this[fi.Name]) ? Insert() : Update();
+            if (fi != null) return Helper.IsNullKey(this[fi.Name]) ? Insert() : Update();
 
             return FindCount(DefaultCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
@@ -247,6 +248,34 @@ namespace XCode
         /// <param name="isNew">是否新数据</param>
         public virtual void Valid(Boolean isNew)
         {
+            // 根据索引，判断唯一性
+            IDataTable table = Meta.Table.DataTable;
+            if (table.Indexes != null && table.Indexes.Count > 0)
+            {
+                // 遍历所有索引
+                foreach (IDataIndex item in table.Indexes)
+                {
+                    // 只处理唯一索引
+                    if (!item.Unique) continue;
+
+                    // 需要转为别名，也就是字段名
+                    IDataColumn[] columns = table.GetColumns(item.Columns);
+                    if (columns == null || columns.Length < 1) continue;
+
+                    List<String> list = new List<string>();
+                    // 记录字段是否有更新
+                    Boolean changed = false;
+                    foreach (IDataColumn dc in columns)
+                    {
+                        if (!list.Contains(dc.Alias)) list.Add(dc.Alias);
+
+                        if (Dirtys[dc.Alias]) changed = true;
+                    }
+
+                    // 存在检查
+                    if (isNew || changed) CheckExist(list.ToArray());
+                }
+            }
         }
 
         /// <summary>
@@ -274,7 +303,7 @@ namespace XCode
                 if (String.IsNullOrEmpty(name)) name = Meta.ThisType.Name;
                 sb.AppendFormat(" 的{0}已存在！", name);
 
-                throw new ArgumentOutOfRangeException(names[0], this[names[0]], sb.ToString());
+                throw new ArgumentOutOfRangeException(String.Join(",", names), this[names[0]], sb.ToString());
             }
         }
 
@@ -295,7 +324,7 @@ namespace XCode
 
             FieldItem field = Meta.Unique;
             // 如果是空主键，则采用直接判断记录数的方式，以加快速度
-            if (IsNullKey(this[field.Name])) return FindCount(names, values) > 0;
+            if (Helper.IsNullKey(this[field.Name])) return FindCount(names, values) > 0;
 
             EntityList<TEntity> list = FindAll(names, values);
             if (list == null) return false;
@@ -336,7 +365,7 @@ namespace XCode
                 if (field != null && (field.IsIdentity || field.PrimaryKey))
                 {
                     // 唯一键为自增且参数小于等于0时，返回空
-                    if (IsNullKey(values[0])) return null;
+                    if (Helper.IsNullKey(values[0])) return null;
 
                     // 自增或者主键查询，记录集肯定是唯一的，不需要指定记录数和排序
                     //IList<TEntity> list = FindAll(MakeCondition(field, values[0], "="), null, null, 0, 0);
@@ -381,7 +410,7 @@ namespace XCode
             if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKey方法要求该表有唯一主键！");
 
             // 唯一键为自增且参数小于等于0时，返回空
-            if (IsNullKey(key)) return null;
+            if (Helper.IsNullKey(key)) return null;
 
             return Find(field.Name, key);
         }
@@ -407,9 +436,9 @@ namespace XCode
             Type type = field.Type;
 
             // 唯一键为自增且参数小于等于0时，返回新实例
-            if (IsNullKey(key))
+            if (Helper.IsNullKey(key))
             {
-                if (IsInt(type) && !field.IsIdentity && DAL.Debug) DAL.WriteLog("{0}的{1}字段是整型主键，你是否忘记了设置自增？", Meta.TableName, field.ColumnName);
+                if (Helper.IsIntType(type) && !field.IsIdentity && DAL.Debug) DAL.WriteLog("{0}的{1}字段是整型主键，你是否忘记了设置自增？", Meta.TableName, field.ColumnName);
 
                 return Meta.Factory.Create() as TEntity;
             }
@@ -421,7 +450,7 @@ namespace XCode
             if (entity == null)
             {
                 String msg = null;
-                if (IsNullKey(key))
+                if (Helper.IsNullKey(key))
                     msg = String.Format("参数错误！无法取得编号为{0}的{1}！可能未设置自增主键！", key, Meta.Table.Description);
                 else
                     msg = String.Format("参数错误！无法取得编号为{0}的{1}！", key, Meta.Table.Description);
@@ -430,68 +459,6 @@ namespace XCode
             }
 
             return entity;
-        }
-
-        /// <summary>
-        /// 是否整数，包括16位、32位和64位，还有无符号和有符号
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        static Boolean IsInt(Type type)
-        {
-            if (type == null) return false;
-
-            switch (Type.GetTypeCode(type))
-            {
-                case TypeCode.Int16:
-                case TypeCode.Int32:
-                case TypeCode.Int64:
-                case TypeCode.UInt16:
-                case TypeCode.UInt32:
-                case TypeCode.UInt64:
-                    return true;
-                default:
-                    break;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// 指定键是否为空。一般业务系统设计不允许主键为空，包括自增的0和字符串的空
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        static Boolean IsNullKey(Object key)
-        {
-            if (key == null) return true;
-
-            Type type = key.GetType();
-
-            //if (IsInt(type))
-            //{
-            //    int i = (int)key;
-            //    //这里需要转换城明确类型否则会引发类型转换异常
-            //    return ((Int64)i) <= 0;
-            //}
-            //if (IsInt(type))
-            //{
-            //由于key的实际类型是由类型推倒而来，所以必须根据实际传入的参数类型分别进行装箱操作
-            //如果不根据类型分别进行会导致类型转换失败抛出异常
-            switch (Type.GetTypeCode(type))
-            {
-                case TypeCode.Int16: return ((Int16)key) <= 0;
-                case TypeCode.Int32: return ((Int32)key) <= 0;
-                case TypeCode.Int64: return ((Int64)key) <= 0;
-                case TypeCode.UInt16: return ((UInt16)key) <= 0;
-                case TypeCode.UInt32: return ((UInt32)key) <= 0;
-                case TypeCode.UInt64: return ((UInt64)key) <= 0;
-                case TypeCode.String: return String.IsNullOrEmpty((String)key);
-                default: break;
-            }
-            //}
-            //if (type == typeof(String)) return String.IsNullOrEmpty((String)key);
-
-            return false;
         }
         #endregion
 
@@ -662,7 +629,7 @@ namespace XCode
             if (field != null && (field.IsIdentity || field.PrimaryKey))
             {
                 // 唯一键为自增且参数小于等于0时，返回空
-                if (IsNullKey(value)) return null;
+                if (Helper.IsNullKey(value)) return null;
 
                 // 自增或者主键查询，记录集肯定是唯一的，不需要指定记录数和排序
                 //return FindAll(MakeCondition(field, value, "="), null, null, 0, 0);
@@ -687,6 +654,119 @@ namespace XCode
         }
         #endregion
 
+        #region 高级查询
+        /// <summary>
+        /// 查询满足条件的记录集，分页、排序
+        /// </summary>
+        /// <param name="key">关键字</param>
+        /// <param name="orderClause">排序，不带Order By</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns>实体集</returns>
+        [DataObjectMethod(DataObjectMethodType.Select, true)]
+        public static EntityList<TEntity> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        {
+            return FindAll(SearchWhereByKeys(key, null), orderClause, null, startRowIndex, maximumRows);
+        }
+
+        /// <summary>
+        /// 查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一
+        /// </summary>
+        /// <param name="key">关键字</param>
+        /// <param name="orderClause">排序，不带Order By</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns>记录数</returns>
+        public static Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        {
+            return FindCount(SearchWhereByKeys(key, null), null, null, 0, 0);
+        }
+
+        /// <summary>
+        /// 构建关键字查询条件
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <param name="keys"></param>
+        public static void SearchWhereByKeys(StringBuilder sb, String keys)
+        {
+            SearchWhereByKeys(sb, keys, null);
+        }
+
+        /// <summary>
+        /// 构建关键字查询条件
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <param name="keys"></param>
+        /// <param name="func"></param>
+        public static void SearchWhereByKeys(StringBuilder sb, String keys, Func<String, String> func)
+        {
+            if (String.IsNullOrEmpty(keys)) return;
+
+            String str = SearchWhereByKeys(keys, func);
+            if (String.IsNullOrEmpty(str)) return;
+
+            if (sb.Length > 0) sb.Append(" And ");
+            if (str.Contains("Or") || str.ToLower().Contains("or"))
+                sb.AppendFormat("({0})", str);
+            else
+                sb.Append(str);
+        }
+
+        /// <summary>
+        /// 构建关键字查询条件
+        /// </summary>
+        /// <param name="keys"></param>
+        /// <param name="func"></param>
+        /// <returns></returns>
+        public static String SearchWhereByKeys(String keys, Func<String, String> func)
+        {
+            if (String.IsNullOrEmpty(keys)) return null;
+
+            if (func == null) func = SearchWhereByKey;
+
+            String[] ks = keys.Split(new Char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < ks.Length; i++)
+            {
+                if (sb.Length > 0) sb.Append(" And ");
+
+                String str = func(ks[i]);
+                if (String.IsNullOrEmpty(str)) continue;
+
+                //sb.AppendFormat("({0})", str);
+                if (str.Contains("Or") || str.ToLower().Contains("or"))
+                    sb.AppendFormat("({0})", str);
+                else
+                    sb.Append(str);
+            }
+
+            return sb.Length <= 0 ? null : sb.ToString();
+        }
+
+        /// <summary>
+        /// 构建关键字查询条件
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static String SearchWhereByKey(String key)
+        {
+            StringBuilder sb = new StringBuilder();
+            Int32 n = 0;
+            foreach (FieldItem item in Meta.Fields)
+            {
+                if (item.Type != typeof(String)) continue;
+                //// 只要前五项
+                //if (++n > 5) break;
+
+                if (n > 1) sb.Append(" Or ");
+                sb.AppendFormat("{0} like '%{1}%'", Meta.FormatName(item.Name), key);
+            }
+
+            return sb.Length <= 0 ? null : sb.ToString();
+        }
+        #endregion
+
         #region 缓存查询
         /// <summary>
         /// 根据属性以及对应的值，在缓存中查找单个实体
@@ -695,20 +775,14 @@ namespace XCode
         /// <param name="value">属性值</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity FindWithCache(String name, Object value)
-        {
-            return Entity<TEntity>.Meta.Cache.Entities.Find(name, value);
-        }
+        public static TEntity FindWithCache(String name, Object value) { return Meta.Cache.Entities.Find(name, value); }
 
         /// <summary>
         /// 查找所有缓存
         /// </summary>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAllWithCache()
-        {
-            return Entity<TEntity>.Meta.Cache.Entities;
-        }
+        public static EntityList<TEntity> FindAllWithCache() { return Meta.Cache.Entities; }
 
         /// <summary>
         /// 根据属性以及对应的值，在缓存中获取所有实体对象
@@ -717,10 +791,7 @@ namespace XCode
         /// <param name="value">值</param>
         /// <returns>实体数组</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAllWithCache(String name, Object value)
-        {
-            return Entity<TEntity>.Meta.Cache.Entities;
-        }
+        public static EntityList<TEntity> FindAllWithCache(String name, Object value) { return Meta.Cache.Entities.FindAll(name, value); }
         #endregion
 
         #region 取总记录数
@@ -728,22 +799,7 @@ namespace XCode
         /// 返回总记录数
         /// </summary>
         /// <returns></returns>
-        public static Int32 FindCount()
-        {
-            //Int32 count = Meta.Count;
-            //if (count >= 1000) return count;
-
-            //return Meta.QueryCount(SQL(null, DataObjectMethodType.Fill));
-            //return Meta.Count;
-
-            //SelectBuilder sb = new SelectBuilder(Meta.DbType);
-            //sb.Column = "Count(*)";
-            //sb.Table = Meta.FormatName(Meta.TableName);
-
-            //return Meta.QueryCount(sb);
-
-            return FindCount(null, null, null, 0, 0);
-        }
+        public static Int32 FindCount() { return FindCount(null, null, null, 0, 0); }
 
         /// <summary>
         /// 返回总记录数
@@ -757,14 +813,7 @@ namespace XCode
         [WebMethod(Description = "查询并返回总记录数")]
         public static Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
-            ////如果不带Where字句，直接调用FindCount，可以借助快速算法取得总记录数
-            //if (String.IsNullOrEmpty(whereClause)) return FindCount();
-
-            //String sql = PageSplitSQL(whereClause, null, selects, 0, 0);
-            //return Meta.QueryCount(sql);
-
             SelectBuilder sb = new SelectBuilder(Meta.DbType);
-            //sb.Column = "Count(*)";
             sb.Table = Meta.FormatName(Meta.TableName);
             sb.Where = whereClause;
 
@@ -788,10 +837,7 @@ namespace XCode
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <returns>总行数</returns>
-        public static Int32 FindCount(String name, Object value)
-        {
-            return FindCount(name, value, 0, 0);
-        }
+        public static Int32 FindCount(String name, Object value) { return FindCount(name, value, 0, 0); }
 
         /// <summary>
         /// 根据属性以及对应的值，返回总记录数
@@ -820,7 +866,7 @@ namespace XCode
             if (String.IsNullOrEmpty(name))
                 return FindCount(null, null, null, 0, 0);
             else
-                return FindCount(MakeCondition(new String[] { name }, new Object[] { value }, "And"), null, null, 0, 0);
+                return FindCount(MakeCondition(name, value, "="), null, null, 0, 0);
         }
         #endregion
 
@@ -1186,7 +1232,7 @@ namespace XCode
             {
                 keyColumn = fi.ColumnName;
                 // 加上Desc标记，将使用MaxMin分页算法。标识列，单一主键且为数字类型
-                if (fi.IsIdentity || IsInt(fi.Type))
+                if (fi.IsIdentity && Helper.IsIntType(fi.Type))
                 {
                     keyColumn += " Desc";
 
@@ -1307,64 +1353,6 @@ namespace XCode
             }
             finally { StopExtend = false; }
         }
-
-        ///// <summary>
-        ///// 高级序列化
-        ///// </summary>
-        ///// <param name="writer">文本读写器</param>
-        ///// <param name="propertyAsAttribute">属性作为Xml属性进行序列化</param>
-        ///// <param name="hasNamespace"></param>
-        //public virtual void Serialize(TextWriter writer, Boolean propertyAsAttribute, Boolean hasNamespace)
-        //{
-        //    XmlAttributeOverrides overrides = null;
-        //    overrides = new XmlAttributeOverrides();
-        //    Type type = this.GetType();
-        //    //IList<FieldItem> fs = FieldItem.GetDataObjectFields(type);
-        //    PropertyInfo[] pis = type.GetProperties();
-        //    //foreach (FieldItem item in fs)
-        //    foreach (PropertyInfo item in pis)
-        //    {
-        //        if (!item.CanRead) continue;
-
-        //        if (propertyAsAttribute)
-        //        {
-        //            XmlAttributeAttribute att = new XmlAttributeAttribute();
-        //            XmlAttributes xas = new XmlAttributes();
-        //            xas.XmlAttribute = att;
-        //            overrides.Add(type, item.Name, xas);
-        //        }
-        //        else
-        //        {
-        //            XmlAttributes xas = new XmlAttributes();
-        //            xas.XmlElements.Add(new XmlElementAttribute());
-        //            overrides.Add(type, item.Name, xas);
-        //        }
-        //    }
-
-        //    XmlSerializer serial = new XmlSerializer(this.GetType(), overrides);
-        //    using (MemoryStream stream = new MemoryStream())
-        //    {
-        //        serial.Serialize(writer, this);
-        //        writer.Close();
-        //    }
-        //}
-
-        ///// <summary>
-        ///// 高级序列化
-        ///// </summary>
-        ///// <param name="propertyAsAttribute">属性作为Xml属性进行序列化</param>
-        ///// <param name="hasNamespace"></param>
-        ///// <returns></returns>
-        //public virtual String Serialize(Boolean propertyAsAttribute, Boolean hasNamespace)
-        //{
-        //    using (MemoryStream stream = new MemoryStream())
-        //    {
-        //        StreamWriter writer = new StreamWriter(stream, Encoding.UTF8);
-        //        Serialize(writer, propertyAsAttribute, hasNamespace);
-        //        writer.Close();
-        //        return Encoding.UTF8.GetString(stream.ToArray());
-        //    }
-        //}
         #endregion
 
         #region 导入导出Json
@@ -1401,6 +1389,13 @@ namespace XCode
             {
                 obj[fi.Name] = this[fi.Name];
             }
+            if (Extends != null && Extends.Count > 0)
+            {
+                foreach (String item in Extends.Keys)
+                {
+                    obj.Extends[item] = Extends[item];
+                }
+            }
             return obj;
         }
         #endregion
@@ -1412,6 +1407,31 @@ namespace XCode
         /// <returns></returns>
         public override string ToString()
         {
+            // 优先采用业务主键，也就是唯一索引
+            IDataTable table = Meta.Table.DataTable;
+            if (table.Indexes != null && table.Indexes.Count > 0)
+            {
+                foreach (IDataIndex item in table.Indexes)
+                {
+                    if (!item.Unique) continue;
+
+                    IDataColumn[] columns = table.GetColumns(item.Columns);
+                    if (columns == null || columns.Length < 1) continue;
+
+                    // [v1,v2,...vn]
+                    StringBuilder sb = new StringBuilder();
+                    foreach (IDataColumn dc in columns)
+                    {
+                        if (sb.Length > 0) sb.Append(",");
+                        if (Meta.FieldNames.Contains(dc.Alias)) sb.Append(this[dc.Alias]);
+                    }
+                    if (columns.Length > 1)
+                        return String.Format("[{0}]", sb.ToString());
+                    else
+                        return sb.ToString();
+                }
+            }
+
             if (Meta.FieldNames.Contains("Name"))
                 return this["Name"] == null ? null : this["Name"].ToString();
             else if (Meta.FieldNames.Contains("ID"))

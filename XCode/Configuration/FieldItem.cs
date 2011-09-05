@@ -194,6 +194,18 @@ namespace XCode.Configuration
                 xf.Nullable = DataObjectField.IsNullable;
             }
         }
+
+        /// <summary>
+        /// 建立表达式
+        /// </summary>
+        /// <param name="action"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public WhereExpression CreateExpression(String action, Object value)
+        {
+            IEntityOperate op = EntityFactory.CreateOperate(Table.EntityType);
+            return new WhereExpression(String.Format("{0}{1}{2}", op.FormatName(ColumnName), action, op.FormatValue(this, value)));
+        }
         #endregion
 
         #region 重载运算符
@@ -202,14 +214,14 @@ namespace XCode.Configuration
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public String Equal(object value) { return MakeCondition(this, value, "=="); }
+        public WhereExpression Equal(object value) { return MakeCondition(this, value, "=="); }
 
         /// <summary>
         /// 不等于
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public String NotEqual(object value) { return MakeCondition(this, value, "<>"); }
+        public WhereExpression NotEqual(object value) { return MakeCondition(this, value, "<>"); }
 
         //public static String operator ==(FieldItem field, Object value) { return MakeCondition(field, value, "=="); }
         //public static String operator !=(FieldItem field, Object value) { return MakeCondition(field, value, "<>"); }
@@ -220,7 +232,7 @@ namespace XCode.Configuration
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static String operator >(FieldItem field, Object value) { return MakeCondition(field, value, ">"); }
+        public static WhereExpression operator >(FieldItem field, Object value) { return MakeCondition(field, value, ">"); }
 
         /// <summary>
         /// 小于
@@ -228,7 +240,7 @@ namespace XCode.Configuration
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static String operator <(FieldItem field, Object value) { return MakeCondition(field, value, "<"); }
+        public static WhereExpression operator <(FieldItem field, Object value) { return MakeCondition(field, value, "<"); }
 
         /// <summary>
         /// 大于等于
@@ -236,7 +248,7 @@ namespace XCode.Configuration
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static String operator >=(FieldItem field, Object value) { return MakeCondition(field, value, ">="); }
+        public static WhereExpression operator >=(FieldItem field, Object value) { return MakeCondition(field, value, ">="); }
 
         /// <summary>
         /// 小于等于
@@ -244,12 +256,13 @@ namespace XCode.Configuration
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static String operator <=(FieldItem field, Object value) { return MakeCondition(field, value, "<="); }
+        public static WhereExpression operator <=(FieldItem field, Object value) { return MakeCondition(field, value, "<="); }
 
-        static String MakeCondition(FieldItem field, Object value, String action)
+        static WhereExpression MakeCondition(FieldItem field, Object value, String action)
         {
-            IEntityOperate op = EntityFactory.CreateOperate(field.Table.EntityType);
-            return String.Format("{0}{1}{2}", op.FormatName(field.ColumnName), action, op.FormatValue(field, value));
+            //IEntityOperate op = EntityFactory.CreateOperate(field.Table.EntityType);
+            //return new WhereExpression(String.Format("{0}{1}{2}", op.FormatName(field.ColumnName), action, op.FormatValue(field, value)));
+            return field == null ? new WhereExpression() : field.CreateExpression(action, value);
         }
         #endregion
 

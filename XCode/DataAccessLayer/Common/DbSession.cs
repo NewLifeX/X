@@ -2,11 +2,10 @@ using System;
 using System.Data;
 using System.Data.Common;
 using System.Text.RegularExpressions;
-using NewLife;
-using XCode.Exceptions;
 using System.Threading;
-using NewLife.Configuration;
+using NewLife;
 using NewLife.Log;
+using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {

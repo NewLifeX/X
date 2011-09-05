@@ -19,17 +19,28 @@ namespace XCode
         #endregion
 
         #region 构造
-        ///// <summary>
-        ///// 新建一个条件表达式对象
-        ///// </summary>
-        ///// <returns></returns>
-        //public static WhereExpression New()
-        //{
-        //    return new WhereExpression();
-        //}
+        /// <summary>
+        /// 实例化
+        /// </summary>
+        public WhereExpression() { }
+
+        /// <summary>
+        /// 实例化
+        /// </summary>
+        /// <param name="exp"></param>
+        public WhereExpression(String exp)
+        {
+            Builder.Append(exp);
+        }
         #endregion
 
         #region 方法
+        void Append(String action, String content)
+        {
+            if (Builder.Length > 0 && Builder[Builder.Length - 1] != '(') Builder.AppendFormat(" {0} ", action.Trim());
+            Builder.Append(content);
+        }
+
         /// <summary>
         /// And操作
         /// </summary>
@@ -37,8 +48,9 @@ namespace XCode
         /// <returns></returns>
         public WhereExpression And(String exp)
         {
-            if (Builder.Length > 0 && Builder[Builder.Length - 1] != '(') Builder.Append(" And ");
-            Builder.Append(exp);
+            //if (Builder.Length > 0 && Builder[Builder.Length - 1] != '(') Builder.Append(" And ");
+            //Builder.Append(exp);
+            if (!String.IsNullOrEmpty(exp)) Append("And", exp);
 
             return this;
         }
@@ -50,8 +62,9 @@ namespace XCode
         /// <returns></returns>
         public WhereExpression Or(String exp)
         {
-            if (Builder.Length > 0 && Builder[Builder.Length - 1] != '(') Builder.Append(" Or ");
-            Builder.Append(exp);
+            //if (Builder.Length > 0 && Builder[Builder.Length - 1] != '(') Builder.Append(" Or ");
+            //Builder.Append(exp);
+            if (!String.IsNullOrEmpty(exp)) Append("Or", exp);
 
             return this;
         }
@@ -84,10 +97,11 @@ namespace XCode
         /// <returns></returns>
         public override string ToString()
         {
-            if (Builder == null || Builder.Length <= 0)
-                return null;
-            else
-                return Builder.ToString();
+            if (Builder == null || Builder.Length <= 0) return null;
+
+            String str = Builder.ToString();
+            if (str.Length <= 5 && str.Replace(" ", null) == "1=1") return null;
+            return str;
         }
 
         /// <summary>
@@ -105,7 +119,7 @@ namespace XCode
         private Boolean skipNext = false;
 
         /// <summary>
-        /// 重载运算符实现And操作
+        /// 重载运算符实现And操作，同时通过布尔型支持AndIf
         /// </summary>
         /// <param name="exp"></param>
         /// <param name="value"></param>
@@ -130,7 +144,7 @@ namespace XCode
         }
 
         /// <summary>
-        /// 重载运算符实现Or操作
+        /// 重载运算符实现Or操作，同时通过布尔型支持OrIf
         /// </summary>
         /// <param name="exp"></param>
         /// <param name="value"></param>

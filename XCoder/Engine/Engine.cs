@@ -4,13 +4,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using System.Windows.Forms;
+using System.Threading;
 using Microsoft.CSharp;
 using Microsoft.VisualBasic;
+using NewLife.Log;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
-using System.Threading;
-using NewLife.Log;
 
 namespace XCoder
 {
@@ -311,8 +310,8 @@ namespace XCoder
             String path = Path.Combine(TemplatePath, Config.TemplateName);
             if (!Directory.Exists(path)) return null;
 
-            String[] ss = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
-            if (ss == null || ss.Length < 1) return null;
+            String[] files = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
+            if (files == null || files.Length < 1) return null;
 
             Dictionary<String, Object> data = new Dictionary<string, object>();
             data["Config"] = Config;
@@ -323,7 +322,7 @@ namespace XCoder
             //Template tt = new Template();
             Template.Debug = Config.Debug;
             Dictionary<String, String> templates = new Dictionary<string, string>();
-            foreach (String item in ss)
+            foreach (String item in files)
             {
                 if (item.EndsWith("scc", StringComparison.OrdinalIgnoreCase)) continue;
 
@@ -334,7 +333,7 @@ namespace XCoder
                 String content = File.ReadAllText(tempFile);
 
                 // 添加文件头
-                if (Config.UseHeadTemplate && !String.IsNullOrEmpty(Config.HeadTemplate))
+                if (Config.UseHeadTemplate && !String.IsNullOrEmpty(Config.HeadTemplate) && item.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
                     content = Config.HeadTemplate + content;
 
                 //tt.AddTemplateItem(item, content);
@@ -349,15 +348,14 @@ namespace XCoder
             //tt.Compile();
 
             List<String> rs = new List<string>();
-            foreach (String item in ss)
+            foreach (TemplateItem item in tt.Templates)
             {
-                if (item.EndsWith("scc", StringComparison.OrdinalIgnoreCase)) continue;
+                if (item.Included) continue;
 
-                //String content = RenderFile(table, item, data);
-                String content = tt.Render(item, data);
+                String content = tt.Render(item.Name, data);
 
                 // 计算输出文件名
-                String fileName = Path.GetFileName(item);
+                String fileName = Path.GetFileName(item.Name);
                 String className = CutPrefix(table.Name);
                 className = FixWord(className);
                 String remark = table.Description;

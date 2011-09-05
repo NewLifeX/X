@@ -210,10 +210,10 @@ namespace XCoder
             if (!String.IsNullOrEmpty(str)) cbConn.Text = str;
         }
 
-        /// <summary>
-        /// 连接字符串
-        /// </summary>
-        List<String> Conns = null;
+        ///// <summary>
+        ///// 连接字符串
+        ///// </summary>
+        //List<String> Conns = null;
 
         /// <summary>
         /// 模版绑定

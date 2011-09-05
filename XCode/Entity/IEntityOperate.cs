@@ -6,6 +6,8 @@ using XCode.Cache;
 
 namespace XCode
 {
+    //TODO 可以考虑增加获取DAL的相关方法，以增强IEntityOperate
+
     /// <summary>
     /// 数据实体操作接口
     /// </summary>
