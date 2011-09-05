@@ -62,8 +62,8 @@ namespace XCode
 
             // 计算都有哪些字段可以加载数据，默认是使用了BindColumn特性的属性，然后才是别的属性
             // 当然，要数据集中有这个列才行，也就是取实体类和数据集的交集
-            List<String> exts = null;
-            List<FieldItem> ps = CheckColumn(dt, out exts);
+            List<String> exts = new List<String>();
+            List<FieldItem> ps = CheckColumn(dt, exts);
 
             // 创建实体操作者，将由实体操作者创建实体对象
             //IEntityOperate factory = Entity<TEntity>.Meta.Factory;
@@ -91,8 +91,8 @@ namespace XCode
             if (dr == null) return;
 
             // 计算都有哪些字段可以加载数据
-            List<String> exts = null;
-            List<FieldItem> ps = CheckColumn(dr.Table, out exts);
+            List<String> exts = new List<String>();
+            List<FieldItem> ps = CheckColumn(dr.Table, exts);
             LoadData(dr, entity, ps, exts);
         }
 
@@ -221,19 +221,27 @@ namespace XCode
         /// <param name="dt">数据表</param>
         /// <param name="exts">实体类不包含的字段</param>
         /// <returns></returns>
-        private List<FieldItem> CheckColumn(DataTable dt, out List<String> exts)
+        private List<FieldItem> CheckColumn(DataTable dt, List<String> exts)
         {
             List<FieldItem> ps = new List<FieldItem>();
-            exts = new List<String>();
+            List<String> ns = new List<string>();
             IEntityOperate factory = EntityFactory.CreateOperate(EntityType);
             foreach (FieldItem item in factory.AllFields)
             {
                 if (String.IsNullOrEmpty(item.ColumnName)) continue;
 
                 if (dt.Columns.Contains(item.ColumnName))
+                {
                     ps.Add(item);
-                else if (!exts.Contains(item))
-                    exts.Add(item);
+                    ns.Add(item.ColumnName);
+                }
+            }
+            if (exts != null)
+            {
+                foreach (DataColumn item in dt.Columns)
+                {
+                    if (!ns.Contains(item.ColumnName)) exts.Add(item.ColumnName);
+                }
             }
             return ps;
         }
