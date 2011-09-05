@@ -560,6 +560,7 @@ namespace XCode.DataAccessLayer
                 b = DbSession.ShowSQL;
                 DbSession.ShowSQL = false;
                 AllFields = session.Query(SchemaSql).Tables[0];
+                AllIndexes = Database.CreateSession().Query(IndexSql).Tables[0];
                 DbSession.ShowSQL = b;
 
                 // 列出用户表
@@ -583,6 +584,7 @@ namespace XCode.DataAccessLayer
         }
 
         private DataTable AllFields = null;
+        private DataTable AllIndexes = null;
 
         protected override void FixField(IDataColumn field, DataRow dr)
         {
@@ -613,10 +615,9 @@ namespace XCode.DataAccessLayer
             List<IDataIndex> list = base.GetIndexes(table);
             if (list != null && list.Count > 0)
             {
-                DataTable dt = Database.CreateSession().Query(IndexSql).Tables[0];
                 foreach (IDataIndex item in list)
                 {
-                    DataRow[] drs = dt.Select("name='" + item.Name + "'");
+                    DataRow[] drs = AllIndexes.Select("name='" + item.Name + "'");
                     if (drs != null && drs.Length > 0)
                     {
                         item.Unique = GetDataRowValue<Boolean>(drs[0], "is_unique");
