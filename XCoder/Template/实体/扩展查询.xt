@@ -39,51 +39,6 @@ if(Table.PrimaryKeys!=null&&Table.PrimaryKeys.Length>0)
 			}
 			return entity;
 		}
-
-		/// <summary>
-		/// 根据主键查询一个<#=Table.Description#>实体对象
-		/// </summary>
-<#
-        sb1=new StringBuilder();
-        sb2=new StringBuilder();
-        sb3=new StringBuilder();
-        StringBuilder sb4=new StringBuilder();
-        String[] Args=new String[Table.PrimaryKeys.Length];
-        Int32 i=0;
-
-		foreach(IDataColumn Field in Table.PrimaryKeys)
-	    {
-            if(sb1.Length>0) sb1.Append(", ");
-            sb1.Append(Field.DataType.Name+" ");
-            String argName=Field.Alias.ToLower();
-            if(argName==Field.Alias) argName="__"+Field.Alias;
-            sb1.Append(argName);
-            Args[i++]=argName;
-
-            if(sb2.Length>0) sb2.Append(", ");
-            sb2.Append("_."+Field.Alias);
-            
-            if(sb3.Length>0) sb3.Append(", ");
-            sb3.Append(argName);
-            
-            if(sb4.Length>0) sb4.Append("And");
-            sb4.Append(Field.Alias);
-
-#>		/// <param name="<#=argName#>"><#=Field.Description#></param>
-<#  
-	    }
-#>		/// <returns></returns>
-		[DataObjectMethod(DataObjectMethodType.Select, false)]
-		public static <#=Table.Alias#> FindBy<#=sb4#>(<#=sb1#>)
-		{
-			return Find(new String[] { <#=sb2#> }, new Object[] { <#=sb3#> });<#
-            if(Table.PrimaryKeys.Length==1){
-#>
-			// 实体缓存
-			//return Meta.Cache.Entities.Find(_.<#=Table.PrimaryKeys[0].Alias#>, <#=Args[0]#>);
-			// 单对象缓存
-			//return Meta.SingleCache[<#=Args[0]#>];<#}#>
-		}
 <#
 }
 
