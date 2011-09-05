@@ -57,7 +57,7 @@ namespace XCode
         #endregion
 
         #region 填充数据
-        private static IDataRowEntityAccessor dreAccessor = new DataRowEntityAccessor();
+        private static IDataRowEntityAccessor dreAccessor = new DataRowEntityAccessor(Meta.ThisType);
 
         /// <summary>
         /// 加载记录集

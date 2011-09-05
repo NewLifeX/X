@@ -42,6 +42,8 @@ namespace XCode
             get { return _EntityType; }
             set { _EntityType = value; }
         }
+
+        public DataRowEntityAccessor(Type type) { EntityType = type; }
         #endregion
 
         #region 存取
