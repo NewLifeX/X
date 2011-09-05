@@ -72,15 +72,15 @@ namespace XCode.DataAccessLayer
     class NetworkSession : DbSession
     {
         #region 重载
-        /// <summary>
-        /// 查询记录集
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <returns></returns>
-        public override DataSet Query(string sql)
-        {
-            return base.Query(sql);
-        }
+        ///// <summary>
+        ///// 查询记录集
+        ///// </summary>
+        ///// <param name="sql"></param>
+        ///// <returns></returns>
+        //public override DataSet Query(string sql)
+        //{
+        //    return base.Query(sql);
+        //}
 
         /// <summary>
         /// 带主键信息查询记录集
