@@ -208,12 +208,9 @@ namespace XCoder
 
             //Conns = null;
             if (!String.IsNullOrEmpty(str)) cbConn.Text = str;
-        }
 
-        ///// <summary>
-        ///// 连接字符串
-        ///// </summary>
-        //List<String> Conns = null;
+            if (cbConn.SelectedIndex < 0) cbConn.SelectedIndex = 0;
+        }
 
         /// <summary>
         /// 模版绑定
@@ -529,6 +526,8 @@ namespace XCoder
         #region 导出映射文件
         private void button1_Click(object sender, EventArgs e)
         {
+            if (String.IsNullOrEmpty(Config.ConnName)) return;
+
             IList<IDataTable> tables = DAL.Create(Config.ConnName).Tables;
             if (tables == null || tables.Count < 1) return;
 
@@ -563,7 +562,7 @@ namespace XCoder
 
         private void cbConn_SelectedIndexChanged(object sender, EventArgs e)
         {
-            toolTip1.SetToolTip(cbConn, DAL.Create(cbConn.Text).ConnStr);
+            if (!String.IsNullOrEmpty(Config.ConnName)) toolTip1.SetToolTip(cbConn, DAL.Create(cbConn.Text).ConnStr);
 
             AutoLoadTables(cbConn.Text);
 

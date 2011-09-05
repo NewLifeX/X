@@ -30,7 +30,7 @@ using System.Runtime.InteropServices;
 //      修订号
 //
 [assembly: AssemblyVersion("4.1.*")]
-[assembly: AssemblyFileVersion("4.1.2011.0905")]
+[assembly: AssemblyFileVersion("4.1.2011.0906")]
 
 /*
  * v4.1.2011.0902   修改自动更新逻辑，先下载，再询问是否更新
