@@ -280,15 +280,28 @@ namespace XCode.DataAccessLayer
                 {
                     IDataIndex di = CreateIndex();
                     di.Columns = new String[] { dr.Column };
-                    // 这两个的关系，是反过来的
+                    // 这两个的关系，唯一性
                     di.Unique = dr.Unique;
                     Indexes.Add(di);
                 }
             }
             #endregion
 
-            #region 修正主键
+            #region 从索引中修正主键
             IDataColumn[] pks = PrimaryKeys;
+            if (pks == null || pks.Length < 1)
+            {
+                // 在索引中找唯一索引作为主键
+                foreach (IDataIndex item in Indexes)
+                {
+                    if (!item.PrimaryKey || item.Columns == null || item.Columns.Length < 1) continue;
+
+                    pks = GetColumns(item.Columns);
+                    Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
+                    break;
+                }
+            }
+            pks = PrimaryKeys;
             if (pks == null || pks.Length < 1)
             {
                 // 在索引中找唯一索引作为主键
@@ -298,45 +311,48 @@ namespace XCode.DataAccessLayer
 
                     pks = GetColumns(item.Columns);
                     Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
+                    break;
                 }
+            }
+            pks = PrimaryKeys;
+            if (pks == null || pks.Length < 1)
+            {
                 // 如果还没有主键，把第一个索引作为主键
-                if (pks == null || pks.Length < 1)
+                foreach (IDataIndex item in Indexes)
                 {
-                    foreach (IDataIndex item in Indexes)
-                    {
-                        if (item.Columns == null || item.Columns.Length < 1) continue;
+                    if (item.Columns == null || item.Columns.Length < 1) continue;
 
-                        pks = GetColumns(item.Columns);
-                        Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
-                    }
+                    pks = GetColumns(item.Columns);
+                    Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
+                    break;
                 }
             }
             #endregion
 
             #region 移除主键对应的索引，因为主键会自动创建索引
-            pks = PrimaryKeys;
-            if (pks != null && pks.Length > 0)
-            {
-                for (int i = Indexes.Count - 1; i >= 0; i--)
-                {
-                    // 判断索引的字段是否就是主键的字段
-                    // 假设就是，需要在索引字段中找到一个不是主键的字段
-                    Boolean b = true;
-                    foreach (String item in Indexes[i].Columns)
-                    {
-                        foreach (IDataColumn pk in pks)
-                        {
-                            if (!String.Equals(pk.Name, item, StringComparison.OrdinalIgnoreCase))
-                            {
-                                b = false;
-                                break;
-                            }
-                        }
-                        if (!b) break;
-                    }
-                    if (b) Indexes.RemoveAt(i);
-                }
-            }
+            //pks = PrimaryKeys;
+            //if (pks != null && pks.Length > 0)
+            //{
+            //    for (int i = Indexes.Count - 1; i >= 0; i--)
+            //    {
+            //        // 判断索引的字段是否就是主键的字段
+            //        // 假设就是，需要在索引字段中找到一个不是主键的字段
+            //        Boolean b = true;
+            //        foreach (String item in Indexes[i].Columns)
+            //        {
+            //            foreach (IDataColumn pk in pks)
+            //            {
+            //                if (!String.Equals(pk.Name, item, StringComparison.OrdinalIgnoreCase))
+            //                {
+            //                    b = false;
+            //                    break;
+            //                }
+            //            }
+            //            if (!b) break;
+            //        }
+            //        if (b) Indexes.RemoveAt(i);
+            //    }
+            //}
             #endregion
 
             #region 修正可能错误的别名
@@ -346,6 +362,7 @@ namespace XCode.DataAccessLayer
             {
                 if (ns.Contains(item.Alias) || IsKeyWord(item.Alias))
                 {
+                    // 通过加数字的方式，解决关键字问题
                     for (int i = 2; i < Columns.Count; i++)
                     {
                         String name = item.Alias + i;

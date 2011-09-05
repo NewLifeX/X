@@ -92,8 +92,9 @@ namespace XCode.DataAccessLayer
         /// 执行SQL查询，返回记录集
         /// </summary>
         /// <param name="sql">SQL语句</param>
+        /// <param name="ps">参数</param>
         /// <returns>记录集</returns>
-        DataSet Query(String sql);
+        DataSet Query(String sql, params DbParameter[] ps);
 
         /// <summary>
         /// 执行SQL查询，返回记录集

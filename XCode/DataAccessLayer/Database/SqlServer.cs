@@ -138,7 +138,7 @@ namespace XCode.DataAccessLayer
 
             sql = CheckSimpleSQL(sql2);
 
-            if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "这里用的not in分页算法要求指定主键列！");
+            if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "分页要求指定主键列或者排序字段！");
 
             if (maximumRows < 1)
                 sql = String.Format("Select * From {1} Where {2} Not In(Select Top {0} {2} From {1} {3}) {3}", startRowIndex, sql, keyColumn, orderBy);
@@ -189,6 +189,8 @@ namespace XCode.DataAccessLayer
 
             if (String.IsNullOrEmpty(orderBy))
             {
+                if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "分页要求指定主键列或者排序字段！");
+
                 //if (keyColumn.EndsWith(" Unknown", StringComparison.OrdinalIgnoreCase)) keyColumn = keyColumn.Substring(0, keyColumn.LastIndexOf(" "));
                 orderBy = "Order By " + keyColumn;
             }
@@ -546,13 +548,19 @@ namespace XCode.DataAccessLayer
                 IDbSession session = Database.CreateSession();
 
                 //一次性把所有的表说明查出来
+                Boolean b = DbSession.ShowSQL;
+                DbSession.ShowSQL = false;
                 DataSet ds = session.Query(DescriptionSql);
                 DataTable DescriptionTable = ds == null || ds.Tables == null || ds.Tables.Count < 1 ? null : ds.Tables[0];
+                DbSession.ShowSQL = b;
 
                 DataTable dt = GetSchema("Tables", null);
                 if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
+                b = DbSession.ShowSQL;
+                DbSession.ShowSQL = false;
                 AllFields = session.Query(SchemaSql).Tables[0];
+                DbSession.ShowSQL = b;
 
                 // 列出用户表
                 DataRow[] rows = dt.Select(String.Format("{0}='BASE TABLE' Or {0}='VIEW'", "TABLE_TYPE"));
@@ -600,14 +608,33 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected override void FixIndex(IDataIndex index, DataRow dr)
+        protected override List<IDataIndex> GetIndexes(IDataTable table)
         {
-            String name = null;
-            if (TryGetDataRowValue<String>(dr, "type_desc", out name) && !String.IsNullOrEmpty(name))
-                index.Unique = "CLUSTERED".Equals(name, StringComparison.OrdinalIgnoreCase);
-
-            base.FixIndex(index, dr);
+            List<IDataIndex> list = base.GetIndexes(table);
+            if (list != null && list.Count > 0)
+            {
+                DataTable dt = Database.CreateSession().Query(IndexSql).Tables[0];
+                foreach (IDataIndex item in list)
+                {
+                    DataRow[] drs = dt.Select("name='" + item.Name + "'");
+                    if (drs != null && drs.Length > 0)
+                    {
+                        item.Unique = GetDataRowValue<Boolean>(drs[0], "is_unique");
+                        item.PrimaryKey = GetDataRowValue<Boolean>(drs[0], "is_primary_key");
+                    }
+                }
+            }
+            return list;
         }
+
+        //protected override void FixIndex(IDataIndex index, DataRow dr)
+        //{
+        //    String name = null;
+        //    if (TryGetDataRowValue<String>(dr, "type_desc", out name) && !String.IsNullOrEmpty(name))
+        //        index.Unique = "CLUSTERED".Equals(name, StringComparison.OrdinalIgnoreCase);
+
+        //    base.FixIndex(index, dr);
+        //}
 
         protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
@@ -672,6 +699,19 @@ namespace XCode.DataAccessLayer
                     _SchemaSql = sb.ToString();
                 }
                 return _SchemaSql;
+            }
+        }
+
+        private String _IndexSql;
+        public virtual String IndexSql
+        {
+            get
+            {
+                if (_IndexSql == null)
+                {
+                    _IndexSql = "select ind.* from sys.indexes ind inner join sys.objects obj on ind.object_id = obj.object_id where obj.type='u'";
+                }
+                return _IndexSql;
             }
         }
 

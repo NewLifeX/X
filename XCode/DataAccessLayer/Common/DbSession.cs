@@ -6,6 +6,7 @@ using System.Threading;
 using NewLife;
 using NewLife.Log;
 using XCode.Exceptions;
+using System.Text;
 
 namespace XCode.DataAccessLayer
 {
@@ -319,8 +320,9 @@ namespace XCode.DataAccessLayer
         /// 执行SQL查询，返回记录集
         /// </summary>
         /// <param name="sql">SQL语句</param>
+        /// <param name="ps">参数</param>
         /// <returns></returns>
-        public virtual DataSet Query(String sql)
+        public virtual DataSet Query(String sql, params DbParameter[] ps)
         {
             QueryTimes++;
             WriteSQL(sql);
@@ -328,6 +330,7 @@ namespace XCode.DataAccessLayer
             {
                 DbCommand cmd = CreateCommand();
                 cmd.CommandText = sql;
+                if (ps != null && ps.Length > 0) cmd.Parameters.AddRange(ps);
                 using (DbDataAdapter da = Factory.CreateDataAdapter())
                 {
                     da.SelectCommand = cmd;
@@ -421,31 +424,6 @@ namespace XCode.DataAccessLayer
                 }
             }
         }
-
-        ///// <summary>
-        ///// 执行SQL查询，返回总记录数
-        ///// </summary>
-        ///// <param name="sql">SQL语句</param>
-        ///// <returns></returns>
-        //protected virtual Int64 QueryCountInternal(String sql)
-        //{
-        //    QueryTimes++;
-        //    DbCommand cmd = CreateCommand();
-        //    cmd.CommandText = sql;
-        //    WriteSQL(cmd.CommandText);
-        //    try
-        //    {
-        //        return Convert.ToInt64(cmd.ExecuteScalar());
-        //    }
-        //    catch (DbException ex)
-        //    {
-        //        throw OnException(ex, cmd.CommandText);
-        //    }
-        //    finally
-        //    {
-        //        AutoClose();
-        //    }
-        //}
 
         private static Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>
@@ -656,9 +634,24 @@ namespace XCode.DataAccessLayer
         /// 写入SQL到文本中
         /// </summary>
         /// <param name="sql"></param>
-        public static void WriteSQL(String sql)
+        /// <param name="ps"></param>
+        public static void WriteSQL(String sql, params DbParameter[] ps)
         {
             if (!ShowSQL) return;
+
+            if (ps != null && ps.Length > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.Append(sql);
+                sb.Append("[");
+                for (int i = 0; i < ps.Length; i++)
+                {
+                    if (i > 0) sb.Append(", ");
+                    sb.AppendFormat("{1}:{0}={2}", ps[i].ParameterName, ps[i].DbType, ps[i].Value);
+                }
+                sb.Append("]");
+                sql = sb.ToString();
+            }
 
             if (String.IsNullOrEmpty(DAL.SQLPath))
                 WriteLog(sql);

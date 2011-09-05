@@ -24,6 +24,11 @@ namespace XCode.DataAccessLayer
         /// 是否唯一
         /// </summary>
         Boolean Unique { get; set; }
+
+        /// <summary>
+        /// 是否主键
+        /// </summary>
+        Boolean PrimaryKey { get; set; }
         #endregion
 
         #region 扩展属性

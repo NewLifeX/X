@@ -33,6 +33,14 @@ namespace XCode.DataAccessLayer
             set { _Unique = value; }
         }
 
+        private Boolean _PrimaryKey;
+        /// <summary>是否主键</summary>
+        public Boolean PrimaryKey
+        {
+            get { return _PrimaryKey; }
+            set { _PrimaryKey = value; }
+        }
+
         private String[] _Columns;
         /// <summary>数据列集合</summary>
         public String[] Columns
