@@ -767,16 +767,12 @@ namespace XCode
         public static String SearchWhereByKey(String key)
         {
             StringBuilder sb = new StringBuilder();
-            Int32 n = 0;
             foreach (FieldItem item in Meta.Fields)
             {
                 if (item.Type != typeof(String)) continue;
-                //// 只要前五项
-                //if (++n > 5) break;
 
-                if (n > 0) sb.Append(" Or ");
+                if (sb.Length > 0) sb.Append(" Or ");
                 sb.AppendFormat("{0} like '%{1}%'", Meta.FormatName(item.Name), key);
-                n++;
             }
 
             return sb.Length <= 0 ? null : sb.ToString();
