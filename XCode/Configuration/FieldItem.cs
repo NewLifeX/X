@@ -204,7 +204,17 @@ namespace XCode.Configuration
         public WhereExpression CreateExpression(String action, Object value)
         {
             IEntityOperate op = EntityFactory.CreateOperate(Table.EntityType);
-            return new WhereExpression(String.Format("{0}{1}{2}", op.FormatName(ColumnName), action, op.FormatValue(this, value)));
+            String sql = null;
+            if (!String.IsNullOrEmpty(action) && action.Contains("{0}"))
+            {
+                if (action.Contains("%"))
+                    sql = op.FormatName(ColumnName) + " Like " + op.FormatValue(this, String.Format(action, value));
+                else
+                    sql = op.FormatName(ColumnName) + String.Format(action, op.FormatValue(this, value));
+            }
+            else
+                sql = String.Format("{0}{1}{2}", op.FormatName(ColumnName), action, op.FormatValue(this, value));
+            return new WhereExpression(sql);
         }
         #endregion
 
@@ -225,6 +235,27 @@ namespace XCode.Configuration
 
         //public static String operator ==(FieldItem field, Object value) { return MakeCondition(field, value, "=="); }
         //public static String operator !=(FieldItem field, Object value) { return MakeCondition(field, value, "<>"); }
+
+        /// <summary>
+        /// 以某个字符串开始
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public WhereExpression StartsWith(Object value) { return CreateExpression("{0}%", value); }
+
+        /// <summary>
+        /// 以某个字符串结束
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public WhereExpression EndsWith(Object value) { return CreateExpression("%{0}", value); }
+
+        /// <summary>
+        /// 包含某个字符串
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public WhereExpression Contains(Object value) { return CreateExpression("%{0}%", value); }
 
         /// <summary>
         /// 大于

@@ -1174,7 +1174,12 @@ namespace XCode
         public static String MakeCondition(FieldItem field, Object value, String action)
         {
             if (!String.IsNullOrEmpty(action) && action.Contains("{0}"))
-                return Meta.FormatName(field.ColumnName) + String.Format(action, Meta.FormatValue(field, value));
+            {
+                if (action.Contains("%"))
+                    return Meta.FormatName(field.ColumnName) + " Like " + Meta.FormatValue(field, String.Format(action, value));
+                else
+                    return Meta.FormatName(field.ColumnName) + String.Format(action, Meta.FormatValue(field, value));
+            }
             else
                 return String.Format("{0}{1}{2}", Meta.FormatName(field.ColumnName), action, Meta.FormatValue(field, value));
         }
