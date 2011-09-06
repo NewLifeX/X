@@ -224,7 +224,7 @@ namespace XCode.Configuration
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public WhereExpression Equal(object value) { return MakeCondition(this, value, "=="); }
+        public WhereExpression Equal(object value) { return MakeCondition(this, value, "="); }
 
         /// <summary>
         /// 不等于

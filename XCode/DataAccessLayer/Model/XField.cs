@@ -35,7 +35,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         [XmlAttribute]
         [Description("别名")]
-        public String Alias { get { return _Alias ?? (_Alias = XTable.GetAlias(Name)); } set { _Alias = value; } }
+        public String Alias { get { return _Alias ?? (_Alias = ModelHelper.GetAlias(Name)); } set { _Alias = value; } }
 
         private Type _DataType;
         /// <summary>
