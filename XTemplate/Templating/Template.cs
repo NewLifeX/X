@@ -1056,18 +1056,6 @@ namespace XTemplate.Templating
             }
             return null;
         }
-
-        static String StrLeft(String str, Int32 len)
-        {
-            if (str.Length <= len) return str;
-            return str.Substring(0, len) + "...";
-        }
-
-        static String StrRight(String str, Int32 len)
-        {
-            if (str.Length <= len) return str;
-            return "..." + str.Substring(str.Length - len, len);
-        }
         #endregion
 
         #region 运行生成

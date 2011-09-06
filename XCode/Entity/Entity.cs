@@ -101,6 +101,17 @@ namespace XCode
         }
 
         /// <summary>
+        /// 从一个数据行对象加载数据。不加载关联对象。
+        /// </summary>
+        /// <param name="dr">数据读写器</param>
+        public override void LoadData(IDataReader dr)
+        {
+            if (dr == null) return;
+
+            dreAccessor.LoadData(dr, this);
+        }
+
+        /// <summary>
         /// 把数据复制到数据行对象中。
         /// </summary>
         /// <param name="dr">数据行</param>
@@ -1280,7 +1291,9 @@ namespace XCode
                 Object obj = null;
                 if (Extends.TryGetValue(name, out obj)) return obj;
 
-                throw new ArgumentException("类[" + this.GetType().FullName + "]中不存在[" + name + "]属性");
+                //throw new ArgumentException("类[" + this.GetType().FullName + "]中不存在[" + name + "]属性");
+
+                return null;
             }
             set
             {
@@ -1311,7 +1324,7 @@ namespace XCode
                 else
                     Extends.Add(name, value);
 
-                throw new ArgumentException("类[" + this.GetType().FullName + "]中不存在[" + name + "]属性");
+                //throw new ArgumentException("类[" + this.GetType().FullName + "]中不存在[" + name + "]属性");
             }
         }
         #endregion

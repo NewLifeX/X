@@ -328,7 +328,7 @@ namespace XCode.DataAccessLayer
             WriteSQL(sql);
             try
             {
-                DbCommand cmd = CreateCommand();
+                DbCommand cmd = CreateCommand(); Factory.CreateParameter();
                 cmd.CommandText = sql;
                 if (ps != null && ps.Length > 0) cmd.Parameters.AddRange(ps);
                 using (DbDataAdapter da = Factory.CreateDataAdapter())

@@ -32,6 +32,12 @@ namespace XCode
         /// </summary>
         /// <param name="dr">数据行</param>
         public abstract void LoadData(DataRow dr);
+
+        /// <summary>
+        /// 从一个数据行对象加载数据。不加载关联对象。
+        /// </summary>
+        /// <param name="dr">数据读写器</param>
+        public abstract void LoadData(IDataReader dr);
         #endregion
 
         #region 操作

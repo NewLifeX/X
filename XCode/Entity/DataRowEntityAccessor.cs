@@ -5,6 +5,7 @@ using System.Data;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using NewLife.Reflection;
+using NewLife.Collections;
 
 namespace XCode
 {
@@ -25,6 +26,13 @@ namespace XCode
         void LoadData(DataRow dr, IEntity entity);
 
         /// <summary>
+        /// 从一个数据行对象加载数据。不加载关联对象。
+        /// </summary>
+        /// <param name="dr">数据读写器</param>
+        /// <param name="entity">实体对象</param>
+        void LoadData(IDataReader dr, IEntity entity);
+
+        /// <summary>
         /// 把数据复制到数据行对象中。
         /// </summary>
         /// <param name="entity">实体对象</param>
@@ -41,6 +49,14 @@ namespace XCode
         {
             get { return _EntityType; }
             set { _EntityType = value; }
+        }
+
+        private IEntityOperate _Factory;
+        /// <summary>实体操作者</summary>
+        public IEntityOperate Factory
+        {
+            get { return _Factory ?? (_Factory = EntityFactory.CreateOperate(EntityType)); }
+            set { _Factory = value; }
         }
 
         public DataRowEntityAccessor(Type type) { EntityType = type; }
@@ -60,22 +76,19 @@ namespace XCode
             //EntityList<TEntity> list = new EntityList<TEntity>(dt.Rows.Count);
             IEntityList list = TypeX.CreateInstance(typeof(EntityList<>).MakeGenericType(EntityType), dt.Rows.Count) as IEntityList;
 
-            // 计算都有哪些字段可以加载数据，默认是使用了BindColumn特性的属性，然后才是别的属性
-            // 当然，要数据集中有这个列才行，也就是取实体类和数据集的交集
-            List<String> exts = new List<String>();
-            List<FieldItem> ps = CheckColumn(dt, exts);
-
-            // 创建实体操作者，将由实体操作者创建实体对象
-            //IEntityOperate factory = Entity<TEntity>.Meta.Factory;
-            IEntityOperate factory = EntityFactory.CreateOperate(EntityType);
+            List<String> ps = new List<String>();
+            foreach (DataColumn item in dt.Columns)
+            {
+                ps.Add(item.ColumnName);
+            }
 
             // 遍历每一行数据，填充成为实体
             foreach (DataRow dr in dt.Rows)
             {
                 //TEntity obj = new TEntity();
                 // 由实体操作者创建实体对象，因为实体操作者可能更换
-                IEntity obj = factory.Create();
-                LoadData(dr, obj, ps, exts);
+                IEntity obj = Factory.Create();
+                LoadData(dr, obj, ps);
                 list.Add(obj);
             }
             return list;
@@ -90,10 +103,28 @@ namespace XCode
         {
             if (dr == null) return;
 
-            // 计算都有哪些字段可以加载数据
-            List<String> exts = new List<String>();
-            List<FieldItem> ps = CheckColumn(dr.Table, exts);
-            LoadData(dr, entity, ps, exts);
+            List<String> ps = new List<String>();
+            foreach (DataColumn item in dr.Table.Columns)
+            {
+                ps.Add(item.ColumnName);
+            }
+            LoadData(dr, entity, ps);
+        }
+
+        /// <summary>
+        /// 从一个数据行对象加载数据。不加载关联对象。
+        /// </summary>
+        /// <param name="dr">数据读写器</param>
+        /// <param name="entity">实体对象</param>
+        public void LoadData(IDataReader dr, IEntity entity)
+        {
+            if (dr == null) return;
+
+            // IDataReader的GetSchemaTable方法太浪费资源了
+            for (int i = 0; i < dr.FieldCount; i++)
+            {
+                SetValue(entity, dr.GetName(i), dr.GetValue(i));
+            }
         }
 
         /// <summary>
@@ -106,8 +137,7 @@ namespace XCode
             if (dr == null) return null;
 
             List<String> ps = new List<String>();
-            IEntityOperate factory = EntityFactory.CreateOperate(EntityType);
-            foreach (FieldItem fi in factory.AllFields)
+            foreach (FieldItem fi in Factory.AllFields)
             {
                 // 检查dr中是否有该属性的列。考虑到Select可能是不完整的，此时，只需要局部填充
                 if (dr.Table.Columns.Contains(fi.ColumnName))
@@ -139,111 +169,79 @@ namespace XCode
         static String[] TrueString = new String[] { "true", "y", "yes", "1" };
         static String[] FalseString = new String[] { "false", "n", "no", "0" };
 
-        /// <summary>
-        /// 从一个数据行对象加载数据。指定要加载数据的字段。
-        /// </summary>
-        /// <param name="dr">数据行</param>
-        /// <param name="entity">实体对象</param>
-        /// <param name="ps">要加载数据的字段</param>
-        /// <param name="exts">扩展字段</param>
-        /// <returns></returns>
-        private void LoadData(DataRow dr, IEntity entity, IList<FieldItem> ps, List<String> exts)
+        private void LoadData(DataRow dr, IEntity entity, List<String> ps)
         {
             if (dr == null) return;
 
-            // 如果没有传入要加载数据的字段，则使用全部数据属性
-            // 这种情况一般不会发生，最好也不好发生，因为很有可能导致报错
-            if (ps == null || ps.Count < 1)
+            foreach (String item in ps)
             {
-                IEntityOperate factory = EntityFactory.CreateOperate(EntityType);
-                ps = factory.Fields;
-            }
-
-            foreach (FieldItem fi in ps)
-            {
-                // 两次dr[fi.ColumnName]简化为一次
-                Object v = dr[fi.ColumnName];
-                Object v2 = entity[fi.Name];
-
-                // 不处理相同数据的赋值
-                if (Object.Equals(v, v2)) continue;
-
-                if (fi.Type == typeof(String))
-                {
-                    // 不处理空字符串对空字符串的赋值
-                    if (v != null && String.IsNullOrEmpty(v.ToString()))
-                    {
-                        if (v2 == null || String.IsNullOrEmpty(v2.ToString())) continue;
-                    }
-                }
-                else if (fi.Type == typeof(Boolean))
-                {
-                    // 处理字符串转为布尔型
-                    if (v != null && v.GetType() == typeof(String))
-                    {
-                        String vs = v.ToString();
-                        if (String.IsNullOrEmpty(vs))
-                            v = false;
-                        else
-                        {
-                            if (Array.IndexOf(TrueString, vs.ToLower()) >= 0)
-                                v = true;
-                            else if (Array.IndexOf(FalseString, vs.ToLower()) >= 0)
-                                v = false;
-
-                            if (DAL.Debug) DAL.WriteLog("无法把字符串{0}转为布尔型！", vs);
-                        }
-                    }
-                }
-
-                //不影响脏数据的状态
-                Boolean? b = null;
-                if (entity.Dirtys.ContainsKey(fi.Name)) b = entity.Dirtys[fi.Name];
-
-                entity[fi.Name] = v == DBNull.Value ? null : v;
-
-                if (b != null)
-                    entity.Dirtys[fi.Name] = b.Value;
-                else
-                    entity.Dirtys.Remove(fi.Name);
-            }
-            // 多余的数据，存入扩展字段里面
-            foreach (String item in exts)
-            {
-                Object v = dr[item];
-                entity.Extends[item] = v;
+                SetValue(entity, item, dr[item]);
             }
         }
 
-        /// <summary>
-        /// 检查实体类中的哪些字段在数据表中
-        /// </summary>
-        /// <param name="dt">数据表</param>
-        /// <param name="exts">实体类不包含的字段</param>
-        /// <returns></returns>
-        private List<FieldItem> CheckColumn(DataTable dt, List<String> exts)
+        private void SetValue(IEntity entity, String name, Object value)
         {
-            List<FieldItem> ps = new List<FieldItem>();
-            List<String> ns = new List<string>();
-            IEntityOperate factory = EntityFactory.CreateOperate(EntityType);
-            foreach (FieldItem item in factory.AllFields)
-            {
-                if (String.IsNullOrEmpty(item.ColumnName)) continue;
+            // 注意：name并不一定是实体类的成员
+            Object oldValue = entity[name];
 
-                if (dt.Columns.Contains(item.ColumnName))
-                {
-                    ps.Add(item);
-                    ns.Add(item.ColumnName);
-                }
-            }
-            if (exts != null)
+            Type type = null;
+            if (oldValue != null) type = oldValue.GetType();
+            if (type == null) GetFieldTypeByName(name);
+
+            // 不处理相同数据的赋值
+            if (Object.Equals(value, oldValue)) return;
+
+            if (type == typeof(String))
             {
-                foreach (DataColumn item in dt.Columns)
+                // 不处理空字符串对空字符串的赋值
+                if (value != null && String.IsNullOrEmpty(value.ToString()))
                 {
-                    if (!ns.Contains(item.ColumnName)) exts.Add(item.ColumnName);
+                    if (oldValue == null || String.IsNullOrEmpty(oldValue.ToString())) return;
                 }
             }
-            return ps;
+            else if (type == typeof(Boolean))
+            {
+                // 处理字符串转为布尔型
+                if (value != null && value.GetType() == typeof(String))
+                {
+                    String vs = value.ToString();
+                    if (String.IsNullOrEmpty(vs))
+                        value = false;
+                    else
+                    {
+                        if (Array.IndexOf(TrueString, vs.ToLower()) >= 0)
+                            value = true;
+                        else if (Array.IndexOf(FalseString, vs.ToLower()) >= 0)
+                            value = false;
+
+                        if (DAL.Debug) DAL.WriteLog("无法把字符串{0}转为布尔型！", vs);
+                    }
+                }
+            }
+
+            //不影响脏数据的状态
+            Boolean? b = null;
+            if (entity.Dirtys.ContainsKey(name)) b = entity.Dirtys[name];
+
+            entity[name] = value == DBNull.Value ? null : value;
+
+            if (b != null)
+                entity.Dirtys[name] = b.Value;
+            else
+                entity.Dirtys.Remove(name);
+        }
+
+        DictionaryCache<String, Type> nameTypes = new DictionaryCache<string, Type>();
+        Type GetFieldTypeByName(String name)
+        {
+            return nameTypes.GetItem(name, delegate(String key)
+            {
+                foreach (FieldItem item in Factory.AllFields)
+                {
+                    if (item.ColumnName == key) return item.Type;
+                }
+                return null;
+            });
         }
         #endregion
     }
