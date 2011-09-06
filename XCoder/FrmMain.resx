@@ -126,6 +126,16 @@
   <metadata name="bw.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>318, 17</value>
   </metadata>
+  <data name="richTextBox2.Text" xml:space="preserve">
+    <value>/*
+ * XCoder v&lt;#=Version#&gt;
+ * 作者：&lt;#=Environment.UserName + "/" + Environment.MachineName#&gt;
+ * 时间：&lt;#=DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")#&gt;
+ * 版权：版权所有 (C) 新生命开发团队 &lt;#=DateTime.Now.ToString("yyyy")#&gt;
+*/
+
+</value>
+  </data>
   <metadata name="timer1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>73, 18</value>
   </metadata>

@@ -295,9 +295,7 @@
             this.richTextBox2.Name = "richTextBox2";
             this.richTextBox2.Size = new System.Drawing.Size(338, 176);
             this.richTextBox2.TabIndex = 40;
-            this.richTextBox2.Text = "/*\n * XCoder v<#=Version#>\n * 作者：<#=Environment.UserName + \"/\" + Environment.Mach" +
-    "ineName#>\n * 时间：<#=DateTime.Now.ToString(\"yyyy-MM-dd HH:mm:ss\")#>\n * 版权：版权所有 (C)" +
-    " 新生命开发团队 2010\n*/\n\n\n";
+            this.richTextBox2.Text = resources.GetString("richTextBox2.Text");
             // 
             // checkBox4
             // 

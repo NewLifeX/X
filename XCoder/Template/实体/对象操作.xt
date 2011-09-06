@@ -1,0 +1,65 @@
+﻿
+        ///// <summary>
+        ///// 已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert
+        ///// </summary>
+        ///// <returns></returns>
+        //public override Int32 Insert()
+        //{
+        //    return base.Insert();
+        //}
+
+        ///// <summary>
+        ///// 已重载。在事务保护范围内处理业务，位于Valid之后
+        ///// </summary>
+        ///// <returns></returns>
+        //protected override Int32 OnInsert()
+        //{
+        //    return base.OnInsert();
+        //}
+
+        ///// <summary>
+        ///// 验证数据，通过抛出异常的方式提示验证失败。
+        ///// </summary>
+        ///// <param name="isNew"></param>
+        //public override void Valid(Boolean isNew)
+        //{
+        //    // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
+        //    base.Valid(isNew);
+
+        //    // 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框
+        //    if (String.IsNullOrEmpty(_.Name)) throw new ArgumentNullException(_.Name, _.Name.Description + "无效！");
+        //    if (!isNew && ID < 1) throw new ArgumentOutOfRangeException(_.ID, _.ID.Description + "必须大于0！");
+
+        //    // 在新插入数据或者修改了指定字段时进行唯一性验证，CheckExist内部抛出参数异常
+        //    if (isNew || Dirtys[_.Name]) CheckExist(_.Name);
+        //    if (isNew || Dirtys[_.Name] || Dirtys[_.DbType]) CheckExist(_.Name, _.DbType);
+        //    if ((isNew || Dirtys[_.Name]) && Exist(_.Name)) throw new ArgumentException(_.Name, "值为" + Name + "的" + _.Name.Description + "已存在！");
+        //}
+<#
+if(Table.Relations!=null && Table.Relations.Count>0)
+{
+	StringBuilder sb=new StringBuilder();
+	foreach(IDataRelation dr in Table.Relations)
+	{
+		if(!dr.Unique) continue;
+
+		IDataTable rtable = FindTable(dr.RelationTable);
+		if (rtable == null) continue;
+
+		sb.AppendFormat("if ({0}s != null) {0}s.Delete();", rtable.Alias);
+		sb.AppendLine();
+	}
+	if(sb.Length>0)
+	{
+#>
+        /// <summary>
+        /// 已重载。删除关联数据
+        /// </summary>
+        /// <returns></returns>
+        protected override int OnDelete()
+        {
+			<#=sb#>
+            return base.OnDelete();
+        }<#
+	}
+}#>
