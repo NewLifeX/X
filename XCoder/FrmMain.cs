@@ -259,14 +259,12 @@ namespace XCoder
 
             if (bt_Connection.Text == "Á¬½Ó")
             {
-                cbTableList.Items.Clear();
-
                 Engine = null;
                 Engine.Tables = DAL.Create(Config.ConnName).Tables;
 
-                cbTableList.DataSource = Engine.Tables;
-                //cbTableList.DisplayMember = "Name";
-                cbTableList.ValueMember = "Name";
+                SetTables(Engine.Tables);
+                SetTables(null);
+                SetTables(Engine.Tables);
 
                 gbConnect.Enabled = false;
                 gbTable.Enabled = true;
@@ -276,8 +274,7 @@ namespace XCoder
             }
             else
             {
-                cbTableList.DataSource = null;
-                cbTableList.Items.Clear();
+                SetTables(null);
 
                 gbConnect.Enabled = true;
                 gbTable.Enabled = false;
@@ -299,9 +296,7 @@ namespace XCoder
                     Engine = null;
                     Engine.Tables = list;
 
-                    cbTableList.DataSource = Engine.Tables;
-                    //cbTableList.DisplayMember = "Name";
-                    cbTableList.ValueMember = "Name";
+                    SetTables(list);
 
                     gbTable.Enabled = true;
 
@@ -341,6 +336,20 @@ namespace XCoder
             }
         }
 
+        void SetTables(Object source)
+        {
+            cbTableList.DataSource = source;
+            if (source == null)
+                cbTableList.Items.Clear();
+            else
+            {
+                cbTableList.DataSource = source;
+                //cbTableList.DisplayMember = "Name";
+                cbTableList.ValueMember = "Name";
+            }
+            cbTableList.Update();
+        }
+
         void AutoLoadTables(String name)
         {
             if (String.IsNullOrEmpty(name)) return;
@@ -375,7 +384,7 @@ namespace XCoder
             try
             {
                 //Engine.FixTable();
-                String[] ss = Engine.Render(cbTableList.Text);
+                String[] ss = Engine.Render((String)cbTableList.SelectedValue);
                 //richTextBox1.Text = ss[0];
             }
             catch (TemplateException ex)
