@@ -774,8 +774,9 @@ namespace XCode
                 //// 只要前五项
                 //if (++n > 5) break;
 
-                if (n > 1) sb.Append(" Or ");
+                if (n > 0) sb.Append(" Or ");
                 sb.AppendFormat("{0} like '%{1}%'", Meta.FormatName(item.Name), key);
+                n++;
             }
 
             return sb.Length <= 0 ? null : sb.ToString();
