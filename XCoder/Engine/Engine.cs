@@ -39,21 +39,6 @@ namespace XCoder
         public List<IDataTable> Tables
         {
             get { return _Tables; }
-            //get
-            //{
-            //    if (_Tables == null)
-            //    {
-            //        try
-            //        {
-            //            _Tables = DAL.Create(Config.ConnName).Tables;
-            //        }
-            //        catch (Exception ex)
-            //        {
-            //            MessageBox.Show(ex.ToString());
-            //        }
-            //    }
-            //    return _Tables;
-            //}
             set { _Tables = FixTable(value); }
         }
 
@@ -364,6 +349,9 @@ namespace XCoder
                 fileName = fileName.Replace("类名", className).Replace("类说明", remark).Replace("连接名", Config.EntityConnName);
 
                 fileName = Path.Combine(OuputPath, fileName);
+
+                String dir = Path.GetDirectoryName(fileName);
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 File.WriteAllText(fileName, content, Encoding.UTF8);
 
                 rs.Add(content);

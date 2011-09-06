@@ -265,7 +265,7 @@ namespace XCoder
                 Engine.Tables = DAL.Create(Config.ConnName).Tables;
 
                 cbTableList.DataSource = Engine.Tables;
-                cbTableList.DisplayMember = "Name";
+                //cbTableList.DisplayMember = "Name";
                 cbTableList.ValueMember = "Name";
 
                 gbConnect.Enabled = false;
@@ -300,7 +300,7 @@ namespace XCoder
                     Engine.Tables = list;
 
                     cbTableList.DataSource = Engine.Tables;
-                    cbTableList.DisplayMember = "Name";
+                    //cbTableList.DisplayMember = "Name";
                     cbTableList.ValueMember = "Name";
 
                     gbTable.Enabled = true;

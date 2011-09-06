@@ -33,6 +33,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("4.1.2011.0906")]
 
 /*
+ * v4.1.2011.0906   修正生成时不能自动创建输出目录的错误
+ *                  数据表选择支持显示中文描述
+ * 
  * v4.1.2011.0902   修改自动更新逻辑，先下载，再询问是否更新
  *                  改善自动发现机制，自动发现本地SQLite和Access文件
  *                  增加自动在线翻译功能，调用Bing翻译
