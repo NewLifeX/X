@@ -49,6 +49,8 @@ namespace NewLife.CommonEntity
     /// <summary>
     /// 序列
     /// </summary>
+    [BindIndex("IX_Sequence_Name", true, "Name")]
+    [BindIndex("PK__Sequence__3214EC270EA330E9", true, "ID")]
     public partial class Sequence<TEntity> : Entity<TEntity> where TEntity : Sequence<TEntity>, new()
     {
         #region 对象操作
@@ -150,7 +152,7 @@ namespace NewLife.CommonEntity
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        public static new EntityList<TEntity> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         {
             return FindAll(SearchWhere(key), orderClause, null, startRowIndex, maximumRows);
         }
@@ -163,7 +165,7 @@ namespace NewLife.CommonEntity
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>记录数</returns>
-        public static Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        public static new Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         {
             return FindCount(SearchWhere(key), null, null, 0, 0);
         }
@@ -175,31 +177,19 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         private static String SearchWhere(String key)
         {
-            if (String.IsNullOrEmpty(key)) return null;
-            key = key.Replace("'", "''");
-            String[] keys = key.Split(new Char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            // WhereExpression重载&和|运算符，作为And和Or的替代
+            WhereExpression exp = new WhereExpression();
 
-            StringBuilder sb = new StringBuilder();
+            // SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索
+            if (!String.IsNullOrEmpty(key)) SearchWhereByKeys(exp.Builder, key);
 
-            for (int i = 0; i < keys.Length; i++)
-            {
-                if (sb.Length > 0) sb.Append(" And ");
+            // 以下仅为演示，2、3行是同一个意思的不同写法，FieldItem重载了等于以外的运算符（第4行）
+            //exp &= _.Name.Equal("testName")
+            //    & !String.IsNullOrEmpty(key) & _.Name.Equal(key)
+            //    .AndIf(!String.IsNullOrEmpty(key), _.Name.Equal(key))
+            //    | _.ID > 0;
 
-                if (keys.Length > 1) sb.Append("(");
-                Int32 n = 0;
-                foreach (FieldItem item in Meta.Fields)
-                {
-                    if (item.Type != typeof(String)) continue;
-                    // 只要前五项
-                    if (++n > 5) break;
-
-                    if (n > 1) sb.Append(" Or ");
-                    sb.AppendFormat("{0} like '%{1}%'", Meta.FormatName(item.Name), keys[i]);
-                }
-                if (keys.Length > 1) sb.Append(")");
-            }
-
-            return sb.ToString();
+            return exp;
         }
         #endregion
 

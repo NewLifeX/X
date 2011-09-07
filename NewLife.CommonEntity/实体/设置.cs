@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using XCode;
 using XCode.DataAccessLayer;
+using XCode.Configuration;
 
 namespace NewLife.CommonEntity
 {
@@ -132,30 +133,20 @@ namespace NewLife.CommonEntity
         [CLSCompliant(false)]
 		public class _
 		{
-			///<summary>
-			/// 编号
-			///</summary>
-			public const String ID = "ID";
+            ///<summary>编号</summary>
+            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
 
-			///<summary>
-			/// 名称
-			///</summary>
-			public const String Name = "Name";
+            ///<summary>名称</summary>
+            public static readonly FieldItem Name = Meta.Table.FindByName("Name");
 
-			///<summary>
-			/// 父编号
-			///</summary>
-			public const String ParentID = "ParentID";
+            ///<summary>父编号</summary>
+            public static readonly FieldItem ParentID = Meta.Table.FindByName("ParentID");
 
-			///<summary>
-			/// 值类型
-			///</summary>
-			public const String Kind = "Kind";
+            ///<summary>值类型</summary>
+            public static readonly FieldItem Kind = Meta.Table.FindByName("Kind");
 
-			///<summary>
-			/// 值
-			///</summary>
-			public const String Value = "Value";
+            ///<summary>值</summary>
+            public static readonly FieldItem Value = Meta.Table.FindByName("Value");
 		}
 		#endregion
 	}

@@ -327,6 +327,10 @@ namespace NewLife.CommonEntity
     /// 角色
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
+    [BindIndex("IX_Role_Name", true, "Name")]
+    [BindIndex("PK__Role__3214EC27164452B1", true, "ID")]
+    [BindRelation("ID", true, "RoleMenu", "RoleID")]
+    [BindRelation("ID", true, "Administrator", "RoleID")]
     public abstract partial class Role<TEntity> : CommonEntityBase<TEntity>
           where TEntity : Role<TEntity>, new()
     {

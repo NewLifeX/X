@@ -5,9 +5,9 @@
  * 版权：版权所有 (C) 新生命开发团队 2010
 */
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using XCode;
+using XCode.Configuration;
 using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
@@ -126,36 +126,24 @@ namespace NewLife.CommonEntity
 		#endregion
 
 		#region 字段名
-		/// <summary>
-		/// 取得用户配置字段名的快捷方式
-		/// </summary>
+        /// <summary>取得用户配置字段信息的快捷方式</summary>
         [CLSCompliant(false)]
 		public class _
 		{
-			///<summary>
-			/// 编号
-			///</summary>
-			public const String ID = "ID";
+            ///<summary>编号</summary>
+            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
 
-			///<summary>
-			/// 父编号
-			///</summary>
-			public const String UserID = "UserID";
+            ///<summary>父编号</summary>
+            public static readonly FieldItem UserID = Meta.Table.FindByName("UserID");
 
-			///<summary>
-			/// 名称
-			///</summary>
-			public const String Name = "Name";
+            ///<summary>名称</summary>
+            public static readonly FieldItem Name = Meta.Table.FindByName("Name");
 
-			///<summary>
-			/// 值类型
-			///</summary>
-			public const String Kind = "Kind";
+            ///<summary>值类型</summary>
+            public static readonly FieldItem Kind = Meta.Table.FindByName("Kind");
 
-			///<summary>
-			/// 值
-			///</summary>
-			public const String Value = "Value";
+            ///<summary>值</summary>
+            public static readonly FieldItem Value = Meta.Table.FindByName("Value");
 		}
 		#endregion
 	}

@@ -5,9 +5,9 @@
  * 版权：版权所有 (C) 新生命开发团队 2010
 */
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using XCode;
+using XCode.Configuration;
 using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
@@ -117,25 +117,17 @@ namespace NewLife.CommonEntity
         [CLSCompliant(false)]
 		public class _
 		{
-			///<summary>
-			/// 编号
-			///</summary>
-			public const String ID = "ID";
+            ///<summary>编号</summary>
+            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
 
-			///<summary>
-			/// 角色编号
-			///</summary>
-			public const String RoleID = "RoleID";
+            ///<summary>角色编号</summary>
+            public static readonly FieldItem RoleID = Meta.Table.FindByName("RoleID");
 
-			///<summary>
-			/// 菜单编号
-			///</summary>
-			public const String MenuID = "MenuID";
+            ///<summary>菜单编号</summary>
+            public static readonly FieldItem MenuID = Meta.Table.FindByName("MenuID");
 
-			///<summary>
-			/// 权限
-			///</summary>
-			public const String Permission = "Permission";
+            ///<summary>权限</summary>
+            public static readonly FieldItem Permission = Meta.Table.FindByName("Permission");
 		}
 		#endregion
 	}

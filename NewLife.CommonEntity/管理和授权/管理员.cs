@@ -5,11 +5,10 @@
  * 版权：版权所有 (C) 新生命开发团队 2010
 */
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using XCode;
-using XCode.DataAccessLayer;
 using XCode.Configuration;
+using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
 {
@@ -208,55 +207,35 @@ namespace NewLife.CommonEntity
         [CLSCompliant(false)]
         public class _
         {
-            ///<summary>
-            /// 编号
-            ///</summary>
-            public const String ID = "ID";
+            ///<summary>编号</summary>
+            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
 
-            ///<summary>
-            /// 名称
-            ///</summary>
+            ///<summary>名称</summary>
             public static readonly FieldItem Name = Meta.Table.FindByName("Name");
 
-            ///<summary>
-            /// 密码
-            ///</summary>
+            ///<summary>密码</summary>
             public static readonly FieldItem Password = Meta.Table.FindByName("Password");
 
-            ///<summary>
-            /// 显示名
-            ///</summary>
-            public const String DisplayName = "DisplayName";
+            ///<summary>显示名</summary>
+            public static readonly FieldItem DisplayName = Meta.Table.FindByName("DisplayName");
 
-            ///<summary>
-            /// 角色
-            ///</summary>
-            public const String RoleID = "RoleID";
+            ///<summary>角色</summary>
+            public static readonly FieldItem RoleID = Meta.Table.FindByName("RoleID");
 
-            ///<summary>
-            /// 登录次数
-            ///</summary>
+            ///<summary>登录次数</summary>
             public static readonly FieldItem Logins = Meta.Table.FindByName("Logins");
 
-            ///<summary>
-            /// 最后登录
-            ///</summary>
+            ///<summary>最后登录</summary>
             public static readonly FieldItem LastLogin = Meta.Table.FindByName("LastLogin");
 
-            ///<summary>
-            /// 最后登陆IP
-            ///</summary>
-            public const String LastLoginIP = "LastLoginIP";
+            ///<summary>最后登陆IP</summary>
+            public static readonly FieldItem LastLoginIP = Meta.Table.FindByName("LastLoginIP");
 
-            ///<summary>
-            /// 登录用户编号
-            ///</summary>
-            public const String SSOUserID = "SSOUserID";
+            ///<summary>登录用户编号</summary>
+            public static readonly FieldItem SSOUserID = Meta.Table.FindByName("SSOUserID");
 
-            ///<summary>
-            /// 是否使用
-            ///</summary>
-            public const String IsEnable = "IsEnable";
+            ///<summary>是否使用</summary>
+            public static readonly FieldItem IsEnable = Meta.Table.FindByName("IsEnable");
         }
         #endregion
     }

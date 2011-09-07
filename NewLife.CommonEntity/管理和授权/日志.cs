@@ -5,9 +5,9 @@
  * 版权：版权所有 (C) 新生命开发团队 2010
 */
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using XCode;
+using XCode.Configuration;
 using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
@@ -177,45 +177,29 @@ namespace NewLife.CommonEntity
         [CLSCompliant(false)]
 		public class _
 		{
-			///<summary>
-			/// 编号
-			///</summary>
-			public const String ID = "ID";
+            ///<summary>编号</summary>
+            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
 
-			///<summary>
-			/// 类别
-			///</summary>
-			public const String Category = "Category";
+            ///<summary>类别</summary>
+            public static readonly FieldItem Category = Meta.Table.FindByName("Category");
 
-			///<summary>
-			/// 操作
-			///</summary>
-			public const String Action = "Action";
+            ///<summary>操作</summary>
+            public static readonly FieldItem Action = Meta.Table.FindByName("Action");
 
-			///<summary>
-			/// 用户编号
-			///</summary>
-			public const String UserID = "UserID";
+            ///<summary>用户编号</summary>
+            public static readonly FieldItem UserID = Meta.Table.FindByName("UserID");
 
-			///<summary>
-			/// 用户名
-			///</summary>
-			public const String UserName = "UserName";
+            ///<summary>用户名</summary>
+            public static readonly FieldItem UserName = Meta.Table.FindByName("UserName");
 
-			///<summary>
-			/// IP地址
-			///</summary>
-			public const String IP = "IP";
+            ///<summary>IP地址</summary>
+            public static readonly FieldItem IP = Meta.Table.FindByName("IP");
 
-			///<summary>
-			/// 时间
-			///</summary>
-			public const String OccurTime = "OccurTime";
+            ///<summary>时间</summary>
+            public static readonly FieldItem OccurTime = Meta.Table.FindByName("OccurTime");
 
-			///<summary>
-			/// 详细信息
-			///</summary>
-			public const String Remark = "Remark";
+            ///<summary>详细信息</summary>
+            public static readonly FieldItem Remark = Meta.Table.FindByName("Remark");
 		}
 		#endregion
 	}

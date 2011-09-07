@@ -5,9 +5,9 @@
  * 版权：版权所有 (C) 新生命开发团队 2010
 */
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using XCode;
+using XCode.Configuration;
 using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
@@ -177,45 +177,29 @@ namespace NewLife.CommonEntity
         [CLSCompliant(false)]
 		public class _
 		{
-			///<summary>
-			/// 编号
-			///</summary>
-			public const String ID = "ID";
+            ///<summary>编号</summary>
+            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
 
-			///<summary>
-			/// 名称
-			///</summary>
-			public const String Name = "Name";
+            ///<summary>名称</summary>
+            public static readonly FieldItem Name = Meta.Table.FindByName("Name");
 
-			///<summary>
-			/// 父编号
-			///</summary>
-			public const String ParentID = "ParentID";
+            ///<summary>父编号</summary>
+            public static readonly FieldItem ParentID = Meta.Table.FindByName("ParentID");
 
-			///<summary>
-			/// 链接
-			///</summary>
-			public const String Url = "Url";
+            ///<summary>链接</summary>
+            public static readonly FieldItem Url = Meta.Table.FindByName("Url");
 
-			///<summary>
-			/// 序号
-			///</summary>
-			public const String Sort = "Sort";
+            ///<summary>序号</summary>
+            public static readonly FieldItem Sort = Meta.Table.FindByName("Sort");
 
-			///<summary>
-			/// 备注
-			///</summary>
-			public const String Remark = "Remark";
+            ///<summary>备注</summary>
+            public static readonly FieldItem Remark = Meta.Table.FindByName("Remark");
 
-			///<summary>
-			/// 权限
-			///</summary>
-			public const String Permission = "Permission";
+            ///<summary>权限</summary>
+            public static readonly FieldItem Permission = Meta.Table.FindByName("Permission");
 
-			///<summary>
-			/// 是否显示
-			///</summary>
-			public const String IsShow = "IsShow";
+            ///<summary>是否显示</summary>
+            public static readonly FieldItem IsShow = Meta.Table.FindByName("IsShow");
 		}
 		#endregion
 	}

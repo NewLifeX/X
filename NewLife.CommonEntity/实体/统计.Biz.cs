@@ -22,6 +22,8 @@ namespace NewLife.CommonEntity
     /// <summary>
     /// 统计
     /// </summary>
+    /// <summary>统计</summary>
+    [BindIndex("PK__Statisti__3214EC270AD2A005", true, "ID")]
     public partial class Statistics<TEntity> : Entity<TEntity> where TEntity : Statistics<TEntity>, new()
     {
         #region 对象操作
@@ -95,50 +97,56 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 高级查询
+        // 以下为自定义高级查询的例子
+
         ///// <summary>
         ///// 查询满足条件的记录集，分页、排序
         ///// </summary>
-        ///// <param name="name"></param>
+        ///// <param name="key">关键字</param>
         ///// <param name="orderClause">排序，不带Order By</param>
         ///// <param name="startRowIndex">开始行，0表示第一行</param>
         ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
         ///// <returns>实体集</returns>
         //[DataObjectMethod(DataObjectMethodType.Select, true)]
-        //public static EntityList<Statistics> Search(String name, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        //public static EntityList<Statistics> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         //{
-        //    return FindAll(SearchWhere(name), orderClause, null, startRowIndex, maximumRows);
+        //    return FindAll(SearchWhere(key), orderClause, null, startRowIndex, maximumRows);
         //}
 
         ///// <summary>
         ///// 查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一
         ///// </summary>
-        ///// <param name="name"></param>
+        ///// <param name="key">关键字</param>
         ///// <param name="orderClause">排序，不带Order By</param>
         ///// <param name="startRowIndex">开始行，0表示第一行</param>
         ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
         ///// <returns>记录数</returns>
-        //public static Int32 SearchCount(String name, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        //public static Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         //{
-        //    return FindCount(SearchWhere(name), null, null, 0, 0);
+        //    return FindCount(SearchWhere(key), null, null, 0, 0);
         //}
 
-        ///// <summary>
-        ///// 构造搜索条件
-        ///// </summary>
-        ///// <param name="name"></param>
-        ///// <returns></returns>
-        //private static String SearchWhere(String name)
-        //{
-        //    StringBuilder sb = new StringBuilder();
-        //    sb.Append("1=1");
+        /// <summary>
+        /// 构造搜索条件
+        /// </summary>
+        /// <param name="key">关键字</param>
+        /// <returns></returns>
+        private static String SearchWhere(String key)
+        {
+            // WhereExpression重载&和|运算符，作为And和Or的替代
+            WhereExpression exp = new WhereExpression();
 
-        //    if (!String.IsNullOrEmpty(name)) sb.AppendFormat(" And {0} like '%{1}%'", _.Name, name.Replace("'", "''"));
+            // SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索
+            if (!String.IsNullOrEmpty(key)) SearchWhereByKeys(exp.Builder, key);
 
-        //    if (sb.ToString() == "1=1")
-        //        return null;
-        //    else
-        //        return sb.ToString();
-        //}
+            // 以下仅为演示，2、3行是同一个意思的不同写法，FieldItem重载了等于以外的运算符（第4行）
+            //exp &= _.Name.Equal("testName")
+            //    & !String.IsNullOrEmpty(key) & _.Name.Equal(key)
+            //    .AndIf(!String.IsNullOrEmpty(key), _.Name.Equal(key))
+            //    | _.ID > 0;
+
+            return exp;
+        }
         #endregion
 
         #region 扩展操作

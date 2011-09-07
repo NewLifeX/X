@@ -16,6 +16,9 @@ namespace NewLife.CommonEntity
     /// <summary>
     /// 菜单
     /// </summary>
+    [BindIndex("IX_Menu_Name", false, "Name")]
+    [BindIndex("PK__Menu__3214EC271273C1CD", true, "ID")]
+    [BindRelation("ID", true, "RoleMenu", "MenuID")]
     public partial class Menu<TEntity> : EntityTree<TEntity>, IMenu where TEntity : Menu<TEntity>, new()
     {
         #region 对象操作
