@@ -84,9 +84,7 @@ Type conv=typeof(Convert);
 	   foreach(IDataColumn Field in Table.Columns)
 	  {
 #>
-			///<summary>
-			/// <#=Field.Description#>
-			///</summary>
+			///<summary><#=Field.Description#></summary>
             public static readonly FieldItem <#=Field.Alias#> = Meta.Table.FindByName("<#=Field.Alias#>");
 <#
 	  }

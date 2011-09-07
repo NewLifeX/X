@@ -15,6 +15,16 @@ namespace XCoder
         {
             Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
 
+            if (XConfig.Current.LastUpdate.Date < DateTime.Now.Date)
+            {
+                XConfig.Current.LastUpdate = DateTime.Now;
+
+                AutoUpdate au = new AutoUpdate();
+                au.LocalVersion = new Version(Engine.FileVersion);
+                au.VerSrc = "http://files.cnblogs.com/nnhy/XCoderVer.xml";
+                au.ProcessAsync();
+            }
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FrmMain());

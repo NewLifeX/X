@@ -488,6 +488,7 @@
             this.Controls.Add(this.gbConnect);
             this.Controls.Add(this.bt_Connection);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MaximizeBox = false;
             this.Name = "FrmMain";
             this.RightToLeftLayout = true;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

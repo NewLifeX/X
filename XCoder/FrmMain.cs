@@ -6,12 +6,12 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
-using System.Text;
 
 namespace XCoder
 {
@@ -64,16 +64,6 @@ namespace XCoder
 
             ThreadPool.QueueUserWorkItem(AutoDetectDatabase);
             ThreadPool.QueueUserWorkItem(UpdateArticles);
-
-            if (Config.LastUpdate.Date < DateTime.Now.Date)
-            {
-                Config.LastUpdate = DateTime.Now;
-
-                AutoUpdate au = new AutoUpdate();
-                au.LocalVersion = new Version(Engine.FileVersion);
-                au.VerSrc = "http://files.cnblogs.com/nnhy/XCoderVer.xml";
-                au.ProcessAsync();
-            }
 
             String url = "http://www.7765.com/api/";
             url += String.Format("?tag=XCoder_v{0}&r={1}", Engine.FileVersion, DateTime.Now.Ticks);
@@ -259,7 +249,7 @@ namespace XCoder
 
             if (bt_Connection.Text == "连接")
             {
-                Engine = null;
+                //Engine = null;
                 Engine.Tables = DAL.Create(Config.ConnName).Tables;
 
                 SetTables(Engine.Tables);
@@ -293,7 +283,7 @@ namespace XCoder
                 {
                     List<IDataTable> list = DAL.Import(File.ReadAllText(openFileDialog1.FileName));
 
-                    Engine = null;
+                    //Engine = null;
                     Engine.Tables = list;
 
                     SetTables(list);
@@ -473,7 +463,7 @@ namespace XCoder
         {
             pg_Process.Value = pg_Process.Maximum;
             proc_percent.Text = (int)(100 * pg_Process.Value / pg_Process.Maximum) + "%";
-            Engine = null;
+            //Engine = null;
 
             sw.Stop();
             lb_Status.Text = "生成 " + cbTableList.Items.Count + " 个类完成！耗时：" + sw.Elapsed.ToString();
