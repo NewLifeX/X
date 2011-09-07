@@ -4,28 +4,24 @@ using System.ComponentModel;
 
 namespace <#=Config.NameSpace#>
 {
-	/// <summary>
-	/// <#=ClassDescription#>
-	/// </summary>
+	/// <summary><#=Table.Description#></summary>
 	[Serializable]
 	[DataObject]
-	[Description("<#=ClassDescription#>")]
-	public partial class <#=ClassName#>
+	[Description("<#=Table.Description#>")]
+	public partial class <#=Table.Alias#>
 	{
 		#region 属性<#
         foreach(IDataColumn Field in Table.Columns)
         {
 #>
-		private <#=Field.DataType.Name#> _<#=GetPropertyName(Field)#>;
-		/// <summary>
-		/// <#=GetPropertyDescription(Field)#>
-		/// </summary>
-		[Description("<#=GetPropertyDescription(Field)#>")]
-		[DataObjectField(<#=Field.Identity.ToString().ToLower()#>, <#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
-		public <#=Field.DataType.Name#> <#=GetPropertyName(Field)#>
+		private <#=Field.DataType.Name#> _<#=Field.Alias#>;
+		/// <summary><#=Field.Description#></summary>
+		[Description("<#=Field.Description#>")]
+		[DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
+		public <#=Field.DataType.Name#> <#=Field.Alias#>
 		{
-			get { return _<#=GetPropertyName(Field)#>; }
-			set { _<#=GetPropertyName(Field)#> = value; }
+			get { return _<#=Field.Alias#>; }
+			set { _<#=Field.Alias#> = value; }
 		}
 <#
         }
@@ -48,7 +44,7 @@ namespace <#=Config.NameSpace#>
         foreach(IDataColumn Field in Table.Columns)
         {
 #>
-					case "<#=GetPropertyName(Field)#>": return <#=GetPropertyName(Field)#>;<#
+					case "<#=Field.Alias#>" : return _<#=Field.Alias#>;<#
         }
 #>
 					default: return null;
@@ -58,14 +54,15 @@ namespace <#=Config.NameSpace#>
 			{
 				switch (name)
 				{<#
+    Type conv=typeof(Convert);
     foreach(IDataColumn Field in Table.Columns)
     {
         if(conv.GetMethod("To"+Field.DataType.Name, new Type[]{typeof(Object)})!=null){
 #>
-					case "<#=GetPropertyName(Field)#>" : _<#=GetPropertyName(Field)#> = Convert.To<#=Field.DataType.Name#>(value); break;<#
+					case "<#=Field.Alias#>" : _<#=Field.Alias#> = Convert.To<#=Field.DataType.Name#>(value); break;<#
         }else{
 #>
-					case "<#=GetPropertyName(Field)#>" : _<#=GetPropertyName(Field)#> = (<#=Field.DataType.Name#>)value; break;<#
+					case "<#=Field.Alias#>" : _<#=Field.Alias#> = (<#=Field.DataType.Name#>)value; break;<#
 	    }
     }
 #>

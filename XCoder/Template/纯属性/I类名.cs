@@ -4,19 +4,15 @@ using System.ComponentModel;
 
 namespace <#=Config.NameSpace#>
 {
-	/// <summary>
-	/// <#=ClassDescription#>接口
-	/// </summary>
-	public interface I<#=ClassName#>
+	/// <summary><#=Table.Description#>接口</summary>
+	public interface I<#=Table.Alias#>
 	{
 		#region 属性<#
 		foreach(IDataColumn Field in Table.Columns)
 		{
 #>
-		/// <summary>
-		/// <#=GetPropertyDescription(Field)#>
-		/// </summary>
-		<#=Field.DataType.Name#> <#=GetPropertyName(Field)#> { get; set; }
+		/// <summary><#=Field.Description#></summary>
+		<#=Field.DataType.Name#> <#=Field.Alias#> { get; set; }
 <#
 		}
 #>		#endregion

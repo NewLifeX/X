@@ -8,7 +8,7 @@ using NewLife.Web;
 using XControl;
 using <#=Config.NameSpace#>;
 
-public partial class Pages_<#=ClassName#>Form : EntityForm<Int32, <#=ClassName#>>
+public partial class Pages_<#=Table.Alias#>Form : EntityForm<Int32, <#=Table.Alias#>>
 {
     protected void Page_Load(object sender, EventArgs e)
     {

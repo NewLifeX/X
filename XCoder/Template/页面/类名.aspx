@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="<#=ClassName#>.aspx.cs" Inherits="Pages_<#=ClassName#>" MasterPageFile="~/Admin/MasterPage.master" Title="<#=ClassDescription#>管理" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="<#=Table.Alias#>.aspx.cs" Inherits="Pages_<#=Table.Alias#>" MasterPageFile="~/Admin/MasterPage.master" Title="<#=Table.Description#>管理" %>
 
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="ContentPlaceHolder1">
     <#
@@ -18,23 +18,29 @@ foreach(IDataColumn Field in Table.Columns){
         boxHeight += LineHeight;
 }
 #><div class="toolbar">
-        <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="<#=boxHeight#>px" BoxWidth="440px" Url="<#=ClassName#>Form.aspx"
-            IconLeft="../images/icons/icon005a2.gif"><b>添加<#=ClassDescription#></b></XCL:LinkBox>
+        <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="<#=boxHeight#>px" BoxWidth="440px" Url="<#=Table.Alias#>Form.aspx"
+            IconLeft="../images/icons/icon005a2.gif"><b>添加<#=Table.Description#></b></XCL:LinkBox>
         关键字：<asp:TextBox ID="txtKey" runat="server"></asp:TextBox>
         <asp:Button ID="btnSearch" runat="server" Text="查询" />
-    </div>
-    <asp:GridView ID="gv<#=ClassName#>" runat="server" AutoGenerateColumns="False" DataKeyNames="ID" DataSourceID="ObjectDataSource1" AllowPaging="True" AllowSorting="True" CssClass="m_table" PageSize="20" CellPadding="0" GridLines="None" EnableModelValidation="True">
-        <Columns><#
-String PKName=null; 
+    </div><#
+StringBuilder sbpk=new StringBuilder();
 foreach(IDataColumn Field in Table.Columns){
-    String pname = GetPropertyName(Field);
-    if(Field.PrimaryKey) { PKName=pname; } 
+    if(Field.PrimaryKey) {
+        if(sbpk.Length>0)sbpk.Append(",");
+        sbpk.Append(Field.Alias);
+    } 
+}
+    #>
+    <asp:GridView ID="gv<#=Table.Alias#>" runat="server" AutoGenerateColumns="False" DataKeyNames="<#=sbpk#>" DataSourceID="ods<#=Table.Alias#>" AllowPaging="True" AllowSorting="True" CssClass="m_table" PageSize="20" CellPadding="0" GridLines="None" EnableModelValidation="True">
+        <Columns><#
+foreach(IDataColumn Field in Table.Columns){
+    String pname = Field.Alias;
     if(Field.Identity){#>
-            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=GetPropertyDescription(Field)#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
+            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="60px" CssClass="key" />
             </asp:BoundField><#}
     else if(Field.DataType == typeof(DateTime)){#>
-            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=GetPropertyDescription(Field)#>" SortExpression="<#=pname#>" DataFormatString="{0:yyyy-MM-dd HH:mm:ss}" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
+            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" DataFormatString="{0:yyyy-MM-dd HH:mm:ss}" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="120px" />
             </asp:BoundField><#}
     // 密码字段和大文本字段不输出
@@ -42,9 +48,9 @@ foreach(IDataColumn Field in Table.Columns){
        !pname.Equals("Pass", StringComparison.OrdinalIgnoreCase) && 
        !pname.Equals("Pwd", StringComparison.OrdinalIgnoreCase) && 
        Field.Length>0 && Field.Length<300){#>
-            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=GetPropertyDescription(Field)#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>/><#
+            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>/><#
 }}#>
-            <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="<#=ClassName#>Form.aspx?ID={0}" Height="<#=boxHeight#>px" Text="编辑" Width="440px" Title="编辑<#=ClassDescription#>">
+            <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="<#=Table.Alias#>Form.aspx?ID={0}" Height="<#=boxHeight#>px" Text="编辑" Width="440px" Title="编辑<#=Table.Description#>">
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" />
                 <HeaderStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="30px" />
             </XCL:LinkBoxField>
@@ -60,10 +66,10 @@ foreach(IDataColumn Field in Table.Columns){
             没有符合条件的数据！
         </EmptyDataTemplate>
     </asp:GridView>
-    <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" DataObjectTypeName="<#=Config.NameSpace#>.<#=ClassName#>"
+    <asp:ObjectDataSource ID="ods<#=Table.Alias#>" runat="server" DataObjectTypeName="<#=Config.NameSpace#>.<#=Table.Alias#>"
         DeleteMethod="Delete" EnablePaging="True" OldValuesParameterFormatString="original_{0}"
         SelectCountMethod="SearchCount" SelectMethod="Search" SortParameterName="orderClause"
-        TypeName="<#=Config.NameSpace#>.<#=ClassName#>">
+        TypeName="<#=Config.NameSpace#>.<#=Table.Alias#>">
         <SelectParameters>
             <asp:ControlParameter ControlID="txtKey" Name="key" PropertyName="Text" Type="String" />
             <asp:Parameter Name="orderClause" Type="String" />

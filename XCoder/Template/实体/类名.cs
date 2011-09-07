@@ -16,7 +16,7 @@ namespace <#=Config.NameSpace#>
 	{
 		#region 属性<#
 		foreach(IDataColumn Field in Table.Columns)
-	{
+	    {
 #>
 		private <#=Field.DataType.Name#> _<#=Field.Alias#>;
 		/// <summary><#=Field.Description#></summary>
@@ -29,7 +29,7 @@ namespace <#=Config.NameSpace#>
 			set { if (OnPropertyChanging("<#=Field.Alias#>", value)) { _<#=Field.Alias#> = value; OnPropertyChanged("<#=Field.Alias#>"); } }
 		}
 <#
-	}
+	    }
 #>		#endregion
 
 		#region 获取/设置 字段值
@@ -59,7 +59,7 @@ namespace <#=Config.NameSpace#>
 			{
 				switch (name)
 				{<#
-Type conv=typeof(Convert);
+    Type conv=typeof(Convert);
 	foreach(IDataColumn Field in Table.Columns)
 	{ 
         if(conv.GetMethod("To"+Field.DataType.Name, new Type[]{typeof(Object)})!=null){

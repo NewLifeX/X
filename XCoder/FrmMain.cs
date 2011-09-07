@@ -249,7 +249,7 @@ namespace XCoder
 
             if (bt_Connection.Text == "Á¬½Ó")
             {
-                //Engine = null;
+                Engine = null;
                 Engine.Tables = DAL.Create(Config.ConnName).Tables;
 
                 SetTables(Engine.Tables);
@@ -283,7 +283,7 @@ namespace XCoder
                 {
                     List<IDataTable> list = DAL.Import(File.ReadAllText(openFileDialog1.FileName));
 
-                    //Engine = null;
+                    Engine = null;
                     Engine.Tables = list;
 
                     SetTables(list);

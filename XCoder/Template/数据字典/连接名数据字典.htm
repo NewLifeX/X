@@ -16,7 +16,7 @@
 <#
 foreach(IDataTable table in Tables){
 #>
-<#=table.Name#>：
+<#=table.Alias#>：
 <strong><#=table.Description#> （<#=table.Name#>）</strong> <BR>
 <table border="0" cellspacing="0" class="dbtable">
   <tr align="center" valign="middle" class="caption">
@@ -33,7 +33,7 @@ foreach(IDataTable table in Tables){
   {
   #>
   <tr class="dbbody">
-    <td><#=GetPropertyDescription(Field)#></td>
+    <td><#=Field.Description#></td>
     <td><#=Field.Name#></td>
     <td><#=Field.DataType.Name#></td>
     <td><#=Field.Length#></td>

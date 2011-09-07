@@ -1,19 +1,18 @@
-﻿<%@ Page Language="C#" MasterPageFile="~/Admin/MasterPage.master" AutoEventWireup="true" CodeFile="<#=ClassName#>Form.aspx.cs" Inherits="Pages_<#=ClassName#>Form"  Title="<#=ClassDescription#>管理"%>
+﻿<%@ Page Language="C#" MasterPageFile="~/Admin/MasterPage.master" AutoEventWireup="true" CodeFile="<#=Table.Alias#>Form.aspx.cs" Inherits="Pages_<#=Table.Alias#>Form"  Title="<#=Table.Description#>管理"%>
 
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="ContentPlaceHolder1">
     <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
         <tr>
-            <th colspan="2"><#=ClassDescription#></th>
+            <th colspan="2"><#=Table.Description#></th>
         </tr>
         <# 
-        String PKName=null; 
         foreach(IDataColumn Field in Table.Columns) { 
-            String pname = GetPropertyName(Field);
-            if(Field.PrimaryKey) { PKName=pname; continue; } 
+            String pname = Field.Alias;
+            if(Field.PrimaryKey) continue;
             String frmName = "frm" + pname;
             TypeCode code = Type.GetTypeCode(Field.DataType);
         #><tr>
-            <td align="right"><#=GetPropertyDescription(Field)#>：</td>
+            <td align="right"><#=Field.Description#>：</td>
             <td><#
                 if(code == TypeCode.String){
                     if(pname.Equals("Password", StringComparison.OrdinalIgnoreCase) || pname.Equals("Pass", StringComparison.OrdinalIgnoreCase)){
@@ -32,7 +31,7 @@
                 }else if(code == TypeCode.Decimal){
                 #><XCL:DecimalBox ID="<#=frmName#>" runat="server" Width="80px"></XCL:DecimalBox><#
                 }else if(code == TypeCode.Boolean){
-                #><asp:CheckBox ID="<#=frmName#>" runat="server" Text="<#=GetPropertyDescription(Field)#>" /><#}
+                #><asp:CheckBox ID="<#=frmName#>" runat="server" Text="<#=Field.Description#>" /><#}
             #></td>
         </tr>
 <#}#>    </table>
