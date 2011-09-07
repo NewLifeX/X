@@ -112,6 +112,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="说明.txt" />
     <EmbeddedResource Include="UpdateInfo.txt" />
     <Content Include="架构设计\NewLife_SocketClient.jpg" />
     <Content Include="架构设计\NewLife_TcpServer.jpg" />
