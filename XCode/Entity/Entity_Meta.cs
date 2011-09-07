@@ -9,6 +9,7 @@ using NewLife.Log;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using System.Web;
 
 namespace XCode
 {
@@ -228,7 +229,8 @@ namespace XCode
                 if (TransCount > 0) return;
 
                 Cache.Clear();
-                _Count = null;
+                //_Count = null;
+                ClearCountCache();
 
                 if (_OnDataChange != null) _OnDataChange(ThisType);
             }
@@ -415,60 +417,6 @@ namespace XCode
                 }
             }
 
-            //private static Dictionary<String, SingleEntityCache<Int32, TEntity>> _singleCacheInt = new Dictionary<string, SingleEntityCache<Int32, TEntity>>();
-            ///// <summary>
-            ///// 单实体整型主键缓存。
-            ///// 建议自定义查询数据方法，并从二级缓存中获取实体数据，以抵消因初次填充而带来的消耗。
-            ///// </summary>
-            //[Obsolete("下一个版本将不再支持该功能，请改为使用SingleCache！")]
-            //public static SingleEntityCache<Int32, TEntity> SingleCacheInt
-            //{
-            //    get
-            //    {
-            //        // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
-            //        String key = String.Format("{0}_{1}", ConnName, TableName);
-            //        if (_singleCacheInt.ContainsKey(key)) return _singleCacheInt[key];
-            //        lock (_singleCacheInt)
-            //        {
-            //            if (_singleCacheInt.ContainsKey(key)) return _singleCacheInt[key];
-
-            //            SingleEntityCache<Int32, TEntity> ec = new SingleEntityCache<Int32, TEntity>();
-            //            ec.ConnName = ConnName;
-            //            ec.TableName = TableName;
-            //            _singleCacheInt.Add(key, ec);
-
-            //            return ec;
-            //        }
-            //    }
-            //}
-
-            //private static Dictionary<String, SingleEntityCache<String, TEntity>> _singleCacheStr = new Dictionary<string, SingleEntityCache<String, TEntity>>();
-            ///// <summary>
-            ///// 单实体字符串主键缓存。
-            ///// 建议自定义查询数据方法，并从二级缓存中获取实体数据，以抵消因初次填充而带来的消耗。
-            ///// </summary>
-            //[Obsolete("下一个版本将不再支持该功能，请改为使用SingleCache！")]
-            //public static SingleEntityCache<String, TEntity> SingleCacheStr
-            //{
-            //    get
-            //    {
-            //        // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
-            //        String key = String.Format("{0}_{1}", ConnName, TableName);
-            //        if (_singleCacheStr.ContainsKey(key)) return _singleCacheStr[key];
-            //        lock (_singleCacheStr)
-            //        {
-            //            if (_singleCacheStr.ContainsKey(key)) return _singleCacheStr[key];
-
-            //            SingleEntityCache<String, TEntity> ec = new SingleEntityCache<String, TEntity>();
-            //            ec.ConnName = ConnName;
-            //            ec.TableName = TableName;
-            //            _singleCacheStr.Add(key, ec);
-
-            //            return ec;
-            //        }
-            //    }
-            //}
-
             private static DictionaryCache<String, SingleEntityCache<Object, TEntity>> _singleCache = new DictionaryCache<String, SingleEntityCache<Object, TEntity>>();
             /// <summary>
             /// 单对象实体缓存。
@@ -489,26 +437,54 @@ namespace XCode
                 }
             }
 
+            /// <summary>总记录数较小时，使用静态字段，较大时增加使用Cache</summary>
             private static Int64? _Count;
-            /// <summary>总记录数</summary>
+            /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
             public static Int64 Count
             {
                 get
                 {
                     Int64? n = _Count;
-                    if (n != null && n.HasValue) return n.Value;
+                    if (n != null && n.HasValue)
+                    {
+                        if (n.Value < 1000) return n.Value;
 
-                    //if (_Count <= 1000)
-                    //    _Count = QueryCount(SQL(null, DataObjectMethodType.Fill));
-                    //else
-                    Int64 m = DBO.Session.QueryCountFast(TableName);
+                        // 大于1000，使用HttpCache
+                        String key = ThisType.Name + "_Count";
+                        Int64? k = (Int64?)HttpRuntime.Cache[key];
+                        if (k != null && k.HasValue) return k.Value;
+                    }
+
+                    Int64 m = 0;
+                    if (n != null && n.HasValue && n.Value < 1000)
+                        m = FindCount();
+                    else
+                        m = DBO.Session.QueryCountFast(TableName);
                     _Count = m;
+
+                    if (m >= 1000) HttpRuntime.Cache.Insert(ThisType.Name + "_Count", m, null, DateTime.Now.AddMinutes(10), System.Web.Caching.Cache.NoSlidingExpiration);
 
                     // 先拿到记录数再初始化，因为初始化时会用到记录数，同时也避免了死循环
                     CheckInitData();
 
                     return m;
                 }
+            }
+
+            private static void ClearCountCache()
+            {
+                Int64? n = _Count;
+                if (n == null || !n.HasValue) return;
+
+                // 只有小于1000时才清空_Count，因为大于1000时它要作为HttpCache的见证
+                if (n.Value < 1000)
+                {
+                    _Count = null;
+                    return;
+                }
+
+                String key = ThisType.Name + "_Count";
+                HttpRuntime.Cache.Remove(key);
             }
             #endregion
         }
