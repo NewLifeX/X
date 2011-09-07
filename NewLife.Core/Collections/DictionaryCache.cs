@@ -11,19 +11,6 @@ namespace NewLife.Collections
     /// <typeparam name="TValue">值类型</typeparam>
     public class DictionaryCache<TKey, TValue> : Dictionary<TKey, TValue>
     {
-        private Boolean LockKey = false;
-
-        /// <summary>
-        /// 实例化字典缓存，GetItem锁定字典
-        /// </summary>
-        public DictionaryCache() { }
-
-        /// <summary>
-        /// 实例化字典缓存，参数lockKey指定GetItem是锁定字典(false)还是锁定键值(true)
-        /// </summary>
-        /// <param name="lockKey"></param>
-        public DictionaryCache(Boolean lockKey) { LockKey = lockKey; }
-
         /// <summary>
         /// 重写索引器。取值时如果没有该项则返回默认值；赋值时如果已存在该项则覆盖，否则添加。
         /// </summary>
@@ -69,12 +56,13 @@ namespace NewLife.Collections
         {
             TValue value;
             if (TryGetValue(key, out value)) return value;
-            lock (LockKey ? (Object)key : this)
+            lock (this)
             {
                 if (TryGetValue(key, out value)) return value;
 
                 value = func(key);
-                if (cacheDefault || !Object.Equals(value, default(TValue))) this[key] = value;
+                //Add(key, value);
+                if (cacheDefault || Object.Equals(value, default(TValue))) this[key] = value;
 
                 return value;
             }
@@ -111,7 +99,8 @@ namespace NewLife.Collections
                 if (TryGetValue(key, out value)) return value;
 
                 value = func(key, arg);
-                if (cacheDefault || !Object.Equals(value, default(TValue))) this[key] = value;
+                //Add(key, value);
+                if (cacheDefault || Object.Equals(value, default(TValue))) this[key] = value;
 
                 return value;
             }
@@ -147,12 +136,13 @@ namespace NewLife.Collections
         {
             TValue value;
             if (TryGetValue(key, out value)) return value;
-            lock (LockKey ? (Object)key : this)
+            lock (this)
             {
                 if (TryGetValue(key, out value)) return value;
 
                 value = func(key, arg, arg2);
-                if (cacheDefault || !Object.Equals(value, default(TValue))) this[key] = value;
+                //Add(key, value);
+                if (cacheDefault || Object.Equals(value, default(TValue))) this[key] = value;
 
                 return value;
             }
@@ -192,12 +182,13 @@ namespace NewLife.Collections
         {
             TValue value;
             if (TryGetValue(key, out value)) return value;
-            lock (LockKey ? (Object)key : this)
+            lock (this)
             {
                 if (TryGetValue(key, out value)) return value;
 
                 value = func(key, arg, arg2, arg3);
-                if (cacheDefault || !Object.Equals(value, default(TValue))) this[key] = value;
+                //Add(key, value);
+                if (cacheDefault || Object.Equals(value, default(TValue))) this[key] = value;
 
                 return value;
             }

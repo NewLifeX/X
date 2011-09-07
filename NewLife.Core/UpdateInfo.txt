@@ -1,6 +1,4 @@
-﻿v2.9.2011.0907   修改字典缓存DictionaryCache，允许通过指定参数为true来让GetItem锁定键值而不是锁定字典本身，减少字典锁的争夺
-
-v2.8.2011.0901   修正TypeX.GetType中识别一维数组时的一个错误，如TypeX.GetType("Byte[]")会被错误识别为Byte[*]
+﻿v2.8.2011.0901   修正TypeX.GetType中识别一维数组时的一个错误，如TypeX.GetType("Byte[]")会被错误识别为Byte[*]
 
 v2.7.2011.0815   增加鸭子类型DuckTyping，但不对外公开，通过TypeX.ChangeType来使用！
                  增加ServiceProvider等服务模型
