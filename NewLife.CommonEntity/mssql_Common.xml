@@ -1,0 +1,185 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Tables>
+  <Table ID="1" Name="UserProfile" Alias="UserProfile" Owner="" DbType="SqlServer" IsView="False" Description="用户配置">
+    <Columns>
+      <Column ID="1" Name="ID" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" DataType="Int32" />
+      <Column ID="2" Name="UserID" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="父编号" DataType="Int32" />
+      <Column ID="3" Name="Name" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="名称" DataType="String" />
+      <Column ID="4" Name="Kind" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="值类型" DataType="Int32" />
+      <Column ID="5" Name="Value" RawType="nvarchar(500)" Length="500" NumOfByte="1000" Nullable="True" IsUnicode="True" Description="值" DataType="String" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_UserProfile_UserID" Columns="UserID" />
+      <Index Name="IX_UserProfile_UserID_Name" Unique="True" Columns="Name,UserID" />
+      <Index Name="PK__UserProf__3214EC2703317E3D" Unique="True" PrimaryKey="True" Columns="ID" />
+    </Indexes>
+  </Table>
+  <Table ID="2" Name="Setting" Alias="Setting" Owner="" DbType="SqlServer" IsView="False" Description="设置">
+    <Columns>
+      <Column ID="1" Name="ID" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" DataType="Int32" />
+      <Column ID="2" Name="Name" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="名称" DataType="String" />
+      <Column ID="3" Name="ParentID" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="父编号" DataType="Int32" />
+      <Column ID="4" Name="Kind" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="值类型" DataType="Int32" />
+      <Column ID="5" Name="Value" RawType="nvarchar(500)" Length="500" NumOfByte="1000" Nullable="True" IsUnicode="True" Description="值" DataType="String" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_Setting_ParentID" Columns="ParentID" />
+      <Index Name="PK__Setting__3214EC2707020F21" Unique="True" PrimaryKey="True" Columns="ID" />
+    </Indexes>
+  </Table>
+  <Table ID="3" Name="Statistics" Alias="Statistics" Owner="" DbType="SqlServer" IsView="False" Description="统计">
+    <Columns>
+      <Column ID="1" Name="ID" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" DataType="Int32" />
+      <Column ID="2" Name="Total" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="总数" DataType="Int32" />
+      <Column ID="3" Name="Today" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="今天" DataType="Int32" />
+      <Column ID="4" Name="Yesterday" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="昨天" DataType="Int32" />
+      <Column ID="5" Name="ThisWeek" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="本周" DataType="Int32" />
+      <Column ID="6" Name="LastWeek" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="上周" DataType="Int32" />
+      <Column ID="7" Name="ThisMonth" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="本月" DataType="Int32" />
+      <Column ID="8" Name="LastMonth" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="上月" DataType="Int32" />
+      <Column ID="9" Name="ThisYear" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="本年" DataType="Int32" />
+      <Column ID="10" Name="LastYear" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="去年" DataType="Int32" />
+      <Column ID="11" Name="LastTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="最后时间" DataType="DateTime" />
+      <Column ID="12" Name="LastIP" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="最后IP" DataType="String" />
+      <Column ID="13" Name="Remark" RawType="nvarchar(500)" Length="500" NumOfByte="1000" Nullable="True" IsUnicode="True" Description="备注" DataType="String" />
+    </Columns>
+    <Indexes>
+      <Index Name="PK__Statisti__3214EC270AD2A005" Unique="True" PrimaryKey="True" Columns="ID" />
+    </Indexes>
+  </Table>
+  <Table ID="4" Name="Sequence" Alias="Sequence" Owner="" DbType="SqlServer" IsView="False" Description="序列">
+    <Columns>
+      <Column ID="1" Name="ID" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" DataType="Int32" />
+      <Column ID="2" Name="Name" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="名称" DataType="String" />
+      <Column ID="3" Name="Kind" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="种类" DataType="Int32" />
+      <Column ID="4" Name="Num" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="数字" DataType="Int32" />
+      <Column ID="5" Name="LastUpdate" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="最后更新" DataType="DateTime" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_Sequence_Name" Unique="True" Columns="Name" />
+      <Index Name="PK__Sequence__3214EC270EA330E9" Unique="True" PrimaryKey="True" Columns="ID" />
+    </Indexes>
+  </Table>
+  <Table ID="5" Name="Menu" Alias="Menu" Owner="" DbType="SqlServer" IsView="False" Description="菜单">
+    <Columns>
+      <Column ID="1" Name="ID" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" DataType="Int32" />
+      <Column ID="2" Name="Name" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="名称" DataType="String" />
+      <Column ID="3" Name="ParentID" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="父编号" DataType="Int32" />
+      <Column ID="4" Name="Url" RawType="nvarchar(200)" Length="200" NumOfByte="400" Nullable="True" IsUnicode="True" Description="链接" DataType="String" />
+      <Column ID="5" Name="Sort" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="序号" DataType="Int32" />
+      <Column ID="6" Name="Remark" RawType="nvarchar(500)" Length="500" NumOfByte="1000" Nullable="True" IsUnicode="True" Description="备注" DataType="String" />
+      <Column ID="7" Name="Permission" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="权限" DataType="String" />
+      <Column ID="8" Name="IsShow" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="是否显示" DataType="Boolean" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_Menu_Name" Columns="Name" />
+      <Index Name="PK__Menu__3214EC271273C1CD" Unique="True" PrimaryKey="True" Columns="ID" />
+    </Indexes>
+    <Relations>
+      <Relation Column="ID" RelationTable="RoleMenu" RelationColumn="MenuID" Unique="True" />
+    </Relations>
+  </Table>
+  <Table ID="6" Name="Role" Alias="Role" Owner="" DbType="SqlServer" IsView="False" Description="角色">
+    <Columns>
+      <Column ID="1" Name="ID" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" DataType="Int32" />
+      <Column ID="2" Name="Name" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="角色名称" DataType="String" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_Role_Name" Unique="True" Columns="Name" />
+      <Index Name="PK__Role__3214EC27164452B1" Unique="True" PrimaryKey="True" Columns="ID" />
+    </Indexes>
+    <Relations>
+      <Relation Column="ID" RelationTable="RoleMenu" RelationColumn="RoleID" Unique="True" />
+      <Relation Column="ID" RelationTable="Administrator" RelationColumn="RoleID" Unique="True" />
+    </Relations>
+  </Table>
+  <Table ID="7" Name="RoleMenu" Alias="RoleMenu" Owner="" DbType="SqlServer" IsView="False" Description="角色和菜单">
+    <Columns>
+      <Column ID="1" Name="ID" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" DataType="Int32" />
+      <Column ID="2" Name="RoleID" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="角色编号" DataType="Int32" />
+      <Column ID="3" Name="MenuID" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="菜单编号" DataType="Int32" />
+      <Column ID="4" Name="Permission" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="权限" DataType="Int32" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_RoleMenu_MenuID_RoleID" Unique="True" Columns="MenuID,RoleID" />
+      <Index Name="PK__RoleMenu__3214EC271A14E395" Unique="True" PrimaryKey="True" Columns="ID" />
+      <Index Name="IX_RoleMenu_MenuID" Columns="MenuID" />
+      <Index Name="IX_RoleMenu_RoleID" Columns="RoleID" />
+    </Indexes>
+    <Relations>
+      <Relation Column="MenuID" RelationTable="Menu" RelationColumn="ID" />
+      <Relation Column="RoleID" RelationTable="Role" RelationColumn="ID" />
+    </Relations>
+  </Table>
+  <Table ID="8" Name="Log" Alias="Log" Owner="" DbType="SqlServer" IsView="False" Description="日志">
+    <Columns>
+      <Column ID="1" Name="ID" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" DataType="Int32" />
+      <Column ID="2" Name="Category" RawType="nvarchar(50)" Length="50" NumOfByte="100" IsUnicode="True" Description="类别" DataType="String" />
+      <Column ID="3" Name="Action" RawType="nvarchar(50)" Length="50" NumOfByte="100" IsUnicode="True" Description="操作" DataType="String" />
+      <Column ID="4" Name="UserID" RawType="int" Length="10" NumOfByte="4" Precision="10" Default="0" Description="用户编号" DataType="Int32" />
+      <Column ID="5" Name="UserName" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="用户名" DataType="String" />
+      <Column ID="6" Name="IP" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="IP地址" DataType="String" />
+      <Column ID="7" Name="OccurTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Default="getdate()" Description="时间" DataType="DateTime" />
+      <Column ID="8" Name="Remark" RawType="nvarchar(500)" Length="500" NumOfByte="1000" Nullable="True" IsUnicode="True" Description="详细信息" DataType="String" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_Log_Category" Columns="Category" />
+      <Index Name="PK__Log__3214EC271DE57479" Unique="True" PrimaryKey="True" Columns="ID" />
+    </Indexes>
+  </Table>
+  <Table ID="9" Name="Area" Alias="Area" Owner="" DbType="SqlServer" IsView="False" Description="地区">
+    <Columns>
+      <Column ID="1" Name="ID" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" DataType="Int32" />
+      <Column ID="2" Name="Code" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="代码" DataType="Int32" />
+      <Column ID="3" Name="Name" RawType="nvarchar(50)" Length="50" NumOfByte="100" IsUnicode="True" Description="名称" DataType="String" />
+      <Column ID="4" Name="ParentCode" RawType="int" Length="10" NumOfByte="4" Precision="10" Default="0" Description="父地区代码" DataType="Int32" />
+      <Column ID="5" Name="Description" RawType="ntext" Length="1073741823" NumOfByte="16" Nullable="True" IsUnicode="True" Description="描述" DataType="String" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_Area_Code" Unique="True" Columns="Code" />
+      <Index Name="IX_Area_Name" Columns="Name" />
+      <Index Name="PK__Area__3214EC27239E4DCF" Unique="True" PrimaryKey="True" Columns="ID" />
+    </Indexes>
+  </Table>
+  <Table ID="10" Name="Attachment" Alias="Attachment" Owner="" DbType="SqlServer" IsView="False" Description="附件">
+    <Columns>
+      <Column ID="1" Name="ID" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" DataType="Int32" />
+      <Column ID="2" Name="FileName" RawType="nvarchar(200)" Length="200" NumOfByte="400" Nullable="True" IsUnicode="True" Description="文件名" DataType="String" />
+      <Column ID="3" Name="Size" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="大小" DataType="Int32" />
+      <Column ID="4" Name="Extension" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="扩展名" DataType="String" />
+      <Column ID="5" Name="Category" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="分类" DataType="String" />
+      <Column ID="6" Name="FilePath" RawType="nvarchar(200)" Length="200" NumOfByte="400" Nullable="True" IsUnicode="True" Description="文件路径" DataType="String" />
+      <Column ID="7" Name="UserName" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="上传者" DataType="String" />
+      <Column ID="8" Name="UploadTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="上传时间" DataType="DateTime" />
+      <Column ID="9" Name="ContentType" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="内容类型" DataType="String" />
+      <Column ID="10" Name="StatID" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="访问统计" DataType="Int32" />
+      <Column ID="11" Name="IsEnable" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="是否启用" DataType="Boolean" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_Attachment_Category" Columns="Category" />
+      <Index Name="PK__Attachme__3214EC27286302EC" Unique="True" PrimaryKey="True" Columns="ID" />
+    </Indexes>
+  </Table>
+  <Table ID="11" Name="Administrator" Alias="Administrator" Owner="" DbType="SqlServer" IsView="False" Description="管理员">
+    <Columns>
+      <Column ID="1" Name="ID" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" DataType="Int32" />
+      <Column ID="2" Name="Name" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="名称" DataType="String" />
+      <Column ID="3" Name="Password" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="密码" DataType="String" />
+      <Column ID="4" Name="DisplayName" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="显示名" DataType="String" />
+      <Column ID="5" Name="RoleID" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="角色" DataType="Int32" />
+      <Column ID="6" Name="Logins" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="登录次数" DataType="Int32" />
+      <Column ID="7" Name="LastLogin" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="最后登录" DataType="DateTime" />
+      <Column ID="8" Name="LastLoginIP" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="最后登陆IP" DataType="String" />
+      <Column ID="9" Name="SSOUserID" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="登录用户编号" DataType="Int32" />
+      <Column ID="10" Name="IsEnable" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="是否使用" DataType="Boolean" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_Administrator_Name" Unique="True" Columns="Name" />
+      <Index Name="PK__Administ__3214EC277F60ED59" Unique="True" PrimaryKey="True" Columns="ID" />
+      <Index Name="IX_Administrator_RoleID" Columns="RoleID" />
+    </Indexes>
+    <Relations>
+      <Relation Column="RoleID" RelationTable="Role" RelationColumn="ID" />
+    </Relations>
+  </Table>
+</Tables>

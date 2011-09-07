@@ -106,6 +106,7 @@
     <EmbeddedResource Include="Web\nopic.jpg" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="mssql_Common.xml" />
     <Content Include="说明.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
