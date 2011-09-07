@@ -673,6 +673,17 @@ namespace XCode.DataAccessLayer
             {
                 if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(sb, item, onlySql);
             }
+
+            // 加上索引
+            if (table.Indexes != null)
+            {
+                foreach (IDataIndex item in table.Indexes)
+                {
+                    if (item.PrimaryKey) continue;
+
+                    CreateIndex(sb, item, onlySql);
+                }
+            }
         }
 
         void AddTableDescription(StringBuilder sb, IDataTable table, Boolean onlySql)
