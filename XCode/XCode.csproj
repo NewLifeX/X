@@ -112,8 +112,11 @@
     <Compile Include="DataAccessLayer\Model\XIndex.cs" />
     <Compile Include="DataAccessLayer\Model\XRelation.cs" />
     <Compile Include="Entity\DataRowEntityAccessor.cs" />
+    <Compile Include="Entity\DbEntityHandler.cs" />
+    <Compile Include="Entity\EntityHandlerManager.cs" />
     <Compile Include="Entity\EntityListView.cs" />
     <Compile Include="Entity\EntityBase_Interface.cs" />
+    <Compile Include="Entity\IEntityHandler.cs" />
     <Compile Include="Entity\IEntityList.cs" />
     <Compile Include="Exceptions\XDbException.cs" />
     <Compile Include="Exceptions\XCodeException.cs" />
@@ -149,13 +152,7 @@
     <Compile Include="Entity\IEntity.cs" />
     <Compile Include="Entity\IEntityOperate.cs" />
     <Compile Include="Cache\SingleEntityCache.cs" />
-    <Compile Include="Expressions\ExpressionBase.cs" />
-    <Compile Include="Expressions\FieldExpression.cs" />
-    <Compile Include="Expressions\WhereExpression.cs" />
     <Compile Include="Entity\IEntityAccessor.cs" />
-    <Compile Include="Model\EntityField.cs" />
-    <Compile Include="Model\FieldOperators.cs" />
-    <Compile Include="Model\IField.cs" />
     <Compile Include="Model\WhereExpression.cs" />
     <Compile Include="Model\XCodeServiceProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
