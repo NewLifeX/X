@@ -10,9 +10,14 @@ namespace <#=Config.NameSpace#>
 	/// <summary><#=Table.Description#></summary>
 	[Serializable]
 	[DataObject]
-	[Description("<#=Table.Description#>")]
+	[Description("<#=Table.Description#>")]<#
+foreach(IDataIndex di in Table.Indexes){#>
+    [BindIndex("<#=di.Name#>", <#=di.Unique.ToString().ToLower()#>, "<#=String.Join(",", di.Columns)#>")]<#
+}
+foreach(IDataRelation dr in Table.Relations){#>
+    [BindRelation("<#=dr.Column#>", <#=dr.Unique.ToString().ToLower()#>, "<#=dr.RelationTable#>", "<#=dr.RelationColumn#>")]<#}#>
     [BindTable("<#=Table.Name#>", Description = "<#=Table.Description#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#>)]
-	public partial class <#=Table.Alias#>
+	public partial class <#=Table.Alias#> : I<#=Table.Alias#>
 	{
 		#region 属性<#
 		foreach(IDataColumn Field in Table.Columns)
@@ -91,4 +96,27 @@ namespace <#=Config.NameSpace#>
 #>		}
 		#endregion
     }
+
+	/// <summary><#=Table.Description#>接口</summary>
+	public interface I<#=Table.Alias#>
+	{
+		#region 属性<#
+		foreach(IDataColumn Field in Table.Columns)
+		{
+#>
+		/// <summary><#=Field.Description#></summary>
+		<#=Field.DataType.Name#> <#=Field.Alias#> { get; set; }
+<#
+		}
+#>		#endregion
+
+		#region 获取/设置 字段值
+		/// <summary>
+		/// 获取/设置 字段值。
+		/// </summary>
+		/// <param name="name">字段名</param>
+		/// <returns></returns>
+		Object this[String name] { get; set; }
+		#endregion
+	}
 }

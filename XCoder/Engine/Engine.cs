@@ -42,26 +42,15 @@ namespace XCoder
             set { _Tables = FixTable(value); }
         }
 
-        private String _OuputPath;
         /// <summary>Êä³öÂ·¾¶</summary>
         public String OuputPath
         {
             get
             {
-                if (_OuputPath == null)
-                {
-                    String str = Config.OutputPath;
-                    if (!Directory.Exists(str)) Directory.CreateDirectory(str);
+                String str = Config.OutputPath;
+                if (!Directory.Exists(str)) Directory.CreateDirectory(str);
 
-                    _OuputPath = str;
-                    if (_OuputPath == null) _OuputPath = "";
-                }
-                return _OuputPath;
-            }
-            set
-            {
-                if (_OuputPath != null && !Directory.Exists(value)) Directory.CreateDirectory(value);
-                _OuputPath = value;
+                return str;
             }
         }
         #endregion

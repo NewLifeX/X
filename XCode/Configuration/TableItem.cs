@@ -280,6 +280,8 @@ namespace XCode.Configuration
                     IDataIndex di = table.CreateIndex();
                     item.Fill(di);
 
+                    if (ModelHelper.GetIndex(table, di.Columns) != null) continue;
+
                     // 判断主键
                     IDataColumn[] dcs = table.GetColumns(di.Columns);
                     if (Array.TrueForAll<IDataColumn>(dcs, dc => dc.PrimaryKey))
@@ -298,7 +300,18 @@ namespace XCode.Configuration
                     IDataRelation dr = table.CreateRelation();
                     item.Fill(dr);
 
-                    table.Relations.Add(dr);
+                    Boolean exists = false;
+                    foreach (IDataRelation elm in table.Relations)
+                    {
+                        if (!String.Equals(elm.Column, dr.Column, StringComparison.OrdinalIgnoreCase)) continue;
+                        if (!String.Equals(elm.RelationTable, dr.RelationTable, StringComparison.OrdinalIgnoreCase)) continue;
+                        if (!String.Equals(elm.RelationColumn, dr.RelationColumn, StringComparison.OrdinalIgnoreCase)) continue;
+
+                        exists = true;
+                        break;
+                    }
+
+                    if (!exists) table.Relations.Add(dr);
                 }
             }
             if (allfields != null && allfields.Count > 0) _AllFields = allfields.ToArray();

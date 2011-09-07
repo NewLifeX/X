@@ -20,8 +20,6 @@ namespace <#=Config.NameSpace#>
 		#region 获取/设置 字段值
 		/// <summary>
 		/// 获取/设置 字段值。
-		/// 一个索引，基类使用反射实现。
-		/// 派生实体类可重写该索引，以避免反射带来的性能损耗
 		/// </summary>
 		/// <param name="name">字段名</param>
 		/// <returns></returns>

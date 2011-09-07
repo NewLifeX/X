@@ -677,7 +677,8 @@ namespace XCoder
             String dir = txt_OutPath.Text;
             dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dir);
 
-            Process.Start("explorer.exe", "/root,\"" + dir + "\"");
+            Process.Start("explorer.exe", "\"" + dir + "\"");
+            //Process.Start("explorer.exe", "/root,\"" + dir + "\"");
             //Process.Start("explorer.exe", "/select," + dir);
         }
         #endregion

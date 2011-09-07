@@ -29,10 +29,13 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("4.1.*")]
-[assembly: AssemblyFileVersion("4.1.2011.0906")]
+[assembly: AssemblyVersion("4.2.*")]
+[assembly: AssemblyFileVersion("4.2.2011.0908")]
 
 /*
+ * v4.2.2011.0908   修正代码生成时更改输出目录后无效的BUG
+ *                  完善各个模版
+ * 
  * v4.1.2011.0906   修正生成时不能自动创建输出目录的错误
  *                  数据表选择支持显示中文描述
  * 

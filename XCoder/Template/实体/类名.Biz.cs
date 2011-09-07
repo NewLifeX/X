@@ -8,12 +8,7 @@ using XCode.Configuration;
 
 namespace <#=Config.NameSpace#>
 {
-	/// <summary><#=Table.Description#></summary><#
-foreach(IDataIndex di in Table.Indexes){#>
-    [BindIndex("<#=di.Name#>", <#=di.Unique.ToString().ToLower()#>, "<#=String.Join(",", di.Columns)#>")]<#
-}
-foreach(IDataRelation dr in Table.Relations){#>
-    [BindRelation("<#=dr.Column#>", <#=dr.Unique.ToString().ToLower()#>, "<#=dr.RelationTable#>", "<#=dr.RelationColumn#>")]<#}#>
+	/// <summary><#=Table.Description#></summary>
 	public partial class <#=Table.Alias#> : Entity<<#=Table.Alias#>>
 	{
 		#region 扩展属性<#@include Name="扩展属性.xt"#>
