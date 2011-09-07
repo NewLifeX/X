@@ -135,7 +135,37 @@ namespace XCode
                 if (item == null) continue;
                 if (Object.Equals(item[name], value)) list.Add(item);
             }
-            if (list == null || list.Count < 1) return null;
+            //if (list == null || list.Count < 1) return null;
+            return list;
+        }
+
+        /// <summary>
+        /// 根据指定项查找
+        /// </summary>
+        /// <param name="names">属性名</param>
+        /// <param name="values">属性值</param>
+        /// <returns></returns>
+        public EntityList<T> FindAll(String[] names, Object[] values)
+        {
+            if (Count < 1) return null;
+
+            EntityList<T> list = new EntityList<T>();
+            foreach (T item in this)
+            {
+                if (item == null) continue;
+
+                Boolean b = true;
+                for (int i = 0; i < names.Length; i++)
+                {
+                    if (!Object.Equals(item[names[i]], values[i]))
+                    {
+                        b = false;
+                        break;
+                    }
+                }
+                if (b) list.Add(item);
+            }
+            //if (list == null || list.Count < 1) return null;
             return list;
         }
 
@@ -154,7 +184,7 @@ namespace XCode
                 if (item == null) continue;
                 if (match(item)) list.Add(item);
             }
-            if (list == null || list.Count < 1) return null;
+            //if (list == null || list.Count < 1) return null;
             return list;
         }
 
@@ -192,7 +222,7 @@ namespace XCode
                 if (item == null) continue;
                 if (String.Equals((String)item[name], value, StringComparison.OrdinalIgnoreCase)) list.Add(item);
             }
-            if (list == null || list.Count < 1) return null;
+            //if (list == null || list.Count < 1) return null;
             return list;
         }
 
@@ -222,6 +252,14 @@ namespace XCode
         /// <param name="value">属性值</param>
         /// <returns></returns>
         IEntityList IEntityList.FindAll(String name, Object value) { return FindAll(name, value); }
+
+        /// <summary>
+        /// 根据指定项查找
+        /// </summary>
+        /// <param name="names">属性名</param>
+        /// <param name="values">属性值</param>
+        /// <returns></returns>
+        IEntityList IEntityList.FindAll(String[] names, Object[] values) { return FindAll(names, values); }
 
         /// <summary>
         /// 根据指定项查找
@@ -1106,14 +1144,5 @@ namespace XCode
             #endregion
         }
         #endregion
-
-        //#region IEnumerable 成员
-
-        //IEnumerator IEnumerable.GetEnumerator()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //#endregion
     }
 }

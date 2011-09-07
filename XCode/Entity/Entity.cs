@@ -1139,7 +1139,7 @@ namespace XCode
                 if (fi == null) throw new ArgumentException("类[" + Meta.ThisType.FullName + "]中不存在[" + names[i] + "]属性");
 
                 // 同时构造SQL语句。names是属性列表，必须转换成对应的字段列表
-                if (i > 0) sb.AppendFormat(" {0} ", action);
+                if (i > 0) sb.AppendFormat(" {0} ", action.Trim());
                 //sb.AppendFormat("{0}={1}", Meta.FormatName(fi.ColumnName), Meta.FormatValue(fi, values[i]));
                 sb.Append(MakeCondition(fi, values[i], "="));
             }

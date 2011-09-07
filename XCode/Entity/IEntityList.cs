@@ -19,6 +19,14 @@ namespace XCode
         /// <summary>
         /// 根据指定项查找
         /// </summary>
+        /// <param name="names">属性名</param>
+        /// <param name="values">属性值</param>
+        /// <returns></returns>
+        IEntityList FindAll(String[] names, Object[] values);
+
+        /// <summary>
+        /// 根据指定项查找
+        /// </summary>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
