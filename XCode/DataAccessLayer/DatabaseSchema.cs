@@ -547,6 +547,39 @@ namespace XCode.DataAccessLayer
             }
             #endregion
 
+            #region 删除索引
+            if (dbtable.Indexes != null)
+            {
+                for (int i = dbtable.Indexes.Count - 1; i >= 0; i--)
+                {
+                    IDataIndex item = dbtable.Indexes[i];
+                    if (item.PrimaryKey) continue;
+
+                    IDataIndex di = ModelHelper.GetIndex(entitytable, item.Columns);
+                    if (di != null) continue;
+
+                    DropIndex(sb, item, onlySql);
+                    dbtable.Indexes.RemoveAt(i);
+                }
+            }
+            #endregion
+
+            #region 新增索引
+            if (entitytable.Indexes != null)
+            {
+                foreach (IDataIndex item in entitytable.Indexes)
+                {
+                    if (item.PrimaryKey) continue;
+
+                    IDataIndex di = ModelHelper.GetIndex(dbtable, item.Columns);
+                    if (di != null) continue;
+
+                    CreateIndex(sb, item, onlySql);
+                    dbtable.Indexes.Add(item.Clone(dbtable));
+                }
+            }
+            #endregion
+
             return sb.ToString();
         }
 
@@ -679,6 +712,16 @@ namespace XCode.DataAccessLayer
         void AlterColumn(StringBuilder sb, IDataColumn field, IDataColumn oldfield, Boolean onlySql)
         {
             GetSchemaSQL(sb, onlySql, DDLSchema.AlterColumn, field, oldfield);
+        }
+
+        void CreateIndex(StringBuilder sb, IDataIndex di, Boolean onlySql)
+        {
+            GetSchemaSQL(sb, onlySql, DDLSchema.CreateIndex, di);
+        }
+
+        void DropIndex(StringBuilder sb, IDataIndex di, Boolean onlySql)
+        {
+            GetSchemaSQL(sb, onlySql, DDLSchema.DropIndex, di);
         }
         #endregion
 

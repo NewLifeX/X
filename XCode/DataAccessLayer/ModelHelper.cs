@@ -215,6 +215,70 @@ namespace XCode.DataAccessLayer
             #endregion
         }
 
+        /// <summary>
+        /// 根据字段名找索引
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="columnNames"></param>
+        /// <returns></returns>
+        public static IDataIndex GetIndex(IDataTable table, String[] columnNames)
+        {
+            if (table == null || table.Indexes == null || table.Indexes.Count < 1) return null;
+
+            foreach (IDataIndex item in table.Indexes)
+            {
+                if (item.Columns == null || item.Columns.Length < 1) continue;
+
+                if (CompareStringArray(item.Columns, columnNames)) return item;
+            }
+
+            return null;
+        }
+
+        private static Boolean CompareStringArray(String[] arr1, String[] arr2)
+        {
+            arr1 = prepare(arr1);
+            arr2 = prepare(arr2);
+            if (arr1 == arr2) return true;
+            if (arr1.Length != arr2.Length) return false;
+
+            for (int i = 0; i < arr1.Length; i++)
+            {
+                if (arr1[i] != arr2[i]) return false;
+            }
+
+            //for (int i = 0; i < arr1.Length; i++)
+            //{
+            //    Boolean b = false;
+            //    for (int j = 0; j < arr2.Length; j++)
+            //    {
+            //        if (String.Equals(arr1[i], arr2[j], StringComparison.OrdinalIgnoreCase))
+            //        {
+            //            b = true;
+            //            // 清空该项，不再跟后续项匹配
+            //            arr2[j] = null;
+            //            break;
+            //        }
+            //    }
+            //    // 只要有一个找不到对应项，就是不存在
+            //    if (!b) return false;
+            //}
+
+            return true;
+        }
+
+        private static String[] prepare(String[] arr)
+        {
+            if (arr == null || arr.Length < 1) return null;
+
+            List<String> list = new List<string>();
+            for (int i = 0; i < arr.Length; i++)
+            {
+                String item = arr[i] == null ? "" : arr[i].ToLower();
+                if (!list.Contains(item)) list.Add(item);
+            }
+            return list.ToArray();
+        }
         #region 辅助
         /// <summary>
         /// 获取别名
