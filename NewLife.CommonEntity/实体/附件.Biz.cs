@@ -83,23 +83,11 @@ namespace NewLife.CommonEntity
     /// <remarks>
     /// 对于文件的存放，可以考虑同一个文件只存放一份，方法就是通过名称、大小、散列三个同时比较
     /// </remarks>
+    [BindIndex("IX_Attachment_Category", false, "Category")]
+    [BindIndex("PK_Attachment_ID", true, "ID")]
     public partial class Attachment<TEntity> : Entity<TEntity> where TEntity : Attachment<TEntity>, new()
     {
         #region 对象操作
-        //基类Entity中包含三个对象操作：Insert、Update、Delete
-        //你可以重载它们，以改变它们的行为
-        //如：
-        /*
-        /// <summary>
-        /// 已重载。把该对象插入到数据库。这里可以做数据插入前的检查
-        /// </summary>
-        /// <returns>影响的行数</returns>
-        public override Int32 Insert()
-        {
-            return base.Insert();
-        }
-         * */
-
         /// <summary>
         /// 已重载。
         /// </summary>
@@ -119,26 +107,6 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展属性
-        // 本类与哪些类有关联，可以在这里放置一个属性，使用延迟加载的方式获取关联对象
-
-        /*
-        private Category _Category;
-        /// <summary>该商品所对应的类别</summary>
-        public Category Category
-        {
-            get
-            {
-                if (_Category == null && CategoryID > 0 && !Dirtys.ContainKey("Category"))
-                {
-                    _Category = Category.FindByKey(CategoryID);
-                    Dirtys.Add("Category", true);
-                }
-                return _Category;
-            }
-            set { _Category = value; }
-        }
-         * */
-
         /// <summary>
         /// 完全文件路径
         /// </summary>
@@ -191,12 +159,12 @@ namespace NewLife.CommonEntity
         /// <summary>
         /// 根据主键查询一个附件实体对象用于表单编辑
         /// </summary>
-        ///<param name="__ID">编号</param>
+        /// <param name="id">编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity FindByKeyForEdit(Int32 __ID)
+        public static TEntity FindByKeyForEdit(Int32 id)
         {
-            TEntity entity = Find(new String[] { _.ID }, new Object[] { __ID });
+            TEntity entity = Find(new String[] { _.ID }, new Object[] { id });
             if (entity == null)
             {
                 entity = new TEntity();
@@ -217,53 +185,76 @@ namespace NewLife.CommonEntity
             // 单对象缓存
             return Meta.SingleCache[id];
         }
+
+        /// <summary>
+        /// 根据分类查找
+        /// </summary>
+        /// <param name="category">分类</param>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static EntityList<TEntity> FindAllByCategory(String category)
+        {
+            if (Meta.Count >= 1000)
+                return FindAll(new String[] { _.Category }, new Object[] { category });
+            else // 实体缓存
+                return Meta.Cache.Entities.FindAll(_.Category, category);
+        }
         #endregion
 
         #region 高级查询
+        // 以下为自定义高级查询的例子
+
         ///// <summary>
         ///// 查询满足条件的记录集，分页、排序
         ///// </summary>
-        ///// <param name="name"></param>
+        ///// <param name="key">关键字</param>
         ///// <param name="orderClause">排序，不带Order By</param>
         ///// <param name="startRowIndex">开始行，0表示第一行</param>
         ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
         ///// <returns>实体集</returns>
         //[DataObjectMethod(DataObjectMethodType.Select, true)]
-        //public static EntityList<Attachment> Search(String name, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        //public static EntityList<Attachment> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         //{
-        //    return FindAll(SearchWhere(name), orderClause, null, startRowIndex, maximumRows);
+        //    return FindAll(SearchWhere(key), orderClause, null, startRowIndex, maximumRows);
         //}
 
         ///// <summary>
         ///// 查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一
         ///// </summary>
-        ///// <param name="name"></param>
+        ///// <param name="key">关键字</param>
         ///// <param name="orderClause">排序，不带Order By</param>
         ///// <param name="startRowIndex">开始行，0表示第一行</param>
         ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
         ///// <returns>记录数</returns>
-        //public static Int32 SearchCount(String name, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        //public static Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         //{
-        //    return FindCount(SearchWhere(name), null, null, 0, 0);
+        //    return FindCount(SearchWhere(key), null, null, 0, 0);
         //}
 
-        ///// <summary>
-        ///// 构造搜索条件
-        ///// </summary>
-        ///// <param name="name"></param>
-        ///// <returns></returns>
-        //private static String SearchWhere(String name)
-        //{
-        //    StringBuilder sb = new StringBuilder();
-        //    sb.Append("1=1");
+        /// <summary>
+        /// 构造搜索条件
+        /// </summary>
+        /// <param name="key">关键字</param>
+        /// <returns></returns>
+        private static String SearchWhere(String key)
+        {
+            // WhereExpression重载&和|运算符，作为And和Or的替代
+            WhereExpression exp = new WhereExpression();
 
-        //    if (!String.IsNullOrEmpty(name)) sb.AppendFormat(" And {0} like '%{1}%'", _.Name, name.Replace("'", "''"));
+            // SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索
+            if (!String.IsNullOrEmpty(key)) SearchWhereByKeys(exp.Builder, key);
 
-        //    if (sb.ToString() == "1=1")
-        //        return null;
-        //    else
-        //        return sb.ToString();
-        //}
+            // 以下仅为演示，2、3行是同一个意思的不同写法，FieldItem重载了等于以外的运算符（第4行）
+            //exp &= _.Name.Equal("testName")
+            //    & !String.IsNullOrEmpty(key) & _.Name.Equal(key)
+            //    .AndIf(!String.IsNullOrEmpty(key), _.Name.Equal(key))
+            //    | _.ID > 0;
+
+            return exp;
+        }
+        #endregion
+
+        #region 扩展操作
         #endregion
 
         #region 扩展操作

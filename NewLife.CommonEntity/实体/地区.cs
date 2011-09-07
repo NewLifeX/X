@@ -5,9 +5,9 @@
  * 版权：版权所有 (C) 新生命开发团队 2010
 */
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using XCode;
+using XCode.Configuration;
 using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
@@ -125,40 +125,28 @@ namespace NewLife.CommonEntity
 		}
 		#endregion
 
-		#region 字段名
-		/// <summary>
-		/// 取得地区字段名的快捷方式
-		/// </summary>
+        #region 字段名
+        /// <summary>取得地区字段信息的快捷方式</summary>
         [CLSCompliant(false)]
-		public class _
-		{
-			///<summary>
-			/// 编号
-			///</summary>
-			public const String ID = "ID";
+        public class _
+        {
+            ///<summary>编号</summary>
+            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
 
-			///<summary>
-			/// 代码
-			///</summary>
-			public const String Code = "Code";
+            ///<summary>代码</summary>
+            public static readonly FieldItem Code = Meta.Table.FindByName("Code");
 
-			///<summary>
-			/// 名称
-			///</summary>
-			public const String Name = "Name";
+            ///<summary>名称</summary>
+            public static readonly FieldItem Name = Meta.Table.FindByName("Name");
 
-			///<summary>
-			/// 父地区代码
-			///</summary>
-			public const String ParentCode = "ParentCode";
+            ///<summary>父地区代码</summary>
+            public static readonly FieldItem ParentCode = Meta.Table.FindByName("ParentCode");
 
-			///<summary>
-			/// 描述
-			///</summary>
-			public const String Description = "Description";
-		}
-		#endregion
-	}
+            ///<summary>描述</summary>
+            public static readonly FieldItem Description = Meta.Table.FindByName("Description");
+        }
+        #endregion
+    }
 
 	/// <summary>
 	/// 地区接口
