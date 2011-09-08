@@ -10,6 +10,7 @@ using Microsoft.VisualBasic;
 using NewLife.Log;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
+using NewLife.Reflection;
 
 namespace XCoder
 {
@@ -503,6 +504,14 @@ namespace XCoder
                     if (String.IsNullOrEmpty(_FileVersion)) _FileVersion = "1.0";
                 }
                 return _FileVersion;
+            }
+        }
+
+        public static DateTime Compile
+        {
+            get
+            {
+                return AssemblyX.Create(Assembly.GetExecutingAssembly()).Compile;
             }
         }
         #endregion

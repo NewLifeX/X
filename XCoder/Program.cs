@@ -13,21 +13,35 @@ namespace XCoder
         [STAThread]
         static void Main()
         {
-            Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
-
-            if (XConfig.Current.LastUpdate.Date < DateTime.Now.Date)
+            try
             {
-                XConfig.Current.LastUpdate = DateTime.Now;
+                Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
+                AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
-                AutoUpdate au = new AutoUpdate();
-                au.LocalVersion = new Version(Engine.FileVersion);
-                au.VerSrc = "http://files.cnblogs.com/nnhy/XCoderVer.xml";
-                au.ProcessAsync();
+                if (XConfig.Current.LastUpdate.Date < DateTime.Now.Date)
+                {
+                    XConfig.Current.LastUpdate = DateTime.Now;
+
+                    AutoUpdate au = new AutoUpdate();
+                    au.LocalVersion = new Version(Engine.FileVersion);
+                    au.VerSrc = "http://files.cnblogs.com/nnhy/XCoderVer.xml";
+                    au.ProcessAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteLine(ex.ToString());
             }
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FrmMain());
+        }
+
+        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            XTrace.WriteLine("" + e.ExceptionObject);
+            if (e.IsTerminating) XTrace.WriteLine("异常退出！");
         }
 
         static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)

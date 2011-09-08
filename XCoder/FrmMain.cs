@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
+using NewLife.Log;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
 
@@ -44,30 +45,46 @@ namespace XCoder
 
         private void FrmMain_Shown(object sender, EventArgs e)
         {
-            Text = "新生命代码生成器 V" + Engine.FileVersion;
+            Text = "新生命代码生成器 V" + Engine.FileVersion + " " + Engine.Compile.ToString("HH:mm:ss") + "编译";
             Template.BaseClassName = typeof(XCoderBase).FullName;
         }
 
         private void FrmMain_Load(object sender, EventArgs e)
         {
-            List<String> list = new List<String>();
-            foreach (String item in DAL.ConnStrs.Keys)
-            {
-                list.Add(item);
-            }
-            //Conns = list;
-            SetDatabaseList(list);
+            LoadConfig();
 
-            BindTemplate(cb_Template);
+            try
+            {
+                List<String> list = new List<String>();
+                foreach (String item in DAL.ConnStrs.Keys)
+                {
+                    list.Add(item);
+                }
+                //Conns = list;
+                SetDatabaseList(list);
+
+                BindTemplate(cb_Template);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteLine(ex.ToString());
+            }
 
             LoadConfig();
 
             ThreadPool.QueueUserWorkItem(AutoDetectDatabase);
             ThreadPool.QueueUserWorkItem(UpdateArticles);
 
-            String url = "http://www.7765.com/api/";
-            url += String.Format("?tag=XCoder_v{0}&r={1}", Engine.FileVersion, DateTime.Now.Ticks);
-            webBrowser1.Navigate(url);
+            try
+            {
+                String url = "http://www.7765.com/api/";
+                url += String.Format("?tag=XCoder_v{0}&r={1}", Engine.FileVersion, DateTime.Now.Ticks);
+                webBrowser1.Navigate(url);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteLine(ex.ToString());
+            }
         }
 
         /// <summary>
@@ -93,19 +110,22 @@ namespace XCoder
                 {
                     BinaryReader reader = new BinaryReader(fs);
                     Byte[] bts = reader.ReadBytes(sqlite.Length);
-                    if (bts[0] == 'S' && bts[1] == 'Q' && Encoding.ASCII.GetString(bts) == sqlite)
+                    if (bts != null && bts.Length > 0)
                     {
-                        localstr = String.Format("Data Source={0};", item);
-                        if (!ContainConnStr(localstr)) DAL.AddConnStr("SQLite_" + Path.GetFileNameWithoutExtension(item), localstr, null, "SQLite");
-                    }
-                    else if (bts[4] == 'S' && bts[5] == 't')
-                    {
-                        fs.Seek(4, SeekOrigin.Begin);
-                        bts = reader.ReadBytes(access.Length);
-                        if (Encoding.ASCII.GetString(bts) == access)
+                        if (bts[0] == 'S' && bts[1] == 'Q' && Encoding.ASCII.GetString(bts) == sqlite)
                         {
-                            localstr = String.Format("Provider=Microsoft.Jet.OLEDB.4.0; Data Source={0};Persist Security Info=False;OLE DB Services=-1", item);
-                            if (!ContainConnStr(localstr)) DAL.AddConnStr("Access_" + Path.GetFileNameWithoutExtension(item), localstr, null, "Access");
+                            localstr = String.Format("Data Source={0};", item);
+                            if (!ContainConnStr(localstr)) DAL.AddConnStr("SQLite_" + Path.GetFileNameWithoutExtension(item), localstr, null, "SQLite");
+                        }
+                        else if (bts[4] == 'S' && bts[5] == 't')
+                        {
+                            fs.Seek(4, SeekOrigin.Begin);
+                            bts = reader.ReadBytes(access.Length);
+                            if (Encoding.ASCII.GetString(bts) == access)
+                            {
+                                localstr = String.Format("Provider=Microsoft.Jet.OLEDB.4.0; Data Source={0};Persist Security Info=False;OLE DB Services=-1", item);
+                                if (!ContainConnStr(localstr)) DAL.AddConnStr("Access_" + Path.GetFileNameWithoutExtension(item), localstr, null, "Access");
+                            }
                         }
                     }
                 }
@@ -199,7 +219,7 @@ namespace XCoder
             //Conns = null;
             if (!String.IsNullOrEmpty(str)) cbConn.Text = str;
 
-            if (cbConn.SelectedIndex < 0) cbConn.SelectedIndex = 0;
+            if (cbConn.SelectedIndex < 0 && cbConn.Items != null && cbConn.Items.Count > 0) cbConn.SelectedIndex = 0;
         }
 
         /// <summary>
@@ -336,6 +356,7 @@ namespace XCoder
         void AutoLoadTables(String name)
         {
             if (String.IsNullOrEmpty(name)) return;
+            if (!DAL.ConnStrs.ContainsKey(name) || String.IsNullOrEmpty(DAL.ConnStrs[name].ConnectionString)) return;
 
             // 异步加载
             ThreadPool.QueueUserWorkItem(delegate(Object state)
@@ -616,23 +637,35 @@ namespace XCoder
                         catch { }
 
                         #region 强制弹出
-                        if (entity.PubDate > DateTime.MinValue)
-                        {
-                            Int32 h = (Int32)(DateTime.Now - entity.PubDate).TotalHours;
-                            if (h < 24 * 30)
-                            {
-                                Random rnd = new Random((Int32)DateTime.Now.Ticks);
-                                // 时间越久，h越大，随机数为0的可能性就越小，弹出的可能性就越小
-                                // 一小时之内，是50%的可能性
-                                if (rnd.Next(0, h + 1) == 0)
-                                {
-                                    Process.Start(entity.Link);
-                                }
-                            }
-                        }
+                        //if (entity.PubDate > DateTime.MinValue)
+                        //{
+                        //    Int32 h = (Int32)(DateTime.Now - entity.PubDate).TotalHours;
+                        //    if (h < 24 * 30)
+                        //    {
+                        //        Random rnd = new Random((Int32)DateTime.Now.Ticks);
+                        //        // 时间越久，h越大，随机数为0的可能性就越小，弹出的可能性就越小
+                        //        // 一小时之内，是50%的可能性
+                        //        if (rnd.Next(0, h + 1) == 0)
+                        //        {
+                        //            Process.Start(entity.Link);
+                        //        }
+                        //    }
+                        //}
                         #endregion
 
                         articles.Add(entity);
+                    }
+                }
+
+                if (articles.Count > 0)
+                {
+                    Article entity = articles[0];
+                    if (entity.Title != Config.LastBlogTitle)
+                    {
+                        Config.LastBlogTitle = entity.Title;
+                        Config.Save();
+
+                        Process.Start(entity.Link);
                     }
                 }
             }
@@ -675,6 +708,18 @@ namespace XCoder
             Process.Start("explorer.exe", "\"" + dir + "\"");
             //Process.Start("explorer.exe", "/root,\"" + dir + "\"");
             //Process.Start("explorer.exe", "/select," + dir);
+        }
+        #endregion
+
+        #region 查看架构信息
+        private void btnShowSchema_Click(object sender, EventArgs e)
+        {
+            String connName = "" + cbConn.SelectedValue;
+            if (String.IsNullOrEmpty(connName)) return;
+
+            FrmSchema frm = new FrmSchema();
+            frm.ConnName = connName;
+            frm.Show();
         }
         #endregion
     }

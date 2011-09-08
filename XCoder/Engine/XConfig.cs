@@ -12,7 +12,11 @@ namespace XCoder
         /// <summary>链接名</summary>
         public String ConnName
         {
-            get { return _ConnName; }
+            get
+            {
+                if (String.IsNullOrEmpty(_ConnName)) _ConnName = "ConnName";
+                return _ConnName;
+            }
             set { _ConnName = value; }
         }
 
@@ -28,7 +32,7 @@ namespace XCoder
         /// <summary>命名空间</summary>
         public String NameSpace
         {
-            get { return _NameSpace; }
+            get { return String.IsNullOrEmpty(_NameSpace) ? ConnName : EntityConnName; }
             set { _NameSpace = value; }
         }
 
@@ -44,7 +48,7 @@ namespace XCoder
         /// <summary>输出目录</summary>
         public String OutputPath
         {
-            get { return _OutputPath; }
+            get { return String.IsNullOrEmpty(_OutputPath) ? ConnName : EntityConnName; }
             set { _OutputPath = value; }
         }
 
@@ -52,7 +56,7 @@ namespace XCoder
         /// <summary>实体链接名</summary>
         public String EntityConnName
         {
-            get { return _EntityConnName; }
+            get { return String.IsNullOrEmpty(_EntityConnName) ? ConnName : _EntityConnName; }
             set { _EntityConnName = value; }
         }
 
@@ -122,6 +126,14 @@ namespace XCoder
         {
             get { return _LastUpdate; }
             set { _LastUpdate = value; }
+        }
+
+        private String _LastBlogTitle;
+        /// <summary>最后弹窗的博文地址</summary>
+        public String LastBlogTitle
+        {
+            get { return _LastBlogTitle; }
+            set { _LastBlogTitle = value; }
         }
         #endregion
 

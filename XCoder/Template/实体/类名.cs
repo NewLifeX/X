@@ -11,7 +11,7 @@ namespace <#=Config.NameSpace#>
     [Serializable]
     [DataObject]
     [Description("<#=Table.Description#>")]<#
-foreach(IDataIndex di in Table.Indexes){#>
+foreach(IDataIndex di in Table.Indexes){if(di.Columns==null||di.Columns.Length<1)continue;#>
     [BindIndex("<#=di.Name#>", <#=di.Unique.ToString().ToLower()#>, "<#=String.Join(",", di.Columns)#>")]<#
 }
 foreach(IDataRelation dr in Table.Relations){#>

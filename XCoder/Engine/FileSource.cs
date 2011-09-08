@@ -72,6 +72,8 @@ namespace XCoder
         /// <param name="fileName"></param>
         public static void ReleaseFile(String name, String fileName)
         {
+            if (String.IsNullOrEmpty(fileName) || File.Exists(fileName)) return;
+
             try
             {
                 Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);

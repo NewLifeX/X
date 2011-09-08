@@ -35,7 +35,7 @@
             this.cbConn = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.gbTable = new System.Windows.Forms.GroupBox();
-            this.button1 = new System.Windows.Forms.Button();
+            this.btnExpE2C = new System.Windows.Forms.Button();
             this.bt_GenAll = new System.Windows.Forms.Button();
             this.bt_GenTable = new System.Windows.Forms.Button();
             this.cbTableList = new System.Windows.Forms.ComboBox();
@@ -46,6 +46,8 @@
             this.proc_percent = new System.Windows.Forms.ToolStripStatusLabel();
             this.bw = new System.ComponentModel.BackgroundWorker();
             this.gbConfig = new System.Windows.Forms.GroupBox();
+            this.txtBaseClass = new System.Windows.Forms.TextBox();
+            this.label10 = new System.Windows.Forms.Label();
             this.btnOpenOutputDir = new System.Windows.Forms.Button();
             this.label9 = new System.Windows.Forms.Label();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
@@ -73,8 +75,7 @@
             this.timer2 = new System.Windows.Forms.Timer(this.components);
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.txtBaseClass = new System.Windows.Forms.TextBox();
-            this.label10 = new System.Windows.Forms.Label();
+            this.btnShowSchema = new System.Windows.Forms.Button();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -123,7 +124,8 @@
             // 
             // gbTable
             // 
-            this.gbTable.Controls.Add(this.button1);
+            this.gbTable.Controls.Add(this.btnShowSchema);
+            this.gbTable.Controls.Add(this.btnExpE2C);
             this.gbTable.Controls.Add(this.bt_GenAll);
             this.gbTable.Controls.Add(this.bt_GenTable);
             this.gbTable.Controls.Add(this.cbTableList);
@@ -135,19 +137,19 @@
             this.gbTable.TabIndex = 14;
             this.gbTable.TabStop = false;
             // 
-            // button1
+            // btnExpE2C
             // 
-            this.button1.Location = new System.Drawing.Point(500, 19);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(97, 23);
-            this.button1.TabIndex = 22;
-            this.button1.Text = "导出映射文件";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.btnExpE2C.Location = new System.Drawing.Point(481, 19);
+            this.btnExpE2C.Name = "btnExpE2C";
+            this.btnExpE2C.Size = new System.Drawing.Size(97, 23);
+            this.btnExpE2C.TabIndex = 22;
+            this.btnExpE2C.Text = "导出映射文件";
+            this.btnExpE2C.UseVisualStyleBackColor = true;
+            this.btnExpE2C.Click += new System.EventHandler(this.button1_Click);
             // 
             // bt_GenAll
             // 
-            this.bt_GenAll.Location = new System.Drawing.Point(387, 19);
+            this.bt_GenAll.Location = new System.Drawing.Point(382, 19);
             this.bt_GenAll.Name = "bt_GenAll";
             this.bt_GenAll.Size = new System.Drawing.Size(75, 23);
             this.bt_GenAll.TabIndex = 21;
@@ -251,6 +253,23 @@
             this.gbConfig.Size = new System.Drawing.Size(725, 224);
             this.gbConfig.TabIndex = 26;
             this.gbConfig.TabStop = false;
+            // 
+            // txtBaseClass
+            // 
+            this.txtBaseClass.Location = new System.Drawing.Point(277, 20);
+            this.txtBaseClass.Name = "txtBaseClass";
+            this.txtBaseClass.Size = new System.Drawing.Size(97, 21);
+            this.txtBaseClass.TabIndex = 47;
+            this.txtBaseClass.Text = "Entity";
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(217, 24);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(41, 12);
+            this.label10.TabIndex = 46;
+            this.label10.Text = "基类：";
             // 
             // btnOpenOutputDir
             // 
@@ -478,22 +497,15 @@
             // 
             this.saveFileDialog1.Filter = "架构文件|*.xml";
             // 
-            // txtBaseClass
+            // btnShowSchema
             // 
-            this.txtBaseClass.Location = new System.Drawing.Point(277, 20);
-            this.txtBaseClass.Name = "txtBaseClass";
-            this.txtBaseClass.Size = new System.Drawing.Size(97, 21);
-            this.txtBaseClass.TabIndex = 47;
-            this.txtBaseClass.Text = "Entity";
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(217, 24);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(41, 12);
-            this.label10.TabIndex = 46;
-            this.label10.Text = "基类：";
+            this.btnShowSchema.Location = new System.Drawing.Point(602, 19);
+            this.btnShowSchema.Name = "btnShowSchema";
+            this.btnShowSchema.Size = new System.Drawing.Size(97, 23);
+            this.btnShowSchema.TabIndex = 23;
+            this.btnShowSchema.Text = "查看架构信息";
+            this.btnShowSchema.UseVisualStyleBackColor = true;
+            this.btnShowSchema.Click += new System.EventHandler(this.btnShowSchema_Click);
             // 
             // FrmMain
             // 
@@ -559,7 +571,7 @@
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.ComboBox cbConn;
         private System.Windows.Forms.CheckBox checkBox2;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button btnExpE2C;
         private System.Windows.Forms.CheckBox checkBox3;
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.Timer timer1;
@@ -577,6 +589,7 @@
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.TextBox txtBaseClass;
         private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.Button btnShowSchema;
 	}
 }
 
