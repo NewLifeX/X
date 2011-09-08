@@ -8,19 +8,19 @@ using XCode.Configuration;
 
 namespace <#=Config.NameSpace#>
 {
-	/// <summary><#=Table.Description#></summary>
-	public partial class <#=Table.Alias#> : Entity<<#=Table.Alias#>>
-	{
-		#region 扩展属性<#@include Name="扩展属性.xt"#>
-		#endregion
-
-		#region 扩展查询<#@include Name="扩展查询.xt"#>
+    /// <summary><#=Table.Description#></summary>
+    public partial class <#=Table.Alias#> : Entity<<#=Table.Alias#>>
+    {
+        #region 扩展属性<#@include Name="扩展属性.xt"#>
         #endregion
 
-		#region 对象操作<#@include Name="对象操作.xt"#>
-		#endregion
+        #region 扩展查询<#@include Name="扩展查询.xt"#>
+        #endregion
 
-		#region 高级查询
+        #region 对象操作<#@include Name="对象操作.xt"#>
+        #endregion
+
+        #region 高级查询
         // 以下为自定义高级查询的例子
 
         ///// <summary>
@@ -50,13 +50,13 @@ namespace <#=Config.NameSpace#>
         //    return FindCount(SearchWhere(key), null, null, 0, 0);
         //}
 
-		/// <summary>
-		/// 构造搜索条件
-		/// </summary>
-		/// <param name="key">关键字</param>
-		/// <returns></returns>
-		private static String SearchWhere(String key)
-		{
+        /// <summary>
+        /// 构造搜索条件
+        /// </summary>
+        /// <param name="key">关键字</param>
+        /// <returns></returns>
+        private static String SearchWhere(String key)
+        {
             // WhereExpression重载&和|运算符，作为And和Or的替代
             WhereExpression exp = new WhereExpression();
 
@@ -70,13 +70,13 @@ namespace <#=Config.NameSpace#>
             //    | _.ID > 0;
 
             return exp;
-		}
-		#endregion
+        }
+        #endregion
 
-		#region 扩展操作
-		#endregion
+        #region 扩展操作
+        #endregion
 
-		#region 业务
-		#endregion
-	}
+        #region 业务
+        #endregion
+    }
 }

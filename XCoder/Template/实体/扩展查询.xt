@@ -3,16 +3,15 @@
 if(Table.PrimaryKeys!=null&&Table.PrimaryKeys.Length>0)
 {
 #>
-		/// <summary>
-		/// 根据主键查询一个<#=Table.Description#>实体对象用于表单编辑
-		/// </summary>
-<#
+        /// <summary>
+        /// 根据主键查询一个<#=Table.Description#>实体对象用于表单编辑
+        /// </summary><#
         StringBuilder sb1=new StringBuilder();
         StringBuilder sb2=new StringBuilder();
         StringBuilder sb3=new StringBuilder();
 
-		foreach(IDataColumn Field in Table.PrimaryKeys)
-	    {
+        foreach(IDataColumn Field in Table.PrimaryKeys)
+        {
             if(sb1.Length>0) sb1.Append(", ");
             sb1.Append(Field.DataType.Name+" ");
             String argName=Field.Alias.ToLower();
@@ -25,20 +24,20 @@ if(Table.PrimaryKeys!=null&&Table.PrimaryKeys.Length>0)
             if(sb3.Length>0) sb3.Append(", ");
             sb3.Append(argName);
 
-#>		/// <param name="<#=argName#>"><#=Field.Description#></param>
-<#  
-	    }
-#>		/// <returns></returns>
-		[DataObjectMethod(DataObjectMethodType.Select, false)]
-		public static <#=Table.Alias#> FindByKeyForEdit(<#=sb1#>)
-		{
-			<#=Table.Alias#> entity = Find(new String[] { <#=sb2#> }, new Object[] { <#=sb3#> });
-			if (entity == null)
-			{
-				entity = new <#=Table.Alias#>();
-			}
-			return entity;
-		}
+#>
+        /// <param name="<#=argName#>"><#=Field.Description#></param><#  
+        }#>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static <#=Table.Alias#> FindByKeyForEdit(<#=sb1#>)
+        {
+            <#=Table.Alias#> entity = Find(new String[] { <#=sb2#> }, new Object[] { <#=sb3#> });
+            if (entity == null)
+            {
+                entity = new <#=Table.Alias#>();
+            }
+            return entity;
+        }
 <#
 }
 
@@ -64,8 +63,8 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
         StringBuilder sb5=new StringBuilder();
         String[] Args=new String[columns.Length];
 
-		for(int i=0;i<columns.Length;i++)
-	    {
+        for(int i=0;i<columns.Length;i++)
+        {
             IDataColumn Field=columns[i];
 
             if(sb1.Length>0) sb1.Append(", ");
@@ -92,30 +91,30 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
         }
 #>
 
-		/// <summary>
-		/// 根据<#=sb5#>查找
-		/// </summary>
-<#
-		for(int i=0;i<columns.Length;i++)
-	    {
-#>		/// <param name="<#=Args[i]#>"><#=columns[i].Description#></param>
-<#  
-	    }
-#>		/// <returns></returns>
-		[DataObjectMethod(DataObjectMethodType.Select, false)]
-		public static <#=returnType#> Find<#=IsAll#>By<#=sb4#>(<#=sb1#>)
-		{<#if(columns.Length>1){#>
-			return <#=action#>(new String[] { <#=sb2#> }, new Object[] { <#=sb3#> });<#
+        /// <summary>
+        /// 根据<#=sb5#>查找
+        /// </summary><#
+        for(int i=0;i<columns.Length;i++)
+        {
+#>
+        /// <param name="<#=Args[i]#>"><#=columns[i].Description#></param><#  
+        }
+#>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static <#=returnType#> Find<#=IsAll#>By<#=sb4#>(<#=sb1#>)
+        {<#if(columns.Length>1){#>
+            return <#=action#>(new String[] { <#=sb2#> }, new Object[] { <#=sb3#> });<#
         }else{
             String pname=columns[0].Alias;
-#>
+    #>
             if (Meta.Count >= 1000)
-				return <#=action#>(new String[] { <#=sb2#> }, new Object[] { <#=sb3#> });
-			else // 实体缓存
-				return Meta.Cache.Entities.<#=action#>(_.<#=pname#>, <#=Args[0]#>);<#if(di.Unique){#>
-			// 单对象缓存
-			//return Meta.SingleCache[<#=Args[0]#>];<#}}#>
-		}<#
+                return <#=action#>(new String[] { <#=sb2#> }, new Object[] { <#=sb3#> });
+            else // 实体缓存
+                return Meta.Cache.Entities.<#=action#>(_.<#=pname#>, <#=Args[0]#>);<#if(di.Unique){#>
+            // 单对象缓存
+            //return Meta.SingleCache[<#=Args[0]#>];<#}}#>
+        }<#
     }
 }
 #>

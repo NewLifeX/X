@@ -3,6 +3,8 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
+using System.Collections.Generic;
+using System.Text;
 
 namespace XCoder
 {
@@ -11,36 +13,35 @@ namespace XCoder
     /// </summary>
     public static class FileSource
     {
-        /// <summary>
-        /// 开始检查模版，模版文件夹不存在时，释放模版
-        /// </summary>
-        public static void CheckTemplate()
-        {
-            ThreadPool.QueueUserWorkItem(delegate(Object state)
-            {
-                try
-                {
-                    String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Engine.TemplatePath);
-                    if (!Directory.Exists(path))
-                        ReleaseTemplateFiles();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.ToString());
-                }
-            });
-        }
+        ///// <summary>
+        ///// 开始检查模版，模版文件夹不存在时，释放模版
+        ///// </summary>
+        //public static void CheckTemplate()
+        //{
+        //    ThreadPool.QueueUserWorkItem(delegate(Object state)
+        //    {
+        //        try
+        //        {
+        //            String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Engine.TemplatePath);
+        //            if (!Directory.Exists(path))
+        //                ReleaseTemplateFiles();
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            MessageBox.Show(ex.ToString());
+        //        }
+        //    });
+        //}
 
         /// <summary>
         /// 释放模版文件
         /// </summary>
-        public static void ReleaseTemplateFiles()
+        public static Dictionary<String, String> ReleaseTemplateFiles()
         {
-            String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Engine.TemplatePath);
-            //if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-
             String[] ss = Assembly.GetExecutingAssembly().GetManifestResourceNames();
-            if (ss == null || ss.Length <= 0) return;
+            if (ss == null || ss.Length <= 0) return null;
+
+            Dictionary<String, String> dic = new Dictionary<string, string>();
 
             //找到资源名
             foreach (String item in ss)
@@ -51,16 +52,17 @@ namespace XCoder
                 }
                 else if (item.StartsWith("XCoder.Template."))
                 {
+                    Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(item);
                     String tempName = item.Substring("XCoder.Template.".Length);
-                    String fileName = tempName.Substring(tempName.IndexOf(".") + 1);
-                    tempName = tempName.Substring(0, tempName.IndexOf("."));
+                    Byte[] buffer = new Byte[stream.Length];
+                    Int32 count = stream.Read(buffer, 0, buffer.Length);
 
-                    fileName = Path.Combine(tempName, fileName);
-                    fileName = Path.Combine(path, fileName);
-
-                    ReleaseFile(item, fileName);
+                    String content = Encoding.UTF8.GetString(buffer, 0, count);
+                    dic.Add(tempName, content);
                 }
             }
+
+            return dic;
         }
 
         /// <summary>

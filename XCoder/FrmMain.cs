@@ -39,7 +39,7 @@ namespace XCoder
 
             AutoLoadTables(Config.ConnName);
 
-            FileSource.CheckTemplate();
+            //FileSource.CheckTemplate();
         }
 
         private void FrmMain_Shown(object sender, EventArgs e)
@@ -207,32 +207,19 @@ namespace XCoder
         /// </summary>
         public void BindTemplate(ComboBox cb)
         {
-            String TemplatePath = Engine.TemplatePath;
+            List<String> list = new List<string>();
+            foreach (String item in Engine.Templates.Keys)
+            {
+                String[] ks = item.Split('.');
+                if (ks == null || ks.Length < 1) continue;
 
+                String name = ks[0];
+                if (!list.Contains(name)) list.Add(name);
+            }
             cb.Items.Clear();
-
-            if (!Directory.Exists(TemplatePath))
-            {
-                MessageBox.Show("模版目录 " + TemplatePath + " 不存在，正在初始化！");
-                //Thread.Sleep(3000);
-            }
-
-            if (!Directory.Exists(TemplatePath))
-            {
-                //Directory.CreateDirectory(TemplatePath);
-                MessageBox.Show("模版目录 " + TemplatePath + " 不存在，请先添加模版");
-                return;
-            }
-
-            DirectoryInfo dir = new DirectoryInfo(TemplatePath);
-            DirectoryInfo[] dirs = dir.GetDirectories();
-            List<String> dirs2 = new List<string>();
-            foreach (DirectoryInfo d in dirs)
-            {
-                if (d.Name != "bin" && d.Name != "obj" && d.Name != "Properties") dirs2.Add(d.Name);
-            }
-            cb.DataSource = dirs2;
+            cb.DataSource = list;
             cb.DisplayMember = "value";
+            //cb.ValueMember = "value";
             cb.Update();
         }
 

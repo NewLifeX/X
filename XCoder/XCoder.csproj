@@ -105,37 +105,23 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="Template\实体\扩展查询.xt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Template\实体\扩展属性.xt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Template\实体\扩展查询.xt" />
+    <EmbeddedResource Include="Template\实体\扩展属性.xt" />
     <Compile Include="Web References\com.microsofttranslator.api\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.map</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="Template\实体\类名.Biz.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Template\实体\类名.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Template\实体\类名.Biz.cs" />
+    <EmbeddedResource Include="Template\实体\类名.cs" />
     <EmbeddedResource Include="Template\页面\类名.aspx.cs">
       <DependentUpon>类名.aspx</DependentUpon>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Template\页面\类名Form.aspx.cs">
       <DependentUpon>类名Form.aspx</DependentUpon>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Template\纯属性\I类名.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Template\纯属性\类名.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Template\纯属性\I类名.cs" />
+    <EmbeddedResource Include="Template\纯属性\类名.cs" />
     <EmbeddedResource Include="FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -149,15 +135,11 @@
     <Content Include="UpdateInfo.txt" />
     <EmbeddedResource Include="Template\页面\类名.aspx">
       <SubType>ASPXCodeBehind</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Template\页面\类名Form.aspx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>ASPXCodeBehind</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Template\数据字典\连接名数据字典.htm">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Template\数据字典\连接名数据字典.htm" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -165,9 +147,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <EmbeddedResource Include="Template\实体\对象操作.xt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Template\实体\对象操作.xt" />
     <None Include="Web References\com.microsofttranslator.api\GetTranslationsResponse.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </None>

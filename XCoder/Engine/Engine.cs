@@ -19,7 +19,14 @@ namespace XCoder
     public class Engine
     {
         #region 属性
-        public const String TemplatePath = "Template";
+        //public const String TemplatePath = "Template";
+
+        private static Dictionary<String, String> _Templates;
+        /// <summary>模版</summary>
+        public static Dictionary<String, String> Templates
+        {
+            get { return _Templates ?? (_Templates = FileSource.ReleaseTemplateFiles()); }
+        }
 
         public Engine(XConfig config)
         {
@@ -281,12 +288,6 @@ namespace XCoder
             IDataTable table = Tables.Find(delegate(IDataTable item) { return String.Equals(item.Name, tableName, StringComparison.OrdinalIgnoreCase); });
             if (tableName == null) return null;
 
-            String path = Path.Combine(TemplatePath, Config.TemplateName);
-            if (!Directory.Exists(path)) return null;
-
-            String[] files = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
-            if (files == null || files.Length < 1) return null;
-
             Dictionary<String, Object> data = new Dictionary<string, object>();
             data["Config"] = Config;
             data["Tables"] = Tables;
@@ -296,30 +297,20 @@ namespace XCoder
             //Template tt = new Template();
             Template.Debug = Config.Debug;
             Dictionary<String, String> templates = new Dictionary<string, string>();
-            foreach (String item in files)
+            foreach (String item in Templates.Keys)
             {
-                if (item.EndsWith("scc", StringComparison.OrdinalIgnoreCase)) continue;
+                String name = item.Substring(0, item.IndexOf("."));
+                if (name != Config.TemplateName) continue;
 
-                String tempFile = item;
-                if (!Path.IsPathRooted(tempFile) && !tempFile.StartsWith(TemplatePath, StringComparison.OrdinalIgnoreCase))
-                    tempFile = Path.Combine(TemplatePath, tempFile);
-
-                String content = File.ReadAllText(tempFile);
+                String content = Templates[item];
 
                 // 添加文件头
                 if (Config.UseHeadTemplate && !String.IsNullOrEmpty(Config.HeadTemplate) && item.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
                     content = Config.HeadTemplate + content;
 
-                //tt.AddTemplateItem(item, content);
-
-                templates.Add(item, content);
+                templates.Add(item.Substring(name.Length + 1), content);
             }
             Template tt = Template.Create(templates);
-
-            //tt.Process();
-
-            //// 编译模版
-            //tt.Compile();
 
             List<String> rs = new List<string>();
             foreach (TemplateItem item in tt.Templates)
