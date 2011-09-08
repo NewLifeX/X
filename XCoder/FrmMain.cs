@@ -287,6 +287,13 @@ namespace XCoder
             }
             else
             {
+                List<IDataTable> tables = DAL.Create(Config.ConnName).Tables;
+                if (tables == null || tables.Count < 1)
+                {
+                    MessageBox.Show(this.Text, "数据库架构为空！", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
                 if (!String.IsNullOrEmpty(Config.ConnName))
                 {
                     String file = Config.ConnName + ".xml";
@@ -299,8 +306,7 @@ namespace XCoder
                 if (saveFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(saveFileDialog1.FileName)) return;
                 try
                 {
-                    //String xml = DAL.Create(Config.ConnName).Export();
-                    String xml = DAL.Export(Engine.Tables);
+                    String xml = DAL.Export(tables);
                     File.WriteAllText(saveFileDialog1.FileName, xml);
 
                     MessageBox.Show("导出架构成功！", "导出架构", MessageBoxButtons.OK);
@@ -474,6 +480,7 @@ namespace XCoder
             txt_OutPath.Text = Config.OutputPath;
             txt_NameSpace.Text = Config.NameSpace;
             txt_ConnName.Text = Config.EntityConnName;
+            txtBaseClass.Text = Config.BaseClass;
             txtPrefix.Text = Config.Prefix;
             checkBox1.Checked = Config.AutoCutPrefix;
             checkBox2.Checked = Config.AutoFixWord;
@@ -497,6 +504,7 @@ namespace XCoder
             Config.OutputPath = txt_OutPath.Text;
             Config.NameSpace = txt_NameSpace.Text;
             Config.EntityConnName = txt_ConnName.Text;
+            Config.BaseClass = txtBaseClass.Text;
             Config.Prefix = txtPrefix.Text;
             Config.AutoCutPrefix = checkBox1.Checked;
             Config.AutoFixWord = checkBox2.Checked;

@@ -56,6 +56,18 @@ namespace XCoder
             set { _EntityConnName = value; }
         }
 
+        private String _BaseClass;
+        /// <summary>实体基类</summary>
+        public String BaseClass
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_BaseClass)) _BaseClass = "Entity";
+                return _BaseClass;
+            }
+            set { _BaseClass = value; }
+        }
+
         private Boolean _AutoCutPrefix;
         /// <summary>自动去除前缀</summary>
         public Boolean AutoCutPrefix

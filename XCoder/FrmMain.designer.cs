@@ -73,6 +73,8 @@
             this.timer2 = new System.Windows.Forms.Timer(this.components);
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.txtBaseClass = new System.Windows.Forms.TextBox();
+            this.label10 = new System.Windows.Forms.Label();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -223,6 +225,8 @@
             // 
             // gbConfig
             // 
+            this.gbConfig.Controls.Add(this.txtBaseClass);
+            this.gbConfig.Controls.Add(this.label10);
             this.gbConfig.Controls.Add(this.btnOpenOutputDir);
             this.gbConfig.Controls.Add(this.label9);
             this.gbConfig.Controls.Add(this.webBrowser1);
@@ -263,9 +267,9 @@
             this.label9.AutoSize = true;
             this.label9.Location = new System.Drawing.Point(491, 19);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(125, 12);
+            this.label9.Size = new System.Drawing.Size(137, 12);
             this.label9.TabIndex = 44;
-            this.label9.Text = "出现在每一个文件头部";
+            this.label9.Text = "出现在每一个cs文件头部";
             // 
             // webBrowser1
             // 
@@ -300,7 +304,7 @@
             // checkBox4
             // 
             this.checkBox4.AutoSize = true;
-            this.checkBox4.Location = new System.Drawing.Point(178, 22);
+            this.checkBox4.Location = new System.Drawing.Point(157, 22);
             this.checkBox4.Name = "checkBox4";
             this.checkBox4.Size = new System.Drawing.Size(48, 16);
             this.checkBox4.TabIndex = 27;
@@ -474,6 +478,23 @@
             // 
             this.saveFileDialog1.Filter = "架构文件|*.xml";
             // 
+            // txtBaseClass
+            // 
+            this.txtBaseClass.Location = new System.Drawing.Point(277, 20);
+            this.txtBaseClass.Name = "txtBaseClass";
+            this.txtBaseClass.Size = new System.Drawing.Size(97, 21);
+            this.txtBaseClass.TabIndex = 47;
+            this.txtBaseClass.Text = "Entity";
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(217, 24);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(41, 12);
+            this.label10.TabIndex = 46;
+            this.label10.Text = "基类：";
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -554,6 +575,8 @@
         private System.Windows.Forms.Button btnImport;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
+        private System.Windows.Forms.TextBox txtBaseClass;
+        private System.Windows.Forms.Label label10;
 	}
 }
 

@@ -9,7 +9,7 @@ using XCode.Configuration;
 namespace <#=Config.NameSpace#>
 {
     /// <summary><#=Table.Description#></summary>
-    public partial class <#=Table.Alias#> : Entity<<#=Table.Alias#>>
+    public partial class <#=Table.Alias#> : <#=Config.BaseClass#><<#=Table.Alias#>>
     {
         #region 扩展属性<#@include Name="扩展属性.xt"#>
         #endregion
