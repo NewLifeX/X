@@ -67,8 +67,9 @@ namespace XCode.DataAccessLayer
             foreach (PropertyInfoX item in list)
             {
                 if (!item.Property.CanWrite) continue;
-                if (Type.GetTypeCode(item.Type) == TypeCode.Object) continue;
                 if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;
+
+                TypeCode code = Type.GetTypeCode(item.Type);
 
                 Object obj = item.GetValue(this);
                 // 默认值不参与序列化，节省空间
@@ -76,41 +77,32 @@ namespace XCode.DataAccessLayer
                 {
                     Object dobj = item.GetValue(def);
                     if (Object.Equals(obj, dobj)) continue;
-                    if (item.Type == typeof(String) && "" + obj == "" + dobj) continue;
+                    if (code == TypeCode.String && "" + obj == "" + dobj) continue;
                 }
 
-                // 如果别名与名称相同，则跳过
-                if (item.Name == "Name")
-                    name = (String)obj;
-                else if (item.Name == "Alias")
-                    if (name == (String)obj) continue;
-
-                if (item.Type == typeof(Type)) obj = (obj as Type).Name;
-                writer.WriteAttributeString(item.Name, obj == null ? null : obj.ToString());
-            }
-            // 非基本类型，输出为子节点
-            foreach (PropertyInfoX item in list)
-            {
-                if (!item.Property.CanWrite) continue;
-                if (Type.GetTypeCode(item.Type) != TypeCode.Object) continue;
-                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;
-
-                Object obj = item.GetValue(this);
-                // 默认值不参与序列化，节省空间
-                if (!WriteDefaultValueMember && Object.Equals(obj, item.GetValue(def))) continue;
-
-                if (item.Type.IsArray || typeof(IEnumerable).IsAssignableFrom(item.Type) || obj is IEnumerable)
+                if (code == TypeCode.String)
                 {
-                    StringBuilder sb = new StringBuilder();
-                    IEnumerable arr = obj as IEnumerable;
-                    foreach (Object elm in arr)
-                    {
-                        if (sb.Length > 0) sb.Append(",");
-                        sb.Append(elm);
-                    }
-                    obj = sb.ToString();
+                    // 如果别名与名称相同，则跳过
+                    if (item.Name == "Name")
+                        name = (String)obj;
+                    else if (item.Name == "Alias")
+                        if (name == (String)obj) continue;
                 }
-                if (item.Type == typeof(Type)) obj = (obj as Type).Name;
+                else if (code == TypeCode.Object)
+                {
+                    if (item.Type.IsArray || typeof(IEnumerable).IsAssignableFrom(item.Type) || obj is IEnumerable)
+                    {
+                        StringBuilder sb = new StringBuilder();
+                        IEnumerable arr = obj as IEnumerable;
+                        foreach (Object elm in arr)
+                        {
+                            if (sb.Length > 0) sb.Append(",");
+                            sb.Append(elm);
+                        }
+                        obj = sb.ToString();
+                    }
+                    if (item.Type == typeof(Type)) obj = (obj as Type).Name;
+                }
                 writer.WriteAttributeString(item.Name, obj == null ? null : obj.ToString());
             }
         }

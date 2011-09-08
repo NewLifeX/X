@@ -13,6 +13,12 @@ namespace XCode.DataAccessLayer
         /// 数据库
         /// </summary>
         IDatabase Database { get; }
+
+        /// <summary>所有元数据集合</summary>
+        ICollection<String> MetaDataCollections { get; }
+
+        /// <summary>保留关键字</summary>
+        ICollection<String> ReservedWords { get; }
         #endregion
 
         #region 构架

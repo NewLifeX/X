@@ -249,23 +249,38 @@ namespace XCode.DataAccessLayer
             if (!File.Exists(file))
             {
                 // 从网上下载文件
-                String file2 = file + ".zip";
-                if (!File.Exists(file2))
+                try
                 {
-                    String url = String.Format("http://files.cnblogs.com/nnhy/{0}", Path.GetFileName(file2));
-                    DAL.WriteLog("准备从{0}下载相关文件到{1}！", url, file2);
-                    WebClientX client = new WebClientX();
-                    //client.DownloadFileCompleted += new AsyncCompletedEventHandler(client_DownloadFileCompleted);
-                    //client.DownloadFileAsync(new Uri(url), file2, file2);
-                    // 同步下载，3秒超时
-                    client.Timeout = 3000;
-                    client.DownloadFile(url, file2);
-                }
-                if (File.Exists(file2))
-                {
-                    IOHelper.DecompressFile(file2, null, false);
+                    #region 检测64位平台
+                    Module module = typeof(Object).Module;
 
-                    File.Delete(file2);
+                    PortableExecutableKinds kind;
+                    ImageFileMachine machine;
+                    module.GetPEKind(out kind, out machine);
+
+                    if (machine != ImageFileMachine.I386) file += "64";
+                    #endregion
+
+                    String file2 = file + ".zip";
+                    if (!File.Exists(file2))
+                    {
+                        String url = String.Format("http://files.cnblogs.com/nnhy/{0}", Path.GetFileName(file2));
+                        DAL.WriteLog("准备从{0}下载相关文件到{1}！", url, file2);
+                        WebClientX client = new WebClientX();
+                        // 同步下载，3秒超时
+                        client.Timeout = 3000;
+                        client.DownloadFile(url, file2);
+                    }
+                    if (File.Exists(file2))
+                    {
+                        IOHelper.DecompressFile(file2, null, false);
+
+                        File.Delete(file2);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    DAL.WriteLog(ex.ToString());
                 }
 
                 //// 等3秒

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Text;
+using System.Net;
 
 namespace XCode.DataAccessLayer
 {
@@ -36,6 +37,18 @@ namespace XCode.DataAccessLayer
         public override DbProviderFactory Factory
         {
             get { return dbProviderFactory; }
+        }
+
+        const String Server_Key = "Server";
+        protected internal override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        {
+            base.OnSetConnectionString(builder);
+
+            if (builder.ContainsKey(Server_Key) && (builder[Server_Key] == "." || builder[Server_Key] == "localhost"))
+            {
+                //builder[Server_Key] = "127.0.0.1";
+                builder[Server_Key] = IPAddress.Loopback.ToString();
+            }
         }
         #endregion
 
@@ -280,29 +293,6 @@ namespace XCode.DataAccessLayer
             return drs;
         }
 
-        //protected override void SetFieldType(IDataColumn field, string typeName)
-        //{
-        //    if (typeName == "enum")
-        //    {
-        //        // MySql中没有布尔型，这里处理YN枚举作为布尔型
-        //        if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
-        //        {
-        //            field.DataType = typeof(Boolean);
-        //            // 处理默认值
-        //            if (!String.IsNullOrEmpty(field.Default))
-        //            {
-        //                if (field.Default == "Y")
-        //                    field.Default = "true";
-        //                else if (field.Default == "N")
-        //                    field.Default = "false";
-        //            }
-        //            return;
-        //        }
-        //    }
-
-        //    base.SetFieldType(field, typeName);
-        //}
-
         protected override string GetFieldType(IDataColumn field)
         {
             if (field.DataType == typeof(Boolean)) return "enum('N','Y')";
@@ -349,20 +339,14 @@ namespace XCode.DataAccessLayer
             return base.GetFieldDefault(field, onlyDefine);
         }
 
-        //protected override void SetFieldType(IDataColumn field, string typeName)
-        //{
-        //    DataTable dt = DataTypes;
-        //    if (dt == null) return;
+        protected override void FixIndex(IDataIndex index, DataRow dr)
+        {
+            base.FixIndex(index, dr);
 
-        //    DataRow[] drs = FindDataType(field, typeName, null);
-        //    if (drs == null || drs.Length < 1) return;
-
-        //    // 修正原始类型
-        //    String rawType = null;
-        //    if (TryGetDataRowValue<String>(drs[0], "COLUMN_TYPE", out rawType)) field.RawType = rawType;
-
-        //    base.SetFieldType(field, typeName);
-        //}
+            Boolean b;
+            if (TryGetDataRowValue<Boolean>(dr, "UNIQUE", out b)) index.Unique = b;
+            if (TryGetDataRowValue<Boolean>(dr, "PRIMARY", out b)) index.PrimaryKey = b;
+        }
 
         #region 架构定义
         public override object SetSchema(DDLSchema schema, params object[] values)

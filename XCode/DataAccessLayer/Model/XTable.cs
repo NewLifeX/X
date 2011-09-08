@@ -427,10 +427,10 @@ namespace XCode.DataAccessLayer
             writer.WriteAttributeString("ID", ID.ToString());
             writer.WriteAttributeString("Name", Name);
             writer.WriteAttributeString("Alias", Alias);
-            writer.WriteAttributeString("Owner", Owner);
+            if (!String.IsNullOrEmpty(Owner)) writer.WriteAttributeString("Owner", Owner);
             writer.WriteAttributeString("DbType", DbType.ToString());
             writer.WriteAttributeString("IsView", IsView.ToString());
-            writer.WriteAttributeString("Description", Description);
+            if (!String.IsNullOrEmpty(Description)) writer.WriteAttributeString("Description", Description);
 
             // 写字段
             if (Columns != null && Columns.Count > 0 && Columns[0] is IXmlSerializable)

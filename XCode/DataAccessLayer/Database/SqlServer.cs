@@ -548,10 +548,15 @@ namespace XCode.DataAccessLayer
                 IDbSession session = Database.CreateSession();
 
                 //一次性把所有的表说明查出来
+                DataTable DescriptionTable = null;
+
                 Boolean b = DbSession.ShowSQL;
                 DbSession.ShowSQL = false;
-                DataSet ds = session.Query(DescriptionSql);
-                DataTable DescriptionTable = ds == null || ds.Tables == null || ds.Tables.Count < 1 ? null : ds.Tables[0];
+                try
+                {
+                    DescriptionTable = session.Query(DescriptionSql).Tables[0];
+                }
+                catch { }
                 DbSession.ShowSQL = b;
 
                 DataTable dt = GetSchema("Tables", null);
@@ -559,8 +564,12 @@ namespace XCode.DataAccessLayer
 
                 b = DbSession.ShowSQL;
                 DbSession.ShowSQL = false;
-                AllFields = session.Query(SchemaSql).Tables[0];
-                AllIndexes = Database.CreateSession().Query(IndexSql).Tables[0];
+                try
+                {
+                    AllFields = session.Query(SchemaSql).Tables[0];
+                    AllIndexes = session.Query(IndexSql).Tables[0];
+                }
+                catch { }
                 DbSession.ShowSQL = b;
 
                 // 列出用户表
@@ -710,7 +719,10 @@ namespace XCode.DataAccessLayer
             {
                 if (_IndexSql == null)
                 {
-                    _IndexSql = "select ind.* from sys.indexes ind inner join sys.objects obj on ind.object_id = obj.object_id where obj.type='u'";
+                    if (IsSQL2005)
+                        _IndexSql = "select ind.* from sys.indexes ind inner join sys.objects obj on ind.object_id = obj.object_id where obj.type='u'";
+                    else
+                        _IndexSql = "select case ObjectProperty(object_id(ind.name),'IsUniqueCnst') as is_unique,case ObjectProperty( object_id(ind.name),'IsPrimaryKey') as is_primary_key,ind.* from sysindexes ind inner join sysobjects obj on ind.id = obj.id where obj.type='u'";
                 }
                 return _IndexSql;
             }

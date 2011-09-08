@@ -22,7 +22,7 @@ namespace XCode.DataAccessLayer
 
         private ICollection<String> _MetaDataCollections;
         /// <summary>所有元数据集合</summary>
-        protected ICollection<String> MetaDataCollections
+        public ICollection<String> MetaDataCollections
         {
             get
             {
@@ -46,7 +46,7 @@ namespace XCode.DataAccessLayer
 
         private ICollection<String> _ReservedWords;
         /// <summary>保留关键字</summary>
-        internal protected virtual ICollection<String> ReservedWords
+        public virtual ICollection<String> ReservedWords
         {
             get
             {
@@ -72,7 +72,7 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region 构架
+        #region GetSchema方法
         /// <summary>
         /// 返回数据源的架构信息
         /// </summary>
@@ -88,7 +88,9 @@ namespace XCode.DataAccessLayer
             }
             return Database.CreateSession().GetSchema(collectionName, restrictionValues);
         }
+        #endregion
 
+        #region 表构架
         /// <summary>
         /// 取得所有表构架
         /// </summary>
@@ -202,7 +204,9 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         /// <param name="dr"></param>
         protected virtual void FixTable(IDataTable table, DataRow dr) { }
+        #endregion
 
+        #region 字段架构
         /// <summary>
         /// 取得指定表的所有列构架
         /// </summary>
@@ -395,7 +399,9 @@ namespace XCode.DataAccessLayer
                 if (!String.IsNullOrEmpty(param)) field.RawType += param;
             }
         }
+        #endregion
 
+        #region 索引架构
         DataTable _indexes;
         DataTable _indexColumns;
         /// <summary>
@@ -424,7 +430,7 @@ namespace XCode.DataAccessLayer
                     di.Columns = name.Split(new String[] { "," }, StringSplitOptions.RemoveEmptyEntries);
                 else if (_indexColumns != null)
                 {
-                    DataRow[] dics = _indexColumns.Select("table_name='" + table.Name + "' And index_name='" + di.Name + "'");
+                    DataRow[] dics = _indexColumns.Select("table_name='" + table.Name + "' And index_name='" + di.Name + "'", "ORDINAL_POSITION");
                     if (dics != null && dics.Length > 0)
                     {
                         List<String> ns = new List<string>();
@@ -434,6 +440,7 @@ namespace XCode.DataAccessLayer
                             if (TryGetDataRowValue<String>(item, "column_name", out dcname) &&
                                 !String.IsNullOrEmpty(dcname) && !ns.Contains(dcname)) ns.Add(dcname);
                         }
+                        if (ns.Count < 1) DAL.WriteDebugLog("表{0}的索引{1}无法取得字段列表！", table, di.Name);
                         di.Columns = ns.ToArray();
                     }
                 }
