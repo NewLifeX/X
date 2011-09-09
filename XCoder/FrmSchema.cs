@@ -77,6 +77,8 @@ namespace XCoder
 
         Boolean SetList(ComboBox cb, IEnumerable data)
         {
+            if (cb == null || data == null) return false;
+
             try
             {
                 if (!(data is IList))

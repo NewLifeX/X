@@ -151,7 +151,9 @@
     <EmbeddedResource Include="Template\数据字典\连接名数据字典.htm" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="App.config" />
+    <EmbeddedResource Include="App.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

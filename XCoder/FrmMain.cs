@@ -100,14 +100,21 @@ namespace XCoder
             String localstr = "Data Source=.;Initial Catalog=master;Integrated Security=True;";
             if (!ContainConnStr(localstr)) DAL.AddConnStr("local_MSSQL", localstr, null, "sqlclient");
 
-            // 添加本地Access和SQLite
+            #region 检测本地Access和SQLite
             String[] ss = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.*", SearchOption.TopDirectoryOnly);
             foreach (String item in ss)
             {
+                String ext = Path.GetExtension(item);
+                if (String.Equals(ext, ".exe", StringComparison.OrdinalIgnoreCase)) continue;
+                if (String.Equals(ext, ".dll", StringComparison.OrdinalIgnoreCase)) continue;
+                if (String.Equals(ext, ".zip", StringComparison.OrdinalIgnoreCase)) continue;
+                if (String.Equals(ext, ".rar", StringComparison.OrdinalIgnoreCase)) continue;
+                if (String.Equals(ext, ".xml", StringComparison.OrdinalIgnoreCase)) continue;
+
                 String access = "Standard Jet DB";
                 String sqlite = "SQLite";
 
-                using (FileStream fs = new FileStream(item, FileMode.Open, FileAccess.Read))
+                using (FileStream fs = new FileStream(item, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     BinaryReader reader = new BinaryReader(fs);
                     Byte[] bts = reader.ReadBytes(sqlite.Length);
@@ -131,6 +138,7 @@ namespace XCoder
                     }
                 }
             }
+            #endregion
 
             foreach (String item in DAL.ConnStrs.Keys)
             {
@@ -146,16 +154,30 @@ namespace XCoder
                 {
                     DAL dal = DAL.Create(item);
                     DataSet ds = null;
+                    String dbprovider = null;
+
                     // 列出所有数据库
-                    if (dal.DbType == DatabaseType.SqlServer)
+                    Boolean old = DAL.ShowSQL;
+                    DAL.ShowSQL = false;
+                    try
                     {
-                        if (dal.Db.ServerVersion.StartsWith("08"))
-                            ds = dal.Select("SELECT name FROM sysdatabases", "");
+                        if (dal.DbType == DatabaseType.SqlServer)
+                        {
+                            if (dal.Db.ServerVersion.StartsWith("08"))
+                                ds = dal.Select("SELECT name FROM sysdatabases", "");
+                            else
+                                ds = dal.Select("SELECT name FROM sys.databases", "");
+
+                            dbprovider = dal.Db.ServerVersion.StartsWith("08") ? "sql2000" : "sql2005";
+                        }
+                        else if (dal.DbType == DatabaseType.MySql)
+                        {
+                            continue;
+                        }
                         else
-                            ds = dal.Select("SELECT name FROM sys.databases", "");
+                            continue;
                     }
-                    else
-                        continue;
+                    finally { DAL.ShowSQL = old; }
 
                     DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
                     builder.ConnectionString = dal.ConnStr;
@@ -169,7 +191,7 @@ namespace XCoder
                         String connName = String.Format("{0}_{1}", item, dbname);
 
                         builder["Database"] = dbname;
-                        DAL.AddConnStr(connName, builder.ToString(), null, "sql2000");
+                        DAL.AddConnStr(connName, builder.ToString(), null, dbprovider);
 
                         try
                         {
