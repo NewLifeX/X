@@ -23,7 +23,13 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.SqlServerCe.dll", "System.Data.SqlServerCe.SqlCeFactory");
+                if (_dbProviderFactory == null)
+                {
+                    lock (typeof(SqlCe))
+                    {
+                        if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.SqlServerCe.dll", "System.Data.SqlServerCe.SqlCeFactory");
+                    }
+                }
 
                 return _dbProviderFactory;
             }

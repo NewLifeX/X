@@ -800,7 +800,7 @@ namespace XCode.DataAccessLayer
 
             TypeCode tc = Type.GetTypeCode(field.DataType);
             if (tc == TypeCode.String)
-                return String.Format(" Default '{0}'", field.Default);
+                return String.Format(" Default '{0}'", ("" + field.Default).Replace("'", "''"));
             else if (tc == TypeCode.DateTime)
             {
                 String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);

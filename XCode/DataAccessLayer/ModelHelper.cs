@@ -158,8 +158,7 @@ namespace XCode.DataAccessLayer
                     if (!item.PrimaryKey || item.Columns == null || item.Columns.Length < 1) continue;
 
                     pks = table.GetColumns(item.Columns);
-                    Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
-                    break;
+                    if (pks != null && pks.Length > 0) Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
                 }
             }
             pks = table.PrimaryKeys;
@@ -171,8 +170,7 @@ namespace XCode.DataAccessLayer
                     if (!item.Unique || item.Columns == null || item.Columns.Length < 1) continue;
 
                     pks = table.GetColumns(item.Columns);
-                    Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
-                    break;
+                    if (pks != null && pks.Length > 0) Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
                 }
             }
             pks = table.PrimaryKeys;
@@ -184,8 +182,7 @@ namespace XCode.DataAccessLayer
                     if (item.Columns == null || item.Columns.Length < 1) continue;
 
                     pks = table.GetColumns(item.Columns);
-                    Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
-                    break;
+                    if (pks != null && pks.Length > 0) Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
                 }
             }
             #endregion

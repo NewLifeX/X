@@ -29,7 +29,13 @@ namespace XCode.DataAccessLayer
             get
             {
                 //if (_dbProviderFactory == null) _dbProviderFactory = DbProviderFactories.GetFactory("FirebirdSql.Data.FirebirdClient");
-                if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("FirebirdSql.Data.FirebirdClient.dll", "FirebirdSql.Data.FirebirdClient.FirebirdClientFactory");
+                if (_dbProviderFactory == null)
+                {
+                    lock (typeof(Firebird))
+                    {
+                        if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("FirebirdSql.Data.FirebirdClient.dll", "FirebirdSql.Data.FirebirdClient.FirebirdClientFactory");
+                    }
+                }
 
                 return _dbProviderFactory;
             }

@@ -212,14 +212,16 @@ namespace XCode
         /// <param name="fieldName">字段名</param>
         /// <param name="newValue">新属性值</param>
         /// <returns>是否允许改变</returns>
-        //[Obsolete("改为使用OnPropertyChanging")]
+        [Obsolete("改为使用OnPropertyChanging")]
         protected virtual Boolean OnPropertyChange(String fieldName, Object newValue)
         {
-            if (_PropertyChanging != null) _PropertyChanging(this, new PropertyChangingEventArgs(fieldName));
-            // 如果数据没有改变，不应该影响脏数据
-            //Dirtys[fieldName] = true;
-            if (!Object.Equals(this[fieldName], newValue)) Dirtys[fieldName] = true;
-            return true;
+            //if (_PropertyChanging != null) _PropertyChanging(this, new PropertyChangingEventArgs(fieldName));
+            //// 如果数据没有改变，不应该影响脏数据
+            ////Dirtys[fieldName] = true;
+            //if (!Object.Equals(this[fieldName], newValue)) Dirtys[fieldName] = true;
+            //return true;
+
+            return OnPropertyChanging(fieldName, newValue);
         }
         #endregion
 

@@ -1492,6 +1492,28 @@ namespace XCode
             }
             return count;
         }
+
+        /// <summary>
+        /// 如果字段带有默认值，则需要设置脏数据，因为显然用户想设置该字段，而不是采用数据库的默认值
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="newValue"></param>
+        /// <returns></returns>
+        protected override bool OnPropertyChanging(string fieldName, object newValue)
+        {
+            // 如果返回true，表示不相同，基类已经设置了脏数据
+            if (base.OnPropertyChanging(fieldName, newValue)) return true;
+
+            // 如果该字段存在，且带有默认值，则需要设置脏数据，因为显然用户想设置该字段，而不是采用数据库的默认值
+            FieldItem fi = Meta.Table.FindByName(fieldName);
+            if (fi != null && !String.IsNullOrEmpty(fi.DefaultValue))
+            {
+                Dirtys[fieldName] = true;
+                return true;
+            }
+
+            return false;
+        }
         #endregion
 
         #region 扩展属性

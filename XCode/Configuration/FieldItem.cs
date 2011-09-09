@@ -13,7 +13,8 @@ namespace XCode.Configuration
         #region 属性
         private PropertyInfo _Property;
         /// <summary>属性元数据</summary>
-        private PropertyInfo Property
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
+        public PropertyInfo Property
         {
             get { return _Property; }
             set { _Property = value; }
@@ -21,7 +22,8 @@ namespace XCode.Configuration
 
         private BindColumnAttribute _Column;
         /// <summary>绑定列特性</summary>
-        private BindColumnAttribute Column
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
+        public BindColumnAttribute Column
         {
             get { return _Column; }
             set { _Column = value; }
@@ -29,7 +31,8 @@ namespace XCode.Configuration
 
         private DataObjectFieldAttribute _DataObjectField;
         /// <summary>数据字段特性</summary>
-        private DataObjectFieldAttribute DataObjectField
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
+        public DataObjectFieldAttribute DataObjectField
         {
             get { return _DataObjectField; }
             set { _DataObjectField = value; }
@@ -42,7 +45,7 @@ namespace XCode.Configuration
             get
             {
                 if (_Description != null && !String.IsNullOrEmpty(_Description.Description)) return _Description.Description;
-                if (Column != null && !String.IsNullOrEmpty(Column.Description)) return Column.Description;
+                if (_Column != null && !String.IsNullOrEmpty(_Column.Description)) return _Column.Description;
                 return null;
             }
         }
@@ -50,25 +53,28 @@ namespace XCode.Configuration
 
         #region 扩展属性
         /// <summary>属性名</summary>
-        public String Name { get { return Property == null ? null : Property.Name; } }
+        public String Name { get { return _Property == null ? null : _Property.Name; } }
 
         /// <summary>属性类型</summary>
-        public Type Type { get { return Property == null ? null : Property.PropertyType; } }
+        public Type Type { get { return _Property == null ? null : _Property.PropertyType; } }
 
         /// <summary>属性类型</summary>
-        internal Type DeclaringType { get { return Property == null ? null : Property.DeclaringType; } }
+        internal Type DeclaringType { get { return _Property == null ? null : _Property.DeclaringType; } }
 
         /// <summary>是否标识列</summary>
-        public Boolean IsIdentity { get { return DataObjectField == null ? false : DataObjectField.IsIdentity; } }
+        public Boolean IsIdentity { get { return _DataObjectField == null ? false : _DataObjectField.IsIdentity; } }
 
         /// <summary>是否主键</summary>
-        public Boolean PrimaryKey { get { return DataObjectField == null ? false : DataObjectField.PrimaryKey; } }
+        public Boolean PrimaryKey { get { return _DataObjectField == null ? false : _DataObjectField.PrimaryKey; } }
 
         /// <summary>是否允许空</summary>
-        public Boolean IsNullable { get { return DataObjectField == null ? false : DataObjectField.IsNullable; } }
+        public Boolean IsNullable { get { return _DataObjectField == null ? false : _DataObjectField.IsNullable; } }
+
+        /// <summary>长度</summary>
+        public Int32 Length { get { return _DataObjectField == null ? 0 : _DataObjectField.Length; } }
 
         /// <summary>是否数据绑定列</summary>
-        internal Boolean IsDataObjectField { get { return DataObjectField != null; } }
+        internal Boolean IsDataObjectField { get { return _DataObjectField != null; } }
 
         /// <summary>显示名</summary>
         [Obsolete("请改为使用Description属性！")]
@@ -77,7 +83,7 @@ namespace XCode.Configuration
             get
             {
                 //if (Description != null && !String.IsNullOrEmpty(Description.Description)) return Description.Description;
-                //if (Column != null && !String.IsNullOrEmpty(Column.Description)) return Column.Description;
+                //if (_Column != null && !String.IsNullOrEmpty(_Column.Description)) return _Column.Description;
 
                 return Description;
             }
@@ -98,17 +104,17 @@ namespace XCode.Configuration
                 if (_ColumnName != null) return _ColumnName;
 
                 // 字段名可能两边带有方括号等标识符
-                if (Column != null && !String.IsNullOrEmpty(Column.Name))
-                    _ColumnName = Column.Name.Trim(COLUMNNAME_FLAG);
+                if (_Column != null && !String.IsNullOrEmpty(_Column.Name))
+                    _ColumnName = _Column.Name.Trim(COLUMNNAME_FLAG);
                 else
-                    _ColumnName = Property.Name;
+                    _ColumnName = _Property.Name;
 
                 return _ColumnName;
             }
         }
 
         /// <summary>默认值</summary>
-        public String DefaultValue { get { return Column == null ? null : Column.DefaultValue; } }
+        public String DefaultValue { get { return _Column == null ? null : _Column.DefaultValue; } }
 
         private TableItem _Table;
         /// <summary>表</summary>
@@ -139,10 +145,10 @@ namespace XCode.Configuration
 
             _Table = table;
 
-            Property = property;
-            Column = BindColumnAttribute.GetCustomAttribute(Property);
-            DataObjectField = DataObjectAttribute.GetCustomAttribute(Property, typeof(DataObjectFieldAttribute)) as DataObjectFieldAttribute;
-            _Description = DescriptionAttribute.GetCustomAttribute(Property, typeof(DescriptionAttribute)) as DescriptionAttribute;
+            _Property = property;
+            _Column = BindColumnAttribute.GetCustomAttribute(_Property);
+            _DataObjectField = DataObjectAttribute.GetCustomAttribute(_Property, typeof(DataObjectFieldAttribute)) as DataObjectFieldAttribute;
+            _Description = DescriptionAttribute.GetCustomAttribute(_Property, typeof(DescriptionAttribute)) as DescriptionAttribute;
         }
         #endregion
 
@@ -174,24 +180,24 @@ namespace XCode.Configuration
 
             xf.Name = ColumnName;
             xf.Alias = Name;
-            xf.DataType = Property.PropertyType;
+            xf.DataType = _Property.PropertyType;
             xf.Description = Description;
 
-            if (Column != null)
+            if (_Column != null)
             {
-                xf.ID = Column.Order;
-                xf.RawType = Column.RawType;
-                xf.Precision = Column.Precision;
-                xf.Scale = Column.Scale;
-                xf.IsUnicode = Column.IsUnicode;
-                xf.Default = Column.DefaultValue;
+                xf.ID = _Column.Order;
+                xf.RawType = _Column.RawType;
+                xf.Precision = _Column.Precision;
+                xf.Scale = _Column.Scale;
+                xf.IsUnicode = _Column.IsUnicode;
+                xf.Default = _Column.DefaultValue;
             }
-            if (DataObjectField != null)
+            if (_DataObjectField != null)
             {
-                xf.Length = DataObjectField.Length;
-                xf.Identity = DataObjectField.IsIdentity;
-                xf.PrimaryKey = DataObjectField.PrimaryKey;
-                xf.Nullable = DataObjectField.IsNullable;
+                xf.Length = _DataObjectField.Length;
+                xf.Identity = _DataObjectField.IsIdentity;
+                xf.PrimaryKey = _DataObjectField.PrimaryKey;
+                xf.Nullable = _DataObjectField.IsNullable;
             }
         }
 

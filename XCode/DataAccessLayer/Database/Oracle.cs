@@ -31,21 +31,27 @@ namespace XCode.DataAccessLayer
                 // 首先尝试使用Oracle.DataAccess
                 if (_dbProviderFactory == null)
                 {
-                    try
+                    lock (typeof(Oracle))
                     {
-                        _dbProviderFactory = GetProviderFactory("Oracle.DataAccess.dll", "Oracle.DataAccess.Client.OracleClientFactory");
-                    }
-                    catch (FileNotFoundException) { }
-                    catch (Exception ex)
-                    {
-                        if (DAL.Debug) DAL.WriteLog(ex.ToString());
+                        if (_dbProviderFactory == null)
+                        {
+                            try
+                            {
+                                _dbProviderFactory = GetProviderFactory("Oracle.DataAccess.dll", "Oracle.DataAccess.Client.OracleClientFactory");
+                            }
+                            catch (FileNotFoundException) { }
+                            catch (Exception ex)
+                            {
+                                if (DAL.Debug) DAL.WriteLog(ex.ToString());
+                            }
+                        }
+
+                        // 以下三种方式都可以加载，前两种只是为了减少对程序集的引用，第二种是为了避免第一种中没有注册
+                        if (_dbProviderFactory == null) _dbProviderFactory = DbProviderFactories.GetFactory("System.Data.OracleClient");
+                        if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.OracleClient.dll", "System.Data.OracleClient.OracleClientFactory");
+                        //if (_dbProviderFactory == null) _dbProviderFactory = OracleClientFactory.Instance;
                     }
                 }
-
-                // 以下三种方式都可以加载，前两种只是为了减少对程序集的引用，第二种是为了避免第一种中没有注册
-                if (_dbProviderFactory == null) _dbProviderFactory = DbProviderFactories.GetFactory("System.Data.OracleClient");
-                if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.OracleClient.dll", "System.Data.OracleClient.OracleClientFactory");
-                //if (_dbProviderFactory == null) _dbProviderFactory = OracleClientFactory.Instance;
 
                 return _dbProviderFactory;
             }

@@ -20,7 +20,13 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.SQLite.dll", "System.Data.SQLite.SQLiteFactory");
+                if (_dbProviderFactory == null)
+                {
+                    lock (typeof(SQLite))
+                    {
+                        if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.SQLite.dll", "System.Data.SQLite.SQLiteFactory");
+                    }
+                }
 
                 return _dbProviderFactory;
             }

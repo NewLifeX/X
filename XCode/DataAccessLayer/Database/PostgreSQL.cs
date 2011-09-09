@@ -26,7 +26,13 @@ namespace XCode.DataAccessLayer
             get
             {
                 //if (_dbProviderFactory == null) _dbProviderFactory = DbProviderFactories.GetFactory("PostgreSQL.Data.PostgreSQLClient");
-                if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("Npgsql.dll", "Npgsql.NpgsqlFactory");
+                if (_dbProviderFactory == null)
+                {
+                    lock (typeof(PostgreSQL))
+                    {
+                        if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("Npgsql.dll", "Npgsql.NpgsqlFactory");
+                    }
+                }
 
                 return _dbProviderFactory;
             }

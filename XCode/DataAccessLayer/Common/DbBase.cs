@@ -261,22 +261,31 @@ namespace XCode.DataAccessLayer
                     if (machine != ImageFileMachine.I386) file += "64";
                     #endregion
 
-                    String file2 = file + ".zip";
-                    if (!File.Exists(file2))
-                    {
-                        String url = String.Format("http://files.cnblogs.com/nnhy/{0}", Path.GetFileName(file2));
-                        DAL.WriteLog("准备从{0}下载相关文件到{1}！", url, file2);
-                        WebClientX client = new WebClientX();
-                        // 同步下载，3秒超时
-                        client.Timeout = 3000;
-                        client.DownloadFile(url, file2);
-                    }
-                    if (File.Exists(file2))
-                    {
-                        IOHelper.DecompressFile(file2, null, false);
+                    //String file2 = file + ".zip";
+                    //if (!File.Exists(file2))
+                    //{
+                    String url = String.Format("http://files.cnblogs.com/nnhy/{0}", Path.GetFileName(file + ".zip"));
+                    DAL.WriteLog("准备从{0}下载相关文件！", url);
+                    WebClientX client = new WebClientX();
+                    // 同步下载，3秒超时
+                    client.Timeout = 3000;
+                    //client.DownloadFile(url, file2);
+                    Byte[] data = client.DownloadData(url);
+                    client.Dispose();
 
-                        File.Delete(file2);
-                    }
+                    String dir = Path.GetDirectoryName(file);
+                    DAL.WriteLog("下载完成，准备解压到{0}！", dir);
+                    MemoryStream ms = new MemoryStream(data);
+                    IOHelper.DecompressFile(ms, dir, file, false);
+                    DAL.WriteLog("解压完成！");
+
+                    //}
+                    //if (File.Exists(file2))
+                    //{
+                    //IOHelper.DecompressFile(file2, null, false);
+
+                    //    File.Delete(file2);
+                    //}
                 }
                 catch (Exception ex)
                 {

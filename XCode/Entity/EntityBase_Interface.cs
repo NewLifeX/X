@@ -20,7 +20,6 @@ namespace XCode
         {
             if (_PropertyChanging != null) _PropertyChanging(this, new PropertyChangingEventArgs(fieldName));
             // 如果数据没有改变，不应该影响脏数据
-            //Dirtys[fieldName] = true;
             if (!Object.Equals(this[fieldName], newValue))
             {
                 Dirtys[fieldName] = true;
@@ -30,8 +29,6 @@ namespace XCode
             {
                 return false;
             }
-
-            //return !Object.Equals(this[fieldName], newValue);
         }
 
         /// <summary>
