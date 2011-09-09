@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using BinaryWriterX2 = NewLife.Serialization.BinaryWriterX;
 using BinaryReaderX2 = NewLife.Serialization.BinaryReaderX;
+using NewLife.Exceptions;
 
 namespace NewLife.IO
 {
@@ -280,10 +281,25 @@ namespace NewLife.IO
             if (String.IsNullOrEmpty(targetPath)) targetPath = Path.GetDirectoryName(src);
             String des = Path.GetFileNameWithoutExtension(src);
 
+            // 增加检查，如果文件小于1M，则拷贝到内存流后再解压，避免文件锁定等问题
+            MemoryStream ms = null;
             using (FileStream inStream = new FileStream(src, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                DecompressFile(inStream, targetPath, des, isSub);
+                Int64 len = 0;
+                try
+                {
+                    len = inStream.Length;
+                }
+                catch { }
+                if (len > 1024 * 1024)
+                    DecompressFile(inStream, targetPath, des, isSub);
+                else
+                {
+                    ms = new MemoryStream((Int32)inStream.Length);
+                    CopyTo(inStream, ms);
+                }
             }
+            if (ms != null) DecompressFile(ms, targetPath, des, isSub);
 
             return targetPath;
         }
@@ -326,7 +342,7 @@ namespace NewLife.IO
         /// <param name="targetPath"></param>
         /// <param name="des">多文件时，指代子目录，为空表示当前目录；单文件时表示目标文件</param>
         /// <param name="isSub">是否解压到子目录中，仅对多文件有效</param>
-        static void DecompressFile(Stream inStream, String targetPath, String des, Boolean isSub)
+        public static void DecompressFile(Stream inStream, String targetPath, String des, Boolean isSub)
         {
             if (String.IsNullOrEmpty(targetPath) && !String.IsNullOrEmpty(des)) targetPath = Path.GetDirectoryName(des);
 
@@ -376,6 +392,7 @@ namespace NewLife.IO
                     // 单文件
                     // 目标文件des是必须的，如果有targetPath，则加上，否则就用当前目录
                     // 目标文件夹targetPath不是必须的，如果有，而des又不是绝对路径，则加上
+                    if (String.IsNullOrEmpty(des)) throw new ArgumentNullException("des", "要解压缩的是单个文件，需要指定目标文件路径！");
 
                     // 如果des不是绝对路径，则加上目标文件夹
                     if (!Path.IsPathRooted(des))
