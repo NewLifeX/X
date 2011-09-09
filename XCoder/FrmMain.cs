@@ -77,8 +77,9 @@ namespace XCoder
 
             try
             {
-                String url = "http://www.7765.com/api/";
-                url += String.Format("?tag=XCoder_v{0}&r={1}", Engine.FileVersion, DateTime.Now.Ticks);
+                //String url = "http://www.7765.com/api/";
+                String url = "j.nnhy.org";
+                url += String.Format("?tag=XCoder_v{0}&r={1}&ID=2", Engine.FileVersion, DateTime.Now.Ticks);
                 webBrowser1.Navigate(url);
             }
             catch (Exception ex)
