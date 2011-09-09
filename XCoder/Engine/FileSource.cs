@@ -22,21 +22,38 @@ namespace XCoder
         //    {
         //        try
         //        {
-        //            String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Engine.TemplatePath);
-        //            if (!Directory.Exists(path))
-        //                ReleaseTemplateFiles();
         //        }
-        //        catch (Exception ex)
-        //        {
-        //            MessageBox.Show(ex.ToString());
-        //        }
+        //        catch { }
+        //        //catch (Exception ex)
+        //        //{
+        //        //    MessageBox.Show(ex.ToString());
+        //        //}
         //    });
         //}
+
+        public static void ReleaseAllTemplateFiles()
+        {
+            String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Engine.TemplatePath);
+            Dictionary<String, String> dic = GetTemplates();
+
+            foreach (String item in dic.Keys)
+            {
+                // 第一层是目录，然后是文件
+                String dir = item.Substring(0, item.IndexOf("."));
+                String file = item.Substring(dir.Length + 1);
+
+                dir = Path.Combine(path, dir);
+                file = Path.Combine(dir, file);
+
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                File.WriteAllText(file, dic[item]);
+            }
+        }
 
         /// <summary>
         /// 释放模版文件
         /// </summary>
-        public static Dictionary<String, String> ReleaseTemplateFiles()
+        public static Dictionary<String, String> GetTemplates()
         {
             String[] ss = Assembly.GetExecutingAssembly().GetManifestResourceNames();
             if (ss == null || ss.Length <= 0) return null;

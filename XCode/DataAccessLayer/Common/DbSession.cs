@@ -32,6 +32,7 @@ namespace XCode.DataAccessLayer
                 if (_Trans != null && Opened) _Trans.Rollback();
                 if (_Conn != null) Close();
             }
+            catch (ObjectDisposedException) { }
             catch (Exception ex)
             {
                 WriteLog("执行" + DbType.ToString() + "的Dispose时出错：" + ex.ToString());

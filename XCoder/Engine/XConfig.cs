@@ -32,7 +32,7 @@ namespace XCoder
         /// <summary>命名空间</summary>
         public String NameSpace
         {
-            get { return String.IsNullOrEmpty(_NameSpace) ? ConnName : EntityConnName; }
+            get { return String.IsNullOrEmpty(_NameSpace) ? EntityConnName : _NameSpace; }
             set { _NameSpace = value; }
         }
 
@@ -48,7 +48,7 @@ namespace XCoder
         /// <summary>输出目录</summary>
         public String OutputPath
         {
-            get { return String.IsNullOrEmpty(_OutputPath) ? ConnName : EntityConnName; }
+            get { return String.IsNullOrEmpty(_OutputPath) ? EntityConnName : _OutputPath; }
             set { _OutputPath = value; }
         }
 

@@ -35,6 +35,7 @@
             this.cbConn = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.gbTable = new System.Windows.Forms.GroupBox();
+            this.btnShowSchema = new System.Windows.Forms.Button();
             this.btnExpE2C = new System.Windows.Forms.Button();
             this.bt_GenAll = new System.Windows.Forms.Button();
             this.bt_GenTable = new System.Windows.Forms.Button();
@@ -46,6 +47,7 @@
             this.proc_percent = new System.Windows.Forms.ToolStripStatusLabel();
             this.bw = new System.ComponentModel.BackgroundWorker();
             this.gbConfig = new System.Windows.Forms.GroupBox();
+            this.btnRelease = new System.Windows.Forms.Button();
             this.txtBaseClass = new System.Windows.Forms.TextBox();
             this.label10 = new System.Windows.Forms.Label();
             this.btnOpenOutputDir = new System.Windows.Forms.Button();
@@ -69,13 +71,12 @@
             this.cb_Template = new System.Windows.Forms.ComboBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.btnImport = new System.Windows.Forms.Button();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.label3 = new System.Windows.Forms.Label();
-            this.timer2 = new System.Windows.Forms.Timer(this.components);
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.btnShowSchema = new System.Windows.Forms.Button();
+            this.timer2 = new System.Windows.Forms.Timer(this.components);
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -136,6 +137,16 @@
             this.gbTable.Size = new System.Drawing.Size(725, 49);
             this.gbTable.TabIndex = 14;
             this.gbTable.TabStop = false;
+            // 
+            // btnShowSchema
+            // 
+            this.btnShowSchema.Location = new System.Drawing.Point(602, 19);
+            this.btnShowSchema.Name = "btnShowSchema";
+            this.btnShowSchema.Size = new System.Drawing.Size(97, 23);
+            this.btnShowSchema.TabIndex = 23;
+            this.btnShowSchema.Text = "查看架构信息";
+            this.btnShowSchema.UseVisualStyleBackColor = true;
+            this.btnShowSchema.Click += new System.EventHandler(this.btnShowSchema_Click);
             // 
             // btnExpE2C
             // 
@@ -227,6 +238,7 @@
             // 
             // gbConfig
             // 
+            this.gbConfig.Controls.Add(this.btnRelease);
             this.gbConfig.Controls.Add(this.txtBaseClass);
             this.gbConfig.Controls.Add(this.label10);
             this.gbConfig.Controls.Add(this.btnOpenOutputDir);
@@ -254,6 +266,17 @@
             this.gbConfig.TabIndex = 26;
             this.gbConfig.TabStop = false;
             // 
+            // btnRelease
+            // 
+            this.btnRelease.Location = new System.Drawing.Point(143, 19);
+            this.btnRelease.Name = "btnRelease";
+            this.btnRelease.Size = new System.Drawing.Size(39, 23);
+            this.btnRelease.TabIndex = 48;
+            this.btnRelease.Text = "释放";
+            this.toolTip1.SetToolTip(this.btnRelease, "释放内置的模版到Template目录，作为参考供建立模版使用。\r\n新模版请不要使用跟系统模版一样的名称，否则将无法使用。");
+            this.btnRelease.UseVisualStyleBackColor = true;
+            this.btnRelease.Click += new System.EventHandler(this.btnRelease_Click);
+            // 
             // txtBaseClass
             // 
             this.txtBaseClass.Location = new System.Drawing.Point(277, 20);
@@ -265,7 +288,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(217, 24);
+            this.label10.Location = new System.Drawing.Point(230, 24);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(41, 12);
             this.label10.TabIndex = 46;
@@ -323,7 +346,7 @@
             // checkBox4
             // 
             this.checkBox4.AutoSize = true;
-            this.checkBox4.Location = new System.Drawing.Point(157, 22);
+            this.checkBox4.Location = new System.Drawing.Point(187, 22);
             this.checkBox4.Name = "checkBox4";
             this.checkBox4.Size = new System.Drawing.Size(48, 16);
             this.checkBox4.TabIndex = 27;
@@ -441,10 +464,11 @@
             // 
             this.cb_Template.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cb_Template.FormattingEnabled = true;
-            this.cb_Template.Location = new System.Drawing.Point(58, 20);
+            this.cb_Template.Location = new System.Drawing.Point(52, 20);
             this.cb_Template.Name = "cb_Template";
             this.cb_Template.Size = new System.Drawing.Size(90, 20);
             this.cb_Template.TabIndex = 26;
+            this.toolTip1.SetToolTip(this.cb_Template, "*开头的是内置系统模版，而不是已释放出去的系统模版。");
             // 
             // btnImport
             // 
@@ -456,11 +480,6 @@
             this.toolTip1.SetToolTip(this.btnImport, "把数据库架构信息导出到xml文件，或者从xml文件导入");
             this.btnImport.UseVisualStyleBackColor = true;
             this.btnImport.Click += new System.EventHandler(this.btnImport_Click);
-            // 
-            // timer1
-            // 
-            this.timer1.Enabled = true;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // linkLabel1
             // 
@@ -483,12 +502,6 @@
             this.label3.Text = ".Net技术交流群：10193406";
             this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
-            // timer2
-            // 
-            this.timer2.Enabled = true;
-            this.timer2.Interval = 2000;
-            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
-            // 
             // openFileDialog1
             // 
             this.openFileDialog1.Filter = "架构文件|*.xml";
@@ -497,15 +510,17 @@
             // 
             this.saveFileDialog1.Filter = "架构文件|*.xml";
             // 
-            // btnShowSchema
+            // timer2
             // 
-            this.btnShowSchema.Location = new System.Drawing.Point(602, 19);
-            this.btnShowSchema.Name = "btnShowSchema";
-            this.btnShowSchema.Size = new System.Drawing.Size(97, 23);
-            this.btnShowSchema.TabIndex = 23;
-            this.btnShowSchema.Text = "查看架构信息";
-            this.btnShowSchema.UseVisualStyleBackColor = true;
-            this.btnShowSchema.Click += new System.EventHandler(this.btnShowSchema_Click);
+            this.timer2.Enabled = true;
+            this.timer2.Interval = 2000;
+            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
+            // 
+            // timer1
+            // 
+            this.timer1.Enabled = true;
+            this.timer1.Interval = 3000;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // FrmMain
             // 
@@ -574,13 +589,11 @@
         private System.Windows.Forms.Button btnExpE2C;
         private System.Windows.Forms.CheckBox checkBox3;
         private System.Windows.Forms.ToolTip toolTip1;
-        private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.RichTextBox richTextBox2;
         private System.Windows.Forms.CheckBox checkBox4;
         private System.Windows.Forms.CheckBox checkBox5;
         private System.Windows.Forms.LinkLabel linkLabel1;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Timer timer2;
         private System.Windows.Forms.WebBrowser webBrowser1;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Button btnOpenOutputDir;
@@ -590,6 +603,9 @@
         private System.Windows.Forms.TextBox txtBaseClass;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Button btnShowSchema;
+        private System.Windows.Forms.Button btnRelease;
+        private System.Windows.Forms.Timer timer2;
+        private System.Windows.Forms.Timer timer1;
 	}
 }
 

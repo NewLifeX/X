@@ -74,196 +74,6 @@ namespace XCoder
 
             ThreadPool.QueueUserWorkItem(AutoDetectDatabase);
             ThreadPool.QueueUserWorkItem(UpdateArticles);
-
-            try
-            {
-                //String url = "http://www.7765.com/api/";
-                String url = "j.nnhy.org";
-                url += String.Format("?tag=XCoder_v{0}&r={1}&ID=2", Engine.FileVersion, DateTime.Now.Ticks);
-                webBrowser1.Navigate(url);
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteLine(ex.ToString());
-            }
-        }
-
-        /// <summary>
-        /// 自动检测数据库，主要针对MSSQL
-        /// </summary>
-        /// <param name="state"></param>
-        void AutoDetectDatabase(Object state)
-        {
-            List<String> list = new List<String>();
-
-            // 加上本机MSSQL
-            String localstr = "Data Source=.;Initial Catalog=master;Integrated Security=True;";
-            if (!ContainConnStr(localstr)) DAL.AddConnStr("local_MSSQL", localstr, null, "sqlclient");
-
-            #region 检测本地Access和SQLite
-            String[] ss = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.*", SearchOption.TopDirectoryOnly);
-            foreach (String item in ss)
-            {
-                String ext = Path.GetExtension(item);
-                if (String.Equals(ext, ".exe", StringComparison.OrdinalIgnoreCase)) continue;
-                if (String.Equals(ext, ".dll", StringComparison.OrdinalIgnoreCase)) continue;
-                if (String.Equals(ext, ".zip", StringComparison.OrdinalIgnoreCase)) continue;
-                if (String.Equals(ext, ".rar", StringComparison.OrdinalIgnoreCase)) continue;
-                if (String.Equals(ext, ".xml", StringComparison.OrdinalIgnoreCase)) continue;
-
-                String access = "Standard Jet DB";
-                String sqlite = "SQLite";
-
-                using (FileStream fs = new FileStream(item, FileMode.Open, FileAccess.Read, FileShare.Read))
-                {
-                    BinaryReader reader = new BinaryReader(fs);
-                    Byte[] bts = reader.ReadBytes(sqlite.Length);
-                    if (bts != null && bts.Length > 0)
-                    {
-                        if (bts[0] == 'S' && bts[1] == 'Q' && Encoding.ASCII.GetString(bts) == sqlite)
-                        {
-                            localstr = String.Format("Data Source={0};", item);
-                            if (!ContainConnStr(localstr)) DAL.AddConnStr("SQLite_" + Path.GetFileNameWithoutExtension(item), localstr, null, "SQLite");
-                        }
-                        else if (bts[4] == 'S' && bts[5] == 't')
-                        {
-                            fs.Seek(4, SeekOrigin.Begin);
-                            bts = reader.ReadBytes(access.Length);
-                            if (Encoding.ASCII.GetString(bts) == access)
-                            {
-                                localstr = String.Format("Provider=Microsoft.Jet.OLEDB.4.0; Data Source={0};Persist Security Info=False;OLE DB Services=-1", item);
-                                if (!ContainConnStr(localstr)) DAL.AddConnStr("Access_" + Path.GetFileNameWithoutExtension(item), localstr, null, "Access");
-                            }
-                        }
-                    }
-                }
-            }
-            #endregion
-
-            foreach (String item in DAL.ConnStrs.Keys)
-            {
-                if (!String.IsNullOrEmpty(DAL.ConnStrs[item].ConnectionString)) list.Add(item);
-            }
-
-            String[] sysdbnames = new String[] { "master", "tempdb", "model", "msdb" };
-
-            List<String> names = new List<String>();
-            foreach (String item in list)
-            {
-                try
-                {
-                    DAL dal = DAL.Create(item);
-                    DataSet ds = null;
-                    String dbprovider = null;
-
-                    // 列出所有数据库
-                    Boolean old = DAL.ShowSQL;
-                    DAL.ShowSQL = false;
-                    try
-                    {
-                        if (dal.DbType == DatabaseType.SqlServer)
-                        {
-                            if (dal.Db.ServerVersion.StartsWith("08"))
-                                ds = dal.Select("SELECT name FROM sysdatabases", "");
-                            else
-                                ds = dal.Select("SELECT name FROM sys.databases", "");
-
-                            dbprovider = dal.Db.ServerVersion.StartsWith("08") ? "sql2000" : "sql2005";
-                        }
-                        else if (dal.DbType == DatabaseType.MySql)
-                        {
-                            continue;
-                        }
-                        else
-                            continue;
-                    }
-                    finally { DAL.ShowSQL = old; }
-
-                    DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
-                    builder.ConnectionString = dal.ConnStr;
-
-                    // 统计库名
-                    foreach (DataRow dr in ds.Tables[0].Rows)
-                    {
-                        String dbname = dr[0].ToString();
-                        if (Array.IndexOf(sysdbnames, dbname) >= 0) continue;
-
-                        String connName = String.Format("{0}_{1}", item, dbname);
-
-                        builder["Database"] = dbname;
-                        DAL.AddConnStr(connName, builder.ToString(), null, dbprovider);
-
-                        try
-                        {
-                            String ver = dal.Db.ServerVersion;
-                            names.Add(connName);
-                        }
-                        catch
-                        {
-                            if (DAL.ConnStrs.ContainsKey(connName)) DAL.ConnStrs.Remove(connName);
-                        }
-                    }
-                }
-                catch
-                {
-                    if (item == "localhost") DAL.ConnStrs.Remove("localhost");
-                }
-            }
-
-            if (DAL.ConnStrs.ContainsKey("localhost")) DAL.ConnStrs.Remove("localhost");
-            if (list.Contains("localhost")) list.Remove("localhost");
-
-            if (names != null && names.Count > 0)
-            {
-                list.AddRange(names);
-
-                //Conns = list;
-                this.Invoke(new Action<List<String>>(SetDatabaseList), list);
-            }
-        }
-
-        Boolean ContainConnStr(String connstr)
-        {
-            foreach (String item in DAL.ConnStrs.Keys)
-            {
-                if (String.Equals(connstr, DAL.ConnStrs[item].ConnectionString, StringComparison.OrdinalIgnoreCase)) return true;
-            }
-            return false;
-        }
-
-        void SetDatabaseList(List<String> list)
-        {
-            String str = cbConn.Text;
-
-            cbConn.DataSource = list;
-            cbConn.DisplayMember = "value";
-            cbConn.Update();
-
-            //Conns = null;
-            if (!String.IsNullOrEmpty(str)) cbConn.Text = str;
-
-            if (cbConn.SelectedIndex < 0 && cbConn.Items != null && cbConn.Items.Count > 0) cbConn.SelectedIndex = 0;
-        }
-
-        /// <summary>
-        /// 模版绑定
-        /// </summary>
-        public void BindTemplate(ComboBox cb)
-        {
-            List<String> list = new List<string>();
-            foreach (String item in Engine.Templates.Keys)
-            {
-                String[] ks = item.Split('.');
-                if (ks == null || ks.Length < 1) continue;
-
-                String name = ks[0];
-                if (!list.Contains(name)) list.Add(name);
-            }
-            cb.Items.Clear();
-            cb.DataSource = list;
-            cb.DisplayMember = "value";
-            //cb.ValueMember = "value";
-            cb.Update();
         }
 
         private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
@@ -272,7 +82,7 @@ namespace XCoder
         }
         #endregion
 
-        #region 连接
+        #region 连接、导入、自动检测数据库、加载表
         private void bt_Connection_Click(object sender, EventArgs e)
         {
             SaveConfig();
@@ -302,6 +112,17 @@ namespace XCoder
 
                 btnImport.Text = "导入架构";
             }
+        }
+
+        private void cbConn_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (!String.IsNullOrEmpty(Config.ConnName)) toolTip1.SetToolTip(cbConn, DAL.Create(cbConn.Text).ConnStr);
+
+            AutoLoadTables(cbConn.Text);
+
+            if (String.IsNullOrEmpty(cb_Template.Text)) cb_Template.Text = cbConn.Text;
+            if (String.IsNullOrEmpty(txt_OutPath.Text)) txt_OutPath.Text = cbConn.Text;
+            if (String.IsNullOrEmpty(txt_NameSpace.Text)) txt_NameSpace.Text = cbConn.Text;
         }
 
         private void btnImport_Click(object sender, EventArgs e)
@@ -362,6 +183,173 @@ namespace XCoder
             }
         }
 
+        void AutoDetectDatabase(Object state)
+        {
+            List<String> list = new List<String>();
+
+            // 加上本机MSSQL
+            String localName = "local_MSSQL";
+            String localstr = "Data Source=.;Initial Catalog=master;Integrated Security=True;";
+            if (!ContainConnStr(localstr)) DAL.AddConnStr(localName, localstr, null, "sqlclient");
+
+            #region 检测本地Access和SQLite
+            String[] ss = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.*", SearchOption.TopDirectoryOnly);
+            foreach (String item in ss)
+            {
+                String ext = Path.GetExtension(item);
+                if (String.Equals(ext, ".exe", StringComparison.OrdinalIgnoreCase)) continue;
+                if (String.Equals(ext, ".dll", StringComparison.OrdinalIgnoreCase)) continue;
+                if (String.Equals(ext, ".zip", StringComparison.OrdinalIgnoreCase)) continue;
+                if (String.Equals(ext, ".rar", StringComparison.OrdinalIgnoreCase)) continue;
+                if (String.Equals(ext, ".xml", StringComparison.OrdinalIgnoreCase)) continue;
+
+                String access = "Standard Jet DB";
+                String sqlite = "SQLite";
+
+                using (FileStream fs = new FileStream(item, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    BinaryReader reader = new BinaryReader(fs);
+                    Byte[] bts = reader.ReadBytes(sqlite.Length);
+                    if (bts != null && bts.Length > 0)
+                    {
+                        if (bts[0] == 'S' && bts[1] == 'Q' && Encoding.ASCII.GetString(bts) == sqlite)
+                        {
+                            localstr = String.Format("Data Source={0};", item);
+                            if (!ContainConnStr(localstr)) DAL.AddConnStr("SQLite_" + Path.GetFileNameWithoutExtension(item), localstr, null, "SQLite");
+                        }
+                        else if (bts[4] == 'S' && bts[5] == 't')
+                        {
+                            fs.Seek(4, SeekOrigin.Begin);
+                            bts = reader.ReadBytes(access.Length);
+                            if (Encoding.ASCII.GetString(bts) == access)
+                            {
+                                localstr = String.Format("Provider=Microsoft.Jet.OLEDB.4.0; Data Source={0};Persist Security Info=False;OLE DB Services=-1", item);
+                                if (!ContainConnStr(localstr)) DAL.AddConnStr("Access_" + Path.GetFileNameWithoutExtension(item), localstr, null, "Access");
+                            }
+                        }
+                    }
+                }
+            }
+            #endregion
+
+            foreach (String item in DAL.ConnStrs.Keys)
+            {
+                if (!String.IsNullOrEmpty(DAL.ConnStrs[item].ConnectionString)) list.Add(item);
+            }
+
+            #region 探测连接中的其它库
+            String[] sysdbnames = new String[] { "master", "tempdb", "model", "msdb" };
+
+            List<String> names = new List<String>();
+            foreach (String item in list)
+            {
+                try
+                {
+                    DAL dal = DAL.Create(item);
+                    if (dal.DbType != DatabaseType.SqlServer) continue;
+
+                    //DataSet ds = null;
+                    DataTable dt = null;
+                    String dbprovider = null;
+
+                    // 列出所有数据库
+                    Boolean old = DAL.ShowSQL;
+                    DAL.ShowSQL = false;
+                    try
+                    {
+                        //if (dal.DbType == DatabaseType.SqlServer)
+                        //{
+                        //    if (dal.Db.ServerVersion.StartsWith("08"))
+                        //        ds = dal.Select("SELECT name FROM sysdatabases", "");
+                        //    else
+                        //        ds = dal.Select("SELECT name FROM sys.databases", "");
+
+                        //    dbprovider = dal.Db.ServerVersion.StartsWith("08") ? "sql2000" : "sql2005";
+                        //}
+                        //else if (dal.DbType == DatabaseType.MySql)
+                        //{
+                        //    continue;
+                        //}
+                        //else
+                        //    continue;
+
+                        if (dal.Db.CreateMetaData().MetaDataCollections.Contains("Databases"))
+                        {
+                            dt = dal.Db.CreateSession().GetSchema("Databases", null);
+                            dbprovider = dal.DbType.ToString();
+                        }
+                    }
+                    finally { DAL.ShowSQL = old; }
+
+                    if (dt == null) continue;
+
+                    DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
+                    builder.ConnectionString = dal.ConnStr;
+
+                    // 统计库名
+                    foreach (DataRow dr in dt.Rows)
+                    {
+                        String dbname = dr[0].ToString();
+                        if (Array.IndexOf(sysdbnames, dbname) >= 0) continue;
+
+                        String connName = String.Format("{0}_{1}", item, dbname);
+
+                        builder["Database"] = dbname;
+                        DAL.AddConnStr(connName, builder.ToString(), null, dbprovider);
+
+                        try
+                        {
+                            String ver = dal.Db.ServerVersion;
+                            names.Add(connName);
+                        }
+                        catch
+                        {
+                            if (DAL.ConnStrs.ContainsKey(connName)) DAL.ConnStrs.Remove(connName);
+                        }
+                    }
+                }
+                catch
+                {
+                    if (item == localName) DAL.ConnStrs.Remove(localName);
+                }
+            }
+            #endregion
+
+            if (DAL.ConnStrs.ContainsKey(localName)) DAL.ConnStrs.Remove(localName);
+            if (list.Contains(localName)) list.Remove(localName);
+
+            if (names != null && names.Count > 0)
+            {
+                list.AddRange(names);
+
+                //Conns = list;
+                this.Invoke(new Action<List<String>>(SetDatabaseList), list);
+            }
+        }
+
+        Boolean ContainConnStr(String connstr)
+        {
+            foreach (String item in DAL.ConnStrs.Keys)
+            {
+                if (String.Equals(connstr, DAL.ConnStrs[item].ConnectionString, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+            return false;
+        }
+
+        void SetDatabaseList(List<String> list)
+        {
+            String str = cbConn.Text;
+
+            cbConn.DataSource = list;
+            cbConn.DisplayMember = "value";
+            cbConn.Update();
+
+            //Conns = null;
+            if (!String.IsNullOrEmpty(str)) cbConn.Text = str;
+
+            if (cbConn.SelectedIndex < 0 && cbConn.Items != null && cbConn.Items.Count > 0) cbConn.SelectedIndex = 0;
+        }
+
         void SetTables(Object source)
         {
             cbTableList.DataSource = source;
@@ -388,11 +376,7 @@ namespace XCoder
                 {
                     IList<IDataTable> tables = DAL.Create(name).Tables;
                 }
-                catch //(Exception ex)
-                {
-                    //MessageBox.Show(ex.ToString(), this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    //lb_Status.Text = ex.Message;
-                }
+                catch { }
             });
         }
         #endregion
@@ -582,34 +566,6 @@ namespace XCoder
         }
         #endregion
 
-        #region 自动化
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            //if (Conns != null)
-            //{
-            //    String str = cbConn.Text;
-
-            //    cbConn.DataSource = Conns;
-            //    cbConn.DisplayMember = "value";
-            //    cbConn.Update();
-
-            //    Conns = null;
-            //    if (!String.IsNullOrEmpty(str)) cbConn.Text = str;
-            //}
-        }
-
-        private void cbConn_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (!String.IsNullOrEmpty(Config.ConnName)) toolTip1.SetToolTip(cbConn, DAL.Create(cbConn.Text).ConnStr);
-
-            AutoLoadTables(cbConn.Text);
-
-            if (String.IsNullOrEmpty(cb_Template.Text)) cb_Template.Text = cbConn.Text;
-            if (String.IsNullOrEmpty(txt_OutPath.Text)) txt_OutPath.Text = cbConn.Text;
-            if (String.IsNullOrEmpty(txt_NameSpace.Text)) txt_NameSpace.Text = cbConn.Text;
-        }
-        #endregion
-
         #region 附加信息
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
@@ -720,6 +676,23 @@ namespace XCoder
             public DateTime PubDate;
             public String Description;
         }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            timer1.Enabled = false;
+
+            try
+            {
+                //String url = "http://www.7765.com/api/";
+                String url = "http://j.nnhy.org";
+                url += String.Format("?tag=XCoder_v{0}&r={1}&ID=2", Engine.FileVersion, DateTime.Now.Ticks);
+                webBrowser1.Navigate(url);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteLine(ex.ToString());
+            }
+        }
         #endregion
 
         #region 打开输出目录
@@ -743,6 +716,37 @@ namespace XCoder
             FrmSchema frm = new FrmSchema();
             frm.ConnName = connName;
             frm.Show();
+        }
+        #endregion
+
+        #region 模版相关
+        public void BindTemplate(ComboBox cb)
+        {
+            List<String> list = Engine.FileTemplates;
+            foreach (String item in Engine.Templates.Keys)
+            {
+                String[] ks = item.Split('.');
+                if (ks == null || ks.Length < 1) continue;
+
+                String name = "*" + ks[0];
+                if (!list.Contains(name)) list.Add(name);
+            }
+            cb.Items.Clear();
+            cb.DataSource = list;
+            cb.DisplayMember = "value";
+            cb.Update();
+        }
+
+        private void btnRelease_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                FileSource.ReleaseAllTemplateFiles();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
         #endregion
     }

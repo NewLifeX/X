@@ -30,9 +30,11 @@ using System.Runtime.InteropServices;
 //      修订号
 //
 [assembly: AssemblyVersion("4.2.*")]
-[assembly: AssemblyFileVersion("4.2.2011.0908")]
+[assembly: AssemblyFileVersion("4.2.2011.0909")]
 
 /*
+ * v4.2.2011.0909   支持内部模版，也支持外部文件模版，支持释放内部模版
+ * 
  * v4.2.2011.0908   修正代码生成时更改输出目录后无效的BUG
  *                  完善各个模版
  *                  更改模版存放方式，直接从嵌入资源读取，不再释放

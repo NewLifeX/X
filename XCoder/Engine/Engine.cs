@@ -20,13 +20,47 @@ namespace XCoder
     public class Engine
     {
         #region 属性
-        //public const String TemplatePath = "Template";
+        public const String TemplatePath = "Template";
 
         private static Dictionary<String, String> _Templates;
         /// <summary>模版</summary>
         public static Dictionary<String, String> Templates
         {
-            get { return _Templates ?? (_Templates = FileSource.ReleaseTemplateFiles()); }
+            get
+            {
+                if (_Templates == null) _Templates = FileSource.GetTemplates();
+                return _Templates;
+            }
+        }
+
+        private static List<String> _FileTemplates;
+        /// <summary>
+        /// 文件模版
+        /// </summary>
+        public static List<String> FileTemplates
+        {
+            get
+            {
+                if (_FileTemplates == null)
+                {
+                    _FileTemplates = new List<string>();
+
+                    String dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, TemplatePath);
+                    if (Directory.Exists(dir))
+                    {
+                        String[] ds = Directory.GetDirectories(dir);
+                        if (ds != null && ds.Length > 0)
+                        {
+                            foreach (String item in ds)
+                            {
+                                DirectoryInfo di = new DirectoryInfo(item);
+                                _FileTemplates.Add(di.Name);
+                            }
+                        }
+                    }
+                }
+                return _FileTemplates;
+            }
         }
 
         public Engine(XConfig config)
@@ -298,19 +332,51 @@ namespace XCoder
             //Template tt = new Template();
             Template.Debug = Config.Debug;
             Dictionary<String, String> templates = new Dictionary<string, string>();
-            foreach (String item in Templates.Keys)
+            String tempName = Config.TemplateName;
+            if (tempName.StartsWith("*"))
             {
-                String name = item.Substring(0, item.IndexOf("."));
-                if (name != Config.TemplateName) continue;
+                // 系统模版
+                foreach (String item in Templates.Keys)
+                {
+                    String name = item.Substring(0, item.IndexOf("."));
+                    if ("*" + name != tempName) continue;
 
-                String content = Templates[item];
+                    String content = Templates[item];
 
-                // 添加文件头
-                if (Config.UseHeadTemplate && !String.IsNullOrEmpty(Config.HeadTemplate) && item.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
-                    content = Config.HeadTemplate + content;
+                    // 添加文件头
+                    if (Config.UseHeadTemplate && !String.IsNullOrEmpty(Config.HeadTemplate) && item.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+                        content = Config.HeadTemplate + content;
 
-                templates.Add(item.Substring(name.Length + 1), content);
+                    templates.Add(item.Substring(name.Length + 1), content);
+                }
             }
+            else
+            {
+                // 文件模版
+                String dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, TemplatePath);
+                dir = Path.Combine(dir, tempName);
+                String[] ss = Directory.GetFiles(dir, "*.*", SearchOption.TopDirectoryOnly);
+                if (ss != null && ss.Length > 0)
+                {
+                    foreach (String item in ss)
+                    {
+                        if (item.EndsWith("scc", StringComparison.OrdinalIgnoreCase)) continue;
+
+                        String content = File.ReadAllText(item);
+
+                        String name = item.Substring(dir.Length);
+                        if (name.StartsWith(@"\")) name = name.Substring(1);
+
+                        // 添加文件头
+                        if (Config.UseHeadTemplate && !String.IsNullOrEmpty(Config.HeadTemplate) && name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+                            content = Config.HeadTemplate + content;
+
+                        templates.Add(name, content);
+                    }
+                }
+            }
+            if (templates.Count < 1) throw new Exception("没有可用模版！");
+
             Template tt = Template.Create(templates);
 
             List<String> rs = new List<string>();
