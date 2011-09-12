@@ -25,6 +25,7 @@ foreach(IDataRelation dr in Table.Relations){#>
 #>
         private <#=Field.DataType.Name#> _<#=Field.Alias#>;
         /// <summary><#=Field.Description#></summary>
+        [DisplayName("<#=Field.Description#>")]
         [Description("<#=Field.Description#>")]
         [DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
         [BindColumn(<#=Field.ID#>, "<#=Field.Name#>", "<#=Field.Description#>", "<#=Field.Default#>", "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]

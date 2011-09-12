@@ -30,11 +30,9 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmSchema));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.gv = new System.Windows.Forms.DataGridView();
-            this.cbTables = new System.Windows.Forms.ComboBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
             this.cbSchemas = new System.Windows.Forms.ComboBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.gv = new System.Windows.Forms.DataGridView();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gv)).BeginInit();
             this.SuspendLayout();
@@ -45,13 +43,30 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox1.Controls.Add(this.cbSchemas);
             this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Controls.Add(this.label1);
-            this.groupBox1.Controls.Add(this.cbTables);
             this.groupBox1.Location = new System.Drawing.Point(6, 5);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(770, 44);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
+            // 
+            // cbSchemas
+            // 
+            this.cbSchemas.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbSchemas.FormattingEnabled = true;
+            this.cbSchemas.Location = new System.Drawing.Point(81, 16);
+            this.cbSchemas.Name = "cbSchemas";
+            this.cbSchemas.Size = new System.Drawing.Size(179, 20);
+            this.cbSchemas.TabIndex = 3;
+            this.cbSchemas.SelectedIndexChanged += new System.EventHandler(this.cbTables_SelectedIndexChanged);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(11, 20);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(65, 12);
+            this.label2.TabIndex = 2;
+            this.label2.Text = "数据架构：";
             // 
             // gv
             // 
@@ -64,44 +79,6 @@
             this.gv.RowTemplate.Height = 23;
             this.gv.Size = new System.Drawing.Size(784, 378);
             this.gv.TabIndex = 1;
-            // 
-            // cbTables
-            // 
-            this.cbTables.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbTables.FormattingEnabled = true;
-            this.cbTables.Location = new System.Drawing.Point(65, 14);
-            this.cbTables.Name = "cbTables";
-            this.cbTables.Size = new System.Drawing.Size(168, 20);
-            this.cbTables.TabIndex = 0;
-            this.cbTables.SelectedIndexChanged += new System.EventHandler(this.cbTables_SelectedIndexChanged);
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(10, 18);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(53, 12);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "数据表：";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(250, 18);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(65, 12);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "数据架构：";
-            // 
-            // cbSchemas
-            // 
-            this.cbSchemas.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbSchemas.FormattingEnabled = true;
-            this.cbSchemas.Location = new System.Drawing.Point(320, 14);
-            this.cbSchemas.Name = "cbSchemas";
-            this.cbSchemas.Size = new System.Drawing.Size(179, 20);
-            this.cbSchemas.TabIndex = 3;
-            this.cbSchemas.SelectedIndexChanged += new System.EventHandler(this.cbTables_SelectedIndexChanged);
             // 
             // FrmSchema
             // 
@@ -128,7 +105,5 @@
         private System.Windows.Forms.DataGridView gv;
         private System.Windows.Forms.ComboBox cbSchemas;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ComboBox cbTables;
     }
 }

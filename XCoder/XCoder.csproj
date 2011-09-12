@@ -97,6 +97,12 @@
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
     <Compile Include="Engine\Engine.cs" />
+    <Compile Include="FrmModel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmModel.Designer.cs">
+      <DependentUpon>FrmModel.cs</DependentUpon>
+    </Compile>
     <Compile Include="FrmSchema.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -111,6 +117,9 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="FrmModel.resx">
+      <DependentUpon>FrmModel.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FrmSchema.resx">
       <DependentUpon>FrmSchema.cs</DependentUpon>
     </EmbeddedResource>

@@ -16,20 +16,12 @@ namespace XCoder
     public partial class FrmSchema : Form
     {
         #region 属性
-        private String _ConnName;
-        /// <summary>连接名</summary>
-        public String ConnName
+        private IDatabase _Db;
+        /// <summary>数据库</summary>
+        public IDatabase Db
         {
-            get { return _ConnName; }
-            set { _ConnName = value; }
-        }
-
-        private DAL _Dal;
-        /// <summary>属性说明</summary>
-        public DAL Dal
-        {
-            get { return _Dal; }
-            set { _Dal = value; }
+            get { return _Db; }
+            set { _Db = value; }
         }
         #endregion
 
@@ -39,34 +31,42 @@ namespace XCoder
             InitializeComponent();
         }
 
+        public static FrmSchema Create(IDatabase db)
+        {
+            if (db == null) throw new ArgumentNullException("db");
+
+            FrmSchema frm = new FrmSchema();
+            frm.Db = db;
+
+            return frm;
+        }
+
         private void FrmSchema_Load(object sender, EventArgs e)
         {
-            Dal = DAL.Create(ConnName);
-
-            ThreadPool.QueueUserWorkItem(SetTables);
+            //ThreadPool.QueueUserWorkItem(SetTables);
             ThreadPool.QueueUserWorkItem(SetSchemas);
         }
         #endregion
 
         #region 加载
-        void SetTables(Object data)
-        {
-            try
-            {
-                List<IDataTable> tables = Dal.Tables;
-                this.Invoke(new Func<ComboBox, IEnumerable, Boolean>(SetList), cbTables, tables);
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteLine(ex.ToString());
-            }
-        }
+        //void SetTables(Object data)
+        //{
+        //    try
+        //    {
+        //        List<IDataTable> tables = Dal.Tables;
+        //        this.Invoke(new Func<ComboBox, IEnumerable, Boolean>(SetList), cbTables, tables);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        XTrace.WriteLine(ex.ToString());
+        //    }
+        //}
 
         void SetSchemas(Object data)
         {
             try
             {
-                ICollection<String> list = Dal.Db.CreateMetaData().MetaDataCollections;
+                ICollection<String> list = Db.CreateMetaData().MetaDataCollections;
                 this.Invoke(new Func<ComboBox, IEnumerable, Boolean>(SetList), cbSchemas, list);
             }
             catch (Exception ex)
@@ -117,7 +117,7 @@ namespace XCoder
                 if (obj is IDataTable)
                     obj = (obj as IDataTable).Columns;
                 else if (obj is String)
-                    obj = Dal.Db.CreateSession().GetSchema((String)obj, null);
+                    obj = Db.CreateSession().GetSchema((String)obj, null);
                 gv.DataSource = obj;
                 gv.Update();
             }

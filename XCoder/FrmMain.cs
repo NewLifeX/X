@@ -82,7 +82,7 @@ namespace XCoder
         }
         #endregion
 
-        #region 连接、导入、自动检测数据库、加载表
+        #region 连接、自动检测数据库、加载表
         private void bt_Connection_Click(object sender, EventArgs e)
         {
             SaveConfig();
@@ -98,9 +98,9 @@ namespace XCoder
 
                 gbConnect.Enabled = false;
                 gbTable.Enabled = true;
+                btnShowSchema.Enabled = true;
+                btnImport.Enabled = false;
                 bt_Connection.Text = "断开";
-
-                btnImport.Text = "导出架构";
             }
             else
             {
@@ -108,9 +108,10 @@ namespace XCoder
 
                 gbConnect.Enabled = true;
                 gbTable.Enabled = false;
+                btnShowSchema.Enabled = false;
+                btnImport.Enabled = true;
                 bt_Connection.Text = "连接";
-
-                btnImport.Text = "导入架构";
+                Engine = null;
             }
         }
 
@@ -123,64 +124,6 @@ namespace XCoder
             if (String.IsNullOrEmpty(cb_Template.Text)) cb_Template.Text = cbConn.Text;
             if (String.IsNullOrEmpty(txt_OutPath.Text)) txt_OutPath.Text = cbConn.Text;
             if (String.IsNullOrEmpty(txt_NameSpace.Text)) txt_NameSpace.Text = cbConn.Text;
-        }
-
-        private void btnImport_Click(object sender, EventArgs e)
-        {
-            if (btnImport.Text == "导入架构")
-            {
-                if (openFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(openFileDialog1.FileName)) return;
-                try
-                {
-                    List<IDataTable> list = DAL.Import(File.ReadAllText(openFileDialog1.FileName));
-
-                    Engine = null;
-                    Engine.Tables = list;
-
-                    SetTables(list);
-
-                    gbTable.Enabled = true;
-
-                    MessageBox.Show("导入架构成功！共" + (list == null ? 0 : list.Count) + "张表！", "导入架构", MessageBoxButtons.OK);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-            }
-            else
-            {
-                List<IDataTable> tables = DAL.Create(Config.ConnName).Tables;
-                if (tables == null || tables.Count < 1)
-                {
-                    MessageBox.Show(this.Text, "数据库架构为空！", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                if (!String.IsNullOrEmpty(Config.ConnName))
-                {
-                    String file = Config.ConnName + ".xml";
-                    String dir = null;
-                    if (!String.IsNullOrEmpty(saveFileDialog1.FileName))
-                        dir = Path.GetDirectoryName(saveFileDialog1.FileName);
-                    if (String.IsNullOrEmpty(dir)) dir = AppDomain.CurrentDomain.BaseDirectory;
-                    saveFileDialog1.FileName = Path.Combine(dir, file);
-                }
-                if (saveFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(saveFileDialog1.FileName)) return;
-                try
-                {
-                    String xml = DAL.Export(tables);
-                    File.WriteAllText(saveFileDialog1.FileName, xml);
-
-                    MessageBox.Show("导出架构成功！", "导出架构", MessageBoxButtons.OK);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-            }
         }
 
         void AutoDetectDatabase(Object state)
@@ -374,10 +317,10 @@ namespace XCoder
             {
                 try
                 {
-                    IList<IDataTable> tables = DAL.Create(name).Tables;
+                    IList<IDataTable> tables = DAL.Create((String)state).Tables;
                 }
                 catch { }
-            });
+            }, name);
         }
         #endregion
 
@@ -548,9 +491,9 @@ namespace XCoder
         #region 导出映射文件
         private void button1_Click(object sender, EventArgs e)
         {
-            if (String.IsNullOrEmpty(Config.ConnName)) return;
+            if (Engine == null) return;
 
-            IList<IDataTable> tables = DAL.Create(Config.ConnName).Tables;
+            IList<IDataTable> tables = Engine.Tables;
             if (tables == null || tables.Count < 1) return;
 
             foreach (IDataTable table in tables)
@@ -648,10 +591,14 @@ namespace XCoder
                     }
                 }
             }
+#if !DEBUG
+            catch { }
+#else
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString(), this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+#endif
         }
 
         Int32 articleIndex = 0;
@@ -707,15 +654,80 @@ namespace XCoder
         }
         #endregion
 
-        #region 查看架构信息
+        #region 模型管理
         private void btnShowSchema_Click(object sender, EventArgs e)
         {
             String connName = "" + cbConn.SelectedValue;
             if (String.IsNullOrEmpty(connName)) return;
 
-            FrmSchema frm = new FrmSchema();
-            frm.ConnName = connName;
-            frm.Show();
+            FrmSchema.Create(DAL.Create(connName).Db).Show();
+        }
+
+        private void btnShowMetaData_Click(object sender, EventArgs e)
+        {
+            List<IDataTable> tables = Engine.Tables;
+            if (tables == null || tables.Count < 1) return;
+
+            FrmModel.Create(tables).Show();
+        }
+
+        private void btnImport_Click(object sender, EventArgs e)
+        {
+            if (openFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(openFileDialog1.FileName)) return;
+            try
+            {
+                List<IDataTable> list = DAL.Import(File.ReadAllText(openFileDialog1.FileName));
+
+                Engine = null;
+                Engine.Tables = list;
+
+                SetTables(list);
+
+                gbTable.Enabled = true;
+                btnShowSchema.Enabled = false;
+
+                MessageBox.Show("导入架构成功！共" + (list == null ? 0 : list.Count) + "张表！", "导入架构", MessageBoxButtons.OK);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+        }
+
+        private void btnExportModel_Click(object sender, EventArgs e)
+        {
+            List<IDataTable> tables = Engine.Tables;
+            if (tables == null || tables.Count < 1)
+            {
+                MessageBox.Show(this.Text, "数据库架构为空！", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!String.IsNullOrEmpty(Config.ConnName))
+            {
+                String file = Config.ConnName + ".xml";
+                String dir = null;
+                if (!String.IsNullOrEmpty(saveFileDialog1.FileName))
+                    dir = Path.GetDirectoryName(saveFileDialog1.FileName);
+                if (String.IsNullOrEmpty(dir)) dir = AppDomain.CurrentDomain.BaseDirectory;
+                //saveFileDialog1.FileName = Path.Combine(dir, file);
+                saveFileDialog1.InitialDirectory = dir;
+                saveFileDialog1.FileName = file;
+            }
+            if (saveFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(saveFileDialog1.FileName)) return;
+            try
+            {
+                String xml = DAL.Export(tables);
+                File.WriteAllText(saveFileDialog1.FileName, xml);
+
+                MessageBox.Show("导出架构成功！", "导出架构", MessageBoxButtons.OK);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
         }
         #endregion
 

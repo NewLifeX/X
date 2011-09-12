@@ -176,6 +176,12 @@ namespace XCoder
         /// <returns></returns>
         public static String FixWord(String name)
         {
+            if (String.IsNullOrEmpty(name)) return null;
+
+            if (name.Equals("ID", StringComparison.OrdinalIgnoreCase)) return "ID";
+
+            if (name.Length <= 2) return name;
+
             Int32 count1 = 0;
             Int32 count2 = 0;
             foreach (Char item in name.ToCharArray())
@@ -249,7 +255,7 @@ namespace XCoder
             {
                 if (_Words == null)
                 {
-                    _Words = new Dictionary<string, string>();
+                    _Words = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
                     if (File.Exists("e2c.txt"))
                     {
@@ -323,7 +329,7 @@ namespace XCoder
             IDataTable table = Tables.Find(delegate(IDataTable item) { return String.Equals(item.Name, tableName, StringComparison.OrdinalIgnoreCase); });
             if (tableName == null) return null;
 
-            Dictionary<String, Object> data = new Dictionary<string, object>();
+            Dictionary<String, Object> data = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             data["Config"] = Config;
             data["Tables"] = Tables;
             data["Table"] = table;
@@ -529,7 +535,7 @@ namespace XCoder
                 String[] rs = trs.Translate(words.ToArray());
                 if (rs == null || rs.Length < 1) return;
 
-                Dictionary<String, String> ts = new Dictionary<string, string>();
+                Dictionary<String, String> ts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 for (int i = 0; i < words.Count && i < rs.Length; i++)
                 {
                     String key = words[i].Replace(" ", null);
