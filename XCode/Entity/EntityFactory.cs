@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Reflection;
 using NewLife.Collections;
+using NewLife.Log;
 using NewLife.Reflection;
+using XCode.Configuration;
 using XCode.DataAccessLayer;
+using XCode.Exceptions;
 
 namespace XCode
 {
@@ -168,6 +171,93 @@ namespace XCode
             return AssemblyX.FindAllPlugins(typeof(IEntity));
         }
 
+        /// <summary>
+        /// 获取指定连接名下的所有实体类
+        /// </summary>
+        /// <param name="connName"></param>
+        /// <returns></returns>
+        internal static List<Type> GetEntitiesByConnName(String connName)
+        {
+            List<Type> list = LoadEntities();
+            if (list == null || list.Count < 1) return null;
+
+            List<Type> list2 = new List<Type>();
+            foreach (Type item in list)
+            {
+                if (TableItem.Create(item).ConnName == connName) list2.Add(item);
+            }
+            return list2;
+        }
+
+        internal static List<IDataTable> GetTablesByConnName(String connName)
+        {
+            List<Type> entities = GetEntitiesByConnName(connName);
+            if (entities == null || entities.Count < 1) return null;
+
+            List<IDataTable> tables = new List<IDataTable>();
+            // 记录每个表名对应的实体类
+            Dictionary<String, Type> dic = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
+            foreach (Type item in entities)
+            {
+                // 过滤掉第一次使用才加载的
+                ModelCheckModeAttribute att = ModelCheckModeAttribute.GetCustomAttribute(item);
+                if (att != null && att.Mode != ModelCheckModes.CheckAllTablesWhenInit) continue;
+
+                IDataTable table = TableItem.Create(item).DataTable;
+
+                // 判断表名是否已存在
+                Type type = null;
+                if (dic.TryGetValue(table.Name, out type))
+                {
+                    // 两个实体类，只能要一个
+
+                    // 当前实体类是，跳过
+                    if (IsCommonEntity(item))
+                        continue;
+                    // 前面那个是，排除
+                    else if (IsCommonEntity(type))
+                    {
+                        dic[table.Name] = item;
+                        // 删除原始实体类
+                        tables.RemoveAll((tb) => tb.Name == table.Name);
+                    }
+                    // 两个都不是，报错吧！
+                    else
+                    {
+                        String msg = String.Format("设计错误！发现表{0}同时被两个实体类（{1}和{2}）使用！", table.Name, type.FullName, item.FullName);
+                        XTrace.WriteLine(msg);
+                        throw new XCodeException(msg);
+                    }
+                }
+                else
+                {
+                    dic.Add(table.Name, item);
+                }
+
+                tables.Add(table);
+            }
+            return tables;
+        }
+
+        /// <summary>
+        /// 是否普通实体类
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private static Boolean IsCommonEntity(Type type)
+        {
+            // 通用实体类全部都是
+            //if (type.FullName.Contains("NewLife.CommonEntity")) return true;
+            if (type.Namespace == "NewLife.CommonEntity") return true;
+
+            // 实体类和基类名字相同的也是
+            String name = type.BaseType.Name;
+            Int32 p = name.IndexOf('`');
+            if (p > 0 && type.Name == name.Substring(0, p)) return true;
+
+            return false;
+        }
+
         static DictionaryCache<String, Type> typeCache = new DictionaryCache<String, Type>();
         private static Type GetType(String typeName)
         {
@@ -183,9 +273,25 @@ namespace XCode
                 if (entities != null && entities.Count > 0)
                 {
                     if (!typeName.Contains("."))
-                        type = entities.Find(delegate(Type item) { return item.Name == typeName; });
+                        //type = entities.Find(delegate(Type item) { return item.Name == typeName; });
+                        foreach (Type item in entities)
+                        {
+                            if (item.Name == typeName)
+                            {
+                                type = item;
+                                break;
+                            }
+                        }
                     else
-                        type = entities.Find(delegate(Type item) { return item.FullName == typeName; });
+                        //type = entities.Find(delegate(Type item) { return item.FullName == typeName; });
+                        foreach (Type item in entities)
+                        {
+                            if (item.Name == typeName)
+                            {
+                                type = item;
+                                break;
+                            }
+                        }
                 }
             }
             return type;

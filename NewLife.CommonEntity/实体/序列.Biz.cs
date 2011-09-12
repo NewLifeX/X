@@ -5,13 +5,8 @@
  * 版权：版权所有 (C) 新生命开发团队 2010
 */
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
-using System.Xml.Serialization;
 using XCode;
-using XCode.Configuration;
-using XCode.Cache;
 
 namespace NewLife.CommonEntity
 {
@@ -44,6 +39,7 @@ namespace NewLife.CommonEntity
     /// <summary>
     /// 序列
     /// </summary>
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class Sequence : Sequence<Sequence> { }
 
     /// <summary>

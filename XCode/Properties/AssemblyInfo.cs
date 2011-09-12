@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.0.*")]
-[assembly: AssemblyFileVersion("8.0.2011.0910")]
+[assembly: AssemblyFileVersion("8.0.2011.0912")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,11 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.0.2011.0912   重构反向工程，废除DatabaseSchema类（旧版本的反向工程核心），将其功能合理分配到各个地方，兼容各种数据库在反向时的差异
+ *                  增加ModelCheckModeAttribute特性，可用于控制实体类是在初始化连接时还是第一次使用该实体类的数据表时检查模型（反向工程）
+ * 
+ * v8.0.2011.0911   完善模型的模型特性，便于代码生成器中的模型管理
+ * 
  * v8.0.2011.0910   数据层使用全新的接口IDataTable、IDataColumn、IDataIndex、IDataRelation
  *                  尝试使用服务提供者，外部可替代内部各接口实现
  *                  数据层/实体层、正向/反向工程 增加索引支持，在部署到生成环境时同步创建索引，保证系统最佳性能

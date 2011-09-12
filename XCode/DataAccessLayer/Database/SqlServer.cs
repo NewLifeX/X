@@ -541,55 +541,48 @@ namespace XCode.DataAccessLayer
         /// 取得所有表构架
         /// </summary>
         /// <returns></returns>
-        public override List<IDataTable> GetTables()
+        protected override List<IDataTable> OnGetTables()
         {
+            IDbSession session = Database.CreateSession();
+
+            //一次性把所有的表说明查出来
+            DataTable DescriptionTable = null;
+
+            Boolean b = DbSession.ShowSQL;
+            DbSession.ShowSQL = false;
             try
             {
-                IDbSession session = Database.CreateSession();
-
-                //一次性把所有的表说明查出来
-                DataTable DescriptionTable = null;
-
-                Boolean b = DbSession.ShowSQL;
-                DbSession.ShowSQL = false;
-                try
-                {
-                    DescriptionTable = session.Query(DescriptionSql).Tables[0];
-                }
-                catch { }
-                DbSession.ShowSQL = b;
-
-                DataTable dt = GetSchema("Tables", null);
-                if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
-
-                b = DbSession.ShowSQL;
-                DbSession.ShowSQL = false;
-                try
-                {
-                    AllFields = session.Query(SchemaSql).Tables[0];
-                    AllIndexes = session.Query(IndexSql).Tables[0];
-                }
-                catch { }
-                DbSession.ShowSQL = b;
-
-                // 列出用户表
-                DataRow[] rows = dt.Select(String.Format("{0}='BASE TABLE' Or {0}='VIEW'", "TABLE_TYPE"));
-                List<IDataTable> list = GetTables(rows);
-                if (list == null || list.Count < 1) return list;
-
-                // 修正备注
-                foreach (IDataTable item in list)
-                {
-                    DataRow[] drs = DescriptionTable == null ? null : DescriptionTable.Select("n='" + item.Name + "'");
-                    item.Description = drs == null || drs.Length < 1 ? "" : drs[0][1].ToString();
-                }
-
-                return list;
+                DescriptionTable = session.Query(DescriptionSql).Tables[0];
             }
-            catch (DbException ex)
+            catch { }
+            DbSession.ShowSQL = b;
+
+            DataTable dt = GetSchema(CollectionNames.Tables, null);
+            if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
+
+            b = DbSession.ShowSQL;
+            DbSession.ShowSQL = false;
+            try
             {
-                throw new XDbMetaDataException(this, "取得所有表构架出错！", ex);
+                AllFields = session.Query(SchemaSql).Tables[0];
+                AllIndexes = session.Query(IndexSql).Tables[0];
             }
+            catch { }
+            DbSession.ShowSQL = b;
+
+            // 列出用户表
+            DataRow[] rows = dt.Select(String.Format("{0}='BASE TABLE' Or {0}='VIEW'", "TABLE_TYPE"));
+            List<IDataTable> list = GetTables(rows);
+            if (list == null || list.Count < 1) return list;
+
+            // 修正备注
+            foreach (IDataTable item in list)
+            {
+                DataRow[] drs = DescriptionTable == null ? null : DescriptionTable.Select("n='" + item.Name + "'");
+                item.Description = drs == null || drs.Length < 1 ? "" : drs[0][1].ToString();
+            }
+
+            return list;
         }
 
         private DataTable AllFields = null;
@@ -838,7 +831,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Boolean DatabaseExist(string dbname)
         {
-            DataTable dt = GetSchema("Databases", new String[] { dbname });
+            DataTable dt = GetSchema(CollectionNames.Databases, new String[] { dbname });
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
@@ -857,7 +850,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Boolean TableExist(IDataTable table)
         {
-            DataTable dt = GetSchema("Tables", new String[] { null, null, table.Name, null });
+            DataTable dt = GetSchema(CollectionNames.Tables, new String[] { null, null, table.Name, null });
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 

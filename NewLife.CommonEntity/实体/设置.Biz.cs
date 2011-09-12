@@ -5,18 +5,15 @@
  * 版权：版权所有 (C) 新生命开发团队 2010
 */
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
-using System.Xml.Serialization;
 using XCode;
-using XCode.Configuration;
 
 namespace NewLife.CommonEntity
 {
     /// <summary>
     /// 设置
     /// </summary>
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class Setting : Setting<Setting> { }
 
     /// <summary>

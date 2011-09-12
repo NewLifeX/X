@@ -42,7 +42,7 @@ namespace XCode.Cache
             if (tableNames != null && tableNames.Length > 0)
             {
                 if (_TableNames == null)
-                    _TableNames = new Dictionary<String, String>();
+                    _TableNames = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
                 else
                     _TableNames.Clear();
 

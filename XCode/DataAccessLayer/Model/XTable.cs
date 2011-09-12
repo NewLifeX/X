@@ -1,21 +1,20 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
-using Microsoft.CSharp;
-using Microsoft.VisualBasic;
 
 namespace XCode.DataAccessLayer
 {
     /// <summary>
-    /// 表构架
+    /// 表模型
     /// </summary>
     [DebuggerDisplay("ID={ID} Name={Name} Description={Description}")]
     [Serializable]
+    [DisplayName("表模型")]
+    [Description("表模型")]
     [XmlRoot("Table")]
     class XTable : IDataTable, ICloneable, IXmlSerializable
     {
@@ -25,6 +24,7 @@ namespace XCode.DataAccessLayer
         /// 编号
         /// </summary>
         [XmlAttribute]
+        [DisplayName("编号")]
         [Description("编号")]
         public Int32 ID { get { return _ID; } set { _ID = value; } }
 
@@ -33,6 +33,7 @@ namespace XCode.DataAccessLayer
         /// 表名
         /// </summary>
         [XmlAttribute]
+        [DisplayName("表名")]
         [Description("表名")]
         public String Name { get { return _Name; } set { _Name = value; _Alias = null; } }
 
@@ -41,6 +42,7 @@ namespace XCode.DataAccessLayer
         /// 别名
         /// </summary>
         [XmlAttribute]
+        [DisplayName("别名")]
         [Description("别名")]
         public String Alias { get { return _Alias ?? (_Alias = ModelHelper.GetAlias(Name)); } set { _Alias = value; } }
 
@@ -49,6 +51,7 @@ namespace XCode.DataAccessLayer
         /// 表说明
         /// </summary>
         [XmlAttribute]
+        [DisplayName("表说明")]
         [Description("表说明")]
         public String Description { get { return _Description; } set { _Description = value; } }
 
@@ -57,18 +60,21 @@ namespace XCode.DataAccessLayer
         /// 是否视图
         /// </summary>
         [XmlAttribute]
+        [DisplayName("是否视图")]
         [Description("是否视图")]
         public Boolean IsView { get { return _IsView; } set { _IsView = value; } }
 
         private String _Owner;
         /// <summary>所有者</summary>
         [XmlAttribute]
+        [DisplayName("所有者")]
         [Description("所有者")]
         public String Owner { get { return _Owner; } set { _Owner = value; } }
 
         private DatabaseType _DbType;
         /// <summary>数据库类型</summary>
         [XmlAttribute]
+        [DisplayName("数据库类型")]
         [Description("数据库类型")]
         public DatabaseType DbType { get { return _DbType; } set { _DbType = value; } }
         #endregion
@@ -79,6 +85,8 @@ namespace XCode.DataAccessLayer
         /// 字段集合。
         /// </summary>
         [XmlArray("Columns")]
+        [Category("集合")]
+        [DisplayName("字段集合")]
         [Description("字段集合")]
         public List<IDataColumn> Columns { get { return _Columns ?? (_Columns = new List<IDataColumn>()); } }
 
@@ -87,6 +95,8 @@ namespace XCode.DataAccessLayer
         /// 关系集合。
         /// </summary>
         [XmlArray]
+        [Category("集合")]
+        [DisplayName("关系集合")]
         [Description("关系集合")]
         public List<IDataRelation> Relations { get { return _Relations ?? (_Relations = new List<IDataRelation>()); } }
 
@@ -95,11 +105,14 @@ namespace XCode.DataAccessLayer
         /// 索引集合。
         /// </summary>
         [XmlArray]
+        [Category("集合")]
+        [DisplayName("索引集合")]
         [Description("索引集合")]
         public List<IDataIndex> Indexes { get { return _Indexes ?? (_Indexes = new List<IDataIndex>()); } }
 
         //private IDataColumn[] _PrimaryKeys;
         /// <summary>主键集合</summary>
+        [XmlIgnore]
         public IDataColumn[] PrimaryKeys
         {
             get

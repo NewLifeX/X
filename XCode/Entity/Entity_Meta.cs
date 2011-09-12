@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Threading;
 using System.Web;
 using NewLife;
@@ -8,6 +9,7 @@ using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Log;
 using XCode.Cache;
+using XCode.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
@@ -66,9 +68,23 @@ namespace XCode
                 }
             }
 
+            private static ICollection<String> hasCheckedTables = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
             private static void CheckTable(String connName, String tableName)
             {
-                DatabaseSchema.Create(DAL.Create(connName).Db).CheckNewTable(ThisType, tableName);
+                if (hasCheckedTables.Contains(tableName)) return;
+                lock (hasCheckedTables)
+                {
+                    if (hasCheckedTables.Contains(tableName)) return;
+
+                    // 检查新表名对应的数据表
+                    IDataTable table = TableItem.Create(ThisType).DataTable;
+                    // 克隆一份，防止修改
+                    table = table.Clone() as IDataTable;
+                    table.Name = tableName;
+
+                    //DatabaseSchema.Check(DAL.Create(connName).Db, table);
+                    DAL.Create(connName).Db.CreateMetaData().SetTables(table);
+                }
             }
 
             /// <summary>所有数据属性</summary>
@@ -253,6 +269,31 @@ namespace XCode
                 remove { }
             }
 
+            static Int32 hasCheckModel;
+            private static void CheckModel()
+            {
+                if (Interlocked.CompareExchange(ref hasCheckModel, 1, 0) != 0) return;
+
+                if (Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
+                {
+                    DAL.WriteLog("开始检查表{0}的数据表架构……", Table.DataTable.Name);
+
+                    Stopwatch sw = new Stopwatch();
+                    sw.Start();
+
+                    try
+                    {
+                        DBO.Db.CreateMetaData().SetTables(Table.DataTable);
+                    }
+                    finally
+                    {
+                        sw.Stop();
+
+                        DAL.WriteLog("检查表{0}的数据表架构耗时{1}", Table.DataTable.Name, sw.Elapsed);
+                    }
+                }
+            }
+
             /// <summary>
             /// 记录已进行数据初始化的表
             /// </summary>
@@ -265,6 +306,9 @@ namespace XCode
                 String key = ConnName + "$$$" + TableName;
                 if (hasCheckInitData.Contains(key)) return;
                 hasCheckInitData.Add(key);
+
+                // 如果该实体类是首次使用检查模型，则在这个时候检查
+                CheckModel();
 
                 // 异步执行，并捕获错误日志
                 if (Config.GetConfig<Boolean>("XCode.InitDataAsync", true) && !InitDataHelper.Running)
@@ -455,6 +499,8 @@ namespace XCode
                         Int64? k = (Int64?)HttpRuntime.Cache[key];
                         if (k != null && k.HasValue) return k.Value;
                     }
+
+                    CheckModel();
 
                     Int64 m = 0;
                     if (n != null && n.HasValue && n.Value < 1000)

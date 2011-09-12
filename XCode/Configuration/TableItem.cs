@@ -44,6 +44,11 @@ namespace XCode.Configuration
                 return null;
             }
         }
+
+        /// <summary>模型检查模式</summary>
+        private ModelCheckModeAttribute _ModelCheckMode;
+        ///// <summary>模型检查模式</summary>
+        //private ModelCheckModeAttribute ModelCheckMode { get { return _ModelCheckMode; } }
         #endregion
 
         #region 属性
@@ -197,10 +202,13 @@ namespace XCode.Configuration
             }
         }
 
-        private IDataTable _XTable;
+        private IDataTable _DataTable;
         /// <summary>数据表架构</summary>
         [XmlIgnore]
-        public IDataTable DataTable { get { return _XTable; } }
+        public IDataTable DataTable { get { return _DataTable; } }
+
+        /// <summary>模型检查模式</summary>
+        public ModelCheckModes ModelCheckMode { get { return _ModelCheckMode != null ? _ModelCheckMode.Mode : ModelCheckModes.CheckAllTablesWhenInit; } }
         #endregion
 
         #region 构造
@@ -214,6 +222,8 @@ namespace XCode.Configuration
             _Relations = BindRelationAttribute.GetCustomAttributes(EntityType);
 
             _Description = DescriptionAttribute.GetCustomAttribute(EntityType, typeof(DescriptionAttribute)) as DescriptionAttribute;
+
+            _ModelCheckMode = ModelCheckModeAttribute.GetCustomAttribute(EntityType);
 
             InitFields();
         }
@@ -241,7 +251,7 @@ namespace XCode.Configuration
 
             BindTableAttribute bt = Table;
             IDataTable table = DAL.CreateTable();
-            _XTable = table;
+            _DataTable = table;
             table.Name = bt.Name;
             table.Alias = EntityType.Name;
             table.DbType = bt.DbType;

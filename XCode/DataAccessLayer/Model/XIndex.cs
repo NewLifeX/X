@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Xml.Serialization;
+using System.ComponentModel;
 
 namespace XCode.DataAccessLayer
 {
@@ -9,12 +10,17 @@ namespace XCode.DataAccessLayer
     /// 索引
     /// </summary>
     [Serializable]
+    [DisplayName("索引模型")]
+    [Description("索引模型")]
     [XmlRoot("Index")]
     class XIndex : SerializableDataMember, IDataIndex, ICloneable
     {
         #region 属性
         private String _Name;
         /// <summary>名称</summary>
+        [XmlAttribute]
+        [DisplayName("编号")]
+        [Description("编号")]
         public String Name
         {
             get
@@ -27,6 +33,9 @@ namespace XCode.DataAccessLayer
 
         private Boolean _Unique;
         /// <summary>是否唯一</summary>
+        [XmlAttribute]
+        [DisplayName("唯一")]
+        [Description("唯一")]
         public Boolean Unique
         {
             get { return _Unique; }
@@ -35,6 +44,9 @@ namespace XCode.DataAccessLayer
 
         private Boolean _PrimaryKey;
         /// <summary>是否主键</summary>
+        [XmlAttribute]
+        [DisplayName("主键")]
+        [Description("主键")]
         public Boolean PrimaryKey
         {
             get { return _PrimaryKey; }
@@ -43,6 +55,9 @@ namespace XCode.DataAccessLayer
 
         private String[] _Columns;
         /// <summary>数据列集合</summary>
+        [XmlAttribute]
+        [DisplayName("数据列集合")]
+        [Description("数据列集合")]
         public String[] Columns
         {
             get { return _Columns; }

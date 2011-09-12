@@ -66,6 +66,7 @@ namespace XCode
         #region ICustomTypeDescriptor 成员
         AttributeCollection ICustomTypeDescriptor.GetAttributes()
         {
+            // 重载。从DescriptionAttribute和BindColumnAttribute中获取备注，创建DisplayNameAttribute特性
             AttributeCollection atts = TypeDescriptor.GetAttributes(this, true);
 
             if (atts != null && !ContainAttribute(atts, typeof(DisplayNameAttribute)))
@@ -159,7 +160,7 @@ namespace XCode
             IEntityOperate factory = EntityFactory.CreateOperate(type);
 
             // 准备字段集合
-            Dictionary<String, FieldItem> dic = new Dictionary<string, FieldItem>();
+            Dictionary<String, FieldItem> dic = new Dictionary<string, FieldItem>(StringComparer.OrdinalIgnoreCase);
             //factory.Fields.ForEach(item => dic.Add(item.Name, item));
             foreach (FieldItem item in factory.Fields)
             {

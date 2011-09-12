@@ -120,7 +120,7 @@ namespace XCode.Code
             list.Add(className);
 
             // 保存属性名，可能跟字段名不一致
-            Dictionary<String, String> fieldNames = new Dictionary<String, String>();
+            Dictionary<String, String> fieldNames = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
             foreach (IDataColumn item in tb.Columns)
             {
                 String name = item.Name;

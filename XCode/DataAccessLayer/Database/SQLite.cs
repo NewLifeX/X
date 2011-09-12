@@ -43,14 +43,14 @@ namespace XCode.DataAccessLayer
 
         static readonly String MemoryDatabase = ":memory:";
 
-        protected internal override string ResoleFile(string file)
+        protected override string ResoleFile(string file)
         {
             if (String.IsNullOrEmpty(file) || String.Equals(file, MemoryDatabase, StringComparison.OrdinalIgnoreCase)) return MemoryDatabase;
 
             return base.ResoleFile(file);
         }
 
-        protected internal override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
 
@@ -234,9 +234,9 @@ namespace XCode.DataAccessLayer
     class SQLiteMetaData : FileDbMetaData
     {
         #region 构架
-        public override List<IDataTable> GetTables()
+        protected override List<IDataTable> OnGetTables()
         {
-            DataTable dt = GetSchema("Tables", null);
+            DataTable dt = GetSchema(CollectionNames.Tables, null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
             // 默认列出所有字段
@@ -293,58 +293,58 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据定义
-        public override string AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
-        {
-            // SQLite的自增将会被识别为64位，而实际应用一般使用32位，不需要修改
-            if (field.DataType == typeof(Int32) && field.Identity &&
-                oldfield.DataType == typeof(Int64) && oldfield.Identity)
-                return String.Empty;
+        //public override string AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
+        //{
+        //    // SQLite的自增将会被识别为64位，而实际应用一般使用32位，不需要修改
+        //    if (field.DataType == typeof(Int32) && field.Identity &&
+        //        oldfield.DataType == typeof(Int64) && oldfield.Identity)
+        //        return String.Empty;
 
-            // 重新拿字段，得到最新的
-            List<IDataColumn> list = GetFields(field.Table);
-            Int32 n = -1;
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (list[i].Name == oldfield.Name)
-                {
-                    n = i;
-                    break;
-                }
-            }
-            if (n < 0) return null;
+        //    // 重新拿字段，得到最新的
+        //    List<IDataColumn> list = GetFields(field.Table);
+        //    Int32 n = -1;
+        //    for (int i = 0; i < list.Count; i++)
+        //    {
+        //        if (list[i].Name == oldfield.Name)
+        //        {
+        //            n = i;
+        //            break;
+        //        }
+        //    }
+        //    if (n < 0) return null;
 
-            IDataColumn[] oldColumns = list.ToArray();
-            list[n] = field;
-            IDataColumn[] newColumns = list.ToArray();
+        //    IDataColumn[] oldColumns = list.ToArray();
+        //    list[n] = field;
+        //    IDataColumn[] newColumns = list.ToArray();
 
-            return ReBuildTable(field.Table, newColumns, oldColumns);
-        }
+        //    return ReBuildTable(field.Table, newColumns, oldColumns);
+        //}
 
-        public override string DropColumnSQL(IDataColumn field)
-        {
-            IDataTable table = field.Table;
-            //List<IDataColumn> list = new List<IDataColumn>(table.Columns);
-            //if (list.Contains(field)) list.Remove(field);
+        //public override string DropColumnSQL(IDataColumn field)
+        //{
+        //    IDataTable table = field.Table;
+        //    //List<IDataColumn> list = new List<IDataColumn>(table.Columns);
+        //    //if (list.Contains(field)) list.Remove(field);
 
-            // 重新拿字段，得到最新的
-            List<IDataColumn> list = GetFields(table);
-            Int32 n = -1;
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (list[i].Name == field.Name)
-                {
-                    n = i;
-                    break;
-                }
-            }
-            if (n < 0) return null;
+        //    // 重新拿字段，得到最新的
+        //    List<IDataColumn> list = GetFields(table);
+        //    Int32 n = -1;
+        //    for (int i = 0; i < list.Count; i++)
+        //    {
+        //        if (list[i].Name == field.Name)
+        //        {
+        //            n = i;
+        //            break;
+        //        }
+        //    }
+        //    if (n < 0) return null;
 
-            IDataColumn[] oldColumns = list.ToArray();
-            list.RemoveAt(n);
-            IDataColumn[] newColumns = list.ToArray();
+        //    IDataColumn[] oldColumns = list.ToArray();
+        //    list.RemoveAt(n);
+        //    IDataColumn[] newColumns = list.ToArray();
 
-            return ReBuildTable(table, newColumns, oldColumns);
-        }
+        //    return ReBuildTable(table, newColumns, oldColumns);
+        //}
 
         /// <summary>
         /// 删除索引方法
@@ -356,92 +356,26 @@ namespace XCode.DataAccessLayer
             return String.Format("Drop Index {0}", FormatName(index.Name));
         }
 
-        String ReBuildTable(IDataTable table, IDataColumn[] newFields, IDataColumn[] oldFields)
+        protected override string CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, bool onlySql)
         {
-            // 通过重建表的方式修改字段
-            String tableName = table.Name;
-            String tempTableName = "Temp_" + tableName + "_" + new Random((Int32)DateTime.Now.Ticks).Next(0, 100).ToString("000");
-            tableName = FormatName(tableName);
-            tempTableName = FormatName(tempTableName);
+            String sql = base.CheckColumnsChange(entitytable, dbtable, onlySql);
+            if (String.IsNullOrEmpty(sql)) return sql;
 
-            // 每个分号后面故意加上空格，是为了让DbMetaData执行SQL时，不要按照分号加换行来拆分这个SQL语句
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("BEGIN TRANSACTION; ");
-            sb.AppendFormat("Alter Table {0} Rename To {1};", tableName, tempTableName);
-            sb.AppendLine("; ");
-            sb.Append(CreateTableSQL(table));
-            sb.AppendLine("; ");
+            return ReBuildTable(entitytable, dbtable);
+        }
 
-            // 如果指定了新列和旧列，则构建两个集合
-            if (newFields != null && newFields.Length > 0 && oldFields != null && oldFields.Length > 0)
+        protected override bool IsColumnChanged(IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
+        {
+            // SQLite的自增将会被识别为64位，而实际应用一般使用32位，不需要修改
+            if (entityColumn.DataType == typeof(Int32) && entityColumn.Identity &&
+                dbColumn.DataType == typeof(Int64) && dbColumn.Identity)
             {
-                StringBuilder sbName = new StringBuilder();
-                StringBuilder sbValue = new StringBuilder();
-                foreach (IDataColumn item in newFields)
-                {
-                    String name = item.Name;
-                    //IDataColumn field = oldFields.Find(f => f.Name == name);
-                    IDataColumn field = null;
-                    foreach (IDataColumn dc in oldFields)
-                    {
-                        if (dc.Name == name)
-                        {
-                            field = dc;
-                            break;
-                        }
-                    }
-                    if (field == null)
-                    {
-                        // 如果新增了不允许空的列，则处理一下默认值
-                        if (!item.Nullable)
-                        {
-                            if (item.DataType == typeof(String))
-                            {
-                                if (sbName.Length > 0) sbName.Append(", ");
-                                if (sbValue.Length > 0) sbValue.Append(", ");
-                                sbName.Append(FormatName(name));
-                                sbValue.Append("''");
-                            }
-                            else if (item.DataType == typeof(Int16) || item.DataType == typeof(Int32) || item.DataType == typeof(Int64) ||
-                                item.DataType == typeof(Single) || item.DataType == typeof(Double) || item.DataType == typeof(Decimal))
-                            {
-                                if (sbName.Length > 0) sbName.Append(", ");
-                                if (sbValue.Length > 0) sbValue.Append(", ");
-                                sbName.Append(FormatName(name));
-                                sbValue.Append("0");
-                            }
-                            else if (item.DataType == typeof(DateTime))
-                            {
-                                if (sbName.Length > 0) sbName.Append(", ");
-                                if (sbValue.Length > 0) sbValue.Append(", ");
-                                sbName.Append(FormatName(name));
-                                sbValue.Append(Database.FormatDateTime(Database.DateTimeMin));
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (sbName.Length > 0) sbName.Append(", ");
-                        if (sbValue.Length > 0) sbValue.Append(", ");
-                        sbName.Append(FormatName(name));
-                        sbValue.Append(FormatName(name));
-
-                        // 处理字符串不允许空
-                        if (item.DataType == typeof(String) && !item.Nullable) sbValue.Append("+''");
-                    }
-                }
-                sb.AppendFormat("Insert Into {0}({2}) Select {3} From {1}", tableName, tempTableName, sbName.ToString(), sbValue.ToString());
+                // 克隆一个，修改类型
+                entityColumn = entityColumn.Clone(entityColumn.Table);
+                entityColumn.DataType = typeof(Int64);
             }
-            else
-            {
-                sb.AppendFormat("Insert Into {0} Select * From {1}", tableName, tempTableName);
-            }
-            sb.AppendLine("; ");
-            sb.AppendFormat("Drop Table {0}", tempTableName);
-            sb.AppendLine("; ");
-            sb.Append("COMMIT;");
 
-            return sb.ToString();
+            return base.IsColumnChanged(entityColumn, dbColumn, entityDb);
         }
         #endregion
 

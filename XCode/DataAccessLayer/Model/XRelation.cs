@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Xml.Serialization;
+using System.ComponentModel;
 
 namespace XCode.DataAccessLayer
 {
@@ -9,12 +10,17 @@ namespace XCode.DataAccessLayer
     /// 数据关系
     /// </summary>
     [Serializable]
+    [DisplayName("关系模型")]
+    [Description("关系模型")]
     [XmlRoot("Relation")]
     class XRelation : SerializableDataMember, IDataRelation, ICloneable
     {
         #region 属性
         private String _Column;
         /// <summary>数据列</summary>
+        [XmlAttribute]
+        [DisplayName("数据列")]
+        [Description("数据列")]
         public String Column
         {
             get { return _Column; }
@@ -23,6 +29,9 @@ namespace XCode.DataAccessLayer
 
         private String _RelationTable;
         /// <summary>引用表</summary>
+        [XmlAttribute]
+        [DisplayName("引用表")]
+        [Description("引用表")]
         public String RelationTable
         {
             get { return _RelationTable; }
@@ -31,6 +40,9 @@ namespace XCode.DataAccessLayer
 
         private String _RelationColumn;
         /// <summary>引用列</summary>
+        [XmlAttribute]
+        [DisplayName("引用列")]
+        [Description("引用列")]
         public String RelationColumn
         {
             get { return _RelationColumn; }
@@ -39,6 +51,9 @@ namespace XCode.DataAccessLayer
 
         private Boolean _Unique;
         /// <summary>是否唯一</summary>
+        [XmlAttribute]
+        [DisplayName("唯一")]
+        [Description("唯一")]
         public Boolean Unique
         {
             get { return _Unique; }

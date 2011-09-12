@@ -208,9 +208,9 @@ namespace XCode.DataAccessLayer
     class AccessMetaData : FileDbMetaData
     {
         #region 构架
-        public override List<IDataTable> GetTables()
+        protected override List<IDataTable> OnGetTables()
         {
-            DataTable dt = GetSchema("Tables", null);
+            DataTable dt = GetSchema(CollectionNames.Tables, null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
             // 默认列出所有字段
@@ -223,7 +223,7 @@ namespace XCode.DataAccessLayer
             List<IDataColumn> list = base.GetFields(xt);
             if (list == null || list.Count < 1) return null;
 
-            Dictionary<String, IDataColumn> dic = new Dictionary<String, IDataColumn>();
+            Dictionary<String, IDataColumn> dic = new Dictionary<String, IDataColumn>(StringComparer.OrdinalIgnoreCase);
             foreach (IDataColumn xf in list)
             {
                 dic.Add(xf.Name, xf);
@@ -300,27 +300,6 @@ namespace XCode.DataAccessLayer
             String typeName = null;
             if (TryGetDataRowValue<String>(drDataType, "TypeName", out typeName)) field.RawType = typeName;
         }
-
-        //protected override Dictionary<DataRow, String> GetPrimaryKeys(string tableName)
-        //{
-        //    Dictionary<DataRow, String> pks = base.GetPrimaryKeys(tableName);
-        //    if (pks == null || pks.Count < 1) return null;
-        //    if (pks.Count == 1) return pks;
-
-        //    // 避免把索引错当成主键
-        //    List<DataRow> list = new List<DataRow>();
-        //    foreach (DataRow item in pks.Keys)
-        //    {
-        //        if (!GetDataRowValue<Boolean>(item, "PRIMARY_KEY")) list.Add(item);
-        //    }
-        //    if (list.Count == pks.Count) return pks;
-
-        //    foreach (DataRow item in list)
-        //    {
-        //        pks.Remove(item);
-        //    }
-        //    return pks;
-        //}
 
         protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
@@ -698,17 +677,17 @@ namespace XCode.DataAccessLayer
             {
                 if (_Columns == null)
                 {
-                    Dictionary<String, DAO.Field> dic = new Dictionary<string, DAO.Field>();
-                    foreach (DAO.Field item in TableDef.Fields)
-                    {
-                        dic.Add(item.Name, item);
-                    }
+                    //Dictionary<String, DAO.Field> dic = new Dictionary<string, DAO.Field>();
+                    //foreach (DAO.Field item in TableDef.Fields)
+                    //{
+                    //    dic.Add(item.Name, item);
+                    //}
 
                     _Columns = new List<ADOColumn>();
                     foreach (Column item in Table.Columns)
                     {
-                        _Columns.Add(new ADOColumn(this, item, dic[item.Name]));
-                        //_Columns.Add(new ADOColumn(this, item));
+                        //_Columns.Add(new ADOColumn(this, item, dic[item.Name]));
+                        _Columns.Add(new ADOColumn(this, item));
                     }
                 }
                 return _Columns;
@@ -843,13 +822,13 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region DAO属性
-        private DAO.Field _Field;
-        /// <summary>字段</summary>
-        public DAO.Field Field
-        {
-            get { return _Field; }
-            set { _Field = value; }
-        }
+        //private DAO.Field _Field;
+        ///// <summary>字段</summary>
+        //public DAO.Field Field
+        //{
+        //    get { return _Field; }
+        //    set { _Field = value; }
+        //}
         #endregion
 
         #region 扩展属性
@@ -952,11 +931,11 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 构造
-        public ADOColumn(ADOTabe table, Column column, DAO.Field field)
+        public ADOColumn(ADOTabe table, Column column/*, DAO.Field field*/)
         {
             Table = table;
             Column = column;
-            Field = field;
+            //Field = field;
         }
 
         protected override void OnDispose(bool disposing)

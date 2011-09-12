@@ -909,7 +909,7 @@ namespace XCode
 
             if (names.Length != values.Length) throw new ArgumentException("属性列表必须和值列表一一对应");
             //FieldItem[] fis = Meta.Fields;
-            Dictionary<String, FieldItem> fs = new Dictionary<String, FieldItem>();
+            Dictionary<String, FieldItem> fs = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
             foreach (FieldItem fi in Meta.Fields)
                 fs.Add(fi.Name, fi);
             StringBuilder sbn = new StringBuilder();

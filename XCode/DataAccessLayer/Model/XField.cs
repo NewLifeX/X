@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Xml;
 using System.Xml.Serialization;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -9,6 +10,8 @@ namespace XCode.DataAccessLayer
     /// 字段构架
     /// </summary>
     [Serializable]
+    [DisplayName("字段模型")]
+    [Description("字段模型")]
     [XmlRoot("Column")]
     class XField : SerializableDataMember, IDataColumn, ICloneable
     {
@@ -18,6 +21,7 @@ namespace XCode.DataAccessLayer
         /// 顺序编号
         /// </summary>
         [XmlAttribute]
+        [DisplayName("编号")]
         [Description("编号")]
         public Int32 ID { get { return _ID; } set { _ID = value; } }
 
@@ -26,6 +30,7 @@ namespace XCode.DataAccessLayer
         /// 名称
         /// </summary>
         [XmlAttribute]
+        [DisplayName("名称")]
         [Description("名称")]
         public String Name { get { return _Name; } set { _Name = value; _Alias = null; } }
 
@@ -34,6 +39,7 @@ namespace XCode.DataAccessLayer
         /// 别名
         /// </summary>
         [XmlAttribute]
+        [DisplayName("别名")]
         [Description("别名")]
         public String Alias { get { return _Alias ?? (_Alias = ModelHelper.GetAlias(Name)); } set { _Alias = value; } }
 
@@ -42,6 +48,7 @@ namespace XCode.DataAccessLayer
         /// 数据类型
         /// </summary>
         [XmlAttribute]
+        [DisplayName("数据类型")]
         [Description("数据类型")]
         public Type DataType { get { return _DataType; } set { _DataType = value; } }
 
@@ -49,15 +56,17 @@ namespace XCode.DataAccessLayer
         /// 字段类型
         /// </summary>
         [XmlIgnore]
+        [DisplayName("字段类型")]
         [Description("字段类型")]
-        public String FieldType { get { return DataType == null ? null : DataType.Name; } }
+        public String FieldType { get { return DataType == null ? null : DataType.Name; } set { _DataType = TypeX.GetType(value); } }
 
         private String _RawType;
         /// <summary>
         /// 原始数据类型
         /// </summary>
         [XmlAttribute]
-        [Description("原始数据类型")]
+        [DisplayName("原始类型")]
+        [Description("原始类型")]
         public String RawType { get { return _RawType; } set { _RawType = value; } }
 
         private Boolean _Identity;
@@ -65,6 +74,7 @@ namespace XCode.DataAccessLayer
         /// 标识
         /// </summary>
         [XmlAttribute]
+        [DisplayName("标识")]
         [Description("标识")]
         public Boolean Identity { get { return _Identity; } set { _Identity = value; } }
 
@@ -73,6 +83,7 @@ namespace XCode.DataAccessLayer
         /// 主键
         /// </summary>
         [XmlAttribute]
+        [DisplayName("主键")]
         [Description("主键")]
         public Boolean PrimaryKey { get { return _PrimaryKey; } set { _PrimaryKey = value; } }
 
@@ -81,6 +92,7 @@ namespace XCode.DataAccessLayer
         /// 长度
         /// </summary>
         [XmlAttribute]
+        [DisplayName("长度")]
         [Description("长度")]
         public Int32 Length { get { return _Length; } set { _Length = value; } }
 
@@ -89,6 +101,7 @@ namespace XCode.DataAccessLayer
         /// 字节数
         /// </summary>
         [XmlAttribute]
+        [DisplayName("字节数")]
         [Description("字节数")]
         public Int32 NumOfByte { get { return _NumOfByte; } set { _NumOfByte = value; } }
 
@@ -97,6 +110,7 @@ namespace XCode.DataAccessLayer
         /// 精度
         /// </summary>
         [XmlAttribute]
+        [DisplayName("精度")]
         [Description("精度")]
         public Int32 Precision { get { return _Precision; } set { _Precision = value; } }
 
@@ -105,6 +119,7 @@ namespace XCode.DataAccessLayer
         /// 位数
         /// </summary>
         [XmlAttribute]
+        [DisplayName("位数")]
         [Description("位数")]
         public Int32 Scale { get { return _Scale; } set { _Scale = value; } }
 
@@ -113,6 +128,7 @@ namespace XCode.DataAccessLayer
         /// 允许空
         /// </summary>
         [XmlAttribute]
+        [DisplayName("允许空")]
         [Description("允许空")]
         public Boolean Nullable { get { return _Nullable; } set { _Nullable = value; } }
 
@@ -121,7 +137,8 @@ namespace XCode.DataAccessLayer
         /// 是否Unicode
         /// </summary>
         [XmlAttribute]
-        [Description("是否Unicode")]
+        [DisplayName("Unicode")]
+        [Description("Unicode")]
         public Boolean IsUnicode { get { return _IsUnicode; } set { _IsUnicode = value; } }
 
         private String _Default;
@@ -129,6 +146,7 @@ namespace XCode.DataAccessLayer
         /// 默认值
         /// </summary>
         [XmlAttribute]
+        [DisplayName("默认值")]
         [Description("默认值")]
         public String Default { get { return _Default; } set { _Default = value; } }
 
@@ -137,6 +155,7 @@ namespace XCode.DataAccessLayer
         /// 说明
         /// </summary>
         [XmlAttribute]
+        [DisplayName("说明")]
         [Description("说明")]
         public String Description { get { return _Description; } set { _Description = value; } }
         #endregion

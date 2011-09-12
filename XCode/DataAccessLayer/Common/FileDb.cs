@@ -11,48 +11,7 @@ namespace XCode.DataAccessLayer
     abstract class FileDbBase : DbBase
     {
         #region 属性
-        ///// <summary>链接字符串</summary>
-        //public override string ConnectionString
-        //{
-        //    get
-        //    {
-        //        return base.ConnectionString;
-        //    }
-        //    set
-        //    {
-        //        try
-        //        {
-        //            OleDbConnectionStringBuilder csb = new OleDbConnectionStringBuilder(value);
-        //            // 不是绝对路径
-        //            if (!String.IsNullOrEmpty(csb.DataSource) && csb.DataSource.Length > 1 && csb.DataSource.Substring(1, 1) != ":")
-        //            {
-        //                String mdbPath = csb.DataSource;
-        //                if (mdbPath.StartsWith("~/") || mdbPath.StartsWith("~\\"))
-        //                {
-        //                    mdbPath = mdbPath.Replace("/", "\\").Replace("~\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-        //                }
-        //                else if (mdbPath.StartsWith("./") || mdbPath.StartsWith(".\\"))
-        //                {
-        //                    mdbPath = mdbPath.Replace("/", "\\").Replace(".\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-        //                }
-        //                else
-        //                {
-        //                    mdbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, mdbPath.Replace("/", "\\"));
-        //                }
-        //                csb.DataSource = mdbPath;
-        //                FileName = mdbPath;
-        //                value = csb.ConnectionString;
-        //            }
-        //        }
-        //        catch (DbException ex)
-        //        {
-        //            throw new XDbException(this, "分析OLEDB连接字符串时出错", ex);
-        //        }
-        //        base.ConnectionString = value;
-        //    }
-        //}
-
-        protected internal override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
 
@@ -65,7 +24,7 @@ namespace XCode.DataAccessLayer
             FileName = file;
         }
 
-        protected internal virtual String ResoleFile(String file)
+        protected virtual String ResoleFile(String file)
         {
             if (String.IsNullOrEmpty(file)) return file;
 

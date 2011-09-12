@@ -47,49 +47,7 @@ namespace XCode.DataAccessLayer
             get { return dbProviderFactory; }
         }
 
-        ///// <summary>链接字符串</summary>
-        //public override string ConnectionString
-        //{
-        //    get
-        //    {
-        //        return base.ConnectionString;
-        //    }
-        //    set
-        //    {
-        //        try
-        //        {
-        //            DbConnectionStringBuilder csb = new DbConnectionStringBuilder(false);
-        //            csb.ConnectionString = value;
-        //            // 不是绝对路径
-        //            String mdbPath = (String)csb["Server"];
-        //            if (!String.IsNullOrEmpty(mdbPath) && mdbPath.Length > 1 && mdbPath.Substring(1, 1) != ":")
-        //            {
-        //                if (mdbPath.StartsWith("~/") || mdbPath.StartsWith("~\\"))
-        //                {
-        //                    mdbPath = mdbPath.Replace("/", "\\").Replace("~\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-        //                }
-        //                else if (mdbPath.StartsWith("./") || mdbPath.StartsWith(".\\"))
-        //                {
-        //                    mdbPath = mdbPath.Replace("/", "\\").Replace(".\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-        //                }
-        //                else
-        //                {
-        //                    mdbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, mdbPath.Replace("/", "\\"));
-        //                }
-        //                csb["Server"] = mdbPath;
-        //                FileName = mdbPath;
-        //                value = csb.ConnectionString;
-        //            }
-        //        }
-        //        catch (DbException ex)
-        //        {
-        //            throw new XDbException(this, "分析OLEDB连接字符串时出错", ex);
-        //        }
-        //        base.ConnectionString = value;
-        //    }
-        //}
-
-        protected internal override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
 
@@ -281,14 +239,14 @@ namespace XCode.DataAccessLayer
         /// 取得所有表构架
         /// </summary>
         /// <returns></returns>
-        public override List<IDataTable> GetTables()
+        protected override List<IDataTable> OnGetTables()
         {
             try
             {
                 //- 不要空，否则会死得很惨，列表所有数据表，实在太多了
                 //if (String.Equals(user, "system")) user = null;
 
-                DataTable dt = GetSchema("Tables", new String[] { null, null, null, "TABLE" });
+                DataTable dt = GetSchema(CollectionNames.Tables, new String[] { null, null, null, "TABLE" });
 
                 // 默认列出所有字段
                 DataRow[] rows = new DataRow[dt.Rows.Count];

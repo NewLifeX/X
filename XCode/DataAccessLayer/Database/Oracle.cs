@@ -307,14 +307,14 @@ namespace XCode.DataAccessLayer
         /// 取得所有表构架
         /// </summary>
         /// <returns></returns>
-        public override List<IDataTable> GetTables()
+        protected override List<IDataTable> OnGetTables()
         {
             try
             {
                 //- 不要空，否则会死得很惨，列表所有数据表，实在太多了
                 //if (String.Equals(user, "system")) user = null;
 
-                DataTable dt = GetSchema("Tables", new String[] { Owner });
+                DataTable dt = GetSchema(CollectionNames.Tables, new String[] { Owner });
 
                 // 默认列出所有字段
                 DataRow[] rows = new DataRow[dt.Rows.Count];
@@ -442,7 +442,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected override List<IDataColumn> GetFields(IDataTable table)
         {
-            DataTable dt = GetSchema("Columns", new String[] { Owner, table.Name, null });
+            DataTable dt = GetSchema(CollectionNames.Columns, new String[] { Owner, table.Name, null });
 
             DataRow[] drs = null;
             if (dt.Columns.Contains("ID"))

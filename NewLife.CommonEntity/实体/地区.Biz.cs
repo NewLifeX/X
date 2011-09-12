@@ -10,6 +10,7 @@ namespace NewLife.CommonEntity
     [BindIndex("IX_Area_Code", true, "Code")]
     [BindIndex("IX_Area_Name", false, "Name")]
     [BindIndex("PK_Area_ID", true, "ID")]
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public partial class Area<TEntity> : EntityTree<TEntity> where TEntity : Area<TEntity>, new()
     {
         #region 扩展属性

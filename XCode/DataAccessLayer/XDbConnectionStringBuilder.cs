@@ -10,10 +10,10 @@ namespace XCode.DataAccessLayer
     /// 连接字符串构造器
     /// </summary>
     /// <remarks>未稳定，仅供XCode内部使用，不建议外部使用</remarks>
-    public class XDbConnectionStringBuilder : StringDictionary
+    class XDbConnectionStringBuilder : StringDictionary
     {
         #region 属性
-        private Dictionary<String, String> _Keys = new Dictionary<string, string>();
+        private Dictionary<String, String> _Keys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         /// <summary>
         /// 已重载。
         /// </summary>

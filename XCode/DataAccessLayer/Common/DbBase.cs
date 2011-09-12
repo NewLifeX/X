@@ -104,7 +104,7 @@ namespace XCode.DataAccessLayer
         /// 设置连接字符串时允许从中取值或修改，基类用于读取拥有者Owner，子类重写时应调用基类
         /// </summary>
         /// <param name="builder"></param>
-        internal protected virtual void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected virtual void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             String value;
             if (builder.TryGetAndRemove(KEY_OWNER, out value) && !String.IsNullOrEmpty(value)) Owner = value;

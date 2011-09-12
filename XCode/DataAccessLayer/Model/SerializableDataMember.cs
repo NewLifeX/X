@@ -1,22 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml.Serialization;
-using System.Xml.Schema;
-using System.Xml;
-using NewLife.Reflection;
-using NewLife.Collections;
-using NewLife.Serialization;
-using NewLife.Xml;
-using System.Reflection;
 using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Text;
+using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
+using NewLife.Collections;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
     /// <summary>
     /// 可序列化数据成员
     /// </summary>
-    public abstract class SerializableDataMember : IXmlSerializable
+    abstract class SerializableDataMember : IXmlSerializable
     {
         #region IXmlSerializable 成员
         XmlSchema IXmlSerializable.GetSchema()

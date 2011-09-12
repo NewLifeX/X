@@ -6,7 +6,6 @@
 */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Web;
@@ -19,6 +18,7 @@ namespace NewLife.CommonEntity
     /// <summary>
     /// 附件
     /// </summary>
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class Attachment : Attachment<Attachment, Statistics> { }
 
     /// <summary>

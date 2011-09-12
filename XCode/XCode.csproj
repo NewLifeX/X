@@ -81,6 +81,7 @@
     <Compile Include="Attributes\BindIndexAttribute.cs" />
     <Compile Include="Attributes\BindTableAttribute.cs" />
     <Compile Include="Attributes\BindRelationAttribute.cs" />
+    <Compile Include="Attributes\ModelCheckModeAttribute.cs" />
     <Compile Include="Cache\IEntityCache.cs" />
     <Compile Include="Code\EntityAssembly.cs" />
     <Compile Include="Code\EntityClass.cs" />
@@ -92,6 +93,8 @@
     <Compile Include="DataAccessLayer\Common\DatabaseType.cs" />
     <Compile Include="DataAccessLayer\Common\FileDb.cs" />
     <Compile Include="DataAccessLayer\Common\RemoteDb.cs" />
+    <Compile Include="DataAccessLayer\DAL_DbOperate.cs" />
+    <Compile Include="DataAccessLayer\DAL_Setting.cs" />
     <Compile Include="DataAccessLayer\Database\Distributed.cs" />
     <Compile Include="DataAccessLayer\Database\Firebird.cs" />
     <Compile Include="DataAccessLayer\Database\Network.cs" />
@@ -100,6 +103,8 @@
     <Compile Include="DataAccessLayer\Common\DbBase.cs" />
     <Compile Include="DataAccessLayer\Common\DbFactory.cs" />
     <Compile Include="DataAccessLayer\Common\IDatabase.cs" />
+    <Compile Include="DataAccessLayer\MetaData\DbMetaData_Negative.cs" />
+    <Compile Include="DataAccessLayer\MetaData\DbMetaData_Positive.cs" />
     <Compile Include="DataAccessLayer\ModelHelper.cs" />
     <Compile Include="DataAccessLayer\Model\IDataColumn.cs" />
     <Compile Include="DataAccessLayer\Model\IDataRelation.cs" />
@@ -187,6 +192,7 @@
       <Lcid>0</Lcid>
       <WrapperTool>tlbimp</WrapperTool>
       <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
     <COMReference Include="DAO">
       <Guid>{00025E01-0000-0000-C000-000000000046}</Guid>

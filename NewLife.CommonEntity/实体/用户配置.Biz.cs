@@ -5,12 +5,8 @@
  * 版权：版权所有 (C) 新生命开发团队 2010
 */
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
-using System.Xml.Serialization;
 using XCode;
-using XCode.Configuration;
 
 namespace NewLife.CommonEntity
 {
@@ -23,8 +19,9 @@ namespace NewLife.CommonEntity
     [BindIndex("IX_UserProfile_UserID", false, "UserID")]
     [BindIndex("IX_UserProfile_UserID_Name", true, "Name,UserID")]
     [BindIndex("PK_UserProfile_ID", true, "ID")]
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public partial class UserProfile<TEntity> : Entity<TEntity> where TEntity : UserProfile<TEntity>, new()
-	{
+    {
         #region 扩展属性
         #endregion
 
@@ -213,5 +210,5 @@ namespace NewLife.CommonEntity
 
         #region 业务
         #endregion
-	}
+    }
 }

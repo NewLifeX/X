@@ -6,17 +6,16 @@
 */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
-using XCode;
 using System.Web;
+using XCode;
 
 namespace NewLife.CommonEntity
 {
     /// <summary>
     /// 统计
     /// </summary>
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class Statistics : Statistics<Statistics> { }
 
     /// <summary>

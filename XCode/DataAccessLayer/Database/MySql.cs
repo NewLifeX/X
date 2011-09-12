@@ -46,7 +46,7 @@ namespace XCode.DataAccessLayer
         }
 
         const String Server_Key = "Server";
-        protected internal override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
 
@@ -361,7 +361,7 @@ namespace XCode.DataAccessLayer
             {
                 IDbSession session = Database.CreateSession();
 
-                DataTable dt = GetSchema("Databases", new String[] { values != null && values.Length > 0 ? (String)values[0] : session.DatabaseName });
+                DataTable dt = GetSchema(CollectionNames.Databases, new String[] { values != null && values.Length > 0 ? (String)values[0] : session.DatabaseName });
                 if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
                 return true;
             }

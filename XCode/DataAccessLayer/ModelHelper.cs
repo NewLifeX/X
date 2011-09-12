@@ -276,6 +276,7 @@ namespace XCode.DataAccessLayer
             }
             return list.ToArray();
         }
+
         #region 辅助
         /// <summary>
         /// 获取别名
@@ -348,7 +349,7 @@ namespace XCode.DataAccessLayer
             {
                 name = name.ToLower();
                 Char c = name[0];
-                c = (Char)(c - 'a' + 'A');
+                if (c >= 'a' && c <= 'z') c = (Char)(c - 'a' + 'A');
                 name = c + name.Substring(1);
             }
 

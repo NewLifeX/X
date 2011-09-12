@@ -10,17 +10,31 @@ namespace XCode.Common
     /// <typeparam name="T"></typeparam>
     class HashSet<T> : ICollection<T>
     {
+        #region 初始化
         Dictionary<T, T> _dic;
 
-        public HashSet() { }
+        public HashSet() : this(null, null) { }
 
-        public HashSet(IEqualityComparer<T> comparer)
+        public HashSet(IEqualityComparer<T> comparer) : this(comparer, null) { }
+
+        public HashSet(IEnumerable data) : this(null, data) { }
+
+        public HashSet(IEqualityComparer<T> comparer, IEnumerable data)
         {
             if (comparer == null)
                 _dic = new Dictionary<T, T>();
             else
                 _dic = new Dictionary<T, T>(comparer);
+
+            if (data != null)
+            {
+                foreach (T item in data)
+                {
+                    _dic.Add(item, item);
+                }
+            }
         }
+        #endregion
 
         #region ICollection<T> 成员
         public void Add(T item)
