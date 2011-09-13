@@ -1,4 +1,6 @@
 ﻿<#
+String myClassName=Config.RenderGenEntity?"TEntity":Table.Alias;
+
 // 这里是FindByKeyForEdit，用C#代码拼好了再输出，那样好看点
 if(Table.PrimaryKeys!=null&&Table.PrimaryKeys.Length>0)
 {
@@ -29,12 +31,12 @@ if(Table.PrimaryKeys!=null&&Table.PrimaryKeys.Length>0)
         }#>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static <#=Table.Alias#> FindByKeyForEdit(<#=sb1#>)
+        public static <#=myClassName#> FindByKeyForEdit(<#=sb1#>)
         {
-            <#=Table.Alias#> entity = Find(new String[] { <#=sb2#> }, new Object[] { <#=sb3#> });
+            <#=myClassName#> entity = Find(new String[] { <#=sb2#> }, new Object[] { <#=sb3#> });
             if (entity == null)
             {
-                entity = new <#=Table.Alias#>();
+                entity = new <#=myClassName#>();
             }
             return entity;
         }
@@ -48,11 +50,11 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
 
         IDataColumn[] columns=Table.GetColumns(di.Columns);
 
-        String returnType=Table.Alias;
+        String returnType=myClassName;
         String action="Find";
         String IsAll=String.Empty;
         if (!di.Unique){
-            returnType=String.Format("EntityList<{0}>",Table.Alias);
+            returnType=String.Format("EntityList<{0}>",myClassName);
             IsAll="All";
             action="FindAll";
         }

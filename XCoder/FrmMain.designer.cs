@@ -35,6 +35,7 @@
             this.cbConn = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.gbTable = new System.Windows.Forms.GroupBox();
+            this.btnExportModel = new System.Windows.Forms.Button();
             this.btnShowMetaData = new System.Windows.Forms.Button();
             this.btnShowSchema = new System.Windows.Forms.Button();
             this.bt_GenAll = new System.Windows.Forms.Button();
@@ -49,6 +50,8 @@
             this.bw = new System.ComponentModel.BackgroundWorker();
             this.gbConfig = new System.Windows.Forms.GroupBox();
             this.btnRelease = new System.Windows.Forms.Button();
+            this.label3 = new System.Windows.Forms.Label();
+            this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.txtBaseClass = new System.Windows.Forms.TextBox();
             this.label10 = new System.Windows.Forms.Label();
             this.btnOpenOutputDir = new System.Windows.Forms.Button();
@@ -71,8 +74,6 @@
             this.cb_Template = new System.Windows.Forms.ComboBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.btnImport = new System.Windows.Forms.Button();
-            this.linkLabel1 = new System.Windows.Forms.LinkLabel();
-            this.label3 = new System.Windows.Forms.Label();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.timer2 = new System.Windows.Forms.Timer(this.components);
@@ -80,7 +81,7 @@
             this.label9 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
-            this.btnExportModel = new System.Windows.Forms.Button();
+            this.cbRenderGenEntity = new System.Windows.Forms.CheckBox();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -142,6 +143,16 @@
             this.gbTable.Size = new System.Drawing.Size(725, 49);
             this.gbTable.TabIndex = 14;
             this.gbTable.TabStop = false;
+            // 
+            // btnExportModel
+            // 
+            this.btnExportModel.Location = new System.Drawing.Point(540, 20);
+            this.btnExportModel.Name = "btnExportModel";
+            this.btnExportModel.Size = new System.Drawing.Size(76, 23);
+            this.btnExportModel.TabIndex = 25;
+            this.btnExportModel.Text = "导出模型";
+            this.btnExportModel.UseVisualStyleBackColor = true;
+            this.btnExportModel.Click += new System.EventHandler(this.btnExportModel_Click);
             // 
             // btnShowMetaData
             // 
@@ -254,6 +265,7 @@
             // 
             // gbConfig
             // 
+            this.gbConfig.Controls.Add(this.cbRenderGenEntity);
             this.gbConfig.Controls.Add(this.btnRelease);
             this.gbConfig.Controls.Add(this.label3);
             this.gbConfig.Controls.Add(this.linkLabel1);
@@ -293,6 +305,27 @@
             this.toolTip1.SetToolTip(this.btnRelease, "释放内置的模版到Template目录，作为参考供建立模版使用。");
             this.btnRelease.UseVisualStyleBackColor = true;
             this.btnRelease.Click += new System.EventHandler(this.btnRelease_Click);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(19, 228);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(149, 12);
+            this.label3.TabIndex = 29;
+            this.label3.Text = ".Net技术交流群：10193406";
+            this.label3.Click += new System.EventHandler(this.label3_Click);
+            // 
+            // linkLabel1
+            // 
+            this.linkLabel1.AutoSize = true;
+            this.linkLabel1.Location = new System.Drawing.Point(19, 248);
+            this.linkLabel1.Name = "linkLabel1";
+            this.linkLabel1.Size = new System.Drawing.Size(143, 12);
+            this.linkLabel1.TabIndex = 28;
+            this.linkLabel1.TabStop = true;
+            this.linkLabel1.Text = "http://nnhy.cnblogs.com";
+            this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
             // 
             // txtBaseClass
             // 
@@ -490,27 +523,6 @@
             this.btnImport.UseVisualStyleBackColor = true;
             this.btnImport.Click += new System.EventHandler(this.btnImport_Click);
             // 
-            // linkLabel1
-            // 
-            this.linkLabel1.AutoSize = true;
-            this.linkLabel1.Location = new System.Drawing.Point(19, 248);
-            this.linkLabel1.Name = "linkLabel1";
-            this.linkLabel1.Size = new System.Drawing.Size(143, 12);
-            this.linkLabel1.TabIndex = 28;
-            this.linkLabel1.TabStop = true;
-            this.linkLabel1.Text = "http://nnhy.cnblogs.com";
-            this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(19, 228);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(149, 12);
-            this.label3.TabIndex = 29;
-            this.label3.Text = ".Net技术交流群：10193406";
-            this.label3.Click += new System.EventHandler(this.label3_Click);
-            // 
             // openFileDialog1
             // 
             this.openFileDialog1.Filter = "架构文件|*.xml";
@@ -558,15 +570,15 @@
             this.label12.TabIndex = 34;
             this.label12.Text = "1，连接数据库，得到数据表信息";
             // 
-            // btnExportModel
+            // cbRenderGenEntity
             // 
-            this.btnExportModel.Location = new System.Drawing.Point(540, 20);
-            this.btnExportModel.Name = "btnExportModel";
-            this.btnExportModel.Size = new System.Drawing.Size(76, 23);
-            this.btnExportModel.TabIndex = 25;
-            this.btnExportModel.Text = "导出模型";
-            this.btnExportModel.UseVisualStyleBackColor = true;
-            this.btnExportModel.Click += new System.EventHandler(this.btnExportModel_Click);
+            this.cbRenderGenEntity.AutoSize = true;
+            this.cbRenderGenEntity.Location = new System.Drawing.Point(178, 46);
+            this.cbRenderGenEntity.Name = "cbRenderGenEntity";
+            this.cbRenderGenEntity.Size = new System.Drawing.Size(108, 16);
+            this.cbRenderGenEntity.TabIndex = 49;
+            this.cbRenderGenEntity.Text = "生成泛型实体类";
+            this.cbRenderGenEntity.UseVisualStyleBackColor = true;
             // 
             // FrmMain
             // 
@@ -658,6 +670,7 @@
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Button btnExportModel;
+        private System.Windows.Forms.CheckBox cbRenderGenEntity;
 	}
 }
 

@@ -16,8 +16,12 @@ foreach(IDataIndex di in Table.Indexes){if(di.Columns==null||di.Columns.Length<1
 }
 foreach(IDataRelation dr in Table.Relations){#>
     [BindRelation("<#=dr.Column#>", <#=dr.Unique.ToString().ToLower()#>, "<#=dr.RelationTable#>", "<#=dr.RelationColumn#>")]<#}#>
-    [BindTable("<#=Table.Name#>", Description = "<#=Table.Description#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#>)]
+    [BindTable("<#=Table.Name#>", Description = "<#=Table.Description#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#>)]<#
+if(!Config.RenderGenEntity){#>
     public partial class <#=Table.Alias#> : I<#=Table.Alias#>
+    <#}else{#>
+    public partial class <#=Table.Alias#><TEntity> : I<#=Table.Alias#><#
+    }#>
     {
         #region 属性<#
         foreach(IDataColumn Field in Table.Columns)
@@ -28,7 +32,7 @@ foreach(IDataRelation dr in Table.Relations){#>
         [DisplayName("<#=Field.Description#>")]
         [Description("<#=Field.Description#>")]
         [DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
-        [BindColumn(<#=Field.ID#>, "<#=Field.Name#>", "<#=Field.Description#>", "<#=Field.Default#>", "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
+        [BindColumn(<#=Field.ID#>, "<#=Field.Name#>", "<#=Field.Description#>", <#=Field.Default==null?"null":"\""+Field.Default+"\""#>, "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
         public <#=Field.DataType.Name#> <#=Field.Alias#>
         {
             get { return _<#=Field.Alias#>; }

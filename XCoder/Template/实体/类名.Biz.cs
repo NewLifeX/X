@@ -7,9 +7,17 @@ using XCode;
 using XCode.Configuration;
 
 namespace <#=Config.NameSpace#>
-{
+{<#if(Config.RenderGenEntity){#>
     /// <summary><#=Table.Description#></summary>
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
+    public class <#=Table.Alias#> : <#=Table.Alias#><<#=Table.Alias#>> { }
+<#}#>
+    /// <summary><#=Table.Description#></summary><#
+if(!Config.RenderGenEntity){#>
     public partial class <#=Table.Alias#> : <#=Config.BaseClass#><<#=Table.Alias#>>
+    <#}else{#>
+    public partial class <#=Table.Alias#><TEntity> : <#=Config.BaseClass#><TEntity> where TEntity : <#=Table.Alias#><TEntity>, new()<#
+    }#>
     {
         #region 扩展属性<#@include Name="扩展属性.xt"#>
         #endregion
@@ -32,7 +40,7 @@ namespace <#=Config.NameSpace#>
         ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
         ///// <returns>实体集</returns>
         //[DataObjectMethod(DataObjectMethodType.Select, true)]
-        //public static EntityList<<#=Table.Alias#>> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        //public static EntityList<<#=Config.RenderGenEntity?"TEntity":Table.Alias#>> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         //{
         //    return FindAll(SearchWhere(key), orderClause, null, startRowIndex, maximumRows);
         //}

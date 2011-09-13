@@ -452,6 +452,7 @@ namespace XCoder
             txt_NameSpace.Text = Config.NameSpace;
             txt_ConnName.Text = Config.EntityConnName;
             txtBaseClass.Text = Config.BaseClass;
+            cbRenderGenEntity.Checked = Config.RenderGenEntity;
             txtPrefix.Text = Config.Prefix;
             checkBox1.Checked = Config.AutoCutPrefix;
             checkBox2.Checked = Config.AutoFixWord;
@@ -476,6 +477,7 @@ namespace XCoder
             Config.NameSpace = txt_NameSpace.Text;
             Config.EntityConnName = txt_ConnName.Text;
             Config.BaseClass = txtBaseClass.Text;
+            Config.RenderGenEntity = cbRenderGenEntity.Checked;
             Config.Prefix = txtPrefix.Text;
             Config.AutoCutPrefix = checkBox1.Checked;
             Config.AutoFixWord = checkBox2.Checked;

@@ -72,6 +72,14 @@ namespace XCoder
             set { _BaseClass = value; }
         }
 
+        private Boolean _RenderGenEntity;
+        /// <summary>生成泛型实体类</summary>
+        public Boolean RenderGenEntity
+        {
+            get { return _RenderGenEntity; }
+            set { _RenderGenEntity = value; }
+        }
+
         private Boolean _AutoCutPrefix;
         /// <summary>自动去除前缀</summary>
         public Boolean AutoCutPrefix
