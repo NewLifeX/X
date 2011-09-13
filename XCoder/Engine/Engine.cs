@@ -105,6 +105,14 @@ namespace XCoder
                 return str;
             }
         }
+
+        private static ITranslate _Translate;
+        /// <summary>翻译接口</summary>
+        static ITranslate Translate
+        {
+            get { return _Translate ?? (_Translate = new BingTranslate()); }
+            //set { _Translate = value; }
+        }
         #endregion
 
         #region 辅助函数
@@ -223,15 +231,15 @@ namespace XCoder
                 }
             }
 
-            //自动匹配单词
-            foreach (String item in Words.Keys)
-            {
-                if (name.Equals(item, StringComparison.OrdinalIgnoreCase))
-                {
-                    name = item;
-                    break;
-                }
-            }
+            ////自动匹配单词
+            //foreach (String item in Words.Keys)
+            //{
+            //    if (name.Equals(item, StringComparison.OrdinalIgnoreCase))
+            //    {
+            //        name = item;
+            //        break;
+            //    }
+            //}
 
             return name;
         }
@@ -245,85 +253,82 @@ namespace XCoder
         {
             if (String.IsNullOrEmpty(name)) return null;
 
-            //foreach (String item in Words.Keys)
-            //{
-            //    if (name.Equals(item, StringComparison.OrdinalIgnoreCase)) return Words[item];
-            //}
-            //return null;
-            String key = name.ToLower();
-            if (LowerWords.ContainsKey(key))
-                return LowerWords[key];
-            else
-                return null;
+            //String key = name.ToLower();
+            //if (LowerWords.ContainsKey(key))
+            //    return LowerWords[key];
+            //else
+            //    return null;
+
+            return Translate.Translate(name);
         }
 
-        private static Dictionary<String, String> _Words;
-        /// <summary>集合</summary>
-        public static Dictionary<String, String> Words
-        {
-            get
-            {
-                if (_Words == null)
-                {
-                    _Words = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        //private static Dictionary<String, String> _Words;
+        ///// <summary>集合</summary>
+        //public static Dictionary<String, String> Words
+        //{
+        //    get
+        //    {
+        //        if (_Words == null)
+        //        {
+        //            _Words = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-                    if (File.Exists("e2c.txt"))
-                    {
-                        String content = File.ReadAllText("e2c.txt");
-                        if (!String.IsNullOrEmpty(content))
-                        {
-                            String[] ss = content.Split(new Char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                            if (ss != null && ss.Length > 0)
-                            {
-                                foreach (String item in ss)
-                                {
-                                    String[] s = item.Split(new Char[] { '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                                    if (s != null && s.Length > 0)
-                                    {
-                                        String str = "";
-                                        if (s.Length > 1) str = s[1];
-                                        if (!_Words.ContainsKey(s[0])) _Words.Add(s[0], str);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                return _Words;
-            }
-        }
+        //            if (File.Exists("e2c.txt"))
+        //            {
+        //                String content = File.ReadAllText("e2c.txt");
+        //                if (!String.IsNullOrEmpty(content))
+        //                {
+        //                    String[] ss = content.Split(new Char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        //                    if (ss != null && ss.Length > 0)
+        //                    {
+        //                        foreach (String item in ss)
+        //                        {
+        //                            String[] s = item.Split(new Char[] { '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        //                            if (s != null && s.Length > 0)
+        //                            {
+        //                                String str = "";
+        //                                if (s.Length > 1) str = s[1];
+        //                                if (!_Words.ContainsKey(s[0])) _Words.Add(s[0], str);
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        return _Words;
+        //    }
+        //}
 
-        private static SortedList<String, String> _LowerWords;
-        /// <summary>集合</summary>
-        public static SortedList<String, String> LowerWords
-        {
-            get
-            {
-                if (_LowerWords == null)
-                {
-                    _LowerWords = new SortedList<string, string>();
+        //private static SortedList<String, String> _LowerWords;
+        ///// <summary>集合</summary>
+        //public static SortedList<String, String> LowerWords
+        //{
+        //    get
+        //    {
+        //        if (_LowerWords == null)
+        //        {
+        //            _LowerWords = new SortedList<string, string>();
 
-                    foreach (String item in Words.Keys)
-                    {
-                        if (!_LowerWords.ContainsKey(item.ToLower()))
-                            _LowerWords.Add(item.ToLower(), Words[item]);
-                        else if (String.IsNullOrEmpty(_LowerWords[item.ToLower()]))
-                            _LowerWords[item.ToLower()] = Words[item];
-                    }
-                }
-                return _LowerWords;
-            }
-        }
+        //            foreach (String item in Words.Keys)
+        //            {
+        //                if (!_LowerWords.ContainsKey(item.ToLower()))
+        //                    _LowerWords.Add(item.ToLower(), Words[item]);
+        //                else if (String.IsNullOrEmpty(_LowerWords[item.ToLower()]))
+        //                    _LowerWords[item.ToLower()] = Words[item];
+        //            }
+        //        }
+        //        return _LowerWords;
+        //    }
+        //}
 
-        public static void AddWord(String name, String cname)
-        {
-            String ename = CutPrefix(name);
-            ename = FixWord(ename);
-            if (LowerWords.ContainsKey(ename.ToLower())) return;
-            LowerWords.Add(ename.ToLower(), cname);
-            Words.Add(ename, cname);
-            File.AppendAllText("e2c.txt", Environment.NewLine + ename + " " + cname, Encoding.UTF8);
-        }
+        //public static void AddWord(String name, String cname)
+        //{
+        //    String ename = CutPrefix(name);
+        //    ename = FixWord(ename);
+        //    if (LowerWords.ContainsKey(ename.ToLower())) return;
+        //    LowerWords.Add(ename.ToLower(), cname);
+        //    Words.Add(ename, cname);
+        //    File.AppendAllText("e2c.txt", Environment.NewLine + ename + " " + cname, Encoding.UTF8);
+        //}
         #endregion
 
         #region 生成
@@ -523,8 +528,8 @@ namespace XCoder
                     if (!String.IsNullOrEmpty(str) && !words.Contains(str)) words.Add(str);
                 }
 
-                ITranslate trs = new BingTranslate();
-                String[] rs = trs.Translate(words.ToArray());
+                //ITranslate trs = new BingTranslate();
+                String[] rs = Translate.Translate(words.ToArray());
                 if (rs == null || rs.Length < 1) return;
 
                 Dictionary<String, String> ts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

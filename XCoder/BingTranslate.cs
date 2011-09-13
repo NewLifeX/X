@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using XCoder.com.microsofttranslator.api;
+using NewLife.Collections;
 
 namespace XCoder
 {
@@ -11,12 +12,16 @@ namespace XCoder
         String url = "http://api.microsofttranslator.com/V2/soap.svc";
 
         #region ITranslate 成员
+        DictionaryCache<String, String> _cache = new DictionaryCache<String, String>();
 
         public string Translate(string word)
         {
-            SoapService client = new SoapService();
-            client.Url = url;
-            return client.Translate(appId, word, "en", "cn", "text/plain", "general");
+            return _cache.GetItem(word, delegate(String key)
+            {
+                SoapService client = new SoapService();
+                client.Url = url;
+                return client.Translate(appId, key, "en", "cn", "text/plain", "general");
+            });
         }
 
         public string[] Translate(string[] words)
@@ -30,7 +35,11 @@ namespace XCoder
             String[] arr = new String[rs.Length];
             for (int i = 0; i < rs.Length; i++)
             {
-                if (String.IsNullOrEmpty(rs[i].Error)) arr[i] = rs[i].TranslatedText;
+                if (String.IsNullOrEmpty(rs[i].Error))
+                {
+                    arr[i] = rs[i].TranslatedText;
+                    if (!_cache.ContainsKey(words[i])) _cache.Add(words[i], arr[i]);
+                }
             }
             return arr;
         }

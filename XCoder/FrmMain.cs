@@ -479,21 +479,21 @@ namespace XCoder
         #region 导出映射文件
         private void button1_Click(object sender, EventArgs e)
         {
-            if (Engine == null) return;
+            //if (Engine == null) return;
 
-            IList<IDataTable> tables = Engine.Tables;
-            if (tables == null || tables.Count < 1) return;
+            //IList<IDataTable> tables = Engine.Tables;
+            //if (tables == null || tables.Count < 1) return;
 
-            foreach (IDataTable table in tables)
-            {
-                Engine.AddWord(table.Name, table.Description);
-                foreach (IDataColumn field in table.Columns)
-                {
-                    Engine.AddWord(field.Name, field.Description);
-                }
-            }
+            //foreach (IDataTable table in tables)
+            //{
+            //    Engine.AddWord(table.Name, table.Description);
+            //    foreach (IDataColumn field in table.Columns)
+            //    {
+            //        Engine.AddWord(field.Name, field.Description);
+            //    }
+            //}
 
-            MessageBox.Show("完成！", this.Text);
+            //MessageBox.Show("完成！", this.Text);
         }
         #endregion
 
