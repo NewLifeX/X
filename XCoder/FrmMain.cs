@@ -290,6 +290,12 @@ namespace XCoder
             //Conns = null;
             if (!String.IsNullOrEmpty(str)) cbConn.Text = str;
 
+            if (!String.IsNullOrEmpty(Config.ConnName))
+            {
+                Int32 n = cbConn.FindString(Config.ConnName);
+                if (n >= 0) cbConn.SelectedIndex = n;
+            }
+
             if (cbConn.SelectedIndex < 0 && cbConn.Items != null && cbConn.Items.Count > 0) cbConn.SelectedIndex = 0;
         }
 

@@ -179,6 +179,9 @@ namespace XCoder
         {
             if (String.IsNullOrEmpty(name)) return false;
 
+            // Ãÿ ‚¥¶¿Ìitem
+            if (String.Equals(name, "item", StringComparison.OrdinalIgnoreCase)) return true;
+
             foreach (CodeDomProvider item in CGS)
             {
                 if (!item.IsValidIdentifier(name)) return true;
@@ -497,6 +500,8 @@ namespace XCoder
                         if (String.IsNullOrEmpty(dc.Description)) noCNDic.Add(dc, dc.Alias);
                     }
                 }
+
+                table.Fix();
             }
             #endregion
 
