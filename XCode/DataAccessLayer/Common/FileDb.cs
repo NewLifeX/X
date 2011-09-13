@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.OleDb;
 using System.IO;
+using System.Data.Common;
 
 namespace XCode.DataAccessLayer
 {
@@ -11,6 +12,21 @@ namespace XCode.DataAccessLayer
     abstract class FileDbBase : DbBase
     {
         #region 属性
+        protected override string DefaultConnectionString
+        {
+            get
+            {
+                DbConnectionStringBuilder builder = Factory.CreateConnectionStringBuilder();
+                if (builder != null)
+                {
+                    builder["Data Source"] = Path.GetTempFileName();
+                    return builder.ToString();
+                }
+
+                return base.DefaultConnectionString;
+            }
+        }
+
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);

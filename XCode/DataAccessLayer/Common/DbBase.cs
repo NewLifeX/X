@@ -87,7 +87,11 @@ namespace XCode.DataAccessLayer
         /// <summary>链接字符串</summary>
         public virtual String ConnectionString
         {
-            get { return _ConnectionString; }
+            get
+            {
+                if (_ConnectionString == null) _ConnectionString = DefaultConnectionString;
+                return _ConnectionString;
+            }
             set
             {
                 XDbConnectionStringBuilder builder = new XDbConnectionStringBuilder();
@@ -98,6 +102,8 @@ namespace XCode.DataAccessLayer
                 _ConnectionString = builder.ConnectionString;
             }
         }
+
+        protected virtual String DefaultConnectionString { get { return ""; } }
 
         const String KEY_OWNER = "Owner";
         /// <summary>

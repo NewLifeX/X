@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Data;
+using System.Data.Common;
+using System.IO;
 
 namespace XCode.DataAccessLayer
 {
@@ -42,6 +44,23 @@ namespace XCode.DataAccessLayer
                 }
             }
         }
+
+        protected override string DefaultConnectionString
+        {
+            get
+            {
+                DbConnectionStringBuilder builder = Factory.CreateConnectionStringBuilder();
+                if (builder != null)
+                {
+                    builder["Data Source"] = "127.0.0.1";
+                    builder["Database"] = SystemDatabaseName;
+                    return builder.ToString();
+                }
+
+                return base.DefaultConnectionString;
+            }
+        }
+
         #endregion
     }
 

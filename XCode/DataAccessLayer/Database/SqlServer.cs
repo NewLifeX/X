@@ -8,6 +8,8 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using XCode.Exceptions;
+using System.Web;
+using System.Web.Hosting;
 
 namespace XCode.DataAccessLayer
 {
@@ -59,6 +61,17 @@ namespace XCode.DataAccessLayer
                 return _IsSQL2005.Value;
             }
             set { _IsSQL2005 = value; }
+        }
+
+        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        {
+            base.OnSetConnectionString(builder);
+
+            if (!builder.ContainsKey("Application Name"))
+            {
+                String name = HttpRuntime.AppDomainAppId != null ? HostingEnvironment.SiteName : AppDomain.CurrentDomain.FriendlyName;
+                builder["Application Name"] = "XCode_" + name;
+            }
         }
         #endregion
 
