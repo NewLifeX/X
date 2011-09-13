@@ -625,6 +625,7 @@ namespace XCode.DataAccessLayer
                 field.Default = Trim(field.Default, "\"", "\"");
                 field.Default = Trim(field.Default, "\'", "\'");
                 field.Default = Trim(field.Default, "N\'", "\'");
+                field.Default = field.Default.Replace("''", "'");
             }
         }
 
@@ -702,7 +703,7 @@ namespace XCode.DataAccessLayer
         protected override string GetFormatParamItem(IDataColumn field, DataRow dr, string item)
         {
             String pi = base.GetFormatParamItem(field, dr, item);
-            if (field.DataType == typeof(String) && pi == "-1" && IsSQL2005) return "(MAX)";
+            if (field.DataType == typeof(String) && pi == "-1" && IsSQL2005) return "MAX";
             return pi;
         }
         #endregion

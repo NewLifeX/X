@@ -385,6 +385,9 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return false;
 
+            // 特殊处理item
+            if (String.Equals(name, "item", StringComparison.OrdinalIgnoreCase)) return true;
+
             foreach (CodeDomProvider item in CGS)
             {
                 if (!item.IsValidIdentifier(name)) return true;

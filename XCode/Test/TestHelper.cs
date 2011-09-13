@@ -8,7 +8,7 @@ namespace XCode.Test
     /// <summary>我的基类</summary>
     public class MyEntity<TEntity> : Entity<TEntity> where TEntity : MyEntity<TEntity>, new() { }
 
-    partial class EntityTest
+    partial class EntityTest<TEntity>
     {
         static EntityTest()
         {

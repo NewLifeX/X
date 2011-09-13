@@ -5,6 +5,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using NewLife.CommonEntity;
 using NewLife.Log;
 using XCode.DataAccessLayer;
+using XCode.Test;
 
 namespace Test
 {
@@ -12,17 +13,6 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            ////Console.WindowWidth /= 2;
-            ////Console.WindowHeight /= 2;
-
-            //Console.WindowWidth = 80;
-            //Console.WindowHeight = 20;
-
-            ////Console.BufferWidth /= 10;
-            ////Console.BufferHeight /= 10;
-            //Console.BufferWidth = 160;
-            //Console.BufferHeight = 500;
-
             XTrace.OnWriteLog += new EventHandler<WriteLogEventArgs>(XTrace_OnWriteLog);
             while (true)
             {
@@ -33,7 +23,6 @@ namespace Test
                 {
 #endif
                     Test2();
-                    //ThreadPoolTest.Main2(args);
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -47,7 +36,6 @@ namespace Test
                 ConsoleKeyInfo key = Console.ReadKey(true);
                 if (key.Key != ConsoleKey.C) break;
             }
-            //Console.ReadKey();
         }
 
         static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
@@ -73,21 +61,15 @@ namespace Test
 
         static void Test2()
         {
-            ////FieldItem fi = Administrator.Meta.Fields[1];
-            ////IField fd = Administrator.Meta.GetField("Name");
-            ////EntityField fd = new EntityField(fi);
-            //EntityField fd = Administrator.Meta.GetField("Name");
-            //String str = fd.Equal("nnhy");
-            //Console.WriteLine(str);
-            //str = fd == "nnhy";
-            //Console.WriteLine(str);
+            //Int64 n = EntityTest.FindCount();
+            //Console.WriteLine(n);
 
-            DAL dal = Administrator.Meta.DBO;
-            Console.Clear();
-            Console.WriteLine("数据库：{0}", dal.DbType);
+            EntityTest entity = new EntityTest();
+            //EntityTest entity = EntityTest.FindAll()[0];
+            //Console.WriteLine(entity.Password);
 
-            String sql = Administrator.Test();
-            Console.WriteLine(sql);
+            String xml = EntityTest.Meta.DBO.Export();
+            Console.WriteLine(xml);
         }
     }
 }

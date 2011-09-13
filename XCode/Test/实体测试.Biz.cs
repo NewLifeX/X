@@ -1,7 +1,7 @@
 ﻿/*
- * XCoder v4.2.2011.0911
- * 作者：nnhy/X
- * 时间：2011-09-13 07:18:02
+ * XCoder v4.3.2011.0913
+ * 作者：nnhy/NEWLIFE
+ * 时间：2011-09-13 18:56:05
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
@@ -15,7 +15,11 @@ using XCode.Configuration;
 namespace XCode.Test
 {
     /// <summary>实体测试</summary>
-    public partial class EntityTest : MyEntity<EntityTest>
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
+    public class EntityTest : EntityTest<EntityTest> { }
+
+    /// <summary>实体测试</summary>
+    public partial class EntityTest<TEntity> : MyEntity<TEntity> where TEntity : EntityTest<TEntity>, new()
     {
         #region 扩展属性﻿
         #endregion
@@ -25,15 +29,15 @@ namespace XCode.Test
         /// 根据主键查询一个实体测试实体对象用于表单编辑
         /// </summary>
         /// <param name="guid">主键一</param>
-        /// <param name="__guid2">主键二</param>
+        /// <param name="guid2">主键二</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityTest FindByKeyForEdit(Guid guid, String __guid2)
+        public static TEntity FindByKeyForEdit(Guid guid, String guid2)
         {
-            EntityTest entity = Find(new String[] { _.Guid, _.guid2 }, new Object[] { guid, __guid2 });
+            TEntity entity = Find(new String[] { _.Guid, _.Guid2 }, new Object[] { guid, guid2 });
             if (entity == null)
             {
-                entity = new EntityTest();
+                entity = new TEntity();
             }
             return entity;
         }
@@ -45,7 +49,7 @@ namespace XCode.Test
         /// <param name="name">名称</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityTest FindByName(String name)
+        public static TEntity FindByName(String name)
         {
             if (Meta.Count >= 1000)
                 return Find(new String[] { _.Name }, new Object[] { name });
@@ -63,7 +67,7 @@ namespace XCode.Test
         /// <param name="endtime">结束时间</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<EntityTest> FindAllByIsEnableAndStartDateAndEndTime(Boolean isenable, DateTime startdate, DateTime endtime)
+        public static EntityList<TEntity> FindAllByIsEnableAndStartDateAndEndTime(Boolean isenable, DateTime startdate, DateTime endtime)
         {
             return FindAll(new String[] { _.IsEnable, _.StartDate, _.EndTime }, new Object[] { isenable, startdate, endtime });
         }
@@ -72,12 +76,12 @@ namespace XCode.Test
         /// 根据主键一、主键二查找
         /// </summary>
         /// <param name="guid">主键一</param>
-        /// <param name="__guid2">主键二</param>
+        /// <param name="guid2">主键二</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityTest FindByGuidAndguid2(Guid guid, String __guid2)
+        public static TEntity FindByGuidAndGuid2(Guid guid, String guid2)
         {
-            return Find(new String[] { _.Guid, _.guid2 }, new Object[] { guid, __guid2 });
+            return Find(new String[] { _.Guid, _.Guid2 }, new Object[] { guid, guid2 });
         }
         #endregion
 
@@ -159,7 +163,7 @@ namespace XCode.Test
         ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
         ///// <returns>实体集</returns>
         //[DataObjectMethod(DataObjectMethodType.Select, true)]
-        //public static EntityList<EntityTest> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        //public static EntityList<TEntity> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         //{
         //    return FindAll(SearchWhere(key), orderClause, null, startRowIndex, maximumRows);
         //}

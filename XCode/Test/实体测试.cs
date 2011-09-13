@@ -1,7 +1,7 @@
 ﻿/*
- * XCoder v4.2.2011.0911
- * 作者：nnhy/X
- * 时间：2011-09-13 07:18:02
+ * XCoder v4.3.2011.0913
+ * 作者：nnhy/NEWLIFE
+ * 时间：2011-09-13 18:56:05
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
@@ -21,7 +21,7 @@ namespace XCode.Test
     [BindIndex("IX_EntityTest_1", false, "IsEnable,StartDate,EndTime")]
     [BindIndex("PK_EntityTest", true, "Guid,guid2")]
     [BindTable("EntityTest", Description = "实体测试", ConnName = "XCodeTest", DbType = DatabaseType.SqlServer)]
-    public partial class EntityTest : IEntityTest
+    public partial class EntityTest<TEntity> : IEntityTest
     {
         #region 属性
         private Guid _Guid;
@@ -36,16 +36,16 @@ namespace XCode.Test
             set { if (OnPropertyChanging("Guid", value)) { _Guid = value; OnPropertyChanged("Guid"); } }
         }
 
-        private String _guid2;
+        private String _Guid2;
         /// <summary>主键二</summary>
         [DisplayName("主键二")]
         [Description("主键二")]
         [DataObjectField(true, false, false, 16)]
-        [BindColumn(2, "guid2", "主键二", "", "char(16)", 0, 0, false)]
-        public String guid2
+        [BindColumn(2, "guid2", "主键二", null, "char(16)", 0, 0, false)]
+        public String Guid2
         {
-            get { return _guid2; }
-            set { if (OnPropertyChanging("guid2", value)) { _guid2 = value; OnPropertyChanged("guid2"); } }
+            get { return _Guid2; }
+            set { if (OnPropertyChanging("Guid2", value)) { _Guid2 = value; OnPropertyChanged("Guid2"); } }
         }
 
         private SByte _ID;
@@ -53,8 +53,7 @@ namespace XCode.Test
         [DisplayName("自增编号")]
         [Description("自增编号")]
         [DataObjectField(false, true, false, 3)]
-        [BindColumn(3, "ID", "自增编号", "", "tinyint", 3, 0, false)]
-        [CLSCompliant(false)]
+        [BindColumn(3, "ID", "自增编号", null, "tinyint", 3, 0, false)]
         public SByte ID
         {
             get { return _ID; }
@@ -90,7 +89,7 @@ namespace XCode.Test
         [DisplayName("显示名")]
         [Description("显示名")]
         [DataObjectField(false, false, false, 50)]
-        [BindColumn(6, "DisplayName", "显示名", "", "nvarchar(50)", 0, 0, true)]
+        [BindColumn(6, "DisplayName", "显示名", null, "nvarchar(50)", 0, 0, true)]
         public String DisplayName
         {
             get { return _DisplayName; }
@@ -102,7 +101,7 @@ namespace XCode.Test
         [DisplayName("启用")]
         [Description("启用")]
         [DataObjectField(false, false, false, 1)]
-        [BindColumn(7, "IsEnable", "启用", "", "bit", 0, 0, false)]
+        [BindColumn(7, "IsEnable", "启用", null, "bit", 0, 0, false)]
         public Boolean IsEnable
         {
             get { return _IsEnable; }
@@ -169,76 +168,76 @@ namespace XCode.Test
             set { if (OnPropertyChanging("Total", value)) { _Total = value; OnPropertyChanged("Total"); } }
         }
 
-        private Double _persent;
+        private Double _Item2;
         /// <summary>百分比</summary>
         [DisplayName("百分比")]
         [Description("百分比")]
         [DataObjectField(false, false, true, 53)]
-        [BindColumn(13, "persent", "百分比", "sqrt((2))/(10)", "float", 53, 0, false)]
-        public Double persent
+        [BindColumn(13, "item", "百分比", "sqrt((2))/(10)", "float", 53, 0, false)]
+        public Double Item2
         {
-            get { return _persent; }
-            set { if (OnPropertyChanging("persent", value)) { _persent = value; OnPropertyChanged("persent"); } }
+            get { return _Item2; }
+            set { if (OnPropertyChanging("Item2", value)) { _Item2 = value; OnPropertyChanged("Item2"); } }
         }
 
-        private Single _real;
+        private Single _EntityTest2;
         /// <summary>实数</summary>
         [DisplayName("实数")]
         [Description("实数")]
         [DataObjectField(false, false, true, 24)]
-        [BindColumn(14, "real", "实数", "pi()", "real", 24, 0, false)]
-        public Single real
+        [BindColumn(14, "EntityTest", "实数", "pi()", "real", 24, 0, false)]
+        public Single EntityTest2
         {
-            get { return _real; }
-            set { if (OnPropertyChanging("real", value)) { _real = value; OnPropertyChanged("real"); } }
+            get { return _EntityTest2; }
+            set { if (OnPropertyChanging("EntityTest2", value)) { _EntityTest2 = value; OnPropertyChanged("EntityTest2"); } }
         }
 
-        private Decimal _money;
+        private Decimal _Money;
         /// <summary>金额</summary>
         [DisplayName("金额")]
         [Description("金额")]
         [DataObjectField(false, false, true, 19)]
-        [BindColumn(15, "money", "金额", "", "money", 19, 4, false)]
-        public Decimal money
+        [BindColumn(15, "money", "金额", null, "money", 19, 4, false)]
+        public Decimal Money
         {
-            get { return _money; }
-            set { if (OnPropertyChanging("money", value)) { _money = value; OnPropertyChanged("money"); } }
+            get { return _Money; }
+            set { if (OnPropertyChanging("Money", value)) { _Money = value; OnPropertyChanged("Money"); } }
         }
 
-        private Byte[] _file;
+        private Byte[] _File;
         /// <summary>文件</summary>
         [DisplayName("文件")]
         [Description("文件")]
         [DataObjectField(false, false, true, 2147483647)]
-        [BindColumn(16, "file", "文件", "", "image", 0, 0, false)]
-        public Byte[] file
+        [BindColumn(16, "file", "文件", null, "image", 0, 0, false)]
+        public Byte[] File
         {
-            get { return _file; }
-            set { if (OnPropertyChanging("file", value)) { _file = value; OnPropertyChanged("file"); } }
+            get { return _File; }
+            set { if (OnPropertyChanging("File", value)) { _File = value; OnPropertyChanged("File"); } }
         }
 
-        private String _remark;
+        private String _Remark;
         /// <summary>备注一</summary>
         [DisplayName("备注一")]
         [Description("备注一")]
         [DataObjectField(false, false, true, 2147483647)]
         [BindColumn(17, "remark", "备注一", "备注", "text", 0, 0, false)]
-        public String remark
+        public String Remark
         {
-            get { return _remark; }
-            set { if (OnPropertyChanging("remark", value)) { _remark = value; OnPropertyChanged("remark"); } }
+            get { return _Remark; }
+            set { if (OnPropertyChanging("Remark", value)) { _Remark = value; OnPropertyChanged("Remark"); } }
         }
 
-        private String _remark2;
+        private String _Remark2;
         /// <summary>备注二</summary>
         [DisplayName("备注二")]
         [Description("备注二")]
         [DataObjectField(false, false, true, -1)]
-        [BindColumn(18, "remark2", "备注二", "", "nvarchar(-1)", 0, 0, true)]
-        public String remark2
+        [BindColumn(18, "remark2", "备注二", null, "nvarchar(MAX)", 0, 0, true)]
+        public String Remark2
         {
-            get { return _remark2; }
-            set { if (OnPropertyChanging("remark2", value)) { _remark2 = value; OnPropertyChanged("remark2"); } }
+            get { return _Remark2; }
+            set { if (OnPropertyChanging("Remark2", value)) { _Remark2 = value; OnPropertyChanged("Remark2"); } }
         }
 
         private String _Description;
@@ -246,13 +245,13 @@ namespace XCode.Test
         [DisplayName("说明")]
         [Description("说明")]
         [DataObjectField(false, false, true, 1073741823)]
-        [BindColumn(19, "Description", "说明", "", "ntext", 0, 0, true)]
+        [BindColumn(19, "Description", "说明", null, "ntext", 0, 0, true)]
         public String Description
         {
             get { return _Description; }
             set { if (OnPropertyChanging("Description", value)) { _Description = value; OnPropertyChanged("Description"); } }
         }
-        #endregion
+		#endregion
 
         #region 获取/设置 字段值
         /// <summary>
@@ -268,25 +267,25 @@ namespace XCode.Test
             {
                 switch (name)
                 {
-                    case "Guid": return _Guid;
-                    case "guid2": return _guid2;
-                    case "ID": return _ID;
-                    case "Name": return _Name;
-                    case "Password": return _Password;
-                    case "DisplayName": return _DisplayName;
-                    case "IsEnable": return _IsEnable;
-                    case "Logins": return _Logins;
-                    case "LastLogin": return _LastLogin;
-                    case "StartDate": return _StartDate;
-                    case "EndTime": return _EndTime;
-                    case "Total": return _Total;
-                    case "persent": return _persent;
-                    case "real": return _real;
-                    case "money": return _money;
-                    case "file": return _file;
-                    case "remark": return _remark;
-                    case "remark2": return _remark2;
-                    case "Description": return _Description;
+                    case "Guid" : return _Guid;
+                    case "Guid2" : return _Guid2;
+                    case "ID" : return _ID;
+                    case "Name" : return _Name;
+                    case "Password" : return _Password;
+                    case "DisplayName" : return _DisplayName;
+                    case "IsEnable" : return _IsEnable;
+                    case "Logins" : return _Logins;
+                    case "LastLogin" : return _LastLogin;
+                    case "StartDate" : return _StartDate;
+                    case "EndTime" : return _EndTime;
+                    case "Total" : return _Total;
+                    case "Item2" : return _Item2;
+                    case "EntityTest2" : return _EntityTest2;
+                    case "Money" : return _Money;
+                    case "File" : return _File;
+                    case "Remark" : return _Remark;
+                    case "Remark2" : return _Remark2;
+                    case "Description" : return _Description;
                     default: return base[name];
                 }
             }
@@ -294,25 +293,25 @@ namespace XCode.Test
             {
                 switch (name)
                 {
-                    case "Guid": _Guid = (Guid)value; break;
-                    case "guid2": _guid2 = Convert.ToString(value); break;
-                    case "ID": _ID = Convert.ToSByte(value); break;
-                    case "Name": _Name = Convert.ToString(value); break;
-                    case "Password": _Password = Convert.ToString(value); break;
-                    case "DisplayName": _DisplayName = Convert.ToString(value); break;
-                    case "IsEnable": _IsEnable = Convert.ToBoolean(value); break;
-                    case "Logins": _Logins = Convert.ToInt64(value); break;
-                    case "LastLogin": _LastLogin = Convert.ToDateTime(value); break;
-                    case "StartDate": _StartDate = Convert.ToDateTime(value); break;
-                    case "EndTime": _EndTime = Convert.ToDateTime(value); break;
-                    case "Total": _Total = Convert.ToDecimal(value); break;
-                    case "persent": _persent = Convert.ToDouble(value); break;
-                    case "real": _real = Convert.ToSingle(value); break;
-                    case "money": _money = Convert.ToDecimal(value); break;
-                    case "file": _file = (Byte[])value; break;
-                    case "remark": _remark = Convert.ToString(value); break;
-                    case "remark2": _remark2 = Convert.ToString(value); break;
-                    case "Description": _Description = Convert.ToString(value); break;
+                    case "Guid" : _Guid = (Guid)value; break;
+                    case "Guid2" : _Guid2 = Convert.ToString(value); break;
+                    case "ID" : _ID = Convert.ToSByte(value); break;
+                    case "Name" : _Name = Convert.ToString(value); break;
+                    case "Password" : _Password = Convert.ToString(value); break;
+                    case "DisplayName" : _DisplayName = Convert.ToString(value); break;
+                    case "IsEnable" : _IsEnable = Convert.ToBoolean(value); break;
+                    case "Logins" : _Logins = Convert.ToInt64(value); break;
+                    case "LastLogin" : _LastLogin = Convert.ToDateTime(value); break;
+                    case "StartDate" : _StartDate = Convert.ToDateTime(value); break;
+                    case "EndTime" : _EndTime = Convert.ToDateTime(value); break;
+                    case "Total" : _Total = Convert.ToDecimal(value); break;
+                    case "Item2" : _Item2 = Convert.ToDouble(value); break;
+                    case "EntityTest2" : _EntityTest2 = Convert.ToSingle(value); break;
+                    case "Money" : _Money = Convert.ToDecimal(value); break;
+                    case "File" : _File = (Byte[])value; break;
+                    case "Remark" : _Remark = Convert.ToString(value); break;
+                    case "Remark2" : _Remark2 = Convert.ToString(value); break;
+                    case "Description" : _Description = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -321,14 +320,13 @@ namespace XCode.Test
 
         #region 字段名
         /// <summary>取得实体测试字段信息的快捷方式</summary>
-        [CLSCompliant(false)]
         public class _
         {
             ///<summary>主键一</summary>
             public static readonly FieldItem Guid = Meta.Table.FindByName("Guid");
 
             ///<summary>主键二</summary>
-            public static readonly FieldItem guid2 = Meta.Table.FindByName("guid2");
+            public static readonly FieldItem Guid2 = Meta.Table.FindByName("Guid2");
 
             ///<summary>自增编号</summary>
             public static readonly FieldItem ID = Meta.Table.FindByName("ID");
@@ -361,22 +359,22 @@ namespace XCode.Test
             public static readonly FieldItem Total = Meta.Table.FindByName("Total");
 
             ///<summary>百分比</summary>
-            public static readonly FieldItem persent = Meta.Table.FindByName("persent");
+            public static readonly FieldItem Item2 = Meta.Table.FindByName("Item2");
 
             ///<summary>实数</summary>
-            public static readonly FieldItem real = Meta.Table.FindByName("real");
+            public static readonly FieldItem EntityTest2 = Meta.Table.FindByName("EntityTest2");
 
             ///<summary>金额</summary>
-            public static readonly FieldItem money = Meta.Table.FindByName("money");
+            public static readonly FieldItem Money = Meta.Table.FindByName("Money");
 
             ///<summary>文件</summary>
-            public static readonly FieldItem file = Meta.Table.FindByName("file");
+            public static readonly FieldItem File = Meta.Table.FindByName("File");
 
             ///<summary>备注一</summary>
-            public static readonly FieldItem remark = Meta.Table.FindByName("remark");
+            public static readonly FieldItem Remark = Meta.Table.FindByName("Remark");
 
             ///<summary>备注二</summary>
-            public static readonly FieldItem remark2 = Meta.Table.FindByName("remark2");
+            public static readonly FieldItem Remark2 = Meta.Table.FindByName("Remark2");
 
             ///<summary>说明</summary>
             public static readonly FieldItem Description = Meta.Table.FindByName("Description");
@@ -385,7 +383,6 @@ namespace XCode.Test
     }
 
     /// <summary>实体测试接口</summary>
-    [CLSCompliant(false)]
     public interface IEntityTest
     {
         #region 属性
@@ -393,7 +390,7 @@ namespace XCode.Test
         Guid Guid { get; set; }
 
         /// <summary>主键二</summary>
-        String guid2 { get; set; }
+        String Guid2 { get; set; }
 
         /// <summary>自增编号</summary>
         SByte ID { get; set; }
@@ -426,22 +423,22 @@ namespace XCode.Test
         Decimal Total { get; set; }
 
         /// <summary>百分比</summary>
-        Double persent { get; set; }
+        Double Item2 { get; set; }
 
         /// <summary>实数</summary>
-        Single real { get; set; }
+        Single EntityTest2 { get; set; }
 
         /// <summary>金额</summary>
-        Decimal money { get; set; }
+        Decimal Money { get; set; }
 
         /// <summary>文件</summary>
-        Byte[] file { get; set; }
+        Byte[] File { get; set; }
 
         /// <summary>备注一</summary>
-        String remark { get; set; }
+        String Remark { get; set; }
 
         /// <summary>备注二</summary>
-        String remark2 { get; set; }
+        String Remark2 { get; set; }
 
         /// <summary>说明</summary>
         String Description { get; set; }
