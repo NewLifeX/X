@@ -64,9 +64,9 @@ namespace Test
             //Int64 n = EntityTest.FindCount();
             //Console.WriteLine(n);
 
-            EntityTest entity = new EntityTest();
-            //EntityTest entity = EntityTest.FindAll()[0];
-            //Console.WriteLine(entity.Password);
+            //EntityTest entity = new EntityTest();
+            EntityTest entity = EntityTest.FindAll()[0];
+            Console.WriteLine(entity.Password);
 
             String xml = EntityTest.Meta.DBO.Export();
             Console.WriteLine(xml);

@@ -181,6 +181,9 @@ namespace XCode.DataAccessLayer
                 }
                 else
                 {
+                    DAL.WriteDebugLog("{0}=>{1}", Conn.Database, value);
+                    //XTrace.DebugStack(3);
+
                     //如果没有打开，则改变链接字符串
                     DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
                     builder.ConnectionString = ConnectionString;

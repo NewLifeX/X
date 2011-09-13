@@ -76,6 +76,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected List<IDataTable> GetTables(DataRow[] rows)
         {
+            _columns = GetSchema(_.Columns, null);
             _indexes = GetSchema(_.Indexes, null);
             _indexColumns = GetSchema(_.IndexColumns, null);
 
@@ -164,20 +165,23 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 字段架构
+        DataTable _columns;
         /// <summary>取得指定表的所有列构架</summary>
         /// <param name="table"></param>
         /// <returns></returns>
         protected virtual List<IDataColumn> GetFields(IDataTable table)
         {
-            DataTable dt = GetSchema(_.Columns, new String[] { null, null, table.Name });
+            //DataTable dt = GetSchema(_.Columns, new String[] { null, null, table.Name });
+            DataTable dt = _columns;
 
             DataRow[] drs = null;
+            String where = String.Format("{0}='{1}'", _.TalbeName, table.Name);
             if (dt.Columns.Contains(_.OrdinalPosition))
-                drs = dt.Select("", _.OrdinalPosition);
+                drs = dt.Select(where, _.OrdinalPosition);
             else if (dt.Columns.Contains(_.ID))
-                drs = dt.Select("", _.ID);
+                drs = dt.Select(where, _.ID);
             else
-                drs = dt.Select("");
+                drs = dt.Select(where);
 
             return GetFields(table, drs);
         }

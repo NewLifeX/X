@@ -39,8 +39,8 @@ namespace XCode.DataAccessLayer
                 }
                 finally
                 {
-                    if (dbname != SystemDatabaseName) session.DatabaseName = dbname;
                     session.AutoClose();
+                    if (dbname != SystemDatabaseName) session.DatabaseName = dbname;
                 }
             }
         }
@@ -81,12 +81,21 @@ namespace XCode.DataAccessLayer
             {
                 return base.GetSchema(collectionName, restrictionValues);
             }
-            catch
+            catch (Exception ex)
             {
+                DAL.WriteDebugLog("GetSchema({0})异常重试！{1}", collectionName, ex.Message);
+
                 String dbname = DatabaseName;
                 if (dbname != SystemDatabaseName) DatabaseName = SystemDatabaseName;
-                DataTable dt = base.GetSchema(collectionName, restrictionValues);
-                if (dbname != SystemDatabaseName) DatabaseName = dbname;
+                DataTable dt = null;
+                try
+                {
+                    dt = base.GetSchema(collectionName, restrictionValues);
+                }
+                finally
+                {
+                    if (dbname != SystemDatabaseName) DatabaseName = dbname;
+                }
                 return dt;
             }
         }
@@ -126,8 +135,14 @@ namespace XCode.DataAccessLayer
                     if (!String.IsNullOrEmpty(dbname) && !String.Equals(dbname, sysdbname, StringComparison.OrdinalIgnoreCase))
                     {
                         session.DatabaseName = sysdbname;
-                        obj = session.QueryCount(GetSchemaSQL(schema, values)) > 0;
-                        session.DatabaseName = dbname;
+                        try
+                        {
+                            obj = session.QueryCount(GetSchemaSQL(schema, values)) > 0;
+                        }
+                        finally
+                        {
+                            session.DatabaseName = dbname;
+                        }
                         return obj;
                     }
                     else
@@ -143,8 +158,15 @@ namespace XCode.DataAccessLayer
 
                     dbname = session.DatabaseName;
                     session.DatabaseName = sysdbname;
-                    obj = base.SetSchema(schema, values);
-                    session.DatabaseName = dbname;
+                    try
+                    {
+                        obj = base.SetSchema(schema, values);
+                    }
+                    finally
+                    {
+                        session.DatabaseName = dbname;
+                    }
+
                     return obj;
                 default:
                     break;

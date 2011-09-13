@@ -571,7 +571,9 @@ namespace XCode.DataAccessLayer
             catch { }
             DbSession.ShowSQL = b;
 
+            DAL.WriteDebugLog(Database.CreateSession().ConnectionString);
             DataTable dt = GetSchema(_.Tables, null);
+            DAL.WriteDebugLog(Database.CreateSession().ConnectionString);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
             b = DbSession.ShowSQL;
@@ -607,7 +609,7 @@ namespace XCode.DataAccessLayer
         {
             base.FixField(field, dr);
 
-            DataRow[] rows = AllFields.Select("表名='" + field.Table.Name + "' And 字段名='" + field.Name + "'", null);
+            DataRow[] rows = AllFields == null ? null : AllFields.Select("表名='" + field.Table.Name + "' And 字段名='" + field.Name + "'", null);
             if (rows != null && rows.Length > 0)
             {
                 DataRow dr2 = rows[0];
@@ -636,7 +638,7 @@ namespace XCode.DataAccessLayer
             {
                 foreach (IDataIndex item in list)
                 {
-                    DataRow[] drs = AllIndexes.Select("name='" + item.Name + "'");
+                    DataRow[] drs = AllIndexes == null ? null : AllIndexes.Select("name='" + item.Name + "'");
                     if (drs != null && drs.Length > 0)
                     {
                         item.Unique = GetDataRowValue<Boolean>(drs[0], "is_unique");
