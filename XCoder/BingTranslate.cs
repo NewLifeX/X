@@ -20,7 +20,7 @@ namespace XCoder
             {
                 SoapService client = new SoapService();
                 client.Url = url;
-                return client.Translate(appId, key, "en", "cn", "text/plain", "general");
+                return client.Translate(appId, key, "en", "zh-cn", "text/plain", "general");
             });
         }
 
