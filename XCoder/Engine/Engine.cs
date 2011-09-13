@@ -506,26 +506,7 @@ namespace XCoder
 
                     // 分词
                     String str = item;
-                    List<String> ks = new List<string>();
-                    StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < str.Length; i++)
-                    {
-                        // 如果不是小写，作为边界，拆分
-                        if (!(str[i] >= 'a' && str[i] <= 'z'))
-                        {
-                            if (sb.Length > 0)
-                            {
-                                ks.Add(sb.ToString());
-                                sb.Remove(0, sb.Length);
-                            }
-                        }
-                        sb.Append(str[i]);
-                    }
-                    if (sb.Length > 0)
-                    {
-                        ks.Add(sb.ToString());
-                        sb.Remove(0, sb.Length);
-                    }
+                    List<String> ks = UpperCaseSplitWord(str);
                     str = String.Join(" ", ks.ToArray());
 
                     if (!String.IsNullOrEmpty(str) && !words.Contains(str)) words.Add(str);
@@ -556,6 +537,45 @@ namespace XCoder
             {
                 XTrace.WriteLine(ex.ToString());
             }
+        }
+        /// <summary>
+        /// 大写字母分词
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        public static List<string> UpperCaseSplitWord(string s)
+        {
+            String str = s;
+            List<string> ks = new List<string>();
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < str.Length; i++)
+            {
+                bool split = false;
+                // 如果不是小写，作为边界，检测是否拆分
+                if (!(str[i] >= 'a' && str[i] <= 'z'))
+                {
+                    if (i > 0 && str[i - 1] >= 'a' && str[i - 1] <= 'z') // 前一个字符是小写
+                    {
+                        split = true;
+                    }
+                    else if (i + 1 < str.Length && str[i + 1] >= 'a' && str[i + 1] <= 'z') // 后一个字符是小写
+                    {
+                        split = true;
+                    }
+                }
+                if (split && sb.Replace(" ", "").Replace("_", "").Replace("-", "").Length > 0) // StringBuilder的Replace会修改自身 所以下面可以直接ToString
+                {
+                    ks.Add(sb.ToString());
+                    sb.Remove(0, sb.Length);
+                }
+                sb.Append(str[i]);
+            }
+            if (sb.Length > 0)
+            {
+                ks.Add(sb.ToString());
+                sb.Remove(0, sb.Length);
+            }
+            return ks;
         }
         #endregion
 
