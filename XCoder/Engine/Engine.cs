@@ -11,6 +11,7 @@ using NewLife.Log;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
 using NewLife.Reflection;
+using NewLife.Collections;
 
 namespace XCoder
 {
@@ -76,12 +77,21 @@ namespace XCoder
             set { _Config = value; }
         }
 
+        private DictionaryCache<String, List<IDataTable>> _cache = new DictionaryCache<String, List<IDataTable>>();
+
         private List<IDataTable> _Tables;
         /// <summary>所有表</summary>
         public List<IDataTable> Tables
         {
-            get { return _Tables; }
-            set { _Tables = FixTable(value); }
+            get
+            {
+                // 不同的前缀、大小写选项，得到的表集合是不一样的。这里用字典来缓存
+                String key = String.Format("{0}_{1}_{2}", Config.AutoCutPrefix, Config.AutoFixWord, Config.Prefix);
+                return _cache.GetItem(key, k => FixTable(_Tables));
+                //return _Tables;
+            }
+            //set { _Tables = FixTable(value); }
+            set { _Tables = value; }
         }
 
         /// <summary>输出路径</summary>
@@ -324,14 +334,15 @@ namespace XCoder
         /// <returns></returns>
         public String[] Render(String tableName)
         {
-            if (Tables == null || Tables.Count < 1) return null;
+            List<IDataTable> tables = Tables;
+            if (tables == null || tables.Count < 1) return null;
 
-            IDataTable table = Tables.Find(delegate(IDataTable item) { return String.Equals(item.Name, tableName, StringComparison.OrdinalIgnoreCase); });
+            IDataTable table = tables.Find(delegate(IDataTable item) { return String.Equals(item.Name, tableName, StringComparison.OrdinalIgnoreCase); });
             if (tableName == null) return null;
 
             Dictionary<String, Object> data = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             data["Config"] = Config;
-            data["Tables"] = Tables;
+            data["Tables"] = tables;
             data["Table"] = table;
 
             // 声明模版引擎
