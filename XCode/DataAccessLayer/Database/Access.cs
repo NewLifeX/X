@@ -210,7 +210,7 @@ namespace XCode.DataAccessLayer
         #region 构架
         protected override List<IDataTable> OnGetTables()
         {
-            DataTable dt = GetSchema(CollectionNames.Tables, null);
+            DataTable dt = GetSchema(_.Tables, null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
             // 默认列出所有字段
@@ -335,13 +335,6 @@ namespace XCode.DataAccessLayer
             Object obj = null;
             switch (schema)
             {
-                //case DDLSchema.CreateDatabase:
-                //    CreateDatabase();
-                //    return null;
-                //case DDLSchema.DropDatabase:
-                //    return null;
-                //case DDLSchema.DatabaseExist:
-                //    return File.Exists(FileName);
                 case DDLSchema.CreateTable:
                     obj = base.SetSchema(DDLSchema.CreateTable, values);
                     IDataTable table = values[0] as IDataTable;
@@ -354,32 +347,11 @@ namespace XCode.DataAccessLayer
                         if (!String.IsNullOrEmpty(item.Default)) AddDefault(item, item.Default);
                     }
 
-                    //// 表说明
-                    //if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(table, table.Description);
-                    //foreach (IDataColumn item in table.Fields)
-                    //{
-                    //    if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(item, item.Description);
-                    //}
-
                     return obj;
-                //case DDLSchema.DropTable:
-                //    break;
-                //case DDLSchema.TableExist:
-                //    DataTable dt = GetSchema("Tables", new String[] { null, null, (String)values[0], "TABLE" });
-                //    if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
-                //    return true;
                 case DDLSchema.AddTableDescription:
                     return AddTableDescription((IDataTable)values[0], ((IDataTable)values[0]).Description);
                 case DDLSchema.DropTableDescription:
                     return DropTableDescription((IDataTable)values[0]);
-                //case DDLSchema.AddColumn:
-                //    obj = base.SetSchema(DDLSchema.AddColumn, values);
-                //    AddColumnDescription((String)values[0], ((IDataColumn)values[1]).Name, ((IDataColumn)values[1]).Description);
-                //    return obj;
-                //case DDLSchema.AlterColumn:
-                //    break;
-                //case DDLSchema.DropColumn:
-                //    break;
                 case DDLSchema.AddColumnDescription:
                     return AddColumnDescription((IDataColumn)values[0], ((IDataColumn)values[0]).Description);
                 case DDLSchema.DropColumnDescription:
@@ -489,25 +461,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据类型
-        //DataRow[] FindDataType(Int32 typeID, Boolean? isLong)
-        //{
-        //    DataTable dt = DataTypes;
-        //    if (dt == null) return null;
-
-        //    DataRow[] drs = null;
-        //    if (isLong == null)
-        //    {
-        //        drs = dt.Select(String.Format("NativeDataType={0}", typeID));
-        //        if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0}", typeID));
-        //    }
-        //    else
-        //    {
-        //        drs = dt.Select(String.Format("NativeDataType={0} And IsLong={1}", typeID, isLong.Value));
-        //        if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0} And IsLong={1}", typeID, isLong.Value));
-        //    }
-        //    return drs;
-        //}
-
         protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
         {
             DataRow[] drs = base.FindDataType(field, typeName, isLong);
@@ -529,20 +482,6 @@ namespace XCode.DataAccessLayer
 
             return drs;
         }
-
-        //protected override void SetFieldType(IDataColumn field, string typeName)
-        //{
-        //    DataTable dt = DataTypes;
-        //    if (dt == null) return;
-
-        //    DataRow[] drs = FindDataType(field, typeName, null);
-        //    if (drs == null || drs.Length < 1) return;
-
-        //    // 修正原始类型
-        //    if (TryGetDataRowValue<String>(drs[0], "TypeName", out typeName)) field.RawType = typeName;
-
-        //    base.SetFieldType(field, typeName);
-        //}
 
         protected override string GetFieldType(IDataColumn field)
         {

@@ -246,7 +246,7 @@ namespace XCode.DataAccessLayer
                 //- 不要空，否则会死得很惨，列表所有数据表，实在太多了
                 //if (String.Equals(user, "system")) user = null;
 
-                DataTable dt = GetSchema(CollectionNames.Tables, new String[] { null, null, null, "TABLE" });
+                DataTable dt = GetSchema(_.Tables, new String[] { null, null, null, "TABLE" });
 
                 // 默认列出所有字段
                 DataRow[] rows = new DataRow[dt.Rows.Count];
@@ -259,15 +259,6 @@ namespace XCode.DataAccessLayer
                 throw new XDbMetaDataException(this, "取得所有表构架出错！", ex);
             }
         }
-
-        //protected override DataTable PrimaryKeys
-        //{
-        //    get
-        //    {
-        //        if (_PrimaryKeys == null) _PrimaryKeys = GetSchema("IndexColumns", new String[] { null, null, null });
-        //        return _PrimaryKeys;
-        //    }
-        //}
 
         protected override string GetFieldType(IDataColumn field)
         {
@@ -322,7 +313,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(sql)) return sql;
 
             String sqlSeq = String.Format("Create GENERATOR GEN_{0}", table.Name);
-            return sql + ";" + Environment.NewLine + sqlSeq;
+            return sql + "; " + Environment.NewLine + sqlSeq;
         }
 
         public override string DropTableSQL(String tableName)
@@ -331,7 +322,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(sql)) return sql;
 
             String sqlSeq = String.Format("Drop GENERATOR GEN_{0}", tableName);
-            return sql + ";" + Environment.NewLine + sqlSeq;
+            return sql + "; " + Environment.NewLine + sqlSeq;
         }
 
         //public override string AddTableDescriptionSQL(IDataTable table)

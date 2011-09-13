@@ -236,7 +236,7 @@ namespace XCode.DataAccessLayer
         #region 构架
         protected override List<IDataTable> OnGetTables()
         {
-            DataTable dt = GetSchema(CollectionNames.Tables, null);
+            DataTable dt = GetSchema(_.Tables, null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
             // 默认列出所有字段

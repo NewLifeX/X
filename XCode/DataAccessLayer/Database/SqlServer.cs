@@ -556,6 +556,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected override List<IDataTable> OnGetTables()
         {
+            #region 查表说明、字段信息、索引信息
             IDbSession session = Database.CreateSession();
 
             //一次性把所有的表说明查出来
@@ -570,7 +571,7 @@ namespace XCode.DataAccessLayer
             catch { }
             DbSession.ShowSQL = b;
 
-            DataTable dt = GetSchema(CollectionNames.Tables, null);
+            DataTable dt = GetSchema(_.Tables, null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
             b = DbSession.ShowSQL;
@@ -582,6 +583,7 @@ namespace XCode.DataAccessLayer
             }
             catch { }
             DbSession.ShowSQL = b;
+            #endregion
 
             // 列出用户表
             DataRow[] rows = dt.Select(String.Format("{0}='BASE TABLE' Or {0}='VIEW'", "TABLE_TYPE"));
@@ -619,9 +621,10 @@ namespace XCode.DataAccessLayer
             // 整理默认值
             if (!String.IsNullOrEmpty(field.Default))
             {
+                field.Default = Trim(field.Default, "(", ")");
                 field.Default = Trim(field.Default, "\"", "\"");
                 field.Default = Trim(field.Default, "\'", "\'");
-                field.Default = Trim(field.Default, "(", ")");
+                field.Default = Trim(field.Default, "N\'", "\'");
             }
         }
 
@@ -643,14 +646,35 @@ namespace XCode.DataAccessLayer
             return list;
         }
 
-        //protected override void FixIndex(IDataIndex index, DataRow dr)
-        //{
-        //    String name = null;
-        //    if (TryGetDataRowValue<String>(dr, "type_desc", out name) && !String.IsNullOrEmpty(name))
-        //        index.Unique = "CLUSTERED".Equals(name, StringComparison.OrdinalIgnoreCase);
+        public override string CreateTableSQL(IDataTable table)
+        {
+            String sql = base.CreateTableSQL(table);
+            if (String.IsNullOrEmpty(sql) || table.PrimaryKeys == null || table.PrimaryKeys.Length < 2) return sql;
 
-        //    base.FixIndex(index, dr);
-        //}
+            // 处理多主键
+            StringBuilder sb = new StringBuilder();
+            foreach (IDataColumn item in table.PrimaryKeys)
+            {
+                if (sb.Length > 0) sb.Append(",");
+                sb.Append(FormatName(item.Name));
+            }
+            sql += "; " + Environment.NewLine;
+            sql += String.Format("Alter Table {0} Add Constraint PK_{1} Primary Key Clustered({2})", FormatName(table.Name), table.Name, sb.ToString());
+            return sql;
+        }
+
+        public override string FieldClause(IDataColumn field, bool onlyDefine)
+        {
+            if (!String.IsNullOrEmpty(field.RawType) && field.RawType.Contains("char(-1)"))
+            {
+                if (IsSQL2005)
+                    field.RawType = field.RawType.Replace("char(-1)", "char(MAX)");
+                else
+                    field.RawType = field.RawType.Replace("char(-1)", "char(" + (Int32.MaxValue / 2) + ")");
+            }
+
+            return base.FieldClause(field, onlyDefine);
+        }
 
         protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
@@ -668,8 +692,18 @@ namespace XCode.DataAccessLayer
         protected override string GetFormatParam(IDataColumn field, DataRow dr)
         {
             String str = base.GetFormatParam(field, dr);
+            if (String.IsNullOrEmpty(str)) return str;
+
+            // 这个主要来自于float，因为无法取得其精度
             if (str == "(0)") return null;
             return str;
+        }
+
+        protected override string GetFormatParamItem(IDataColumn field, DataRow dr, string item)
+        {
+            String pi = base.GetFormatParamItem(field, dr, item);
+            if (field.DataType == typeof(String) && pi == "-1" && IsSQL2005) return "(MAX)";
+            return pi;
         }
         #endregion
 
@@ -844,7 +878,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Boolean DatabaseExist(string dbname)
         {
-            DataTable dt = GetSchema(CollectionNames.Databases, new String[] { dbname });
+            DataTable dt = GetSchema(_.Databases, new String[] { dbname });
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
@@ -863,7 +897,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Boolean TableExist(IDataTable table)
         {
-            DataTable dt = GetSchema(CollectionNames.Tables, new String[] { null, null, table.Name, null });
+            DataTable dt = GetSchema(_.Tables, new String[] { null, null, table.Name, null });
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
@@ -982,12 +1016,6 @@ namespace XCode.DataAccessLayer
         String DeletePrimaryKeySQL(IDataColumn field)
         {
             if (!field.PrimaryKey) return String.Empty;
-
-            //DataRow[] drs = PrimaryKeys.Select(String.Format("table_name='{0}' And column_name='{1}'", field.Table.Name, field.Name));
-            //if (drs == null || drs.Length < 1) return null;
-
-            //String constraint_name = null;
-            //if (!TryGetDataRowValue<String>(drs[0], "constraint_name", out constraint_name)) return null;
 
             if (field.Table.Indexes == null || field.Table.Indexes.Count < 1) return String.Empty;
 

@@ -684,7 +684,7 @@ namespace XCode.DataAccessLayer
         public virtual String FormatIdentity(IDataColumn field, Object value) { return null; }
 
         /// <summary>
-        /// 是否Unicode编码
+        /// 是否Unicode编码。只是固定判断n开头的几个常见类型为Unicode编码，这种方法不是很严谨，可以考虑读取DataTypes架构
         /// </summary>
         /// <param name="rawType"></param>
         /// <returns></returns>

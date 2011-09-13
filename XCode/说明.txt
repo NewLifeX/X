@@ -1,4 +1,7 @@
-﻿2011-09-12
+﻿2011-09-13
+1，实体类增加方法和接口，要实现读取RequestString/Form数据，要能绑定WebForm/WinForm界面控件
+
+2011-09-12
 中秋假期剩下的工作：
 测试MSSQL、Access、SQLite、SqlCe的兼容性
 继续提炼DbMetaData，便于修改各种正向反向错误，必须完成该工作，才能测试兼容性

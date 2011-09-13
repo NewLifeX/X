@@ -145,21 +145,6 @@ namespace XCode.DataAccessLayer
                     return null;
                 case DDLSchema.DatabaseExist:
                     return File.Exists(FileName);
-                //case DDLSchema.CreateTable:
-                //    obj = base.SetSchema(DDLSchema.CreateTable, values);
-                //    XTable table = values[0] as XTable;
-                //    if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(table.Name, table.Description);
-                //    foreach (XField item in table.Fields)
-                //    {
-                //        if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(table.Name, item.Name, item.Description);
-                //    }
-                //    return obj;
-                //case DDLSchema.DropTable:
-                //    break;
-                //case DDLSchema.TableExist:
-                //    DataTable dt = GetSchema("Tables", new String[] { null, null, (String)values[0], "TABLE" });
-                //    if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
-                //    return true;
                 default:
                     break;
             }

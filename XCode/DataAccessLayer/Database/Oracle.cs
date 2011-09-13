@@ -314,7 +314,7 @@ namespace XCode.DataAccessLayer
                 //- 不要空，否则会死得很惨，列表所有数据表，实在太多了
                 //if (String.Equals(user, "system")) user = null;
 
-                DataTable dt = GetSchema(CollectionNames.Tables, new String[] { Owner });
+                DataTable dt = GetSchema(_.Tables, new String[] { Owner });
 
                 // 默认列出所有字段
                 DataRow[] rows = new DataRow[dt.Rows.Count];
@@ -442,26 +442,14 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected override List<IDataColumn> GetFields(IDataTable table)
         {
-            DataTable dt = GetSchema(CollectionNames.Columns, new String[] { Owner, table.Name, null });
-
-            DataRow[] drs = null;
-            if (dt.Columns.Contains("ID"))
-                drs = dt.Select("", "ID");
-            else
-                drs = dt.Select("");
-
-            List<IDataColumn> list = GetFields(table, drs);
+            List<IDataColumn> list = base.GetFields(table);
+            if (list == null || list.Count < 1) return null;
 
             // 字段注释
             if (list != null && list.Count > 0)
             {
-                //String sql = String.Format("Select COLUMN_NAME, COMMENTS From USER_COL_COMMENTS Where TABLE_NAME='{0}'", table.Name);
-                //dt = Database.CreateSession().Query(sql).Tables[0];
                 foreach (IDataColumn field in list)
                 {
-                    //drs = dt.Select(String.Format("COLUMN_NAME='{0}'", field.Name));
-                    //if (drs != null && drs.Length > 0) field.Description = GetDataRowValue<String>(drs[0], "COMMENTS");
-
                     field.Description = GetColumnComment(table.Name, field.Name);
                 }
             }
@@ -482,7 +470,7 @@ namespace XCode.DataAccessLayer
             }
             if (dtColumnComment.Rows == null || dtColumnComment.Rows.Count < 1) return null;
 
-            String where = String.Format("TABLE_NAME='{0}' AND COLUMN_NAME='{1}'", tableName, columnName);
+            String where = String.Format("{0}='{1}' AND {2}='{3}'", _.TalbeName, tableName, _.ColumnName, columnName);
             DataRow[] drs = dtColumnComment.Select(where);
             if (drs != null && drs.Length > 0) return Convert.ToString(drs[0]["COMMENTS"]);
             return null;
@@ -599,24 +587,6 @@ namespace XCode.DataAccessLayer
             return drs;
         }
 
-        ///// <summary>
-        ///// 已重载。主键构架
-        ///// </summary>
-        //protected override DataTable PrimaryKeys
-        //{
-        //    get
-        //    {
-        //        if (_PrimaryKeys == null)
-        //        {
-        //            DataTable pks = GetSchema("IndexColumns", new String[] { Owner, null, null, null, null });
-        //            if (pks == null) return null;
-
-        //            _PrimaryKeys = pks;
-        //        }
-        //        return _PrimaryKeys;
-        //    }
-        //}
-
         #region 架构定义
         protected override string GetFieldConstraints(IDataColumn field, bool onlyDefine)
         {
@@ -640,7 +610,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(sql)) return sql;
 
             String sqlSeq = String.Format("Create Sequence SEQ_{0} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1 Cache 20", table.Name);
-            return sql + ";" + Environment.NewLine + sqlSeq;
+            return sql + "; " + Environment.NewLine + sqlSeq;
         }
 
         public override string DropTableSQL(String tableName)
@@ -649,7 +619,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(sql)) return sql;
 
             String sqlSeq = String.Format("Drop Sequence SEQ_{0}", tableName);
-            return sql + ";" + Environment.NewLine + sqlSeq;
+            return sql + "; " + Environment.NewLine + sqlSeq;
         }
 
         public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)

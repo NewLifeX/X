@@ -37,7 +37,7 @@ namespace XCode.Exceptions
         /// <param name="sql"></param>
         /// <param name="session"></param>
         /// <param name="message"></param>
-        public XSqlException(String sql, IDbSession session, String message) : base(session, message + "[SQL:" + sql + "]") { Sql = sql; }
+        public XSqlException(String sql, IDbSession session, String message) : base(session, message + "[SQL:" + FormatSql(sql) + "]") { Sql = sql; }
 
         /// <summary>
         /// 初始化
@@ -47,7 +47,7 @@ namespace XCode.Exceptions
         /// <param name="message"></param>
         /// <param name="innerException"></param>
         public XSqlException(String sql, IDbSession session, String message, Exception innerException)
-            : base(session, message + "[SQL:" + sql + "]", innerException)
+            : base(session, message + "[SQL:" + FormatSql(sql) + "]", innerException)
         {
             Sql = sql;
         }
@@ -59,7 +59,7 @@ namespace XCode.Exceptions
         /// <param name="session"></param>
         /// <param name="innerException"></param>
         public XSqlException(String sql, IDbSession session, Exception innerException)
-            : base(session, (innerException != null ? innerException.Message : "") + "[SQL:" + sql + "]", innerException)
+            : base(session, (innerException != null ? innerException.Message : "") + "[SQL:" + FormatSql(sql) + "]", innerException)
         {
             Sql = sql;
         }
@@ -77,6 +77,18 @@ namespace XCode.Exceptions
         #endregion
 
         #region 方法
+        static String FormatSql(String sql)
+        {
+            if (String.IsNullOrEmpty(sql)) return sql;
+            sql = sql.Trim();
+            if (String.IsNullOrEmpty(sql)) return sql;
+
+            if (sql.Contains(Environment.NewLine))
+                return Environment.NewLine + sql + Environment.NewLine;
+            else
+                return sql;
+        }
+
         /// <summary>
         /// 从序列化信息中读取Sql
         /// </summary>

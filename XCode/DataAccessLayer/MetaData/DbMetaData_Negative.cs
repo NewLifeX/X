@@ -5,6 +5,52 @@ using System.Text;
 
 namespace XCode.DataAccessLayer
 {
+    /* 反向工程层次结构：
+     *  SetTables
+     *      OnSetTables
+     *          CheckDatabase
+     *          CheckAllTables
+     *              GetTables
+     *              CheckTable
+     *                  CreateTable
+     *                      DDLSchema.CreateTable
+     *                      DDLSchema.AddTableDescription
+     *                      DDLSchema.AddColumnDescription
+     *                      DDLSchema.CreateIndex
+     *                  CheckColumnsChange
+     *                      DDLSchema.AddColumn
+     *                      DDLSchema.AddColumnDescription
+     *                      DDLSchema.DropColumn
+     *                      IsColumnChanged
+     *                          DDLSchema.AlterColumn
+     *                      IsColumnDefaultChanged
+     *                          ChangeColmnDefault
+     *                              DDLSchema.DropDefault
+     *                              DDLSchema.AddDefault
+     *                      DropColumnDescription
+     *                      AddColumnDescription
+     *                  =>SQLite.CheckColumnsChange
+     *                      ReBuildTable
+     *                          CreateTableSQL
+     *                  CheckTableDescriptionAndIndex
+     *                      DropTableDescription
+     *                      AddTableDescription
+     *                      DDLSchema.DropIndex
+     *                      DDLSchema.CreateIndex
+     */
+
+    /* CreateTableSQL层次结构：
+     *  CreateTableSQL
+     *      FieldClause
+     *          GetFieldType
+     *              FindDataType
+     *              GetFormatParam
+     *                  GetFormatParamItem
+     *          GetFieldConstraints
+     *          GetFieldDefault
+     *              CheckAndGetDefaultDateTimeNow
+     */
+
     partial class DbMetaData
     {
         #region 属性
@@ -159,7 +205,9 @@ namespace XCode.DataAccessLayer
             {
                 if (!dbdic.ContainsKey(item.Name.ToLower()))
                 {
-                    AddColumn(sb, item, onlySql);
+                    //AddColumn(sb, item, onlySql);
+                    PerformSchema(sb, onlySql, DDLSchema.AddColumn, item);
+                    if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql, DDLSchema.AddColumnDescription, item);
 
                     // 这里必须给dbtable加加上当前列，否则下面如果刚好有删除列的话，会导致增加列成功，然后删除列重建表的时候没有新加的列
                     dbtable.Columns.Add(item.Clone(dbtable));
@@ -172,7 +220,11 @@ namespace XCode.DataAccessLayer
             for (int i = dbtable.Columns.Count - 1; i >= 0; i--)
             {
                 IDataColumn item = dbtable.Columns[i];
-                if (!entitydic.ContainsKey(item.Name.ToLower())) DropColumn(sbDelete, item, onlySql);
+                if (!entitydic.ContainsKey(item.Name.ToLower()))
+                {
+                    if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql, DDLSchema.DropColumnDescription, item);
+                    PerformSchema(sb, onlySql, DDLSchema.DropColumn, item);
+                }
             }
             if (sbDelete.Length > 0)
             {
@@ -198,16 +250,17 @@ namespace XCode.DataAccessLayer
                 IDataColumn dbf = null;
                 if (!dbdic.TryGetValue(item.Name, out dbf)) continue;
 
-                if (IsColumnChanged(item, dbf, entityDb)) GetSchemaSQL(sb, onlySql, DDLSchema.AlterColumn, item, dbf);
+                if (IsColumnChanged(item, dbf, entityDb)) PerformSchema(sb, onlySql, DDLSchema.AlterColumn, item, dbf);
                 if (IsColumnDefaultChanged(item, dbf, entityDb)) ChangeColmnDefault(sb, onlySql, item, dbf, entityDb);
 
                 if (item.Description + "" != dbf.Description + "")
                 {
                     // 先删除旧注释
-                    if (!String.IsNullOrEmpty(dbf.Description)) DropColumnDescription(sb, dbf, onlySql);
+                    //if (!String.IsNullOrEmpty(dbf.Description)) DropColumnDescription(sb, dbf, onlySql);
+                    if (!String.IsNullOrEmpty(dbf.Description)) PerformSchema(sb, onlySql, DDLSchema.DropColumnDescription, dbf);
 
                     // 加上新注释
-                    if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(sb, item, onlySql);
+                    if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql, DDLSchema.AddColumnDescription, item);
                 }
             }
             #endregion
@@ -230,10 +283,12 @@ namespace XCode.DataAccessLayer
             if (entitytable.Description + "" != dbtable.Description + "")
             {
                 // 先删除旧注释
-                if (!String.IsNullOrEmpty(dbtable.Description)) DropTableDescription(sb, dbtable, onlySql);
+                //if (!String.IsNullOrEmpty(dbtable.Description)) DropTableDescription(sb, dbtable, onlySql);
+                if (!String.IsNullOrEmpty(dbtable.Description)) PerformSchema(sb, onlySql, DDLSchema.DropTableDescription, dbtable);
 
                 // 加上新注释
-                if (!String.IsNullOrEmpty(entitytable.Description)) AddTableDescription(sb, entitytable, onlySql);
+                //if (!String.IsNullOrEmpty(entitytable.Description)) AddTableDescription(sb, entitytable, onlySql);
+                if (!String.IsNullOrEmpty(entitytable.Description)) PerformSchema(sb, onlySql, DDLSchema.AddTableDescription, entitytable);
             }
             #endregion
 
@@ -249,7 +304,7 @@ namespace XCode.DataAccessLayer
                     IDataIndex di = ModelHelper.GetIndex(entitytable, item.Columns);
                     if (di != null) continue;
 
-                    GetSchemaSQL(sb, onlySql, DDLSchema.DropIndex, item);
+                    PerformSchema(sb, onlySql, DDLSchema.DropIndex, item);
                     dbtable.Indexes.RemoveAt(i);
                 }
             }
@@ -265,7 +320,7 @@ namespace XCode.DataAccessLayer
                     IDataIndex di = ModelHelper.GetIndex(dbtable, item.Columns);
                     if (di != null) continue;
 
-                    GetSchemaSQL(sb, onlySql, DDLSchema.CreateIndex, item);
+                    PerformSchema(sb, onlySql, DDLSchema.CreateIndex, item);
                     dbtable.Indexes.Add(item.Clone(dbtable));
                 }
             }
@@ -345,7 +400,7 @@ namespace XCode.DataAccessLayer
         {
             // 如果数据库存在默认值，则删除
             if (!String.IsNullOrEmpty(dbColumn.Default))
-                GetSchemaSQL(sb, onlySql, DDLSchema.DropDefault, dbColumn);
+                PerformSchema(sb, onlySql, DDLSchema.DropDefault, dbColumn);
 
             // 如果实体存在默认值，则增加
             if (!String.IsNullOrEmpty(entityColumn.Default))
@@ -357,13 +412,13 @@ namespace XCode.DataAccessLayer
                     // 如果当前默认值是开发数据库的时间默认值，则修改为当前数据库的时间默认值
                     if (entityDb.DateTimeNow == entityColumn.Default) entityColumn.Default = Database.DateTimeNow;
 
-                    GetSchemaSQL(sb, onlySql, DDLSchema.AddDefault, entityColumn);
+                    PerformSchema(sb, onlySql, DDLSchema.AddDefault, entityColumn);
 
                     // 还原
                     entityColumn.Default = dv;
                 }
                 else
-                    GetSchemaSQL(sb, onlySql, DDLSchema.AddDefault, entityColumn);
+                    PerformSchema(sb, onlySql, DDLSchema.AddDefault, entityColumn);
             }
         }
 
@@ -445,9 +500,7 @@ namespace XCode.DataAccessLayer
 
             return sb.ToString();
         }
-        #endregion
 
-        #region 架构定义
         /// <summary>
         /// 获取架构语句，该执行的已经执行。
         /// 如果取不到语句，则输出日志信息；
@@ -457,7 +510,7 @@ namespace XCode.DataAccessLayer
         /// <param name="onlySql"></param>
         /// <param name="schema"></param>
         /// <param name="values"></param>
-        private void GetSchemaSQL(StringBuilder sb, Boolean onlySql, DDLSchema schema, params Object[] values)
+        private void PerformSchema(StringBuilder sb, Boolean onlySql, DDLSchema schema, params Object[] values)
         {
             String sql = GetSchemaSQL(schema, values);
             if (!String.IsNullOrEmpty(sql))
@@ -500,15 +553,16 @@ namespace XCode.DataAccessLayer
 
         void CreateTable(StringBuilder sb, IDataTable table, Boolean onlySql)
         {
-            GetSchemaSQL(sb, onlySql, DDLSchema.CreateTable, table);
+            PerformSchema(sb, onlySql, DDLSchema.CreateTable, table);
 
             // 加上表注释
-            if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(sb, table, onlySql);
+            //if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(sb, table, onlySql);
+            if (!String.IsNullOrEmpty(table.Description)) PerformSchema(sb, onlySql, DDLSchema.AddTableDescription, table);
 
             // 加上字段注释
             foreach (IDataColumn item in table.Columns)
             {
-                if (!String.IsNullOrEmpty(item.Description)) AddColumnDescription(sb, item, onlySql);
+                if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql, DDLSchema.AddColumnDescription, item);
             }
 
             // 加上索引
@@ -516,43 +570,9 @@ namespace XCode.DataAccessLayer
             {
                 foreach (IDataIndex item in table.Indexes)
                 {
-                    if (!item.PrimaryKey) GetSchemaSQL(sb, onlySql, DDLSchema.CreateIndex, item);
+                    if (!item.PrimaryKey) PerformSchema(sb, onlySql, DDLSchema.CreateIndex, item);
                 }
             }
-        }
-
-        void AddTableDescription(StringBuilder sb, IDataTable table, Boolean onlySql)
-        {
-            GetSchemaSQL(sb, onlySql, DDLSchema.AddTableDescription, table);
-        }
-
-        void DropTableDescription(StringBuilder sb, IDataTable table, Boolean onlySql)
-        {
-            GetSchemaSQL(sb, onlySql, DDLSchema.DropTableDescription, table);
-        }
-
-        void AddColumn(StringBuilder sb, IDataColumn field, Boolean onlySql)
-        {
-            GetSchemaSQL(sb, onlySql, DDLSchema.AddColumn, field);
-
-            if (!String.IsNullOrEmpty(field.Description)) AddColumnDescription(sb, field, onlySql);
-        }
-
-        void AddColumnDescription(StringBuilder sb, IDataColumn field, Boolean onlySql)
-        {
-            GetSchemaSQL(sb, onlySql, DDLSchema.AddColumnDescription, field);
-        }
-
-        void DropColumn(StringBuilder sb, IDataColumn field, Boolean onlySql)
-        {
-            if (!String.IsNullOrEmpty(field.Description)) DropColumnDescription(sb, field, onlySql);
-
-            GetSchemaSQL(sb, onlySql, DDLSchema.DropColumn, field);
-        }
-
-        void DropColumnDescription(StringBuilder sb, IDataColumn field, Boolean onlySql)
-        {
-            GetSchemaSQL(sb, onlySql, DDLSchema.DropColumnDescription, field);
         }
         #endregion
 
@@ -631,7 +651,7 @@ namespace XCode.DataAccessLayer
                     else
                         name = values[0].ToString();
 
-                    DataTable dt = GetSchema(CollectionNames.Tables, new String[] { null, null, name, "TABLE" });
+                    DataTable dt = GetSchema(_.Tables, new String[] { null, null, name, "TABLE" });
                     if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
                     return true;
                 default:
@@ -700,7 +720,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
-            if (field.PrimaryKey)
+            if (field.PrimaryKey && field.Table.PrimaryKeys.Length < 2)
             {
                 return " Primary Key";
             }
@@ -725,7 +745,26 @@ namespace XCode.DataAccessLayer
 
             TypeCode tc = Type.GetTypeCode(field.DataType);
             if (tc == TypeCode.String)
-                return String.Format(" Default '{0}'", ("" + field.Default).Replace("'", "''"));
+            {
+                //Boolean isunicode = (Database is DbBase) && (Database as DbBase).IsUnicode(field.RawType);
+
+                //if (isunicode)
+                //{
+                //    if (field.Default.StartsWith("N'", StringComparison.OrdinalIgnoreCase))
+                //        return String.Format(" Default {0}", field.Default);
+                //    else
+                //        return String.Format(" Default N'{0}'", field.Default);
+                //}
+                //else
+                //{
+                //    if (field.Default.StartsWith("'", StringComparison.OrdinalIgnoreCase))
+                //        return String.Format(" Default {0}", field.Default);
+                //    else
+                //        return String.Format(" Default '{0}'", field.Default);
+                //}
+
+                return String.Format(" Default {0}", Database.FormatValue(field, field.Default));
+            }
             else if (tc == TypeCode.DateTime)
             {
                 String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);

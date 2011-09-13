@@ -41,7 +41,7 @@ namespace XCode.Test
         [DisplayName("主键二")]
         [Description("主键二")]
         [DataObjectField(true, false, false, 16)]
-        [BindColumn(2, "guid2", "主键二", "'NEWID()'", "char(16)", 0, 0, false)]
+        [BindColumn(2, "guid2", "主键二", "", "char(16)", 0, 0, false)]
         public String guid2
         {
             get { return _guid2; }
@@ -66,7 +66,7 @@ namespace XCode.Test
         [DisplayName("名称")]
         [Description("名称")]
         [DataObjectField(false, false, false, 50)]
-        [BindColumn(4, "Name", "名称", "'admin'", "varchar(50)", 0, 0, false)]
+        [BindColumn(4, "Name", "名称", "admin", "varchar(50)", 0, 0, false)]
         public String Name
         {
             get { return _Name; }
@@ -78,7 +78,7 @@ namespace XCode.Test
         [DisplayName("密码")]
         [Description("密码")]
         [DataObjectField(false, false, true, 32)]
-        [BindColumn(5, "Password", "密码", "N'密‘admin’码'", "nchar(32)", 0, 0, true)]
+        [BindColumn(5, "Password", "密码", "密'admin'码", "nchar(32)", 0, 0, true)]
         public String Password
         {
             get { return _Password; }
@@ -222,7 +222,7 @@ namespace XCode.Test
         [DisplayName("备注一")]
         [Description("备注一")]
         [DataObjectField(false, false, true, 2147483647)]
-        [BindColumn(17, "remark", "备注一", "'备注'", "text", 0, 0, false)]
+        [BindColumn(17, "remark", "备注一", "备注", "text", 0, 0, false)]
         public String remark
         {
             get { return _remark; }
