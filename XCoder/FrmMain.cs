@@ -439,13 +439,6 @@ namespace XCoder
         #region º”‘ÿ°¢±£¥Ê
         public void LoadConfig()
         {
-            if (!String.IsNullOrEmpty(Config.ConnName))
-            {
-                if (String.IsNullOrEmpty(Config.EntityConnName)) Config.EntityConnName = Config.ConnName;
-                if (String.IsNullOrEmpty(Config.NameSpace)) Config.NameSpace = Config.ConnName;
-                if (String.IsNullOrEmpty(Config.OutputPath)) Config.OutputPath = Config.ConnName;
-            }
-
             cbConn.Text = Config.ConnName;
             cb_Template.Text = Config.TemplateName;
             txt_OutPath.Text = Config.OutputPath;
@@ -464,13 +457,6 @@ namespace XCoder
 
         public void SaveConfig()
         {
-            if (!String.IsNullOrEmpty(Config.ConnName))
-            {
-                if (String.IsNullOrEmpty(Config.EntityConnName)) Config.EntityConnName = Config.ConnName;
-                if (String.IsNullOrEmpty(Config.NameSpace)) Config.NameSpace = Config.ConnName;
-                if (String.IsNullOrEmpty(Config.OutputPath)) Config.OutputPath = Config.ConnName;
-            }
-
             Config.ConnName = cbConn.Text;
             Config.TemplateName = cb_Template.Text;
             Config.OutputPath = txt_OutPath.Text;
