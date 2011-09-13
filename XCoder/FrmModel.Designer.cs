@@ -30,6 +30,10 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmModel));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.btnAddRelation = new System.Windows.Forms.Button();
+            this.btnAddIndex = new System.Windows.Forms.Button();
+            this.btnAddColumn = new System.Windows.Forms.Button();
+            this.btnAddTable = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.cbTables = new System.Windows.Forms.ComboBox();
             this.gv = new System.Windows.Forms.DataGridView();
@@ -37,14 +41,15 @@
             this.pgColumn = new System.Windows.Forms.PropertyGrid();
             this.dgvIndex = new System.Windows.Forms.DataGridView();
             this.dgvRelation = new System.Windows.Forms.DataGridView();
-            this.btnAddTable = new System.Windows.Forms.Button();
-            this.btnAddColumn = new System.Windows.Forms.Button();
-            this.btnAddIndex = new System.Windows.Forms.Button();
-            this.btnAddRelation = new System.Windows.Forms.Button();
+            this.btnCreateTableSQL = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
+            this.cbDbTypes = new System.Windows.Forms.ComboBox();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gv)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvIndex)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRelation)).BeginInit();
+            this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -59,9 +64,49 @@
             this.groupBox1.Controls.Add(this.cbTables);
             this.groupBox1.Location = new System.Drawing.Point(6, 2);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(1006, 44);
+            this.groupBox1.Size = new System.Drawing.Size(609, 44);
             this.groupBox1.TabIndex = 2;
             this.groupBox1.TabStop = false;
+            // 
+            // btnAddRelation
+            // 
+            this.btnAddRelation.Location = new System.Drawing.Point(530, 11);
+            this.btnAddRelation.Name = "btnAddRelation";
+            this.btnAddRelation.Size = new System.Drawing.Size(68, 27);
+            this.btnAddRelation.TabIndex = 5;
+            this.btnAddRelation.Text = "添加关系";
+            this.btnAddRelation.UseVisualStyleBackColor = true;
+            this.btnAddRelation.Click += new System.EventHandler(this.btnAddRelation_Click);
+            // 
+            // btnAddIndex
+            // 
+            this.btnAddIndex.Location = new System.Drawing.Point(439, 11);
+            this.btnAddIndex.Name = "btnAddIndex";
+            this.btnAddIndex.Size = new System.Drawing.Size(68, 27);
+            this.btnAddIndex.TabIndex = 4;
+            this.btnAddIndex.Text = "添加索引";
+            this.btnAddIndex.UseVisualStyleBackColor = true;
+            this.btnAddIndex.Click += new System.EventHandler(this.btnAddIndex_Click);
+            // 
+            // btnAddColumn
+            // 
+            this.btnAddColumn.Location = new System.Drawing.Point(348, 11);
+            this.btnAddColumn.Name = "btnAddColumn";
+            this.btnAddColumn.Size = new System.Drawing.Size(68, 27);
+            this.btnAddColumn.TabIndex = 3;
+            this.btnAddColumn.Text = "添加字段";
+            this.btnAddColumn.UseVisualStyleBackColor = true;
+            this.btnAddColumn.Click += new System.EventHandler(this.btnAddColumn_Click);
+            // 
+            // btnAddTable
+            // 
+            this.btnAddTable.Location = new System.Drawing.Point(257, 11);
+            this.btnAddTable.Name = "btnAddTable";
+            this.btnAddTable.Size = new System.Drawing.Size(68, 27);
+            this.btnAddTable.TabIndex = 2;
+            this.btnAddTable.Text = "添加表";
+            this.btnAddTable.UseVisualStyleBackColor = true;
+            this.btnAddTable.Click += new System.EventHandler(this.btnAddTable_Click);
             // 
             // label1
             // 
@@ -139,51 +184,51 @@
             this.dgvRelation.TabIndex = 7;
             this.dgvRelation.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.gv_RowEnter);
             // 
-            // btnAddTable
+            // btnCreateTableSQL
             // 
-            this.btnAddTable.Location = new System.Drawing.Point(257, 11);
-            this.btnAddTable.Name = "btnAddTable";
-            this.btnAddTable.Size = new System.Drawing.Size(68, 27);
-            this.btnAddTable.TabIndex = 2;
-            this.btnAddTable.Text = "添加表";
-            this.btnAddTable.UseVisualStyleBackColor = true;
-            this.btnAddTable.Click += new System.EventHandler(this.btnAddTable_Click);
+            this.btnCreateTableSQL.Location = new System.Drawing.Point(180, 11);
+            this.btnCreateTableSQL.Name = "btnCreateTableSQL";
+            this.btnCreateTableSQL.Size = new System.Drawing.Size(68, 27);
+            this.btnCreateTableSQL.TabIndex = 6;
+            this.btnCreateTableSQL.Text = "建表语句";
+            this.btnCreateTableSQL.UseVisualStyleBackColor = true;
+            this.btnCreateTableSQL.Click += new System.EventHandler(this.btnCreateTableSQL_Click);
             // 
-            // btnAddColumn
+            // label2
             // 
-            this.btnAddColumn.Location = new System.Drawing.Point(348, 11);
-            this.btnAddColumn.Name = "btnAddColumn";
-            this.btnAddColumn.Size = new System.Drawing.Size(68, 27);
-            this.btnAddColumn.TabIndex = 3;
-            this.btnAddColumn.Text = "添加字段";
-            this.btnAddColumn.UseVisualStyleBackColor = true;
-            this.btnAddColumn.Click += new System.EventHandler(this.btnAddColumn_Click);
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(9, 18);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(77, 12);
+            this.label2.TabIndex = 8;
+            this.label2.Text = "数据库类型：";
             // 
-            // btnAddIndex
+            // cbDbTypes
             // 
-            this.btnAddIndex.Location = new System.Drawing.Point(439, 11);
-            this.btnAddIndex.Name = "btnAddIndex";
-            this.btnAddIndex.Size = new System.Drawing.Size(68, 27);
-            this.btnAddIndex.TabIndex = 4;
-            this.btnAddIndex.Text = "添加索引";
-            this.btnAddIndex.UseVisualStyleBackColor = true;
-            this.btnAddIndex.Click += new System.EventHandler(this.btnAddIndex_Click);
+            this.cbDbTypes.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbDbTypes.FormattingEnabled = true;
+            this.cbDbTypes.Location = new System.Drawing.Point(92, 14);
+            this.cbDbTypes.Name = "cbDbTypes";
+            this.cbDbTypes.Size = new System.Drawing.Size(82, 20);
+            this.cbDbTypes.TabIndex = 7;
             // 
-            // btnAddRelation
+            // groupBox2
             // 
-            this.btnAddRelation.Location = new System.Drawing.Point(530, 11);
-            this.btnAddRelation.Name = "btnAddRelation";
-            this.btnAddRelation.Size = new System.Drawing.Size(68, 27);
-            this.btnAddRelation.TabIndex = 5;
-            this.btnAddRelation.Text = "添加关系";
-            this.btnAddRelation.UseVisualStyleBackColor = true;
-            this.btnAddRelation.Click += new System.EventHandler(this.btnAddRelation_Click);
+            this.groupBox2.Controls.Add(this.label2);
+            this.groupBox2.Controls.Add(this.btnCreateTableSQL);
+            this.groupBox2.Controls.Add(this.cbDbTypes);
+            this.groupBox2.Location = new System.Drawing.Point(621, 2);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(391, 44);
+            this.groupBox2.TabIndex = 8;
+            this.groupBox2.TabStop = false;
             // 
             // FrmModel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1020, 468);
+            this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.dgvRelation);
             this.Controls.Add(this.dgvIndex);
             this.Controls.Add(this.pgColumn);
@@ -200,6 +245,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.gv)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvIndex)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRelation)).EndInit();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -218,5 +265,9 @@
         private System.Windows.Forms.Button btnAddIndex;
         private System.Windows.Forms.Button btnAddColumn;
         private System.Windows.Forms.Button btnAddTable;
+        private System.Windows.Forms.Button btnCreateTableSQL;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ComboBox cbDbTypes;
+        private System.Windows.Forms.GroupBox groupBox2;
     }
 }

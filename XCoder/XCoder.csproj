@@ -109,6 +109,12 @@
     <Compile Include="FrmSchema.Designer.cs">
       <DependentUpon>FrmSchema.cs</DependentUpon>
     </Compile>
+    <Compile Include="FrmText.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmText.Designer.cs">
+      <DependentUpon>FrmText.cs</DependentUpon>
+    </Compile>
     <Compile Include="ITranslate.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -122,6 +128,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FrmSchema.resx">
       <DependentUpon>FrmSchema.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmText.resx">
+      <DependentUpon>FrmText.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Template\实体\扩展查询.xt" />
     <EmbeddedResource Include="Template\实体\扩展属性.xt" />

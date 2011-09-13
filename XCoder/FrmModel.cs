@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using XCode.DataAccessLayer;
 using NewLife.Reflection;
+using XCode;
 
 namespace XCoder
 {
@@ -45,6 +46,7 @@ namespace XCoder
             //cbTables.Update();
 
             SetTables(Tables, 0);
+            SetDbTypes();
 
             //gv.DataSource = Tables;
         }
@@ -165,6 +167,39 @@ namespace XCoder
             dgvRelation.DataSource = null;
             dgvRelation.DataSource = table.Relations;
             pgColumn.SelectedObject = dr;
+        }
+        #endregion
+
+        #region 建表语句
+        void SetDbTypes()
+        {
+            String[] ss = Enum.GetNames(typeof(DatabaseType));
+            List<String> list = new List<string>(ss);
+            for (int i = list.Count - 1; i >= 0; i--)
+            {
+                Int32 n = (Int32)Enum.Parse(typeof(DatabaseType), list[i]);
+                if (n >= 100) list.RemoveAt(i);
+            }
+            cbDbTypes.DataSource = list;
+            cbDbTypes.Update();
+        }
+
+        private void btnCreateTableSQL_Click(object sender, EventArgs e)
+        {
+            if (cbDbTypes.SelectedItem == null) return;
+
+            IDataTable table = GetSelectedTable();
+            if (table == null) return;
+
+            DatabaseType dbt = (DatabaseType)Enum.Parse(typeof(DatabaseType), (String)cbDbTypes.SelectedItem);
+
+            IDatabase db = DbFactory.Create(dbt);
+            if (db == null) return;
+
+            IMetaData md = db.CreateMetaData();
+            String sql = md.GetSchemaSQL(DDLSchema.CreateTable, table);
+
+            FrmText.Create(table.Name + "表建表语句", sql).Show();
         }
         #endregion
     }
