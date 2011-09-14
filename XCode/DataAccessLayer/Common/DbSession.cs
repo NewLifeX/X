@@ -1,12 +1,12 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using NewLife;
 using NewLife.Log;
 using XCode.Exceptions;
-using System.Text;
 
 namespace XCode.DataAccessLayer
 {

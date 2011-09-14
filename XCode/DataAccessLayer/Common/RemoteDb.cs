@@ -4,6 +4,7 @@ using System.Text;
 using System.Data;
 using System.Data.Common;
 using System.IO;
+using System.Threading;
 
 namespace XCode.DataAccessLayer
 {
@@ -166,6 +167,9 @@ namespace XCode.DataAccessLayer
                     {
                         session.DatabaseName = dbname;
                     }
+
+                    // 创建数据库后，需要等待它初始化
+                    Thread.Sleep(5000);
 
                     return obj;
                 default:
