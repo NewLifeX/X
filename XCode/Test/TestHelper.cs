@@ -83,6 +83,9 @@ namespace XCode.Test
                 b = true;
             }
             Debug.Assert(b, "Name作为唯一索引，插入相同数据时，应该报错！");
+
+            entity = FindAll(null, null, "12345 as ext,*", 0, 1)[0];
+            Debug.Assert((Int32)entity.Extends["ext"] != 12345, "扩展字段测试失败！");
         }
     }
 }
