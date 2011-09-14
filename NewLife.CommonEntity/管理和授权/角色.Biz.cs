@@ -188,7 +188,7 @@ namespace NewLife.CommonEntity
                     {
                         return Menu<TMenuEntity>.FindByID(item.MenuID);
                     });
-                    if (list != null) list.Sort(Menu<TMenuEntity>._.Sort, true);
+                    if (list != null) list.Sort(new String[] { Menu<TMenuEntity>._.Sort, Menu<TMenuEntity>._.ID }, new bool[] { true, false });
                     return list;
                 }, false);
             }
