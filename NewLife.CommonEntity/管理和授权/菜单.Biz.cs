@@ -315,6 +315,7 @@ namespace NewLife.CommonEntity
 
             // 如果菜单同名，则使用当前页
             TEntity current = null;
+            // 看来以后要把list != null && list.Count > 0判断作为常态，养成好习惯呀
             if (list != null && list.Count > 0)
             {
                 if (current == null) current = Current;

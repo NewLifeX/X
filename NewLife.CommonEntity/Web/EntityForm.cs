@@ -160,7 +160,7 @@ namespace NewLife.CommonEntity.Web
 
             foreach (FieldItem field in Entity<TEntity>.Meta.AllFields)
             {
-                Control control = Page.FindControl(FormItemPrefix + field.Name);
+                Control control = FindControlByField(field);
                 if (control == null) continue;
 
                 // 必填项
@@ -248,7 +248,10 @@ namespace NewLife.CommonEntity.Web
         /// <returns></returns>
         public override Control FindControl(string id)
         {
-            Control control = base.FindControl(id);
+            Control control = ControlHelper.FindControlInPage<Control>(id);
+            if (control != null) return control;
+
+            control = base.FindControl(id);
             if (control != null) return control;
 
             return ControlHelper.FindControl<Control>(Page.Form, id);
@@ -266,7 +269,7 @@ namespace NewLife.CommonEntity.Web
 
             foreach (FieldItem item in Entity<TEntity>.Meta.AllFields)
             {
-                Control control = Page.FindControl(FormItemPrefix + item.Name);
+                Control control = FindControlByField(item);
                 if (control == null) continue;
 
                 try
@@ -522,7 +525,7 @@ namespace NewLife.CommonEntity.Web
         {
             foreach (FieldItem item in Entity<TEntity>.Meta.AllFields)
             {
-                Control control = Page.FindControl(FormItemPrefix + item.Name);
+                Control control = FindControlByField(item);
                 if (control == null) continue;
 
                 try
@@ -697,7 +700,7 @@ namespace NewLife.CommonEntity.Web
             //foreach (FieldItem item in Entity<TEntity>.Meta.AllFields)
             foreach (FieldItem item in Entity<TEntity>.Meta.Fields)
             {
-                Control control = Page.FindControl(FormItemPrefix + item.Name);
+                Control control = FindControlByField(item);
                 if (control == null) continue;
 
                 if (!ValidFormItem(item, control)) return false;
@@ -774,6 +777,8 @@ namespace NewLife.CommonEntity.Web
         /// </summary>
         protected virtual void SaveFormSuccess()
         {
+            // 这个地方需要考虑一个问题，就是列表页查询之后再打开某记录进行编辑，编辑成功后，如果强行的reload列表页，浏览器会循环是否重新提交
+            // 经测试，可以找到列表页的那个查询按钮，模拟点击一次它，实际上就是让ASP.Net列表页回发一次，可以解决这个问题
             ClientScript.RegisterStartupScript(this.GetType(), "alert", @"alert('成功！');
 (function(){
     var load=window.onload;
@@ -795,7 +800,7 @@ namespace NewLife.CommonEntity.Web
             ArgumentException ae = ex as ArgumentException;
             if (ae != null && !String.IsNullOrEmpty(ae.ParamName))
             {
-                Control control = Page.FindControl(FormItemPrefix + ae.ParamName);
+                Control control = FindControlByName(FormItemPrefix + ae.ParamName);
                 if (control != null) control.Focus();
             }
 
@@ -837,6 +842,19 @@ namespace NewLife.CommonEntity.Web
             }
 
             return false;
+        }
+
+        protected virtual Control FindControlByName(String name)
+        {
+            Control control = ControlHelper.FindControlInPage<Control>(name);
+            if (control != null) return control;
+
+            return Page.FindControl(name);
+        }
+
+        protected virtual Control FindControlByField(FieldItem field)
+        {
+            return FindControlByName(FormItemPrefix + field.Name);
         }
         #endregion
     }

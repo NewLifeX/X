@@ -188,6 +188,7 @@ namespace NewLife.CommonEntity
                     {
                         return Menu<TMenuEntity>.FindByID(item.MenuID);
                     });
+                    // 先按Sort降序，再按ID升序，的确更加完善
                     if (list != null) list.Sort(new String[] { Menu<TMenuEntity>._.Sort, Menu<TMenuEntity>._.ID }, new bool[] { true, false });
                     return list;
                 }, false);
