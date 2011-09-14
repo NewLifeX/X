@@ -315,7 +315,7 @@ namespace NewLife.CommonEntity
 
             // 如果菜单同名，则使用当前页
             TEntity current = null;
-            if (list != null)
+            if (list != null && list.Count > 0)
             {
                 if (current == null) current = Current;
                 if (current != null)
