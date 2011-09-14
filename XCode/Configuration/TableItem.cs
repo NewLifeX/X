@@ -181,26 +181,26 @@ namespace XCode.Configuration
             }
         }
 
-        private Dictionary<String, FieldItem> _FieldItems;
-        /// <summary>数据字段字典，字段名不区分大小写</summary>
-        public Dictionary<String, FieldItem> FieldItems
-        {
-            get
-            {
-                if (_FieldItems == null)
-                {
-                    Dictionary<String, FieldItem> dic = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
-                    foreach (FieldItem item in Fields)
-                    {
-                        if (!dic.ContainsKey(item.Name)) dic.Add(item.Name, item);
-                        if (!dic.ContainsKey(item.ColumnName)) dic.Add(item.ColumnName, item);
-                    }
-                    _FieldItems = dic;
-                }
+        //private Dictionary<String, FieldItem> _FieldItems;
+        ///// <summary>数据字段字典，字段名不区分大小写</summary>
+        //public Dictionary<String, FieldItem> FieldItems
+        //{
+        //    get
+        //    {
+        //        if (_FieldItems == null)
+        //        {
+        //            Dictionary<String, FieldItem> dic = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
+        //            foreach (FieldItem item in Fields)
+        //            {
+        //                if (!dic.ContainsKey(item.Name)) dic.Add(item.Name, item);
+        //                if (!dic.ContainsKey(item.ColumnName)) dic.Add(item.ColumnName, item);
+        //            }
+        //            _FieldItems = dic;
+        //        }
 
-                return _FieldItems;
-            }
-        }
+        //        return _FieldItems;
+        //    }
+        //}
 
         private IDataTable _DataTable;
         /// <summary>数据表架构</summary>

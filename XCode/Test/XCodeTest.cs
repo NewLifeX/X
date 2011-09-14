@@ -9,7 +9,7 @@ using NewLife.Log;
 using XCode.Code;
 using XCode.DataAccessLayer;
 
-namespace XCode
+namespace XCode.Test
 {
     /// <summary>
     /// 测试

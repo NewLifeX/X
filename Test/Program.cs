@@ -6,6 +6,7 @@ using NewLife.CommonEntity;
 using NewLife.Log;
 using XCode.DataAccessLayer;
 using XCode.Test;
+using XCode;
 
 namespace Test
 {
@@ -22,7 +23,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -65,11 +66,12 @@ namespace Test
             //Console.WriteLine(n);
 
             //EntityTest entity = new EntityTest();
-            EntityTest entity = EntityTest.FindAll()[0];
-            Console.WriteLine(entity.Password);
+            //Console.WriteLine(entity.Password);
+            EntityList<EntityTest> list = EntityTest.FindAll();
+            Console.WriteLine(list);
 
-            String xml = EntityTest.Meta.DBO.Export();
-            Console.WriteLine(xml);
+            //String xml = EntityTest.Meta.DBO.Export();
+            //Console.WriteLine(xml);
         }
     }
 }

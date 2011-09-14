@@ -15,5 +15,19 @@ namespace XCode.Test
             // 自动增加测试用连接字符串
             if (!DAL.ConnStrs.ContainsKey(Meta.ConnName)) DAL.AddConnStr(Meta.ConnName, "Server=.;Integrated Security=SSPI;Database=" + Meta.ConnName, null, "mssql");
         }
+
+        /// <summary>
+        /// 初始化数据
+        /// </summary>
+        protected internal override void InitData()
+        {
+            base.InitData();
+
+            if (Meta.Count > 0) return;
+
+            TEntity entity = new TEntity();
+            entity.Name = "admin888";
+            entity.Save();
+        }
     }
 }

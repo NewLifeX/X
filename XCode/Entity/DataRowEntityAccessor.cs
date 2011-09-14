@@ -59,6 +59,25 @@ namespace XCode
             set { _Factory = value; }
         }
 
+        private Dictionary<String, FieldItem> _FieldItems;
+        /// <summary>字段名-字段字典</summary>
+        public Dictionary<String, FieldItem> FieldItems
+        {
+            get
+            {
+                if (_FieldItems == null)
+                {
+                    Dictionary<String, FieldItem> dic = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
+                    foreach (FieldItem item in Factory.AllFields)
+                    {
+                        if (!dic.ContainsKey(item.ColumnName)) dic.Add(item.ColumnName, item);
+                    }
+                    _FieldItems = dic;
+                }
+                return _FieldItems;
+            }
+        }
+
         public DataRowEntityAccessor(Type type) { EntityType = type; }
         #endregion
 
@@ -76,10 +95,16 @@ namespace XCode
             //EntityList<TEntity> list = new EntityList<TEntity>(dt.Rows.Count);
             IEntityList list = TypeX.CreateInstance(typeof(EntityList<>).MakeGenericType(EntityType), dt.Rows.Count) as IEntityList;
 
-            List<String> ps = new List<String>();
+            List<FieldItem> ps = new List<FieldItem>();
+            List<String> exts = new List<String>();
             foreach (DataColumn item in dt.Columns)
             {
-                ps.Add(item.ColumnName);
+                String name = item.ColumnName;
+                FieldItem fi = null;
+                if (FieldItems.TryGetValue(name, out fi))
+                    ps.Add(fi);
+                else
+                    exts.Add(name);
             }
 
             // 遍历每一行数据，填充成为实体
@@ -88,7 +113,7 @@ namespace XCode
                 //TEntity obj = new TEntity();
                 // 由实体操作者创建实体对象，因为实体操作者可能更换
                 IEntity obj = Factory.Create();
-                LoadData(dr, obj, ps);
+                LoadData(dr, obj, ps, exts);
                 list.Add(obj);
             }
             return list;
@@ -103,12 +128,19 @@ namespace XCode
         {
             if (dr == null) return;
 
-            List<String> ps = new List<String>();
+            List<FieldItem> ps = new List<FieldItem>();
+            List<String> exts = new List<String>();
             foreach (DataColumn item in dr.Table.Columns)
             {
-                ps.Add(item.ColumnName);
+                String name = item.ColumnName;
+                FieldItem fi = null;
+                if (FieldItems.TryGetValue(name, out fi))
+                    ps.Add(fi);
+                else
+                    exts.Add(name);
             }
-            LoadData(dr, entity, ps);
+
+            LoadData(dr, entity, ps, exts);
         }
 
         /// <summary>
@@ -123,7 +155,17 @@ namespace XCode
             // IDataReader的GetSchemaTable方法太浪费资源了
             for (int i = 0; i < dr.FieldCount; i++)
             {
-                SetValue(entity, dr.GetName(i), dr.GetValue(i));
+                String name = dr.GetName(i);
+                Type type = null;
+
+                FieldItem fi = null;
+                if (FieldItems.TryGetValue(name, out fi))
+                {
+                    name = fi.Name;
+                    type = fi.Type;
+                }
+
+                SetValue(entity, name, type, dr.GetValue(i));
             }
         }
 
@@ -169,24 +211,33 @@ namespace XCode
         static String[] TrueString = new String[] { "true", "y", "yes", "1" };
         static String[] FalseString = new String[] { "false", "n", "no", "0" };
 
-        private void LoadData(DataRow dr, IEntity entity, List<String> ps)
+        private void LoadData(DataRow dr, IEntity entity, List<FieldItem> ps, List<String> exts)
         {
             if (dr == null) return;
 
-            foreach (String item in ps)
+            foreach (FieldItem item in ps)
             {
-                SetValue(entity, item, dr[item]);
+                SetValue(entity, item.Name, item.Type, dr[item]);
+            }
+
+            foreach (String item in exts)
+            {
+                SetValue(entity, item, null, dr[item]);
             }
         }
 
-        private void SetValue(IEntity entity, String name, Object value)
+        private void SetValue(IEntity entity, String name, Type type, Object value)
         {
             // 注意：name并不一定是实体类的成员
             Object oldValue = entity[name];
 
-            Type type = null;
-            if (oldValue != null) type = oldValue.GetType();
-            if (type == null) GetFieldTypeByName(name);
+            if (type == null)
+            {
+                if (oldValue != null)
+                    type = oldValue.GetType();
+                else if (value != null)
+                    type = value.GetType();
+            }
 
             // 不处理相同数据的赋值
             if (Object.Equals(value, oldValue)) return;
@@ -231,18 +282,18 @@ namespace XCode
                 entity.Dirtys.Remove(name);
         }
 
-        DictionaryCache<String, Type> nameTypes = new DictionaryCache<string, Type>();
-        Type GetFieldTypeByName(String name)
-        {
-            return nameTypes.GetItem(name, delegate(String key)
-            {
-                foreach (FieldItem item in Factory.AllFields)
-                {
-                    if (item.ColumnName == key) return item.Type;
-                }
-                return null;
-            });
-        }
+        //DictionaryCache<String, Type> nameTypes = new DictionaryCache<string, Type>();
+        //Type GetFieldTypeByName(String name)
+        //{
+        //    return nameTypes.GetItem(name, delegate(String key)
+        //    {
+        //        foreach (FieldItem item in Factory.AllFields)
+        //        {
+        //            if (item.ColumnName == key) return item.Type;
+        //        }
+        //        return null;
+        //    });
+        //}
         #endregion
     }
 }

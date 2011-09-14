@@ -571,9 +571,7 @@ namespace XCode.DataAccessLayer
             catch { }
             DbSession.ShowSQL = b;
 
-            DAL.WriteDebugLog(Database.CreateSession().ConnectionString);
             DataTable dt = GetSchema(_.Tables, null);
-            DAL.WriteDebugLog(Database.CreateSession().ConnectionString);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
             b = DbSession.ShowSQL;
