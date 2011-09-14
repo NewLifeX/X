@@ -774,7 +774,15 @@ namespace NewLife.CommonEntity.Web
         /// </summary>
         protected virtual void SaveFormSuccess()
         {
-            ClientScript.RegisterStartupScript(this.GetType(), "alert", "alert('成功！');parent.Dialog.CloseAndRefresh(frameElement);", true);
+            ClientScript.RegisterStartupScript(this.GetType(), "alert", @"alert('成功！');
+(function(){
+    var load=window.onload;
+    window.onload=function(){
+        if(load) load();
+        parent.Dialog.CloseAndRefresh(frameElement);
+    };
+})();
+", true);
         }
 
         /// <summary>
