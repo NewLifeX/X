@@ -409,7 +409,7 @@ namespace XCode.DataAccessLayer
 
         private void Check()
         {
-            WriteLog("开始检查连接{0}的数据库架构……", ConnName);
+            WriteLog("开始检查连接[{0}][{1}]的数据库架构……", ConnName, DbType);
 
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -439,7 +439,7 @@ namespace XCode.DataAccessLayer
             {
                 sw.Stop();
 
-                WriteLog("检查连接{0}的数据库架构耗时{1}", ConnName, sw.Elapsed);
+                WriteLog("检查连接[{0}][{1}]的数据库架构耗时{2}", ConnName, DbType, sw.Elapsed);
             }
         }
         #endregion
