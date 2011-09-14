@@ -103,7 +103,7 @@ if(!Config.RenderGenEntity){#>
     }
 
     /// <summary><#=Table.Description#>接口</summary>
-    public interface I<#=Table.Alias#>
+    public partial interface I<#=Table.Alias#>
     {
         #region 属性<#
         foreach(IDataColumn Field in Table.Columns)
