@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using XCode.DataAccessLayer;
+using System.Diagnostics;
+using NewLife.Log;
 
 namespace XCode.Test
 {
@@ -28,6 +30,51 @@ namespace XCode.Test
             TEntity entity = new TEntity();
             entity.Name = "admin888";
             entity.Save();
+        }
+
+        /// <summary>
+        /// 测试主方法
+        /// </summary>
+        public static void Test()
+        {
+            TEntity entity = FindByName("admin888");
+            Debug.Assert(entity != null, "应该已经初始化一个Name=admin888的数据！");
+
+            Debug.Assert(entity.Guid != Guid.Empty, "Guid字段有默认值，不应该为空！");
+
+            Debug.Assert(entity.Guid2 == new String(' ', _.Guid2.Length), "Guid2字段应该是长度为" + _.Guid2.Length + "的空字符串！");
+
+            entity = FindByGuidAndGuid2(entity.Guid, entity.Guid2);
+            Debug.Assert(entity != null, "双主键查询！");
+
+            entity = Find(_.EntityTest2 > 3.14);
+            Debug.Assert(entity != null, "字段名与表名相同！");
+
+            entity = Find(_.Item2 < 99);
+            Debug.Assert(entity != null, "字段名是.Net关键字！");
+
+            entity = Find(_.Name.StartsWith("admin"));
+            Debug.Assert(entity != null, "字符串开头！");
+
+            entity = Find(_.Name.Contains("min"));
+            Debug.Assert(entity != null, "字符串包含！");
+
+            entity = Find(_.Name.EndsWith("8"));
+            Debug.Assert(entity != null, "字符串结尾！");
+
+            Boolean b = false;
+            try
+            {
+                entity = new TEntity();
+                entity.Name = "admin888";
+                entity.Insert();
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteLine(ex.Message);
+                b = true;
+            }
+            Debug.Assert(b, "Name作为唯一索引，插入相同数据时，应该报错！");
         }
     }
 }

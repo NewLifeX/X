@@ -62,13 +62,7 @@ namespace Test
 
         static void Test2()
         {
-            //Int64 n = EntityTest.FindCount();
-            //Console.WriteLine(n);
-
-            //EntityTest entity = new EntityTest();
-            //Console.WriteLine(entity.Password);
-            EntityList<EntityTest> list = EntityTest.FindAll();
-            Console.WriteLine(list);
+            EntityTest.Test();
 
             //String xml = EntityTest.Meta.DBO.Export();
             //Console.WriteLine(xml);
