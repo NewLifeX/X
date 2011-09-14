@@ -234,6 +234,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="UpdateInfo.txt" />
+    <Content Include="Test\EntityTest.xml" />
     <Content Include="说明.txt" />
   </ItemGroup>
   <ItemGroup />

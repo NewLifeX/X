@@ -410,12 +410,49 @@ namespace XCode.DataAccessLayer
             get { return _DataTypes ?? (_DataTypes = GetSchema(DbMetaDataCollectionNames.DataTypes, null)); }
         }
 
+        private List<KeyValuePair<String, String>> _FieldTypeMaps;
+        /// <summary>字段类型映射</summary>
+        protected virtual List<KeyValuePair<String, String>> FieldTypeMaps
+        {
+            get
+            {
+                if (_FieldTypeMaps == null)
+                {
+                    _FieldTypeMaps = new List<KeyValuePair<String, String>>();
+                    _FieldTypeMaps.Add(new KeyValuePair<String, String>(typeof(SByte).FullName, typeof(Byte).FullName));
+                    _FieldTypeMaps.Add(new KeyValuePair<String, String>(typeof(SByte).FullName, typeof(Int16).FullName));
+                    _FieldTypeMaps.Add(new KeyValuePair<String, String>(typeof(UInt64).FullName, typeof(Int64).FullName));
+                    _FieldTypeMaps.Add(new KeyValuePair<String, String>(typeof(UInt64).FullName, typeof(Int32).FullName));
+                    _FieldTypeMaps.Add(new KeyValuePair<String, String>(typeof(Int64).FullName, typeof(Int32).FullName));
+                    _FieldTypeMaps.Add(new KeyValuePair<String, String>(typeof(UInt32).FullName, typeof(Int32).FullName));
+                    _FieldTypeMaps.Add(new KeyValuePair<String, String>(typeof(UInt16).FullName, typeof(Int16).FullName));
+                }
+                return _FieldTypeMaps;
+            }
+        }
+
         /// <summary>查找指定字段指定类型的数据类型</summary>
         /// <param name="field"></param>
         /// <param name="typeName"></param>
         /// <param name="isLong"></param>
         /// <returns></returns>
         protected virtual DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
+        {
+            DataRow[] drs = OnFindDataType(field, typeName, isLong);
+            if (drs != null && drs.Length > 0) return drs;
+
+            foreach (KeyValuePair<String, String> item in FieldTypeMaps)
+            {
+                if (item.Key == typeName)
+                {
+                    drs = OnFindDataType(field, item.Value, isLong);
+                    if (drs != null && drs.Length > 0) return drs;
+                }
+            }
+            return null;
+        }
+
+        private DataRow[] OnFindDataType(IDataColumn field, String typeName, Boolean? isLong)
         {
             if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
             // 去掉类型中，长度等限制条件

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Data;
+using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-using NewLife.Reflection;
-using NewLife.Collections;
 
 namespace XCode
 {

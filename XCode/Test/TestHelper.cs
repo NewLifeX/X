@@ -4,12 +4,18 @@ using System.Text;
 using XCode.DataAccessLayer;
 using System.Diagnostics;
 using NewLife.Log;
+using System.Threading;
+using System.Diagnostics.CodeAnalysis;
 
 namespace XCode.Test
 {
     /// <summary>我的基类</summary>
     public class MyEntity<TEntity> : Entity<TEntity> where TEntity : MyEntity<TEntity>, new() { }
 
+    [CLSCompliant(false)]
+    partial interface IEntityTest { }
+
+    [CLSCompliant(false)]
     partial class EntityTest<TEntity>
     {
         static EntityTest()
@@ -37,6 +43,8 @@ namespace XCode.Test
         /// </summary>
         public static void Test()
         {
+            while (Meta.Count < 1) Thread.Sleep(100);
+
             TEntity entity = FindByName("admin888");
             Debug.Assert(entity != null, "应该已经初始化一个Name=admin888的数据！");
 

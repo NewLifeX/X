@@ -461,10 +461,31 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据类型
+        //private Dictionary<String, String> _FieldTypeMaps;
+        //protected override Dictionary<String, String> FieldTypeMaps
+        //{
+        //    get
+        //    {
+        //        if (_FieldTypeMaps == null)
+        //        {
+        //            _FieldTypeMaps.Add(typeof(SByte).FullName, typeof(Byte).FullName);
+        //        }
+        //        return _FieldTypeMaps;
+        //    }
+        //}
+
         protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
         {
             DataRow[] drs = base.FindDataType(field, typeName, isLong);
             if (drs != null && drs.Length > 0) return drs;
+
+            //// 处理SByte类型
+            //if (typeName == typeof(SByte).FullName)
+            //{
+            //    typeName = typeof(Byte).FullName;
+            //    drs = base.FindDataType(field, typeName, isLong);
+            //    if (drs != null && drs.Length > 0) return drs;
+            //}
 
             DataTable dt = DataTypes;
             if (dt == null) return null;

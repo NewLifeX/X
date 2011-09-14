@@ -1,7 +1,7 @@
 ﻿/*
  * XCoder v4.3.2011.0913
  * 作者：nnhy/NEWLIFE
- * 时间：2011-09-13 18:56:05
+ * 时间：2011-09-14 18:01:27
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
@@ -19,6 +19,7 @@ namespace XCode.Test
     [Description("实体测试")]
     [BindIndex("IX_EntityTest", true, "Name")]
     [BindIndex("IX_EntityTest_1", false, "IsEnable,StartDate,EndTime")]
+    [BindIndex("IX_EntityTest_2", true, "ID")]
     [BindIndex("PK_EntityTest", true, "Guid,guid2")]
     [BindTable("EntityTest", Description = "实体测试", ConnName = "XCodeTest", DbType = DatabaseType.SqlServer)]
     public partial class EntityTest<TEntity> : IEntityTest
@@ -29,7 +30,7 @@ namespace XCode.Test
         [DisplayName("主键一")]
         [Description("主键一")]
         [DataObjectField(true, false, false, 16)]
-        [BindColumn(1, "Guid", "主键一", "newid()", "uniqueidentifier", 0, 0, false)]
+        [BindColumn(1, "Guid", "主键一", null, "uniqueidentifier", 0, 0, false)]
         public Guid Guid
         {
             get { return _Guid; }
@@ -60,12 +61,24 @@ namespace XCode.Test
             set { if (OnPropertyChanging("ID", value)) { _ID = value; OnPropertyChanged("ID"); } }
         }
 
+        private Int16 _ID2;
+        /// <summary>编号二</summary>
+        [DisplayName("编号二")]
+        [Description("编号二")]
+        [DataObjectField(false, false, true, 5)]
+        [BindColumn(4, "ID2", "编号二", null, "smallint", 5, 0, false)]
+        public Int16 ID2
+        {
+            get { return _ID2; }
+            set { if (OnPropertyChanging("ID2", value)) { _ID2 = value; OnPropertyChanged("ID2"); } }
+        }
+
         private String _Name;
         /// <summary>名称</summary>
         [DisplayName("名称")]
         [Description("名称")]
         [DataObjectField(false, false, false, 50)]
-        [BindColumn(4, "Name", "名称", "admin", "varchar(50)", 0, 0, false)]
+        [BindColumn(5, "Name", "名称", "admin", "varchar(50)", 0, 0, false)]
         public String Name
         {
             get { return _Name; }
@@ -77,7 +90,7 @@ namespace XCode.Test
         [DisplayName("密码")]
         [Description("密码")]
         [DataObjectField(false, false, true, 32)]
-        [BindColumn(5, "Password", "密码", "密'admin'码", "nchar(32)", 0, 0, true)]
+        [BindColumn(6, "Password", "密码", "密'admin'码", "nchar(32)", 0, 0, true)]
         public String Password
         {
             get { return _Password; }
@@ -89,7 +102,7 @@ namespace XCode.Test
         [DisplayName("显示名")]
         [Description("显示名")]
         [DataObjectField(false, false, false, 50)]
-        [BindColumn(6, "DisplayName", "显示名", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(7, "DisplayName", "显示名", null, "nvarchar(50)", 0, 0, true)]
         public String DisplayName
         {
             get { return _DisplayName; }
@@ -101,7 +114,7 @@ namespace XCode.Test
         [DisplayName("启用")]
         [Description("启用")]
         [DataObjectField(false, false, false, 1)]
-        [BindColumn(7, "IsEnable", "启用", null, "bit", 0, 0, false)]
+        [BindColumn(8, "IsEnable", "启用", null, "bit", 0, 0, false)]
         public Boolean IsEnable
         {
             get { return _IsEnable; }
@@ -113,7 +126,7 @@ namespace XCode.Test
         [DisplayName("登录次数")]
         [Description("登录次数")]
         [DataObjectField(false, false, true, 19)]
-        [BindColumn(8, "Logins", "登录次数", "-999999999999999999.", "bigint", 19, 0, false)]
+        [BindColumn(9, "Logins", "登录次数", "-999999999999999999.", "bigint", 19, 0, false)]
         public Int64 Logins
         {
             get { return _Logins; }
@@ -125,7 +138,7 @@ namespace XCode.Test
         [DisplayName("最后登陆")]
         [Description("最后登陆")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(9, "LastLogin", "最后登陆", "getdate()", "datetime", 3, 0, false)]
+        [BindColumn(10, "LastLogin", "最后登陆", "getdate()", "datetime", 3, 0, false)]
         public DateTime LastLogin
         {
             get { return _LastLogin; }
@@ -137,7 +150,7 @@ namespace XCode.Test
         [DisplayName("开始日期")]
         [Description("开始日期")]
         [DataObjectField(false, false, false, 3)]
-        [BindColumn(10, "StartDate", "开始日期", "getdate()", "date", 0, 0, false)]
+        [BindColumn(11, "StartDate", "开始日期", "getdate()", "date", 0, 0, false)]
         public DateTime StartDate
         {
             get { return _StartDate; }
@@ -149,7 +162,7 @@ namespace XCode.Test
         [DisplayName("结束时间")]
         [Description("结束时间")]
         [DataObjectField(false, false, false, 16)]
-        [BindColumn(11, "EndTime", "结束时间", "getdate()", "smalldatetime", 0, 0, false)]
+        [BindColumn(12, "EndTime", "结束时间", "getdate()", "smalldatetime", 0, 0, false)]
         public DateTime EndTime
         {
             get { return _EndTime; }
@@ -161,7 +174,7 @@ namespace XCode.Test
         [DisplayName("总数")]
         [Description("总数")]
         [DataObjectField(false, false, true, 18)]
-        [BindColumn(12, "Total", "总数", "pi()", "decimal(18,0)", 18, 0, false)]
+        [BindColumn(13, "Total", "总数", null, "decimal(18,0)", 18, 0, false)]
         public Decimal Total
         {
             get { return _Total; }
@@ -173,7 +186,7 @@ namespace XCode.Test
         [DisplayName("百分比")]
         [Description("百分比")]
         [DataObjectField(false, false, true, 53)]
-        [BindColumn(13, "item", "百分比", "sqrt((2))/(10)", "float", 53, 0, false)]
+        [BindColumn(14, "item", "百分比", null, "float", 53, 0, false)]
         public Double Item2
         {
             get { return _Item2; }
@@ -185,7 +198,7 @@ namespace XCode.Test
         [DisplayName("实数")]
         [Description("实数")]
         [DataObjectField(false, false, true, 24)]
-        [BindColumn(14, "EntityTest", "实数", "pi()", "real", 24, 0, false)]
+        [BindColumn(15, "EntityTest", "实数", null, "real", 24, 0, false)]
         public Single EntityTest2
         {
             get { return _EntityTest2; }
@@ -197,7 +210,7 @@ namespace XCode.Test
         [DisplayName("金额")]
         [Description("金额")]
         [DataObjectField(false, false, true, 19)]
-        [BindColumn(15, "money", "金额", null, "money", 19, 4, false)]
+        [BindColumn(16, "money", "金额", null, "money", 19, 4, false)]
         public Decimal Money
         {
             get { return _Money; }
@@ -209,7 +222,7 @@ namespace XCode.Test
         [DisplayName("文件")]
         [Description("文件")]
         [DataObjectField(false, false, true, 2147483647)]
-        [BindColumn(16, "file", "文件", null, "image", 0, 0, false)]
+        [BindColumn(17, "file", "文件", null, "image", 0, 0, false)]
         public Byte[] File
         {
             get { return _File; }
@@ -221,7 +234,7 @@ namespace XCode.Test
         [DisplayName("备注一")]
         [Description("备注一")]
         [DataObjectField(false, false, true, 2147483647)]
-        [BindColumn(17, "remark", "备注一", "备注", "text", 0, 0, false)]
+        [BindColumn(18, "remark", "备注一", "备注", "text", 0, 0, false)]
         public String Remark
         {
             get { return _Remark; }
@@ -233,7 +246,7 @@ namespace XCode.Test
         [DisplayName("备注二")]
         [Description("备注二")]
         [DataObjectField(false, false, true, -1)]
-        [BindColumn(18, "remark2", "备注二", null, "nvarchar(MAX)", 0, 0, true)]
+        [BindColumn(19, "remark2", "备注二", null, "nvarchar(MAX)", 0, 0, true)]
         public String Remark2
         {
             get { return _Remark2; }
@@ -245,7 +258,7 @@ namespace XCode.Test
         [DisplayName("说明")]
         [Description("说明")]
         [DataObjectField(false, false, true, 1073741823)]
-        [BindColumn(19, "Description", "说明", null, "ntext", 0, 0, true)]
+        [BindColumn(20, "Description", "说明", null, "ntext", 0, 0, true)]
         public String Description
         {
             get { return _Description; }
@@ -270,6 +283,7 @@ namespace XCode.Test
                     case "Guid" : return _Guid;
                     case "Guid2" : return _Guid2;
                     case "ID" : return _ID;
+                    case "ID2" : return _ID2;
                     case "Name" : return _Name;
                     case "Password" : return _Password;
                     case "DisplayName" : return _DisplayName;
@@ -296,6 +310,7 @@ namespace XCode.Test
                     case "Guid" : _Guid = (Guid)value; break;
                     case "Guid2" : _Guid2 = Convert.ToString(value); break;
                     case "ID" : _ID = Convert.ToSByte(value); break;
+                    case "ID2" : _ID2 = Convert.ToInt16(value); break;
                     case "Name" : _Name = Convert.ToString(value); break;
                     case "Password" : _Password = Convert.ToString(value); break;
                     case "DisplayName" : _DisplayName = Convert.ToString(value); break;
@@ -330,6 +345,9 @@ namespace XCode.Test
 
             ///<summary>自增编号</summary>
             public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+
+            ///<summary>编号二</summary>
+            public static readonly FieldItem ID2 = Meta.Table.FindByName("ID2");
 
             ///<summary>名称</summary>
             public static readonly FieldItem Name = Meta.Table.FindByName("Name");
@@ -383,7 +401,7 @@ namespace XCode.Test
     }
 
     /// <summary>实体测试接口</summary>
-    public interface IEntityTest
+    public partial interface IEntityTest
     {
         #region 属性
         /// <summary>主键一</summary>
@@ -394,6 +412,9 @@ namespace XCode.Test
 
         /// <summary>自增编号</summary>
         SByte ID { get; set; }
+
+        /// <summary>编号二</summary>
+        Int16 ID2 { get; set; }
 
         /// <summary>名称</summary>
         String Name { get; set; }

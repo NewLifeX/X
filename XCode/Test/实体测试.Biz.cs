@@ -1,7 +1,7 @@
 ﻿/*
  * XCoder v4.3.2011.0913
  * 作者：nnhy/NEWLIFE
- * 时间：2011-09-13 18:56:05
+ * 时间：2011-09-14 18:01:27
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
@@ -15,6 +15,7 @@ using XCode.Configuration;
 namespace XCode.Test
 {
     /// <summary>实体测试</summary>
+    [CLSCompliant(false)]
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class EntityTest : EntityTest<EntityTest> { }
 
@@ -70,6 +71,22 @@ namespace XCode.Test
         public static EntityList<TEntity> FindAllByIsEnableAndStartDateAndEndTime(Boolean isenable, DateTime startdate, DateTime endtime)
         {
             return FindAll(new String[] { _.IsEnable, _.StartDate, _.EndTime }, new Object[] { isenable, startdate, endtime });
+        }
+
+        /// <summary>
+        /// 根据自增编号查找
+        /// </summary>
+        /// <param name="id">自增编号</param>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static TEntity FindByID(SByte id)
+        {
+            if (Meta.Count >= 1000)
+                return Find(new String[] { _.ID }, new Object[] { id });
+            else // 实体缓存
+                return Meta.Cache.Entities.Find(_.ID, id);
+            // 单对象缓存
+            //return Meta.SingleCache[id];
         }
 
         /// <summary>

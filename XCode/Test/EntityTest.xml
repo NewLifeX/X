@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Tables>
+  <Table ID="1" Name="EntityTest" Alias="EntityTest" DbType="SqlServer" IsView="False" Description="实体测试">
+    <Columns>
+      <Column ID="1" Name="Guid" DataType="Guid" RawType="uniqueidentifier" PrimaryKey="True" Length="16" NumOfByte="16" Description="主键一" />
+      <Column ID="2" Name="guid2" Alias="Guid2" DataType="String" RawType="char(16)" PrimaryKey="True" Length="16" NumOfByte="16" Description="主键二" />
+      <Column ID="3" Name="ID" DataType="SByte" RawType="tinyint" Identity="True" Length="3" NumOfByte="1" Precision="3" Description="自增编号" />
+      <Column ID="4" Name="ID2" DataType="Int16" RawType="smallint" Length="5" NumOfByte="2" Precision="5" Nullable="True" Description="编号二" />
+      <Column ID="5" Name="Name" DataType="String" RawType="varchar(50)" Length="50" NumOfByte="50" Default="admin" Description="名称" />
+      <Column ID="6" Name="Password" DataType="String" RawType="nchar(32)" Length="32" NumOfByte="64" Nullable="True" IsUnicode="True" Default="密'admin'码" Description="密码" />
+      <Column ID="7" Name="DisplayName" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" IsUnicode="True" Description="显示名" />
+      <Column ID="8" Name="IsEnable" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Description="启用" />
+      <Column ID="9" Name="Logins" DataType="Int64" RawType="bigint" Length="19" NumOfByte="8" Precision="19" Nullable="True" Default="-999999999999999999." Description="登录次数" />
+      <Column ID="10" Name="LastLogin" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Default="getdate()" Description="最后登陆" />
+      <Column ID="11" Name="StartDate" DataType="DateTime" RawType="date" Length="3" NumOfByte="3" Default="getdate()" Description="开始日期" />
+      <Column ID="12" Name="EndTime" DataType="DateTime" RawType="smalldatetime" Length="16" NumOfByte="4" Default="getdate()" Description="结束时间" />
+      <Column ID="13" Name="Total" DataType="Decimal" RawType="decimal(18,0)" Length="18" NumOfByte="9" Precision="18" Nullable="True" Description="总数" />
+      <Column ID="14" Name="item" Alias="Item2" DataType="Double" RawType="float" Length="53" NumOfByte="8" Precision="53" Nullable="True" Description="百分比" />
+      <Column ID="15" Name="EntityTest" Alias="EntityTest2" DataType="Single" RawType="real" Length="24" NumOfByte="4" Precision="24" Nullable="True" Description="实数" />
+      <Column ID="16" Name="money" Alias="Money" DataType="Decimal" RawType="money" Length="19" NumOfByte="8" Precision="19" Scale="4" Nullable="True" Description="金额" />
+      <Column ID="17" Name="file" Alias="File" DataType="Byte[]" RawType="image" Length="2147483647" NumOfByte="16" Nullable="True" Description="文件" />
+      <Column ID="18" Name="remark" Alias="Remark" DataType="String" RawType="text" Length="2147483647" NumOfByte="16" Nullable="True" Default="备注" Description="备注一" />
+      <Column ID="19" Name="remark2" Alias="Remark2" DataType="String" RawType="nvarchar(MAX)" Length="-1" NumOfByte="-1" Nullable="True" IsUnicode="True" Description="备注二" />
+      <Column ID="20" Name="Description" DataType="String" RawType="ntext" Length="1073741823" NumOfByte="16" Nullable="True" IsUnicode="True" Description="说明" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_EntityTest" Unique="True" Columns="Name" />
+      <Index Name="IX_EntityTest_1" Columns="IsEnable,StartDate,EndTime" />
+      <Index Name="IX_EntityTest_2" Columns="ID" />
+      <Index Name="PK_EntityTest" Unique="True" PrimaryKey="True" Columns="Guid,guid2" />
+    </Indexes>
+  </Table>
+</Tables>
