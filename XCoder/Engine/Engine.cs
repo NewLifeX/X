@@ -12,6 +12,7 @@ using NewLife.Log;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
+using NewLife.Threading;
 
 namespace XCoder
 {
@@ -508,7 +509,7 @@ namespace XCoder
             #region 异步调用接口修正中文名
             if (Config.UseCNFileName && noCNDic.Count > 0)
             {
-                ThreadPool.QueueUserWorkItem(TranslateWords, noCNDic);
+                ThreadPoolX.QueueUserWorkItem(TranslateWords, noCNDic, ex => XTrace.WriteLine(ex.ToString()));
             }
             #endregion
 
@@ -517,46 +518,39 @@ namespace XCoder
 
         void TranslateWords(Object state)
         {
-            try
+            Dictionary<Object, String> dic = state as Dictionary<Object, String>;
+            List<String> words = new List<string>();
+            foreach (String item in dic.Values)
             {
-                Dictionary<Object, String> dic = state as Dictionary<Object, String>;
-                List<String> words = new List<string>();
-                foreach (String item in dic.Values)
-                {
-                    if (Encoding.UTF8.GetByteCount(item) != item.Length) continue;
+                if (Encoding.UTF8.GetByteCount(item) != item.Length) continue;
 
-                    // 分词
-                    String str = item;
-                    List<String> ks = UpperCaseSplitWord(str);
-                    str = String.Join(" ", ks.ToArray());
+                // 分词
+                String str = item;
+                List<String> ks = UpperCaseSplitWord(str);
+                str = String.Join(" ", ks.ToArray());
 
-                    if (!String.IsNullOrEmpty(str) && !words.Contains(str)) words.Add(str);
-                }
-
-                //ITranslate trs = new BingTranslate();
-                String[] rs = Translate.Translate(words.ToArray());
-                if (rs == null || rs.Length < 1) return;
-
-                Dictionary<String, String> ts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                for (int i = 0; i < words.Count && i < rs.Length; i++)
-                {
-                    String key = words[i].Replace(" ", null);
-                    if (!ts.ContainsKey(key) && !String.IsNullOrEmpty(rs[i]) && words[i] != rs[i] && key != rs[i].Replace(" ", null)) ts.Add(key, rs[i].Replace(" ", null));
-                }
-
-                foreach (KeyValuePair<Object, String> item in dic)
-                {
-                    if (!ts.ContainsKey(item.Value) || String.IsNullOrEmpty(ts[item.Value])) continue;
-
-                    if (item.Key is IDataTable)
-                        (item.Key as IDataTable).Description = ts[item.Value];
-                    else if (item.Key is IDataColumn)
-                        (item.Key as IDataColumn).Description = ts[item.Value];
-                }
+                if (!String.IsNullOrEmpty(str) && !words.Contains(str)) words.Add(str);
             }
-            catch (Exception ex)
+
+            //ITranslate trs = new BingTranslate();
+            String[] rs = Translate.Translate(words.ToArray());
+            if (rs == null || rs.Length < 1) return;
+
+            Dictionary<String, String> ts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            for (int i = 0; i < words.Count && i < rs.Length; i++)
             {
-                XTrace.WriteLine(ex.ToString());
+                String key = words[i].Replace(" ", null);
+                if (!ts.ContainsKey(key) && !String.IsNullOrEmpty(rs[i]) && words[i] != rs[i] && key != rs[i].Replace(" ", null)) ts.Add(key, rs[i].Replace(" ", null));
+            }
+
+            foreach (KeyValuePair<Object, String> item in dic)
+            {
+                if (!ts.ContainsKey(item.Value) || String.IsNullOrEmpty(ts[item.Value])) continue;
+
+                if (item.Key is IDataTable)
+                    (item.Key as IDataTable).Description = ts[item.Value];
+                else if (item.Key is IDataColumn)
+                    (item.Key as IDataColumn).Description = ts[item.Value];
             }
         }
         /// <summary>

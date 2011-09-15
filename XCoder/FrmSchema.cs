@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;
+using NewLife.Threading;
 
 namespace XCoder
 {
@@ -41,44 +42,30 @@ namespace XCoder
 
         private void FrmSchema_Load(object sender, EventArgs e)
         {
-            ThreadPool.QueueUserWorkItem(SetTables);
-            ThreadPool.QueueUserWorkItem(SetSchemas);
+            ThreadPoolX.QueueUserWorkItem(SetTables);
+            ThreadPoolX.QueueUserWorkItem(SetSchemas);
         }
         #endregion
 
         #region 加载
         void SetTables(Object data)
         {
-            try
-            {
-                List<IDataTable> tables = Db.CreateMetaData().GetTables();
-                //DataTable dt = Db.CreateSession().GetSchema("Tables", null);
-                //if (dt == null || dt.Rows == null) return;
+            List<IDataTable> tables = Db.CreateMetaData().GetTables();
+            //DataTable dt = Db.CreateSession().GetSchema("Tables", null);
+            //if (dt == null || dt.Rows == null) return;
 
-                //ICollection<String> tables = new List<String>();
-                //foreach (DataRow dr in dt.Rows)
-                //{
-                //    tables.Add((String)dr["table_name"]);
-                //}
-                this.Invoke(new Func<ComboBox, IEnumerable, Boolean>(SetList), cbTables, tables);
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteLine(ex.ToString());
-            }
+            //ICollection<String> tables = new List<String>();
+            //foreach (DataRow dr in dt.Rows)
+            //{
+            //    tables.Add((String)dr["table_name"]);
+            //}
+            this.Invoke(new Func<ComboBox, IEnumerable, Boolean>(SetList), cbTables, tables);
         }
 
         void SetSchemas(Object data)
         {
-            try
-            {
-                ICollection<String> list = Db.CreateMetaData().MetaDataCollections;
-                this.Invoke(new Func<ComboBox, IEnumerable, Boolean>(SetList), cbSchemas, list);
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteLine(ex.ToString());
-            }
+            ICollection<String> list = Db.CreateMetaData().MetaDataCollections;
+            this.Invoke(new Func<ComboBox, IEnumerable, Boolean>(SetList), cbSchemas, list);
         }
 
         Boolean SetList(ComboBox cb, IEnumerable data)

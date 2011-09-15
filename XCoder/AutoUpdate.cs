@@ -8,6 +8,7 @@ using System.Xml;
 using NewLife.IO;
 using NewLife.Log;
 using NewLife.Web;
+using NewLife.Threading;
 
 namespace XCoder
 {
@@ -48,14 +49,7 @@ namespace XCoder
         /// </summary>
         public void ProcessAsync()
         {
-            ThreadPool.QueueUserWorkItem(delegate(Object state)
-            {
-                try
-                {
-                    ProcessInternal();
-                }
-                catch { };
-            });
+            ThreadPoolX.QueueUserWorkItem(ProcessInternal);
         }
 
         void ProcessInternal()

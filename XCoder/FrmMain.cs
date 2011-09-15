@@ -13,6 +13,7 @@ using System.Xml;
 using NewLife.Log;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
+using NewLife.Threading;
 
 namespace XCoder
 {
@@ -72,8 +73,8 @@ namespace XCoder
 
             LoadConfig();
 
-            ThreadPool.QueueUserWorkItem(AutoDetectDatabase);
-            ThreadPool.QueueUserWorkItem(UpdateArticles);
+            ThreadPoolX.QueueUserWorkItem(AutoDetectDatabase, null);
+            ThreadPoolX.QueueUserWorkItem(UpdateArticles, null);
         }
 
         private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
@@ -126,7 +127,7 @@ namespace XCoder
             if (String.IsNullOrEmpty(txt_NameSpace.Text)) txt_NameSpace.Text = cbConn.Text;
         }
 
-        void AutoDetectDatabase(Object state)
+        void AutoDetectDatabase()
         {
             List<String> list = new List<String>();
 
@@ -149,29 +150,33 @@ namespace XCoder
                 String access = "Standard Jet DB";
                 String sqlite = "SQLite";
 
-                using (FileStream fs = new FileStream(item, FileMode.Open, FileAccess.Read, FileShare.Read))
+                try
                 {
-                    BinaryReader reader = new BinaryReader(fs);
-                    Byte[] bts = reader.ReadBytes(sqlite.Length);
-                    if (bts != null && bts.Length > 0)
+                    using (FileStream fs = new FileStream(item, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
-                        if (bts[0] == 'S' && bts[1] == 'Q' && Encoding.ASCII.GetString(bts) == sqlite)
+                        BinaryReader reader = new BinaryReader(fs);
+                        Byte[] bts = reader.ReadBytes(sqlite.Length);
+                        if (bts != null && bts.Length > 0)
                         {
-                            localstr = String.Format("Data Source={0};", item);
-                            if (!ContainConnStr(localstr)) DAL.AddConnStr("SQLite_" + Path.GetFileNameWithoutExtension(item), localstr, null, "SQLite");
-                        }
-                        else if (bts[4] == 'S' && bts[5] == 't')
-                        {
-                            fs.Seek(4, SeekOrigin.Begin);
-                            bts = reader.ReadBytes(access.Length);
-                            if (Encoding.ASCII.GetString(bts) == access)
+                            if (bts[0] == 'S' && bts[1] == 'Q' && Encoding.ASCII.GetString(bts) == sqlite)
                             {
-                                localstr = String.Format("Provider=Microsoft.Jet.OLEDB.4.0; Data Source={0};Persist Security Info=False;OLE DB Services=-1", item);
-                                if (!ContainConnStr(localstr)) DAL.AddConnStr("Access_" + Path.GetFileNameWithoutExtension(item), localstr, null, "Access");
+                                localstr = String.Format("Data Source={0};", item);
+                                if (!ContainConnStr(localstr)) DAL.AddConnStr("SQLite_" + Path.GetFileNameWithoutExtension(item), localstr, null, "SQLite");
+                            }
+                            else if (bts[4] == 'S' && bts[5] == 't')
+                            {
+                                fs.Seek(4, SeekOrigin.Begin);
+                                bts = reader.ReadBytes(access.Length);
+                                if (Encoding.ASCII.GetString(bts) == access)
+                                {
+                                    localstr = String.Format("Provider=Microsoft.Jet.OLEDB.4.0; Data Source={0};Persist Security Info=False;OLE DB Services=-1", item);
+                                    if (!ContainConnStr(localstr)) DAL.AddConnStr("Access_" + Path.GetFileNameWithoutExtension(item), localstr, null, "Access");
+                                }
                             }
                         }
                     }
                 }
+                catch { }
             }
             #endregion
 
@@ -319,14 +324,7 @@ namespace XCoder
             if (!DAL.ConnStrs.ContainsKey(name) || String.IsNullOrEmpty(DAL.ConnStrs[name].ConnectionString)) return;
 
             // 异步加载
-            ThreadPool.QueueUserWorkItem(delegate(Object state)
-            {
-                try
-                {
-                    IList<IDataTable> tables = DAL.Create((String)state).Tables;
-                }
-                catch { }
-            }, name);
+            ThreadPoolX.QueueUserWorkItem(delegate(Object state) { IList<IDataTable> tables = DAL.Create((String)state).Tables; }, name, null);
         }
         #endregion
 
@@ -525,74 +523,63 @@ namespace XCoder
 
         List<Article> articles = new List<Article>();
 
-        void UpdateArticles(Object state)
+        void UpdateArticles()
         {
-            try
+            String url = "http://www.cnblogs.com/nnhy/rss";
+            WebClient client = new WebClient();
+            Stream stream = client.OpenRead(url);
+
+            XmlDocument doc = new XmlDocument();
+            doc.Load(stream);
+
+            XmlNodeList nodes = doc.SelectNodes(@"//item");
+            if (nodes != null && nodes.Count > 0)
             {
-                String url = "http://www.cnblogs.com/nnhy/rss";
-                WebClient client = new WebClient();
-                Stream stream = client.OpenRead(url);
-
-                XmlDocument doc = new XmlDocument();
-                doc.Load(stream);
-
-                XmlNodeList nodes = doc.SelectNodes(@"//item");
-                if (nodes != null && nodes.Count > 0)
+                foreach (XmlNode item in nodes)
                 {
-                    foreach (XmlNode item in nodes)
+                    Article entity = new Article();
+                    entity.Title = item.SelectSingleNode("title").InnerText;
+                    entity.Link = item.SelectSingleNode("link").InnerText;
+                    entity.Description = item.SelectSingleNode("description").InnerText;
+
+                    try
                     {
-                        Article entity = new Article();
-                        entity.Title = item.SelectSingleNode("title").InnerText;
-                        entity.Link = item.SelectSingleNode("link").InnerText;
-                        entity.Description = item.SelectSingleNode("description").InnerText;
-
-                        try
-                        {
-                            entity.PubDate = Convert.ToDateTime(item.SelectSingleNode("pubDate").InnerText);
-                        }
-                        catch { }
-
-                        #region 强制弹出
-                        //if (entity.PubDate > DateTime.MinValue)
-                        //{
-                        //    Int32 h = (Int32)(DateTime.Now - entity.PubDate).TotalHours;
-                        //    if (h < 24 * 30)
-                        //    {
-                        //        Random rnd = new Random((Int32)DateTime.Now.Ticks);
-                        //        // 时间越久，h越大，随机数为0的可能性就越小，弹出的可能性就越小
-                        //        // 一小时之内，是50%的可能性
-                        //        if (rnd.Next(0, h + 1) == 0)
-                        //        {
-                        //            Process.Start(entity.Link);
-                        //        }
-                        //    }
-                        //}
-                        #endregion
-
-                        articles.Add(entity);
+                        entity.PubDate = Convert.ToDateTime(item.SelectSingleNode("pubDate").InnerText);
                     }
-                }
+                    catch { }
 
-                if (articles.Count > 0)
-                {
-                    Article entity = articles[0];
-                    if (entity.Title != Config.LastBlogTitle)
-                    {
-                        Config.LastBlogTitle = entity.Title;
-                        Config.Save();
+                    #region 强制弹出
+                    //if (entity.PubDate > DateTime.MinValue)
+                    //{
+                    //    Int32 h = (Int32)(DateTime.Now - entity.PubDate).TotalHours;
+                    //    if (h < 24 * 30)
+                    //    {
+                    //        Random rnd = new Random((Int32)DateTime.Now.Ticks);
+                    //        // 时间越久，h越大，随机数为0的可能性就越小，弹出的可能性就越小
+                    //        // 一小时之内，是50%的可能性
+                    //        if (rnd.Next(0, h + 1) == 0)
+                    //        {
+                    //            Process.Start(entity.Link);
+                    //        }
+                    //    }
+                    //}
+                    #endregion
 
-                        Process.Start(entity.Link);
-                    }
+                    articles.Add(entity);
                 }
             }
-#if !DEBUG
-            catch { }
-#else
-            catch (Exception ex)
+
+            if (articles.Count > 0)
             {
-                MessageBox.Show(ex.ToString(), this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Article entity = articles[0];
+                if (entity.Title != Config.LastBlogTitle)
+                {
+                    Config.LastBlogTitle = entity.Title;
+                    Config.Save();
+
+                    Process.Start(entity.Link);
+                }
             }
-#endif
         }
 
         Int32 articleIndex = 0;

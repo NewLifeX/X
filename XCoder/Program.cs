@@ -15,6 +15,7 @@ namespace XCoder
         {
             try
             {
+                Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException); 
                 Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
                 AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
@@ -41,7 +42,12 @@ namespace XCoder
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             XTrace.WriteLine("" + e.ExceptionObject);
-            if (e.IsTerminating) XTrace.WriteLine("异常退出！");
+            if (e.IsTerminating)
+            {
+                XTrace.WriteLine("异常退出！");
+                XTrace.WriteMiniDump(null);
+                MessageBox.Show("" + e.ExceptionObject, "异常退出", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
