@@ -10,6 +10,7 @@ using NewLife.Reflection;
 using System.Threading;
 using NewLife.Log;
 using System.Collections;
+using System.Data.Common;
 
 namespace XCoder
 {
@@ -43,24 +44,32 @@ namespace XCoder
 
         private void FrmSchema_Load(object sender, EventArgs e)
         {
-            //ThreadPool.QueueUserWorkItem(SetTables);
+            ThreadPool.QueueUserWorkItem(SetTables);
             ThreadPool.QueueUserWorkItem(SetSchemas);
         }
         #endregion
 
         #region 加载
-        //void SetTables(Object data)
-        //{
-        //    try
-        //    {
-        //        List<IDataTable> tables = Dal.Tables;
-        //        this.Invoke(new Func<ComboBox, IEnumerable, Boolean>(SetList), cbTables, tables);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        XTrace.WriteLine(ex.ToString());
-        //    }
-        //}
+        void SetTables(Object data)
+        {
+            try
+            {
+                List<IDataTable> tables = Db.CreateMetaData().GetTables();
+                //DataTable dt = Db.CreateSession().GetSchema("Tables", null);
+                //if (dt == null || dt.Rows == null) return;
+
+                //ICollection<String> tables = new List<String>();
+                //foreach (DataRow dr in dt.Rows)
+                //{
+                //    tables.Add((String)dr["table_name"]);
+                //}
+                this.Invoke(new Func<ComboBox, IEnumerable, Boolean>(SetList), cbTables, tables);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteLine(ex.ToString());
+            }
+        }
 
         void SetSchemas(Object data)
         {
@@ -115,7 +124,24 @@ namespace XCoder
             try
             {
                 if (obj is IDataTable)
-                    obj = (obj as IDataTable).Columns;
+                {
+                    //obj = (obj as IDataTable).Columns;
+                    DbCommand cmd = Db.CreateSession().CreateCommand();
+                    cmd.CommandText = "select * from " + (obj as IDataTable).Name;
+                    DataTable dt = null;
+                    try
+                    {
+                        using (DbDataReader reader = cmd.ExecuteReader(CommandBehavior.KeyInfo | CommandBehavior.SchemaOnly))
+                        {
+                            dt = reader.GetSchemaTable();
+                        }
+                    }
+                    finally
+                    {
+                        Db.CreateSession().AutoClose();
+                    }
+                    obj = dt;
+                }
                 else if (obj is String)
                     obj = Db.CreateSession().GetSchema((String)obj, null);
                 gv.DataSource = obj;

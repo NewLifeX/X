@@ -30,9 +30,11 @@ using System.Runtime.InteropServices;
 //      修订号
 //
 [assembly: AssemblyVersion("4.3.*")]
-[assembly: AssemblyFileVersion("4.3.2011.0913")]
+[assembly: AssemblyFileVersion("4.3.2011.0915")]
 
 /*
+ * v4.3.2011.0915   增加数据表架构，比如Access，可以从中识别字段是否自增
+ * 
  * v4.3.2011.0913   增加是否生成泛型实体类的设置
  * 
  * v4.2.2011.0911   分离架构信息管理和模型管理，允许编辑模型
