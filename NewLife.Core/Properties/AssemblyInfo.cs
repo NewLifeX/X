@@ -33,10 +33,14 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.8.*")]
-[assembly: AssemblyFileVersion("2.8.2011.0901")]
+[assembly: AssemblyVersion("2.9.*")]
+[assembly: AssemblyFileVersion("2.9.2011.0915")]
 
 /*
+ * v2.9.2011.0915   XTrace增加写当前线程MiniDump方法WriteMiniDump
+ *                  XTrace增加写异常信息的方法WriteException和WriteExceptionWhenDebug
+ *                  ThreadPoolX增加多个QueueUserWorkItem方法，作为系统ThreadPool.QueueUserWorkItem的封装，省去每次使用线程池都要做异常处理的麻烦，同时支持无参数委托
+ * 
  * v2.8.2011.0901   修正TypeX.GetType中识别一维数组时的一个错误，如TypeX.GetType("Byte[]")会被错误识别为Byte[*]
  * 
  * v2.7.2011.0815   增加鸭子类型DuckTyping，但不对外公开，通过TypeX.ChangeType来使用！

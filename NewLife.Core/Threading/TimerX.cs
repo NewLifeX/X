@@ -207,7 +207,7 @@ namespace NewLife.Threading
                                 //timer.Callback(timer.State);
                                 // 线程池调用
                                 Action<Object> callback = timer.Callback;
-                                ThreadPool.QueueUserWorkItem(delegate { callback(timer.State); });
+                                ThreadPoolX.QueueUserWorkItem(delegate() { callback(timer.State); });
                             }
                             catch (ThreadAbortException) { throw; }
                             catch (ThreadInterruptedException) { throw; }
