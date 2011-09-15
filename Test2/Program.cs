@@ -85,7 +85,7 @@ namespace Test2
             IDatabase db = dal.Db;
 
             DbCommand cmd = db.CreateSession().CreateCommand();
-            cmd.CommandText = "select * from area";
+            cmd.CommandText = "select 123,'456',code+id as code2,* from area";
 
             DataTable dt = null;
             using (DbDataReader reader = cmd.ExecuteReader(CommandBehavior.KeyInfo | CommandBehavior.SchemaOnly))
