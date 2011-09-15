@@ -423,18 +423,35 @@ namespace XCode.DataAccessLayer
             {
                 if (_FieldTypeMaps == null)
                 {
-                    _FieldTypeMaps = new List<KeyValuePair<Type, Type>>();
-                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Byte)));
-                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int16)));
-                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int64)));
-                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int32)));
-                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(Int64), typeof(Int32)));
-                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int32)));
-                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int16)));
-                    // 因为自增的原因，某些字段需要被映射到Int32里面来
-                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int32)));
-                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int32)));
-                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(Int16), typeof(Int32)));
+                    //_FieldTypeMaps = new List<KeyValuePair<Type, Type>>();
+                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Byte)));
+                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int16)));
+                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int64)));
+                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int32)));
+                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(Int64), typeof(Int32)));
+                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int32)));
+                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int16)));
+                    //// 因为自增的原因，某些字段需要被映射到Int32里面来
+                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int32)));
+                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int32)));
+                    //_FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(Int16), typeof(Int32)));
+
+                    // 根据常用行，从不常用到常用排序，然后配对进入映射表
+                    Type[] types = new Type[] { typeof(SByte), typeof(Byte), typeof(UInt16), typeof(Int16), typeof(UInt64), typeof(Int64), typeof(UInt32), typeof(Int32) };
+
+                    List<KeyValuePair<Type, Type>> list = new List<KeyValuePair<Type, Type>>();
+                    for (int i = 0; i < types.Length; i++)
+                    {
+                        for (int j = i + 1; j < types.Length; j++)
+                        {
+                            list.Add(new KeyValuePair<Type, Type>(types[i], types[j]));
+                        }
+                    }
+                    // 因为自增的原因，某些字段需要被映射到Int64里面来
+                    list.Add(new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int64)));
+                    list.Add(new KeyValuePair<Type, Type>(typeof(Int32), typeof(Int64)));
+
+                    _FieldTypeMaps = list;
                 }
                 return _FieldTypeMaps;
             }
@@ -450,6 +467,7 @@ namespace XCode.DataAccessLayer
             DataRow[] drs = OnFindDataType(field, typeName, isLong);
             if (drs != null && drs.Length > 0) return drs;
 
+            // 如果该类型无法识别，则去尝试使用最接近的高阶类型
             foreach (KeyValuePair<Type, Type> item in FieldTypeMaps)
             {
                 if (item.Key.FullName == typeName)
@@ -471,9 +489,16 @@ namespace XCode.DataAccessLayer
             if (dt == null) return null;
 
             DataRow[] drs = null;
+            StringBuilder sb = new StringBuilder();
 
             // 匹配TypeName，TypeName具有唯一性
-            drs = dt.Select(String.Format("TypeName='{0}'", typeName));
+            sb.AppendFormat("TypeName='{0}'", typeName);
+            //drs = dt.Select(String.Format("TypeName='{0}'", typeName));
+
+            // 处理自增
+            if (field.Identity && dt.Columns.Contains("IsAutoIncrementable")) sb.Append(" And IsAutoIncrementable=1");
+
+            drs = dt.Select(sb.ToString());
             if (drs != null && drs.Length > 0)
             {
                 //if (drs.Length > 1) throw new XDbMetaDataException(this, "TypeName具有唯一性！");
@@ -481,13 +506,18 @@ namespace XCode.DataAccessLayer
             }
             // 匹配DataType，重复的可能性很大
             DataRow[] drs2 = null;
-            drs = dt.Select(String.Format("DataType='{0}'", typeName));
+            sb = new StringBuilder();
+            sb.AppendFormat("DataType='{0}'", typeName);
+
+            // 处理自增
+            if (field.Identity && dt.Columns.Contains("IsAutoIncrementable")) sb.Append(" And IsAutoIncrementable=1");
+
+            drs = dt.Select(sb.ToString());
             if (drs != null && drs.Length > 0)
             {
                 if (drs.Length == 1) return drs;
 
-                StringBuilder sb = new StringBuilder();
-                sb.AppendFormat("DataType='{0}' And ColumnSize>={1}", typeName, field.Length);
+                sb.AppendFormat(" And ColumnSize>={0}", field.Length);
                 //if (field.DataType == typeof(String) && field.Length > Database.LongTextLength) sb.AppendFormat(" And IsLong=1");
                 // 如果字段的长度为0，则也算是大文本
                 if (field.DataType == typeof(String) && (field.Length > Database.LongTextLength || field.Length <= 0))
@@ -507,18 +537,45 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual String GetFieldType(IDataColumn field)
         {
-            String typeName = field.DataType.FullName;
+            /*
+             * 首先尝试原始数据类型，因为即使是不同的数据库，相近的类型也可能采用相同的名称；
+             * 然后才使用.Net类型名去匹配；
+             * 两种方法都要注意处理类型参数，比如长度、精度、小数位数等
+             */
 
-            DataRow[] drs = FindDataType(field, typeName, null);
-            if (drs == null || drs.Length < 1) return null;
+            String typeName = field.RawType;
+            DataRow[] drs = null;
 
-            if (TryGetDataRowValue<String>(drs[0], "TypeName", out typeName))
+            if (!String.IsNullOrEmpty(typeName))
             {
-                // 处理格式参数
-                String param = GetFormatParam(field, drs[0]);
-                if (!String.IsNullOrEmpty(param) && param != "()") typeName += param;
+                if (typeName.Contains("(")) typeName = typeName.Substring(0, typeName.IndexOf("("));
+                drs = FindDataType(field, typeName, null);
+                if (drs != null && drs.Length > 0)
+                {
+                    if (TryGetDataRowValue<String>(drs[0], "TypeName", out typeName))
+                    {
+                        // 处理格式参数
+                        String param = GetFormatParam(field, drs[0]);
+                        if (!String.IsNullOrEmpty(param) && param != "()") typeName += param;
 
-                return typeName;
+                        return typeName;
+                    }
+                }
+            }
+
+            typeName = field.DataType.FullName;
+
+            drs = FindDataType(field, typeName, null);
+            if (drs != null && drs.Length > 0)
+            {
+                if (TryGetDataRowValue<String>(drs[0], "TypeName", out typeName))
+                {
+                    // 处理格式参数
+                    String param = GetFormatParam(field, drs[0]);
+                    if (!String.IsNullOrEmpty(param) && param != "()") typeName += param;
+
+                    return typeName;
+                }
             }
 
             return null;

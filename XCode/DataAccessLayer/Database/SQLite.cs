@@ -244,33 +244,33 @@ namespace XCode.DataAccessLayer
             return GetTables(rows);
         }
 
-        protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
-        {
-            if (!String.IsNullOrEmpty(typeName))
-            {
-                Type type = Type.GetType(typeName);
-                if (type != null)
-                {
-                    switch (Type.GetTypeCode(type))
-                    {
-                        case TypeCode.UInt16:
-                            type = typeof(Int16);
-                            break;
-                        case TypeCode.UInt32:
-                            type = typeof(Int32);
-                            break;
-                        case TypeCode.UInt64:
-                            type = typeof(Int64);
-                            break;
-                        default:
-                            break;
-                    }
-                    typeName = type.FullName;
-                }
-            }
+        //protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
+        //{
+        //    if (!String.IsNullOrEmpty(typeName))
+        //    {
+        //        Type type = Type.GetType(typeName);
+        //        if (type != null)
+        //        {
+        //            switch (Type.GetTypeCode(type))
+        //            {
+        //                case TypeCode.UInt16:
+        //                    type = typeof(Int16);
+        //                    break;
+        //                case TypeCode.UInt32:
+        //                    type = typeof(Int32);
+        //                    break;
+        //                case TypeCode.UInt64:
+        //                    type = typeof(Int64);
+        //                    break;
+        //                default:
+        //                    break;
+        //            }
+        //            typeName = type.FullName;
+        //        }
+        //    }
 
-            return base.FindDataType(field, typeName, isLong);
-        }
+        //    return base.FindDataType(field, typeName, isLong);
+        //}
 
         protected override string GetFieldType(IDataColumn field)
         {
@@ -284,7 +284,23 @@ namespace XCode.DataAccessLayer
 
         protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
-            String str = base.GetFieldConstraints(field, onlyDefine);
+            String str = null;
+
+            Boolean b = field.PrimaryKey;
+            // SQLite要求自增必须是主键
+            if (field.Identity)
+            {
+                // 取消所有主键
+                field.Table.Columns.ForEach(dc => dc.PrimaryKey = false);
+
+                // 自增字段作为主键
+                field.PrimaryKey = true;
+            }
+            //try
+            {
+                str = base.GetFieldConstraints(field, onlyDefine);
+            }
+            //finally { if (field.Identity)field.PrimaryKey = b; }
 
             if (field.Identity) str += " AUTOINCREMENT";
 
