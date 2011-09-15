@@ -406,6 +406,7 @@ namespace XCode.DataAccessLayer
         public virtual DataSet Query(DbCommand cmd)
         {
             QueryTimes++;
+            WriteSQL(cmd);
             using (DbDataAdapter da = Factory.CreateDataAdapter())
             {
                 try
@@ -510,6 +511,7 @@ namespace XCode.DataAccessLayer
         public virtual Int32 Execute(DbCommand cmd)
         {
             ExecuteTimes++;
+            WriteSQL(cmd);
             try
             {
                 if (!Opened) Open();
@@ -593,6 +595,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual DataTable GetSchema(string collectionName, string[] restrictionValues)
         {
+            QueryTimes++;
             if (!Opened) Open();
 
             try
@@ -601,12 +604,30 @@ namespace XCode.DataAccessLayer
                 if (restrictionValues == null || restrictionValues.Length < 1)
                 {
                     if (String.IsNullOrEmpty(collectionName))
+                    {
+                        WriteSQL("GetSchema");
                         dt = Conn.GetSchema();
+                    }
                     else
+                    {
+                        WriteSQL("GetSchema(\"" + collectionName + "\")");
                         dt = Conn.GetSchema(collectionName);
+                    }
                 }
                 else
+                {
+                    StringBuilder sb = new StringBuilder();
+                    foreach (String item in restrictionValues)
+                    {
+                        sb.Append(", ");
+                        if (item == null)
+                            sb.Append("null");
+                        else
+                            sb.AppendFormat("\"{0}\"", item);
+                    }
+                    WriteSQL("GetSchema(\"" + collectionName + "\"" + sb + ")");
                     dt = Conn.GetSchema(collectionName, restrictionValues);
+                }
 
                 return dt;
             }
@@ -664,6 +685,21 @@ namespace XCode.DataAccessLayer
                 if (logger == null) logger = TextFileLog.Create(DAL.SQLPath);
                 logger.WriteLine(sql);
             }
+        }
+
+        public static void WriteSQL(DbCommand cmd)
+        {
+            String sql = cmd.CommandText;
+            if (cmd.CommandType != CommandType.Text) sql = String.Format("[{0}]{1}", cmd.CommandType, sql);
+
+            DbParameter[] ps = null;
+            if (cmd.Parameters != null)
+            {
+                ps = new DbParameter[cmd.Parameters.Count];
+                cmd.Parameters.CopyTo(ps, 0);
+            }
+
+            WriteSQL(sql, ps);
         }
 
         /// <summary>

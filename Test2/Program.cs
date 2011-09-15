@@ -9,6 +9,8 @@ using XCode;
 using XCode.DataAccessLayer;
 using System.IO;
 using NewLife.Xml;
+using System.Data.Common;
+using System.Data;
 
 namespace Test2
 {
@@ -79,22 +81,38 @@ namespace Test2
 
         static void Test3()
         {
-            //DAL.AddConnStr("ndb", null, typeof(NewLifeDb), null);
-            //DAL dal = DAL.Create("ndb");
-            //IDbSession session = dal.Db.CreateSession();
-            //Console.WriteLine(dal.Tables.Count);
+            DAL dal = DAL.Create("Common4");
+            IDatabase db = dal.Db;
 
-            DAL dal = DAL.Create("Common1");
-            String xml = dal.Export();
-            Console.WriteLine(xml);
+            DbCommand cmd = db.CreateSession().CreateCommand();
+            cmd.CommandText = "select * from area";
 
-            File.WriteAllText(dal.ConnName + ".xml", xml);
+            DataTable dt = null;
+            using (DbDataReader reader = cmd.ExecuteReader(CommandBehavior.KeyInfo | CommandBehavior.SchemaOnly))
+            {
+                dt = reader.GetSchemaTable();
+            }
+            Console.WriteLine(dt);
 
-            List<IDataTable> tables = DAL.Import(xml);
-            Console.WriteLine(tables);
+            DbCommandBuilder builder = db.Factory.CreateCommandBuilder();
+            builder.DataAdapter = db.Factory.CreateDataAdapter();
+            builder.DataAdapter.SelectCommand = cmd;
 
-            String xml2 = DAL.Export(tables);
-            Console.WriteLine(xml == xml2);
+            cmd = builder.GetInsertCommand();
+            Console.WriteLine(cmd.CommandText);
+            cmd = builder.GetInsertCommand(true);
+            Console.WriteLine(cmd.CommandText);
+
+            //String xml = dal.Export();
+            //Console.WriteLine(xml);
+
+            //File.WriteAllText(dal.ConnName + ".xml", xml);
+
+            //List<IDataTable> tables = DAL.Import(xml);
+            //Console.WriteLine(tables);
+
+            //String xml2 = DAL.Export(tables);
+            //Console.WriteLine(xml == xml2);
         }
     }
 
