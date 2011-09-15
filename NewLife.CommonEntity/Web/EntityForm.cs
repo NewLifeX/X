@@ -256,6 +256,16 @@ namespace NewLife.CommonEntity.Web
 
             return ControlHelper.FindControl<Control>(Page.Form, id);
         }
+
+        /// <summary>
+        /// 查找字段对应的控件
+        /// </summary>
+        /// <param name="field"></param>
+        /// <returns></returns>
+        protected virtual Control FindControlByField(FieldItem field)
+        {
+            return FindControl(FormItemPrefix + field.Name);
+        }
         #endregion
 
         #region 加载
@@ -800,7 +810,7 @@ namespace NewLife.CommonEntity.Web
             ArgumentException ae = ex as ArgumentException;
             if (ae != null && !String.IsNullOrEmpty(ae.ParamName))
             {
-                Control control = FindControlByName(FormItemPrefix + ae.ParamName);
+                Control control = FindControl(FormItemPrefix + ae.ParamName);
                 if (control != null) control.Focus();
             }
 
@@ -842,19 +852,6 @@ namespace NewLife.CommonEntity.Web
             }
 
             return false;
-        }
-
-        protected virtual Control FindControlByName(String name)
-        {
-            Control control = ControlHelper.FindControlInPage<Control>(name);
-            if (control != null) return control;
-
-            return Page.FindControl(name);
-        }
-
-        protected virtual Control FindControlByField(FieldItem field)
-        {
-            return FindControlByName(FormItemPrefix + field.Name);
         }
         #endregion
     }

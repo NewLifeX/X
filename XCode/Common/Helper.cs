@@ -53,6 +53,9 @@ namespace XCode.Common
                 default: break;
             }
 
+            if (type == typeof(Guid)) return ((Guid)key) == Guid.Empty;
+            if (type == typeof(Byte[])) return ((Byte[])key).Length <= 0;
+
             return false;
         }
     }

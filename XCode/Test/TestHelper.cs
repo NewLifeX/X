@@ -33,8 +33,18 @@ namespace XCode.Test
 
             if (Meta.Count > 0) return;
 
+            Random rnd = new Random((Int32)DateTime.Now.Ticks);
+
             TEntity entity = new TEntity();
+            entity.Guid = Guid.NewGuid();
             entity.Name = "admin888";
+            entity.Remark = "管理员？";
+            Byte[] buffer = new Byte[_.Guid2.Length / 2];
+            rnd.NextBytes(buffer);
+            entity.DisplayName = BitConverter.ToString(buffer).Replace("-", null);
+            entity.EntityTest2 = (float)Math.PI;
+            rnd.NextBytes(buffer);
+            entity.File = buffer;
             entity.Save();
         }
 
@@ -84,8 +94,11 @@ namespace XCode.Test
             }
             Debug.Assert(b, "Name作为唯一索引，插入相同数据时，应该报错！");
 
-            entity = FindAll(null, null, "12345 as ext,*", 0, 1)[0];
-            Debug.Assert((Int32)entity.Extends["ext"] != 12345, "扩展字段测试失败！");
+            EntityList<TEntity> list = FindAll(null, null, "12345 as ext,*", 0, 1);
+            Debug.Assert(list != null && list.Count > 0, "居然无法查到数据！");
+
+            entity = list[0];
+            Debug.Assert((Int32)entity.Extends["ext"] == 12345, "扩展字段测试失败！");
         }
     }
 }

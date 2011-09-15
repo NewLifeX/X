@@ -7,11 +7,11 @@ using System.Text;
 using System.Threading;
 using Microsoft.CSharp;
 using Microsoft.VisualBasic;
+using NewLife.Collections;
 using NewLife.Log;
+using NewLife.Reflection;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
-using NewLife.Reflection;
-using NewLife.Collections;
 
 namespace XCoder
 {

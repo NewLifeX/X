@@ -12,6 +12,7 @@ using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Common;
+using System.Text;
 
 namespace XCode.DataAccessLayer
 {
@@ -374,6 +375,78 @@ namespace XCode.DataAccessLayer
         protected override void CreateDatabase()
         {
             FileSource.ReleaseFile("Database.mdb", FileName, true);
+        }
+        #endregion
+
+        #region 反向工程创建表
+        protected override void CreateTable(StringBuilder sb, IDataTable table, bool onlySql)
+        {
+            base.CreateTable(sb, table, onlySql);
+
+            if (!onlySql)
+            {
+                IDatabase entityDb = null;
+                foreach (IDataColumn dc in table.Columns)
+                {
+                    // 如果实体存在默认值，则增加
+                    if (!String.IsNullOrEmpty(dc.Default))
+                    {
+                        if (Type.GetTypeCode(dc.DataType) == TypeCode.DateTime)
+                        {
+                            // 特殊处理时间
+                            String dv = dc.Default;
+
+                            // 开发时的实体数据库
+                            if (entityDb == null) entityDb = DbFactory.Create(table.DbType);
+
+                            // 如果当前默认值是开发数据库的时间默认值，则修改为当前数据库的时间默认值
+                            if (entityDb != null && entityDb.DateTimeNow == dc.Default) dc.Default = Database.DateTimeNow;
+
+                            PerformSchema(sb, onlySql, DDLSchema.AddDefault, dc);
+
+                            // 还原
+                            dc.Default = dv;
+                        }
+                        else
+                            PerformSchema(sb, onlySql, DDLSchema.AddDefault, dc);
+                    }
+                }
+            }
+        }
+
+        public override string CreateTableSQL(IDataTable table)
+        {
+            String sql = base.CreateTableSQL(table);
+            if (String.IsNullOrEmpty(sql) || table.PrimaryKeys == null || table.PrimaryKeys.Length < 2) return sql;
+
+            // 处理多主键
+            String[] names = new String[table.PrimaryKeys.Length];
+            for (int i = 0; i < table.PrimaryKeys.Length; i++)
+            {
+                names[i] = table.PrimaryKeys[i].Name;
+            }
+            IDataIndex di = ModelHelper.GetIndex(table, names);
+            if (di == null)
+            {
+                di = table.CreateIndex();
+                di.PrimaryKey = true;
+                di.Unique = true;
+                di.Columns = names;
+            }
+            // Access里面的主键索引名必须叫这个
+            di.Name = "PrimaryKey";
+
+            sql += ";" + Environment.NewLine;
+            sql += CreateIndexSQL(di);
+            return sql;
+        }
+
+        public override string CreateIndexSQL(IDataIndex index)
+        {
+            String sql = base.CreateIndexSQL(index);
+            if (String.IsNullOrEmpty(sql) || !index.PrimaryKey) return sql;
+
+            return sql + " WITH PRIMARY";
         }
         #endregion
 

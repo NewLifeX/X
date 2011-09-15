@@ -477,12 +477,12 @@ namespace XCode.DataAccessLayer
                 else
                     return "'" + value.ToString().Replace("'", "''") + "'";
             }
-            else if (field.DataType == typeof(Guid))
-            {
-                if (value == null) return isNullable ? "null" : "''";
+            //else if (field.DataType == typeof(Guid))
+            //{
+            //    if (value == null) return isNullable ? "null" : "''";
 
-                return String.Format("'{0}'", value);
-            }
+            //    return String.Format("'{0}'", value);
+            //}
 
             return base.FormatValue(field, value);
         }

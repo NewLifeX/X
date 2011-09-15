@@ -278,13 +278,26 @@ namespace XCode
                     if (columns == null || columns.Length < 1) continue;
 
                     List<String> list = new List<string>();
-                    // 记录字段是否有更新
-                    Boolean changed = false;
                     foreach (IDataColumn dc in columns)
                     {
                         if (!list.Contains(dc.Alias)) list.Add(dc.Alias);
+                    }
 
-                        if (Dirtys[dc.Alias]) changed = true;
+                    // 记录字段是否有更新
+                    Boolean changed = false;
+                    if (!isNew)
+                    {
+                        foreach (IDataColumn dc in columns)
+                        {
+                            // 自增字段是不会有0的，我们认为都是1开始，增量为1。因此，为空的自增字段，也不要检查
+                            if (dc.Identity && Helper.IsNullKey(this[dc.Alias]))
+                            {
+                                changed = false;
+                                break;
+                            }
+
+                            if (Dirtys[dc.Alias]) changed = true;
+                        }
                     }
 
                     // 存在检查

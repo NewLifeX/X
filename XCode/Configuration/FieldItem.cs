@@ -211,15 +211,16 @@ namespace XCode.Configuration
         {
             IEntityOperate op = EntityFactory.CreateOperate(Table.EntityType);
             String sql = null;
+            String name = op.FormatName(ColumnName);
             if (!String.IsNullOrEmpty(action) && action.Contains("{0}"))
             {
                 if (action.Contains("%"))
-                    sql = op.FormatName(ColumnName) + " Like " + op.FormatValue(this, String.Format(action, value));
+                    sql = name + " Like " + op.FormatValue(this, String.Format(action, value));
                 else
-                    sql = op.FormatName(ColumnName) + String.Format(action, op.FormatValue(this, value));
+                    sql = name + String.Format(action, op.FormatValue(this, value));
             }
             else
-                sql = String.Format("{0}{1}{2}", op.FormatName(ColumnName), action, op.FormatValue(this, value));
+                sql = String.Format("{0}{1}{2}", name, action, op.FormatValue(this, value));
             return new WhereExpression(sql);
         }
         #endregion

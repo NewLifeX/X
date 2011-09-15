@@ -663,6 +663,12 @@ namespace XCode.DataAccessLayer
 
                 return "0x" + BitConverter.ToString(bts).Replace("-", null);
             }
+            else if (field.DataType == typeof(Guid))
+            {
+                if (value == null) return isNullable ? "null" : "''";
+
+                return String.Format("'{0}'", value);
+            }
             else
             {
                 if (value == null) return isNullable ? "null" : "";

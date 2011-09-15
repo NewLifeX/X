@@ -511,7 +511,7 @@ namespace XCode.DataAccessLayer
         /// <param name="onlySql"></param>
         /// <param name="schema"></param>
         /// <param name="values"></param>
-        private void PerformSchema(StringBuilder sb, Boolean onlySql, DDLSchema schema, params Object[] values)
+        protected void PerformSchema(StringBuilder sb, Boolean onlySql, DDLSchema schema, params Object[] values)
         {
             String sql = GetSchemaSQL(schema, values);
             if (!String.IsNullOrEmpty(sql))
@@ -535,8 +535,68 @@ namespace XCode.DataAccessLayer
                         s.Append(item);
                     }
                 }
-                WriteLog("修改表：{0} {1}", schema.ToString(), s.ToString());
-                //sb.AppendFormat("修改表：{0} {1}", schema.ToString(), s.ToString());
+
+                IDataColumn dc = null;
+                IDataTable dt = null;
+                if (values != null && values.Length > 0)
+                {
+                    dc = values[0] as IDataColumn;
+                    dt = values[0] as IDataTable;
+                }
+
+                switch (schema)
+                {
+                    //case DDLSchema.CreateDatabase:
+                    //    break;
+                    //case DDLSchema.DropDatabase:
+                    //    break;
+                    //case DDLSchema.DatabaseExist:
+                    //    break;
+                    //case DDLSchema.CreateTable:
+                    //    break;
+                    //case DDLSchema.DropTable:
+                    //    break;
+                    //case DDLSchema.TableExist:
+                    //    break;
+                    case DDLSchema.AddTableDescription:
+                        WriteLog("{0}({1},{2})", schema, dt.Name, dt.Description);
+                        break;
+                    case DDLSchema.DropTableDescription:
+                        WriteLog("{0}({1})", schema, dt);
+                        break;
+                    case DDLSchema.AddColumn:
+                        WriteLog("{0}({1})", schema, dc);
+                        break;
+                    //case DDLSchema.AlterColumn:
+                    //    break;
+                    case DDLSchema.DropColumn:
+                        WriteLog("{0}({1})", schema, dc.Name);
+                        break;
+                    case DDLSchema.AddColumnDescription:
+                        WriteLog("{0}({1},{2})", schema, dc.Name, dc.Description);
+                        break;
+                    case DDLSchema.DropColumnDescription:
+                        WriteLog("{0}({1})", schema, dc.Name);
+                        break;
+                    case DDLSchema.AddDefault:
+                        WriteLog("{0}({1},{2})", schema, dc.Name, dc.Default);
+                        break;
+                    case DDLSchema.DropDefault:
+                        WriteLog("{0}({1})", schema, dc.Name);
+                        break;
+                    //case DDLSchema.CreateIndex:
+                    //    break;
+                    //case DDLSchema.DropIndex:
+                    //    break;
+                    //case DDLSchema.BackupDatabase:
+                    //    break;
+                    //case DDLSchema.RestoreDatabase:
+                    //    break;
+                    default:
+                        WriteLog("修改表：{0} {1}", schema.ToString(), s.ToString());
+                        break;
+                }
+                //WriteLog("修改表：{0} {1}", schema.ToString(), s.ToString());
             }
 
             if (!onlySql)
@@ -552,7 +612,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        void CreateTable(StringBuilder sb, IDataTable table, Boolean onlySql)
+        protected virtual void CreateTable(StringBuilder sb, IDataTable table, Boolean onlySql)
         {
             PerformSchema(sb, onlySql, DDLSchema.CreateTable, table);
 
@@ -854,7 +914,7 @@ namespace XCode.DataAccessLayer
             for (int i = 0; i < index.Columns.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
-                sb.Append(index.Columns[i]);
+                sb.Append(FormatName(index.Columns[i]));
                 //else
                 //    sb.AppendFormat("{0} {1}", FormatKeyWord(index.Columns[i].Name), isAscs[i].Value ? "Asc" : "Desc");
             }
