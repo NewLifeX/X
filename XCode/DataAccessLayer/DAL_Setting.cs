@@ -124,27 +124,27 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 设置
-        private static Boolean? _NegativeEnable;
+        private static Boolean? _NegativeEnable = Config.GetConfig<Boolean?>("XCode.Negative.Enable", Config.GetConfig<Boolean?>("XCode.Schema.Enable", Config.GetConfig<Boolean?>("DatabaseSchema_Enable")));
         /// <summary>是否启用数据架构</summary>
         public static Boolean? NegativeEnable
         {
             get
             {
-                if (_NegativeEnable != null) return _NegativeEnable.Value;
+                //if (_NegativeEnable.HasValue) return _NegativeEnable.Value;
 
-                //String str = ConfigurationManager.AppSettings["XCode.Schema.Enable"];
-                //if (String.IsNullOrEmpty(str)) str = ConfigurationManager.AppSettings["DatabaseSchema_Enable"];
-                //if (String.IsNullOrEmpty(str)) return null;
-                //if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
-                //    _Enable = true;
-                //else if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
-                //    _Enable = false;
-                //else
-                //    _Enable = Convert.ToBoolean(str);
+                ////String str = ConfigurationManager.AppSettings["XCode.Schema.Enable"];
+                ////if (String.IsNullOrEmpty(str)) str = ConfigurationManager.AppSettings["DatabaseSchema_Enable"];
+                ////if (String.IsNullOrEmpty(str)) return null;
+                ////if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
+                ////    _Enable = true;
+                ////else if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
+                ////    _Enable = false;
+                ////else
+                ////    _Enable = Convert.ToBoolean(str);
 
-                _NegativeEnable = Config.GetConfig<Boolean?>("XCode.Negative.Enable", Config.GetConfig<Boolean?>("XCode.Schema.Enable", Config.GetConfig<Boolean?>("DatabaseSchema_Enable")));
+                //_NegativeEnable = Config.GetConfig<Boolean?>("XCode.Negative.Enable", Config.GetConfig<Boolean?>("XCode.Schema.Enable", Config.GetConfig<Boolean?>("DatabaseSchema_Enable")));
 
-                return _NegativeEnable.Value;
+                return _NegativeEnable;
             }
             set { _NegativeEnable = value; }
         }
@@ -155,7 +155,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_NegativeNoDelete != null) return _NegativeNoDelete.Value;
+                if (_NegativeNoDelete.HasValue) return _NegativeNoDelete.Value;
 
                 _NegativeNoDelete = Config.GetConfig<Boolean>("XCode.Negative.NoDelete", Config.GetConfig<Boolean>("XCode.Schema.NoDelete", Config.GetConfig<Boolean>("DatabaseSchema_NoDelete")));
 

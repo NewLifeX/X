@@ -276,7 +276,7 @@ namespace XCode
 
                 if (Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
                 {
-                    DAL.WriteLog("开始检查表[{0}][{1}]的数据表架构……", Table.DataTable.Name, DbType);
+                    DAL.WriteLog("开始检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DbType);
 
                     Stopwatch sw = new Stopwatch();
                     sw.Start();
@@ -289,7 +289,7 @@ namespace XCode
                     {
                         sw.Stop();
 
-                        DAL.WriteLog("检查表[{0}][{1}]的数据表架构耗时{2}", Table.DataTable.Name, DbType, sw.Elapsed);
+                        DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2}", Table.DataTable.Name, DbType, sw.Elapsed);
                     }
                 }
             }
