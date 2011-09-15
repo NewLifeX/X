@@ -345,14 +345,14 @@ namespace XCode.DataAccessLayer
             return base.GetFieldDefault(field, onlyDefine);
         }
 
-        protected override void FixIndex(IDataIndex index, DataRow dr)
-        {
-            base.FixIndex(index, dr);
+        //protected override void FixIndex(IDataIndex index, DataRow dr)
+        //{
+        //    base.FixIndex(index, dr);
 
-            Boolean b;
-            if (TryGetDataRowValue<Boolean>(dr, "UNIQUE", out b)) index.Unique = b;
-            if (TryGetDataRowValue<Boolean>(dr, "PRIMARY", out b)) index.PrimaryKey = b;
-        }
+        //    Boolean b;
+        //    if (TryGetDataRowValue<Boolean>(dr, "UNIQUE", out b)) index.Unique = b;
+        //    if (TryGetDataRowValue<Boolean>(dr, "PRIMARY", out b)) index.PrimaryKey = b;
+        //}
 
         #region 架构定义
         public override object SetSchema(DDLSchema schema, params object[] values)

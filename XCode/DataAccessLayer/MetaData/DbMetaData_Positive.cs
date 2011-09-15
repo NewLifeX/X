@@ -389,6 +389,11 @@ namespace XCode.DataAccessLayer
                 if (TryGetDataRowValue<Boolean>(dr, "UNIQUE", out b))
                     di.Unique = b;
 
+                if (TryGetDataRowValue<Boolean>(dr, "PRIMARY", out b))
+                    di.PrimaryKey = b;
+                else if (TryGetDataRowValue<Boolean>(dr, "PRIMARY_KEY", out b))
+                    di.PrimaryKey = b;
+
                 FixIndex(di, dr);
 
                 list.Add(di);
@@ -410,22 +415,26 @@ namespace XCode.DataAccessLayer
             get { return _DataTypes ?? (_DataTypes = GetSchema(DbMetaDataCollectionNames.DataTypes, null)); }
         }
 
-        private List<KeyValuePair<String, String>> _FieldTypeMaps;
+        private List<KeyValuePair<Type, Type>> _FieldTypeMaps;
         /// <summary>字段类型映射</summary>
-        protected virtual List<KeyValuePair<String, String>> FieldTypeMaps
+        protected virtual List<KeyValuePair<Type, Type>> FieldTypeMaps
         {
             get
             {
                 if (_FieldTypeMaps == null)
                 {
-                    _FieldTypeMaps = new List<KeyValuePair<String, String>>();
-                    _FieldTypeMaps.Add(new KeyValuePair<String, String>(typeof(SByte).FullName, typeof(Byte).FullName));
-                    _FieldTypeMaps.Add(new KeyValuePair<String, String>(typeof(SByte).FullName, typeof(Int16).FullName));
-                    _FieldTypeMaps.Add(new KeyValuePair<String, String>(typeof(UInt64).FullName, typeof(Int64).FullName));
-                    _FieldTypeMaps.Add(new KeyValuePair<String, String>(typeof(UInt64).FullName, typeof(Int32).FullName));
-                    _FieldTypeMaps.Add(new KeyValuePair<String, String>(typeof(Int64).FullName, typeof(Int32).FullName));
-                    _FieldTypeMaps.Add(new KeyValuePair<String, String>(typeof(UInt32).FullName, typeof(Int32).FullName));
-                    _FieldTypeMaps.Add(new KeyValuePair<String, String>(typeof(UInt16).FullName, typeof(Int16).FullName));
+                    _FieldTypeMaps = new List<KeyValuePair<Type, Type>>();
+                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Byte)));
+                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int16)));
+                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int64)));
+                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int32)));
+                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(Int64), typeof(Int32)));
+                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int32)));
+                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int16)));
+                    // 因为自增的原因，某些字段需要被映射到Int32里面来
+                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int32)));
+                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int32)));
+                    _FieldTypeMaps.Add(new KeyValuePair<Type, Type>(typeof(Int16), typeof(Int32)));
                 }
                 return _FieldTypeMaps;
             }
@@ -441,11 +450,11 @@ namespace XCode.DataAccessLayer
             DataRow[] drs = OnFindDataType(field, typeName, isLong);
             if (drs != null && drs.Length > 0) return drs;
 
-            foreach (KeyValuePair<String, String> item in FieldTypeMaps)
+            foreach (KeyValuePair<Type, Type> item in FieldTypeMaps)
             {
-                if (item.Key == typeName)
+                if (item.Key.FullName == typeName)
                 {
-                    drs = OnFindDataType(field, item.Value, isLong);
+                    drs = OnFindDataType(field, item.Value.FullName, isLong);
                     if (drs != null && drs.Length > 0) return drs;
                 }
             }

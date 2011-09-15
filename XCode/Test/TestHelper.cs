@@ -43,7 +43,7 @@ namespace XCode.Test
             rnd.NextBytes(buffer);
             entity.DisplayName = BitConverter.ToString(buffer).Replace("-", null);
             entity.EntityTest2 = (float)Math.PI;
-            rnd.NextBytes(buffer);
+            //rnd.NextBytes(buffer);
             entity.File = buffer;
             entity.Save();
         }

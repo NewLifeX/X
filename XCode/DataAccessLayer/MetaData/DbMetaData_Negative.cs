@@ -339,17 +339,33 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual Boolean IsColumnChanged(IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
         {
+            if (entityColumn.Identity != dbColumn.Identity) return true;
+            if (entityColumn.PrimaryKey != dbColumn.PrimaryKey) return true;
+            if (entityColumn.Nullable != dbColumn.Nullable && !entityColumn.Identity && !entityColumn.PrimaryKey) return true;
+
+            // 比较类型
+            if (entityColumn.DataType != dbColumn.DataType)
+            {
+                // 类型不匹配，不一定就是有改变，还要查找类型对照表是否有匹配的，只要存在任意一个匹配，就说明是合法的
+                Boolean b = false;
+                foreach (KeyValuePair<Type, Type> item in FieldTypeMaps)
+                {
+                    if (entityColumn.DataType == item.Key && dbColumn.DataType == item.Value) { b = true; break; }
+                }
+                if (!b) return true;
+            }
+
             // 是否已改变
             Boolean isChanged = false;
 
-            //比较类型/允许空/主键
-            if (entityColumn.DataType != dbColumn.DataType ||
-                entityColumn.Identity != dbColumn.Identity ||
-                entityColumn.PrimaryKey != dbColumn.PrimaryKey ||
-                entityColumn.Nullable != dbColumn.Nullable && !entityColumn.Identity && !entityColumn.PrimaryKey)
-            {
-                isChanged = true;
-            }
+            ////比较类型/允许空/主键
+            //if (entityColumn.DataType != dbColumn.DataType ||
+            //    entityColumn.Identity != dbColumn.Identity ||
+            //    entityColumn.PrimaryKey != dbColumn.PrimaryKey ||
+            //    entityColumn.Nullable != dbColumn.Nullable && !entityColumn.Identity && !entityColumn.PrimaryKey)
+            //{
+            //    isChanged = true;
+            //}
 
             //仅针对字符串类型比较长度
             if (!isChanged && Type.GetTypeCode(entityColumn.DataType) == TypeCode.String && entityColumn.Length != dbColumn.Length)

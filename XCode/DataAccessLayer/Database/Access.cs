@@ -302,6 +302,48 @@ namespace XCode.DataAccessLayer
             if (TryGetDataRowValue<String>(drDataType, "TypeName", out typeName)) field.RawType = typeName;
         }
 
+        protected override List<IDataIndex> GetIndexes(IDataTable table)
+        {
+            List<IDataIndex> list = base.GetIndexes(table);
+            if (list != null && list.Count > 0)
+            {
+                // Access的索引直接以索引字段的方式排布，所以需要重新组合起来
+                Dictionary<String, IDataIndex> dic = new Dictionary<String, IDataIndex>();
+                foreach (IDataIndex item in list)
+                {
+                    IDataIndex di = null;
+                    if (!dic.TryGetValue(item.Name, out di))
+                    {
+                        dic.Add(item.Name, item);
+                    }
+                    else
+                    {
+                        List<String> ss = new List<string>(di.Columns);
+                        if (item.Columns != null && item.Columns.Length > 0 && !ss.Contains(item.Columns[0]))
+                        {
+                            ss.Add(item.Columns[0]);
+                            di.Columns = ss.ToArray();
+                        }
+                    }
+                }
+                list.Clear();
+                foreach (IDataIndex item in dic.Values)
+                {
+                    list.Add(item);
+                }
+            }
+            return list;
+        }
+
+        //protected override void FixIndex(IDataIndex index, DataRow dr)
+        //{
+        //    base.FixIndex(index, dr);
+
+        //    Boolean b = false;
+        //    if (TryGetDataRowValue<Boolean>(dr, "PRIMARY_KEY", out b)) index.PrimaryKey = b;
+        //    if (TryGetDataRowValue<Boolean>(dr, "UNIQUE", out b)) index.PrimaryKey = b;
+        //}
+
         protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             String str = base.GetFieldConstraints(field, onlyDefine);
@@ -534,19 +576,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据类型
-        //private Dictionary<String, String> _FieldTypeMaps;
-        //protected override Dictionary<String, String> FieldTypeMaps
-        //{
-        //    get
-        //    {
-        //        if (_FieldTypeMaps == null)
-        //        {
-        //            _FieldTypeMaps.Add(typeof(SByte).FullName, typeof(Byte).FullName);
-        //        }
-        //        return _FieldTypeMaps;
-        //    }
-        //}
-
         protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
         {
             DataRow[] drs = base.FindDataType(field, typeName, isLong);
