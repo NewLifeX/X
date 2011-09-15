@@ -464,7 +464,12 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
         {
-            DataRow[] drs = OnFindDataType(field, typeName, isLong);
+            DataRow[] drs = null;
+            try
+            {
+                drs = OnFindDataType(field, typeName, isLong);
+            }
+            catch { }
             if (drs != null && drs.Length > 0) return drs;
 
             // 如果该类型无法识别，则去尝试使用最接近的高阶类型
@@ -472,7 +477,11 @@ namespace XCode.DataAccessLayer
             {
                 if (item.Key.FullName == typeName)
                 {
-                    drs = OnFindDataType(field, item.Value.FullName, isLong);
+                    try
+                    {
+                        drs = OnFindDataType(field, item.Value.FullName, isLong);
+                    }
+                    catch { }
                     if (drs != null && drs.Length > 0) return drs;
                 }
             }

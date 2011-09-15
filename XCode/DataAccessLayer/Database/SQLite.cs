@@ -286,9 +286,9 @@ namespace XCode.DataAccessLayer
         {
             String str = null;
 
-            Boolean b = field.PrimaryKey;
+            //Boolean b = field.PrimaryKey;
             // SQLite要求自增必须是主键
-            if (field.Identity)
+            if (field.Identity && !field.PrimaryKey)
             {
                 // 取消所有主键
                 field.Table.Columns.ForEach(dc => dc.PrimaryKey = false);
@@ -374,25 +374,51 @@ namespace XCode.DataAccessLayer
 
         protected override string CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, bool onlySql)
         {
+            foreach (IDataColumn item in entitytable.Columns)
+            {
+                // 自增字段必须是主键
+                if (item.Identity && !item.PrimaryKey)
+                {
+                    // 取消所有主键
+                    item.Table.Columns.ForEach(dc => dc.PrimaryKey = false);
+
+                    // 自增字段作为主键
+                    item.PrimaryKey = true;
+                    break;
+                }
+            }
+
             String sql = base.CheckColumnsChange(entitytable, dbtable, onlySql);
             if (String.IsNullOrEmpty(sql)) return sql;
 
             return ReBuildTable(entitytable, dbtable);
         }
 
-        protected override bool IsColumnChanged(IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
-        {
-            // SQLite的自增将会被识别为64位，而实际应用一般使用32位，不需要修改
-            if (entityColumn.DataType == typeof(Int32) && entityColumn.Identity &&
-                dbColumn.DataType == typeof(Int64) && dbColumn.Identity)
-            {
-                // 克隆一个，修改类型
-                entityColumn = entityColumn.Clone(entityColumn.Table);
-                entityColumn.DataType = typeof(Int64);
-            }
+        //protected override bool IsColumnChanged(IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
+        //{
+        //    //// SQLite的自增将会被识别为64位，而实际应用一般使用32位，不需要修改
+        //    //if (entityColumn.DataType == typeof(Int32) && entityColumn.Identity &&
+        //    //    dbColumn.DataType == typeof(Int64) && dbColumn.Identity)
+        //    //{
+        //    //    // 克隆一个，修改类型
+        //    //    entityColumn = entityColumn.Clone(entityColumn.Table);
+        //    //    entityColumn.DataType = typeof(Int64);
+        //    //}
 
-            return base.IsColumnChanged(entityColumn, dbColumn, entityDb);
-        }
+        //    if (!base.IsColumnChanged(entityColumn, dbColumn, entityDb)) return false;
+
+        //    // 自增字段必须是主键
+        //    if (entityColumn.Identity && !entityColumn.PrimaryKey)
+        //    {
+        //        // 取消所有主键
+        //        entityColumn.Table.Columns.ForEach(dc => dc.PrimaryKey = false);
+
+        //        // 自增字段作为主键
+        //        entityColumn.PrimaryKey = true;
+        //    }
+
+        //    return true;
+        //}
         #endregion
 
         #region 表和字段备注

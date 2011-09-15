@@ -592,16 +592,20 @@ namespace XCode.DataAccessLayer
             DataTable dt = DataTypes;
             if (dt == null) return null;
 
-            if (isLong == null)
+            try
             {
-                drs = dt.Select(String.Format("NativeDataType={0}", typeName));
-                if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0}", typeName));
+                if (isLong == null)
+                {
+                    drs = dt.Select(String.Format("NativeDataType={0}", typeName));
+                    if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0}", typeName));
+                }
+                else
+                {
+                    drs = dt.Select(String.Format("NativeDataType={0} And IsLong={1}", typeName, isLong.Value));
+                    if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0} And IsLong={1}", typeName, isLong.Value));
+                }
             }
-            else
-            {
-                drs = dt.Select(String.Format("NativeDataType={0} And IsLong={1}", typeName, isLong.Value));
-                if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0} And IsLong={1}", typeName, isLong.Value));
-            }
+            catch { }
 
             return drs;
         }

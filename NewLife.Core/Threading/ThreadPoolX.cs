@@ -799,7 +799,7 @@ namespace NewLife.Threading
         {
             if (callback == null) return;
 
-            callback = new WaitCallback(delegate(Object s)
+            WaitCallback cb = new WaitCallback(delegate(Object s)
             {
                 Object[] ss = (Object[])s;
                 WaitCallback wcb = ss[0] as WaitCallback;
@@ -820,7 +820,7 @@ namespace NewLife.Threading
                 }
             });
 
-            ThreadPool.QueueUserWorkItem(callback, new Object[] { callback, state, errCallback });
+            ThreadPool.QueueUserWorkItem(cb, new Object[] { callback, state, errCallback });
         }
 
         /// <summary>
