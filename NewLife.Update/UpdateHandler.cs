@@ -11,17 +11,26 @@ namespace NewLife.Update
     public class UpdateHandler : IHttpHandler
     {
         #region IHttpHandler 成员
-
         public bool IsReusable
         {
-            get { throw new NotImplementedException(); }
+            get { return false; }
         }
 
         public void ProcessRequest(HttpContext context)
         {
-            throw new NotImplementedException();
+            
+        }
+        #endregion
+
+        #region 方法
+        void Process(HttpRequest Request)
+        {
         }
 
+        protected virtual String GetVer()
+        {
+            return null;
+        }
         #endregion
     }
 }
