@@ -643,14 +643,19 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region Sql日志输出
-        //private static Boolean? _ShowSQL;
+        [ThreadStatic]
+        private static Boolean? _ShowSQL;
         /// <summary>
         /// 是否输出SQL语句，默认为XCode调试开关XCode.Debug
         /// </summary>
         public static Boolean ShowSQL
         {
-            get { return DAL.ShowSQL; }
-            set { DAL.ShowSQL = value; }
+            get
+            {
+                if (_ShowSQL == null) _ShowSQL = DAL.ShowSQL;
+                return _ShowSQL.Value;
+            }
+            set { _ShowSQL = value; }
         }
 
         static TextFileLog logger;
