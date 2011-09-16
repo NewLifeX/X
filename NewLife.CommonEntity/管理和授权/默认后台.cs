@@ -5,9 +5,6 @@ using XCode;
 
 namespace NewLife.CommonEntity
 {
-    //TODO 需要增加一个系统参数的实体，因为各种情况需要用到系统参数设置
-    //TODO 需要增加一个用户预置文件UserProfile，以用于处理一些用户特性
-
     /// <summary>
     /// 管理员
     /// </summary>

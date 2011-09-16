@@ -285,7 +285,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static String GetAlias(String name)
         {
-            //TODO 很多时候，这个别名就是表名
+            // 很多时候，这个别名就是表名
             return FixWord(CutPrefix(name));
         }
 

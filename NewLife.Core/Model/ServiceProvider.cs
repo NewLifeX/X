@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using NewLife.Configuration;
@@ -7,9 +8,10 @@ using NewLife.Reflection;
 namespace NewLife.Model
 {
     /// <summary>
-    /// 服务对象提供者，优先查找从构造函数传入的外部提供者，然后是全局的Current，最后才是当前提供者
+    /// 服务对象提供者，优先查找从构造函数传入的外部提供者，然后是全局的Current，最后才是当前提供者。
+    /// 支持枚举提供者内部注册的服务类型。
     /// </summary>
-    public class ServiceProvider : IServiceProvider
+    public class ServiceProvider : IServiceProvider, IEnumerable<Type>
     {
         #region 构造
         IServiceProvider _provider;
@@ -58,6 +60,7 @@ namespace NewLife.Model
         public static Object GetService(IServiceProvider provider, Type serviceType)
         {
             if (provider == null) return null;
+            if (serviceType == null) throw new ArgumentNullException("serviceType");
 
             // 通过线程安全（线程静态）的sps，来测底的避免相互嵌套形成死循环
             // 如果sps不为空，表明当前线程正处于GetService中，不允许进入！
@@ -127,6 +130,46 @@ namespace NewLife.Model
         }
         #endregion
 
+        #region 注册
+        //TODO 非常需要一个线程安全，而又有很高性能的字典
+        private IDictionary<Type, Object> dic = new Dictionary<Type, Object>();
+        /// <summary>
+        /// 注册服务对象
+        /// </summary>
+        /// <param name="serviceType"></param>
+        /// <param name="obj"></param>
+        public void Register(Type serviceType, Object obj)
+        {
+            if (serviceType == null) throw new ArgumentNullException("serviceType");
+
+            lock (dic)
+            {
+                if (obj != null)
+                {
+                    if (dic.ContainsKey(serviceType))
+                        dic[serviceType] = obj;
+                    else
+                        dic.Add(serviceType, obj);
+                }
+                else
+                {
+                    if (dic.ContainsKey(serviceType)) dic.Remove(serviceType);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 取消注册服务对象
+        /// </summary>
+        /// <param name="serviceType"></param>
+        public void UnRegister(Type serviceType)
+        {
+            if (serviceType == null) throw new ArgumentNullException("serviceType");
+
+            Register(serviceType, null);
+        }
+        #endregion
+
         #region IServiceProvider 成员
         /// <summary>
         /// 获取服务对象
@@ -135,6 +178,8 @@ namespace NewLife.Model
         /// <returns></returns>
         public virtual object GetService(Type serviceType)
         {
+            if (serviceType == null) throw new ArgumentNullException("serviceType");
+
             if (_provider != null)
             {
                 // 调用静态GetService，避免死循环
@@ -142,8 +187,14 @@ namespace NewLife.Model
                 if (obj != null) return obj;
             }
 
+            // 内部列表
+            {
+                Object obj = null;
+                if (dic.TryGetValue(serviceType, out obj)) return obj;
+            }
+
             // 如果当前类不是ServiceProvider，则采用NewLife.ServiceProvider
-            if (this != Current)
+            if (this != Current && _provider != Current)
             {
                 Object obj = GetService(Current, serviceType);
                 if (obj != null) return obj;
@@ -165,6 +216,28 @@ namespace NewLife.Model
             Object obj = GetService(typeof(TService));
             if (obj == null) return default(TService);
             return (TService)obj;
+        }
+        #endregion
+
+        #region IEnumerable<Type> 成员
+        /// <summary>
+        /// 获取迭代器
+        /// </summary>
+        /// <returns></returns>
+        IEnumerator<Type> IEnumerable<Type>.GetEnumerator()
+        {
+            return dic.Keys.GetEnumerator();
+        }
+        #endregion
+
+        #region IEnumerable 成员
+        /// <summary>
+        /// 获取迭代器
+        /// </summary>
+        /// <returns></returns>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return (this as IEnumerable<Type>).GetEnumerator();
         }
         #endregion
     }
