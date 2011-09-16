@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.ConstrainedExecution;
 using System.Threading;
 using NewLife.Log;
 
@@ -7,7 +8,7 @@ namespace NewLife
     /// <summary>
     /// 具有销毁资源处理的抽象基类
     /// </summary>
-    public abstract class DisposeBase : IDisposable
+    public abstract class DisposeBase : CriticalFinalizerObject, IDisposable
     {
         #region 释放资源
         /// <summary>
