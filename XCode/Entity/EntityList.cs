@@ -1076,7 +1076,7 @@ namespace XCode
 
         //int ICollection<IEntity>.Count
         //{
-        //    get { throw new NotImplementedException(); }
+        //    get { return Count; }
         //}
 
         bool ICollection<IEntity>.IsReadOnly
@@ -1096,53 +1096,58 @@ namespace XCode
         #region IEnumerable<IEntity> 成员
         IEnumerator<IEntity> IEnumerable<IEntity>.GetEnumerator()
         {
-            return new EntityEnumerator(this);
+            //return new EntityEnumerator(this);
+
+            foreach (T item in this)
+            {
+                yield return item;
+            }
         }
 
-        class EntityEnumerator : IEnumerator<IEntity>
-        {
-            EntityList<T> _list;
-            Int32 index;
-            T current;
+        //class EntityEnumerator : IEnumerator<IEntity>
+        //{
+        //    EntityList<T> _list;
+        //    Int32 index;
+        //    T current;
 
-            public EntityEnumerator(EntityList<T> list) { _list = list; }
+        //    public EntityEnumerator(EntityList<T> list) { _list = list; }
 
-            #region IEnumerator<IEntity> 成员
+        //    #region IEnumerator<IEntity> 成员
 
-            public IEntity Current
-            {
-                get { return current; }
-            }
+        //    public IEntity Current
+        //    {
+        //        get { return current; }
+        //    }
 
-            #endregion
+        //    #endregion
 
-            #region IDisposable 成员
-            public void Dispose() { }
-            #endregion
+        //    #region IDisposable 成员
+        //    public void Dispose() { }
+        //    #endregion
 
-            #region IEnumerator 成员
+        //    #region IEnumerator 成员
 
-            object IEnumerator.Current
-            {
-                get { return current; }
-            }
+        //    object IEnumerator.Current
+        //    {
+        //        get { return current; }
+        //    }
 
-            public bool MoveNext()
-            {
-                if (index >= _list.Count) return false;
+        //    public bool MoveNext()
+        //    {
+        //        if (index >= _list.Count) return false;
 
-                current = _list[index++];
+        //        current = _list[index++];
 
-                return true;
-            }
+        //        return true;
+        //    }
 
-            public void Reset()
-            {
-                index = 0;
-                current = default(T);
-            }
-            #endregion
-        }
+        //    public void Reset()
+        //    {
+        //        index = 0;
+        //        current = default(T);
+        //    }
+        //    #endregion
+        //}
         #endregion
     }
 }

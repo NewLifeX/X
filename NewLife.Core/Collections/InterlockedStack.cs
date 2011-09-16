@@ -225,94 +225,101 @@ namespace NewLife.Collections
         /// <returns></returns>
         public IEnumerator<T> GetEnumerator()
         {
-            return new Enumerator((InterlockedStack<T>)this);
+            //return new Enumerator((InterlockedStack<T>)this);
+
+            for (SingleListNode<T> node = Top; node != null; node = node.Next)
+            {
+                yield return node.Item;
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return new Enumerator((InterlockedStack<T>)this);
+            //return new Enumerator((InterlockedStack<T>)this);
+
+            return GetEnumerator();
         }
 
-        /// <summary>
-        /// 原子栈枚举器
-        /// </summary>
-        [Serializable, StructLayout(LayoutKind.Sequential)]
-        public struct Enumerator : IEnumerator<T>, IDisposable, IEnumerator
-        {
-            private InterlockedStack<T> _stack;
-            private int _version;
-            private Int32 _index;
-            private SingleListNode<T> current;
+        ///// <summary>
+        ///// 原子栈枚举器
+        ///// </summary>
+        //[Serializable, StructLayout(LayoutKind.Sequential)]
+        //public struct Enumerator : IEnumerator<T>, IDisposable, IEnumerator
+        //{
+        //    private InterlockedStack<T> _stack;
+        //    private int _version;
+        //    private Int32 _index;
+        //    private SingleListNode<T> current;
 
-            internal Enumerator(InterlockedStack<T> stack)
-            {
-                _stack = stack;
-                _version = _stack._version;
-                _index = -1;
-                current = null;
-            }
+        //    internal Enumerator(InterlockedStack<T> stack)
+        //    {
+        //        _stack = stack;
+        //        _version = _stack._version;
+        //        _index = -1;
+        //        current = null;
+        //    }
 
-            /// <summary>
-            /// 释放
-            /// </summary>
-            public void Dispose()
-            {
-                current = null;
-            }
+        //    /// <summary>
+        //    /// 释放
+        //    /// </summary>
+        //    public void Dispose()
+        //    {
+        //        current = null;
+        //    }
 
-            /// <summary>
-            /// 移到下一个
-            /// </summary>
-            /// <returns></returns>
-            public bool MoveNext()
-            {
-                if (_version != _stack._version) throw new InvalidOperationException("集合已经被修改！");
+        //    /// <summary>
+        //    /// 移到下一个
+        //    /// </summary>
+        //    /// <returns></returns>
+        //    public bool MoveNext()
+        //    {
+        //        if (_version != _stack._version) throw new InvalidOperationException("集合已经被修改！");
 
-                if (_index == -1)
-                {
-                    current = _stack.Top;
-                    _index++;
-                    return true;
-                }
+        //        if (_index == -1)
+        //        {
+        //            current = _stack.Top;
+        //            _index++;
+        //            return true;
+        //        }
 
-                if (current == null) return false;
+        //        if (current == null) return false;
 
-                current = current.Next;
-                _index++;
-                return true;
-            }
+        //        current = current.Next;
+        //        _index++;
+        //        return true;
+        //    }
 
-            /// <summary>
-            /// 当前对象
-            /// </summary>
-            public T Current
-            {
-                get
-                {
-                    if (current == null) throw new InvalidOperationException("没有开始遍历或遍历已结束！");
+        //    /// <summary>
+        //    /// 当前对象
+        //    /// </summary>
+        //    public T Current
+        //    {
+        //        get
+        //        {
+        //            if (current == null) throw new InvalidOperationException("没有开始遍历或遍历已结束！");
 
-                    return current.Item;
-                }
-            }
+        //            return current.Item;
+        //        }
+        //    }
 
-            object IEnumerator.Current
-            {
-                get
-                {
-                    if (current == null) throw new InvalidOperationException("没有开始遍历或遍历已结束！");
+        //    object IEnumerator.Current
+        //    {
+        //        get
+        //        {
+        //            if (current == null) throw new InvalidOperationException("没有开始遍历或遍历已结束！");
 
-                    return current.Item;
-                }
-            }
+        //            return current.Item;
+        //        }
+        //    }
 
-            void IEnumerator.Reset()
-            {
-                if (_version != _stack._version) throw new InvalidOperationException("集合已经被修改！");
+        //    void IEnumerator.Reset()
+        //    {
+        //        if (_version != _stack._version) throw new InvalidOperationException("集合已经被修改！");
 
-                current = null;
-                _index = -1;
-            }
-        }
+        //        current = null;
+        //        _index = -1;
+        //    }
+        //}
         #endregion
     }
 }

@@ -210,12 +210,18 @@ namespace NewLife.Collections
         #region IEnumerable接口
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
-            return new IListEnumerator<T>(this);
+            //return new IListEnumerator<T>(this);
+
+            foreach (T item in InnerList)
+            {
+                yield return item;
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return new IListEnumerator<T>(this);
+            //return new IListEnumerator<T>(this);
+            return GetEnumerator();
         }
         #endregion
 

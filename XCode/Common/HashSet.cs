@@ -83,7 +83,8 @@ namespace XCode.Common
         #region IEnumerable 成员
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return _dic.Keys.GetEnumerator();
+            //return _dic.Keys.GetEnumerator();
+            return GetEnumerator();
         }
         #endregion
     }
