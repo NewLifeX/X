@@ -13,6 +13,7 @@ using XCode.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
+using XCode.Model;
 
 namespace XCode
 {
@@ -61,7 +62,7 @@ namespace XCode
         #endregion
 
         #region 填充数据
-        private static IDataRowEntityAccessor dreAccessor = new DataRowEntityAccessor(Meta.ThisType);
+        //private static IDataRowEntityAccessor dreAccessor = new DataRowEntityAccessor(Meta.ThisType);
 
         /// <summary>
         /// 加载记录集
@@ -121,6 +122,8 @@ namespace XCode
 
             return dreAccessor.ToData(this, ref dr);
         }
+
+        private static IDataRowEntityAccessor dreAccessor { get { return XCodeService.Instance.CreateDataRowEntityAccessor(Meta.ThisType); } }
         #endregion
 
         #region 操作

@@ -7,7 +7,8 @@ using XCode.DataAccessLayer;
 
 namespace XCode
 {
-    interface IDataRowEntityAccessor
+    /// <summary>在数据行和实体类之间映射数据的接口</summary>
+    public interface IDataRowEntityAccessor
     {
         /// <summary>
         /// 加载数据表

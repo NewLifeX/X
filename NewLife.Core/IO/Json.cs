@@ -239,7 +239,7 @@ namespace NewLife.IO
                 {
                     throw new ArgumentException(string.Format("不支持字典类型{0}！", o.GetType().FullName));
                 }
-                if (flag2 && string.Equals(key, ServerTypeFieldName, StringComparison.Ordinal))
+                if (flag2 && string.Equals(key, ServerTypeFieldName, StringComparison.OrdinalIgnoreCase))
                 {
                     flag2 = false;
                 }
@@ -1358,7 +1358,7 @@ namespace NewLife.IO
                 if (a != null)
                 {
                     _s.MovePrev(8);
-                    return string.Equals(a, "\"\\/Date(", StringComparison.Ordinal);
+                    return string.Equals(a, "\"\\/Date(", StringComparison.OrdinalIgnoreCase);
                 }
                 return false;
             }

@@ -111,15 +111,16 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string ToString() { return Db.ToString(); }
 
-        /// <summary>服务提供者</summary>
-        public static IServiceProvider ServiceProvider { get { return XCodeServiceProvider.Current; } }
+        ///// <summary>服务提供者</summary>
+        //public static IServiceProvider ServiceProvider { get { return XCodeServiceProvider.Current; } }
 
         /// <summary>建立数据表对象</summary>
         /// <returns></returns>
         internal static IDataTable CreateTable()
         {
             //return new XTable();
-            return ServiceProvider.GetService(typeof(IDataTable)) as IDataTable;
+            //return ServiceProvider.GetService(typeof(IDataTable)) as IDataTable;
+            return XCodeService.Instance.CreateTable();
         }
         #endregion
 

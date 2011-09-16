@@ -355,7 +355,7 @@ namespace NewLife.CommonEntity.Web
         {
             get
             {
-                if (!Request.PhysicalPath.EndsWith(".aspx", StringComparison.Ordinal)) return false;
+                if (!Request.PhysicalPath.EndsWith(".aspx", StringComparison.OrdinalIgnoreCase)) return false;
                 return XTrace.Debug;
             }
         }
@@ -385,7 +385,7 @@ namespace NewLife.CommonEntity.Web
         /// </summary>
         protected virtual void WriteRunTime()
         {
-            if (!Request.PhysicalPath.EndsWith(".aspx", StringComparison.Ordinal)) return;
+            if (!Request.PhysicalPath.EndsWith(".aspx", StringComparison.OrdinalIgnoreCase)) return;
             if (!XTrace.Debug) return;
 
             //判断是否为Ajax 异步请求，以排除“Sys.WebForms.PageRequestManagerParserErrorException: 未能分析从服务器收到的消息 ”异常

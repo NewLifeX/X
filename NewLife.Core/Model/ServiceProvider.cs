@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel.Design;
 using NewLife.Configuration;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Model
@@ -19,13 +21,13 @@ namespace NewLife.Model
         /// <summary>
         /// 实例化
         /// </summary>
-        public ServiceProvider() { }
+        public ServiceProvider() { LoadConfig(); }
 
         /// <summary>
         /// 通过指定一个基础提供者来实例化一个新的提供者，优先基础提供者
         /// </summary>
         /// <param name="provider"></param>
-        public ServiceProvider(IServiceProvider provider) { _provider = provider; }
+        public ServiceProvider(IServiceProvider provider) : this() { _provider = provider; }
         #endregion
 
         #region 静态方法
@@ -61,6 +63,8 @@ namespace NewLife.Model
         {
             if (provider == null) return null;
             if (serviceType == null) throw new ArgumentNullException("serviceType");
+
+            if (serviceType == typeof(IServiceProvider)) return provider;
 
             // 通过线程安全（线程静态）的sps，来测底的避免相互嵌套形成死循环
             // 如果sps不为空，表明当前线程正处于GetService中，不允许进入！
@@ -102,12 +106,9 @@ namespace NewLife.Model
                     if (!String.IsNullOrEmpty(name))
                     {
                         Type type = TypeX.GetType(name);
-                        if (type != null)
+                        if (type != null && typeof(IServiceProvider).IsAssignableFrom(type))
                         {
-                            //_Default = TypeX.CreateInstance(type) as IServiceProvider;
-                            Object obj = TypeX.CreateInstance(type);
-                            // 有可能提供者没有实现IServiceProvider接口，我们用鸭子类型给它处理一下
-                            _Current = TypeX.ChangeType<IServiceProvider>(obj);
+                            _Current = TypeX.CreateInstance(type) as IServiceProvider;
 
                             if (type != typeof(ServiceProvider)) _Current = new ServiceProvider(_Current);
                         }
@@ -138,7 +139,7 @@ namespace NewLife.Model
         /// </summary>
         /// <param name="serviceType"></param>
         /// <param name="obj"></param>
-        public void Register(Type serviceType, Object obj)
+        void Register(Type serviceType, Object obj)
         {
             if (serviceType == null) throw new ArgumentNullException("serviceType");
 
@@ -162,11 +163,35 @@ namespace NewLife.Model
         /// 取消注册服务对象
         /// </summary>
         /// <param name="serviceType"></param>
-        public void UnRegister(Type serviceType)
+        void UnRegister(Type serviceType)
         {
             if (serviceType == null) throw new ArgumentNullException("serviceType");
 
             Register(serviceType, null);
+        }
+
+        void LoadConfig()
+        {
+            NameValueCollection ps = Config.GetConfigByPrefix("NewLife.ServiceProvider_");
+            if (ps == null || ps.Count < 1) return;
+
+            foreach (String item in ps.Keys)
+            {
+                try
+                {
+                    Type serviceType = TypeX.GetType(item);
+
+                    Type objType = null;
+                    String typeName = ps[item];
+                    if (!String.IsNullOrEmpty(typeName)) objType = TypeX.GetType(typeName);
+
+                    Register(serviceType, objType == null ? null : TypeX.CreateInstance(objType));
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
+            }
         }
         #endregion
 
@@ -179,6 +204,8 @@ namespace NewLife.Model
         public virtual object GetService(Type serviceType)
         {
             if (serviceType == null) throw new ArgumentNullException("serviceType");
+
+            if (serviceType == typeof(IServiceProvider)) return this;
 
             if (_provider != null)
             {

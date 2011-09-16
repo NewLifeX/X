@@ -174,7 +174,7 @@ namespace NewLife.Messaging
             foreach (String appName in nvcs)
             {
                 // 必须以指定名称开始
-                if (!appName.StartsWith(handlerKey, StringComparison.Ordinal)) continue;
+                if (!appName.StartsWith(handlerKey, StringComparison.OrdinalIgnoreCase)) continue;
 
                 // 通道名称
                 String name = appName.Substring(handlerKey.Length + 1);

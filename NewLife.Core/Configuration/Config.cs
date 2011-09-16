@@ -120,16 +120,19 @@ namespace NewLife.Configuration
         /// </summary>
         /// <param name="prefix"></param>
         /// <returns></returns>
-        public static String[] GetConfigByPrefix(String prefix)
+        public static NameValueCollection GetConfigByPrefix(String prefix)
         {
             if (AppSettings == null || AppSettings.Count < 1) return null;
 
-            List<String> list = new List<String>();
+            //List<String> list = new List<String>();
+            NameValueCollection nv = new NameValueCollection();
             foreach (String item in AppSettings.Keys)
             {
-                if (item.StartsWith(prefix, StringComparison.Ordinal)) list.Add(AppSettings[item]);
+                //if (item.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) list.Add(AppSettings[item]);
+                if (item.Length > prefix.Length && item.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) nv.Add(item, AppSettings[item]);
             }
-            return list.Count > 0 ? list.ToArray() : null;
+            //return list.Count > 0 ? list.ToArray() : null;
+            return nv.Count > 0 ? nv : null;
         }
 
         /// <summary>
