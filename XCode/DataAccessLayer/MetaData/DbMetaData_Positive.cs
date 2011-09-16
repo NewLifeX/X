@@ -450,6 +450,7 @@ namespace XCode.DataAccessLayer
                     // 因为自增的原因，某些字段需要被映射到Int64里面来
                     list.Add(new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int64)));
                     list.Add(new KeyValuePair<Type, Type>(typeof(Int32), typeof(Int64)));
+                    list.Add(new KeyValuePair<Type, Type>(typeof(Guid), typeof(String)));
 
                     _FieldTypeMaps = list;
                 }
@@ -471,6 +472,18 @@ namespace XCode.DataAccessLayer
             }
             catch { }
             if (drs != null && drs.Length > 0) return drs;
+
+            // 把Guid映射到varchar(32)去
+            if (typeName == typeof(Guid).FullName || String.Equals(typeName, "Guid", StringComparison.OrdinalIgnoreCase))
+            {
+                typeName = "varchar(32)";
+                try
+                {
+                    drs = OnFindDataType(field, typeName, isLong);
+                }
+                catch { }
+                if (drs != null && drs.Length > 0) return drs;
+            }
 
             // 如果该类型无法识别，则去尝试使用最接近的高阶类型
             foreach (KeyValuePair<Type, Type> item in FieldTypeMaps)
