@@ -299,6 +299,9 @@ namespace XCode.DataAccessLayer
                 for (int i = dbtable.Indexes.Count - 1; i >= 0; i--)
                 {
                     IDataIndex item = dbtable.Indexes[i];
+                    // 计算的索引不需要删除
+                    if (item.Computed) continue;
+
                     // 主键的索引不能删
                     if (item.PrimaryKey) continue;
 
@@ -319,10 +322,15 @@ namespace XCode.DataAccessLayer
                     if (item.PrimaryKey) continue;
 
                     IDataIndex di = ModelHelper.GetIndex(dbtable, item.Columns);
-                    if (di != null) continue;
+                    // 计算出来的索引，也表示没有，需要创建
+                    if (di != null && !di.Computed) continue;
 
                     PerformSchema(sb, onlySql, DDLSchema.CreateIndex, item);
-                    dbtable.Indexes.Add(item.Clone(dbtable));
+
+                    if (di == null)
+                        dbtable.Indexes.Add(item.Clone(dbtable));
+                    else
+                        di.Computed = false;
                 }
             }
             #endregion

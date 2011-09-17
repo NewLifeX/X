@@ -106,6 +106,7 @@ namespace XCode.DataAccessLayer
                 if (di != null && di.Unique) dr.Unique = true;
             }
 
+            dr.Computed = true;
             table1.Relations.Add(dr);
 
             // 给另一方建立关系
@@ -127,6 +128,7 @@ namespace XCode.DataAccessLayer
                 if (di == null || !di.Unique) dr.Unique = false;
             }
 
+            dr.Computed = true;
             rtable.Relations.Add(dr);
 
             return dr;
@@ -160,6 +162,7 @@ namespace XCode.DataAccessLayer
                     di.Columns = new String[] { dr.Column };
                     // 这两个的关系，唯一性
                     di.Unique = dr.Unique;
+                    di.Computed = true;
                     table.Indexes.Add(di);
                 }
             }
@@ -214,6 +217,7 @@ namespace XCode.DataAccessLayer
                     {
                         di = table.CreateIndex();
                         di.Columns = new String[] { dc.Name };
+                        di.Computed = true;
                     }
                     // 不管是不是原来有的索引，都要唯一
                     di.Unique = true;

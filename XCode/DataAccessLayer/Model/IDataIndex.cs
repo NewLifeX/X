@@ -29,6 +29,11 @@ namespace XCode.DataAccessLayer
         /// 是否主键
         /// </summary>
         Boolean PrimaryKey { get; set; }
+
+        /// <summary>
+        /// 是否计算出来的，而不是数据库内置的
+        /// </summary>
+        Boolean Computed { get; set; }
         #endregion
 
         #region 扩展属性

@@ -60,6 +60,17 @@ namespace XCode.DataAccessLayer
             set { _Unique = value; }
         }
 
+        private Boolean _Computed;
+        /// <summary>是否计算出来的，而不是数据库内置的</summary>
+        [XmlAttribute]
+        [DisplayName("计算")]
+        [Description("是否计算出来的，而不是数据库内置的")]
+        public Boolean Computed
+        {
+            get { return _Computed; }
+            set { _Computed = value; }
+        }
+
         [NonSerialized]
         private IDataTable _Table;
         /// <summary>表</summary>

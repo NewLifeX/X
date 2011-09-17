@@ -53,6 +53,17 @@ namespace XCode.DataAccessLayer
             set { _PrimaryKey = value; }
         }
 
+        private Boolean _Computed;
+        /// <summary>是否计算出来的，而不是数据库内置的</summary>
+        [XmlAttribute]
+        [DisplayName("计算")]
+        [Description("是否计算出来的，而不是数据库内置的")]
+        public Boolean Computed
+        {
+            get { return _Computed; }
+            set { _Computed = value; }
+        }
+
         private String[] _Columns;
         /// <summary>数据列集合</summary>
         [XmlAttribute]
