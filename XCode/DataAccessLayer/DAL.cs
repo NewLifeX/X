@@ -11,6 +11,7 @@ using System.Xml.Serialization;
 using NewLife.Reflection;
 using XCode.Code;
 using XCode.Exceptions;
+using System.ComponentModel;
 
 namespace XCode.DataAccessLayer
 {
@@ -455,6 +456,28 @@ namespace XCode.DataAccessLayer
             Type type = TypeX.GetType(asm, tableName);
 
             return EntityFactory.CreateOperate(type);
+        }
+        #endregion
+
+        #region 组件模型
+        private static IContainer _Container;
+        /// <summary>容器</summary>
+        public static IContainer Container
+        {
+            get
+            {
+                if (_Container == null)
+                {
+                    IContainer container = new Container();
+
+                    IDatabase cp = new Access();
+                    container.Add(cp, cp.DbType.ToString());
+
+                    _Container = container;
+                }
+                return _Container;
+            }
+            set { _Container = value; }
         }
         #endregion
     }
