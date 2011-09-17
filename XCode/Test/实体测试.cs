@@ -137,7 +137,7 @@ namespace XCode.Test
         /// <summary>最后登陆</summary>
         [DisplayName("最后登陆")]
         [Description("最后登陆")]
-        [DataObjectField(false, false, true, 3)]
+        [DataObjectField(false, false, false, 3)]
         [BindColumn(10, "LastLogin", "最后登陆", "getdate()", "datetime", 3, 0, false)]
         public DateTime LastLogin
         {

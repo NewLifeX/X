@@ -106,10 +106,15 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        /// <summary>
-        /// 当前时间函数
-        /// </summary>
-        public override String DateTimeNow { get { return "now()"; } }
+        /// <summary>当前时间函数</summary>
+        public override String DateTimeNow
+        {
+            get
+            {
+                // MySql默认值不能用函数，所以不能用now()
+                return null;
+            }
+        }
 
         //protected override string ReservedWordsStr
         //{
@@ -248,6 +253,15 @@ namespace XCode.DataAccessLayer
 
         protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
         {
+            // MySql没有ntext，映射到text
+            if (String.Equals(typeName, "ntext", StringComparison.OrdinalIgnoreCase)) typeName = "text";
+            // MySql的默认值不能使用函数，所以无法设置当前时间作为默认值，但是第一个Timestamp类型字段会有当前时间作为默认值效果
+            if (String.Equals(typeName, "datetime", StringComparison.OrdinalIgnoreCase))
+            {
+                String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
+                if (String.IsNullOrEmpty(d)) typeName = "timestamp";
+            }
+
             DataRow[] drs = base.FindDataType(field, typeName, isLong);
             if (drs != null && drs.Length > 1)
             {
@@ -268,7 +282,7 @@ namespace XCode.DataAccessLayer
                 }
 
                 // 字符串
-                if (typeName == typeof(String).FullName)
+                if (typeName == typeof(String).FullName || String.Equals(typeName, "varchar", StringComparison.OrdinalIgnoreCase))
                 {
                     foreach (DataRow dr in drs)
                     {
@@ -281,17 +295,18 @@ namespace XCode.DataAccessLayer
                 }
 
                 // 时间日期
-                if (typeName == typeof(DateTime).FullName)
+                if (typeName == typeof(DateTime).FullName || String.Equals(typeName, "DateTime", StringComparison.OrdinalIgnoreCase))
                 {
                     // DateTime的范围是0001到9999
                     // Timestamp的范围是1970到2038
+                    // MySql的默认值不能使用函数，所以无法设置当前时间作为默认值，但是第一个Timestamp类型字段会有当前时间作为默认值效果
                     String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
                     foreach (DataRow dr in drs)
                     {
                         String name = GetDataRowValue<String>(dr, "TypeName");
                         if (name == "DATETIME" && String.IsNullOrEmpty(field.Default))
                             return new DataRow[] { dr };
-                        else if (name == "TIMESTAMP" && (d == "now()" || field.Default == "CURRENT_TIMESTAMP"))
+                        else if (name == "TIMESTAMP" && String.IsNullOrEmpty(d))
                             return new DataRow[] { dr };
                     }
                 }
@@ -334,6 +349,11 @@ namespace XCode.DataAccessLayer
                     return " Default 'Y'";
                 else if (field.Default == "false")
                     return " Default 'N'";
+            }
+            else if (field.DataType == typeof(String))
+            {
+                // 大文本不能有默认值
+                if (field.Length <= 0 || field.Length >= Database.LongTextLength) return null;
             }
             //else if (field.DataType == typeof(DateTime))
             //{
@@ -385,7 +405,7 @@ namespace XCode.DataAccessLayer
             Fields.Sort(delegate(IDataColumn item1, IDataColumn item2) { return item1.ID.CompareTo(item2.ID); });
 
             StringBuilder sb = new StringBuilder();
-            String key = null;
+            List<String> pks = new List<String>();
 
             sb.AppendFormat("Create Table If Not Exists {0}(", FormatName(table.Name));
             for (Int32 i = 0; i < Fields.Count; i++)
@@ -395,12 +415,22 @@ namespace XCode.DataAccessLayer
                 sb.Append(FieldClause(Fields[i], true));
                 if (i < Fields.Count - 1) sb.Append(",");
 
-                if (Fields[i].PrimaryKey) key = Fields[i].Name;
+                if (Fields[i].PrimaryKey) pks.Add(FormatName(Fields[i].Name));
             }
-            if (!String.IsNullOrEmpty(key))
+            // 如果有自增，则自增必须作为主键
+            foreach (IDataColumn item in table.Columns)
+            {
+                if (item.Identity && !item.PrimaryKey)
+                {
+                    pks.Clear();
+                    pks.Add(FormatName(item.Name));
+                    break;
+                }
+            }
+            if (pks.Count > 0)
             {
                 sb.AppendLine(",");
-                sb.AppendFormat("\tPrimary Key ({0})", FormatName(key));
+                sb.AppendFormat("\tPrimary Key ({0})", String.Join(",", pks.ToArray()));
             }
             sb.AppendLine();
             sb.Append(")");
@@ -432,7 +462,16 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 辅助函数
+        protected override string GetFormatParam(IDataColumn field, DataRow dr)
+        {
+            String str = base.GetFormatParam(field, dr);
+            if (String.IsNullOrEmpty(str)) return str;
 
+            if (str == "(-1)" && field.DataType == typeof(String)) return String.Format("({0})", Database.LongTextLength);
+            if (field.DataType == typeof(Guid)) return "(36)";
+
+            return str;
+        }
         #endregion
     }
 }

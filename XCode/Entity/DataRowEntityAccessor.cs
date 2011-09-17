@@ -263,9 +263,19 @@ namespace XCode
                             value = true;
                         else if (Array.IndexOf(FalseString, vs.ToLower()) >= 0)
                             value = false;
-
-                        if (DAL.Debug) DAL.WriteLog("无法把字符串{0}转为布尔型！", vs);
+                        else if (DAL.Debug) 
+                            DAL.WriteLog("无法把字符串{0}转为布尔型！", vs);
                     }
+                }
+            }
+            else if (type == typeof(Guid))
+            {
+                if (!(value is Guid))
+                {
+                    if (value is Byte[])
+                        value = new Guid((Byte[])value);
+                    else if (value is String)
+                        value = new Guid((String)value);
                 }
             }
 

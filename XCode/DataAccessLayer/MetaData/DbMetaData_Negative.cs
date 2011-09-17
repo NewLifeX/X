@@ -853,6 +853,9 @@ namespace XCode.DataAccessLayer
             else if (tc == TypeCode.DateTime)
             {
                 String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
+                // 如果数据库特性没有时间默认值，则说明不支持
+                if (String.IsNullOrEmpty(d)) return null;
+
                 //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = "now()";
                 //if (String.Equals(d, "getdate()", StringComparison.OrdinalIgnoreCase)) d = Database.DateTimeNow;
                 return String.Format(" Default {0}", d);
