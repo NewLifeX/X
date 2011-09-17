@@ -67,13 +67,15 @@ namespace XCode.DataAccessLayer
                 if (dc.PrimaryKey || dc.Identity) continue;
 
                 if (FindRelation(table1, table2, table2.Name, dc, dc.Name) != null) continue;
-                if (!String.IsNullOrEmpty(dc.Alias) && !String.Equals(dc.Alias, dc.Name, StringComparison.OrdinalIgnoreCase))
+                if (!String.Equals(dc.Alias, dc.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     if (FindRelation(table1, table2, table2.Name, dc, dc.Alias) != null) continue;
                 }
 
+                if (String.Equals(table2.Alias, table2.Name, StringComparison.OrdinalIgnoreCase)) continue;
+                // 如果表2的别名和名称不同，还要继续
                 if (FindRelation(table1, table2, table2.Alias, dc, dc.Name) != null) continue;
-                if (!String.IsNullOrEmpty(dc.Alias) && !String.Equals(dc.Alias, dc.Name, StringComparison.OrdinalIgnoreCase))
+                if (!String.Equals(dc.Alias, dc.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     if (FindRelation(table1, table2, table2.Alias, dc, dc.Alias) != null) continue;
                 }
@@ -93,8 +95,16 @@ namespace XCode.DataAccessLayer
             dr.Column = column.Name;
             dr.RelationTable = rtable.Name;
             dr.RelationColumn = dc.Name;
-            // 表关系这里一般是多对一，比如管理员的RoleID，对于索引来说，不是唯一的
+            // 表关系这里一般是多对一，比如管理员的RoleID=>Role+Role.ID，对于索引来说，不是唯一的
             dr.Unique = false;
+            // 当然，如果这个字段column有唯一索引，那么，这里也是唯一的。这就是典型的一对一
+            if (column.PrimaryKey || column.Identity)
+                dr.Unique = true;
+            else
+            {
+                IDataIndex di = GetIndex(table1, column.Name);
+                if (di != null && di.Unique) dr.Unique = true;
+            }
 
             table1.Relations.Add(dr);
 
@@ -109,6 +119,13 @@ namespace XCode.DataAccessLayer
             dr.RelationColumn = column.Name;
             // 那么这里就是唯一的啦
             dr.Unique = true;
+            // 当然，如果字段dc不是主键，也没有唯一索引，那么关系就不是唯一的。这就是典型的多对多
+            if (!dc.PrimaryKey && !dc.Identity)
+            {
+                IDataIndex di = GetIndex(rtable, dc.Name);
+                // 没有索引，或者索引不是唯一的
+                if (di == null || !di.Unique) dr.Unique = false;
+            }
 
             rtable.Relations.Add(dr);
 
@@ -128,16 +145,16 @@ namespace XCode.DataAccessLayer
                 IDataColumn dc = table.GetColumn(dr.Column);
                 if (dc == null || dc.PrimaryKey) continue;
 
-                Boolean hasIndex = false;
-                foreach (IDataIndex item in table.Indexes)
-                {
-                    if (item.Columns != null && item.Columns.Length == 1 && String.Equals(item.Columns[0], dr.Column, StringComparison.OrdinalIgnoreCase))
-                    {
-                        hasIndex = true;
-                        break;
-                    }
-                }
-                if (!hasIndex)
+                //Boolean hasIndex = false;
+                //foreach (IDataIndex item in table.Indexes)
+                //{
+                //    if (item.Columns != null && item.Columns.Length == 1 && String.Equals(item.Columns[0], dr.Column, StringComparison.OrdinalIgnoreCase))
+                //    {
+                //        hasIndex = true;
+                //        break;
+                //    }
+                //}
+                if (GetIndex(table, dr.Column) == null)
                 {
                     IDataIndex di = table.CreateIndex();
                     di.Columns = new String[] { dr.Column };
@@ -187,6 +204,23 @@ namespace XCode.DataAccessLayer
             }
             #endregion
 
+            #region 给非主键的自增字段建立唯一索引
+            foreach (IDataColumn dc in table.Columns)
+            {
+                if (dc.Identity && !dc.PrimaryKey)
+                {
+                    IDataIndex di = GetIndex(table, dc.Name);
+                    if (di != null)
+                    {
+                        di = table.CreateIndex();
+                        di.Columns = new String[] { dc.Name };
+                    }
+                    // 不管是不是原来有的索引，都要唯一
+                    di.Unique = true;
+                }
+            }
+            #endregion
+
             #region 修正可能错误的别名
             List<String> ns = new List<string>();
             ns.Add(table.Alias);
@@ -218,7 +252,7 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         /// <param name="columnNames"></param>
         /// <returns></returns>
-        public static IDataIndex GetIndex(IDataTable table, String[] columnNames)
+        public static IDataIndex GetIndex(IDataTable table, params String[] columnNames)
         {
             if (table == null || table.Indexes == null || table.Indexes.Count < 1) return null;
 
