@@ -100,7 +100,9 @@
     <Compile Include="DataAccessLayer\Database\Network.cs" />
     <Compile Include="DataAccessLayer\Database\PostgreSQL.cs" />
     <Compile Include="DataAccessLayer\Database\SqlCe.cs" />
-    <Compile Include="DataAccessLayer\Common\DbBase.cs" />
+    <Compile Include="DataAccessLayer\Common\DbBase.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="DataAccessLayer\Common\DbFactory.cs" />
     <Compile Include="DataAccessLayer\Common\IDatabase.cs" />
     <Compile Include="DataAccessLayer\MetaData\DbMetaData_Negative.cs" />

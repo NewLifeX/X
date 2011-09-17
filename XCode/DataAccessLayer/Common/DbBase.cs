@@ -10,6 +10,7 @@ using NewLife;
 using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Web;
+using System.ComponentModel;
 
 namespace XCode.DataAccessLayer
 {
@@ -17,16 +18,16 @@ namespace XCode.DataAccessLayer
     /// 数据库基类。数据库类的职责是抽象不同数据库的共同点，理应最小化，保证原汁原味，因此不做缓存等实现。
     /// 对于每一个连接字符串配置，都有一个数据库实例，而不是每个数据库类型一个实例，因为同类型数据库不同版本行为不同。
     /// </summary>
-    abstract class DbBase : DisposeBase, IDatabase
+    abstract class DbBase : Component, IDatabase
     {
         #region 构造函数
         /// <summary>
         /// 销毁资源时，回滚未提交事务，并关闭数据库连接
         /// </summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             if (_sessions != null)
             {
