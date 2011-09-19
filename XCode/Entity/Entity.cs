@@ -102,10 +102,25 @@ namespace XCode
         }
 
         /// <summary>
+        /// 加载数据读写器
+        /// </summary>
+        /// <param name="dr">数据读写器</param>
+        /// <returns>实体数组</returns>
+        public static EntityList<TEntity> LoadData(IDataReader dr)
+        {
+            if (dr == null) return null;
+
+            IEntityList list = dreAccessor.LoadData(dr);
+            if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
+
+            return new EntityList<TEntity>(list);
+        }
+
+        /// <summary>
         /// 从一个数据行对象加载数据。不加载关联对象。
         /// </summary>
         /// <param name="dr">数据读写器</param>
-        public override void LoadData(IDataReader dr)
+        public override void LoadDataReader(IDataReader dr)
         {
             if (dr == null) return;
 

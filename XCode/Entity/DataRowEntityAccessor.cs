@@ -25,6 +25,13 @@ namespace XCode
         void LoadData(DataRow dr, IEntity entity);
 
         /// <summary>
+        /// 从数据读写器加载数据
+        /// </summary>
+        /// <param name="dr">数据读写器</param>
+        /// <returns>实体数组</returns>
+        IEntityList LoadData(IDataReader dr);
+
+        /// <summary>
         /// 从一个数据行对象加载数据。不加载关联对象。
         /// </summary>
         /// <param name="dr">数据读写器</param>
@@ -143,7 +150,54 @@ namespace XCode
         }
 
         /// <summary>
-        /// 从一个数据行对象加载数据。不加载关联对象。
+        /// 从数据读写器加载数据
+        /// </summary>
+        /// <param name="dr">数据读写器</param>
+        /// <returns>实体数组</returns>
+        public IEntityList LoadData(IDataReader dr)
+        {
+            if (dr == null) return null;
+
+            // 先移到第一行，要取字段名等信息
+            if (!dr.Read()) return null;
+
+            // 准备好实体列表
+            IEntityList list = TypeX.CreateInstance(typeof(EntityList<>).MakeGenericType(EntityType)) as IEntityList;
+
+            List<FieldItem> ps = new List<FieldItem>();
+            List<String> exts = new List<String>();
+            for (int i = 0; i < dr.FieldCount; i++)
+            {
+                String name = dr.GetName(i);
+                FieldItem fi = null;
+                if (FieldItems.TryGetValue(name, out fi))
+                    ps.Add(fi);
+                else
+                    exts.Add(name);
+            }
+
+            // 遍历每一行数据，填充成为实体
+            do
+            {
+                // 由实体操作者创建实体对象，因为实体操作者可能更换
+                IEntity entity = Factory.Create();
+                foreach (FieldItem item in ps)
+                {
+                    SetValue(entity, item.Name, item.Type, dr[item]);
+                }
+
+                foreach (String item in exts)
+                {
+                    SetValue(entity, item, null, dr[item]);
+                }
+
+                list.Add(entity);
+            } while (dr.Read());
+            return list;
+        }
+
+        /// <summary>
+        /// 从一个数据读写器加载数据。不加载关联对象。
         /// </summary>
         /// <param name="dr">数据读写器</param>
         /// <param name="entity">实体对象</param>
@@ -263,7 +317,7 @@ namespace XCode
                             value = true;
                         else if (Array.IndexOf(FalseString, vs.ToLower()) >= 0)
                             value = false;
-                        else if (DAL.Debug) 
+                        else if (DAL.Debug)
                             DAL.WriteLog("无法把字符串{0}转为布尔型！", vs);
                     }
                 }
