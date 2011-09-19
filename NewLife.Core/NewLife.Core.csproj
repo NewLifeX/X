@@ -83,6 +83,9 @@
     <Compile Include="Collections\SingleListNode.cs" />
     <Compile Include="Collections\InterlockedStack.cs" />
     <Compile Include="Collections\Triplet.cs" />
+    <Compile Include="Extension\Enumerable.cs" />
+    <Compile Include="Extension\ExtensionAttribute.cs" />
+    <Compile Include="Extension\StringHelper.cs" />
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Common\DisposeBase.cs" />
     <Compile Include="Event\WeakAction.cs" />

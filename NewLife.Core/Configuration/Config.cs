@@ -99,15 +99,18 @@ namespace NewLife.Configuration
 
             if (code == TypeCode.Boolean)
             {
-                if (str == "1" || String.Equals(str, Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
+                //if (str == "1" || String.Equals(str, Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
+                //    return (T)(Object)true;
+                //else if (str == "0" || String.Equals(str, Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
+                //    return (T)(Object)false;
+
+                if (str == "1" || str.EqualIgnoreCase(Boolean.TrueString))
                     return (T)(Object)true;
-                else if (str == "0" || String.Equals(str, Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
+                else if (str == "0" || str.EqualIgnoreCase(Boolean.FalseString))
                     return (T)(Object)false;
 
                 Boolean b = false;
                 if (Boolean.TryParse(str.ToLower(), out b)) return (T)(Object)b;
-
-
             }
 
             T value = (T)TypeX.ChangeType(str, type);

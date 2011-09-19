@@ -36,7 +36,8 @@ namespace NewLife.Web
                 if (control is T)
                 {
                     // 没有指定控件ID，或者控件ID匹配
-                    if (String.IsNullOrEmpty(id) || String.Equals(control.ID, id, StringComparison.OrdinalIgnoreCase))
+                    //if (String.IsNullOrEmpty(id) || String.Equals(control.ID, id, StringComparison.OrdinalIgnoreCase))
+                    if (id.IsNullOrWhiteSpace() || id.EqualIgnoreCase(control.ID))
                         return control as T;
                 }
 
