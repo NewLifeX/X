@@ -4,15 +4,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using System.Threading;
 using Microsoft.CSharp;
 using Microsoft.VisualBasic;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
-using NewLife.Threading;
 
 namespace XCoder
 {
@@ -111,7 +110,7 @@ namespace XCoder
         /// <summary>翻译接口</summary>
         static ITranslate Translate
         {
-            get { return _Translate ?? (_Translate = new BingTranslate()); }
+            get { return _Translate ?? (_Translate = new NnhyServiceTranslate()); }
             //set { _Translate = value; }
         }
         #endregion
@@ -263,7 +262,9 @@ namespace XCoder
             //else
             //    return null;
 
-            return Translate.Translate(name);
+            //return Translate.Translate(name);
+            // TODO 未实现
+            return null;
         }
 
         //private static Dictionary<String, String> _Words;
@@ -519,25 +520,27 @@ namespace XCoder
         void TranslateWords(Object state)
         {
             Dictionary<Object, String> dic = state as Dictionary<Object, String>;
-            List<String> words = new List<string>();
-            foreach (String item in dic.Values)
-            {
-                if (Encoding.UTF8.GetByteCount(item) != item.Length) continue;
+            //List<String> words = new List<string>();
+            //foreach (String item in dic.Values)
+            //{
+            //    if (Encoding.UTF8.GetByteCount(item) != item.Length) continue;
 
-                // 分词
-                String str = item;
-                List<String> ks = UpperCaseSplitWord(str);
-                str = String.Join(" ", ks.ToArray());
+            //    // 分词
+            //    String str = item;
+            //    List<String> ks = UpperCaseSplitWord(str);
+            //    str = String.Join(" ", ks.ToArray());
 
-                if (!String.IsNullOrEmpty(str) && !words.Contains(str)) words.Add(str);
-            }
+            //    if (!String.IsNullOrEmpty(str) && !words.Contains(str)) words.Add(str);
+            //}
 
             //ITranslate trs = new BingTranslate();
-            String[] rs = Translate.Translate(words.ToArray());
+            string[] words=new string[dic.Values.Count];
+            dic.Values.CopyTo(words,0);
+            String[] rs = Translate.Translate(words);
             if (rs == null || rs.Length < 1) return;
 
             Dictionary<String, String> ts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            for (int i = 0; i < words.Count && i < rs.Length; i++)
+            for (int i = 0; i < words.Length && i < rs.Length; i++)
             {
                 String key = words[i].Replace(" ", null);
                 if (!ts.ContainsKey(key) && !String.IsNullOrEmpty(rs[i]) && words[i] != rs[i] && key != rs[i].Replace(" ", null)) ts.Add(key, rs[i].Replace(" ", null));
@@ -558,40 +561,40 @@ namespace XCoder
         /// </summary>
         /// <param name="s"></param>
         /// <returns></returns>
-        public static List<string> UpperCaseSplitWord(string s)
-        {
-            String str = s;
-            List<string> ks = new List<string>();
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < str.Length; i++)
-            {
-                bool split = false;
-                // 如果不是小写，作为边界，检测是否拆分
-                if (!(str[i] >= 'a' && str[i] <= 'z'))
-                {
-                    if (i > 0 && str[i - 1] >= 'a' && str[i - 1] <= 'z') // 前一个字符是小写
-                    {
-                        split = true;
-                    }
-                    else if (i + 1 < str.Length && str[i + 1] >= 'a' && str[i + 1] <= 'z') // 后一个字符是小写
-                    {
-                        split = true;
-                    }
-                }
-                if (split && sb.Replace(" ", "").Replace("_", "").Replace("-", "").Length > 0) // StringBuilder的Replace会修改自身 所以下面可以直接ToString
-                {
-                    ks.Add(sb.ToString());
-                    sb.Remove(0, sb.Length);
-                }
-                sb.Append(str[i]);
-            }
-            if (sb.Length > 0)
-            {
-                ks.Add(sb.ToString());
-                sb.Remove(0, sb.Length);
-            }
-            return ks;
-        }
+        //public static List<string> UpperCaseSplitWord(string s)
+        //{
+        //    String str = s;
+        //    List<string> ks = new List<string>();
+        //    StringBuilder sb = new StringBuilder();
+        //    for (int i = 0; i < str.Length; i++)
+        //    {
+        //        bool split = false;
+        //        // 如果不是小写，作为边界，检测是否拆分
+        //        if (!(str[i] >= 'a' && str[i] <= 'z'))
+        //        {
+        //            if (i > 0 && str[i - 1] >= 'a' && str[i - 1] <= 'z') // 前一个字符是小写
+        //            {
+        //                split = true;
+        //            }
+        //            else if (i + 1 < str.Length && str[i + 1] >= 'a' && str[i + 1] <= 'z') // 后一个字符是小写
+        //            {
+        //                split = true;
+        //            }
+        //        }
+        //        if (split && sb.Replace(" ", "").Replace("_", "").Replace("-", "").Length > 0) // StringBuilder的Replace会修改自身 所以下面可以直接ToString
+        //        {
+        //            ks.Add(sb.ToString());
+        //            sb.Remove(0, sb.Length);
+        //        }
+        //        sb.Append(str[i]);
+        //    }
+        //    if (sb.Length > 0)
+        //    {
+        //        ks.Add(sb.ToString());
+        //        sb.Remove(0, sb.Length);
+        //    }
+        //    return ks;
+        //}
         #endregion
 
         #region 静态

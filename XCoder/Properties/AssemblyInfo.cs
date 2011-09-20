@@ -30,9 +30,11 @@ using System.Runtime.InteropServices;
 //      修订号
 //
 [assembly: AssemblyVersion("4.3.*")]
-[assembly: AssemblyFileVersion("4.3.2011.0915")]
+[assembly: AssemblyFileVersion("4.3.2011.0920")]
 
 /*
+ * v4.3.2011.0920   将在线翻译服务替换成s.nnhy.org上的翻译服务
+ * 
  * v4.3.2011.0915   增加数据表架构，比如Access，可以从中识别字段是否自增
  * 
  * v4.3.2011.0913   增加是否生成泛型实体类的设置

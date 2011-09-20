@@ -72,7 +72,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.EnterpriseServices" />
-    <Reference Include="System.Web.Services" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.XML" />
     <Reference Include="XCode, Version=8.0.4265.30567, Culture=neutral, processorArchitecture=MSIL">
@@ -115,7 +114,9 @@
     <Compile Include="FrmText.Designer.cs">
       <DependentUpon>FrmText.cs</DependentUpon>
     </Compile>
+    <Compile Include="HttpUtility.cs" />
     <Compile Include="ITranslate.cs" />
+    <Compile Include="NnhyServiceTranslate.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
@@ -134,11 +135,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Template\实体\扩展查询.xt" />
     <EmbeddedResource Include="Template\实体\扩展属性.xt" />
-    <Compile Include="Web References\com.microsofttranslator.api\Reference.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Reference.map</DependentUpon>
-    </Compile>
+    <Compile Include="TranslateResult.cs" />
     <EmbeddedResource Include="Template\实体\类名.Biz.cs" />
     <EmbeddedResource Include="Template\实体\类名.cs" />
     <EmbeddedResource Include="Template\页面\类名.aspx.cs">
@@ -177,30 +174,6 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <EmbeddedResource Include="Template\实体\对象操作.xt" />
-    <None Include="Web References\com.microsofttranslator.api\GetTranslationsResponse.datasource">
-      <DependentUpon>Reference.map</DependentUpon>
-    </None>
-    <None Include="Web References\com.microsofttranslator.api\Reference.map">
-      <Generator>MSDiscoCodeGenerator</Generator>
-      <LastGenOutput>Reference.cs</LastGenOutput>
-    </None>
-    <None Include="Web References\com.microsofttranslator.api\soap.wsdl" />
-    <None Include="Web References\com.microsofttranslator.api\soap.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Web References\com.microsofttranslator.api\soap0.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Web References\com.microsofttranslator.api\soap1.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Web References\com.microsofttranslator.api\soap2.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Web References\com.microsofttranslator.api\SoapService.wsdl" />
-    <None Include="Web References\com.microsofttranslator.api\TranslateArrayResponse.datasource">
-      <DependentUpon>Reference.map</DependentUpon>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
@@ -227,19 +200,6 @@
   </ItemGroup>
   <ItemGroup>
     <WebReferences Include="Web References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <WebReferenceUrl Include="http://api.microsofttranslator.com/V2/Soap.svc">
-      <UrlBehavior>Dynamic</UrlBehavior>
-      <RelPath>Web References\com.microsofttranslator.api\</RelPath>
-      <UpdateFromURL>http://api.microsofttranslator.com/V2/Soap.svc</UpdateFromURL>
-      <ServiceLocationURL>
-      </ServiceLocationURL>
-      <CachedDynamicPropName>
-      </CachedDynamicPropName>
-      <CachedAppSettingsObjectName>Settings</CachedAppSettingsObjectName>
-      <CachedSettingsPropName>XCoder_com_microsofttranslator_api_SoapService</CachedSettingsPropName>
-    </WebReferenceUrl>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
