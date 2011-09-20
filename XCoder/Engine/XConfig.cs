@@ -2,6 +2,7 @@
 using System.IO;
 using System.Xml.Serialization;
 using System.Text;
+using System.Collections.Generic;
 
 namespace XCoder
 {
@@ -143,6 +144,15 @@ namespace XCoder
             get { return _LastBlogTitle; }
             set { _LastBlogTitle = value; }
         }
+
+        private Dictionary<string, string> _Items;
+        /// <summary> 字典属性</summary>
+        public Dictionary<string, string> Items
+        {
+            get { return _Items; }
+            set { _Items = value; }
+        }
+        
         #endregion
 
         #region 全局
