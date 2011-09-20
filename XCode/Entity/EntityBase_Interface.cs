@@ -6,7 +6,10 @@ using XCode.Configuration;
 
 namespace XCode
 {
-    public partial class EntityBase : INotifyPropertyChanging, INotifyPropertyChanged, ICustomTypeDescriptor, IEditableObject
+    public partial class EntityBase : ICustomTypeDescriptor, IEditableObject
+#if NET20SP0
+        ,INotifyPropertyChanging, INotifyPropertyChanged
+#endif
     //, IDataErrorInfo
     {
         #region INotifyPropertyChanged接口
@@ -45,7 +48,11 @@ namespace XCode
         /// <summary>
         /// 属性将更改
         /// </summary>
+#if NET20SP0
         event PropertyChangingEventHandler INotifyPropertyChanging.PropertyChanging
+#else
+        public event PropertyChangingEventHandler PropertyChanging
+#endif
         {
             add { _PropertyChanging += value; }
             remove { _PropertyChanging -= value; }
@@ -56,7 +63,11 @@ namespace XCode
         /// <summary>
         /// 属性已更改
         /// </summary>
+#if NET20SP0
         event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
+#else
+        public event PropertyChangedEventHandler PropertyChanged
+#endif
         {
             add { _PropertyChanged += value; }
             remove { _PropertyChanged -= value; }
