@@ -3,6 +3,9 @@ using System.IO;
 using System.Xml.Serialization;
 using System.Text;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using XCoder;
+using System.Xml;
 
 namespace XCoder
 {
@@ -145,14 +148,14 @@ namespace XCoder
             set { _LastBlogTitle = value; }
         }
 
-        private Dictionary<string, string> _Items;
+        private Dictionary<String, String> _Items;
         /// <summary> 字典属性</summary>
-        public Dictionary<string, string> Items
+        public Dictionary<String, String> Items
         {
             get { return _Items; }
             set { _Items = value; }
         }
-        
+
         #endregion
 
         #region 全局
@@ -170,12 +173,20 @@ namespace XCoder
         {
             if (!File.Exists(DefaultFile)) return Create();
 
-            XmlSerializer xml = new XmlSerializer(typeof(XConfig));
-            using (FileStream stream = new FileStream(DefaultFile, FileMode.Open, FileAccess.Read))
+            //XmlSerializer xml = new XmlSerializer(typeof(XConfig));
+            NewLife.Xml.XmlReaderX xml = new NewLife.Xml.XmlReaderX();
+            using (XmlReader xr = XmlReader.Create(DefaultFile))
             {
                 try
                 {
-                    return xml.Deserialize(stream) as XConfig;
+                    Object obj = null;
+                    xml.Reader = xr;
+                    if (xml.ReadObject(typeof(XConfig), ref obj, null) && obj != null)
+                    {
+                        return obj as XConfig;
+                    }
+                    return Create();
+                    //return xml.Deserialize(stream) as XConfig;
                 }
                 catch { return Create(); }
             }
@@ -204,10 +215,13 @@ namespace XCoder
 
             if (File.Exists(DefaultFile)) File.Delete(DefaultFile);
 
-            XmlSerializer xml = new XmlSerializer(typeof(XConfig));
-            using (FileStream stream = new FileStream(DefaultFile, FileMode.OpenOrCreate, FileAccess.Write))
+            //XmlSerializer xml = new XmlSerializer(typeof(XConfig));
+            NewLife.Xml.XmlWriterX xml = new NewLife.Xml.XmlWriterX();
+
+            using (XmlWriter writer = XmlWriter.Create(DefaultFile))
             {
-                xml.Serialize(stream, this);
+                xml.Writer = writer;
+                xml.WriteObject(this, typeof(XConfig), null);
             }
         }
 
