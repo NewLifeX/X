@@ -7,7 +7,7 @@ using XCode.Configuration;
 namespace XCode
 {
     public partial class EntityBase : ICustomTypeDescriptor, IEditableObject
-#if NET20SP0
+#if !NET20SP0
         ,INotifyPropertyChanging, INotifyPropertyChanged
 #endif
     //, IDataErrorInfo
@@ -49,9 +49,9 @@ namespace XCode
         /// 属性将更改
         /// </summary>
 #if NET20SP0
-        event PropertyChangingEventHandler INotifyPropertyChanging.PropertyChanging
-#else
         public event PropertyChangingEventHandler PropertyChanging
+#else
+        event PropertyChangingEventHandler INotifyPropertyChanging.PropertyChanging
 #endif
         {
             add { _PropertyChanging += value; }
@@ -64,9 +64,9 @@ namespace XCode
         /// 属性已更改
         /// </summary>
 #if NET20SP0
-        event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
-#else
         public event PropertyChangedEventHandler PropertyChanged
+#else
+        event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
 #endif
         {
             add { _PropertyChanged += value; }
