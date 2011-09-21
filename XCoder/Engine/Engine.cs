@@ -248,7 +248,7 @@ namespace XCoder
         }
 
         /// <summary>
-        /// 英文名转中文名
+        /// 快速的英文名转中文名,目前的使用习惯是如果失败(返回null)将使用翻译服务
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -263,8 +263,70 @@ namespace XCoder
             //    return null;
 
             //return Translate.Translate(name);
-            // TODO 未实现
+            string ret;
+            if (LocalE2CDict.TryGetValue(name, out ret))
+            {
+                return ret;
+            }
             return null;
+        }
+
+        static DateTime lastDetectFileWriteTime = DateTime.MinValue, lastE2CDictWriteTime = DateTime.MinValue;
+        static object LocalE2CDictLocker = new object();
+        private static Dictionary<string, string> _LocalE2CDict;
+        /// <summary>
+        /// 本地的英文转中文字典,从e2c.txt文件中读取出来的
+        /// 
+        /// e2c格式细节
+        ///  每行是一个翻译条目,第一个是原文,后续的都是译文,目前都只考虑完整匹配,不会分词处理
+        ///  #开头的行会忽略
+        /// </summary>
+        public static Dictionary<string, string> LocalE2CDict
+        {
+            get
+            {
+                Dictionary<string, string> dict = _LocalE2CDict;
+                bool reload = false;
+                if (dict != null && DateTime.Now - lastDetectFileWriteTime > TimeSpan.FromMilliseconds(500)) // 使不需要重启就能立即加载新的修改后的文件,最短500ms检测一次文件修改时间
+                {
+                    lastDetectFileWriteTime = DateTime.Now;
+                    if (File.Exists("e2c.txt") && lastE2CDictWriteTime != File.GetLastWriteTime("e2c.txt"))
+                    {
+                        reload = true;
+                    }
+                }
+                if (dict == null || reload)
+                {
+                    lock (LocalE2CDictLocker)
+                    {
+                        if (dict == _LocalE2CDict)
+                        {
+                            dict = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+                            if (File.Exists("e2c.txt"))
+                            {
+                                string[] lines = File.ReadAllLines("e2c.txt");
+                                char[] splitChars = new char[] { '\t', ' ' };
+                                foreach (var line in lines)
+                                {
+                                    string l = line.TrimStart();
+                                    if (l[0] == '#') continue; // 忽略#符号开头的行
+                                    string[] ss = l.Split(splitChars, 2, StringSplitOptions.RemoveEmptyEntries);
+                                    if (ss != null && ss.Length > 1)
+                                    {
+                                        string key = ss[0].Trim();
+                                        if (!string.IsNullOrEmpty(key) && !dict.ContainsKey(key)) dict.Add(key, ss[1]);
+                                    }
+                                }
+                                lastDetectFileWriteTime = DateTime.Now;
+                                lastE2CDictWriteTime = File.GetLastWriteTime("e2c.txt");
+                            }
+                            _LocalE2CDict = dict;
+                        }
+                    }
+                }
+                return _LocalE2CDict;
+            }
+            set { Engine._LocalE2CDict = value; }
         }
 
         //private static Dictionary<String, String> _Words;
@@ -534,8 +596,8 @@ namespace XCoder
             //}
 
             //ITranslate trs = new BingTranslate();
-            string[] words=new string[dic.Values.Count];
-            dic.Values.CopyTo(words,0);
+            string[] words = new string[dic.Values.Count];
+            dic.Values.CopyTo(words, 0);
             String[] rs = Translate.Translate(words);
             if (rs == null || rs.Length < 1) return;
 
