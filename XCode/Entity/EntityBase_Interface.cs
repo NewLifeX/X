@@ -21,7 +21,9 @@ namespace XCode
         /// <returns>是否允许改变</returns>
         protected virtual Boolean OnPropertyChanging(String fieldName, Object newValue)
         {
+#if !NET20SP0
             if (_PropertyChanging != null) _PropertyChanging(this, new PropertyChangingEventArgs(fieldName));
+#endif
             // 如果数据没有改变，不应该影响脏数据
             if (!Object.Equals(this[fieldName], newValue))
             {
@@ -40,19 +42,18 @@ namespace XCode
         /// <param name="fieldName">字段名</param>
         protected virtual void OnPropertyChanged(String fieldName)
         {
+#if !NET20SP0
             if (_PropertyChanged != null) _PropertyChanged(this, new PropertyChangedEventArgs(fieldName));
+#endif
         }
 
+#if !NET20SP0
         [field: NonSerialized]
         event PropertyChangingEventHandler _PropertyChanging;
         /// <summary>
         /// 属性将更改
         /// </summary>
-#if NET20SP0
-        public event PropertyChangingEventHandler PropertyChanging
-#else
         event PropertyChangingEventHandler INotifyPropertyChanging.PropertyChanging
-#endif
         {
             add { _PropertyChanging += value; }
             remove { _PropertyChanging -= value; }
@@ -63,15 +64,12 @@ namespace XCode
         /// <summary>
         /// 属性已更改
         /// </summary>
-#if NET20SP0
-        public event PropertyChangedEventHandler PropertyChanged
-#else
         event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
-#endif
         {
             add { _PropertyChanged += value; }
             remove { _PropertyChanged -= value; }
         }
+#endif
         #endregion
 
         #region ICustomTypeDescriptor 成员
