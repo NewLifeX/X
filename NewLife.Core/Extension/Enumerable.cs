@@ -37,7 +37,7 @@ namespace System.Linq
             {
                 this.threadId = Thread.CurrentThread.ManagedThreadId;
             }
-            public abstract Enumerable.Iterator<TSource> Clone();
+            public abstract Iterator<TSource> Clone();
             public virtual void Dispose()
             {
                 this.current = default(TSource);
@@ -50,7 +50,7 @@ namespace System.Linq
                     this.state = 1;
                     return this;
                 }
-                Enumerable.Iterator<TSource> iterator = this.Clone();
+                Iterator<TSource> iterator = this.Clone();
                 iterator.state = 1;
                 return iterator;
             }
@@ -67,7 +67,7 @@ namespace System.Linq
                 throw new NotImplementedException();
             }
         }
-        private class WhereEnumerableIterator<TSource> : Enumerable.Iterator<TSource>
+        private class WhereEnumerableIterator<TSource> : Iterator<TSource>
         {
             private IEnumerable<TSource> source;
             private Func<TSource, bool> predicate;
@@ -78,9 +78,9 @@ namespace System.Linq
                 this.source = source;
                 this.predicate = predicate;
             }
-            public override Enumerable.Iterator<TSource> Clone()
+            public override Iterator<TSource> Clone()
             {
-                return new Enumerable.WhereEnumerableIterator<TSource>(this.source, this.predicate);
+                return new WhereEnumerableIterator<TSource>(this.source, this.predicate);
             }
             public override void Dispose()
             {
@@ -124,14 +124,14 @@ namespace System.Linq
             }
             public override IEnumerable<TResult> Select<TResult>(Func<TSource, TResult> selector)
             {
-                return new Enumerable.WhereSelectEnumerableIterator<TSource, TResult>(this.source, this.predicate, selector);
+                return new WhereSelectEnumerableIterator<TSource, TResult>(this.source, this.predicate, selector);
             }
             public override IEnumerable<TSource> Where(Func<TSource, bool> predicate)
             {
-                return new Enumerable.WhereEnumerableIterator<TSource>(this.source, Enumerable.CombinePredicates<TSource>(this.predicate, predicate));
+                return new WhereEnumerableIterator<TSource>(this.source, CombinePredicates<TSource>(this.predicate, predicate));
             }
         }
-        private class WhereArrayIterator<TSource> : Enumerable.Iterator<TSource>
+        private class WhereArrayIterator<TSource> : Iterator<TSource>
         {
             private TSource[] source;
             private Func<TSource, bool> predicate;
@@ -142,9 +142,9 @@ namespace System.Linq
                 this.source = source;
                 this.predicate = predicate;
             }
-            public override Enumerable.Iterator<TSource> Clone()
+            public override Iterator<TSource> Clone()
             {
-                return new Enumerable.WhereArrayIterator<TSource>(this.source, this.predicate);
+                return new WhereArrayIterator<TSource>(this.source, this.predicate);
             }
             public override bool MoveNext()
             {
@@ -166,14 +166,14 @@ namespace System.Linq
             }
             public override IEnumerable<TResult> Select<TResult>(Func<TSource, TResult> selector)
             {
-                return new Enumerable.WhereSelectArrayIterator<TSource, TResult>(this.source, this.predicate, selector);
+                return new WhereSelectArrayIterator<TSource, TResult>(this.source, this.predicate, selector);
             }
             public override IEnumerable<TSource> Where(Func<TSource, bool> predicate)
             {
-                return new Enumerable.WhereArrayIterator<TSource>(this.source, Enumerable.CombinePredicates<TSource>(this.predicate, predicate));
+                return new WhereArrayIterator<TSource>(this.source, CombinePredicates<TSource>(this.predicate, predicate));
             }
         }
-        private class WhereListIterator<TSource> : Enumerable.Iterator<TSource>
+        private class WhereListIterator<TSource> : Iterator<TSource>
         {
             private List<TSource> source;
             private Func<TSource, bool> predicate;
@@ -184,9 +184,9 @@ namespace System.Linq
                 this.source = source;
                 this.predicate = predicate;
             }
-            public override Enumerable.Iterator<TSource> Clone()
+            public override Iterator<TSource> Clone()
             {
-                return new Enumerable.WhereListIterator<TSource>(this.source, this.predicate);
+                return new WhereListIterator<TSource>(this.source, this.predicate);
             }
             public override bool MoveNext()
             {
@@ -221,14 +221,14 @@ namespace System.Linq
             }
             public override IEnumerable<TResult> Select<TResult>(Func<TSource, TResult> selector)
             {
-                return new Enumerable.WhereSelectListIterator<TSource, TResult>(this.source, this.predicate, selector);
+                return new WhereSelectListIterator<TSource, TResult>(this.source, this.predicate, selector);
             }
             public override IEnumerable<TSource> Where(Func<TSource, bool> predicate)
             {
-                return new Enumerable.WhereListIterator<TSource>(this.source, Enumerable.CombinePredicates<TSource>(this.predicate, predicate));
+                return new WhereListIterator<TSource>(this.source, CombinePredicates<TSource>(this.predicate, predicate));
             }
         }
-        private class WhereSelectEnumerableIterator<TSource, TResult> : Enumerable.Iterator<TResult>
+        private class WhereSelectEnumerableIterator<TSource, TResult> : Iterator<TResult>
         {
             private IEnumerable<TSource> source;
             private Func<TSource, bool> predicate;
@@ -241,9 +241,9 @@ namespace System.Linq
                 this.predicate = predicate;
                 this.selector = selector;
             }
-            public override Enumerable.Iterator<TResult> Clone()
+            public override Iterator<TResult> Clone()
             {
-                return new Enumerable.WhereSelectEnumerableIterator<TSource, TResult>(this.source, this.predicate, this.selector);
+                return new WhereSelectEnumerableIterator<TSource, TResult>(this.source, this.predicate, this.selector);
             }
             public override void Dispose()
             {
@@ -287,14 +287,14 @@ namespace System.Linq
             }
             public override IEnumerable<TResult2> Select<TResult2>(Func<TResult, TResult2> selector)
             {
-                return new Enumerable.WhereSelectEnumerableIterator<TSource, TResult2>(this.source, this.predicate, Enumerable.CombineSelectors<TSource, TResult, TResult2>(this.selector, selector));
+                return new WhereSelectEnumerableIterator<TSource, TResult2>(this.source, this.predicate, CombineSelectors<TSource, TResult, TResult2>(this.selector, selector));
             }
             public override IEnumerable<TResult> Where(Func<TResult, bool> predicate)
             {
-                return new Enumerable.WhereEnumerableIterator<TResult>(this, predicate);
+                return new WhereEnumerableIterator<TResult>(this, predicate);
             }
         }
-        private class WhereSelectArrayIterator<TSource, TResult> : Enumerable.Iterator<TResult>
+        private class WhereSelectArrayIterator<TSource, TResult> : Iterator<TResult>
         {
             private TSource[] source;
             private Func<TSource, bool> predicate;
@@ -307,9 +307,9 @@ namespace System.Linq
                 this.predicate = predicate;
                 this.selector = selector;
             }
-            public override Enumerable.Iterator<TResult> Clone()
+            public override Iterator<TResult> Clone()
             {
-                return new Enumerable.WhereSelectArrayIterator<TSource, TResult>(this.source, this.predicate, this.selector);
+                return new WhereSelectArrayIterator<TSource, TResult>(this.source, this.predicate, this.selector);
             }
             public override bool MoveNext()
             {
@@ -331,14 +331,14 @@ namespace System.Linq
             }
             public override IEnumerable<TResult2> Select<TResult2>(Func<TResult, TResult2> selector)
             {
-                return new Enumerable.WhereSelectArrayIterator<TSource, TResult2>(this.source, this.predicate, Enumerable.CombineSelectors<TSource, TResult, TResult2>(this.selector, selector));
+                return new WhereSelectArrayIterator<TSource, TResult2>(this.source, this.predicate, CombineSelectors<TSource, TResult, TResult2>(this.selector, selector));
             }
             public override IEnumerable<TResult> Where(Func<TResult, bool> predicate)
             {
-                return new Enumerable.WhereEnumerableIterator<TResult>(this, predicate);
+                return new WhereEnumerableIterator<TResult>(this, predicate);
             }
         }
-        private class WhereSelectListIterator<TSource, TResult> : Enumerable.Iterator<TResult>
+        private class WhereSelectListIterator<TSource, TResult> : Iterator<TResult>
         {
             private List<TSource> source;
             private Func<TSource, bool> predicate;
@@ -351,9 +351,9 @@ namespace System.Linq
                 this.predicate = predicate;
                 this.selector = selector;
             }
-            public override Enumerable.Iterator<TResult> Clone()
+            public override Iterator<TResult> Clone()
             {
-                return new Enumerable.WhereSelectListIterator<TSource, TResult>(this.source, this.predicate, this.selector);
+                return new WhereSelectListIterator<TSource, TResult>(this.source, this.predicate, this.selector);
             }
             public override bool MoveNext()
             {
@@ -388,11 +388,11 @@ namespace System.Linq
             }
             public override IEnumerable<TResult2> Select<TResult2>(Func<TResult, TResult2> selector)
             {
-                return new Enumerable.WhereSelectListIterator<TSource, TResult2>(this.source, this.predicate, Enumerable.CombineSelectors<TSource, TResult, TResult2>(this.selector, selector));
+                return new WhereSelectListIterator<TSource, TResult2>(this.source, this.predicate, CombineSelectors<TSource, TResult, TResult2>(this.selector, selector));
             }
             public override IEnumerable<TResult> Where(Func<TResult, bool> predicate)
             {
-                return new Enumerable.WhereEnumerableIterator<TResult>(this, predicate);
+                return new WhereEnumerableIterator<TResult>(this, predicate);
             }
         }
 
@@ -415,19 +415,19 @@ namespace System.Linq
             {
                 throw new ArgumentNullException("predicate");
             }
-            if (source is Enumerable.Iterator<TSource>)
+            if (source is Iterator<TSource>)
             {
-                return ((Enumerable.Iterator<TSource>)source).Where(predicate);
+                return ((Iterator<TSource>)source).Where(predicate);
             }
             if (source is TSource[])
             {
-                return new Enumerable.WhereArrayIterator<TSource>((TSource[])source, predicate);
+                return new WhereArrayIterator<TSource>((TSource[])source, predicate);
             }
             if (source is List<TSource>)
             {
-                return new Enumerable.WhereListIterator<TSource>((List<TSource>)source, predicate);
+                return new WhereListIterator<TSource>((List<TSource>)source, predicate);
             }
-            return new Enumerable.WhereEnumerableIterator<TSource>(source, predicate);
+            return new WhereEnumerableIterator<TSource>(source, predicate);
         }
         /// <summary>基于谓词筛选值序列。将在谓词函数的逻辑中使用每个元素的索引。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含输入序列中满足条件的元素。</returns>
@@ -447,7 +447,7 @@ namespace System.Linq
             {
                 throw new ArgumentNullException("predicate");
             }
-            return Enumerable.WhereIterator<TSource>(source, predicate);
+            return WhereIterator<TSource>(source, predicate);
         }
         private static IEnumerable<TSource> WhereIterator<TSource>(IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
         {
@@ -479,11 +479,11 @@ namespace System.Linq
         {
             if (source == null) throw new ArgumentNullException("source");
             if (selector == null) throw new ArgumentNullException("selector");
-            if (source is Enumerable.Iterator<TSource>) return ((Enumerable.Iterator<TSource>)source).Select<TResult>(selector);
-            if (source is TSource[]) return new Enumerable.WhereSelectArrayIterator<TSource, TResult>((TSource[])source, null, selector);
-            if (source is List<TSource>) return new Enumerable.WhereSelectListIterator<TSource, TResult>((List<TSource>)source, null, selector);
+            if (source is Iterator<TSource>) return ((Iterator<TSource>)source).Select<TResult>(selector);
+            if (source is TSource[]) return new WhereSelectArrayIterator<TSource, TResult>((TSource[])source, null, selector);
+            if (source is List<TSource>) return new WhereSelectListIterator<TSource, TResult>((List<TSource>)source, null, selector);
 
-            return new Enumerable.WhereSelectEnumerableIterator<TSource, TResult>(source, null, selector);
+            return new WhereSelectEnumerableIterator<TSource, TResult>(source, null, selector);
         }
         /// <summary>通过合并元素的索引将序列的每个元素投影到新表中。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，其元素为对 <paramref name="source" /> 的每个元素调用转换函数的结果。</returns>
@@ -500,7 +500,7 @@ namespace System.Linq
             if (source == null) throw new ArgumentNullException("source");
             if (selector == null) throw new ArgumentNullException("selector");
 
-            //    return Enumerable.SelectIterator<TSource, TResult>(source, selector);
+            //    return SelectIterator<TSource, TResult>(source, selector);
             //}
             //private static IEnumerable<TResult> SelectIterator<TSource, TResult>(IEnumerable<TSource> source, Func<TSource, int, TResult> selector)
             //{
@@ -544,7 +544,7 @@ namespace System.Linq
             {
                 throw new ArgumentNullException("selector");
             }
-            return Enumerable.SelectManyIterator<TSource, TResult>(source, selector);
+            return SelectManyIterator<TSource, TResult>(source, selector);
         }
         private static IEnumerable<TResult> SelectManyIterator<TSource, TResult>(IEnumerable<TSource> source, Func<TSource, IEnumerable<TResult>> selector)
         {
@@ -577,7 +577,7 @@ namespace System.Linq
             {
                 throw new ArgumentNullException("selector");
             }
-            return Enumerable.SelectManyIterator<TSource, TResult>(source, selector);
+            return SelectManyIterator<TSource, TResult>(source, selector);
         }
         private static IEnumerable<TResult> SelectManyIterator<TSource, TResult>(IEnumerable<TSource> source, Func<TSource, int, IEnumerable<TResult>> selector)
         {
@@ -621,7 +621,7 @@ namespace System.Linq
             {
                 throw new ArgumentNullException("resultSelector");
             }
-            return Enumerable.SelectManyIterator<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
+            return SelectManyIterator<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
         }
         private static IEnumerable<TResult> SelectManyIterator<TSource, TCollection, TResult>(IEnumerable<TSource> source, Func<TSource, int, IEnumerable<TCollection>> collectionSelector, Func<TSource, TCollection, TResult> resultSelector)
         {
@@ -665,7 +665,7 @@ namespace System.Linq
             {
                 throw new ArgumentNullException("resultSelector");
             }
-            return Enumerable.SelectManyIterator<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
+            return SelectManyIterator<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
         }
         private static IEnumerable<TResult> SelectManyIterator<TSource, TCollection, TResult>(IEnumerable<TSource> source, Func<TSource, IEnumerable<TCollection>> collectionSelector, Func<TSource, TCollection, TResult> resultSelector)
         {
@@ -691,7 +691,7 @@ namespace System.Linq
         {
             if (source == null) throw new ArgumentNullException("source");
 
-            //    return Enumerable.TakeIterator<TSource>(source, count);
+            //    return TakeIterator<TSource>(source, count);
             //}
             //private static IEnumerable<TSource> TakeIterator<TSource>(IEnumerable<TSource> source, int count)
             //{
@@ -718,7 +718,7 @@ namespace System.Linq
             if (source == null) throw new ArgumentNullException("source");
             if (predicate == null) throw new ArgumentNullException("predicate");
 
-            //    return Enumerable.TakeWhileIterator<TSource>(source, predicate);
+            //    return TakeWhileIterator<TSource>(source, predicate);
             //}
             //private static IEnumerable<TSource> TakeWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, bool> predicate)
             //{
@@ -743,7 +743,7 @@ namespace System.Linq
             if (source == null) throw new ArgumentNullException("source");
             if (predicate == null) throw new ArgumentNullException("predicate");
 
-            //    return Enumerable.TakeWhileIterator<TSource>(source, predicate);
+            //    return TakeWhileIterator<TSource>(source, predicate);
             //}
             //private static IEnumerable<TSource> TakeWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
             //{
@@ -773,7 +773,7 @@ namespace System.Linq
         {
             if (source == null) throw new ArgumentNullException("source");
 
-            //    return Enumerable.SkipIterator<TSource>(source, count);
+            //    return SkipIterator<TSource>(source, count);
             //}
             //private static IEnumerable<TSource> SkipIterator<TSource>(IEnumerable<TSource> source, int count)
             //{
@@ -814,7 +814,7 @@ namespace System.Linq
             if (source == null) throw new ArgumentNullException("source");
             if (predicate == null) throw new ArgumentNullException("predicate");
 
-            //    return Enumerable.SkipWhileIterator<TSource>(source, predicate);
+            //    return SkipWhileIterator<TSource>(source, predicate);
             //}
             //private static IEnumerable<TSource> SkipWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, bool> predicate)
             //{
@@ -840,7 +840,7 @@ namespace System.Linq
             if (source == null) throw new ArgumentNullException("source");
             if (predicate == null) throw new ArgumentNullException("predicate");
 
-            //    return Enumerable.SkipWhileIterator<TSource>(source, predicate);
+            //    return SkipWhileIterator<TSource>(source, predicate);
             //}
             //private static IEnumerable<TSource> SkipWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
             //{
@@ -884,7 +884,7 @@ namespace System.Linq
             if (innerKeySelector == null) throw new ArgumentNullException("innerKeySelector");
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
 
-            //return Enumerable.JoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, null);
+            //return JoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, null);
             return Join<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, null);
         }
         /// <summary>基于匹配键对两个序列的元素进行关联。使用指定的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> 对键进行比较。</summary>
@@ -909,7 +909,7 @@ namespace System.Linq
             if (innerKeySelector == null) throw new ArgumentNullException("innerKeySelector");
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
 
-            //    return Enumerable.JoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, comparer);
+            //    return JoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, comparer);
             //}
             //private static IEnumerable<TResult> JoinIterator<TOuter, TInner, TKey, TResult>(IEnumerable<TOuter> outer, IEnumerable<TInner> inner, Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, TInner, TResult> resultSelector, IEqualityComparer<TKey> comparer)
             //{
@@ -948,7 +948,7 @@ namespace System.Linq
             if (innerKeySelector == null) throw new ArgumentNullException("innerKeySelector");
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
 
-            //return Enumerable.GroupJoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, null);
+            //return GroupJoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, null);
             return GroupJoin<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, null);
         }
         /// <summary>基于键相等对两个序列的元素进行关联并对结果进行分组。使用指定的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> 对键进行比较。</summary>
@@ -973,7 +973,7 @@ namespace System.Linq
             if (innerKeySelector == null) throw new ArgumentNullException("innerKeySelector");
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
 
-            //    return Enumerable.GroupJoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, comparer);
+            //    return GroupJoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, comparer);
             //}
             //private static IEnumerable<TResult> GroupJoinIterator<TOuter, TInner, TKey, TResult>(IEnumerable<TOuter> outer, IEnumerable<TInner> inner, Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, IEnumerable<TInner>, TResult> resultSelector, IEqualityComparer<TKey> comparer)
             //{
@@ -1262,7 +1262,7 @@ namespace System.Linq
             if (first == null) throw new ArgumentNullException("first");
             if (second == null) throw new ArgumentNullException("second");
 
-            //    return Enumerable.ConcatIterator<TSource>(first, second);
+            //    return ConcatIterator<TSource>(first, second);
             //}
             //private static IEnumerable<TSource> ConcatIterator<TSource>(IEnumerable<TSource> first, IEnumerable<TSource> second)
             //{
@@ -1291,7 +1291,7 @@ namespace System.Linq
             if (second == null) throw new ArgumentNullException("second");
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
 
-            //    return Enumerable.ZipIterator<TFirst, TSecond, TResult>(first, second, resultSelector);
+            //    return ZipIterator<TFirst, TSecond, TResult>(first, second, resultSelector);
             //}
             //private static IEnumerable<TResult> ZipIterator<TFirst, TSecond, TResult>(IEnumerable<TFirst> first, IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> resultSelector)
             //{
@@ -1319,7 +1319,7 @@ namespace System.Linq
         {
             if (source == null) throw new ArgumentNullException("source");
 
-            //return Enumerable.DistinctIterator<TSource>(source, null);
+            //return DistinctIterator<TSource>(source, null);
             return Distinct<TSource>(source, null);
         }
         /// <summary>通过使用指定的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> 对值进行比较返回序列中的非重复元素。</summary>
@@ -1334,7 +1334,7 @@ namespace System.Linq
         {
             if (source == null) throw new ArgumentNullException("source");
 
-            //    return Enumerable.DistinctIterator<TSource>(source, comparer);
+            //    return DistinctIterator<TSource>(source, comparer);
             //}
             //private static IEnumerable<TSource> DistinctIterator<TSource>(IEnumerable<TSource> source, IEqualityComparer<TSource> comparer)
             //{
@@ -1361,7 +1361,7 @@ namespace System.Linq
             if (first == null) throw new ArgumentNullException("first");
             if (second == null) throw new ArgumentNullException("second");
 
-            //return Enumerable.UnionIterator<TSource>(first, second, null);
+            //return UnionIterator<TSource>(first, second, null);
             return Union<TSource>(first, second, null);
         }
         /// <summary>通过使用指定的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> 生成两个序列的并集。</summary>
@@ -1377,7 +1377,7 @@ namespace System.Linq
             if (first == null) throw new ArgumentNullException("first");
             if (second == null) throw new ArgumentNullException("second");
 
-            //    return Enumerable.UnionIterator<TSource>(first, second, comparer);
+            //    return UnionIterator<TSource>(first, second, comparer);
             //}
             //private static IEnumerable<TSource> UnionIterator<TSource>(IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
             //{
@@ -1411,7 +1411,7 @@ namespace System.Linq
             if (first == null) throw new ArgumentNullException("first");
             if (second == null) throw new ArgumentNullException("second");
 
-            //return Enumerable.IntersectIterator<TSource>(first, second, null);
+            //return IntersectIterator<TSource>(first, second, null);
             return Intersect<TSource>(first, second, null);
         }
         /// <summary>通过使用指定的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> 对值进行比较以生成两个序列的交集。</summary>
@@ -1427,7 +1427,7 @@ namespace System.Linq
             if (first == null) throw new ArgumentNullException("first");
             if (second == null) throw new ArgumentNullException("second");
 
-            //    return Enumerable.IntersectIterator<TSource>(first, second, comparer);
+            //    return IntersectIterator<TSource>(first, second, comparer);
             //}
             //private static IEnumerable<TSource> IntersectIterator<TSource>(IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
             //{
@@ -1458,7 +1458,7 @@ namespace System.Linq
             if (first == null) throw new ArgumentNullException("first");
             if (second == null) throw new ArgumentNullException("second");
 
-            //return Enumerable.ExceptIterator<TSource>(first, second, null);
+            //return ExceptIterator<TSource>(first, second, null);
             return Except<TSource>(first, second, null);
         }
         /// <summary>通过使用指定的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> 对值进行比较产生两个序列的差集。</summary>
@@ -1474,7 +1474,7 @@ namespace System.Linq
             if (first == null) throw new ArgumentNullException("first");
             if (second == null) throw new ArgumentNullException("second");
 
-            //    return Enumerable.ExceptIterator<TSource>(first, second, comparer);
+            //    return ExceptIterator<TSource>(first, second, comparer);
             //}
             //private static IEnumerable<TSource> ExceptIterator<TSource>(IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
             //{
@@ -1503,7 +1503,7 @@ namespace System.Linq
         {
             if (source == null) throw new ArgumentNullException("source");
 
-            //    return Enumerable.ReverseIterator<TSource>(source);
+            //    return ReverseIterator<TSource>(source);
             //}
             //private static IEnumerable<TSource> ReverseIterator<TSource>(IEnumerable<TSource> source)
             //{
@@ -1792,7 +1792,7 @@ namespace System.Linq
         {
             if (source == null) throw new ArgumentNullException("source");
 
-            //    return Enumerable.DefaultIfEmptyIterator<TSource>(source, defaultValue);
+            //    return DefaultIfEmptyIterator<TSource>(source, defaultValue);
             //}
             //private static IEnumerable<TSource> DefaultIfEmptyIterator<TSource>(IEnumerable<TSource> source, TSource defaultValue)
             //{
@@ -1825,7 +1825,7 @@ namespace System.Linq
         {
             if (source == null) throw new ArgumentNullException("source");
 
-            //    return Enumerable.OfTypeIterator<TResult>(source);
+            //    return OfTypeIterator<TResult>(source);
             //}
             //private static IEnumerable<TResult> OfTypeIterator<TResult>(IEnumerable source)
             //{
@@ -1853,7 +1853,7 @@ namespace System.Linq
             if (enumerable != null) return enumerable;
             if (source == null) throw new ArgumentNullException("source");
 
-            return Enumerable.CastIterator<TResult>(source);
+            return CastIterator<TResult>(source);
         }
         private static IEnumerable<TResult> CastIterator<TResult>(IEnumerable source)
         {
@@ -2333,7 +2333,7 @@ namespace System.Linq
             {
                 throw new ArgumentOutOfRangeException("count");
             }
-            //    return Enumerable.RangeIterator(start, count);
+            //    return RangeIterator(start, count);
             //}
 
             //private static IEnumerable<int> RangeIterator(int start, int count)
@@ -2358,7 +2358,7 @@ namespace System.Linq
             {
                 throw new ArgumentOutOfRangeException("count");
             }
-            return Enumerable.RepeatIterator<TResult>(element, count);
+            return RepeatIterator<TResult>(element, count);
         }
         private static IEnumerable<TResult> RepeatIterator<TResult>(TResult element, int count)
         {
