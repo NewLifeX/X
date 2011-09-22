@@ -195,7 +195,7 @@ namespace NewLife.Reflection
 
         #region 扩展属性
         //private IEnumerable<Type> _Types;
-        /// <summary>类型集合，当前程序集的所有类型</summary>
+        /// <summary>类型集合，当前程序集的所有类型，包括私有和内嵌，非内嵌请直接调用Asm.GetTypes()</summary>
         public IEnumerable<Type> Types
         {
             get
@@ -223,16 +223,21 @@ namespace NewLife.Reflection
                 Type[] ts = Asm.GetTypes();
                 if (ts == null || ts.Length < 1) yield break;
 
-                foreach (Type item in ts)
+                List<Type> list = new List<Type>(ts);
+                for (int i = 0; i < list.Count; i++)
                 {
-                    yield return item;
+                    yield return list[i];
 
-                    Type[] ts2 = item.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+                    Type[] ts2 = list[i].GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
                     if (ts2 != null && ts2.Length > 0)
                     {
-                        foreach (Type elm in ts2)
+                        // 从下一个元素开始插入，让内嵌类紧挨着主类
+                        Int32 k = i + 1;
+                        foreach (Type item in ts2)
                         {
-                            yield return elm;
+                            //if (!list.Contains(item)) list.Insert(k++, item);
+                            // Insert将会导致大量的数组复制
+                            list.Add(item);
                         }
                     }
                 }

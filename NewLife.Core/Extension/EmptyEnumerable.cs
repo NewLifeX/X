@@ -10,16 +10,12 @@ namespace System.Linq
         {
             get
             {
-                if (EmptyEnumerable<TElement>.instance == null)
-                {
-                    EmptyEnumerable<TElement>.instance = new TElement[0];
-                }
-                return EmptyEnumerable<TElement>.instance;
+                if (instance == null) instance = new TElement[0];
+
+                return instance;
             }
         }
         [TargetedPatchingOptOut("Performance critical to inline this type of method across NGen image boundaries")]
-        public EmptyEnumerable()
-        {
-        }
+        public EmptyEnumerable() { }
     }
 }

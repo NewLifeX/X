@@ -24,7 +24,8 @@ namespace XCode.DataAccessLayer
 
         void IXmlSerializable.ReadXml(XmlReader reader)
         {
-            foreach (PropertyInfoX item in TypeX.Create(this.GetType()).Properties)
+            PropertyInfo[] pis = this.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            foreach (PropertyInfoX item in pis)
             {
                 if (!item.Property.CanRead) continue;
                 if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;
@@ -60,9 +61,10 @@ namespace XCode.DataAccessLayer
 
             String name = null;
 
-            List<PropertyInfo> list = TypeX.Create(this.GetType()).Properties;
+            PropertyInfo[] pis = this.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            //List<PropertyInfo> list = TypeX.Create(this.GetType()).Properties;
             // 基本类型，输出为特性
-            foreach (PropertyInfoX item in list)
+            foreach (PropertyInfoX item in pis)
             {
                 if (!item.Property.CanWrite) continue;
                 if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, false) != null) continue;

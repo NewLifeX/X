@@ -2389,10 +2389,7 @@ namespace System.Linq
 
             using (IEnumerator<TSource> enumerator = source.GetEnumerator())
             {
-                if (enumerator.MoveNext())
-                {
-                    return true;
-                }
+                if (enumerator.MoveNext()) return true;
             }
             return false;
         }
@@ -2406,20 +2403,12 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
         public static bool Any<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
-            if (predicate == null)
-            {
-                throw new ArgumentNullException("predicate");
-            }
+            if (source == null) throw new ArgumentNullException("source");
+            if (predicate == null) throw new ArgumentNullException("predicate");
+
             foreach (TSource current in source)
             {
-                if (predicate(current))
-                {
-                    return true;
-                }
+                if (predicate(current)) return true;
             }
             return false;
         }
@@ -2433,20 +2422,12 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
         public static bool All<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
-            if (predicate == null)
-            {
-                throw new ArgumentNullException("predicate");
-            }
+            if (source == null) throw new ArgumentNullException("source");
+            if (predicate == null) throw new ArgumentNullException("predicate");
+
             foreach (TSource current in source)
             {
-                if (!predicate(current))
-                {
-                    return false;
-                }
+                if (!predicate(current)) return false;
             }
             return true;
         }
@@ -2462,32 +2443,26 @@ namespace System.Linq
         ///   <paramref name="source" /> 中的元素数量大于 <see cref="F:System.Int32.MaxValue" />。</exception>
         public static int Count<TSource>(this IEnumerable<TSource> source)
         {
-            checked
+            //checked
+            //{
+            if (source == null) throw new ArgumentNullException("source");
+
+            ICollection<TSource> collection = source as ICollection<TSource>;
+            if (collection != null) return collection.Count;
+
+            ICollection collection2 = source as ICollection;
+            if (collection2 != null) return collection2.Count;
+
+            int num = 0;
+            using (IEnumerator<TSource> enumerator = source.GetEnumerator())
             {
-                if (source == null)
+                while (enumerator.MoveNext())
                 {
-                    throw new ArgumentNullException("source");
+                    num++;
                 }
-                ICollection<TSource> collection = source as ICollection<TSource>;
-                if (collection != null)
-                {
-                    return collection.Count;
-                }
-                ICollection collection2 = source as ICollection;
-                if (collection2 != null)
-                {
-                    return collection2.Count;
-                }
-                int num = 0;
-                using (IEnumerator<TSource> enumerator = source.GetEnumerator())
-                {
-                    while (enumerator.MoveNext())
-                    {
-                        num++;
-                    }
-                }
-                return num;
             }
+            return num;
+            //}
         }
         /// <summary>返回一个数字，表示在指定的序列中满足条件的元素数量。</summary>
         /// <returns>一个数字，表示序列中满足谓词函数条件的元素数量。</returns>
@@ -2501,26 +2476,21 @@ namespace System.Linq
         ///   <paramref name="source" /> 中的元素数量大于 <see cref="F:System.Int32.MaxValue" />。</exception>
         public static int Count<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            checked
+            //checked
+            //{
+            if (source == null) throw new ArgumentNullException("source");
+            if (predicate == null) throw new ArgumentNullException("predicate");
+
+            int num = 0;
+            foreach (TSource current in source)
             {
-                if (source == null)
+                if (predicate(current))
                 {
-                    throw new ArgumentNullException("source");
+                    num++;
                 }
-                if (predicate == null)
-                {
-                    throw new ArgumentNullException("predicate");
-                }
-                int num = 0;
-                foreach (TSource current in source)
-                {
-                    if (predicate(current))
-                    {
-                        num++;
-                    }
-                }
-                return num;
             }
+            return num;
+            //}
         }
         /// <summary>返回一个 <see cref="T:System.Int64" />，表示序列中的元素的总数量。</summary>
         /// <returns>源序列中的元素的数量。</returns>
@@ -2532,22 +2502,20 @@ namespace System.Linq
         /// <exception cref="T:System.OverflowException">元素的数量超过 <see cref="F:System.Int64.MaxValue" />。</exception>
         public static long LongCount<TSource>(this IEnumerable<TSource> source)
         {
-            checked
+            //checked
+            //{
+            if (source == null) throw new ArgumentNullException("source");
+
+            long num = 0L;
+            using (IEnumerator<TSource> enumerator = source.GetEnumerator())
             {
-                if (source == null)
+                while (enumerator.MoveNext())
                 {
-                    throw new ArgumentNullException("source");
+                    num += 1L;
                 }
-                long num = 0L;
-                using (IEnumerator<TSource> enumerator = source.GetEnumerator())
-                {
-                    while (enumerator.MoveNext())
-                    {
-                        num += 1L;
-                    }
-                }
-                return num;
             }
+            return num;
+            //}
         }
         /// <summary>返回一个 <see cref="T:System.Int64" />，表示序列中满足条件的元素的数量。</summary>
         /// <returns>一个数字，表示序列中满足谓词函数条件的元素数量。</returns>
@@ -2560,26 +2528,21 @@ namespace System.Linq
         /// <exception cref="T:System.OverflowException">匹配元素的数量超过 <see cref="F:System.Int64.MaxValue" />。</exception>
         public static long LongCount<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            checked
+            //checked
+            //{
+            if (source == null) throw new ArgumentNullException("source");
+            if (predicate == null) throw new ArgumentNullException("predicate");
+
+            long num = 0L;
+            foreach (TSource current in source)
             {
-                if (source == null)
+                if (predicate(current))
                 {
-                    throw new ArgumentNullException("source");
+                    num += 1L;
                 }
-                if (predicate == null)
-                {
-                    throw new ArgumentNullException("predicate");
-                }
-                long num = 0L;
-                foreach (TSource current in source)
-                {
-                    if (predicate(current))
-                    {
-                        num += 1L;
-                    }
-                }
-                return num;
             }
+            return num;
+            //}
         }
 
         /// <summary>通过使用默认的相等比较器确定序列是否包含指定的元素。</summary>

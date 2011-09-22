@@ -140,7 +140,7 @@ namespace NewLife.Web
                 //        break;
                 //    }
                 //}
-                FieldInfo fi = handler.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Single(item => item.FieldType == t);
+                FieldInfo fi = handler.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(item => item.FieldType == t);
                 fix = FieldInfoX.Create(fi);
             }
 
