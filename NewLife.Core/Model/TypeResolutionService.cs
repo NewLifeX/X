@@ -166,9 +166,9 @@ namespace NewLife.Model
             //    }
             //}
 
-            AssemblyX asm = AssemblyX.GetAssemblies().Single(item => item.Asm.GetName() == name);
+            AssemblyX asm = AssemblyX.GetAssemblies().FirstOrDefault(item => item.Asm.GetName() == name);
             if (asm != null) return asm.Asm.Location;
-            asm = AssemblyX.ReflectionOnlyGetAssemblies().Single(item => item.Asm.GetName() == name);
+            asm = AssemblyX.ReflectionOnlyGetAssemblies().FirstOrDefault(item => item.Asm.GetName() == name);
             if (asm != null) return asm.Asm.Location;
 
             return null;
