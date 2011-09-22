@@ -52,7 +52,7 @@ namespace XCode.DataAccessLayer
             }
 
             if (list.Count < 1) return null;
-            return list.ToArray(); ;
+            return list.ToArray();
         }
 
         /// <summary>

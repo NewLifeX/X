@@ -203,7 +203,7 @@ namespace NewLife.Messaging
                 //    list.Add(type);
                 //}
             }
-            return dic.Count > 0 ? dic : null; ;
+            return dic.Count > 0 ? dic : null;
         }
 
         /// <summary>

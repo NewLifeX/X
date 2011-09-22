@@ -418,7 +418,7 @@ namespace NewLife.Serialization.Protocol
                     if (b == 0)
                     {
                         //context.Data = null;
-                        return null; ;
+                        return null;
                     }
                 }
             }

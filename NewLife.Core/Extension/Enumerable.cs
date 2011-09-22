@@ -678,6 +678,7 @@ namespace System.Linq
             }
             yield break;
         }
+
         /// <summary>从序列的开头返回指定数量的连续元素。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含输入序列开头的指定数量的元素。</returns>
         /// <param name="source">要从其返回元素的序列。</param>
@@ -688,23 +689,18 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static IEnumerable<TSource> Take<TSource>(this IEnumerable<TSource> source, int count)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
-            return Enumerable.TakeIterator<TSource>(source, count);
-        }
-        private static IEnumerable<TSource> TakeIterator<TSource>(IEnumerable<TSource> source, int count)
-        {
+            if (source == null) throw new ArgumentNullException("source");
+
+            //    return Enumerable.TakeIterator<TSource>(source, count);
+            //}
+            //private static IEnumerable<TSource> TakeIterator<TSource>(IEnumerable<TSource> source, int count)
+            //{
             if (count > 0)
             {
                 foreach (TSource current in source)
                 {
                     yield return current;
-                    if (--count == 0)
-                    {
-                        break;
-                    }
+                    if (--count == 0) break;
                 }
             }
             yield break;
@@ -719,24 +715,17 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
         public static IEnumerable<TSource> TakeWhile<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
-            if (predicate == null)
-            {
-                throw new ArgumentNullException("predicate");
-            }
-            return Enumerable.TakeWhileIterator<TSource>(source, predicate);
-        }
-        private static IEnumerable<TSource> TakeWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, bool> predicate)
-        {
+            if (source == null) throw new ArgumentNullException("source");
+            if (predicate == null) throw new ArgumentNullException("predicate");
+
+            //    return Enumerable.TakeWhileIterator<TSource>(source, predicate);
+            //}
+            //private static IEnumerable<TSource> TakeWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, bool> predicate)
+            //{
             foreach (TSource current in source)
             {
-                if (!predicate(current))
-                {
-                    break;
-                }
+                if (!predicate(current)) break;
+
                 yield return current;
             }
             yield break;
@@ -751,33 +740,27 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
         public static IEnumerable<TSource> TakeWhile<TSource>(this IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
         {
-            if (source == null)
+            if (source == null) throw new ArgumentNullException("source");
+            if (predicate == null) throw new ArgumentNullException("predicate");
+
+            //    return Enumerable.TakeWhileIterator<TSource>(source, predicate);
+            //}
+            //private static IEnumerable<TSource> TakeWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
+            //{
+            //    checked
+            //    {
+            int n = -1;
+            foreach (TSource current in source)
             {
-                throw new ArgumentNullException("source");
+                n++;
+                if (!predicate(current, n)) break;
+
+                yield return current;
             }
-            if (predicate == null)
-            {
-                throw new ArgumentNullException("predicate");
-            }
-            return Enumerable.TakeWhileIterator<TSource>(source, predicate);
+            yield break;
+            //}
         }
-        private static IEnumerable<TSource> TakeWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
-        {
-            checked
-            {
-                int num = -1;
-                foreach (TSource current in source)
-                {
-                    num++;
-                    if (!predicate(current, num))
-                    {
-                        break;
-                    }
-                    yield return current;
-                }
-                yield break;
-            }
-        }
+
         /// <summary>跳过序列中指定数量的元素，然后返回剩余的元素。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含输入序列中指定索引后出现的元素。</returns>
         /// <param name="source">要从中返回元素的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
@@ -788,14 +771,12 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static IEnumerable<TSource> Skip<TSource>(this IEnumerable<TSource> source, int count)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
-            return Enumerable.SkipIterator<TSource>(source, count);
-        }
-        private static IEnumerable<TSource> SkipIterator<TSource>(IEnumerable<TSource> source, int count)
-        {
+            if (source == null) throw new ArgumentNullException("source");
+
+            //    return Enumerable.SkipIterator<TSource>(source, count);
+            //}
+            //private static IEnumerable<TSource> SkipIterator<TSource>(IEnumerable<TSource> source, int count)
+            //{
             //using (IEnumerator<TSource> enumerator = source.GetEnumerator())
             //{
             //    while (count > 0 && enumerator.MoveNext())
@@ -814,7 +795,10 @@ namespace System.Linq
 
             foreach (TSource item in source)
             {
-                if (count-- <= 0) yield return item;
+                if (count > 0)
+                    count--;
+                else
+                    yield return item;
             }
         }
         /// <summary>只要满足指定的条件，就跳过序列中的元素，然后返回剩余元素。</summary>
@@ -837,14 +821,9 @@ namespace System.Linq
             bool flag = false;
             foreach (TSource current in source)
             {
-                if (!flag && !predicate(current))
-                {
-                    flag = true;
-                }
-                if (flag)
-                {
-                    yield return current;
-                }
+                if (!flag && !predicate(current)) flag = true;
+
+                if (flag) yield return current;
             }
             yield break;
         }
@@ -866,23 +845,20 @@ namespace System.Linq
             //private static IEnumerable<TSource> SkipWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
             //{
             //    checked
+            //{
+            int num = -1;
+            bool flag = false;
+            foreach (TSource current in source)
             {
-                int num = -1;
-                bool flag = false;
-                foreach (TSource current in source)
+                num++;
+                if (!flag && !predicate(current, num))
                 {
-                    num++;
-                    if (!flag && !predicate(current, num))
-                    {
-                        flag = true;
-                    }
-                    if (flag)
-                    {
-                        yield return current;
-                    }
+                    flag = true;
                 }
-                yield break;
+                if (flag) yield return current;
             }
+            yield break;
+            //}
         }
         #endregion
 
@@ -1900,29 +1876,21 @@ namespace System.Linq
         /// <exception cref="T:System.InvalidOperationException">源序列为空。</exception>
         public static TSource First<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
+            if (source == null) throw new ArgumentNullException("source");
+
             IList<TSource> list = source as IList<TSource>;
             if (list != null)
             {
-                if (list.Count > 0)
-                {
-                    return list[0];
-                }
+                if (list.Count > 0) return list[0];
             }
             else
             {
                 using (IEnumerator<TSource> enumerator = source.GetEnumerator())
                 {
-                    if (enumerator.MoveNext())
-                    {
-                        return enumerator.Current;
-                    }
+                    if (enumerator.MoveNext()) return enumerator.Current;
                 }
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>返回序列中满足指定条件的第一个元素。</summary>
         /// <returns>序列中通过指定谓词函数中的测试的第一个元素。</returns>
@@ -1935,22 +1903,14 @@ namespace System.Linq
         /// <exception cref="T:System.InvalidOperationException">没有元素满足 <paramref name="predicate" /> 中的条件。- 或 -源序列为空。</exception>
         public static TSource First<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
-            if (predicate == null)
-            {
-                throw new ArgumentNullException("predicate");
-            }
+            if (source == null) throw new ArgumentNullException("source");
+            if (predicate == null) throw new ArgumentNullException("predicate");
+
             foreach (TSource current in source)
             {
-                if (predicate(current))
-                {
-                    return current;
-                }
+                if (predicate(current)) return current;
             }
-            throw new InvalidOperationException("NoMatch"); ;
+            throw new InvalidOperationException("NoMatch");
         }
         /// <summary>返回序列中的第一个元素；如果序列中不包含任何元素，则返回默认值。</summary>
         /// <returns>如果 <paramref name="source" /> 为空，则返回 default(<paramref name="TSource" />)；否则返回 <paramref name="source" /> 中的第一个元素。</returns>
@@ -1961,26 +1921,18 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static TSource FirstOrDefault<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
+            if (source == null) throw new ArgumentNullException("source");
+
             IList<TSource> list = source as IList<TSource>;
             if (list != null)
             {
-                if (list.Count > 0)
-                {
-                    return list[0];
-                }
+                if (list.Count > 0) return list[0];
             }
             else
             {
                 using (IEnumerator<TSource> enumerator = source.GetEnumerator())
                 {
-                    if (enumerator.MoveNext())
-                    {
-                        return enumerator.Current;
-                    }
+                    if (enumerator.MoveNext()) return enumerator.Current;
                 }
             }
             return default(TSource);
@@ -1995,23 +1947,16 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
         public static TSource FirstOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
-            if (predicate == null)
-            {
-                throw new ArgumentNullException("predicate");
-            }
+            if (source == null) throw new ArgumentNullException("source");
+            if (predicate == null) throw new ArgumentNullException("predicate");
+
             foreach (TSource current in source)
             {
-                if (predicate(current))
-                {
-                    return current;
-                }
+                if (predicate(current)) return current;
             }
             return default(TSource);
         }
+
         /// <summary>返回序列的最后一个元素。</summary>
         /// <returns>源序列中最后位置处的值。</returns>
         /// <param name="source">要返回其最后一个元素的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
@@ -2022,18 +1967,13 @@ namespace System.Linq
         /// <exception cref="T:System.InvalidOperationException">源序列为空。</exception>
         public static TSource Last<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
+            if (source == null) throw new ArgumentNullException("source");
+
             IList<TSource> list = source as IList<TSource>;
             if (list != null)
             {
                 int count = list.Count;
-                if (count > 0)
-                {
-                    return list[count - 1];
-                }
+                if (count > 0) return list[count - 1];
             }
             else
             {
@@ -2051,7 +1991,7 @@ namespace System.Linq
                     }
                 }
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>返回序列中满足指定条件的最后一个元素。</summary>
         /// <returns>序列中通过指定谓词函数中的测试的最后一个元素。</returns>
@@ -2064,14 +2004,9 @@ namespace System.Linq
         /// <exception cref="T:System.InvalidOperationException">没有元素满足 <paramref name="predicate" /> 中的条件。- 或 -源序列为空。</exception>
         public static TSource Last<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
-            if (predicate == null)
-            {
-                throw new ArgumentNullException("predicate");
-            }
+            if (source == null) throw new ArgumentNullException("source");
+            if (predicate == null) throw new ArgumentNullException("predicate");
+
             TSource result = default(TSource);
             bool flag = false;
             foreach (TSource current in source)
@@ -2082,11 +2017,9 @@ namespace System.Linq
                     flag = true;
                 }
             }
-            if (flag)
-            {
-                return result;
-            }
-            throw new InvalidOperationException("NoMatch"); ;
+            if (flag) return result;
+
+            throw new InvalidOperationException("NoMatch");
         }
         /// <summary>返回序列中的最后一个元素；如果序列中不包含任何元素，则返回默认值。</summary>
         /// <returns>如果源序列为空，则返回 default(<paramref name="TSource" />)；否则返回 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 中的最后一个元素。</returns>
@@ -2097,18 +2030,13 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static TSource LastOrDefault<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
+            if (source == null) throw new ArgumentNullException("source");
+
             IList<TSource> list = source as IList<TSource>;
             if (list != null)
             {
                 int count = list.Count;
-                if (count > 0)
-                {
-                    return list[count - 1];
-                }
+                if (count > 0) return list[count - 1];
             }
             else
             {
@@ -2138,24 +2066,17 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
         public static TSource LastOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
-            if (predicate == null)
-            {
-                throw new ArgumentNullException("predicate");
-            }
+            if (source == null) throw new ArgumentNullException("source");
+            if (predicate == null) throw new ArgumentNullException("predicate");
+
             TSource result = default(TSource);
             foreach (TSource current in source)
             {
-                if (predicate(current))
-                {
-                    result = current;
-                }
+                if (predicate(current)) result = current;
             }
             return result;
         }
+
         /// <summary>返回序列的唯一元素；如果该序列并非恰好包含一个元素，则会引发异常。</summary>
         /// <returns>输入序列的单个元素。</returns>
         /// <param name="source">一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，用于返回单个元素。</param>
@@ -2166,41 +2087,30 @@ namespace System.Linq
         /// <exception cref="T:System.InvalidOperationException">输入序列包含多个元素。- 或 -输入序列为空。</exception>
         public static TSource Single<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
+            if (source == null) throw new ArgumentNullException("source");
+
             IList<TSource> list = source as IList<TSource>;
             if (list != null)
             {
                 switch (list.Count)
                 {
                     case 0:
-                        {
-                            throw new InvalidOperationException("NoElements"); ;
-                        }
+                        throw new InvalidOperationException("NoElements");
                     case 1:
-                        {
-                            return list[0];
-                        }
+                        return list[0];
                 }
             }
             else
             {
                 using (IEnumerator<TSource> enumerator = source.GetEnumerator())
                 {
-                    if (!enumerator.MoveNext())
-                    {
-                        throw new InvalidOperationException("NoElements"); ;
-                    }
+                    if (!enumerator.MoveNext()) throw new InvalidOperationException("NoElements");
+
                     TSource current = enumerator.Current;
-                    if (!enumerator.MoveNext())
-                    {
-                        return current;
-                    }
+                    if (!enumerator.MoveNext()) return current;
                 }
             }
-            throw new InvalidOperationException("MoreThanOneElement"); ;
+            throw new InvalidOperationException("MoreThanOneElement");
         }
         /// <summary>返回序列中满足指定条件的唯一元素；如果有多个这样的元素存在，则会引发异常。</summary>
         /// <returns>输入序列中满足条件的单个元素。</returns>
@@ -2213,34 +2123,26 @@ namespace System.Linq
         /// <exception cref="T:System.InvalidOperationException">没有元素满足 <paramref name="predicate" /> 中的条件。- 或 -多个元素满足 <paramref name="predicate" /> 中的条件。- 或 -源序列为空。</exception>
         public static TSource Single<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            //checked
-            //{
             if (source == null) throw new ArgumentNullException("source");
             if (predicate == null) throw new ArgumentNullException("predicate");
 
             TSource result = default(TSource);
-            long num = 0L;
+            long n = 0;
             foreach (TSource current in source)
             {
                 if (predicate(current))
                 {
                     result = current;
-                    num += 1L;
+                    n++;
+
+                    // Add By 大石头
+                    if (n > 1) throw new InvalidOperationException("MoreThanOneMatch");
                 }
             }
-            long num2 = num;
-            //}
-            if (num2 <= 1L && num2 >= 0L)
-            {
-                switch ((int)num2)
-                {
-                    case 0:
-                        throw new InvalidOperationException("NoMatch"); ;
-                    case 1:
-                        return result;
-                }
-            }
-            throw new InvalidOperationException("MoreThanOneMatch"); ;
+
+            if (n == 0) throw new InvalidOperationException("NoMatch");
+            if (n == 1) return result;
+            throw new InvalidOperationException("MoreThanOneMatch");
         }
         /// <summary>返回序列中的唯一元素；如果该序列为空，则返回默认值；如果该序列包含多个元素，此方法将引发异常。</summary>
         /// <returns>返回输入序列的单个元素；如果序列不包含任何元素，则返回 default(<paramref name="TSource" />)。</returns>
@@ -2252,23 +2154,17 @@ namespace System.Linq
         /// <exception cref="T:System.InvalidOperationException">输入序列包含多个元素。</exception>
         public static TSource SingleOrDefault<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
+            if (source == null) throw new ArgumentNullException("source");
+
             IList<TSource> list = source as IList<TSource>;
             if (list != null)
             {
                 switch (list.Count)
                 {
                     case 0:
-                        {
-                            return default(TSource);
-                        }
+                        return default(TSource);
                     case 1:
-                        {
-                            return list[0];
-                        }
+                        return list[0];
                 }
             }
             else
@@ -2288,7 +2184,7 @@ namespace System.Linq
                     }
                 }
             }
-            throw new InvalidOperationException("MoreThanOneElement"); ;
+            throw new InvalidOperationException("MoreThanOneElement");
         }
         /// <summary>返回序列中满足指定条件的唯一元素；如果这类元素不存在，则返回默认值；如果有多个元素满足该条件，此方法将引发异常。</summary>
         /// <returns>如果未找到这样的元素，则返回输入序列中满足条件的单个元素或 default (<paramref name="TSource" />)。</returns>
@@ -2303,41 +2199,38 @@ namespace System.Linq
         {
             //checked
             //{
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
-            if (predicate == null)
-            {
-                throw new ArgumentNullException("predicate");
-            }
+            if (source == null) throw new ArgumentNullException("source");
+            if (predicate == null) throw new ArgumentNullException("predicate");
+
             TSource result = default(TSource);
-            long num = 0L;
+            long n = 0;
             foreach (TSource current in source)
             {
                 if (predicate(current))
                 {
                     result = current;
-                    num += 1L;
+                    n++;
+
+                    // Add By 大石头
+                    if (n > 1) throw new InvalidOperationException("MoreThanOneMatch");
                 }
             }
-            long num2 = num;
+            if (n == 0) return default(TSource);
+            if (n == 1) return result;
+            throw new InvalidOperationException("MoreThanOneMatch");
+            //long num2 = num;
+            ////}
+            //if (num2 <= 1L && num2 >= 0L)
+            //{
+            //    switch ((int)num2)
+            //    {
+            //        case 0:
+            //            return default(TSource);
+            //        case 1:
+            //            return result;
+            //    }
             //}
-            if (num2 <= 1L && num2 >= 0L)
-            {
-                switch ((int)num2)
-                {
-                    case 0:
-                        {
-                            return default(TSource);
-                        }
-                    case 1:
-                        {
-                            return result;
-                        }
-                }
-            }
-            throw new InvalidOperationException("MoreThanOneMatch"); ;
+            //throw new InvalidOperationException("MoreThanOneMatch");
         }
 
         /// <summary>返回序列中指定索引处的元素。</summary>
@@ -2762,7 +2655,7 @@ namespace System.Linq
             {
                 if (!enumerator.MoveNext())
                 {
-                    throw new InvalidOperationException("NoElements"); ;
+                    throw new InvalidOperationException("NoElements");
                 }
                 TSource tSource = enumerator.Current;
                 while (enumerator.MoveNext())
@@ -3208,7 +3101,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>返回 <see cref="T:System.Int32" /> 值（可空）序列中的最小值。</summary>
         /// <returns>C# 中类型为 Nullable&lt;Int32&gt; 的值或 Visual Basic 中与序列中最小值对应的 Nullable(Of Int32)。</returns>
@@ -3271,7 +3164,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>返回 <see cref="T:System.Int64" /> 值（可空）序列中的最小值。</summary>
         /// <returns>C# 中类型为 Nullable&lt;Int64&gt; 的值或 Visual Basic 中与序列中最小值对应的 Nullable(Of Int64)。</returns>
@@ -3334,7 +3227,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>返回 <see cref="T:System.Single" /> 值（可空）序列中的最小值。</summary>
         /// <returns>C# 中类型为 Nullable&lt;Single&gt; 的值或 Visual Basic 中与序列中最小值对应的 Nullable(Of Single)。</returns>
@@ -3400,7 +3293,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>返回 <see cref="T:System.Double" /> 值（可空）序列中的最小值。</summary>
         /// <returns>C# 中类型为 Nullable&lt;Double&gt; 的值或 Visual Basic 中与序列中最小值对应的 Nullable(Of Double)。</returns>
@@ -3466,7 +3359,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>返回 <see cref="T:System.Decimal" /> 值（可空）序列中的最小值。</summary>
         /// <returns>C# 中类型为 Nullable&lt;Decimal&gt; 的值或 Visual Basic 中与序列中最小值对应的 Nullable(Of Decimal)。</returns>
@@ -3541,7 +3434,7 @@ namespace System.Linq
             {
                 return tSource;
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>调用序列的每个元素上的转换函数并返回最小 <see cref="T:System.Int32" /> 值。</summary>
         /// <returns>序列中的最小值。</returns>
@@ -3721,7 +3614,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>返回可以为 null 的 <see cref="T:System.Int32" /> 值序列中的最大值。</summary>
         /// <returns>一个与序列中的最大值对应的值，该值的类型在 C# 中为 Nullable&lt;Int32&gt;，在 Visual Basic 中为 Nullable(Of Int32)。</returns>
@@ -3784,7 +3677,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>返回可以为 null 的 <see cref="T:System.Int64" /> 值序列中的最大值。</summary>
         /// <returns>一个与序列中的最大值对应的值，该值的类型在 C# 中为 Nullable&lt;Int64&gt;，在 Visual Basic 中为 Nullable(Of Int64)。</returns>
@@ -3847,7 +3740,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>返回可以为 null 的 <see cref="T:System.Double" /> 值序列中的最大值。</summary>
         /// <returns>一个与序列中的最大值对应的值，该值的类型在 C# 中为 Nullable&lt;Double&gt;，在 Visual Basic 中为 Nullable(Of Double)。</returns>
@@ -3913,7 +3806,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>返回可以为 null 的 <see cref="T:System.Single" /> 值序列中的最大值。</summary>
         /// <returns>一个与序列中的最大值对应的值，该值的类型在 C# 中为 Nullable&lt;Single&gt;，在 Visual Basic 中为 Nullable(Of Single)。</returns>
@@ -3979,7 +3872,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>返回可以为 null 的 <see cref="T:System.Decimal" /> 值序列中的最大值。</summary>
         /// <returns>一个与序列中的最大值对应的值，该值的类型在 C# 中为 Nullable&lt;Decimal&gt;，在 Visual Basic 中为 Nullable(Of Decimal)。</returns>
@@ -4054,7 +3947,7 @@ namespace System.Linq
             {
                 return tSource;
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>调用序列的每个元素上的转换函数并返回最大 <see cref="T:System.Int32" /> 值。</summary>
         /// <returns>序列中的最大值。</returns>
@@ -4227,7 +4120,7 @@ namespace System.Linq
                 {
                     return (double)num / (double)num2;
                 }
-                throw new InvalidOperationException("NoElements"); ;
+                throw new InvalidOperationException("NoElements");
             }
         }
         /// <summary>计算可以为 null 的 <see cref="T:System.Int32" /> 值序列的平均值。</summary>
@@ -4288,7 +4181,7 @@ namespace System.Linq
                 {
                     return (double)num / (double)num2;
                 }
-                throw new InvalidOperationException("NoElements"); ;
+                throw new InvalidOperationException("NoElements");
             }
         }
         /// <summary>计算可以为 null 的 <see cref="T:System.Int64" /> 值序列的平均值。</summary>
@@ -4349,7 +4242,7 @@ namespace System.Linq
             {
                 return (float)(num / (double)num2);
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>计算可以为 null 的 <see cref="T:System.Single" /> 值序列的平均值。</summary>
         /// <returns>值序列的平均值；如果源序列为空或仅包含为 null 的值，则为 null。</returns>
@@ -4408,7 +4301,7 @@ namespace System.Linq
             {
                 return num / (double)num2;
             }
-            throw new InvalidOperationException("NoElements"); ;
+            throw new InvalidOperationException("NoElements");
         }
         /// <summary>计算可以为 null 的 <see cref="T:System.Double" /> 值序列的平均值。</summary>
         /// <returns>值序列的平均值；如果源序列为空或仅包含为 null 的值，则为 null。</returns>
@@ -4467,7 +4360,7 @@ namespace System.Linq
                 {
                     return d / num;
                 }
-                throw new InvalidOperationException("NoElements"); ;
+                throw new InvalidOperationException("NoElements");
             }
         }
         /// <summary>计算可以为 null 的 <see cref="T:System.Decimal" /> 值序列的平均值。</summary>

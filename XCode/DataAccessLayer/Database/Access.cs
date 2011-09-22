@@ -812,7 +812,7 @@ namespace XCode.DataAccessLayer
                     }
                     catch (Exception ex)
                     {
-                        XTrace.WriteLine("表" + Table.Name + "没有Description属性！" + ex.ToString()); ;
+                        XTrace.WriteLine("表" + Table.Name + "没有Description属性！" + ex.ToString());
 #if DEBUG
                         throw new Exception("表" + Table.Name + "没有Description属性！", ex);
 #endif

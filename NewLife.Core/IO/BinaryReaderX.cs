@@ -339,7 +339,7 @@ namespace NewLife.IO
                     value = ReadDouble();
                     return true;
                 case TypeCode.Empty:
-                    //value=null; ;
+                    //value=null;
                     value = ReadByte();
                     return true;
                 case TypeCode.Int16:
