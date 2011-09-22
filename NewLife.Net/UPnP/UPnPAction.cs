@@ -26,8 +26,8 @@ namespace NewLife.Net.UPnP
 
             TEntity entity = new TEntity();
 
-            TypeX tx = TypeX.Create(typeof(TEntity));
-            foreach (PropertyInfoX item in tx.Properties)
+            //TypeX tx = TypeX.Create(typeof(TEntity));
+            foreach (PropertyInfoX item in typeof(TEntity).GetProperties())
             {
                 if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, true) != null) continue;
 
@@ -75,8 +75,8 @@ namespace NewLife.Net.UPnP
             XmlElement root = doc.CreateElement("u", Name, xmlns);
             doc.AppendChild(root);
 
-            TypeX tx = TypeX.Create(this.GetType());
-            foreach (PropertyInfoX item in tx.Properties)
+            //TypeX tx = TypeX.Create(this.GetType());
+            foreach (PropertyInfoX item in this.GetType().GetProperties())
             {
                 if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item.Member, true) != null) continue;
 

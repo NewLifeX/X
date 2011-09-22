@@ -96,9 +96,7 @@
     <Compile Include="UPnP\Entities\SpecVersion.cs" />
     <Compile Include="UPnP\UPnPAction.cs" />
     <Compile Include="UPnP\UPnPClient.cs" />
-    <Compile Include="UPnP\UPnPCommand.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="UPnP\UPnPCommand.cs" />
     <Compile Include="UPnP\XMLCommand.cs" />
   </ItemGroup>
   <ItemGroup>
