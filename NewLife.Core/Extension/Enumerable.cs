@@ -1593,10 +1593,8 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static TSource[] ToArray<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
+            if (source == null) throw new ArgumentNullException("source");
+
             return new Buffer<TSource>(source).ToArray();
         }
         /// <summary>从 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 创建一个 <see cref="T:System.Collections.Generic.List`1" />。</summary>
@@ -1608,10 +1606,8 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static List<TSource> ToList<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
+            if (source == null) throw new ArgumentNullException("source");
+
             return new List<TSource>(source);
         }
 

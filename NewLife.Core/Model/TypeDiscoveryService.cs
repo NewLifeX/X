@@ -4,6 +4,7 @@ using System.Text;
 using System.ComponentModel.Design;
 using System.Collections;
 using NewLife.Reflection;
+using System.Linq;
 
 namespace NewLife.Model
 {
@@ -73,7 +74,7 @@ namespace NewLife.Model
 
             // 尝试遍历所有已加载和未加载的程序集
             {
-                List<Type> ts = AssemblyX.FindAllPlugins(baseType, true);
+                List<Type> ts = AssemblyX.FindAllPlugins(baseType, true).ToList();
                 if (ts != null)
                 {
                     foreach (Type item in ts)

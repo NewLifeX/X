@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using NewLife.Collections;
 using NewLife.Log;
@@ -168,7 +169,7 @@ namespace XCode
         /// <returns></returns>
         public static List<Type> LoadEntities()
         {
-            return AssemblyX.FindAllPlugins(typeof(IEntity));
+            return AssemblyX.FindAllPlugins(typeof(IEntity)).ToList();
         }
 
         /// <summary>

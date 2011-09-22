@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NewLife.Collections;
 
 namespace NewLife.Reflection
@@ -51,7 +52,7 @@ namespace NewLife.Reflection
         {
             return Maps.GetItem(baseType, delegate(Type type)
             {
-                List<Type> list = AssemblyX.FindAllPlugins(baseType, true);
+                List<Type> list = AssemblyX.FindAllPlugins(baseType, true).ToList();
                 if (list == null) list = new List<Type>();
                 return list;
             });

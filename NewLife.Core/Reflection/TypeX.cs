@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
-using System.Linq;
 
 namespace NewLife.Reflection
 {
@@ -255,10 +255,6 @@ namespace NewLife.Reflection
                 {
                     hasLoad.Add("Description");
 
-                    //AssemblyDescriptionAttribute av = Attribute.GetCustomAttribute(Asm, typeof(AssemblyDescriptionAttribute)) as AssemblyDescriptionAttribute;
-                    //if (av != null) _Description = av.Description;
-                    //AssemblyDescriptionAttribute av = GetCustomAttribute<AssemblyDescriptionAttribute>();
-                    //if (av != null) _Description = av.Description;
                     _Description = GetCustomAttributeValue<DescriptionAttribute, String>();
                 }
                 return _Description;
@@ -397,13 +393,6 @@ namespace NewLife.Reflection
         //        return _Interfaces == null ? null : _Interfaces.Clone();
         //    }
         //    //set { _Interfaces = value; }
-        //}
-        #endregion
-
-        #region 获取成员
-        //public ListX<FieldInfo> GetFields(BindingFlags bindingAttr, Attribute[] includes, Attribute[] excludes)
-        //{
-
         //}
         #endregion
 

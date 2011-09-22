@@ -367,7 +367,7 @@ namespace NewLife.Reflection
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static List<Type> FindAllPlugins(Type type)
+        public static IEnumerable<Type> FindAllPlugins(Type type)
         {
             return FindAllPlugins(type, false);
         }
@@ -378,7 +378,7 @@ namespace NewLife.Reflection
         /// <param name="type"></param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <returns></returns>
-        public static List<Type> FindAllPlugins(Type type, Boolean isLoadAssembly)
+        public static IEnumerable<Type> FindAllPlugins(Type type, Boolean isLoadAssembly)
         {
             if (type == null) throw new ArgumentNullException("type");
 
@@ -394,7 +394,11 @@ namespace NewLife.Reflection
                     //list.AddRange(ts);
                     foreach (Type elm in ts)
                     {
-                        if (!list.Contains(elm)) list.Add(elm);
+                        if (!list.Contains(elm))
+                        {
+                            list.Add(elm);
+                            yield return elm;
+                        }
                     }
                 }
             }
@@ -404,24 +408,34 @@ namespace NewLife.Reflection
                 AssemblyX.ReflectionOnlyLoad();
                 //asms = AssemblyX.ReflectionOnlyGetAssemblies();
                 //if (asms != null && asms.Count > 0)
+                //{
+                foreach (AssemblyX item in AssemblyX.ReflectionOnlyGetAssemblies())
                 {
-                    foreach (AssemblyX item in AssemblyX.ReflectionOnlyGetAssemblies())
-                    {
-                        if (item.IsSystemAssembly) continue;
+                    if (item.IsSystemAssembly) continue;
 
-                        List<Type> ts = item.FindPlugins(type);
+                    List<Type> ts = item.FindPlugins(type);
+                    if (ts != null && ts.Count > 0)
+                    {
+                        // 真实加载
+                        Assembly asm2 = Assembly.LoadFile(item.Asm.Location);
+                        ts = AssemblyX.Create(asm2).FindPlugins(type);
+
                         if (ts != null && ts.Count > 0)
                         {
-                            // 真实加载
-                            Assembly asm2 = Assembly.LoadFile(item.Asm.Location);
-                            ts = AssemblyX.Create(asm2).FindPlugins(type);
-
-                            if (ts != null && ts.Count > 0) list.AddRange(ts);
+                            foreach (Type elm in ts)
+                            {
+                                if (!list.Contains(elm))
+                                {
+                                    list.Add(elm);
+                                    yield return elm;
+                                }
+                            }
                         }
                     }
                 }
+                //}
             }
-            return list.Count > 0 ? list : null;
+            //return list.Count > 0 ? list : null;
         }
         #endregion
 
@@ -446,7 +460,7 @@ namespace NewLife.Reflection
 
             //return list;
 
-            return asms.Select<Assembly, AssemblyX>(item => Create(item));
+            return asms.Select(item => Create(item));
 
             //if (asms == null || asms.Length < 1) yield break;
             //foreach (Assembly item in asms)
@@ -481,7 +495,7 @@ namespace NewLife.Reflection
 
             //return list;
 
-            return asms.Select<Assembly, AssemblyX>(item => Create(item));
+            return asms.Select(item => Create(item));
         }
 
         /// <summary>
@@ -497,46 +511,52 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static IEnumerable<AssemblyX> ReflectionOnlyLoad(String path)
         {
-            if (!Directory.Exists(path)) return null;
+            //if (!Directory.Exists(path)) return null;
+            if (!Directory.Exists(path)) yield break;
 
             String[] ss = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
-            if (ss == null || ss.Length < 1) return null;
+            if (ss == null || ss.Length < 1) yield break;
 
             //AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += new ResolveEventHandler(CurrentDomain_ReflectionOnlyAssemblyResolve);
 
             //try
+            //{
+            List<AssemblyX> loadeds = AssemblyX.GetAssemblies().ToList<AssemblyX>();
+            List<AssemblyX> loadeds2 = AssemblyX.ReflectionOnlyGetAssemblies().ToList<AssemblyX>();
+
+            //List<AssemblyX> list = new List<AssemblyX>();
+            foreach (String item in ss)
             {
-                List<AssemblyX> loadeds = AssemblyX.GetAssemblies().ToList<AssemblyX>();
-                List<AssemblyX> loadeds2 = AssemblyX.ReflectionOnlyGetAssemblies().ToList<AssemblyX>();
+                if (!item.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) &&
+                    !item.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
 
-                List<AssemblyX> list = new List<AssemblyX>();
-                foreach (String item in ss)
+                //if (loadeds != null && loadeds.Exists(delegate(AssemblyX elm)
+                //{
+                //    return item.Equals(elm.Location, StringComparison.OrdinalIgnoreCase);
+                //})) continue;
+
+                //if (loadeds2 != null && loadeds2.Exists(delegate(AssemblyX elm)
+                //{
+                //    return item.Equals(elm.Location, StringComparison.OrdinalIgnoreCase);
+                //})) continue;
+                if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) || loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
+
+                AssemblyX asmx = null;
+                try
                 {
-                    if (!item.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) &&
-                        !item.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
+                    //Assembly asm = Assembly.ReflectionOnlyLoad(File.ReadAllBytes(item));
+                    Assembly asm = Assembly.ReflectionOnlyLoadFrom(item);
 
-                    if (loadeds != null && loadeds.Exists(delegate(AssemblyX elm)
-                    {
-                        return item.Equals(elm.Location, StringComparison.OrdinalIgnoreCase);
-                    })) continue;
-
-                    if (loadeds2 != null && loadeds2.Exists(delegate(AssemblyX elm)
-                    {
-                        return item.Equals(elm.Location, StringComparison.OrdinalIgnoreCase);
-                    })) continue;
-
-                    try
-                    {
-                        //Assembly asm = Assembly.ReflectionOnlyLoad(File.ReadAllBytes(item));
-                        Assembly asm = Assembly.ReflectionOnlyLoadFrom(item);
-
-                        list.Add(AssemblyX.Create(asm));
-                    }
-                    catch { }
+                    //list.Add(AssemblyX.Create(asm));
+                    asmx = Create(asm);
                 }
+                catch { }
 
-                return list;
+                if (asmx != null) yield return asmx;
             }
+
+            //return list;
+            //}
             //finally
             //{
             //    AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve -= new ResolveEventHandler(CurrentDomain_ReflectionOnlyAssemblyResolve);
