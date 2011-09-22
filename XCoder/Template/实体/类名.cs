@@ -5,6 +5,7 @@ using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
+#pragma warning disable 3021
 namespace <#=Config.NameSpace#>
 {
     /// <summary><#=Table.Description#></summary>
@@ -125,3 +126,4 @@ if(!Config.RenderGenEntity){#>
         #endregion
     }
 }
+#pragma warning restore 3021
