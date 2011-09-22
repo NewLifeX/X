@@ -4,6 +4,7 @@ using System.Text;
 using System.Reflection.Emit;
 using System.Reflection;
 using NewLife.Collections;
+using System.Linq;
 
 namespace NewLife.Reflection
 {
@@ -66,7 +67,8 @@ namespace NewLife.Reflection
         public void AddGlobalMethod(MethodInfo method, Action<ILGenerator> fun)
         {
             ParameterInfo[] ps = method.GetParameters();
-            ListX<Type> paramTypes = ListX<Type>.From<ParameterInfo>(ps, delegate(ParameterInfo item) { return item.ParameterType; });
+            //ListX<Type> paramTypes = ListX<Type>.From<ParameterInfo>(ps, delegate(ParameterInfo item) { return item.ParameterType; });
+            Type[] paramTypes = ps.Select<ParameterInfo, Type>(item => item.ParameterType).ToArray<Type>();
 
             //TypeBuilder tbuilder = mbuilder.DefineType(method.DeclaringType.Name, TypeAttributes.Public);
             //MethodBuilder mb = tbuilder.DefineMethod(method.Name.Replace(".", "_"), method.Attributes, method.ReturnType, paramTypes);
@@ -75,7 +77,7 @@ namespace NewLife.Reflection
             String name = method.Name.Replace(".", "_");
             if (String.IsNullOrEmpty(name)) name = "Test" + DateTime.Now.Ticks;
             //MethodBuilder mb = ModBuilder.DefineGlobalMethod(name, method.Attributes, method.ReturnType, paramTypes.ToArray());
-            MethodBuilder mb = TypeBuilder.DefineMethod(name, method.Attributes, method.ReturnType, paramTypes.ToArray());
+            MethodBuilder mb = TypeBuilder.DefineMethod(name, method.Attributes, method.ReturnType, paramTypes);
 
             ILGenerator il = mb.GetILGenerator();
             fun(il);

@@ -4,6 +4,7 @@ using System.Text;
 using System.ComponentModel.Design;
 using System.Reflection;
 using NewLife.Reflection;
+using System.Linq;
 
 namespace NewLife.Model
 {
@@ -148,22 +149,28 @@ namespace NewLife.Model
                 }
             }
 
-            List<AssemblyX> list = AssemblyX.GetAssemblies();
-            if (list != null)
-            {
-                foreach (AssemblyX item in list)
-                {
-                    if (item.Asm.GetName() == name) return item.Asm.Location;
-                }
-            }
-            list = AssemblyX.ReflectionOnlyGetAssemblies();
-            if (list != null)
-            {
-                foreach (AssemblyX item in list)
-                {
-                    if (item.Asm.GetName() == name) return item.Asm.Location;
-                }
-            }
+            //List<AssemblyX> list = AssemblyX.GetAssemblies();
+            //if (list != null)
+            //{
+            //    foreach (AssemblyX item in list)
+            //    {
+            //        if (item.Asm.GetName() == name) return item.Asm.Location;
+            //    }
+            //}
+            //list = AssemblyX.ReflectionOnlyGetAssemblies();
+            //if (list != null)
+            //{
+            //    foreach (AssemblyX item in list)
+            //    {
+            //        if (item.Asm.GetName() == name) return item.Asm.Location;
+            //    }
+            //}
+
+            AssemblyX asm = AssemblyX.GetAssemblies().Single(item => item.Asm.GetName() == name);
+            if (asm != null) return asm.Asm.Location;
+            asm = AssemblyX.ReflectionOnlyGetAssemblies().Single(item => item.Asm.GetName() == name);
+            if (asm != null) return asm.Asm.Location;
+
             return null;
         }
 

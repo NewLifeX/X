@@ -6,12 +6,11 @@ using System.Reflection.Emit;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
+using System.Linq;
 
 namespace NewLife.Reflection
 {
-    /// <summary>
-    /// 类型辅助类
-    /// </summary>
+    /// <summary>类型辅助类</summary>
     public class TypeX : MemberInfoX
     {
         #region 属性
@@ -37,8 +36,9 @@ namespace NewLife.Reflection
                         _Handler = GetConstructorInvoker(BaseType, null);
                     else
                     {
-                        ListX<ConstructorInfo> list = Constructors;
-                        if (list != null && list.Count > 0) _Handler = GetConstructorInvoker(BaseType, list[0]);
+                        //ListX<ConstructorInfo> list = Constructors;
+                        ConstructorInfo[] cs = BaseType.GetConstructors(DefaultBinding);
+                        if (cs != null && cs.Length > 0) _Handler = GetConstructorInvoker(BaseType, cs[0]);
                     }
                 }
                 return _Handler;
@@ -268,129 +268,136 @@ namespace NewLife.Reflection
         #endregion
 
         #region 成员缓冲
-        private ListX<MemberInfo> _Members;
-        /// <summary>所有成员</summary>
-        public ListX<MemberInfo> Members
-        {
-            get
-            {
-                if (_Members == null && !hasLoad.Contains("Members"))
-                {
-                    _Members = new ListX<MemberInfo>(BaseType.GetMembers(DefaultBinding));
-                    hasLoad.Add("Members");
-                }
-                return _Members == null ? null : _Members.Clone();
-            }
-            //set { _Members = value; }
-        }
+        //public IEnumerable<MemberInfo> Members
+        //{
+        //    get
+        //    {
 
-        ListX<T> GetMembers<T>(MemberTypes memberType) where T : MemberInfo
-        {
-            if (Members == null || Members.Count < 1) return null;
+        //    }
+        //}
+        //private ListX<MemberInfo> _Members;
+        ///// <summary>所有成员</summary>
+        //public ListX<MemberInfo> Members
+        //{
+        //    get
+        //    {
+        //        if (_Members == null && !hasLoad.Contains("Members"))
+        //        {
+        //            _Members = new ListX<MemberInfo>(BaseType.GetMembers(DefaultBinding));
+        //            hasLoad.Add("Members");
+        //        }
+        //        return _Members == null ? null : _Members.Clone();
+        //    }
+        //    //set { _Members = value; }
+        //}
 
-            ListX<T> list = new ListX<T>();
-            foreach (MemberInfo item in Members)
-            {
-                if (item.MemberType == memberType) list.Add(item as T);
-            }
-            return list.Count > 0 ? list : null;
-        }
+        //ListX<T> GetMembers<T>(MemberTypes memberType) where T : MemberInfo
+        //{
+        //    if (Members == null || Members.Count < 1) return null;
 
-        private ListX<FieldInfo> _Fields;
-        /// <summary>字段集合</summary>
-        public ListX<FieldInfo> Fields
-        {
-            get
-            {
-                if (_Fields == null && !hasLoad.Contains("Fields"))
-                {
-                    _Fields = GetMembers<FieldInfo>(MemberTypes.Field);
-                    hasLoad.Add("Fields");
-                }
-                return _Fields == null ? null : _Fields.Clone();
-            }
-            //set { _Fields = value; }
-        }
+        //    ListX<T> list = new ListX<T>();
+        //    foreach (MemberInfo item in Members)
+        //    {
+        //        if (item.MemberType == memberType) list.Add(item as T);
+        //    }
+        //    return list.Count > 0 ? list : null;
+        //}
 
-        private ListX<PropertyInfo> _Properties;
-        /// <summary>属性集合</summary>
-        public ListX<PropertyInfo> Properties
-        {
-            get
-            {
-                if (_Properties == null && !hasLoad.Contains("Properties"))
-                {
-                    _Properties = GetMembers<PropertyInfo>(MemberTypes.Property);
-                    hasLoad.Add("Properties");
-                }
-                return _Properties == null ? null : _Properties.Clone();
-            }
-            //set { _Properties = value; }
-        }
+        //private ListX<FieldInfo> _Fields;
+        ///// <summary>字段集合</summary>
+        //public ListX<FieldInfo> Fields
+        //{
+        //    get
+        //    {
+        //        if (_Fields == null && !hasLoad.Contains("Fields"))
+        //        {
+        //            _Fields = GetMembers<FieldInfo>(MemberTypes.Field);
+        //            hasLoad.Add("Fields");
+        //        }
+        //        return _Fields == null ? null : _Fields.Clone();
+        //    }
+        //    //set { _Fields = value; }
+        //}
 
-        private ListX<MethodInfo> _Methods;
-        /// <summary>方法集合</summary>
-        public ListX<MethodInfo> Methods
-        {
-            get
-            {
-                if (_Methods == null && !hasLoad.Contains("Methods"))
-                {
-                    _Methods = GetMembers<MethodInfo>(MemberTypes.Method);
-                    hasLoad.Add("Methods");
-                }
-                return _Methods == null ? null : _Methods.Clone();
-            }
-            //set { _Methods = value; }
-        }
+        //private ListX<PropertyInfo> _Properties;
+        ///// <summary>属性集合</summary>
+        //public ListX<PropertyInfo> Properties
+        //{
+        //    get
+        //    {
+        //        if (_Properties == null && !hasLoad.Contains("Properties"))
+        //        {
+        //            _Properties = GetMembers<PropertyInfo>(MemberTypes.Property);
+        //            hasLoad.Add("Properties");
+        //        }
+        //        return _Properties == null ? null : _Properties.Clone();
+        //    }
+        //    //set { _Properties = value; }
+        //}
 
-        private ListX<ConstructorInfo> _Constructors;
-        /// <summary>构造函数集合</summary>
-        public ListX<ConstructorInfo> Constructors
-        {
-            get
-            {
-                if (_Constructors == null && !hasLoad.Contains("Constructors"))
-                {
-                    _Constructors = GetMembers<ConstructorInfo>(MemberTypes.Constructor);
-                    hasLoad.Add("Constructors");
-                }
-                return _Constructors == null ? null : _Constructors.Clone();
-            }
-            //set { _Constructors = value; }
-        }
+        //private ListX<MethodInfo> _Methods;
+        ///// <summary>方法集合</summary>
+        //public ListX<MethodInfo> Methods
+        //{
+        //    get
+        //    {
+        //        if (_Methods == null && !hasLoad.Contains("Methods"))
+        //        {
+        //            _Methods = GetMembers<MethodInfo>(MemberTypes.Method);
+        //            hasLoad.Add("Methods");
+        //        }
+        //        return _Methods == null ? null : _Methods.Clone();
+        //    }
+        //    //set { _Methods = value; }
+        //}
 
-        private ListX<EventInfo> _Events;
-        /// <summary>事件集合</summary>
-        public ListX<EventInfo> Events
-        {
-            get
-            {
-                if (_Events == null && !hasLoad.Contains("Events"))
-                {
-                    _Events = GetMembers<EventInfo>(MemberTypes.Event);
-                    hasLoad.Add("Events");
-                }
-                return _Events == null ? null : _Events.Clone();
-            }
-            //set { _Events = value; }
-        }
+        //private ListX<ConstructorInfo> _Constructors;
+        ///// <summary>构造函数集合</summary>
+        //public ListX<ConstructorInfo> Constructors
+        //{
+        //    get
+        //    {
+        //        if (_Constructors == null && !hasLoad.Contains("Constructors"))
+        //        {
+        //            _Constructors = GetMembers<ConstructorInfo>(MemberTypes.Constructor);
+        //            hasLoad.Add("Constructors");
+        //        }
+        //        return _Constructors == null ? null : _Constructors.Clone();
+        //    }
+        //    //set { _Constructors = value; }
+        //}
 
-        private ListX<Type> _Interfaces;
-        /// <summary>接口集合</summary>
-        public ListX<Type> Interfaces
-        {
-            get
-            {
-                if (_Interfaces == null && !hasLoad.Contains("Interfaces"))
-                {
-                    _Interfaces = new ListX<System.Type>(BaseType.GetInterfaces());
-                    hasLoad.Add("Interfaces");
-                }
-                return _Interfaces == null ? null : _Interfaces.Clone();
-            }
-            //set { _Interfaces = value; }
-        }
+        //private ListX<EventInfo> _Events;
+        ///// <summary>事件集合</summary>
+        //public ListX<EventInfo> Events
+        //{
+        //    get
+        //    {
+        //        if (_Events == null && !hasLoad.Contains("Events"))
+        //        {
+        //            _Events = GetMembers<EventInfo>(MemberTypes.Event);
+        //            hasLoad.Add("Events");
+        //        }
+        //        return _Events == null ? null : _Events.Clone();
+        //    }
+        //    //set { _Events = value; }
+        //}
+
+        //private ListX<Type> _Interfaces;
+        ///// <summary>接口集合</summary>
+        //public ListX<Type> Interfaces
+        //{
+        //    get
+        //    {
+        //        if (_Interfaces == null && !hasLoad.Contains("Interfaces"))
+        //        {
+        //            _Interfaces = new ListX<System.Type>(BaseType.GetInterfaces());
+        //            hasLoad.Add("Interfaces");
+        //        }
+        //        return _Interfaces == null ? null : _Interfaces.Clone();
+        //    }
+        //    //set { _Interfaces = value; }
+        //}
         #endregion
 
         #region 获取成员
@@ -417,17 +424,22 @@ namespace NewLife.Reflection
 
             if (type.IsInterface)
             {
-                //if (!Interfaces.Contains(type)) return false;
-                if (Interfaces == null || Interfaces.Count < 1) return false;
+                ////if (!Interfaces.Contains(type)) return false;
+                //if (Interfaces == null || Interfaces.Count < 1) return false;
 
-                Boolean b = false;
-                foreach (Type item in Interfaces)
-                {
-                    if (item == type) { b = true; break; }
+                //Boolean b = false;
+                //foreach (Type item in Interfaces)
+                //{
+                //    if (item == type) { b = true; break; }
 
-                    if (item.FullName == type.FullName && item.AssemblyQualifiedName == type.AssemblyQualifiedName) { b = true; break; }
-                }
-                if (!b) return false;
+                //    if (item.FullName == type.FullName && item.AssemblyQualifiedName == type.AssemblyQualifiedName) { b = true; break; }
+                //}
+                //if (!b) return false;
+
+                Type[] ts = BaseType.GetInterfaces();
+                if (ts == null || ts.Length < 1) return false;
+
+                return ts.Any(e => e == type || e.FullName == type.FullName && e.AssemblyQualifiedName == type.AssemblyQualifiedName);
             }
             else
             {
@@ -570,10 +582,10 @@ namespace NewLife.Reflection
             }
 
             // 尝试所有程序集
-            ListX<AssemblyX> list = AssemblyX.GetAssemblies();
-            if (list != null && list.Count > 0)
+            //List<AssemblyX> list = AssemblyX.GetAssemblies();
+            //if (list != null && list.Count > 0)
             {
-                foreach (AssemblyX asm in list)
+                foreach (AssemblyX asm in AssemblyX.GetAssemblies())
                 {
                     type = FindByNameInAssembly(asm.Asm, typeName);
                     if (type != null) return type;
@@ -586,20 +598,20 @@ namespace NewLife.Reflection
                 AssemblyX.ReflectionOnlyLoad();
 
                 // 再试一次
-                list = AssemblyX.GetAssemblies();
-                if (list != null && list.Count > 0)
+                //list = AssemblyX.GetAssemblies();
+                //if (list != null && list.Count > 0)
                 {
-                    foreach (AssemblyX asm in list)
+                    foreach (AssemblyX asm in AssemblyX.GetAssemblies())
                     {
                         type = FindByNameInAssembly(asm.Asm, typeName);
                         if (type != null) return type;
                     }
                 }
 
-                list = AssemblyX.ReflectionOnlyGetAssemblies();
-                if (list != null && list.Count > 0)
+                //list = AssemblyX.ReflectionOnlyGetAssemblies();
+                //if (list != null && list.Count > 0)
                 {
-                    foreach (AssemblyX asm in list)
+                    foreach (AssemblyX asm in AssemblyX.ReflectionOnlyGetAssemblies())
                     {
                         type = FindByNameInAssembly(asm.Asm, typeName);
                         if (type != null)

@@ -5,6 +5,7 @@ using System.Web.UI;
 using System.Web;
 using NewLife.Reflection;
 using System.Reflection;
+using System.Linq;
 
 namespace NewLife.Web
 {
@@ -131,14 +132,16 @@ namespace NewLife.Web
             else
             {
                 Type t = typeof(T);
-                foreach (FieldInfo item in TypeX.Create(handler.GetType()).Fields)
-                {
-                    if (item.FieldType == t)
-                    {
-                        fix = item;
-                        break;
-                    }
-                }
+                //foreach (FieldInfo item in TypeX.Create(handler.GetType()).Fields)
+                //{
+                //    if (item.FieldType == t)
+                //    {
+                //        fix = item;
+                //        break;
+                //    }
+                //}
+                FieldInfo fi = handler.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Single(item => item.FieldType == t);
+                fix = FieldInfoX.Create(fi);
             }
 
             if (fix == null) return null;
