@@ -1,4 +1,7 @@
-﻿v2.9.2011.0915   XTrace增加写当前线程MiniDump方法WriteMiniDump
+﻿v3.0.2011.0922   增加扩展方法特性，支持在vs2008和vs2010上编写.Net2.0时使用扩展方法
+                 增加Enumerable，利用扩展方法扩展IEnumerable
+
+v2.9.2011.0915   XTrace增加写当前线程MiniDump方法WriteMiniDump
                  XTrace增加写异常信息的方法WriteException和WriteExceptionWhenDebug
                  ThreadPoolX增加多个QueueUserWorkItem方法，作为系统ThreadPool.QueueUserWorkItem的封装，省去每次使用线程池都要做异常处理的麻烦，同时支持无参数委托
 
