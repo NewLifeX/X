@@ -460,7 +460,8 @@ namespace NewLife.Reflection
 
             //return list;
 
-            return asms.Select(item => Create(item));
+            //return asms.Select(item => Create(item));
+            return from e in asms select Create(e);
 
             //if (asms == null || asms.Length < 1) yield break;
             //foreach (Assembly item in asms)
