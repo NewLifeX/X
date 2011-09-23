@@ -566,10 +566,10 @@ namespace XCode
             for (int i = 0; i < list.Count; i++)
             {
                 Int32 s = list.Count - i;
-                // 当前项，排序增加
-                if (list[i] == this) s++;
+                // 当前项，排序增加。原来比较实体相等有问题，也许新旧实体类不对应，现在改为比较主键值
+                if (list[i][KeyName] == this[KeyName]) s++;
                 // 下一项是当前项，排序减少
-                if (i < list.Count - 1 && list[i + 1] == this) s--;
+                if (i < list.Count - 1 && list[i + 1][KeyName] == this[KeyName]) s--;
                 list[i].Sort = s;
             }
             list.Save();
@@ -587,9 +587,9 @@ namespace XCode
             {
                 Int32 s = list.Count - i;
                 // 当前项，排序减少
-                if (list[i] == this) s--;
+                if (list[i][KeyName] == this[KeyName]) s--;
                 // 上一项是当前项，排序增加
-                if (i >= 1 && list[i - 1] == this) s++;
+                if (i >= 1 && list[i - 1][KeyName] == this[KeyName]) s++;
                 list[i].Sort = s;
             }
             list.Save();
