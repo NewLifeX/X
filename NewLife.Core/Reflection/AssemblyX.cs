@@ -220,24 +220,39 @@ namespace NewLife.Reflection
                 //}
                 //return _Types == null ? null : _Types.Clone();
 
-                Type[] ts = Asm.GetTypes();
+                Type[] ts = null;
+                try
+                {
+                    ts = Asm.GetTypes();
+                }
+                catch (ReflectionTypeLoadException ex) { ts = ex.Types; }
                 if (ts == null || ts.Length < 1) yield break;
+
+                // 先遍历一次ts，避免取内嵌类型带来不必要的性能损耗
+                foreach (Type item in ts)
+                {
+                    if (item != null) yield return item;
+                }
 
                 List<Type> list = new List<Type>(ts);
                 for (int i = 0; i < list.Count; i++)
                 {
-                    yield return list[i];
+                    if (list[i] == null) continue;
+
+                    //yield return list[i];
 
                     Type[] ts2 = list[i].GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
                     if (ts2 != null && ts2.Length > 0)
                     {
                         // 从下一个元素开始插入，让内嵌类紧挨着主类
-                        Int32 k = i + 1;
+                        //Int32 k = i + 1;
                         foreach (Type item in ts2)
                         {
                             //if (!list.Contains(item)) list.Insert(k++, item);
                             // Insert将会导致大量的数组复制
                             list.Add(item);
+
+                            yield return item;
                         }
                     }
                 }

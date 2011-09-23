@@ -127,6 +127,8 @@
     <Compile Include="IO\IOHelper.cs" />
     <Compile Include="Log\TraceStream.cs" />
     <Compile Include="Log\TextFileLog.cs" />
+    <Compile Include="Model\IObjectContainer.cs" />
+    <Compile Include="Model\IServiceContainer.cs" />
     <Compile Include="Model\TypeDiscoveryService.cs" />
     <Compile Include="Model\IServer.cs" />
     <Compile Include="Model\ServiceProvider.cs" />

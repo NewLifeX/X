@@ -19,7 +19,7 @@ namespace NewLife
         /// <returns></returns>
         public static Boolean EqualIgnoreCase(this String value, String str)
         {
-            return String.Equals(value, str, StringComparison.OrdinalIgnoreCase);
+            return String.Equals(value, str, StringComparison.OrdinalIgnoreCase); 
         }
 
         /// <summary>
