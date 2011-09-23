@@ -190,7 +190,7 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         /// <param name="rows"></param>
         /// <returns></returns>
-        protected List<IDataColumn> GetFields(IDataTable table, DataRow[] rows)
+        protected virtual List<IDataColumn> GetFields(IDataTable table, DataRow[] rows)
         {
             List<IDataColumn> list = new List<IDataColumn>();
             // 开始序号

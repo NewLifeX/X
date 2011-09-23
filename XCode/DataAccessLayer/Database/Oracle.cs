@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using XCode.Exceptions;
 using System.IO;
 using System.Text.RegularExpressions;
 using XCode.Common;
+using XCode.Exceptions;
+using NewLife;
+using System.Linq;
 
 namespace XCode.DataAccessLayer
 {
@@ -455,6 +457,24 @@ namespace XCode.DataAccessLayer
             }
 
             return list;
+        }
+
+        const String KEY_OWNER = "OWNER";
+
+        protected override List<IDataColumn> GetFields(IDataTable table, DataRow[] rows)
+        {
+            if (rows == null || rows.Length < 1) return null;
+
+            if (String.IsNullOrEmpty(Owner) || !rows[0].Table.Columns.Contains(KEY_OWNER)) return base.GetFields(table, rows);
+
+            List<DataRow> list = new List<DataRow>();
+            foreach (DataRow dr in rows)
+            {
+                String str = null;
+                if (TryGetDataRowValue<String>(dr, KEY_OWNER, out str) && Owner.EqualIgnoreCase(str)) list.Add(dr);
+            }
+
+            return base.GetFields(table, list.ToArray());
         }
 
         DataTable dtColumnComment;

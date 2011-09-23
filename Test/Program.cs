@@ -7,6 +7,10 @@ using NewLife.Log;
 using XCode.DataAccessLayer;
 using XCode.Test;
 using XCode;
+using NewLife.Reflection;
+using System.Linq;
+using System.Collections;
+using NewLife;
 
 namespace Test
 {
@@ -23,7 +27,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -62,10 +66,31 @@ namespace Test
 
         static void Test2()
         {
-            EntityTest.Test();
+            IEnumerable ie = GetTest(0);
+            foreach (Int32 item in ie)
+            {
+                Console.WriteLine(item);
+            }
+
+            AssemblyX asm = AssemblyX.Create(typeof(DAL).Assembly);
+            Int32 n = 0;
+            foreach (Type item in asm.Types)
+            {
+                Console.WriteLine("{0,4} {1} {2} {3}", ++n, item.IsPublic ? " " : "P", item.IsNested ? "N" : " ", item.FullName);
+            }
+            "".EqualIgnoreCase("");
+            //EntityTest.Test();
 
             //String xml = EntityTest.Meta.DBO.Export();
             //Console.WriteLine(xml);
+        }
+
+        static IEnumerable GetTest(Int32 max)
+        {
+            for (int i = 0; i < max; i++)
+            {
+                yield return i;
+            }
         }
     }
 }
