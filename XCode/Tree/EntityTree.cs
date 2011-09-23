@@ -567,9 +567,9 @@ namespace XCode
             {
                 Int32 s = list.Count - i;
                 // 当前项，排序增加。原来比较实体相等有问题，也许新旧实体类不对应，现在改为比较主键值
-                if (list[i][KeyName] == this[KeyName]) s++;
+                if (this.EqualTo(list[i])) s++;
                 // 下一项是当前项，排序减少
-                if (i < list.Count - 1 && list[i + 1][KeyName] == this[KeyName]) s--;
+                if (i < list.Count - 1 && this.EqualTo(list[i + 1])) s--;
                 list[i].Sort = s;
             }
             list.Save();
@@ -587,12 +587,23 @@ namespace XCode
             {
                 Int32 s = list.Count - i;
                 // 当前项，排序减少
-                if (list[i][KeyName] == this[KeyName]) s--;
+                if (this.EqualTo(list[i])) s--;
                 // 上一项是当前项，排序增加
-                if (i >= 1 && list[i - 1][KeyName] == this[KeyName]) s++;
+                if (i >= 1 && this.EqualTo(list[i - 1])) s++;
                 list[i].Sort = s;
             }
             list.Save();
+        }
+
+        Boolean EqualTo(TEntity entity)
+        {
+            if (entity == null) return false;
+
+            Object v1 = this[KeyName];
+            Object v2 = entity[KeyName];
+            if (typeof(TKey) == typeof(String)) return "" + v1 == "" + v2;
+
+            return Object.Equals(v1, v2);
         }
         #endregion
 
