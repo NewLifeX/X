@@ -1,18 +1,17 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Runtime;
 using System.Threading;
 using NewLife.Reflection;
 
+#pragma warning disable 1734
 namespace System.Linq
 {
-#pragma warning disable 1734
-
     /// <summary>提供一组用于查询实现 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 的对象的 static（在 Visual Basic 中为 Shared）方法。</summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
     public static class Enumerable
     {
+        #region 内部类
         private abstract class Iterator<TSource> : IEnumerable<TSource>, IEnumerable, IEnumerator<TSource>, IDisposable, IEnumerator
         {
             private int threadId;
@@ -37,7 +36,7 @@ namespace System.Linq
             {
                 this.threadId = Thread.CurrentThread.ManagedThreadId;
             }
-            public abstract Iterator<TSource> Clone();
+            public abstract Enumerable.Iterator<TSource> Clone();
             public virtual void Dispose()
             {
                 this.current = default(TSource);
@@ -50,7 +49,7 @@ namespace System.Linq
                     this.state = 1;
                     return this;
                 }
-                Iterator<TSource> iterator = this.Clone();
+                Enumerable.Iterator<TSource> iterator = this.Clone();
                 iterator.state = 1;
                 return iterator;
             }
@@ -67,7 +66,7 @@ namespace System.Linq
                 throw new NotImplementedException();
             }
         }
-        private class WhereEnumerableIterator<TSource> : Iterator<TSource>
+        private class WhereEnumerableIterator<TSource> : Enumerable.Iterator<TSource>
         {
             private IEnumerable<TSource> source;
             private Func<TSource, bool> predicate;
@@ -78,9 +77,9 @@ namespace System.Linq
                 this.source = source;
                 this.predicate = predicate;
             }
-            public override Iterator<TSource> Clone()
+            public override Enumerable.Iterator<TSource> Clone()
             {
-                return new WhereEnumerableIterator<TSource>(this.source, this.predicate);
+                return new Enumerable.WhereEnumerableIterator<TSource>(this.source, this.predicate);
             }
             public override void Dispose()
             {
@@ -124,14 +123,14 @@ namespace System.Linq
             }
             public override IEnumerable<TResult> Select<TResult>(Func<TSource, TResult> selector)
             {
-                return new WhereSelectEnumerableIterator<TSource, TResult>(this.source, this.predicate, selector);
+                return new Enumerable.WhereSelectEnumerableIterator<TSource, TResult>(this.source, this.predicate, selector);
             }
             public override IEnumerable<TSource> Where(Func<TSource, bool> predicate)
             {
-                return new WhereEnumerableIterator<TSource>(this.source, CombinePredicates<TSource>(this.predicate, predicate));
+                return new Enumerable.WhereEnumerableIterator<TSource>(this.source, Enumerable.CombinePredicates<TSource>(this.predicate, predicate));
             }
         }
-        private class WhereArrayIterator<TSource> : Iterator<TSource>
+        private class WhereArrayIterator<TSource> : Enumerable.Iterator<TSource>
         {
             private TSource[] source;
             private Func<TSource, bool> predicate;
@@ -142,9 +141,9 @@ namespace System.Linq
                 this.source = source;
                 this.predicate = predicate;
             }
-            public override Iterator<TSource> Clone()
+            public override Enumerable.Iterator<TSource> Clone()
             {
-                return new WhereArrayIterator<TSource>(this.source, this.predicate);
+                return new Enumerable.WhereArrayIterator<TSource>(this.source, this.predicate);
             }
             public override bool MoveNext()
             {
@@ -166,14 +165,14 @@ namespace System.Linq
             }
             public override IEnumerable<TResult> Select<TResult>(Func<TSource, TResult> selector)
             {
-                return new WhereSelectArrayIterator<TSource, TResult>(this.source, this.predicate, selector);
+                return new Enumerable.WhereSelectArrayIterator<TSource, TResult>(this.source, this.predicate, selector);
             }
             public override IEnumerable<TSource> Where(Func<TSource, bool> predicate)
             {
-                return new WhereArrayIterator<TSource>(this.source, CombinePredicates<TSource>(this.predicate, predicate));
+                return new Enumerable.WhereArrayIterator<TSource>(this.source, Enumerable.CombinePredicates<TSource>(this.predicate, predicate));
             }
         }
-        private class WhereListIterator<TSource> : Iterator<TSource>
+        private class WhereListIterator<TSource> : Enumerable.Iterator<TSource>
         {
             private List<TSource> source;
             private Func<TSource, bool> predicate;
@@ -184,9 +183,9 @@ namespace System.Linq
                 this.source = source;
                 this.predicate = predicate;
             }
-            public override Iterator<TSource> Clone()
+            public override Enumerable.Iterator<TSource> Clone()
             {
-                return new WhereListIterator<TSource>(this.source, this.predicate);
+                return new Enumerable.WhereListIterator<TSource>(this.source, this.predicate);
             }
             public override bool MoveNext()
             {
@@ -221,14 +220,14 @@ namespace System.Linq
             }
             public override IEnumerable<TResult> Select<TResult>(Func<TSource, TResult> selector)
             {
-                return new WhereSelectListIterator<TSource, TResult>(this.source, this.predicate, selector);
+                return new Enumerable.WhereSelectListIterator<TSource, TResult>(this.source, this.predicate, selector);
             }
             public override IEnumerable<TSource> Where(Func<TSource, bool> predicate)
             {
-                return new WhereListIterator<TSource>(this.source, CombinePredicates<TSource>(this.predicate, predicate));
+                return new Enumerable.WhereListIterator<TSource>(this.source, Enumerable.CombinePredicates<TSource>(this.predicate, predicate));
             }
         }
-        private class WhereSelectEnumerableIterator<TSource, TResult> : Iterator<TResult>
+        private class WhereSelectEnumerableIterator<TSource, TResult> : Enumerable.Iterator<TResult>
         {
             private IEnumerable<TSource> source;
             private Func<TSource, bool> predicate;
@@ -241,9 +240,9 @@ namespace System.Linq
                 this.predicate = predicate;
                 this.selector = selector;
             }
-            public override Iterator<TResult> Clone()
+            public override Enumerable.Iterator<TResult> Clone()
             {
-                return new WhereSelectEnumerableIterator<TSource, TResult>(this.source, this.predicate, this.selector);
+                return new Enumerable.WhereSelectEnumerableIterator<TSource, TResult>(this.source, this.predicate, this.selector);
             }
             public override void Dispose()
             {
@@ -287,14 +286,14 @@ namespace System.Linq
             }
             public override IEnumerable<TResult2> Select<TResult2>(Func<TResult, TResult2> selector)
             {
-                return new WhereSelectEnumerableIterator<TSource, TResult2>(this.source, this.predicate, CombineSelectors<TSource, TResult, TResult2>(this.selector, selector));
+                return new Enumerable.WhereSelectEnumerableIterator<TSource, TResult2>(this.source, this.predicate, Enumerable.CombineSelectors<TSource, TResult, TResult2>(this.selector, selector));
             }
             public override IEnumerable<TResult> Where(Func<TResult, bool> predicate)
             {
-                return new WhereEnumerableIterator<TResult>(this, predicate);
+                return new Enumerable.WhereEnumerableIterator<TResult>(this, predicate);
             }
         }
-        private class WhereSelectArrayIterator<TSource, TResult> : Iterator<TResult>
+        private class WhereSelectArrayIterator<TSource, TResult> : Enumerable.Iterator<TResult>
         {
             private TSource[] source;
             private Func<TSource, bool> predicate;
@@ -307,9 +306,9 @@ namespace System.Linq
                 this.predicate = predicate;
                 this.selector = selector;
             }
-            public override Iterator<TResult> Clone()
+            public override Enumerable.Iterator<TResult> Clone()
             {
-                return new WhereSelectArrayIterator<TSource, TResult>(this.source, this.predicate, this.selector);
+                return new Enumerable.WhereSelectArrayIterator<TSource, TResult>(this.source, this.predicate, this.selector);
             }
             public override bool MoveNext()
             {
@@ -331,14 +330,14 @@ namespace System.Linq
             }
             public override IEnumerable<TResult2> Select<TResult2>(Func<TResult, TResult2> selector)
             {
-                return new WhereSelectArrayIterator<TSource, TResult2>(this.source, this.predicate, CombineSelectors<TSource, TResult, TResult2>(this.selector, selector));
+                return new Enumerable.WhereSelectArrayIterator<TSource, TResult2>(this.source, this.predicate, Enumerable.CombineSelectors<TSource, TResult, TResult2>(this.selector, selector));
             }
             public override IEnumerable<TResult> Where(Func<TResult, bool> predicate)
             {
-                return new WhereEnumerableIterator<TResult>(this, predicate);
+                return new Enumerable.WhereEnumerableIterator<TResult>(this, predicate);
             }
         }
-        private class WhereSelectListIterator<TSource, TResult> : Iterator<TResult>
+        private class WhereSelectListIterator<TSource, TResult> : Enumerable.Iterator<TResult>
         {
             private List<TSource> source;
             private Func<TSource, bool> predicate;
@@ -351,9 +350,9 @@ namespace System.Linq
                 this.predicate = predicate;
                 this.selector = selector;
             }
-            public override Iterator<TResult> Clone()
+            public override Enumerable.Iterator<TResult> Clone()
             {
-                return new WhereSelectListIterator<TSource, TResult>(this.source, this.predicate, this.selector);
+                return new Enumerable.WhereSelectListIterator<TSource, TResult>(this.source, this.predicate, this.selector);
             }
             public override bool MoveNext()
             {
@@ -388,15 +387,16 @@ namespace System.Linq
             }
             public override IEnumerable<TResult2> Select<TResult2>(Func<TResult, TResult2> selector)
             {
-                return new WhereSelectListIterator<TSource, TResult2>(this.source, this.predicate, CombineSelectors<TSource, TResult, TResult2>(this.selector, selector));
+                return new Enumerable.WhereSelectListIterator<TSource, TResult2>(this.source, this.predicate, Enumerable.CombineSelectors<TSource, TResult, TResult2>(this.selector, selector));
             }
             public override IEnumerable<TResult> Where(Func<TResult, bool> predicate)
             {
-                return new WhereEnumerableIterator<TResult>(this, predicate);
+                return new Enumerable.WhereEnumerableIterator<TResult>(this, predicate);
             }
         }
+        #endregion
 
-        #region 查找
+        #region 集合查找
         /// <summary>基于谓词筛选值序列。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含输入序列中满足条件的元素。</returns>
         /// <param name="source">要筛选的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
@@ -415,19 +415,19 @@ namespace System.Linq
             {
                 throw new ArgumentNullException("predicate");
             }
-            if (source is Iterator<TSource>)
+            if (source is Enumerable.Iterator<TSource>)
             {
-                return ((Iterator<TSource>)source).Where(predicate);
+                return ((Enumerable.Iterator<TSource>)source).Where(predicate);
             }
             if (source is TSource[])
             {
-                return new WhereArrayIterator<TSource>((TSource[])source, predicate);
+                return new Enumerable.WhereArrayIterator<TSource>((TSource[])source, predicate);
             }
             if (source is List<TSource>)
             {
-                return new WhereListIterator<TSource>((List<TSource>)source, predicate);
+                return new Enumerable.WhereListIterator<TSource>((List<TSource>)source, predicate);
             }
-            return new WhereEnumerableIterator<TSource>(source, predicate);
+            return new Enumerable.WhereEnumerableIterator<TSource>(source, predicate);
         }
         /// <summary>基于谓词筛选值序列。将在谓词函数的逻辑中使用每个元素的索引。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含输入序列中满足条件的元素。</returns>
@@ -447,7 +447,7 @@ namespace System.Linq
             {
                 throw new ArgumentNullException("predicate");
             }
-            return WhereIterator<TSource>(source, predicate);
+            return Enumerable.WhereIterator<TSource>(source, predicate);
         }
         private static IEnumerable<TSource> WhereIterator<TSource>(IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
         {
@@ -477,13 +477,27 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="selector" /> 为 null。</exception>
         public static IEnumerable<TResult> Select<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
         {
-            if (source == null) throw new ArgumentNullException("source");
-            if (selector == null) throw new ArgumentNullException("selector");
-            if (source is Iterator<TSource>) return ((Iterator<TSource>)source).Select<TResult>(selector);
-            if (source is TSource[]) return new WhereSelectArrayIterator<TSource, TResult>((TSource[])source, null, selector);
-            if (source is List<TSource>) return new WhereSelectListIterator<TSource, TResult>((List<TSource>)source, null, selector);
-
-            return new WhereSelectEnumerableIterator<TSource, TResult>(source, null, selector);
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            if (selector == null)
+            {
+                throw new ArgumentNullException("selector");
+            }
+            if (source is Enumerable.Iterator<TSource>)
+            {
+                return ((Enumerable.Iterator<TSource>)source).Select<TResult>(selector);
+            }
+            if (source is TSource[])
+            {
+                return new Enumerable.WhereSelectArrayIterator<TSource, TResult>((TSource[])source, null, selector);
+            }
+            if (source is List<TSource>)
+            {
+                return new Enumerable.WhereSelectListIterator<TSource, TResult>((List<TSource>)source, null, selector);
+            }
+            return new Enumerable.WhereSelectEnumerableIterator<TSource, TResult>(source, null, selector);
         }
         /// <summary>通过合并元素的索引将序列的每个元素投影到新表中。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，其元素为对 <paramref name="source" /> 的每个元素调用转换函数的结果。</returns>
@@ -497,25 +511,29 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="selector" /> 为 null。</exception>
         public static IEnumerable<TResult> Select<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, int, TResult> selector)
         {
-            if (source == null) throw new ArgumentNullException("source");
-            if (selector == null) throw new ArgumentNullException("selector");
-
-            //    return SelectIterator<TSource, TResult>(source, selector);
-            //}
-            //private static IEnumerable<TResult> SelectIterator<TSource, TResult>(IEnumerable<TSource> source, Func<TSource, int, TResult> selector)
-            //{
-            //    checked
-            //    {
-            int num = -1;
-            foreach (TSource current in source)
+            if (source == null)
             {
-                num++;
-                yield return selector(current, num);
+                throw new ArgumentNullException("source");
             }
-            yield break;
-            //}
+            if (selector == null)
+            {
+                throw new ArgumentNullException("selector");
+            }
+            return Enumerable.SelectIterator<TSource, TResult>(source, selector);
         }
-
+        private static IEnumerable<TResult> SelectIterator<TSource, TResult>(IEnumerable<TSource> source, Func<TSource, int, TResult> selector)
+        {
+            checked
+            {
+                int num = -1;
+                foreach (TSource current in source)
+                {
+                    num++;
+                    yield return selector(current, num);
+                }
+                yield break;
+            }
+        }
         private static Func<TSource, bool> CombinePredicates<TSource>(Func<TSource, bool> predicate1, Func<TSource, bool> predicate2)
         {
             return (TSource x) => predicate1(x) && predicate2(x);
@@ -544,7 +562,7 @@ namespace System.Linq
             {
                 throw new ArgumentNullException("selector");
             }
-            return SelectManyIterator<TSource, TResult>(source, selector);
+            return Enumerable.SelectManyIterator<TSource, TResult>(source, selector);
         }
         private static IEnumerable<TResult> SelectManyIterator<TSource, TResult>(IEnumerable<TSource> source, Func<TSource, IEnumerable<TResult>> selector)
         {
@@ -577,7 +595,7 @@ namespace System.Linq
             {
                 throw new ArgumentNullException("selector");
             }
-            return SelectManyIterator<TSource, TResult>(source, selector);
+            return Enumerable.SelectManyIterator<TSource, TResult>(source, selector);
         }
         private static IEnumerable<TResult> SelectManyIterator<TSource, TResult>(IEnumerable<TSource> source, Func<TSource, int, IEnumerable<TResult>> selector)
         {
@@ -621,7 +639,7 @@ namespace System.Linq
             {
                 throw new ArgumentNullException("resultSelector");
             }
-            return SelectManyIterator<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
+            return Enumerable.SelectManyIterator<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
         }
         private static IEnumerable<TResult> SelectManyIterator<TSource, TCollection, TResult>(IEnumerable<TSource> source, Func<TSource, int, IEnumerable<TCollection>> collectionSelector, Func<TSource, TCollection, TResult> resultSelector)
         {
@@ -665,7 +683,7 @@ namespace System.Linq
             {
                 throw new ArgumentNullException("resultSelector");
             }
-            return SelectManyIterator<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
+            return Enumerable.SelectManyIterator<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
         }
         private static IEnumerable<TResult> SelectManyIterator<TSource, TCollection, TResult>(IEnumerable<TSource> source, Func<TSource, IEnumerable<TCollection>> collectionSelector, Func<TSource, TCollection, TResult> resultSelector)
         {
@@ -678,7 +696,6 @@ namespace System.Linq
             }
             yield break;
         }
-
         /// <summary>从序列的开头返回指定数量的连续元素。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含输入序列开头的指定数量的元素。</returns>
         /// <param name="source">要从其返回元素的序列。</param>
@@ -689,18 +706,23 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static IEnumerable<TSource> Take<TSource>(this IEnumerable<TSource> source, int count)
         {
-            if (source == null) throw new ArgumentNullException("source");
-
-            //    return TakeIterator<TSource>(source, count);
-            //}
-            //private static IEnumerable<TSource> TakeIterator<TSource>(IEnumerable<TSource> source, int count)
-            //{
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            return Enumerable.TakeIterator<TSource>(source, count);
+        }
+        private static IEnumerable<TSource> TakeIterator<TSource>(IEnumerable<TSource> source, int count)
+        {
             if (count > 0)
             {
                 foreach (TSource current in source)
                 {
                     yield return current;
-                    if (--count == 0) break;
+                    if (--count == 0)
+                    {
+                        break;
+                    }
                 }
             }
             yield break;
@@ -715,17 +737,24 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
         public static IEnumerable<TSource> TakeWhile<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
-
-            //    return TakeWhileIterator<TSource>(source, predicate);
-            //}
-            //private static IEnumerable<TSource> TakeWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, bool> predicate)
-            //{
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            if (predicate == null)
+            {
+                throw new ArgumentNullException("predicate");
+            }
+            return Enumerable.TakeWhileIterator<TSource>(source, predicate);
+        }
+        private static IEnumerable<TSource> TakeWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, bool> predicate)
+        {
             foreach (TSource current in source)
             {
-                if (!predicate(current)) break;
-
+                if (!predicate(current))
+                {
+                    break;
+                }
                 yield return current;
             }
             yield break;
@@ -740,27 +769,33 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
         public static IEnumerable<TSource> TakeWhile<TSource>(this IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
-
-            //    return TakeWhileIterator<TSource>(source, predicate);
-            //}
-            //private static IEnumerable<TSource> TakeWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
-            //{
-            //    checked
-            //    {
-            int n = -1;
-            foreach (TSource current in source)
+            if (source == null)
             {
-                n++;
-                if (!predicate(current, n)) break;
-
-                yield return current;
+                throw new ArgumentNullException("source");
             }
-            yield break;
-            //}
+            if (predicate == null)
+            {
+                throw new ArgumentNullException("predicate");
+            }
+            return Enumerable.TakeWhileIterator<TSource>(source, predicate);
         }
-
+        private static IEnumerable<TSource> TakeWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
+        {
+            checked
+            {
+                int num = -1;
+                foreach (TSource current in source)
+                {
+                    num++;
+                    if (!predicate(current, num))
+                    {
+                        break;
+                    }
+                    yield return current;
+                }
+                yield break;
+            }
+        }
         /// <summary>跳过序列中指定数量的元素，然后返回剩余的元素。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含输入序列中指定索引后出现的元素。</returns>
         /// <param name="source">要从中返回元素的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
@@ -771,12 +806,14 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static IEnumerable<TSource> Skip<TSource>(this IEnumerable<TSource> source, int count)
         {
-            if (source == null) throw new ArgumentNullException("source");
-
-            //    return SkipIterator<TSource>(source, count);
-            //}
-            //private static IEnumerable<TSource> SkipIterator<TSource>(IEnumerable<TSource> source, int count)
-            //{
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            return Enumerable.SkipIterator<TSource>(source, count);
+        }
+        private static IEnumerable<TSource> SkipIterator<TSource>(IEnumerable<TSource> source, int count)
+        {
             //using (IEnumerator<TSource> enumerator = source.GetEnumerator())
             //{
             //    while (count > 0 && enumerator.MoveNext())
@@ -795,10 +832,7 @@ namespace System.Linq
 
             foreach (TSource item in source)
             {
-                if (count > 0)
-                    count--;
-                else
-                    yield return item;
+                if (count-- <= 0) yield return item;
             }
         }
         /// <summary>只要满足指定的条件，就跳过序列中的元素，然后返回剩余元素。</summary>
@@ -811,19 +845,29 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
         public static IEnumerable<TSource> SkipWhile<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
-
-            //    return SkipWhileIterator<TSource>(source, predicate);
-            //}
-            //private static IEnumerable<TSource> SkipWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, bool> predicate)
-            //{
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            if (predicate == null)
+            {
+                throw new ArgumentNullException("predicate");
+            }
+            return Enumerable.SkipWhileIterator<TSource>(source, predicate);
+        }
+        private static IEnumerable<TSource> SkipWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, bool> predicate)
+        {
             bool flag = false;
             foreach (TSource current in source)
             {
-                if (!flag && !predicate(current)) flag = true;
-
-                if (flag) yield return current;
+                if (!flag && !predicate(current))
+                {
+                    flag = true;
+                }
+                if (flag)
+                {
+                    yield return current;
+                }
             }
             yield break;
         }
@@ -837,32 +881,40 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
         public static IEnumerable<TSource> SkipWhile<TSource>(this IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
-
-            //    return SkipWhileIterator<TSource>(source, predicate);
-            //}
-            //private static IEnumerable<TSource> SkipWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
-            //{
-            //    checked
-            //{
-            int num = -1;
-            bool flag = false;
-            foreach (TSource current in source)
+            if (source == null)
             {
-                num++;
-                if (!flag && !predicate(current, num))
-                {
-                    flag = true;
-                }
-                if (flag) yield return current;
+                throw new ArgumentNullException("source");
             }
-            yield break;
-            //}
+            if (predicate == null)
+            {
+                throw new ArgumentNullException("predicate");
+            }
+            return Enumerable.SkipWhileIterator<TSource>(source, predicate);
+        }
+        private static IEnumerable<TSource> SkipWhileIterator<TSource>(IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
+        {
+            checked
+            {
+                int num = -1;
+                bool flag = false;
+                foreach (TSource current in source)
+                {
+                    num++;
+                    if (!flag && !predicate(current, num))
+                    {
+                        flag = true;
+                    }
+                    if (flag)
+                    {
+                        yield return current;
+                    }
+                }
+                yield break;
+            }
         }
         #endregion
 
-        #region 集合运算
+        #region 分组排序
         /// <summary>基于匹配键对两个序列的元素进行关联。使用默认的相等比较器对键进行比较。</summary>
         /// <returns>一个具有 <paramref name="TResult" /> 类型元素的 <see cref="T:System.Collections.Generic.IEnumerable`1" />，这些元素是通过对两个序列执行内部联接得来的。</returns>
         /// <param name="outer">要联接的第一个序列。</param>
@@ -878,14 +930,27 @@ namespace System.Linq
         ///   <paramref name="outer" /> 或 <paramref name="inner" /> 或 <paramref name="outerKeySelector" /> 或 <paramref name="innerKeySelector" /> 或 <paramref name="resultSelector" /> 为 null。</exception>
         public static IEnumerable<TResult> Join<TOuter, TInner, TKey, TResult>(this IEnumerable<TOuter> outer, IEnumerable<TInner> inner, Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, TInner, TResult> resultSelector)
         {
-            if (outer == null) throw new ArgumentNullException("outer");
-            if (inner == null) throw new ArgumentNullException("inner");
-            if (outerKeySelector == null) throw new ArgumentNullException("outerKeySelector");
-            if (innerKeySelector == null) throw new ArgumentNullException("innerKeySelector");
-            if (resultSelector == null) throw new ArgumentNullException("resultSelector");
-
-            //return JoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, null);
-            return Join<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, null);
+            if (outer == null)
+            {
+                throw new ArgumentNullException("outer");
+            }
+            if (inner == null)
+            {
+                throw new ArgumentNullException("inner");
+            }
+            if (outerKeySelector == null)
+            {
+                throw new ArgumentNullException("outerKeySelector");
+            }
+            if (innerKeySelector == null)
+            {
+                throw new ArgumentNullException("innerKeySelector");
+            }
+            if (resultSelector == null)
+            {
+                throw new ArgumentNullException("resultSelector");
+            }
+            return Enumerable.JoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, null);
         }
         /// <summary>基于匹配键对两个序列的元素进行关联。使用指定的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> 对键进行比较。</summary>
         /// <returns>一个具有 <paramref name="TResult" /> 类型元素的 <see cref="T:System.Collections.Generic.IEnumerable`1" />，这些元素是通过对两个序列执行内部联接得来的。</returns>
@@ -903,16 +968,30 @@ namespace System.Linq
         ///   <paramref name="outer" /> 或 <paramref name="inner" /> 或 <paramref name="outerKeySelector" /> 或 <paramref name="innerKeySelector" /> 或 <paramref name="resultSelector" /> 为 null。</exception>
         public static IEnumerable<TResult> Join<TOuter, TInner, TKey, TResult>(this IEnumerable<TOuter> outer, IEnumerable<TInner> inner, Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, TInner, TResult> resultSelector, IEqualityComparer<TKey> comparer)
         {
-            if (outer == null) throw new ArgumentNullException("outer");
-            if (inner == null) throw new ArgumentNullException("inner");
-            if (outerKeySelector == null) throw new ArgumentNullException("outerKeySelector");
-            if (innerKeySelector == null) throw new ArgumentNullException("innerKeySelector");
-            if (resultSelector == null) throw new ArgumentNullException("resultSelector");
-
-            //    return JoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, comparer);
-            //}
-            //private static IEnumerable<TResult> JoinIterator<TOuter, TInner, TKey, TResult>(IEnumerable<TOuter> outer, IEnumerable<TInner> inner, Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, TInner, TResult> resultSelector, IEqualityComparer<TKey> comparer)
-            //{
+            if (outer == null)
+            {
+                throw new ArgumentNullException("outer");
+            }
+            if (inner == null)
+            {
+                throw new ArgumentNullException("inner");
+            }
+            if (outerKeySelector == null)
+            {
+                throw new ArgumentNullException("outerKeySelector");
+            }
+            if (innerKeySelector == null)
+            {
+                throw new ArgumentNullException("innerKeySelector");
+            }
+            if (resultSelector == null)
+            {
+                throw new ArgumentNullException("resultSelector");
+            }
+            return Enumerable.JoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, comparer);
+        }
+        private static IEnumerable<TResult> JoinIterator<TOuter, TInner, TKey, TResult>(IEnumerable<TOuter> outer, IEnumerable<TInner> inner, Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, TInner, TResult> resultSelector, IEqualityComparer<TKey> comparer)
+        {
             Lookup<TKey, TInner> lookup = Lookup<TKey, TInner>.CreateForJoin(inner, innerKeySelector, comparer);
             foreach (TOuter current in outer)
             {
@@ -942,14 +1021,27 @@ namespace System.Linq
         ///   <paramref name="outer" /> 或 <paramref name="inner" /> 或 <paramref name="outerKeySelector" /> 或 <paramref name="innerKeySelector" /> 或 <paramref name="resultSelector" /> 为 null。</exception>
         public static IEnumerable<TResult> GroupJoin<TOuter, TInner, TKey, TResult>(this IEnumerable<TOuter> outer, IEnumerable<TInner> inner, Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, IEnumerable<TInner>, TResult> resultSelector)
         {
-            if (outer == null) throw new ArgumentNullException("outer");
-            if (inner == null) throw new ArgumentNullException("inner");
-            if (outerKeySelector == null) throw new ArgumentNullException("outerKeySelector");
-            if (innerKeySelector == null) throw new ArgumentNullException("innerKeySelector");
-            if (resultSelector == null) throw new ArgumentNullException("resultSelector");
-
-            //return GroupJoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, null);
-            return GroupJoin<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, null);
+            if (outer == null)
+            {
+                throw new ArgumentNullException("outer");
+            }
+            if (inner == null)
+            {
+                throw new ArgumentNullException("inner");
+            }
+            if (outerKeySelector == null)
+            {
+                throw new ArgumentNullException("outerKeySelector");
+            }
+            if (innerKeySelector == null)
+            {
+                throw new ArgumentNullException("innerKeySelector");
+            }
+            if (resultSelector == null)
+            {
+                throw new ArgumentNullException("resultSelector");
+            }
+            return Enumerable.GroupJoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, null);
         }
         /// <summary>基于键相等对两个序列的元素进行关联并对结果进行分组。使用指定的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> 对键进行比较。</summary>
         /// <returns>一个包含 <paramref name="TResult" /> 类型的元素的 <see cref="T:System.Collections.Generic.IEnumerable`1" />，这些元素可通过对两个序列执行分组联接获取。</returns>
@@ -967,16 +1059,30 @@ namespace System.Linq
         ///   <paramref name="outer" /> 或 <paramref name="inner" /> 或 <paramref name="outerKeySelector" /> 或 <paramref name="innerKeySelector" /> 或 <paramref name="resultSelector" /> 为 null。</exception>
         public static IEnumerable<TResult> GroupJoin<TOuter, TInner, TKey, TResult>(this IEnumerable<TOuter> outer, IEnumerable<TInner> inner, Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, IEnumerable<TInner>, TResult> resultSelector, IEqualityComparer<TKey> comparer)
         {
-            if (outer == null) throw new ArgumentNullException("outer");
-            if (inner == null) throw new ArgumentNullException("inner");
-            if (outerKeySelector == null) throw new ArgumentNullException("outerKeySelector");
-            if (innerKeySelector == null) throw new ArgumentNullException("innerKeySelector");
-            if (resultSelector == null) throw new ArgumentNullException("resultSelector");
-
-            //    return GroupJoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, comparer);
-            //}
-            //private static IEnumerable<TResult> GroupJoinIterator<TOuter, TInner, TKey, TResult>(IEnumerable<TOuter> outer, IEnumerable<TInner> inner, Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, IEnumerable<TInner>, TResult> resultSelector, IEqualityComparer<TKey> comparer)
-            //{
+            if (outer == null)
+            {
+                throw new ArgumentNullException("outer");
+            }
+            if (inner == null)
+            {
+                throw new ArgumentNullException("inner");
+            }
+            if (outerKeySelector == null)
+            {
+                throw new ArgumentNullException("outerKeySelector");
+            }
+            if (innerKeySelector == null)
+            {
+                throw new ArgumentNullException("innerKeySelector");
+            }
+            if (resultSelector == null)
+            {
+                throw new ArgumentNullException("resultSelector");
+            }
+            return Enumerable.GroupJoinIterator<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, comparer);
+        }
+        private static IEnumerable<TResult> GroupJoinIterator<TOuter, TInner, TKey, TResult>(IEnumerable<TOuter> outer, IEnumerable<TInner> inner, Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, IEnumerable<TInner>, TResult> resultSelector, IEqualityComparer<TKey> comparer)
+        {
             Lookup<TKey, TInner> lookup = Lookup<TKey, TInner>.CreateForJoin(inner, innerKeySelector, comparer);
             foreach (TOuter current in outer)
             {
@@ -1259,13 +1365,18 @@ namespace System.Linq
         ///   <paramref name="first" /> 或 <paramref name="second" /> 为 null。</exception>
         public static IEnumerable<TSource> Concat<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second)
         {
-            if (first == null) throw new ArgumentNullException("first");
-            if (second == null) throw new ArgumentNullException("second");
-
-            //    return ConcatIterator<TSource>(first, second);
-            //}
-            //private static IEnumerable<TSource> ConcatIterator<TSource>(IEnumerable<TSource> first, IEnumerable<TSource> second)
-            //{
+            if (first == null)
+            {
+                throw new ArgumentNullException("first");
+            }
+            if (second == null)
+            {
+                throw new ArgumentNullException("second");
+            }
+            return Enumerable.ConcatIterator<TSource>(first, second);
+        }
+        private static IEnumerable<TSource> ConcatIterator<TSource>(IEnumerable<TSource> first, IEnumerable<TSource> second)
+        {
             foreach (TSource current in first)
             {
                 yield return current;
@@ -1276,7 +1387,6 @@ namespace System.Linq
             }
             yield break;
         }
-
         /// <summary>通过使用指定的谓词函数合并两个序列。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含两个输入序列的已合并元素。</returns>
         /// <param name="first">要合并的第一个序列。</param>
@@ -1287,14 +1397,22 @@ namespace System.Linq
         /// <typeparam name="TResult">结果序列的元素的类型。</typeparam>
         public static IEnumerable<TResult> Zip<TFirst, TSecond, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> resultSelector)
         {
-            if (first == null) throw new ArgumentNullException("first");
-            if (second == null) throw new ArgumentNullException("second");
-            if (resultSelector == null) throw new ArgumentNullException("resultSelector");
-
-            //    return ZipIterator<TFirst, TSecond, TResult>(first, second, resultSelector);
-            //}
-            //private static IEnumerable<TResult> ZipIterator<TFirst, TSecond, TResult>(IEnumerable<TFirst> first, IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> resultSelector)
-            //{
+            if (first == null)
+            {
+                throw new ArgumentNullException("first");
+            }
+            if (second == null)
+            {
+                throw new ArgumentNullException("second");
+            }
+            if (resultSelector == null)
+            {
+                throw new ArgumentNullException("resultSelector");
+            }
+            return Enumerable.ZipIterator<TFirst, TSecond, TResult>(first, second, resultSelector);
+        }
+        private static IEnumerable<TResult> ZipIterator<TFirst, TSecond, TResult>(IEnumerable<TFirst> first, IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> resultSelector)
+        {
             using (IEnumerator<TFirst> enumerator = first.GetEnumerator())
             {
                 using (IEnumerator<TSecond> enumerator2 = second.GetEnumerator())
@@ -1307,7 +1425,6 @@ namespace System.Linq
             }
             yield break;
         }
-
         /// <summary>通过使用默认的相等比较器对值进行比较返回序列中的非重复元素。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含源序列中的非重复元素。</returns>
         /// <param name="source">要从中移除重复元素的序列。</param>
@@ -1317,10 +1434,11 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static IEnumerable<TSource> Distinct<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null) throw new ArgumentNullException("source");
-
-            //return DistinctIterator<TSource>(source, null);
-            return Distinct<TSource>(source, null);
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            return Enumerable.DistinctIterator<TSource>(source, null);
         }
         /// <summary>通过使用指定的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> 对值进行比较返回序列中的非重复元素。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含源序列中的非重复元素。</returns>
@@ -1332,12 +1450,14 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static IEnumerable<TSource> Distinct<TSource>(this IEnumerable<TSource> source, IEqualityComparer<TSource> comparer)
         {
-            if (source == null) throw new ArgumentNullException("source");
-
-            //    return DistinctIterator<TSource>(source, comparer);
-            //}
-            //private static IEnumerable<TSource> DistinctIterator<TSource>(IEnumerable<TSource> source, IEqualityComparer<TSource> comparer)
-            //{
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            return Enumerable.DistinctIterator<TSource>(source, comparer);
+        }
+        private static IEnumerable<TSource> DistinctIterator<TSource>(IEnumerable<TSource> source, IEqualityComparer<TSource> comparer)
+        {
             Set<TSource> set = new Set<TSource>(comparer);
             foreach (TSource current in source)
             {
@@ -1348,7 +1468,6 @@ namespace System.Linq
             }
             yield break;
         }
-
         /// <summary>通过使用默认的相等比较器生成两个序列的并集。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含两个输入序列中的元素（重复元素除外）。</returns>
         /// <param name="first">一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，它的非重复元素构成联合的第一个集。</param>
@@ -1358,11 +1477,15 @@ namespace System.Linq
         ///   <paramref name="first" /> 或 <paramref name="second" /> 为 null。</exception>
         public static IEnumerable<TSource> Union<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second)
         {
-            if (first == null) throw new ArgumentNullException("first");
-            if (second == null) throw new ArgumentNullException("second");
-
-            //return UnionIterator<TSource>(first, second, null);
-            return Union<TSource>(first, second, null);
+            if (first == null)
+            {
+                throw new ArgumentNullException("first");
+            }
+            if (second == null)
+            {
+                throw new ArgumentNullException("second");
+            }
+            return Enumerable.UnionIterator<TSource>(first, second, null);
         }
         /// <summary>通过使用指定的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> 生成两个序列的并集。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含两个输入序列中的元素（重复元素除外）。</returns>
@@ -1374,13 +1497,18 @@ namespace System.Linq
         ///   <paramref name="first" /> 或 <paramref name="second" /> 为 null。</exception>
         public static IEnumerable<TSource> Union<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
         {
-            if (first == null) throw new ArgumentNullException("first");
-            if (second == null) throw new ArgumentNullException("second");
-
-            //    return UnionIterator<TSource>(first, second, comparer);
-            //}
-            //private static IEnumerable<TSource> UnionIterator<TSource>(IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
-            //{
+            if (first == null)
+            {
+                throw new ArgumentNullException("first");
+            }
+            if (second == null)
+            {
+                throw new ArgumentNullException("second");
+            }
+            return Enumerable.UnionIterator<TSource>(first, second, comparer);
+        }
+        private static IEnumerable<TSource> UnionIterator<TSource>(IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
+        {
             Set<TSource> set = new Set<TSource>(comparer);
             foreach (TSource current in first)
             {
@@ -1398,7 +1526,6 @@ namespace System.Linq
             }
             yield break;
         }
-
         /// <summary>通过使用默认的相等比较器对值进行比较生成两个序列的交集。</summary>
         /// <returns>包含组成两个序列交集的元素的序列。</returns>
         /// <param name="first">一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，将返回其也出现在 <paramref name="second" /> 中的非重复元素。</param>
@@ -1408,11 +1535,15 @@ namespace System.Linq
         ///   <paramref name="first" /> 或 <paramref name="second" /> 为 null。</exception>
         public static IEnumerable<TSource> Intersect<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second)
         {
-            if (first == null) throw new ArgumentNullException("first");
-            if (second == null) throw new ArgumentNullException("second");
-
-            //return IntersectIterator<TSource>(first, second, null);
-            return Intersect<TSource>(first, second, null);
+            if (first == null)
+            {
+                throw new ArgumentNullException("first");
+            }
+            if (second == null)
+            {
+                throw new ArgumentNullException("second");
+            }
+            return Enumerable.IntersectIterator<TSource>(first, second, null);
         }
         /// <summary>通过使用指定的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> 对值进行比较以生成两个序列的交集。</summary>
         /// <returns>包含组成两个序列交集的元素的序列。</returns>
@@ -1424,13 +1555,18 @@ namespace System.Linq
         ///   <paramref name="first" /> 或 <paramref name="second" /> 为 null。</exception>
         public static IEnumerable<TSource> Intersect<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
         {
-            if (first == null) throw new ArgumentNullException("first");
-            if (second == null) throw new ArgumentNullException("second");
-
-            //    return IntersectIterator<TSource>(first, second, comparer);
-            //}
-            //private static IEnumerable<TSource> IntersectIterator<TSource>(IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
-            //{
+            if (first == null)
+            {
+                throw new ArgumentNullException("first");
+            }
+            if (second == null)
+            {
+                throw new ArgumentNullException("second");
+            }
+            return Enumerable.IntersectIterator<TSource>(first, second, comparer);
+        }
+        private static IEnumerable<TSource> IntersectIterator<TSource>(IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
+        {
             Set<TSource> set = new Set<TSource>(comparer);
             foreach (TSource current in second)
             {
@@ -1445,7 +1581,6 @@ namespace System.Linq
             }
             yield break;
         }
-
         /// <summary>通过使用默认的相等比较器对值进行比较生成两个序列的差集。</summary>
         /// <returns>包含两个序列元素的差集的序列。</returns>
         /// <param name="first">一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，将返回其不在 <paramref name="second" /> 中的元素。</param>
@@ -1455,11 +1590,15 @@ namespace System.Linq
         ///   <paramref name="first" /> 或 <paramref name="second" /> 为 null。</exception>
         public static IEnumerable<TSource> Except<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second)
         {
-            if (first == null) throw new ArgumentNullException("first");
-            if (second == null) throw new ArgumentNullException("second");
-
-            //return ExceptIterator<TSource>(first, second, null);
-            return Except<TSource>(first, second, null);
+            if (first == null)
+            {
+                throw new ArgumentNullException("first");
+            }
+            if (second == null)
+            {
+                throw new ArgumentNullException("second");
+            }
+            return Enumerable.ExceptIterator<TSource>(first, second, null);
         }
         /// <summary>通过使用指定的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> 对值进行比较产生两个序列的差集。</summary>
         /// <returns>包含两个序列元素的差集的序列。</returns>
@@ -1471,13 +1610,18 @@ namespace System.Linq
         ///   <paramref name="first" /> 或 <paramref name="second" /> 为 null。</exception>
         public static IEnumerable<TSource> Except<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
         {
-            if (first == null) throw new ArgumentNullException("first");
-            if (second == null) throw new ArgumentNullException("second");
-
-            //    return ExceptIterator<TSource>(first, second, comparer);
-            //}
-            //private static IEnumerable<TSource> ExceptIterator<TSource>(IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
-            //{
+            if (first == null)
+            {
+                throw new ArgumentNullException("first");
+            }
+            if (second == null)
+            {
+                throw new ArgumentNullException("second");
+            }
+            return Enumerable.ExceptIterator<TSource>(first, second, comparer);
+        }
+        private static IEnumerable<TSource> ExceptIterator<TSource>(IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
+        {
             Set<TSource> set = new Set<TSource>(comparer);
             foreach (TSource current in second)
             {
@@ -1501,12 +1645,14 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static IEnumerable<TSource> Reverse<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null) throw new ArgumentNullException("source");
-
-            //    return ReverseIterator<TSource>(source);
-            //}
-            //private static IEnumerable<TSource> ReverseIterator<TSource>(IEnumerable<TSource> source)
-            //{
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            return Enumerable.ReverseIterator<TSource>(source);
+        }
+        private static IEnumerable<TSource> ReverseIterator<TSource>(IEnumerable<TSource> source)
+        {
             Buffer<TSource> buffer = new Buffer<TSource>(source);
             for (int i = buffer.count - 1; i >= 0; i--)
             {
@@ -1514,7 +1660,6 @@ namespace System.Linq
             }
             yield break;
         }
-
         /// <summary>通过使用相应类型的默认相等比较器对序列的元素进行比较，以确定两个序列是否相等。</summary>
         /// <returns>如果根据相应类型的默认相等比较器，两个源序列的长度相等，且其相应元素相等，则为 true；否则为 false。</returns>
         /// <param name="first">一个用于比较 <paramref name="second" /> 的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
@@ -1574,7 +1719,7 @@ namespace System.Linq
         }
         #endregion
 
-        #region 转换
+        #region 集合转换
         /// <summary>返回类型为 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 的输入。</summary>
         /// <returns>类型为 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 的输入序列。</returns>
         /// <param name="source">类型为 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 的序列。</param>
@@ -1593,8 +1738,10 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static TSource[] ToArray<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null) throw new ArgumentNullException("source");
-
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
             return new Buffer<TSource>(source).ToArray();
         }
         /// <summary>从 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 创建一个 <see cref="T:System.Collections.Generic.List`1" />。</summary>
@@ -1606,11 +1753,12 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static List<TSource> ToList<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null) throw new ArgumentNullException("source");
-
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
             return new List<TSource>(source);
         }
-
         /// <summary>根据指定的键选择器函数，从 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 创建一个 <see cref="T:System.Collections.Generic.Dictionary`2" />。</summary>
         /// <returns>一个包含键和值的 <see cref="T:System.Collections.Generic.Dictionary`2" />。</returns>
         /// <param name="source">一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，将从它创建一个 <see cref="T:System.Collections.Generic.Dictionary`2" />。</param>
@@ -1701,7 +1849,6 @@ namespace System.Linq
             }
             return dictionary;
         }
-
         /// <summary>根据指定的键选择器函数，从 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 创建一个 <see cref="T:System.Linq.Lookup`2" />。</summary>
         /// <returns>一个包含键和值的 <see cref="T:System.Linq.Lookup`2" />。</returns>
         /// <param name="source">要从其创建 <see cref="T:System.Linq.Lookup`2" /> 的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
@@ -1766,7 +1913,9 @@ namespace System.Linq
         {
             return Lookup<TKey, TElement>.Create<TSource>(source, keySelector, elementSelector, comparer);
         }
+        #endregion
 
+        #region 集合元素转换
         /// <summary>返回指定序列的元素；如果序列为空，则返回单一实例集合中的类型参数的默认值。</summary>
         /// <returns>如果 <paramref name="source" /> 为空，则为包含 <paramref name="TSource" /> 类型的默认值的 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 对象；否则为 <paramref name="source" />。</returns>
         /// <param name="source">序列为空时返回默认值的序列。</param>
@@ -1786,12 +1935,14 @@ namespace System.Linq
         ///   <paramref name="source" /> 中的元素的类型。</typeparam>
         public static IEnumerable<TSource> DefaultIfEmpty<TSource>(this IEnumerable<TSource> source, TSource defaultValue)
         {
-            if (source == null) throw new ArgumentNullException("source");
-
-            //    return DefaultIfEmptyIterator<TSource>(source, defaultValue);
-            //}
-            //private static IEnumerable<TSource> DefaultIfEmptyIterator<TSource>(IEnumerable<TSource> source, TSource defaultValue)
-            //{
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            return Enumerable.DefaultIfEmptyIterator<TSource>(source, defaultValue);
+        }
+        private static IEnumerable<TSource> DefaultIfEmptyIterator<TSource>(IEnumerable<TSource> source, TSource defaultValue)
+        {
             using (IEnumerator<TSource> enumerator = source.GetEnumerator())
             {
                 if (enumerator.MoveNext())
@@ -1809,7 +1960,6 @@ namespace System.Linq
             }
             yield break;
         }
-
         /// <summary>根据指定类型筛选 <see cref="T:System.Collections.IEnumerable" /> 的元素。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含类型为 <paramref name="TResult" /> 的输入序列中的元素。</returns>
         /// <param name="source">
@@ -1819,12 +1969,14 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static IEnumerable<TResult> OfType<TResult>(this IEnumerable source)
         {
-            if (source == null) throw new ArgumentNullException("source");
-
-            //    return OfTypeIterator<TResult>(source);
-            //}
-            //private static IEnumerable<TResult> OfTypeIterator<TResult>(IEnumerable source)
-            //{
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            return Enumerable.OfTypeIterator<TResult>(source);
+        }
+        private static IEnumerable<TResult> OfTypeIterator<TResult>(IEnumerable source)
+        {
             foreach (object current in source)
             {
                 if (current is TResult)
@@ -1834,7 +1986,6 @@ namespace System.Linq
             }
             yield break;
         }
-
         /// <summary>将 <see cref="T:System.Collections.IEnumerable" /> 的元素转换为指定的类型。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含已转换为指定类型的源序列的每个元素。</returns>
         /// <param name="source">包含要转换的元素的 <see cref="T:System.Collections.IEnumerable" />。</param>
@@ -1846,10 +1997,15 @@ namespace System.Linq
         public static IEnumerable<TResult> Cast<TResult>(this IEnumerable source)
         {
             IEnumerable<TResult> enumerable = source as IEnumerable<TResult>;
-            if (enumerable != null) return enumerable;
-            if (source == null) throw new ArgumentNullException("source");
-
-            return CastIterator<TResult>(source);
+            if (enumerable != null)
+            {
+                return enumerable;
+            }
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            return Enumerable.CastIterator<TResult>(source);
         }
         private static IEnumerable<TResult> CastIterator<TResult>(IEnumerable source)
         {
@@ -1861,7 +2017,7 @@ namespace System.Linq
         }
         #endregion
 
-        #region 查找定位、计数
+        #region 元素定位
         /// <summary>返回序列中的第一个元素。</summary>
         /// <returns>返回指定序列中的第一个元素。</returns>
         /// <param name="source">要返回其第一个元素的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
@@ -1872,21 +2028,29 @@ namespace System.Linq
         /// <exception cref="T:System.InvalidOperationException">源序列为空。</exception>
         public static TSource First<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null) throw new ArgumentNullException("source");
-
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
             IList<TSource> list = source as IList<TSource>;
             if (list != null)
             {
-                if (list.Count > 0) return list[0];
+                if (list.Count > 0)
+                {
+                    return list[0];
+                }
             }
             else
             {
                 using (IEnumerator<TSource> enumerator = source.GetEnumerator())
                 {
-                    if (enumerator.MoveNext()) return enumerator.Current;
+                    if (enumerator.MoveNext())
+                    {
+                        return enumerator.Current;
+                    }
                 }
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>返回序列中满足指定条件的第一个元素。</summary>
         /// <returns>序列中通过指定谓词函数中的测试的第一个元素。</returns>
@@ -1899,14 +2063,22 @@ namespace System.Linq
         /// <exception cref="T:System.InvalidOperationException">没有元素满足 <paramref name="predicate" /> 中的条件。- 或 -源序列为空。</exception>
         public static TSource First<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
-
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            if (predicate == null)
+            {
+                throw new ArgumentNullException("predicate");
+            }
             foreach (TSource current in source)
             {
-                if (predicate(current)) return current;
+                if (predicate(current))
+                {
+                    return current;
+                }
             }
-            throw new InvalidOperationException("NoMatch");
+            throw new InvalidOperationException("NoMatch"); ;
         }
         /// <summary>返回序列中的第一个元素；如果序列中不包含任何元素，则返回默认值。</summary>
         /// <returns>如果 <paramref name="source" /> 为空，则返回 default(<paramref name="TSource" />)；否则返回 <paramref name="source" /> 中的第一个元素。</returns>
@@ -1917,18 +2089,26 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static TSource FirstOrDefault<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null) throw new ArgumentNullException("source");
-
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
             IList<TSource> list = source as IList<TSource>;
             if (list != null)
             {
-                if (list.Count > 0) return list[0];
+                if (list.Count > 0)
+                {
+                    return list[0];
+                }
             }
             else
             {
                 using (IEnumerator<TSource> enumerator = source.GetEnumerator())
                 {
-                    if (enumerator.MoveNext()) return enumerator.Current;
+                    if (enumerator.MoveNext())
+                    {
+                        return enumerator.Current;
+                    }
                 }
             }
             return default(TSource);
@@ -1943,16 +2123,23 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
         public static TSource FirstOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
-
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            if (predicate == null)
+            {
+                throw new ArgumentNullException("predicate");
+            }
             foreach (TSource current in source)
             {
-                if (predicate(current)) return current;
+                if (predicate(current))
+                {
+                    return current;
+                }
             }
             return default(TSource);
         }
-
         /// <summary>返回序列的最后一个元素。</summary>
         /// <returns>源序列中最后位置处的值。</returns>
         /// <param name="source">要返回其最后一个元素的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
@@ -1963,13 +2150,18 @@ namespace System.Linq
         /// <exception cref="T:System.InvalidOperationException">源序列为空。</exception>
         public static TSource Last<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null) throw new ArgumentNullException("source");
-
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
             IList<TSource> list = source as IList<TSource>;
             if (list != null)
             {
                 int count = list.Count;
-                if (count > 0) return list[count - 1];
+                if (count > 0)
+                {
+                    return list[count - 1];
+                }
             }
             else
             {
@@ -1987,7 +2179,7 @@ namespace System.Linq
                     }
                 }
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>返回序列中满足指定条件的最后一个元素。</summary>
         /// <returns>序列中通过指定谓词函数中的测试的最后一个元素。</returns>
@@ -2000,9 +2192,14 @@ namespace System.Linq
         /// <exception cref="T:System.InvalidOperationException">没有元素满足 <paramref name="predicate" /> 中的条件。- 或 -源序列为空。</exception>
         public static TSource Last<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
-
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            if (predicate == null)
+            {
+                throw new ArgumentNullException("predicate");
+            }
             TSource result = default(TSource);
             bool flag = false;
             foreach (TSource current in source)
@@ -2013,9 +2210,11 @@ namespace System.Linq
                     flag = true;
                 }
             }
-            if (flag) return result;
-
-            throw new InvalidOperationException("NoMatch");
+            if (flag)
+            {
+                return result;
+            }
+            throw new InvalidOperationException("NoMatch"); ;
         }
         /// <summary>返回序列中的最后一个元素；如果序列中不包含任何元素，则返回默认值。</summary>
         /// <returns>如果源序列为空，则返回 default(<paramref name="TSource" />)；否则返回 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 中的最后一个元素。</returns>
@@ -2026,13 +2225,18 @@ namespace System.Linq
         ///   <paramref name="source" /> 为 null。</exception>
         public static TSource LastOrDefault<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null) throw new ArgumentNullException("source");
-
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
             IList<TSource> list = source as IList<TSource>;
             if (list != null)
             {
                 int count = list.Count;
-                if (count > 0) return list[count - 1];
+                if (count > 0)
+                {
+                    return list[count - 1];
+                }
             }
             else
             {
@@ -2062,17 +2266,24 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
         public static TSource LastOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
-
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            if (predicate == null)
+            {
+                throw new ArgumentNullException("predicate");
+            }
             TSource result = default(TSource);
             foreach (TSource current in source)
             {
-                if (predicate(current)) result = current;
+                if (predicate(current))
+                {
+                    result = current;
+                }
             }
             return result;
         }
-
         /// <summary>返回序列的唯一元素；如果该序列并非恰好包含一个元素，则会引发异常。</summary>
         /// <returns>输入序列的单个元素。</returns>
         /// <param name="source">一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，用于返回单个元素。</param>
@@ -2083,30 +2294,41 @@ namespace System.Linq
         /// <exception cref="T:System.InvalidOperationException">输入序列包含多个元素。- 或 -输入序列为空。</exception>
         public static TSource Single<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null) throw new ArgumentNullException("source");
-
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
             IList<TSource> list = source as IList<TSource>;
             if (list != null)
             {
                 switch (list.Count)
                 {
                     case 0:
-                        throw new InvalidOperationException("NoElements");
+                        {
+                            throw new InvalidOperationException("NoElements"); ;
+                        }
                     case 1:
-                        return list[0];
+                        {
+                            return list[0];
+                        }
                 }
             }
             else
             {
                 using (IEnumerator<TSource> enumerator = source.GetEnumerator())
                 {
-                    if (!enumerator.MoveNext()) throw new InvalidOperationException("NoElements");
-
+                    if (!enumerator.MoveNext())
+                    {
+                        throw new InvalidOperationException("NoElements"); ;
+                    }
                     TSource current = enumerator.Current;
-                    if (!enumerator.MoveNext()) return current;
+                    if (!enumerator.MoveNext())
+                    {
+                        return current;
+                    }
                 }
             }
-            throw new InvalidOperationException("MoreThanOneElement");
+            throw new InvalidOperationException("MoreThanOneElement"); ;
         }
         /// <summary>返回序列中满足指定条件的唯一元素；如果有多个这样的元素存在，则会引发异常。</summary>
         /// <returns>输入序列中满足条件的单个元素。</returns>
@@ -2119,26 +2341,34 @@ namespace System.Linq
         /// <exception cref="T:System.InvalidOperationException">没有元素满足 <paramref name="predicate" /> 中的条件。- 或 -多个元素满足 <paramref name="predicate" /> 中的条件。- 或 -源序列为空。</exception>
         public static TSource Single<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
+            //checked
+            //{
             if (source == null) throw new ArgumentNullException("source");
             if (predicate == null) throw new ArgumentNullException("predicate");
 
             TSource result = default(TSource);
-            long n = 0;
+            long num = 0L;
             foreach (TSource current in source)
             {
                 if (predicate(current))
                 {
                     result = current;
-                    n++;
-
-                    // Add By 大石头
-                    if (n > 1) throw new InvalidOperationException("MoreThanOneMatch");
+                    num += 1L;
                 }
             }
-
-            if (n == 0) throw new InvalidOperationException("NoMatch");
-            if (n == 1) return result;
-            throw new InvalidOperationException("MoreThanOneMatch");
+            long num2 = num;
+            //}
+            if (num2 <= 1L && num2 >= 0L)
+            {
+                switch ((int)num2)
+                {
+                    case 0:
+                        throw new InvalidOperationException("NoMatch"); ;
+                    case 1:
+                        return result;
+                }
+            }
+            throw new InvalidOperationException("MoreThanOneMatch"); ;
         }
         /// <summary>返回序列中的唯一元素；如果该序列为空，则返回默认值；如果该序列包含多个元素，此方法将引发异常。</summary>
         /// <returns>返回输入序列的单个元素；如果序列不包含任何元素，则返回 default(<paramref name="TSource" />)。</returns>
@@ -2150,17 +2380,23 @@ namespace System.Linq
         /// <exception cref="T:System.InvalidOperationException">输入序列包含多个元素。</exception>
         public static TSource SingleOrDefault<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null) throw new ArgumentNullException("source");
-
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
             IList<TSource> list = source as IList<TSource>;
             if (list != null)
             {
                 switch (list.Count)
                 {
                     case 0:
-                        return default(TSource);
+                        {
+                            return default(TSource);
+                        }
                     case 1:
-                        return list[0];
+                        {
+                            return list[0];
+                        }
                 }
             }
             else
@@ -2180,7 +2416,7 @@ namespace System.Linq
                     }
                 }
             }
-            throw new InvalidOperationException("MoreThanOneElement");
+            throw new InvalidOperationException("MoreThanOneElement"); ;
         }
         /// <summary>返回序列中满足指定条件的唯一元素；如果这类元素不存在，则返回默认值；如果有多个元素满足该条件，此方法将引发异常。</summary>
         /// <returns>如果未找到这样的元素，则返回输入序列中满足条件的单个元素或 default (<paramref name="TSource" />)。</returns>
@@ -2195,40 +2431,42 @@ namespace System.Linq
         {
             //checked
             //{
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
-
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            if (predicate == null)
+            {
+                throw new ArgumentNullException("predicate");
+            }
             TSource result = default(TSource);
-            long n = 0;
+            long num = 0L;
             foreach (TSource current in source)
             {
                 if (predicate(current))
                 {
                     result = current;
-                    n++;
-
-                    // Add By 大石头
-                    if (n > 1) throw new InvalidOperationException("MoreThanOneMatch");
+                    num += 1L;
                 }
             }
-            if (n == 0) return default(TSource);
-            if (n == 1) return result;
-            throw new InvalidOperationException("MoreThanOneMatch");
-            //long num2 = num;
-            ////}
-            //if (num2 <= 1L && num2 >= 0L)
-            //{
-            //    switch ((int)num2)
-            //    {
-            //        case 0:
-            //            return default(TSource);
-            //        case 1:
-            //            return result;
-            //    }
+            long num2 = num;
             //}
-            //throw new InvalidOperationException("MoreThanOneMatch");
+            if (num2 <= 1L && num2 >= 0L)
+            {
+                switch ((int)num2)
+                {
+                    case 0:
+                        {
+                            return default(TSource);
+                        }
+                    case 1:
+                        {
+                            return result;
+                        }
+                }
+            }
+            throw new InvalidOperationException("MoreThanOneMatch"); ;
         }
-
         /// <summary>返回序列中指定索引处的元素。</summary>
         /// <returns>源序列中指定位置处的元素。</returns>
         /// <param name="source">要从中返回元素的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
@@ -2316,6 +2554,9 @@ namespace System.Linq
             }
             return default(TSource);
         }
+        #endregion
+
+        #region 产生集合
         /// <summary>生成指定范围内的整数的序列。</summary>
         /// <returns>C# 中的 IEnumerable&lt;Int32&gt; 或 Visual Basic 中包含某个范围内的顺序整数的 IEnumerable(Of Int32)。</returns>
         /// <param name="start">序列中第一个整数的值。</param>
@@ -2329,18 +2570,16 @@ namespace System.Linq
             {
                 throw new ArgumentOutOfRangeException("count");
             }
-            //    return RangeIterator(start, count);
-            //}
-
-            //private static IEnumerable<int> RangeIterator(int start, int count)
-            //{
+            return Enumerable.RangeIterator(start, count);
+        }
+        private static IEnumerable<int> RangeIterator(int start, int count)
+        {
             for (int i = 0; i < count; i++)
             {
                 yield return start + i;
             }
             yield break;
         }
-
         /// <summary>生成包含一个重复值的序列。</summary>
         /// <returns>一个 <see cref="T:System.Collections.Generic.IEnumerable`1" />，包含一个重复值。</returns>
         /// <param name="element">要重复的值。</param>
@@ -2354,7 +2593,7 @@ namespace System.Linq
             {
                 throw new ArgumentOutOfRangeException("count");
             }
-            return RepeatIterator<TResult>(element, count);
+            return Enumerable.RepeatIterator<TResult>(element, count);
         }
         private static IEnumerable<TResult> RepeatIterator<TResult>(TResult element, int count)
         {
@@ -2371,7 +2610,9 @@ namespace System.Linq
         {
             return EmptyEnumerable<TResult>.Instance;
         }
+        #endregion
 
+        #region 集合统计
         /// <summary>确定序列是否包含任何元素。</summary>
         /// <returns>如果源序列包含任何元素，则为 true；否则为 false。</returns>
         /// <param name="source">要检查是否为空的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
@@ -2385,7 +2626,10 @@ namespace System.Linq
 
             using (IEnumerator<TSource> enumerator = source.GetEnumerator())
             {
-                if (enumerator.MoveNext()) return true;
+                if (enumerator.MoveNext())
+                {
+                    return true;
+                }
             }
             return false;
         }
@@ -2399,12 +2643,20 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
         public static bool Any<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
-
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            if (predicate == null)
+            {
+                throw new ArgumentNullException("predicate");
+            }
             foreach (TSource current in source)
             {
-                if (predicate(current)) return true;
+                if (predicate(current))
+                {
+                    return true;
+                }
             }
             return false;
         }
@@ -2418,16 +2670,23 @@ namespace System.Linq
         ///   <paramref name="source" /> 或 <paramref name="predicate" /> 为 null。</exception>
         public static bool All<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
-
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            if (predicate == null)
+            {
+                throw new ArgumentNullException("predicate");
+            }
             foreach (TSource current in source)
             {
-                if (!predicate(current)) return false;
+                if (!predicate(current))
+                {
+                    return false;
+                }
             }
             return true;
         }
-
         /// <summary>返回序列中的元素数量。</summary>
         /// <returns>输入序列中的元素数量。</returns>
         /// <param name="source">包含要计数的元素的序列。</param>
@@ -2439,26 +2698,32 @@ namespace System.Linq
         ///   <paramref name="source" /> 中的元素数量大于 <see cref="F:System.Int32.MaxValue" />。</exception>
         public static int Count<TSource>(this IEnumerable<TSource> source)
         {
-            //checked
-            //{
-            if (source == null) throw new ArgumentNullException("source");
-
-            ICollection<TSource> collection = source as ICollection<TSource>;
-            if (collection != null) return collection.Count;
-
-            ICollection collection2 = source as ICollection;
-            if (collection2 != null) return collection2.Count;
-
-            int num = 0;
-            using (IEnumerator<TSource> enumerator = source.GetEnumerator())
+            checked
             {
-                while (enumerator.MoveNext())
+                if (source == null)
                 {
-                    num++;
+                    throw new ArgumentNullException("source");
                 }
+                ICollection<TSource> collection = source as ICollection<TSource>;
+                if (collection != null)
+                {
+                    return collection.Count;
+                }
+                ICollection collection2 = source as ICollection;
+                if (collection2 != null)
+                {
+                    return collection2.Count;
+                }
+                int num = 0;
+                using (IEnumerator<TSource> enumerator = source.GetEnumerator())
+                {
+                    while (enumerator.MoveNext())
+                    {
+                        num++;
+                    }
+                }
+                return num;
             }
-            return num;
-            //}
         }
         /// <summary>返回一个数字，表示在指定的序列中满足条件的元素数量。</summary>
         /// <returns>一个数字，表示序列中满足谓词函数条件的元素数量。</returns>
@@ -2472,21 +2737,26 @@ namespace System.Linq
         ///   <paramref name="source" /> 中的元素数量大于 <see cref="F:System.Int32.MaxValue" />。</exception>
         public static int Count<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            //checked
-            //{
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
-
-            int num = 0;
-            foreach (TSource current in source)
+            checked
             {
-                if (predicate(current))
+                if (source == null)
                 {
-                    num++;
+                    throw new ArgumentNullException("source");
                 }
+                if (predicate == null)
+                {
+                    throw new ArgumentNullException("predicate");
+                }
+                int num = 0;
+                foreach (TSource current in source)
+                {
+                    if (predicate(current))
+                    {
+                        num++;
+                    }
+                }
+                return num;
             }
-            return num;
-            //}
         }
         /// <summary>返回一个 <see cref="T:System.Int64" />，表示序列中的元素的总数量。</summary>
         /// <returns>源序列中的元素的数量。</returns>
@@ -2498,20 +2768,22 @@ namespace System.Linq
         /// <exception cref="T:System.OverflowException">元素的数量超过 <see cref="F:System.Int64.MaxValue" />。</exception>
         public static long LongCount<TSource>(this IEnumerable<TSource> source)
         {
-            //checked
-            //{
-            if (source == null) throw new ArgumentNullException("source");
-
-            long num = 0L;
-            using (IEnumerator<TSource> enumerator = source.GetEnumerator())
+            checked
             {
-                while (enumerator.MoveNext())
+                if (source == null)
                 {
-                    num += 1L;
+                    throw new ArgumentNullException("source");
                 }
+                long num = 0L;
+                using (IEnumerator<TSource> enumerator = source.GetEnumerator())
+                {
+                    while (enumerator.MoveNext())
+                    {
+                        num += 1L;
+                    }
+                }
+                return num;
             }
-            return num;
-            //}
         }
         /// <summary>返回一个 <see cref="T:System.Int64" />，表示序列中满足条件的元素的数量。</summary>
         /// <returns>一个数字，表示序列中满足谓词函数条件的元素数量。</returns>
@@ -2524,23 +2796,27 @@ namespace System.Linq
         /// <exception cref="T:System.OverflowException">匹配元素的数量超过 <see cref="F:System.Int64.MaxValue" />。</exception>
         public static long LongCount<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            //checked
-            //{
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
-
-            long num = 0L;
-            foreach (TSource current in source)
+            checked
             {
-                if (predicate(current))
+                if (source == null)
                 {
-                    num += 1L;
+                    throw new ArgumentNullException("source");
                 }
+                if (predicate == null)
+                {
+                    throw new ArgumentNullException("predicate");
+                }
+                long num = 0L;
+                foreach (TSource current in source)
+                {
+                    if (predicate(current))
+                    {
+                        num += 1L;
+                    }
+                }
+                return num;
             }
-            return num;
-            //}
         }
-
         /// <summary>通过使用默认的相等比较器确定序列是否包含指定的元素。</summary>
         /// <returns>如果源序列包含具有指定值的元素，则为 true；否则为 false。</returns>
         /// <param name="source">要在其中定位某个值的序列。</param>
@@ -2588,7 +2864,7 @@ namespace System.Linq
         }
         #endregion
 
-        #region 累加、总和、最大最小、平均
+        #region 累加、求和、最大、最小、平均
         /// <summary>对序列应用累加器函数。</summary>
         /// <returns>累加器的最终值。</returns>
         /// <param name="source">要聚合的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
@@ -2614,7 +2890,7 @@ namespace System.Linq
             {
                 if (!enumerator.MoveNext())
                 {
-                    throw new InvalidOperationException("NoElements");
+                    throw new InvalidOperationException("NoElements"); ;
                 }
                 TSource tSource = enumerator.Current;
                 while (enumerator.MoveNext())
@@ -2685,7 +2961,6 @@ namespace System.Linq
             }
             return resultSelector(tAccumulate);
         }
-
         /// <summary>计算 <see cref="T:System.Int32" /> 值序列之和。</summary>
         /// <returns>序列值之和。</returns>
         /// <param name="source">一个要计算和的 <see cref="T:System.Int32" /> 值序列。</param>
@@ -3025,7 +3300,6 @@ namespace System.Linq
         {
             return source.Select(selector).Sum();
         }
-
         /// <summary>返回 <see cref="T:System.Int32" /> 值序列中的最小值。</summary>
         /// <returns>序列中的最小值。</returns>
         /// <param name="source">一个 <see cref="T:System.Int32" /> 值序列，用于确定最小值。</param>
@@ -3060,7 +3334,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>返回 <see cref="T:System.Int32" /> 值（可空）序列中的最小值。</summary>
         /// <returns>C# 中类型为 Nullable&lt;Int32&gt; 的值或 Visual Basic 中与序列中最小值对应的 Nullable(Of Int32)。</returns>
@@ -3123,7 +3397,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>返回 <see cref="T:System.Int64" /> 值（可空）序列中的最小值。</summary>
         /// <returns>C# 中类型为 Nullable&lt;Int64&gt; 的值或 Visual Basic 中与序列中最小值对应的 Nullable(Of Int64)。</returns>
@@ -3186,7 +3460,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>返回 <see cref="T:System.Single" /> 值（可空）序列中的最小值。</summary>
         /// <returns>C# 中类型为 Nullable&lt;Single&gt; 的值或 Visual Basic 中与序列中最小值对应的 Nullable(Of Single)。</returns>
@@ -3252,7 +3526,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>返回 <see cref="T:System.Double" /> 值（可空）序列中的最小值。</summary>
         /// <returns>C# 中类型为 Nullable&lt;Double&gt; 的值或 Visual Basic 中与序列中最小值对应的 Nullable(Of Double)。</returns>
@@ -3318,7 +3592,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>返回 <see cref="T:System.Decimal" /> 值（可空）序列中的最小值。</summary>
         /// <returns>C# 中类型为 Nullable&lt;Decimal&gt; 的值或 Visual Basic 中与序列中最小值对应的 Nullable(Of Decimal)。</returns>
@@ -3393,7 +3667,7 @@ namespace System.Linq
             {
                 return tSource;
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>调用序列的每个元素上的转换函数并返回最小 <see cref="T:System.Int32" /> 值。</summary>
         /// <returns>序列中的最小值。</returns>
@@ -3573,7 +3847,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>返回可以为 null 的 <see cref="T:System.Int32" /> 值序列中的最大值。</summary>
         /// <returns>一个与序列中的最大值对应的值，该值的类型在 C# 中为 Nullable&lt;Int32&gt;，在 Visual Basic 中为 Nullable(Of Int32)。</returns>
@@ -3636,7 +3910,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>返回可以为 null 的 <see cref="T:System.Int64" /> 值序列中的最大值。</summary>
         /// <returns>一个与序列中的最大值对应的值，该值的类型在 C# 中为 Nullable&lt;Int64&gt;，在 Visual Basic 中为 Nullable(Of Int64)。</returns>
@@ -3699,7 +3973,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>返回可以为 null 的 <see cref="T:System.Double" /> 值序列中的最大值。</summary>
         /// <returns>一个与序列中的最大值对应的值，该值的类型在 C# 中为 Nullable&lt;Double&gt;，在 Visual Basic 中为 Nullable(Of Double)。</returns>
@@ -3765,7 +4039,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>返回可以为 null 的 <see cref="T:System.Single" /> 值序列中的最大值。</summary>
         /// <returns>一个与序列中的最大值对应的值，该值的类型在 C# 中为 Nullable&lt;Single&gt;，在 Visual Basic 中为 Nullable(Of Single)。</returns>
@@ -3831,7 +4105,7 @@ namespace System.Linq
             {
                 return num;
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>返回可以为 null 的 <see cref="T:System.Decimal" /> 值序列中的最大值。</summary>
         /// <returns>一个与序列中的最大值对应的值，该值的类型在 C# 中为 Nullable&lt;Decimal&gt;，在 Visual Basic 中为 Nullable(Of Decimal)。</returns>
@@ -3906,7 +4180,7 @@ namespace System.Linq
             {
                 return tSource;
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>调用序列的每个元素上的转换函数并返回最大 <see cref="T:System.Int32" /> 值。</summary>
         /// <returns>序列中的最大值。</returns>
@@ -4079,7 +4353,7 @@ namespace System.Linq
                 {
                     return (double)num / (double)num2;
                 }
-                throw new InvalidOperationException("NoElements");
+                throw new InvalidOperationException("NoElements"); ;
             }
         }
         /// <summary>计算可以为 null 的 <see cref="T:System.Int32" /> 值序列的平均值。</summary>
@@ -4140,7 +4414,7 @@ namespace System.Linq
                 {
                     return (double)num / (double)num2;
                 }
-                throw new InvalidOperationException("NoElements");
+                throw new InvalidOperationException("NoElements"); ;
             }
         }
         /// <summary>计算可以为 null 的 <see cref="T:System.Int64" /> 值序列的平均值。</summary>
@@ -4201,7 +4475,7 @@ namespace System.Linq
             {
                 return (float)(num / (double)num2);
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>计算可以为 null 的 <see cref="T:System.Single" /> 值序列的平均值。</summary>
         /// <returns>值序列的平均值；如果源序列为空或仅包含为 null 的值，则为 null。</returns>
@@ -4260,7 +4534,7 @@ namespace System.Linq
             {
                 return num / (double)num2;
             }
-            throw new InvalidOperationException("NoElements");
+            throw new InvalidOperationException("NoElements"); ;
         }
         /// <summary>计算可以为 null 的 <see cref="T:System.Double" /> 值序列的平均值。</summary>
         /// <returns>值序列的平均值；如果源序列为空或仅包含为 null 的值，则为 null。</returns>
@@ -4319,7 +4593,7 @@ namespace System.Linq
                 {
                     return d / num;
                 }
-                throw new InvalidOperationException("NoElements");
+                throw new InvalidOperationException("NoElements"); ;
             }
         }
         /// <summary>计算可以为 null 的 <see cref="T:System.Decimal" /> 值序列的平均值。</summary>
@@ -4487,5 +4761,5 @@ namespace System.Linq
         }
         #endregion
     }
-#pragma warning restore 1734
 }
+#pragma warning restore 1734
