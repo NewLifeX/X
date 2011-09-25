@@ -12,15 +12,10 @@ using XCode;
 
 namespace NewLife.CommonEntity
 {
-    /// <summary>
-    /// 统计
-    /// </summary>
+    /// <summary>统计</summary>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class Statistics : Statistics<Statistics> { }
 
-    /// <summary>
-    /// 统计
-    /// </summary>
     /// <summary>统计</summary>
     [BindIndex("PK__Statisti__3214EC270AD2A005", true, "ID")]
     public partial class Statistics<TEntity> : Entity<TEntity> where TEntity : Statistics<TEntity>, new()

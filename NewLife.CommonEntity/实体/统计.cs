@@ -13,10 +13,8 @@ using XCode.Configuration;
 
 namespace NewLife.CommonEntity
 {
-	/// <summary>
-	/// 统计
-	/// </summary>
-	[Serializable]
+    /// <summary>统计</summary>
+    [Serializable]
 	[DataObject]
 	[Description("统计")]
 	[BindTable("Statistics", Description = "统计", ConnName = "Common", DbType = DatabaseType.SqlServer)]

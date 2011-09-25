@@ -77,6 +77,10 @@
     <Compile Include="Web\WebPageBase.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
+    <Compile Include="实体\Guid分类.Biz.cs" />
+    <Compile Include="实体\Guid分类.cs" />
+    <Compile Include="实体\分类.Biz.cs" />
+    <Compile Include="实体\分类.cs" />
     <Compile Include="实体\地区.Biz.cs" />
     <Compile Include="实体\地区.cs" />
     <Compile Include="实体\地区.Init.cs" />
