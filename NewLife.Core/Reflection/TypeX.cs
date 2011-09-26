@@ -432,8 +432,7 @@ namespace NewLife.Reflection
             }
             else
             {
-                //if (!type.IsAssignableFrom(BaseType)) return false;
-                if (!BaseType.IsAssignableFrom(type)) return false;
+                if (!type.IsAssignableFrom(BaseType)) return false;
             }
 
             return true;

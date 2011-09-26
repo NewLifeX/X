@@ -283,7 +283,11 @@ namespace NewLife.Reflection
         {
             get
             {
-                return Asm.FullName.EndsWith("PublicKeyToken=b77a5c561934e089");
+                String name = Asm.FullName;
+                if (name.EndsWith("PublicKeyToken=b77a5c561934e089")) return true;
+                if (name.EndsWith("PublicKeyToken=b03f5f7f11d50a3a")) return true;
+
+                return false;
             }
         }
         #endregion
@@ -465,7 +469,7 @@ namespace NewLife.Reflection
             if (domain == null) domain = AppDomain.CurrentDomain;
 
             Assembly[] asms = domain.GetAssemblies();
-            if (asms == null || asms.Length < 1) return null;
+            if (asms == null || asms.Length < 1) return Enumerable.Empty<AssemblyX>();
 
             //List<AssemblyX> list = new List<AssemblyX>();
             //foreach (Assembly item in asms)
@@ -501,7 +505,7 @@ namespace NewLife.Reflection
             if (domain == null) domain = AppDomain.CurrentDomain;
 
             Assembly[] asms = domain.ReflectionOnlyGetAssemblies();
-            if (asms == null || asms.Length < 1) return null;
+            if (asms == null || asms.Length < 1) return Enumerable.Empty<AssemblyX>();
 
             //List<AssemblyX> list = new List<AssemblyX>();
             //foreach (Assembly item in asms)
