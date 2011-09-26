@@ -742,5 +742,12 @@ namespace XCoder
             }
         }
         #endregion
+
+        private void frmItems_Click(object sender, EventArgs e)
+        {
+            //FrmItems.Create(XConfig.Current.Items).Show();
+
+            FrmItems.Create(XConfig.Current).Show();
+        }
     }
 }

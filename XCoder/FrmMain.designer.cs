@@ -49,6 +49,8 @@
             this.proc_percent = new System.Windows.Forms.ToolStripStatusLabel();
             this.bw = new System.ComponentModel.BackgroundWorker();
             this.gbConfig = new System.Windows.Forms.GroupBox();
+            this.frmItems = new System.Windows.Forms.Button();
+            this.cbRenderGenEntity = new System.Windows.Forms.CheckBox();
             this.btnRelease = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
@@ -81,7 +83,6 @@
             this.label9 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
-            this.cbRenderGenEntity = new System.Windows.Forms.CheckBox();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -265,6 +266,7 @@
             // 
             // gbConfig
             // 
+            this.gbConfig.Controls.Add(this.frmItems);
             this.gbConfig.Controls.Add(this.cbRenderGenEntity);
             this.gbConfig.Controls.Add(this.btnRelease);
             this.gbConfig.Controls.Add(this.label3);
@@ -294,6 +296,26 @@
             this.gbConfig.Size = new System.Drawing.Size(725, 269);
             this.gbConfig.TabIndex = 26;
             this.gbConfig.TabStop = false;
+            // 
+            // frmItems
+            // 
+            this.frmItems.Location = new System.Drawing.Point(540, 46);
+            this.frmItems.Name = "frmItems";
+            this.frmItems.Size = new System.Drawing.Size(99, 23);
+            this.frmItems.TabIndex = 50;
+            this.frmItems.Text = "扩展属性编辑";
+            this.frmItems.UseVisualStyleBackColor = true;
+            this.frmItems.Click += new System.EventHandler(this.frmItems_Click);
+            // 
+            // cbRenderGenEntity
+            // 
+            this.cbRenderGenEntity.AutoSize = true;
+            this.cbRenderGenEntity.Location = new System.Drawing.Point(178, 46);
+            this.cbRenderGenEntity.Name = "cbRenderGenEntity";
+            this.cbRenderGenEntity.Size = new System.Drawing.Size(108, 16);
+            this.cbRenderGenEntity.TabIndex = 49;
+            this.cbRenderGenEntity.Text = "生成泛型实体类";
+            this.cbRenderGenEntity.UseVisualStyleBackColor = true;
             // 
             // btnRelease
             // 
@@ -570,16 +592,6 @@
             this.label12.TabIndex = 34;
             this.label12.Text = "1，连接数据库，得到数据表信息";
             // 
-            // cbRenderGenEntity
-            // 
-            this.cbRenderGenEntity.AutoSize = true;
-            this.cbRenderGenEntity.Location = new System.Drawing.Point(178, 46);
-            this.cbRenderGenEntity.Name = "cbRenderGenEntity";
-            this.cbRenderGenEntity.Size = new System.Drawing.Size(108, 16);
-            this.cbRenderGenEntity.TabIndex = 49;
-            this.cbRenderGenEntity.Text = "生成泛型实体类";
-            this.cbRenderGenEntity.UseVisualStyleBackColor = true;
-            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -671,6 +683,7 @@
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Button btnExportModel;
         private System.Windows.Forms.CheckBox cbRenderGenEntity;
+        private System.Windows.Forms.Button frmItems;
 	}
 }
 
