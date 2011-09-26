@@ -483,6 +483,9 @@ namespace NewLife.CommonEntity.Web
             HttpRequest Request = HttpContext.Current.Request;
             HttpResponse Response = HttpContext.Current.Response;
 
+            // 在用Flush前用一次Session，避免可能出现的问题
+            String sessionid = HttpContext.Current.Session.SessionID;
+
             // 只处理GET，因为处理POST可能丢失提交的表单数据
             if (Request.HttpMethod != "GET") return;
 
