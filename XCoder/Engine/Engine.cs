@@ -618,11 +618,11 @@ namespace XCoder
                     (item.Key as IDataColumn).Description = ts[item.Value];
             }
         }
-        /// <summary>
-        /// ´óÐ´×ÖÄ¸·Ö´Ê
-        /// </summary>
-        /// <param name="s"></param>
-        /// <returns></returns>
+        ///// <summary>
+        ///// ´óÐ´×ÖÄ¸·Ö´Ê
+        ///// </summary>
+        ///// <param name="s"></param>
+        ///// <returns></returns>
         //public static List<string> UpperCaseSplitWord(string s)
         //{
         //    String str = s;
