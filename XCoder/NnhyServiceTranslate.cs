@@ -5,6 +5,7 @@ using System.Text;
 using NewLife.ServiceLib;
 using NewLife.Xml;
 using TextTrans = NewLife.ServiceLib.TranslateResult.TextTrans;
+using System.Web;
 
 namespace XCoder
 {

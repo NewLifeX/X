@@ -86,6 +86,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.XML" />
     <Reference Include="XTemplate, Version=1.2.3938.32236, Culture=neutral, processorArchitecture=MSIL">
@@ -133,7 +134,6 @@
     <Compile Include="FrmText.Designer.cs">
       <DependentUpon>FrmText.cs</DependentUpon>
     </Compile>
-    <Compile Include="HttpUtility.cs" />
     <Compile Include="ITranslate.cs" />
     <Compile Include="NnhyServiceTranslate.cs" />
     <Compile Include="Program.cs" />
