@@ -13,6 +13,7 @@ using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Common;
 using System.Text;
+using NewLife.IO;
 
 namespace XCode.DataAccessLayer
 {
@@ -416,7 +417,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         protected override void CreateDatabase()
         {
-            FileSource.ReleaseFile("Database.mdb", FileName, true);
+            FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "Database.mdb", FileName, true);
         }
         #endregion
 

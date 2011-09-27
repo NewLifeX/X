@@ -12,6 +12,7 @@ using System.Linq;
 using System.Collections;
 using NewLife;
 using System.Reflection;
+using NewLife.IO;
 
 namespace Test
 {
@@ -67,6 +68,8 @@ namespace Test
 
         static void Test2()
         {
+            FileSource.ReleaseFolder(typeof(DAL).Assembly, "XCode", "", false, e => { Console.WriteLine(e); return null; });
+
             IEnumerable ie = GetTest(0);
             foreach (Int32 item in ie)
             {

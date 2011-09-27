@@ -121,6 +121,7 @@
     <Compile Include="Event\WeakEventHandler.cs" />
     <Compile Include="Exceptions\XException.cs" />
     <Compile Include="Extension\TargetedPatchingOptOutAttribute.cs" />
+    <Compile Include="IO\FileSource.cs" />
     <Compile Include="IO\BinaryTest.cs" />
     <Compile Include="IOModel\StreamHttpHandler.cs" />
     <Compile Include="IOModel\IStreamHandler.cs" />
