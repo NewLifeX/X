@@ -136,7 +136,7 @@
     <Compile Include="Model\TypeResolutionService.cs" />
     <Compile Include="Reflection\CodeDomDuckTypeGenerator.cs" />
     <Compile Include="Reflection\DuckTyping.cs" />
-    <Compile Include="Reflection\EventInfoX.cs" />
+    <Compile Include="Reflection\快速反射\EventInfoX.cs" />
     <Compile Include="Reflection\OrcasNamer.cs" />
     <Compile Include="Reflection\TypeResolver.cs" />
     <Compile Include="Reflection\TypeResolverProvider.cs" />
@@ -183,7 +183,7 @@
     <Compile Include="Messaging\NullMessage.cs" />
     <Compile Include="Reflection\AssemblyX.cs" />
     <Compile Include="Reflection\AttributeX.cs" />
-    <Compile Include="Reflection\ConstructorInfoX.cs" />
+    <Compile Include="Reflection\快速反射\ConstructorInfoX.cs" />
     <Compile Include="Reflection\EmitHelper.cs" />
     <Compile Include="Reflection\FastTest.cs" />
     <Compile Include="Reflection\DynamicAssembly.cs" />
@@ -206,7 +206,7 @@
     <Compile Include="Serialization\Event\WriteObjectEventArgs.cs" />
     <Compile Include="Serialization\XSerializationException.cs" />
     <Compile Include="Threading\ReadWriteLock.cs" />
-    <Compile Include="Reflection\TypeX.cs" />
+    <Compile Include="Reflection\快速反射\TypeX.cs" />
     <Compile Include="Reflection\WeakReference.cs" />
     <Compile Include="Event\EventArgs.cs" />
     <Compile Include="InlineIL.cs" />
@@ -215,12 +215,12 @@
     <Compile Include="IO\ReadWriteMemoryStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reflection\FastIndexAccessor.cs" />
-    <Compile Include="Reflection\FieldInfoX.cs" />
+    <Compile Include="Reflection\快速反射\FieldInfoX.cs" />
     <Compile Include="Reflection\Func.cs" />
     <Compile Include="Reflection\IIndexAccessor.cs" />
-    <Compile Include="Reflection\MemberInfoX.cs" />
-    <Compile Include="Reflection\MethodInfoX.cs" />
-    <Compile Include="Reflection\PropertyInfoX.cs" />
+    <Compile Include="Reflection\快速反射\MemberInfoX.cs" />
+    <Compile Include="Reflection\快速反射\MethodInfoX.cs" />
+    <Compile Include="Reflection\快速反射\PropertyInfoX.cs" />
     <Compile Include="Security\CRC32.cs" />
     <Compile Include="Security\DataHelper.cs" />
     <Compile Include="Common\HardInfo.cs" />

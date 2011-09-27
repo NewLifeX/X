@@ -93,9 +93,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\DLL\XTemplate.dll</HintPath>
     </Reference>
-    <Reference Include="ZhongYi.Center">
-      <HintPath>..\..\..\..\Platform\trunk\生成\ZhongYi.Center.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutoUpdate.cs" />
