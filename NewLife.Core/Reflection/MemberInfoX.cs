@@ -8,9 +8,7 @@ using System.Threading;
 
 namespace NewLife.Reflection
 {
-    /// <summary>
-    /// 快速访问成员
-    /// </summary>
+    /// <summary>快速访问成员</summary>
     public abstract class MemberInfoX
     {
         #region 属性
@@ -78,6 +76,23 @@ namespace NewLife.Reflection
                 return Member != null && (Member.MemberType == MemberTypes.TypeInfo || Member.MemberType == MemberTypes.NestedType);
             }
         }
+
+        private String _DocName;
+        /// <summary>文档名</summary>
+        public String DocName
+        {
+            get
+            {
+                if (_DocName == null)
+                {
+                    _DocName = OrcasNamer.GetName(Member);
+
+                    if (_DocName == null) _DocName = "";
+                }
+                return _DocName;
+            }
+            //set { _DocName = value; }
+        }
         #endregion
 
         #region 构造
@@ -86,6 +101,40 @@ namespace NewLife.Reflection
         /// </summary>
         /// <param name="member"></param>
         protected MemberInfoX(MemberInfo member) { Member = member; }
+
+        /// <summary>
+        /// 创建
+        /// </summary>
+        /// <param name="member"></param>
+        /// <returns></returns>
+        public static MemberInfoX Create(MemberInfo member)
+        {
+            if (member == null) return null;
+
+            switch (member.MemberType)
+            {
+                case MemberTypes.All:
+                    break;
+                case MemberTypes.Constructor:
+                    return ConstructorInfoX.Create(member as ConstructorInfo);
+                case MemberTypes.Custom:
+                    break;
+                case MemberTypes.Event:
+                    break;
+                case MemberTypes.Field:
+                    return FieldInfoX.Create(member as FieldInfo);
+                case MemberTypes.Method:
+                    return MethodInfoX.Create(member as MethodInfo);
+                case MemberTypes.Property:
+                    return PropertyInfoX.Create(member as PropertyInfo);
+                case MemberTypes.TypeInfo:
+                case MemberTypes.NestedType:
+                    return TypeX.Create(member as Type);
+                default:
+                    break;
+            }
+            return null;
+        }
         #endregion
 
         #region 生成代码
@@ -351,32 +400,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static implicit operator MemberInfoX(MemberInfo obj)
         {
-            if (obj == null) return null;
-
-            switch (obj.MemberType)
-            {
-                case MemberTypes.All:
-                    break;
-                case MemberTypes.Constructor:
-                    return ConstructorInfoX.Create(obj as ConstructorInfo);
-                case MemberTypes.Custom:
-                    break;
-                case MemberTypes.Event:
-                    break;
-                case MemberTypes.Field:
-                    return FieldInfoX.Create(obj as FieldInfo);
-                case MemberTypes.Method:
-                    return MethodInfoX.Create(obj as MethodInfo);
-                case MemberTypes.NestedType:
-                    break;
-                case MemberTypes.Property:
-                    return PropertyInfoX.Create(obj as PropertyInfo);
-                case MemberTypes.TypeInfo:
-                    return TypeX.Create(obj as Type);
-                default:
-                    break;
-            }
-            return null;
+            return Create(obj);
         }
         #endregion
 

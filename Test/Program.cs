@@ -11,6 +11,7 @@ using NewLife.Reflection;
 using System.Linq;
 using System.Collections;
 using NewLife;
+using System.Reflection;
 
 namespace Test
 {
@@ -76,7 +77,23 @@ namespace Test
             Int32 n = 0;
             foreach (Type item in asm.Types)
             {
-                Console.WriteLine("{0,4} {1} {2} {3}", ++n, item.IsPublic ? " " : "P", item.IsNested ? "N" : " ", item.FullName);
+                //Console.WriteLine("{0,4} {1} {2} {3}", ++n, item.IsPublic ? " " : "P", item.IsNested ? "N" : " ", item.FullName);
+                Console.WriteLine(++n);
+                Console.WriteLine(item.FullName);
+
+                TypeX tx = TypeX.Create(item);
+                Console.WriteLine(tx.FullName);
+                Console.WriteLine(tx.DocName);
+                if (item.IsGenericType)
+                {
+                    MemberInfo[] mis = item.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+                    foreach (MemberInfo mi in mis)
+                    {
+                        //MemberInfoX mix = mi as MemberInfoX;
+                        MemberInfoX mix = MemberInfoX.Create(mi);
+                        if (mix != null) Console.WriteLine(mix.DocName);
+                    }
+                }
             }
             "".EqualIgnoreCase("");
             //EntityTest.Test();
