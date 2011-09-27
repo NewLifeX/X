@@ -45,6 +45,7 @@ namespace NewLife.Reflection
             }
         }
 
+        private String _Name;
         /// <summary>
         /// 类型名称。主要处理泛型
         /// </summary>
@@ -52,6 +53,9 @@ namespace NewLife.Reflection
         {
             get
             {
+                if (_Name != null) return _Name;
+                _Name = "";
+
                 Type type = BaseType;
                 if (type.IsGenericType)
                 {
@@ -66,10 +70,12 @@ namespace NewLife.Reflection
                         if (!ts[i].IsGenericParameter) sb.Append(TypeX.Create(ts[i]).Name);
                     }
                     sb.Append(">");
-                    return sb.ToString();
+                    _Name = sb.ToString();
                 }
                 else
-                    return type.Name;
+                    _Name = type.Name;
+
+                return _Name;
             }
         }
 
