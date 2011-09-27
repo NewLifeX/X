@@ -159,10 +159,13 @@ namespace XCode.Configuration
         /// <returns></returns>
         public override string ToString()
         {
-            if (String.IsNullOrEmpty(Description))
-                return Name;
-            else
-                return String.Format("{1}（{0}）", Name, Description);
+            //if (String.IsNullOrEmpty(Description))
+            //    return Name;
+            //else
+            //    return String.Format("{1}（{0}）", Name, Description);
+
+            // 为了保持兼容旧的_.Name等代码，必须只能返回字段名
+            return ColumnName;
         }
 
         /// <summary>
