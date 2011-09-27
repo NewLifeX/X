@@ -196,7 +196,6 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <EmbeddedResource Include="Template\实体\对象操作.xt" />
-    <None Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
