@@ -120,7 +120,7 @@ namespace NewLife.Reflection
                 case MemberTypes.Custom:
                     break;
                 case MemberTypes.Event:
-                    break;
+                    return EventInfoX.Create(member as EventInfo);
                 case MemberTypes.Field:
                     return FieldInfoX.Create(member as FieldInfo);
                 case MemberTypes.Method:

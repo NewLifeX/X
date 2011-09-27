@@ -136,6 +136,7 @@
     <Compile Include="Model\TypeResolutionService.cs" />
     <Compile Include="Reflection\CodeDomDuckTypeGenerator.cs" />
     <Compile Include="Reflection\DuckTyping.cs" />
+    <Compile Include="Reflection\EventInfoX.cs" />
     <Compile Include="Reflection\OrcasNamer.cs" />
     <Compile Include="Reflection\TypeResolver.cs" />
     <Compile Include="Reflection\TypeResolverProvider.cs" />
