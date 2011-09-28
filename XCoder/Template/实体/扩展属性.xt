@@ -14,10 +14,22 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 		String className = rtable.Alias;
         String keyName=className;
 
-        if(!dr.Unique)
+		Boolean b=dr.Unique;
+		// 如果是唯一的，应该判断对方的唯一性，如果对方也是唯一，那么就构成一对一
+		if(b&&rtable.Relations!=null)
+		{
+			foreach(IDataRelation dr2 in rtable.Relations)
+			{
+				if(dr2.Column==dr.RelationColumn && dr2.RelationTable==Table.Name && dr2.RelationColumn==dr.Column)
+				{
+					if(dr2.Unique) b=false;
+				}
+			}
+		}
+
+        if(!b)
         {
 #>
-
         [NonSerialized]
 		private <#=className#> _<#=keyName#>;
 		/// <summary>该<#=Table.Description#>所对应的<#=rtable.Description#></summary>
@@ -38,12 +50,12 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 				return _<#=keyName#>;
 			}
 			set { _<#=keyName#> = value; }
-		}<#
+		}
+<#
         }else
         {
             keyName+="s";
 #>
-
         [NonSerialized]
 		private EntityList<<#=className#>> _<#=keyName#>;
 		/// <summary>该<#=Table.Description#>所拥有的<#=rtable.Description#>集合</summary>
@@ -64,7 +76,8 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 				return _<#=keyName#>;
 			}
 			set { _<#=keyName#> = value; }
-		}<#
+		}
+<#
         }
 	}
 }

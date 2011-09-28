@@ -92,7 +92,6 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
                 sb5.Append(Field.Alias);
         }
 #>
-
         /// <summary>
         /// 根据<#=sb5#>查找
         /// </summary><#
@@ -116,7 +115,8 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
                 return Meta.Cache.Entities.<#=action#>(_.<#=pname#>, <#=Args[0]#>);<#if(di.Unique){#>
             // 单对象缓存
             //return Meta.SingleCache[<#=Args[0]#>];<#}}#>
-        }<#
+        }
+<#
     }
 }
 #>

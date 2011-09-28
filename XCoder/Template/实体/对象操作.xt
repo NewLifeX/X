@@ -38,7 +38,8 @@
 <#
 if(Table.Relations!=null && Table.Relations.Count>0)
 {
-	StringBuilder sb=new StringBuilder();
+	// 是否有一对多和一对一的扩展属性，如果有，删除
+	Boolean hasMutil=false;
 	foreach(IDataRelation dr in Table.Relations)
 	{
 		if(!dr.Unique) continue;
@@ -46,10 +47,10 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 		IDataTable rtable = FindTable(dr.RelationTable);
 		if (rtable == null) continue;
 
-		sb.AppendFormat("if ({0}s != null) {0}s.Delete();", rtable.Alias);
-		sb.AppendLine();
+		hasMutil=true;
+		break;
 	}
-	if(sb.Length>0)
+	if(hasMutil)
 	{
 #>
         /// <summary>
@@ -57,8 +58,33 @@ if(Table.Relations!=null && Table.Relations.Count>0)
         /// </summary>
         /// <returns></returns>
         protected override int OnDelete()
-        {
-			<#=sb#>
+        {<#	
+	foreach(IDataRelation dr in Table.Relations)
+	{
+		if(!dr.Unique) continue;
+
+		IDataTable rtable = FindTable(dr.RelationTable);
+		if (rtable == null) continue;
+
+		Boolean b=dr.Unique;
+		// 如果是唯一的，应该判断对方的唯一性，如果对方也是唯一，那么就构成一对一
+		if(b&&rtable.Relations!=null)
+		{
+			foreach(IDataRelation dr2 in rtable.Relations)
+			{
+				if(dr2.Column==dr.RelationColumn && dr2.RelationTable==Table.Name && dr2.RelationColumn==dr.Column)
+				{
+					if(dr2.Unique) b=false;
+				}
+			}
+		}
+		String proName=rtable.Alias;
+		if(b) proName+="s";
+		#>
+			if (<#=proName#> != null) <#=proName#>.Delete();<#
+	}
+#>
+
             return base.OnDelete();
         }<#
 	}
