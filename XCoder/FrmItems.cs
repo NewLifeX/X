@@ -7,7 +7,6 @@ using System.Text;
 using System.Windows.Forms;
 using XCoder;
 using XCode.Test;
-using ZhongYi.Center;
 using XCode.DataAccessLayer;
 using NewLife.Threading;
 
