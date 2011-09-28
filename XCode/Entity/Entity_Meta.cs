@@ -482,10 +482,13 @@ namespace XCode
                 }
             }
 
+            /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
+            public static Int32 Count { get { return (Int32)LongCount; } }
+
             /// <summary>总记录数较小时，使用静态字段，较大时增加使用Cache</summary>
             private static Int64? _Count;
             /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
-            public static Int64 Count
+            public static Int64 LongCount
             {
                 get
                 {
