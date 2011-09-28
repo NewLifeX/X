@@ -140,6 +140,10 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         public static void Fix(IDataTable table)
         {
+            #region 给所有单字段索引建立关系
+            //TODO 给所有单字段索引建立关系，特别是一对一关系
+            #endregion
+
             #region 给所有关系字段建立索引
             foreach (IDataRelation dr in table.Relations)
             {
