@@ -10,14 +10,13 @@ namespace <#=Config.NameSpace#>
 {<#if(Config.RenderGenEntity){#>
     /// <summary><#=Table.Description#></summary>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class <#=Table.Alias#> : <#=Table.Alias#><<#=Table.Alias#>> { }
-<#}#>
-    /// <summary><#=Table.Description#></summary><#
-if(!Config.RenderGenEntity){#>
-    public partial class <#=Table.Alias#> : <#=Config.BaseClass#><<#=Table.Alias#>><#
-    }else{#>
-    public partial class <#=Table.Alias#><TEntity> : <#=Config.BaseClass#><TEntity> where TEntity : <#=Table.Alias#><TEntity>, new()<#
-    }#>
+    public class <#=Table.Alias#> : <#=Table.Alias#><<#=Table.Alias#>> { }<#}#>
+    /// <summary><#=Table.Description#></summary>
+ <#if(!Config.RenderGenEntity)
+{#>
+    public partial class <#=Table.Alias#> : <#=Config.BaseClass#><<#=Table.Alias#>><#}
+    else{#>
+    public partial class <#=Table.Alias#><TEntity> : <#=Config.BaseClass#><TEntity> where TEntity : <#=Table.Alias#><TEntity>, new()<#}#>
     {
         #region 扩展属性<#@include Name="扩展属性.xt"#>        #endregion
 
