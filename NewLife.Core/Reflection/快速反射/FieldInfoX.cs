@@ -197,32 +197,11 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public override Object GetValue(Object obj)
         {
+            // 在编译时写入并且不能更改的字段，不能快速反射，主要因为取不到FieldHandle。枚举中的静态字段。
+            if (Field.IsLiteral) return Field.GetValue(obj);
+
             return GetHandler.Invoke(obj);
         }
-
-        //DynamicMethod _GetMethod;
-        ///// <summary>
-        ///// 快速调用委托，延迟到首次使用才创建
-        ///// </summary>
-        //DynamicMethod GetMethod2
-        //{
-        //    get
-        //    {
-        //        if (_GetMethod == null) _GetMethod = GetValueInvoker2(Field);
-
-        //        return _GetMethod;
-        //    }
-        //}
-
-        ///// <summary>
-        ///// 取值
-        ///// </summary>
-        ///// <param name="obj"></param>
-        ///// <returns></returns>
-        //public Object GetValue2(Object obj)
-        //{
-        //    return GetMethod2.Invoke(null, new Object[] { obj });
-        //}
 
         /// <summary>
         /// 赋值
