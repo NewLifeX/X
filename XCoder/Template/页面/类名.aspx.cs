@@ -4,6 +4,7 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
+using System.Xml.Serialization;
 using <#=Config.NameSpace#>;
 
 public partial class Pages_<#=Table.Alias#> : PageBase
