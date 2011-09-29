@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace XCode.DataAccessLayer
 {
@@ -31,7 +29,8 @@ namespace XCode.DataAccessLayer
         Type DataType { get; set; }
 
         /// <summary>
-        /// 原始数据类型
+        /// 原始数据类型。
+        /// 当且仅当目标数据库同为该数据库类型时，采用实体属性信息上的RawType作为反向工程的目标字段类型，以期获得开发和生产的最佳兼容。
         /// </summary>
         String RawType { get; set; }
 

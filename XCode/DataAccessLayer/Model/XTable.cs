@@ -82,7 +82,7 @@ namespace XCode.DataAccessLayer
         #region 扩展属性
         private List<IDataColumn> _Columns;
         /// <summary>
-        /// 字段集合。
+        /// 字段集合。可以是空集合，但不能为null。
         /// </summary>
         [XmlArray("Columns")]
         [Category("集合")]
@@ -92,7 +92,7 @@ namespace XCode.DataAccessLayer
 
         private List<IDataRelation> _Relations;
         /// <summary>
-        /// 关系集合。
+        /// 关系集合。可以是空集合，但不能为null。
         /// </summary>
         [XmlArray]
         [Category("集合")]
@@ -102,7 +102,7 @@ namespace XCode.DataAccessLayer
 
         private List<IDataIndex> _Indexes;
         /// <summary>
-        /// 索引集合。
+        /// 索引集合。可以是空集合，但不能为null。
         /// </summary>
         [XmlArray]
         [Category("集合")]
@@ -110,15 +110,16 @@ namespace XCode.DataAccessLayer
         [Description("索引集合")]
         public List<IDataIndex> Indexes { get { return _Indexes ?? (_Indexes = new List<IDataIndex>()); } }
 
-        //private IDataColumn[] _PrimaryKeys;
-        /// <summary>主键集合</summary>
+        /// <summary>主键集合。可以是空集合，但不能为null。</summary>
         [XmlIgnore]
         public IDataColumn[] PrimaryKeys
         {
             get
             {
-                List<IDataColumn> list = Columns.FindAll(item => item.PrimaryKey);
-                return list == null || list.Count < 1 ? null : list.ToArray();
+                //List<IDataColumn> list = Columns.FindAll(item => item.PrimaryKey);
+                //return list == null || list.Count < 1 ? new IDataColumn[0] : list.ToArray();
+
+                return Columns.FindAll(item => item.PrimaryKey).ToArray();
             }
         }
         #endregion
@@ -218,9 +219,6 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region 静态方法
-        #endregion
-
         #region 导入导出
         /// <summary>
         /// 导出
@@ -270,16 +268,22 @@ namespace XCode.DataAccessLayer
         public XTable Clone()
         {
             XTable table = base.MemberwiseClone() as XTable;
-            //if (table != null)
-            //{
-            //    if (Columns != null)
-            //    {
-            //        foreach (IDataColumn item in Columns)
-            //        {
-            //            table.Columns.Add(item.Clone(table));
-            //        }
-            //    }
-            //}
+            // 浅表克隆后，集合还是指向旧的
+            table._Columns = null;
+            foreach (IDataColumn item in Columns)
+            {
+                table.Columns.Add(item.Clone(table));
+            }
+            table._Relations = null;
+            foreach (IDataRelation item in Relations)
+            {
+                table.Relations.Add(item.Clone(table));
+            }
+            table._Indexes = null;
+            foreach (IDataIndex item in Indexes)
+            {
+                table.Indexes.Add(item.Clone(table));
+            }
             return table;
         }
         #endregion

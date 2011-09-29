@@ -138,7 +138,7 @@
     <Compile Include="DataAccessLayer\Common\IDatabase.cs" />
     <Compile Include="DataAccessLayer\MetaData\DbMetaData_Negative.cs" />
     <Compile Include="DataAccessLayer\MetaData\DbMetaData_Positive.cs" />
-    <Compile Include="DataAccessLayer\ModelHelper.cs" />
+    <Compile Include="DataAccessLayer\Model\ModelHelper.cs" />
     <Compile Include="DataAccessLayer\Model\IDataColumn.cs" />
     <Compile Include="DataAccessLayer\Model\IDataRelation.cs" />
     <Compile Include="DataAccessLayer\Model\IDataIndex.cs" />

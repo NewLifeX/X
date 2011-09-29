@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.0.*")]
-[assembly: AssemblyFileVersion("8.0.2011.0917")]
+[assembly: AssemblyFileVersion("8.0.2011.0929")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.0.2011.0929   修正IDataTable.Fix中对一对一关系处理的不足
+ *                  修改Entity，根据唯一索引查询单对象时不加分页和排序，这使得在SQLite上特别是MySql上有性能提升
+ * 
  * v8.0.2011.0917   给索引和关系模型增加Computed属性，标识是计算出来还是数据库内置的
  * 
  * v8.0.2011.0912   重构反向工程，废除DatabaseSchema类（旧版本的反向工程核心），将其功能合理分配到各个地方，兼容各种数据库在反向时的差异

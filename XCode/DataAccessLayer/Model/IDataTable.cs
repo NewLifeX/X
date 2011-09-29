@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace XCode.DataAccessLayer
 {
@@ -21,7 +20,7 @@ namespace XCode.DataAccessLayer
         String Name { get; set; }
 
         /// <summary>
-        /// 别名
+        /// 别名。实际上用作类名。
         /// </summary>
         String Alias { get; set; }
 
@@ -31,7 +30,8 @@ namespace XCode.DataAccessLayer
         String Owner { get; set; }
 
         /// <summary>
-        /// 数据库类型
+        /// 数据库类型。
+        /// 仅用于记录实体类由何种类型数据库生成，当且仅当目标数据库同为该数据库类型时，采用实体属性信息上的RawType作为反向工程的目标字段类型，以期获得开发和生产的最佳兼容。
         /// </summary>
         DatabaseType DbType { get; set; }
 
@@ -47,16 +47,16 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 扩展属性
-        /// <summary>数据列集合</summary>
+        /// <summary>数据列集合。可以是空集合，但不能为null。</summary>
         List<IDataColumn> Columns { get; }
 
-        /// <summary>数据关系集合</summary>
+        /// <summary>数据关系集合。可以是空集合，但不能为null。</summary>
         List<IDataRelation> Relations { get; }
 
-        /// <summary>数据索引集合</summary>
+        /// <summary>数据索引集合。可以是空集合，但不能为null。</summary>
         List<IDataIndex> Indexes { get; }
 
-        /// <summary>主键集合</summary>
+        /// <summary>主键集合。可以是空集合，但不能为null。</summary>
         IDataColumn[] PrimaryKeys { get; }
         #endregion
 

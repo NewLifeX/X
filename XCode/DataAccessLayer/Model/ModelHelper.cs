@@ -1,24 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.CodeDom.Compiler;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CSharp;
 using Microsoft.VisualBasic;
+using NewLife;
 
 namespace XCode.DataAccessLayer
 {
     /// <summary>
-    /// 模块助手
+    /// 数据模型扩展。
     /// </summary>
     public static class ModelHelper
     {
+        #region 模型扩展方法
         /// <summary>
         /// 根据字段名获取字段
         /// </summary>
         /// <param name="table"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static IDataColumn GetColumn(IDataTable table, String name)
+        public static IDataColumn GetColumn(this IDataTable table, String name)
         {
             if (String.IsNullOrEmpty(name)) return null;
 
@@ -40,7 +42,7 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         /// <param name="names"></param>
         /// <returns></returns>
-        public static IDataColumn[] GetColumns(IDataTable table, String[] names)
+        public static IDataColumn[] GetColumns(this IDataTable table, String[] names)
         {
             if (names == null || names.Length < 1) return null;
 
@@ -56,33 +58,156 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>
-        /// 连接两个表，实际上是猜测它们之间的关系
+        /// 根据字段名找索引
         /// </summary>
-        /// <param name="table1"></param>
-        /// <param name="table2"></param>
-        public static void Connect(IDataTable table1, IDataTable table2)
+        /// <param name="table"></param>
+        /// <param name="columnNames"></param>
+        /// <returns></returns>
+        public static IDataIndex GetIndex(this IDataTable table, params String[] columnNames)
         {
-            foreach (IDataColumn dc in table1.Columns)
+            if (table == null || table.Indexes == null || table.Indexes.Count < 1) return null;
+
+            //foreach (IDataIndex item in table.Indexes)
+            //{
+            //    if (item.Columns == null || item.Columns.Length < 1) continue;
+
+            //    if (CompareStringArray(item.Columns, columnNames)) return item;
+            //}
+
+            IDataIndex di = table.Indexes.FirstOrDefault(e => e.Columns != null && e.Columns.Length > 0 && CompareStringArray(e.Columns, columnNames));
+            if (di != null) return di;
+
+            // 用别名再试一次
+            IDataColumn[] columns = table.GetColumns(columnNames);
+            if (columns == null || columns.Length < 1) return null;
+            columnNames = columns.Select(e => e.Alias).ToArray();
+            di = table.Indexes.FirstOrDefault(e => e.Columns != null && e.Columns.Length > 0 && CompareStringArray(e.Columns, columnNames));
+            if (di != null) return di;
+
+            return null;
+        }
+
+        private static Boolean CompareStringArray(String[] arr1, String[] arr2)
+        {
+            arr1 = prepare(arr1);
+            arr2 = prepare(arr2);
+            if (arr1 == arr2) return true;
+            if (arr1.Length != arr2.Length) return false;
+
+            for (int i = 0; i < arr1.Length; i++)
+            {
+                if (arr1[i] != arr2[i]) return false;
+            }
+
+            //for (int i = 0; i < arr1.Length; i++)
+            //{
+            //    Boolean b = false;
+            //    for (int j = 0; j < arr2.Length; j++)
+            //    {
+            //        if (String.Equals(arr1[i], arr2[j], StringComparison.OrdinalIgnoreCase))
+            //        {
+            //            b = true;
+            //            // 清空该项，不再跟后续项匹配
+            //            arr2[j] = null;
+            //            break;
+            //        }
+            //    }
+            //    // 只要有一个找不到对应项，就是不存在
+            //    if (!b) return false;
+            //}
+
+            return true;
+        }
+
+        private static String[] prepare(String[] arr)
+        {
+            if (arr == null || arr.Length < 1) return null;
+
+            List<String> list = new List<string>();
+            for (int i = 0; i < arr.Length; i++)
+            {
+                String item = arr[i] == null ? "" : arr[i].ToLower();
+                if (!list.Contains(item)) list.Add(item);
+            }
+            return list.ToArray();
+        }
+
+        /// <summary>
+        /// 根据字段从指定表中查找关系
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="columnName"></param>
+        /// <returns></returns>
+        public static IDataRelation GetRelation(this IDataTable table, String columnName)
+        {
+            //return table.Relations.FirstOrDefault(e => e.Column.EqualIgnoreCase(columnName));
+            foreach (IDataRelation item in table.Relations)
+            {
+                if (String.Equals(item.Column, columnName, StringComparison.OrdinalIgnoreCase)) return item;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 根据字段、关联表、关联字段从指定表中查找关系
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="dr"></param>
+        /// <returns></returns>
+        public static IDataRelation GetRelation(this IDataTable table, IDataRelation dr)
+        {
+            return table.GetRelation(dr.Column, dr.RelationTable, dr.RelationColumn);
+        }
+
+        /// <summary>
+        /// 根据字段、关联表、关联字段从指定表中查找关系
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="columnName"></param>
+        /// <param name="rtableName"></param>
+        /// <param name="rcolumnName"></param>
+        /// <returns></returns>
+        public static IDataRelation GetRelation(this IDataTable table, String columnName, String rtableName, String rcolumnName)
+        {
+            foreach (IDataRelation item in table.Relations)
+            {
+                if (item.Column == columnName && item.RelationTable == rtableName && item.RelationColumn == rcolumnName) return item;
+            }
+
+            return null;
+        }
+        #endregion
+
+        #region 模型扩展业务方法
+        /// <summary>
+        /// 连接两个表，实际上是猜测它们之间的关系，根据一个字段名是否等于另一个表的表名加某个字段名来判断是否存在关系。
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="rtable"></param>
+        public static void Connect(this IDataTable table, IDataTable rtable)
+        {
+            foreach (IDataColumn dc in table.Columns)
             {
                 if (dc.PrimaryKey || dc.Identity) continue;
 
-                if (FindRelation(table1, table2, table2.Name, dc, dc.Name) != null) continue;
+                if (FindRelation(table, rtable, rtable.Name, dc, dc.Name) != null) continue;
                 if (!String.Equals(dc.Alias, dc.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (FindRelation(table1, table2, table2.Name, dc, dc.Alias) != null) continue;
+                    if (FindRelation(table, rtable, rtable.Name, dc, dc.Alias) != null) continue;
                 }
 
-                if (String.Equals(table2.Alias, table2.Name, StringComparison.OrdinalIgnoreCase)) continue;
+                if (String.Equals(rtable.Alias, rtable.Name, StringComparison.OrdinalIgnoreCase)) continue;
                 // 如果表2的别名和名称不同，还要继续
-                if (FindRelation(table1, table2, table2.Alias, dc, dc.Name) != null) continue;
+                if (FindRelation(table, rtable, rtable.Alias, dc, dc.Name) != null) continue;
                 if (!String.Equals(dc.Alias, dc.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (FindRelation(table1, table2, table2.Alias, dc, dc.Alias) != null) continue;
+                    if (FindRelation(table, rtable, rtable.Alias, dc, dc.Alias) != null) continue;
                 }
             }
         }
 
-        static IDataRelation FindRelation(IDataTable table1, IDataTable rtable, String rname, IDataColumn column, String name)
+        static IDataRelation FindRelation(IDataTable table, IDataTable rtable, String rname, IDataColumn column, String name)
         {
             if (name.Length <= rtable.Name.Length || !name.StartsWith(rtable.Name, StringComparison.OrdinalIgnoreCase)) return null;
 
@@ -91,7 +216,7 @@ namespace XCode.DataAccessLayer
             if (dc == null) return null;
 
             // 建立关系
-            IDataRelation dr = table1.CreateRelation();
+            IDataRelation dr = table.CreateRelation();
             dr.Column = column.Name;
             dr.RelationTable = rtable.Name;
             dr.RelationColumn = dc.Name;
@@ -102,21 +227,23 @@ namespace XCode.DataAccessLayer
                 dr.Unique = true;
             else
             {
-                IDataIndex di = GetIndex(table1, column.Name);
+                IDataIndex di = GetIndex(table, column.Name);
                 if (di != null && di.Unique) dr.Unique = true;
             }
 
             dr.Computed = true;
-            table1.Relations.Add(dr);
+            table.Relations.Add(dr);
 
             // 给另一方建立关系
-            foreach (IDataRelation item in rtable.Relations)
-            {
-                if (item.Column == dc.Name && item.RelationTable == table1.Name && item.RelationColumn == column.Name) return dr;
-            }
+            //foreach (IDataRelation item in rtable.Relations)
+            //{
+            //    if (item.Column == dc.Name && item.RelationTable == table.Name && item.RelationColumn == column.Name) return dr;
+            //}
+            if (rtable.GetRelation(dc.Name, table.Name, column.Name) != null) return dr;
+
             dr = rtable.CreateRelation();
             dr.Column = dc.Name;
-            dr.RelationTable = table1.Name;
+            dr.RelationTable = table.Name;
             dr.RelationColumn = column.Name;
             // 那么这里就是唯一的啦
             dr.Unique = true;
@@ -138,10 +265,21 @@ namespace XCode.DataAccessLayer
         /// 修正数据
         /// </summary>
         /// <param name="table"></param>
-        public static void Fix(IDataTable table)
+        public static void Fix(this IDataTable table)
         {
-            #region 给所有单字段索引建立关系
+            #region 根据单字段索引修正对应的关系
             //TODO 给所有单字段索引建立关系，特别是一对一关系
+            foreach (IDataIndex item in table.Indexes)
+            {
+                if (item.Columns == null || item.Columns.Length != 1) continue;
+
+                IDataRelation dr = table.GetRelation(item.Columns[0]);
+                if (dr == null) continue;
+
+                dr.Unique = item.Unique;
+                // 跟关系有关联的索引
+                dr.Computed = item.Computed;
+            }
             #endregion
 
             #region 给所有关系字段建立索引
@@ -151,16 +289,7 @@ namespace XCode.DataAccessLayer
                 IDataColumn dc = table.GetColumn(dr.Column);
                 if (dc == null || dc.PrimaryKey) continue;
 
-                //Boolean hasIndex = false;
-                //foreach (IDataIndex item in table.Indexes)
-                //{
-                //    if (item.Columns != null && item.Columns.Length == 1 && String.Equals(item.Columns[0], dr.Column, StringComparison.OrdinalIgnoreCase))
-                //    {
-                //        hasIndex = true;
-                //        break;
-                //    }
-                //}
-                if (GetIndex(table, dr.Column) == null)
+                if (table.GetIndex(dr.Column) == null)
                 {
                     IDataIndex di = table.CreateIndex();
                     di.Columns = new String[] { dr.Column };
@@ -253,71 +382,7 @@ namespace XCode.DataAccessLayer
             }
             #endregion
         }
-
-        /// <summary>
-        /// 根据字段名找索引
-        /// </summary>
-        /// <param name="table"></param>
-        /// <param name="columnNames"></param>
-        /// <returns></returns>
-        public static IDataIndex GetIndex(IDataTable table, params String[] columnNames)
-        {
-            if (table == null || table.Indexes == null || table.Indexes.Count < 1) return null;
-
-            foreach (IDataIndex item in table.Indexes)
-            {
-                if (item.Columns == null || item.Columns.Length < 1) continue;
-
-                if (CompareStringArray(item.Columns, columnNames)) return item;
-            }
-
-            return null;
-        }
-
-        private static Boolean CompareStringArray(String[] arr1, String[] arr2)
-        {
-            arr1 = prepare(arr1);
-            arr2 = prepare(arr2);
-            if (arr1 == arr2) return true;
-            if (arr1.Length != arr2.Length) return false;
-
-            for (int i = 0; i < arr1.Length; i++)
-            {
-                if (arr1[i] != arr2[i]) return false;
-            }
-
-            //for (int i = 0; i < arr1.Length; i++)
-            //{
-            //    Boolean b = false;
-            //    for (int j = 0; j < arr2.Length; j++)
-            //    {
-            //        if (String.Equals(arr1[i], arr2[j], StringComparison.OrdinalIgnoreCase))
-            //        {
-            //            b = true;
-            //            // 清空该项，不再跟后续项匹配
-            //            arr2[j] = null;
-            //            break;
-            //        }
-            //    }
-            //    // 只要有一个找不到对应项，就是不存在
-            //    if (!b) return false;
-            //}
-
-            return true;
-        }
-
-        private static String[] prepare(String[] arr)
-        {
-            if (arr == null || arr.Length < 1) return null;
-
-            List<String> list = new List<string>();
-            for (int i = 0; i < arr.Length; i++)
-            {
-                String item = arr[i] == null ? "" : arr[i].ToLower();
-                if (!list.Contains(item)) list.Add(item);
-            }
-            return list.ToArray();
-        }
+        #endregion
 
         #region 辅助
         /// <summary>

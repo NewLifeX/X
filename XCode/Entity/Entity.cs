@@ -14,6 +14,7 @@ using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
 using XCode.Model;
+using System.Diagnostics;
 
 namespace XCode
 {
@@ -49,7 +50,7 @@ namespace XCode
         }
 
         /// <summary>
-        /// 创建实体
+        /// 创建实体。可以重写改方法以实现实体对象的一些初始化工作。
         /// </summary>
         /// <returns></returns>
         protected virtual TEntity CreateInstance()
@@ -65,24 +66,24 @@ namespace XCode
         //private static IDataRowEntityAccessor dreAccessor = new DataRowEntityAccessor(Meta.ThisType);
 
         /// <summary>
-        /// 加载记录集
+        /// 加载记录集。无数据时返回空集合而不是null。
         /// </summary>
         /// <param name="ds">记录集</param>
         /// <returns>实体数组</returns>
         public static EntityList<TEntity> LoadData(DataSet ds)
         {
-            if (ds == null || ds.Tables.Count < 1 || ds.Tables[0].Rows.Count < 1) return null;
+            //if (ds == null || ds.Tables.Count < 1 || ds.Tables[0].Rows.Count < 1) return null;
             return LoadData(ds.Tables[0]);
         }
 
         /// <summary>
-        /// 加载数据表
+        /// 加载数据表。无数据时返回空集合而不是null。
         /// </summary>
         /// <param name="dt">数据表</param>
         /// <returns>实体数组</returns>
         public static EntityList<TEntity> LoadData(DataTable dt)
         {
-            if (dt == null || dt.Rows.Count < 1) return null;
+            //if (dt == null || dt.Rows.Count < 1) return null;
 
             IEntityList list = dreAccessor.LoadData(dt);
             if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
@@ -102,13 +103,13 @@ namespace XCode
         }
 
         /// <summary>
-        /// 加载数据读写器
+        /// 加载数据读写器。无数据时返回空集合而不是null。
         /// </summary>
         /// <param name="dr">数据读写器</param>
         /// <returns>实体数组</returns>
         public static EntityList<TEntity> LoadData(IDataReader dr)
         {
-            if (dr == null) return null;
+            //if (dr == null) return null;
 
             IEntityList list = dreAccessor.LoadData(dr);
             if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
@@ -405,6 +406,7 @@ namespace XCode
         /// <returns></returns>
         public static TEntity Find(String[] names, Object[] values)
         {
+            // 判断自增和主键
             if (names.Length == 1)
             {
                 FieldItem field = Meta.Table.FindByName(names[0]);
@@ -414,19 +416,47 @@ namespace XCode
                     if (Helper.IsNullKey(values[0])) return null;
 
                     // 自增或者主键查询，记录集肯定是唯一的，不需要指定记录数和排序
-                    //IList<TEntity> list = FindAll(MakeCondition(field, values[0], "="), null, null, 0, 0);
-                    SelectBuilder builder = new SelectBuilder();
-                    builder.Table = Meta.FormatName(Meta.TableName);
-                    builder.Where = MakeCondition(field, values[0], "=");
-                    IList<TEntity> list = FindAll(builder.ToString());
-                    if (list == null || list.Count < 1)
-                        return null;
-                    else
-                        return list[0];
+                    //SelectBuilder builder = new SelectBuilder();
+                    //builder.Table = Meta.FormatName(Meta.TableName);
+                    //builder.Where = MakeCondition(field, values[0], "=");
+                    //IList<TEntity> list = FindAll(builder.ToString());
+                    //if (list == null || list.Count < 1)
+                    //    return null;
+                    //else
+                    //    return list[0];
+
+                    return FindUnique(MakeCondition(field, values[0], "="));
                 }
             }
 
+            // 判断唯一索引，唯一索引也不需要分页
+            IDataIndex di = Meta.Table.DataTable.GetIndex(names);
+            if (di != null && di.Unique) return FindUnique(MakeCondition(names, values, "And"));
+
             return Find(MakeCondition(names, values, "And"));
+        }
+
+        /// <summary>
+        /// 根据条件查找唯一的单个实体，因为是唯一的，所以不需要分页和排序。
+        /// 如果不确定是否唯一，一定不要调用该方法，否则会返回大量的数据。
+        /// </summary>
+        /// <param name="whereClause">查询条件</param>
+        /// <returns></returns>
+        static TEntity FindUnique(String whereClause)
+        {
+            SelectBuilder builder = new SelectBuilder();
+            builder.Table = Meta.FormatName(Meta.TableName);
+            // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
+            builder.Where = whereClause;
+            IList<TEntity> list = LoadData(Meta.Query(builder.ToString()));
+            if (list == null || list.Count < 1) return null;
+
+            if (list.Count > 1 && DAL.Debug)
+            {
+                DAL.WriteDebugLog("调用FindUnique(\"{0}\")不合理，只有返回唯一记录的查询条件才允许调用！", whereClause);
+                NewLife.Log.XTrace.DebugStack(5);
+            }
+            return list[0];
         }
 
         /// <summary>
@@ -543,7 +573,7 @@ namespace XCode
             // 如下优化，避免了每次都调用Meta.Count而导致形成一次查询，虽然这次查询时间损耗不大
             // 但是绝大多数查询，都不需要进行类似的海量数据优化，显然，这个startRowIndex将会挡住99%以上的浪费
             Int64 count = 0;
-            if (startRowIndex > 500000 && (count = Meta.Count) > 1000000)
+            if (startRowIndex > 500000 && (count = Meta.LongCount) > 1000000)
             {
                 // 计算本次查询的结果行数
                 if (!String.IsNullOrEmpty(whereClause)) count = FindCount(whereClause, orderClause, selects, startRowIndex, maximumRows);
@@ -607,7 +637,7 @@ namespace XCode
 
                         String sql2 = PageSplitSQL(whereClause, order, selects, start, max);
                         EntityList<TEntity> list = LoadData(Meta.Query(sql2));
-                        if (list == null || list.Count < 1) return null;
+                        if (list == null || list.Count < 1) return list;
                         // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
                         list.Reverse();
                         return list;
@@ -675,7 +705,7 @@ namespace XCode
             if (field != null && (field.IsIdentity || field.PrimaryKey))
             {
                 // 唯一键为自增且参数小于等于0时，返回空
-                if (Helper.IsNullKey(value)) return null;
+                if (Helper.IsNullKey(value)) return new EntityList<TEntity>();
 
                 // 自增或者主键查询，记录集肯定是唯一的，不需要指定记录数和排序
                 //return FindAll(MakeCondition(field, value, "="), null, null, 0, 0);
@@ -1052,7 +1082,7 @@ namespace XCode
         }
         #endregion
 
-        #region 辅助方法
+        #region 构造SQL语句
         /// <summary>
         /// 把SQL模版格式化为SQL语句
         /// </summary>

@@ -11,7 +11,7 @@ namespace XCode
     public interface IDataRowEntityAccessor
     {
         /// <summary>
-        /// 加载数据表
+        /// 加载数据表。无数据时返回空集合而不是null。
         /// </summary>
         /// <param name="dt">数据表</param>
         /// <returns>实体数组</returns>
@@ -25,7 +25,7 @@ namespace XCode
         void LoadData(DataRow dr, IEntity entity);
 
         /// <summary>
-        /// 从数据读写器加载数据
+        /// 从数据读写器加载数据。无数据时返回空集合而不是null。
         /// </summary>
         /// <param name="dr">数据读写器</param>
         /// <returns>实体数组</returns>
@@ -89,17 +89,18 @@ namespace XCode
 
         #region 存取
         /// <summary>
-        /// 加载数据表
+        /// 加载数据表。无数据时返回空集合而不是null。
         /// </summary>
         /// <param name="dt">数据表</param>
         /// <returns>实体数组</returns>
         public IEntityList LoadData(DataTable dt)
         {
-            if (dt == null || dt.Rows.Count < 1) return null;
+            //if (dt == null || dt.Rows.Count < 1) return null;
 
             // 准备好实体列表
             //EntityList<TEntity> list = new EntityList<TEntity>(dt.Rows.Count);
             IEntityList list = TypeX.CreateInstance(typeof(EntityList<>).MakeGenericType(EntityType), dt.Rows.Count) as IEntityList;
+            if (dt == null || dt.Rows.Count < 1) return list;
 
             List<FieldItem> ps = new List<FieldItem>();
             List<String> exts = new List<String>();
@@ -150,19 +151,24 @@ namespace XCode
         }
 
         /// <summary>
-        /// 从数据读写器加载数据
+        /// 从数据读写器加载数据。无数据时返回空集合而不是null。
         /// </summary>
         /// <param name="dr">数据读写器</param>
         /// <returns>实体数组</returns>
         public IEntityList LoadData(IDataReader dr)
         {
-            if (dr == null) return null;
+            //if (dr == null) return null;
 
-            // 先移到第一行，要取字段名等信息
-            if (!dr.Read()) return null;
+            //// 先移到第一行，要取字段名等信息
+            //if (!dr.Read()) return null;
 
             // 准备好实体列表
             IEntityList list = TypeX.CreateInstance(typeof(EntityList<>).MakeGenericType(EntityType)) as IEntityList;
+
+            if (dr == null) return list;
+
+            // 先移到第一行，要取字段名等信息
+            if (!dr.Read()) return list;
 
             List<FieldItem> ps = new List<FieldItem>();
             List<String> exts = new List<String>();

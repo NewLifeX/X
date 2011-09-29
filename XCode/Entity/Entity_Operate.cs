@@ -53,7 +53,7 @@ namespace XCode
             public ISingleEntityCache SingleCache { get { return Meta.SingleCache; } }
 
             /// <summary>总记录数</summary>
-            public Int64 Count { get { return Meta.Count; } }
+            public Int32 Count { get { return Meta.Count; } }
             #endregion
 
             #region 创建实体
@@ -81,7 +81,7 @@ namespace XCode
             /// <returns></returns>
             EntityList<IEntity> ToList(ICollection collection)
             {
-                if (collection == null || collection.Count < 1) return null;
+                if (collection == null || collection.Count < 1) return new EntityList<IEntity>();
 
                 EntityList<IEntity> list = new EntityList<IEntity>();
                 foreach (IEntity item in collection)

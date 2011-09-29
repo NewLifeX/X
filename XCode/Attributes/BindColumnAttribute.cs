@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
 
 namespace XCode
 {
     /// <summary>
-    /// 用于指定数据类属性所绑定到的数据表的字段名
+    /// 指定实体类属性所绑定数据字段信息。
     /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public sealed class BindColumnAttribute : Attribute
@@ -45,7 +43,10 @@ namespace XCode
         }
 
         private String _RawType;
-        /// <summary>原始数据类型</summary>
+        /// <summary>
+        /// 原始数据类型。
+        /// 当且仅当目标数据库同为该数据库类型时，采用实体属性信息上的RawType作为反向工程的目标字段类型，以期获得开发和生产的最佳兼容。
+        /// </summary>
         public String RawType
         {
             get { return _RawType; }

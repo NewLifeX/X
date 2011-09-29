@@ -68,41 +68,12 @@ namespace Test
 
         static void Test2()
         {
-            FileSource.ReleaseFolder(typeof(DAL).Assembly, "XCode", "", false, e => { Console.WriteLine(e); return null; });
-
-            IEnumerable ie = GetTest(0);
-            foreach (Int32 item in ie)
-            {
-                Console.WriteLine(item);
-            }
-
-            AssemblyX asm = AssemblyX.Create(typeof(DAL).Assembly);
-            Int32 n = 0;
-            foreach (Type item in asm.Types)
-            {
-                //Console.WriteLine("{0,4} {1} {2} {3}", ++n, item.IsPublic ? " " : "P", item.IsNested ? "N" : " ", item.FullName);
-                Console.WriteLine(++n);
-                Console.WriteLine(item.FullName);
-
-                TypeX tx = TypeX.Create(item);
-                Console.WriteLine(tx.FullName);
-                Console.WriteLine(tx.DocName);
-                if (item.IsGenericType)
-                {
-                    MemberInfo[] mis = item.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-                    foreach (MemberInfo mi in mis)
-                    {
-                        //MemberInfoX mix = mi as MemberInfoX;
-                        MemberInfoX mix = MemberInfoX.Create(mi);
-                        if (mix != null) Console.WriteLine(mix.DocName);
-                    }
-                }
-            }
-            "".EqualIgnoreCase("");
-            //EntityTest.Test();
-
-            //String xml = EntityTest.Meta.DBO.Export();
-            //Console.WriteLine(xml);
+            Administrator admin = Administrator.Find("name", "admin");
+            Console.WriteLine(admin);
+            admin = Administrator.FindByKey(1);
+            Console.WriteLine(admin);
+            admin = Administrator.Find("displayname", "管理员");
+            Console.WriteLine(admin);
         }
 
         static IEnumerable GetTest(Int32 max)
