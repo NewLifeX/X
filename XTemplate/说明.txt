@@ -1,4 +1,7 @@
-﻿2011-09-01 07:25
+﻿2011-10-01
+1，考虑在项目里面使用T4，然后调用XTemplate，生成代码。T4只是作为桥梁，为此，XTemplate应该为这个调用提供方便。
+
+2011-09-01 07:25
 1，可以仿照vt那样设计标签
 <vt:set var="data" value="$db.GetData()" />
 <vt:foreach from="$db.GetData()" item="data">.......</vt:foreach>
