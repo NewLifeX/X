@@ -101,6 +101,7 @@
     <Compile Include="Collections\SingleListNode.cs" />
     <Compile Include="Collections\InterlockedStack.cs" />
     <Compile Include="Collections\Triplet.cs" />
+    <Compile Include="Collections\WeakRefDictionary.cs" />
     <Compile Include="Extension\Buffer.cs" />
     <Compile Include="Extension\EmptyEnumerable.cs" />
     <Compile Include="Extension\Enumerable.cs" />
@@ -130,6 +131,7 @@
     <Compile Include="Log\TextFileLog.cs" />
     <Compile Include="Model\IObjectContainer.cs" />
     <Compile Include="Model\IServiceContainer.cs" />
+    <Compile Include="Model\ObjectContaner.cs" />
     <Compile Include="Model\TypeDiscoveryService.cs" />
     <Compile Include="Model\IServer.cs" />
     <Compile Include="Model\ServiceProvider.cs" />
