@@ -1132,8 +1132,10 @@ namespace XTemplate.Templating
         public static String GetClassName(String fileName)
         {
             String name = fileName;
-            if (name.Contains(".")) name = name.Substring(0, name.LastIndexOf("."));
+            //if (name.Contains(".")) name = name.Substring(0, name.LastIndexOf("."));
             name = name.Replace(@"\", "_").Replace(@"/", "_").Replace(".", "_");
+            name = name.Replace(Path.VolumeSeparatorChar, '_');
+            name = name.Replace(Path.PathSeparator, '_');
             return name;
         }
         #endregion
