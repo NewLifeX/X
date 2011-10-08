@@ -10,7 +10,7 @@ namespace XCode
     /// 实体列表视图
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public partial class EntityListView<T> : ListBase<T>, ITypedList, IBindingList, IBindingListView, ICancelAddNew where T : IEntity
+    partial class EntityListView<T> : ListBase<T>, ITypedList, IBindingList, IBindingListView, ICancelAddNew where T : IEntity
     {
         #region 重载
         /// <summary>
