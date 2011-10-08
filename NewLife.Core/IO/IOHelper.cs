@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.IO.Compression;
-using BinaryWriterX2 = NewLife.Serialization.BinaryWriterX;
-using BinaryReaderX2 = NewLife.Serialization.BinaryReaderX;
-using NewLife.Exceptions;
+using System.Text;
 
 namespace NewLife.IO
 {

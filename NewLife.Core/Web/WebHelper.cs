@@ -1,10 +1,10 @@
 ﻿using System;
+using System.IO;
+using System.Text;
 using System.Web;
 using System.Web.UI;
-using System.Text;
-using System.IO;
-using System.Web.UI.WebControls;
 using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
 
 namespace NewLife.Web
 {
@@ -316,7 +316,6 @@ namespace NewLife.Web
             Int32.TryParse(val, out r);
             return r;
         }
-
 
         /// <summary>
         /// 字符转换为布尔

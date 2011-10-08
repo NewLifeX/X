@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Web;
 using System.Web.Caching;
-using NewLife.Reflection;
 
 namespace NewLife.Web
 {

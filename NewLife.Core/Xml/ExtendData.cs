@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
-using System.Collections;
 using NewLife.Log;
 
 namespace NewLife.Xml

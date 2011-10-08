@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Net;
 
 namespace NewLife.Web
@@ -77,7 +75,7 @@ namespace NewLife.Web
         /// </summary>
         public WebClientX()
         {
-            Headers[HttpRequestHeader.Accept] = "image/jpeg, image/gif,  */*";
+            Headers[HttpRequestHeader.Accept] = "image/jpeg, image/gif, */*";
             Headers[HttpRequestHeader.AcceptLanguage] = "zh-CN";
             Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate";
             Headers[HttpRequestHeader.UserAgent] = "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E)";

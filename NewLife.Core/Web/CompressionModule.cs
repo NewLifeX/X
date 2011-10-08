@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Web;
 using System.IO.Compression;
+using System.Linq;
+using System.Web;
 using NewLife.Configuration;
 using NewLife.Reflection;
 
@@ -41,16 +40,17 @@ namespace NewLife.Web
             //压缩
             String url = app.Request.Url.OriginalString.ToLower();
             String files = Config.GetConfig<String>("NewLife.CommonEntity.CompressFiles", ".aspx,.axd,.js,.css");
-            Boolean b = false;
-            foreach (String item in files.Split(new String[] { ",", ";", " " }, StringSplitOptions.RemoveEmptyEntries))
-            {
-                if (url.Contains(item))
-                {
-                    b = true;
-                    break;
-                }
-            }
-            if (b)
+            //Boolean b = false;
+            //foreach (String item in files.ToLower().Split(new String[] { ",", ";", " " }, StringSplitOptions.RemoveEmptyEntries))
+            //{
+            //    if (url.Contains(item))
+            //    {
+            //        b = true;
+            //        break;
+            //    }
+            //}
+            //if (b)
+            if (files.ToLower().Split(new String[] { ",", ";", " " }, StringSplitOptions.RemoveEmptyEntries).Any(t => url.Contains(t)))
             {
                 //是否支持压缩协议
                 if (IsEncodingAccepted(GZIP))

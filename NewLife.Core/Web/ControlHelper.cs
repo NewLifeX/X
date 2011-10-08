@@ -122,25 +122,12 @@ namespace NewLife.Web
             if (!String.IsNullOrEmpty(id))
             {
                 fix = FieldInfoX.Create(handler.GetType(), id);
-
-                //foreach (FieldInfo item in TypeX.Create(handler.GetType()).Fields)
-                //{
-
-                //}
             }
             else
             {
                 Type t = typeof(T);
-                //foreach (FieldInfo item in TypeX.Create(handler.GetType()).Fields)
-                //{
-                //    if (item.FieldType == t)
-                //    {
-                //        fix = item;
-                //        break;
-                //    }
-                //}
                 FieldInfo fi = handler.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(item => item.FieldType == t);
-                fix = FieldInfoX.Create(fi);
+                if (fi != null) fix = FieldInfoX.Create(fi);
             }
 
             if (fix == null) return null;

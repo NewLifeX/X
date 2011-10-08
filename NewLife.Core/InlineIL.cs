@@ -13,7 +13,6 @@ namespace NewLife
             int y = 4;
             int z = 5;
 
-            // Here's some inline IL
 #if IL
         ldloc x
         ldloc y

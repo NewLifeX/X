@@ -1,16 +1,8 @@
 using System;
-using NewLife.Configuration;
-using System.Runtime.InteropServices;
-using System.IO;
 using System.Diagnostics;
-
-//namespace XLog
-//{
-//    /// <summary>
-//    /// 日志类，包含跟踪调试功能
-//    /// </summary>
-//    public class XTrace : NewLife.Log.XTrace { }
-//}
+using System.IO;
+using System.Runtime.InteropServices;
+using NewLife.Configuration;
 
 namespace NewLife.Log
 {

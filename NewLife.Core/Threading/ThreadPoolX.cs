@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
 using System.Threading;
-using NewLife.Log;
-using ThreadState = System.Threading.ThreadState;
 using NewLife.Collections;
 using NewLife.Configuration;
+using NewLife.Log;
 using NewLife.Reflection;
+using ThreadState = System.Threading.ThreadState;
 
 namespace NewLife.Threading
 {

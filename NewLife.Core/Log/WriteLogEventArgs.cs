@@ -1,30 +1,6 @@
 ﻿using System;
 using System.Threading;
 
-//namespace XLog
-//{
-//    /// <summary>
-//    /// 写日志事件参数
-//    /// </summary>
-//    public class WriteLogEventArgs : NewLife.Log.WriteLogEventArgs
-//    {
-//        #region 构造
-//        /// <summary>
-//        /// 构造函数
-//        /// </summary>
-//        /// <param name="message">日志</param>
-//        public WriteLogEventArgs(String message) : base(message) { }
-
-//        /// <summary>
-//        /// 构造函数
-//        /// </summary>
-//        /// <param name="message">日志</param>
-//        /// <param name="exception">异常</param>
-//        public WriteLogEventArgs(String message, Exception exception) : base(message, null) { }
-//        #endregion
-//    }
-//}
-
 namespace NewLife.Log
 {
     /// <summary>
