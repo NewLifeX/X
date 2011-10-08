@@ -940,7 +940,13 @@ namespace XTemplate.Templating
                     {
                         //TemplateException ex = new TemplateException(error.ToString());
                         String msg = error.ToString();
-                        String code = tmp.FindBlockCode(error.FileName, error.Line);
+                        String code = null;
+                        // 屏蔽因为计算错误行而导致的二次错误
+                        try
+                        {
+                            code = tmp.FindBlockCode(error.FileName, error.Line);
+                        }
+                        catch { }
                         if (code != null)
                         {
                             msg += Environment.NewLine;
