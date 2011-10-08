@@ -131,7 +131,6 @@
     <Compile Include="Log\TraceStream.cs" />
     <Compile Include="Log\TextFileLog.cs" />
     <Compile Include="Model\IObjectContainer.cs" />
-    <Compile Include="Model\IServiceContainer.cs" />
     <Compile Include="Model\IServiceLocator.cs" />
     <Compile Include="Model\ObjectContaner.cs" />
     <Compile Include="Model\ServiceLocator.cs" />

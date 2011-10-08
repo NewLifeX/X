@@ -4,79 +4,46 @@ using System.Globalization;
 
 namespace NewLife.Model
 {
-    /// <summary>
-    /// This class provides the ambient container for this application. If your
-    /// framework defines such an ambient container, use ServiceLocator.Current
-    /// to get it.
-    /// </summary>
-    static class ServiceLocator
+    /// <summary>本类为应用程序提供服务定位。</summary>
+    public class ServiceLocator : IServiceLocator
     {
-        private static ServiceLocatorProvider currentProvider;
-
-        /// <summary>
-        /// The current ambient container.
-        /// </summary>
+        #region 当前静态服务定位
+        private static IServiceLocator _Current = new ServiceLocator();
+        /// <summary>当前容器</summary>
         public static IServiceLocator Current
         {
-            get { return currentProvider(); }
+            get { return _Current; }
+            set { _Current = value; }
         }
+        #endregion
 
+        #region 服务定位接口
         /// <summary>
-        /// Set the delegate that is used to retrieve the current container.
+        /// <see cref="IServiceProvider.GetService"/> 实现
         /// </summary>
-        /// <param name="newProvider">Delegate that, when called, will return
-        /// the current ambient container.</param>
-        public static void SetLocatorProvider(ServiceLocatorProvider newProvider)
-        {
-            currentProvider = newProvider;
-        }
-    }
-
-    /// <summary>
-    /// This delegate type is used to provide a method that will
-    /// return the current container. Used with the <see cref="ServiceLocator"/>
-    /// static accessor class.
-    /// </summary>
-    /// <returns>An <see cref="IServiceLocator"/>.</returns>
-    delegate IServiceLocator ServiceLocatorProvider();
-
-    /// <summary>
-    /// This class is a helper that provides a default implementation
-    /// for most of the methods of <see cref="IServiceLocator"/>.
-    /// </summary>
-    abstract class ServiceLocatorImplBase : IServiceLocator
-    {
-        /// <summary>
-        /// Implementation of <see cref="IServiceProvider.GetService"/>.
-        /// </summary>
-        /// <param name="serviceType">The requested service.</param>
-        /// <exception cref="Exception">if there is an error in resolving the service instance.</exception>
-        /// <returns>The requested object.</returns>
+        /// <param name="serviceType">请求的服务类型。</param>
+        /// <returns>请求的对象。</returns>
         public virtual object GetService(Type serviceType)
         {
             return GetInstance(serviceType, null);
         }
 
         /// <summary>
-        /// Get an instance of the given <paramref name="serviceType"/>.
+        /// 获取 <paramref name="serviceType"/> 的一个实例
         /// </summary>
-        /// <param name="serviceType">Type of object requested.</param>
-        /// <exception cref="Exception">if there is an error resolving
-        /// the service instance.</exception>
-        /// <returns>The requested service instance.</returns>
+        /// <param name="serviceType">请求的服务类型。</param>
+        /// <returns>请求的服务对象。</returns>
         public virtual object GetInstance(Type serviceType)
         {
             return GetInstance(serviceType, null);
         }
 
         /// <summary>
-        /// Get an instance of the given named <paramref name="serviceType"/>.
+        /// 获取 <paramref name="serviceType"/> 中指定 <paramref name="key"/> 的一个实例
         /// </summary>
-        /// <param name="serviceType">Type of object requested.</param>
-        /// <param name="key">Name the object was registered with.</param>
-        /// <exception cref="Exception">if there is an error resolving
-        /// the service instance.</exception>
-        /// <returns>The requested service instance.</returns>
+        /// <param name="serviceType">请求的服务类型。</param>
+        /// <param name="key">注册的服务名称。</param>
+        /// <returns>请求的服务对象。</returns>
         public virtual object GetInstance(Type serviceType, string key)
         {
             try
@@ -90,13 +57,10 @@ namespace NewLife.Model
         }
 
         /// <summary>
-        /// Get all instances of the given <paramref name="serviceType"/> currently
-        /// registered in the container.
+        /// 获取已注册的所有 <paramref name="serviceType"/> 实例。
         /// </summary>
-        /// <param name="serviceType">Type of object requested.</param>
-        /// <exception cref="Exception">if there is are errors resolving
-        /// the service instance.</exception>
-        /// <returns>A sequence of instances of the requested <paramref name="serviceType"/>.</returns>
+        /// <param name="serviceType">请求的服务类型。</param>
+        /// <returns>请求的服务对象序列。</returns>
         public virtual IEnumerable<object> GetAllInstances(Type serviceType)
         {
             try
@@ -110,7 +74,7 @@ namespace NewLife.Model
         }
 
         /// <summary>
-        /// Get an instance of the given <typeparamref name="TService"/>.
+        /// 获取 <typeparamref name="TService"/> 的一个实例
         /// </summary>
         /// <typeparam name="TService">Type of object requested.</typeparam>
         /// <exception cref="Exception">if there is are errors resolving
@@ -149,7 +113,9 @@ namespace NewLife.Model
                 yield return (TService)item;
             }
         }
+        #endregion
 
+        #region 服务容器
         /// <summary>
         /// When implemented by inheriting classes, this method will do the actual work of resolving
         /// the requested service instance.
@@ -157,7 +123,10 @@ namespace NewLife.Model
         /// <param name="serviceType">Type of instance requested.</param>
         /// <param name="key">Name of registered service you want. May be null.</param>
         /// <returns>The requested service instance.</returns>
-        protected abstract object DoGetInstance(Type serviceType, string key);
+        protected virtual Object DoGetInstance(Type serviceType, string key)
+        {
+            return ObjectContaner.Current.Resolve(serviceType, key);
+        }
 
         /// <summary>
         /// When implemented by inheriting classes, this method will do the actual work of
@@ -165,8 +134,14 @@ namespace NewLife.Model
         /// </summary>
         /// <param name="serviceType">Type of service requested.</param>
         /// <returns>Sequence of service instance objects.</returns>
-        protected abstract IEnumerable<object> DoGetAllInstances(Type serviceType);
+        protected virtual IEnumerable<Object> DoGetAllInstances(Type serviceType)
+        {
+            //throw new NotImplementedException();
+            return ObjectContaner.Current.ResolveAll(serviceType);
+        }
+        #endregion
 
+        #region 格式化异常
         /// <summary>
         /// Format the exception message for use in an <see cref="Exception"/>
         /// that occurs while resolving a single service.
@@ -191,5 +166,6 @@ namespace NewLife.Model
         {
             return string.Format(CultureInfo.CurrentUICulture, "Activation error occured while trying to get all instances of type {0}", serviceType.Name);
         }
+        #endregion
     }
 }

@@ -3,12 +3,8 @@ using System.Collections.Generic;
 
 namespace NewLife.Model
 {
-    /// <summary>
-    /// The generic Service Locator interface. This interface is used
-    /// to retrieve services (instances identified by type and optional
-    /// name) from a container.
-    /// </summary>
-    interface IServiceLocator : IServiceProvider
+    /// <summary>通用服务定位接口。用于从容器中根据类型和名称查找唯一实例标识。</summary>
+    public interface IServiceLocator : IServiceProvider
     {
         /// <summary>
         /// Get an instance of the given <paramref name="serviceType"/>.
