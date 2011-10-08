@@ -280,7 +280,7 @@ namespace NewLife.Messaging
                     }
                     catch (Exception ex)
                     {
-                        if (XTrace.Debug) XTrace.WriteLine(ex.ToString());
+                        if (XTrace.Debug) XTrace.WriteException(ex);
                     }
                     break;
                 case MessageExceptionOption.Throw:

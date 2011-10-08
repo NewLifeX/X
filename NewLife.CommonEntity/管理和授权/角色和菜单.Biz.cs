@@ -148,7 +148,7 @@ namespace NewLife.CommonEntity
         //        }
         //        catch (Exception ex)
         //        {
-        //            if (XTrace.Debug) XTrace.WriteLine(ex.ToString());
+        //            if (XTrace.Debug) XTrace.WriteException(ex);
         //        }
         //    });
         //}

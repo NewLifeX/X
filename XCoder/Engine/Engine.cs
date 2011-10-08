@@ -572,7 +572,7 @@ namespace XCoder
             #region 异步调用接口修正中文名
             if (Config.UseCNFileName && noCNDic.Count > 0)
             {
-                ThreadPoolX.QueueUserWorkItem(TranslateWords, noCNDic, ex => XTrace.WriteLine(ex.ToString()));
+                ThreadPoolX.QueueUserWorkItem(TranslateWords, noCNDic, ex => XTrace.WriteException(ex));
             }
             #endregion
 

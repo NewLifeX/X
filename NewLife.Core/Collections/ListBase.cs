@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Collections;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
 namespace NewLife.Collections
 {
@@ -113,9 +111,14 @@ namespace NewLife.Collections
         /// 获取一个枚举器
         /// </summary>
         /// <returns></returns>
-        public virtual IListEnumerator<T> GetEnumerator()
+        public virtual IEnumerator<T> GetEnumerator()
         {
-            return new IListEnumerator<T>(this);
+            //return new IListEnumerator<T>(this);
+            //foreach (T item in InnerList)
+            //{
+            //    yield return item;
+            //}
+            return InnerList.GetEnumerator();
         }
 
         /// <summary>
@@ -283,91 +286,91 @@ namespace NewLife.Collections
         #endregion
 
         #region 泛型列表枚举器
-        /// <summary>
-        /// 泛型列表枚举器
-        /// </summary>
-        /// <typeparam name="TItem"></typeparam>
-        [StructLayout(LayoutKind.Sequential)]
-        public struct IListEnumerator<TItem> : IEnumerator<TItem>, IDisposable, IEnumerator
-        {
-            private IList<TItem> sequence;
+        ///// <summary>
+        ///// 泛型列表枚举器
+        ///// </summary>
+        ///// <typeparam name="TItem"></typeparam>
+        //[StructLayout(LayoutKind.Sequential)]
+        //public struct IListEnumerator<TItem> : IEnumerator<TItem>, IDisposable, IEnumerator
+        //{
+        //    private IList<TItem> sequence;
 
-            /// <summary>
-            /// 使用泛型列表实例化一个枚举器
-            /// </summary>
-            /// <param name="sequence"></param>
-            public IListEnumerator(IList<TItem> sequence)
-            {
-                this.sequence = sequence;
-                this.index = 0;
-                this.current = default(TItem);
-            }
+        //    /// <summary>
+        //    /// 使用泛型列表实例化一个枚举器
+        //    /// </summary>
+        //    /// <param name="sequence"></param>
+        //    public IListEnumerator(IList<TItem> sequence)
+        //    {
+        //        this.sequence = sequence;
+        //        this.index = 0;
+        //        this.current = default(TItem);
+        //    }
 
-            /// <summary>
-            /// 销毁
-            /// </summary>
-            public void Dispose()
-            {
-                sequence = null;
-            }
+        //    /// <summary>
+        //    /// 销毁
+        //    /// </summary>
+        //    public void Dispose()
+        //    {
+        //        sequence = null;
+        //    }
 
-            private TItem current;
-            /// <summary>
-            /// 获取集合中的当前元素。
-            /// </summary>
-            public TItem Current
-            {
-                get
-                {
-                    return this.current;
-                }
-            }
+        //    private TItem current;
+        //    /// <summary>
+        //    /// 获取集合中的当前元素。
+        //    /// </summary>
+        //    public TItem Current
+        //    {
+        //        get
+        //        {
+        //            return this.current;
+        //        }
+        //    }
 
-            private int index;
-            /// <summary>
-            /// 获取集合中的当前元素。
-            /// </summary>
-            object IEnumerator.Current
-            {
-                get
-                {
-                    if (this.index == 0)
-                    {
-                        throw new InvalidOperationException("枚举未开始！");
-                    }
-                    if (this.index > this.sequence.Count)
-                    {
-                        throw new InvalidOperationException("枚举已结束！");
-                    }
-                    return this.current;
-                }
-            }
+        //    private int index;
+        //    /// <summary>
+        //    /// 获取集合中的当前元素。
+        //    /// </summary>
+        //    object IEnumerator.Current
+        //    {
+        //        get
+        //        {
+        //            if (this.index == 0)
+        //            {
+        //                throw new InvalidOperationException("枚举未开始！");
+        //            }
+        //            if (this.index > this.sequence.Count)
+        //            {
+        //                throw new InvalidOperationException("枚举已结束！");
+        //            }
+        //            return this.current;
+        //        }
+        //    }
 
-            /// <summary>
-            /// 将枚举数推进到集合的下一个元素。
-            /// </summary>
-            /// <returns></returns>
-            public bool MoveNext()
-            {
-                if (this.index < this.sequence.Count)
-                {
-                    this.current = this.sequence[this.index];
-                    this.index++;
-                    return true;
-                }
-                this.current = default(TItem);
-                return false;
-            }
+        //    /// <summary>
+        //    /// 将枚举数推进到集合的下一个元素。
+        //    /// </summary>
+        //    /// <returns></returns>
+        //    public bool MoveNext()
+        //    {
+        //        if (this.index < this.sequence.Count)
+        //        {
+        //            this.current = this.sequence[this.index];
+        //            this.index++;
+        //            return true;
+        //        }
+        //        this.current = default(TItem);
+        //        return false;
+        //    }
 
-            /// <summary>
-            /// 将枚举数设置为其初始位置，该位置位于集合中第一个元素之前。
-            /// </summary>
-            void IEnumerator.Reset()
-            {
-                this.index = 0;
-                this.current = default(TItem);
-            }
-        }
+        //    /// <summary>
+        //    /// 将枚举数设置为其初始位置，该位置位于集合中第一个元素之前。
+        //    /// </summary>
+        //    void IEnumerator.Reset()
+        //    {
+        //        this.index = 0;
+        //        this.current = default(TItem);
+        //    }
+        //}
         #endregion
     }
 }

@@ -237,7 +237,7 @@ namespace NewLife.Threading
 
                     ThreadAbortException e = FindException<ThreadAbortException>(ex);
                     if (e == null)
-                        XTrace.WriteLine(ex.ToString());
+                        XTrace.WriteException(ex);
                     else
                     {
                         //异常参数指明是否需要终止线程

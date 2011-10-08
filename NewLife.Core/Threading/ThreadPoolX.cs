@@ -645,7 +645,7 @@ namespace NewLife.Threading
                 catch (Exception ex)
                 {
                     LastError = ex;
-                    XTrace.WriteLine(ex.ToString());
+                    XTrace.WriteException(ex);
                 }
             }
 
@@ -831,7 +831,7 @@ namespace NewLife.Threading
         {
             QueueUserWorkItem(callback, delegate(Exception ex)
             {
-                if (XTrace.Debug) XTrace.WriteLine(ex.ToString());
+                if (XTrace.Debug) XTrace.WriteException(ex);
             });
         }
 

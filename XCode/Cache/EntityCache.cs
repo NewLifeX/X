@@ -83,7 +83,7 @@ namespace XCode.Cache
             }
             catch (Exception ex)
             {
-                XTrace.WriteLine(ex.ToString());
+                XTrace.WriteException(ex);
             }
         }
 

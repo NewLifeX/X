@@ -123,7 +123,7 @@ namespace NewLife.CommonEntity.Web
             }
             catch (Exception ex)
             {
-                XTrace.WriteLine(ex.ToString());
+                XTrace.WriteException(ex);
             }
             finally
             {

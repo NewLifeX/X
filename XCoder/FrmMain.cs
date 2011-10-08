@@ -68,7 +68,7 @@ namespace XCoder
             }
             catch (Exception ex)
             {
-                XTrace.WriteLine(ex.ToString());
+                XTrace.WriteException(ex);
             }
 
             LoadConfig();
@@ -618,7 +618,7 @@ namespace XCoder
             }
             catch (Exception ex)
             {
-                XTrace.WriteLine(ex.ToString());
+                XTrace.WriteException(ex);
             }
         }
         #endregion

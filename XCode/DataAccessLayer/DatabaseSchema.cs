@@ -160,7 +160,7 @@
 //                }
 //                catch (Exception ex)
 //                {
-//                    XTrace.WriteLine(ex.ToString());
+//                    XTrace.WriteException(ex);
 //                }
 //            });
 //        }
@@ -264,7 +264,7 @@
 //            }
 //            catch (Exception ex)
 //            {
-//                XTrace.WriteLine(ex.ToString());
+//                XTrace.WriteException(ex);
 //            }
 //        }
 

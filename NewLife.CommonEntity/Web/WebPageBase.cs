@@ -333,7 +333,7 @@ namespace NewLife.CommonEntity.Web
             catch (ThreadAbortException) { }
             catch (Exception ex)
             {
-                XTrace.WriteLine(ex.ToString());
+                XTrace.WriteException(ex);
             }
         }
 

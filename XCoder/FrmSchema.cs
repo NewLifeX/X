@@ -91,7 +91,7 @@ namespace XCoder
             }
             catch (Exception ex)
             {
-                XTrace.WriteLine(ex.ToString());
+                XTrace.WriteException(ex);
                 return false;
             }
         }
@@ -133,7 +133,7 @@ namespace XCoder
             }
             catch (Exception ex)
             {
-                XTrace.WriteLine(ex.ToString());
+                XTrace.WriteException(ex);
             }
         }
     }

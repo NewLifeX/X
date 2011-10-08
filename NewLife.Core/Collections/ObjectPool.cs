@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Threading;
+using NewLife.Reflection;
 
 namespace NewLife.Collections
 {
     /// <summary>
-    /// 对象池
+    /// 对象池。采用原子栈设计，避免锁资源的争夺。
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class ObjectPool<T> : DisposeBase where T : new()
+    public class ObjectPool<T> : DisposeBase //where T : new()
     {
         #region 属性
         private InterlockedStack<T> _Stock;
@@ -45,6 +46,13 @@ namespace NewLife.Collections
             get { return _CreateCount; }
             //set { _CreateCount = value; }
         }
+        #endregion
+
+        #region 事件
+        /// <summary>
+        /// 对象创建委托。在对象池内对象不足时调用，如未设置，则调用类型的默认构造函数创建对象。
+        /// </summary>
+        public Func<T> OnCreate;
         #endregion
 
         #region 方法
@@ -97,7 +105,11 @@ namespace NewLife.Collections
         /// <returns></returns>
         protected virtual T Create()
         {
-            return new T();
+            //return new T();
+
+            if (OnCreate != null) return OnCreate();
+
+            return (T)TypeX.CreateInstance(typeof(T));
         }
 
         /// <summary>

@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NewLife.Reflection;
-using System;
 
 namespace NewLife.Collections
 {
     /// <summary>
-    /// 字典缓存。当指定键的缓存项不存在时，调用委托获取值，并写入缓存
+    /// 字典缓存。当指定键的缓存项不存在时，调用委托获取值，并写入缓存。
     /// </summary>
+    /// <remarks>常用匿名函数或者Lambda表达式作为委托。</remarks>
     /// <typeparam name="TKey">键类型</typeparam>
     /// <typeparam name="TValue">值类型</typeparam>
     public class DictionaryCache<TKey, TValue> : Dictionary<TKey, TValue>

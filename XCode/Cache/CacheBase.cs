@@ -46,7 +46,7 @@ namespace XCode.Cache
             }
             catch (Exception ex)
             {
-                //if (Config.GetConfig<Boolean>("XCode.Debug")) XTrace.WriteLine(ex.ToString());
+                //if (Config.GetConfig<Boolean>("XCode.Debug")) XTrace.WriteException(ex);
                 if (DAL.Debug) DAL.WriteLog(ex.ToString());
             }
             finally

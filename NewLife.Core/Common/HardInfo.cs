@@ -17,17 +17,6 @@ namespace NewLife.Common
         #region 获取信息
         class _
         {
-            /// <summary>
-            /// 机器名
-            /// </summary>
-            public static String MachineName
-            {
-                get
-                {
-                    return Environment.MachineName;
-                }
-            }
-
             private static String _BaseBoard;
             /// <summary>
             /// 主板序列号
@@ -348,13 +337,11 @@ namespace NewLife.Common
         #endregion
 
         #region 构造
-        private HardInfo()
-        {
-        }
+        private HardInfo() { }
 
         private void GetLocal()
         {
-            MachineName = _.MachineName;
+            MachineName = Environment.MachineName;
             BaseBoard = _.BaseBoard;
             Processors = _.Processors;
             Disk = _.Disk;
@@ -408,7 +395,7 @@ namespace NewLife.Common
                     }
                     catch (Exception ex)
                     {
-                        XTrace.WriteLine(ex.ToString());
+                        XTrace.WriteException(ex);
                     }
 
                     return _Current;

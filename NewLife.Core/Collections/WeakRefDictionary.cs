@@ -3,6 +3,12 @@ using System.Collections.Generic;
 
 namespace NewLife.Collections
 {
+    /// <summary>
+    /// 弱引用字典，比较适合用作于缓存。
+    /// </summary>
+    /// <remarks>经过实验表明，弱引用非常容易被回收</remarks>
+    /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TValue"></typeparam>
     class WeakRefDictionary<TKey, TValue>
     {
         private class NullObject { }
