@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collections\DictionaryCache.cs" />
+    <Compile Include="Collections\HashSet.cs" />
     <Compile Include="Collections\ListBase.cs" />
     <Compile Include="Collections\ListX.cs" />
     <Compile Include="Collections\ObjectPool.cs" />

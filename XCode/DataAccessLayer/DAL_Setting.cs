@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
+using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
-using XCode.Common;
 using XCode.Model;
 
 namespace XCode.DataAccessLayer
@@ -190,7 +190,7 @@ namespace XCode.DataAccessLayer
                     //    }
                     //}
 
-                    _NegativeExclude = new HashSet<String>(StringComparer.OrdinalIgnoreCase, str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries));
+                    _NegativeExclude = new HashSet<String>(str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries), StringComparer.OrdinalIgnoreCase);
                 }
 
                 return _NegativeExclude;
