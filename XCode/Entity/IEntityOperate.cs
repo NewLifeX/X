@@ -74,7 +74,7 @@ namespace XCode
         /// </summary>
         /// <param name="ds">记录集</param>
         /// <returns>实体数组</returns>
-        EntityList<IEntity> LoadData(DataSet ds);
+        IEntityList LoadData(DataSet ds);
         #endregion
 
         #region 查找单个实体
@@ -113,7 +113,7 @@ namespace XCode
         /// 获取所有实体对象。获取大量数据时会非常慢，慎用
         /// </summary>
         /// <returns>实体数组</returns>
-        EntityList<IEntity> FindAll();
+        IEntityList FindAll();
 
         /// <summary>
         /// 查询并返回实体对象集合。
@@ -125,7 +125,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
-        EntityList<IEntity> FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows);
+        IEntityList FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows);
 
         /// <summary>
         /// 根据属性列表以及对应的值列表，获取所有实体对象
@@ -133,7 +133,7 @@ namespace XCode
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns>实体数组</returns>
-        EntityList<IEntity> FindAll(String[] names, Object[] values);
+        IEntityList FindAll(String[] names, Object[] values);
 
         /// <summary>
         /// 根据属性以及对应的值，获取所有实体对象
@@ -141,7 +141,7 @@ namespace XCode
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
         /// <returns>实体数组</returns>
-        EntityList<IEntity> FindAll(String name, Object value);
+        IEntityList FindAll(String name, Object value);
 
         /// <summary>
         /// 根据属性以及对应的值，获取所有实体对象
@@ -151,7 +151,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
-        EntityList<IEntity> FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows);
+        IEntityList FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows);
 
         /// <summary>
         /// 根据属性以及对应的值，获取所有实体对象
@@ -162,7 +162,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
-        EntityList<IEntity> FindAllByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows);
+        IEntityList FindAllByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows);
         #endregion
 
         #region 取总记录数

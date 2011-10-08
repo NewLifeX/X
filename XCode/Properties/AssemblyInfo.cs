@@ -34,8 +34,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("8.0.*")]
-[assembly: AssemblyFileVersion("8.0.2011.0929")]
+[assembly: AssemblyVersion("8.1.*")]
+[assembly: AssemblyFileVersion("8.1.2011.1008")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.1.2011.1008   IEntityOperate中返回EntityList<IEntity>改为返回IEntityList，直接返回原始的实体类列表
+ * 
  * v8.0.2011.0929   修正IDataTable.Fix中对一对一关系处理的不足
  *                  修改Entity，根据唯一索引查询单对象时不加分页和排序，这使得在SQLite上特别是MySql上有性能提升
  * 

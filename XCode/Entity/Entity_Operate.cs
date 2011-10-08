@@ -72,24 +72,26 @@ namespace XCode
             /// </summary>
             /// <param name="ds">记录集</param>
             /// <returns>实体数组</returns>
-            public EntityList<IEntity> LoadData(DataSet ds) { return ToList(Entity<TEntity>.LoadData(ds)); }
+            public IEntityList LoadData(DataSet ds) { return ToList(Entity<TEntity>.LoadData(ds)); }
 
             /// <summary>
             /// 把一个FindAll返回的集合转为实体接口列表集合
             /// </summary>
             /// <param name="collection"></param>
             /// <returns></returns>
-            EntityList<IEntity> ToList(ICollection collection)
+            IEntityList ToList(IEntityList collection)
             {
-                if (collection == null || collection.Count < 1) return new EntityList<IEntity>();
+                //if (collection == null || collection.Count < 1) return new IEntityList();
 
-                EntityList<IEntity> list = new EntityList<IEntity>();
-                foreach (IEntity item in collection)
-                {
-                    list.Add(item);
-                }
+                //IEntityList list = new IEntityList();
+                //foreach (IEntity item in collection)
+                //{
+                //    list.Add(item);
+                //}
 
-                return list;
+                //return list;
+
+                return collection as IEntityList;
             }
             #endregion
 
@@ -129,7 +131,7 @@ namespace XCode
             /// 获取所有实体对象。获取大量数据时会非常慢，慎用
             /// </summary>
             /// <returns>实体数组</returns>
-            public EntityList<IEntity> FindAll() { return ToList(Entity<TEntity>.FindAll()); }
+            public IEntityList FindAll() { return ToList(Entity<TEntity>.FindAll()); }
 
             /// <summary>
             /// 查询并返回实体对象集合。
@@ -141,7 +143,7 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>实体数组</returns>
-            public EntityList<IEntity> FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
+            public IEntityList FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
             {
                 return ToList(Entity<TEntity>.FindAll(whereClause, orderClause, selects, startRowIndex, maximumRows));
             }
@@ -152,7 +154,7 @@ namespace XCode
             /// <param name="names">属性列表</param>
             /// <param name="values">值列表</param>
             /// <returns>实体数组</returns>
-            public EntityList<IEntity> FindAll(String[] names, Object[] values)
+            public IEntityList FindAll(String[] names, Object[] values)
             {
                 return ToList(Entity<TEntity>.FindAll(names, values));
             }
@@ -163,7 +165,7 @@ namespace XCode
             /// <param name="name">属性</param>
             /// <param name="value">值</param>
             /// <returns>实体数组</returns>
-            public EntityList<IEntity> FindAll(String name, Object value)
+            public IEntityList FindAll(String name, Object value)
             {
                 return ToList(Entity<TEntity>.FindAll(name, value));
             }
@@ -176,7 +178,7 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>实体数组</returns>
-            public EntityList<IEntity> FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows)
+            public IEntityList FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows)
             {
                 return ToList(Entity<TEntity>.FindAll(name, value, startRowIndex, maximumRows));
             }
@@ -190,7 +192,7 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>实体数组</returns>
-            public EntityList<IEntity> FindAllByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+            public IEntityList FindAllByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows)
             {
                 return ToList(Entity<TEntity>.FindAllByName(name, value, orderClause, startRowIndex, maximumRows));
             }
