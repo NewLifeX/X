@@ -4,7 +4,11 @@ using System.Globalization;
 
 namespace NewLife.Model
 {
-    /// <summary>本类为应用程序提供服务定位。</summary>
+    /// <summary>服务定位器。</summary>
+    /// <remarks>
+    /// 服务定位器是用于解除组件依赖的最简单实现。
+    /// 默认实现由对象容器提供，而对象容器实现了构造函数注入和属性注入两种依赖注入方式。
+    /// </remarks>
     public class ServiceLocator : IServiceLocator
     {
         #region 当前静态服务定位

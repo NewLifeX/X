@@ -207,7 +207,7 @@ namespace NewLife.Model
 
             Object obj = null;
             // 2，如果容器里面包含这个类型，并且指向的实例不为空，则返回
-            if (dic.TryGetValue(name, out obj)) return obj;
+            if (dic.TryGetValue(name, out obj) && obj != null) return obj;
 
             // 3，如果容器里面包含这个类型，并且指向的实例为空，则创建对象返回
             // 4，如果有带参数构造函数，则从容器内获取各个参数的实例，最后创建对象返回

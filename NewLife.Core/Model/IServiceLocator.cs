@@ -3,7 +3,10 @@ using System.Collections.Generic;
 
 namespace NewLife.Model
 {
-    /// <summary>通用服务定位接口。用于从容器中根据类型和名称查找唯一实例标识。</summary>
+    /// <summary>通用服务定位器接口。用于从容器中根据类型和名称查找唯一实例标识。</summary>
+    /// <remarks>
+    /// 服务定位器是用于解除组件依赖的最简单实现。
+    /// </remarks>
     public interface IServiceLocator : IServiceProvider
     {
         /// <summary>
