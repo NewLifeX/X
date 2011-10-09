@@ -416,7 +416,9 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public Boolean IsPlugin(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            //if (type == null) throw new ArgumentNullException("type");
+            // 如果基类为空，则表示是插件
+            if (type == null) return true;
 
             //为空、不是类、抽象类、泛型类 都不是实体类
             //if (!BaseType.IsClass || BaseType.IsAbstract || BaseType.IsGenericType) return false;

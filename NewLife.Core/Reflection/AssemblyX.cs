@@ -348,26 +348,14 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public List<Type> FindPlugins(Type type)
         {
+            // 如果type是null，则返回所有类型
+
             List<Type> list = null;
             if (_plugins.TryGetValue(type, out list)) return list;
             lock (_plugins)
             {
                 if (_plugins.TryGetValue(type, out list)) return list;
 
-                //List<TypeX> list2 = TypeXs;
-                //if (list2 == null || list2.Count < 1)
-                //{
-                //    list = null;
-                //}
-                //else
-                //{
-                //    list = new List<Type>();
-                //    foreach (TypeX item in list2)
-                //    {
-                //        if (item.IsPlugin(type)) list.Add(item.Type);
-                //    }
-                //    if (list.Count <= 0) list = null;
-                //}
                 list = new List<Type>();
                 foreach (Type item in Types)
                 {
@@ -394,20 +382,39 @@ namespace NewLife.Reflection
         /// <summary>
         /// 查找所有非系统程序集中的所有插件
         /// </summary>
-        /// <param name="type"></param>
+        /// <remarks>继承类所在的程序集会引用baseType所在的程序集，利用这一点可以做一定程度的性能优化。</remarks>
+        /// <param name="baseType"></param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <returns></returns>
-        public static IEnumerable<Type> FindAllPlugins(Type type, Boolean isLoadAssembly)
+        public static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            return FindAllPlugins(baseType, isLoadAssembly, true);
+        }
 
-            //List<AssemblyX> asms = GetAssemblies();
+        /// <summary>
+        /// 查找所有非系统程序集中的所有插件
+        /// </summary>
+        /// <remarks>继承类所在的程序集会引用baseType所在的程序集，利用这一点可以做一定程度的性能优化。</remarks>
+        /// <param name="baseType"></param>
+        /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
+        /// <param name="excludeGlobalTypes">指示是否应检查来自所有引用程序集的类型。如果为 false，则检查来自所有引用程序集的类型。 否则，只检查来自非全局程序集缓存 (GAC) 引用的程序集的类型。</param>
+        /// <returns></returns>
+        internal static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly, Boolean excludeGlobalTypes)
+        {
+            //if (baseType == null) throw new ArgumentNullException("baseType");
+
+            String baseAssemblyName = baseType.Assembly.FullName;
+
             List<Type> list = new List<Type>();
             foreach (AssemblyX item in GetAssemblies())
             {
-                if (item.IsSystemAssembly) continue;
+                // 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
+                if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
 
-                List<Type> ts = item.FindPlugins(type);
+                // 不搜索系统程序集，不搜索未引用基类所在程序集的程序集，优化性能
+                if (item.IsSystemAssembly || !IsReferencedFrom(item.Asm, baseAssemblyName)) continue;
+
+                List<Type> ts = item.FindPlugins(baseType);
                 if (ts != null && ts.Count > 0)
                 {
                     //list.AddRange(ts);
@@ -425,19 +432,20 @@ namespace NewLife.Reflection
             {
                 // 尝试加载程序集
                 AssemblyX.ReflectionOnlyLoad();
-                //asms = AssemblyX.ReflectionOnlyGetAssemblies();
-                //if (asms != null && asms.Count > 0)
-                //{
                 foreach (AssemblyX item in AssemblyX.ReflectionOnlyGetAssemblies())
                 {
-                    if (item.IsSystemAssembly) continue;
+                    // 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
+                    if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
 
-                    List<Type> ts = item.FindPlugins(type);
+                    // 不搜索系统程序集，不搜索未引用基类所在程序集的程序集，优化性能
+                    if (item.IsSystemAssembly || !IsReferencedFrom(item.Asm, baseAssemblyName)) continue;
+
+                    List<Type> ts = item.FindPlugins(baseType);
                     if (ts != null && ts.Count > 0)
                     {
                         // 真实加载
                         Assembly asm2 = Assembly.LoadFile(item.Asm.Location);
-                        ts = AssemblyX.Create(asm2).FindPlugins(type);
+                        ts = AssemblyX.Create(asm2).FindPlugins(baseType);
 
                         if (ts != null && ts.Count > 0)
                         {
@@ -452,9 +460,25 @@ namespace NewLife.Reflection
                         }
                     }
                 }
-                //}
             }
-            //return list.Count > 0 ? list : null;
+        }
+
+        /// <summary>
+        /// <paramref name="asm"/> 是否引用了 <paramref name="baseAsmName"/>
+        /// </summary>
+        /// <param name="asm">程序集</param>
+        /// <param name="baseAsmName">被引用程序集全名</param>
+        /// <returns></returns>
+        public static Boolean IsReferencedFrom(Assembly asm, String baseAsmName)
+        {
+            if (asm.FullName.EqualIgnoreCase(baseAsmName)) return true;
+
+            foreach (AssemblyName item in asm.GetReferencedAssemblies())
+            {
+                if (item.FullName.EqualIgnoreCase(baseAsmName)) return true;
+            }
+
+            return false;
         }
         #endregion
 
@@ -531,34 +555,19 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static IEnumerable<AssemblyX> ReflectionOnlyLoad(String path)
         {
-            //if (!Directory.Exists(path)) return null;
             if (!Directory.Exists(path)) yield break;
 
             String[] ss = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
             if (ss == null || ss.Length < 1) yield break;
 
-            //AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += new ResolveEventHandler(CurrentDomain_ReflectionOnlyAssemblyResolve);
-
-            //try
-            //{
             List<AssemblyX> loadeds = AssemblyX.GetAssemblies().ToList<AssemblyX>();
             List<AssemblyX> loadeds2 = AssemblyX.ReflectionOnlyGetAssemblies().ToList<AssemblyX>();
 
-            //List<AssemblyX> list = new List<AssemblyX>();
             foreach (String item in ss)
             {
                 if (!item.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) &&
                     !item.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
 
-                //if (loadeds != null && loadeds.Exists(delegate(AssemblyX elm)
-                //{
-                //    return item.Equals(elm.Location, StringComparison.OrdinalIgnoreCase);
-                //})) continue;
-
-                //if (loadeds2 != null && loadeds2.Exists(delegate(AssemblyX elm)
-                //{
-                //    return item.Equals(elm.Location, StringComparison.OrdinalIgnoreCase);
-                //})) continue;
                 if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) || loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
 
                 AssemblyX asmx = null;
@@ -567,20 +576,12 @@ namespace NewLife.Reflection
                     //Assembly asm = Assembly.ReflectionOnlyLoad(File.ReadAllBytes(item));
                     Assembly asm = Assembly.ReflectionOnlyLoadFrom(item);
 
-                    //list.Add(AssemblyX.Create(asm));
                     asmx = Create(asm);
                 }
                 catch { }
 
                 if (asmx != null) yield return asmx;
             }
-
-            //return list;
-            //}
-            //finally
-            //{
-            //    AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve -= new ResolveEventHandler(CurrentDomain_ReflectionOnlyAssemblyResolve);
-            //}
         }
 
         /// <summary>

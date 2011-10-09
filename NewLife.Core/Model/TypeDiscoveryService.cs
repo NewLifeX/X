@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.ComponentModel.Design;
 using System.Collections;
-using NewLife.Reflection;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
+using NewLife.Reflection;
 
 namespace NewLife.Model
 {
@@ -74,7 +73,7 @@ namespace NewLife.Model
 
             // 尝试遍历所有已加载和未加载的程序集
             {
-                List<Type> ts = AssemblyX.FindAllPlugins(baseType, true).ToList();
+                List<Type> ts = AssemblyX.FindAllPlugins(baseType, true, excludeGlobalTypes).ToList();
                 if (ts != null)
                 {
                     foreach (Type item in ts)
@@ -92,7 +91,7 @@ namespace NewLife.Model
         /// 检索可用类型的列表
         /// </summary>
         /// <param name="baseType">要匹配的基类型</param>
-        /// <param name="excludeGlobalTypes">指示是否应检查来自所有引用程序集的类型</param>
+        /// <param name="excludeGlobalTypes">指示是否应检查来自所有引用程序集的类型。如果为 false，则检查来自所有引用程序集的类型。 否则，只检查来自非全局程序集缓存 (GAC) 引用的程序集的类型。</param>
         /// <returns>与 baseType 和 excludeGlobalTypes 指定的条件相匹配的类型的集合</returns>
         ICollection ITypeDiscoveryService.GetTypes(Type baseType, bool excludeGlobalTypes)
         {

@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.ComponentModel.Design;
+using System.Linq;
 using System.Reflection;
 using NewLife.Reflection;
-using System.Linq;
 
 namespace NewLife.Model
 {
