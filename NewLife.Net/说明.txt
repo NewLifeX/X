@@ -1,3 +1,7 @@
-﻿2011-09-07
+﻿2011-10-10
+1，考虑实现Web服务器，甚至支持ASP.Net。
+2，最好支持两种方式：HttpListener、自己监听Tcp端口处理数据。前者将有系统内核的http.sys监听端口。
+
+2011-09-07
 1，考虑改进NetServer，让其支持同时用IPv4和IPv6。甚至可以考虑同时用Tcp和Udp。
 2，考虑实现Http协议，参考WebDev实现ASP.Net的Web服务器
