@@ -1,18 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using NewLife.CommonEntity;
 using NewLife.Log;
-using XCode.DataAccessLayer;
-using XCode.Test;
-using XCode;
-using NewLife.Reflection;
-using System.Linq;
-using System.Collections;
-using NewLife;
-using System.Reflection;
-using NewLife.IO;
 
 namespace Test
 {
@@ -68,6 +60,9 @@ namespace Test
 
         static void Test2()
         {
+            String where = Menu._.ParentID.In(new Int32[] { 2, 3, 3, 3, 4, 5, 6, 3, 2, 8 });
+            Console.WriteLine(where);
+
             Administrator admin = Administrator.Find("name", "admin");
             Console.WriteLine(admin);
             admin = Administrator.FindByKey(1);

@@ -10,6 +10,8 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
+v8.1.2011.1010   FieldItem增加对In操作符的支持
+
 v8.1.2011.1008   IEntityOperate中返回EntityList<IEntity>改为返回IEntityList，直接返回原始的实体类列表
 
 v8.0.2011.0917   给索引和关系模型增加Computed属性，标识是计算出来还是数据库内置的

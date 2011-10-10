@@ -126,6 +126,8 @@ namespace XCode
         /// <returns></returns>
         public static WhereExpression operator &(WhereExpression exp, Object value)
         {
+            if (value == null) return exp;
+
             // 如果是布尔型，表明是下一段的条件语句
             if (value is Boolean)
             {
@@ -151,6 +153,8 @@ namespace XCode
         /// <returns></returns>
         public static WhereExpression operator |(WhereExpression exp, Object value)
         {
+            if (value == null) return exp;
+
             // 如果是布尔型，表明是下一段的条件语句
             if (value is Boolean)
             {

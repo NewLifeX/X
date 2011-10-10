@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using XCode.DataAccessLayer;
@@ -266,6 +268,48 @@ namespace XCode.Configuration
         /// <param name="value"></param>
         /// <returns></returns>
         public WhereExpression Contains(Object value) { return CreateExpression("%{0}%", value); }
+
+        /// <summary>
+        /// In操作
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public WhereExpression In(String value)
+        {
+            IEntityOperate op = EntityFactory.CreateOperate(Table.EntityType);
+            String name = op.FormatName(ColumnName);
+
+            return new WhereExpression(String.Format("{0} In({1})", name, value));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public WhereExpression In(IEnumerable value)
+        {
+            if (value == null) return new WhereExpression();
+
+            IEntityOperate op = EntityFactory.CreateOperate(Table.EntityType);
+            String name = op.FormatName(ColumnName);
+
+            List<Object> vs = new List<Object>();
+            List<String> list = new List<String>();
+            foreach (Object item in value)
+            {
+                // 避免重复项
+                if (vs.Contains(item)) continue;
+                vs.Add(item);
+
+                // 格式化数值
+                String str = op.FormatValue(this, item);
+                list.Add(str);
+            }
+            if (list.Count <= 0) return new WhereExpression();
+
+            return new WhereExpression(String.Format("{0} In({1})", name, String.Join(",", list.ToArray())));
+        }
 
         /// <summary>
         /// 大于
