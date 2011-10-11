@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
@@ -11,7 +12,6 @@ using System.Xml.Serialization;
 using NewLife.Reflection;
 using XCode.Code;
 using XCode.Exceptions;
-using System.ComponentModel;
 
 namespace XCode.DataAccessLayer
 {
@@ -55,7 +55,7 @@ namespace XCode.DataAccessLayer
 
         private static Dictionary<String, DAL> _dals = new Dictionary<String, DAL>(StringComparer.OrdinalIgnoreCase);
         /// <summary>
-        /// 创建一个数据访问层对象。以null作为参数可获得当前默认对象
+        /// 创建一个数据访问层对象。
         /// </summary>
         /// <param name="connName">配置名，或链接字符串</param>
         /// <returns>对应于指定链接的全局唯一的数据访问层对象</returns>
