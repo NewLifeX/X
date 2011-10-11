@@ -525,7 +525,7 @@ namespace XCoder
                 if (Config.AutoCutPrefix) name = CutPrefix(name);
                 if (Config.AutoFixWord) name = FixWord(name);
                 table.Alias = name;
-
+                // TODO 按需要收集已填写的中文 排除掉内容和说明相同的
                 // 描述
                 if (Config.UseCNFileName)
                 {

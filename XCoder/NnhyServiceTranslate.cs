@@ -73,8 +73,13 @@ namespace XCoder
                     if (ret != null && ret.Length == 0) ret = null;
                     return ret;
                 }
+                return null;
             }
-            return null;
+            else
+            {
+                throw new Exception(string.Format("访问在线翻译服务时发生服务端异常 {0}:{1}",
+                    result.Status, string.Join(", ", result.Messages.ToArray())));
+            }
         }
         /// <summary>
         /// 向翻译服务添加新的翻译条目
@@ -126,13 +131,34 @@ namespace XCoder
                 throw new Exception("没有可添加的翻译条目");
             }
 
-            WebClient web = new WebClient();
-            web.Encoding = Encoding.UTF8;
-            web.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
-            web.UploadString(url, data.ToString());
-            // TODO 是否需要按需要抛出异常
-
-            return trans.Length;
+            TranslateNewResult result = null;
+            try
+            {
+                using (WebClient web = new WebClient())
+                {
+                    web.Encoding = Encoding.UTF8;
+                    web.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+                    byte[] buffer = web.UploadData(url, Encoding.UTF8.GetBytes(data.ToString()));
+                    using (MemoryStream stream = new MemoryStream(buffer))
+                    {
+                        XmlReaderX reader = new XmlReaderX();
+                        reader.Stream = stream;
+                        result = reader.ReadObject(typeof(TranslateNewResult)) as TranslateNewResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("访问在线翻译服务时发生了异常", ex);
+            }
+            if (result.Status == 0)
+            {
+                return result.Accepted;
+            }
+            else
+            {
+                throw new Exception(string.Format("访问在线翻译服务时发生服务端异常 {0}:{1}", result.Status, result.Message));
+            }
         }
     }
 }
