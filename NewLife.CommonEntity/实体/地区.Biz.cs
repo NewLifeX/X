@@ -94,7 +94,11 @@ namespace NewLife.CommonEntity
         public static TEntity FindByCode(Int32 code)
         {
             if (code <= 0) return null;
-            return Meta.Cache.Entities.Find(_.Code, code);
+            //return Meta.Cache.Entities.Find(_.Code, code);
+            if (Meta.Cache.Entities.Find(_.Code, code) == null)
+                return Meta.Cache.Entities.Find(_.OldCode, code);
+            else
+                return Meta.Cache.Entities.Find(_.Code, code);
         }
 
         /// <summary>
@@ -118,7 +122,12 @@ namespace NewLife.CommonEntity
         {
             TEntity a = Meta.Cache.Entities.Find(_.Name, parentname);
             if (a == null) return null;
-            return FindAllByParent(a.Code);
+            //return FindAllByParent(a.Code);
+            if (FindAllByParent(a.Code) == null)
+                return FindAllByParent(a.OldCode);
+            else
+                return FindAllByParent(a.Code);
+                
         }
         #endregion
 
