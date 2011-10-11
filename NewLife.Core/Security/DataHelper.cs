@@ -483,7 +483,22 @@ namespace NewLife.Security
         {
             if (data == null || data.Length < 1) return null;
 
-            return BitConverter.ToString(data).Replace("-", null);
+            //return BitConverter.ToString(data).Replace("-", null);
+            // 上面的方法要替换-，效率太低
+            Char[] cs = new Char[data.Length * 2];
+            // 两个索引一起用，避免乘除带来的性能损耗
+            for (int i = 0, j = 0; i < data.Length; i++, j += 2)
+            {
+                Byte b = data[i];
+                cs[j] = GetHexValue(b / 0x10);
+                cs[j + 1] = GetHexValue(b % 0x10);
+            }
+            return new String(cs);
+        }
+        private static char GetHexValue(int i)
+        {
+            if (i < 10) return (char)(i + 0x30);
+            return (char)(i - 10 + 0x41);
         }
 
         /// <summary>

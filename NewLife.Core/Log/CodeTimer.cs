@@ -18,16 +18,28 @@ namespace NewLife.Log
         /// <summary>
         /// 计时
         /// </summary>
-        /// <param name="times"></param>
-        /// <param name="action"></param>
+        /// <param name="times">次数</param>
+        /// <param name="action">需要计时的委托</param>
         /// <returns></returns>
         public static CodeTimer Time(Int32 times, Action<Int32> action)
+        {
+            return Time(times, true, action);
+        }
+
+        /// <summary>
+        /// 计时
+        /// </summary>
+        /// <param name="times">次数</param>
+        /// <param name="needTimeOne">是否需要预热</param>
+        /// <param name="action">需要计时的委托</param>
+        /// <returns></returns>
+        public static CodeTimer Time(Int32 times, Boolean needTimeOne, Action<Int32> action)
         {
             CodeTimer timer = new CodeTimer();
             timer.Times = times;
             timer.Action = action;
 
-            timer.TimeOne();
+            if (needTimeOne) timer.TimeOne();
             timer.Time();
 
             return timer;
@@ -36,10 +48,21 @@ namespace NewLife.Log
         /// <summary>
         /// 计时，并用控制台输出行
         /// </summary>
-        /// <param name="title"></param>
-        /// <param name="times"></param>
-        /// <param name="action"></param>
+        /// <param name="title">标题</param>
+        /// <param name="times">次数</param>
+        /// <param name="action">需要计时的委托</param>
         public static void TimeLine(String title, Int32 times, Action<Int32> action)
+        {
+        }
+
+        /// <summary>
+        /// 计时，并用控制台输出行
+        /// </summary>
+        /// <param name="title">标题</param>
+        /// <param name="times">次数</param>
+        /// <param name="needTimeOne">是否需要预热</param>
+        /// <param name="action">需要计时的委托</param>
+        public static void TimeLine(String title, Int32 times, Boolean needTimeOne, Action<Int32> action)
         {
             Console.Write("{0,16}：", title);
 
@@ -51,7 +74,7 @@ namespace NewLife.Log
             ConsoleColor currentForeColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
 
-            timer.TimeOne();
+            if (needTimeOne) timer.TimeOne();
             timer.Time();
 
             Console.WriteLine(timer.ToString());
