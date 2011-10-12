@@ -346,7 +346,7 @@ namespace XCode.DataAccessLayer
                 if (dc.Identity && !dc.PrimaryKey)
                 {
                     IDataIndex di = GetIndex(table, dc.Name);
-                    if (di != null)
+                    if (di == null)
                     {
                         di = table.CreateIndex();
                         di.Columns = new String[] { dc.Name };
