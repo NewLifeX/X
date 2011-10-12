@@ -103,6 +103,7 @@
     <Compile Include="Collections\InterlockedStack.cs" />
     <Compile Include="Collections\Triplet.cs" />
     <Compile Include="Collections\WeakRefDictionary.cs" />
+    <Compile Include="Common\EnvironmentX.cs" />
     <Compile Include="Extension\Buffer.cs" />
     <Compile Include="Extension\EmptyEnumerable.cs" />
     <Compile Include="Extension\Enumerable.cs" />
