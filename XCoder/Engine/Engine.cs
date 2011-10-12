@@ -515,6 +515,7 @@ namespace XCoder
             //Tables = list;
 
             Dictionary<Object, String> noCNDic = new Dictionary<object, string>();
+            List<string> existTrans = new List<string>();
 
             #region 修正数据
             foreach (IDataTable table in list)
@@ -525,13 +526,17 @@ namespace XCoder
                 if (Config.AutoCutPrefix) name = CutPrefix(name);
                 if (Config.AutoFixWord) name = FixWord(name);
                 table.Alias = name;
-                // TODO 按需要收集已填写的中文 排除掉内容和说明相同的
                 // 描述
                 if (Config.UseCNFileName)
                 {
                     //if (String.IsNullOrEmpty(table.Description)) table.Description = ENameToCName(table.Alias);
 
                     if (String.IsNullOrEmpty(table.Description)) noCNDic.Add(table, table.Alias);
+
+                }
+                if (!String.IsNullOrEmpty(table.Description))
+                {
+                    AddExistTranslate(existTrans, !string.IsNullOrEmpty(table.Alias) ? table.Alias : table.Name, table.Description);
                 }
 
                 // 字段
@@ -562,6 +567,11 @@ namespace XCoder
                         //if (String.IsNullOrEmpty(dc.Description)) dc.Description = Engine.ENameToCName(dc.Alias);
 
                         if (String.IsNullOrEmpty(dc.Description)) noCNDic.Add(dc, dc.Alias);
+
+                    }
+                    if (!String.IsNullOrEmpty(dc.Description))
+                    {
+                        AddExistTranslate(existTrans, !string.IsNullOrEmpty(dc.Alias) ? dc.Alias : dc.Name, dc.Description);
                     }
                 }
 
@@ -573,6 +583,13 @@ namespace XCoder
             if (Config.UseCNFileName && noCNDic.Count > 0)
             {
                 ThreadPoolX.QueueUserWorkItem(TranslateWords, noCNDic, ex => XTrace.WriteException(ex));
+            }
+            #endregion
+
+            #region 提交已翻译的项目
+            if (existTrans.Count > 0)
+            {
+                ThreadPoolX.QueueUserWorkItem(SubmitTranslateNew, existTrans.ToArray(), ex => XTrace.WriteException(ex));
             }
             #endregion
 
@@ -617,6 +634,80 @@ namespace XCoder
                 else if (item.Key is IDataColumn)
                     (item.Key as IDataColumn).Description = ts[item.Value];
             }
+        }
+        void SubmitTranslateNew(object state)
+        {
+            string[] existTrans = state as string[];
+            if (existTrans != null && existTrans.Length > 0)
+            {
+                NnhyServiceTranslate serv = new NnhyServiceTranslate();
+                serv.TranslateNew("1", existTrans);
+                List<string> trans = new List<string>(ExistSubmitTrans);
+                trans.AddRange(existTrans);
+                ExistSubmitTrans = trans.ToArray();
+            }
+
+        }
+        private static string[] _ExistSubmitTrans;
+        private static string[] ExistSubmitTrans
+        {
+            get
+            {
+                if (_ExistSubmitTrans == null)
+                {
+                    string f = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "XCoder");
+                    f = Path.Combine(f, "SubmitedTranslations.dat");
+                    if (File.Exists(f))
+                    {
+                        _ExistSubmitTrans = File.ReadAllLines(f);
+                    }
+                    else
+                    {
+                        _ExistSubmitTrans = new string[] { };
+                    }
+                }
+                return _ExistSubmitTrans;
+            }
+            set
+            {
+                if (value != null && value.Length > 0)
+                {
+                    string f = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "XCoder");
+                    if (!Directory.Exists(f)) Directory.CreateDirectory(f);
+                    f = Path.Combine(f, "SubmitedTranslations.dat");
+                    File.WriteAllLines(f, value);
+                    _ExistSubmitTrans = value;
+                }
+            }
+        }
+        void AddExistTranslate(List<string> trans, string text, string tranText)
+        {
+            if (text != null) text = text.Trim();
+            if (tranText != null) tranText = tranText.Trim();
+            if (string.IsNullOrEmpty(text)) return;
+            if (string.IsNullOrEmpty(tranText)) return;
+            if (text.Equals(tranText, StringComparison.OrdinalIgnoreCase)) return;
+
+            for (int i = 0; i < trans.Count; i += 2)
+            {
+                if (trans[i].Equals(text, StringComparison.OrdinalIgnoreCase) &&
+                    trans[i + 1].Equals(tranText, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+            }
+
+            for (int i = 0; i < ExistSubmitTrans.Length; i += 2)
+            {
+                if (ExistSubmitTrans[i].Equals(text, StringComparison.OrdinalIgnoreCase) &&
+                    ExistSubmitTrans[i + 1].Equals(tranText, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+            }
+
+            trans.Add(text);
+            trans.Add(tranText);
         }
         ///// <summary>
         ///// 大写字母分词
