@@ -7,13 +7,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
 using NewLife.Log;
+using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
-using NewLife.Threading;
 
 namespace XCoder
 {
@@ -79,7 +78,11 @@ namespace XCoder
 
         private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
-            SaveConfig();
+            try
+            {
+                SaveConfig();
+            }
+            catch { }
         }
         #endregion
 
