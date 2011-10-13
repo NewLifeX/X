@@ -471,7 +471,7 @@ namespace XCode.DataAccessLayer
                     IContainer container = new Container();
 
                     IDatabase cp = new Access();
-                    container.Add(cp, cp.DbType.ToString());
+                    //container.Add(cp, cp.DbType.ToString());
 
                     _Container = container;
                 }

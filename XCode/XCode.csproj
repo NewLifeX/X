@@ -73,6 +73,7 @@
     <Compile Include="Attributes\BindRelationAttribute.cs" />
     <Compile Include="Attributes\ModelCheckModeAttribute.cs" />
     <Compile Include="Cache\IEntityCache.cs" />
+    <Compile Include="Cctor.cs" />
     <Compile Include="Code\EntityAssembly.cs" />
     <Compile Include="Code\EntityClass.cs" />
     <Compile Include="Code\EntityClassBiz.cs" />
@@ -81,32 +82,16 @@
     <Compile Include="Common\Helper.cs" />
     <Compile Include="Configuration\TableItem.cs" />
     <Compile Include="DataAccessLayer\Common\DatabaseType.cs" />
-    <Compile Include="DataAccessLayer\Common\FileDb.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="DataAccessLayer\Common\RemoteDb.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="DataAccessLayer\Common\FileDb.cs" />
+    <Compile Include="DataAccessLayer\Common\RemoteDb.cs" />
     <Compile Include="DataAccessLayer\DAL_DbOperate.cs" />
     <Compile Include="DataAccessLayer\DAL_Setting.cs" />
-    <Compile Include="DataAccessLayer\Database\Distributed.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="DataAccessLayer\Database\Firebird.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="DataAccessLayer\Database\Network.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="DataAccessLayer\Database\PostgreSQL.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="DataAccessLayer\Database\SqlCe.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="DataAccessLayer\Common\DbBase.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="DataAccessLayer\Database\Distributed.cs" />
+    <Compile Include="DataAccessLayer\Database\Firebird.cs" />
+    <Compile Include="DataAccessLayer\Database\Network.cs" />
+    <Compile Include="DataAccessLayer\Database\PostgreSQL.cs" />
+    <Compile Include="DataAccessLayer\Database\SqlCe.cs" />
+    <Compile Include="DataAccessLayer\Common\DbBase.cs" />
     <Compile Include="DataAccessLayer\Common\DbFactory.cs" />
     <Compile Include="DataAccessLayer\Common\IDatabase.cs" />
     <Compile Include="DataAccessLayer\MetaData\DbMetaData_Negative.cs" />
@@ -136,25 +121,15 @@
     <Compile Include="Exceptions\XSqlException.cs" />
     <Compile Include="Configuration\FieldItem.cs" />
     <Compile Include="DataAccessLayer\DatabaseSchema.cs" />
-    <Compile Include="DataAccessLayer\Database\Access.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="DataAccessLayer\Database\Access.cs" />
     <Compile Include="DataAccessLayer\DAL.cs" />
     <Compile Include="DataAccessLayer\Common\DbSession.cs" />
     <Compile Include="DataAccessLayer\Common\IDbSession.cs" />
-    <Compile Include="DataAccessLayer\Database\MySql.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="DataAccessLayer\Database\Oracle.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="DataAccessLayer\Database\MySql.cs" />
+    <Compile Include="DataAccessLayer\Database\Oracle.cs" />
     <Compile Include="DataAccessLayer\SelectBuilder.cs" />
-    <Compile Include="DataAccessLayer\Database\SQLite.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="DataAccessLayer\Database\SqlServer.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="DataAccessLayer\Database\SQLite.cs" />
+    <Compile Include="DataAccessLayer\Database\SqlServer.cs" />
     <Compile Include="DataAccessLayer\MetaData\DDLSchema.cs" />
     <Compile Include="DataAccessLayer\Model\XField.cs" />
     <Compile Include="DataAccessLayer\Model\XTable.cs" />
@@ -265,7 +240,6 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>$(SolutionDir)DLL\ModuleCctor\ModuleCctor.exe $(TargetPath)</PostBuildEvent>
   </PropertyGroup>
 </Project>
