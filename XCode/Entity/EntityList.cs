@@ -45,9 +45,12 @@ namespace XCode
         /// <param name="collection"></param>
         public EntityList(IEnumerable collection)
         {
-            foreach (T item in collection)
+            if (collection != null)
             {
-                Add(item);
+                foreach (T item in collection)
+                {
+                    Add(item);
+                }
             }
         }
 
@@ -70,7 +73,8 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<T> operator +(EntityList<T> entities1, EntityList<T> entities2)
         {
-            if ((entities1 == null || entities1.Count < 1) && (entities2 == null || entities2.Count < 1)) return null;
+            //if ((entities1 == null || entities1.Count < 1) && (entities2 == null || entities2.Count < 1)) return null;
+            if ((entities1 == null || entities1.Count < 1) && (entities2 == null || entities2.Count < 1)) return entities1;
 
             EntityList<T> list = new EntityList<T>();
             if (entities1 != null && entities1.Count > 0) list.AddRange(entities1);
@@ -87,7 +91,8 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<T> operator -(EntityList<T> entities1, EntityList<T> entities2)
         {
-            if (entities1 == null || entities1.Count < 1) return null;
+            //if (entities1 == null || entities1.Count < 1) return null;
+            if (entities1 == null || entities1.Count < 1) return entities1;
 
             EntityList<T> list = new EntityList<T>();
             foreach (T item in entities1)
@@ -95,7 +100,7 @@ namespace XCode
                 if (entities2 != null && !entities2.Contains(item)) list.Add(item);
             }
 
-            if (list == null || list.Count < 1) return null;
+            //if (list == null || list.Count < 1) return null;
 
             return list;
         }
@@ -126,7 +131,8 @@ namespace XCode
         /// <returns></returns>
         public EntityList<T> FindAll(String name, Object value)
         {
-            if (Count < 1) return null;
+            //if (Count < 1) return null;
+            if (Count < 1) return this;
 
             EntityList<T> list = new EntityList<T>();
             foreach (T item in this)
@@ -146,7 +152,8 @@ namespace XCode
         /// <returns></returns>
         public EntityList<T> FindAll(String[] names, Object[] values)
         {
-            if (Count < 1) return null;
+            //if (Count < 1) return null;
+            if (Count < 1) return this;
 
             EntityList<T> list = new EntityList<T>();
             foreach (T item in this)
@@ -175,7 +182,8 @@ namespace XCode
         /// <returns></returns>
         public new EntityList<T> FindAll(Predicate<T> match)
         {
-            if (Count < 1) return null;
+            //if (Count < 1) return null;
+            if (Count < 1) return this;
 
             EntityList<T> list = new EntityList<T>();
             foreach (T item in this)
@@ -213,7 +221,8 @@ namespace XCode
         /// <returns></returns>
         public EntityList<T> FindAllIgnoreCase(String name, String value)
         {
-            if (Count < 1) return null;
+            //if (Count < 1) return null;
+            if (Count < 1) return this;
 
             EntityList<T> list = new EntityList<T>();
             foreach (T item in this)
@@ -607,9 +616,10 @@ namespace XCode
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            if (Count < 1) return null;
-
+            //if (Count < 1) return null;
             List<TResult> list = new List<TResult>();
+            if (Count < 1) return list;
+
             Type type = typeof(TResult);
             foreach (T item in this)
             {
@@ -900,7 +910,7 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<T> From(IEnumerable collection)
         {
-            if (collection == null || collection.GetEnumerator() == null) return null;
+            //if (collection == null || collection.GetEnumerator() == null) return null;
 
             return new EntityList<T>(collection);
         }
@@ -914,7 +924,7 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<T> From<T2>(IEnumerable collection, Func<T2, T> func)
         {
-            if (collection == null || collection.GetEnumerator() == null) return null;
+            //if (collection == null || collection.GetEnumerator() == null) return null;
 
             EntityList<T> list = new EntityList<T>();
             foreach (T2 item in collection)
@@ -927,7 +937,7 @@ namespace XCode
                     entity = func(item);
                 if (entity != null) list.Add(entity);
             }
-            if (list == null || list.Count < 1) return null;
+            //if (list == null || list.Count < 1) return null;
             return list;
         }
         #endregion
@@ -943,7 +953,7 @@ namespace XCode
             // 如果是接口，创建新的集合，否则返回自身
             if (!typeof(T).IsInterface) return this;
 
-            if (Count < 1) return null;
+            //if (Count < 1) return null;
 
             return ToArray(null);
         }
@@ -952,7 +962,7 @@ namespace XCode
         #region 复制
         IList ToArray(Type type)
         {
-            if (Count < 1) return null;
+            //if (Count < 1) return null;
 
             // 元素类型
             if (type == null) type = EntityType;
