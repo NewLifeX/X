@@ -30,6 +30,7 @@ namespace NewLife.Model
         /// <param name="type"></param>
         /// <returns></returns>
         IObjectContainer RegisterType(Type type);
+        //TODO: Type from Type to，类型的注册应该是两个类型的，一个是接口，一个是实现
 
         /// <summary>
         /// 注册类型和名称
