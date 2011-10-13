@@ -34,10 +34,13 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.1.*")]
-[assembly: AssemblyFileVersion("3.1.2011.1012")]
+[assembly: AssemblyFileVersion("3.1.2011.1013")]
 
 /*
- * v3.1.2011.1012   增加环境类EnvironmentX，支持识别是否控制台、是否64位操作系统
+ * v3.1.2011.1013   增加运行时类Runtime，支持识别是否控制台、是否64位操作系统
+ *                  Runtime支持获取方法的JIT Native地址，支持同签名方法替换
+ *                  增加方法体读取器MethodBodyReader，支持获取方法体的IL代码
+ *                  增加模块构造函数的支持，默认调用Cctor类的Init和Finish方法
  * 
  * v3.0.2011.0922   增加扩展方法特性，支持在vs2008和vs2010上编写.Net2.0时使用扩展方法
  *                  增加Enumerable，利用扩展方法扩展IEnumerable

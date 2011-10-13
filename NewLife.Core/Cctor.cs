@@ -6,12 +6,14 @@ namespace NewLife
 {
     class Cctor
     {
-        static void Init()
+        public static void Init()
         {
+            //Console.WriteLine("Init");
         }
 
-        static void Finish()
+        public static void Finish()
         {
+            //Console.WriteLine("Finish");
         }
     }
 }

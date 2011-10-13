@@ -31,6 +31,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\..\生成\NewLife.Core.XML</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -65,6 +66,7 @@
     <CodeContractsRuntimeCheckingLevel>Full</CodeContractsRuntimeCheckingLevel>
     <CodeContractsReferenceAssembly>%28none%29</CodeContractsReferenceAssembly>
     <CodeContractsAnalysisWarningLevel>0</CodeContractsAnalysisWarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '.Net 2.0|AnyCPU'">
     <OutputPath>..\..\生成\Net20Sp0\</OutputPath>
@@ -83,6 +85,7 @@
     <CodeAnalysisRuleDirectories>;D:\MS\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualBasic" />
@@ -104,7 +107,7 @@
     <Compile Include="Collections\InterlockedStack.cs" />
     <Compile Include="Collections\Triplet.cs" />
     <Compile Include="Collections\WeakRefDictionary.cs" />
-    <Compile Include="Common\EnvironmentX.cs" />
+    <Compile Include="Common\Runtime.cs" />
     <Compile Include="Extension\Buffer.cs" />
     <Compile Include="Extension\EmptyEnumerable.cs" />
     <Compile Include="Extension\Enumerable.cs" />
@@ -142,6 +145,8 @@
     <Compile Include="Model\TypeResolutionService.cs" />
     <Compile Include="Reflection\CodeDomDuckTypeGenerator.cs" />
     <Compile Include="Reflection\DuckTyping.cs" />
+    <Compile Include="Reflection\IL\ILInstruction.cs" />
+    <Compile Include="Reflection\IL\MethodBodyReader.cs" />
     <Compile Include="Reflection\快速反射\EventInfoX.cs" />
     <Compile Include="Reflection\OrcasNamer.cs" />
     <Compile Include="Reflection\TypeResolver.cs" />
@@ -305,7 +310,7 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>E:\Net\ModuleCctor\bin\ModuleCctor.exe $(TargetPath)</PostBuildEvent>
+    <PostBuildEvent>$(SolutionDir)DLL\ModuleCctor\ModuleCctor.exe $(TargetPath)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -187,7 +187,7 @@ namespace NewLife.Serialization
         [Conditional("DEBUG")]
         public void WriteLog(Int32 colorIndex, String action, params Object[] args)
         {
-            if (EnvironmentX.IsConsole) return;
+            if (Runtime.IsConsole) return;
 
             ConsoleColor color = Console.ForegroundColor;
 
@@ -222,7 +222,7 @@ namespace NewLife.Serialization
         [Conditional("DEBUG")]
         public static void SetDebugIndent(Int32 indent)
         {
-            if (EnvironmentX.IsConsole) return;
+            if (Runtime.IsConsole) return;
 
             Console.CursorLeft = indent * 4;
         }
@@ -233,7 +233,7 @@ namespace NewLife.Serialization
         [Conditional("DEBUG")]
         public void SetDebugIndent()
         {
-            if (EnvironmentX.IsConsole) return;
+            if (Runtime.IsConsole) return;
 
             SetDebugIndent(Depth - 1);
         }
