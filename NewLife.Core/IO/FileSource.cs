@@ -148,9 +148,9 @@ namespace NewLife.IO
             if (ss != null && ss.Length > 0)
             {
                 //找到资源名
-                name = ss.First(e => e == filename);
-                if (String.IsNullOrEmpty(name)) name = ss.First(e => e.EqualIgnoreCase(filename));
-                if (String.IsNullOrEmpty(name)) name = ss.First(e => e.EndsWith(filename));
+                name = ss.FirstOrDefault(e => e == filename);
+                if (String.IsNullOrEmpty(name)) name = ss.FirstOrDefault(e => e.EqualIgnoreCase(filename));
+                if (String.IsNullOrEmpty(name)) name = ss.FirstOrDefault(e => e.EndsWith(filename));
 
                 if (!String.IsNullOrEmpty(name)) return asm.GetManifestResourceStream(name);
             }
