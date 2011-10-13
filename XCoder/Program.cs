@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Windows.Forms;
 using NewLife.Log;
+using NewLife.Threading;
+using NewLife;
 
 namespace XCoder
 {
@@ -15,7 +17,7 @@ namespace XCoder
         {
             try
             {
-                Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException); 
+                Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
                 AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
@@ -28,6 +30,8 @@ namespace XCoder
                     au.VerSrc = "http://files.cnblogs.com/nnhy/XCoderVer.xml";
                     au.ProcessAsync();
                 }
+
+                new TimerX(s => Runtime.ReleaseMemory(), null, 5000, 10000);
             }
             catch (Exception ex)
             {
