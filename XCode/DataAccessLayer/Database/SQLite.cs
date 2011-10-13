@@ -304,6 +304,9 @@ namespace XCode.DataAccessLayer
 
             if (field.Identity) str += " AUTOINCREMENT";
 
+            // 给字符串字段加上忽略大小写，否则admin和Admin是查不出来的
+            if (field.DataType == typeof(String)) str += " COLLATE NOCASE";
+
             return str;
         }
         #endregion
