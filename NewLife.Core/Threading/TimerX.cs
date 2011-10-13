@@ -5,9 +5,10 @@ using System.Threading;
 
 namespace NewLife.Threading
 {
-    /// <summary>
-    /// 不可重入的定时器。为了避免系统的Timer可重入的问题，差别在于本地调用完成后才开始计算时间间隔。这实际上也是经常用到的。
-    /// </summary>
+    /// <summary>不可重入的定时器。</summary>
+    /// <remarks>
+    /// 为了避免系统的Timer可重入的问题，差别在于本地调用完成后才开始计算时间间隔。这实际上也是经常用到的。
+    /// </remarks>
     public class TimerX : DisposeBase
     {
         #region 属性
@@ -69,13 +70,18 @@ namespace NewLife.Threading
         #endregion
 
         #region 构造
+        ///// <summary>
+        ///// 实例化一个不可重入的定时器
+        ///// </summary>
+        //public TimerX() { }
+
         /// <summary>
-        /// 实例化
+        /// 实例化一个不可重入的定时器
         /// </summary>
-        /// <param name="callback"></param>
-        /// <param name="state"></param>
-        /// <param name="dueTime"></param>
-        /// <param name="period"></param>
+        /// <param name="callback">委托</param>
+        /// <param name="state">用户数据</param>
+        /// <param name="dueTime">多久之后开始</param>
+        /// <param name="period">间隔周期</param>
         public TimerX(WaitCallback callback, object state, int dueTime, int period)
         {
             if (callback == null) throw new ArgumentNullException("callback");

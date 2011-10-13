@@ -8,6 +8,7 @@ using System.Reflection.Emit;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
 namespace NewLife
 {
@@ -204,6 +205,30 @@ namespace NewLife
             }
         }
         #endregion
+
+        #region 内存设置
+        /// <summary>
+        /// 设置进程的程序集大小，将部分物理内存占用转移到虚拟内存
+        /// </summary>
+        /// <param name="pid">要设置的进程ID</param>
+        /// <param name="min">最小值</param>
+        /// <param name="max">最大值</param>
+        /// <returns></returns>
+        public static Boolean SetProcessWorkingSetSize(Int32 pid, Int32 min, Int32 max)
+        {
+            Process p = pid <= 0 ? Process.GetCurrentProcess() : Process.GetProcessById(pid);
+            return Win32Native.SetProcessWorkingSetSize(p.Handle, min, max);
+        }
+
+        /// <summary>
+        /// 释放当前进程所占用的内存
+        /// </summary>
+        /// <returns></returns>
+        public static Boolean ReleaseMemory()
+        {
+            return SetProcessWorkingSetSize(0, -1, -1);
+        }
+        #endregion
     }
 
     class Win32Native
@@ -231,5 +256,8 @@ namespace NewLife
         [return: MarshalAs(UnmanagedType.Bool)]
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern bool IsWow64Process([In] IntPtr hSourceProcessHandle, [MarshalAs(UnmanagedType.Bool)] out bool isWow64);
+
+        [DllImport("kernel32.dll")]
+        internal static extern bool SetProcessWorkingSetSize(IntPtr proc, int min, int max);
     }
 }
