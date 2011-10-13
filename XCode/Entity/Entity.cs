@@ -374,7 +374,7 @@ namespace XCode
             if (Helper.IsNullKey(this[field.Name])) return FindCount(names, values) > 0;
 
             EntityList<TEntity> list = FindAll(names, values);
-            if (list == null) return false;
+            if (list == null || list.Count < 1) return false;
             if (list.Count > 1) return true;
 
             return !Object.Equals(this[field.Name], list[0][field.Name]);
@@ -632,7 +632,8 @@ namespace XCode
                     {
                         // 最大可用行数改为实际最大可用行数
                         Int32 max = (Int32)Math.Min(maximumRows, count - startRowIndex);
-                        if (max <= 0) return null;
+                        //if (max <= 0) return null;
+                        if (max <= 0) return new EntityList<TEntity>();
                         Int32 start = (Int32)(count - (startRowIndex + maximumRows));
 
                         String sql2 = PageSplitSQL(whereClause, order, selects, start, max);
