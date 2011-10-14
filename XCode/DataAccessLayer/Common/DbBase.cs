@@ -316,6 +316,13 @@ namespace XCode.DataAccessLayer
 
             return field.GetValue(null) as DbProviderFactory;
         }
+
+        /// <summary>
+        /// 是否支持该提供者所描述的数据库
+        /// </summary>
+        /// <param name="providerName">提供者</param>
+        /// <returns></returns>
+        public virtual Boolean Support(String providerName) { return providerName.ToLower().Contains(this.GetType().Name.ToLower()); }
         #endregion
 
         #region 分页

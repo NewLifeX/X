@@ -124,6 +124,15 @@ namespace XCode.DataAccessLayer
         {
             return new OracleMeta();
         }
+
+        public override bool Support(string providerName)
+        {
+            providerName = providerName.ToLower();
+            if (providerName.Contains("oracleclient")) return true;
+            if (providerName.Contains("oracle")) return true;
+
+            return false;
+        }
         #endregion
 
         #region ·ÖÒ³

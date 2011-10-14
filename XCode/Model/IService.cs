@@ -32,6 +32,9 @@ namespace XCode.Model
     /// </summary>
     class XCodeService
     {
+        /// <summary>对象容器</summary>
+        public static IObjectContainer Conatiner { get { return ObjectContainer.Current; } }
+
         private static IService _Instance;
         /// <summary>提供者实例</summary>
         public static IService Instance

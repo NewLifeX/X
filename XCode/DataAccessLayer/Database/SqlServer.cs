@@ -87,6 +87,19 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData() { return new SqlServerMetaData(); }
+
+        public override bool Support(string providerName)
+        {
+            providerName = providerName.ToLower();
+            if (providerName.Contains("system.data.sqlclient")) return true;
+            if (providerName.Contains("sql2008")) return true;
+            if (providerName.Contains("sql2005")) return true;
+            if (providerName.Contains("sql2000")) return true;
+            if (providerName.Contains("sqlclient")) return true;
+            if (providerName.Contains("mssql")) return true;
+
+            return false;
+        }
         #endregion
 
         #region ·ÖÒ³

@@ -53,6 +53,15 @@ namespace XCode.DataAccessLayer
         {
             return new AccessMetaData();
         }
+
+        public override bool Support(string providerName)
+        {
+            providerName = providerName.ToLower();
+            if (providerName.Contains("microsoft.jet.oledb")) return true;
+            if (providerName.Contains("access")) return true;
+
+            return false;
+        }
         #endregion
 
         #region 数据库特性

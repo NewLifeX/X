@@ -14,7 +14,7 @@ namespace XCode
 
         public static void Finish()
         {
-            ObjectContaner.Current.RegisterType<XTable>();
+            ObjectContainer.Current.Register<IDataTable, XTable>();
         }
     }
 }

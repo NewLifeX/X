@@ -56,6 +56,13 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <returns></returns>
         IMetaData CreateMetaData();
+
+        /// <summary>
+        /// 是否支持该提供者所描述的数据库
+        /// </summary>
+        /// <param name="providerName">提供者</param>
+        /// <returns></returns>
+        Boolean Support(String providerName);
         #endregion
 
         #region 分页

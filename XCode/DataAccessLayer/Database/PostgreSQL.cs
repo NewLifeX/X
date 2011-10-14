@@ -63,6 +63,15 @@ namespace XCode.DataAccessLayer
         {
             return new PostgreSQLMetaData();
         }
+
+        public override bool Support(string providerName)
+        {
+            providerName = providerName.ToLower();
+            if (providerName.Contains("postgresql")) return true;
+            if (providerName.Contains("npgsql")) return true;
+
+            return false;
+        }
         #endregion
 
         #region 分页
