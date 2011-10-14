@@ -123,7 +123,6 @@
     <Compile Include="Exceptions\XDbSessionException.cs" />
     <Compile Include="Exceptions\XSqlException.cs" />
     <Compile Include="Configuration\FieldItem.cs" />
-    <Compile Include="DataAccessLayer\DatabaseSchema.cs" />
     <Compile Include="DataAccessLayer\Database\Access.cs" />
     <Compile Include="DataAccessLayer\DAL.cs" />
     <Compile Include="DataAccessLayer\Common\DbSession.cs" />

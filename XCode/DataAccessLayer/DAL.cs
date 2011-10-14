@@ -8,11 +8,9 @@ using System.Text;
 using System.Threading;
 using System.Xml;
 using System.Xml.Serialization;
-using NewLife.Model;
 using NewLife.Reflection;
 using XCode.Code;
 using XCode.Exceptions;
-using XCode.Model;
 
 namespace XCode.DataAccessLayer
 {
@@ -143,100 +141,12 @@ namespace XCode.DataAccessLayer
                 _connTypes.Add(connName, type);
             }
         }
-
-        ///// <summary>从提供者和连接字符串猜测数据库处理器</summary>
-        ///// <param name="connStr"></param>
-        ///// <param name="provider"></param>
-        ///// <returns></returns>
-        //private static Type GetTypeFromConn(String connStr, String provider)
-        //{
-        //    //Type type = null;
-        //    //DatabaseType dt;
-        //    //if (!String.IsNullOrEmpty(provider))
-        //    //{
-        //    //    provider = provider.ToLower();
-        //    //    if (provider.Contains("system.data.sqlclient"))
-        //    //        dt = DatabaseType.SqlServer;
-        //    //    else if (provider.Contains("oracleclient"))
-        //    //        type = typeof(Oracle);
-        //    //    else if (provider.Contains("microsoft.jet.oledb"))
-        //    //        type = typeof(Access);
-        //    //    else if (provider.Contains("access"))
-        //    //        type = typeof(Access);
-        //    //    else if (provider.Contains("mysql"))
-        //    //        type = typeof(MySql);
-        //    //    else if (provider.Contains("sqlite"))
-        //    //        type = typeof(SQLite);
-        //    //    else if (provider.Contains("sqlce"))
-        //    //        type = typeof(SqlCe);
-        //    //    else if (provider.Contains("firebird"))
-        //    //        type = typeof(Firebird);
-        //    //    else if (provider.Contains("postgresql"))
-        //    //        type = typeof(PostgreSQL);
-        //    //    else if (provider.Contains("npgsql"))
-        //    //        type = typeof(PostgreSQL);
-        //    //    else if (provider.Contains("sql2008"))
-        //    //        type = typeof(SqlServer);
-        //    //    else if (provider.Contains("sql2005"))
-        //    //        type = typeof(SqlServer);
-        //    //    else if (provider.Contains("sql2000"))
-        //    //        type = typeof(SqlServer);
-        //    //    else if (provider.Contains("sql"))
-        //    //        type = typeof(SqlServer);
-        //    //    else
-        //    //    {
-        //    //        type = TypeX.GetType(provider, true);
-        //    //    }
-        //    //}
-        //    //else
-        //    //{
-        //    //    // 分析类型
-        //    //    String str = connStr.ToLower();
-        //    //    if (str.Contains("mssql") || str.Contains("sqloledb"))
-        //    //        type = typeof(SqlServer);
-        //    //    else if (str.Contains("oracle"))
-        //    //        type = typeof(Oracle);
-        //    //    else if (str.Contains("microsoft.jet.oledb"))
-        //    //        type = typeof(Access);
-        //    //    else if (str.Contains("sql"))
-        //    //        type = typeof(SqlServer);
-        //    //    else
-        //    //        type = typeof(Access);
-        //    //}
-        //    //return type;
-
-        //    IObjectContainer container = XCodeService.Conatiner;
-        //    String pname = provider.ToLower();
-        //    //foreach (IDatabase item in container.ResolveAll<IDatabase>())
-        //    //{
-        //    //    if (item.Support(pname)) return item.GetType();
-        //    //}
-        //    foreach (KeyValuePair<String, Type> item in container.ResolveAllNameTypes(typeof(IDatabase)))
-        //    {
-        //        IDatabase db = DbFactory.GetDefault(item.Key);
-        //        if (db.Support(pname)) return item.Value;
-        //    }
-
-        //    if (!String.IsNullOrEmpty(provider))
-        //    {
-        //        Type type = TypeX.GetType(provider, true);
-        //        container.Register(typeof(IDatabase), type, provider);
-        //        return type;
-        //    }
-        //    else
-        //    {
-        //        return container.ResolveType(typeof(IDatabase), DatabaseType.Access.ToString());
-        //    }
-        //}
         #endregion
 
         #region 属性
         private String _ConnName;
         /// <summary>连接名</summary>
         public String ConnName { get { return _ConnName; } }
-
-        ///// <summary>提供者名</summary>
-        //private String _ProviderName;
 
         private Type _ProviderType;
         /// <summary>实现了IDatabase接口的数据库类型</summary>
@@ -246,10 +156,6 @@ namespace XCode.DataAccessLayer
             {
                 if (_ProviderType == null && _connTypes.ContainsKey(ConnName)) _ProviderType = _connTypes[ConnName];
                 return _ProviderType;
-
-                //if (String.IsNullOrEmpty(_ProviderName)) return null;
-
-                //return Container.ResolveType(typeof(IDatabase), _ProviderName);
             }
         }
 
@@ -308,12 +214,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private List<IDataTable> GetTables()
-        {
-            List<IDataTable> list = Db.CreateMetaData().GetTables();
-            //if (list != null && list.Count > 0) list.Sort(delegate(IDataTable item1, IDataTable item2) { return item1.Name.CompareTo(item2.Name); });
-            return list;
-        }
+        private List<IDataTable> GetTables() { return Db.CreateMetaData().GetTables(); }
 
         /// <summary>导出模型</summary>
         /// <returns></returns>

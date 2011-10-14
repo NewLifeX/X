@@ -111,15 +111,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override string ToString() { return Db.ToString(); }
 
-        ///// <summary>服务提供者</summary>
-        //public static IServiceProvider ServiceProvider { get { return XCodeServiceProvider.Current; } }
-
         /// <summary>建立数据表对象</summary>
         /// <returns></returns>
         internal static IDataTable CreateTable()
         {
-            //return new XTable();
-            //return ServiceProvider.GetService(typeof(IDataTable)) as IDataTable;
             return XCodeService.Instance.CreateTable();
         }
         #endregion
@@ -129,24 +124,7 @@ namespace XCode.DataAccessLayer
         /// <summary>是否启用数据架构</summary>
         public static Boolean? NegativeEnable
         {
-            get
-            {
-                //if (_NegativeEnable.HasValue) return _NegativeEnable.Value;
-
-                ////String str = ConfigurationManager.AppSettings["XCode.Schema.Enable"];
-                ////if (String.IsNullOrEmpty(str)) str = ConfigurationManager.AppSettings["DatabaseSchema_Enable"];
-                ////if (String.IsNullOrEmpty(str)) return null;
-                ////if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
-                ////    _Enable = true;
-                ////else if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
-                ////    _Enable = false;
-                ////else
-                ////    _Enable = Convert.ToBoolean(str);
-
-                //_NegativeEnable = Config.GetConfig<Boolean?>("XCode.Negative.Enable", Config.GetConfig<Boolean?>("XCode.Schema.Enable", Config.GetConfig<Boolean?>("DatabaseSchema_Enable")));
-
-                return _NegativeEnable;
-            }
+            get { return _NegativeEnable; }
             set { _NegativeEnable = value; }
         }
 
@@ -173,23 +151,12 @@ namespace XCode.DataAccessLayer
             {
                 if (_NegativeExclude != null) return _NegativeExclude;
 
-                //String str = ConfigurationManager.AppSettings["DatabaseSchema_Exclude"];
                 String str = Config.GetConfig<String>("XCode.Negative.Exclude", Config.GetConfig<String>("XCode.Schema.Exclude", Config.GetConfig<String>("DatabaseSchema_Exclude")));
 
                 if (String.IsNullOrEmpty(str))
                     _NegativeExclude = new HashSet<String>();
                 else
                 {
-                    //_Exclude = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-                    //String[] ss = str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                    //if (ss != null && ss.Length > 0)
-                    //{
-                    //    foreach (String item in ss)
-                    //    {
-                    //        _Exclude.Add(item);
-                    //    }
-                    //}
-
                     _NegativeExclude = new HashSet<String>(str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries), StringComparer.OrdinalIgnoreCase);
                 }
 
