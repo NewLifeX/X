@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Configuration;
 using XCode.DataAccessLayer;
+using System.Data.Common;
 
 namespace XCode.Configuration
 {
@@ -70,8 +71,12 @@ namespace XCode.Configuration
                         if (dal.DbType == DatabaseType.Oracle)
                         {
                             // 加上用户名
-                            String UserID = (dal.Db as Oracle).UserID;
-                            if (!String.IsNullOrEmpty(UserID)) str = UserID + "." + str;
+                            //String UserID = (dal.Db as Oracle).UserID;
+                            //if (!String.IsNullOrEmpty(UserID)) str = UserID + "." + str;
+
+                            DbConnectionStringBuilder ocsb = dal.Db.Factory.CreateConnectionStringBuilder();
+                            ocsb.ConnectionString = dal.ConnStr;
+                            if (ocsb.ContainsKey("User ID")) str = (String)ocsb["User ID"] + "." + str;
                         }
                     }
                     _TableName = str;

@@ -4,10 +4,9 @@ using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Text.RegularExpressions;
+using NewLife;
 using XCode.Common;
 using XCode.Exceptions;
-using NewLife;
-using System.Linq;
 
 namespace XCode.DataAccessLayer
 {

@@ -46,6 +46,30 @@ namespace XCode
         DataRow ToData(IEntity entity, ref DataRow dr);
     }
 
+    /// <summary>在数据行和实体类之间映射数据接口的提供者</summary>
+    public interface IDataRowEntityAccessorProvider
+    {
+        /// <summary>
+        /// 创建实体类的数据行访问器
+        /// </summary>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        IDataRowEntityAccessor CreateDataRowEntityAccessor(Type entityType);
+    }
+
+    class DataRowEntityAccessorProvider : IDataRowEntityAccessorProvider
+    {
+        /// <summary>
+        /// 创建实体类的数据行访问器
+        /// </summary>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        public IDataRowEntityAccessor CreateDataRowEntityAccessor(Type entityType)
+        {
+            return new DataRowEntityAccessor(entityType);
+        }
+    }
+
     class DataRowEntityAccessor : IDataRowEntityAccessor
     {
         #region 属性

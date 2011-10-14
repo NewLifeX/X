@@ -15,26 +15,26 @@ namespace XCode.DataAccessLayer
     public static class DbFactory
     {
         #region 属性
-        /// <summary>内建数据库</summary>
-        private static Dictionary<DatabaseType, IDatabase> dbs = new Dictionary<DatabaseType, IDatabase>();
+        ///// <summary>内建数据库</summary>
+        //private static Dictionary<DatabaseType, IDatabase> dbs = new Dictionary<DatabaseType, IDatabase>();
         #endregion
 
         #region 创建
-        /// <summary>
-        /// 注册数据库提供者
-        /// </summary>
-        /// <param name="dbType"></param>
-        /// <param name="db"></param>
-        public static void Register(DatabaseType dbType, IDatabase db)
-        {
-            lock (dbs)
-            {
-                //if (dbs.ContainsKey(dbType))
-                dbs[dbType] = db;
-                //else
-                //    dbs.Add(dbType, db);
-            }
-        }
+        ///// <summary>
+        ///// 注册数据库提供者
+        ///// </summary>
+        ///// <param name="dbType"></param>
+        ///// <param name="db"></param>
+        //public static void Register(DatabaseType dbType, IDatabase db)
+        //{
+        //    lock (dbs)
+        //    {
+        //        //if (dbs.ContainsKey(dbType))
+        //        dbs[dbType] = db;
+        //        //else
+        //        //    dbs.Add(dbType, db);
+        //    }
+        //}
 
         /// <summary>
         /// 根据数据库类型创建提供者
@@ -43,51 +43,53 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDatabase Create(DatabaseType dbType)
         {
-            if (dbType == DatabaseType.Other) return null;
+            return GetDefault(dbType.ToString());
 
-            IDatabase db = null;
-            if (dbs.TryGetValue(dbType, out db)) return db;
+            //if (dbType == DatabaseType.Other) return null;
 
-            db = BuildinCreate(dbType);
-            if (db == null) return null;
+            //IDatabase db = null;
+            //if (dbs.TryGetValue(dbType, out db)) return db;
 
-            Register(dbType, db);
+            //db = BuildinCreate(dbType);
+            //if (db == null) return null;
 
-            return db;
+            //Register(dbType, db);
+
+            //return db;
         }
 
-        private static IDatabase BuildinCreate(DatabaseType dbType)
-        {
-            switch (dbType)
-            {
-                case DatabaseType.Access:
-                    return new Access();
-                case DatabaseType.SqlServer:
-                    return new SqlServer();
-                case DatabaseType.Oracle:
-                    return new Oracle();
-                case DatabaseType.MySql:
-                    return new MySql();
-                case DatabaseType.SqlCe:
-                    return new SqlCe();
-                case DatabaseType.SQLite:
-                    return new SQLite();
-                case DatabaseType.Firebird:
-                    return new Firebird();
-                case DatabaseType.PostgreSQL:
-                    return new PostgreSQL();
-                default:
-                    break;
-            }
+        //private static IDatabase BuildinCreate(DatabaseType dbType)
+        //{
+        //    switch (dbType)
+        //    {
+        //        case DatabaseType.Access:
+        //            return new Access();
+        //        case DatabaseType.SqlServer:
+        //            return new SqlServer();
+        //        case DatabaseType.Oracle:
+        //            return new Oracle();
+        //        case DatabaseType.MySql:
+        //            return new MySql();
+        //        case DatabaseType.SqlCe:
+        //            return new SqlCe();
+        //        case DatabaseType.SQLite:
+        //            return new SQLite();
+        //        case DatabaseType.Firebird:
+        //            return new Firebird();
+        //        case DatabaseType.PostgreSQL:
+        //            return new PostgreSQL();
+        //        default:
+        //            break;
+        //    }
 
-            return null;
-        }
+        //    return null;
+        //}
         #endregion
 
         #region 静态构造
         static DbFactory()
         {
-            XCodeService.Conatiner
+            XCodeService.Container
                 .Reg<Access>()
                 .Reg<SqlServer>()
                 .Reg<Oracle>()
@@ -113,7 +115,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDatabase GetDefault(String providerName)
         {
-            return defaultDbs.GetItem(providerName, name => (IDatabase)TypeX.CreateInstance(XCodeService.Conatiner.ResolveType(typeof(IDatabase), name)));
+            return defaultDbs.GetItem(providerName, name => (IDatabase)TypeX.CreateInstance(XCodeService.Container.ResolveType(typeof(IDatabase), name)));
         }
         #endregion
 
@@ -124,7 +126,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         internal static Type GetProviderType(String connStr, String provider)
         {
-            IObjectContainer container = XCodeService.Conatiner;
+            IObjectContainer container = XCodeService.Container;
             String pname = provider.ToLower();
             //foreach (IDatabase item in container.ResolveAll<IDatabase>())
             //{

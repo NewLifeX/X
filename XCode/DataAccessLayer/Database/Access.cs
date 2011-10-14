@@ -5,15 +5,14 @@ using System.Data.Common;
 using System.Data.OleDb;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using ADODB;
 using ADOX;
 using DAO;
 using NewLife;
+using NewLife.IO;
 using NewLife.Log;
 using NewLife.Reflection;
-using XCode.Common;
-using System.Text;
-using NewLife.IO;
 
 namespace XCode.DataAccessLayer
 {
