@@ -105,13 +105,13 @@ namespace NewLife.Model
         class Map
         {
             #region 属性
-            private Type _From;
-            /// <summary>接口类型</summary>
-            public Type From
-            {
-                get { return _From; }
-                set { _From = value; }
-            }
+            //private Type _From;
+            ///// <summary>接口类型</summary>
+            //public Type From
+            //{
+            //    get { return _From; }
+            //    set { _From = value; }
+            //}
 
             private Type _To;
             /// <summary>实现类型</summary>
@@ -139,6 +139,13 @@ namespace NewLife.Model
                     _Instance = value;
                     if (value != null) To = value.GetType();
                 }
+            }
+            #endregion
+
+            #region 方法
+            public override string ToString()
+            {
+                return String.Format("[{0},{1}]", Name, To != null ? To.Name : null);
             }
             #endregion
         }
@@ -169,6 +176,7 @@ namespace NewLife.Model
             else
             {
                 map = new Map();
+                map.Name = name;
                 map.To = to;
                 map.Instance = instance;
                 if (!dic.ContainsKey(name)) dic.Add(name, map);
@@ -442,7 +450,7 @@ namespace NewLife.Model
 
             foreach (Map item in dic.Values)
             {
-                yield return new KeyValuePair<String, Type>(item.Name, item.To);
+                yield return new KeyValuePair<String, Type>("" + item.Name, item.To);
             }
         }
         #endregion
