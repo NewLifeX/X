@@ -129,7 +129,7 @@ namespace NewLife.Model
         /// <returns>The requested service instance.</returns>
         protected virtual Object DoGetInstance(Type serviceType, string key)
         {
-            return ObjectContaner.Current.Resolve(serviceType, key);
+            return ObjectContainer.Current.Resolve(serviceType, key);
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace NewLife.Model
         protected virtual IEnumerable<Object> DoGetAllInstances(Type serviceType)
         {
             //throw new NotImplementedException();
-            return ObjectContaner.Current.ResolveAll(serviceType);
+            return ObjectContainer.Current.ResolveAll(serviceType);
         }
         #endregion
 

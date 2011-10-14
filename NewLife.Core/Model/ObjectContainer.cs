@@ -18,10 +18,10 @@ namespace NewLife.Model
     /// 这里采用两种方式，注册类型的时候，如果指定了实例，则表示这个类型对应单一的实例；
     /// 如果不指定实例，则表示支持该类型，每次创建。
     /// </remarks>
-    public class ObjectContaner : IObjectContainer
+    public class ObjectContainer : IObjectContainer
     {
         #region 当前静态对象容器
-        private static IObjectContainer _Current = new ObjectContaner();
+        private static IObjectContainer _Current = new ObjectContainer();
         /// <summary>当前容器</summary>
         public static IObjectContainer Current
         {
