@@ -5,9 +5,7 @@ using System.ComponentModel;
 
 namespace NewLife
 {
-    /// <summary>
-    /// 字符串助手类
-    /// </summary>
+    /// <summary>字符串助手类</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class StringHelper
     {
