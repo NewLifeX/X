@@ -10,7 +10,6 @@ using NewLife;
 using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Web;
-using System.ComponentModel;
 
 namespace XCode.DataAccessLayer
 {
@@ -322,7 +321,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="providerName">提供者</param>
         /// <returns></returns>
-        public virtual Boolean Support(String providerName) { return providerName.ToLower().Contains(this.GetType().Name.ToLower()); }
+        public virtual Boolean Support(String providerName) { return providerName.ToLower().Contains(this.DbType.ToString().ToLower()); }
         #endregion
 
         #region 分页

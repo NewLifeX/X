@@ -102,7 +102,9 @@ namespace XCode.DataAccessLayer
 
         private static IObjectContainer Reg<T>(this IObjectContainer container)
         {
-            return container.Register<IDatabase, T>(typeof(T).Name);
+            //return container.Register<IDatabase, T>(typeof(T).Name);
+            IDatabase db = TypeX.CreateInstance(typeof(T)) as IDatabase;
+            return container.Register<IDatabase, T>(db.DbType.ToString());
         }
         #endregion
 

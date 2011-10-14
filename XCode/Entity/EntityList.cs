@@ -28,10 +28,7 @@ namespace XCode
         /// 构造一个实体对象集合
         /// </summary>
         /// <param name="collection"></param>
-        public EntityList(IEnumerable<T> collection)
-            : base(collection)
-        {
-        }
+        public EntityList(IEnumerable<T> collection) : base(collection) { }
 
         /// <summary>
         /// 构造一个实体对象集合
@@ -927,6 +924,7 @@ namespace XCode
             //if (collection == null || collection.GetEnumerator() == null) return null;
 
             EntityList<T> list = new EntityList<T>();
+            if (collection == null) return list;
             foreach (T2 item in collection)
             {
                 if (item == null) continue;
