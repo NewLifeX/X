@@ -3587,22 +3587,22 @@ namespace NewLife.CommonEntity
 
             String context = string.Empty;
             Type type = typeof(Area);
-            StreamReader sr = new StreamReader(FileSource.GetFileResource(type.Assembly, "NewLife.CommonEntity.AreaCode.txt"));
+            StreamReader sr = new StreamReader(FileSource.GetFileResource(type.Assembly, "AreaCode.txt"));
 
             Meta.BeginTrans();
             try
             {
                 while (true)
                 {
-                    context=sr.ReadLine();
+                    context = sr.ReadLine();
                     if (String.IsNullOrEmpty(context)) break;
 
-                    String[] str=sr.ReadLine().Split(new Char[]{' '});
+                    String[] str = context.Split(new Char[] { ' ' });
 
                     TEntity entity = new TEntity();
                     entity.Code = Int32.Parse(str[0]);
                     entity.OldCode = Int32.Parse(str[1]);
-                    entity.Name =str[2];
+                    entity.Name = str[2];
 
                     String codeStr = str[0];
 
