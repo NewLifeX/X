@@ -299,21 +299,59 @@ namespace NewLife.Model
             ConstructorInfo[] cis = map.To.GetConstructors();
             if (cis.Length <= 0)
                 obj = TypeX.CreateInstance(map.To);
-            else if (cis.Length == 1)
-            {
-                List<Object> ps = new List<Object>();
-                foreach (ParameterInfo pi in cis[0].GetParameters())
-                {
-                    dic = Find(pi.ParameterType, false);
-                    if (dic != null && dic.Count > 0)
-                        ps.Add(Resolve(pi.ParameterType));
-                    else
-                        ps.Add(null);
-                }
-                obj = ConstructorInfoX.Create(cis[0]).CreateInstance(ps.ToArray());
-            }
             else
-                throw new XException("目标对象有多个构造函数，容器无法选择！");
+            {
+                // 找到无参数构造函数
+                ConstructorInfo ci = map.To.GetConstructor(Type.EmptyTypes);
+                if (ci != null)
+                {
+                    obj = ConstructorInfoX.Create(ci).CreateInstance(null);
+                }
+                else
+                {
+                    // 参数值缓存，避免相同类型参数，出现在不同构造函数中，造成重复Resolve的问题
+                    Dictionary<Type, Object> pscache = new Dictionary<Type, Object>();
+                    foreach (ConstructorInfo item in cis)
+                    {
+                        List<Object> ps = new List<Object>();
+                        foreach (ParameterInfo pi in item.GetParameters())
+                        {
+                            // 从缓存里面拿
+                            Object pv = null;
+                            if (pscache.TryGetValue(pi.ParameterType, out pv))
+                            {
+                                ps.Add(pv);
+                                continue;
+                            }
+
+                            dic = Find(pi.ParameterType, false);
+                            if (dic != null && dic.Count > 0)
+                            {
+                                // 解析该参数类型的实例
+                                pv = Resolve(pi.ParameterType);
+                                if (pv != null)
+                                {
+                                    pscache.Add(pi.ParameterType, pv);
+                                    ps.Add(pv);
+                                }
+                            }
+
+                            // 任意一个参数解析失败，都将导致失败
+                            ps = null;
+                            break;
+                        }
+                        // 取得完整参数，可以构造了
+                        if (ps != null)
+                        {
+                            obj = ConstructorInfoX.Create(item).CreateInstance(ps.ToArray());
+                            break;
+                        }
+                    }
+
+                    // 遍历完所有构造函数都无法构造，失败！
+                    if (obj == null) throw new XException("容器无法完整构造目标对象的任意一个构造函数！");
+                }
+            }
 
             // 赋值注入
             foreach (PropertyDescriptor pd in TypeDescriptor.GetProperties(obj))
@@ -321,7 +359,7 @@ namespace NewLife.Model
                 if (!pd.IsReadOnly && Stores.ContainsKey(pd.PropertyType)) pd.SetValue(obj, Resolve(pd.PropertyType));
             }
 
-            return null;
+            return obj;
         }
 
         /// <summary>
