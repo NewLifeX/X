@@ -97,17 +97,17 @@ namespace NewLife.Model
         /// <summary>
         /// 解析类型的实例
         /// </summary>
-        /// <param name="type">接口类型</param>
+        /// <param name="from">接口类型</param>
         /// <returns></returns>
-        Object Resolve(Type type);
+        Object Resolve(Type from);
 
         /// <summary>
         /// 解析类型指定名称的实例
         /// </summary>
-        /// <param name="type">接口类型</param>
+        /// <param name="from">接口类型</param>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        Object Resolve(Type type, String name);
+        Object Resolve(Type from, String name);
 
         /// <summary>
         /// 解析类型的实例
@@ -127,9 +127,9 @@ namespace NewLife.Model
         /// <summary>
         /// 解析类型所有已注册的实例
         /// </summary>
-        /// <param name="type">接口类型</param>
+        /// <param name="from">接口类型</param>
         /// <returns></returns>
-        IEnumerable<Object> ResolveAll(Type type);
+        IEnumerable<Object> ResolveAll(Type from);
 
         /// <summary>
         /// 解析类型所有已注册的实例
@@ -137,6 +137,52 @@ namespace NewLife.Model
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <returns></returns>
         IEnumerable<TInterface> ResolveAll<TInterface>();
+        #endregion
+
+        #region 解析类型
+        /// <summary>
+        /// 解析接口的实现类型
+        /// </summary>
+        /// <param name="from">接口类型</param>
+        /// <returns></returns>
+        Type ResolveType(Type from);
+
+        /// <summary>
+        /// 解析接口指定名称的实现类型
+        /// </summary>
+        /// <param name="from">接口类型</param>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        Type ResolveType(Type from, String name);
+
+        ///// <summary>
+        ///// 解析接口的实现类型
+        ///// </summary>
+        ///// <typeparam name="TInterface">接口类型</typeparam>
+        ///// <returns></returns>
+        //Type ResolveType<TInterface>();
+
+        ///// <summary>
+        ///// 解析接口指定名称的实现类型
+        ///// </summary>
+        ///// <typeparam name="TInterface">接口类型</typeparam>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //Type ResolveType<TInterface>(String name);
+
+        /// <summary>
+        /// 解析接口所有已注册的实现类型
+        /// </summary>
+        /// <param name="from">接口类型</param>
+        /// <returns></returns>
+        IEnumerable<Type> ResolveAllTypes(Type from);
+
+        /// <summary>
+        /// 解析接口所有已注册指定名称的实现类型
+        /// </summary>
+        /// <param name="from">接口类型</param>
+        /// <returns></returns>
+        IEnumerable<KeyValuePair<String, Type>> ResolveAllNameTypes(Type from);
         #endregion
     }
 }

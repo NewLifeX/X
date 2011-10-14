@@ -134,7 +134,11 @@ namespace NewLife.Model
             public Object Instance
             {
                 get { return _Instance; }
-                set { _Instance = value; }
+                set
+                {
+                    _Instance = value;
+                    if (value != null) To = value.GetType();
+                }
             }
             #endregion
         }
@@ -248,23 +252,23 @@ namespace NewLife.Model
         /// <summary>
         /// 解析类型的实例
         /// </summary>
-        /// <param name="type">接口类型</param>
+        /// <param name="from">接口类型</param>
         /// <returns></returns>
-        public virtual Object Resolve(Type type) { return Resolve(type, null); }
+        public virtual Object Resolve(Type from) { return Resolve(from, null); }
 
         /// <summary>
         /// 解析类型指定名称的实例
         /// </summary>
-        /// <param name="type">接口类型</param>
+        /// <param name="from">接口类型</param>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public virtual Object Resolve(Type type, String name)
+        public virtual Object Resolve(Type from, String name)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (from == null) throw new ArgumentNullException("from");
             // 名称不能是null，否则字典里面会报错
             if (name == null) name = String.Empty;
 
-            IDictionary<String, Map> dic = Find(type, false);
+            IDictionary<String, Map> dic = Find(from, false);
             // 1，如果容器里面没有这个类型，则直接的创建对象返回
             //if (dic == null) return Activator.CreateInstance(type, false);
             //if (dic == null) return TypeX.CreateInstance(type);
@@ -279,7 +283,7 @@ namespace NewLife.Model
             if (map.Instance != null) return map.Instance;
 
             // 检查是否指定实现类型
-            if (map.To == null) throw new XException("名为{0}的{1}实现未找到！", name, type);
+            if (map.To == null) throw new XException("名为{0}的{1}实现未找到！", name, from);
 
             Object obj = null;
             // 3，如果容器里面包含这个类型，并且指向的实例为空，则创建对象返回
@@ -330,11 +334,13 @@ namespace NewLife.Model
         /// <summary>
         /// 解析类型所有已注册的实例
         /// </summary>
-        /// <param name="type">接口类型</param>
+        /// <param name="from">接口类型</param>
         /// <returns></returns>
-        public virtual IEnumerable<Object> ResolveAll(Type type)
+        public virtual IEnumerable<Object> ResolveAll(Type from)
         {
-            IDictionary<String, Map> dic = Find(type, false);
+            if (from == null) throw new ArgumentNullException("from");
+
+            IDictionary<String, Map> dic = Find(from, false);
             if (dic == null) yield break;
 
             foreach (Map item in dic.Values)
@@ -356,6 +362,87 @@ namespace NewLife.Model
             foreach (Map item in dic.Values)
             {
                 if (item.Instance != null) yield return (TInterface)item.Instance;
+            }
+        }
+        #endregion
+
+        #region 解析类型
+        /// <summary>
+        /// 解析接口的实现类型
+        /// </summary>
+        /// <param name="from">接口类型</param>
+        /// <returns></returns>
+        public virtual Type ResolveType(Type from) { return ResolveType(from, null); }
+
+        /// <summary>
+        /// 解析接口指定名称的实现类型
+        /// </summary>
+        /// <param name="from">接口类型</param>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        public virtual Type ResolveType(Type from, String name)
+        {
+            if (from == null) throw new ArgumentNullException("from");
+            // 名称不能是null，否则字典里面会报错
+            if (name == null) name = String.Empty;
+
+            IDictionary<String, Map> dic = Find(from, false);
+            if (dic == null) return null;
+
+            Map map = null;
+            if (!dic.TryGetValue(name, out map) || map == null) return null;
+
+            return map.To;
+        }
+
+        ///// <summary>
+        ///// 解析接口的实现类型
+        ///// </summary>
+        ///// <typeparam name="TInterface">接口类型</typeparam>
+        ///// <returns></returns>
+        //public virtual Type ResolveType<TInterface>() { return ResolveType(typeof(TInterface), null); }
+
+        ///// <summary>
+        ///// 解析接口指定名称的实现类型
+        ///// </summary>
+        ///// <typeparam name="TInterface">接口类型</typeparam>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //public virtual Type ResolveType<TInterface>(String name) { return ResolveType(typeof(TInterface), name); }
+
+        /// <summary>
+        /// 解析类型所有已注册的实例
+        /// </summary>
+        /// <param name="from">接口类型</param>
+        /// <returns></returns>
+        public virtual IEnumerable<Type> ResolveAllTypes(Type from)
+        {
+            if (from == null) throw new ArgumentNullException("from");
+
+            IDictionary<String, Map> dic = Find(from, false);
+            if (dic == null) yield break;
+
+            foreach (Map item in dic.Values)
+            {
+                yield return item.To;
+            }
+        }
+
+        /// <summary>
+        /// 解析类型所有已注册指定名称的实例
+        /// </summary>
+        /// <param name="from">接口类型</param>
+        /// <returns></returns>
+        public virtual IEnumerable<KeyValuePair<String, Type>> ResolveAllNameTypes(Type from)
+        {
+            if (from == null) throw new ArgumentNullException("from");
+
+            IDictionary<String, Map> dic = Find(from, false);
+            if (dic == null) yield break;
+
+            foreach (Map item in dic.Values)
+            {
+                yield return new KeyValuePair<String, Type>(item.Name, item.To);
             }
         }
         #endregion
