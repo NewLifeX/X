@@ -1259,7 +1259,11 @@ namespace XCode
             // 主键作为查询关键字
             FieldItem[] ps = Meta.Table.PrimaryKeys;
             // 没有标识列和主键，返回取所有数据的语句
-            if (ps == null || ps.Length < 1) return null;
+            if (ps == null || ps.Length < 1)
+            {
+                if (DAL.Debug) throw new XCodeException("因为没有主键，无法给实体类构造默认条件！");
+                return null;
+            }
 
             StringBuilder sb = new StringBuilder();
             foreach (FieldItem item in ps)
