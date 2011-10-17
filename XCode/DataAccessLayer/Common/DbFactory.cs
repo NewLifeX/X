@@ -112,7 +112,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 默认提供者
-        //private static DictionaryCache<String, IDatabase> defaultDbs = new DictionaryCache<String, IDatabase>();
+        private static DictionaryCache<String, IDatabase> defaultDbs = new DictionaryCache<String, IDatabase>();
         /// <summary>
         /// 根据名称获取默认提供者
         /// </summary>
@@ -120,11 +120,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDatabase GetDefault(String providerName)
         {
-            //return defaultDbs.GetItem(providerName, name => (IDatabase)TypeX.CreateInstance(XCodeService.Container.ResolveType(typeof(IDatabase), name)));
-
             if (String.IsNullOrEmpty(providerName)) throw new ArgumentNullException("providerName");
 
-            return XCodeService.Resolve<IDatabase>(providerName);
+            return defaultDbs.GetItem(providerName, name => (IDatabase)TypeX.CreateInstance(XCodeService.ResolveType<IDatabase>(name)));
+
+            //return XCodeService.Resolve<IDatabase>(providerName);
         }
         #endregion
 
@@ -147,7 +147,7 @@ namespace XCode.DataAccessLayer
             //    if (db.Support(pname)) return item.Value;
             //}
 
-            Type type = XCodeService.ResolveType<IDatabase>((n, t) => GetDefault(n).Support(provider));
+            Type type = XCodeService.ResolveType<IDatabase>(m => GetDefault(m.Name).Support(provider));
             if (type != null) return type;
 
             if (!String.IsNullOrEmpty(provider))
@@ -158,7 +158,7 @@ namespace XCode.DataAccessLayer
             }
             else
             {
-                return XCodeService.ResolveType<IDatabase>(DatabaseType.Access.ToString());
+                return XCodeService.ResolveType<IDatabase>(String.Empty);
             }
         }
         #endregion

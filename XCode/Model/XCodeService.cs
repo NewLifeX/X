@@ -47,11 +47,11 @@ namespace XCode.Model
             return Container.ResolveType(typeof(TInterface), name);
         }
 
-        public static Type ResolveType<TInterface>(Func<String, Type, Boolean> func)
+        public static Type ResolveType<TInterface>(Func<IObjectMap, Boolean> func)
         {
-            foreach (KeyValuePair<String, Type> item in Container.ResolveAllNameTypes(typeof(TInterface)))
+            foreach (IObjectMap item in Container.ResolveAllMaps(typeof(TInterface)))
             {
-                if (func(item.Key, item.Value)) return item.Value;
+                if (func(item)) return item.ImplementType;
             }
 
             return null;
