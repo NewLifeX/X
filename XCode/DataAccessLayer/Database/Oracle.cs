@@ -616,6 +616,30 @@ namespace XCode.DataAccessLayer
         }
 
         #region 架构定义
+        public override object SetSchema(DDLSchema schema, params object[] values)
+        {
+            IDbSession session = Database.CreateSession();
+
+            Object obj = null;
+            String dbname = String.Empty;
+            String databaseName = String.Empty;
+            switch (schema)
+            {
+                case DDLSchema.DatabaseExist:
+                    // Oracle不支持判断数据库是否存在
+                    return true;
+
+                default:
+                    break;
+            }
+            return base.SetSchema(schema, values);
+        }
+
+        public override string DatabaseExistSQL(string dbname)
+        {
+            return String.Empty;
+        }
+
         protected override string GetFieldConstraints(IDataColumn field, bool onlyDefine)
         {
             // 有默认值时直接返回，待会在默认值里面加约束

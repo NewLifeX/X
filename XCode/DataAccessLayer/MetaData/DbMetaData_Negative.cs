@@ -726,19 +726,24 @@ namespace XCode.DataAccessLayer
             //Object obj = null;
             switch (schema)
             {
-                //case DDLSchema.CreateTable:
-                //    CreateTable((IDataTable)values[0]);
-                //    return true;
-                case DDLSchema.TableExist:
-                    String name;
-                    if (values[0] is IDataTable)
-                        name = (values[0] as IDataTable).Name;
-                    else
-                        name = values[0].ToString();
+                case DDLSchema.CreateTable:
+                    if (MetaDataCollections.Contains(_.Databases))
+                    {
 
-                    DataTable dt = GetSchema(_.Tables, new String[] { null, null, name, "TABLE" });
-                    if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
-                    return true;
+                    }
+                    break;
+                case DDLSchema.TableExist:
+                    {
+                        String name;
+                        if (values[0] is IDataTable)
+                            name = (values[0] as IDataTable).Name;
+                        else
+                            name = values[0].ToString();
+
+                        DataTable dt = GetSchema(_.Tables, new String[] { null, null, name, "TABLE" });
+                        if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
+                        return true;
+                    }
                 default:
                     break;
             }
@@ -878,7 +883,9 @@ namespace XCode.DataAccessLayer
 
         public virtual String DatabaseExistSQL(String dbname)
         {
-            throw new NotSupportedException("该功能未实现！");
+            //throw new NotSupportedException("该功能未实现！");
+            //return String.Empty;
+            return null;
         }
 
         public virtual String CreateTableSQL(IDataTable table)
