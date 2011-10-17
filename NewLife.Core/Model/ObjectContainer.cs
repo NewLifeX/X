@@ -304,6 +304,12 @@ namespace NewLife.Model
 
             return this;
         }
+
+        /// <summary>注册前事件</summary>
+        public event EventHandler<EventArgs<Type, IObjectMap>> OnRegistering;
+
+        /// <summary>注册后事件</summary>
+        public event EventHandler<EventArgs<Type, IObjectMap>> OnRegistered;
         #endregion
 
         #region 注册

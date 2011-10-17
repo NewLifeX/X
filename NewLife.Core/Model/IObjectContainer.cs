@@ -104,6 +104,12 @@ namespace NewLife.Model
         /// <param name="overwrite">是否覆盖</param>
         /// <returns></returns>
         IObjectContainer Register<TInterface>(Object instance, String name = null, Boolean overwrite = true);
+
+        /// <summary>注册前事件</summary>
+        event EventHandler<EventArgs<Type, IObjectMap>> OnRegistering;
+
+        /// <summary>注册后事件</summary>
+        event EventHandler<EventArgs<Type, IObjectMap>> OnRegistered;
         #endregion
 
         #region 解析
