@@ -87,9 +87,9 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 静态构造
-        static DbFactory()
+        internal static void Reg(IObjectContainer container)
         {
-            XCodeService.Container
+            container
                 .Reg<Access>()
                 .Reg<SqlServer>()
                 .Reg<Oracle>()
@@ -104,12 +104,15 @@ namespace XCode.DataAccessLayer
         {
             //return container.Register<IDatabase, T>(typeof(T).Name);
             IDatabase db = TypeX.CreateInstance(typeof(T)) as IDatabase;
-            return container.Register<IDatabase, T>(db.DbType.ToString());
+            //return container.Register<IDatabase, T>(db.DbType.ToString());
+
+            // 把这个实例注册进去，作为默认实现
+            return container.Register(typeof(IDatabase), db.DbType.ToString(), db);
         }
         #endregion
 
         #region 默认提供者
-        private static DictionaryCache<String, IDatabase> defaultDbs = new DictionaryCache<String, IDatabase>();
+        //private static DictionaryCache<String, IDatabase> defaultDbs = new DictionaryCache<String, IDatabase>();
         /// <summary>
         /// 根据名称获取默认提供者
         /// </summary>
@@ -117,7 +120,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDatabase GetDefault(String providerName)
         {
-            return defaultDbs.GetItem(providerName, name => (IDatabase)TypeX.CreateInstance(XCodeService.Container.ResolveType(typeof(IDatabase), name)));
+            //return defaultDbs.GetItem(providerName, name => (IDatabase)TypeX.CreateInstance(XCodeService.Container.ResolveType(typeof(IDatabase), name)));
+
+            if (String.IsNullOrEmpty(providerName)) throw new ArgumentNullException("providerName");
+
+            return XCodeService.Resolve<IDatabase>(providerName);
         }
         #endregion
 
@@ -128,27 +135,30 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         internal static Type GetProviderType(String connStr, String provider)
         {
-            IObjectContainer container = XCodeService.Container;
-            String pname = provider.ToLower();
+            //IObjectContainer container = XCodeService.Container;
+            //String pname = provider.ToLower();
             //foreach (IDatabase item in container.ResolveAll<IDatabase>())
             //{
             //    if (item.Support(pname)) return item.GetType();
             //}
-            foreach (KeyValuePair<String, Type> item in container.ResolveAllNameTypes(typeof(IDatabase)))
-            {
-                IDatabase db = DbFactory.GetDefault(item.Key);
-                if (db.Support(pname)) return item.Value;
-            }
+            //foreach (KeyValuePair<String, Type> item in container.ResolveAllNameTypes(typeof(IDatabase)))
+            //{
+            //    IDatabase db = DbFactory.GetDefault(item.Key);
+            //    if (db.Support(pname)) return item.Value;
+            //}
+
+            Type type = XCodeService.ResolveType<IDatabase>((n, t) => GetDefault(n).Support(provider));
+            if (type != null) return type;
 
             if (!String.IsNullOrEmpty(provider))
             {
-                Type type = TypeX.GetType(provider, true);
-                container.Register(typeof(IDatabase), type, provider);
+                type = TypeX.GetType(provider, true);
+                XCodeService.Register<IDatabase>(type, provider);
                 return type;
             }
             else
             {
-                return container.ResolveType(typeof(IDatabase), DatabaseType.Access.ToString());
+                return XCodeService.ResolveType<IDatabase>(DatabaseType.Access.ToString());
             }
         }
         #endregion

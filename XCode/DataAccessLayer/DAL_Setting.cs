@@ -115,7 +115,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         internal static IDataTable CreateTable()
         {
-            return XCodeService.Container.Resolve<IDataTable>();
+            return XCodeService.CreateTable();
         }
         #endregion
 

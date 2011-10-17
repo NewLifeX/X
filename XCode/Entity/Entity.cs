@@ -139,7 +139,7 @@ namespace XCode
             return dreAccessor.ToData(this, ref dr);
         }
 
-        private static IDataRowEntityAccessor dreAccessor { get { return XCodeService.Container.Resolve<IDataRowEntityAccessorProvider>().CreateDataRowEntityAccessor(Meta.ThisType); } }
+        private static IDataRowEntityAccessor dreAccessor { get { return XCodeService.CreateDataRowEntityAccessor(Meta.ThisType); } }
         #endregion
 
         #region ²Ù×÷
