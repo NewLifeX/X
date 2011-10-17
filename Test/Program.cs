@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using NewLife.CommonEntity;
 using NewLife.Log;
+using NewLife.Model;
 
 namespace Test
 {
@@ -60,15 +61,9 @@ namespace Test
 
         static void Test2()
         {
-            String where = Menu._.ParentID.In(new Int32[] { 2, 3, 3, 3, 4, 5, 6, 3, 2, 8 });
-            Console.WriteLine(where);
-
-            Administrator admin = Administrator.Find("name", "admin");
-            Console.WriteLine(admin);
-            admin = Administrator.FindByKey(1);
-            Console.WriteLine(admin);
-            admin = Administrator.Find("displayname", "管理员");
-            Console.WriteLine(admin);
+            IA entity = ObjectContainer.Current.Resolve<IA>();
+            Console.WriteLine(entity);
+            entity.Test();
         }
 
         static IEnumerable GetTest(Int32 max)
@@ -77,6 +72,19 @@ namespace Test
             {
                 yield return i;
             }
+        }
+    }
+
+    interface IA
+    {
+        void Test();
+    }
+
+    class A : IA
+    {
+        public void Test()
+        {
+            Console.WriteLine("A");
         }
     }
 }

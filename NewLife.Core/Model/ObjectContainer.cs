@@ -4,6 +4,9 @@ using System.ComponentModel;
 using System.Reflection;
 using NewLife.Exceptions;
 using NewLife.Reflection;
+using System.Collections.Specialized;
+using NewLife.Configuration;
+using NewLife.Extension;
 
 namespace NewLife.Model
 {
@@ -24,11 +27,11 @@ namespace NewLife.Model
     public class ObjectContainer : IObjectContainer
     {
         #region 当前静态对象容器
-        private static IObjectContainer _Current = new ObjectContainer();
+        private static IObjectContainer _Current;
         /// <summary>当前容器</summary>
         public static IObjectContainer Current
         {
-            get { return _Current; }
+            get { return _Current ?? (_Current = new ObjectContainer()); }
             set { _Current = value; }
         }
         #endregion
@@ -79,6 +82,16 @@ namespace NewLife.Model
 
         //    return container;
         //}
+        #endregion
+
+        #region 构造函数
+        /// <summary>
+        /// 初始化一个对象容器实例，自动从配置文件中加载注册
+        /// </summary>
+        public ObjectContainer()
+        {
+            LoadConfig();
+        }
         #endregion
 
         #region 对象字典
@@ -144,15 +157,27 @@ namespace NewLife.Model
                 set { _Name = value; }
             }
 
+            private String _TypeName;
+            /// <summary>类型名</summary>
+            public String TypeName
+            {
+                get { return _TypeName; }
+                set { _TypeName = value; }
+            }
+
             private Type _ImplementType;
             /// <summary>实现类型</summary>
             public Type ImplementType
             {
-                get { return _ImplementType; }
+                get
+                {
+                    if (_ImplementType == null && !TypeName.IsNullOrWhiteSpace()) _ImplementType = TypeX.GetType(TypeName, true);
+                    return _ImplementType;
+                }
                 set { _ImplementType = value; }
             }
 
-            //private Boolean hasCheck = false;
+            private Boolean hasCheck = false;
 
             private Object _Instance;
             /// <summary>实例</summary>
@@ -160,15 +185,17 @@ namespace NewLife.Model
             {
                 get
                 {
-                    //if (_Instance != null || hasCheck) return _Instance;
+                    if (_Instance != null || hasCheck) return _Instance;
 
-                    //// 所有情况，都计算一个实例，对于仅注册类型的情况，也放一个实例，作为默认值
-                    //hasCheck = true;
-                    //try
-                    //{
-                    //    if (ImplementType != null) _Instance = TypeX.CreateInstance(ImplementType);
-                    //}
-                    //catch { }
+                    // 如果模式指定使用实例，而实例又为空，则初始化一个实例
+                    if ((Mode & ModeFlags.Singleton) != ModeFlags.Singleton) return _Instance;
+
+                    hasCheck = true;
+                    try
+                    {
+                        if (ImplementType != null) _Instance = TypeX.CreateInstance(ImplementType);
+                    }
+                    catch { }
 
                     return _Instance;
                 }
@@ -178,6 +205,14 @@ namespace NewLife.Model
                     if (value != null) ImplementType = value.GetType();
                 }
             }
+
+            private ModeFlags _Mode;
+            /// <summary>模式</summary>
+            public ModeFlags Mode
+            {
+                get { return _Mode; }
+                set { _Mode = value; }
+            }
             #endregion
 
             #region 方法
@@ -186,6 +221,30 @@ namespace NewLife.Model
                 return String.Format("[{0},{1}]", Name, ImplementType != null ? ImplementType.Name : null);
             }
             #endregion
+        }
+
+        /// <summary>
+        /// 模式标记
+        /// </summary>
+        [Flags]
+        enum ModeFlags
+        {
+            None = 0,
+
+            /// <summary>
+            /// 以单例模式注册，如果注册的是类型，则new一个实例
+            /// </summary>
+            Singleton = 1,
+
+            /// <summary>
+            /// 是否覆盖已有的注册
+            /// </summary>
+            Overwrite = 2,
+
+            /// <summary>
+            /// 是否扩展，扩展注册将附加在该接口的第一个注册项之后
+            /// </summary>
+            Extend = 4
         }
         #endregion
 
@@ -201,6 +260,12 @@ namespace NewLife.Model
         /// <returns></returns>
         public virtual IObjectContainer Register(Type from, Type to, Object instance, String name = null, Boolean overwrite = true)
         {
+            //if(to==null&&instance==null)
+            return Register(from, to, instance, null, ModeFlags.None, name, overwrite);
+        }
+
+        private IObjectContainer Register(Type from, Type to, Object instance, String typeName, ModeFlags mode, String name, Boolean overwrite)
+        {
             if (from == null) throw new ArgumentNullException("from");
             // 名称不能是null，否则字典里面会报错
             if (name == null) name = String.Empty;
@@ -209,6 +274,7 @@ namespace NewLife.Model
             // 删除已有的
             //if (dic.ContainsKey(name)) dic.Remove(name);
             IObjectMap old = null;
+            Map map = null;
             if (dic.TryGetValue(name, out old))
             {
                 // 是否允许覆盖
@@ -216,9 +282,11 @@ namespace NewLife.Model
 
                 if (old is Map)
                 {
-                    Map m = old as Map;
-                    m.ImplementType = to;
-                    m.Instance = instance;
+                    map = old as Map;
+                    map.TypeName = typeName;
+                    map.Mode = mode;
+                    map.ImplementType = to;
+                    map.Instance = instance;
 
                     return this;
                 }
@@ -226,8 +294,10 @@ namespace NewLife.Model
                     dic.Remove(name);
             }
 
-            Map map = new Map();
+            map = new Map();
             map.Name = name;
+            map.TypeName = typeName;
+            map.Mode = mode;
             map.ImplementType = to;
             map.Instance = instance;
             if (!dic.ContainsKey(name)) dic.Add(name, map);
@@ -555,6 +625,96 @@ namespace NewLife.Model
             {
                 yield return item;
             }
+        }
+        #endregion
+
+        #region Xml配置文件注册
+        const String CONFIG_PREFIX = "NewLife.ObjectContainer_";
+        /// <summary>
+        /// 加载配置
+        /// </summary>
+        protected virtual void LoadConfig()
+        {
+            NameValueCollection nvs = Config.GetConfigByPrefix(CONFIG_PREFIX);
+            if (nvs == null || nvs.Count < 1) return;
+
+            foreach (String item in nvs.Keys)
+            {
+                String key = item;
+                String value = nvs[key];
+
+                if (value.IsNullOrWhiteSpace()) continue;
+
+                String name = key.Substring(CONFIG_PREFIX.Length);
+                if (name.IsNullOrWhiteSpace()) continue;
+
+                Type type = TypeX.GetType(name, true);
+                if (type == null) throw new XException("未找到对象容器配置{0}中的类型{1}！", key, name);
+
+                Map map = GetConfig(value);
+                if (map == null) continue;
+
+                Register(type, null, null, map.TypeName, map.Mode, map.Name, (map.Mode & ModeFlags.Overwrite) == ModeFlags.Overwrite);
+            }
+        }
+
+        static Map GetConfig(String str)
+        {
+            IDictionary<String, String> dic = ParseDic(str);
+            if (dic == null || dic.Count < 1) return null;
+
+            Map map = new Map();
+            foreach (KeyValuePair<String, String> item in dic)
+            {
+                switch (item.Key.ToLower())
+                {
+                    case "name":
+                        map.Name = item.Value;
+                        break;
+                    case "type":
+                        map.TypeName = item.Value;
+                        break;
+                    case "mode":
+                        map.Mode = ModeFlags.None;
+                        //// 默认覆盖
+                        //map.Mode |= ModeFlags.Overwrite;
+                        String[] ss = item.Value.Split(new Char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                        for (int i = 0; i < ss.Length; i++)
+                        {
+                            try
+                            {
+                                ModeFlags mf = (ModeFlags)Enum.Parse(typeof(ModeFlags), ss[i], true);
+                                map.Mode |= mf;
+                            }
+                            catch { }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return map;
+        }
+
+        static IDictionary<String, String> ParseDic(String str)
+        {
+            if (str.IsNullOrWhiteSpace()) return null;
+
+            IDictionary<String, String> dic = new Dictionary<String, String>();
+            String[] ss = str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+            if (ss == null || ss.Length < 1) return null;
+
+            foreach (String item in ss)
+            {
+                Int32 p = item.IndexOf('=');
+                // 在前后都不行
+                if (p <= 0 || p >= item.Length - 1) continue;
+
+                String key = item.Substring(0, p).Trim();
+                dic[key] = item.Substring(p + 1).Trim();
+            }
+
+            return dic;
         }
         #endregion
     }

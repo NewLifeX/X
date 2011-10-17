@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using NewLife.Collections;
-using NewLife.Reflection;
 using NewLife.Model;
+using NewLife.Reflection;
 using XCode.Model;
-using System.Diagnostics;
 
 namespace XCode.DataAccessLayer
 {
