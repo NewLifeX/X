@@ -7,6 +7,9 @@ using NewLife.Reflection;
 
 namespace NewLife.Model
 {
+    //TODO: 似乎无法在Xml注册中做到先获取内部类型再注册外部类型，因为被注册代码无法被马上执行，而内部实现马上就要被覆盖了。
+    // 可以用Xml注册普通类型，那样的话，内部类型注册的时候，就需要检查是否已注册
+
     /// <summary>实现 <seealso cref="IObjectContainer"/> 接口的对象容器</summary>
     /// <remarks>
     /// 1，如果容器里面没有这个类型，则返回空；
@@ -192,10 +195,11 @@ namespace NewLife.Model
         /// </summary>
         /// <param name="from">接口类型</param>
         /// <param name="to">实现类型</param>
-        /// <param name="name">名称</param>
         /// <param name="instance">实例</param>
+        /// <param name="name">名称</param>
+        /// <param name="overwrite">是否覆盖</param>
         /// <returns></returns>
-        protected virtual IObjectContainer Register(Type from, Type to, String name, Object instance)
+        public virtual IObjectContainer Register(Type from, Type to, Object instance, String name = null, Boolean overwrite = true)
         {
             if (from == null) throw new ArgumentNullException("from");
             // 名称不能是null，否则字典里面会报错
@@ -207,6 +211,9 @@ namespace NewLife.Model
             IObjectMap old = null;
             if (dic.TryGetValue(name, out old))
             {
+                // 是否允许覆盖
+                if (!overwrite) return this;
+
                 if (old is Map)
                 {
                     Map m = old as Map;
@@ -238,74 +245,74 @@ namespace NewLife.Model
         /// <returns></returns>
         public virtual IObjectContainer Register(Type from, Type to) { return Register(from, to, null); }
 
+        ///// <summary>
+        ///// 注册类型和名称
+        ///// </summary>
+        ///// <param name="from">接口类型</param>
+        ///// <param name="to">实现类型</param>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //public virtual IObjectContainer Register(Type from, Type to, String name) { return Register(from, to, name, null); }
+
+        ///// <summary>
+        ///// 注册类型
+        ///// </summary>
+        ///// <typeparam name="TInterface">接口类型</typeparam>
+        ///// <typeparam name="TImplement">实现类型</typeparam>
+        ///// <returns></returns>
+        //public virtual IObjectContainer Register<TInterface, TImplement>() { return Register(typeof(TInterface), null, typeof(TImplement), null); }
+
         /// <summary>
         /// 注册类型和名称
         /// </summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="to">实现类型</param>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public virtual IObjectContainer Register(Type from, Type to, String name) { return Register(from, to, name, null); }
-
-        /// <summary>
-        /// 注册类型
-        /// </summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <typeparam name="TImplement">实现类型</typeparam>
-        /// <returns></returns>
-        public virtual IObjectContainer Register<TInterface, TImplement>() { return Register(typeof(TInterface), typeof(TImplement), null); }
-
-        /// <summary>
-        /// 注册类型和名称
-        /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <typeparam name="TImplement">实现类型</typeparam>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public virtual IObjectContainer Register<TInterface, TImplement>(String name) { return Register(typeof(TInterface), typeof(TImplement), name); }
+        public virtual IObjectContainer Register<TInterface, TImplement>(String name = null) { return Register(typeof(TInterface), typeof(TImplement), null, name); }
 
-        /// <summary>
-        /// 注册类型的实例
-        /// </summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="instance">实例</param>
-        /// <returns></returns>
-        public virtual IObjectContainer Register(Type from, Object instance) { return Register(from, null, instance); }
+        ///// <summary>
+        ///// 注册类型的实例
+        ///// </summary>
+        ///// <param name="from">接口类型</param>
+        ///// <param name="instance">实例</param>
+        ///// <returns></returns>
+        //public virtual IObjectContainer Register(Type from, Object instance) { return Register(from, null, instance); }
 
         /// <summary>
         /// 注册类型指定名称的实例
         /// </summary>
         /// <param name="from">接口类型</param>
+        /// <param name="instance">实例</param>
         /// <param name="name">名称</param>
-        /// <param name="instance">实例</param>
         /// <returns></returns>
-        public virtual IObjectContainer Register(Type from, String name, Object instance) { return Register(from, null, name, instance); }
+        public virtual IObjectContainer Register(Type from, Object instance, String name = null) { return Register(from, null, instance, name); }
 
-        /// <summary>
-        /// 注册类型的实例
-        /// </summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="instance">实例</param>
-        /// <returns></returns>
-        public virtual IObjectContainer Register<TInterface>(Object instance) { return Register(typeof(TInterface), null, instance); }
+        ///// <summary>
+        ///// 注册类型的实例
+        ///// </summary>
+        ///// <typeparam name="TInterface">接口类型</typeparam>
+        ///// <param name="instance">实例</param>
+        ///// <returns></returns>
+        //public virtual IObjectContainer Register<TInterface>(Object instance) { return Register(typeof(TInterface), null, instance); }
 
         /// <summary>
         /// 注册类型指定名称的实例
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="name">名称</param>
         /// <param name="instance">实例</param>
+        /// <param name="name">名称</param>
         /// <returns></returns>
-        public virtual IObjectContainer Register<TInterface>(String name, Object instance) { return Register(typeof(TInterface), name, instance); }
+        public virtual IObjectContainer Register<TInterface>(Object instance, String name = null) { return Register(typeof(TInterface), null, instance, name); }
         #endregion
 
         #region 解析
-        /// <summary>
-        /// 解析类型的实例
-        /// </summary>
-        /// <param name="from">接口类型</param>
-        /// <returns></returns>
-        public virtual Object Resolve(Type from) { return Resolve(from, null); }
+        ///// <summary>
+        ///// 解析类型的实例
+        ///// </summary>
+        ///// <param name="from">接口类型</param>
+        ///// <returns></returns>
+        //public virtual Object Resolve(Type from) { return Resolve(from, null); }
 
         /// <summary>
         /// 解析类型指定名称的实例
@@ -313,7 +320,7 @@ namespace NewLife.Model
         /// <param name="from">接口类型</param>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public virtual Object Resolve(Type from, String name)
+        public virtual Object Resolve(Type from, String name = null)
         {
             if (from == null) throw new ArgumentNullException("from");
             // 名称不能是null，否则字典里面会报错
@@ -413,12 +420,12 @@ namespace NewLife.Model
             return obj;
         }
 
-        /// <summary>
-        /// 解析类型的实例
-        /// </summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <returns></returns>
-        public virtual TInterface Resolve<TInterface>() { return (TInterface)Resolve(typeof(TInterface), null); }
+        ///// <summary>
+        ///// 解析类型的实例
+        ///// </summary>
+        ///// <typeparam name="TInterface">接口类型</typeparam>
+        ///// <returns></returns>
+        //public virtual TInterface Resolve<TInterface>() { return (TInterface)Resolve(typeof(TInterface), null); }
 
         /// <summary>
         /// 解析类型指定名称的实例
@@ -426,7 +433,7 @@ namespace NewLife.Model
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public virtual TInterface Resolve<TInterface>(String name) { return (TInterface)Resolve(typeof(TInterface), name); }
+        public virtual TInterface Resolve<TInterface>(String name = null) { return (TInterface)Resolve(typeof(TInterface), name); }
 
         /// <summary>
         /// 解析类型所有已注册的实例
@@ -464,12 +471,12 @@ namespace NewLife.Model
         #endregion
 
         #region 解析类型
-        /// <summary>
-        /// 解析接口的实现类型
-        /// </summary>
-        /// <param name="from">接口类型</param>
-        /// <returns></returns>
-        public virtual Type ResolveType(Type from) { return ResolveType(from, null); }
+        ///// <summary>
+        ///// 解析接口的实现类型
+        ///// </summary>
+        ///// <param name="from">接口类型</param>
+        ///// <returns></returns>
+        //public virtual Type ResolveType(Type from) { return ResolveType(from, null); }
 
         /// <summary>
         /// 解析接口指定名称的实现类型
@@ -477,7 +484,7 @@ namespace NewLife.Model
         /// <param name="from">接口类型</param>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public virtual Type ResolveType(Type from, String name)
+        public virtual Type ResolveType(Type from, String name = null)
         {
             if (from == null) throw new ArgumentNullException("from");
             // 名称不能是null，否则字典里面会报错
@@ -501,13 +508,13 @@ namespace NewLife.Model
         ///// <returns></returns>
         //public virtual Type ResolveType<TInterface>() { return ResolveType(typeof(TInterface), null); }
 
-        ///// <summary>
-        ///// 解析接口指定名称的实现类型
-        ///// </summary>
-        ///// <typeparam name="TInterface">接口类型</typeparam>
-        ///// <param name="name">名称</param>
-        ///// <returns></returns>
-        //public virtual Type ResolveType<TInterface>(String name) { return ResolveType(typeof(TInterface), name); }
+        /// <summary>
+        /// 解析接口指定名称的实现类型
+        /// </summary>
+        /// <typeparam name="TInterface">接口类型</typeparam>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        public virtual Type ResolveType<TInterface>(String name = null) { return ResolveType(typeof(TInterface), name); }
 
         /// <summary>
         /// 解析类型所有已注册的实例
