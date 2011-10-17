@@ -129,11 +129,26 @@ namespace NewLife.Model
                 set { _Name = value; }
             }
 
+            private Boolean hasCheck = false;
+
             private Object _Instance;
             /// <summary>实例</summary>
             public Object Instance
             {
-                get { return _Instance; }
+                get
+                {
+                    if (_Instance != null || hasCheck) return _Instance;
+
+                    // 所有情况，都计算一个实例，对于仅注册类型的情况，也放一个实例，作为默认值
+                    hasCheck = true;
+                    try
+                    {
+                        if (To != null) _Instance = TypeX.CreateInstance(To);
+                    }
+                    catch { }
+
+                    return _Instance;
+                }
                 set
                 {
                     _Instance = value;
@@ -291,7 +306,7 @@ namespace NewLife.Model
             if (map.Instance != null) return map.Instance;
 
             // 检查是否指定实现类型
-            if (map.To == null) throw new XException("名为{0}的{1}实现未找到！", name, from);
+            if (map.To == null) throw new XException("设计错误，名为{0}的{1}实现未找到！", name, from);
 
             Object obj = null;
             // 3，如果容器里面包含这个类型，并且指向的实例为空，则创建对象返回
@@ -309,6 +324,7 @@ namespace NewLife.Model
                 }
                 else
                 {
+                    #region 构造函数注入
                     // 参数值缓存，避免相同类型参数，出现在不同构造函数中，造成重复Resolve的问题
                     Dictionary<Type, Object> pscache = new Dictionary<Type, Object>();
                     foreach (ConstructorInfo item in cis)
@@ -316,8 +332,16 @@ namespace NewLife.Model
                         List<Object> ps = new List<Object>();
                         foreach (ParameterInfo pi in item.GetParameters())
                         {
-                            // 从缓存里面拿
                             Object pv = null;
+                            // 处理值类型
+                            if (pi.ParameterType.IsValueType)
+                            {
+                                pv = TypeX.CreateInstance(pi.ParameterType);
+                                ps.Add(pv);
+                                continue;
+                            }
+
+                            // 从缓存里面拿
                             if (pscache.TryGetValue(pi.ParameterType, out pv))
                             {
                                 ps.Add(pv);
@@ -350,6 +374,7 @@ namespace NewLife.Model
 
                     // 遍历完所有构造函数都无法构造，失败！
                     if (obj == null) throw new XException("容器无法完整构造目标对象的任意一个构造函数！");
+                    #endregion
                 }
             }
 
