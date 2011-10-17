@@ -1,10 +1,7 @@
 ﻿using System;
-using NewLife.Configuration;
 using NewLife.Model;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;
-using System.Collections.Generic;
-using NewLife.Collections;
 
 namespace XCode.Model
 {
@@ -16,8 +13,8 @@ namespace XCode.Model
         static XCodeService()
         {
             IObjectContainer container = Container;
-            container.Register<IDataTable, XTable>()
-                .Register<IDataRowEntityAccessorProvider, DataRowEntityAccessorProvider>();
+            container.Register<IDataTable, XTable>(null, false)
+                .Register<IDataRowEntityAccessorProvider, DataRowEntityAccessorProvider>(null, false);
 
             DbFactory.Reg(container);
         }

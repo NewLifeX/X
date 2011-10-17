@@ -41,13 +41,15 @@ namespace NewLife.Model
         /// <returns></returns>
         IObjectContainer Register(Type from, Type to, Object instance, String name = null, Boolean overwrite = true);
 
-        /// <summary>
-        /// 注册类型
-        /// </summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="to">实现类型</param>
-        /// <returns></returns>
-        IObjectContainer Register(Type from, Type to);
+        ///// <summary>
+        ///// 注册类型
+        ///// </summary>
+        ///// <param name="from">接口类型</param>
+        ///// <param name="to">实现类型</param>
+        ///// <param name="name">名称</param>
+        ///// <param name="overwrite">是否覆盖</param>
+        ///// <returns></returns>
+        //IObjectContainer Register(Type from, Type to, String name = null, Boolean overwrite = true);
 
         ///// <summary>
         ///// 注册类型
@@ -63,8 +65,9 @@ namespace NewLife.Model
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <typeparam name="TImplement">实现类型</typeparam>
         /// <param name="name">名称</param>
+        /// <param name="overwrite">是否覆盖</param>
         /// <returns></returns>
-        IObjectContainer Register<TInterface, TImplement>(String name = null);
+        IObjectContainer Register<TInterface, TImplement>(String name = null, Boolean overwrite = true);
 
         ///// <summary>
         ///// 注册类型的实例
@@ -74,14 +77,15 @@ namespace NewLife.Model
         ///// <returns></returns>
         //IObjectContainer Register(Type from, Object instance);
 
-        /// <summary>
-        /// 注册类型指定名称的实例
-        /// </summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="instance">实例</param>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        IObjectContainer Register(Type from, Object instance, String name = null);
+        ///// <summary>
+        ///// 注册类型指定名称的实例
+        ///// </summary>
+        ///// <param name="from">接口类型</param>
+        ///// <param name="instance">实例</param>
+        ///// <param name="name">名称</param>
+        ///// <param name="overwrite">是否覆盖</param>
+        ///// <returns></returns>
+        //IObjectContainer Register(Type from, Object instance, String name = null, Boolean overwrite = true);
 
         ///// <summary>
         ///// 注册类型的实例
@@ -97,8 +101,9 @@ namespace NewLife.Model
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="instance">实例</param>
         /// <param name="name">名称</param>
+        /// <param name="overwrite">是否覆盖</param>
         /// <returns></returns>
-        IObjectContainer Register<TInterface>(Object instance, String name = null);
+        IObjectContainer Register<TInterface>(Object instance, String name = null, Boolean overwrite = true);
         #endregion
 
         #region 解析

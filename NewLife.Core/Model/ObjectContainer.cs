@@ -237,13 +237,15 @@ namespace NewLife.Model
         #endregion
 
         #region 注册
-        /// <summary>
-        /// 注册类型
-        /// </summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="to">实现类型</param>
-        /// <returns></returns>
-        public virtual IObjectContainer Register(Type from, Type to) { return Register(from, to, null); }
+        ///// <summary>
+        ///// 注册类型
+        ///// </summary>
+        ///// <param name="from">接口类型</param>
+        ///// <param name="to">实现类型</param>
+        ///// <param name="name">名称</param>
+        ///// <param name="overwrite">是否覆盖</param>
+        ///// <returns></returns>
+        //public virtual IObjectContainer Register(Type from, Type to, String name = null, Boolean overwrite = true) { return Register(from, to, null, name, overwrite); }
 
         ///// <summary>
         ///// 注册类型和名称
@@ -268,8 +270,9 @@ namespace NewLife.Model
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <typeparam name="TImplement">实现类型</typeparam>
         /// <param name="name">名称</param>
+        /// <param name="overwrite">是否覆盖</param>
         /// <returns></returns>
-        public virtual IObjectContainer Register<TInterface, TImplement>(String name = null) { return Register(typeof(TInterface), typeof(TImplement), null, name); }
+        public virtual IObjectContainer Register<TInterface, TImplement>(String name = null, Boolean overwrite = true) { return Register(typeof(TInterface), typeof(TImplement), null, name, overwrite); }
 
         ///// <summary>
         ///// 注册类型的实例
@@ -279,14 +282,15 @@ namespace NewLife.Model
         ///// <returns></returns>
         //public virtual IObjectContainer Register(Type from, Object instance) { return Register(from, null, instance); }
 
-        /// <summary>
-        /// 注册类型指定名称的实例
-        /// </summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="instance">实例</param>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public virtual IObjectContainer Register(Type from, Object instance, String name = null) { return Register(from, null, instance, name); }
+        ///// <summary>
+        ///// 注册类型指定名称的实例
+        ///// </summary>
+        ///// <param name="from">接口类型</param>
+        ///// <param name="instance">实例</param>
+        ///// <param name="name">名称</param>
+        ///// <param name="overwrite">是否覆盖</param>
+        ///// <returns></returns>
+        //public virtual IObjectContainer Register(Type from, Object instance, String name = null, Boolean overwrite = true) { return Register(from, null, instance, name, overwrite); }
 
         ///// <summary>
         ///// 注册类型的实例
@@ -302,8 +306,9 @@ namespace NewLife.Model
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="instance">实例</param>
         /// <param name="name">名称</param>
+        /// <param name="overwrite">是否覆盖</param>
         /// <returns></returns>
-        public virtual IObjectContainer Register<TInterface>(Object instance, String name = null) { return Register(typeof(TInterface), null, instance, name); }
+        public virtual IObjectContainer Register<TInterface>(Object instance, String name = null, Boolean overwrite = true) { return Register(typeof(TInterface), null, instance, name, overwrite); }
         #endregion
 
         #region 解析

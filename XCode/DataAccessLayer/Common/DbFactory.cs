@@ -107,7 +107,7 @@ namespace XCode.DataAccessLayer
             //return container.Register<IDatabase, T>(db.DbType.ToString());
 
             // 把这个实例注册进去，作为默认实现
-            return container.Register(typeof(IDatabase), db.DbType.ToString(), db);
+            return container.Register(typeof(IDatabase), null, db, db.DbType.ToString(), false);
         }
         #endregion
 
