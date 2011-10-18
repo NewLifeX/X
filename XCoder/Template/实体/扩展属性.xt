@@ -80,5 +80,7 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 <#
         }
 	}
-}
+}else{
+// 加一个换行，避免没有扩展的时候生成的代码有问题
 #>
+<#}#>
