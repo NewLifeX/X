@@ -5,7 +5,7 @@ using NewLife.Model;
 
 namespace NewLife.CommonEntity
 {
-    class CommonService : ServiceContainer
+    class CommonService : ServiceContainer<CommonService>
     {
         static CommonService()
         {

@@ -1,6 +1,8 @@
 ﻿using System;
 using NewLife.YWS.Entities;
 using NewLife.Web;
+using NewLife.CommonEntity.Exceptions;
+using NewLife.Log;
 
 public partial class Login : System.Web.UI.Page
 {
@@ -47,7 +49,12 @@ public partial class Login : System.Web.UI.Page
         }
         catch (Exception ex)
         {
-            WebHelper.Alert("登录失败," + ex.Message);
+            String msg = "登录失败";
+            if (ex is EntityException)
+                msg += "," + ex.Message;
+            else
+                XTrace.WriteException(ex);
+            WebHelper.Alert(msg);
         }
     }
 }

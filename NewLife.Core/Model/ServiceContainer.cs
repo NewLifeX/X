@@ -4,14 +4,23 @@ using System.Globalization;
 
 namespace NewLife.Model
 {
-    /// <summary>服务容器</summary>
+    /// <summary>服务容器基类。使用泛型基类，仅仅是为了引发子类的静态构造函数。</summary>
+    /// <typeparam name="TService">具体服务容器类</typeparam>
     /// <remarks>
     /// 建议各个组件通过继承当前类实现一个私有的服务定位器，用于为组件内提供服务定位服务。
     /// 组件内部的默认实现可以在静态构造函数中进行无覆盖注册。
     /// 作为约定，组件内部的服务定位全部通过该类完成，保证服务在使用前已完成了注册。
     /// </remarks>
-    public class ServiceContainer
+    public class ServiceContainer<TService> where TService : ServiceContainer<TService>, new()
     {
+        #region 静态构造函数
+        static ServiceContainer()
+        {
+            // 实例化一个对象，为了触发子类的静态构造函数
+            TService service = new TService();
+        }
+        #endregion
+
         #region 当前静态服务容器
         /// <summary>当前对象容器</summary>
         public static IObjectContainer Container { get { return ObjectContainer.Current; } }

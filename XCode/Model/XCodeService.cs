@@ -8,7 +8,7 @@ namespace XCode.Model
     /// <summary>
     /// XCode服务对象提供者
     /// </summary>
-    class XCodeService : ServiceContainer
+    class XCodeService : ServiceContainer<XCodeService>
     {
         static XCodeService()
         {
