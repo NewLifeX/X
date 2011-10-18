@@ -19,14 +19,28 @@ namespace NewLife.Model
 
         #region 服务
         /// <summary>
+        /// 注册类型和名称
+        /// </summary>
+        /// <typeparam name="TInterface">接口类型</typeparam>
+        /// <typeparam name="TImplement">实现类型</typeparam>
+        /// <param name="name">名称</param>
+        /// <param name="overwrite">是否覆盖</param>
+        /// <returns></returns>
+        public static IObjectContainer Register<TInterface, TImplement>(String name = null, Boolean overwrite = true)
+        {
+            return Container.Register<TInterface, TImplement>(name, overwrite);
+        }
+
+        /// <summary>
         /// 注册
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="impl"></param>
         /// <param name="name"></param>
-        public static void Register<T>(Type impl, String name)
+        /// <returns></returns>
+        public static IObjectContainer Register<T>(Type impl, String name = null)
         {
-            Container.Register(typeof(T), impl, name);
+            return Container.Register(typeof(T), impl, name);
         }
 
         /// <summary>
@@ -35,7 +49,7 @@ namespace NewLife.Model
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static TInterface Resolve<TInterface>(String name)
+        public static TInterface Resolve<TInterface>(String name = null)
         {
             return Container.Resolve<TInterface>(name);
         }
@@ -46,7 +60,7 @@ namespace NewLife.Model
         /// <typeparam name="TInterface"></typeparam>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static Type ResolveType<TInterface>(String name)
+        public static Type ResolveType<TInterface>(String name = null)
         {
             return Container.ResolveType(typeof(TInterface), name);
         }

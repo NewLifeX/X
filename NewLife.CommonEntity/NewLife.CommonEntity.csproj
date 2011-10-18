@@ -66,7 +66,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\CommonService.cs" />
     <Compile Include="Common\CommonEntityBase.cs" />
+    <Compile Include="ICommonManageProvider.cs" />
+    <Compile Include="Interfaces\IManageProvider.cs" />
+    <Compile Include="Interfaces\IManageUser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Web\AttachmentHttpHandler.cs" />
     <Compile Include="Web\DownloadFile.cs" />
@@ -92,6 +96,8 @@
     <Compile Include="实体\设置.cs" />
     <Compile Include="管理和授权\日志.Biz.cs" />
     <Compile Include="管理和授权\日志.cs" />
+    <Compile Include="管理和授权\用户.Biz.cs" />
+    <Compile Include="管理和授权\用户.cs" />
     <Compile Include="管理和授权\管理员.Biz.cs" />
     <Compile Include="管理和授权\管理员.cs" />
     <Compile Include="实体\统计.Biz.cs" />
@@ -134,9 +140,7 @@
     </EmbeddedResource>
     <Content Include="说明.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Interfaces\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

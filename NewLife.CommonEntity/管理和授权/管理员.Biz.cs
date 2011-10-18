@@ -222,7 +222,7 @@ namespace NewLife.CommonEntity
     [BindIndex("PK__Administ__3214EC277F60ED59", true, "ID")]
     [BindIndex("IX_Administrator_RoleID", false, "RoleID")]
     [BindRelation("RoleID", false, "Role", "ID")]
-    public abstract partial class Administrator<TEntity> : Entity<TEntity>, IAdministrator//, IPrincipal//, IIdentity
+    public abstract partial class Administrator<TEntity> : Entity<TEntity>, IAdministrator, IManageUser//, IPrincipal//, IIdentity
         where TEntity : Administrator<TEntity>, new()
     {
         #region 对象操作
@@ -764,6 +764,17 @@ namespace NewLife.CommonEntity
         //        .And(_.Logins < 2)
         //        .And(_.LastLogin >= DateTime.Now);
         //}
+
+        #region IManageUser 成员
+        /// <summary>编号</summary>
+        object IManageUser.ID { get { return ID; } }
+
+        /// <summary>账号</summary>
+        string IManageUser.Account { get { return Name; } }
+
+        /// <summary>密码</summary>
+        string IManageUser.Password { get { return Password; } }
+        #endregion
     }
 
     public partial interface IAdministrator
