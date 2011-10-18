@@ -8,7 +8,7 @@ namespace XCode.Model
     /// <summary>
     /// XCode服务对象提供者
     /// </summary>
-    class XCodeService
+    class XCodeService : ServiceContainer
     {
         static XCodeService()
         {
@@ -19,30 +19,30 @@ namespace XCode.Model
             DbFactory.Reg(container);
         }
 
-        /// <summary>对象容器</summary>
-        static IObjectContainer Container { get { return ObjectContainer.Current; } }
+        ///// <summary>对象容器</summary>
+        //static IObjectContainer Container { get { return ObjectContainer.Current; } }
 
         #region 方法
-        public static void Register<T>(Type impl, String name)
-        {
-            Container.Register(typeof(T), impl, name);
-        }
+        //public static void Register<T>(Type impl, String name)
+        //{
+        //    Container.Register(typeof(T), impl, name);
+        //}
 
-        /// <summary>
-        /// 解析类型指定名称的实例
-        /// </summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public static TInterface Resolve<TInterface>(String name)
-        {
-            return Container.Resolve<TInterface>(name);
-        }
+        ///// <summary>
+        ///// 解析类型指定名称的实例
+        ///// </summary>
+        ///// <typeparam name="TInterface">接口类型</typeparam>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //public static TInterface Resolve<TInterface>(String name)
+        //{
+        //    return Container.Resolve<TInterface>(name);
+        //}
 
-        public static Type ResolveType<TInterface>(String name)
-        {
-            return Container.ResolveType(typeof(TInterface), name);
-        }
+        //public static Type ResolveType<TInterface>(String name)
+        //{
+        //    return Container.ResolveType(typeof(TInterface), name);
+        //}
 
         public static Type ResolveType<TInterface>(Func<IObjectMap, Boolean> func)
         {
