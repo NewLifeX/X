@@ -1,4 +1,6 @@
-﻿v2.4.2011.0908   支持XCode v8.0，重新生成实体类
+﻿v2.5.2011.1018   增加管理提供者接口IManageProvider和通用实体类管理提供者接口ICommonManageProvider，用于支持管理平台解耦
+
+v2.4.2011.0908   支持XCode v8.0，重新生成实体类
 
 v2.3.2011.0628   管理员类和页面基类，增加根据权限名称来控制权限的方法
 				 调整CommonEntity.EntityForm中对自定义控件的处理

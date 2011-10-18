@@ -279,10 +279,6 @@ namespace NewLife.CommonEntity.Web
         #endregion
 
         #region 登录用户控制
-        ///// <summary>
-        ///// Http状态，名称必须和管理员类中一致
-        ///// </summary>
-        //static HttpState<IAdministrator> http = new HttpState<IAdministrator>("Admin");
         /// <summary>
         /// 当前管理员
         /// </summary>
@@ -293,7 +289,9 @@ namespace NewLife.CommonEntity.Web
                 //return http == null ? null : http.Current;
                 //return (IAdministrator)Thread.CurrentPrincipal;
 
-                return Administrator.CurrentAdministrator;
+                //return Administrator.CurrentAdministrator;
+
+                return CommonManageProvider.Provider.Current;
             }
         }
 

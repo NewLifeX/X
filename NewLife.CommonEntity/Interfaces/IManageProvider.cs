@@ -46,11 +46,11 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 静态构造
-        static ManageProvider()
-        {
-            // 不覆盖注册，谁先被调用，就以它为准
-            CommonService.Register<IManageProvider, ManageProvider>(null, false);
-        }
+        //static ManageProvider()
+        //{
+        //    // 不覆盖注册，谁先被调用，就以它为准
+        //    CommonService.Register<IManageProvider, ManageProvider>(null, false);
+        //}
         #endregion
 
         #region IManageProvider 接口
