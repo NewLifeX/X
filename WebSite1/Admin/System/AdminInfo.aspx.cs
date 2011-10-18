@@ -17,14 +17,6 @@ public partial class Pages_AdminInfo : EntityForm<Int32, Admin>
 
         if (!Page.IsPostBack)
         {
-            //DataBind();
-            //frmRoleID.SelectedValue = Entity.RoleID.ToString();
-
-            //// 添加/编辑 按钮需要添加/编辑权限
-            //if (EntityID > 0)
-            //    UpdateButton.Visible = Acquire(PermissionFlags.Update);
-            //else
-            //    UpdateButton.Visible = Acquire(PermissionFlags.Insert);
             btnSave.Visible = true;
             btnSave.Text = "保存";
         }
@@ -32,7 +24,6 @@ public partial class Pages_AdminInfo : EntityForm<Int32, Admin>
 
     public override bool CheckPermission()
     {
-        //return base.CheckPermission();
         return true;
     }
 
