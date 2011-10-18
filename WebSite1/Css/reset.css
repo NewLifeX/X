@@ -1,0 +1,77 @@
+﻿html, body, div, span, applet, object, iframe, table, caption, tbody, tfoot, thead, tr, th, td, del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, dl, dt, dd, ol, ul, li, fieldset, form, label, legend {
+    font-family: inherit;
+    font-weight: inherit;
+    font-style: inherit;
+    font-size: 100%;
+    outline: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+}
+
+/* remember to define focus styles! */:focus {
+    outline: 0;
+}
+
+body {
+    background: white;
+	font:12px/28px arial,helvetica,clean,sans-serif;
+}
+
+html > body {
+    font-size: 12px;
+}
+
+ol, ul {
+    list-style: none;
+}
+
+/* tables still need cellspacing="0" in the markup */
+table {
+    border-collapse:collapse;
+    border-spacing: 0;
+}
+
+caption, th, td {
+    font-weight: normal;
+    text-align: left;
+}
+
+/* remove possible quote marks (") from <q> & <blockquote> */
+blockquote:before, blockquote:after, q:before, q:after {
+    content: "";
+}
+
+blockquote, q {
+    quotes: "" "";
+}
+
+.clear {
+    clear: both;
+    font-size:0px;
+    line-height:0;
+    height:0;
+}
+
+.clearfix:after{
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+}
+
+.clearfix,.box {
+    display: inline-block;
+}
+
+/* Hides from IE-mac \*/ * html .clearfix {
+    height: 1%;
+}
+
+.clearfix,.box {
+    display: block;
+}
+
+/* End hide from IE-mac */
+.a-footer{float:right;color:#ccc;}

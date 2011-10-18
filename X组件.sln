@@ -30,7 +30,7 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebSite1", "WebSite1\", "{6
 		SccLocalPath = ""
 		SccProvider = ""
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv2.0"
-		ProjectReferences = "{50D7FAE5-2304-4395-A6FA-7D35279D9D84}|NewLife.CommonEntity.dll;{5813C22E-EEB3-4DEE-A45C-BB218041193A}|NewLife.Core.dll;{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}|XCode.dll;{A82E3AA8-6181-460D-A6EE-CC453B83D340}|XControl.dll;"
+		ProjectReferences = "{50D7FAE5-2304-4395-A6FA-7D35279D9D84}|NewLife.CommonEntity.dll;{5813C22E-EEB3-4DEE-A45C-BB218041193A}|NewLife.Core.dll;{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}|XCode.dll;{A82E3AA8-6181-460D-A6EE-CC453B83D340}|XControl.dll;{DBE2D3C8-24B9-4193-A568-66F550921702}|NewLife.YWS.Entities.dll;"
 		Debug.AspNetCompiler.VirtualPath = "/WebSite1"
 		Debug.AspNetCompiler.PhysicalPath = "WebSite1\"
 		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\WebSite1\"
@@ -51,6 +51,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test2", "Test2\Test2.csproj", "{181FE587-CA12-49DF-9A7C-96697C41F32D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.ProcessHelper", "NewLife.ProcessHelper\NewLife.ProcessHelper.csproj", "{30097735-8F78-4F4D-BDB4-E9750A32A4FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YWS", "YWS\YWS.csproj", "{DBE2D3C8-24B9-4193-A568-66F550921702}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -259,6 +261,21 @@ Global
 		{30097735-8F78-4F4D-BDB4-E9750A32A4FF}.Release|Mixed Platforms.Build.0 = Release|x86
 		{30097735-8F78-4F4D-BDB4-E9750A32A4FF}.Release|x86.ActiveCfg = Release|x86
 		{30097735-8F78-4F4D-BDB4-E9750A32A4FF}.Release|x86.Build.0 = Release|x86
+		{DBE2D3C8-24B9-4193-A568-66F550921702}..Net 2.0 Sp0|Any CPU.ActiveCfg = Release|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}..Net 2.0 Sp0|Any CPU.Build.0 = Release|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}..Net 2.0 Sp0|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}..Net 2.0 Sp0|Mixed Platforms.Build.0 = Release|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}..Net 2.0 Sp0|x86.ActiveCfg = Release|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

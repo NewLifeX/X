@@ -1,0 +1,239 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Tables>
+  <Table ID="1" Name="Feedliquor" Alias="Feedliquor" DbType="SqlServer" IsView="False" Description="液料规格">
+    <Columns>
+      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
+      <Column ID="2" Name="CustomerID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="客户ID" />
+      <Column ID="3" Name="Manufacturer" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="制造商" />
+      <Column ID="4" Name="Tel" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="联系电话" />
+      <Column ID="5" Name="Address" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="联系地址" />
+      <Column ID="6" Name="CementGroup" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="胶水组别" />
+      <Column ID="7" Name="ProductNo" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="产品编号" />
+      <Column ID="8" Name="WeightRatio" DataType="Double" RawType="float" Length="53" NumOfByte="8" Precision="53" Nullable="True" Description="重量比" />
+      <Column ID="9" Name="VolumeRatio" DataType="Double" RawType="float" Length="53" NumOfByte="8" Precision="53" Nullable="True" Description="体积比" />
+      <Column ID="10" Name="Viscosity" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="黏稠度" />
+      <Column ID="11" Name="MixViscosity" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="A/B混合后黏稠度" />
+      <Column ID="12" Name="SpecificGravity" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="比重" />
+      <Column ID="13" Name="Temperature" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="工作温度" />
+      <Column ID="14" Name="WViscosity" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="工作温度下的黏稠度" />
+      <Column ID="15" Name="IsFillers" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="是否有填充剂" />
+      <Column ID="16" Name="FillersType" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="填充剂类型" />
+      <Column ID="17" Name="FillersAmount" DataType="Double" RawType="float" Length="53" NumOfByte="8" Precision="53" Nullable="True" Description="填充剂分量" />
+      <Column ID="18" Name="IsAbradability" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="是否磨损" />
+      <Column ID="19" Name="IsCorrosivity" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="是否腐蚀" />
+      <Column ID="20" Name="IsSensitivity" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="材料是否潮湿敏感" />
+      <Column ID="21" Name="IsAgitation" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="是否需要搅拌" />
+      <Column ID="22" Name="IsExcept" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="是否需要真空初除泡" />
+      <Column ID="23" Name="WorkingHours" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="材料混合后可工作时间(单位:分钟)" />
+      <Column ID="24" Name="IsSolventName" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="有无溶剂名称" />
+      <Column ID="25" Name="Hardening" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="材料混合后完全硬化时间" />
+      <Column ID="26" Name="CementGroupB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B组胶水组别" />
+      <Column ID="27" Name="ProductNoB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B组产品编号" />
+      <Column ID="28" Name="WeightRatioB" DataType="Double" RawType="float" Length="53" NumOfByte="8" Precision="53" Nullable="True" Description="B组重量比" />
+      <Column ID="29" Name="VolumeRatioB" DataType="Double" RawType="float" Length="53" NumOfByte="8" Precision="53" Nullable="True" Description="B组体积比" />
+      <Column ID="30" Name="ViscosityB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B组黏稠度" />
+      <Column ID="31" Name="MixViscosityB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B组A/B混合后黏稠度" />
+      <Column ID="32" Name="SpecificGravityB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B组比重" />
+      <Column ID="33" Name="TemperatureB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B组工作温度" />
+      <Column ID="34" Name="WViscosityB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B组工作温度下的黏稠度" />
+      <Column ID="35" Name="IsFillersB" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="B组是否有填充剂" />
+      <Column ID="36" Name="FillersTypeB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B组填充剂类型" />
+      <Column ID="37" Name="FillersAmountB" DataType="Double" RawType="float" Length="53" NumOfByte="8" Precision="53" Nullable="True" Description="B组填充剂分量" />
+      <Column ID="38" Name="IsAbradabilityB" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="B组是否磨损" />
+      <Column ID="39" Name="IsCorrosivityB" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="B组是否腐蚀" />
+      <Column ID="40" Name="IsSensitivityB" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="B组材料是否潮湿敏感" />
+      <Column ID="41" Name="IsAgitationB" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="B组是否需要搅拌" />
+      <Column ID="42" Name="IsExceptB" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="B组是否需要真空初除泡" />
+      <Column ID="43" Name="WorkingHoursB" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="B组材料混合后可工作时间(单位:分钟)" />
+      <Column ID="44" Name="IsSolventNameB" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="B组有无溶剂名称" />
+      <Column ID="45" Name="HardeningB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B组材料混合后完全硬化时间" />
+      <Column ID="46" Name="AddTime" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="发布时间" />
+      <Column ID="47" Name="Remark" DataType="String" RawType="nvarchar(100)" Length="100" NumOfByte="200" Nullable="True" IsUnicode="True" Description="备注" />
+    </Columns>
+    <Indexes>
+      <Index Name="PK__Feedliqu__3214EC2703317E3D" Unique="True" PrimaryKey="True" Columns="ID" />
+      <Index Name="IX_Feedliquor_CustomerID" Columns="CustomerID" />
+    </Indexes>
+    <Relations>
+      <Relation Column="CustomerID" RelationTable="Customer" RelationColumn="ID" />
+      <Relation Column="ID" RelationTable="Machine" RelationColumn="FeedliquorID" Unique="True" />
+    </Relations>
+  </Table>
+  <Table ID="2" Name="Customer" Alias="Customer" DbType="SqlServer" IsView="False" Description="客户">
+    <Columns>
+      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
+      <Column ID="2" Name="No" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="客户编号" />
+      <Column ID="3" Name="Name" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="名称" />
+      <Column ID="4" Name="Linkman" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="联系人" />
+      <Column ID="5" Name="Department" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="部门" />
+      <Column ID="6" Name="Tel" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="电话" />
+      <Column ID="7" Name="Fax" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="传真" />
+      <Column ID="8" Name="Email" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="邮箱" />
+      <Column ID="9" Name="QQ" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="QQ" />
+      <Column ID="10" Name="MSN" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="MSN" />
+      <Column ID="11" Name="Address" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="客户地址" />
+      <Column ID="12" Name="AddTime" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="添加时间" />
+      <Column ID="13" Name="Remark" DataType="String" RawType="nvarchar(100)" Length="100" NumOfByte="200" Nullable="True" IsUnicode="True" Description="备注" />
+      <Column ID="14" Name="CustomerTypeID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="类别" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_Customer" Unique="True" Columns="No" />
+      <Index Name="IX_Customer_1" Unique="True" Columns="Name" />
+      <Index Name="PK__Customer__3214EC270AD2A005" Unique="True" PrimaryKey="True" Columns="ID" />
+      <Index Name="IX_Customer_CustomerTypeID" Columns="CustomerTypeID" />
+    </Indexes>
+    <Relations>
+      <Relation Column="ID" RelationTable="Feedliquor" RelationColumn="CustomerID" Unique="True" />
+      <Relation Column="CustomerTypeID" RelationTable="CustomerType" RelationColumn="ID" />
+      <Relation Column="ID" RelationTable="Maintenance" RelationColumn="CustomerID" Unique="True" />
+      <Relation Column="ID" RelationTable="Machine" RelationColumn="CustomerID" Unique="True" />
+      <Relation Column="ID" RelationTable="Record" RelationColumn="CustomerID" Unique="True" />
+    </Relations>
+  </Table>
+  <Table ID="3" Name="Maintenance" Alias="Maintenance" DbType="SqlServer" IsView="False" Description="维修保养记录">
+    <Columns>
+      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
+      <Column ID="2" Name="CustomerID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="客户编号" />
+      <Column ID="3" Name="MachineID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="机器编号" />
+      <Column ID="4" Name="Technician" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="技术员" />
+      <Column ID="5" Name="Reason" DataType="String" RawType="ntext" Length="1073741823" NumOfByte="16" Nullable="True" IsUnicode="True" Description="故障原因" />
+      <Column ID="6" Name="Fittings" DataType="String" RawType="nvarchar(200)" Length="200" NumOfByte="400" Nullable="True" IsUnicode="True" Description="更换配件" />
+      <Column ID="7" Name="Propose" DataType="String" RawType="nvarchar(200)" Length="200" NumOfByte="400" Nullable="True" IsUnicode="True" Description="改进建议" />
+      <Column ID="8" Name="Remark" DataType="String" RawType="nvarchar(200)" Length="200" NumOfByte="400" Nullable="True" IsUnicode="True" Description="维修备注" />
+      <Column ID="9" Name="AddTime" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="添加时间" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_Maintenance" Unique="True" Columns="CustomerID,MachineID" />
+      <Index Name="PK__Maintena__3214EC270EA330E9" Unique="True" PrimaryKey="True" Columns="ID" />
+      <Index Name="IX_Maintenance_CustomerID" Columns="CustomerID" />
+      <Index Name="IX_Maintenance_MachineID" Columns="MachineID" />
+    </Indexes>
+    <Relations>
+      <Relation Column="CustomerID" RelationTable="Customer" RelationColumn="ID" />
+      <Relation Column="MachineID" RelationTable="Machine" RelationColumn="ID" />
+    </Relations>
+  </Table>
+  <Table ID="4" Name="CustomerType" Alias="CustomerType" DbType="SqlServer" IsView="False" Description="客户类型">
+    <Columns>
+      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
+      <Column ID="2" Name="Name" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="名称" />
+      <Column ID="3" Name="ParentID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="ParentID" />
+      <Column ID="4" Name="AddTime" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="添加时间" />
+      <Column ID="5" Name="Operator" Alias="Operator2" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="添加人" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_CustomerType" Unique="True" Columns="Name,ParentID" />
+      <Index Name="IX_CustomerType_1" Columns="Name" />
+      <Index Name="IX_CustomerType_2" Columns="ParentID" />
+      <Index Name="PK__Customer__3214EC27164452B1" Unique="True" PrimaryKey="True" Columns="ID" />
+    </Indexes>
+    <Relations>
+      <Relation Column="ID" RelationTable="Customer" RelationColumn="CustomerTypeID" Unique="True" />
+    </Relations>
+  </Table>
+  <Table ID="5" Name="Machine" Alias="Machine" DbType="SqlServer" IsView="False" Description="机器零件规格">
+    <Columns>
+      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
+      <Column ID="2" Name="Name" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="名称" />
+      <Column ID="3" Name="CustomerID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="客户ID" />
+      <Column ID="4" Name="FeedliquorID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="液料规格ID" />
+      <Column ID="5" Name="Transactor" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="经手人" />
+      <Column ID="6" Name="LeaveTime" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="出厂日期" />
+      <Column ID="7" Name="OutlineSize" DataType="String" RawType="nvarchar(10)" Length="10" NumOfByte="20" Nullable="True" IsUnicode="True" Description="机器外形尺寸" />
+      <Column ID="8" Name="Attachment" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="附送配件" />
+      <Column ID="9" Name="Type" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="点胶阀门类型" />
+      <Column ID="10" Name="Model" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="混合管型号" />
+      <Column ID="11" Name="VacuumpumpSpec" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="真空泵规格" />
+      <Column ID="12" Name="Kind" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="数据显示屏种类" />
+      <Column ID="13" Name="Groupings" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="计量泵组别" />
+      <Column ID="14" Name="Size" DataType="Double" RawType="float" Length="53" NumOfByte="8" Precision="53" Nullable="True" Description="计量泵尺寸" />
+      <Column ID="15" Name="MeteringpumpSpec" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="计量泵密封件规格" />
+      <Column ID="16" Name="PresSize" DataType="Double" RawType="float" Length="53" NumOfByte="8" Precision="53" Nullable="True" Description="压力桶大小" />
+      <Column ID="17" Name="SupplypipeSpec" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="进料管规格" />
+      <Column ID="18" Name="DischargeSpec" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="出料管规格" />
+      <Column ID="19" Name="GroupingsB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B料计量泵组别" />
+      <Column ID="20" Name="SizeB" DataType="Double" RawType="float" Length="53" NumOfByte="8" Precision="53" Nullable="True" Description="B料计量泵尺寸" />
+      <Column ID="21" Name="MeteringpumpSpecB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B料计量泵密封件规格" />
+      <Column ID="22" Name="PresSizeB" DataType="Double" RawType="float" Length="53" NumOfByte="8" Precision="53" Nullable="True" Description="B料压力桶大小" />
+      <Column ID="23" Name="SupplypipeSpecB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B料进料管规格" />
+      <Column ID="24" Name="DischargeSpecB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B料出料管规格" />
+      <Column ID="25" Name="Pic" DataType="String" RawType="nvarchar(100)" Length="100" NumOfByte="200" Nullable="True" IsUnicode="True" Description="Pic" />
+      <Column ID="26" Name="AddTime" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="添加时间" />
+      <Column ID="27" Name="Remark" DataType="String" RawType="nvarchar(100)" Length="100" NumOfByte="200" Nullable="True" IsUnicode="True" Description="备注" />
+    </Columns>
+    <Indexes>
+      <Index Name="PK__Machine__3214EC271273C1CD" Unique="True" PrimaryKey="True" Columns="ID" />
+      <Index Name="IX_Machine_FeedliquorID" Columns="FeedliquorID" />
+      <Index Name="IX_Machine_CustomerID" Columns="CustomerID" />
+    </Indexes>
+    <Relations>
+      <Relation Column="ID" RelationTable="Maintenance" RelationColumn="MachineID" Unique="True" />
+      <Relation Column="FeedliquorID" RelationTable="Feedliquor" RelationColumn="ID" />
+      <Relation Column="CustomerID" RelationTable="Customer" RelationColumn="ID" />
+      <Relation Column="ID" RelationTable="Record" RelationColumn="MachineID" Unique="True" />
+    </Relations>
+  </Table>
+  <Table ID="6" Name="Record" Alias="Record" DbType="SqlServer" IsView="False" Description="交易记录">
+    <Columns>
+      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
+      <Column ID="2" Name="Name" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="名称" />
+      <Column ID="3" Name="CustomerID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="客户ID" />
+      <Column ID="4" Name="MachineID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="机器ID" />
+      <Column ID="5" Name="Transactor" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="经手人" />
+      <Column ID="6" Name="LeaveTime" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="出厂日期" />
+      <Column ID="7" Name="OutlineSize" DataType="String" RawType="nvarchar(10)" Length="10" NumOfByte="20" Nullable="True" IsUnicode="True" Description="机器外形尺寸" />
+      <Column ID="8" Name="Attachment" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="附送配件" />
+      <Column ID="9" Name="Type" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="点胶阀门类型" />
+      <Column ID="10" Name="Model" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="混合管型号" />
+      <Column ID="11" Name="VacuumpumpSpec" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="真空泵规格" />
+      <Column ID="12" Name="Kind" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="数据显示屏种类" />
+      <Column ID="13" Name="Groupings" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="计量泵组别" />
+      <Column ID="14" Name="Size" DataType="Double" RawType="float" Length="53" NumOfByte="8" Precision="53" Nullable="True" Description="计量泵尺寸" />
+      <Column ID="15" Name="MeteringpumpSpec" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="计量泵密封件规格" />
+      <Column ID="16" Name="PresSize" DataType="Double" RawType="float" Length="53" NumOfByte="8" Precision="53" Nullable="True" Description="压力桶大小" />
+      <Column ID="17" Name="SupplypipeSpec" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="进料管规格" />
+      <Column ID="18" Name="DischargeSpec" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="出料管规格" />
+      <Column ID="19" Name="GroupingsB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B料计量泵组别" />
+      <Column ID="20" Name="SizeB" DataType="Double" RawType="float" Length="53" NumOfByte="8" Precision="53" Nullable="True" Description="B料计量泵尺寸" />
+      <Column ID="21" Name="MeteringpumpSpecB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B料计量泵密封件规格" />
+      <Column ID="22" Name="PresSizeB" DataType="Double" RawType="float" Length="53" NumOfByte="8" Precision="53" Nullable="True" Description="B料压力桶大小" />
+      <Column ID="23" Name="SupplypipeSpecB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B料进料管规格" />
+      <Column ID="24" Name="DischargeSpecB" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="B料出料管规格" />
+      <Column ID="25" Name="Pic" DataType="String" RawType="nvarchar(100)" Length="100" NumOfByte="200" Nullable="True" IsUnicode="True" Description="Pic" />
+      <Column ID="26" Name="AddTime" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="添加时间" />
+      <Column ID="27" Name="Remark" DataType="String" RawType="nvarchar(100)" Length="100" NumOfByte="200" Nullable="True" IsUnicode="True" Description="备注" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_Record_1" Unique="True" Columns="MachineID" />
+      <Index Name="IX_Record_2" Columns="CustomerID" />
+      <Index Name="PK__Record__3214EC2707020F21" Unique="True" PrimaryKey="True" Columns="ID" />
+    </Indexes>
+    <Relations>
+      <Relation Column="CustomerID" RelationTable="Customer" RelationColumn="ID" />
+      <Relation Column="MachineID" RelationTable="Machine" RelationColumn="ID" Unique="True" />
+    </Relations>
+  </Table>
+  <Table ID="7" Name="Admin" Alias="Admin" DbType="SqlServer" IsView="False" Description="管理员">
+    <Columns>
+      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
+      <Column ID="2" Name="Name" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="名称" />
+      <Column ID="3" Name="Password" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="密码" />
+      <Column ID="4" Name="Phone" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="电话" />
+      <Column ID="5" Name="QQ" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="QQ" />
+      <Column ID="6" Name="MSN" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="MSN" />
+      <Column ID="7" Name="Email" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="邮件" />
+      <Column ID="8" Name="DisplayName" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="显示名" />
+      <Column ID="9" Name="RoleID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="角色" />
+      <Column ID="10" Name="Logins" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="登录次数" />
+      <Column ID="11" Name="LastLogin" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="最后登录" />
+      <Column ID="12" Name="LastLoginIP" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="最后登陆IP" />
+      <Column ID="13" Name="SSOUserID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="登录用户编号" />
+      <Column ID="14" Name="IsEnable" DataType="Boolean" RawType="bit" Length="1" NumOfByte="1" Nullable="True" Description="是否使用" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_Administrator_Name" Unique="True" Columns="Name" />
+      <Index Name="IX_Administrator_RoleID" Columns="RoleID" />
+      <Index Name="PK__Admin__3214EC277F60ED59" Unique="True" PrimaryKey="True" Columns="ID" />
+    </Indexes>
+  </Table>
+</Tables>
