@@ -33,10 +33,13 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.1.*")]
-[assembly: AssemblyFileVersion("3.1.2011.1013")]
+[assembly: AssemblyVersion("3.2.*")]
+[assembly: AssemblyFileVersion("3.2.2011.1018")]
 
 /*
+ * v3.2.2011.1018   增加对象容器IObjectContainer，实现IoC的容器功能
+ *                  增加服务容器ServiceContainer，作为对象容器的封装
+ * 
  * v3.1.2011.1013   增加运行时类Runtime，支持识别是否控制台、是否64位操作系统
  *                  Runtime支持获取方法的JIT Native地址，支持同签名方法替换
  *                  增加方法体读取器MethodBodyReader，支持获取方法体的IL代码
