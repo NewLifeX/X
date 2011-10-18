@@ -166,7 +166,9 @@ namespace XControl
             }
         }
 
-        //重新包装Text属性，数据转换以及格式化部分在Text内完成
+        /// <summary>
+        /// 重新包装Text属性，数据转换以及格式化部分在Text内完成
+        /// </summary>
         public override string Text
         {
             get
