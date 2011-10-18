@@ -7,6 +7,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Web;
+using NewLife.CommonEntity.Exceptions;
 using NewLife.Security;
 using NewLife.Web;
 using XCode;
@@ -295,7 +296,7 @@ namespace NewLife.CommonEntity
                 {
                     p = DataHelper.Hash(p);
                 }
-                if (!String.Equals(user.Password, p, StringComparison.OrdinalIgnoreCase)) throw new Exception("密码不正确！");
+                if (!String.Equals(user.Password, p, StringComparison.OrdinalIgnoreCase)) throw new EntityException("密码不正确！");
             }
             else
             {
@@ -304,7 +305,7 @@ namespace NewLife.CommonEntity
                 {
                     p = DataHelper.Hash(p);
                 }
-                if (!String.Equals(p, password, StringComparison.OrdinalIgnoreCase)) throw new Exception("密码不正确！");
+                if (!String.Equals(p, password, StringComparison.OrdinalIgnoreCase)) throw new EntityException("密码不正确！");
             }
 
             Current = user;

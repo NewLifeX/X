@@ -174,7 +174,7 @@ namespace NewLife.Reflection
 
         static void ValidateInterfaceType(Type interfaceType)
         {
-            if (!interfaceType.IsInterface) throw new Exception("T have to be an Interface - Type!");
+            if (!interfaceType.IsInterface) throw new InvalidDataException("T have to be an Interface - Type!");
             //if (!interfaceType.IsPublic) throw new Exception("The Interface has to be public if you want to create a Duck - Type!");
         }
     }

@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using NewLife.Collections;
+using NewLife.Exceptions;
 
 namespace NewLife.Log
 {
@@ -98,7 +99,7 @@ namespace NewLife.Log
                         logfile = logfile.Replace(@".log", @"_0.log");
                 }
             }
-            if (i >= 10) throw new Exception("无法写入日志！");
+            if (i >= 10) throw new XException("无法写入日志！");
 
             if (!isFirst)
             {

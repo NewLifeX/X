@@ -91,11 +91,11 @@ namespace NewLife.Messaging
             // 读取了响应类型和消息类型后，动态创建消息对象
             //Int32 id = reader.ReadEncodedInt32();
             Int32 id = reader.ReadByte();
-            if (id <= 0) throw new Exception("无效的消息唯一编码" + id);
+            if (id <= 0) throw new InvalidDataException("无效的消息唯一编码" + id);
 
             Message msg = MessageHandler.CreateMessage(id);
             msg.Read(reader);
-            if (id != msg.ID) throw new Exception("反序列化后的消息唯一编码不匹配。");
+            if (id != msg.ID) throw new InvalidDataException("反序列化后的消息唯一编码不匹配。");
 
             return msg;
         }

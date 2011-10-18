@@ -319,7 +319,7 @@ namespace XCode
             if (Count < 1) return;
 
             Type type = GetItemType(name);
-            if (!typeof(IComparable).IsAssignableFrom(type)) throw new Exception("不支持比较！");
+            if (!typeof(IComparable).IsAssignableFrom(type)) throw new NotSupportedException("不支持比较！");
 
             Int32 n = 1;
             if (isDesc) n = -1;
@@ -347,7 +347,7 @@ namespace XCode
                 Boolean isDesc = isDescs[i];
 
                 Type type = GetItemType(name);
-                if (!typeof(IComparable).IsAssignableFrom(type)) throw new Exception("不支持比较！");
+                if (!typeof(IComparable).IsAssignableFrom(type)) throw new NotSupportedException("不支持比较！");
             }
 
             Sort(delegate(T item1, T item2)

@@ -390,7 +390,7 @@ namespace NewLife.IO
             if (type == typeof(Byte[]))
             {
                 Int32 len = ReadEncodedInt32();
-                if (len < 0) throw new Exception("非法数据！字节数组长度不能为负数！");
+                if (len < 0) throw new InvalidDataException("非法数据！字节数组长度不能为负数！");
                 value = null;
                 if (len > 0) value = ReadBytes(len);
                 return true;
@@ -398,7 +398,7 @@ namespace NewLife.IO
             if (type == typeof(Char[]))
             {
                 Int32 len = ReadEncodedInt32();
-                if (len < 0) throw new Exception("非法数据！字符数组长度不能为负数！");
+                if (len < 0) throw new InvalidDataException("非法数据！字符数组长度不能为负数！");
                 value = null;
                 if (len > 0) value = ReadChars(len);
                 return true;

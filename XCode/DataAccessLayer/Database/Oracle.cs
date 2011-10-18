@@ -620,7 +620,6 @@ namespace XCode.DataAccessLayer
         {
             IDbSession session = Database.CreateSession();
 
-            Object obj = null;
             String dbname = String.Empty;
             String databaseName = String.Empty;
             switch (schema)

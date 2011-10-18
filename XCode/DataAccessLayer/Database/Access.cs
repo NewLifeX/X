@@ -13,6 +13,7 @@ using NewLife;
 using NewLife.IO;
 using NewLife.Log;
 using NewLife.Reflection;
+using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
@@ -933,7 +934,7 @@ namespace XCode.DataAccessLayer
                 if (p != null)
                     p.Value = value;
                 else
-                    throw new Exception("列" + Column.Name + "没有Description属性！");
+                    throw new XCodeException("列" + Column.Name + "没有Description属性！");
             }
         }
 
@@ -954,7 +955,7 @@ namespace XCode.DataAccessLayer
                 if (p != null)
                     p.Value = value;
                 else
-                    throw new Exception("列" + Column.Name + "没有Default属性！");
+                    throw new XCodeException("列" + Column.Name + "没有Default属性！");
             }
         }
 
@@ -977,7 +978,7 @@ namespace XCode.DataAccessLayer
                 if (p != null)
                     p.Value = value;
                 else
-                    throw new Exception("列" + Column.Name + "没有Autoincrement属性！");
+                    throw new XCodeException("列" + Column.Name + "没有Autoincrement属性！");
             }
         }
 
@@ -1000,7 +1001,7 @@ namespace XCode.DataAccessLayer
                 if (p != null)
                     p.Value = value;
                 else
-                    throw new Exception("列" + Column.Name + "没有Nullable属性！");
+                    throw new XCodeException("列" + Column.Name + "没有Nullable属性！");
             }
         }
         #endregion

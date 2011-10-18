@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="Common\CommonService.cs" />
     <Compile Include="Common\CommonEntityBase.cs" />
+    <Compile Include="Exceptions\EntityException.cs" />
     <Compile Include="ICommonManageProvider.cs" />
     <Compile Include="Interfaces\IManageProvider.cs" />
     <Compile Include="Interfaces\IManageUser.cs" />

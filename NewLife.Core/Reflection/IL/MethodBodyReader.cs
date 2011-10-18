@@ -204,7 +204,7 @@ namespace NewLife.Reflection
                         instruction.Operand = ReadByte(il, ref p);
                         break;
                     default:
-                        throw new Exception("未知的操作类型" + code.OperandType);
+                        throw new InvalidOperationException("未知的操作类型" + code.OperandType);
                 }
                 #endregion
 
@@ -262,7 +262,7 @@ namespace NewLife.Reflection
                     }
                     else
                     {
-                        if ((index & 0xff00) != 0xfe00) throw new Exception("无效操作码");
+                        if ((index & 0xff00) != 0xfe00) throw new InvalidOperationException("无效操作码");
 
                         multiByteOpCodes[index & 0xff] = code;
                     }

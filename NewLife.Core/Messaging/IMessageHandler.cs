@@ -179,7 +179,7 @@ namespace NewLife.Messaging
                 // 通道名称
                 String name = appName.Substring(handlerKey.Length + 1);
                 Int32 id = 0;
-                if (!Int32.TryParse(name, out id)) throw new Exception("错误的消息编号" + id + "！");
+                if (!Int32.TryParse(name, out id)) throw new InvalidDataException("错误的消息编号" + id + "！");
 
                 String str = ConfigurationManager.AppSettings[appName];
                 if (String.IsNullOrEmpty(str)) continue;
@@ -253,7 +253,7 @@ namespace NewLife.Messaging
             }
 
             //return null;
-            throw new Exception("无效的消息唯一编码" + id + "！");
+            throw new InvalidDataException("无效的消息唯一编码" + id + "！");
         }
         #endregion
 

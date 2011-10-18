@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NewLife.Exceptions;
 
 namespace NewLife.Common
 {
@@ -136,8 +137,8 @@ namespace NewLife.Common
 
                 int y = -1;
                 Math.DivRem(sum, 11, out y);
-                if (arrVarifyCode[y] != card.Substring(17, 1).ToLower()) 
-                    throw new Exception("验证码校验失败！"); 
+                if (arrVarifyCode[y] != card.Substring(17, 1).ToLower())
+                    throw new XException("验证码校验失败！"); 
             }
 
             return idc;
@@ -150,12 +151,12 @@ namespace NewLife.Common
         private static String ParseArea(String area)
         {
             Int32 n = 0;
-            if (!Int32.TryParse(area, out n)) throw new Exception("非法地区编码！");
+            if (!Int32.TryParse(area, out n)) throw new XException("非法地区编码！");
 
             String str = area.Substring(0, 2);
-            if (!Int32.TryParse(str, out n)) throw new Exception("非法省份编码！");
+            if (!Int32.TryParse(str, out n)) throw new XException("非法省份编码！");
 
-            if (!ads.Contains(n)) throw new Exception("没有找到该省份！");
+            if (!ads.Contains(n)) throw new XException("没有找到该省份！");
 
             return area;
         }
@@ -174,7 +175,7 @@ namespace NewLife.Common
 
             String birth = n.ToString() + card.Substring(6, 6).Insert(2, "-").Insert(5, "-");
             DateTime d = DateTime.MinValue;
-            if (!DateTime.TryParse(birth, out d)) throw new Exception("生日不正确！");
+            if (!DateTime.TryParse(birth, out d)) throw new XException("生日不正确！");
             Birthday = d;
 
             //最后一位是性别
@@ -191,7 +192,7 @@ namespace NewLife.Common
         {
             String birth = card.Substring(6, 8).Insert(4, "-").Insert(7, "-");
             DateTime d = DateTime.MinValue;
-            if (!DateTime.TryParse(birth, out d)) throw new Exception("生日不正确！");
+            if (!DateTime.TryParse(birth, out d)) throw new XException("生日不正确！");
             Birthday = d;
 
             //倒数第二位是性别

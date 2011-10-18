@@ -86,7 +86,7 @@ namespace NewLife.Reflection
                 foreach (CompilerError err in cres.Errors)
                     sw.WriteLine(err.ErrorText);
 
-                throw new Exception("±‡“Î¥ÌŒÛ: \n\n" + sw.ToString());
+                throw new InvalidOperationException("±‡“Î¥ÌŒÛ: \n\n" + sw.ToString());
             }
 
             Assembly assembly = cres.CompiledAssembly;

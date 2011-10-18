@@ -626,7 +626,7 @@ namespace NewLife.IO
         {
             if (type == null)
             {
-                if (value == null) throw new Exception("没有指定写入类型，且写入对象为空，不知道如何写入！");
+                if (value == null) throw new InvalidOperationException("没有指定写入类型，且写入对象为空，不知道如何写入！");
 
                 type = value.GetType();
             }

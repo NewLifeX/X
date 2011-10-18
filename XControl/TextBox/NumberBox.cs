@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-
-using System.Web.UI.WebControls;
-using System.Drawing;
 using System.ComponentModel;
+using System.Drawing;
 using System.Web.UI;
+using System.Web.UI.WebControls;
+using NewLife.Exceptions;
 
 namespace XControl
 {
@@ -85,7 +83,7 @@ namespace XControl
             }
             else
             {
-                throw new Exception(err);
+                throw new XException(err);
             }
         }
 
@@ -214,8 +212,8 @@ namespace XControl
         
         void Check()
         {
-            if (Min != null && Value < Min) throw new Exception("只能输入大于或等于 " + Min + " 的数字！");
-            if (Max != null && Value > Max) throw new Exception("只能输入小于或等于 " + Max + " 的数字！");
+            if (Min != null && Value < Min) throw new ArgumentOutOfRangeException("Min", "只能输入大于或等于 " + Min + " 的数字！");
+            if (Max != null && Value > Max) throw new ArgumentOutOfRangeException("Min", "只能输入小于或等于 " + Max + " 的数字！");
         }
     }
 }

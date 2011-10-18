@@ -1104,7 +1104,7 @@ namespace XCode
                 case DataObjectMethodType.Select:
                     sql = DefaultCondition(obj);
                     // 没有标识列和主键，返回取所有数据的语句
-                    if (String.IsNullOrEmpty(sql)) throw new Exception("实体类缺少主键！");
+                    if (String.IsNullOrEmpty(sql)) throw new XCodeException("实体类缺少主键！");
                     return String.Format("Select * From {0} Where {1}", Meta.FormatName(Meta.TableName), sql);
                 case DataObjectMethodType.Insert:
                     sbNames = new StringBuilder();

@@ -326,7 +326,7 @@ namespace NewLife.Serialization
             if (value.Count == 0) return true;
 
             //type = value.GetType();
-            if (type != null && !typeof(IDictionary).IsAssignableFrom(type)) throw new Exception("目标类型不是字典类型！");
+            if (type != null && !typeof(IDictionary).IsAssignableFrom(type)) throw new InvalidOperationException("目标类型不是字典类型！");
 
             Int32 i = 0;
             foreach (DictionaryEntry item in value)
@@ -458,7 +458,7 @@ namespace NewLife.Serialization
             type = CheckAndWriteType("WriteEnumerableType", value, type);
 
             //type = value.GetType();
-            if (type != null && !typeof(IEnumerable).IsAssignableFrom(type)) throw new Exception("目标类型不是枚举类型！");
+            if (type != null && !typeof(IEnumerable).IsAssignableFrom(type)) throw new InvalidOperationException("目标类型不是枚举类型！");
 
             // 计算元素类型，如果无法计算，这里不能处理，否则能写不能读（因为不知道元素类型）
             Type elementType = null;

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
+using NewLife.Exceptions;
 using NewLife.Log;
 
 namespace NewLife.Xml
@@ -83,7 +84,7 @@ namespace NewLife.Xml
             else if (t.IsArray || value is IEnumerable)
             {
                 ExtendData data = FromXml(value);
-                if (data == null) throw new Exception("ExtendData无法分析数据" + value);
+                if (data == null) throw new XException("ExtendData无法分析数据" + value);
 
                 List<String> list = new List<String>();
                 for (Int32 i = 1; i < Int32.MaxValue; i++)
@@ -104,7 +105,7 @@ namespace NewLife.Xml
                 return (T)Convert.ChangeType(list.ToArray(), t);
             }
 
-            throw new Exception(String.Format("不支持的类型{0}，键{1}", typeof(T), key));
+            throw new XException("不支持的类型{0}，键{1}", typeof(T), key);
         }
 
         /// <summary>
@@ -176,7 +177,7 @@ namespace NewLife.Xml
                 return;
             }
 
-            throw new Exception(String.Format("不支持的类型{0}，键{1}，数据{2}", t, key, value));
+            throw new XException(String.Format("不支持的类型{0}，键{1}，数据{2}", t, key, value));
         }
 
         /// <summary>

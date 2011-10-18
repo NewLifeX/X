@@ -5,6 +5,7 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
+using NewLife.Exceptions;
 
 namespace NewLife.Web
 {
@@ -161,7 +162,7 @@ namespace NewLife.Web
                 if (!String.IsNullOrEmpty(box.Text)) return true;
             }
             else
-                throw new Exception(String.Format("暂时不支持{0}控件！", control.GetType()));
+                throw new XException("暂时不支持{0}控件！", control.GetType());
 
             control.Focus();
             if (!String.IsNullOrEmpty(errmsg)) Alert(errmsg);

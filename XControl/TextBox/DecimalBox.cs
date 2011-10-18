@@ -8,6 +8,7 @@ using System.Web.UI;
 using System.Drawing;
 using System.Globalization;
 using System.Collections;
+using NewLife.Exceptions;
 
 namespace XControl
 {
@@ -191,9 +192,9 @@ namespace XControl
 
                         intArray = (Int32[])list.ToArray(typeof(Int32));
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        throw new Exception("请检查分组输入！");
+                        throw new XException("请检查分组输入！", ex);
                     }
                     nf.CurrencyGroupSizes = intArray;
                 }

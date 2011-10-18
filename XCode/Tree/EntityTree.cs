@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Text;
 using System.Web.UI.WebControls;
 using System.Xml.Serialization;
+using NewLife.Exceptions;
 using NewLife.Reflection;
 
 namespace XCode
@@ -621,7 +622,7 @@ namespace XCode
 
             // 无主检查
             //if (!Meta.Cache.Entities.Exists(KeyName, pkey)) throw new Exception("无效上级[" + pkey + "]！");
-            if (!pisnull && FindCount(KeyName, pkey) <= 0) throw new Exception("无效上级[" + pkey + "]！");
+            if (!pisnull && FindCount(KeyName, pkey) <= 0) throw new XException("无效上级[" + pkey + "]！");
 
             // 死循环检查
             if (isnull)
@@ -631,7 +632,7 @@ namespace XCode
             else
             {
                 // 更新状态，且pkey不为空时，判断两者是否相等
-                if (!pisnull && Object.Equals(pkey, key)) throw new Exception("上级不能是当前节点！");
+                if (!pisnull && Object.Equals(pkey, key)) throw new XException("上级不能是当前节点！");
             }
 
             // 编辑状态且设置了父节点时才处理
@@ -639,7 +640,7 @@ namespace XCode
             {
                 EntityList<TEntity> list = this.AllChilds;
                 if (list != null && list.Exists(KeyName, pkey))
-                    throw new Exception("上级[" + pkey + "]是当前节点的子孙节点！");
+                    throw new XException("上级[" + pkey + "]是当前节点的子孙节点！");
             }
         }
 

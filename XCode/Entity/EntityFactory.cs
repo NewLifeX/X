@@ -92,10 +92,10 @@ namespace XCode
                     optype = GetEntityOperateType(key);
                 }
                 if (optype == null || !typeof(IEntityOperate).IsAssignableFrom(optype))
-                    throw new Exception(String.Format("无法创建{0}的实体操作接口！", key));
+                    throw new XCodeException("无法创建{0}的实体操作接口！", key);
 
                 IEntityOperate op = TypeX.CreateInstance(optype) as IEntityOperate;
-                if (op == null) throw new Exception(String.Format("无法创建{0}的实体操作接口！", key));
+                if (op == null) throw new XCodeException("无法创建{0}的实体操作接口！", key);
 
                 // 如果源实体类型实现了IEntity接口，则以它的对象为操作者的默认值
                 // 因为可能存在非泛型继承，比如Admin=>Administrator=>Administrator<Administrator>
