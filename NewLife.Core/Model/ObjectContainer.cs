@@ -280,6 +280,8 @@ namespace NewLife.Model
                 // 是否允许覆盖
                 if (!overwrite) return this;
 
+                //if (OnRegistering != null) OnRegistering(this, new EventArgs<Type, IObjectMap>(from, old));
+
                 if (old is Map)
                 {
                     map = old as Map;
@@ -300,7 +302,12 @@ namespace NewLife.Model
             map.Mode = mode;
             map.ImplementType = to;
             map.Instance = instance;
-            if (!dic.ContainsKey(name)) dic.Add(name, map);
+            if (!dic.ContainsKey(name))
+            {
+                if (OnRegistering != null) OnRegistering(this, new EventArgs<Type, IObjectMap>(from, map));
+                dic.Add(name, map);
+                if (OnRegistered != null) OnRegistered(this, new EventArgs<Type, IObjectMap>(from, map));
+            }
 
             return this;
         }
@@ -667,7 +674,11 @@ namespace NewLife.Model
         static Map GetConfig(String str)
         {
             IDictionary<String, String> dic = ParseDic(str);
-            if (dic == null || dic.Count < 1) return null;
+            if (dic == null || dic.Count < 1)
+            {
+                if (!str.IsNullOrWhiteSpace()) return new Map { TypeName = str };
+                return null;
+            }
 
             Map map = new Map();
             foreach (KeyValuePair<String, String> item in dic)
