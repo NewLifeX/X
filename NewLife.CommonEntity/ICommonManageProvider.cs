@@ -106,19 +106,19 @@ namespace NewLife.CommonEntity
 
         #region 类型
         /// <summary>管理员类</summary>
-        public virtual Type AdminstratorType { get { return typeof(IAdministrator); } }
+        public virtual Type AdminstratorType { get { return CommonService.ResolveType<IAdministrator>(); } }
 
         /// <summary>日志类</summary>
-        public virtual Type LogType { get { return typeof(Log); } }
+        public virtual Type LogType { get { return CommonService.ResolveType<ILog>(); } }
 
         /// <summary>菜单类</summary>
-        public virtual Type MenuType { get { return typeof(Menu); } }
+        public virtual Type MenuType { get { return CommonService.ResolveType<IMenu>(); } }
 
         /// <summary>角色类</summary>
-        public virtual Type RoleType { get { return typeof(Role); } }
+        public virtual Type RoleType { get { return CommonService.ResolveType<IRole>(); } }
 
         /// <summary>权限类</summary>
-        public virtual Type RoleMenuType { get { return typeof(RoleMenu); } }
+        public virtual Type RoleMenuType { get { return CommonService.ResolveType<IRoleMenu>(); } }
         #endregion
 
         #region 接口

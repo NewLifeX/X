@@ -11,7 +11,12 @@ namespace NewLife.CommonEntity
         {
             Container
                 .Register<IManageProvider, ManageProvider>(null, false)
-                .Register<ICommonManageProvider, CommonManageProvider>(null, false);
+                .Register<ICommonManageProvider, CommonManageProvider>(null, false)
+                .Register<IAdministrator, Administrator>(null, false)
+                .Register<ILog, Log>(null, false)
+                .Register<IRole, Role>(null, false)
+                .Register<IMenu, Menu>(null, false)
+                .Register<IRoleMenu, RoleMenu>(null, false);
         }
     }
 }

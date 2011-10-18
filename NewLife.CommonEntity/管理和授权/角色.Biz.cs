@@ -18,13 +18,6 @@ namespace NewLife.CommonEntity
         where TRoleMenuEntity : RoleMenu<TRoleMenuEntity>, new()
     {
         #region 对象操作
-        //static Role()
-        //{
-        //    // 删除RoleMenu中无效的RoleID和无效的MenuID
-        //    //ClearRoleMenu();
-        //    ThreadPool.QueueUserWorkItem(delegate { ClearRoleMenu(); });
-        //}
-
         /// <summary>
         /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
         /// </summary>
@@ -126,36 +119,14 @@ namespace NewLife.CommonEntity
             rms.Delete();
         }
 
-        ///// <summary>
-        ///// 检查是否所有人都没有权限
-        ///// </summary>
-        //static void CheckNonePerssion()
-        //{
-        //    TMenuEntity entity = Menu<TMenuEntity>.FindByName("权限管理");
-        //    if (entity != null) RoleMenu<TRoleMenuEntity>.CheckNonePerssion(entity.ID);
-        //}
-
         /// <summary>
         /// 已重载。关联删除权限项。
         /// </summary>
         /// <returns></returns>
-        public override int Delete()
+        protected override int OnDelete()
         {
-            Meta.BeginTrans();
-            try
-            {
-                if (Menus != null) Menus.Delete();
-                Int32 rs = base.Delete();
-
-                Meta.Commit();
-
-                return rs;
-            }
-            catch
-            {
-                Meta.Rollback();
-                throw;
-            }
+            if (Menus != null) Menus.Delete();
+            return base.OnDelete();
         }
         #endregion
 
@@ -198,61 +169,6 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
-        ///// <summary>
-        ///// 拥有指定菜单的权限，支持路径查找
-        ///// </summary>
-        ///// <param name="name"></param>
-        ///// <returns></returns>
-        //public override Boolean HasMenu(String name)
-        //{
-        //    if (String.IsNullOrEmpty(name) || MenuList == null || MenuList.Count < 1) return false;
-
-        //    //TMenuEntity entity = Menu<TMenuEntity>.FindByPath(MenuList, name, Menu<TMenuEntity>._.Permission);
-        //    TMenuEntity entity = Menu<TMenuEntity>.FindForPerssion(name);
-
-        //    // 找不到的时候，修改当前页面
-        //    if (entity == null && Menu<TMenuEntity>.Current != null)
-        //    {
-        //        if (Menu<TMenuEntity>.Current.ResetName(name)) entity = Menu<TMenuEntity>.Current;
-        //    }
-
-        //    //return entity != null;
-
-        //    if (entity == null) return false;
-
-        //    return HasMenu(entity.ID);
-        //}
-
-        ///// <summary>
-        ///// 拥有指定菜单的权限
-        ///// </summary>
-        ///// <param name="menuID"></param>
-        ///// <returns></returns>
-        //public override Boolean HasMenu(Int32 menuID)
-        //{
-        //    //if (menu == null || MenuList == null || MenuList.Count < 1) return false;
-        //    if (menuID <= 0) return false;
-
-        //    TMenuEntity menu = Menu<TMenuEntity>.FindByID(menuID);
-
-        //    // 当前菜单
-        //    Boolean b = false;
-        //    foreach (TMenuEntity item in MenuList)
-        //    {
-        //        if (item.ID == menu.ID)
-        //        {
-        //            b = true;
-        //            break;
-        //        }
-        //    }
-        //    if (!b) return false;
-
-        //    // 判断父菜单
-        //    if (menu.ParentID <= 0) return true;
-
-        //    return HasMenu(menu.ParentID);
-        //}
-
         /// <summary>
         /// 申请指定菜单指定操作的权限
         /// </summary>
@@ -336,20 +252,6 @@ namespace NewLife.CommonEntity
           where TEntity : Role<TEntity>, new()
     {
         #region 对象操作
-        //static Role()
-        //{
-        //    if (Meta.Count < 1)
-        //    {
-        //        if (XTrace.Debug) XTrace.WriteLine("开始初始化角色数据……");
-
-        //        TEntity entity = new TEntity();
-        //        entity.Name = "管理员";
-        //        entity.Save();
-
-        //        if (XTrace.Debug) XTrace.WriteLine("完成初始化角色数据！");
-        //    }
-        //}
-
         /// <summary>
         /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
         /// </summary>
@@ -435,20 +337,6 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
-        ///// <summary>
-        ///// 拥有指定菜单的权限，支持路径查找
-        ///// </summary>
-        ///// <param name="name"></param>
-        ///// <returns></returns>
-        //public virtual Boolean HasMenu(String name) { return false; }
-
-        ///// <summary>
-        ///// 拥有指定菜单的权限
-        ///// </summary>
-        ///// <param name="menuID"></param>
-        ///// <returns></returns>
-        //public virtual Boolean HasMenu(Int32 menuID) { return false; }
-
         /// <summary>
         /// 申请指定菜单指定操作的权限
         /// </summary>

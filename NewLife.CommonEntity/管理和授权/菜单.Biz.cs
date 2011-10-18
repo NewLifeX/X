@@ -22,22 +22,6 @@ namespace NewLife.CommonEntity
     public partial class Menu<TEntity> : EntityTree<TEntity>, IMenu where TEntity : Menu<TEntity>, new()
     {
         #region 对象操作
-        ///// <summary>已重载。</summary>
-        //protected override EntityList<TEntity> FindChilds()
-        //{
-        //    return FindAllByParentID(ID);
-        //}
-
-        ///// <summary>已重载。</summary>
-        //protected override TEntity FindParent()
-        //{
-        //    return FindByID(ParentID);
-        //}
-
-        //static Menu()
-        //{
-        //}
-
         /// <summary>
         /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
         /// </summary>
@@ -668,26 +652,6 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 日志
-        ///// <summary>
-        ///// Http状态，名称必须和管理员类中一致
-        ///// </summary>
-        //static HttpState<IAdministrator> http = new HttpState<IAdministrator>("Admin");
-        //internal static IAdministrator DefaultAdministrator;
-        ///// <summary>
-        ///// 创建指定动作的日志实体。通过Http状态访问当前管理员对象，创建日志实体
-        ///// </summary>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //public static ILog CreateLog(String action)
-        //{
-        //    //IAdministrator admin = http.Current;
-        //    //if (admin == null) admin = DefaultAdministrator;
-        //    IAdministrator admin = Administrator.CurrentAdministrator;
-        //    if (admin == null) return null;
-
-        //    return admin.CreateLog(typeof(TEntity), action);
-        //}
-
         /// <summary>
         /// 写日志
         /// </summary>

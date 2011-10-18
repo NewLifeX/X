@@ -52,6 +52,7 @@
     <Compile Include="Entities\维修保养记录.Biz.cs" />
     <Compile Include="Entities\维修保养记录.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="YWSManageProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="mssql_YWS.xml" />

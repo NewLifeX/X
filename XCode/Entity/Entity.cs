@@ -14,7 +14,6 @@ using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
 using XCode.Model;
-using System.Diagnostics;
 
 namespace XCode
 {
@@ -407,23 +406,13 @@ namespace XCode
         public static TEntity Find(String[] names, Object[] values)
         {
             // 判断自增和主键
-            if (names.Length == 1)
+            if (names != null && names.Length == 1)
             {
                 FieldItem field = Meta.Table.FindByName(names[0]);
                 if (field != null && (field.IsIdentity || field.PrimaryKey))
                 {
                     // 唯一键为自增且参数小于等于0时，返回空
                     if (Helper.IsNullKey(values[0])) return null;
-
-                    // 自增或者主键查询，记录集肯定是唯一的，不需要指定记录数和排序
-                    //SelectBuilder builder = new SelectBuilder();
-                    //builder.Table = Meta.FormatName(Meta.TableName);
-                    //builder.Where = MakeCondition(field, values[0], "=");
-                    //IList<TEntity> list = FindAll(builder.ToString());
-                    //if (list == null || list.Count < 1)
-                    //    return null;
-                    //else
-                    //    return list[0];
 
                     return FindUnique(MakeCondition(field, values[0], "="));
                 }
@@ -659,6 +648,17 @@ namespace XCode
         /// <returns>实体数组</returns>
         public static EntityList<TEntity> FindAll(String[] names, Object[] values)
         {
+            // 判断自增和主键
+            if (names != null && names.Length == 1)
+            {
+                FieldItem field = Meta.Table.FindByName(names[0]);
+                if (field != null && (field.IsIdentity || field.PrimaryKey))
+                {
+                    // 唯一键为自增且参数小于等于0时，返回空
+                    if (Helper.IsNullKey(values[0])) return null;
+                }
+            }
+
             return FindAll(MakeCondition(names, values, "And"), null, null, 0, 0);
         }
 
@@ -902,6 +902,17 @@ namespace XCode
         /// <returns>总行数</returns>
         public static Int32 FindCount(String[] names, Object[] values)
         {
+            // 判断自增和主键
+            if (names != null && names.Length == 1)
+            {
+                FieldItem field = Meta.Table.FindByName(names[0]);
+                if (field != null && (field.IsIdentity || field.PrimaryKey))
+                {
+                    // 唯一键为自增且参数小于等于0时，返回空
+                    if (Helper.IsNullKey(values[0])) return 0;
+                }
+            }
+
             return FindCount(MakeCondition(names, values, "And"), null, null, 0, 0);
         }
 
@@ -940,7 +951,7 @@ namespace XCode
             if (String.IsNullOrEmpty(name))
                 return FindCount(null, null, null, 0, 0);
             else
-                return FindCount(MakeCondition(name, value, "="), null, null, 0, 0);
+                return FindCount(new String[] { name }, new Object[] { value });
         }
         #endregion
 
@@ -1190,8 +1201,8 @@ namespace XCode
         [WebMethod(Description = "构造查询条件")]
         public static String MakeCondition(String[] names, Object[] values, String action)
         {
-            if (names == null) throw new ArgumentNullException("names", "属性列表和值列表不能为空");
-            if (values == null) throw new ArgumentNullException("values", "属性列表和值列表不能为空");
+            if (names == null || names.Length <= 0) throw new ArgumentNullException("names", "属性列表和值列表不能为空");
+            if (values == null || values.Length <= 0) throw new ArgumentNullException("values", "属性列表和值列表不能为空");
             if (names.Length != values.Length) throw new ArgumentException("属性列表必须和值列表一一对应");
 
             StringBuilder sb = new StringBuilder();
