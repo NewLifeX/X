@@ -156,6 +156,7 @@
     <EmbeddedResource Include="TextBox\DateTime\lhgcalendar.css" />
     <EmbeddedResource Include="TextBox\DateTime\lhgcalendar.min.js" />
     <EmbeddedResource Include="TextBox\DateTime\lhgcore.min.js" />
+    <EmbeddedResource Include="View\GridViewExtender.js" />
     <Content Include="说明.txt" />
   </ItemGroup>
   <ItemGroup>
