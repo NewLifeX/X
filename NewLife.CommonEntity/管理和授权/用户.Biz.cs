@@ -8,10 +8,10 @@
 using System.ComponentModel;
 using System.Web;
 using NewLife.CommonEntity.Exceptions;
+using NewLife.Log;
 using NewLife.Security;
 using NewLife.Web;
 using XCode;
-using NewLife.Log;
 
 namespace NewLife.CommonEntity
 {
@@ -303,6 +303,9 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static TEntity Login(String account, String password)
         {
+            if (String.IsNullOrEmpty(account)) throw new ArgumentNullException("account");
+            //if (String.IsNullOrEmpty(password)) throw new ArgumentNullException("password");
+
             return Login(account, password, 1);
         }
 
@@ -314,25 +317,29 @@ namespace NewLife.CommonEntity
             if (user == null) return null;
 
             // 数据库为空密码，任何密码均可登录
-            if (String.IsNullOrEmpty(user.Password)) return user;
-
-            if (hashTimes > 0)
+            if (!String.IsNullOrEmpty(user.Password))
             {
-                String p = password;
-                for (int i = 0; i < hashTimes; i++)
+                if (hashTimes > 0)
                 {
-                    p = DataHelper.Hash(p);
+                    String p = password;
+                    if (!String.IsNullOrEmpty(p))
+                    {
+                        for (int i = 0; i < hashTimes; i++)
+                        {
+                            p = DataHelper.Hash(p);
+                        }
+                    }
+                    if (!String.Equals(user.Password, p, StringComparison.OrdinalIgnoreCase)) throw new EntityException("密码不正确！");
                 }
-                if (!String.Equals(user.Password, p, StringComparison.OrdinalIgnoreCase)) throw new EntityException("密码不正确！");
-            }
-            else
-            {
-                String p = user.Password;
-                for (int i = 0; i > hashTimes; i--)
+                else
                 {
-                    p = DataHelper.Hash(p);
+                    String p = user.Password;
+                    for (int i = 0; i > hashTimes; i--)
+                    {
+                        p = DataHelper.Hash(p);
+                    }
+                    if (!String.Equals(p, password, StringComparison.OrdinalIgnoreCase)) throw new EntityException("密码不正确！");
                 }
-                if (!String.Equals(p, password, StringComparison.OrdinalIgnoreCase)) throw new EntityException("密码不正确！");
             }
 
             Current = user;

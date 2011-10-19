@@ -171,7 +171,11 @@ namespace NewLife.Model
             {
                 get
                 {
-                    if (_ImplementType == null && !TypeName.IsNullOrWhiteSpace()) _ImplementType = TypeX.GetType(TypeName, true);
+                    if (_ImplementType == null && !TypeName.IsNullOrWhiteSpace())
+                    {
+                        _ImplementType = TypeX.GetType(TypeName, true);
+                        if (_ImplementType == null) throw new XException("无法找到类型{0}！", TypeName);
+                    }
                     return _ImplementType;
                 }
                 set { _ImplementType = value; }
@@ -732,6 +736,17 @@ namespace NewLife.Model
             }
 
             return dic;
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return String.Format("[Count={0}]", Stores.Count);
         }
         #endregion
     }

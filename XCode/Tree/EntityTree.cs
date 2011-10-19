@@ -80,7 +80,7 @@ namespace XCode
         /// <summary>子节点</summary>
         public virtual EntityList<TEntity> Childs
         {
-            get { return GetExtend<EntityList<TEntity>>("Childs", delegate { return FindChilds(); }, !IsNull((TKey)this[KeyName])); }
+            get { return GetExtend<EntityList<TEntity>>("Childs", e => FindChilds(), !IsNull((TKey)this[KeyName])); }
             set { SetExtend("Childs", value); }
         }
 
@@ -94,7 +94,7 @@ namespace XCode
         [XmlIgnore]
         public virtual TEntity Parent
         {
-            get { return GetExtend<TEntity>("Parent", delegate { return FindParent(); }); }
+            get { return GetExtend<TEntity>("Parent", e => FindParent()); }
             set { SetExtend("Parent", value); }
         }
 
@@ -108,7 +108,7 @@ namespace XCode
         [XmlIgnore]
         public virtual EntityList<TEntity> AllChilds
         {
-            get { return GetExtend<EntityList<TEntity>>("AllChilds", delegate { return FindAllChilds(this); }, !IsNull((TKey)this[KeyName])); }
+            get { return GetExtend<EntityList<TEntity>>("AllChilds", e => FindAllChilds(this), !IsNull((TKey)this[KeyName])); }
             set { SetExtend("AllChilds", value); }
         }
 
@@ -116,7 +116,7 @@ namespace XCode
         [XmlIgnore]
         public virtual EntityList<TEntity> AllParents
         {
-            get { return GetExtend<EntityList<TEntity>>("AllParents", delegate { return FindAllParents(this); }); }
+            get { return GetExtend<EntityList<TEntity>>("AllParents", e => FindAllParents(this)); }
             set { SetExtend("AllParents", value); }
         }
 

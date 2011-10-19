@@ -430,8 +430,8 @@ namespace NewLife.Reflection
             }
             if (isLoadAssembly)
             {
-                // 尝试加载程序集
-                AssemblyX.ReflectionOnlyLoad();
+                //// 尝试加载程序集
+                //AssemblyX.ReflectionOnlyLoad();
                 foreach (AssemblyX item in AssemblyX.ReflectionOnlyGetAssemblies())
                 {
                     // 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
@@ -524,6 +524,7 @@ namespace NewLife.Reflection
         /// </summary>
         /// <param name="domain"></param>
         /// <returns></returns>
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
         public static IEnumerable<AssemblyX> ReflectionOnlyGetAssemblies(AppDomain domain)
         {
             if (domain == null) domain = AppDomain.CurrentDomain;
@@ -546,14 +547,20 @@ namespace NewLife.Reflection
         /// 获取当前程序域所有程序集的辅助类
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<AssemblyX> ReflectionOnlyGetAssemblies() { return ReflectionOnlyGetAssemblies(AppDomain.CurrentDomain); }
+        public static IEnumerable<AssemblyX> ReflectionOnlyGetAssemblies()
+        {
+            if (HttpRuntime.AppDomainId == null)
+                return ReflectionOnlyLoad(AppDomain.CurrentDomain.BaseDirectory);
+            else
+                return ReflectionOnlyLoad(HttpRuntime.BinDirectory);
+        }
 
         /// <summary>
         /// 只反射加载指定路径的所有程序集
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public static IEnumerable<AssemblyX> ReflectionOnlyLoad(String path)
+        static IEnumerable<AssemblyX> ReflectionOnlyLoad(String path)
         {
             if (!Directory.Exists(path)) yield break;
 
@@ -561,16 +568,23 @@ namespace NewLife.Reflection
             if (ss == null || ss.Length < 1) yield break;
 
             List<AssemblyX> loadeds = AssemblyX.GetAssemblies().ToList<AssemblyX>();
-            List<AssemblyX> loadeds2 = AssemblyX.ReflectionOnlyGetAssemblies().ToList<AssemblyX>();
+            IEnumerable<AssemblyX> loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e));
 
             foreach (String item in ss)
             {
                 if (!item.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) &&
                     !item.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
 
-                if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) || loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
+                //if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) || loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
+                if (loadeds.Any(e => e.Location.EqualIgnoreCase(item))) continue;
 
-                AssemblyX asmx = null;
+                AssemblyX asmx = loadeds2.FirstOrDefault(e => e.Location.EqualIgnoreCase(item));
+                if (asmx != null)
+                {
+                    yield return asmx;
+                    continue;
+                }
+
                 try
                 {
                     //Assembly asm = Assembly.ReflectionOnlyLoad(File.ReadAllBytes(item));
@@ -588,6 +602,7 @@ namespace NewLife.Reflection
         /// 只反射加载有效路径（应用程序是当前路径，Web是Bin目录）的所有程序集
         /// </summary>
         /// <returns></returns>
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
         public static IEnumerable<AssemblyX> ReflectionOnlyLoad()
         {
             if (HttpRuntime.AppDomainId == null)

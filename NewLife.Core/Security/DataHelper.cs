@@ -18,7 +18,8 @@ namespace NewLife.Security
         /// <returns></returns>
         public static String Hash(String str)
         {
-            if (String.IsNullOrEmpty(str)) throw new ArgumentNullException("str");
+            //if (String.IsNullOrEmpty(str)) throw new ArgumentNullException("str");
+            if (String.IsNullOrEmpty(str)) return null;
 
             MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
             Byte[] by = md5.ComputeHash(Encoding.UTF8.GetBytes(str));

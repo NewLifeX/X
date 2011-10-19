@@ -596,35 +596,31 @@ namespace NewLife.Reflection
 
             if (isLoadAssembly)
             {
-                // 尝试加载程序集
-                AssemblyX.ReflectionOnlyLoad();
+                //// 尝试加载程序集
+                //AssemblyX.ReflectionOnlyLoad();
 
-                // 再试一次
-                //list = AssemblyX.GetAssemblies();
-                //if (list != null && list.Count > 0)
+                //// 再试一次
+                ////list = AssemblyX.GetAssemblies();
+                ////if (list != null && list.Count > 0)
+                //{
+                //    foreach (AssemblyX asm in AssemblyX.GetAssemblies())
+                //    {
+                //        type = FindByNameInAssembly(asm.Asm, typeName);
+                //        if (type != null) return type;
+                //    }
+                //}
+
+                foreach (AssemblyX asm in AssemblyX.ReflectionOnlyGetAssemblies())
                 {
-                    foreach (AssemblyX asm in AssemblyX.GetAssemblies())
+                    type = FindByNameInAssembly(asm.Asm, typeName);
+                    if (type != null)
                     {
-                        type = FindByNameInAssembly(asm.Asm, typeName);
-                        if (type != null) return type;
-                    }
-                }
+                        // 真实加载
+                        Assembly asm2 = Assembly.LoadFile(asm.Asm.Location);
+                        Type type2 = FindByNameInAssembly(asm2, typeName);
+                        if (type2 != null) type = type2;
 
-                //list = AssemblyX.ReflectionOnlyGetAssemblies();
-                //if (list != null && list.Count > 0)
-                {
-                    foreach (AssemblyX asm in AssemblyX.ReflectionOnlyGetAssemblies())
-                    {
-                        type = FindByNameInAssembly(asm.Asm, typeName);
-                        if (type != null)
-                        {
-                            // 真实加载
-                            Assembly asm2 = Assembly.LoadFile(asm.Asm.Location);
-                            Type type2 = FindByNameInAssembly(asm2, typeName);
-                            if (type2 != null) type = type2;
-
-                            return type;
-                        }
+                        return type;
                     }
                 }
             }

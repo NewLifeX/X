@@ -160,6 +160,17 @@ namespace NewLife.CommonEntity
 
             if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}管理员数据！", typeof(TEntity).Name);
         }
+
+        /// <summary>
+        /// 验证
+        /// </summary>
+        /// <param name="isNew"></param>
+        public override void Valid(bool isNew)
+        {
+            base.Valid(isNew);
+
+            if (RoleID < 1) throw new ArgumentNullException(_.RoleID, "没有指定角色！");
+        }
         #endregion
 
         #region 扩展属性
@@ -197,7 +208,7 @@ namespace NewLife.CommonEntity
                     if (entity != null)
                     {
                         cookie["u"] = HttpUtility.UrlEncode(entity.Name);
-                        cookie["p"] = DataHelper.Hash(entity.Password);
+                        cookie["p"] = !String.IsNullOrEmpty(entity.Password) ? DataHelper.Hash(entity.Password) : null;
                     }
                     else
                     {
@@ -387,6 +398,9 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static TEntity Login(String username, String password)
         {
+            if (String.IsNullOrEmpty(username)) throw new ArgumentNullException("username");
+            //if (String.IsNullOrEmpty(password)) throw new ArgumentNullException("password");
+
             try
             {
                 return Login(username, password, 1);
@@ -407,23 +421,30 @@ namespace NewLife.CommonEntity
 
             if (!user.IsEnable) throw new EntityException("账号被禁用！");
 
-            if (hashTimes > 0)
+            // 数据库为空密码，任何密码均可登录
+            if (!String.IsNullOrEmpty(user.Password))
             {
-                String p = password;
-                for (int i = 0; i < hashTimes; i++)
+                if (hashTimes > 0)
                 {
-                    p = DataHelper.Hash(p);
+                    String p = password;
+                    if (!String.IsNullOrEmpty(p))
+                    {
+                        for (int i = 0; i < hashTimes; i++)
+                        {
+                            p = DataHelper.Hash(p);
+                        }
+                    }
+                    if (!p.EqualIgnoreCase(user.Password)) throw new EntityException("密码不正确！");
                 }
-                if (!String.Equals(user.Password, p)) throw new EntityException("密码不正确！");
-            }
-            else
-            {
-                String p = user.Password;
-                for (int i = 0; i > hashTimes; i--)
+                else
                 {
-                    p = DataHelper.Hash(p);
+                    String p = user.Password;
+                    for (int i = 0; i > hashTimes; i--)
+                    {
+                        p = DataHelper.Hash(p);
+                    }
+                    if (!p.EqualIgnoreCase(user.Password)) throw new EntityException("密码不正确！");
                 }
-                if (!String.Equals(p, password)) throw new EntityException("密码不正确！");
             }
 
             user.SaveLoginInfo();
