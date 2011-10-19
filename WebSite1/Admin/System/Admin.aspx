@@ -6,8 +6,7 @@
         <asp:Label Text="关键字" runat="server" />
         &nbsp;<asp:TextBox runat="server" ID="TB_key" />
         角色：<XCL:DropDownList ID="DropdownList1" runat="server" DataSourceID="ObjectDataSource2"
-            AppendDataBoundItems="true" DataTextField="Name" DataValueField="ID" 
-            AutoPostBack="True">
+            AppendDataBoundItems="true" DataTextField="Name" DataValueField="ID" AutoPostBack="True">
             <asp:ListItem Value="0">请选择</asp:ListItem>
         </XCL:DropDownList>
         &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" />
@@ -61,8 +60,7 @@
         </EmptyDataTemplate>
     </asp:GridView>
     <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" OldValuesParameterFormatString="original_{0}"
-        SelectMethod="Search" TypeName="NewLife.YWS.Entities.Admin" DataObjectTypeName="NewLife.YWS.Entities.Admin"
-        DeleteMethod="Delete">
+        SelectMethod="Search" TypeName="" DataObjectTypeName="" DeleteMethod="Delete">
         <SelectParameters>
             <asp:ControlParameter ControlID="TB_key" Name="key" Type="String" PropertyName="Text" />
             <asp:ControlParameter ControlID="DropdownList1" Name="roleID" Type="Int32" PropertyName="SelectedValue" />
@@ -72,8 +70,8 @@
         </SelectParameters>
     </asp:ObjectDataSource>
     <asp:ObjectDataSource ID="ObjectDataSource2" runat="server" OldValuesParameterFormatString="original_{0}"
-        SelectMethod="FindAllByName" TypeName="NewLife.CommonEntity.Role" DataObjectTypeName="NewLife.CommonEntity.Role"
-        DeleteMethod="Delete" InsertMethod="Insert" UpdateMethod="Update">
+        SelectMethod="FindAllByName" TypeName="" DataObjectTypeName="" DeleteMethod="Delete"
+        InsertMethod="Insert" UpdateMethod="Update">
         <SelectParameters>
             <asp:Parameter Name="name" Type="String" />
             <asp:Parameter Name="value" Type="Object" />

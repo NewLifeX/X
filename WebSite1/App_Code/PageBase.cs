@@ -1,21 +1,20 @@
 ﻿using System;
-using System.Web.UI.WebControls;
-using NewLife.CommonEntity.Web;
-using NewLife.Web;
-using NewLife.YWS.Entities;
-using Menu = NewLife.CommonEntity.Menu;
 using System.Text;
-using NewLife.Reflection;
-using NewLife.Log;
 using System.Web;
 using System.Web.UI;
+using System.Web.UI.WebControls;
+using NewLife.CommonEntity;
+using NewLife.CommonEntity.Web;
+using NewLife.Log;
+using NewLife.Reflection;
+using NewLife.Web;
 
 /// <summary>
 /// 页面基类
 /// </summary>
 /// <typeparam name="TAdminEntity"></typeparam>
 /// <typeparam name="TMenuEntity"></typeparam>
-public abstract class PageBase : WebPageBase<Admin, Menu>
+public abstract class PageBase : WebPageBase
 {
     /// <summary>
     /// 是否管理员
@@ -37,7 +36,7 @@ public abstract class PageBase : WebPageBase<Admin, Menu>
 
     public override bool CheckLogin()
     {
-        if (Admin.Current == null)
+        if (CommonManageProvider.Provider.Current == null)
         {
             // 不可能出现的情况，记录Cookie
             StringBuilder sb = new StringBuilder();

@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Web.UI.WebControls;
-using NewLife.YWS.Entities;
-using Menu = NewLife.CommonEntity.Menu;
-using NewLife.Web;
 using NewLife.CommonEntity;
+using NewLife.Web;
+using Menu = NewLife.CommonEntity.Menu;
 
 public partial class Center_Frame_Left : System.Web.UI.Page
 {
+    IAdministrator Current { get { return CommonManageProvider.Provider.Current; } }
+
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!IsPostBack)
         {
-            if (Admin.Current != null && Admin.Current.Role != null)
+            if (Current != null && Current.Role != null)
             {
                 //Menu m = Menu.FindByName("管理平台");
                 Menu m = null;
@@ -29,7 +30,7 @@ public partial class Center_Frame_Left : System.Web.UI.Page
 
                 Literal1.Text = m.Name;
 
-                menu.DataSource = Admin.Current.Role.GetMySubMenus(m.ID);
+                menu.DataSource = Current.Role.GetMySubMenus(m.ID);
                 menu.DataBind();
             }
         }
@@ -44,7 +45,7 @@ public partial class Center_Frame_Left : System.Web.UI.Page
         Repeater rp = e.Item.FindControl("menuItem") as Repeater;
         if (rp == null) return;
 
-        rp.DataSource = Admin.Current.Role.GetMySubMenus(m.ID);
+        rp.DataSource = Current.Role.GetMySubMenus(m.ID);
         rp.DataBind();
     }
 }

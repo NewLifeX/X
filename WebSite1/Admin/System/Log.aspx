@@ -3,9 +3,8 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="toolbar">
-        类别：<asp:DropDownList ID="DropDownList1" runat="server" 
-            AppendDataBoundItems="True" DataSourceID="ObjectDataSource3" 
-            DataTextField="Category" DataValueField="Category">
+        类别：<asp:DropDownList ID="DropDownList1" runat="server" AppendDataBoundItems="True"
+            DataSourceID="ObjectDataSource3" DataTextField="Category" DataValueField="Category">
             <asp:ListItem>全部</asp:ListItem>
         </asp:DropDownList>
         &nbsp;管理员：<asp:DropDownList ID="DropDownList2" runat="server" AppendDataBoundItems="True"
@@ -50,7 +49,7 @@
     </asp:GridView>
     <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" EnablePaging="True" OldValuesParameterFormatString="original_{0}"
         SelectCountMethod="SearchCount" SelectMethod="Search" SortParameterName="orderClause"
-        TypeName="NewLife.CommonEntity.Log">
+        TypeName="">
         <SelectParameters>
             <asp:ControlParameter ControlID="key" Name="key" PropertyName="Text" Type="String" />
             <asp:ControlParameter ControlID="DropDownList2" Name="adminid" PropertyName="SelectedValue"
@@ -65,11 +64,9 @@
         </SelectParameters>
     </asp:ObjectDataSource>
     <asp:ObjectDataSource ID="ObjectDataSource2" runat="server" OldValuesParameterFormatString="original_{0}"
-        SelectMethod="FindAll" TypeName="NewLife.YWS.Entities.Admin" DataObjectTypeName="NewLife.YWS.Entities.Admin">
-    </asp:ObjectDataSource>
-    <asp:ObjectDataSource ID="ObjectDataSource3" runat="server" 
-        OldValuesParameterFormatString="original_{0}" SelectMethod="FindAllCategory" 
-        TypeName="NewLife.CommonEntity.Log"></asp:ObjectDataSource>
+        SelectMethod="FindAll" TypeName="" DataObjectTypeName=""></asp:ObjectDataSource>
+    <asp:ObjectDataSource ID="ObjectDataSource3" runat="server" OldValuesParameterFormatString="original_{0}"
+        SelectMethod="FindAllCategory" TypeName=""></asp:ObjectDataSource>
     <XCL:GridViewExtender ID="gvExt" runat="server">
     </XCL:GridViewExtender>
 </asp:Content>

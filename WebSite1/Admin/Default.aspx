@@ -1,9 +1,10 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Default.aspx.cs" Inherits="Center_Default" %>
 
+<%@ Import Namespace="NewLife.CommonEntity" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
-    <title>月无声管理平台</title>
+    <title>新生命管理平台</title>
     <script type="text/javascript" src="../Scripts/jquery-1.4.1.min.js"></script>
     <script type="text/javascript">
         if (window.top != window) window.top.location.href = window.location;
@@ -43,11 +44,13 @@
             <td style="height: 70px; overflow: hidden" colspan="3" id="top" valign="bottom">
                 <div style="padding-left: 30px; font-size: 20px; line-height: 35px; font-weight: bold;
                     color: #019401">
-                    月无声管理平台 v1.0
+                    新生命管理平台 v1.0
                 </div>
                 <div class="toolbar" style="height: 23px;">
                     <div style="float: left; padding-left: 10px;">
-                        用户：<%=NewLife.YWS.Entities.Admin.Current.DisplayName%> <span style="color: Blue; cursor: pointer;" onclick="location='Default.aspx?act=logout'" title="注销当前登录用户，回到登录界面！">注销</span>
+                        用户：<%=CommonManageProvider.Provider.Current.DisplayName%>
+                        <span style="color: Blue; cursor: pointer;" onclick="location='Default.aspx?act=logout'"
+                            title="注销当前登录用户，回到登录界面！">注销</span>
                     </div>
                     <div style="float: right;">
                         <asp:Repeater runat="server" ID="menuItem">
@@ -57,7 +60,8 @@
                                         <%# Eval("Name") %></b></a>
                             </ItemTemplate>
                         </asp:Repeater>
-                        <a href="System/AdminInfo.aspx?ID=<%=NewLife.YWS.Entities.Admin.Current.ID%>" target="main" title="修改当前用户密码等信息！"><b>用户信息</b></a>
+                        <a href="System/AdminInfo.aspx?ID=<%=CommonManageProvider.Provider.Current.ID%>"
+                            target="main" title="修改当前用户密码等信息！"><b>用户信息</b></a>
                     </div>
                 </div>
             </td>

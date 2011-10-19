@@ -1,19 +1,15 @@
 ﻿using System;
-using NewLife.CommonEntity;
-using NewLife.CommonEntity.Web;
-using NewLife.YWS.Entities;
-using XCode;
-using NewLife.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using NewLife.Web;
+using XCode;
 
 /// <summary>
 /// 实体表单基类
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
 /// <typeparam name="TEntity">表单实体类</typeparam>
-public class EntityForm<TKey, TEntity> : EntityForm<TKey, TEntity, Admin, NewLife.CommonEntity.Menu>
-        where TEntity : Entity<TEntity>, new()
+public class EntityForm<TKey, TEntity> : NewLife.CommonEntity.Web.EntityForm<TKey, TEntity> where TEntity : Entity<TEntity>, new()
 {
     /// <summary>
     /// 是否管理员

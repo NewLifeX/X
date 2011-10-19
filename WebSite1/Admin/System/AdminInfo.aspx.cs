@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Web.UI;
-using NewLife.CommonEntity;
 using NewLife.Security;
-using NewLife.Web;
 using NewLife.YWS.Entities;
-using NewLife.CommonEntity.Web;
 
 public partial class Pages_AdminInfo : EntityForm<Int32, Admin>
 {

@@ -224,6 +224,24 @@ namespace XCode.Cache
             return list;
         }
 
+
+        /// <summary>
+        /// 检索与指定谓词定义的条件匹配的所有元素。
+        /// </summary>
+        /// <param name="match">条件</param>
+        /// <returns></returns>
+        public EntityList<IEntity> FindAll(Predicate<IEntity> match)
+        {
+            List<TEntity> old = Entities.FindAll(e => match(e));
+            if (old == null) return null;
+
+            EntityList<IEntity> list = new EntityList<IEntity>();
+            foreach (TEntity item in old)
+            {
+                list.Add(item);
+            }
+            return list;
+        }
         #endregion
     }
 

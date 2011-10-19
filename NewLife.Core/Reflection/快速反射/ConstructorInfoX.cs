@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
-using NewLife.Collections;
 using System.Reflection.Emit;
+using NewLife.Collections;
 
 namespace NewLife.Reflection
 {

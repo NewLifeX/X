@@ -38,12 +38,12 @@
             </td>
             <td>
                 <XCL:DropDownList ID="frmRoleID" runat="server" DataSourceID="ObjectDataSource1"
-                    DataTextField="Name" DataValueField="ID" AppendDataBoundItems="true" >
+                    DataTextField="Name" DataValueField="ID" AppendDataBoundItems="true">
                     <asp:ListItem Value="0">请选择</asp:ListItem>
                 </XCL:DropDownList>
             </td>
         </tr>
-       <%-- <tr>
+        <%-- <tr>
             <td align="right">
                 登录次数：
             </td>
@@ -83,7 +83,7 @@
                 QQ：
             </td>
             <td>
-                <asp:TextBox ID="frmQQ" runat="server" Text='<%# Entity.QQ %>'></asp:TextBox>
+                <asp:TextBox ID="frmQQ" runat="server" Text='<%# Entity["QQ"] %>'></asp:TextBox>
             </td>
         </tr>
         <tr>
@@ -91,7 +91,7 @@
                 MSN：
             </td>
             <td>
-                <asp:TextBox ID="frmMSN" runat="server" Text='<%# Entity.MSN %>'></asp:TextBox>
+                <asp:TextBox ID="frmMSN" runat="server" Text='<%# Entity["MSN"] %>'></asp:TextBox>
             </td>
         </tr>
         <tr>
@@ -99,7 +99,7 @@
                 邮箱：
             </td>
             <td>
-                <XCL:MailBox ID="frmEmail" runat="server" Text='<%# Entity.Email %>'></XCL:MailBox>
+                <XCL:MailBox ID="frmEmail" runat="server" Text='<%# Entity["Email"] %>'></XCL:MailBox>
             </td>
         </tr>
         <tr>
@@ -107,7 +107,7 @@
                 电话：
             </td>
             <td>
-                <asp:TextBox ID="frmPhone" runat="server" Text='<%# Entity.Phone %>'></asp:TextBox>
+                <asp:TextBox ID="frmPhone" runat="server" Text='<%# Entity["Phone"] %>'></asp:TextBox>
             </td>
         </tr>
     </table>

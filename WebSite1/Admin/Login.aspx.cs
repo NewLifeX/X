@@ -1,16 +1,18 @@
 ﻿using System;
-using NewLife.YWS.Entities;
-using NewLife.Web;
+using NewLife.CommonEntity;
 using NewLife.CommonEntity.Exceptions;
 using NewLife.Log;
+using NewLife.Web;
 
 public partial class Login : System.Web.UI.Page
 {
+    IAdministrator Current { get { return CommonManageProvider.Provider.Current; } }
+
     protected override void OnPreLoad(EventArgs e)
     {
         if (String.Equals("logout", Request["action"]))
         {
-            Admin.Current.Logout();
+            Current.Logout();
         }
         base.OnPreLoad(e);
     }
@@ -19,11 +21,11 @@ public partial class Login : System.Web.UI.Page
     {
         if (!IsPostBack)
         {
-            if (Admin.Current != null)
+            if (Current != null)
             {
                 if (String.Equals("logout", Request["action"]))
                 {
-                    Admin.Current.Logout();
+                    Current.Logout();
                 }
                 else
                 {
@@ -41,8 +43,8 @@ public partial class Login : System.Web.UI.Page
         //bool flag = login.ValidateUser(UserName.Text.ToString().Trim(), Password.Text.ToString().Trim());
         try
         {
-            Admin.Login(UserName.Text, Password.Text);
-            if (Admin.Current != null)
+            CommonManageProvider.Provider.Login(UserName.Text, Password.Text);
+            if (Current != null)
             {
                 Response.Redirect("Default.aspx");
             }

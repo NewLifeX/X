@@ -37,10 +37,10 @@
                 没有符合条件的数据！
             </EmptyDataTemplate>
         </asp:GridView>
-        <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" DataObjectTypeName="NewLife.YWS.Entities.Admin"
+        <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" DataObjectTypeName=""
             DeleteMethod="Delete" EnablePaging="True" OldValuesParameterFormatString="original_{0}"
             SelectCountMethod="SearchCount" SelectMethod="Search" SortParameterName="orderClause"
-            TypeName="NewLife.YWS.Entities.Admin">
+            TypeName="">
             <SelectParameters>
                 <asp:ControlParameter ControlID="txtKey" Name="key" PropertyName="Text" Type="String" />
                 <asp:ControlParameter ControlID="DropdownList1" Name="roleId" Type="Int32" PropertyName="Text" />
@@ -50,8 +50,8 @@
             </SelectParameters>
         </asp:ObjectDataSource>
         <asp:ObjectDataSource ID="ObjectDataSource2" runat="server" OldValuesParameterFormatString="original_{0}"
-            SelectMethod="FindAllByName" TypeName="NewLife.CommonEntity.Role" DataObjectTypeName="NewLife.CommonEntity.Role"
-            DeleteMethod="Delete" InsertMethod="Insert" UpdateMethod="Update">
+            SelectMethod="FindAllByName" TypeName="" DataObjectTypeName="" DeleteMethod="Delete"
+            InsertMethod="Insert" UpdateMethod="Update">
             <SelectParameters>
                 <asp:Parameter Name="name" Type="String" />
                 <asp:Parameter Name="value" Type="Object" />

@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Reflection;
 using System.Reflection.Emit;
 using NewLife.Collections;
-using System.Collections;
 using NewLife.Exceptions;
 
 namespace NewLife.Reflection

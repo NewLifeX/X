@@ -202,13 +202,13 @@ public partial class Pages_RoleMenu : PageBase
         return flagCache;
     }
 
-    //重写权限验证方法，对网站配置文件加强控制
-    public override bool Acquire(PermissionFlags flag)
-    {
-        if (!string.IsNullOrEmpty(formtitle) && (formtitle == "网站配置" || formtitle == "网站数据库" || formtitle == "网站日志"))
-        {
-            if ((Administrator<NewLife.YWS.Entities.Admin>.Current.Role.Menus.Find(RoleMenu._.MenuID, MyMenu.ID).PermissionFlag & PermissionFlags.Custom1) == 0) return false;
-        }
-        return base.Acquire(flag);
-    }
+    ////重写权限验证方法，对网站配置文件加强控制
+    //public override bool Acquire(PermissionFlags flag)
+    //{
+    //    if (!string.IsNullOrEmpty(formtitle) && (formtitle == "网站配置" || formtitle == "网站数据库" || formtitle == "网站日志"))
+    //    {
+    //        if ((CommonManageProvider.Provider.Current.Role.Menus.Find(RoleMenu._.MenuID, MyMenu.ID).PermissionFlag & PermissionFlags.Custom1) == 0) return false;
+    //    }
+    //    return base.Acquire(flag);
+    //}
 }

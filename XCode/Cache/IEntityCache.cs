@@ -40,6 +40,13 @@ namespace XCode.Cache
         /// <returns></returns>
         EntityList<IEntity> FindAll(String name, Object value);
 
+        /// <summary>
+        /// 检索与指定谓词定义的条件匹配的所有元素。
+        /// </summary>
+        /// <param name="match">条件</param>
+        /// <returns></returns>
+        EntityList<IEntity> FindAll(Predicate<IEntity> match);
+
         ///// <summary>
         ///// 按指定字段排序
         ///// </summary>

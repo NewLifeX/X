@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-using NewLife.YWS.Entities;
+using NewLife.CommonEntity;
 using NewLife.Web;
 
 public partial class Admin_Ascx_SelectAdmin : System.Web.UI.UserControl
@@ -39,15 +35,16 @@ public partial class Admin_Ascx_SelectAdmin : System.Web.UI.UserControl
         }
     }
 
-    private Admin _Admin;
+    private IAdministrator _Admin;
     /// <summary>产品</summary>
-    public Admin Admin
+    public IAdministrator Admin
     {
         get
         {
             if (_Admin == null && Value > 0)
             {
-                _Admin = Admin.Meta.Cache.Entities.Find(Admin._.ID, Value);
+                //_Admin = Admin.Meta.Cache.Entities.Find(Admin._.ID, Value);
+                _Admin = CommonManageProvider.Provider.FindByID(Value);
             }
             return _Admin;
         }

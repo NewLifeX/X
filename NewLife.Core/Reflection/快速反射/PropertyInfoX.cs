@@ -232,7 +232,14 @@ namespace NewLife.Reflection
             SetHandler.Invoke(obj, value);
         }
 
-        static Object GetValue(Type type, Object target, String name)
+        /// <summary>
+        /// 快速获取静态属性
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="target"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static Object GetValue(Type type, Object target, String name)
         {
             PropertyInfoX pix = Create(type, name);
             if (pix == null) throw new XException("类{0}中无法找到{1}属性！", type.Name, name);
@@ -240,7 +247,14 @@ namespace NewLife.Reflection
             return pix.GetValue(target);
         }
 
-        static void SetValue(Type type, Object target, String name, Object value)
+        /// <summary>
+        /// 静态快速赋值
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="target"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public static void SetValue(Type type, Object target, String name, Object value)
         {
             PropertyInfoX pix = Create(type, name);
             if (pix == null) throw new XException("类{0}中无法找到{1}属性！", type.Name, name);

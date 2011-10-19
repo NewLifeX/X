@@ -83,7 +83,7 @@ public partial class CustomerTypeForm : PageBase
         Entity.Name = frmName.Text;
         Entity.ParentID = Convert.ToInt32(frmParentID.SelectedValue);
         Entity.AddTime = DateTime.Now;
-        Entity.Operator2 = Admin.Current.Name;
+        Entity.Operator2 = Current.Name;
 
         try
         {

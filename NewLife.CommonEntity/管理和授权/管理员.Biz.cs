@@ -169,6 +169,7 @@ namespace NewLife.CommonEntity
         {
             base.Valid(isNew);
 
+            if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(_.Name, "用户名不能为空！");
             if (RoleID < 1) throw new ArgumentNullException(_.RoleID, "没有指定角色！");
         }
         #endregion
