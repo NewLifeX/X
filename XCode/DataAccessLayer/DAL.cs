@@ -11,6 +11,7 @@ using System.Xml.Serialization;
 using NewLife.Reflection;
 using XCode.Code;
 using XCode.Exceptions;
+using NewLife.Threading;
 
 namespace XCode.DataAccessLayer
 {
@@ -327,54 +328,48 @@ namespace XCode.DataAccessLayer
         {
             if (NegativeEnable == null || NegativeExclude.Contains(ConnName)) return;
 
+            Func check = delegate
+            {
+                WriteLog("开始检查连接[{0}/{1}]的数据库架构……", ConnName, DbType);
+
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+
+                try
+                {
+                    List<IDataTable> list = EntityFactory.GetTablesByConnName(ConnName);
+                    if (list != null && list.Count > 0)
+                    {
+                        // 过滤掉被排除的表名
+                        if (NegativeExclude.Count > 0)
+                        {
+                            for (int i = list.Count - 1; i >= 0; i--)
+                            {
+                                if (NegativeExclude.Contains(list[i].Name)) list.RemoveAt(i);
+                            }
+                        }
+                        if (list != null && list.Count > 0)
+                        {
+                            WriteLog(ConnName + "实体个数：" + list.Count);
+
+                            Db.CreateMetaData().SetTables(list.ToArray());
+                        }
+                    }
+                }
+                finally
+                {
+                    sw.Stop();
+
+                    WriteLog("检查连接[{0}/{1}]的数据库架构耗时{2}", ConnName, DbType, sw.Elapsed);
+                }
+            };
+
             // 打开了开关，并且设置为true时，使用同步方式检查
             // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
             if (NegativeEnable != null && NegativeEnable.Value)
-                Check();
+                check();
             else
-            {
-                ThreadPool.QueueUserWorkItem(delegate
-                {
-                    try { Check(); }
-                    catch (Exception ex) { WriteLog(ex.ToString()); }
-                });
-            }
-        }
-
-        private void Check()
-        {
-            WriteLog("开始检查连接[{0}/{1}]的数据库架构……", ConnName, DbType);
-
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-
-            try
-            {
-                List<IDataTable> list = EntityFactory.GetTablesByConnName(ConnName);
-                if (list != null && list.Count > 0)
-                {
-                    // 过滤掉被排除的表名
-                    if (NegativeExclude.Count > 0)
-                    {
-                        for (int i = list.Count - 1; i >= 0; i--)
-                        {
-                            if (NegativeExclude.Contains(list[i].Name)) list.RemoveAt(i);
-                        }
-                    }
-                    if (list != null && list.Count > 0)
-                    {
-                        WriteLog(ConnName + "实体个数：" + list.Count);
-
-                        Db.CreateMetaData().SetTables(list.ToArray());
-                    }
-                }
-            }
-            finally
-            {
-                sw.Stop();
-
-                WriteLog("检查连接[{0}/{1}]的数据库架构耗时{2}", ConnName, DbType, sw.Elapsed);
-            }
+                ThreadPoolX.QueueUserWorkItem(check);
         }
         #endregion
 

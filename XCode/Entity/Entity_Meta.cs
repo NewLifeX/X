@@ -12,6 +12,8 @@ using XCode.Cache;
 using XCode.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using NewLife.Threading;
+using NewLife.Reflection;
 
 namespace XCode
 {
@@ -278,21 +280,31 @@ namespace XCode
                 {
                     if (DAL.NegativeEnable == null || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName)) return;
 
-                    DAL.WriteLog("开始检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DbType);
-
-                    Stopwatch sw = new Stopwatch();
-                    sw.Start();
-
-                    try
+                    Func check = delegate
                     {
-                        DBO.Db.CreateMetaData().SetTables(Table.DataTable);
-                    }
-                    finally
-                    {
-                        sw.Stop();
+                        DAL.WriteLog("开始检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DbType);
 
-                        DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2}", Table.DataTable.Name, DbType, sw.Elapsed);
-                    }
+                        Stopwatch sw = new Stopwatch();
+                        sw.Start();
+
+                        try
+                        {
+                            DBO.Db.CreateMetaData().SetTables(Table.DataTable);
+                        }
+                        finally
+                        {
+                            sw.Stop();
+
+                            DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2}", Table.DataTable.Name, DbType, sw.Elapsed);
+                        }
+                    };
+
+                    // 打开了开关，并且设置为true时，使用同步方式检查
+                    // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
+                    if (DAL.NegativeEnable != null && DAL.NegativeEnable.Value)
+                        check();
+                    else
+                        ThreadPoolX.QueueUserWorkItem(check);
                 }
             }
 
@@ -312,6 +324,21 @@ namespace XCode
                 // 如果该实体类是首次使用检查模型，则在这个时候检查
                 CheckModel();
 
+                Func check = delegate
+                {
+                    try
+                    {
+                        //Factory.InitData();
+                        //if (Factory.Default is EntityBase) (Factory.Default as EntityBase).InitData();
+                        EntityBase entity = Factory.Default as EntityBase;
+                        if (entity != null) entity.InitData();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+                    }
+                };
+
                 // 异步执行，并捕获错误日志
                 if (Config.GetConfig<Boolean>("XCode.InitDataAsync", true) && !InitDataHelper.Running)
                 {
@@ -321,7 +348,7 @@ namespace XCode
                         InitDataHelper.Running = true;
                         try
                         {
-                            CheckInitData2();
+                            check();
                         }
                         finally
                         {
@@ -332,22 +359,7 @@ namespace XCode
                 }
                 else
                 {
-                    CheckInitData2();
-                }
-            }
-
-            private static void CheckInitData2()
-            {
-                try
-                {
-                    //Factory.InitData();
-                    //if (Factory.Default is EntityBase) (Factory.Default as EntityBase).InitData();
-                    EntityBase entity = Factory.Default as EntityBase;
-                    if (entity != null) entity.InitData();
-                }
-                catch (Exception ex)
-                {
-                    if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+                    check();
                 }
             }
             #endregion
