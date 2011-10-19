@@ -3586,7 +3586,9 @@ namespace NewLife.CommonEntity
             #region 新数据添加
 
             String context = string.Empty;
-            Type type = typeof(Area);
+            //Type type = typeof(Area);
+            // 进来不要引用实际类型，用泛型更合适，Area<>才表示当前泛型类
+            Type type = typeof(Area<>);
             StreamReader sr = new StreamReader(FileSource.GetFileResource(type.Assembly, "AreaCode.txt"));
 
             Meta.BeginTrans();

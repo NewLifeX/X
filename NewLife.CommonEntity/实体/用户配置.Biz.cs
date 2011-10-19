@@ -13,6 +13,7 @@ namespace NewLife.CommonEntity
     /// <summary>
     /// 用户配置
     /// </summary>
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class UserProfile : UserProfile<UserProfile> { }
 
     /// <summary>用户配置</summary>
