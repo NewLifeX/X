@@ -83,9 +83,10 @@ namespace XCoder
                 String url = ver.Src;
                 if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
                 {
-                    Uri uri = new Uri(VerSrc);
-                    uri = new Uri(uri, url);
-                    url = uri.ToString();
+                    //Uri uri = new Uri(VerSrc);
+                    //uri = new Uri(uri, url);
+                    //url = uri.ToString();
+                    url = VerSrc.Replace("XCoderVer.xml", url);
                 }
                 XTrace.WriteLine("准备从{0}下载相关文件到{1}！", url, file);
 
