@@ -36,7 +36,7 @@ if(!Config.RenderGenEntity){#>
         [Description("<#=Field.Description#>")]
         [DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
         [BindColumn(<#=Field.ID#>, "<#=Field.Name#>", "<#=Field.Description#>", <#=Field.Default==null?"null":"\""+Field.Default+"\""#>, "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
-        public <#=Field.DataType.Name#> <#=Field.Alias#>
+        public virtual <#=Field.DataType.Name#> <#=Field.Alias#>
         {
             get { return _<#=Field.Alias#>; }
             set { if (OnPropertyChanging("<#=Field.Alias#>", value)) { _<#=Field.Alias#> = value; OnPropertyChanged("<#=Field.Alias#>"); } }
