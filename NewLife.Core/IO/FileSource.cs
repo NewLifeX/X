@@ -22,7 +22,8 @@ namespace NewLife.IO
         {
             if (asm == null || String.IsNullOrEmpty(filename)) return;
 
-            Stream stream = asm.GetManifestResourceStream(filename);
+            //Stream stream = asm.GetManifestResourceStream(filename);
+            Stream stream = GetFileResource(asm, filename);
             if (stream == null) throw new ArgumentException("filename", String.Format("在程序集{0}中无法找到名为{1}的资源！", asm.GetName().Name, filename));
 
             if (String.IsNullOrEmpty(dest)) dest = filename;
