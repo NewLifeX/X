@@ -9,6 +9,7 @@ using System.Text;
 using NewLife.Exceptions;
 using NewLife.Reflection;
 using NewLife.Log;
+using System.Linq;
 
 namespace NewLife.Serialization
 {
@@ -1229,15 +1230,16 @@ namespace NewLife.Serialization
             if (IsExactType(type)) return type;
 
             // 找到所有实现了该接口的类型，并返回第一个精确类型
-            Type[] ts = TypeResolver.ResolveAll(type);
-            if (ts != null && ts.Length > 0)
-            {
-                foreach (Type item in ts)
-                {
-                    if (IsExactType(item)) return item;
-                }
-            }
-            return null;
+            //Type[] ts = TypeResolver.ResolveAll(type);
+            //if (ts != null && ts.Length > 0)
+            //{
+            //    foreach (Type item in ts)
+            //    {
+            //        if (IsExactType(item)) return item;
+            //    }
+            //}
+            //return null;
+            return AssemblyX.FindAllPlugins(type).FirstOrDefault(t => IsExactType(t));
         }
 
         /// <summary>
