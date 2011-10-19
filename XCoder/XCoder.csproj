@@ -172,7 +172,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="leaf.ico" />
-    <Content Include="NewLife.ProcessHelper.exe" />
+    <EmbeddedResource Include="NewLife.ProcessHelper.exe" />
     <Content Include="UpdateInfo.txt" />
     <EmbeddedResource Include="Template\页面\类名.aspx">
       <SubType>ASPXCodeBehind</SubType>
