@@ -32,13 +32,6 @@ public partial class Center_Default : System.Web.UI.Page
             entity.Permission = entity.Name;
             entity.Save();
         }
-        entity = Menu.FindByName("SCM");
-        if (entity != null)
-        {
-            entity.Name = "进销存子系统";
-            entity.Permission = entity.Name;
-            entity.Save();
-        }
 
         // 把Select开头的菜单项都删除了吧
         EntityList<Menu> list = Menu.Meta.Cache.Entities.FindAll(delegate(Menu item)
