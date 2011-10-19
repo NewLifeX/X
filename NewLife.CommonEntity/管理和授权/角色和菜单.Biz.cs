@@ -1,7 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Threading;
-using NewLife.Log;
 using XCode;
 
 namespace NewLife.CommonEntity
@@ -97,7 +95,7 @@ namespace NewLife.CommonEntity
     /// 角色和菜单
     /// </summary>
     [BindIndex("IX_RoleMenu_MenuID_RoleID", true, "MenuID,RoleID")]
-    [BindIndex("PK__RoleMenu__3214EC271A14E395", true, "ID")]
+    [BindIndex("PK__RoleMenu", true, "ID")]
     [BindIndex("IX_RoleMenu_MenuID", false, "MenuID")]
     [BindIndex("IX_RoleMenu_RoleID", false, "RoleID")]
     [BindRelation("MenuID", false, "Menu", "ID")]
@@ -137,41 +135,25 @@ namespace NewLife.CommonEntity
             return base.Delete();
         }
 
-        //static RoleMenu()
+        ///// <summary>
+        ///// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
+        ///// </summary>
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //protected override void InitData()
         //{
-        //    // 检查是否所有人都没有权限
-        //    ThreadPool.QueueUserWorkItem(delegate
+        //    base.InitData();
+
+        //    if (Meta.Count > 0)
         //    {
-        //        try
+        //        // 检查是否所有人都没有权限
+        //        //CheckNonePerssion(0);
+        //        foreach (Menu item in Menu.Root.AllChilds)
         //        {
-        //            CheckNonePerssion(0);
+        //            CheckNonePerssion(item.ID);
         //        }
-        //        catch (Exception ex)
-        //        {
-        //            if (XTrace.Debug) XTrace.WriteException(ex);
-        //        }
-        //    });
+        //        return;
+        //    }
         //}
-
-        /// <summary>
-        /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected override void InitData()
-        {
-            base.InitData();
-
-            if (Meta.Count > 0)
-            {
-                // 检查是否所有人都没有权限
-                //CheckNonePerssion(0);
-                foreach (Menu item in Menu.Root.AllChilds)
-                {
-                    CheckNonePerssion(item.ID);
-                }
-                return;
-            }
-        }
 
         /// <summary>
         /// 检查指定菜单编号的权限，保证至少有一个角色有权限控制该菜单
@@ -208,26 +190,6 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展属性
-        // 本类与哪些类有关联，可以在这里放置一个属性，使用延迟加载的方式获取关联对象
-        /*
-        private List<String> hasLoaded = new List<string>();
-        private Category _Category;
-        /// <summary>该商品所对应的类别</summary>
-        public Category Category
-        {
-            get
-            {
-                if (_Category == null && CategoryID > 0 && !hasLoaded.Contains("Category"))
-                {
-                    _Category = Category.FindByKey(CategoryID);
-                    hasLoaded.Add("Category");
-                }
-                return _Category;
-            }
-            set { _Category = value; }
-        }
-         * */
-
         /// <summary>操作权限</summary>
         public PermissionFlags PermissionFlag
         {

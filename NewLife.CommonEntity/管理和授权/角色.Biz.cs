@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Xml.Serialization;
 using NewLife.Log;
 using XCode;
-using System.Linq;
 
 namespace NewLife.CommonEntity
 {
@@ -29,6 +28,16 @@ namespace NewLife.CommonEntity
 
             // 如果角色菜单对应关系为空或者只有一个，则授权第一个角色访问所有菜单
             //if (RoleMenu<TRoleMenuEntity>.Meta.Count > 1) return;
+            if (RoleMenu<TRoleMenuEntity>.Meta.Count > 0)
+            {
+                // 检查是否所有人都没有权限
+                //CheckNonePerssion(0);
+                foreach (TMenuEntity item in Menu<TMenuEntity>.Root.AllChilds)
+                {
+                    RoleMenu<TRoleMenuEntity>.CheckNonePerssion(item.ID);
+                }
+                return;
+            }
 
             EntityList<TMenuEntity> ms = null;
             // 等一下菜单那边初始化
