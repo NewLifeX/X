@@ -13,11 +13,10 @@ using XCode;
 
 namespace NewLife.CommonEntity
 {
-    /// <summary>
-    /// 菜单
-    /// </summary>
+    /// <summary>菜单</summary>
+    [BindIndex("IX_Menu_Url", true, "Url")]
     [BindIndex("IX_Menu_Name", false, "Name")]
-    [BindIndex("PK__Menu__3214EC271273C1CD", true, "ID")]
+    [BindIndex("PK__Menu", true, "ID")]
     [BindRelation("ID", true, "RoleMenu", "MenuID")]
     public partial class Menu<TEntity> : EntityTree<TEntity>, IMenu where TEntity : Menu<TEntity>, new()
     {
@@ -50,21 +49,23 @@ namespace NewLife.CommonEntity
                 ScanAndAdd("Admin", top);
 
                 // 根据设置增加菜单
-                String str = Config.GetConfig<String>("NewLife.CommonEntity.AppDirs");
-                if (!String.IsNullOrEmpty(str))
+                //String str = Config.GetConfig<String>("NewLife.CommonEntity.AppDirs");
+                //if (!String.IsNullOrEmpty(str))
+                //{
+                //String[] AppDirs = str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                String[] AppDirs = Config.GetConfigSplit<String>("NewLife.CommonEntity.AppDirs", null);
+                if (AppDirs != null && AppDirs.Length > 0)
                 {
-                    String[] AppDirs = str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (AppDirs != null && AppDirs.Length > 0)
+                    foreach (String item in AppDirs)
                     {
-                        foreach (String item in AppDirs)
-                        {
-                            if (String.Equals(item, "Admin")) continue;
+                        //if (String.Equals(item, "Admin")) continue;
+                        if (item.EqualIgnoreCase("Admin")) continue;
 
-                            top = Root.AddChild(item, null, sort -= 10, null);
-                            ScanAndAdd(item, top);
-                        }
+                        top = Root.AddChild(item, null, sort -= 10, null);
+                        ScanAndAdd(item, top);
                     }
                 }
+                //}
 
                 Meta.Commit();
                 if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}菜单数据！", typeof(TEntity).Name);
@@ -111,24 +112,9 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展属性
-        /// <summary>
-        /// 父菜单名
-        /// </summary>
+        /// <summary>父菜单名</summary>
         [XmlIgnore]
         public virtual String ParentMenuName { get { return Parent == null ? null : Parent.Name; } set { } }
-
-        ///// <summary>
-        ///// 完整文件路径
-        ///// </summary>
-        //public String FullFilePath
-        //{
-        //    get
-        //    {
-        //        if (String.IsNullOrEmpty(Url)) return Url;
-
-
-        //    }
-        //}
 
         /// <summary>
         /// 当前页所对应的菜单项
@@ -162,7 +148,9 @@ namespace NewLife.CommonEntity
         {
             get
             {
-                return TypeResolver.GetPropertyValue(typeof(IMenu), "Current") as IMenu;
+                //return TypeResolver.GetPropertyValue(typeof(IMenu), "Current") as IMenu;
+                Type type = CommonManageProvider.Provider.MenuType;
+                return PropertyInfoX.Create(type, "Current").GetValue() as IMenu;
             }
         }
 

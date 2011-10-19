@@ -6,12 +6,11 @@ using System.Threading;
 using System.Xml.Serialization;
 using NewLife.Log;
 using XCode;
+using System.Linq;
 
 namespace NewLife.CommonEntity
 {
-    /// <summary>
-    /// 角色
-    /// </summary>
+    /// <summary>角色</summary>
     public partial class Role<TEntity, TMenuEntity, TRoleMenuEntity> : Role<TEntity>
         where TEntity : Role<TEntity, TMenuEntity, TRoleMenuEntity>, new()
         where TMenuEntity : Menu<TMenuEntity>, new()
@@ -55,7 +54,6 @@ namespace NewLife.CommonEntity
                 }
 
                 // 授权访问所有菜单
-                //EntityList<TMenuEntity> ms = Menu<TMenuEntity>.FindAll();
                 if (ms != null && ms.Count > 0)
                 {
                     EntityList<TRoleMenuEntity> rms = RoleMenu<TRoleMenuEntity>.FindAllByRoleID(id);
@@ -64,9 +62,6 @@ namespace NewLife.CommonEntity
                         // 是否已存在
                         if (rms != null && rms.Exists(RoleMenu<TRoleMenuEntity>._.MenuID, item.ID)) continue;
 
-                        //TRoleMenuEntity entity = new TRoleMenuEntity();
-                        //entity.RoleID = id;
-                        //entity.MenuID = item.ID;
                         TRoleMenuEntity entity = RoleMenu<TRoleMenuEntity>.Create(id, item.ID);
                         entity.Save();
                     }
@@ -87,33 +82,38 @@ namespace NewLife.CommonEntity
             List<TEntity> list1 = Meta.Cache.Entities;
             List<TMenuEntity> list2 = Menu<TMenuEntity>.Meta.Cache.Entities;
 
-            StringBuilder sb = new StringBuilder();
-            if (list1 != null && list1.Count > 0)
-            {
-                sb.Append("RoleID Not in(");
-                for (int i = 0; i < list1.Count; i++)
-                {
-                    if (i > 0) sb.Append(",");
-                    sb.Append(list1[i].ID);
-                }
-                sb.Append(")");
-            }
-            if (list2 != null && list2.Count > 0)
-            {
-                if (sb.Length > 0) sb.Append(" Or ");
+            WhereExpression exp = new WhereExpression();
+            exp &= RoleMenu<TRoleMenuEntity>._.RoleID.NotIn(list1.Select(e => e.ID));
+            exp |= RoleMenu<TRoleMenuEntity>._.MenuID.NotIn(list2.Select(e => e.ID));
+            if (exp.Builder.Length < 1) return;
 
-                sb.Append("MenuID Not in(");
-                for (int i = 0; i < list2.Count; i++)
-                {
-                    if (i > 0) sb.Append(",");
-                    sb.Append(list2[i].ID);
-                }
-                sb.Append(")");
-            }
-            if (sb.Length < 1) return;
+            //StringBuilder sb = new StringBuilder();
+            //if (list1 != null && list1.Count > 0)
+            //{
+            //    sb.Append("RoleID Not in(");
+            //    for (int i = 0; i < list1.Count; i++)
+            //    {
+            //        if (i > 0) sb.Append(",");
+            //        sb.Append(list1[i].ID);
+            //    }
+            //    sb.Append(")");
+            //}
+            //if (list2 != null && list2.Count > 0)
+            //{
+            //    if (sb.Length > 0) sb.Append(" Or ");
+
+            //    sb.Append("MenuID Not in(");
+            //    for (int i = 0; i < list2.Count; i++)
+            //    {
+            //        if (i > 0) sb.Append(",");
+            //        sb.Append(list2[i].ID);
+            //    }
+            //    sb.Append(")");
+            //}
+            //if (sb.Length < 1) return;
 
             // 查询所有。之所以不是调用Delete删除，是为了引发RoleMenu里面的Delete写日志
-            EntityList<TRoleMenuEntity> rms = RoleMenu<TRoleMenuEntity>.FindAll(sb.ToString(), null, null, 0, 0);
+            EntityList<TRoleMenuEntity> rms = RoleMenu<TRoleMenuEntity>.FindAll(exp.ToString(), null, null, 0, 0);
             if (rms == null || rms.Count < 1) return;
 
             rms.Delete();
@@ -131,20 +131,16 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展属性
-        //private List<String> hasLoaded = new List<string>();
-
         /// <summary>
         /// 菜单
         /// </summary>
         [XmlIgnore]
         public virtual EntityList<TRoleMenuEntity> Menus
         {
-            get { return GetExtend<TRoleMenuEntity, EntityList<TRoleMenuEntity>>("Menus", delegate { return RoleMenu<TRoleMenuEntity>.FindAllByRoleID(ID); }, false); }
+            get { return GetExtend<TRoleMenuEntity, EntityList<TRoleMenuEntity>>("Menus", e => RoleMenu<TRoleMenuEntity>.FindAllByRoleID(ID), false); }
             set { Extends["Menus"] = value; }
         }
 
-        //[NonSerialized]
-        //private EntityList<TMenuEntity> _MenuList;
         /// <summary>
         /// 拥有权限的菜单
         /// </summary>
@@ -153,12 +149,9 @@ namespace NewLife.CommonEntity
         {
             get
             {
-                return GetExtend<TMenuEntity, EntityList<TMenuEntity>>("MenuList", delegate
+                return GetExtend<TMenuEntity, EntityList<TMenuEntity>>("MenuList", e =>
                 {
-                    EntityList<TMenuEntity> list = EntityList<TMenuEntity>.From<TRoleMenuEntity>(Menus, delegate(TRoleMenuEntity item)
-                    {
-                        return Menu<TMenuEntity>.FindByID(item.MenuID);
-                    });
+                    EntityList<TMenuEntity> list = EntityList<TMenuEntity>.From<TRoleMenuEntity>(Menus, item => Menu<TMenuEntity>.FindByID(item.MenuID));
                     // 先按Sort降序，再按ID升序，的确更加完善
                     if (list != null) list.Sort(new String[] { Menu<TMenuEntity>._.Sort, Menu<TMenuEntity>._.ID }, new bool[] { true, false });
                     return list;
@@ -177,7 +170,6 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public override Boolean Acquire(Int32 menuID, PermissionFlags flag)
         {
-            //if (String.IsNullOrEmpty(name) || MenuList == null || MenuList.Count < 1) return false;
             if (menuID <= 0 || MenuList == null || MenuList.Count < 1) return false;
 
             // 找到菜单。自下而上递归查找，任意一级没有权限即视为无权限
@@ -229,23 +221,23 @@ namespace NewLife.CommonEntity
             EntityList<TMenuEntity> list = GetMySubMenus(parentID);
             if (list == null || list.Count < 1) return null;
 
-            List<IMenu> list2 = new List<IMenu>();
-            foreach (TMenuEntity item in list)
-            {
-                list2.Add(item);
-            }
+            return list.Cast<IMenu>().ToList();
 
-            return list2;
+            //List<IMenu> list2 = new List<IMenu>();
+            //foreach (TMenuEntity item in list)
+            //{
+            //    list2.Add(item);
+            //}
+
+            //return list2;
         }
         #endregion
     }
 
-    /// <summary>
-    /// 角色
-    /// </summary>
+    /// <summary>角色</summary>
     /// <typeparam name="TEntity"></typeparam>
     [BindIndex("IX_Role_Name", true, "Name")]
-    [BindIndex("PK__Role__3214EC27164452B1", true, "ID")]
+    [BindIndex("PK__Role", true, "ID")]
     [BindRelation("ID", true, "RoleMenu", "RoleID")]
     [BindRelation("ID", true, "Administrator", "RoleID")]
     public abstract partial class Role<TEntity> : CommonEntityBase<TEntity>

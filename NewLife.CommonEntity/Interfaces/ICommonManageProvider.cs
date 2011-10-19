@@ -66,34 +66,34 @@ namespace NewLife.CommonEntity
         public static ICommonManageProvider Provider { get { return CommonService.Resolve<ICommonManageProvider>(); } }
         #endregion
 
-        #region 静态构造
-        //static CommonManageProvider()
-        //{
-        //    // 不覆盖注册，谁先被调用，就以它为准
-        //    CommonService.Register<ICommonManageProvider, CommonManageProvider>(null, false);
-        //}
-        #endregion
+        //#region 静态构造
+        ////static CommonManageProvider()
+        ////{
+        ////    // 不覆盖注册，谁先被调用，就以它为准
+        ////    CommonService.Register<ICommonManageProvider, CommonManageProvider>(null, false);
+        ////}
+        //#endregion
 
         #region IManageProvider 接口
         /// <summary>管理用户类</summary>
         Type IManageProvider.ManageUserType { get { return AdminstratorType; } }
 
         /// <summary>当前用户</summary>
-        IManageUser IManageProvider.Current { get { return Administrator<TAdministrator>.Current; } }
+        IManageUser IManageProvider.Current { get { return Current; } }
 
         /// <summary>
         /// 根据用户编号查找
         /// </summary>
         /// <param name="userid"></param>
         /// <returns></returns>
-        IManageUser IManageProvider.FindByID(Object userid) { return Administrator<TAdministrator>.FindByID((Int32)userid); }
+        IManageUser IManageProvider.FindByID(Object userid) { return FindByID((Int32)userid); }
 
         /// <summary>
         /// 根据用户帐号查找
         /// </summary>
         /// <param name="account"></param>
         /// <returns></returns>
-        IManageUser IManageProvider.FindByAccount(String account) { return Administrator<TAdministrator>.FindByName(account); }
+        IManageUser IManageProvider.FindByAccount(String account) { return FindByAccount(account); }
 
         /// <summary>
         /// 登录
@@ -101,43 +101,43 @@ namespace NewLife.CommonEntity
         /// <param name="account"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        IManageUser IManageProvider.Login(String account, String password) { return Administrator<TAdministrator>.Login(account, password); }
+        IManageUser IManageProvider.Login(String account, String password) { return Login(account, password); }
         #endregion
 
         #region 类型
         /// <summary>管理员类</summary>
-        public virtual Type AdminstratorType { get { return CommonService.ResolveType<IAdministrator>(); } }
+        public virtual Type AdminstratorType { get { return typeof(TAdministrator); } }
 
         /// <summary>日志类</summary>
-        public virtual Type LogType { get { return CommonService.ResolveType<ILog>(); } }
+        public virtual Type LogType { get { return typeof(Log); } }
 
         /// <summary>菜单类</summary>
-        public virtual Type MenuType { get { return CommonService.ResolveType<IMenu>(); } }
+        public virtual Type MenuType { get { return typeof(Menu); } }
 
         /// <summary>角色类</summary>
-        public virtual Type RoleType { get { return CommonService.ResolveType<IRole>(); } }
+        public virtual Type RoleType { get { return typeof(Role); } }
 
         /// <summary>权限类</summary>
-        public virtual Type RoleMenuType { get { return CommonService.ResolveType<IRoleMenu>(); } }
+        public virtual Type RoleMenuType { get { return typeof(RoleMenu); } }
         #endregion
 
-        #region 接口
+        #region ICommonManageProvider接口
         /// <summary>当前用户</summary>
-        public virtual IAdministrator Current { get { return Administrator<TAdministrator>.Current; } }
+        IAdministrator ICommonManageProvider.Current { get { return Current; } }
 
         /// <summary>
         /// 根据用户编号查找
         /// </summary>
         /// <param name="userid"></param>
         /// <returns></returns>
-        public virtual IAdministrator FindByID(Object userid) { return Administrator<TAdministrator>.FindByID((Int32)userid); }
+        IAdministrator ICommonManageProvider.FindByID(Object userid) { return FindByID((Int32)userid); }
 
         /// <summary>
         /// 根据用户帐号查找
         /// </summary>
         /// <param name="account"></param>
         /// <returns></returns>
-        public virtual IAdministrator FindByAccount(String account) { return Administrator<TAdministrator>.FindByName(account); }
+        IAdministrator ICommonManageProvider.FindByAccount(String account) { return FindByAccount(account); }
 
         /// <summary>
         /// 登录
@@ -145,7 +145,34 @@ namespace NewLife.CommonEntity
         /// <param name="account"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        public virtual IAdministrator Login(String account, String password) { return Administrator<TAdministrator>.Login(account, password); }
+        IAdministrator ICommonManageProvider.Login(String account, String password) { return Login(account, password); }
+        #endregion
+
+        #region 方法
+        /// <summary>当前用户</summary>
+        public virtual TAdministrator Current { get { return Administrator<TAdministrator>.Current; } }
+
+        /// <summary>
+        /// 根据用户编号查找
+        /// </summary>
+        /// <param name="userid"></param>
+        /// <returns></returns>
+        public virtual TAdministrator FindByID(Int32 userid) { return Administrator<TAdministrator>.FindByID(userid); }
+
+        /// <summary>
+        /// 根据用户帐号查找
+        /// </summary>
+        /// <param name="account"></param>
+        /// <returns></returns>
+        public virtual TAdministrator FindByAccount(String account) { return Administrator<TAdministrator>.FindByName(account); }
+
+        /// <summary>
+        /// 登录
+        /// </summary>
+        /// <param name="account"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        public virtual TAdministrator Login(String account, String password) { return Administrator<TAdministrator>.Login(account, password); }
         #endregion
     }
 }

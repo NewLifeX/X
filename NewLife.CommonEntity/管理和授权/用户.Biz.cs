@@ -11,6 +11,7 @@ using NewLife.CommonEntity.Exceptions;
 using NewLife.Security;
 using NewLife.Web;
 using XCode;
+using NewLife.Log;
 
 namespace NewLife.CommonEntity
 {
@@ -146,6 +147,32 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 对象操作﻿
+        static User()
+        {
+            // 用于引发基类的静态构造函数
+            TEntity entity = new TEntity();
+        }
+
+        /// <summary>
+        /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        protected override void InitData()
+        {
+            base.InitData();
+
+            if (Meta.Count > 0) return;
+
+            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}用户数据……", typeof(TEntity).Name);
+
+            TEntity user = new TEntity();
+            user.Account = "admin";
+            user.Password = DataHelper.Hash("admin");
+            user.Insert();
+
+            if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}用户数据！", typeof(TEntity).Name);
+        }
+
         ///// <summary>
         ///// 已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert
         ///// </summary>

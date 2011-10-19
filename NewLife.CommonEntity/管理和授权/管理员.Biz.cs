@@ -1,16 +1,13 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Text;
 using System.Web;
 using System.Xml.Serialization;
+using NewLife.CommonEntity.Exceptions;
 using NewLife.Configuration;
 using NewLife.Log;
-using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Web;
 using XCode;
-using XCode.Configuration;
-using NewLife.CommonEntity.Exceptions;
 
 namespace NewLife.CommonEntity
 {
@@ -69,17 +66,12 @@ namespace NewLife.CommonEntity
         [XmlIgnore]
         public virtual TRoleEntity Role
         {
-            get { return GetExtend<TRoleEntity, TRoleEntity>("Role", delegate { return Role<TRoleEntity, TMenuEntity, TRoleMenuEntity>.FindByID(RoleID); }, false); }
+            get { return GetExtend<TRoleEntity, TRoleEntity>("Role", e => Role<TRoleEntity, TMenuEntity, TRoleMenuEntity>.FindByID(RoleID), false); }
             set { SetExtend<TRoleEntity>("Role", value); }
         }
 
         /// <summary>角色</summary>
         internal protected override IRole RoleInternal { get { return Role; } set { Role = (TRoleEntity)value; } }
-
-        ///// <summary>
-        ///// 角色名
-        ///// </summary>
-        //public override String RoleName { get { return Role == null ? null : Role.Name; } set { } }
 
         /// <summary>
         /// 根据权限名（权限路径）找到权限菜单实体
@@ -108,93 +100,6 @@ namespace NewLife.CommonEntity
             return menu;
         }
 
-        ///// <summary>
-        ///// 拥有指定菜单的权限
-        ///// </summary>
-        ///// <param name="name"></param>
-        ///// <returns></returns>
-        //public Boolean HasMenu(String name)
-        //{
-        //    if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
-
-        //    TMenuEntity menu = FindPermissionMenu(name) as TMenuEntity;
-        //    if (menu == null) return false;
-
-        //    return Acquire(menu.ID, PermissionFlags.None);
-
-        //    //Boolean rs = Role.HasMenu(name);
-        //    //// 没有权限，检查是否有这个权限项，如果没有，则写入日志提醒管理员
-        //    //if (!rs)
-        //    //{
-        //    //    TMenuEntity menu = Menu<TMenuEntity>.FindForPerssion(name);
-        //    //    if (menu == null)
-        //    //    {
-        //    //        IEntity log = CreateLog(this.GetType(), "检查权限");
-        //    //        log["Remark"] = String.Format("系统中没有[{0}]的权限项", name);
-        //    //        log.Save();
-        //    //    }
-        //    //}
-        //    //return rs;
-        //}
-
-        ///// <summary>
-        ///// 拥有指定菜单的权限
-        ///// </summary>
-        ///// <param name="menuID"></param>
-        ///// <returns></returns>
-        //public override Boolean HasMenu(Int32 menuID)
-        //{
-        //    return Role != null && Role.HasMenu(menuID);
-        //}
-
-        ///// <summary>
-        ///// 申请指定菜单指定操作的权限
-        ///// </summary>
-        ///// <param name="name"></param>
-        ///// <param name="flag"></param>
-        ///// <returns></returns>
-        //public override bool Acquire(String name, PermissionFlags flag)
-        //{
-        //    if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
-
-        //    if (Role == null) return false;
-
-        //    //TRoleEntity entity = Role;
-        //    //if (entity == null) return false;
-
-        //    // 申请权限
-        //    return entity.Acquire(menuID, flag);
-        //}
-
-        ///// <summary>
-        ///// 申请指定菜单指定操作的权限
-        ///// </summary>
-        ///// <param name="menuID"></param>
-        ///// <param name="flag"></param>
-        ///// <returns></returns>
-        //public override Boolean Acquire(Int32 menuID, PermissionFlags flag)
-        //{
-        //    if (menuID <= 0) throw new ArgumentNullException("menuID");
-
-        //    TRoleEntity entity = Role;
-        //    if (entity == null) return false;
-
-        //    // 申请权限
-        //    return entity.Acquire(menuID, flag);
-        //}
-
-        ///// <summary>
-        ///// 写日志
-        ///// </summary>
-        ///// <param name="action"></param>
-        //protected override void WriteLog(string action)
-        //{
-        //    Log<TLogEntity> log = Log<TLogEntity>.Create(this.GetType(), action);
-        //    log.UserID = ID;
-        //    log.UserName = DisplayName;
-        //    log.Save();
-        //}
-
         /// <summary>
         /// 创建当前管理员的日志实体
         /// </summary>
@@ -220,7 +125,7 @@ namespace NewLife.CommonEntity
     /// </remarks>
     /// <typeparam name="TEntity">管理员类型</typeparam>
     [BindIndex("IX_Administrator_Name", true, "Name")]
-    [BindIndex("PK__Administ__3214EC277F60ED59", true, "ID")]
+    [BindIndex("PK__Administrator", true, "ID")]
     [BindIndex("IX_Administrator_RoleID", false, "RoleID")]
     [BindRelation("RoleID", false, "Role", "ID")]
     public abstract partial class Administrator<TEntity> : Entity<TEntity>, IAdministrator, IManageUser//, IPrincipal//, IIdentity
@@ -331,11 +236,13 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>当前登录用户。通过实体资格提供者，保证取得正确的管理员</summary>
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
         public static IAdministrator CurrentAdministrator
         {
             get
             {
-                return TypeResolver.GetPropertyValue(typeof(IAdministrator), "Current") as IAdministrator;
+                //return TypeResolver.GetPropertyValue(typeof(IAdministrator), "Current") as IAdministrator;
+                return CommonManageProvider.Provider.Current;
             }
         }
 
@@ -452,39 +359,14 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         private static String SearchWhere(String key, Int32 roleId)
         {
-            if (String.IsNullOrEmpty(key)) return null;
-            key = key.Replace("'", "''");
-            String[] keys = key.Split(new Char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            WhereExpression exp = new WhereExpression();
 
-            StringBuilder sb = new StringBuilder();
-            sb.Append("1=1");
+            // SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索
+            if (!String.IsNullOrEmpty(key)) SearchWhereByKeys(exp.Builder, key);
 
-            //if (!String.IsNullOrEmpty(name)) sb.AppendFormat(" And {0} like '%{1}%'", _.Name, name.Replace("'", "''"));
+            if (roleId > 0) exp &= _.RoleID.Equal(roleId);
 
-            if (roleId > 0) sb.AppendFormat(" And {0} ={1}", _.RoleID, roleId);
-
-            for (int i = 0; i < keys.Length; i++)
-            {
-                sb.Append(" And ");
-
-                if (keys.Length > 1) sb.Append("(");
-                Int32 n = 0;
-                foreach (FieldItem item in Meta.Fields)
-                {
-                    if (item.Type != typeof(String)) continue;
-                    // 只要前五项
-                    if (++n > 10) break;
-
-                    if (n > 1) sb.Append(" Or ");
-                    sb.AppendFormat("{0} like '%{1}%'", item.Name, keys[i]);
-                }
-                if (keys.Length > 1) sb.Append(")");
-            }
-
-            if (sb.Length == "1=1".Length)
-                return null;
-            else
-                return sb.ToString();
+            return exp;
         }
         #endregion
 
@@ -493,10 +375,7 @@ namespace NewLife.CommonEntity
         /// 已重载。显示友好名字
         /// </summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return FriendName;
-        }
+        public override string ToString() { return FriendName; }
         #endregion
 
         #region 业务
@@ -645,16 +524,6 @@ namespace NewLife.CommonEntity
             return entity.Acquire(menuID, flag);
         }
 
-        ///// <summary>
-        ///// 为当前管理员对象写日志
-        ///// </summary>
-        ///// <param name="action"></param>
-        //protected void WriteLog(String action)
-        //{
-        //    IEntity log = CreateLog(this.GetType(), action);
-        //    if (log != null) log.Save();
-        //}
-
         /// <summary>
         /// 创建当前管理员的日志实体
         /// </summary>
@@ -670,7 +539,8 @@ namespace NewLife.CommonEntity
         /// <param name="remark">备注</param>
         public static void WriteLog(String action, String remark)
         {
-            IEntityOperate op = EntityFactory.CreateOperate(TypeResolver.Resolve(typeof(IAdministrator), null));
+            //IEntityOperate op = EntityFactory.CreateOperate(TypeResolver.Resolve(typeof(IAdministrator), null));
+            IEntityOperate op = EntityFactory.CreateOperate(CommonManageProvider.Provider.AdminstratorType);
             IAdministrator admin = op.Default as IAdministrator;
             if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
         }
@@ -704,9 +574,6 @@ namespace NewLife.CommonEntity
             ILog log = CreateLog(type, action);
             if (log != null)
             {
-                //log.SetItem("Remark", remark);
-                //log.Save();
-
                 log.Remark = remark;
                 (log as IEntity).Save();
             }
@@ -746,25 +613,6 @@ namespace NewLife.CommonEntity
         //    get { return Name; }
         //}
         #endregion
-
-        //public static String Test()
-        //{
-        //    //return _.Name == "nnhy" & _.Password == "NewLife";
-        //    //WhereExpression exp = new WhereExpression();
-        //    String name = "nnhy";
-        //    String pass = null;
-        //    return new WhereExpression()
-        //        & !String.IsNullOrEmpty(name) & _.Name.Equal(name)
-        //        & !String.IsNullOrEmpty(pass) & _.Password.NotEqual(pass)
-        //        & _.Logins < 2
-        //        & _.LastLogin >= DateTime.Now;
-
-        //    return new WhereExpression()
-        //        .AndIf(!String.IsNullOrEmpty(name), _.Name.Equal(name))
-        //        .AndIf(!String.IsNullOrEmpty(pass), _.Password.NotEqual(pass))
-        //        .And(_.Logins < 2)
-        //        .And(_.LastLogin >= DateTime.Now);
-        //}
 
         #region IManageUser 成员
         /// <summary>编号</summary>

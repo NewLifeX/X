@@ -82,7 +82,8 @@ namespace NewLife.YWS.Entities
         /// <param name="remark">备注</param>
         public static void WriteLog(String action, String remark)
         {
-            IAdministrator admin = Administrator.CurrentAdministrator;
+            //IAdministrator admin = Administrator.CurrentAdministrator;
+            IAdministrator admin = CommonManageProvider.Provider.Current;
             if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
         }
         #endregion
