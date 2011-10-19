@@ -276,6 +276,8 @@ namespace XCode
 
                 if (Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
                 {
+                    if (DAL.NegativeEnable == null || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName)) return;
+
                     DAL.WriteLog("开始检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DbType);
 
                     Stopwatch sw = new Stopwatch();
