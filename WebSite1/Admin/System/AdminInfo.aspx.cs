@@ -12,7 +12,7 @@ public partial class Pages_AdminInfo : EntityForm<Int32, Admin>
     {
         if (EntityID != Current.ID)
         {
-            Response.Redirect("AdminInfo?ID=" + Current.ID);
+            Response.Redirect("AdminInfo.aspx?ID=" + Current.ID);
         }
 
         if (!Page.IsPostBack)
