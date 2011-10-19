@@ -32,10 +32,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.0.*")]
-[assembly: AssemblyFileVersion("2.0.2011.0720")]
+[assembly: AssemblyVersion("2.1.*")]
+[assembly: AssemblyFileVersion("2.1.2011.1019")]
 
 /*
+ * v2.1.2011.1019   项目类型由类库修改为控制台项目，不仅可供其它程序集引用，也可直接作为服务代理，承载各种实现IServer接口的服务
+ * 
  * v2.0.2011.0720   可以通过设置任务的时间间隔小于0来关闭指定任务
  *                  可以通过配置文件指定服务名、显示名、描述等信息
  *                  可以通过XAgent.AttachServers设置附加代理服务，任何XAgent服务程序都可以附加代理实现了IServer接口的服务
