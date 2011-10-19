@@ -7,7 +7,7 @@ namespace XAgent
     /// <summary>
     /// 代理服务例子。自定义服务程序可参照该类实现。
     /// </summary>
-    public class AgentService : AgentServiceBase<AgentService>
+    class AgentService : AgentServiceBase<AgentService>
     {
         #region 属性
         /// <summary>线程数</summary>
