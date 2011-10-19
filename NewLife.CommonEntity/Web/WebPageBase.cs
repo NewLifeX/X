@@ -141,10 +141,7 @@ namespace NewLife.CommonEntity.Web
 
                 //return sb.ToString();
 
-                return MyMenu.GetFullPath(true, " - ", delegate(IMenu item)
-                {
-                    return String.Format("[{0}]", item.Name);
-                });
+                return MyMenu.GetFullPath(true, " - ", item => String.Format("[{0}]", item.Name));
             }
         }
 

@@ -12,6 +12,7 @@ using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
+using NewLife;
 
 namespace XCoder
 {
@@ -409,7 +410,8 @@ namespace XCoder
             List<IDataTable> tables = Tables;
             if (tables == null || tables.Count < 1) return null;
 
-            IDataTable table = tables.Find(delegate(IDataTable item) { return String.Equals(item.Name, tableName, StringComparison.OrdinalIgnoreCase); });
+            //IDataTable table = tables.Find(delegate(IDataTable item) { return String.Equals(item.Name, tableName, StringComparison.OrdinalIgnoreCase); });
+            IDataTable table = tables.Find(e => e.Name.EqualIgnoreCase(tableName));
             if (tableName == null) return null;
 
             Dictionary<String, Object> data = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);

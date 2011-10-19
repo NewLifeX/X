@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Exceptions;
+using NewLife.Reflection;
 
 namespace NewLife.Log
 {
@@ -226,7 +227,7 @@ namespace NewLife.Log
         /// </summary>
         public void DebugStack()
         {
-            DebugStack(int.MaxValue);
+            DebugStack(1, int.MaxValue);
         }
 
         /// <summary>
@@ -234,6 +235,11 @@ namespace NewLife.Log
         /// </summary>
         /// <param name="maxNum">最大捕获堆栈方法数</param>
         public void DebugStack(int maxNum)
+        {
+            DebugStack(1, maxNum);
+        }
+
+        void DebugStack(int start, int maxNum)
         {
             int skipFrames = 1;
             if (maxNum == int.MaxValue) skipFrames = 2;
@@ -244,7 +250,7 @@ namespace NewLife.Log
             for (int i = 0; i < count; i++)
             {
                 StackFrame sf = st.GetFrame(i);
-                sb.AppendFormat("{0}->{1}", sf.GetMethod().DeclaringType.FullName, sf.GetMethod().ToString());
+                sb.AppendFormat("{0}->{1}", TypeX.Create(sf.GetMethod().DeclaringType).FullName, sf.GetMethod().ToString());
                 if (i < count - 1) sb.AppendLine();
             }
             WriteLine(sb.ToString());

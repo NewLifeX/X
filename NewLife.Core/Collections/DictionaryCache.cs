@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using NewLife.Reflection;
 
 namespace NewLife.Collections
@@ -41,6 +42,7 @@ namespace NewLife.Collections
         /// <param name="key">键</param>
         /// <param name="func">获取值的委托，该委托以键作为参数</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public virtual TValue GetItem(TKey key, Func<TKey, TValue> func)
         {
             return GetItem(key, func, true);
@@ -53,6 +55,7 @@ namespace NewLife.Collections
         /// <param name="func">获取值的委托，该委托以键作为参数</param>
         /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public virtual TValue GetItem(TKey key, Func<TKey, TValue> func, Boolean cacheDefault)
         {
             TValue value;
@@ -77,6 +80,7 @@ namespace NewLife.Collections
         /// <param name="arg">参数</param>
         /// <param name="func">获取值的委托，该委托除了键参数外，还有一个泛型参数</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public virtual TValue GetItem<TArg>(TKey key, TArg arg, Func<TKey, TArg, TValue> func)
         {
             return GetItem<TArg>(key, arg, func, true);
@@ -91,6 +95,7 @@ namespace NewLife.Collections
         /// <param name="func">获取值的委托，该委托除了键参数外，还有一个泛型参数</param>
         /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public virtual TValue GetItem<TArg>(TKey key, TArg arg, Func<TKey, TArg, TValue> func, Boolean cacheDefault)
         {
             TValue value;
@@ -117,6 +122,7 @@ namespace NewLife.Collections
         /// <param name="arg2">参数2</param>
         /// <param name="func">获取值的委托，该委托除了键参数外，还有两个泛型参数</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public virtual TValue GetItem<TArg, TArg2>(TKey key, TArg arg, TArg2 arg2, Func<TKey, TArg, TArg2, TValue> func)
         {
             return GetItem<TArg, TArg2>(key, arg, arg2, func, true);
@@ -133,6 +139,7 @@ namespace NewLife.Collections
         /// <param name="func">获取值的委托，该委托除了键参数外，还有两个泛型参数</param>
         /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public virtual TValue GetItem<TArg, TArg2>(TKey key, TArg arg, TArg2 arg2, Func<TKey, TArg, TArg2, TValue> func, Boolean cacheDefault)
         {
             TValue value;
@@ -161,6 +168,7 @@ namespace NewLife.Collections
         /// <param name="arg3">参数3</param>
         /// <param name="func">获取值的委托，该委托除了键参数外，还有三个泛型参数</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public virtual TValue GetItem<TArg, TArg2, TArg3>(TKey key, TArg arg, TArg2 arg2, TArg3 arg3, Func<TKey, TArg, TArg2, TArg3, TValue> func)
         {
             return GetItem<TArg, TArg2, TArg3>(key, arg, arg2, arg3, func, true);
@@ -179,6 +187,7 @@ namespace NewLife.Collections
         /// <param name="func">获取值的委托，该委托除了键参数外，还有三个泛型参数</param>
         /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public virtual TValue GetItem<TArg, TArg2, TArg3>(TKey key, TArg arg, TArg2 arg2, TArg3 arg3, Func<TKey, TArg, TArg2, TArg3, TValue> func, Boolean cacheDefault)
         {
             TValue value;

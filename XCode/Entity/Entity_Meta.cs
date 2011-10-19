@@ -8,12 +8,11 @@ using NewLife;
 using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Log;
+using NewLife.Reflection;
+using NewLife.Threading;
 using XCode.Cache;
-using XCode.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-using NewLife.Threading;
-using NewLife.Reflection;
 
 namespace XCode
 {

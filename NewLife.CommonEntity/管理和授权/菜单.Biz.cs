@@ -664,7 +664,7 @@ namespace NewLife.CommonEntity
         string IMenu.GetFullPath(bool includeSelf, string separator, Func<IMenu, string> func)
         {
             Func<TEntity, String> d = null;
-            if (func != null) d = delegate(TEntity item) { return func(item); };
+            if (func != null) d = item => func(item);
 
             return GetFullPath(includeSelf, separator, d);
         }
