@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data.Common;
 using System.Reflection;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Configuration;
 using XCode.DataAccessLayer;
-using System.Data.Common;
 
 namespace XCode.Configuration
 {

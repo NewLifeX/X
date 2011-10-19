@@ -9,9 +9,9 @@ using System.Threading;
 using System.Xml;
 using System.Xml.Serialization;
 using NewLife.Reflection;
+using NewLife.Threading;
 using XCode.Code;
 using XCode.Exceptions;
-using NewLife.Threading;
 
 namespace XCode.DataAccessLayer
 {
