@@ -84,7 +84,12 @@ namespace NewLife.Configuration
         {
             if (AppSettings == null || AppSettings.Count < 1) return defaultValue;
 
-            String str = AppSettings[name];
+            String str = null;
+            try
+            {
+                str = AppSettings[name];
+            }
+            catch { return defaultValue; }
             if (String.IsNullOrEmpty(str)) return defaultValue;
 
             Type type = typeof(T);

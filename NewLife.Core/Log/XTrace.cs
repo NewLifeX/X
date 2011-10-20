@@ -102,7 +102,11 @@ namespace NewLife.Log
                 //if (str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase)) return true;
                 //return false;
 
-                return Config.GetConfig<Boolean>("NewLife.Debug", Config.GetConfig<Boolean>("Debug", false));
+                try
+                {
+                    return Config.GetConfig<Boolean>("NewLife.Debug", Config.GetConfig<Boolean>("Debug", false));
+                }
+                catch { return false; }
             }
             set { _Debug = value; }
         }

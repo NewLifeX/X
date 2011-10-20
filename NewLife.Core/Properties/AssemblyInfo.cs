@@ -37,6 +37,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("3.2.2011.1018")]
 
 /*
+ * v3.2.2011.1020   修正AssemblyX中一个可能导致无法从只加载程序集中获取类型的BUG
+ *                  修正DisposeBase析构中调用XTrace.Debug可能配置系统已经释放的错误
+ * 
  * v3.2.2011.1018   增加对象容器IObjectContainer，实现IoC的容器功能
  *                  增加服务容器ServiceContainer，作为对象容器的封装
  * 

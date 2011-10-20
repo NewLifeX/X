@@ -549,6 +549,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static IEnumerable<AssemblyX> ReflectionOnlyGetAssemblies()
         {
+            //TODO: 将来这里可以改进为指定加载目录，也就是插件目录
             if (HttpRuntime.AppDomainId == null)
                 return ReflectionOnlyLoad(AppDomain.CurrentDomain.BaseDirectory);
             else
@@ -564,27 +565,27 @@ namespace NewLife.Reflection
         {
             if (!Directory.Exists(path)) yield break;
 
+            // 先返回已加载的只加载程序集
+            List<AssemblyX> loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e)).ToList();
+            foreach (AssemblyX item in loadeds2)
+            {
+                yield return item;
+            }
+
+            // 再去遍历目录
             String[] ss = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
             if (ss == null || ss.Length < 1) yield break;
 
             List<AssemblyX> loadeds = AssemblyX.GetAssemblies().ToList<AssemblyX>();
-            IEnumerable<AssemblyX> loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e));
 
             foreach (String item in ss)
             {
                 if (!item.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) &&
                     !item.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
 
-                //if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) || loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
-                if (loadeds.Any(e => e.Location.EqualIgnoreCase(item))) continue;
+                if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) || loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
 
-                AssemblyX asmx = loadeds2.FirstOrDefault(e => e.Location.EqualIgnoreCase(item));
-                if (asmx != null)
-                {
-                    yield return asmx;
-                    continue;
-                }
-
+                AssemblyX asmx = null;
                 try
                 {
                     //Assembly asm = Assembly.ReflectionOnlyLoad(File.ReadAllBytes(item));
