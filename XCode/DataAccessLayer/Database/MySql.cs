@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using System.Net;
 using System.Text;
 
@@ -402,7 +403,8 @@ namespace XCode.DataAccessLayer
         public override String CreateTableSQL(IDataTable table)
         {
             List<IDataColumn> Fields = new List<IDataColumn>(table.Columns);
-            Fields.Sort(delegate(IDataColumn item1, IDataColumn item2) { return item1.ID.CompareTo(item2.ID); });
+            //Fields.Sort(delegate(IDataColumn item1, IDataColumn item2) { return item1.ID.CompareTo(item2.ID); });
+            Fields.OrderBy(dc => dc.ID);
 
             StringBuilder sb = new StringBuilder();
             List<String> pks = new List<String>();
