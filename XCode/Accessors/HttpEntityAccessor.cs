@@ -54,18 +54,17 @@ namespace XCode.Accessors
         /// <param name="item">实体字段</param>
         protected override void OnWriteItem(IEntity entity, FieldItem item)
         {
-            //base.OnWriteItem(entity, item);
+            Object v = GetRequestItem(item);
+            if (v == null) return;
 
-            String value = Request[item.Name];
-            if (value == null && item.Name != item.ColumnName) value = Request[item.ColumnName];
-
-            if (value != null)
-                entity.SetItem(item.Name, value);
+            if (v is String)
+            {
+                entity.SetItem(item.Name, v);
+            }
             else
             {
                 // 处理上传的文件
-                HttpPostedFile file = Request.Files[item.Name];
-                if (file == null && item.Name != item.ColumnName) file = Request.Files[item.ColumnName];
+                HttpPostedFile file = v as HttpPostedFile;
 
                 if (file != null)
                 {
@@ -80,6 +79,22 @@ namespace XCode.Accessors
                         entity.SetItem(item.Name, Convert.ToBase64String(bts));
                 }
             }
+        }
+
+        protected virtual Object GetRequestItem(FieldItem item)
+        {
+            //TODO: 做一下不区分大小写的处理，因为实体字典有大小写，而Request里面可能不缺分大小写
+
+            String value = Request[item.Name];
+            if (value == null && item.Name != item.ColumnName) value = Request[item.ColumnName];
+
+            if (value != null) return value;
+
+            // 处理上传的文件
+            HttpPostedFile file = Request.Files[item.Name];
+            if (file == null && item.Name != item.ColumnName) file = Request.Files[item.ColumnName];
+
+            return file;
         }
         #endregion
     }
