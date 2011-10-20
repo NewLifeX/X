@@ -71,6 +71,8 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Accessors\EntityAccessorBase.cs" />
+    <Compile Include="Accessors\EntityAccessorFactory.cs" />
     <Compile Include="Accessors\HttpEntityAccessor.cs" />
     <Compile Include="Accessors\WebFormEntityAccessor.cs" />
     <Compile Include="Accessors\WinFormEntityAccessor.cs" />
