@@ -55,9 +55,13 @@ namespace NewLife.Configuration
         /// <returns></returns>
         public static Boolean Contain(String name)
         {
-            if (AppSettings == null || AppSettings.Count < 1) return false;
+            try
+            {
+                if (AppSettings == null || AppSettings.Count < 1) return false;
 
-            return Array.IndexOf(AppSettings.AllKeys, name) >= 0;
+                return Array.IndexOf(AppSettings.AllKeys, name) >= 0;
+            }
+            catch (ConfigurationErrorsException) { return false; }
         }
 
         /// <summary>
@@ -68,9 +72,13 @@ namespace NewLife.Configuration
         /// <returns></returns>
         public static T GetConfig<T>(String name)
         {
-            if (AppSettings == null || AppSettings.Count < 1) return default(T);
+            try
+            {
+                if (AppSettings == null || AppSettings.Count < 1) return default(T);
 
-            return GetConfig<T>(name, default(T));
+                return GetConfig<T>(name, default(T));
+            }
+            catch (ConfigurationErrorsException) { return default(T); }
         }
 
         /// <summary>
@@ -82,45 +90,44 @@ namespace NewLife.Configuration
         /// <returns></returns>
         public static T GetConfig<T>(String name, T defaultValue)
         {
-            if (AppSettings == null || AppSettings.Count < 1) return defaultValue;
-
-            String str = null;
             try
             {
-                str = AppSettings[name];
+                if (AppSettings == null || AppSettings.Count < 1) return defaultValue;
+
+                String str = AppSettings[name];
+                if (String.IsNullOrEmpty(str)) return defaultValue;
+
+                Type type = typeof(T);
+                TypeCode code = Type.GetTypeCode(type);
+
+                if (code == TypeCode.String) return (T)(Object)str;
+
+                if (code == TypeCode.Int32)
+                {
+                    return (T)(Object)Convert.ToInt32(str);
+                }
+
+                if (code == TypeCode.Boolean)
+                {
+                    //if (str == "1" || String.Equals(str, Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
+                    //    return (T)(Object)true;
+                    //else if (str == "0" || String.Equals(str, Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
+                    //    return (T)(Object)false;
+
+                    if (str == "1" || str.EqualIgnoreCase(Boolean.TrueString))
+                        return (T)(Object)true;
+                    else if (str == "0" || str.EqualIgnoreCase(Boolean.FalseString))
+                        return (T)(Object)false;
+
+                    Boolean b = false;
+                    if (Boolean.TryParse(str.ToLower(), out b)) return (T)(Object)b;
+                }
+
+                T value = (T)TypeX.ChangeType(str, type);
+
+                return value;
             }
-            catch { return defaultValue; }
-            if (String.IsNullOrEmpty(str)) return defaultValue;
-
-            Type type = typeof(T);
-            TypeCode code = Type.GetTypeCode(type);
-
-            if (code == TypeCode.String) return (T)(Object)str;
-
-            if (code == TypeCode.Int32)
-            {
-                return (T)(Object)Convert.ToInt32(str);
-            }
-
-            if (code == TypeCode.Boolean)
-            {
-                //if (str == "1" || String.Equals(str, Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
-                //    return (T)(Object)true;
-                //else if (str == "0" || String.Equals(str, Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
-                //    return (T)(Object)false;
-
-                if (str == "1" || str.EqualIgnoreCase(Boolean.TrueString))
-                    return (T)(Object)true;
-                else if (str == "0" || str.EqualIgnoreCase(Boolean.FalseString))
-                    return (T)(Object)false;
-
-                Boolean b = false;
-                if (Boolean.TryParse(str.ToLower(), out b)) return (T)(Object)b;
-            }
-
-            T value = (T)TypeX.ChangeType(str, type);
-
-            return value;
+            catch (ConfigurationErrorsException) { return defaultValue; }
         }
 
         /// <summary>
@@ -130,17 +137,21 @@ namespace NewLife.Configuration
         /// <returns></returns>
         public static NameValueCollection GetConfigByPrefix(String prefix)
         {
-            if (AppSettings == null || AppSettings.Count < 1) return null;
-
-            //List<String> list = new List<String>();
-            NameValueCollection nv = new NameValueCollection();
-            foreach (String item in AppSettings.Keys)
+            try
             {
-                //if (item.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) list.Add(AppSettings[item]);
-                if (item.Length > prefix.Length && item.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) nv.Add(item, AppSettings[item]);
+                if (AppSettings == null || AppSettings.Count < 1) return null;
+
+                //List<String> list = new List<String>();
+                NameValueCollection nv = new NameValueCollection();
+                foreach (String item in AppSettings.Keys)
+                {
+                    //if (item.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) list.Add(AppSettings[item]);
+                    if (item.Length > prefix.Length && item.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) nv.Add(item, AppSettings[item]);
+                }
+                //return list.Count > 0 ? list.ToArray() : null;
+                return nv.Count > 0 ? nv : null;
             }
-            //return list.Count > 0 ? list.ToArray() : null;
-            return nv.Count > 0 ? nv : null;
+            catch (ConfigurationErrorsException) { return null; }
         }
 
         /// <summary>
@@ -152,9 +163,13 @@ namespace NewLife.Configuration
         /// <returns></returns>
         public static T[] GetConfigSplit<T>(String name, String split)
         {
-            if (AppSettings == null || AppSettings.Count < 1) return null;
+            try
+            {
+                if (AppSettings == null || AppSettings.Count < 1) return null;
 
-            return GetConfigSplit<T>(name, split, null);
+                return GetConfigSplit<T>(name, split, null);
+            }
+            catch (ConfigurationErrorsException) { return null; }
         }
 
         /// <summary>
@@ -167,34 +182,38 @@ namespace NewLife.Configuration
         /// <returns></returns>
         public static T[] GetConfigSplit<T>(String name, String split, T[] defaultValue)
         {
-            if (AppSettings == null || AppSettings.Count < 1) return defaultValue;
-
-            String str = GetConfig<String>(name);
-            if (String.IsNullOrEmpty(str)) return defaultValue;
-
-            String[] sps = String.IsNullOrEmpty(split) ? new String[] { ",", ";" } : new String[] { split };
-            String[] ss = str.Split(sps, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length < 1) return defaultValue;
-
-            //List<T> list = new List<T>(ss.Length);
-            //foreach (String item in ss)
-            //{
-            //    str = item.Trim();
-            //    if (String.IsNullOrEmpty(str)) continue;
-
-            //    T result = TypeX.ChangeType<T>(str);
-            //    list.Add(result);
-            //}
-            T[] arr = new T[ss.Length];
-            for (int i = 0; i < ss.Length; i++)
+            try
             {
-                str = ss[i].Trim();
-                if (String.IsNullOrEmpty(str)) continue;
+                if (AppSettings == null || AppSettings.Count < 1) return defaultValue;
 
-                arr[i] = TypeX.ChangeType<T>(str);
+                String str = GetConfig<String>(name);
+                if (String.IsNullOrEmpty(str)) return defaultValue;
+
+                String[] sps = String.IsNullOrEmpty(split) ? new String[] { ",", ";" } : new String[] { split };
+                String[] ss = str.Split(sps, StringSplitOptions.RemoveEmptyEntries);
+                if (ss == null || ss.Length < 1) return defaultValue;
+
+                //List<T> list = new List<T>(ss.Length);
+                //foreach (String item in ss)
+                //{
+                //    str = item.Trim();
+                //    if (String.IsNullOrEmpty(str)) continue;
+
+                //    T result = TypeX.ChangeType<T>(str);
+                //    list.Add(result);
+                //}
+                T[] arr = new T[ss.Length];
+                for (int i = 0; i < ss.Length; i++)
+                {
+                    str = ss[i].Trim();
+                    if (String.IsNullOrEmpty(str)) continue;
+
+                    arr[i] = TypeX.ChangeType<T>(str);
+                }
+
+                return arr;
             }
-
-            return arr;
+            catch (ConfigurationErrorsException) { return defaultValue; }
         }
         #endregion
     }
