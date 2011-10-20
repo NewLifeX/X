@@ -324,6 +324,7 @@ namespace XCode.Accessors
                 return;
             }
         }
+
         /// <summary>
         /// 把控件的值设置到实体属性上
         /// </summary>
