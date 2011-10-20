@@ -9,6 +9,9 @@ using System.Web.UI.WebControls;
 using NewLife.Reflection;
 using NewLife.Web;
 
+[assembly: WebResource("XControl.View.GridViewExtender.js", "text/javascript")]
+
+
 namespace XControl
 {
     /// <summary>
@@ -267,16 +270,46 @@ namespace XControl
         #region 点击
         void RenderOnClick(GridView gv)
         {
-            // 找到一个列，列头是编辑，列类型是LinkBoxField，双击时执行它的操作
+            string initExtender = null, editLinkBoxText = "编辑",
+                selectedColor = SelectedRowBackColor != Color.Empty ? new WebColorConverter().ConvertToString(SelectedRowBackColor) : null;
             int editColumIndex = -1;
             for (int i = 0; i < gv.Columns.Count; i++)
             {
                 DataControlField item = gv.Columns[i];
-                if (item.HeaderText == "编辑" && item is LinkBoxField)
+                if (item.HeaderText == editLinkBoxText && item is LinkBoxField)
                 {
                     editColumIndex = i;
                     break;
                 }
+            }
+
+            if (SelectedRowBackColor != Color.Empty)
+            {
+                StringBuilder js = new StringBuilder();
+                if (SelectedRowBackColor != Color.Empty)
+                {
+                    js.AppendFormat(@"click:e.Highlight('{0}'),
+", JSStringEscape(selectedColor));
+                }
+                if (editColumIndex >= 0)
+                {
+                    js.AppendFormat(@"dblclick:e.ClickElement('a',function(i){{return i.innerHTML==='{0}';}}),
+", JSStringEscape(editLinkBoxText)); // 这里的'a'表示是html标签a,因为编辑列字段 LinkBoxField 输出的是a标签
+                }
+
+                if (js.Length > 0)
+                {
+                    js.Remove(js.Length - 3, 3); // 回车换行符和结尾的逗号
+                    initExtender = string.Format(@"(function(e){{
+    e.ExtendDataRow('{0}', EventMap:{{ {1} }});
+}}(GridViewExtender));", gv.ClientID, js);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(initExtender))
+            {
+                // TODO 在合适的位置插入外部引用的脚本 和插入初始化脚本
+                // Page.ClientScript.RegisterStartupScript
             }
             foreach (GridViewRow item in gv.Rows)
             {
@@ -285,19 +318,8 @@ namespace XControl
                 String onclick = OnRowClientClick;
                 String ondblclick = OnRowDoubleClientClick;
 
-                if (SelectedRowBackColor != Color.Empty)
+                if (SelectedRowBackColor != Color.Empty) // 选中当前请求参数中指定的行,参数名由RequestKeyName属性指定,参数值是GridView相关ods的DataKeys指定的主键值
                 {
-                    //String name = String.Format("{0}_RowClick", ID);
-                    String name = "rowClick";
-                    String color = (new WebColorConverter().ConvertToString(SelectedRowBackColor));
-                    String js = "function " + name + "(elm){ elm.style.backgroundColor=!elm.style.backgroundColor?'" + color + "':''; }";
-
-                    Page.ClientScript.RegisterClientScriptBlock(this.GetType(), name, js, true);
-                    String onclick2 = name + "(this);";
-                    //onclick = name + "(this);" + onclick;
-                    // 避免同一个事件被添加多次
-                    if (onclick2 != onclick) onclick = onclick2 + onclick;
-
                     if (HttpContext.Current != null && HttpContext.Current.Request != null)
                     {
                         Object keyValue = null;
@@ -306,33 +328,19 @@ namespace XControl
 
                         if (keyValue != null && String.Equals(keyValue.ToString(), HttpContext.Current.Request[RequestKeyName]))
                         {
-                            //item.Style[HtmlTextWriterStyle.BackgroundColor] = SelectedRowBackColor.ToString();
                             item.BackColor = SelectedRowBackColor;
                         }
                     }
                 }
 
-                // 找到一个列，列头是编辑，列类型是LinkBoxField，双击时执行它的操作
-                string editclick = null;
-                if (editColumIndex >= 0)
-                {
-                    ControlCollection ctls = item.Cells[editColumIndex].Controls;
-                    foreach (Control ctl in ctls)
-                    {
-                        if (ctl is HyperLink)
-                        {
-                            editclick = ("" + (ctl as HyperLink).Attributes["onclick"]).Trim();
-                            if (!string.IsNullOrEmpty(editclick))
-                            {
-                                break;
-                            }
-                        }
-                    }
-                    if (!string.IsNullOrEmpty(editclick)) ondblclick = editclick + ondblclick;
-                }
                 Format(item, "onclick", onclick);
                 Format(item, "ondblclick", ondblclick);
             }
+        }
+
+        static string JSStringEscape(string input)
+        {
+            return input.Replace("'", @"\'").Replace("\"", @"\""");
         }
 
         private void Format(GridViewRow row, string att, string value)

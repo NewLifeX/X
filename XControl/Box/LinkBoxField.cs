@@ -207,22 +207,8 @@ namespace XControl
 
         void UpdateOnClientClick()
         {
-            Control.Page.ClientScript.RegisterClientScriptBlock(this.GetType(), "stopEventPropagation", @"
-function stopEventPropagation(e){
-    try{
-        if(typeof e != 'undefined'){
-            if(typeof e.stopPropagation != 'undefined'){
-                e.stopPropagation();
-            }else if(typeof e.cancelBubble != 'undefined'){
-                e.cancelBubble = true;
-            }
-        }
-    }catch(ex){}
-}
-".Replace("\r", "").Replace("\n", ""), true);
-
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("ID:'win{0}', ", new Random((Int32)DateTime.Now.Ticks).Next(1, 1000));
+            sb.AppendFormat("ID:'win{0}', ", new Random().Next(1, 1000));
             sb.AppendFormat("Title:'{0}', ", Title);
 
             String url = Url;
@@ -236,8 +222,24 @@ function stopEventPropagation(e){
             sb.AppendFormat("Message:'{0}', ", Message);
             sb.AppendFormat("ShowButtonRow:{0}", ShowButtonRow.ToString().ToLower());
             string stopPropagation = this.Control is GridView ? "stopEventPropagation(event);" : "";
+            if (stopPropagation.Length > 0)
+            {
+                Control.Page.ClientScript.RegisterClientScriptBlock(this.GetType(), "stopEventPropagation", @"
+function stopEventPropagation(e){
+    try{
+        if(typeof e != 'undefined'){
+            if(typeof e.stopPropagation != 'undefined'){
+                e.stopPropagation();
+            }else if(typeof e.cancelBubble != 'undefined'){
+                e.cancelBubble = true;
+            }
+        }
+    }catch(ex){}
+}
+".Replace("\r", "").Replace("\n", ""), true);
+            }
 
-            OnClientClick = "ShowDialog({" + sb.ToString() + "});" + stopPropagation + " return false;";
+            OnClientClick = "ShowDialog({" + sb.ToString() + "});" + stopPropagation + "return false;";
         }
 
         /// <summary>
