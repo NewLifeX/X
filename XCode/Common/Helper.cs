@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
+using XCode.Configuration;
 
 namespace XCode.Common
 {
@@ -55,6 +57,35 @@ namespace XCode.Common
 
             if (type == typeof(Guid)) return ((Guid)key) == Guid.Empty;
             if (type == typeof(Byte[])) return ((Byte[])key).Length <= 0;
+
+            return false;
+        }
+
+        /// <summary>
+        /// 是否空主键的实体
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public static Boolean IsEntityNullKey(IEntity entity)
+        {
+            IEntityOperate eop = EntityFactory.CreateOperate(entity.GetType());
+
+            List<FieldItem> pks = eop.Fields.Where(e => e.PrimaryKey).ToList();
+            if (pks != null && pks.Count > 0)
+            {
+                foreach (FieldItem item in pks)
+                {
+                    // 任何一个不为空，则表明整体不为空
+                    if (!IsNullKey(entity[item.Name])) return false;
+                }
+                return true;
+            }
+
+            FieldItem field = eop.Fields.FirstOrDefault(e => e.IsIdentity);
+            if (field.IsIdentity)
+            {
+                return IsNullKey(entity[field.Name]);
+            }
 
             return false;
         }

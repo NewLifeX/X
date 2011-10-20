@@ -7,7 +7,7 @@ namespace XCode.Accessors
     /// <summary>
     /// WinForm实体访问器
     /// </summary>
-    public class WinFormEntityAccessor : IEntityAccessor
+    public class WinFormEntityAccessor : EntityAccessorBase
     {
     }
 }
