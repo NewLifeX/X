@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.1.*")]
-[assembly: AssemblyFileVersion("8.1.2011.1010")]
+[assembly: AssemblyFileVersion("8.1.2011.1020")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,25 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.1.2011.1020   实体缓存EntityCache及接口增加一个使用委托进行查询的FindAll
+ * 
+ * v8.1.2011.1019   修正注释反向工程设置项后，单表使用的反向工程仍然检查的问题
+ *                  FieldItem增加NotIn支持
+ * 
+ * v8.1.2011.1018   改善实体基类Entity，对于FindAll和FindCount，如果查询的条件是单一主键或者自增，并且为空，则取消查询
+ * 
+ * v8.1.2011.1017   改善Oracle支持上的一些问题
+ *                  完善对象容器的使用
+ * 
+ * v8.1.2011.1016   丢失主键的问题经常发生，现在修改DefaultCondition，如果没有主键，直接抛出异常
+ * 
+ * v8.1.2011.1014   使用对象容器重构XCode中的各个接口使用
+ * 
+ * v8.1.2011.1013   修正Entity和EntityList中，因为批量查询不再返回null而带来的问题，特别是Exist
+ *                  SQLite建表语句，对于字符串类型，创建忽略大小写的字段
+ * 
+ * v8.1.2011.1012   修正给非主键的自增字段建立唯一索引中的编码错误
+ * 
  * v8.1.2011.1010   FieldItem增加对In操作符的支持
  * 
  * v8.1.2011.1008   IEntityOperate中返回EntityList<IEntity>改为返回IEntityList，直接返回原始的实体类列表
