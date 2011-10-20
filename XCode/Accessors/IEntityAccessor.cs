@@ -5,6 +5,12 @@ namespace XCode
     /// <summary>实体数据存取器接口</summary>
     public interface IEntityAccessor
     {
+        /// <summary>
+        /// 使用参数进行初始化
+        /// </summary>
+        /// <param name="ps"></param>
+        void Init(params Object[] ps);
+
         /// <summary>是否支持从实体对象读取信息</summary>
         Boolean CanRead { get; }
 
