@@ -115,7 +115,8 @@ namespace NewLife.Model
                 {
                     if (Stores.TryGetValue(type, out dic)) return dic;
 
-                    dic = new Dictionary<String, IObjectMap>();
+                    // 名称不区分大小写
+                    dic = new Dictionary<String, IObjectMap>(StringComparer.OrdinalIgnoreCase);
                     Stores.Add(type, dic);
                     return dic;
                 }
