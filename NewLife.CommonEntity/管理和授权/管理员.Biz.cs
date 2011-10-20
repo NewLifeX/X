@@ -444,7 +444,7 @@ namespace NewLife.CommonEntity
                     {
                         p = DataHelper.Hash(p);
                     }
-                    if (!p.EqualIgnoreCase(user.Password)) throw new EntityException("密码不正确！");
+                    if (!p.EqualIgnoreCase(password)) throw new EntityException("密码不正确！");
                 }
             }
 
