@@ -69,7 +69,7 @@ namespace Test
             IEntityAccessor accessor = EntityAccessorFactory.Create(EntityAccessorTypes.Xml);
             MemoryStream ms = new MemoryStream();
 
-            accessor.SetConfig("stream", ms).Write(admin);
+            accessor.SetConfig("stream", ms).SetConfig("allfields", true).Write(admin);
             String xml = Encoding.UTF8.GetString(ms.ToArray());
             Console.WriteLine(xml);
         }

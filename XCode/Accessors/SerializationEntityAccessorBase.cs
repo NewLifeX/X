@@ -103,6 +103,7 @@ namespace XCode.Accessors
             }
             finally
             {
+                writer.Flush();
                 //writer.Dispose();
                 writer = null;
             }
