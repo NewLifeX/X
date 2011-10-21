@@ -49,8 +49,10 @@ namespace XCode.Accessors
         /// <returns></returns>
         public override IEntityAccessor SetConfig(string name, object value)
         {
-            if (name.EqualIgnoreCase("request")) Request = value as HttpRequest;
-            if (name.EqualIgnoreCase("MaxLength")) MaxLength = (Int64)value;
+            if (name.EqualIgnoreCase(EntityAccessorOptions.Request))
+                Request = value as HttpRequest;
+            else if (name.EqualIgnoreCase(EntityAccessorOptions.MaxLength))
+                MaxLength = (Int64)value;
 
             return base.SetConfig(name, value);
         }

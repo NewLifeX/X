@@ -36,8 +36,8 @@ namespace XCode.Accessors
         /// <returns></returns>
         public override IEntityAccessor SetConfig(string name, object value)
         {
-            if (name.EqualIgnoreCase("Stream")) Stream = value as Stream;
-            if (name.EqualIgnoreCase("Encoding")) Encoding = value as Encoding;
+            if (name.EqualIgnoreCase(EntityAccessorOptions.Stream)) Stream = value as Stream;
+            if (name.EqualIgnoreCase(EntityAccessorOptions.Encoding)) Encoding = value as Encoding;
 
             return base.SetConfig(name, value);
         }

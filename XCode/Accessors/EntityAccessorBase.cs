@@ -40,9 +40,20 @@ namespace XCode.Accessors
         /// <returns></returns>
         public virtual IEntityAccessor SetConfig(String name, Object value)
         {
-            if (name.EqualIgnoreCase("AllFields")) AllFields = (Boolean)value;
+            if (name.EqualIgnoreCase(EntityAccessorOptions.AllFields)) AllFields = (Boolean)value;
 
             return this;
+        }
+
+        /// <summary>
+        /// 设置参数。返回自身，方便链式写法。
+        /// </summary>
+        /// <param name="option">参数名</param>
+        /// <param name="value">参数值</param>
+        /// <returns></returns>
+        IEntityAccessor IEntityAccessor.SetConfig(EntityAccessorOptions option, Object value)
+        {
+            return SetConfig(option.ToString(), value);
         }
 
         /// <summary>是否支持从外部读取信息</summary>

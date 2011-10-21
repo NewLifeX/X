@@ -5,7 +5,7 @@ using XCode.Model;
 namespace XCode.Accessors
 {
     /// <summary>实体访问器工厂</summary>
-    public class EntityAccessorFactory
+    public static class EntityAccessorFactory
     {
         internal static void Reg(IObjectContainer container)
         {
@@ -37,6 +37,13 @@ namespace XCode.Accessors
         public static IEntityAccessor Create(EntityAccessorTypes kind)
         {
             return Create(kind.ToString());
+        }
+
+        internal static Boolean EqualIgnoreCase(this String str, EntityAccessorOptions option)
+        {
+            //if (String.IsNullOrEmpty(str)) return false;
+
+            return String.Equals(str, option.ToString(), StringComparison.OrdinalIgnoreCase);
         }
     }
 }

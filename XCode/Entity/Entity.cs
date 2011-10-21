@@ -1413,6 +1413,7 @@ namespace XCode
         /// 建立Xml序列化器
         /// </summary>
         /// <returns></returns>
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
         protected override XmlSerializer CreateXmlSerializer()
         {
             // 给每一个数据属性加上Xml默认值特性，让Xml序列化时避开数据与默认值相同的数据属性，减少Xml大小
@@ -1433,6 +1434,7 @@ namespace XCode
         /// </summary>
         /// <param name="xml"></param>
         /// <returns></returns>
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
         public static TEntity FromXml(String xml)
         {
             if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
@@ -1457,6 +1459,7 @@ namespace XCode
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
         public static TEntity FromJson(String json)
         {
             return new Json().Deserialize<TEntity>(json);

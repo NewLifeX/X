@@ -15,19 +15,19 @@ namespace XCode.Accessors
     class WebFormEntityAccessor : EntityAccessorBase
     {
         #region 属性
-        private Page _Page;
-        /// <summary>属性说明</summary>
-        public Page Page
+        private Control _Container;
+        /// <summary>页面</summary>
+        public Control Container
         {
-            get { return _Page; }
-            private set { _Page = value; }
+            get { return _Container; }
+            private set { _Container = value; }
         }
 
-        /// <summary>请求</summary>
-        public HttpRequest Request { get { return Page.Request; ; } }
+        ///// <summary>请求</summary>
+        //public HttpRequest Request { get { return Container.Request; ; } }
 
-        /// <summary>响应</summary>
-        public HttpResponse Response { get { return Page.Response; } }
+        ///// <summary>响应</summary>
+        //public HttpResponse Response { get { return Container.Response; } }
 
         private Int64 _MaxLength = 10 * 1024 * 1024;
         /// <summary>最大文件大小，默认10M</summary>
@@ -66,9 +66,12 @@ namespace XCode.Accessors
         /// <returns></returns>
         public override IEntityAccessor SetConfig(string name, object value)
         {
-            if (name.EqualIgnoreCase("Page")) Page = value as Page;
-            if (name.EqualIgnoreCase("MaxLength")) MaxLength = (Int64)value;
-            if (name.EqualIgnoreCase("ItemPrefix")) ItemPrefix = (String)value;
+            if (name.EqualIgnoreCase(EntityAccessorOptions.Container))
+                Container = value as Control;
+            else if (name.EqualIgnoreCase(EntityAccessorOptions.MaxLength))
+                MaxLength = (Int64)value;
+            else if (name.EqualIgnoreCase(EntityAccessorOptions.ItemPrefix))
+                ItemPrefix = (String)value;
 
             return base.SetConfig(name, value);
         }
@@ -537,10 +540,10 @@ namespace XCode.Accessors
             Control control = ControlHelper.FindControlInPage<Control>(id);
             if (control != null) return control;
 
-            control = Page.FindControl(id);
+            control = Container.FindControl(id);
             if (control != null) return control;
 
-            return ControlHelper.FindControl<Control>(Page.Form, id);
+            return ControlHelper.FindControl<Control>(Container.Form, id);
         }
 
         /// <summary>

@@ -9,16 +9,16 @@ using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.IO;
 using NewLife.Reflection;
+using XCode.Common;
 
 namespace XCode
 {
-    /// <summary>
-    /// 数据实体基类的基类
-    /// </summary>
+    /// <summary>数据实体基类的基类</summary>
     [Serializable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public abstract partial class EntityBase : BinaryAccessor, IEntity, ICloneable
     {
-        #region 创建实体
+        #region 初始化数据
         /// <summary>
         /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
         /// </summary>
@@ -92,6 +92,7 @@ namespace XCode
         /// 建立Xml序列化器
         /// </summary>
         /// <returns></returns>
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
         protected virtual XmlSerializer CreateXmlSerializer()
         {
             return new XmlSerializer(this.GetType());
@@ -101,6 +102,7 @@ namespace XCode
         /// 导出XML
         /// </summary>
         /// <returns></returns>
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
         public virtual String ToXml()
         {
             XmlSerializer serial = CreateXmlSerializer();
@@ -122,6 +124,7 @@ namespace XCode
         /// 导出Json
         /// </summary>
         /// <returns></returns>
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
         public virtual String ToJson()
         {
             Json json = new Json();
@@ -395,6 +398,17 @@ namespace XCode
                 {
                     Entity<TDependEntity>.Meta.OnDataChange += RemoveExtend;
                 }
+            }
+        }
+        #endregion
+
+        #region 主键为空
+        /// <summary>主键是否为空</summary>
+        Boolean IEntity.IsNullKey
+        {
+            get
+            {
+                return Helper.IsEntityNullKey(this);
             }
         }
         #endregion

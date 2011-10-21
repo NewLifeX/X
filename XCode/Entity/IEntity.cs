@@ -15,6 +15,9 @@ namespace XCode
 
         /// <summary>扩展属性</summary>
         IDictionary<String, Object> Extends { get; }
+
+        /// <summary>主键是否为空</summary>
+        Boolean IsNullKey { get; }
         #endregion
 
         #region 填充数据
@@ -73,6 +76,7 @@ namespace XCode
         /// 导出XML
         /// </summary>
         /// <returns></returns>
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
         String ToXml();
         #endregion
     }

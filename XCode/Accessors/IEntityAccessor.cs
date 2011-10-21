@@ -15,6 +15,14 @@ namespace XCode.Accessors
         /// <returns></returns>
         IEntityAccessor SetConfig(String name, Object value);
 
+        /// <summary>
+        /// 设置参数。返回自身，方便链式写法。
+        /// </summary>
+        /// <param name="option">参数名</param>
+        /// <param name="value">参数值</param>
+        /// <returns></returns>
+        IEntityAccessor SetConfig(EntityAccessorOptions option, Object value);
+
         /// <summary>是否支持从外部读取信息</summary>
         Boolean CanRead { get; }
 
