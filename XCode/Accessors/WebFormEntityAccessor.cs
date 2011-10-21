@@ -76,11 +76,183 @@ namespace XCode.Accessors
 
         #region 读取
         /// <summary>
-        /// 从实体对象读取指定实体字段的信息
+        /// 外部=>实体，从外部读取指定实体字段的信息
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
         protected override void OnReadItem(IEntity entity, FieldItem item)
+        {
+            Control control = FindControlByField(item);
+            if (control == null) return;
+
+            try
+            {
+                GetFormItem(entity, item, control);
+            }
+            catch (Exception ex)
+            {
+                WebHelper.Alert("读取" + item.Name + "的数据时出错！" + ex.Message);
+                return;
+            }
+        }
+
+        /// <summary>
+        /// 把控件的值设置到实体属性上
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        protected virtual void GetFormItem(IEntity entity, FieldItem field, Control control)
+        {
+            if (field == null || control == null) return;
+
+            if (control is WebControl)
+            {
+                WebControl wc = control as WebControl;
+
+                // 分控件处理
+                if (wc is TextBox)
+                    GetFormItemTextBox(entity, field, wc as TextBox);
+                else if (wc is Label)
+                    GetFormItemLabel(entity, field, wc as Label);
+                else if (wc is RadioButton)
+                    GetFormItemRadioButton(entity, field, wc as RadioButton);
+                else if (wc is CheckBox)
+                    GetFormItemCheckBox(entity, field, wc as CheckBox);
+                else if (wc is ListControl)
+                    GetFormItemListControl(entity, field, wc as ListControl);
+                else
+                {
+                    Object v = null;
+                    if (GetControlValue(control, out v) && !Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
+                }
+            }
+            else
+            {
+                Object v = null;
+                if (GetControlValue(control, out v) && !Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
+            }
+        }
+
+        void SetEntityItem(IEntity entity, FieldItem field, Object value)
+        {
+            // 先转为目标类型
+            value = TypeX.ChangeType(value, field.Type);
+            // 如果是字符串，并且为空，则让它等于实体里面的值，避免影响脏数据
+            if (field.Type == typeof(String) && String.IsNullOrEmpty((String)value) && String.IsNullOrEmpty((String)entity[field.Name])) value = entity[field.Name];
+            entity.SetItem(field.Name, value);
+        }
+
+        /// <summary>
+        /// 文本框
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        protected virtual void GetFormItemTextBox(IEntity entity, FieldItem field, TextBox control)
+        {
+            //String v = control.Text;
+            //if (!Object.Equals(entity[field.Name], v)) SetEntityItem(field, v);
+
+            Object v = null;
+            if (!GetControlValue(control, out v)) v = control.Text;
+            if (!Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
+        }
+
+        /// <summary>
+        /// 标签，不做任何操作
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        protected virtual void GetFormItemLabel(IEntity entity, FieldItem field, Label control)
+        {
+
+        }
+
+        /// <summary>
+        /// 复选框
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        protected virtual void GetFormItemCheckBox(IEntity entity, FieldItem field, CheckBox control)
+        {
+            Type type = field.Type;
+            Object v;
+            if (type == typeof(Boolean))
+                v = control.Checked;
+            else if (type == typeof(Int32))
+                v = control.Checked ? 1 : 0;
+            else
+                v = control.Checked;
+
+            if (!Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
+        }
+
+        /// <summary>
+        /// 列表框
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        protected virtual void GetFormItemListControl(IEntity entity, FieldItem field, ListControl control)
+        {
+            //if (String.IsNullOrEmpty(control.SelectedValue)) return;
+
+            String v = control.SelectedValue;
+            if (!Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
+        }
+
+        /// <summary>
+        /// 单选框
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="control"></param>
+        protected virtual void GetFormItemRadioButton(IEntity entity, FieldItem field, RadioButton control)
+        {
+            List<RadioButton> list = new List<RadioButton>();
+            // 找到同一级同组名的所有单选
+            foreach (Control item in control.Parent.Controls)
+            {
+                if (!(item is RadioButton)) continue;
+
+                RadioButton rb = item as RadioButton;
+                if (rb.GroupName != control.GroupName) continue;
+
+                list.Add(rb);
+            }
+            if (list.Count < 1) return;
+
+            // 特殊处理数字
+            if (field.Type == typeof(Int32))
+            {
+                Int32 id = -1;
+                for (int i = 0; i < list.Count; i++)
+                {
+                    if (list[i].Checked)
+                    {
+                        id = i;
+                        break;
+                    }
+                }
+                if (id >= 0 && !Object.Equals(entity[field.Name], id)) SetEntityItem(entity, field, id);
+            }
+            else
+            {
+                foreach (RadioButton item in list)
+                {
+                    if (item.Checked)
+                    {
+                        if (!Object.Equals(entity[field.Name], item.Text)) SetEntityItem(entity, field, item.Text);
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region 写入
+        /// <summary>
+        /// 实体=>外部，把指定实体字段的信息写入到外部
+        /// </summary>
+        /// <param name="entity">实体对象</param>
+        /// <param name="item">实体字段</param>
+        protected override void OnWriteItem(IEntity entity, FieldItem item)
         {
             Control control = FindControlByField(item);
             if (control == null) return;
@@ -316,178 +488,6 @@ namespace XCode.Accessors
                 control.Parent.Controls.AddAt(p + 1, lc);
             }
             catch { }
-        }
-        #endregion
-
-        #region 写入
-        /// <summary>
-        /// 把指定实体字段的信息写入到实体对象
-        /// </summary>
-        /// <param name="entity">实体对象</param>
-        /// <param name="item">实体字段</param>
-        protected override void OnWriteItem(IEntity entity, FieldItem item)
-        {
-            Control control = FindControlByField(item);
-            if (control == null) return;
-
-            try
-            {
-                GetFormItem(entity, item, control);
-            }
-            catch (Exception ex)
-            {
-                WebHelper.Alert("读取" + item.Name + "的数据时出错！" + ex.Message);
-                return;
-            }
-        }
-
-        /// <summary>
-        /// 把控件的值设置到实体属性上
-        /// </summary>
-        /// <param name="field"></param>
-        /// <param name="control"></param>
-        protected virtual void GetFormItem(IEntity entity, FieldItem field, Control control)
-        {
-            if (field == null || control == null) return;
-
-            if (control is WebControl)
-            {
-                WebControl wc = control as WebControl;
-
-                // 分控件处理
-                if (wc is TextBox)
-                    GetFormItemTextBox(entity, field, wc as TextBox);
-                else if (wc is Label)
-                    GetFormItemLabel(entity, field, wc as Label);
-                else if (wc is RadioButton)
-                    GetFormItemRadioButton(entity, field, wc as RadioButton);
-                else if (wc is CheckBox)
-                    GetFormItemCheckBox(entity, field, wc as CheckBox);
-                else if (wc is ListControl)
-                    GetFormItemListControl(entity, field, wc as ListControl);
-                else
-                {
-                    Object v = null;
-                    if (GetControlValue(control, out v) && !Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
-                }
-            }
-            else
-            {
-                Object v = null;
-                if (GetControlValue(control, out v) && !Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
-            }
-        }
-
-        void SetEntityItem(IEntity entity, FieldItem field, Object value)
-        {
-            // 先转为目标类型
-            value = TypeX.ChangeType(value, field.Type);
-            // 如果是字符串，并且为空，则让它等于实体里面的值，避免影响脏数据
-            if (field.Type == typeof(String) && String.IsNullOrEmpty((String)value) && String.IsNullOrEmpty((String)entity[field.Name])) value = entity[field.Name];
-            entity.SetItem(field.Name, value);
-        }
-
-        /// <summary>
-        /// 文本框
-        /// </summary>
-        /// <param name="field"></param>
-        /// <param name="control"></param>
-        protected virtual void GetFormItemTextBox(IEntity entity, FieldItem field, TextBox control)
-        {
-            //String v = control.Text;
-            //if (!Object.Equals(entity[field.Name], v)) SetEntityItem(field, v);
-
-            Object v = null;
-            if (!GetControlValue(control, out v)) v = control.Text;
-            if (!Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
-        }
-
-        /// <summary>
-        /// 标签，不做任何操作
-        /// </summary>
-        /// <param name="field"></param>
-        /// <param name="control"></param>
-        protected virtual void GetFormItemLabel(IEntity entity, FieldItem field, Label control)
-        {
-
-        }
-
-        /// <summary>
-        /// 复选框
-        /// </summary>
-        /// <param name="field"></param>
-        /// <param name="control"></param>
-        protected virtual void GetFormItemCheckBox(IEntity entity, FieldItem field, CheckBox control)
-        {
-            Type type = field.Type;
-            Object v;
-            if (type == typeof(Boolean))
-                v = control.Checked;
-            else if (type == typeof(Int32))
-                v = control.Checked ? 1 : 0;
-            else
-                v = control.Checked;
-
-            if (!Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
-        }
-
-        /// <summary>
-        /// 列表框
-        /// </summary>
-        /// <param name="field"></param>
-        /// <param name="control"></param>
-        protected virtual void GetFormItemListControl(IEntity entity, FieldItem field, ListControl control)
-        {
-            //if (String.IsNullOrEmpty(control.SelectedValue)) return;
-
-            String v = control.SelectedValue;
-            if (!Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
-        }
-
-        /// <summary>
-        /// 单选框
-        /// </summary>
-        /// <param name="field"></param>
-        /// <param name="control"></param>
-        protected virtual void GetFormItemRadioButton(IEntity entity, FieldItem field, RadioButton control)
-        {
-            List<RadioButton> list = new List<RadioButton>();
-            // 找到同一级同组名的所有单选
-            foreach (Control item in control.Parent.Controls)
-            {
-                if (!(item is RadioButton)) continue;
-
-                RadioButton rb = item as RadioButton;
-                if (rb.GroupName != control.GroupName) continue;
-
-                list.Add(rb);
-            }
-            if (list.Count < 1) return;
-
-            // 特殊处理数字
-            if (field.Type == typeof(Int32))
-            {
-                Int32 id = -1;
-                for (int i = 0; i < list.Count; i++)
-                {
-                    if (list[i].Checked)
-                    {
-                        id = i;
-                        break;
-                    }
-                }
-                if (id >= 0 && !Object.Equals(entity[field.Name], id)) SetEntityItem(entity, field, id);
-            }
-            else
-            {
-                foreach (RadioButton item in list)
-                {
-                    if (item.Checked)
-                    {
-                        if (!Object.Equals(entity[field.Name], item.Text)) SetEntityItem(entity, field, item.Text);
-                    }
-                }
-            }
         }
         #endregion
 

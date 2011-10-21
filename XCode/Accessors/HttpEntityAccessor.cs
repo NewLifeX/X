@@ -55,15 +55,15 @@ namespace XCode.Accessors
             return base.SetConfig(name, value);
         }
 
-        /// <summary>是否支持从实体对象读取信息</summary>
-        public override bool CanRead { get { return false; } }
+        /// <summary>是否支持把信息写入到外部</summary>
+        public override bool CanWrite { get { return false; } }
 
         /// <summary>
-        /// 把指定实体字段的信息写入到实体对象
+        /// 外部=>实体，从外部读取指定实体字段的信息
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
-        protected override void OnWriteItem(IEntity entity, FieldItem item)
+        protected override void OnReadItem(IEntity entity, FieldItem item)
         {
             Object v = GetRequestItem(item);
             if (v == null) return;

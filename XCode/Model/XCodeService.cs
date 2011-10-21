@@ -1,6 +1,7 @@
 ﻿using System;
 using NewLife.Model;
 using NewLife.Reflection;
+using XCode.Accessors;
 using XCode.DataAccessLayer;
 
 namespace XCode.Model
@@ -17,6 +18,8 @@ namespace XCode.Model
                 .Register<IDataRowEntityAccessorProvider, DataRowEntityAccessorProvider>(null, false);
 
             DbFactory.Reg(container);
+
+            EntityAccessorFactory.Reg(container);
         }
 
         ///// <summary>对象容器</summary>

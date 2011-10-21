@@ -69,7 +69,7 @@ namespace XCode.Accessors
 
         #region 读取
         /// <summary>
-        /// 从实体对象读取指定实体字段的信息
+        /// 外部=>实体，从外部读取指定实体字段的信息
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
@@ -82,7 +82,7 @@ namespace XCode.Accessors
             try
             {
                 //TODO:参考WebForm
-                //SetFormItem(entity, item, control, canSave);
+                //GetFormItem(entity, item, control);
             }
             catch (Exception ex)
             {
@@ -94,7 +94,7 @@ namespace XCode.Accessors
 
         #region 写入
         /// <summary>
-        /// 把指定实体字段的信息写入到实体对象
+        /// 实体=>外部，把指定实体字段的信息写入到外部
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
@@ -106,7 +106,7 @@ namespace XCode.Accessors
             try
             {
                 //TODO:参考WebForm
-                //GetFormItem(entity, item, control);
+                //SetFormItem(entity, item, control, canSave);
             }
             catch (Exception ex)
             {

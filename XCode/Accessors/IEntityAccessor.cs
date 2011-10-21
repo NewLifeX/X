@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace XCode
+namespace XCode.Accessors
 {
     /// <summary>实体数据存取器接口</summary>
     public interface IEntityAccessor
@@ -15,21 +15,21 @@ namespace XCode
         /// <returns></returns>
         IEntityAccessor SetConfig(String name, Object value);
 
-        /// <summary>是否支持从实体对象读取信息</summary>
+        /// <summary>是否支持从外部读取信息</summary>
         Boolean CanRead { get; }
 
-        /// <summary>是否支持把信息写入到实体对象</summary>
+        /// <summary>是否支持把信息写入到外部</summary>
         Boolean CanWrite { get; }
 
         /// <summary>
-        /// 从实体对象读取信息
+        /// 外部=>实体，从外部读取信息并写入到实体对象
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="eop">实体操作。为空时由内部构建，但可在遍历调用访问器时由外部构造一次传入，以提高性能。</param>
         void Read(IEntity entity, IEntityOperate eop = null);
 
         /// <summary>
-        /// 把信息写入到实体对象
+        /// 实体=>外部，从实体对象读取信息并写入外部
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="eop">实体操作。为空时由内部构建，但可在遍历调用访问器时由外部构造一次传入，以提高性能。</param>

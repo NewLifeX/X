@@ -56,7 +56,7 @@ namespace XCode.Accessors
         IReader reader;
 
         /// <summary>
-        /// 从实体对象读取信息
+        /// 外部=>实体，从外部读取信息并写入到实体对象
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="eop">实体操作。为空时由内部构建，但可在遍历调用访问器时由外部构造一次传入，以提高性能。</param>
@@ -80,7 +80,7 @@ namespace XCode.Accessors
         }
 
         /// <summary>
-        /// 从实体对象读取指定实体字段的信息
+        /// 外部=>实体，从外部读取指定实体字段的信息
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
@@ -90,7 +90,7 @@ namespace XCode.Accessors
         }
 
         /// <summary>
-        /// 把信息写入到实体对象
+        /// 实体=>外部，从实体对象读取信息并写入外部
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="eop">实体操作。为空时由内部构建，但可在遍历调用访问器时由外部构造一次传入，以提高性能。</param>
@@ -117,13 +117,13 @@ namespace XCode.Accessors
         }
 
         /// <summary>
-        /// 把指定实体字段的信息写入到实体对象
+        /// 实体=>外部，把指定实体字段的信息写入到外部
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
         protected override void OnWriteItem(IEntity entity, FieldItem item)
         {
-            Object obj = null;
+            Object obj = entity;
             reader.ReadObject(item.Type, ref obj, null);
             entity.SetItem(item.Name, obj);
         }
