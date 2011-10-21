@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows.Forms;
-using XCode.Configuration;
+using NewLife;
 using NewLife.Reflection;
+using XCode.Configuration;
 
 namespace XCode.Accessors
 {
@@ -38,17 +37,34 @@ namespace XCode.Accessors
         }
         #endregion
 
-        #region 构造
-        /// <summary>
-        /// 实例化一个WinForm实体访问器
-        /// </summary>
-        /// <param name="container"></param>
-        public WinFormEntityAccessor(Control container)
-        {
-            if (container == null) throw new ArgumentNullException("page");
+        #region 方法
+        ///// <summary>
+        ///// 实例化一个WinForm实体访问器
+        ///// </summary>
+        ///// <param name="container"></param>
+        //public WinFormEntityAccessor(Control container)
+        //{
+        //    if (container == null) throw new ArgumentNullException("page");
 
-            Container = container;
+        //    Container = container;
+        //}
+
+        /// <summary>
+        /// 设置参数。返回自身，方便链式写法。
+        /// </summary>
+        /// <param name="name">参数名</param>
+        /// <param name="value">参数值</param>
+        /// <returns></returns>
+        public override IEntityAccessor SetConfig(string name, object value)
+        {
+            if (name.EqualIgnoreCase("Container")) Container = Container as Control;
+            if (name.EqualIgnoreCase("Parent")) Container = Container as Control;
+            if (name.EqualIgnoreCase("MaxLength")) MaxLength = (Int64)value;
+            if (name.EqualIgnoreCase("ItemPrefix")) ItemPrefix = (String)value;
+
+            return base.SetConfig(name, value);
         }
+
         #endregion
 
         #region 读取

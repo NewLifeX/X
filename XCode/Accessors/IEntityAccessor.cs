@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace XCode
 {
@@ -7,10 +8,12 @@ namespace XCode
     public interface IEntityAccessor
     {
         /// <summary>
-        /// 使用参数进行初始化
+        /// 设置参数。返回自身，方便链式写法。
         /// </summary>
-        /// <param name="ps"></param>
-        void Init(IDictionary<String, Object> ps);
+        /// <param name="name">参数名</param>
+        /// <param name="value">参数值</param>
+        /// <returns></returns>
+        IEntityAccessor SetConfig(String name, Object value);
 
         /// <summary>是否支持从实体对象读取信息</summary>
         Boolean CanRead { get; }
@@ -33,19 +36,19 @@ namespace XCode
         void Write(IEntity entity, IEntityOperate eop = null);
     }
 
-    /// <summary>实体数据存取器接口</summary>
-    public interface IEntityAccessor<TEntity> : IEntityAccessor where TEntity : Entity<TEntity>, new()
-    {
-        /// <summary>
-        /// 从实体对象读取信息
-        /// </summary>
-        /// <param name="entity">实体对象</param>
-        void Read(TEntity entity);
+    ///// <summary>实体数据存取器接口</summary>
+    //public interface IEntityAccessor<TEntity> : IEntityAccessor where TEntity : Entity<TEntity>, new()
+    //{
+    //    /// <summary>
+    //    /// 从实体对象读取信息
+    //    /// </summary>
+    //    /// <param name="entity">实体对象</param>
+    //    void Read(TEntity entity);
 
-        /// <summary>
-        /// 把信息写入到实体对象
-        /// </summary>
-        /// <param name="entity">实体对象</param>
-        void Write(TEntity entity);
-    }
+    //    /// <summary>
+    //    /// 把信息写入到实体对象
+    //    /// </summary>
+    //    /// <param name="entity">实体对象</param>
+    //    void Write(TEntity entity);
+    //}
 }

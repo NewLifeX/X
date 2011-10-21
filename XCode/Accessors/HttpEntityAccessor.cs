@@ -4,6 +4,8 @@ using System.Text;
 using System.Web;
 using XCode.Configuration;
 using XCode.Exceptions;
+using NewLife;
+using NewLife.Extension;
 
 namespace XCode.Accessors
 {
@@ -29,19 +31,33 @@ namespace XCode.Accessors
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 实例化一个Http实体访问器
-        /// </summary>
-        /// <param name="request"></param>
-        public HttpEntityAccessor(HttpRequest request)
-        {
-            if (request == null) throw new ArgumentNullException("request");
+        ///// <summary>
+        ///// 实例化一个Http实体访问器
+        ///// </summary>
+        ///// <param name="request"></param>
+        //public HttpEntityAccessor(HttpRequest request)
+        //{
+        //    if (request == null) throw new ArgumentNullException("request");
 
-            Request = request;
-        }
+        //    Request = request;
+        //}
         #endregion
 
         #region IEntityAccessor 成员
+        /// <summary>
+        /// 设置参数。返回自身，方便链式写法。
+        /// </summary>
+        /// <param name="name">参数名</param>
+        /// <param name="value">参数值</param>
+        /// <returns></returns>
+        public override IEntityAccessor SetConfig(string name, object value)
+        {
+            if (name.EqualIgnoreCase("request")) Request = value as HttpRequest;
+            if (name.EqualIgnoreCase("MaxLength")) MaxLength = (Int64)value;
+
+            return base.SetConfig(name, value);
+        }
+
         /// <summary>是否支持从实体对象读取信息</summary>
         public override bool CanRead { get { return false; } }
 

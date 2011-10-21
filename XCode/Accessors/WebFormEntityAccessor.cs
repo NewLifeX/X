@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using NewLife;
 using NewLife.Reflection;
 using NewLife.Web;
 using XCode.Common;
@@ -46,15 +47,30 @@ namespace XCode.Accessors
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 实例化一个WebForm实体访问器
-        /// </summary>
-        /// <param name="page"></param>
-        public WebFormEntityAccessor(Page page)
-        {
-            if (page == null) throw new ArgumentNullException("page");
+        ///// <summary>
+        ///// 实例化一个WebForm实体访问器
+        ///// </summary>
+        ///// <param name="page"></param>
+        //public WebFormEntityAccessor(Page page)
+        //{
+        //    if (page == null) throw new ArgumentNullException("page");
 
-            Page = page;
+        //    Page = page;
+        //}
+
+        /// <summary>
+        /// 设置参数。返回自身，方便链式写法。
+        /// </summary>
+        /// <param name="name">参数名</param>
+        /// <param name="value">参数值</param>
+        /// <returns></returns>
+        public override IEntityAccessor SetConfig(string name, object value)
+        {
+            if (name.EqualIgnoreCase("Page")) Page = value as Page;
+            if (name.EqualIgnoreCase("MaxLength")) MaxLength = (Int64)value;
+            if (name.EqualIgnoreCase("ItemPrefix")) ItemPrefix = (String)value;
+
+            return base.SetConfig(name, value);
         }
         #endregion
 

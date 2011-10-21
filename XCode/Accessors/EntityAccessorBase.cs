@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using NewLife;
 using XCode.Configuration;
 
 namespace XCode.Accessors
 {
     /// <summary>实体访问器基类</summary>
-    abstract class EntityAccessorBase
+    abstract class EntityAccessorBase : IEntityAccessor
     {
         #region 事件
         /// <summary>
@@ -20,6 +22,14 @@ namespace XCode.Accessors
         #endregion
 
         #region IEntityAccessor 成员
+        /// <summary>
+        /// 设置参数。返回自身，方便链式写法。
+        /// </summary>
+        /// <param name="name">参数名</param>
+        /// <param name="value">参数值</param>
+        /// <returns></returns>
+        public virtual IEntityAccessor SetConfig(String name, Object value) { return this; }
+
         /// <summary>是否支持从实体对象读取信息</summary>
         public virtual bool CanRead { get { return true; } }
 

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using NewLife.Model;
 using XCode.Model;
 
@@ -25,24 +23,20 @@ namespace XCode.Accessors
         /// 创建指定类型的实体访问器
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="ps"></param>
         /// <returns></returns>
-        public static IEntityAccessor Create(String name, IDictionary<String, Object> ps = null)
+        public static IEntityAccessor Create(String name)
         {
-            IEntityAccessor accessor = XCodeService.Resolve<IEntityAccessor>(name);
-            accessor.Init(ps);
-            return accessor;
+            return XCodeService.Resolve<IEntityAccessor>(name);
         }
 
         /// <summary>
         /// 创建指定类型的实体访问器
         /// </summary>
         /// <param name="kind"></param>
-        /// <param name="ps"></param>
         /// <returns></returns>
-        public static IEntityAccessor Create(EntityAccessorTypes kind, IDictionary<String, Object> ps = null)
+        public static IEntityAccessor Create(EntityAccessorTypes kind)
         {
-            return Create(kind.ToString(), ps);
+            return Create(kind.ToString());
         }
     }
 }
