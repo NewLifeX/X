@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Web;
+using NewLife;
 using XCode.Configuration;
 using XCode.Exceptions;
-using NewLife;
-using NewLife.Extension;
 
 namespace XCode.Accessors
 {

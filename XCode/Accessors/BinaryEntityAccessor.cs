@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using NewLife.Serialization;
 
 namespace XCode.Accessors
 {
-    class BinaryEntityAccessor : EntityAccessorBase
+    class BinaryEntityAccessor : SerializationEntityAccessorBase
     {
+        protected override IWriter GetWriter() { return new BinaryWriterX(); }
+
+        protected override IReader GetReader() { return new BinaryReaderX(); }
     }
 }
