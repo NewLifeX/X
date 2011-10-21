@@ -14,7 +14,7 @@ using XCode;
 namespace NewLife.CommonEntity
 {
     /// <summary>菜单</summary>
-    [BindIndex("IX_Menu_Url", true, "Url")]
+    [BindIndex("IX_Menu_Url", false, "Url")]
     [BindIndex("IX_Menu_Name", false, "Name")]
     [BindIndex("PK__Menu", true, "ID")]
     [BindRelation("ID", true, "RoleMenu", "MenuID")]
