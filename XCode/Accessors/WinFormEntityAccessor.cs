@@ -62,10 +62,13 @@ namespace XCode.Accessors
         /// <returns></returns>
         public override IEntityAccessor SetConfig(string name, object value)
         {
-            if (name.EqualIgnoreCase("Container")) Container = value as Control;
-            if (name.EqualIgnoreCase("Parent")) Container = value as Control;
-            if (name.EqualIgnoreCase("ItemPrefix")) ItemPrefix = (String)value;
-            if (name.EqualIgnoreCase("IsFindChildForm")) IsFindChildForm = (Boolean)value;
+            if (name.EqualIgnoreCase(EntityAccessorOptions.Container))
+                Container = value as Control;
+            else if (name.EqualIgnoreCase(EntityAccessorOptions.IsFindChildForm))
+                IsFindChildForm = (Boolean)value;
+            else if (name.EqualIgnoreCase(EntityAccessorOptions.ItemPrefix))
+                ItemPrefix = (String)value;
+
             return base.SetConfig(name, value);
         }
 
@@ -135,7 +138,7 @@ namespace XCode.Accessors
             return FindControlInContainer(name);
         }
 
-
+        /// <summary>
         /// 在页面查找指定ID的控件，采用反射字段的方法，避免遍历Controls引起子控件构造
         /// </summary>
         /// <typeparam name="T"></typeparam>

@@ -543,7 +543,7 @@ namespace XCode.Accessors
             control = Container.FindControl(id);
             if (control != null) return control;
 
-            return ControlHelper.FindControl<Control>(Container.Form, id);
+            return ControlHelper.FindControl<Control>(Container, id);
         }
 
         /// <summary>
