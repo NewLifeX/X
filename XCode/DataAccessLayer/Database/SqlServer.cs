@@ -63,14 +63,15 @@ namespace XCode.DataAccessLayer
             set { _IsSQL2005 = value; }
         }
 
+        const String Application_Name = "Application Name";
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
 
-            if (!builder.ContainsKey("Application Name"))
+            if (!builder.ContainsKey(Application_Name))
             {
                 String name = Runtime.IsWeb ? HostingEnvironment.SiteName : AppDomain.CurrentDomain.FriendlyName;
-                builder["Application Name"] = "XCode_" + name;
+                builder[Application_Name] = String.Format("XCode_{0}_{1}", name, ConnName);
             }
         }
         #endregion
