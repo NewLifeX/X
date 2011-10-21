@@ -230,7 +230,8 @@ function Dialog(strID)
     this.showBtOK = true; //是否显示确认按钮
     //this.btCancelText = ""; //关闭按钮默认文字
     //this.btOKText = "";//确定按钮默认文字
-   
+    this.BeforeShow = null;
+    this.AfterClose = null;
 }
 
 Dialog._Array = [];
@@ -538,62 +539,68 @@ Dialog.prototype.addParam = function(paramName, paramValue)
 
 Dialog.prototype.close = function()
 {
-    if (this.innerElementId)
-    {
-        var innerElement = $E.getTopLevelWindow().GetObjID(this.innerElementId);
-        innerElement.style.display = "none";
-        if (isIE)
+    try{
+        if (this.innerElementId)
         {
-            //ie下不能跨窗口拷贝元素
-            var fragment = document.createElement("div");
-            fragment.innerHTML = innerElement.outerHTML;
-            innerElement.outerHTML = "";
-            $T("body")[0].appendChild(fragment)
+            var innerElement = $E.getTopLevelWindow().GetObjID(this.innerElementId);
+            innerElement.style.display = "none";
+            if (isIE)
+            {
+                //ie下不能跨窗口拷贝元素
+                var fragment = document.createElement("div");
+                fragment.innerHTML = innerElement.outerHTML;
+                innerElement.outerHTML = "";
+                $T("body")[0].appendChild(fragment)
+            } else
+            {
+                $T("body")[0].appendChild(innerElement)
+            }
+
+        }
+        if (this.WindowFlag)
+        {
+            this.ParentWindow.$D = null;
+            this.ParentWindow.$DW = null;
+            this.Window.opener = null;
+            this.Window.close();
+            this.Window = null;
         } else
         {
-            $T("body")[0].appendChild(innerElement)
-        }
-
-    }
-    if (this.WindowFlag)
-    {
-        this.ParentWindow.$D = null;
-        this.ParentWindow.$DW = null;
-        this.Window.opener = null;
-        this.Window.close();
-        this.Window = null;
-    } else
-    {
-        //如果上级窗口是对话框，则将其置于bgdiv前
-        var pw = $E.getTopLevelWindow();
-        var doc = pw.document;
-        var win = window;
-        var flag = false;
-        while (win != win.parent)
-        {
-            if (win._DialogInstance)
+            //如果上级窗口是对话框，则将其置于bgdiv前
+            var pw = $E.getTopLevelWindow();
+            var doc = pw.document;
+            var win = window;
+            var flag = false;
+            while (win != win.parent)
             {
-                flag = true;
-                win._DialogInstance.DialogDiv.style.zIndex = 960;
-                break;
+                if (win._DialogInstance)
+                {
+                    flag = true;
+                    win._DialogInstance.DialogDiv.style.zIndex = 960;
+                    break;
+                }
+                win = win.parent;
             }
-            win = win.parent;
+            if (this.AlertFlag)
+            {
+                $E.hide(pw.GetObjID("_AlertBGDiv"));
+            }
+            if (!flag && !this.AlertFlag)
+            {//此处是为处理弹出窗口被关闭后iframe立即被重定向时背景层不消失的问题
+                pw.eval('window._OpacityFunc = function(){var w = $E.getTopLevelWindow();$E.hide(w.GetObjID("_DialogBGDiv"));}');
+                pw._OpacityFunc();
+            }
+            this.DialogDiv.outerHTML = "";
+            /* // @netwjx 不修改父窗口的html标签样式
+            var pwbody = doc.getElementsByTagName(isQuirks ? "BODY" : "HTML")[0];
+            pwbody.style.overflow = "auto"; //还原滚动条
+            */
+            pw.Dialog._Array.remove(this.ID);
         }
-        if (this.AlertFlag)
-        {
-            $E.hide(pw.GetObjID("_AlertBGDiv"));
+    }finally{
+        if(typeof this.AfterClose === 'function'){
+            this.AfterClose();
         }
-        if (!flag && !this.AlertFlag)
-        {//此处是为处理弹出窗口被关闭后iframe立即被重定向时背景层不消失的问题
-            pw.eval('window._OpacityFunc = function(){var w = $E.getTopLevelWindow();$E.hide(w.GetObjID("_DialogBGDiv"));}');
-            pw._OpacityFunc();
-        }
-        this.DialogDiv.outerHTML = "";
-        /* // @netwjx 不修改父窗口的html标签样式
-        var pwbody = doc.getElementsByTagName(isQuirks ? "BODY" : "HTML")[0];
-        pwbody.style.overflow = "auto"; //还原滚动条
-        */
-        pw.Dialog._Array.remove(this.ID);
     }
 }
 
@@ -610,6 +617,9 @@ function ShowDialog(options){
     var dialog=new Dialog(options.ID);
     for (var o in options) {
         dialog[o]=options[o];
+    }
+    if(typeof dialog.BeforeShow === 'function'){
+        dialog.BeforeShow(options);
     }
     dialog.show();
     return dialog;

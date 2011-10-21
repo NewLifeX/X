@@ -8,6 +8,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Reflection;
 using NewLife.Web;
+using System.Text.RegularExpressions;
 
 [assembly: WebResource("XControl.View.GridViewExtender.js", "text/javascript")]
 
@@ -25,7 +26,9 @@ namespace XControl
     {
         #region 属性
         /// <summary>选中项背景颜色</summary>
-        [Description("选中项背景颜色")]
+        [Description("选中项背景颜色"),
+        DefaultValue(typeof(Color), ""),
+        TypeConverter(typeof(WebColorConverter))]
         public Color SelectedRowBackColor
         {
             get { return GetPropertyValue<Color>("SelectedRowBackColor", Color.Empty); }
@@ -270,8 +273,8 @@ namespace XControl
         #region 点击
         void RenderOnClick(GridView gv)
         {
-            string initExtender = null, editLinkBoxText = "编辑",
-                selectedColor = SelectedRowBackColor != Color.Empty ? new WebColorConverter().ConvertToString(SelectedRowBackColor) : null;
+            string editLinkBoxText = "编辑";
+            // 找到编辑列所在列序号
             int editColumIndex = -1;
             for (int i = 0; i < gv.Columns.Count; i++)
             {
@@ -283,34 +286,37 @@ namespace XControl
                 }
             }
 
-            if (SelectedRowBackColor != Color.Empty)
+            StringBuilder js = new StringBuilder();
+            string selectedColor = SelectedRowBackColor != Color.Empty ? new WebColorConverter().ConvertToString(SelectedRowBackColor) : null;
+            if (SelectedRowBackColor != Color.Empty) // 行单击变色
             {
-                StringBuilder js = new StringBuilder();
                 if (SelectedRowBackColor != Color.Empty)
                 {
-                    js.AppendFormat(@"click:e.Highlight('{0}'),
-", JSStringEscape(selectedColor));
-                }
-                if (editColumIndex >= 0)
-                {
-                    js.AppendFormat(@"dblclick:e.ClickElement('a',function(i){{return i.innerHTML==='{0}';}}),
-", JSStringEscape(editLinkBoxText)); // 这里的'a'表示是html标签a,因为编辑列字段 LinkBoxField 输出的是a标签
-                }
-
-                if (js.Length > 0)
-                {
-                    js.Remove(js.Length - 3, 3); // 回车换行符和结尾的逗号
-                    initExtender = string.Format(@"(function(e){{
-    e.ExtendDataRow('{0}', EventMap:{{ {1} }});
-}}(GridViewExtender));", gv.ClientID, js);
+                    js.AppendFormat(@"click:e.Highlight('{0}'),", JSStringEscape(selectedColor));
                 }
             }
-
-            if (!string.IsNullOrEmpty(initExtender))
+            if (editColumIndex >= 0) // 双击行变点击编辑
             {
-                // TODO 在合适的位置插入外部引用的脚本 和插入初始化脚本
-                // Page.ClientScript.RegisterStartupScript
+                js.AppendFormat(
+@"dblclick:e.ClickElement('a',function(i){{
+    return i.innerHTML==='{0}';
+}}),", JSStringEscape(editLinkBoxText)); // 这里的'a'表示是html标签a,因为编辑列字段 LinkBoxField 输出的是a标签
             }
+            if (js.Length > 0 && gv.Rows.Count > 0)
+            {
+                js.Remove(js.Length - 1, 1); // 回车换行符和结尾的逗号
+                string initGridViewJS = string.Format(
+@";(function(e){{
+    e.ExtendDataRow('{0}', {{
+            EventMap:{{ {1} }}
+        }}
+    );
+}}(GridViewExtender));", gv.ClientID, js);
+
+                Page.ClientScript.RegisterClientScriptResource(GetType(), "XControl.View.GridViewExtender.js");
+                Page.ClientScript.RegisterStartupScript(GetType(), "InitGridView" + gv.ClientID, SimpleMinJs(initGridViewJS), true);
+            }
+
             foreach (GridViewRow item in gv.Rows)
             {
                 if (item.RowType != DataControlRowType.DataRow) continue;
@@ -337,10 +343,34 @@ namespace XControl
                 Format(item, "ondblclick", ondblclick);
             }
         }
-
-        static string JSStringEscape(string input)
+        /// <summary>
+        /// 将指定的字符串作为javascript中使用的字符串内容返回,没有js字符串声明两边的双引号
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public static string JSStringEscape(string i)
         {
-            return input.Replace("'", @"\'").Replace("\"", @"\""");
+            return (i + "").Replace(@"\", @"\\").Replace("'", @"\'").Replace("\"", @"\""").Replace("\r", @"\r").Replace("\n", @"\n");
+        }
+        static Regex reMinJs = new Regex(@"\s*(?:\r\n|\r|\n)+\s*", RegexOptions.Compiled);
+        /// <summary>
+        /// 将指定的javascript代码做简单压缩,去除换行和缩进
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public static string SimpleMinJs(string i)
+        {
+            return reMinJs.Replace(i + "", "");
+        }
+        /// <summary>
+        /// 将指定字符串作为html标签属性中可使用的字符串返回
+        /// </summary>
+        /// <param name="i"></param>
+        public static string HTMLPropertyEscape(string i)
+        {
+            return (i + "").Replace("\"", "&quot;")
+                //.Replace("&", "&amp;") 现代浏览器基本都会对此容错,不合理的命名实体会忽略
+                .Replace("\r", "&#13;").Replace("\n", "&#10;");
         }
 
         private void Format(GridViewRow row, string att, string value)

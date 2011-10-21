@@ -1,4 +1,4 @@
-﻿(function () {
+﻿;(function () {
     var w = window, d = document, bindedEvents = [], objectData = new objectDict();
 
     // 对象字典,可以将html元素和js变量关联起来,而不用在html元素中引用js元素
@@ -223,11 +223,14 @@
             }
             if (colors.length == 1) colors.push('');
             return function (e, row, i) {
-                var s = row.style, d = getBgColorArray(row), c = d.has({ t: colors });
+                var s = row.style, d = getBgColorArray(row), c = d.has({ t: colors }), addfunc = 'push';
                 if (c) {
                     c[1].c = nextColor(colors, c[1].c);
                 } else {
-                    d.push({ t: colors, c: colors[0] });
+                    if (d.length > 0) {
+                        addfunc = 'unshift';
+                    }
+                    d[addfunc]({ t: colors, c: colors[0] });
                 }
                 c = d.last();
                 if (c) {
@@ -247,15 +250,16 @@
                 }
                 if (map[name]) color = map[name];
                 else color = name;
+
                 d = getBgColorArray(row);
-                c = d.has({ t: 'HighlightRow' });
+                c = d.has({ t: 'HighlightRow' }); // TODO 考虑是否有需要提供分组,而不是使用单一的HighlightRow的组
 
                 if (typeof toggle === 'undefined') {
-                    toggle = !c || c[1].c && c[1].c.toLowerCase() !== color.toLowerCase();
+                    toggle = !c || c[1].c && color && c[1].c.toLowerCase() !== color.toLowerCase();
                 }
 
                 if (c) d.remove({ t: 'HighlightRow' });
-                if (toggle) {
+                if (toggle && typeof color !== 'undefined' && color !== '') {
                     d.push({ t: 'HighlightRow', c: color });
                 }
 

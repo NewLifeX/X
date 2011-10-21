@@ -5,6 +5,8 @@ using System.Web.UI.WebControls;
 using System.Web.UI;
 using System.ComponentModel;
 using System.Drawing.Design;
+using System.Drawing;
+using NewLife.Configuration;
 
 
 // 特别要注意，这里得加上默认命名空间和目录名，因为vs2005编译的时候会给文件加上这些东东的
@@ -175,6 +177,39 @@ namespace XControl
                 ViewState["ShowButtonRow"] = value;
             }
         }
+        /// <summary>
+        /// 打开窗口后将所在GridView中所在行高亮的颜色
+        /// </summary>
+        [DefaultValue(typeof(Color), ""),
+        Themeable(false),
+        Category(" "),
+        Description("打开窗口后将所在GridView中所在行高亮的颜色"),
+        TypeConverter(typeof(WebColorConverter))]
+        public Color ClickedRowBackColor
+        {
+            get
+            {
+                object o = ViewState["ClickedRowBackColor"];
+                if (o == null)
+                {
+                    string c = Config.GetConfig<string>(GetType().FullName + ".ClickedRowBackColor", null);
+                    if (!string.IsNullOrEmpty(c))
+                    {
+                        try
+                        {
+                            o = new WebColorConverter().ConvertFromString(c);
+                        }
+                        catch { }
+                    }
+                }
+
+                return o != null ? (Color)o : Color.Empty;
+            }
+            set
+            {
+                ViewState["ClickedRowBackColor"] = value;
+            }
+        }
         #endregion
 
         /// <summary>
@@ -207,25 +242,30 @@ namespace XControl
 
         void UpdateOnClientClick()
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("ID:'win{0}', ", new Random().Next(1, 1000));
-            sb.AppendFormat("Title:'{0}', ", Title);
-
             String url = Url;
-            if (!url.StartsWith("http://", StringComparison.Ordinal))
-                url = Control.ResolveUrl(url);
-            sb.AppendFormat("URL:'{0}', ", url);
-            if (Width != Unit.Empty) sb.AppendFormat("Width:{0}, ", (Int32)Width.Value);
-            if (Height != Unit.Empty) sb.AppendFormat("Height:{0}, ", (Int32)Height.Value);
-            sb.AppendFormat("ShowMessageRow:{0}, ", ShowMessageRow.ToString().ToLower());
-            sb.AppendFormat("MessageTitle:'{0}', ", MessageTitle);
-            sb.AppendFormat("Message:'{0}', ", Message);
-            sb.AppendFormat("ShowButtonRow:{0}", ShowButtonRow.ToString().ToLower());
-            string stopPropagation = this.Control is GridView ? "stopEventPropagation(event);" : "";
-            if (stopPropagation.Length > 0)
+            if (!url.StartsWith("http://", StringComparison.Ordinal)) url = Control.ResolveUrl(url);
+            string jsFuncName = Control.ClientID + "ShowDialog";
+
+            if (!Control.Page.ClientScript.IsClientScriptBlockRegistered(GetType(), jsFuncName))
             {
-                Control.Page.ClientScript.RegisterClientScriptBlock(this.GetType(), "stopEventPropagation", @"
-function stopEventPropagation(e){
+                StringBuilder showJs = new StringBuilder(), moreJs = new StringBuilder();
+                if (Width != Unit.Empty) showJs.AppendFormat("Width:{0},", (Int32)Width.Value);
+                if (Height != Unit.Empty) showJs.AppendFormat("Height:{0},", (Int32)Height.Value);
+                if (ClickedRowBackColor != Color.Empty)
+                {
+                    string color = new WebColorConverter().ConvertToString(ClickedRowBackColor);
+                    showJs.AppendFormat(@"
+BeforeShow:function(){{GridViewExtender.HighlightRow(ele,'{0}',true);}},
+AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
+", color);
+                }
+                if (this.Control is GridView)
+                {
+                    moreJs.AppendFormat("stopEventPropagation(event);");
+                    if (!Control.Page.ClientScript.IsClientScriptBlockRegistered(typeof(object), "stopEventPropagation"))
+                    {
+                        Control.Page.ClientScript.RegisterClientScriptBlock(typeof(object), "stopEventPropagation", GridViewExtender.SimpleMinJs(@"
+;function stopEventPropagation(e){
     try{
         if(typeof e != 'undefined'){
             if(typeof e.stopPropagation != 'undefined'){
@@ -236,10 +276,39 @@ function stopEventPropagation(e){
         }
     }catch(ex){}
 }
-".Replace("\r", "").Replace("\n", ""), true);
+"), true);
+                    }
+                }
+
+                Control.Page.ClientScript.RegisterClientScriptBlock(GetType(), jsFuncName, GridViewExtender.SimpleMinJs(string.Format(@"
+;function {0}(ele, event, title, url, msgRow, msgTitle, msg, btnRow){{
+    ShowDialog({{
+        ID:'win'+Math.random(),
+        Title:title,
+        URL:url,
+        ShowMessageRow:msgRow,
+        MessageTitle:msgTitle,
+        Message:msg,
+        {1}
+        ShowButtonRow:btnRow
+    }});
+    {2}
+    return false;
+}}
+", jsFuncName, showJs, moreJs)), true);
+
+
             }
 
-            OnClientClick = "ShowDialog({" + sb.ToString() + "});" + stopPropagation + "return false;";
+            OnClientClick = GridViewExtender.HTMLPropertyEscape(string.Format(
+                @"return {0}(this,event,'{1}','{2}',{3},'{4}','{5}',{6});",
+                jsFuncName,
+                GridViewExtender.JSStringEscape(Title), GridViewExtender.JSStringEscape(url),
+                ShowMessageRow.ToString().ToLower(),
+                GridViewExtender.JSStringEscape(MessageTitle), GridViewExtender.JSStringEscape(Message),
+                ShowButtonRow.ToString().ToLower()
+            ));
+
         }
 
         /// <summary>
