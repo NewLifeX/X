@@ -30,8 +30,7 @@ namespace NewLife.IO
 
             if (!Path.IsPathRooted(dest))
             {
-                String str = AppDomain.CurrentDomain.BaseDirectory;
-                if (!String.IsNullOrEmpty(HttpRuntime.AppDomainAppId)) str = HttpRuntime.BinDirectory;
+                String str = Runtime.IsWeb ? HttpRuntime.BinDirectory : AppDomain.CurrentDomain.BaseDirectory;
                 dest = Path.Combine(str, dest);
             }
 
@@ -89,8 +88,7 @@ namespace NewLife.IO
 
             if (!Path.IsPathRooted(dest))
             {
-                String str = AppDomain.CurrentDomain.BaseDirectory;
-                if (!String.IsNullOrEmpty(HttpRuntime.AppDomainAppId)) str = HttpRuntime.BinDirectory;
+                String str = Runtime.IsWeb ? HttpRuntime.BinDirectory : AppDomain.CurrentDomain.BaseDirectory;
                 dest = Path.Combine(str, dest);
             }
 

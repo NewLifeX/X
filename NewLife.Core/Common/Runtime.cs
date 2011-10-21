@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Web;
 
 namespace NewLife
 {
@@ -81,6 +82,11 @@ namespace NewLife
                 subSystem == 2 ? PEFileKinds.WindowApplication :
                 PEFileKinds.Dll; /*IMAGE_SUBSYSTEM_WINDOWS_CUI*/
         }
+        #endregion
+
+        #region Web环境
+        /// <summary>是否Web环境</summary>
+        public static Boolean IsWeb { get { return !String.IsNullOrEmpty(HttpRuntime.AppDomainAppId); } }
         #endregion
 
         #region 64位系统

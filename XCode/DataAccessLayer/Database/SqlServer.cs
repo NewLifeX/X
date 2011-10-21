@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Hosting;
+using NewLife;
 
 namespace XCode.DataAccessLayer
 {
@@ -68,7 +69,7 @@ namespace XCode.DataAccessLayer
 
             if (!builder.ContainsKey("Application Name"))
             {
-                String name = HttpRuntime.AppDomainAppId != null ? HostingEnvironment.SiteName : AppDomain.CurrentDomain.FriendlyName;
+                String name = Runtime.IsWeb ? HostingEnvironment.SiteName : AppDomain.CurrentDomain.FriendlyName;
                 builder["Application Name"] = "XCode_" + name;
             }
         }

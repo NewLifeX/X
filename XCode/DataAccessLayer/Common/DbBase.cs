@@ -247,7 +247,7 @@ namespace XCode.DataAccessLayer
             //反射实现获取数据库工厂
             String file = assemblyFile;
 
-            if (String.IsNullOrEmpty(HttpRuntime.AppDomainAppId))
+            if (!Runtime.IsWeb)
                 file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
             else
                 file = Path.Combine(HttpRuntime.BinDirectory, file);

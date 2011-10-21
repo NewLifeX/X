@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Text;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 读写器基类
-    /// </summary>
+    /// <summary>读写器基类</summary>
     public abstract class ReaderWriterBase<TSettings> : NewLife.DisposeBase, IReaderWriter where TSettings : ReaderWriterSetting, new()
     {
         #region 属性
@@ -53,9 +50,7 @@ namespace NewLife.Serialization
             set { _Settings = value; }
         }
 
-        /// <summary>
-        /// 序列化设置
-        /// </summary>
+        /// <summary>序列化设置</summary>
         ReaderWriterSetting IReaderWriter.Settings { get { return Settings; } set { Settings = (TSettings)value; } }
 
         private Int32 _Depth;
@@ -69,23 +64,19 @@ namespace NewLife.Serialization
             }
             set { _Depth = value; }
         }
-        #endregion
 
-        #region 方法
-        /// <summary>
-        /// 重置
-        /// </summary>
-        public virtual void Reset()
-        {
-            Depth = 1;
-        }
-        #endregion
-
-        #region 数组长度
         /// <summary>是否使用大小，如果使用，将在写入数组、集合和字符串前预先写入大小</summary>
         protected virtual Boolean UseSize
         {
             get { return true; }
+        }
+        #endregion
+
+        #region 方法
+        /// <summary>重置</summary>
+        public virtual void Reset()
+        {
+            Depth = 1;
         }
         #endregion
 
@@ -144,7 +135,7 @@ namespace NewLife.Serialization
 
             Object def = ObjectInfo.GetDefaultObject(value.GetType());
             return Object.Equals(member[value], member[def]);
-            
+
             //Object def = ObjectInfo.GetDefaultObject(member.Type);
 
             //return Object.Equals(member[value], def);
@@ -152,14 +143,14 @@ namespace NewLife.Serialization
         #endregion
 
         #region 释放
-        /// <summary>
-        /// 释放资源
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
-        {
-            base.OnDispose(disposing);
-        }
+        ///// <summary>
+        ///// 释放资源
+        ///// </summary>
+        ///// <param name="disposing"></param>
+        //protected override void OnDispose(bool disposing)
+        //{
+        //    base.OnDispose(disposing);
+        //}
         #endregion
 
         #region 写日志

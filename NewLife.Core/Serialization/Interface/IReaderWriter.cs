@@ -1,30 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
 using System.IO;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 读写器接口
-    /// </summary>
+    /// <summary>读写器接口</summary>
     public interface IReaderWriter
     {
         #region 属性
-        /// <summary>
-        /// 读写器名称
-        /// </summary>
+        /// <summary>读写器名称</summary>
         String Name { get; }
 
-        /// <summary>
-        /// 数据流
-        /// </summary>
+        /// <summary>数据流</summary>
         Stream Stream { get; set; }
 
-        /// <summary>
-        /// 序列化设置
-        /// </summary>
+        /// <summary>序列化设置</summary>
         ReaderWriterSetting Settings { get; set; }
 
         /// <summary>层次深度。</summary>
@@ -32,14 +21,10 @@ namespace NewLife.Serialization
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 重置
-        /// </summary>
+        /// <summary>重置</summary>
         void Reset();
 
-        /// <summary>
-        /// 获取需要序列化的成员
-        /// </summary>
+        /// <summary>获取需要序列化的成员</summary>
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
         /// <returns>需要序列化的成员</returns>
