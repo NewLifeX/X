@@ -3,6 +3,8 @@ using System.Windows.Forms;
 using NewLife;
 using NewLife.Reflection;
 using XCode.Configuration;
+using NewLife.Web;
+using System.Reflection;
 
 namespace XCode.Accessors
 {
@@ -20,12 +22,15 @@ namespace XCode.Accessors
             set { _Container = value; }
         }
 
-        private Int64 _MaxLength = 10 * 1024 * 1024;
-        /// <summary>最大文件大小，默认10M</summary>
-        public Int64 MaxLength
+        private Boolean _IsFindChildForm;
+        /// <summary>
+        /// 是否在子窗体中查询
+        /// 这里泛指Form嵌套Form
+        /// </summary>
+        public Boolean IsFindChildForm
         {
-            get { return _MaxLength; }
-            set { _MaxLength = value; }
+            get { return _IsFindChildForm; }
+            set { _IsFindChildForm = value; }
         }
 
         private String _ItemPrefix = "frm";
@@ -57,11 +62,10 @@ namespace XCode.Accessors
         /// <returns></returns>
         public override IEntityAccessor SetConfig(string name, object value)
         {
-            if (name.EqualIgnoreCase("Container")) Container = Container as Control;
-            if (name.EqualIgnoreCase("Parent")) Container = Container as Control;
-            if (name.EqualIgnoreCase("MaxLength")) MaxLength = (Int64)value;
+            if (name.EqualIgnoreCase("Container")) Container = value as Control;
+            if (name.EqualIgnoreCase("Parent")) Container = value as Control;
             if (name.EqualIgnoreCase("ItemPrefix")) ItemPrefix = (String)value;
-
+            if (name.EqualIgnoreCase("IsFindChildForm")) IsFindChildForm = (Boolean)value;
             return base.SetConfig(name, value);
         }
 
@@ -125,10 +129,51 @@ namespace XCode.Accessors
         protected virtual Control FindControlByField(FieldItem field)
         {
             String name = ItemPrefix + field.Name;
-            Control control = FieldInfoX.GetValue<Control>(Container, name);
+            //Control control = FieldInfoX.GetValue<Control>(Container, name);
             //TODO:这里可能极为不完善，需要找到WinForm中控件默认命名方式
 
-            return control;
+            return FindControlInContainer(name);
+        }
+
+
+        /// 在页面查找指定ID的控件，采用反射字段的方法，避免遍历Controls引起子控件构造
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public Control FindControlInContainer(String name)
+        {
+            return FindControlByName(Container, name);
+        }
+
+        /// <summary>
+        /// 按名称查询
+        /// </summary>
+        /// <param name="control"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public Control FindControlByName(Control control, String name)
+        {
+            if (control == null || control.Controls.Count == 0 || String.IsNullOrEmpty(name)) return null;
+
+            Control r = null;
+
+            foreach (Control item in control.Controls)
+            {
+                //不在子Form中查找
+                if (IsFindChildForm && item is Form)
+                    continue;
+
+                if (item.Name.Equals(name))
+                    r = item;
+                else
+                    r = FindControlByName(item, name);
+
+                if (r != null)
+                    break;
+            }
+
+            return r;
         }
         #endregion
     }
