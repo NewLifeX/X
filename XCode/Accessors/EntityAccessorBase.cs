@@ -5,7 +5,7 @@ using XCode.Configuration;
 namespace XCode.Accessors
 {
     /// <summary>实体访问器基类</summary>
-    public abstract class EntityAccessorBase
+    abstract class EntityAccessorBase
     {
         #region 事件
         /// <summary>

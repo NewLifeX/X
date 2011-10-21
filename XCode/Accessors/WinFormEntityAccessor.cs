@@ -10,7 +10,7 @@ namespace XCode.Accessors
     /// <summary>
     /// WinForm实体访问器
     /// </summary>
-    public class WinFormEntityAccessor : EntityAccessorBase
+    class WinFormEntityAccessor : EntityAccessorBase
     {
         #region 属性
         private Control _Container;

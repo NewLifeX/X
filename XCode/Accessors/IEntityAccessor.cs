@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace XCode
 {
@@ -9,7 +10,7 @@ namespace XCode
         /// 使用参数进行初始化
         /// </summary>
         /// <param name="ps"></param>
-        void Init(params Object[] ps);
+        void Init(IDictionary<String, Object> ps);
 
         /// <summary>是否支持从实体对象读取信息</summary>
         Boolean CanRead { get; }

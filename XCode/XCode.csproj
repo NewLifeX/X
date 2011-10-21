@@ -71,12 +71,15 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Accessors\BinaryEntityAccessor.cs" />
     <Compile Include="Accessors\EntityAccessorBase.cs" />
     <Compile Include="Accessors\EntityAccessorFactory.cs" />
-    <Compile Include="Accessors\EntityAccessorKinds.cs" />
+    <Compile Include="Accessors\EntityAccessorTypes.cs" />
     <Compile Include="Accessors\HttpEntityAccessor.cs" />
+    <Compile Include="Accessors\JsonEntityAccessor.cs" />
     <Compile Include="Accessors\WebFormEntityAccessor.cs" />
     <Compile Include="Accessors\WinFormEntityAccessor.cs" />
+    <Compile Include="Accessors\XmlEntityAccessor.cs" />
     <Compile Include="Attributes\BindColumnAttribute.cs" />
     <Compile Include="Attributes\BindIndexAttribute.cs" />
     <Compile Include="Attributes\BindTableAttribute.cs" />

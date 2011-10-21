@@ -8,7 +8,7 @@ using XCode.Exceptions;
 namespace XCode.Accessors
 {
     /// <summary>Http实体访问器，只读不写。</summary>
-    public class HttpEntityAccessor : EntityAccessorBase
+    class HttpEntityAccessor : EntityAccessorBase
     {
         #region 属性
         private HttpRequest _Request;

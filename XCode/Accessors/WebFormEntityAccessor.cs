@@ -11,7 +11,7 @@ using XCode.Configuration;
 namespace XCode.Accessors
 {
     /// <summary>WebForm实体访问器</summary>
-    public class WebFormEntityAccessor : EntityAccessorBase
+    class WebFormEntityAccessor : EntityAccessorBase
     {
         #region 属性
         private Page _Page;
