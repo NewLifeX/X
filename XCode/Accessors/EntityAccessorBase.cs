@@ -9,6 +9,16 @@ namespace XCode.Accessors
     /// <summary>实体访问器基类</summary>
     abstract class EntityAccessorBase : IEntityAccessor
     {
+        #region 属性
+        private Boolean _AllFields;
+        /// <summary>是否所有字段</summary>
+        public Boolean AllFields
+        {
+            get { return _AllFields; }
+            set { _AllFields = value; }
+        }
+        #endregion
+
         #region 事件
         /// <summary>
         /// 从实体对象读取指定实体字段的信息后触发
@@ -28,7 +38,12 @@ namespace XCode.Accessors
         /// <param name="name">参数名</param>
         /// <param name="value">参数值</param>
         /// <returns></returns>
-        public virtual IEntityAccessor SetConfig(String name, Object value) { return this; }
+        public virtual IEntityAccessor SetConfig(String name, Object value)
+        {
+            if (name.EqualIgnoreCase("AllFields")) AllFields = (Boolean)value;
+
+            return this;
+        }
 
         /// <summary>是否支持从外部读取信息</summary>
         public virtual bool CanRead { get { return true; } }
@@ -48,9 +63,9 @@ namespace XCode.Accessors
             if (entity == null) throw new ArgumentNullException("entity");
 
             if (eop == null) eop = EntityFactory.CreateOperate(entity.GetType());
-            foreach (FieldItem item in eop.AllFields)
+            foreach (FieldItem item in GetFields(eop))
             {
-                OnWriteItem(entity, item);
+                OnReadItem(entity, item);
 
                 if (OnRead != null) OnRead(this, new EventArgs<IEntity, FieldItem>(entity, item));
             }
@@ -75,7 +90,7 @@ namespace XCode.Accessors
             if (entity == null) throw new ArgumentNullException("entity");
 
             if (eop == null) eop = EntityFactory.CreateOperate(entity.GetType());
-            foreach (FieldItem item in eop.AllFields)
+            foreach (FieldItem item in GetFields(eop))
             {
                 OnWriteItem(entity, item);
 
@@ -89,6 +104,18 @@ namespace XCode.Accessors
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
         protected virtual void OnWriteItem(IEntity entity, FieldItem item) { }
+        #endregion
+
+        #region 辅助
+        /// <summary>
+        /// 获取需要访问的字段
+        /// </summary>
+        /// <param name="eop"></param>
+        /// <returns></returns>
+        protected virtual IEnumerable<FieldItem> GetFields(IEntityOperate eop)
+        {
+            return AllFields ? eop.AllFields : eop.Fields;
+        }
         #endregion
     }
 }

@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using XCode.Configuration;
-using NewLife.Serialization;
 using System.IO;
+using System.Text;
 using NewLife;
+using NewLife.Serialization;
+using XCode.Configuration;
 
 namespace XCode.Accessors
 {
@@ -26,14 +25,6 @@ namespace XCode.Accessors
             get { return _Encoding; }
             set { _Encoding = value; }
         }
-
-        private Boolean _AllFields;
-        /// <summary>是否所有字段</summary>
-        public Boolean AllFields
-        {
-            get { return _AllFields; }
-            set { _AllFields = value; }
-        }
         #endregion
 
         #region IEntityAccessor 成员
@@ -47,7 +38,6 @@ namespace XCode.Accessors
         {
             if (name.EqualIgnoreCase("Stream")) Stream = value as Stream;
             if (name.EqualIgnoreCase("Encoding")) Encoding = value as Encoding;
-            if (name.EqualIgnoreCase("AllFields")) AllFields = (Boolean)value;
 
             return base.SetConfig(name, value);
         }
@@ -62,40 +52,6 @@ namespace XCode.Accessors
         /// <param name="eop">实体操作。为空时由内部构建，但可在遍历调用访问器时由外部构造一次传入，以提高性能。</param>
         public override void Read(IEntity entity, IEntityOperate eop = null)
         {
-            writer = GetWriter();
-            writer.Stream = Stream;
-            writer.Settings.Encoding = Encoding;
-            try
-            {
-                if (AllFields)
-                    writer.WriteObject(entity, null, null);
-                else
-                    base.Read(entity, eop);
-            }
-            finally
-            {
-                //writer.Dispose();
-                writer = null;
-            }
-        }
-
-        /// <summary>
-        /// 外部=>实体，从外部读取指定实体字段的信息
-        /// </summary>
-        /// <param name="entity">实体对象</param>
-        /// <param name="item">实体字段</param>
-        protected override void OnReadItem(IEntity entity, FieldItem item)
-        {
-            writer.WriteObject(entity[item.Name], item.Type, null);
-        }
-
-        /// <summary>
-        /// 实体=>外部，从实体对象读取信息并写入外部
-        /// </summary>
-        /// <param name="entity">实体对象</param>
-        /// <param name="eop">实体操作。为空时由内部构建，但可在遍历调用访问器时由外部构造一次传入，以提高性能。</param>
-        public override void Write(IEntity entity, IEntityOperate eop = null)
-        {
             reader = GetReader();
             reader.Stream = Stream;
             reader.Settings.Encoding = Encoding;
@@ -107,12 +63,48 @@ namespace XCode.Accessors
                     reader.ReadObject(null, ref obj, null);
                 }
                 else
-                    base.Write(entity, eop);
+                    base.Read(entity, eop);
             }
             finally
             {
                 //reader.Dispose();
                 reader = null;
+            }
+        }
+
+        /// <summary>
+        /// 外部=>实体，从外部读取指定实体字段的信息
+        /// </summary>
+        /// <param name="entity">实体对象</param>
+        /// <param name="item">实体字段</param>
+        protected override void OnReadItem(IEntity entity, FieldItem item)
+        {
+            Object obj = entity;
+            reader.ReadObject(item.Type, ref obj, null);
+            entity.SetItem(item.Name, obj);
+        }
+
+        /// <summary>
+        /// 实体=>外部，从实体对象读取信息并写入外部
+        /// </summary>
+        /// <param name="entity">实体对象</param>
+        /// <param name="eop">实体操作。为空时由内部构建，但可在遍历调用访问器时由外部构造一次传入，以提高性能。</param>
+        public override void Write(IEntity entity, IEntityOperate eop = null)
+        {
+            writer = GetWriter();
+            writer.Stream = Stream;
+            writer.Settings.Encoding = Encoding;
+            try
+            {
+                if (AllFields)
+                    writer.WriteObject(entity, null, null);
+                else
+                    base.Write(entity, eop);
+            }
+            finally
+            {
+                //writer.Dispose();
+                writer = null;
             }
         }
 
@@ -123,9 +115,7 @@ namespace XCode.Accessors
         /// <param name="item">实体字段</param>
         protected override void OnWriteItem(IEntity entity, FieldItem item)
         {
-            Object obj = entity;
-            reader.ReadObject(item.Type, ref obj, null);
-            entity.SetItem(item.Name, obj);
+            writer.WriteObject(entity[item.Name], item.Type, null);
         }
         #endregion
 

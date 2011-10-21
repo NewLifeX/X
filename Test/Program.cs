@@ -6,6 +6,9 @@ using System.Runtime.Serialization.Formatters.Binary;
 using NewLife.CommonEntity;
 using NewLife.Log;
 using NewLife.Model;
+using XCode;
+using XCode.Accessors;
+using System.Text;
 
 namespace Test
 {
@@ -61,30 +64,14 @@ namespace Test
 
         static void Test2()
         {
-            IA entity = ObjectContainer.Current.Resolve<IA>();
-            Console.WriteLine(entity);
-            entity.Test();
-        }
+            Administrator admin = Administrator.FindAll()[0];
 
-        static IEnumerable GetTest(Int32 max)
-        {
-            for (int i = 0; i < max; i++)
-            {
-                yield return i;
-            }
-        }
-    }
+            IEntityAccessor accessor = EntityAccessorFactory.Create(EntityAccessorTypes.Xml);
+            MemoryStream ms = new MemoryStream();
 
-    interface IA
-    {
-        void Test();
-    }
-
-    class A : IA
-    {
-        public void Test()
-        {
-            Console.WriteLine("A");
+            accessor.SetConfig("stream", ms).Write(admin);
+            String xml = Encoding.UTF8.GetString(ms.ToArray());
+            Console.WriteLine(xml);
         }
     }
 }
