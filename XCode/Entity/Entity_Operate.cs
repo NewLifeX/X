@@ -275,6 +275,7 @@ namespace XCode
             /// </summary>
             /// <param name="xml"></param>
             /// <returns></returns>
+            [Obsolete("该成员在后续版本中讲不再被支持！请使用实体访问器IEntityAccessor替代！")]
             public IEntity FromXml(String xml) { return Entity<TEntity>.FromXml(xml); }
             #endregion
 
@@ -284,6 +285,7 @@ namespace XCode
             /// </summary>
             /// <param name="json"></param>
             /// <returns></returns>
+            [Obsolete("该成员在后续版本中讲不再被支持！请使用实体访问器IEntityAccessor替代！")]
             public IEntity FromJson(String json) { return Entity<TEntity>.FromJson(json); }
             #endregion
 

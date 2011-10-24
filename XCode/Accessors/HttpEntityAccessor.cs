@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Web;
-using NewLife;
 using XCode.Configuration;
 using XCode.Exceptions;
 

@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace XCode.Accessors
 {
-    /// <summary>实体数据存取器接口</summary>
+    /// <summary>实体数据访问器接口</summary>
     public interface IEntityAccessor
     {
         /// <summary>

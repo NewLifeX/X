@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using NewLife;
 using NewLife.Reflection;
 using NewLife.Web;
 using XCode.Common;
@@ -23,12 +21,6 @@ namespace XCode.Accessors
             private set { _Container = value; }
         }
 
-        ///// <summary>请求</summary>
-        //public HttpRequest Request { get { return Container.Request; ; } }
-
-        ///// <summary>响应</summary>
-        //public HttpResponse Response { get { return Container.Response; } }
-
         private Int64 _MaxLength = 10 * 1024 * 1024;
         /// <summary>最大文件大小，默认10M</summary>
         public Int64 MaxLength
@@ -46,18 +38,7 @@ namespace XCode.Accessors
         }
         #endregion
 
-        #region 构造
-        ///// <summary>
-        ///// 实例化一个WebForm实体访问器
-        ///// </summary>
-        ///// <param name="page"></param>
-        //public WebFormEntityAccessor(Page page)
-        //{
-        //    if (page == null) throw new ArgumentNullException("page");
-
-        //    Page = page;
-        //}
-
+        #region 设置
         /// <summary>
         /// 设置参数。返回自身，方便链式写法。
         /// </summary>

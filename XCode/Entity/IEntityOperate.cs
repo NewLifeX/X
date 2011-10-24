@@ -1,42 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using XCode.Configuration;
 using XCode.Cache;
+using XCode.Configuration;
 
 namespace XCode
 {
-    //TODO 可以考虑增加获取DAL的相关方法，以增强IEntityOperate
-
-    /// <summary>
-    /// 数据实体操作接口
-    /// </summary>
+    /// <summary>数据实体操作接口</summary>
     public interface IEntityOperate
     {
         #region 属性
-        /// <summary>
-        /// 默认实体
-        /// </summary>
+        /// <summary>默认实体</summary>
         IEntity Default { get; set; }
 
-        /// <summary>
-        /// 数据表元数据
-        /// </summary>
+        /// <summary>数据表元数据</summary>
         TableItem Table { get; }
 
-        /// <summary>
-        /// 所有数据属性
-        /// </summary>
+        /// <summary>所有数据属性</summary>
         FieldItem[] AllFields { get; }
 
-        /// <summary>
-        /// 所有绑定到数据表的属性
-        /// </summary>
+        /// <summary>所有绑定到数据表的属性</summary>
         FieldItem[] Fields { get; }
 
-        /// <summary>
-        /// 字段名列表
-        /// </summary>
+        /// <summary>字段名列表</summary>
         IList<String> FieldNames { get; }
 
         /// <summary>连接名</summary>
@@ -56,16 +42,9 @@ namespace XCode
         #endregion
 
         #region 创建实体
-        /// <summary>
-        /// 创建一个实体对象
-        /// </summary>
+        /// <summary>创建一个实体对象</summary>
         /// <returns></returns>
         IEntity Create();
-
-        ///// <summary>
-        ///// 首次连接数据库时初始化数据
-        ///// </summary>
-        //void InitData();
         #endregion
 
         #region 填充数据
@@ -227,6 +206,7 @@ namespace XCode
         /// </summary>
         /// <param name="xml"></param>
         /// <returns></returns>
+        [Obsolete("该成员在后续版本中讲不再被支持！请使用实体访问器IEntityAccessor替代！")]
         IEntity FromXml(String xml);
         #endregion
 
@@ -236,6 +216,7 @@ namespace XCode
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
+        [Obsolete("该成员在后续版本中讲不再被支持！请使用实体访问器IEntityAccessor替代！")]
         IEntity FromJson(String json);
         #endregion
 

@@ -62,8 +62,6 @@ namespace XCode
         #endregion
 
         #region 填充数据
-        //private static IDataRowEntityAccessor dreAccessor = new DataRowEntityAccessor(Meta.ThisType);
-
         /// <summary>
         /// 加载记录集。无数据时返回空集合而不是null。
         /// </summary>
@@ -1443,7 +1441,7 @@ namespace XCode
             try
             {
                 //IEntityOperate factory = EntityFactory.CreateOperate(typeof(TEntity));
-                XmlSerializer serial = ((TEntity)Meta.Factory).CreateXmlSerializer();
+                XmlSerializer serial = ((TEntity)Meta.Factory.Default).CreateXmlSerializer();
                 using (StringReader reader = new StringReader(xml))
                 {
                     return serial.Deserialize(reader) as TEntity;

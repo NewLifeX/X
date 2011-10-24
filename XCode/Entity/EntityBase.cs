@@ -102,7 +102,7 @@ namespace XCode
         /// 导出XML
         /// </summary>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中讲不再被支持！")]
+        [Obsolete("该成员在后续版本中讲不再被支持！请使用实体访问器IEntityAccessor替代！")]
         public virtual String ToXml()
         {
             XmlSerializer serial = CreateXmlSerializer();
