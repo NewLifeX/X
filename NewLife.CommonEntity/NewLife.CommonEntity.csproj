@@ -78,6 +78,7 @@
     <Compile Include="Web\EntityForm.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
+    <Compile Include="Web\EntityForm2.cs" />
     <Compile Include="Web\ShowPicture.cs" />
     <Compile Include="Web\WebPageBase.cs">
       <SubType>ASPXCodeBehind</SubType>

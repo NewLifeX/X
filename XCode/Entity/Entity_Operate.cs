@@ -40,6 +40,9 @@ namespace XCode
             /// </summary>
             public IList<String> FieldNames { get { return Meta.FieldNames; } }
 
+            /// <summary>唯一键，返回第一个标识列或者唯一的主键</summary>
+            public FieldItem Unique { get { return Meta.Unique; } }
+
             /// <summary>连接名</summary>
             public String ConnName { get { return Meta.ConnName; } set { Meta.ConnName = value; } }
 

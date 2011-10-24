@@ -25,6 +25,9 @@ namespace XCode
         /// <summary>字段名列表</summary>
         IList<String> FieldNames { get; }
 
+        /// <summary>唯一键，返回第一个标识列或者唯一的主键</summary>
+        FieldItem Unique { get; }
+
         /// <summary>连接名</summary>
         String ConnName { get; set; }
 
