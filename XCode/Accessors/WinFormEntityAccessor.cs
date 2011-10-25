@@ -10,6 +10,7 @@ namespace XCode.Accessors
 {
     /// <summary>
     /// WinForm实体访问器
+    /// 功能基本完成但未进行测试
     /// </summary>
     class WinFormEntityAccessor : EntityAccessorBase
     {
