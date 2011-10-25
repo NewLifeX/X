@@ -508,6 +508,7 @@ namespace XCode.Accessors
             if (pix == null) pix = PropertyInfoX.Create(tx.BaseType, "Text");
             if (pix != null)
             {
+                if (value == null && pix.Type.IsValueType) return false;
                 pix.SetValue(control, value);
                 return true;
             }

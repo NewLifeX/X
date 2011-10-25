@@ -85,7 +85,7 @@ namespace NewLife.CommonEntity.Web
 
         private IEntityOperate _Factory;
         /// <summary>实体操作者</summary>
-        public IEntityOperate Factory { get { return _Factory; } set { _Factory = value; } }
+        public IEntityOperate Factory { get { return _Factory ?? (_Factory = EntityFactory.CreateOperate(EntityType)); } set { _Factory = value; } }
 
         /// <summary>页面</summary>
         protected Page Page { get { return Container.Page; } }
@@ -377,8 +377,10 @@ namespace NewLife.CommonEntity.Web
 (function(){
     var load=window.onload;
     window.onload=function(){
-        if(load) load();
-        parent.Dialog.CloseAndRefresh(frameElement);
+        try{
+            if(load) load();
+            parent.Dialog.CloseAndRefresh(frameElement);
+        }catch(e){};
     };
 })();
 ", true);
