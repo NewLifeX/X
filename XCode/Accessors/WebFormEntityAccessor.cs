@@ -223,7 +223,11 @@ namespace XCode.Accessors
                 {
                     if (item.Checked)
                     {
-                        if (!Object.Equals(entity[field.Name], item.Text)) SetEntityItem(entity, field, item.Text);
+                        if (!Object.Equals(entity[field.Name], item.Text))
+                        {
+                            SetEntityItem(entity, field, item.Text);
+                            break;
+                        }
                     }
                 }
             }
