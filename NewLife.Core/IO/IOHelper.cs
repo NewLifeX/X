@@ -475,15 +475,14 @@ namespace NewLife.IO
         /// 流转为字节数组
         /// </summary>
         /// <param name="stream">数据流</param>
-        /// <param name="Begin">流的初始位置</param>
+        /// <param name="offset">流的初始位置</param>
         /// <returns></returns>
-        public static Byte[] ToArray(this Stream stream,Int32 Begin=0)
+        public static Byte[] ToArray(this Stream stream,Int32 offset=0)
         {
             if (stream == null) return null;
 
             byte[] bytes = new byte[stream.Length];
-            stream.Read(bytes, Begin, bytes.Length);
-
+            stream.Read(bytes, offset, bytes.Length);
             return bytes; 
         }
 
