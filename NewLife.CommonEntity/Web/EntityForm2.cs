@@ -41,12 +41,11 @@ namespace NewLife.CommonEntity.Web
         public virtual String ItemPrefix
         {
             get { return _ItemPrefix; }
-            set { _ItemPrefix = value; }
+            set { _ItemPrefix = value; Accessor = null; }
         }
         #endregion
 
         #region 构造
-        //public EntityForm2() { }
         /// <summary>
         /// 指定控件容器和实体类型，实例化一个实体表单
         /// </summary>
@@ -76,7 +75,8 @@ namespace NewLife.CommonEntity.Web
                 if (_Accessor == null)
                 {
                     _Accessor = EntityAccessorFactory.Create(EntityAccessorTypes.WebForm)
-                        .SetConfig(EntityAccessorOptions.Container, Container);
+                        .SetConfig(EntityAccessorOptions.Container, Container)
+                        .SetConfig(EntityAccessorOptions.ItemPrefix, ItemPrefix);
                 }
                 return _Accessor;
             }
@@ -85,11 +85,7 @@ namespace NewLife.CommonEntity.Web
 
         private IEntityOperate _Factory;
         /// <summary>实体操作者</summary>
-        public IEntityOperate Factory
-        {
-            get { return _Factory; }
-            set { _Factory = value; }
-        }
+        public IEntityOperate Factory { get { return _Factory; } set { _Factory = value; } }
 
         /// <summary>页面</summary>
         protected Page Page { get { return Container.Page; } }
@@ -123,13 +119,9 @@ namespace NewLife.CommonEntity.Web
             {
                 Type type = Factory.Unique.Type;
                 if (type == typeof(Int32))
-                {
                     return (Int32)(Object)EntityID <= 0;
-                }
                 else if (type == typeof(String))
-                {
                     return String.IsNullOrEmpty((String)(Object)EntityID);
-                }
                 else
                     throw new NotSupportedException("仅支持整数和字符串类型！");
             }
@@ -137,17 +129,13 @@ namespace NewLife.CommonEntity.Web
 
         private Boolean _CanSave;
         /// <summary>是否有权限保存数据</summary>
-        public Boolean CanSave
-        {
-            get { return _CanSave; }
-            set { _CanSave = value; }
-        }
+        public virtual Boolean CanSave { get { return _CanSave; } set { _CanSave = value; } }
         #endregion
 
         #region 实体相关
         private String _KeyName;
         /// <summary>键名</summary>
-        public String KeyName
+        public virtual String KeyName
         {
             get
             {
@@ -170,7 +158,7 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>主键</summary>
-        public Object EntityID
+        public virtual Object EntityID
         {
             get
             {
@@ -224,17 +212,9 @@ namespace NewLife.CommonEntity.Web
         #region 生命周期
         void Init()
         {
-            //Container.Init += new EventHandler(OnInit);
-            //Container.Load += new EventHandler(OnLoad);
-            //Container.PreRender += new EventHandler(OnPreRender);
-
             Page.PreLoad += new EventHandler(OnPreLoad);
             Page.LoadComplete += new EventHandler(OnLoadComplete);
         }
-
-        //void OnInit(object sender, EventArgs e)
-        //{
-        //}
 
         void OnPreLoad(object sender, EventArgs e)
         {
@@ -296,10 +276,6 @@ namespace NewLife.CommonEntity.Web
                 }
             }
         }
-
-        //void OnPreRender(object sender, EventArgs e)
-        //{
-        //}
         #endregion
 
         #region 方法
@@ -432,7 +408,7 @@ namespace NewLife.CommonEntity.Web
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        protected Control FindControl(string id)
+        protected virtual Control FindControl(string id)
         {
             Control control = ControlHelper.FindControlInPage<Control>(id);
             if (control != null) return control;
@@ -451,41 +427,6 @@ namespace NewLife.CommonEntity.Web
         protected virtual Control FindControlByField(FieldItem field)
         {
             return FindControl(ItemPrefix + field.Name);
-        }
-
-        static Boolean GetControlValue(Control control, out Object value)
-        {
-            TypeX tx = control.GetType();
-            String name = tx.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
-            PropertyInfoX pix = null;
-            if (!String.IsNullOrEmpty(name)) pix = PropertyInfoX.Create(tx.BaseType, name);
-            if (pix == null) pix = PropertyInfoX.Create(tx.BaseType, "Value");
-            if (pix == null) pix = PropertyInfoX.Create(tx.BaseType, "Text");
-            if (pix != null)
-            {
-                value = pix.GetValue(control);
-                return true;
-            }
-
-            value = null;
-            return false;
-        }
-
-        static Boolean SetControlValue(Control control, Object value)
-        {
-            TypeX tx = control.GetType();
-            String name = tx.GetCustomAttributeValue<ControlValuePropertyAttribute, String>();
-            PropertyInfoX pix = null;
-            if (!String.IsNullOrEmpty(name)) pix = PropertyInfoX.Create(tx.BaseType, name);
-            if (pix == null) pix = PropertyInfoX.Create(tx.BaseType, "Value");
-            if (pix == null) pix = PropertyInfoX.Create(tx.BaseType, "Text");
-            if (pix != null)
-            {
-                pix.SetValue(control, value);
-                return true;
-            }
-
-            return false;
         }
         #endregion
     }
