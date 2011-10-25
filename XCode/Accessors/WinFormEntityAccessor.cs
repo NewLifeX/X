@@ -329,9 +329,9 @@ namespace XCode.Accessors
         /// <summary>
         /// 将实体信息添充至TextBoxBase
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
-        /// <param name="canSave"></param>
         private void SetTextBoxBase(IEntity entity, FieldItem field, TextBoxBase control)
         {
             Type type = field.Type;
@@ -343,9 +343,9 @@ namespace XCode.Accessors
         /// <summary>
         /// 将实体信息添充至ButtonBase
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
-        /// <param name="canSave"></param>
         private void SetButtonBase(IEntity entity, FieldItem field, ButtonBase control)
         {
             Type type = field.Type;
@@ -379,9 +379,9 @@ namespace XCode.Accessors
         /// <summary>
         /// 将实体信息添充至DateTimePicker
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
-        /// <param name="canSave"></param>
         private void SetDateTimePicker(IEntity entity, FieldItem field, DateTimePicker control)
         {
             Type type = field.Type;
@@ -397,9 +397,9 @@ namespace XCode.Accessors
         /// <summary>
         /// 将实体信息添充至NumericUpDown
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
-        /// <param name="canSave"></param>
         private void SetNumericUpDown(IEntity entity, FieldItem field, NumericUpDown control)
         {
             Type type = field.Type;
@@ -414,9 +414,9 @@ namespace XCode.Accessors
         /// <summary>
         /// 将实体信息添充至ListControl
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
-        /// <param name="canSave"></param>
         private void SetListControl(IEntity entity, FieldItem field, ListControl control)
         {
             Type type = field.Type;
@@ -459,10 +459,7 @@ namespace XCode.Accessors
         }
         #endregion
 
-        #region 辅助
-
-
-        /// <summary>
+        #region 辅助        /// <summary>
         /// 查找字段对应的控件
         /// </summary>
         /// <param name="field"></param>
@@ -477,10 +474,9 @@ namespace XCode.Accessors
         }
 
         /// <summary>
-        /// 在页面查找指定ID的控件，采用反射字段的方法，避免遍历Controls引起子控件构造
+        /// 在页面查找指定ID的控件
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="id"></param>
+        /// <param name="name"></param>
         /// <returns></returns>
         public Control FindControlInContainer(String name)
         {
