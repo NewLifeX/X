@@ -40,6 +40,8 @@ namespace XCoder
         public FrmItems()
         {
             InitializeComponent();
+
+            this.Icon = FileSource.GetIcon();
         }
 
         /// <summary>

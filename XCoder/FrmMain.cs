@@ -38,6 +38,8 @@ namespace XCoder
         {
             InitializeComponent();
 
+            this.Icon = FileSource.GetIcon();
+
             AutoLoadTables(Config.ConnName);
 
             //FileSource.CheckTemplate();

@@ -22,6 +22,8 @@ namespace XCoder
         public FrmModel()
         {
             InitializeComponent();
+
+            this.Icon = FileSource.GetIcon();
         }
 
         public static FrmModel Create(List<IDataTable> tables)

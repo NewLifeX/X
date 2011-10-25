@@ -5,6 +5,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Text;
+using System.Drawing;
 
 namespace XCoder
 {
@@ -13,23 +14,10 @@ namespace XCoder
     /// </summary>
     public static class FileSource
     {
-        ///// <summary>
-        ///// 开始检查模版，模版文件夹不存在时，释放模版
-        ///// </summary>
-        //public static void CheckTemplate()
-        //{
-        //    ThreadPool.QueueUserWorkItem(delegate(Object state)
-        //    {
-        //        try
-        //        {
-        //        }
-        //        catch { }
-        //        //catch (Exception ex)
-        //        //{
-        //        //    MessageBox.Show(ex.ToString());
-        //        //}
-        //    });
-        //}
+        public static Icon GetIcon()
+        {
+            return new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(FileSource), "leaf.ico"));
+        }
 
         public static void ReleaseAllTemplateFiles()
         {

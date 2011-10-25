@@ -171,7 +171,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="leaf.ico" />
+    <EmbeddedResource Include="leaf.ico" />
     <EmbeddedResource Include="NewLife.ProcessHelper.exe" />
     <Content Include="UpdateInfo.txt" />
     <EmbeddedResource Include="Template\页面\类名.aspx">
