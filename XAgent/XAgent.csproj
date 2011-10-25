@@ -131,7 +131,7 @@
     <EmbeddedResource Include="UpdateInfo.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="leaf.ico" />
+    <EmbeddedResource Include="leaf.ico" />
     <Content Include="说明.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

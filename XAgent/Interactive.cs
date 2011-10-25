@@ -4,6 +4,10 @@ using System.Text;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using NewLife.Threading;
+using NewLife.Log;
+using System.ComponentModel;
+using System.Drawing;
+using System.Reflection;
 
 namespace XAgent
 {
@@ -61,9 +65,18 @@ namespace XAgent
 
             IntPtr dwGuiThreadId = dwThreadId;
 
-            Form frm = MainForm;
-            frm.Visible = false;
-            Application.Run(frm);
+            //Form frm = MainForm;
+            //frm.Visible = false;
+            //Application.Run(frm);
+
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Init();
+            Application.Run();
 
             dwGuiThreadId = IntPtr.Zero;
             SetThreadDesktop(hdeskSave);
@@ -71,6 +84,60 @@ namespace XAgent
             CloseDesktop(hdeskUser);
             CloseWindowStation(hwinstaUser);
         }
+
+        #region 托盘图标初始化
+        static void Init()
+        {
+            Container Components = new Container();
+            NotifyIcon ni = new NotifyIcon(Components);
+            ContextMenuStrip menu = new ContextMenuStrip();
+
+            menu.Size = new Size(153, 98);
+            menu.Items.Add("主界面", null, delegate { MainForm.Show(); MainForm.BringToFront(); });
+            ToolStripSeparator tsmi = new System.Windows.Forms.ToolStripSeparator();
+            tsmi.Size = new Size(menu.Size.Width - 4, 6);
+            menu.Items.Add(tsmi);
+            menu.Items.Add("退出", null, delegate { Application.Exit(); });
+
+            //ni.Icon = null;
+            ni.ContextMenuStrip = menu;
+            ni.Visible = true;
+            ComponentResourceManager resources = new ComponentResourceManager(typeof(FrmMain));
+            //ni.Icon = ((Icon)(resources.GetObject("notifyIcon1.Icon")));
+            ni.Icon = new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(Interactive), "leaf.ico"));
+            ni.Text = "新生命服务代理";
+            ni.Visible = true;
+            ni.MouseDoubleClick += new MouseEventHandler(ni_MouseDoubleClick);
+        }
+
+        static void ni_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                MainForm.Show();
+                MainForm.BringToFront();
+            }
+            catch { MainForm = null; }
+        }
+        #endregion
+
+        #region 异常捕获
+        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            XTrace.WriteLine("" + e.ExceptionObject);
+            if (e.IsTerminating)
+            {
+                XTrace.WriteLine("异常退出！");
+                XTrace.WriteMiniDump(null);
+                MessageBox.Show("" + e.ExceptionObject, "异常退出", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
+        {
+            XTrace.WriteLine(e.Exception.ToString());
+        }
+        #endregion
 
         #region PInvoke
         [DllImport("user32.dll")]

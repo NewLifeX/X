@@ -24,7 +24,7 @@ namespace XAgent
 
         private void FrmMain_Load(object sender, EventArgs e)
         {
-            this.Visible = false;
+            //this.Visible = false;
 
             AssemblyX ax = AssemblyX.Create(Assembly.GetEntryAssembly());
             String msg = String.Format("{0} {1} v{2}", ax.Title, ax.Name, ax.Version);
@@ -65,6 +65,15 @@ namespace XAgent
         private void FrmMain_Shown(object sender, EventArgs e)
         {
             this.Visible = false;
+        }
+
+        private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                this.Visible = false;
+                e.Cancel = true;
+            }
         }
     }
 }
