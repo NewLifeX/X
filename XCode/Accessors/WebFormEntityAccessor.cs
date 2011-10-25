@@ -263,7 +263,7 @@ namespace XCode.Accessors
         {
             if (field == null || control == null) return;
 
-            String toolTip = String.IsNullOrEmpty(field.Description) ? field.Name : field.Description;
+            String toolTip = field.DisplayName;
             if (field.IsNullable)
                 toolTip = String.Format("请填写{0}！", toolTip);
             else

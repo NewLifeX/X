@@ -2,6 +2,7 @@
 using System.Web.UI;
 using NewLife.Security;
 using NewLife.YWS.Entities;
+using XCode.Configuration;
 
 public partial class Pages_AdminInfo : EntityForm<Int32, Admin>
 {
@@ -34,7 +35,7 @@ public partial class Pages_AdminInfo : EntityForm<Int32, Admin>
         frmPassword.Text = null;
     }
 
-    protected override void SetFormItem(XCode.Configuration.FieldItem field, Control control, bool canSave)
+    protected override void SetFormItem(FieldItem field, Control control, bool canSave)
     {
         base.SetFormItem(field, control, true);
     }

@@ -41,7 +41,7 @@ namespace XCode.Configuration
         }
 
         private DescriptionAttribute _Description;
-        /// <summary>数据字段特性</summary>
+        /// <summary>备注</summary>
         public String Description
         {
             get
@@ -78,8 +78,8 @@ namespace XCode.Configuration
         /// <summary>是否数据绑定列</summary>
         internal Boolean IsDataObjectField { get { return _DataObjectField != null; } }
 
-        /// <summary>显示名</summary>
-        [Obsolete("请改为使用Description属性！")]
+        /// <summary>显示名。如果备注不为空则采用备注，否则采用属性名</summary>
+        //[Obsolete("请改为使用Description属性！")]
         public String DisplayName
         {
             get
@@ -87,7 +87,7 @@ namespace XCode.Configuration
                 //if (Description != null && !String.IsNullOrEmpty(Description.Description)) return Description.Description;
                 //if (_Column != null && !String.IsNullOrEmpty(_Column.Description)) return _Column.Description;
 
-                return Description;
+                return !String.IsNullOrEmpty(Description) ? Description : Name;
             }
         }
 
