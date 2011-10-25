@@ -17,7 +17,7 @@ namespace NewLife.IO
         /// </summary>
         /// <param name="inStream">输入流</param>
         /// <param name="outStream">输出流</param>
-        public static void Compress(Stream inStream, Stream outStream)
+        public static void Compress(this Stream inStream, Stream outStream)
         {
             Stream stream = new DeflateStream(outStream, CompressionMode.Compress, true);
             CopyTo(inStream, stream);
@@ -30,7 +30,7 @@ namespace NewLife.IO
         /// </summary>
         /// <param name="inStream">输入流</param>
         /// <param name="outStream">输出流</param>
-        public static void Decompress(Stream inStream, Stream outStream)
+        public static void Decompress(this Stream inStream, Stream outStream)
         {
             Stream stream = new DeflateStream(inStream, CompressionMode.Decompress, true);
             CopyTo(stream, outStream, 0);
@@ -42,7 +42,7 @@ namespace NewLife.IO
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static Byte[] Compress(Byte[] data)
+        public static Byte[] Compress(this Byte[] data)
         {
             MemoryStream ms = new MemoryStream();
             Compress(new MemoryStream(data), ms);
@@ -65,7 +65,7 @@ namespace NewLife.IO
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static Byte[] Decompress(Byte[] data)
+        public static Byte[] Decompress(this Byte[] data)
         {
             MemoryStream ms = new MemoryStream();
             Decompress(new MemoryStream(data), ms);
@@ -419,7 +419,7 @@ namespace NewLife.IO
         /// <param name="src">源数据流</param>
         /// <param name="des">目的数据流</param>
         /// <returns>返回复制的总字节数</returns>
-        public static Int32 CopyTo(Stream src, Stream des)
+        public static Int32 CopyTo(this Stream src, Stream des)
         {
             return CopyTo(src, des, 0, 0);
         }
@@ -431,7 +431,7 @@ namespace NewLife.IO
         /// <param name="des">目的数据流</param>
         /// <param name="bufferSize">缓冲区大小，也就是每次复制的大小</param>
         /// <returns>返回复制的总字节数</returns>
-        public static Int32 CopyTo(Stream src, Stream des, Int32 bufferSize)
+        public static Int32 CopyTo(this Stream src, Stream des, Int32 bufferSize)
         {
             return CopyTo(src, des, bufferSize, 0);
         }
@@ -444,7 +444,7 @@ namespace NewLife.IO
         /// <param name="bufferSize">缓冲区大小，也就是每次复制的大小</param>
         /// <param name="max">最大复制字节数</param>
         /// <returns>返回复制的总字节数</returns>
-        public static Int32 CopyTo(Stream src, Stream des, Int32 bufferSize, Int32 max)
+        public static Int32 CopyTo(this Stream src, Stream des, Int32 bufferSize, Int32 max)
         {
             if (bufferSize <= 0) bufferSize = 1024;
 
@@ -470,5 +470,38 @@ namespace NewLife.IO
             return total;
         }
         #endregion
+
+        /// <summary>
+        /// 流转为字节数组
+        /// </summary>
+        /// <param name="stream">数据流</param>
+        /// <param name="Begin">流的初始位置</param>
+        /// <returns></returns>
+        public static Byte[] ToArray(this Stream stream,Int32 Begin=0)
+        {
+            if (stream == null) return null;
+
+            byte[] bytes = new byte[stream.Length];
+            stream.Read(bytes, Begin, bytes.Length);
+
+            return bytes; 
+        }
+
+        /// <summary>
+        /// 流转换为字符串
+        /// </summary>
+        /// <param name="stream">目标流</param>
+        /// <param name="encoding">编码格式</param>
+        /// <returns></returns>
+        public static String ToStr(this Stream stream, Encoding encoding = null)
+        {
+            if (stream == null) return null;
+            if (encoding == null) encoding = Encoding.UTF8;
+
+            using (StreamReader sr = new StreamReader(stream, encoding))
+            {
+                return sr.ReadToEnd();
+            }
+        }
     }
 }
