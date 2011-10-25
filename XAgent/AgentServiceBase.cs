@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -13,354 +11,19 @@ using NewLife.Reflection;
 
 namespace XAgent
 {
-    /// <summary>
-    /// 服务程序基类
-    /// </summary>
-    /// <typeparam name="ServiceType">服务类型</typeparam>
-    public abstract class AgentServiceBase<ServiceType> : ServiceBase
-         where ServiceType : AgentServiceBase<ServiceType>, new()
+    /// <summary>服务程序基类</summary>
+    /// <typeparam name="TService">服务类型</typeparam>
+    public abstract class AgentServiceBase<TService> : AgentServiceBase
+         where TService : AgentServiceBase<TService>, new()
     {
-        #region 属性
-        /// <summary>显示名</summary>
-        public virtual String DisplayName { get { return AgentServiceName; } }
-
-        /// <summary>描述</summary>
-        public virtual String Description { get { return AgentServiceName + "服务"; } }
-
-        /// <summary>线程数</summary>
-        public virtual Int32 ThreadCount { get { return 1; } }
-
-        /// <summary>线程名</summary>
-        public virtual String[] ThreadNames { get { return null; } }
-
-        /// <summary>Exe程序名</summary>
-        private static String ExeName
+        #region 构造
+        static AgentServiceBase()
         {
-            get
-            {
-                //String filename= AppDomain.CurrentDomain.FriendlyName.Replace(".vshost.", ".");
-                //if (filename.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) return filename;
-
-                //filename = Assembly.GetExecutingAssembly().Location;
-                //return filename;
-                //String filename = Assembly.GetEntryAssembly().Location;
-                Process p = Process.GetCurrentProcess();
-                String filename = p.MainModule.FileName;
-                filename = Path.GetFileName(filename);
-                filename = filename.Replace(".vshost.", ".");
-                return filename;
-            }
-        }
-
-        /// <summary>
-        /// 服务实例，以方便调用基类的重载
-        /// </summary>
-        protected static ServiceType Instance = new ServiceType();
-
-        //private static ServiceController _Controller;
-        ///// <summary>控制器</summary>
-        //protected static ServiceController Controller
-        //{
-        //    get
-        //    {
-        //        if (_Controller == null)
-        //        {
-        //            try
-        //            {
-        //                ServiceController control = GetService(AgentServiceName);
-        //                if (control != null)
-        //                {
-        //                    try
-        //                    {
-        //                        //尝试访问一下才知道是否已安装
-        //                        Boolean b = control.CanShutdown;
-        //                        _Controller = control;
-        //                    }
-        //                    catch { }
-        //                }
-        //            }
-        //            catch { }
-        //        }
-        //        return _Controller;
-        //    }
-        //    set
-        //    {
-        //        _Controller = null;
-        //    }
-        //}
-        #endregion
-
-        #region 服务安装和启动
-        /// <summary>
-        /// 服务名
-        /// </summary>
-        public static String AgentServiceName { get { return Instance.ServiceName; } }
-
-        /// <summary>
-        /// 显示名
-        /// </summary>
-        public static String AgentDisplayName { get { return Config.GetConfig<String>("XAgent.DisplayName", Instance.DisplayName); } }
-
-        /// <summary>
-        /// 服务描述
-        /// </summary>
-        public static String AgentDescription { get { return Config.GetConfig<String>("XAgent.Description", Instance.Description); } }
-
-        /// <summary>
-        /// 安装、卸载 服务
-        /// </summary>
-        /// <param name="isinstall">是否安装</param>
-        public static void Install(Boolean isinstall)
-        {
-            if (isinstall)
-                InstallService(AgentServiceName, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ExeName), AgentDisplayName, AgentDescription);
-            else
-                UnInstalService(AgentServiceName);
-
-            //try
-            //{
-            //    ServiceInstaller installer = new ServiceInstaller();
-            //    installer.ServiceName = AgentServiceName;
-            //    installer.DisplayName = AgentDisplayName;
-            //    installer.Description = AgentDescription;
-            //    installer.StartType = ServiceStartMode.Automatic;
-
-            //    ServiceProcessInstaller spi = new ServiceProcessInstaller();
-            //    installer.Parent = spi;
-            //    spi.Account = ServiceAccount.LocalSystem;
-
-            //    installer.Context = new InstallContext();
-            //    installer.Context.Parameters["assemblypath"] = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ExeName) + " -s";
-
-            //    if (isinstall)
-            //        installer.Install(new Hashtable());
-            //    else
-            //        installer.Uninstall(null);
-            //}
-            //catch (Exception ex)
-            //{
-            //    WriteLine(ex.ToString());
-            //}
-        }
-
-        /// <summary>
-        /// 安装服务
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="filename"></param>
-        /// <param name="displayname"></param>
-        /// <param name="description"></param>
-        public static void InstallService(String name, String filename, String displayname, String description)
-        {
-            RunSC("create " + name + " BinPath= \"" + filename + " -s\" start= auto DisplayName= \"" + displayname + "\"");
-            RunSC("description " + name + " \"" + description + "\"");
-        }
-
-        /// <summary>
-        /// 卸载服务
-        /// </summary>
-        /// <param name="name"></param>
-        public static void UnInstalService(String name)
-        {
-            ControlService(false);
-
-            RunSC("Delete " + name);
-        }
-
-        /// <summary>
-        /// 启动、停止 服务
-        /// </summary>
-        /// <param name="isstart"></param>
-        public static void ControlService(Boolean isstart)
-        {
-            if (isstart)
-                RunCmd("net start " + AgentServiceName, false, true);
-            else
-                RunCmd("net stop " + AgentServiceName, false, true);
-
-            //try
-            //{
-            //    ServiceController control = GetService(AgentServiceName);
-            //    if (control != null)
-            //    {
-            //        if (isstart)
-            //            control.Start();
-            //        else
-            //            control.Stop();
-            //    }
-            //    //else
-            //    //{
-            //    //    if (isstart)
-            //    //        StartService(AgentServiceName);
-            //    //    else
-            //    //        StopService(AgentServiceName);
-            //    //}
-            //}
-            //catch (Exception ex)
-            //{
-            //    WriteLine(ex.ToString());
-            //}
-        }
-
-        /// <summary>
-        /// 执行一个命令
-        /// </summary>
-        /// <param name="cmd"></param>
-        /// <param name="showWindow"></param>
-        /// <param name="waitForExit"></param>
-        protected static void RunCmd(String cmd, Boolean showWindow, Boolean waitForExit)
-        {
-            WriteLine("RunCmd " + cmd);
-
-            Process p = new Process();
-            ProcessStartInfo si = new ProcessStartInfo();
-            String path = Environment.SystemDirectory;
-            path = Path.Combine(path, @"cmd.exe");
-            si.FileName = path;
-            if (!cmd.StartsWith(@"/")) cmd = @"/c " + cmd;
-            si.Arguments = cmd;
-            si.UseShellExecute = false;
-            si.CreateNoWindow = !showWindow;
-            si.RedirectStandardOutput = true;
-            si.RedirectStandardError = true;
-            p.StartInfo = si;
-
-            p.Start();
-            if (waitForExit)
-            {
-                p.WaitForExit();
-
-                String str = p.StandardOutput.ReadToEnd();
-                if (!String.IsNullOrEmpty(str)) WriteLine(str.Trim(new Char[] { '\r', '\n', '\t' }).Trim());
-                str = p.StandardError.ReadToEnd();
-                if (!String.IsNullOrEmpty(str)) WriteLine(str.Trim(new Char[] { '\r', '\n', '\t' }).Trim());
-            }
-        }
-
-        /// <summary>
-        /// 延迟执行命令
-        /// </summary>
-        /// <param name="cmd">要执行的命令</param>
-        /// <param name="cmd2">延时后执行的命令</param>
-        /// <param name="delay">延时时间（单位：秒）</param>
-        protected static void RunCmd(String cmd, String cmd2, Int32 delay)
-        {
-            //在临时目录生成重启服务的批处理文件
-            String filename = Path.GetTempFileName() + ".bat";
-            if (File.Exists(filename)) File.Delete(filename);
-
-            File.AppendAllText(filename, cmd);
-            File.AppendAllText(filename, Environment.NewLine);
-            File.AppendAllText(filename, "ping 127.0.0.1 -n " + delay + " > nul ");
-            File.AppendAllText(filename, Environment.NewLine);
-            File.AppendAllText(filename, cmd2);
-
-            Process p = new Process();
-            ProcessStartInfo si = new ProcessStartInfo();
-            si.FileName = filename;
-            si.UseShellExecute = true;
-            si.CreateNoWindow = true;
-            p.StartInfo = si;
-
-            p.Start();
-
-            File.Delete(filename);
-        }
-
-        /// <summary>
-        /// 执行SC命令
-        /// </summary>
-        /// <param name="cmd"></param>
-        protected static void RunSC(String cmd)
-        {
-            String path = Environment.SystemDirectory;
-            path = Path.Combine(path, @"sc.exe");
-            if (!File.Exists(path)) path = "sc.exe";
-            if (!File.Exists(path)) return;
-            RunCmd(path + " " + cmd, false, true);
-        }
-
-        /// <summary>
-        /// 是否已安装
-        /// </summary>
-        public static Boolean? IsInstalled
-        {
-            get
-            {
-                try
-                {
-                    ServiceController control = GetService(AgentServiceName);
-                    if (control == null) return false;
-                    try
-                    {
-                        //尝试访问一下才知道是否已安装
-                        Boolean b = control.CanShutdown;
-                        return true;
-                    }
-                    catch { return false; }
-                }
-                catch { return null; }
-
-                //return Controller != null;
-            }
-        }
-
-        /// <summary>
-        /// 是否已启动
-        /// </summary>
-        public static Boolean? IsRunning
-        {
-            get
-            {
-                ServiceController control = null;
-                try
-                {
-                    //ServiceController control = GetService(AgentServiceName);
-                    //ServiceController control = Controller;
-                    try
-                    {
-                        control = GetService(AgentServiceName);
-                        if (control != null)
-                        {
-                            try
-                            {
-                                //尝试访问一下才知道是否已安装
-                                Boolean b = control.CanShutdown;
-                            }
-                            catch { }
-                        }
-                    }
-                    catch { }
-
-                    if (control == null) return null;
-
-                    control.Refresh();
-                    if (control.Status == ServiceControllerStatus.Running) return true;
-                    if (control.Status == ServiceControllerStatus.Stopped) return false;
-                    return null;
-                }
-                catch { return null; }
-                finally { if (control != null)control.Dispose(); }
-            }
+            Instance = new TService();
         }
         #endregion
 
         #region 静态辅助函数
-        /// <summary>
-        /// 生成批处理
-        /// </summary>
-        protected virtual void MakeBat()
-        {
-            //if (!File.Exists("安装.bat")) File.WriteAllText("安装.bat", AppDomain.CurrentDomain.FriendlyName.Replace(".vshost.", ".") + " -i");
-            //if (!File.Exists("卸载.bat")) File.WriteAllText("卸载.bat", AppDomain.CurrentDomain.FriendlyName.Replace(".vshost.", ".") + " -u");
-            //if (!File.Exists("启动.bat")) File.WriteAllText("启动.bat", AppDomain.CurrentDomain.FriendlyName.Replace(".vshost.", ".") + " -start");
-            //if (!File.Exists("停止.bat")) File.WriteAllText("停止.bat", AppDomain.CurrentDomain.FriendlyName.Replace(".vshost.", ".") + " -stop");
-            File.WriteAllText("安装.bat", ExeName + " -i");
-            File.WriteAllText("卸载.bat", ExeName + " -u");
-            File.WriteAllText("启动.bat", ExeName + " -start");
-            File.WriteAllText("停止.bat", ExeName + " -stop");
-        }
-
         /// <summary>
         /// 服务主函数
         /// </summary>
@@ -380,9 +43,9 @@ namespace XAgent
             if (Args.Length > 1)
             {
                 #region 命令
-                if (Args[1].ToLower() == "-s")  //启动服务
+                String cmd = Args[1].ToLower();
+                if (cmd == "-s")  //启动服务
                 {
-                    //ServiceBase[] ServicesToRun = new ServiceBase[] { new ServiceType() };
                     ServiceBase[] ServicesToRun = new ServiceBase[] { Instance };
 
                     try
@@ -395,36 +58,36 @@ namespace XAgent
                     }
                     return;
                 }
-                else if (Args[1].ToLower() == "-i") //安装服务
+                else if (cmd == "-i") //安装服务
                 {
                     Install(true);
                     return;
                 }
-                else if (Args[1].ToLower() == "-u") //卸载服务
+                else if (cmd == "-u") //卸载服务
                 {
                     Install(false);
                     return;
                 }
-                else if (Args[1].ToLower() == "-start") //启动服务
+                else if (cmd == "-start") //启动服务
                 {
                     ControlService(true);
                     return;
                 }
-                else if (Args[1].ToLower() == "-stop") //停止服务
+                else if (cmd == "-stop") //停止服务
                 {
                     ControlService(false);
                     return;
                 }
-                else if (Args[1].ToLower() == "-run") //循环执行任务
+                else if (cmd == "-run") //循环执行任务
                 {
-                    ServiceType service = new ServiceType();
+                    TService service = new TService();
                     service.StartWork();
                     Console.ReadKey(true);
                     return;
                 }
-                else if (Args[1].ToLower() == "-step") //单步执行任务
+                else if (cmd == "-step") //单步执行任务
                 {
-                    ServiceType service = new ServiceType();
+                    TService service = new TService();
                     for (int i = 0; i < service.ThreadCount; i++)
                     {
                         service.Work(i);
@@ -438,13 +101,15 @@ namespace XAgent
                 #region 命令行
                 XTrace.OnWriteLog += new EventHandler<WriteLogEventArgs>(XTrace_OnWriteLog);
 
+                TService serivce = Instance as TService;
+
                 //输出状态
-                Instance.ShowStatus();
+                serivce.ShowStatus();
 
                 while (true)
                 {
                     //输出菜单
-                    Instance.ShowMenu();
+                    serivce.ShowMenu();
                     Console.Write("请选择操作（-x是命令行参数）：");
 
                     //读取命令
@@ -453,26 +118,26 @@ namespace XAgent
                     Console.WriteLine();
                     Console.WriteLine();
 
-                    switch (key.KeyChar)
+                    switch ((Int32)(key.KeyChar - '0'))
                     {
-                        case '1':
+                        case 1:
                             //输出状态
-                            Instance.ShowStatus();
+                            serivce.ShowStatus();
 
                             break;
-                        case '2':
+                        case 2:
                             if (IsInstalled == true)
                                 Install(false);
                             else
                                 Install(true);
                             break;
-                        case '3':
+                        case 3:
                             if (IsRunning == true)
                                 ControlService(false);
                             else
                                 ControlService(true);
                             break;
-                        case '4':
+                        case 4:
                             #region 单步调试
                             try
                             {
@@ -490,12 +155,12 @@ namespace XAgent
                                 {
                                     for (int i = 0; i < Instance.ThreadCount; i++)
                                     {
-                                        Instance.Work(i);
+                                        serivce.Work(i);
                                     }
                                 }
                                 else
                                 {
-                                    Instance.Work(n);
+                                    serivce.Work(n);
                                 }
                                 Console.WriteLine("单步调试完成！");
                             }
@@ -505,17 +170,17 @@ namespace XAgent
                             }
                             #endregion
                             break;
-                        case '5':
+                        case 5:
                             #region 循环调试
                             try
                             {
                                 Console.WriteLine("正在循环调试……");
-                                Instance.StartWork();
+                                serivce.StartWork();
 
                                 Console.WriteLine("任意键结束循环调试！");
                                 Console.ReadKey(true);
 
-                                Instance.StopWork();
+                                serivce.StopWork();
                             }
                             catch (Exception ex)
                             {
@@ -523,15 +188,15 @@ namespace XAgent
                             }
                             #endregion
                             break;
-                        case '6':
+                        case 6:
                             #region 附加服务
                             Console.WriteLine("正在附加服务调试……");
-                            Instance.StartAttachServers();
+                            serivce.StartAttachServers();
 
                             Console.WriteLine("任意键结束附加服务调试！");
                             Console.ReadKey(true);
 
-                            Instance.StopAttachServers();
+                            serivce.StopAttachServers();
                             #endregion
                             break;
                         default:
@@ -542,9 +207,19 @@ namespace XAgent
             }
         }
 
+        /// <summary>
+        /// 生成批处理
+        /// </summary>
+        protected virtual void MakeBat()
+        {
+            File.WriteAllText("安装.bat", ExeName + " -i");
+            File.WriteAllText("卸载.bat", ExeName + " -u");
+            File.WriteAllText("启动.bat", ExeName + " -start");
+            File.WriteAllText("停止.bat", ExeName + " -stop");
+        }
+
         static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
         {
-            //Console.WriteLine(e.Message);
             Console.WriteLine(e.ToString());
         }
 
@@ -617,24 +292,6 @@ namespace XAgent
 
             Console.WriteLine("0 退出");
         }
-
-        /// <summary>
-        /// 取得服务
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public static ServiceController GetService(String name)
-        {
-            List<ServiceController> list = new List<ServiceController>(ServiceController.GetServices());
-            if (list == null || list.Count < 1) return null;
-
-            //return list.Find(delegate(ServiceController item) { return item.ServiceName == name; });
-            foreach (ServiceController item in list)
-            {
-                if (item.ServiceName == name) return item;
-            }
-            return null;
-        }
         #endregion
 
         #region 服务控制
@@ -658,9 +315,7 @@ namespace XAgent
             set { _AttachServers = value; }
         }
 
-        /// <summary>
-        /// 服务启动事件
-        /// </summary>
+        /// <summary>服务启动事件</summary>
         /// <param name="args"></param>
         protected override void OnStart(string[] args)
         {
@@ -677,9 +332,7 @@ namespace XAgent
             }
         }
 
-        /// <summary>
-        /// 服务停止事件
-        /// </summary>
+        /// <summary>服务停止事件</summary>
         protected override void OnStop()
         {
             StopWork();
@@ -754,8 +407,11 @@ namespace XAgent
                     StartWork(i);
                 }
 
-                //启动服务管理线程
+                // 启动服务管理线程
                 StartManagerThread();
+
+                // 显示用户界面交互窗体
+                Interactive.ShowForm();
             }
             catch (Exception ex)
             {
@@ -787,11 +443,6 @@ namespace XAgent
             Threads[index].Start(index);
         }
 
-        ///// <summary>
-        ///// 是否有数据库连接错误。只是为了使得数据库连接出错时少报错误日志
-        ///// </summary>
-        //Boolean hasdberr = false;
-
         /// <summary>
         /// 线程包装
         /// </summary>
@@ -812,7 +463,6 @@ namespace XAgent
                 {
                     isContinute = Work(index);
 
-                    //hasdberr = false;
                     oldEx = null;
                 }
                 catch (ThreadAbortException) //线程被取消
@@ -825,15 +475,6 @@ namespace XAgent
                     WriteLine("线程" + index + "中断错误！");
                     break;
                 }
-                //catch (DbException ex)
-                //{
-                //    //确保只报一次数据库错误
-                //    if (!hasdberr)
-                //    {
-                //        hasdberr = true;
-                //        WriteLine(ex.ToString());
-                //    }
-                //}
                 catch (Exception ex) //确保拦截了所有的异常，保证服务稳定运行
                 {
                     // 避免同样的异常信息连续出现，造成日志膨胀
@@ -899,6 +540,8 @@ namespace XAgent
                     }
                 }
             }
+
+            Interactive.Hide();
         }
 
         /// <summary>
@@ -1165,305 +808,6 @@ namespace XAgent
 
             //if (File.Exists(filename)) File.Delete(filename);
         }
-        #endregion
-
-        #region 辅助函数及属性
-        void Service_OnWriteLog(object sender, WriteLogEventArgs e)
-        {
-            if (XTrace.Debug) XTrace.WriteLine(e.Message);
-        }
-
-        ///// <summary>
-        ///// 间隔。默认60秒
-        ///// </summary>
-        //public static Int32 Interval
-        //{
-        //    get
-        //    {
-        //        if (Intervals == null || Intervals.Length < 1)
-        //            return 60;
-        //        else
-        //            return Intervals[0];
-        //    }
-        //}
-
-        private static Int32[] _Intervals;
-        /// <summary>
-        /// 间隔数组。默认60秒
-        /// </summary>
-        public static Int32[] Intervals
-        {
-            get
-            {
-                if (_Intervals != null) return _Intervals;
-
-                _Intervals = Config.GetConfigSplit<Int32>("XAgent.Interval", null, Config.GetConfigSplit<Int32>("Interval", null, new Int32[] { 60 }));
-                //if (_Intervals == null) _Intervals = new Int32[] { 60 };
-
-                //String str = Config.GetConfig<String>("XAgent.Interval", Config.GetConfig<String>("Interval"));
-                //if (String.IsNullOrEmpty(str))
-                //{
-                //    _Intervals = new Int32[] { 60 };
-                //}
-                //else
-                //{
-                //    String[] ss = str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                //    List<Int32> list = new List<Int32>(ss.Length);
-                //    foreach (String item in ss)
-                //    {
-                //        str = item.Trim();
-                //        if (String.IsNullOrEmpty(str)) continue;
-
-                //        Int32 result = 60;
-                //        if (!Int32.TryParse(str, out result)) result = 60;
-                //        if (result <= 0) result = 60;
-                //        list.Add(result);
-                //    }
-                //    _Intervals = list.ToArray();
-                //}
-                return _Intervals;
-            }
-            set { _Intervals = value; }
-        }
-
-        private static Int32? _MaxActive;
-        /// <summary>
-        /// 最大活动时间。超过最大活动时间都还没有响应的线程将会被重启，防止线程执行时间过长。默认0秒，表示无限
-        /// </summary>
-        public static Int32 MaxActive
-        {
-            get
-            {
-                if (_MaxActive == null) _MaxActive = Config.GetConfig<Int32>("XAgent.MaxActive", Config.GetConfig<Int32>("MaxActive", 0));
-                return _MaxActive.Value;
-            }
-            set { _MaxActive = value; }
-        }
-
-        private static Int32? _MaxMemory;
-        /// <summary>
-        /// 最大占用内存。超过最大占用时，整个服务进程将会重启，以释放资源。默认0秒，表示无限
-        /// </summary>
-        public static Int32 MaxMemory
-        {
-            get
-            {
-                if (_MaxMemory == null) _MaxMemory = Config.GetConfig<Int32>("XAgent.MaxMemory", Config.GetConfig<Int32>("MaxMemory", 0));
-                return _MaxMemory.Value;
-            }
-            set { _MaxMemory = value; }
-        }
-
-        private static Int32? _MaxThread;
-        /// <summary>
-        /// 最大总线程数。超过最大占用时，整个服务进程将会重启，以释放资源。默认0秒，表示无限
-        /// </summary>
-        public static Int32 MaxThread
-        {
-            get
-            {
-                if (_MaxThread == null) _MaxThread = Config.GetConfig<Int32>("XAgent.MaxThread", Config.GetConfig<Int32>("MaxThread", 0));
-                return _MaxThread.Value;
-            }
-            set { _MaxThread = value; }
-        }
-
-        private static Int32? _AutoRestart;
-        /// <summary>
-        /// 自动重启时间，单位：分钟。到达自动重启时间时，整个服务进程将会重启，以释放资源。默认0秒，表示无限
-        /// </summary>
-        public static Int32 AutoRestart
-        {
-            get
-            {
-                if (_AutoRestart == null) _AutoRestart = Config.GetConfig<Int32>("XAgent.AutoRestart", Config.GetConfig<Int32>("AutoRestart", 0));
-                return _AutoRestart.Value;
-            }
-            set { _AutoRestart = value; }
-        }
-        #endregion
-
-        #region 日志
-        /// <summary>
-        /// 写日志
-        /// </summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public static void WriteLine(String format, params Object[] args)
-        {
-            if (XTrace.Debug) XTrace.WriteLine(format, args);
-        }
-
-        /// <summary>
-        /// 写日志
-        /// </summary>
-        /// <param name="msg"></param>
-        public static void WriteLine(String msg)
-        {
-            if (XTrace.Debug) XTrace.WriteLine(msg);
-        }
-
-        /// <summary>
-        /// 写日志
-        /// </summary>
-        /// <param name="msg"></param>
-        public static void WriteLog(String msg)
-        {
-            if (XTrace.Debug) XTrace.WriteLine(msg);
-        }
-        #endregion
-
-        #region 导入
-        //[DllImport("advapi32.dll")]
-        //private static extern IntPtr OpenSCManager(string lpMachineName, string lpSCDB, int scParameter);
-
-        //[DllImport("Advapi32.dll")]
-        //private static extern IntPtr CreateService(IntPtr SC_HANDLE, string lpSvcName, string lpDisplayName,
-        //int dwDesiredAccess, int dwServiceType, int dwStartType, int dwErrorControl, string lpPathName,
-        //string lpLoadOrderGroup, int lpdwTagId, string lpDependencies, string lpServiceStartName, string lpPassword);
-
-        //[DllImport("advapi32.dll")]
-        //private static extern void CloseServiceHandle(IntPtr SCHANDLE);
-
-        //[DllImport("advapi32.dll")]
-        //private static extern int StartService(IntPtr SVHANDLE, int dwNumServiceArgs, string lpServiceArgVectors);
-
-        //[DllImport("advapi32.dll", SetLastError = true)]
-        //private static extern IntPtr OpenService(IntPtr SCHANDLE, string lpSvcName, int dwNumServiceArgs);
-
-        //[DllImport("advapi32.dll")]
-        //private static extern int DeleteService(IntPtr SVHANDLE);
-
-        //[DllImport("kernel32.dll")]
-        //private static extern int GetLastError();
-        #endregion
-
-        #region 服务控制
-        ///// <summary>
-        ///// 安装服务程序并运行
-        ///// </summary>
-        ///// <param name="svcName">服务名称</param>
-        ///// <param name="svcPath">程序路径</param>
-        ///// <param name="svcDispName">显示服务名称</param>
-        ///// <returns>服务是否安装成功</returns>
-        //public static bool InstallService(string svcName, string svcPath, string svcDispName)
-        //{
-        //    #region Constants declaration.
-        //    int SC_MANAGER_CREATE_SERVICE = 0x0002;
-        //    int SERVICE_WIN32_OWN_PROCESS = 0x00000010;
-        //    //int SERVICE_DEMAND_START = 0x00000003;
-        //    int SERVICE_ERROR_NORMAL = 0x00000001;
-        //    int STANDARD_RIGHTS_REQUIRED = 0xF0000;
-        //    int SERVICE_QUERY_CONFIG = 0x0001;
-        //    int SERVICE_CHANGE_CONFIG = 0x0002;
-        //    int SERVICE_QUERY_STATUS = 0x0004;
-        //    int SERVICE_ENUMERATE_DEPENDENTS = 0x0008;
-        //    int SERVICE_START = 0x0010;
-        //    int SERVICE_STOP = 0x0020;
-        //    int SERVICE_PAUSE_CONTINUE = 0x0040;
-        //    int SERVICE_INTERROGATE = 0x0080;
-        //    int SERVICE_USER_DEFINED_CONTROL = 0x0100;
-        //    int SERVICE_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED |
-        //     SERVICE_QUERY_CONFIG |
-        //     SERVICE_CHANGE_CONFIG |
-        //     SERVICE_QUERY_STATUS |
-        //     SERVICE_ENUMERATE_DEPENDENTS |
-        //     SERVICE_START |
-        //     SERVICE_STOP |
-        //     SERVICE_PAUSE_CONTINUE |
-        //     SERVICE_INTERROGATE |
-        //     SERVICE_USER_DEFINED_CONTROL);
-        //    int SERVICE_AUTO_START = 0x00000002;
-        //    #endregion Constants declaration.
-
-        //    IntPtr sc = OpenSCManager(null, null, SC_MANAGER_CREATE_SERVICE);
-        //    if (sc == IntPtr.Zero) return false;
-
-        //    try
-        //    {
-        //        IntPtr svc = CreateService(sc, svcName, svcDispName, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS, SERVICE_AUTO_START, SERVICE_ERROR_NORMAL, svcPath, null, 0, null, null, null);
-        //        if (svc == IntPtr.Zero) return false;
-
-        //        //try
-        //        //{
-        //        //    //试尝启动服务
-        //        //    int i = StartService(svc, 0, null);
-        //        //    if (i == 0) return false;
-
-        //        //    return true;
-        //        //}
-        //        //finally { CloseServiceHandle(svc); }
-
-        //        CloseServiceHandle(svc);
-        //        return true;
-        //    }
-        //    finally { CloseServiceHandle(sc); }
-        //}
-
-        ///// <summary>
-        ///// 卸载服务程序
-        ///// </summary>
-        ///// <param name="svcName">服务名称</param>
-        ///// <returns>服务是否卸载成功</returns>
-        //public static bool UnInstallService(string svcName)
-        //{
-        //    int GENERIC_WRITE = 0x40000000;
-        //    IntPtr sc = OpenSCManager(null, null, GENERIC_WRITE);
-        //    if (sc == IntPtr.Zero) return false;
-
-        //    try
-        //    {
-        //        int DELETE = 0x10000;
-        //        IntPtr svc = OpenService(sc, svcName, DELETE);
-        //        if (svc == IntPtr.Zero) return false;
-
-        //        int i = DeleteService(svc);
-        //        return i != 0;
-        //    }
-        //    finally { CloseServiceHandle(sc); }
-        //}
-
-        //public static Boolean StartService(String svcName)
-        //{
-        //    int SC_MANAGER_CONNECT = 0x0001;
-        //    IntPtr sc = OpenSCManager(null, null, SC_MANAGER_CONNECT);
-        //    if (sc == IntPtr.Zero) return false;
-
-        //    try
-        //    {
-        //        int SERVICE_START = 0x0010;
-        //        IntPtr svc = OpenService(sc, svcName, SERVICE_START);
-        //        if (svc == IntPtr.Zero) return false;
-
-        //        try
-        //        {
-        //            return StartService(svc, 0, null) != 0;
-        //        }
-        //        finally { CloseServiceHandle(svc); }
-        //    }
-        //    finally { CloseServiceHandle(sc); }
-        //}
-
-        //public static Boolean StopService(String svcName)
-        //{
-        //    int SC_MANAGER_CONNECT = 0x0001;
-        //    IntPtr sc = OpenSCManager(null, null, SC_MANAGER_CONNECT);
-        //    if (sc == IntPtr.Zero) return false;
-
-        //    try
-        //    {
-        //        int SERVICE_STOP = 0x0020;
-        //        IntPtr svc = OpenService(sc, svcName, SERVICE_STOP);
-        //        if (svc == IntPtr.Zero) return false;
-
-        //        try
-        //        {
-        //            return ControlService(svc,SERVICE_CONTROL_STOP,&ServiceStatus); != 0;
-        //        }
-        //        finally { CloseServiceHandle(svc); }
-        //    }
-        //    finally { CloseServiceHandle(sc); }
-        //}
         #endregion
     }
 }
