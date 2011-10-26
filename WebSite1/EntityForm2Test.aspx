@@ -20,10 +20,10 @@
         <br />
         Phone:<asp:TextBox ID="frmPhone" runat="server"></asp:TextBox>
         <br />
-        <%--QQ:
-        <XCL:NumberBox ID="frmQQ" runat="server" Width="165px"></XCL:NumberBox>--%>
-        QQ:<asp:TextBox ID="frmQQ" runat="server"></asp:TextBox>
-        <br />
+        QQ:
+        <XCL:NumberBox ID="frmQQ" runat="server" Width="165px"></XCL:NumberBox>
+<%--        QQ:<asp:TextBox ID="frmQQ" runat="server"></asp:TextBox>
+--%>        <br />
         MSN:<XCL:MailBox ID="frmMSN" runat="server" Width="165px"></XCL:MailBox>
         <br />
         Email:<XCL:MailBox ID="frmEmail" runat="server" Width="165px"></XCL:MailBox>

@@ -344,7 +344,7 @@ namespace XCode.Accessors
             //else
             //    control.Text = String.Empty + entity[field.Name];
 
-            if (!SetControlValue(control, value)) control.Text = value.ToString();
+            if (!SetControlValue(control, value)) control.Text = value != null ? value.ToString() : "";
         }
 
         /// <summary>

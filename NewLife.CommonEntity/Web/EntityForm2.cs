@@ -119,9 +119,9 @@ namespace NewLife.CommonEntity.Web
             {
                 Type type = Factory.Unique.Type;
                 if (type == typeof(Int32))
-                    return (Int32)(Object)EntityID <= 0;
+                    return EntityID != null ? (Int32)EntityID <= 0 : true;
                 else if (type == typeof(String))
-                    return String.IsNullOrEmpty((String)(Object)EntityID);
+                    return EntityID != null ? String.IsNullOrEmpty((String)EntityID) : true;
                 else
                     throw new NotSupportedException("仅支持整数和字符串类型！");
             }

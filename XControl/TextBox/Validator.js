@@ -1,46 +1,36 @@
 ﻿// 按键事件处理工具,直接调用将返回一个工具实例,e参数是event参数,对于ie是window.event,对于ff是callback的第一个参数
 // 需要注意ie下keypress不会因Backspace Delete Home End 方向键而触发,但是会因Esc Enter键而触发keypress事件
 // ff下始终会触发,这里charCode和keyChar也因此而起
-function keyPressUtil(e)
-{
-    if (this instanceof arguments.callee)
-    {
+function keyPressUtil(e) {
+    if (this instanceof arguments.callee) {
         this.__event = e;
-    } else
-    {
+    } else {
         return new arguments.callee(e);
     }
 }
 // 指定的第一个参数是否在后续提供的集合之中,集合元素可以是function,将会把第一参数传入,需要返回true或false,比较将使用===的比较,需要提供理想的类型
-keyPressUtil.codeIn = function ()
-{
+keyPressUtil.codeIn = function () {
     var c = arguments[0];
     var codes = Array.prototype.slice.call(arguments, 1);
     if (c === undefined) return false;
     if (codes.length === 0) return false;
 
-    for (var i = 0; i < codes.length; i++)
-    {
+    for (var i = 0; i < codes.length; i++) {
         var v = codes[i];
-        if (typeof v === 'function')
-        {
-            if (v.call(this, c))
-            {
+        if (typeof v === 'function') {
+            if (v.call(this, c)) {
                 return true;
             }
-        } else if (v === c)
-        {
+        } else if (v === c) {
             return true;
         }
     }
     return false;
 };
 // 返回第一个参数是否是控制键,实际键盘上>32的也有可能是控制键,比如方向键 Home End Delete
-keyPressUtil.isControlKey = function (c)
-{
+keyPressUtil.isControlKey = function (c) {
     if (c < 32) return true;
-    switch (c)
-    {
+    switch (c) {
         case 27: //Esc
         case 46: //Delete
         case 35: case 36: //Home End
@@ -51,128 +41,111 @@ keyPressUtil.isControlKey = function (c)
     }
 };
 // 当前按键事件的按键是否在指定的字符代码范围内,只有非控制按键才生效
-keyPressUtil.prototype.charCodeIn = function ()
-{
+keyPressUtil.prototype.charCodeIn = function () {
     var e = this.__event;
     var c;
-    if (typeof e.charCode === 'undefined')
-    {//ie没有charCode ff有charCode但是控制按键是charCode是0
+    if (typeof e.charCode === 'undefined') {//ie没有charCode ff有charCode但是控制按键是charCode是0
         c = e.keyCode;
         if (c < 32) return false; //因为ie下部分控制按键会触发keypress
-    } else
-    {
+    } else {
         c = e.charCode;
     }
     if (c === 0) return false;
     return keyPressUtil.codeIn.apply(this, [c].concat(Array.prototype.slice.call(arguments, 0)));
 };
 // 当前按键事件的按键是否在指定的按键代码范围内,只有控制按键才生效
-keyPressUtil.prototype.keyCodeIn = function ()
-{
+keyPressUtil.prototype.keyCodeIn = function () {
     var e = this.__event;
     var c;
-    if (typeof e.charCode === 'undefined')
-    {
+    if (typeof e.charCode === 'undefined') {
         c = e.keyCode;
         if (c >= 32) return false;
-    } else
-    {
+    } else {
         c = e.keyCode;
     }
     if (c === 0) return false;
     return keyPressUtil.codeIn.apply(this, [c].concat(Array.prototype.slice.call(arguments, 0)));
 };
 //返回指定文本框当前的选中区域信息,并可用于设置新的选中区域
-function getSelection(ele)
-{
-    if (this instanceof arguments.callee)
-    {
-        if (typeof document.selection !== 'undefined')
-        {
+function getSelection(ele) {
+    if (this instanceof arguments.callee) {
+        if (typeof document.selection !== 'undefined') {
             var dRng = document.selection.createRange();
             var eRng = ele.createTextRange();
-            if (eRng.inRange(dRng))
-            {
+            if (eRng.inRange(dRng)) {
                 eRng.collapse(true);
                 eRng.setEndPoint('EndToStart', dRng);
                 this.start = eRng.text.length;
                 this.end = this.start + dRng.text.length;
-            } else
-            {
+            } else {
                 this.start = this.end = ele.value.length; //如果当前没有选中区域,则默认为末尾
             }
-        } else if (typeof ele.selectionStart !== 'undefined' && typeof ele.selectionEnd !== 'undefined')
-        {
+        } else if (typeof ele.selectionStart !== 'undefined' && typeof ele.selectionEnd !== 'undefined') {
             this.start = ele.selectionStart;
             this.end = ele.selectionEnd;
-        } else
-        {
+        } else {
             throw 'Nonsupport getSelection';
         }
         this.__ele = ele;
-    } else
-    {
-        try
-        {
+    } else {
+        try {
             return new arguments.callee(ele);
-        } catch (ex)
-        {
-            if (ex === 'Nonsupport getSelection')
-            {
+        } catch (ex) {
+            if (ex === 'Nonsupport getSelection') {
                 return null;
-            } else
-            {
+            } else {
                 throw ex;
             }
         }
     }
 }
 // 将当前表示的文本内容选择区域设置为指定范围
-getSelection.prototype.selectRange = function (start, end)
-{
+getSelection.prototype.selectRange = function (start, end) {
     var ele = this.__ele;
-    if (typeof document.selection !== 'undefined')
-    {
+    if (typeof document.selection !== 'undefined') {
         var rng = ele.createTextRange();
         rng.collapse(true);
         rng.moveStart('character', start);
         rng.moveEnd('character', end - start);
         rng.select();
-    } else if (typeof ele.setSelectionRange !== 'undefined')
-    {
+    } else if (typeof ele.setSelectionRange !== 'undefined') {
         ele.setSelectionRange(start, end);
     }
 };
 //验证数字时对减号的额外处理 这里是具体的处理过程,是否按下了减号键需要由调用方处理
-function ValidNumberSubtract(ele)
-{
-    if (ele.value.indexOf("-") === -1)
-    {
+function ValidNumberSubtract(ele) {
+    if (ele.value.indexOf("-") === -1) {
         var sel = getSelection(ele);
         ele.value = "-" + ele.value;
         sel.selectRange(sel.start + 1, sel.end + 1);
+    } else if (ele.value[0] === '-') {
+        var sel = getSelection(ele);
+        ele.value = ele.value.substr(1);
+        sel.start -= 1;
+        sel.end -= 1;
+        if (sel.start < 0) sel.start = 0;
+        if (sel.end < 0) sel.end = 0;
+        sel.selectRange(sel.start, sel.end);
     }
 }
 //验证事件源的值是否符合指定的正则表达式
-function ValidInput(reg)
-{
+function ValidInput(reg) {
     if (!reg) return true;
-    var obj = GetEvent();
-    if (!obj) return true;
-    return reg.test(obj.value);
+    var e = GetEvent();
+    if (!e) return true;
+    return reg.test(e.value);
 }
 
 //验证数字
-function ValidNumber()
-{
-    var obj = GetEvent();
+function ValidNumber() {
+    var e = GetEvent(), obj = GetEventTarget(e);
 
-    if (!obj) return true;
-    var kutil = keyPressUtil(obj);
+    if (!e) return true;
+    var kutil = keyPressUtil(e);
     var ret = kutil.charCodeIn(
             function (c) // 减号
             {
-                if (c === 45) ValidNumberSubtract(obj.srcElement || obj.currentTarget);
+                if (c === 45) ValidNumberSubtract(obj);
                 return false;
             },
             function (c) { return c >= 48 && c <= 57; } //数字
@@ -181,10 +154,9 @@ function ValidNumber()
     return ret;
 }
 //失去焦点时，验证最小值
-function ValidNumber2(min, max, step)
-{
+function ValidNumber2(min, max, step) {
 
-    var obj = GetEvent();
+    var e = GetEvent(), obj = GetEventTarget(e);
 
     if (!obj || !obj.value) return true;
 
@@ -193,15 +165,13 @@ function ValidNumber2(min, max, step)
 
     //目前暂时不支持步进
     //是否指定了最大值
-    if (max > -1 && value > max)
-    {
+    if (max > -1 && value > max) {
         alert('输入的数值必须小于或等于 ' + max);
         obj.focus();
         obj.select();
         return false;
     }
-    if (min > -1 && value < min)
-    {
+    if (min > -1 && value < min) {
         alert('输入的数值必须大于或等于 ' + min);
         obj.focus();
         obj.select();
@@ -211,25 +181,22 @@ function ValidNumber2(min, max, step)
 }
 
 //验证浮点数
-function ValidReal()
-{
-    var obj = GetEvent();
+function ValidReal() {
+    var e = GetEvent(), obj = GetEventTarget(e);
 
-    if (!obj) return true;
+    if (!e) return true;
 
-    var kutil = keyPressUtil(obj);
+    var kutil = keyPressUtil(e);
     return kutil.charCodeIn(
-            function (c)
-            {
+            function (c) {
                 if (c === 46) // 小数点
                 {
-                    var ele = obj.srcElement || obj.currentTarget;
-                    return ele.value.indexOf('.') === -1;
+                    return obj.value.indexOf('.') === -1;
                 }
             },
             function (c) // 减号
             {
-                if (c === 45) ValidNumberSubtract(obj.srcElement || obj.currentTarget);
+                if (c === 45) ValidNumberSubtract(obj);
                 return false;
             },
             function (c) { return c >= 48 && c <= 57; } //数字
@@ -237,9 +204,8 @@ function ValidReal()
         kutil.keyCodeIn(keyPressUtil.isControlKey);
 }
 //失去焦点时
-function ValidReal2()
-{
-    var obj = GetEvent();
+function ValidReal2() {
+    var e = GetEvent(), obj = GetEventTarget(e);
 
     if (!obj || !obj.value) return true;
 
@@ -251,9 +217,8 @@ function ValidReal2()
     return false;
 }
 //鼠标悬停在控件上时
-function VaildDecimal1()
-{
-    var obj = GetEvent();
+function VaildDecimal1() {
+    var e = GetEvent(), obj = GetEventTarget(e);
 
     if (!obj || !obj.value) return true;
 
@@ -265,8 +230,7 @@ function VaildDecimal1()
     return false;
 }
 //验证IP地址
-function ValidIP()
-{
+function ValidIP() {
     var obj = GetEvent();
 
     if (!obj) return true;
@@ -277,9 +241,8 @@ function ValidIP()
     return true;
 }
 //失去焦点时
-function ValidIP2()
-{
-    var obj = GetEvent();
+function ValidIP2() {
+    var e = GetEvent(), obj = GetEventTarget(e);
 
     if (!obj || !obj.value) return true;
 
@@ -291,9 +254,8 @@ function ValidIP2()
 }
 
 //验证Email地址
-function ValidMail()
-{
-    var obj = GetEvent();
+function ValidMail() {
+    var e = GetEvent(), obj = GetEventTarget(e);
 
     if (!obj || !obj.value) return true;
 
@@ -304,24 +266,20 @@ function ValidMail()
     return false;
 }
 // 返回 event 对象 
-function GetEvent()
-{
+function GetEvent() {
     if (document.all) // IE 
     {
         return window.event;
     }
 
     var func = GetEvent.caller; // 返回调用本函数的函数 
-    while (func != null)
-    {
+    while (func != null) {
         // Firefox 中一个隐含的对象 arguments，第一个参数为 event 对象  
         var arg0 = func.arguments[0];
         //  alert('参数长度：' + func.arguments.length); 
-        if (arg0)
-        {
+        if (arg0) {
             if ((arg0.constructor == Event || arg0.constructor == MouseEvent)
-               || (typeof (arg0) == "object" && arg0.preventDefault && arg0.stopPropagation))
-            {
+               || (typeof (arg0) == "object" && arg0.preventDefault && arg0.stopPropagation)) {
                 return arg0;
             }
         }
@@ -329,8 +287,10 @@ function GetEvent()
     }
     return null;
 }
+function GetEventTarget(e) {
+    return e && (e.target || e.srcElement) || null;
+}
 // 返回 keyCode 对象
-function GetkeyCode(e)
-{
+function GetkeyCode(e) {
     return e.which || e.keyCode;
 }
