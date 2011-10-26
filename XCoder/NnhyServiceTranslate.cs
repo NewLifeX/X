@@ -7,6 +7,7 @@ using System.Web;
 using NewLife.ServiceLib;
 using NewLife.Xml;
 using TextTrans = NewLife.ServiceLib.TranslateResult.TextTrans;
+using NewLife.Log;
 
 namespace XCoder
 {
@@ -56,7 +57,11 @@ namespace XCoder
             }
             catch (Exception ex)
             {
-                throw new Exception("访问在线翻译服务时发生了异常", ex);
+                //throw new Exception("访问在线翻译服务时发生了异常", ex);
+                XTrace.WriteException(ex);
+
+                // 出错时返回空，不应该引起上层错误
+                return null;
             }
             if (result.Status == 0)
             {

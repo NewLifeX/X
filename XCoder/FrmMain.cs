@@ -47,7 +47,7 @@ namespace XCoder
 
         private void FrmMain_Shown(object sender, EventArgs e)
         {
-            Text = "新生命代码生成器 V" + Engine.FileVersion + " " + Engine.Compile.ToString("HH:mm:ss") + "编译";
+            Text = "新生命代码生成器 V" + Engine.FullVersion + "编译";
             Template.BaseClassName = typeof(XCoderBase).FullName;
         }
 
