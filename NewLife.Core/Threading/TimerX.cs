@@ -167,7 +167,7 @@ namespace NewLife.Threading
                             if (waitForTimer != null) waitForTimer.Close();
 
                             waitForTimer = new AutoResetEvent(false);
-                            waitForTimer.WaitOne(Timeout.Infinite);
+                            waitForTimer.WaitOne(Timeout.Infinite, false);
                         }
 
                         List<TimerX> list = null;
