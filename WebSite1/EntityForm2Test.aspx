@@ -12,7 +12,7 @@
         ID:<asp:Label ID="frmID" runat="server"></asp:Label>
 
         <br />
-        Name:<asp:TextBox ID="frmTextBox" runat="server"></asp:TextBox>
+        Name:<asp:TextBox ID="frmName" runat="server"></asp:TextBox>
 
         <br />
         DisplayName:<asp:TextBox ID="frmDisplayName" runat="server"></asp:TextBox>

@@ -8,6 +8,7 @@ using NewLife.Web;
 using XCode;
 using XCode.Accessors;
 using XCode.Configuration;
+using XCode.Exceptions;
 
 namespace NewLife.CommonEntity.Web
 {
@@ -218,14 +219,26 @@ namespace NewLife.CommonEntity.Web
 
         void OnPreLoad(object sender, EventArgs e)
         {
+            IEntity entity = null;
+            try
+            {
+                entity = Entity;
+            }
+            catch (XCodeException ex)
+            {
+                if (!ex.Message.Contains("参数错误！无法取得编号为")) // 由下面自行处理,而不是抛出这个异常
+                {
+                    throw;
+                }
+            }
             // 判断实体
-            if (Entity == null)
+            if (entity == null)
             {
                 String msg = null;
                 if (IsNullKey)
-                    msg = String.Format("参数错误！无法取得编号为{0}的{1}！可能未设置自增主键！", EntityID, Factory.TableName);
+                    msg = String.Format("参数错误！无法取得编号为{0}的{2}({1})！可能未设置自增主键！", EntityID, Factory.TableName, Factory.Table.Description);
                 else
-                    msg = String.Format("参数错误！无法取得编号为{0}的{1}！", EntityID, Factory.TableName);
+                    msg = String.Format("参数错误！无法取得编号为{0}的{2}({1})！", EntityID, Factory.TableName, Factory.Table.Description);
 
                 WebHelper.Alert(msg);
                 Response.Write(msg);
@@ -254,7 +267,11 @@ namespace NewLife.CommonEntity.Web
             else
             {
                 if (btn != null && btn is IButtonControl)
-                    (btn as IButtonControl).Click += delegate { Accessor.Read(Entity); if (ValidForm()) SaveFormWithTrans(); };
+                    (btn as IButtonControl).Click += delegate
+                    {
+                        Accessor.Read(entity);
+                        if (ValidForm()) SaveFormWithTrans();
+                    };
                 // 这里还不能保存表单，因为使用者习惯性在Load事件里面写业务代码，所以只能在Load完成后保存
                 //else if (Page.AutoPostBackControl == null)
                 //{
