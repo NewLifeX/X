@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows.Forms;
-using System.Runtime.InteropServices;
-using NewLife.Threading;
-using NewLife.Log;
 using System.ComponentModel;
 using System.Drawing;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Windows.Forms;
+using NewLife.Log;
+using System.Diagnostics;
 
 namespace XAgent
 {
@@ -27,7 +26,11 @@ namespace XAgent
         {
             if (!hasShown) return;
 
-            MainForm.Invoke(new Action<Form>(f => f.Hide()));
+            try
+            {
+                MainForm.Invoke(new Action<Form>(f => f.Hide()));
+            }
+            catch { }
         }
 
         /// <summary>
@@ -38,7 +41,11 @@ namespace XAgent
             if (hasShown) return;
             hasShown = true;
 
-            ThreadPoolX.QueueUserWorkItem(Show);
+            NewLife.Threading.ThreadPoolX.QueueUserWorkItem(Show);
+            //Thread thread = new Thread(Show);
+            //thread.Name = "XAgentUI";
+            //thread.IsBackground = true;
+            //thread.Start();
         }
         static void Show()
         {
@@ -94,10 +101,18 @@ namespace XAgent
 
             menu.Size = new Size(153, 98);
             menu.Items.Add("主界面", null, delegate { MainForm.Show(); MainForm.BringToFront(); });
+            menu.Items.Add("打开目录", null, delegate { Process.Start("explorer.exe", "\"" + AppDomain.CurrentDomain.BaseDirectory + "\""); });
             ToolStripSeparator tsmi = new System.Windows.Forms.ToolStripSeparator();
             tsmi.Size = new Size(menu.Size.Width - 4, 6);
             menu.Items.Add(tsmi);
-            menu.Items.Add("退出", null, delegate { Application.Exit(); });
+            menu.Items.Add("退出", null, delegate
+            {
+                if (MessageBox.Show("退出将会同时关闭" + AgentServiceBase.AgentDisplayName + "服务，确定退出？", "退出", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    AgentServiceBase.ControlService(false);
+                    Application.Exit();
+                }
+            });
 
             //ni.Icon = null;
             ni.ContextMenuStrip = menu;
