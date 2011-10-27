@@ -103,7 +103,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected virtual String DefaultConnectionString { get { return ""; } }
+        protected virtual String DefaultConnectionString { get { return String.Empty; } }
 
         const String KEY_OWNER = "Owner";
         /// <summary>

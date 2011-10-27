@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using NewLife;
 using XCode.Common;
 using XCode.Exceptions;
+using NewLife.Configuration;
 
 namespace XCode.DataAccessLayer
 {
@@ -313,6 +314,9 @@ namespace XCode.DataAccessLayer
         /// <summary>拥有者</summary>
         public String Owner { get { return (Database as Oracle).Owner.ToUpper(); } }
 
+        /// <summary>是否限制只能访问拥有者的信息</summary>
+        Boolean IsUseOwner { get { return Config.GetConfig<Boolean>("XCode.Oracle.IsUseOwner"); } }
+
         /// <summary>
         /// 取得所有表构架
         /// </summary>
@@ -324,7 +328,12 @@ namespace XCode.DataAccessLayer
                 //- 不要空，否则会死得很惨，列表所有数据表，实在太多了
                 //if (String.Equals(user, "system")) user = null;
 
-                DataTable dt = GetSchema(_.Tables, new String[] { Owner });
+                DataTable dt = null;
+
+                if (IsUseOwner)
+                    dt = GetSchema(_.Tables, new String[] { Owner });
+                else
+                    dt = GetSchema(_.Tables, null);
 
                 // 默认列出所有字段
                 DataRow[] rows = new DataRow[dt.Rows.Count];
@@ -407,7 +416,12 @@ namespace XCode.DataAccessLayer
         {
             if (dtSequences == null)
             {
-                DataSet ds = Database.CreateSession().Query("SELECT * FROM ALL_SEQUENCES Where SEQUENCE_OWNER='" + Owner + "'");
+                DataSet ds = null;
+                if (IsUseOwner)
+                    ds = Database.CreateSession().Query("SELECT * FROM ALL_SEQUENCES Where SEQUENCE_OWNER='" + Owner + "'");
+                else
+                    ds = Database.CreateSession().Query("SELECT * FROM ALL_SEQUENCES");
+
                 if (ds != null && ds.Tables != null && ds.Tables.Count > 0)
                     dtSequences = ds.Tables[0];
                 else
@@ -415,7 +429,12 @@ namespace XCode.DataAccessLayer
             }
             if (dtSequences.Rows == null || dtSequences.Rows.Count < 1) return false;
 
-            String where = String.Format("SEQUENCE_NAME='{0}' And SEQUENCE_OWNER='{1}'", name, Owner);
+            String where = null;
+            if (IsUseOwner)
+                where = String.Format("SEQUENCE_NAME='{0}' And SEQUENCE_OWNER='{1}'", name, Owner);
+            else
+                where = String.Format("SEQUENCE_NAME='{0}'", name);
+
             DataRow[] drs = dtSequences.Select(where);
             return drs != null && drs.Length > 0;
 
