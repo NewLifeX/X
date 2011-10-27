@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using NewLife.Collections;
 using NewLife.Exceptions;
+using System.Diagnostics;
 
 namespace NewLife.Reflection
 {
@@ -160,6 +161,7 @@ namespace NewLife.Reflection
         /// <param name="obj"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
+        [DebuggerStepThrough]
         public override Object Invoke(Object obj, params  Object[] parameters)
         {
             if (parameters == null || parameters.Length <= 0)
