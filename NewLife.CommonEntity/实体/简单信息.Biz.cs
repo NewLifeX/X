@@ -16,6 +16,9 @@ namespace NewLife.CommonEntity
 {
     /// <summary>简单信息</summary>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
+    public class Simple : Simple<Simple> { }
+
+    /// <summary>简单信息</summary>
     public partial class Simple<TEntity> : EntityTree<TEntity> where TEntity : Area<TEntity>, new()
     {
         #region 扩展属性﻿
