@@ -19,7 +19,7 @@ namespace NewLife.CommonEntity
     public class SimpleTree : SimpleTree<SimpleTree> { }
 
     /// <summary>简单分类</summary>
-    public partial class SimpleTree<TEntity> : EntityTree<TEntity> where TEntity : GuidCategory<TEntity>, new()
+    public partial class SimpleTree<TEntity> : EntityTree<TEntity> where TEntity : SimpleTree<TEntity>, new()
     {
         #region 扩展属性﻿
         #endregion
