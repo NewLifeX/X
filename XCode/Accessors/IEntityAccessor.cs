@@ -42,6 +42,12 @@ namespace XCode.Accessors
         /// <param name="entity">实体对象</param>
         /// <param name="eop">实体操作。为空时由内部构建，但可在遍历调用访问器时由外部构造一次传入，以提高性能。</param>
         void Write(IEntity entity, IEntityOperate eop = null);
+
+        /// <summary>从实体对象读取指定实体字段的信息后触发</summary>
+        event EventHandler<EntityAccessorEventArgs> OnRead;
+
+        /// <summary>把指定实体字段的信息写入到实体对象后触发</summary>
+        event EventHandler<EntityAccessorEventArgs> OnWrite;
     }
 
     ///// <summary>实体数据存取器接口</summary>

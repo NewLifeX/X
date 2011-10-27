@@ -97,7 +97,7 @@ namespace XCode.Accessors
 
             try
             {
-                GetFormItem(entity, item, control);                
+                GetFormItem(entity, item, control);
             }
             catch (Exception ex)
             {
@@ -460,7 +460,8 @@ namespace XCode.Accessors
         }
         #endregion
 
-        #region 辅助        /// <summary>
+        #region 辅助
+        /// <summary>
         /// 查找字段对应的控件
         /// </summary>
         /// <param name="field"></param>

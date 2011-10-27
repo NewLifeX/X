@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="Accessors\BinaryEntityAccessor.cs" />
     <Compile Include="Accessors\EntityAccessorBase.cs" />
+    <Compile Include="Accessors\EntityAccessorEventArgs.cs" />
     <Compile Include="Accessors\EntityAccessorFactory.cs" />
     <Compile Include="Accessors\EntityAccessorOptions.cs" />
     <Compile Include="Accessors\EntityAccessorTypes.cs" />

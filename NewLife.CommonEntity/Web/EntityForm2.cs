@@ -421,6 +421,14 @@ namespace NewLife.CommonEntity.Web
         }
         #endregion
 
+        #region 事件
+        /// <summary>从实体对象读取指定实体字段的信息后触发</summary>
+        public virtual event EventHandler<EntityAccessorEventArgs> OnRead { add { Accessor.OnRead += value; } remove { Accessor.OnRead -= value; } }
+
+        /// <summary>把指定实体字段的信息写入到实体对象后触发</summary>
+        public virtual event EventHandler<EntityAccessorEventArgs> OnWrite { add { Accessor.OnWrite += value; } remove { Accessor.OnWrite -= value; } }
+        #endregion
+
         #region 辅助
         /// <summary>
         /// 查找表单控件

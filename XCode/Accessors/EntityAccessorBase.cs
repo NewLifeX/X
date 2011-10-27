@@ -20,15 +20,11 @@ namespace XCode.Accessors
         #endregion
 
         #region 事件
-        /// <summary>
-        /// 从实体对象读取指定实体字段的信息后触发
-        /// </summary>
-        public virtual event EventHandler<EventArgs<IEntity, FieldItem>> OnRead;
+        /// <summary>从实体对象读取指定实体字段的信息后触发</summary>
+        public virtual event EventHandler<EntityAccessorEventArgs> OnRead;
 
-        /// <summary>
-        /// 把指定实体字段的信息写入到实体对象后触发
-        /// </summary>
-        public virtual event EventHandler<EventArgs<IEntity, FieldItem>> OnWrite;
+        /// <summary>把指定实体字段的信息写入到实体对象后触发</summary>
+        public virtual event EventHandler<EntityAccessorEventArgs> OnWrite;
         #endregion
 
         #region IEntityAccessor 成员
@@ -78,7 +74,7 @@ namespace XCode.Accessors
             {
                 OnReadItem(entity, item);
 
-                if (OnRead != null) OnRead(this, new EventArgs<IEntity, FieldItem>(entity, item));
+                if (OnRead != null) OnRead(this, new EntityAccessorEventArgs { Entity = entity, Field = item });
             }
         }
 
@@ -105,7 +101,7 @@ namespace XCode.Accessors
             {
                 OnWriteItem(entity, item);
 
-                if (OnWrite != null) OnWrite(this, new EventArgs<IEntity, FieldItem>(entity, item));
+                if (OnWrite != null) OnWrite(this, new EntityAccessorEventArgs { Entity = entity, Field = item });
             }
         }
 
