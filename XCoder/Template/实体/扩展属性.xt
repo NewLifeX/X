@@ -31,26 +31,26 @@ if(Table.Relations!=null && Table.Relations.Count>0)
         {
 #>
         [NonSerialized]
-		private <#=className#> _<#=keyName#>;
-		/// <summary>该<#=Table.Description#>所对应的<#=rtable.Description#></summary>
-		[XmlIgnore]
-		public <#=className#> <#=keyName#>
-		{
-			get
-			{
-				<#
+        private <#=className#> _<#=keyName#>;
+        /// <summary>该<#=Table.Description#>所对应的<#=rtable.Description#></summary>
+        [XmlIgnore]
+        public <#=className#> <#=keyName#>
+        {
+            get
+            {
+                <#
                 if(field.DataType == typeof(String)){
                 #>if (_<#=keyName#> == null && !String.IsNullOrEmpty(<#=field.Alias#>) && !Dirtys.ContainsKey("<#=keyName#>"))<#
                 }else{#>if (_<#=keyName#> == null && <#=field.Alias#> > 0 && !Dirtys.ContainsKey("<#=keyName#>"))<#
                 }#>
                 {
-					_<#=keyName#> = <#=className#>.FindBy<#=rcolumn.Alias#>(<#=field.Alias#>);
-					Dirtys["<#=keyName#>"] = true;
-				}
-				return _<#=keyName#>;
-			}
-			set { _<#=keyName#> = value; }
-		}
+                    _<#=keyName#> = <#=className#>.FindBy<#=rcolumn.Alias#>(<#=field.Alias#>);
+                    Dirtys["<#=keyName#>"] = true;
+                }
+                return _<#=keyName#>;
+            }
+            set { _<#=keyName#> = value; }
+        }
 <#
         }else
         {
