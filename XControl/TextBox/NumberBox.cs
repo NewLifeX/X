@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Exceptions;
@@ -53,9 +55,23 @@ namespace XControl
             {
                 this.ToolTip = "只能输入小于或等于 " + Max + " 数字！";
             }
+
             // 校验脚本
-            this.Attributes.Add("onkeypress", "return ValidNumber();");
-            this.Attributes.Add("onblur", "return ValidNumber2(" + (Min??-1) + "," + (Max??-1) + ");");
+            StringBuilder js = new StringBuilder();
+            js.AppendFormat("return ValidNumber({0});", AllowMinus.Value ? "" : "false");
+            this.Attributes.Add("onkeypress", js.ToString());
+
+            js.Remove(0, js.Length);
+            js.AppendFormat("return ValidNumber2({0},{1});", Min ?? -1, Max ?? -1);
+            this.Attributes.Add("onblur", js.ToString());
+
+            js.Remove(0, js.Length);
+            List<string> jsPropertys = new List<string>();
+            jsPropertys.Add("allowFloat:0");
+            if (!AllowMinus.Value) jsPropertys.Add("allowMinus:0");
+            js.AppendFormat("FilterNumber(this, {0});", "{" + string.Join(",", jsPropertys.ToArray()) + "}");
+            this.Attributes.Add("onkeyup", js.ToString());
+
             this.Page.ClientScript.RegisterClientScriptResource(typeof(NumberBox), "XControl.TextBox.Validator.js");
         }
 
@@ -189,6 +205,33 @@ namespace XControl
                 Text = value.ToString();
 
                 Check();
+            }
+        }
+
+        /// <summary>
+        /// 是否允许负数
+        /// </summary>
+        [Category(" 专用属性"), DefaultValue(true), Description("是否允许负数,默认true")]
+        public bool? AllowMinus
+        {
+            get
+            {
+                string str = (string)ViewState["AllowMinus"];
+                bool result;
+                if (str == null || !bool.TryParse(str, out result)) return true;
+                return result;
+            }
+            set
+            {
+                bool? b = value;
+                if (b == null)
+                {
+                    ViewState.Remove("AllowMinus");
+                }
+                else
+                {
+                    ViewState["AllowMinus"] = b.ToString();
+                }
             }
         }
 

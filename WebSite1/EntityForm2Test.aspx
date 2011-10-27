@@ -10,20 +10,19 @@
     <form id="form1" runat="server">
     <div>
         ID:<asp:Label ID="frmID" runat="server"></asp:Label>
-
         <br />
         Name:<asp:TextBox ID="frmName" runat="server"></asp:TextBox>
-
         <br />
         DisplayName:<asp:TextBox ID="frmDisplayName" runat="server"></asp:TextBox>
-
         <br />
         Phone:<asp:TextBox ID="frmPhone" runat="server"></asp:TextBox>
         <br />
         QQ:
-        <XCL:NumberBox ID="frmQQ" runat="server" Width="165px"></XCL:NumberBox>
-<%--        QQ:<asp:TextBox ID="frmQQ" runat="server"></asp:TextBox>
---%>        <br />
+        <XCL:NumberBox ID="frmQQ" runat="server" Width="165px" AllowMinus="false"></XCL:NumberBox>
+        负数:<XCL:NumberBox ID="NumberBox1" runat="server" Width="165px"></XCL:NumberBox>
+        <%--        QQ:<asp:TextBox ID="frmQQ" runat="server"></asp:TextBox>
+        --%>
+        <br />
         MSN:<XCL:MailBox ID="frmMSN" runat="server" Width="165px"></XCL:MailBox>
         <br />
         Email:<XCL:MailBox ID="frmEmail" runat="server" Width="165px"></XCL:MailBox>

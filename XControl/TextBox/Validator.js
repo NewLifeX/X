@@ -102,6 +102,8 @@ function getSelection(ele) {
 // 将当前表示的文本内容选择区域设置为指定范围
 getSelection.prototype.selectRange = function (start, end) {
     var ele = this.__ele;
+    if (typeof start === 'undefined') start = this.start;
+    if (typeof end === 'undefined') end = this.end;
     if (typeof document.selection !== 'undefined') {
         var rng = ele.createTextRange();
         rng.collapse(true);
@@ -117,7 +119,9 @@ function ValidNumberSubtract(ele) {
     if (ele.value.indexOf("-") === -1) {
         var sel = getSelection(ele);
         ele.value = "-" + ele.value;
-        sel.selectRange(sel.start + 1, sel.end + 1);
+        sel.start += 1;
+        sel.end += 1;
+        sel.selectRange();
     } else if (ele.value[0] === '-') {
         var sel = getSelection(ele);
         ele.value = ele.value.substr(1);
@@ -125,7 +129,7 @@ function ValidNumberSubtract(ele) {
         sel.end -= 1;
         if (sel.start < 0) sel.start = 0;
         if (sel.end < 0) sel.end = 0;
-        sel.selectRange(sel.start, sel.end);
+        sel.selectRange();
     }
 }
 //验证事件源的值是否符合指定的正则表达式
@@ -137,15 +141,17 @@ function ValidInput(reg) {
 }
 
 //验证数字
-function ValidNumber() {
+function ValidNumber(allowMinus) {
     var e = GetEvent(), obj = GetEventTarget(e);
-
+    if (typeof allowMinus === 'undefined') allowMinus = true;
     if (!e) return true;
     var kutil = keyPressUtil(e);
     var ret = kutil.charCodeIn(
             function (c) // 减号
             {
-                if (c === 45) ValidNumberSubtract(obj);
+                if (allowMinus) {
+                    if (c === 45) ValidNumberSubtract(obj);
+                }
                 return false;
             },
             function (c) { return c >= 48 && c <= 57; } //数字
@@ -153,9 +159,33 @@ function ValidNumber() {
         kutil.keyCodeIn(keyPressUtil.isControlKey);
     return ret;
 }
+// 过滤掉指定input中的非数字相关的字符,在options中指定:allowMinus=true 是否允许负数,allowFloat=true,是否允许浮点数
+function FilterNumber(ele, options) {
+    var s = ele.value, r, opt = {}, i, hasFloatDot = false;
+    for (i in options) opt[i] = options[i];
+    if (typeof opt.allowMinus === 'undefined') opt.allowMinus = true;
+    if (typeof opt.allowFloat === 'undefined') opt.allowFloat = true;
+
+    r = s.replace(/[^\d]/gm, function ($0, index) {
+        if (opt.allowMinus && $0 === '-' && index === 0) {
+            return $0;
+        }
+        if (opt.allowFloat && $0 === '.' && !hasFloatDot) {
+            hasFloatDot = true;
+            return $0;
+        }
+        return '';
+    });
+    if (ele.value !== r) {
+        var sel = getSelection(ele);
+        sel.start = sel.end = r.length - (s.length - sel.end);
+        ele.value = r;
+        sel.selectRange();
+    }
+    return r;
+}
 //失去焦点时，验证最小值
 function ValidNumber2(min, max, step) {
-
     var e = GetEvent(), obj = GetEventTarget(e);
 
     if (!obj || !obj.value) return true;
@@ -265,18 +295,18 @@ function ValidMail() {
     obj.select();
     return false;
 }
-// 返回 event 对象 
+// 返回 event 对象
 function GetEvent() {
-    if (document.all) // IE 
+    if (document.all) // IE
     {
         return window.event;
     }
 
-    var func = GetEvent.caller; // 返回调用本函数的函数 
+    var func = GetEvent.caller; // 返回调用本函数的函数
     while (func != null) {
-        // Firefox 中一个隐含的对象 arguments，第一个参数为 event 对象  
+        // Firefox 中一个隐含的对象 arguments，第一个参数为 event 对象
         var arg0 = func.arguments[0];
-        //  alert('参数长度：' + func.arguments.length); 
+        //  alert('参数长度：' + func.arguments.length);
         if (arg0) {
             if ((arg0.constructor == Event || arg0.constructor == MouseEvent)
                || (typeof (arg0) == "object" && arg0.preventDefault && arg0.stopPropagation)) {
