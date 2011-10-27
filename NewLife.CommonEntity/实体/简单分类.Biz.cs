@@ -15,7 +15,7 @@ using XCode.Configuration;
 namespace NewLife.CommonEntity
 {
     /// <summary>简单分类</summary>
-
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public partial class SimpleTree<TEntity> : EntityTree<TEntity> where TEntity : GuidCategory<TEntity>, new()
     {
         #region 扩展属性﻿
