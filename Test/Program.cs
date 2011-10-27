@@ -9,6 +9,9 @@ using NewLife.Model;
 using XCode;
 using XCode.Accessors;
 using System.Text;
+using System.Reflection;
+using System.Data.Common;
+using NewLife.Reflection;
 
 namespace Test
 {
@@ -25,7 +28,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -64,14 +67,23 @@ namespace Test
 
         static void Test2()
         {
-            Administrator admin = Administrator.FindAll()[0];
+            Type type = TypeX.GetType("Oracle.DataAccess.Client.OpsInit", true);
+            //MethodInfoX mix = MethodInfoX.Create(type, "CheckVersionCompatibility");
+            //mix.Invoke(null, "2.112.1.0");
+            //OpsInit.CheckVersionCompatibility("2.112.1.0");
+            OracleInit.Initialize();
 
-            IEntityAccessor accessor = EntityAccessorFactory.Create(EntityAccessorTypes.Xml);
-            MemoryStream ms = new MemoryStream();
+            //Administrator admin = Administrator.FindAll()[0];
+            //Console.WriteLine(admin);
 
-            accessor.SetConfig("stream", ms).SetConfig("allfields", true).Write(admin);
-            String xml = Encoding.UTF8.GetString(ms.ToArray());
-            Console.WriteLine(xml);
+            Assembly asm = Assembly.LoadFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Oracle.DataAccess.dll"));
+            type = asm.GetType("Oracle.DataAccess.Client.OracleClientFactory");
+
+            FieldInfo field = type.GetField("Instance");
+            //DbProviderFactory df= Activator.CreateInstance(type) as DbProviderFactory;
+
+            DbProviderFactory df = field.GetValue(null) as DbProviderFactory;
+            Console.WriteLine(df);
         }
     }
 }
