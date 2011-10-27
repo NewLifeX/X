@@ -95,6 +95,10 @@
     <Compile Include="实体\序列.cs" />
     <Compile Include="实体\用户配置.Biz.cs" />
     <Compile Include="实体\用户配置.cs" />
+    <Compile Include="实体\简单信息.Biz.cs" />
+    <Compile Include="实体\简单信息.cs" />
+    <Compile Include="实体\简单分类.Biz.cs" />
+    <Compile Include="实体\简单分类.cs" />
     <Compile Include="实体\设置.Biz.cs" />
     <Compile Include="实体\设置.cs" />
     <Compile Include="管理和授权\日志.Biz.cs" />
