@@ -555,7 +555,7 @@ namespace XCode.DataAccessLayer
                 cmd.CommandText = sql;
                 Object rs = cmd.ExecuteScalar();
                 //return rs == DBNull.Value ? null : rs;
-                if (rs == DBNull.Value) return default(T);
+                if (rs == null || rs == DBNull.Value) return default(T);
                 if (rs is T) return (T)rs;
                 return (T)Convert.ChangeType(rs, typeof(T));
             }

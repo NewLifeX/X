@@ -12,6 +12,9 @@ using System.Text;
 using System.Reflection;
 using System.Data.Common;
 using NewLife.Reflection;
+using XCode.DataAccessLayer;
+using System.Collections.Generic;
+using System.Data.OracleClient;
 
 namespace Test
 {
@@ -28,7 +31,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -67,23 +70,38 @@ namespace Test
 
         static void Test2()
         {
-            Type type = TypeX.GetType("Oracle.DataAccess.Client.OpsInit", true);
+            //OracleClientFactory d = OracleClientFactory.Instance;
+            //Console.WriteLine(d);
+
+            Type type = null;
+            //type = TypeX.GetType("Oracle.DataAccess.Client.OpsInit", true);
             //MethodInfoX mix = MethodInfoX.Create(type, "CheckVersionCompatibility");
             //mix.Invoke(null, "2.112.1.0");
             //OpsInit.CheckVersionCompatibility("2.112.1.0");
-            OracleInit.Initialize();
+            //OracleInit.Initialize();
 
-            //Administrator admin = Administrator.FindAll()[0];
-            //Console.WriteLine(admin);
+            List<IDataTable> tables = DAL.Create("Common").Tables;
+            Console.WriteLine(tables);
 
-            Assembly asm = Assembly.LoadFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Oracle.DataAccess.dll"));
-            type = asm.GetType("Oracle.DataAccess.Client.OracleClientFactory");
+            //try
+            //{
+            //    Assembly asm = Assembly.LoadFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Oracle.DataAccess.dll"));
+            //    type = asm.GetType("Oracle.DataAccess.Client.OracleClientFactory");
 
-            FieldInfo field = type.GetField("Instance");
-            //DbProviderFactory df= Activator.CreateInstance(type) as DbProviderFactory;
+            //    FieldInfo field = type.GetField("Instance");
+            //    //DbProviderFactory df= Activator.CreateInstance(type) as DbProviderFactory;
 
-            DbProviderFactory df = field.GetValue(null) as DbProviderFactory;
-            Console.WriteLine(df);
+            //    DbProviderFactory df = field.GetValue(null) as DbProviderFactory;
+            //    Console.WriteLine(df);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine(ex.ToString());
+            //}
+            //Console.ReadKey(true);
+
+            Administrator admin = Administrator.FindAll()[0];
+            Console.WriteLine(admin);
         }
     }
 }

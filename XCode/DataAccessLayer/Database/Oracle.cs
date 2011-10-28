@@ -5,9 +5,9 @@ using System.Data.Common;
 using System.IO;
 using System.Text.RegularExpressions;
 using NewLife;
+using NewLife.Configuration;
 using XCode.Common;
 using XCode.Exceptions;
-using NewLife.Configuration;
 
 namespace XCode.DataAccessLayer
 {
@@ -39,7 +39,9 @@ namespace XCode.DataAccessLayer
                         {
                             try
                             {
-                                _dbProviderFactory = GetProviderFactory("Oracle.DataAccess.dll", "Oracle.DataAccess.Client.OracleClientFactory");
+                                String fileName = "Oracle.DataAccess.dll";
+                                _dbProviderFactory = GetProviderFactory(fileName, "Oracle.DataAccess.Client.OracleClientFactory");
+                                if (_dbProviderFactory != null && DAL.Debug) DAL.WriteDebugLog("Oracle使用文件驱动{0}", _dbProviderFactory.GetType().Assembly.Location);
                             }
                             catch (FileNotFoundException) { }
                             catch (Exception ex)
@@ -49,8 +51,17 @@ namespace XCode.DataAccessLayer
                         }
 
                         // 以下三种方式都可以加载，前两种只是为了减少对程序集的引用，第二种是为了避免第一种中没有注册
-                        if (_dbProviderFactory == null) _dbProviderFactory = DbProviderFactories.GetFactory("System.Data.OracleClient");
-                        if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.OracleClient.dll", "System.Data.OracleClient.OracleClientFactory");
+                        if (_dbProviderFactory == null)
+                        {
+                            _dbProviderFactory = DbProviderFactories.GetFactory("System.Data.OracleClient");
+                            if (_dbProviderFactory != null && DAL.Debug) DAL.WriteDebugLog("Oracle使用配置驱动{0}", _dbProviderFactory.GetType().Assembly.Location);
+                        }
+                        if (_dbProviderFactory == null)
+                        {
+                            String fileName = "System.Data.OracleClient.dll";
+                            _dbProviderFactory = GetProviderFactory(fileName, "System.Data.OracleClient.OracleClientFactory");
+                            if (_dbProviderFactory != null && DAL.Debug) DAL.WriteDebugLog("Oracle使用系统驱动{0}", _dbProviderFactory.GetType().Assembly.Location);
+                        }
                         //if (_dbProviderFactory == null) _dbProviderFactory = OracleClientFactory.Instance;
                     }
                 }
