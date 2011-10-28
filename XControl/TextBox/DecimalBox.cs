@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using System.Web.UI.WebControls;
+using System.Collections;
 using System.ComponentModel;
-using System.Web.UI;
 using System.Drawing;
 using System.Globalization;
-using System.Collections;
+using System.Web.UI;
+using System.Web.UI.WebControls;
 using NewLife.Exceptions;
 
 namespace XControl
@@ -129,8 +126,7 @@ namespace XControl
             Font.Size = FontUnit.Point(10);
             Width = Unit.Pixel(70);
             if (String.IsNullOrEmpty(Attributes["style"])) this.Attributes.Add("style", "border-bottom-width:1px;text-align : right ");
-            //if (String.IsNullOrEmpty(Attributes["CurrencyDecimalDigits"])) this.Attributes.Add("CurrencyDecimalDigits","2"); 
-
+            //if (String.IsNullOrEmpty(Attributes["CurrencyDecimalDigits"])) this.Attributes.Add("CurrencyDecimalDigits","2");
         }
 
         /// <summary>
@@ -142,8 +138,13 @@ namespace XControl
             base.OnPreRender(e);
 
             //校验脚本
-            this.Attributes.Add("onkeypress", "return ValidReal();");
-            this.Attributes.Add("onblur", "return VaildDecimal1();");
+            Helper.HTMLPropertyEscape(this, "onkeypress", "return ValidReal({0});", AllowMinus ? 1 : 0);
+            Helper.HTMLPropertyEscape(this, "onblur", "return VaildDecimal1('{0}');", Helper.JsStringEscape(CurrencySymbol));
+            Helper.HTMLPropertyEscape(this, "onkeyup", "FilterNumber(this,{0});", Helper.JsObjectString(
+                // "allowFloat", 1, // 默认是true
+                    "allowMinus", AllowMinus ? 1 : 0,
+                    "allowChars", CurrencySymbol
+                ));
             this.Page.ClientScript.RegisterClientScriptResource(typeof(NumberBox), "XControl.TextBox.Validator.js");
         }
 
@@ -164,6 +165,26 @@ namespace XControl
             set
             {
                 ViewState["Value"] = value;
+            }
+        }
+
+        /// <summary>
+        /// 是否允许负数
+        /// </summary>
+        [Category(" 专用属性"), DefaultValue(true), Description("是否允许负数,默认true")]
+        public bool AllowMinus
+        {
+            get
+            {
+                object o = ViewState["AllowMinus"];
+                if (o == null) o = true;
+                bool r;
+                if (bool.TryParse(o.ToString(), out r)) return r;
+                return true;
+            }
+            set
+            {
+                ViewState["AllowMinus"] = value;
             }
         }
 
@@ -215,12 +236,11 @@ namespace XControl
                     value = value.Trim();
                     if (value.Contains(CurrencySymbol))
                         //去除当前CurrencySymbol设置的符号
-                        value = value.Substring(1);
+                        value = value.Replace(CurrencySymbol, "");
 
                     if (Decimal.TryParse(value, out d))
                         Value = d;
                 }
-
             }
         }
     }

@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Reflection;
 using NewLife.Web;
-using System.Text.RegularExpressions;
 
 [assembly: WebResource("XControl.View.GridViewExtender.js", "text/javascript")]
-
 
 namespace XControl
 {
@@ -25,6 +24,7 @@ namespace XControl
     public class GridViewExtender : ExtenderControl<GridView>
     {
         #region 属性
+
         /// <summary>选中项背景颜色</summary>
         [Description("选中项背景颜色"),
         DefaultValue(typeof(Color), ""),
@@ -77,9 +77,11 @@ namespace XControl
             get { return GetPropertyValue<Int32>("CheckBoxIndex", 0); }
             set { SetPropertyValue<Int32>("CheckBoxIndex", value); }
         }
-        #endregion
+
+        #endregion 属性
 
         #region 扩展属性
+
         //private Int32 _TotalCount;
         /// <summary>总记录数</summary>
         [Browsable(false)]
@@ -197,9 +199,11 @@ namespace XControl
                 return sb.ToString();
             }
         }
-        #endregion
+
+        #endregion 扩展属性
 
         #region 方法
+
         /// <summary>
         /// 已重载。
         /// </summary>
@@ -268,10 +272,12 @@ namespace XControl
 
         //    base.Render(writer);
         //}
-        #endregion
+
+        #endregion 方法
 
         #region 点击
-        void RenderOnClick(GridView gv)
+
+        private void RenderOnClick(GridView gv)
         {
             string editLinkBoxText = "编辑";
             // 找到编辑列所在列序号
@@ -285,36 +291,37 @@ namespace XControl
                     break;
                 }
             }
-
-            StringBuilder js = new StringBuilder();
-            string selectedColor = SelectedRowBackColor != Color.Empty ? new WebColorConverter().ConvertToString(SelectedRowBackColor) : null;
-            if (SelectedRowBackColor != Color.Empty) // 行单击变色
+            string highlight = null, clickElement = null;
+            if (SelectedRowBackColor != Color.Empty)
             {
-                if (SelectedRowBackColor != Color.Empty)
-                {
-                    js.AppendFormat(@"click:e.Highlight('{0}'),", JSStringEscape(selectedColor));
-                }
+                highlight = string.Format("e.Highlight('{0}')", new WebColorConverter().ConvertToString(SelectedRowBackColor));
             }
+
             if (editColumIndex >= 0) // 双击行变点击编辑
             {
-                js.AppendFormat(
-@"dblclick:e.ClickElement('a',function(i){{
+                clickElement = string.Format(@"
+e.ClickElement('a',function(i){{
     return i.innerHTML==='{0}';
-}}),", JSStringEscape(editLinkBoxText)); // 这里的'a'表示是html标签a,因为编辑列字段 LinkBoxField 输出的是a标签
+}})
+", Helper.JsStringEscape(editLinkBoxText));  // 这里的'a'表示是html标签a,因为编辑列字段 LinkBoxField 输出的是a标签
             }
-            if (js.Length > 0 && gv.Rows.Count > 0)
+
+            string EventMapOptions = Helper.JsObjectString(false, (k, v) => v != null,
+                "click", highlight,
+                "dblclick", clickElement
+            );
+
+            if (EventMapOptions != "{}")
             {
-                js.Remove(js.Length - 1, 1); // 回车换行符和结尾的逗号
-                string initGridViewJS = string.Format(
-@";(function(e){{
+                Page.ClientScript.RegisterClientScriptResource(GetType(), "XControl.View.GridViewExtender.js");
+                Page.ClientScript.RegisterStartupScript(GetType(), "InitGridView" + gv.ClientID, Helper.JsMinSimple(@"
+;(function(e){{
     e.ExtendDataRow('{0}', {{
-            EventMap:{{ {1} }}
+            EventMap:{1}
         }}
     );
-}}(GridViewExtender));", gv.ClientID, js);
-
-                Page.ClientScript.RegisterClientScriptResource(GetType(), "XControl.View.GridViewExtender.js");
-                Page.ClientScript.RegisterStartupScript(GetType(), "InitGridView" + gv.ClientID, SimpleMinJs(initGridViewJS), true);
+}}(GridViewExtender));
+", gv.ClientID, EventMapOptions), true);
             }
 
             foreach (GridViewRow item in gv.Rows)
@@ -343,29 +350,37 @@ namespace XControl
                 Format(item, "ondblclick", ondblclick);
             }
         }
+
         /// <summary>
         /// 将指定的字符串作为javascript中使用的字符串内容返回,没有js字符串声明两边的双引号
         /// </summary>
         /// <param name="i"></param>
         /// <returns></returns>
+        [Obsolete("使用XControl.Helper.JsStringEscape")]
         public static string JSStringEscape(string i)
         {
             return (i + "").Replace(@"\", @"\\").Replace("'", @"\'").Replace("\"", @"\""").Replace("\r", @"\r").Replace("\n", @"\n");
         }
+
         static Regex reMinJs = new Regex(@"\s*(?:\r\n|\r|\n)+\s*", RegexOptions.Compiled);
+
         /// <summary>
         /// 将指定的javascript代码做简单压缩,去除换行和缩进
         /// </summary>
         /// <param name="i"></param>
         /// <returns></returns>
+        [Obsolete("使用XControl.Helper.JsMinSimple")]
         public static string SimpleMinJs(string i)
         {
             return reMinJs.Replace(i + "", "");
         }
+
         /// <summary>
         /// 将指定字符串作为html标签属性中可使用的字符串返回
         /// </summary>
         /// <param name="i"></param>
+        /// <returns></returns>
+        [Obsolete("使用XControl.Helper.HTMLPropertyEscape")]
         public static string HTMLPropertyEscape(string i)
         {
             return (i + "").Replace("\"", "&quot;")
@@ -399,10 +414,13 @@ namespace XControl
             if (!value.EndsWith(";")) value = value + ";";
             row.Attributes[att] = value;//+ row.Attributes[att];
         }
-        #endregion
+
+        #endregion 点击
 
         #region 分页模版
+
         static String _pagerTemplate;
+
         /// <summary>
         /// 分页模版
         /// </summary>
@@ -429,7 +447,7 @@ namespace XControl
             }
         }
 
-        void BuilderPagerTemplate(Control ctl)
+        private void BuilderPagerTemplate(Control ctl)
         {
             ParserHelper page = new ParserHelper(ctl);
 
@@ -449,14 +467,14 @@ namespace XControl
             if (wc != null && String.IsNullOrEmpty(wc.CssClass)) wc.CssClass = "page";
         }
 
-        class ParserHelper
+        private class ParserHelper
         {
             IParserAccessor parser;
             Page page;
 
             public ParserHelper(Control ctl) { parser = ctl; page = ctl.Page; }
 
-            void Init(Control ctl)
+            private void Init(Control ctl)
             {
                 if (page != null)
                 {
@@ -558,10 +576,12 @@ namespace XControl
                 return this;
             }
         }
-        #endregion
+
+        #endregion 分页模版
 
         #region 多选
-        void SetSelectAll(GridView gv)
+
+        private void SetSelectAll(GridView gv)
         {
             if (gv == null || gv.HeaderRow == null || gv.HeaderRow.Cells.Count <= CheckBoxIndex) return;
 
@@ -649,6 +669,7 @@ namespace XControl
         //            break;
         //    }
         //}
-        #endregion
+
+        #endregion 多选
     }
 }

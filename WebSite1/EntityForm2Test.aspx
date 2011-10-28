@@ -20,6 +20,12 @@
         QQ:
         <XCL:NumberBox ID="frmQQ" runat="server" Width="165px" AllowMinus="false"></XCL:NumberBox>
         负数:<XCL:NumberBox ID="NumberBox1" runat="server" Width="165px"></XCL:NumberBox>
+        <br/>
+        浮点数:<XCL:RealBox ID="RealBox1" runat="server" AllowMinus="false"></XCL:RealBox>
+        负数<XCL:RealBox ID="RealBox2" runat="server"></XCL:RealBox>
+        <br/>
+        货币:<XCL:DecimalBox ID="DecimalBox1" runat="server" AllowMinus="false"></XCL:DecimalBox>
+        负数:<XCL:DecimalBox ID="DecimalBox2" runat="server"></XCL:DecimalBox>
         <%--        QQ:<asp:TextBox ID="frmQQ" runat="server"></asp:TextBox>
         --%>
         <br />

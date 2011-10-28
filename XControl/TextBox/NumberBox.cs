@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
-using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Exceptions;
@@ -57,21 +55,12 @@ namespace XControl
             }
 
             // 校验脚本
-            StringBuilder js = new StringBuilder();
-            js.AppendFormat("return ValidNumber({0});", AllowMinus.Value ? "" : "false");
-            this.Attributes.Add("onkeypress", js.ToString());
-
-            js.Remove(0, js.Length);
-            js.AppendFormat("return ValidNumber2({0},{1});", Min ?? -1, Max ?? -1);
-            this.Attributes.Add("onblur", js.ToString());
-
-            js.Remove(0, js.Length);
-            List<string> jsPropertys = new List<string>();
-            jsPropertys.Add("allowFloat:0");
-            if (!AllowMinus.Value) jsPropertys.Add("allowMinus:0");
-            js.AppendFormat("FilterNumber(this, {0});", "{" + string.Join(",", jsPropertys.ToArray()) + "}");
-            this.Attributes.Add("onkeyup", js.ToString());
-
+            Helper.HTMLPropertyEscape(this, "onkeypress", "return ValidNumber({0});", AllowMinus ? 1 : 0);
+            Helper.HTMLPropertyEscape(this, "onblur", "return ValidNumber2({0},{1});", Min ?? -1, Max ?? -1);
+            Helper.HTMLPropertyEscape(this, "onkeyup", "FilterNumber(this,{0});", Helper.JsObjectString(
+                    "allowFloat", 0,
+                    "allowMinus", AllowMinus ? 1 : 0
+                ));
             this.Page.ClientScript.RegisterClientScriptResource(typeof(NumberBox), "XControl.TextBox.Validator.js");
         }
 
@@ -212,26 +201,19 @@ namespace XControl
         /// 是否允许负数
         /// </summary>
         [Category(" 专用属性"), DefaultValue(true), Description("是否允许负数,默认true")]
-        public bool? AllowMinus
+        public bool AllowMinus
         {
             get
             {
-                string str = (string)ViewState["AllowMinus"];
-                bool result;
-                if (str == null || !bool.TryParse(str, out result)) return true;
-                return result;
+                object o = ViewState["AllowMinus"];
+                if (o == null) o = true;
+                bool r;
+                if (bool.TryParse(o.ToString(), out r)) return r;
+                return true;
             }
             set
             {
-                bool? b = value;
-                if (b == null)
-                {
-                    ViewState.Remove("AllowMinus");
-                }
-                else
-                {
-                    ViewState["AllowMinus"] = b.ToString();
-                }
+                ViewState["AllowMinus"] = value;
             }
         }
 
@@ -252,8 +234,8 @@ namespace XControl
 
             base.RaisePostDataChangedEvent();
         }
-        
-        void Check()
+
+        private void Check()
         {
             if (Min != null && Value < Min) throw new ArgumentOutOfRangeException("Min", "只能输入大于或等于 " + Min + " 的数字！");
             if (Max != null && Value > Max) throw new ArgumentOutOfRangeException("Min", "只能输入小于或等于 " + Max + " 的数字！");

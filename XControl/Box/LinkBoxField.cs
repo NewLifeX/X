@@ -264,7 +264,7 @@ AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
                     moreJs.AppendFormat("stopEventPropagation(event);");
                     if (!Control.Page.ClientScript.IsClientScriptBlockRegistered(typeof(object), "stopEventPropagation"))
                     {
-                        Control.Page.ClientScript.RegisterClientScriptBlock(typeof(object), "stopEventPropagation", GridViewExtender.SimpleMinJs(@"
+                        Control.Page.ClientScript.RegisterClientScriptBlock(typeof(object), "stopEventPropagation", Helper.JsMinSimple(@"
 ;function stopEventPropagation(e){
     try{
         if(typeof e != 'undefined'){
@@ -280,7 +280,7 @@ AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
                     }
                 }
 
-                Control.Page.ClientScript.RegisterClientScriptBlock(GetType(), jsFuncName, GridViewExtender.SimpleMinJs(string.Format(@"
+                Control.Page.ClientScript.RegisterClientScriptBlock(GetType(), jsFuncName, Helper.JsMinSimple(@"
 ;function {0}(ele, event, title, url, msgRow, msgTitle, msg, btnRow){{
     ShowDialog({{
         ID:'win'+Math.random(),
@@ -295,19 +295,18 @@ AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
     {2}
     return false;
 }}
-", jsFuncName, showJs, moreJs)), true);
+", jsFuncName, showJs, moreJs), true);
 
 
             }
 
-            OnClientClick = GridViewExtender.HTMLPropertyEscape(string.Format(
-                @"return {0}(this,event,'{1}','{2}',{3},'{4}','{5}',{6});",
+            OnClientClick = Helper.HTMLPropertyEscape(@"return {0}(this,event,'{1}','{2}',{3},'{4}','{5}',{6});",
                 jsFuncName,
-                GridViewExtender.JSStringEscape(Title), GridViewExtender.JSStringEscape(url),
+                Helper.JsStringEscape(Title), Helper.JsStringEscape(url),
                 ShowMessageRow.ToString().ToLower(),
-                GridViewExtender.JSStringEscape(MessageTitle), GridViewExtender.JSStringEscape(Message),
+                Helper.JsStringEscape(MessageTitle), Helper.JsStringEscape(Message),
                 ShowButtonRow.ToString().ToLower()
-            ));
+            );
 
         }
 

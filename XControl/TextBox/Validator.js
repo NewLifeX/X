@@ -116,21 +116,19 @@ getSelection.prototype.selectRange = function (start, end) {
 };
 //验证数字时对减号的额外处理 这里是具体的处理过程,是否按下了减号键需要由调用方处理
 function ValidNumberSubtract(ele) {
+    var sel = getSelection(ele);
     if (ele.value.indexOf("-") === -1) {
-        var sel = getSelection(ele);
         ele.value = "-" + ele.value;
         sel.start += 1;
         sel.end += 1;
-        sel.selectRange();
     } else if (ele.value[0] === '-') {
-        var sel = getSelection(ele);
         ele.value = ele.value.substr(1);
         sel.start -= 1;
         sel.end -= 1;
         if (sel.start < 0) sel.start = 0;
         if (sel.end < 0) sel.end = 0;
-        sel.selectRange();
     }
+    sel.selectRange();
 }
 //验证事件源的值是否符合指定的正则表达式
 function ValidInput(reg) {
@@ -165,13 +163,15 @@ function FilterNumber(ele, options) {
     for (i in options) opt[i] = options[i];
     if (typeof opt.allowMinus === 'undefined') opt.allowMinus = true;
     if (typeof opt.allowFloat === 'undefined') opt.allowFloat = true;
+    if (typeof opt.allowChars === 'undefined') opt.allowChars = '';
 
     r = s.replace(/[^\d]/gm, function ($0, index) {
         if (opt.allowMinus && $0 === '-' && index === 0) {
             return $0;
-        }
-        if (opt.allowFloat && $0 === '.' && !hasFloatDot) {
+        } else if (opt.allowFloat && $0 === '.' && !hasFloatDot) {
             hasFloatDot = true;
+            return $0;
+        } else if (opt.allowChars && opt.allowChars.indexOf($0) >= 0) {
             return $0;
         }
         return '';
@@ -211,9 +211,9 @@ function ValidNumber2(min, max, step) {
 }
 
 //验证浮点数
-function ValidReal() {
+function ValidReal(allowMinus) {
     var e = GetEvent(), obj = GetEventTarget(e);
-
+    if (typeof allowMinus === 'undefined') allowMinus = true;
     if (!e) return true;
 
     var kutil = keyPressUtil(e);
@@ -226,7 +226,9 @@ function ValidReal() {
             },
             function (c) // 减号
             {
-                if (c === 45) ValidNumberSubtract(obj);
+                if (allowMinus) {
+                    if (c === 45) ValidNumberSubtract(obj);
+                }
                 return false;
             },
             function (c) { return c >= 48 && c <= 57; } //数字
@@ -247,12 +249,12 @@ function ValidReal2() {
     return false;
 }
 //鼠标悬停在控件上时
-function VaildDecimal1() {
-    var e = GetEvent(), obj = GetEventTarget(e);
+function VaildDecimal1(symbol) {
+    var e = GetEvent(), obj = GetEventTarget(e), s = obj.value;
 
-    if (!obj || !obj.value) return true;
-
-    var value = parseFloat(obj.value, 10);
+    if (!obj || !s) return true;
+    s = s.replace(symbol, '');
+    var value = parseFloat(s, 10);
     if (!isNaN(value)) return true;
     alert("这里只能输入价格数！");
     obj.focus();

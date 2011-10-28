@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-
-using System.Web.UI.WebControls;
-using System.Drawing;
 using System.ComponentModel;
+using System.Drawing;
 using System.Web.UI;
+using System.Web.UI.WebControls;
 
 namespace XControl
 {
@@ -42,8 +39,12 @@ namespace XControl
             base.OnPreRender(e);
 
             // 校验脚本
-            this.Attributes.Add("onkeypress", "return ValidReal();");
-            this.Attributes.Add("onblur", "return ValidReal2();");
+            Helper.HTMLPropertyEscape(this, "onkeypress", "return ValidReal({0});", AllowMinus ? 1 : 0);
+            Helper.HTMLPropertyEscape(this, "onblur", "return ValidReal2();");
+            Helper.HTMLPropertyEscape(this, "onkeyup", "FilterNumber(this,{0});", Helper.JsObjectString(
+                // "allowFloat", 1, // 默认是true
+                    "allowMinus", AllowMinus ? 1 : 0
+                ));
             this.Page.ClientScript.RegisterClientScriptResource(typeof(NumberBox), "XControl.TextBox.Validator.js");
         }
 
@@ -63,6 +64,26 @@ namespace XControl
             set
             {
                 Text = value.ToString();
+            }
+        }
+
+        /// <summary>
+        /// 是否允许负数
+        /// </summary>
+        [Category(" 专用属性"), DefaultValue(true), Description("是否允许负数,默认true")]
+        public bool AllowMinus
+        {
+            get
+            {
+                object o = ViewState["AllowMinus"];
+                if (o == null) o = true;
+                bool r;
+                if (bool.TryParse(o.ToString(), out r)) return r;
+                return true;
+            }
+            set
+            {
+                ViewState["AllowMinus"] = value;
             }
         }
     }
