@@ -12,6 +12,8 @@ using System.Xml.Serialization;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
+#pragma warning disable 3021
+#pragma warning disable 3008
 namespace NewLife.CommonEntity
 {
     /// <summary>简单信息</summary>
@@ -115,3 +117,5 @@ namespace NewLife.CommonEntity
         #endregion
     }
 }
+#pragma warning restore 3008
+#pragma warning restore 3021

@@ -12,6 +12,8 @@ using System.Xml.Serialization;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
+#pragma warning disable 3021
+#pragma warning disable 3008
 namespace NewLife.CommonEntity
 {
     /// <summary>简单分类</summary>
