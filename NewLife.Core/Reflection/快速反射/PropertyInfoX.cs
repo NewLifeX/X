@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using NewLife.Collections;
@@ -211,6 +212,7 @@ namespace NewLife.Reflection
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
+        [DebuggerStepThrough]
         public override Object GetValue(Object obj)
         {
             if (GetHandler == null) throw new InvalidOperationException("不支持GetValue操作！");
@@ -222,6 +224,7 @@ namespace NewLife.Reflection
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="value"></param>
+        [DebuggerStepThrough]
         public override void SetValue(Object obj, Object value)
         {
             if (SetHandler == null) throw new InvalidOperationException("不支持SetValue操作！");

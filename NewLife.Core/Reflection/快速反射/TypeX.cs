@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -177,6 +178,7 @@ namespace NewLife.Reflection
         /// </summary>
         /// <param name="parameters"></param>
         /// <returns></returns>
+        [DebuggerStepThrough]
         public override Object CreateInstance(params Object[] parameters)
         {
             if (BaseType.ContainsGenericParameters || BaseType.IsGenericTypeDefinition)

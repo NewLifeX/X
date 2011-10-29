@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using NewLife.Collections;
@@ -156,6 +157,7 @@ namespace NewLife.Reflection
         /// </summary>
         /// <param name="parameters"></param>
         /// <returns></returns>
+        [DebuggerStepThrough]
         public override Object CreateInstance(params Object[] parameters)
         {
             return Handler.Invoke(parameters);

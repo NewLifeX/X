@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using NewLife.Collections;
@@ -195,6 +195,7 @@ namespace NewLife.Reflection
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
+        [DebuggerStepThrough]
         public override Object GetValue(Object obj)
         {
             // 在编译时写入并且不能更改的字段，不能快速反射，主要因为取不到FieldHandle。枚举中的静态字段。
@@ -208,6 +209,7 @@ namespace NewLife.Reflection
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="value"></param>
+        [DebuggerStepThrough]
         public override void SetValue(Object obj, Object value)
         {
             // 如果类型不匹配，先做类型转换
