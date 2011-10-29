@@ -342,7 +342,13 @@ namespace XCode.DataAccessLayer
                 DataTable dt = null;
 
                 if (IsUseOwner)
-                    dt = GetSchema(_.Tables, new String[] { Owner });
+                {
+                    dt = GetSchema(_.Tables, new String[] { Owner, null });
+
+                    if (_columns == null) _columns = GetSchema(_.Columns, new String[] { Owner, null, null });
+                    if (_indexes == null) _indexes = GetSchema(_.Indexes, new String[] { Owner, null, null, null });
+                    if (_indexColumns == null) _indexColumns = GetSchema(_.IndexColumns, new String[] { Owner, null, null, null, null });
+                }
                 else
                     dt = GetSchema(_.Tables, null);
 

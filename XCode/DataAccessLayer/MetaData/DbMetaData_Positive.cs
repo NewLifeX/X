@@ -76,9 +76,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected List<IDataTable> GetTables(DataRow[] rows)
         {
-            _columns = GetSchema(_.Columns, null);
-            _indexes = GetSchema(_.Indexes, null);
-            _indexColumns = GetSchema(_.IndexColumns, null);
+            if (_columns == null) _columns = GetSchema(_.Columns, null);
+            if (_indexes == null) _indexes = GetSchema(_.Indexes, null);
+            if (_indexColumns == null) _indexColumns = GetSchema(_.IndexColumns, null);
 
             try
             {
@@ -153,6 +153,7 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
+                _columns = null;
                 _indexes = null;
                 _indexColumns = null;
             }
@@ -165,7 +166,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 字段架构
-        DataTable _columns;
+        protected DataTable _columns;
         /// <summary>取得指定表的所有列构架</summary>
         /// <param name="table"></param>
         /// <returns></returns>
@@ -344,8 +345,8 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 索引架构
-        DataTable _indexes;
-        DataTable _indexColumns;
+        protected DataTable _indexes;
+        protected DataTable _indexColumns;
         /// <summary>获取索引</summary>
         /// <param name="table"></param>
         /// <returns></returns>
