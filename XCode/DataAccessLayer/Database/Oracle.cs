@@ -5,9 +5,11 @@ using System.Data.Common;
 using System.IO;
 using System.Text.RegularExpressions;
 using NewLife;
+using System.Linq;
 using NewLife.Configuration;
 using XCode.Common;
 using XCode.Exceptions;
+using System.Text;
 
 namespace XCode.DataAccessLayer
 {
@@ -681,7 +683,12 @@ namespace XCode.DataAccessLayer
             // 因为Oracle的声明是先有默认值再有约束的
             if (!String.IsNullOrEmpty(field.Default)) return null;
 
-            return base.GetFieldConstraints(field, onlyDefine);
+            //return base.GetFieldConstraints(field, onlyDefine);
+
+            if (field.Nullable)
+                return " NULL";
+            else
+                return " NOT NULL";
         }
 
         protected override string GetFieldDefault(IDataColumn field, bool onlyDefine)
@@ -693,7 +700,38 @@ namespace XCode.DataAccessLayer
 
         public override string CreateTableSQL(IDataTable table)
         {
-            String sql = base.CreateTableSQL(table);
+            List<IDataColumn> Fields = new List<IDataColumn>(table.Columns);
+            Fields.OrderBy(dc => dc.ID);
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendFormat("Create Table {0}(", FormatName(table.Name));
+            for (Int32 i = 0; i < Fields.Count; i++)
+            {
+                sb.AppendLine();
+                sb.Append("\t");
+                sb.Append(FieldClause(Fields[i], true));
+                if (i < Fields.Count - 1) sb.Append(",");
+            }
+
+            // 主键
+            if (table.PrimaryKeys != null && table.PrimaryKeys.Length > 0)
+            {
+                sb.AppendLine(",");
+                sb.Append("\t");
+                sb.AppendFormat("constraint pk_{0} primary key (", table.Name);
+                for (int i = 0; i < table.PrimaryKeys.Length; i++)
+                {
+                    if (i > 0) sb.Append(",");
+                    sb.Append(FormatName(table.PrimaryKeys[i].Name));
+                }
+                sb.Append(")");
+            }
+
+            sb.AppendLine();
+            sb.Append(")");
+
+            String sql = sb.ToString();
             if (String.IsNullOrEmpty(sql)) return sql;
 
             String sqlSeq = String.Format("Create Sequence SEQ_{0} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1 Cache 20", table.Name);
