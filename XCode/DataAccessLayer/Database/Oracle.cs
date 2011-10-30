@@ -258,6 +258,13 @@ namespace XCode.DataAccessLayer
     /// </summary>
     internal class OracleSession : RemoteDbSession
     {
+        static OracleSession()
+        {
+            // 旧版Oracle运行时会因为没有这个而报错
+            String name = "NLS_LANG";
+            if (String.IsNullOrEmpty(Environment.GetEnvironmentVariable(name))) Environment.SetEnvironmentVariable(name, "SIMPLIFIED CHINESE_CHINA.ZHS16GBK");
+        }
+
         #region 基本方法 查询/执行
         /// <summary>
         /// 快速查询单表记录数，稍有偏差
