@@ -15,6 +15,7 @@ using NewLife.Reflection;
 using XCode.DataAccessLayer;
 using System.Collections.Generic;
 using System.Data.OracleClient;
+using System.Data;
 
 namespace Test
 {
@@ -80,7 +81,32 @@ namespace Test
             //OpsInit.CheckVersionCompatibility("2.112.1.0");
             //OracleInit.Initialize();
 
-            List<IDataTable> tables = DAL.Create("Common").Tables;
+            String sql = null;
+            DAL dal = DAL.Create("Common");
+
+            //            sql = @"select sysdate from dual;
+            //select sysdate from dual";
+            //            DataSet ds = dal.Select(sql, "");
+            //            Console.WriteLine(ds);
+
+            //            sql = @"Create Table Administrator(
+            //        ID NUMBER(10, 0) NOT NULL,
+            //        Name NVARCHAR2(50) NULL,
+            //        Password NVARCHAR2(50) NULL,
+            //        DisplayName NVARCHAR2(50) NULL,
+            //        RoleID NUMBER(10, 0) NULL,
+            //        Logins NUMBER(10, 0) NULL,
+            //        LastLogin DATE NULL,
+            //        LastLoginIP NVARCHAR2(50) NULL,
+            //        SSOUserID NUMBER(10, 0) NULL,
+            //        IsEnable NUMBER(1, 0) NULL,
+            //        constraint pk_Administrator primary key (ID)
+            //);
+            //Create Sequence SEQ_Administrator Minvalue 1 Maxvalue 9999999999 Start With 1 In
+            //crement By 1 Cache 20";
+            //            dal.Execute(sql, "");
+
+            List<IDataTable> tables = dal.Tables;
             Console.WriteLine(tables);
 
             //try

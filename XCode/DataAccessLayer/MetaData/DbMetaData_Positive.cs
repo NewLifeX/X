@@ -37,6 +37,7 @@ namespace XCode.DataAccessLayer
             public const String Columns = "Columns";
             public const String ID = "ID";
             public const String OrdinalPosition = "ORDINAL_POSITION";
+            public const String ColumnPosition = "COLUMN_POSITION";
             public const String TalbeName = "table_name";
             public const String ColumnName = "COLUMN_NAME";
             public const String IndexName = "INDEX_NAME";
@@ -371,7 +372,14 @@ namespace XCode.DataAccessLayer
                     di.Columns = name.Split(new String[] { "," }, StringSplitOptions.RemoveEmptyEntries);
                 else if (_indexColumns != null)
                 {
-                    DataRow[] dics = _indexColumns.Select(String.Format("{0}='{1}' And {2}='{3}'", _.TalbeName, table.Name, _.IndexName, di.Name), _.OrdinalPosition);
+                    String orderby = null;
+                    // Oracle数据库用ColumnPosition，其它数据库用OrdinalPosition
+                    if (_indexColumns.Columns.Contains(_.OrdinalPosition))
+                        orderby = _.OrdinalPosition;
+                    else if (_indexColumns.Columns.Contains(_.ColumnPosition))
+                        orderby = _.ColumnPosition;
+
+                    DataRow[] dics = _indexColumns.Select(String.Format("{0}='{1}' And {2}='{3}'", _.TalbeName, table.Name, _.IndexName, di.Name), orderby);
                     if (dics != null && dics.Length > 0)
                     {
                         List<String> ns = new List<string>();

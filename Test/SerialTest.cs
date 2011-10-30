@@ -14,6 +14,7 @@ using System.Text;
 using System.IO;
 using System.Data;
 using System.Net;
+using XCode;
 
 namespace Test
 {
@@ -295,6 +296,7 @@ namespace Test
         abstract class AdminBase : Administrator { }
 
         [Serializable]
+        [BindTable("AdminTest")]
         class Admin : AdminBase
         {
             private float _float1;

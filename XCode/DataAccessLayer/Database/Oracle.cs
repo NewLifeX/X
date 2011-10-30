@@ -735,7 +735,9 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(sql)) return sql;
 
             String sqlSeq = String.Format("Create Sequence SEQ_{0} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1 Cache 20", table.Name);
-            return sql + "; " + Environment.NewLine + sqlSeq;
+            //return sql + "; " + Environment.NewLine + sqlSeq;
+            // 去掉分号后的空格，Oracle不支持同时执行多个语句
+            return sql + ";" + Environment.NewLine + sqlSeq;
         }
 
         public override string DropTableSQL(String tableName)
