@@ -215,7 +215,11 @@ namespace NewLife.Serialization
         {
             if (!Runtime.IsConsole) return;
 
-            Console.CursorLeft = indent * 4;
+            try
+            {
+                Console.CursorLeft = indent * 4;
+            }
+            catch { }
         }
 
         /// <summary>

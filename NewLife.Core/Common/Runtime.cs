@@ -15,8 +15,31 @@ namespace NewLife
     public static class Runtime
     {
         #region 控制台
+        static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
+
+        private static Boolean? _IsConsole;
         /// <summary>是否控制台。用于判断是否可以执行一些控制台操作。</summary>
-        public static Boolean IsConsole { get { return ConsoleOutputHandle != IntPtr.Zero; } }
+        public static Boolean IsConsole
+        {
+            get
+            {
+                if (_IsConsole != null) return _IsConsole.Value;
+
+                IntPtr ip = Win32Native.GetStdHandle(-11);
+                if (ip == IntPtr.Zero || ip == INVALID_HANDLE_VALUE)
+                    _IsConsole = false;
+                else
+                {
+                    ip = Win32Native.GetStdHandle(-10);
+                    if (ip == IntPtr.Zero || ip == INVALID_HANDLE_VALUE)
+                        _IsConsole = false;
+                    else
+                        _IsConsole = true;
+                }
+
+                return _IsConsole.Value;
+            }
+        }
 
         private static IntPtr _consoleOutputHandle;
         private static IntPtr ConsoleOutputHandle
