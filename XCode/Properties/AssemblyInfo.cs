@@ -55,6 +55,8 @@ using System.Runtime.InteropServices;
  * v8.2.2011.1101   SqlServer增加连接字符串设置DataPath，用于指定反向工程创建数据库时所使用的数据目录
  *                  Oracle增加连接字符串设置DllPath，用于指定OCI目录，同时基于该目录自动计算ORACLE_HOME目录
  *                  Oracle增加设置项XCode.Oracle.IsUseOwner，指定正向工程时是否使用Owner约束所查询的表
+ *                  支持连接字符串编码加密，避免明文，明文=>UTF8字节=>Base64，可调用DAL.EncodeConnStr实现
+ *                  如果需要高级加密，则不要在配置文件中设置连接字符串，而改为编码通过DAL.AddConnStr添加
  *                  **使用对象容器后，实际项目稳定运行半个月，版本可升级到8.2
  * 
  * v8.1.2011.1020   实体缓存EntityCache及接口增加一个使用委托进行查询的FindAll

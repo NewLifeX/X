@@ -183,7 +183,7 @@ namespace XCode.DataAccessLayer
                     _Db = TypeX.ChangeType<IDatabase>(TypeX.CreateInstance(type));
                     // 不为空才设置连接字符串，因为可能有内部包装
                     if (!String.IsNullOrEmpty(ConnName)) _Db.ConnName = ConnName;
-                    if (!String.IsNullOrEmpty(ConnStr)) _Db.ConnectionString = ConnStr;
+                    if (!String.IsNullOrEmpty(ConnStr)) _Db.ConnectionString = DecodeConnStr(ConnStr);
                 }
 
                 return _Db;
@@ -192,6 +192,38 @@ namespace XCode.DataAccessLayer
 
         /// <summary>数据库会话</summary>
         public IDbSession Session { get { return Db.CreateSession(); } }
+        #endregion
+
+        #region 连接字符串编码解码
+        /// <summary>连接字符串编码</summary>
+        /// <remarks>明文=>UTF8字节=>Base64</remarks>
+        /// <param name="connstr"></param>
+        /// <returns></returns>
+        public static String EncodeConnStr(String connstr)
+        {
+            if (String.IsNullOrEmpty(connstr)) return connstr;
+
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(connstr));
+        }
+
+        /// <summary>连接字符串解码</summary>
+        /// <remarks>Base64=>UTF8字节=>明文</remarks>
+        /// <param name="connstr"></param>
+        /// <returns></returns>
+        static String DecodeConnStr(String connstr)
+        {
+            if (String.IsNullOrEmpty(connstr)) return connstr;
+
+            Byte[] bts = null;
+            try
+            {
+                // 尝试Base64解码，如果解码失败，估计就是连接字符串，直接返回
+                bts = Convert.FromBase64String(connstr);
+            }
+            catch { return connstr; }
+
+            return Encoding.UTF8.GetString(bts);
+        }
         #endregion
 
         #region 正向工程
