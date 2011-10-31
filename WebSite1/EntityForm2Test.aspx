@@ -36,7 +36,8 @@
         Logins:
         <asp:TextBox ID="frmLogins" runat="server"></asp:TextBox>
         <br />
-        LastLogin:<XCL:DateTimePicker ID="frmLastLogin" runat="server"></XCL:DateTimePicker>
+        <%--LastLogin:<XCL:DateTimePicker ID="frmLastLogin" runat="server"></XCL:DateTimePicker>--%>
+        LastLogin(DateTime lhg):<XCL:DateTimelhg ID="frmLastLogin" runat="server" ></XCL:DateTimelhg>
         <br />
         IsEnable:<asp:CheckBox ID="frmIsEnable" runat="server" />
         <br />
