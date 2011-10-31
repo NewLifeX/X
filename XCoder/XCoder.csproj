@@ -119,6 +119,12 @@
     <Compile Include="FrmModel.Designer.cs">
       <DependentUpon>FrmModel.cs</DependentUpon>
     </Compile>
+    <Compile Include="FrmQuery.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmQuery.Designer.cs">
+      <DependentUpon>FrmQuery.cs</DependentUpon>
+    </Compile>
     <Compile Include="FrmSchema.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -145,6 +151,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FrmModel.resx">
       <DependentUpon>FrmModel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmQuery.resx">
+      <DependentUpon>FrmQuery.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FrmSchema.resx">
       <DependentUpon>FrmSchema.cs</DependentUpon>
@@ -194,7 +203,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="App.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">

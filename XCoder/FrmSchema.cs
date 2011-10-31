@@ -3,12 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Threading;
 using System.Windows.Forms;
 using NewLife.Log;
 using NewLife.Reflection;
-using XCode.DataAccessLayer;
 using NewLife.Threading;
+using XCode.DataAccessLayer;
 
 namespace XCoder
 {

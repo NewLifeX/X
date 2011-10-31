@@ -28,13 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmSchema));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.cbTables = new System.Windows.Forms.ComboBox();
             this.cbSchemas = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
             this.gv = new System.Windows.Forms.DataGridView();
-            this.label1 = new System.Windows.Forms.Label();
-            this.cbTables = new System.Windows.Forms.ComboBox();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gv)).BeginInit();
             this.SuspendLayout();
@@ -52,6 +51,25 @@
             this.groupBox1.Size = new System.Drawing.Size(770, 44);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(290, 20);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(77, 12);
+            this.label1.TabIndex = 5;
+            this.label1.Text = "数据表架构：";
+            // 
+            // cbTables
+            // 
+            this.cbTables.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbTables.FormattingEnabled = true;
+            this.cbTables.Location = new System.Drawing.Point(373, 16);
+            this.cbTables.Name = "cbTables";
+            this.cbTables.Size = new System.Drawing.Size(168, 20);
+            this.cbTables.TabIndex = 4;
+            this.cbTables.SelectedIndexChanged += new System.EventHandler(this.cbTables_SelectedIndexChanged);
             // 
             // cbSchemas
             // 
@@ -74,34 +92,18 @@
             // 
             // gv
             // 
+            this.gv.AllowUserToAddRows = false;
+            this.gv.AllowUserToDeleteRows = false;
             this.gv.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.gv.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.gv.Location = new System.Drawing.Point(0, 55);
             this.gv.Name = "gv";
+            this.gv.ReadOnly = true;
             this.gv.RowTemplate.Height = 23;
             this.gv.Size = new System.Drawing.Size(784, 378);
             this.gv.TabIndex = 1;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(290, 20);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(77, 12);
-            this.label1.TabIndex = 5;
-            this.label1.Text = "数据表架构：";
-            // 
-            // cbTables
-            // 
-            this.cbTables.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbTables.FormattingEnabled = true;
-            this.cbTables.Location = new System.Drawing.Point(373, 16);
-            this.cbTables.Name = "cbTables";
-            this.cbTables.Size = new System.Drawing.Size(168, 20);
-            this.cbTables.TabIndex = 4;
-            this.cbTables.SelectedIndexChanged += new System.EventHandler(this.cbTables_SelectedIndexChanged);
             // 
             // FrmSchema
             // 
@@ -110,7 +112,6 @@
             this.ClientSize = new System.Drawing.Size(784, 433);
             this.Controls.Add(this.gv);
             this.Controls.Add(this.groupBox1);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FrmSchema";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "数据库架构信息管理器";

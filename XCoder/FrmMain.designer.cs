@@ -83,6 +83,7 @@
             this.label9 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
+            this.btnQuery = new System.Windows.Forms.Button();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -131,6 +132,7 @@
             // 
             // gbTable
             // 
+            this.gbTable.Controls.Add(this.btnQuery);
             this.gbTable.Controls.Add(this.btnExportModel);
             this.gbTable.Controls.Add(this.btnShowMetaData);
             this.gbTable.Controls.Add(this.btnShowSchema);
@@ -147,7 +149,7 @@
             // 
             // btnExportModel
             // 
-            this.btnExportModel.Location = new System.Drawing.Point(540, 20);
+            this.btnExportModel.Location = new System.Drawing.Point(531, 20);
             this.btnExportModel.Name = "btnExportModel";
             this.btnExportModel.Size = new System.Drawing.Size(76, 23);
             this.btnExportModel.TabIndex = 25;
@@ -157,7 +159,7 @@
             // 
             // btnShowMetaData
             // 
-            this.btnShowMetaData.Location = new System.Drawing.Point(458, 20);
+            this.btnShowMetaData.Location = new System.Drawing.Point(448, 20);
             this.btnShowMetaData.Name = "btnShowMetaData";
             this.btnShowMetaData.Size = new System.Drawing.Size(76, 23);
             this.btnShowMetaData.TabIndex = 24;
@@ -167,11 +169,11 @@
             // 
             // btnShowSchema
             // 
-            this.btnShowSchema.Location = new System.Drawing.Point(622, 19);
+            this.btnShowSchema.Location = new System.Drawing.Point(614, 20);
             this.btnShowSchema.Name = "btnShowSchema";
-            this.btnShowSchema.Size = new System.Drawing.Size(97, 23);
+            this.btnShowSchema.Size = new System.Drawing.Size(47, 23);
             this.btnShowSchema.TabIndex = 23;
-            this.btnShowSchema.Text = "查看架构信息";
+            this.btnShowSchema.Text = "架构";
             this.btnShowSchema.UseVisualStyleBackColor = true;
             this.btnShowSchema.Click += new System.EventHandler(this.btnShowSchema_Click);
             // 
@@ -592,6 +594,16 @@
             this.label12.TabIndex = 34;
             this.label12.Text = "1，连接数据库，得到数据表信息";
             // 
+            // btnQuery
+            // 
+            this.btnQuery.Location = new System.Drawing.Point(668, 20);
+            this.btnQuery.Name = "btnQuery";
+            this.btnQuery.Size = new System.Drawing.Size(47, 23);
+            this.btnQuery.TabIndex = 26;
+            this.btnQuery.Text = "查询";
+            this.btnQuery.UseVisualStyleBackColor = true;
+            this.btnQuery.Click += new System.EventHandler(this.btnQuery_Click);
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -607,7 +619,6 @@
             this.Controls.Add(this.gbTable);
             this.Controls.Add(this.gbConnect);
             this.Controls.Add(this.bt_Connection);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "FrmMain";
             this.RightToLeftLayout = true;
@@ -684,6 +695,7 @@
         private System.Windows.Forms.Button btnExportModel;
         private System.Windows.Forms.CheckBox cbRenderGenEntity;
         private System.Windows.Forms.Button frmItems;
+        private System.Windows.Forms.Button btnQuery;
 	}
 }
 

@@ -29,10 +29,12 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("4.3.*")]
-[assembly: AssemblyFileVersion("4.3.2011.0920")]
+[assembly: AssemblyVersion("4.4.*")]
+[assembly: AssemblyFileVersion("4.4.2011.1031")]
 
 /*
+ * v4.4.2011.1031   增加查询分析器
+ * 
  * v4.3.2011.0920   将在线翻译服务替换成s.nnhy.org上的翻译服务
  * 
  * v4.3.2011.0915   增加数据表架构，比如Access，可以从中识别字段是否自增

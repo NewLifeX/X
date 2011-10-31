@@ -649,6 +649,14 @@ namespace XCoder
             FrmSchema.Create(DAL.Create(connName).Db).Show();
         }
 
+        private void btnQuery_Click(object sender, EventArgs e)
+        {
+            String connName = "" + cbConn.SelectedValue;
+            if (String.IsNullOrEmpty(connName)) return;
+
+            FrmQuery.Create(DAL.Create(connName)).Show();
+        }
+
         private void btnShowMetaData_Click(object sender, EventArgs e)
         {
             List<IDataTable> tables = Engine.Tables;
