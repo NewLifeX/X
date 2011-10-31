@@ -30,18 +30,18 @@ namespace XCode.DataAccessLayer
         #region 常量
         protected static class _
         {
-            public const String Tables = "Tables";
-            public const String Indexes = "Indexes";
-            public const String IndexColumns = "IndexColumns";
-            public const String Databases = "Databases";
-            public const String Columns = "Columns";
-            public const String ID = "ID";
-            public const String OrdinalPosition = "ORDINAL_POSITION";
-            public const String ColumnPosition = "COLUMN_POSITION";
-            public const String TalbeName = "table_name";
-            public const String ColumnName = "COLUMN_NAME";
-            public const String IndexName = "INDEX_NAME";
-            public const String PrimaryKeys = "PrimaryKeys";
+            public static readonly String Tables = "Tables";
+            public static readonly String Indexes = "Indexes";
+            public static readonly String IndexColumns = "IndexColumns";
+            public static readonly String Databases = "Databases";
+            public static readonly String Columns = "Columns";
+            public static readonly String ID = "ID";
+            public static readonly String OrdinalPosition = "ORDINAL_POSITION";
+            public static readonly String ColumnPosition = "COLUMN_POSITION";
+            public static readonly String TalbeName = "table_name";
+            public static readonly String ColumnName = "COLUMN_NAME";
+            public static readonly String IndexName = "INDEX_NAME";
+            public static readonly String PrimaryKeys = "PrimaryKeys";
         }
         #endregion
 

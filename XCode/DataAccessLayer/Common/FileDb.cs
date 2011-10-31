@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Data.OleDb;
 using System.IO;
-using System.Data.Common;
 
 namespace XCode.DataAccessLayer
 {
@@ -19,7 +19,7 @@ namespace XCode.DataAccessLayer
                 DbConnectionStringBuilder builder = Factory.CreateConnectionStringBuilder();
                 if (builder != null)
                 {
-                    builder["Data Source"] = Path.GetTempFileName();
+                    builder[_.DataSource] = Path.GetTempFileName();
                     return builder.ToString();
                 }
 
@@ -32,35 +32,15 @@ namespace XCode.DataAccessLayer
             base.OnSetConnectionString(builder);
 
             String file;
-            //if (!builder.TryGetValue("Data Source", out file)) return;
+            //if (!builder.TryGetValue(_.DataSource, out file)) return;
             // 允许空，当作内存数据库处理
-            builder.TryGetValue("Data Source", out file);
-            file = ResoleFile(file);
-            builder["Data Source"] = file;
+            builder.TryGetValue(_.DataSource, out file);
+            file = OnResolveFile(file);
+            builder[_.DataSource] = file;
             FileName = file;
         }
 
-        protected virtual String ResoleFile(String file)
-        {
-            if (String.IsNullOrEmpty(file)) return file;
-
-            if (file.StartsWith("~/") || file.StartsWith("~\\"))
-            {
-                file = file.Replace("/", "\\").Replace("~\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-            }
-            else if (file.StartsWith("./") || file.StartsWith(".\\"))
-            {
-                file = file.Replace("/", "\\").Replace(".\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
-            }
-            else if (!Path.IsPathRooted(file))
-            {
-                file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file.Replace("/", "\\"));
-                // 过滤掉不必要的符号
-                file = new FileInfo(file).FullName;
-            }
-
-            return file;
-        }
+        protected virtual String OnResolveFile(String file) { return ResolveFile(file); }
 
         private String _FileName;
         /// <summary>文件</summary>

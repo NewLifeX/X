@@ -42,11 +42,11 @@ namespace XCode.DataAccessLayer
 
         static readonly String MemoryDatabase = ":memory:";
 
-        protected override string ResoleFile(string file)
+        protected override string OnResolveFile(string file)
         {
             if (String.IsNullOrEmpty(file) || String.Equals(file, MemoryDatabase, StringComparison.OrdinalIgnoreCase)) return MemoryDatabase;
 
-            return base.ResoleFile(file);
+            return base.OnResolveFile(file);
         }
 
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)

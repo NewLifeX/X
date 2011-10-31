@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using NewLife;
-using System.Linq;
 using NewLife.Configuration;
 using XCode.Common;
 using XCode.Exceptions;
-using System.Text;
+using System.Runtime.InteropServices;
 
 namespace XCode.DataAccessLayer
 {
@@ -117,6 +118,96 @@ namespace XCode.DataAccessLayer
             }
             set { base.Owner = value; }
         }
+
+        private String _DllPath;
+        /// <summary>OCI目录</summary>
+        public String DllPath
+        {
+            get { return _DllPath; }
+            set
+            {
+                _DllPath = value;
+
+                String ocifile = Path.Combine(value, "oci.dll");
+                if (!File.Exists(ocifile))
+                {
+                    String dir = Path.Combine(value, "bin");
+                    ocifile = Path.Combine(dir, "oci.dll");
+                    if (File.Exists(ocifile)) _DllPath = dir;
+                }
+
+                if (!Path.IsPathRooted(_DllPath)) _DllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _DllPath);
+                _DllPath = new DirectoryInfo(_DllPath).FullName;
+            }
+        }
+
+        private String _OracleHome;
+        /// <summary>Oracle运行时主目录</summary>
+        public String OracleHome
+        {
+            get
+            {
+                if (_OracleHome == null)
+                {
+                    _OracleHome = String.Empty;
+
+                    // 如果DllPath目录存在，则基于它找主目录
+                    if (!String.IsNullOrEmpty(DllPath) && Directory.Exists(DllPath))
+                    {
+                        _OracleHome = DllPath;
+
+                        // 如果该目录就有network目录，则使用它作为主目录
+                        if (!Directory.Exists(Path.Combine(DllPath, "network")))
+                        {
+                            // 否则找上一级
+                            DirectoryInfo di = new DirectoryInfo(DllPath);
+                            di = di.Parent;
+
+                            if (Directory.Exists(Path.Combine(di.FullName, "network"))) _OracleHome = di.FullName;
+                        }
+                    }
+                }
+                return _OracleHome;
+            }
+            //set { _OracleHome = value; }
+        }
+
+        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        {
+            String str = null;
+            // 获取OCI目录
+            if (builder.TryGetAndRemove("DllPath", out str) && !String.IsNullOrEmpty(str))
+            {
+                DllPath = str;
+
+                // 设置路径
+                String ocifile = Path.Combine(DllPath, "oci.dll");
+                if (File.Exists(ocifile))
+                {
+                    DAL.WriteDebugLog("设置OCI目录：{0}", DllPath);
+
+                    try
+                    {
+                        LoadLibrary(ocifile);
+                        SetDllDirectory(DllPath);
+                    }
+                    catch { }
+                }
+
+                if (String.IsNullOrEmpty(Environment.GetEnvironmentVariable("ORACLE_HOME")))
+                {
+                    DAL.WriteDebugLog("设置环境变量：{0}={1}", "ORACLE_HOME", OracleHome);
+
+                    Environment.SetEnvironmentVariable("ORACLE_HOME", OracleHome);
+                }
+            }
+        }
+
+        [DllImport("kernel32.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        static extern IntPtr LoadLibrary(string fileName);
+
+        [DllImport("kernel32.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        static extern int SetDllDirectory(string pathName);
         #endregion
 
         #region 方法

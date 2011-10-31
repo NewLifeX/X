@@ -70,6 +70,13 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
+        #region 常量
+        protected static class _
+        {
+            public static readonly String DataSource = "Data Source";
+        }
+        #endregion
+
         #region 属性
         /// <summary>
         /// 返回数据库类型。外部DAL数据库类请使用Other
@@ -714,6 +721,28 @@ namespace XCode.DataAccessLayer
         public override string ToString()
         {
             return String.Format("[{0}] {1} {2}", ConnName, DbType, ServerVersion);
+        }
+        
+        protected static String ResolveFile(String file)
+        {
+            if (String.IsNullOrEmpty(file)) return file;
+
+            if (file.StartsWith("~/") || file.StartsWith("~\\"))
+            {
+                file = file.Replace("/", "\\").Replace("~\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
+            }
+            else if (file.StartsWith("./") || file.StartsWith(".\\"))
+            {
+                file = file.Replace("/", "\\").Replace(".\\", AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + "\\");
+            }
+            else if (!Path.IsPathRooted(file))
+            {
+                file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file.Replace("/", "\\"));
+            }
+            // 过滤掉不必要的符号
+            file = new FileInfo(file).FullName;
+
+            return file;
         }
         #endregion
     }

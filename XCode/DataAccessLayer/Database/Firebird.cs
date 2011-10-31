@@ -54,7 +54,7 @@ namespace XCode.DataAccessLayer
             String file;
             if (!builder.TryGetValue("Database", out file)) return;
 
-            file = ResoleFile(file);
+            file = ResolveFile(file);
             builder["Database"] = file;
             FileName = file;
         }
