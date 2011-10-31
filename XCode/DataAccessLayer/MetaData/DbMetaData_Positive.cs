@@ -41,6 +41,7 @@ namespace XCode.DataAccessLayer
             public const String TalbeName = "table_name";
             public const String ColumnName = "COLUMN_NAME";
             public const String IndexName = "INDEX_NAME";
+            public const String PrimaryKeys = "PrimaryKeys";
         }
         #endregion
 

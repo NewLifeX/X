@@ -377,6 +377,34 @@ namespace XCode.DataAccessLayer
         {
             base.FixTable(table, dr);
 
+            // 主键
+            if (MetaDataCollections.Contains(_.PrimaryKeys))
+            {
+                DataTable dt = null;
+                if (IsUseOwner)
+                    dt = GetSchema(_.PrimaryKeys, new String[] { Owner, table.Name, null });
+                else
+                    dt = GetSchema(_.PrimaryKeys, new String[] { null, table.Name, null });
+
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    // 找到主键所在索引，这个索引的列才是主键
+                    String name = null;
+                    if (TryGetDataRowValue<String>(dt.Rows[0], _.IndexName, out name) && !String.IsNullOrEmpty(name))
+                    {
+                        IDataIndex di = table.Indexes.FirstOrDefault(i => i.Name == name);
+                        if (di != null)
+                        {
+                            di.PrimaryKey = true;
+                            foreach (IDataColumn dc in table.Columns)
+                            {
+                                dc.PrimaryKey = di.Columns.Contains(dc.Name);
+                            }
+                        }
+                    }
+                }
+            }
+
             // 表注释 USER_TAB_COMMENTS
             //String sql = String.Format("Select COMMENTS From USER_TAB_COMMENTS Where TABLE_NAME='{0}'", table.Name);
             //String comment = (String)Database.CreateSession().ExecuteScalar(sql);
@@ -658,6 +686,15 @@ namespace XCode.DataAccessLayer
                 //}
             }
             return drs;
+        }
+
+        protected override void FixIndex(IDataIndex index, DataRow dr)
+        {
+            String str = null;
+            if (TryGetDataRowValue<String>(dr, "UNIQUENESS", out str))
+                index.Unique = str == "UNIQUE";
+
+            base.FixIndex(index, dr);
         }
 
         #region 架构定义
