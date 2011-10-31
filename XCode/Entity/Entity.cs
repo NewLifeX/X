@@ -1508,12 +1508,24 @@ namespace XCode
             IDataTable table = Meta.Table.DataTable;
             if (table.Indexes != null && table.Indexes.Count > 0)
             {
+                IDataIndex di = null;
                 foreach (IDataIndex item in table.Indexes)
                 {
                     if (!item.Unique) continue;
+                    if (item.Columns == null || item.Columns.Length < 1) continue;
 
                     IDataColumn[] columns = table.GetColumns(item.Columns);
                     if (columns == null || columns.Length < 1) continue;
+
+                    di = item;
+
+                    // 如果只有一个主键，并且是自增，再往下找别的。如果后面实在找不到，至少还有现在这个。
+                    if (!(columns.Length == 1 && columns[0].Identity)) break;
+                }
+
+                if (di != null)
+                {
+                    IDataColumn[] columns = table.GetColumns(di.Columns);
 
                     // [v1,v2,...vn]
                     StringBuilder sb = new StringBuilder();

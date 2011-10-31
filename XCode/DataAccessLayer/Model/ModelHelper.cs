@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CSharp;
 using Microsoft.VisualBasic;
-using NewLife;
 
 namespace XCode.DataAccessLayer
 {
@@ -393,7 +392,7 @@ namespace XCode.DataAccessLayer
         public static String GetAlias(String name)
         {
             // 很多时候，这个别名就是表名
-            return FixWord(CutPrefix(name));
+            return FixWord(CutPrefix(name.Replace("$", null)));
         }
 
         static String CutPrefix(String name)

@@ -167,7 +167,6 @@ namespace XCode.Accessors
         /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
-        /// <param name="readOrwrite">读或写</param>
         private void GetTextBoxBase(IEntity entity, FieldItem field, TextBoxBase control)
         {
             Object v = control.Text;

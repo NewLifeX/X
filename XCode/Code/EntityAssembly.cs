@@ -2,7 +2,6 @@
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Reflection;
 using NewLife.Collections;
@@ -11,9 +10,7 @@ using XCode.Exceptions;
 
 namespace XCode.Code
 {
-    /// <summary>
-    /// 实体程序集
-    /// </summary>
+    /// <summary>实体程序集</summary>
     public class EntityAssembly
     {
         #region 属性
@@ -113,34 +110,34 @@ namespace XCode.Code
             IDataTable tb = table.Clone() as IDataTable;
             String className = tb.Name.Replace("$", null);
 
-            // 计算名称，防止属性名和类型名重名
-            StringCollection list = new StringCollection();
-            list.Add("Item");
-            list.Add("System");
-            list.Add(className);
+            //// 计算名称，防止属性名和类型名重名
+            //StringCollection list = new StringCollection();
+            //list.Add("Item");
+            //list.Add("System");
+            //list.Add(className);
 
-            // 保存属性名，可能跟字段名不一致
-            Dictionary<String, String> fieldNames = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-            foreach (IDataColumn item in tb.Columns)
-            {
-                String name = item.Name;
-                for (int i = 2; list.Contains(name); i++)
-                {
-                    name = item.Name + i;
-                }
-                //item.Name = name;
-                fieldNames.Add(item.Name, name);
-            }
+            //// 保存属性名，可能跟字段名不一致
+            //Dictionary<String, String> fieldNames = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            //foreach (IDataColumn item in tb.Columns)
+            //{
+            //    String name = item.Name;
+            //    for (int i = 2; list.Contains(name); i++)
+            //    {
+            //        name = item.Name + i;
+            //    }
+            //    //item.Name = name;
+            //    fieldNames.Add(item.Name, name);
+            //}
 
             EntityClass entity = new EntityClass();
             entity.Assembly = this;
             entity.ClassName = className;
             entity.Table = tb;
-            entity.FieldNames = fieldNames;
+            //entity.FieldNames = fieldNames;
             entity.Create();
             entity.AddProperties();
             entity.AddIndexs();
-            entity.AddNames();
+            //entity.AddNames();
 
             Classes.Add(entity);
             return entity;

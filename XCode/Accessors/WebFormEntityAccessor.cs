@@ -83,6 +83,7 @@ namespace XCode.Accessors
         /// <summary>
         /// 把控件的值设置到实体属性上
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
         protected virtual void GetFormItem(IEntity entity, FieldItem field, Control control)
@@ -129,6 +130,7 @@ namespace XCode.Accessors
         /// <summary>
         /// 文本框
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
         protected virtual void GetFormItemTextBox(IEntity entity, FieldItem field, TextBox control)
@@ -144,6 +146,7 @@ namespace XCode.Accessors
         /// <summary>
         /// 标签，不做任何操作
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
         protected virtual void GetFormItemLabel(IEntity entity, FieldItem field, Label control)
@@ -154,6 +157,7 @@ namespace XCode.Accessors
         /// <summary>
         /// 复选框
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
         protected virtual void GetFormItemCheckBox(IEntity entity, FieldItem field, CheckBox control)
@@ -173,6 +177,7 @@ namespace XCode.Accessors
         /// <summary>
         /// 列表框
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
         protected virtual void GetFormItemListControl(IEntity entity, FieldItem field, ListControl control)
@@ -186,6 +191,7 @@ namespace XCode.Accessors
         /// <summary>
         /// 单选框
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
         protected virtual void GetFormItemRadioButton(IEntity entity, FieldItem field, RadioButton control)
@@ -260,6 +266,7 @@ namespace XCode.Accessors
         /// <summary>
         /// 把实体成员的值设置到控件上
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
@@ -325,6 +332,7 @@ namespace XCode.Accessors
         /// <summary>
         /// 文本框
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
@@ -350,6 +358,7 @@ namespace XCode.Accessors
         /// <summary>
         /// 标签
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
@@ -374,6 +383,7 @@ namespace XCode.Accessors
         /// <summary>
         /// 复选框
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
@@ -391,6 +401,7 @@ namespace XCode.Accessors
         /// <summary>
         /// 列表框
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
@@ -415,6 +426,7 @@ namespace XCode.Accessors
         /// <summary>
         /// 单选框
         /// </summary>
+        /// <param name="entity"></param>
         /// <param name="field"></param>
         /// <param name="control"></param>
         /// <param name="canSave"></param>
