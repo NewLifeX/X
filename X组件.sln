@@ -52,6 +52,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test2", "Test2\Test2.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YWS", "YWS\YWS.csproj", "{DBE2D3C8-24B9-4193-A568-66F550921702}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Mvc", "NewLife.Mvc\NewLife.Mvc.csproj", "{E50FC131-90E6-4D21-8F87-84BDF4B841B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		.Net 2.0 Sp0|Any CPU = .Net 2.0 Sp0|Any CPU
@@ -248,6 +250,21 @@ Global
 		{DBE2D3C8-24B9-4193-A568-66F550921702}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{DBE2D3C8-24B9-4193-A568-66F550921702}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{DBE2D3C8-24B9-4193-A568-66F550921702}.Release|x86.ActiveCfg = Release|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}..Net 2.0 Sp0|Any CPU.ActiveCfg = Release|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}..Net 2.0 Sp0|Any CPU.Build.0 = Release|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}..Net 2.0 Sp0|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}..Net 2.0 Sp0|Mixed Platforms.Build.0 = Release|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}..Net 2.0 Sp0|x86.ActiveCfg = Release|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
