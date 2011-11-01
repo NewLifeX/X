@@ -8,9 +8,9 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CSharp;
+using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
-using NewLife;
 using NewLife.Reflection;
 
 namespace XTemplate.Templating
