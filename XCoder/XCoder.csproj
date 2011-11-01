@@ -188,7 +188,9 @@
   <ItemGroup>
     <EmbeddedResource Include="leaf.ico" />
     <EmbeddedResource Include="NewLife.ProcessHelper.exe" />
-    <EmbeddedResource Include="Template\页面EntityForm2\类名.aspx" />
+    <EmbeddedResource Include="Template\页面EntityForm2\类名.aspx">
+      <SubType>ASPXCodeBehind</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="Template\页面EntityForm2\类名Form.aspx">
       <SubType>ASPXCodeBehind</SubType>
     </EmbeddedResource>

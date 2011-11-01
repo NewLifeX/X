@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Web.UI;
 
 namespace NewLife.CommonEntity
 {
@@ -24,7 +25,7 @@ namespace NewLife.CommonEntity
         Type RoleMenuType { get; }
         #endregion
 
-        #region 接口
+        #region 方法
         /// <summary>当前用户</summary>
         new IAdministrator Current { get; }
 
@@ -50,6 +51,24 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         new IAdministrator Login(String account, String password);
         #endregion
+
+        #region 页面和表单
+        /// <summary>
+        /// 创建管理页控制器
+        /// </summary>
+        /// <param name="container"></param>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        IManagerPage CreatePage(Control container, Type entityType);
+
+        /// <summary>
+        /// 创建实体表单控制器
+        /// </summary>
+        /// <param name="container"></param>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        IEntityForm CreateForm(Control container, Type entityType);
+        #endregion
     }
 
     /// <summary>通用实体类管理提供者</summary>
@@ -65,14 +84,6 @@ namespace NewLife.CommonEntity
         /// <summary>当前提供者</summary>
         public static ICommonManageProvider Provider { get { return CommonService.Resolve<ICommonManageProvider>(); } }
         #endregion
-
-        //#region 静态构造
-        ////static CommonManageProvider()
-        ////{
-        ////    // 不覆盖注册，谁先被调用，就以它为准
-        ////    CommonService.Register<ICommonManageProvider, CommonManageProvider>(null, false);
-        ////}
-        //#endregion
 
         #region IManageProvider 接口
         /// <summary>管理用户类</summary>
@@ -173,6 +184,34 @@ namespace NewLife.CommonEntity
         /// <param name="password"></param>
         /// <returns></returns>
         public virtual TAdministrator Login(String account, String password) { return Administrator<TAdministrator>.Login(account, password); }
+        #endregion
+
+        #region 页面和表单
+        /// <summary>
+        /// 创建管理页控制器
+        /// </summary>
+        /// <param name="container"></param>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        public virtual IManagerPage CreatePage(Control container, Type entityType)
+        {
+            IManagerPage page = CommonService.Resolve<IManagerPage>();
+            page.Init(container, entityType);
+            return page;
+        }
+
+        /// <summary>
+        /// 创建实体表单控制器
+        /// </summary>
+        /// <param name="container"></param>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        public virtual IEntityForm CreateForm(Control container, Type entityType)
+        {
+            IEntityForm form = CommonService.Resolve<IEntityForm>();
+            form.Init(container, entityType);
+            return form;
+        }
         #endregion
     }
 }

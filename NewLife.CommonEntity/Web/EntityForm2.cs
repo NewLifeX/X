@@ -18,7 +18,7 @@ namespace NewLife.CommonEntity.Web
     /// 1，不能使用泛型；
     /// 2，不能占用页面基类；
     /// </remarks>
-    public class EntityForm2
+    public class EntityForm2 : IEntityForm
     {
         #region 属性
         private Control _Container;
@@ -48,21 +48,28 @@ namespace NewLife.CommonEntity.Web
 
         #region 构造
         /// <summary>
+        /// 实例化一个实体表单
+        /// </summary>
+        public EntityForm2() { }
+
+        /// <summary>
         /// 指定控件容器和实体类型，实例化一个实体表单
         /// </summary>
         /// <param name="container"></param>
         /// <param name="type"></param>
         public EntityForm2(Control container, Type type)
         {
-            if (container == null)
-            {
-                if (HttpContext.Current.Handler is Page) container = HttpContext.Current.Handler as Page;
-            }
+            //if (container == null)
+            //{
+            //    if (HttpContext.Current.Handler is Page) container = HttpContext.Current.Handler as Page;
+            //}
 
-            Container = container;
-            EntityType = type;
+            //Container = container;
+            //EntityType = type;
 
-            Init();
+            //Init();
+
+            (this as IEntityForm).Init(container, type);
         }
         #endregion
 
@@ -455,6 +462,27 @@ namespace NewLife.CommonEntity.Web
         {
             return FindControl(ItemPrefix + field.Name);
         }
+        #endregion
+
+        #region IEntityForm 成员
+        /// <summary>
+        /// 使用控件容器和实体类初始化接口
+        /// </summary>
+        /// <param name="container"></param>
+        /// <param name="entityType"></param>
+        void IEntityForm.Init(Control container, Type entityType)
+        {
+            if (container == null)
+            {
+                if (HttpContext.Current.Handler is Page) container = HttpContext.Current.Handler as Page;
+            }
+
+            Container = container;
+            EntityType = entityType;
+
+            Init();
+        }
+
         #endregion
     }
 }
