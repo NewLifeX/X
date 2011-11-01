@@ -35,6 +35,7 @@
             this.cbConn = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.gbTable = new System.Windows.Forms.GroupBox();
+            this.btnQuery = new System.Windows.Forms.Button();
             this.btnExportModel = new System.Windows.Forms.Button();
             this.btnShowMetaData = new System.Windows.Forms.Button();
             this.btnShowSchema = new System.Windows.Forms.Button();
@@ -83,7 +84,6 @@
             this.label9 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
-            this.btnQuery = new System.Windows.Forms.Button();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -146,6 +146,16 @@
             this.gbTable.Size = new System.Drawing.Size(725, 49);
             this.gbTable.TabIndex = 14;
             this.gbTable.TabStop = false;
+            // 
+            // btnQuery
+            // 
+            this.btnQuery.Location = new System.Drawing.Point(668, 20);
+            this.btnQuery.Name = "btnQuery";
+            this.btnQuery.Size = new System.Drawing.Size(47, 23);
+            this.btnQuery.TabIndex = 26;
+            this.btnQuery.Text = "查询";
+            this.btnQuery.UseVisualStyleBackColor = true;
+            this.btnQuery.Click += new System.EventHandler(this.btnQuery_Click);
             // 
             // btnExportModel
             // 
@@ -306,6 +316,7 @@
             this.frmItems.Size = new System.Drawing.Size(99, 23);
             this.frmItems.TabIndex = 50;
             this.frmItems.Text = "扩展属性编辑";
+            this.toolTip1.SetToolTip(this.frmItems, "模版中通过Config.Items[name]使用。");
             this.frmItems.UseVisualStyleBackColor = true;
             this.frmItems.Click += new System.EventHandler(this.frmItems_Click);
             // 
@@ -593,16 +604,6 @@
             this.label12.Size = new System.Drawing.Size(179, 12);
             this.label12.TabIndex = 34;
             this.label12.Text = "1，连接数据库，得到数据表信息";
-            // 
-            // btnQuery
-            // 
-            this.btnQuery.Location = new System.Drawing.Point(668, 20);
-            this.btnQuery.Name = "btnQuery";
-            this.btnQuery.Size = new System.Drawing.Size(47, 23);
-            this.btnQuery.TabIndex = 26;
-            this.btnQuery.Text = "查询";
-            this.btnQuery.UseVisualStyleBackColor = true;
-            this.btnQuery.Click += new System.EventHandler(this.btnQuery_Click);
             // 
             // FrmMain
             // 
