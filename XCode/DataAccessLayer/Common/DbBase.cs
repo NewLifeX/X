@@ -274,15 +274,11 @@ namespace XCode.DataAccessLayer
                     if (machine != ImageFileMachine.I386) file += "64";
                     #endregion
 
-                    //String file2 = file + ".zip";
-                    //if (!File.Exists(file2))
-                    //{
-                    String url = String.Format("http://files.cnblogs.com/nnhy/{0}", Path.GetFileName(file + ".zip"));
+                    String url = String.Format("http://nnhy.org/j?id=3&f={0}", Path.GetFileName(file + ".zip"));
                     DAL.WriteLog("准备从{0}下载相关文件！", url);
                     WebClientX client = new WebClientX();
                     // 同步下载，3秒超时
                     client.Timeout = 3000;
-                    //client.DownloadFile(url, file2);
                     Byte[] data = client.DownloadData(url);
                     client.Dispose();
 
@@ -291,22 +287,12 @@ namespace XCode.DataAccessLayer
                     MemoryStream ms = new MemoryStream(data);
                     IOHelper.DecompressFile(ms, dir, file, false);
                     DAL.WriteLog("解压完成！");
-
-                    //}
-                    //if (File.Exists(file2))
-                    //{
-                    //IOHelper.DecompressFile(file2, null, false);
-
-                    //    File.Delete(file2);
-                    //}
                 }
                 catch (Exception ex)
                 {
                     DAL.WriteLog(ex.ToString());
                 }
 
-                //// 等3秒
-                //Thread.Sleep(3000);
                 // 如果还没有，就写异常
                 if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
             }
