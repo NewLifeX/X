@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Web;
+using System.Web.SessionState;
 
 namespace NewLife.Mvc
 {
@@ -19,6 +20,14 @@ namespace NewLife.Mvc
         private HttpResponse _Response;
         /// <summary>Http响应</summary>
         public HttpResponse Response { get { return HttpContext.Current == null ? null : HttpContext.Current.Response; } }
+
+        private HttpServerUtility _Server;
+        /// <summary>HttpServer</summary>
+        public HttpServerUtility Server { get { return HttpContext.Current == null ? null : HttpContext.Current.Server; } }
+
+        private HttpSessionState _Session;
+        /// <summary>会话</summary>
+        public HttpSessionState Session { get { return HttpContext.Current == null ? null : HttpContext.Current.Session; } }
         #endregion
 
         #region IController 成员
