@@ -7,9 +7,7 @@ using NewLife.Reflection;
 
 namespace NewLife.Web
 {
-    /// <summary>
-    /// 页面压缩模块
-    /// </summary>
+    /// <summary>页面压缩模块</summary>
     public class CompressionModule : IHttpModule
     {
         #region IHttpModule Members
@@ -40,16 +38,6 @@ namespace NewLife.Web
             //压缩
             String url = app.Request.Url.OriginalString.ToLower();
             String files = Config.GetConfig<String>("NewLife.CommonEntity.CompressFiles", ".aspx,.axd,.js,.css");
-            //Boolean b = false;
-            //foreach (String item in files.ToLower().Split(new String[] { ",", ";", " " }, StringSplitOptions.RemoveEmptyEntries))
-            //{
-            //    if (url.Contains(item))
-            //    {
-            //        b = true;
-            //        break;
-            //    }
-            //}
-            //if (b)
             if (files.ToLower().Split(new String[] { ",", ";", " " }, StringSplitOptions.RemoveEmptyEntries).Any(t => url.Contains(t)))
             {
                 //是否支持压缩协议
@@ -67,8 +55,7 @@ namespace NewLife.Web
         }
 
         /// <summary>
-        /// Checks the request headers to see if the specified
-        /// encoding is accepted by the client.
+        /// 检查请求头，确认客户端是否支持压缩编码
         /// </summary>
         private static bool IsEncodingAccepted(string encoding)
         {
@@ -76,7 +63,7 @@ namespace NewLife.Web
         }
 
         /// <summary>
-        /// Adds the specified encoding to the response headers.
+        /// 添加压缩编码到响应头
         /// </summary>
         /// <param name="encoding"></param>
         private static void SetEncoding(string encoding)

@@ -271,12 +271,15 @@
     <Compile Include="Threading\ThreadTask.cs" />
     <Compile Include="Threading\ThreadX.cs" />
     <Compile Include="Threading\TimerX.cs" />
-    <Compile Include="Web\CompressionModule.cs" />
+    <Compile Include="Web\Modules\CompressionModule.cs" />
     <Compile Include="Web\ControlHelper.cs" />
     <Compile Include="Web\HttpState.cs" />
     <Compile Include="Web\HttpStream.cs" />
     <Compile Include="Log\WriteLogEventArgs.cs" />
     <Compile Include="Log\XTrace.cs" />
+    <Compile Include="Web\Modules\ViewStateCompressionModule.cs" />
+    <Compile Include="Web\Modules\RunTimeModule.cs" />
+    <Compile Include="Web\Modules\SystemStartModule.cs" />
     <Compile Include="Web\WebClientX.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -289,6 +292,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Serialization\Protocol\说明.txt" />
+    <EmbeddedResource Include="Web\Modules\SystemStart.htm" />
     <Content Include="说明.txt" />
     <EmbeddedResource Include="UpdateInfo.txt" />
     <Content Include="Serialization\序列化_写入器.png" />
