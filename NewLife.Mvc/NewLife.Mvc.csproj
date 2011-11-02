@@ -46,6 +46,11 @@
     <Compile Include="Interfaces\IControllerFactory.cs" />
     <Compile Include="Interfaces\ITemplateEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Routing\IRouteConfig.cs" />
+    <Compile Include="Routing\IRouteConfigMoudule.cs" />
+    <Compile Include="Routing\RouteConfigManager.cs" />
+    <Compile Include="Routing\RouteContext.cs" />
+    <Compile Include="Routing\Rule.cs" />
     <Compile Include="Service.cs" />
     <Compile Include="Routing\UrlRoute.cs" />
   </ItemGroup>

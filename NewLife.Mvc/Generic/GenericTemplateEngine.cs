@@ -35,6 +35,11 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public virtual string Render(string templateName, IDictionary<string, object> data)
         {
+            if (EngineType == null)
+            {
+                throw new Exception("没有引用模版引擎,默认是XTemplate");
+            }
+
             MethodInfoX method = MethodInfoX.Create(EngineType, "ProcessFile");
             String html = (String)method.Invoke(null, templateName, data);
 

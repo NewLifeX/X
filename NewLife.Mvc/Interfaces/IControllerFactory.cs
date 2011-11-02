@@ -9,6 +9,12 @@ namespace NewLife.Mvc
     public interface IControllerFactory
     {
         /// <summary>
+        /// 当前控制器工厂产生的控制器是否支持指定路径的请求
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        bool Support(string path);
+        /// <summary>
         /// 创建控制器
         /// </summary>
         /// <returns></returns>
