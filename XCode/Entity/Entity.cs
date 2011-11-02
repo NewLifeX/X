@@ -885,7 +885,7 @@ namespace XCode
         [WebMethod(Description = "查询并返回总记录数")]
         public static Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
-            SelectBuilder sb = new SelectBuilder(Meta.DbType);
+            SelectBuilder sb = new SelectBuilder();
             sb.Table = Meta.FormatName(Meta.TableName);
             sb.Where = whereClause;
 
@@ -1319,24 +1319,30 @@ namespace XCode
         protected static String PageSplitSQL(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
             FieldItem fi = Meta.Unique;
-            String keyColumn = null;
             if (fi != null)
             {
-                keyColumn = fi.ColumnName;
-                // 加上Desc标记，将使用MaxMin分页算法。标识列，单一主键且为数字类型
+                builder.Key = fi.Name;
                 if (fi.IsIdentity && Helper.IsIntType(fi.Type))
                 {
-                    keyColumn += " Desc";
-
                     // 默认获取数据时，还是需要指定安装自增字段降序，符合使用习惯
                     // 有GroupBy也不能加排序
-                    if (String.IsNullOrEmpty(builder.OrderBy) && String.IsNullOrEmpty(builder.GroupBy)) builder.OrderBy = keyColumn;
+                    if (String.IsNullOrEmpty(builder.OrderBy) && String.IsNullOrEmpty(builder.GroupBy))
+                    {
+                        builder.IsDesc = true;
+                    }
                 }
-                //if (fi.IsIdentity || IsInt(fi.Type)) keyColumn += " Unknown";
-
-                //if (String.IsNullOrEmpty(builder.OrderBy)) builder.OrderBy = keyColumn;
             }
-            return Meta.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
+            else
+            {
+                // 如果找不到唯一键，并且排序又为空，则采用全部字段一起，确保能够分页
+                if (String.IsNullOrEmpty(builder.OrderBy))
+                {
+                    String[] names = new String[Meta.FieldNames.Count];
+                    Meta.FieldNames.CopyTo(names, 0);
+                    builder.Keys = names;
+                }
+            }
+            return Meta.PageSplit(builder, startRowIndex, maximumRows);
         }
         #endregion
 

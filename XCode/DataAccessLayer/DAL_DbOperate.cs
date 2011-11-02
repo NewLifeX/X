@@ -100,12 +100,10 @@ namespace XCode.DataAccessLayer
         /// <param name="builder">查询生成器</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <param name="keyColumn">唯一键。用于not in分页</param>
         /// <returns>分页SQL</returns>
-        public String PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
+        public String PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
             String cacheKey = String.Format("{0}_{1}_{2}_{3}_", builder.ToString(), startRowIndex, maximumRows, ConnName);
-            if (!String.IsNullOrEmpty(keyColumn)) cacheKey += keyColumn;
 
             String rs = String.Empty;
             if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
@@ -113,7 +111,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
 
-                String s = Db.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
+                String s = Db.PageSplit(builder, startRowIndex, maximumRows);
                 _PageSplitCache.Add(cacheKey, s);
                 return s;
             }

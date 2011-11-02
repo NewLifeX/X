@@ -13,10 +13,11 @@ using NewLife.Web;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>
-    /// 数据库基类。数据库类的职责是抽象不同数据库的共同点，理应最小化，保证原汁原味，因此不做缓存等实现。
+    /// <summary>数据库基类</summary>
+    /// <remarks>
+    /// 数据库类的职责是抽象不同数据库的共同点，理应最小化，保证原汁原味，因此不做缓存等实现。
     /// 对于每一个连接字符串配置，都有一个数据库实例，而不是每个数据库类型一个实例，因为同类型数据库不同版本行为不同。
-    /// </summary>
+    /// </remarks>
     abstract class DbBase : DisposeBase, IDatabase
     {
         #region 构造函数
@@ -128,9 +129,7 @@ namespace XCode.DataAccessLayer
         public virtual String Owner { get { return _Owner; } set { _Owner = value; } }
 
         private String _ServerVersion;
-        /// <summary>
-        /// 数据库服务器版本
-        /// </summary>
+        /// <summary>数据库服务器版本</summary>
         public virtual String ServerVersion
         {
             get
@@ -502,9 +501,7 @@ namespace XCode.DataAccessLayer
             return orderBy;
         }
 
-        /// <summary>
-        /// 构造分页SQL
-        /// </summary>
+        /// <summary>构造分页SQL</summary>
         /// <remarks>
         /// 两个构造分页SQL的方法，区别就在于查询生成器能够构造出来更好的分页语句，尽可能的避免子查询。
         /// MS体系的分页精髓就在于唯一键，当唯一键带有Asc/Desc/Unkown等排序结尾时，就采用最大最小值分页，否则使用较次的TopNotIn分页。
@@ -513,23 +510,13 @@ namespace XCode.DataAccessLayer
         /// <param name="builder">查询生成器</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <param name="keyColumn">唯一键。用于not in分页</param>
         /// <returns>分页SQL</returns>
-        public virtual String PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
+        public virtual String PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0 && maximumRows < 1) return builder.ToString();
 
-            return PageSplit(builder.ToString(), startRowIndex, maximumRows, keyColumn);
-        }
-
-        protected static SelectBuilder PageSplitTop(SelectBuilder builder, Int32 top, String keyColumn)
-        {
-            SelectBuilder sb = builder.Clone();
-            if (!String.IsNullOrEmpty(keyColumn)) sb.Column = keyColumn;
-            if (String.IsNullOrEmpty(sb.Column)) sb.Column = "*";
-            sb.Column = String.Format("Top {0} {1}", top, sb.Column);
-            return sb;
+            return PageSplit(builder.ToString(), startRowIndex, maximumRows, builder.Key);
         }
         #endregion
 
@@ -708,7 +695,7 @@ namespace XCode.DataAccessLayer
         {
             return String.Format("[{0}] {1} {2}", ConnName, DbType, ServerVersion);
         }
-        
+
         protected static String ResolveFile(String file)
         {
             if (String.IsNullOrEmpty(file)) return file;

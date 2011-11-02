@@ -232,11 +232,10 @@ namespace XCode
             /// <param name="builder">查询生成器</param>
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-            /// <param name="keyColumn">唯一键。用于not in分页</param>
             /// <returns>分页SQL</returns>
-            public static String PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
+            public static String PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
             {
-                return DBO.PageSplit(builder, startRowIndex, maximumRows, keyColumn);
+                return DBO.PageSplit(builder, startRowIndex, maximumRows);
             }
 
             static void DataChange()

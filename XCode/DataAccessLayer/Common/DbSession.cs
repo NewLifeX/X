@@ -10,9 +10,7 @@ using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>
-    /// 数据库会话基类。
-    /// </summary>
+    /// <summary>数据库会话基类</summary>
     abstract partial class DbSession : DisposeBase, IDbSession
     {
         #region 构造函数
@@ -391,11 +389,10 @@ namespace XCode.DataAccessLayer
         /// <param name="builder">查询生成器</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <param name="keyColumn">唯一键。用于not in分页</param>
         /// <returns>记录集</returns>
-        public virtual DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
+        public virtual DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
-            return Query(Database.PageSplit(builder, startRowIndex, maximumRows, keyColumn));
+            return Query(Database.PageSplit(builder, startRowIndex, maximumRows).ToString());
         }
 
         /// <summary>

@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.2.*")]
-[assembly: AssemblyFileVersion("8.2.2011.1101")]
+[assembly: AssemblyFileVersion("8.2.2011.1103")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.2.2011.1103   重构MS分页算法，分为MaxMin分页（数字主键优先选择）、NotIn分页（基本废弃）、双Top分页（替代NotIn）、RowNumber分页（高版本选择）
+ * 
  * v8.2.2011.1101   SqlServer增加连接字符串设置DataPath，用于指定反向工程创建数据库时所使用的数据目录
  *                  Oracle增加连接字符串设置DllPath，用于指定OCI目录，同时基于该目录自动计算ORACLE_HOME目录
  *                  Oracle增加设置项XCode.Oracle.IsUseOwner，指定正向工程时是否使用Owner约束所查询的表

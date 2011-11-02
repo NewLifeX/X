@@ -102,9 +102,8 @@ namespace XCode.DataAccessLayer
         /// <param name="builder">查询生成器</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <param name="keyColumn">唯一键。用于not in和max/min分页</param>
         /// <returns>记录集</returns>
-        DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, String keyColumn);
+        DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows);
 
         /// <summary>
         /// 执行DbCommand，返回记录集
