@@ -755,7 +755,7 @@ namespace NewLife.Reflection
         {
             Type vtype = null;
             if (value != null) vtype = value.GetType();
-            if (vtype == conversionType) return value;
+            if (vtype == conversionType || conversionType.IsAssignableFrom(vtype)) return value;
 
             // 处理可空类型
             if (IsNullable(conversionType))
