@@ -212,7 +212,8 @@ namespace XCode.DataAccessLayer
 
             String key = name.Substring(rtable.Name.Length);
             IDataColumn dc = rtable.GetColumn(key);
-            if (dc == null) return null;
+            // 猜测两表关联关系时，两个字段的类型也必须一致
+            if (dc == null || dc.DataType != column.DataType) return null;
 
             // 建立关系
             IDataRelation dr = table.CreateRelation();
