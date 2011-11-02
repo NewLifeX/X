@@ -32,7 +32,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -71,63 +71,73 @@ namespace Test
 
         static void Test2()
         {
-            //OracleClientFactory d = OracleClientFactory.Instance;
-            //Console.WriteLine(d);
-
-            Type type = null;
-            //type = TypeX.GetType("Oracle.DataAccess.Client.OpsInit", true);
-            //MethodInfoX mix = MethodInfoX.Create(type, "CheckVersionCompatibility");
-            //mix.Invoke(null, "2.112.1.0");
-            //OpsInit.CheckVersionCompatibility("2.112.1.0");
-            //OracleInit.Initialize();
-
-            String sql = null;
-            DAL dal = DAL.Create("Common");
-
-            //            sql = @"select sysdate from dual;
-            //select sysdate from dual";
-            //            DataSet ds = dal.Select(sql, "");
-            //            Console.WriteLine(ds);
-
-            //            sql = @"Create Table Administrator(
-            //        ID NUMBER(10, 0) NOT NULL,
-            //        Name NVARCHAR2(50) NULL,
-            //        Password NVARCHAR2(50) NULL,
-            //        DisplayName NVARCHAR2(50) NULL,
-            //        RoleID NUMBER(10, 0) NULL,
-            //        Logins NUMBER(10, 0) NULL,
-            //        LastLogin DATE NULL,
-            //        LastLoginIP NVARCHAR2(50) NULL,
-            //        SSOUserID NUMBER(10, 0) NULL,
-            //        IsEnable NUMBER(1, 0) NULL,
-            //        constraint pk_Administrator primary key (ID)
-            //);
-            //Create Sequence SEQ_Administrator Minvalue 1 Maxvalue 9999999999 Start With 1 In
-            //crement By 1 Cache 20";
-            //            dal.Execute(sql, "");
-
-            List<IDataTable> tables = dal.Tables;
-            Console.WriteLine(tables);
-
-            //try
+            DAL dal = DAL.Create("db");
+            IDataTable table = null;
+            foreach (IDataTable item in DAL.Create("db").Tables)
+            {
+                table = item;
+                Console.WriteLine(item.Name);
+            }
+            //foreach (IDataColumn item in table.Columns)
             //{
-            //    Assembly asm = Assembly.LoadFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Oracle.DataAccess.dll"));
-            //    type = asm.GetType("Oracle.DataAccess.Client.OracleClientFactory");
-
-            //    FieldInfo field = type.GetField("Instance");
-            //    //DbProviderFactory df= Activator.CreateInstance(type) as DbProviderFactory;
-
-            //    DbProviderFactory df = field.GetValue(null) as DbProviderFactory;
-            //    Console.WriteLine(df);
+            //    Console.WriteLine(item.Name);
             //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine(ex.ToString());
-            //}
-            //Console.ReadKey(true);
 
-            Administrator admin = Administrator.FindAll()[0];
-            Console.WriteLine(admin);
+            IEntityOperate op = DAL.Create("db").CreateOperate(table.Name);
+            Int32 count = op.Count;
+            Console.WriteLine(op.Count);
+
+            Int32 pagesize = 10;
+            String order = table.PrimaryKeys[0].Alias + " Asc";
+            String order2 = table.PrimaryKeys[0].Alias + " Desc";
+
+            DAL.ShowSQL = false;
+            Console.WriteLine();
+            Console.WriteLine("开始测试分页……");
+            Int32 t = 2;
+            Int32 p = (Int32)((t + count) / pagesize * pagesize);
+
+            Console.WriteLine();
+            Console.WriteLine("无排序");
+
+            CodeTimer.TimeLine("首页", t, false, n => op.FindAll(null, null, null, 0, pagesize));
+            CodeTimer.TimeLine("第三页", t, false, n => op.FindAll(null, null, null, pagesize * 2, pagesize));
+
+            p = count / pagesize / 2;
+            CodeTimer.TimeLine("1000页", t, false, n => op.FindAll(null, null, null, pagesize * p, pagesize));
+            CodeTimer.TimeLine("1001页", t, false, n => op.FindAll(null, null, null, pagesize * p + 1, pagesize));
+
+            p = (Int32)((t + count) / pagesize * pagesize);
+            CodeTimer.TimeLine("尾页", t, false, n => op.FindAll(null, null, null, p, pagesize));
+            CodeTimer.TimeLine("倒数第三页", t, false, n => op.FindAll(null, null, null, p - pagesize * 2, pagesize));
+
+            Console.WriteLine();
+            Console.WriteLine("升序");
+
+            CodeTimer.TimeLine("首页", t, false, n => op.FindAll(null, order, null, 0, pagesize));
+            CodeTimer.TimeLine("第三页", t, false, n => op.FindAll(null, order, null, pagesize * 2, pagesize));
+
+            p = count / pagesize / 2;
+            CodeTimer.TimeLine(p + "页", t, false, n => op.FindAll(null, order, null, pagesize * p, pagesize));
+            CodeTimer.TimeLine((p + 1) + "页", t, false, n => op.FindAll(null, order, null, pagesize * p + 1, pagesize));
+
+            p = (Int32)((t + count) / pagesize * pagesize);
+            CodeTimer.TimeLine("尾页", t, false, n => op.FindAll(null, order, null, p, pagesize));
+            CodeTimer.TimeLine("倒数第三页", t, false, n => op.FindAll(null, order, null, p - pagesize * 2, pagesize));
+
+            Console.WriteLine();
+            Console.WriteLine("降序");
+
+            CodeTimer.TimeLine("首页", t, false, n => op.FindAll(null, order2, null, 0, pagesize));
+            CodeTimer.TimeLine("第三页", t, false, n => op.FindAll(null, order2, null, pagesize * 2, pagesize));
+
+            p = count / pagesize / 2;
+            CodeTimer.TimeLine(p + "页", t, false, n => op.FindAll(null, order2, null, pagesize * p, pagesize));
+            CodeTimer.TimeLine((p + 1) + "页", t, false, n => op.FindAll(null, order2, null, pagesize * p + 1, pagesize));
+
+            p = (Int32)((t + count) / pagesize * pagesize);
+            CodeTimer.TimeLine("尾页", t, false, n => op.FindAll(null, order2, null, p, pagesize));
+            CodeTimer.TimeLine("倒数第三页", t, false, n => op.FindAll(null, order2, null, p - pagesize * 2, pagesize));
         }
     }
 }

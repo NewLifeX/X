@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using NewLife.Exceptions;
+using System.Text;
 
 namespace NewLife.Log
 {
@@ -64,7 +65,7 @@ namespace NewLife.Log
         /// <param name="action">需要计时的委托</param>
         public static void TimeLine(String title, Int32 times, Boolean needTimeOne, Action<Int32> action)
         {
-            Console.Write("{0,16}：", title);
+            Console.Write("{0}{1}：", new String(' ', 16 - Encoding.Default.GetByteCount(title)), title);
 
             CodeTimer timer = new CodeTimer();
             timer.Times = times;

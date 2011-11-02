@@ -649,7 +649,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_ShowSQL == null) _ShowSQL = DAL.ShowSQL;
+                if (_ShowSQL == null) return DAL.ShowSQL;
                 return _ShowSQL.Value;
             }
             set { _ShowSQL = value; }
