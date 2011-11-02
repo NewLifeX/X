@@ -177,28 +177,37 @@ namespace XCode
         /// </summary>
         /// <param name="connName"></param>
         /// <returns></returns>
-        internal static List<Type> GetEntitiesByConnName(String connName)
+        public static IEnumerable<Type> LoadEntities(String connName)
         {
-            List<Type> list = LoadEntities();
-            if (list == null || list.Count < 1) return null;
+            //List<Type> list = LoadEntities();
+            //if (list == null || list.Count < 1) return null;
 
-            List<Type> list2 = new List<Type>();
-            foreach (Type item in list)
-            {
-                if (TableItem.Create(item).ConnName == connName) list2.Add(item);
-            }
-            return list2;
+            //List<Type> list2 = new List<Type>();
+            //foreach (Type item in list)
+            //{
+            //    if (TableItem.Create(item).ConnName == connName) list2.Add(item);
+            //}
+            //return list2;
+
+            //foreach (Type item in AssemblyX.FindAllPlugins(typeof(IEntity)))
+            //{
+            //    if (TableItem.Create(item).ConnName == connName) yield return item;
+            //}
+
+            return AssemblyX.FindAllPlugins(typeof(IEntity)).Where(t => TableItem.Create(t).ConnName == connName);
         }
 
-        internal static List<IDataTable> GetTablesByConnName(String connName)
+        /// <summary>
+        /// 获取指定连接名下的所有实体数据表
+        /// </summary>
+        /// <param name="connName"></param>
+        /// <returns></returns>
+        public static List<IDataTable> GetTables(String connName)
         {
-            List<Type> entities = GetEntitiesByConnName(connName);
-            if (entities == null || entities.Count < 1) return null;
-
             List<IDataTable> tables = new List<IDataTable>();
             // 记录每个表名对应的实体类
             Dictionary<String, Type> dic = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
-            foreach (Type item in entities)
+            foreach (Type item in LoadEntities(connName))
             {
                 // 过滤掉第一次使用才加载的
                 ModelCheckModeAttribute att = ModelCheckModeAttribute.GetCustomAttribute(item);

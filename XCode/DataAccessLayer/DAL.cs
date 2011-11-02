@@ -380,7 +380,7 @@ namespace XCode.DataAccessLayer
 
             try
             {
-                List<IDataTable> list = EntityFactory.GetTablesByConnName(ConnName);
+                List<IDataTable> list = EntityFactory.GetTables(ConnName);
                 if (list != null && list.Count > 0)
                 {
                     // 过滤掉被排除的表名
