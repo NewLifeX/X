@@ -21,20 +21,9 @@ namespace NewLife.Log
         /// </summary>
         /// <param name="times">次数</param>
         /// <param name="action">需要计时的委托</param>
-        /// <returns></returns>
-        public static CodeTimer Time(Int32 times, Action<Int32> action)
-        {
-            return Time(times, true, action);
-        }
-
-        /// <summary>
-        /// 计时
-        /// </summary>
-        /// <param name="times">次数</param>
         /// <param name="needTimeOne">是否需要预热</param>
-        /// <param name="action">需要计时的委托</param>
         /// <returns></returns>
-        public static CodeTimer Time(Int32 times, Boolean needTimeOne, Action<Int32> action)
+        public static CodeTimer Time(Int32 times, Action<Int32> action, Boolean needTimeOne = true)
         {
             CodeTimer timer = new CodeTimer();
             timer.Times = times;
@@ -52,18 +41,8 @@ namespace NewLife.Log
         /// <param name="title">标题</param>
         /// <param name="times">次数</param>
         /// <param name="action">需要计时的委托</param>
-        public static void TimeLine(String title, Int32 times, Action<Int32> action)
-        {
-        }
-
-        /// <summary>
-        /// 计时，并用控制台输出行
-        /// </summary>
-        /// <param name="title">标题</param>
-        /// <param name="times">次数</param>
         /// <param name="needTimeOne">是否需要预热</param>
-        /// <param name="action">需要计时的委托</param>
-        public static void TimeLine(String title, Int32 times, Boolean needTimeOne, Action<Int32> action)
+        public static void TimeLine(String title, Int32 times, Action<Int32> action, Boolean needTimeOne = true)
         {
             Console.Write("{0}{1}：", new String(' ', 16 - Encoding.Default.GetByteCount(title)), title);
 
@@ -81,6 +60,33 @@ namespace NewLife.Log
             Console.WriteLine(timer.ToString());
 
             Console.ForegroundColor = currentForeColor;
+        }
+
+        /// <summary>显示头部</summary>
+        /// <param name="title"></param>
+        public static void ShowHeader(String title = "指标")
+        {
+            Write(title, 16);
+            Console.Write("：");
+
+            ConsoleColor currentForeColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Yellow;
+
+            Write("执行时间", 9);
+            Console.Write(" ");
+            Write("CPU时间", 9);
+            Console.Write(" ");
+            Write("指令周期", 15);
+            Console.WriteLine("   GC(0/1/2)");
+
+            Console.ForegroundColor = currentForeColor;
+        }
+
+        static void Write(String name, Int32 max)
+        {
+            Int32 len = Encoding.Default.GetByteCount(name);
+            if (len < max) Console.Write(new String(' ', max - len));
+            Console.Write(name);
         }
         #endregion
 

@@ -32,7 +32,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -90,54 +90,69 @@ namespace Test
             Int32 pagesize = 10;
             String order = table.PrimaryKeys[0].Alias + " Asc";
             String order2 = table.PrimaryKeys[0].Alias + " Desc";
+            String selects = table.Columns[5].Name;
+            //selects = table.PrimaryKeys[0].Name;
 
             DAL.ShowSQL = false;
-            Console.WriteLine();
-            Console.WriteLine("开始测试分页……");
             Int32 t = 2;
             Int32 p = (Int32)((t + count) / pagesize * pagesize);
 
-            Console.WriteLine();
-            Console.WriteLine("无排序");
-
-            CodeTimer.TimeLine("首页", t, false, n => op.FindAll(null, null, null, 0, pagesize));
-            CodeTimer.TimeLine("第三页", t, false, n => op.FindAll(null, null, null, pagesize * 2, pagesize));
-
-            p = count / pagesize / 2;
-            CodeTimer.TimeLine("1000页", t, false, n => op.FindAll(null, null, null, pagesize * p, pagesize));
-            CodeTimer.TimeLine("1001页", t, false, n => op.FindAll(null, null, null, pagesize * p + 1, pagesize));
-
-            p = (Int32)((t + count) / pagesize * pagesize);
-            CodeTimer.TimeLine("尾页", t, false, n => op.FindAll(null, null, null, p, pagesize));
-            CodeTimer.TimeLine("倒数第三页", t, false, n => op.FindAll(null, null, null, p - pagesize * 2, pagesize));
+            SelectBuilder builder = new SelectBuilder();
+            builder.Table = table.Name;
+            builder.Key = table.PrimaryKeys[0].Name;
 
             Console.WriteLine();
-            Console.WriteLine("升序");
-
-            CodeTimer.TimeLine("首页", t, false, n => op.FindAll(null, order, null, 0, pagesize));
-            CodeTimer.TimeLine("第三页", t, false, n => op.FindAll(null, order, null, pagesize * 2, pagesize));
-
-            p = count / pagesize / 2;
-            CodeTimer.TimeLine(p + "页", t, false, n => op.FindAll(null, order, null, pagesize * p, pagesize));
-            CodeTimer.TimeLine((p + 1) + "页", t, false, n => op.FindAll(null, order, null, pagesize * p + 1, pagesize));
-
-            p = (Int32)((t + count) / pagesize * pagesize);
-            CodeTimer.TimeLine("尾页", t, false, n => op.FindAll(null, order, null, p, pagesize));
-            CodeTimer.TimeLine("倒数第三页", t, false, n => op.FindAll(null, order, null, p - pagesize * 2, pagesize));
+            Console.WriteLine("选择主键：");
+            selects = table.PrimaryKeys[0].Name;
+            TestPageSplit("无排序", builder, op, selects, null, t);
+            TestPageSplit("升序", builder, op, selects, order, t);
+            TestPageSplit("降序", builder, op, selects, order2, t);
 
             Console.WriteLine();
-            Console.WriteLine("降序");
+            Console.WriteLine("选择非主键：");
+            selects = table.Columns[5].Name;
+            TestPageSplit("无排序", builder, op, selects, null, t);
+            TestPageSplit("升序", builder, op, selects, order, t);
+            TestPageSplit("降序", builder, op, selects, order2, t);
 
-            CodeTimer.TimeLine("首页", t, false, n => op.FindAll(null, order2, null, 0, pagesize));
-            CodeTimer.TimeLine("第三页", t, false, n => op.FindAll(null, order2, null, pagesize * 2, pagesize));
+            Console.WriteLine();
+            Console.WriteLine("选择所有：");
+            selects = null;
+            TestPageSplit("无排序", builder, op, selects, null, t);
+            TestPageSplit("升序", builder, op, selects, order, t);
+            TestPageSplit("降序", builder, op, selects, order2, t);
+        }
+
+        static void TestPageSplit(String title, SelectBuilder builder, IEntityOperate op, String selects, String order, Int32 t)
+        {
+            Int32 pagesize = 10;
+            Int32 p = 0;
+            Int32 count = op.Count;
+            Boolean needTimeOne = true;
+
+            builder.Column = selects;
+            builder.OrderBy = order;
+
+            Console.WriteLine();
+            CodeTimer.ShowHeader();
+            Console.WriteLine(title);
+
+            Console.WriteLine(MSPageSplit.PageSplit(builder, 0, pagesize, false));
+            CodeTimer.TimeLine("首页", t, n => op.FindAll(null, order, selects, 0, pagesize), needTimeOne);
+            Console.WriteLine(MSPageSplit.PageSplit(builder, pagesize * 2, pagesize, false));
+            CodeTimer.TimeLine("第三页", t, n => op.FindAll(null, order, selects, pagesize * 2, pagesize), needTimeOne);
 
             p = count / pagesize / 2;
-            CodeTimer.TimeLine(p + "页", t, false, n => op.FindAll(null, order2, null, pagesize * p, pagesize));
-            CodeTimer.TimeLine((p + 1) + "页", t, false, n => op.FindAll(null, order2, null, pagesize * p + 1, pagesize));
+            Console.WriteLine(MSPageSplit.PageSplit(builder, pagesize * p, pagesize, false));
+            CodeTimer.TimeLine(p + "页", t, n => op.FindAll(null, order, selects, pagesize * p, pagesize), needTimeOne);
+            Console.WriteLine(MSPageSplit.PageSplit(builder, pagesize * p + 1, pagesize, false));
+            CodeTimer.TimeLine((p + 1) + "页", t, n => op.FindAll(null, order, selects, pagesize * p + 1, pagesize), needTimeOne);
 
             p = (Int32)((t + count) / pagesize * pagesize);
-            CodeTimer.TimeLine("尾页", t, false, n => op.FindAll(null, order2, null, p, pagesize));
-            CodeTimer.TimeLine("倒数第三页", t, false, n => op.FindAll(null, order2, null, p - pagesize * 2, pagesize));
+            Console.WriteLine(MSPageSplit.PageSplit(builder, p, pagesize, false));
+            CodeTimer.TimeLine("尾页", t, n => op.FindAll(null, order, selects, p, pagesize), needTimeOne);
+            Console.WriteLine(MSPageSplit.PageSplit(builder, p - pagesize * 2, pagesize, false));
+            CodeTimer.TimeLine("倒数第三页", t, n => op.FindAll(null, order, selects, p - pagesize * 2, pagesize), needTimeOne);
         }
     }
 }
