@@ -287,17 +287,21 @@ namespace NewLife.Model
             {
                 // 是否允许覆盖
                 //if (!overwrite) return this;
-                if (priority < (old as Map).Priority) return this;
 
                 //if (OnRegistering != null) OnRegistering(this, new EventArgs<Type, IObjectMap>(from, old));
 
                 if (old is Map)
                 {
                     map = old as Map;
+                    if (priority < map.Priority) return this;
+
                     map.TypeName = typeName;
                     map.Mode = mode;
                     map.ImplementType = to;
                     map.Instance = instance;
+
+                    if (OnRegistering != null) OnRegistering(this, new EventArgs<Type, IObjectMap>(from, map));
+                    if (OnRegistered != null) OnRegistered(this, new EventArgs<Type, IObjectMap>(from, map));
 
                     return this;
                 }
@@ -351,13 +355,6 @@ namespace NewLife.Model
         #endregion
 
         #region 解析
-        ///// <summary>
-        ///// 解析类型的实例
-        ///// </summary>
-        ///// <param name="from">接口类型</param>
-        ///// <returns></returns>
-        //public virtual Object Resolve(Type from) { return Resolve(from, null); }
-
         /// <summary>
         /// 解析类型指定名称的实例
         /// </summary>
@@ -455,21 +452,14 @@ namespace NewLife.Model
                 }
             }
 
-            // 赋值注入
-            foreach (PropertyDescriptor pd in TypeDescriptor.GetProperties(obj))
-            {
-                if (!pd.IsReadOnly && Stores.ContainsKey(pd.PropertyType)) pd.SetValue(obj, Resolve(pd.PropertyType));
-            }
+            //// 赋值注入
+            //foreach (PropertyDescriptor pd in TypeDescriptor.GetProperties(obj))
+            //{
+            //    if (!pd.IsReadOnly && Stores.ContainsKey(pd.PropertyType)) pd.SetValue(obj, Resolve(pd.PropertyType));
+            //}
 
             return obj;
         }
-
-        ///// <summary>
-        ///// 解析类型的实例
-        ///// </summary>
-        ///// <typeparam name="TInterface">接口类型</typeparam>
-        ///// <returns></returns>
-        //public virtual TInterface Resolve<TInterface>() { return (TInterface)Resolve(typeof(TInterface), null); }
 
         /// <summary>
         /// 解析类型指定名称的实例
