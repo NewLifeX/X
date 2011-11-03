@@ -2,15 +2,21 @@
 using System.Collections.Generic;
 using System.Text;
 using XCode.Exceptions;
+using NewLife;
+using System.Linq;
 
 namespace XCode.DataAccessLayer
 {
     /// <summary>MS系列数据库分页算法</summary>
     public static class MSPageSplit
     {
-        /// <summary>
-        /// 分页算法
-        /// </summary>
+        /// <summary>分页算法</summary>
+        /// <remarks>
+        /// builder里面必须含有排序，否则就要通过key指定主键，否则大部分算法不能使用，会导致逻辑数据排序不正确。
+        /// 其实，一般数据都是按照聚集索引排序，而聚集索引刚好也就是主键。
+        /// 所以，只要设置的Key顺序跟主键顺序一致，就没有问题。
+        /// 如果，Key指定了跟主键不一致的顺序，那么查询语句一定要指定同样的排序。
+        /// </remarks>
         /// <param name="builder"></param>
         /// <param name="startRowIndex"></param>
         /// <param name="maximumRows"></param>
@@ -24,20 +30,33 @@ namespace XCode.DataAccessLayer
                 if (maximumRows < 1)
                     return builder;
                 else
-                    return Top(builder, maximumRows, null);
+                    return builder.Clone().Top(maximumRows);
             }
 
             if (builder.Keys == null || builder.Keys.Length < 1) throw new XCodeException("分页算法要求指定排序列！");
 
-            if (isSql2005)
-                return RowNumber(builder, 0, maximumRows);
-            else if (builder.IsInt)
-                return MaxMin(builder, startRowIndex, maximumRows);
-            //else if (String.IsNullOrEmpty(builder.OrderBy) || maximumRows < 1)
-            else if (maximumRows < 1)
-                return TopNotIn(builder, startRowIndex, maximumRows);
-            else
-                return DoubleTop(builder, startRowIndex, maximumRows);
+            // 其实，一般数据都是按照聚集索引排序，而聚集索引刚好也就是主键
+            // 所以，只要设置的Key顺序跟主键顺序一致，就没有问题
+            // 如果，Key指定了跟主键不一致的顺序，那么查询语句一定要指定同样的排序
+
+            //// 如果不指定排序，只能使用TopNotIn，另外三种都会影响结果的顺序
+            //if (String.IsNullOrEmpty(builder.OrderBy))
+            //{
+            //    // 取前面页（经试验Access字符串主键大概在200行以下）并且没有排序的时候，TopNotIn算法应该是最快的
+            //    if (startRowIndex < 200) return TopNotIn(builder, startRowIndex, maximumRows);
+            //}
+
+            if (isSql2005) return RowNumber(builder, 0, maximumRows);
+
+            Boolean[] isdescs = null;
+            String[] keys = SelectBuilder.Split(builder.OrderBy, out isdescs);
+
+            // 必须有排序，且排序字段必须就是数字主键
+            if (builder.IsInt && keys != null && keys.Length == 1 && keys[0].EqualIgnoreCase(builder.Key)) return MaxMin(builder, startRowIndex, maximumRows);
+
+            if (maximumRows > 0) return DoubleTop(builder, startRowIndex, maximumRows);
+
+            return TopNotIn(builder, startRowIndex, maximumRows);
         }
 
         /// <summary>最经典的NotIn分页，通用但是效率最差。只需指定一个排序列。</summary>
@@ -59,7 +78,7 @@ namespace XCode.DataAccessLayer
 
             SelectBuilder builder2 = null;
             if (maximumRows < 1)
-                builder2 = builder.CloneWithGroupBy("XCode_Temp_a");
+                builder2 = builder.CloneWithGroupBy();
             else
                 builder2 = builder.Clone().Top(maximumRows);
 
@@ -85,13 +104,13 @@ namespace XCode.DataAccessLayer
             // Select * From (Select Top 10 * From (Select Top 20+10 * From Table Order By ID Desc) Order By ID Asc) Order By ID Desc
 
             // 构建Select Top 20 * From Table Order By ID Asc
-            SelectBuilder builder1 = builder.Clone().Top(startRowIndex + maximumRows);
+            SelectBuilder builder1 = builder.Clone().AppendColumn(builder.Key).Top(startRowIndex + maximumRows);
 
-            SelectBuilder builder2 = builder1.AsChild("XCode_Temp_a").Top(maximumRows);
+            SelectBuilder builder2 = builder1.AsChild().Top(maximumRows);
             // 要反向排序
             builder2.OrderBy = builder.ReverseKeyOrder;
 
-            SelectBuilder builder3 = builder2.AsChild("XCode_Temp_b");
+            SelectBuilder builder3 = builder2.AsChild();
             // 让结果正向排序
             builder3.OrderBy = builder.KeyOrder;
 
@@ -111,12 +130,12 @@ namespace XCode.DataAccessLayer
             // Select Top 10 * From Table Where ID>(Select max(ID) From (Select Top 20 ID From Table Order By ID) Order By ID Desc) Order By ID Desc
 
             SelectBuilder builder1 = builder.Clone().Top(startRowIndex, builder.Key);
-            SelectBuilder builder2 = builder1.AsChild("XCode_Temp_a");
+            SelectBuilder builder2 = builder1.AsChild();
             builder2.Column = builder.IsDesc ? "Min" : "Max";
 
             SelectBuilder builder3 = null;
             if (maximumRows < 1)
-                builder3 = builder.CloneWithGroupBy("XCode_Temp_a");
+                builder3 = builder.CloneWithGroupBy();
             else
                 builder3 = builder.Clone().Top(maximumRows);
 
@@ -133,19 +152,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         static SelectBuilder RowNumber(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
-            ////row_number()从1开始
-            //if (maximumRows < 1)
-            //    sql = String.Format("Select * From (Select *, row_number() over({2}) as rowNumber From {1}) XCode_Temp_b Where rowNumber>={0}", startRowIndex + 1, sql, orderBy);
-            //else
-            //    sql = String.Format("Select * From (Select *, row_number() over({3}) as rowNumber From {1}) XCode_Temp_b Where rowNumber Between {0} And {2}", startRowIndex + 1, sql, startRowIndex + maximumRows, orderBy);
-
-            //return sql;
-
             // 如果包含分组，则必须作为子查询
-            SelectBuilder builder1 = builder.CloneWithGroupBy("XCode_Temp_a");
-            builder1.Column = String.Format("{0}, row_number() over({1}) as rowNumber", String.IsNullOrEmpty(builder.Column) ? "*" : builder.Column, builder.KeyOrder);
+            SelectBuilder builder1 = builder.CloneWithGroupBy();
+            builder1.Column = String.Format("{0}, row_number() over({1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy);
 
-            SelectBuilder builder2 = builder.AsChild("XCode_Temp_b");
+            SelectBuilder builder2 = builder.AsChild();
             if (maximumRows < 1)
                 builder2.Where = String.Format("rowNumber>={0}", startRowIndex + 1);
             else
@@ -160,21 +171,6 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(builder.Column)) builder.Column = "*";
             builder.Column = String.Format("Top {0} {1}", top, builder.Column);
             return builder;
-        }
-
-        static SelectBuilder CloneWithGroupBy(this SelectBuilder builder, String alias)
-        {
-            if (!String.IsNullOrEmpty(builder.GroupBy)) return builder.Clone();
-
-            return AsChild(builder, alias);
-        }
-
-        static SelectBuilder AsChild(this SelectBuilder builder, String alias)
-        {
-            SelectBuilder builder2 = new SelectBuilder();
-            builder2.Table = String.Format("({0}) as {1}", builder.ToString(), alias);
-
-            return builder2;
         }
     }
 }

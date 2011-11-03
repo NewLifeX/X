@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using NewLife;
@@ -58,17 +59,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_Keys == null || _Keys.Length < 1) return null;
 
-                if (_Keys.Length == 1) return _IsDescs != null && _IsDescs.Length > 0 && _IsDescs[0] ? _Keys[0] + " Desc" : _Keys[0];
-
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < _Keys.Length; i++)
-                {
-                    if (sb.Length > 0) sb.Append(", ");
-
-                    sb.Append(_Keys[i]);
-                    if (_IsDescs != null && _IsDescs.Length > i && _IsDescs[i]) sb.Append(" Desc");
-                }
-                return sb.ToString();
+                return Join(_Keys, _IsDescs);
             }
         }
 
@@ -79,17 +70,16 @@ namespace XCode.DataAccessLayer
             {
                 if (_Keys == null || _Keys.Length < 1) return null;
 
-                if (_Keys.Length == 1) return _IsDescs != null && _IsDescs.Length > 0 && _IsDescs[0] ? _Keys[0] : _Keys[0] + " Desc";
-
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < _Keys.Length; i++)
+                // 把排序反过来
+                Boolean[] isdescs = new Boolean[_Keys.Length];
+                for (int i = 0; i < isdescs.Length; i++)
                 {
-                    if (sb.Length > 0) sb.Append(", ");
-
-                    sb.Append(_Keys[i]);
-                    if (!(_IsDescs != null && _IsDescs.Length > i && _IsDescs[i])) sb.Append(" Desc");
+                    if (_IsDescs != null && _IsDescs.Length > i)
+                        isdescs[i] = !_IsDescs[i];
+                    else
+                        isdescs[i] = true;
                 }
-                return sb.ToString();
+                return Join(_Keys, isdescs);
             }
         }
         #endregion
@@ -156,32 +146,30 @@ namespace XCode.DataAccessLayer
                 _OrderBy = value;
 
                 // 分析排序字句，从中分析出分页用的主键
-                if (!String.IsNullOrEmpty(_OrderBy) && (Keys == null || Keys.Length < 1))
+                if (!String.IsNullOrEmpty(_OrderBy))
                 {
-                    String[] ss = _OrderBy.Trim().Split(',');
-                    // 拆分名称和排序，不知道是否存在多余一个空格的情况
-                    if (ss != null && ss.Length > 0)
+                    Boolean[] isdescs = null;
+                    String[] keys = Split(_OrderBy, out isdescs);
+
+                    if (keys != null && keys.Length > 0)
                     {
-                        String[] keys = new String[ss.Length];
-                        Boolean[] bs = new Boolean[ss.Length];
+                        // 如果排序不包含括号，可以优化排序
+                        if (!_OrderBy.Contains("(")) _OrderBy = Join(keys, isdescs);
 
-                        for (int i = 0; i < ss.Length; i++)
+                        if (Keys == null || Keys.Length < 1)
                         {
-                            String[] ss2 = ss[i].Trim().Split(' ');
-                            // 拆分名称和排序，不知道是否存在多余一个空格的情况
-                            if (ss2 != null && ss2.Length > 0)
-                            {
-                                keys[i] = ss2[0];
-                                if (ss2.Length > 1 && ss2[1].EqualIgnoreCase("desc")) bs[i] = true;
-                            }
+                            Keys = keys;
+                            IsDescs = isdescs;
                         }
-
-                        Keys = keys;
-                        IsDescs = bs;
                     }
                 }
             }
         }
+        #endregion
+
+        #region 扩展属性
+        /// <summary>选择列，为空时为*</summary>
+        public String ColumnOrDefault { get { return String.IsNullOrEmpty(Column) ? "*" : Column; } }
         #endregion
 
         #region 导入SQL
@@ -234,7 +222,7 @@ $";
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("Select ");
-            sb.Append(String.IsNullOrEmpty(Column) ? "*" : Column);
+            sb.Append(ColumnOrDefault);
             sb.Append(" From ");
             sb.Append(Table);
             if (!String.IsNullOrEmpty(Where)) sb.Append(" Where " + Where);
@@ -299,6 +287,104 @@ $";
             Where += String.Format(format, args);
 
             return this;
+        }
+
+        /// <summary>增加一个字段，必须是当前表普通字段，如果内部是*则不加</summary>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        public SelectBuilder AppendColumn(String column)
+        {
+            if (!String.IsNullOrEmpty(column))
+            {
+                if (String.IsNullOrEmpty(Column))
+                    Column = column;
+                else
+                {
+                    // 检查是否已存在该字段
+                    String[] selects = Column.Split(',');
+                    if (!selects.Any(c => c.Trim().EqualIgnoreCase(column)))
+                    {
+                        Column += "," + column;
+                    }
+                }
+            }
+            return this;
+        }
+
+        /// <summary>作为子查询</summary>
+        /// <param name="alias">别名，某些数据库可能需要使用as</param>
+        /// <returns></returns>
+        public SelectBuilder AsChild(String alias = null)
+        {
+            SelectBuilder builder = new SelectBuilder();
+            if (String.IsNullOrEmpty(alias))
+                builder.Table = String.Format("({0})", this.ToString());
+            else
+                builder.Table = String.Format("({0}) {1}", this.ToString(), alias);
+
+            return builder;
+        }
+
+        /// <summary>处理可能带GroupBy的克隆，如果带有GroupBy，则必须作为子查询，否则简单克隆即可</summary>
+        /// <param name="alias"></param>
+        /// <returns></returns>
+        public SelectBuilder CloneWithGroupBy(String alias = null)
+        {
+            if (!String.IsNullOrEmpty(this.GroupBy))
+                return this.Clone();
+            else
+                return AsChild(alias);
+        }
+        #endregion
+
+        #region 辅助方法
+        /// <summary>拆分排序字句</summary>
+        /// <param name="orderby"></param>
+        /// <param name="isdescs"></param>
+        /// <returns></returns>
+        public static String[] Split(String orderby, out Boolean[] isdescs)
+        {
+            isdescs = null;
+            if (orderby.IsNullOrWhiteSpace()) return null;
+
+            String[] ss = orderby.Trim().Split(",");
+            if (ss == null || ss.Length < 1) return null;
+
+            String[] keys = new String[ss.Length];
+            isdescs = new Boolean[ss.Length];
+
+            for (int i = 0; i < ss.Length; i++)
+            {
+                String[] ss2 = ss[i].Trim().Split(' ');
+                // 拆分名称和排序，不知道是否存在多余一个空格的情况
+                if (ss2 != null && ss2.Length > 0)
+                {
+                    keys[i] = ss2[0];
+                    if (ss2.Length > 1 && ss2[1].EqualIgnoreCase("desc")) isdescs[i] = true;
+                }
+            }
+            return keys;
+        }
+
+        /// <summary>连接排序字句</summary>
+        /// <param name="keys"></param>
+        /// <param name="isdescs"></param>
+        /// <returns></returns>
+        public static String Join(String[] keys, Boolean[] isdescs)
+        {
+            if (keys == null || keys.Length < 1) return null;
+
+            if (keys.Length == 1) return isdescs != null && isdescs.Length > 0 && isdescs[0] ? keys[0] + " Desc" : keys[0];
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < keys.Length; i++)
+            {
+                if (sb.Length > 0) sb.Append(", ");
+
+                sb.Append(keys[i]);
+                if (isdescs != null && isdescs.Length > i && isdescs[i]) sb.Append(" Desc");
+            }
+            return sb.ToString();
         }
         #endregion
     }
