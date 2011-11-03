@@ -8,19 +8,20 @@ namespace XCode.Web
     /// <summary>页面查询执行时间模块</summary>
     public class DbRunTimeModule : RunTimeModule
     {
-        static DbRunTimeModule()
-        {
-            RunTimeFormat = "查询{0}次，执行{1}次，耗时{2}毫秒！";
-        }
+        //static DbRunTimeModule()
+        //{
+        //    RunTimeFormat = "查询{0}次，执行{1}次，耗时{2}毫秒！";
+        //}
+
+        private static String _RunTimeFormat = "查询{0}次，执行{1}次，耗时{2}毫秒！";
+        /// <summary>执行时间字符串</summary>
+        public static String DbRunTimeFormat { get { return _RunTimeFormat; } set { _RunTimeFormat = value; } }
 
         /// <summary>
         /// 初始化模块，准备拦截请求。
         /// </summary>
-        /// <param name="context"></param>
-        protected override void Init(HttpApplication context)
+        protected override void OnInit()
         {
-            base.Init(context);
-
             Context.Items["DAL.QueryTimes"] = DAL.QueryTimes;
             Context.Items["DAL.ExecuteTimes"] = DAL.ExecuteTimes;
         }
@@ -34,7 +35,7 @@ namespace XCode.Web
             Int32 StartQueryTimes = (Int32)Context.Items["DAL.QueryTimes"];
             Int32 StartExecuteTimes = (Int32)Context.Items["DAL.ExecuteTimes"];
 
-            return String.Format(RunTimeFormat, DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds);
+            return String.Format(DbRunTimeFormat, DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds);
         }
     }
 }
