@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Web;
 using System.Web.UI;
@@ -22,6 +21,7 @@ namespace NewLife.CommonEntity
         void Init(Control container, Type entityType);
     }
 
+    /// <summary>管理页，用于控制页面权限等</summary>
     public class ManagerPage : IManagerPage
     {
         #region 属性
@@ -63,7 +63,6 @@ namespace NewLife.CommonEntity
 
             Init();
         }
-
         #endregion
 
         #region 生命周期
@@ -76,8 +75,6 @@ namespace NewLife.CommonEntity
 
         void OnPreLoad(object sender, EventArgs e)
         {
-            CheckStarting();
-
             try
             {
                 if (!CheckLogin())
@@ -261,130 +258,6 @@ namespace NewLife.CommonEntity
         public virtual Boolean Acquire(String name)
         {
             return Acquire(name, PermissionFlags.None);
-        }
-        #endregion
-
-        #region 系统启动中
-        static Boolean SystemStarted = false;
-        /// <summary>
-        /// 检查系统是否启动中，如果启动中，则显示进度条
-        /// </summary>
-        public static void CheckStarting()
-        {
-            if (HttpContext.Current == null) return;
-
-            HttpRequest Request = HttpContext.Current.Request;
-            HttpResponse Response = HttpContext.Current.Response;
-
-            // 在用Flush前用一次Session，避免可能出现的问题
-            String sessionid = HttpContext.Current.Session.SessionID;
-
-            // 只处理GET，因为处理POST可能丢失提交的表单数据
-            if (Request.HttpMethod != "GET") return;
-
-            if (SystemStarted) return;
-            SystemStarted = true;
-
-            #region 输出脚本
-            StringBuilder sb = new StringBuilder();
-            sb.Append(@"<html><head>
-<script language=""javascript"" type=""text/javascript"">
-var t_id = setInterval(animate,20);
-var pos=0;var dir=2;var len=0;
-
-function animate(){
-    var elem = document.getElementById('progress');
-    if(elem != null) {
-        if (pos==0) len += dir;
-        if (len>32 || pos>79) pos += dir;
-        if (pos>79) len -= dir;
-        if (pos>79 && len==0) pos=0;
-        elem.style.left = pos;
-        elem.style.width = len;
-    }
-}
-function stopAnimate(){
-    clearInterval(t_id);
-    var elem = document.getElementById('loader_container');
-    elem.style.display='none';
-}
-</script>
-
-<style>
-#loader_container {text-align:center; position:absolute; top:40%; width:100%; left: 0;}
-#loader {font-family:Tahoma, Helvetica, sans; font-size:11.5px; color:#000000; background-color:#FFFFFF; padding:10px 0 16px 0; margin:0 auto; display:block; width:130px; border:1px solid #5a667b; text-align:left; z-index:2;}
-#progress {height:5px; font-size:1px; width:1px; position:relative; top:1px; left:0px; background-color:#8894a8;}
-#loader_bg {background-color:#e4e7eb; position:relative; top:8px; left:8px; height:7px; width:113px; font-size:1px;}
-</style>
-
-</head><body>
-<div id=loader_container>
-    <div id=loader>
-    <div align=center>系统正在启动中 ...</div>
-    <div id=loader_bg><div id=progress> </div></div>
-    </div>
-</div>
-<div style=""position:absolute; left:1em; top:1em; width:320px; padding:.3em; background:#900; color:#fff; display:none;"">
-<strong>系统启动发生异常</strong>
-<div id=""start_fail""></div>
-</div>
-
-<script type=""text/javascript"" language=""javascript"">
-(function(w){
-    var xhr;
-    if(w.XMLHttpRequest && !w.ActiveXObject){
-        xhr=new w.XMLHttpRequest();
-    }else{
-        try{
-            xhr=new w.ActiveXObject('Microsoft.XMLHTTP');
-        }catch(e){}
-    }
-
-    if(xhr){
-        xhr.open('GET','?ajax=1');
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        xhr.onreadystatechange=function(){
-            if(xhr.readyState===4){
-                //只有返回http 200时才表示正常
-                if(xhr.status===200){
-                    xhr=null;
-                    location.reload();
-                }else{
-                    //否则输出http状态码和状态说明,以及返回的html
-                    stopAnimate();
-                    var ele=document.getElementById('start_fail');
-                    ele.innerHTML='HTTP '+xhr.status+' '+xhr.statusText+'<br/>'+xhr.responseText;
-                    var par=ele.parentNode;
-                    if(par){
-                        par.style.display='block';
-                    }
-                }
-                xhr=null;
-            }
-        };
-        xhr.send();
-    }else{
-        // 不支持的浏览器将直接刷新 不再显示动画
-        location.reload();
-    }
-})(window);
-</script>
-</body></html>");
-            //还可以选择使用<script src="?script=1" type="text/javascript"></script>的方式 只是对返回内容有要求
-
-            //sb.AppendLine("function remove_loading() {");
-            //sb.AppendLine(" this.clearInterval(t_id);");
-            //sb.AppendLine("var targelem = document.getElementById('loader_container');");
-            //sb.AppendLine("targelem.style.display='none';");
-            //sb.AppendLine("targelem.style.visibility='hidden';");
-            //sb.AppendLine("}");
-            //sb.AppendLine("document.onload=function(){ location.reload(); }");
-            //sb.AppendLine("document.onload=remove_loading;");
-
-            Response.Write(sb.ToString());
-            Response.Flush();
-            Response.End();
-            #endregion
         }
         #endregion
     }

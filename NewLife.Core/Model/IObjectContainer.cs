@@ -37,27 +37,9 @@ namespace NewLife.Model
         /// <param name="to">实现类型</param>
         /// <param name="instance">实例</param>
         /// <param name="name">名称</param>
-        /// <param name="overwrite">是否覆盖</param>
+        /// <param name="priority">优先级</param>
         /// <returns></returns>
-        IObjectContainer Register(Type from, Type to, Object instance, String name = null, Boolean overwrite = true);
-
-        ///// <summary>
-        ///// 注册类型
-        ///// </summary>
-        ///// <param name="from">接口类型</param>
-        ///// <param name="to">实现类型</param>
-        ///// <param name="name">名称</param>
-        ///// <param name="overwrite">是否覆盖</param>
-        ///// <returns></returns>
-        //IObjectContainer Register(Type from, Type to, String name = null, Boolean overwrite = true);
-
-        ///// <summary>
-        ///// 注册类型
-        ///// </summary>
-        ///// <typeparam name="TInterface">接口类型</typeparam>
-        ///// <typeparam name="TImplement">实现类型</typeparam>
-        ///// <returns></returns>
-        //IObjectContainer Register<TInterface, TImplement>();
+        IObjectContainer Register(Type from, Type to, Object instance, String name = null, Int32 priority = 0);
 
         /// <summary>
         /// 注册类型和名称
@@ -65,35 +47,9 @@ namespace NewLife.Model
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <typeparam name="TImplement">实现类型</typeparam>
         /// <param name="name">名称</param>
-        /// <param name="overwrite">是否覆盖</param>
+        /// <param name="priority">优先级</param>
         /// <returns></returns>
-        IObjectContainer Register<TInterface, TImplement>(String name = null, Boolean overwrite = true);
-
-        ///// <summary>
-        ///// 注册类型的实例
-        ///// </summary>
-        ///// <param name="from">接口类型</param>
-        ///// <param name="instance">实例</param>
-        ///// <returns></returns>
-        //IObjectContainer Register(Type from, Object instance);
-
-        ///// <summary>
-        ///// 注册类型指定名称的实例
-        ///// </summary>
-        ///// <param name="from">接口类型</param>
-        ///// <param name="instance">实例</param>
-        ///// <param name="name">名称</param>
-        ///// <param name="overwrite">是否覆盖</param>
-        ///// <returns></returns>
-        //IObjectContainer Register(Type from, Object instance, String name = null, Boolean overwrite = true);
-
-        ///// <summary>
-        ///// 注册类型的实例
-        ///// </summary>
-        ///// <typeparam name="TInterface">接口类型</typeparam>
-        ///// <param name="instance">实例</param>
-        ///// <returns></returns>
-        //IObjectContainer Register<TInterface>(Object instance);
+        IObjectContainer Register<TInterface, TImplement>(String name = null, Int32 priority = 0);
 
         /// <summary>
         /// 注册类型指定名称的实例
@@ -101,9 +57,9 @@ namespace NewLife.Model
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="instance">实例</param>
         /// <param name="name">名称</param>
-        /// <param name="overwrite">是否覆盖</param>
+        /// <param name="priority">优先级</param>
         /// <returns></returns>
-        IObjectContainer Register<TInterface>(Object instance, String name = null, Boolean overwrite = true);
+        IObjectContainer Register<TInterface>(Object instance, String name = null, Int32 priority = 0);
 
         /// <summary>注册前事件</summary>
         event EventHandler<EventArgs<Type, IObjectMap>> OnRegistering;
@@ -113,13 +69,6 @@ namespace NewLife.Model
         #endregion
 
         #region 解析
-        ///// <summary>
-        ///// 解析类型的实例
-        ///// </summary>
-        ///// <param name="from">接口类型</param>
-        ///// <returns></returns>
-        //Object Resolve(Type from);
-
         /// <summary>
         /// 解析类型指定名称的实例
         /// </summary>
@@ -127,13 +76,6 @@ namespace NewLife.Model
         /// <param name="name">名称</param>
         /// <returns></returns>
         Object Resolve(Type from, String name = null);
-
-        ///// <summary>
-        ///// 解析类型的实例
-        ///// </summary>
-        ///// <typeparam name="TInterface">接口类型</typeparam>
-        ///// <returns></returns>
-        //TInterface Resolve<TInterface>();
 
         /// <summary>
         /// 解析类型指定名称的实例
@@ -159,13 +101,6 @@ namespace NewLife.Model
         #endregion
 
         #region 解析类型
-        ///// <summary>
-        ///// 解析接口的实现类型
-        ///// </summary>
-        ///// <param name="from">接口类型</param>
-        ///// <returns></returns>
-        //Type ResolveType(Type from);
-
         /// <summary>
         /// 解析接口指定名称的实现类型
         /// </summary>
@@ -173,13 +108,6 @@ namespace NewLife.Model
         /// <param name="name">名称</param>
         /// <returns></returns>
         Type ResolveType(Type from, String name = null);
-
-        ///// <summary>
-        ///// 解析接口的实现类型
-        ///// </summary>
-        ///// <typeparam name="TInterface">接口类型</typeparam>
-        ///// <returns></returns>
-        //Type ResolveType<TInterface>();
 
         /// <summary>
         /// 解析接口指定名称的实现类型

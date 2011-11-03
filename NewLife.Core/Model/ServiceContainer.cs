@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 
 namespace NewLife.Model
 {
@@ -27,17 +25,30 @@ namespace NewLife.Model
         #endregion
 
         #region 服务
+        ///// <summary>
+        ///// 注册类型和名称
+        ///// </summary>
+        ///// <typeparam name="TInterface">接口类型</typeparam>
+        ///// <typeparam name="TImplement">实现类型</typeparam>
+        ///// <param name="name">名称</param>
+        ///// <param name="overwrite">是否覆盖</param>
+        ///// <returns></returns>
+        //public static IObjectContainer Register<TInterface, TImplement>(String name = null, Boolean overwrite = true)
+        //{
+        //    return Container.Register<TInterface, TImplement>(name, overwrite ? 1 : 0);
+        //}
+
         /// <summary>
         /// 注册类型和名称
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <typeparam name="TImplement">实现类型</typeparam>
         /// <param name="name">名称</param>
-        /// <param name="overwrite">是否覆盖</param>
+        /// <param name="priority">优先级</param>
         /// <returns></returns>
-        public static IObjectContainer Register<TInterface, TImplement>(String name = null, Boolean overwrite = true)
+        public static IObjectContainer Register<TInterface, TImplement>(String name = null, Int32 priority = 0)
         {
-            return Container.Register<TInterface, TImplement>(name, overwrite);
+            return Container.Register<TInterface, TImplement>(name, priority);
         }
 
         /// <summary>

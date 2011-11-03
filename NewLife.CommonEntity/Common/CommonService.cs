@@ -11,10 +11,10 @@ namespace NewLife.CommonEntity
         static CommonService()
         {
             Container
-                .Register<IManageProvider, ManageProvider>(null, false)
-                .Register<ICommonManageProvider, CommonManageProvider>(null, false)
-                .Register<IEntityForm, EntityForm2>(null, false)
-                .Register<IManagerPage, ManagerPage>(null, false);
+                .Register<IManageProvider, ManageProvider>()
+                .Register<ICommonManageProvider, CommonManageProvider>()
+                .Register<IEntityForm, EntityForm2>()
+                .Register<IManagerPage, ManagerPage>();
         }
     }
 }

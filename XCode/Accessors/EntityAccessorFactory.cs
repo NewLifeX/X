@@ -11,12 +11,12 @@ namespace XCode.Accessors
         {
             // 注册内置访问器
             container
-                .Register<IEntityAccessor, HttpEntityAccessor>(EntityAccessorTypes.Http.ToString(), false)
-                .Register<IEntityAccessor, WebFormEntityAccessor>(EntityAccessorTypes.WebForm.ToString(), false)
-                .Register<IEntityAccessor, WinFormEntityAccessor>(EntityAccessorTypes.WinForm.ToString(), false)
-                .Register<IEntityAccessor, BinaryEntityAccessor>(EntityAccessorTypes.Binary.ToString(), false)
-                .Register<IEntityAccessor, XmlEntityAccessor>(EntityAccessorTypes.Xml.ToString(), false)
-                .Register<IEntityAccessor, JsonEntityAccessor>(EntityAccessorTypes.Json.ToString(), false);
+                .Register<IEntityAccessor, HttpEntityAccessor>(EntityAccessorTypes.Http.ToString())
+                .Register<IEntityAccessor, WebFormEntityAccessor>(EntityAccessorTypes.WebForm.ToString())
+                .Register<IEntityAccessor, WinFormEntityAccessor>(EntityAccessorTypes.WinForm.ToString())
+                .Register<IEntityAccessor, BinaryEntityAccessor>(EntityAccessorTypes.Binary.ToString())
+                .Register<IEntityAccessor, XmlEntityAccessor>(EntityAccessorTypes.Xml.ToString())
+                .Register<IEntityAccessor, JsonEntityAccessor>(EntityAccessorTypes.Json.ToString());
         }
 
         /// <summary>

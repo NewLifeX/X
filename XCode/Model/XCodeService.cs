@@ -14,8 +14,8 @@ namespace XCode.Model
         static XCodeService()
         {
             IObjectContainer container = Container;
-            container.Register<IDataTable, XTable>(null, false)
-                .Register<IDataRowEntityAccessorProvider, DataRowEntityAccessorProvider>(null, false);
+            container.Register<IDataTable, XTable>(null, 0)
+                .Register<IDataRowEntityAccessorProvider, DataRowEntityAccessorProvider>(null, 0);
 
             DbFactory.Reg(container);
 

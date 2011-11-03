@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Reflection;
+using NewLife.Configuration;
 using NewLife.Exceptions;
 using NewLife.Reflection;
-using System.Collections.Specialized;
-using NewLife.Configuration;
-using NewLife.Extension;
 
 namespace NewLife.Model
 {
-    //TODO: 似乎无法在Xml注册中做到先获取内部类型再注册外部类型，因为被注册代码无法被马上执行，而内部实现马上就要被覆盖了。
-    // 可以用Xml注册普通类型，那样的话，内部类型注册的时候，就需要检查是否已注册
-
     /// <summary>实现 <seealso cref="IObjectContainer"/> 接口的对象容器</summary>
     /// <remarks>
     /// 1，如果容器里面没有这个类型，则返回空；
@@ -182,6 +178,14 @@ namespace NewLife.Model
                 set { _ImplementType = value; }
             }
 
+            private Int32 _Priority;
+            /// <summary>优先级</summary>
+            public Int32 Priority
+            {
+                get { return _Priority; }
+                set { _Priority = value; }
+            }
+
             private Boolean hasCheck = false;
 
             private Object _Instance;
@@ -241,10 +245,10 @@ namespace NewLife.Model
             /// </summary>
             Singleton = 1,
 
-            /// <summary>
-            /// 是否覆盖已有的注册
-            /// </summary>
-            Overwrite = 2,
+            ///// <summary>
+            ///// 是否覆盖已有的注册
+            ///// </summary>
+            //Overwrite = 2,
 
             /// <summary>
             /// 是否扩展，扩展注册将附加在该接口的第一个注册项之后
@@ -261,15 +265,14 @@ namespace NewLife.Model
         /// <param name="to">实现类型</param>
         /// <param name="instance">实例</param>
         /// <param name="name">名称</param>
-        /// <param name="overwrite">是否覆盖</param>
+        /// <param name="priority">优先级</param>
         /// <returns></returns>
-        public virtual IObjectContainer Register(Type from, Type to, Object instance, String name = null, Boolean overwrite = true)
+        public virtual IObjectContainer Register(Type from, Type to, Object instance, String name = null, Int32 priority = 0)
         {
-            //if(to==null&&instance==null)
-            return Register(from, to, instance, null, ModeFlags.None, name, overwrite);
+            return Register(from, to, instance, null, ModeFlags.None, name, priority);
         }
 
-        private IObjectContainer Register(Type from, Type to, Object instance, String typeName, ModeFlags mode, String name, Boolean overwrite)
+        private IObjectContainer Register(Type from, Type to, Object instance, String typeName, ModeFlags mode, String name, Int32 priority)
         {
             if (from == null) throw new ArgumentNullException("from");
             // 名称不能是null，否则字典里面会报错
@@ -283,7 +286,8 @@ namespace NewLife.Model
             if (dic.TryGetValue(name, out old))
             {
                 // 是否允许覆盖
-                if (!overwrite) return this;
+                //if (!overwrite) return this;
+                if (priority < (old as Map).Priority) return this;
 
                 //if (OnRegistering != null) OnRegistering(this, new EventArgs<Type, IObjectMap>(from, old));
 
@@ -325,68 +329,15 @@ namespace NewLife.Model
         #endregion
 
         #region 注册
-        ///// <summary>
-        ///// 注册类型
-        ///// </summary>
-        ///// <param name="from">接口类型</param>
-        ///// <param name="to">实现类型</param>
-        ///// <param name="name">名称</param>
-        ///// <param name="overwrite">是否覆盖</param>
-        ///// <returns></returns>
-        //public virtual IObjectContainer Register(Type from, Type to, String name = null, Boolean overwrite = true) { return Register(from, to, null, name, overwrite); }
-
-        ///// <summary>
-        ///// 注册类型和名称
-        ///// </summary>
-        ///// <param name="from">接口类型</param>
-        ///// <param name="to">实现类型</param>
-        ///// <param name="name">名称</param>
-        ///// <returns></returns>
-        //public virtual IObjectContainer Register(Type from, Type to, String name) { return Register(from, to, name, null); }
-
-        ///// <summary>
-        ///// 注册类型
-        ///// </summary>
-        ///// <typeparam name="TInterface">接口类型</typeparam>
-        ///// <typeparam name="TImplement">实现类型</typeparam>
-        ///// <returns></returns>
-        //public virtual IObjectContainer Register<TInterface, TImplement>() { return Register(typeof(TInterface), null, typeof(TImplement), null); }
-
         /// <summary>
         /// 注册类型和名称
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <typeparam name="TImplement">实现类型</typeparam>
         /// <param name="name">名称</param>
-        /// <param name="overwrite">是否覆盖</param>
+        /// <param name="priority">优先级</param>
         /// <returns></returns>
-        public virtual IObjectContainer Register<TInterface, TImplement>(String name = null, Boolean overwrite = true) { return Register(typeof(TInterface), typeof(TImplement), null, name, overwrite); }
-
-        ///// <summary>
-        ///// 注册类型的实例
-        ///// </summary>
-        ///// <param name="from">接口类型</param>
-        ///// <param name="instance">实例</param>
-        ///// <returns></returns>
-        //public virtual IObjectContainer Register(Type from, Object instance) { return Register(from, null, instance); }
-
-        ///// <summary>
-        ///// 注册类型指定名称的实例
-        ///// </summary>
-        ///// <param name="from">接口类型</param>
-        ///// <param name="instance">实例</param>
-        ///// <param name="name">名称</param>
-        ///// <param name="overwrite">是否覆盖</param>
-        ///// <returns></returns>
-        //public virtual IObjectContainer Register(Type from, Object instance, String name = null, Boolean overwrite = true) { return Register(from, null, instance, name, overwrite); }
-
-        ///// <summary>
-        ///// 注册类型的实例
-        ///// </summary>
-        ///// <typeparam name="TInterface">接口类型</typeparam>
-        ///// <param name="instance">实例</param>
-        ///// <returns></returns>
-        //public virtual IObjectContainer Register<TInterface>(Object instance) { return Register(typeof(TInterface), null, instance); }
+        public virtual IObjectContainer Register<TInterface, TImplement>(String name = null, Int32 priority = 0) { return Register(typeof(TInterface), typeof(TImplement), null, name, priority); }
 
         /// <summary>
         /// 注册类型指定名称的实例
@@ -394,9 +345,9 @@ namespace NewLife.Model
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="instance">实例</param>
         /// <param name="name">名称</param>
-        /// <param name="overwrite">是否覆盖</param>
+        /// <param name="priority">优先级</param>
         /// <returns></returns>
-        public virtual IObjectContainer Register<TInterface>(Object instance, String name = null, Boolean overwrite = true) { return Register(typeof(TInterface), null, instance, name, overwrite); }
+        public virtual IObjectContainer Register<TInterface>(Object instance, String name = null, Int32 priority = 0) { return Register(typeof(TInterface), null, instance, name, priority); }
         #endregion
 
         #region 解析
@@ -663,6 +614,7 @@ namespace NewLife.Model
 
                 if (value.IsNullOrWhiteSpace()) continue;
 
+                // 砍掉前缀，得到接口名
                 String name = key.Substring(CONFIG_PREFIX.Length);
                 if (name.IsNullOrWhiteSpace()) continue;
 
@@ -672,13 +624,13 @@ namespace NewLife.Model
                 Map map = GetConfig(value);
                 if (map == null) continue;
 
-                Register(type, null, null, map.TypeName, map.Mode, map.Name, (map.Mode & ModeFlags.Overwrite) == ModeFlags.Overwrite);
+                Register(type, null, null, map.TypeName, map.Mode, map.Name, map.Priority);
             }
         }
 
         static Map GetConfig(String str)
         {
-            IDictionary<String, String> dic = ParseDic(str);
+            IDictionary<String, String> dic = str.SplitAsDictionary();
             if (dic == null || dic.Count < 1)
             {
                 if (!str.IsNullOrWhiteSpace()) return new Map { TypeName = str };
@@ -695,6 +647,10 @@ namespace NewLife.Model
                         break;
                     case "type":
                         map.TypeName = item.Value;
+                        break;
+                    case "priority":
+                        Int32 n = 0;
+                        if (Int32.TryParse(item.Value, out n)) map.Priority = n;
                         break;
                     case "mode":
                         map.Mode = ModeFlags.None;
@@ -716,27 +672,6 @@ namespace NewLife.Model
                 }
             }
             return map;
-        }
-
-        static IDictionary<String, String> ParseDic(String str)
-        {
-            if (str.IsNullOrWhiteSpace()) return null;
-
-            IDictionary<String, String> dic = new Dictionary<String, String>();
-            String[] ss = str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length < 1) return null;
-
-            foreach (String item in ss)
-            {
-                Int32 p = item.IndexOf('=');
-                // 在前后都不行
-                if (p <= 0 || p >= item.Length - 1) continue;
-
-                String key = item.Substring(0, p).Trim();
-                dic[key] = item.Substring(p + 1).Trim();
-            }
-
-            return dic;
         }
         #endregion
 

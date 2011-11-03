@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.ComponentModel;
 
 namespace NewLife
@@ -42,6 +41,35 @@ namespace NewLife
             if (String.IsNullOrEmpty(value)) return new String[0];
 
             return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        /// <summary>拆分字符串成为名值字典</summary>
+        /// <param name="str"></param>
+        /// <param name="nameValueSeparator"></param>
+        /// <param name="separators"></param>
+        /// <returns></returns>
+        public static IDictionary<String, String> SplitAsDictionary(this String str, String nameValueSeparator = "=", params String[] separators)
+        {
+            IDictionary<String, String> dic = new Dictionary<String, String>();
+            if (str.IsNullOrWhiteSpace()) return dic;
+
+            if (String.IsNullOrEmpty(nameValueSeparator)) nameValueSeparator = "=";
+            if (separators == null || separators.Length < 1) separators = new String[] { ",", ";" };
+
+            String[] ss = str.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+            if (ss == null || ss.Length < 1) return null;
+
+            foreach (String item in ss)
+            {
+                Int32 p = item.IndexOf(nameValueSeparator);
+                // 在前后都不行
+                if (p <= 0 || p >= item.Length - 1) continue;
+
+                String key = item.Substring(0, p).Trim();
+                dic[key] = item.Substring(p + 1).Trim();
+            }
+
+            return dic;
         }
     }
 }
