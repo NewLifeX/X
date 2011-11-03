@@ -38,7 +38,7 @@ namespace NewLife.Web
             //压缩
             String url = app.Request.Url.OriginalString.ToLower();
             String files = Config.GetConfig<String>("NewLife.CommonEntity.CompressFiles", ".aspx,.axd,.js,.css");
-            if (files.ToLower().Split(new String[] { ",", ";", " " }, StringSplitOptions.RemoveEmptyEntries).Any(t => url.Contains(t)))
+            if (files.ToLower().Split(",", ";", " ").Any(t => url.Contains(t)))
             {
                 //是否支持压缩协议
                 if (IsEncodingAccepted(GZIP))

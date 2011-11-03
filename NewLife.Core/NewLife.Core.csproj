@@ -277,8 +277,8 @@
     <Compile Include="Web\HttpStream.cs" />
     <Compile Include="Log\WriteLogEventArgs.cs" />
     <Compile Include="Log\XTrace.cs" />
-    <Compile Include="Web\Modules\ViewStateCompressionModule.cs" />
     <Compile Include="Web\Modules\RunTimeModule.cs" />
+    <Compile Include="Web\Modules\ViewStateCompressionModule.cs" />
     <Compile Include="Web\Modules\SystemStartModule.cs" />
     <Compile Include="Web\WebClientX.cs">
       <SubType>Component</SubType>

@@ -35,13 +35,13 @@ namespace NewLife
 
         /// <summary>拆分字符串</summary>
         /// <param name="value"></param>
-        /// <param name="separator"></param>
+        /// <param name="separators"></param>
         /// <returns></returns>
-        public static String[] Split(this String value, String separator)
+        public static String[] Split(this String value, params String[] separators)
         {
-            if (String.IsNullOrEmpty(value)) return null;
+            if (String.IsNullOrEmpty(value)) return new String[0];
 
-            return value.Split(new String[] { separator }, StringSplitOptions.RemoveEmptyEntries);
+            return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }
