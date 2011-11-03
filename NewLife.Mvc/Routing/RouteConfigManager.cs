@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using NewLife.Reflection;
 using System.Web;
+using NewLife.Reflection;
 
 namespace NewLife.Mvc
 {
@@ -52,10 +51,12 @@ namespace NewLife.Mvc
         public RouteConfigManager Route(string path, Type type, params object[] args)
         {
             Route(path, true, false, type);
-            for (int i = 0; i < args.Length; i += 2)
+            int n = args.Length & ~1;
+
+            for (int i = 0; i < n; i += 2)
             {
                 path = args[i].ToString();
-                object t = args.Length > i + 1 ? args[i + 1] : null;
+                object t = args[i + 1];
                 if (t != null)
                 {
                     if (t is string)

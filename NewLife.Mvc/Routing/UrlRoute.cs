@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Web;
-using System.Reflection;
-using NewLife.Log;
 
 namespace NewLife.Mvc
 {
@@ -43,14 +39,13 @@ namespace NewLife.Mvc
                     }
                 }
             }
-
-            string url = app.Request.AppRelativeCurrentExecutionFilePath.Substring(1);
-            RouteContext.Current = new RouteContext(url);
-            IHttpHandler handler = rootConfig[0].GetRouteHandler(url);
+            RouteContext.Current = new RouteContext(app);
+            string path = RouteContext.Current.RoutePath;
+            IHttpHandler handler = rootConfig[0].GetRouteHandler(path);
             if (handler == null)
             {
                 IControllerFactory factory = Service.Resolve<IControllerFactory>();
-                if (factory.Support(url))
+                if (factory.Support(path))
                 {
                     handler = new HttpHandlerWrap(factory.Create());
                 }

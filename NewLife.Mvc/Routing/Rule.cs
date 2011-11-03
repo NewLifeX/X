@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Web;
 using NewLife.Reflection;
 
@@ -47,6 +45,14 @@ namespace NewLife.Mvc
             get;
             set;
         }
+        /// <summary>
+        /// 重写
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return "{Rule} " + Path + " " + Type.ToString();
+        }
         #endregion
 
         private bool IsCompleteMatch;
@@ -62,6 +68,7 @@ namespace NewLife.Mvc
                 throw new ArgumentException(string.Format("NewLife.Mvc初始化异常 路径:{0} 所路由的目标:{1} 并未实现IControllerFactory或IController接口", path, type.FullName), "type");
             }
 
+            // TODO Module类型
             Rule r = isFactory ? new FactoryRule() : new Rule();
             r.Path = path;
             r.Type = type;
@@ -135,6 +142,7 @@ namespace NewLife.Mvc
 
         public void ProcessRequest(HttpContext context)
         {
+            // TODO 考虑拦截异常,提供运行时和生产时的开关控制产生不同的异常报告以针对不同的用户
             Controller.Execute();
         }
     }
