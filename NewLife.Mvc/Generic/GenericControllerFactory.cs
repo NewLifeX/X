@@ -48,7 +48,7 @@ namespace NewLife.Mvc
                     string[] s = Config.GetConfigSplit<string>("NewLife.Mvc.AcceptSuffixs", ",", null);
                     List<string> suffixs = new List<string>();
 
-                    if (s == null || s.Length == 0 || s[0][0] != '*') // 没有标记为 * 覆盖,则添加默认的后缀
+                    if (s == null || s.Length == 0 || s[0][0] != '*') // 没有标记为:* 覆盖,则添加默认的后缀
                     {
                         suffixs.AddRange(@"aspx,xt".Split(','));
                     }

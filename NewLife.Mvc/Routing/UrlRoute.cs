@@ -7,12 +7,14 @@ namespace NewLife.Mvc
     public class UrlRoute : IHttpModule
     {
         #region IHttpModule 成员
+
         /// <summary>
         /// 销毁
         /// </summary>
         public void Dispose()
         {
         }
+
         /// <summary>
         /// 初始化仅执行一次,再不重新加载应用前
         /// </summary>
@@ -21,11 +23,12 @@ namespace NewLife.Mvc
         {
             context.BeginRequest += new EventHandler(context_BeginRequest);
         }
-        #endregion
+
+        #endregion IHttpModule 成员
 
         static RouteConfigManager[] rootConfig = new RouteConfigManager[] { null };
 
-        void context_BeginRequest(object sender, EventArgs e)
+        private void context_BeginRequest(object sender, EventArgs e)
         {
             HttpApplication app = sender as HttpApplication;
 
@@ -41,24 +44,24 @@ namespace NewLife.Mvc
             }
             RouteContext.Current = new RouteContext(app);
             string path = RouteContext.Current.RoutePath;
-            IHttpHandler handler = rootConfig[0].GetRouteHandler(path);
-            if (handler == null)
+            IController c = rootConfig[0].GetRouteHandler(path);
+            if (c == null)
             {
                 IControllerFactory factory = Service.Resolve<IControllerFactory>();
                 if (factory.Support(path))
                 {
-                    handler = new HttpHandlerWrap(factory.Create());
+                    c = factory.Create();
                 }
             }
-            if (handler != null)
+            if (c != null)
             {
-                app.Context.RemapHandler(handler);
+                app.Context.RemapHandler(new HttpHandlerWrap(c));
                 return;
             }
             // TODO http 404?
         }
 
-        void LoadRootConfig()
+        private void LoadRootConfig()
         {
             string exclude = @"mscorlib,
 System.Web,System,System.Configuration,System.Xml,System.Web.resources,Microsoft.JScript,System.Data,System.Web.Services,
@@ -81,6 +84,27 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
             }
             cfg.SortConfigRule();
             rootConfig[0] = cfg;
+        }
+    }
+
+    internal class HttpHandlerWrap : IHttpHandler
+    {
+        private IController Controller;
+
+        public HttpHandlerWrap(IController controller)
+        {
+            Controller = controller;
+        }
+
+        public bool IsReusable
+        {
+            get { return false; }
+        }
+
+        public void ProcessRequest(HttpContext context)
+        {
+            // TODO 考虑拦截异常,提供运行时和生产时的开关控制产生不同的异常报告以针对不同的用户
+            Controller.Execute();
         }
     }
 }

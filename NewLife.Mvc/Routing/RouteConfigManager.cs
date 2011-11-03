@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Web;
 using NewLife.Reflection;
 
 namespace NewLife.Mvc
@@ -11,6 +10,7 @@ namespace NewLife.Mvc
     public class RouteConfigManager
     {
         #region 公共
+
         /// <summary>
         /// 指定路径路由到指定控制器
         /// </summary>
@@ -21,6 +21,7 @@ namespace NewLife.Mvc
         {
             return Route(path, false, false, typeof(T));
         }
+
         /// <summary>
         /// 指定路径路由到指定名称的类型,可以是控制器IController,或者工厂IControllerFactory
         /// </summary>
@@ -31,6 +32,7 @@ namespace NewLife.Mvc
         {
             return Route(path, true, false, TypeX.GetType(type));
         }
+
         /// <summary>
         /// 指定路径路由到指定名称的控制器工厂根据需要产生控制器实例来处理
         /// </summary>
@@ -41,6 +43,7 @@ namespace NewLife.Mvc
         {
             return Route(path, false, true, typeof(T));
         }
+
         /// <summary>
         /// 指定多个路径路由到指定的目标,目标可以是IController,IControllerFactory
         /// </summary>
@@ -72,9 +75,11 @@ namespace NewLife.Mvc
             }
             return this;
         }
-        #endregion
+
+        #endregion 公共
 
         #region 内部
+
         List<Rule> rules;
 
         /// <summary>
@@ -116,20 +121,20 @@ namespace NewLife.Mvc
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        internal IHttpHandler GetRouteHandler(string path)
+        internal IController GetRouteHandler(string path)
         {
-            IHttpHandler h = null;
+            IController c = null;
             foreach (var r in rules)
             {
-                h = r.GetRouteHandler(path);
-                if (h != null)
+                c = r.GetRouteHandler(path);
+                if (c != null)
                 {
                     break;
                 }
             }
-            return h;
+            return c;
         }
-        #endregion
 
+        #endregion 内部
     }
 }

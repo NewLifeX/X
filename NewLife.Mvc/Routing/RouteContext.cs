@@ -5,6 +5,12 @@ namespace NewLife.Mvc
 {
     /// <summary>
     /// 路由的上下文信息
+    ///
+    /// 上下文信息包括
+    ///   模块匹配的路径,路由到模块时会增加一个模块路径
+    ///   控制器工厂匹配的路径,路由到控制器工厂时会提供的值
+    ///   控制器匹配的路径,路由到控制器时会提供的值,如果是通过工厂路由到控制器的,那么和上一个工厂匹配的路径相同
+    ///   剩余的路径,其它情况下的路径
     /// </summary>
     public class RouteContext
     {
@@ -17,8 +23,11 @@ namespace NewLife.Mvc
             //Path =
         }
 
+        #region 公共
+
         [ThreadStatic]
         private static RouteContext _Current;
+
         /// <summary>
         /// 当前请求路由上下文信息
         /// </summary>
@@ -34,37 +43,39 @@ namespace NewLife.Mvc
             }
         }
 
-        ///// <summary>
-        ///// 当前的模块路径,最近一次的
-        ///// </summary>
-        //public string Module { get; private set; }
-
-        ///// <summary>
-        ///// 当前所有模块的路径,按照模块层次顺序,第一个是顶级模块
-        ///// </summary>
-        //public string[] Modules { get; private set; }
-
-        ///// <summary>
-        ///// 当前的路径,Url中模块路径之后的部分
-        ///// </summary>
-        //public string Path { get; private set; }
-
-        ///// <summary>
-        ///// 获取应用程序根的虚拟路径,以~/开头的
-        ///// 
-        ///// 在当前请求初始化后不会改变
-        ///// 
-        ///// 用于替代Request.AppRelativeCurrentExecutionFilePath,因为这个方法在Url对应的文件不存在时会返回空白
-        ///// </summary>
-        //public string AppRelativePath { get; private set; }
-
         /// <summary>
         /// 当前请求的路由路径,即url排除掉当前应用部署的路径后,以/开始的路径,不包括url中?及其后面的
-        /// 
+        ///
         /// 路由操作主要是基于这个路径
-        /// 
+        ///
         /// 在当前请求初始化后不会改变
         /// </summary>
         public string RoutePath { get; private set; }
+
+        /// <summary>
+        /// 控制器路径
+        /// </summary>
+        public string ControllerPath { get; set; }
+
+        #endregion 公共
+
+        #region 上下文信息切换
+
+        internal void EnterFactory(string path, string Path, IControllerFactory factory)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void ExitFactory()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void EnterController(string path, string Path, IController ret)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion 上下文信息切换
     }
 }

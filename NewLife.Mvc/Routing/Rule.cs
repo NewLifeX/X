@@ -1,13 +1,14 @@
 ﻿using System;
-using System.Web;
 using NewLife.Reflection;
 
 namespace NewLife.Mvc
 {
-    class Rule
+    internal class Rule
     {
         #region 公共
+
         private string _Path;
+
         /// <summary>
         /// 路径,赋值时如果以$符号结尾,表示是完整匹配(只会匹配Path部分,不包括Url中Query部分),而不是
         /// </summary>
@@ -37,6 +38,7 @@ namespace NewLife.Mvc
                 _Path = value != "" ? value : "/";
             }
         }
+
         /// <summary>
         /// 路由的目标类型
         /// </summary>
@@ -45,6 +47,7 @@ namespace NewLife.Mvc
             get;
             set;
         }
+
         /// <summary>
         /// 重写
         /// </summary>
@@ -53,7 +56,8 @@ namespace NewLife.Mvc
         {
             return "{Rule} " + Path + " " + Type.ToString();
         }
-        #endregion
+
+        #endregion 公共
 
         private bool IsCompleteMatch;
 
@@ -75,11 +79,16 @@ namespace NewLife.Mvc
             return r;
         }
 
-        internal virtual IHttpHandler GetRouteHandler(string path)
+        internal virtual IController GetRouteHandler(string path)
         {
             if (IsMatchPath(path))
             {
-                return GetRouteHandler();
+                IController c = GetRouteHandler();
+                if (c != null)
+                {
+                    RouteContext.Current.EnterController(path, Path, c);
+                }
+                return c;
             }
             return null;
         }
@@ -91,60 +100,60 @@ namespace NewLife.Mvc
             {
                 isMatch = path == Path;
             }
-            else
+            else // TODO 考虑忽略大小写
             {
                 isMatch = path.StartsWith(Path);
             }
             return isMatch;
         }
 
-        internal virtual IHttpHandler GetRouteHandler()
+        internal virtual IController GetRouteHandler()
         {
-            return new HttpHandlerWrap(TypeX.CreateInstance(Type) as IController);
+            return TypeX.CreateInstance(Type) as IController;
         }
     }
 
-    class FactoryRule : Rule
+    internal class FactoryRule : Rule
     {
         private IControllerFactory factory;
 
         internal override bool IsMatchPath(string path)
         {
-            if (base.IsMatchPath(path))
+            bool isMatch = base.IsMatchPath(path);
+            if (isMatch)
             {
                 if (factory == null)
                 {
-                    factory = TypeX.CreateInstance(Type) as IControllerFactory;
+                    lock (this)
+                    {
+                        if (factory == null)
+                        {
+                            factory = TypeX.CreateInstance(Type) as IControllerFactory;
+                        }
+                    }
                 }
-                return factory.Support(path);
+                RouteContext.Current.EnterFactory(path, Path, factory);
+                isMatch = false;
+                try
+                {
+                    isMatch = factory.Support(path);
+                }
+                finally
+                {
+                    if (!isMatch)
+                    {
+                        RouteContext.Current.ExitFactory();
+                    }
+                }
             }
-            return false;
+            return isMatch;
         }
 
-        internal override IHttpHandler GetRouteHandler()
+        internal override IController GetRouteHandler()
         {
-            return new HttpHandlerWrap(factory.Create());
+            return factory.Create();
         }
     }
 
-    class HttpHandlerWrap : IHttpHandler
-    {
-        private IController Controller;
-        public HttpHandlerWrap(IController controller)
-        {
-            Controller = controller;
-        }
-
-        public bool IsReusable
-        {
-            get { return false; }
-        }
-
-        public void ProcessRequest(HttpContext context)
-        {
-            // TODO 考虑拦截异常,提供运行时和生产时的开关控制产生不同的异常报告以针对不同的用户
-            Controller.Execute();
-        }
-    }
-
+    // TODO IRouteConfigModule类型的规则
 }
