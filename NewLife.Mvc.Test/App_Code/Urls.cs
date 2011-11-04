@@ -13,8 +13,8 @@ public class Urls : IRouteConfig
     {
         cfg.Route<TestController>("/Test")
             .Route(
-                //"/Module", typeof(TestModuleRoute), // TODO
-                "/Test1", typeof(TestController1),
+                "/Module", typeof(TestModuleRoute),
+                "/Test1$", typeof(TestController1),
                 "/Test2", typeof(TestController2),
                 ""
             );

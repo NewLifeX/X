@@ -17,43 +17,65 @@ namespace NewLife.Mvc
         /// <typeparam name="T"></typeparam>
         /// <param name="path"></param>
         /// <returns></returns>
-        public RouteConfigManager Route<T>(string path) where T : IController
+        public RouteConfigManager Route<T>(string path) where T : IController, new()
         {
-            return Route(path, false, false, typeof(T));
+            return Route(path, typeof(T), typeof(IController));
         }
 
         /// <summary>
-        /// 指定路径路由到指定名称的类型,可以是控制器IController,或者工厂IControllerFactory
+        /// 指定路径路由到控制器工厂,工厂是单例的
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public RouteConfigManager RouteToFactory<T>(string path) where T : IControllerFactory, new()
+        {
+            return Route(path, typeof(T), typeof(IControllerFactory));
+        }
+
+        /// <summary>
+        /// 指定路径路由到模块,模块是一个独立的路由配置,可以相对于自身所路由的路径,进一步路由到具体的控制器或者工厂
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public RouteConfigManager RouteToModule<T>(string path) where T : IRouteConfigMoudule, new()
+        {
+            return Route(path, typeof(T), typeof(IRouteConfigMoudule));
+        }
+
+        /// <summary>
+        /// 指定路径路由到指定名称的类型,目标类型需要是IController,IControllerFactory,IRouteConfigMoudule其中之一
         /// </summary>
         /// <param name="path"></param>
         /// <param name="type"></param>
         /// <returns></returns>
         public RouteConfigManager Route(string path, string type)
         {
-            return Route(path, true, false, TypeX.GetType(type));
+            return Route(path, TypeX.GetType(type));
         }
 
         /// <summary>
-        /// 指定路径路由到指定名称的控制器工厂根据需要产生控制器实例来处理
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="path"></param>
-        /// <returns></returns>
-        public RouteConfigManager RouteToFactory<T>(string path) where T : IControllerFactory
-        {
-            return Route(path, false, true, typeof(T));
-        }
-
-        /// <summary>
-        /// 指定多个路径路由到指定的目标,目标可以是IController,IControllerFactory
+        /// 指定路径路由到指定类型,类型需要是IController,IControllerFactory,IRouteConfigMoudule其中之一
         /// </summary>
         /// <param name="path"></param>
         /// <param name="type"></param>
-        /// <param name="args"></param>
+        /// <returns></returns>
+        public RouteConfigManager Route(string path, Type type)
+        {
+            return Route(path, type, typeof(object));
+        }
+
+        /// <summary>
+        /// 指定多个路径路由到指定的目标,目标需要是IController,IControllerFactory,IRouteConfigMoudule其中之一
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="type"></param>
+        /// <param name="args">多个路由规则,其中type可以是具体的Type或者字符串指定的类型名称</param>
         /// <returns></returns>
         public RouteConfigManager Route(string path, Type type, params object[] args)
         {
-            Route(path, true, false, type);
+            Route(path, type, typeof(object));
             int n = args.Length & ~1;
 
             for (int i = 0; i < n; i += 2)
@@ -68,8 +90,7 @@ namespace NewLife.Mvc
                     }
                     if (t is Type)
                     {
-                        type = t as Type;
-                        Route(path, true, false, type);
+                        Route(path, t as Type, typeof(object));
                     }
                 }
             }
@@ -82,30 +103,23 @@ namespace NewLife.Mvc
 
         List<Rule> rules;
 
-        /// <summary>
-        /// 路由指定路径到指定类型
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="checkType"></param>
-        /// <param name="isFactory"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        internal virtual RouteConfigManager Route(string path, bool checkType, bool isFactory, Type type)
+        internal virtual RouteConfigManager Route(string path, Type type, Type ruleType)
         {
-            if (type == null) throw new ArgumentNullException("type");
-            if (path == null) throw new ArgumentNullException("path");
-            if (rules == null)
-            {
-                rules = new List<Rule>();
-            }
-            rules.Add(Rule.Create(path, checkType, isFactory, type));
-            return this;
+            if (rules == null) rules = new List<Rule>();
+            rules.Add(Rule.Create(path, type, ruleType));
+            return null;
         }
 
-        internal void Load(Type type)
+        /// <summary>
+        /// 加载指定类型的路由配置模块,返回创建的模块实例
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        internal IRouteConfigMoudule Load(Type type)
         {
             IRouteConfigMoudule cfg = TypeX.CreateInstance(type) as IRouteConfigMoudule;
             cfg.Config(this);
+            return cfg;
         }
 
         /// <summary>
@@ -136,5 +150,19 @@ namespace NewLife.Mvc
         }
 
         #endregion 内部
+    }
+
+    /// <summary>
+    /// 路由配置异常
+    /// </summary>
+    public class RouteConfigException : ArgumentException
+    {
+        public RouteConfigException(string message)
+        {
+        }
+
+        public RouteConfigException(string message, string paramName)
+        {
+        }
     }
 }

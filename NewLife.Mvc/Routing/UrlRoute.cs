@@ -16,7 +16,7 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
-        /// 初始化仅执行一次,再不重新加载应用前
+        /// 初始化仅执行一次,在不重新加载应用前
         /// </summary>
         /// <param name="context"></param>
         public void Init(HttpApplication context)
@@ -26,25 +26,55 @@ namespace NewLife.Mvc
 
         #endregion IHttpModule 成员
 
-        static RouteConfigManager[] rootConfig = new RouteConfigManager[] { null };
+        static RouteConfigManager[] _RootConfig = new RouteConfigManager[] { null };
+
+        /// <summary>
+        /// 根路由配置,自动加载实现了IRouteConfig接口的类中配置的路由规则
+        /// </summary>
+        private static RouteConfigManager RootConfig
+        {
+            get
+            {
+                if (_RootConfig[0] == null)
+                {
+                    lock (_RootConfig)
+                    {
+                        if (_RootConfig[0] == null)
+                        {
+                            string exclude = @"mscorlib,
+System.Web,System,System.Configuration,System.Xml,System.Web.resources,Microsoft.JScript,System.Data,System.Web.Services,
+System.Drawing,System.EnterpriseServices,System.Web.Mobile,NewLife.Core,NewLife.Mvc,System.Runtime.Serialization,
+System.IdentityModel,System.ServiceModel,System.ServiceModel.Web,System.WorkflowServices,System.resources,
+System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Windows.Forms,";
+                            RouteConfigManager cfg = new RouteConfigManager();
+                            foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
+                            {
+                                string name = ass.FullName;
+                                name = name.Substring(0, name.IndexOf(',') + 1);
+                                if (exclude.Contains(name)) continue;
+                                foreach (var type in ass.GetTypes())
+                                {
+                                    if (typeof(IRouteConfig).IsAssignableFrom(type))
+                                    {
+                                        cfg.Load(type);
+                                    }
+                                }
+                            }
+                            cfg.SortConfigRule();
+                            _RootConfig[0] = cfg;
+                        }
+                    }
+                }
+                return _RootConfig[0];
+            }
+        }
 
         private void context_BeginRequest(object sender, EventArgs e)
         {
             HttpApplication app = sender as HttpApplication;
-
-            if (rootConfig[0] == null)
-            {
-                lock (rootConfig)
-                {
-                    if (rootConfig[0] == null)
-                    {
-                        LoadRootConfig();
-                    }
-                }
-            }
-            RouteContext.Current = new RouteContext(app);
+            RouteContext.Current = new RouteContext(app); //每次请求前重置路由上下文
             string path = RouteContext.Current.RoutePath;
-            IController c = rootConfig[0].GetRouteHandler(path);
+            IController c = RootConfig.GetRouteHandler(path);
             if (c == null)
             {
                 IControllerFactory factory = Service.Resolve<IControllerFactory>();
@@ -58,35 +88,12 @@ namespace NewLife.Mvc
                 app.Context.RemapHandler(new HttpHandlerWrap(c));
                 return;
             }
-            // TODO http 404?
-        }
-
-        private void LoadRootConfig()
-        {
-            string exclude = @"mscorlib,
-System.Web,System,System.Configuration,System.Xml,System.Web.resources,Microsoft.JScript,System.Data,System.Web.Services,
-System.Drawing,System.EnterpriseServices,System.Web.Mobile,NewLife.Core,NewLife.Mvc,System.Runtime.Serialization,
-System.IdentityModel,System.ServiceModel,System.ServiceModel.Web,System.WorkflowServices,System.resources,
-System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Windows.Forms,";
-            RouteConfigManager cfg = new RouteConfigManager();
-            foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                string name = ass.FullName;
-                name = name.Substring(0, name.IndexOf(',') + 1);
-                if (exclude.Contains(name)) continue;
-                foreach (var type in ass.GetTypes())
-                {
-                    if (typeof(IRouteConfig).IsAssignableFrom(type))
-                    {
-                        cfg.Load(type);
-                    }
-                }
-            }
-            cfg.SortConfigRule();
-            rootConfig[0] = cfg;
         }
     }
 
+    /// <summary>
+    /// 将IController包装为IHttpHandler,用于给HttpContext.RemapHandler方法使用
+    /// </summary>
     internal class HttpHandlerWrap : IHttpHandler
     {
         private IController Controller;

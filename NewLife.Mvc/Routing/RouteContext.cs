@@ -53,24 +53,66 @@ namespace NewLife.Mvc
         public string RoutePath { get; private set; }
 
         /// <summary>
-        /// 控制器路径
+        /// 路由到控制器时控制器的
         /// </summary>
         public string ControllerPath { get; set; }
+
+        public string Path { get; set; }
 
         #endregion 公共
 
         #region 上下文信息切换
 
+        /// <summary>
+        /// 进入指定的模块
+        /// </summary>
+        /// <param name="Path">路由规则的路径</param>
+        /// <param name="path">当前请求的路径</param>
+        /// <param name="Module"></param>
+        internal void EnterModule(string Path, string path, IRouteConfigMoudule Module)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 退出指定的模块
+        /// </summary>
+        /// <param name="Path">路由规则的路径</param>
+        /// <param name="path">当前请求的路径</param>
+        /// <param name="Module"></param>
+        internal void ExitModule(string Path, string path, IRouteConfigMoudule Module)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 进入指定的工厂
+        /// </summary>
+        /// <param name="path">路由规则的路径</param>
+        /// <param name="Path">当前请求的路径</param>
+        /// <param name="factory"></param>
         internal void EnterFactory(string path, string Path, IControllerFactory factory)
         {
             throw new NotImplementedException();
         }
 
-        internal void ExitFactory()
+        /// <summary>
+        /// 退出指定的工厂
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="Path"></param>
+        /// <param name="factory"></param>
+        internal void ExitFactory(string path, string Path, IControllerFactory factory)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// 进入指定的控制器
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="Path"></param>
+        /// <param name="ret"></param>
         internal void EnterController(string path, string Path, IController ret)
         {
             throw new NotImplementedException();

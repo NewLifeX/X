@@ -14,23 +14,29 @@ namespace NewLife.Mvc
         public HttpContext Context { get { return HttpContext.Current; } }
 
         private HttpRequest _Request;
+
         /// <summary>Http请求</summary>
         public HttpRequest Request { get { return HttpContext.Current == null ? null : HttpContext.Current.Request; } }
 
         private HttpResponse _Response;
+
         /// <summary>Http响应</summary>
         public HttpResponse Response { get { return HttpContext.Current == null ? null : HttpContext.Current.Response; } }
 
         private HttpServerUtility _Server;
+
         /// <summary>HttpServer</summary>
         public HttpServerUtility Server { get { return HttpContext.Current == null ? null : HttpContext.Current.Server; } }
 
         private HttpSessionState _Session;
+
         /// <summary>会话</summary>
         public HttpSessionState Session { get { return HttpContext.Current == null ? null : HttpContext.Current.Session; } }
-        #endregion
+
+        #endregion 属性
 
         #region IController 成员
+
         /// <summary>
         /// 执行
         /// </summary>
@@ -38,6 +44,7 @@ namespace NewLife.Mvc
         {
             Render(null);
         }
+
         /// <summary>
         /// 使用指定的参数产生模版中使用的数据
         /// </summary>
@@ -47,6 +54,7 @@ namespace NewLife.Mvc
         {
             return Data(null, args);
         }
+
         /// <summary>
         /// 向指定模版数据添加额外的,如果参数data为null会自动创建一个新的data,返回附加了数据的data
         /// </summary>
@@ -56,13 +64,14 @@ namespace NewLife.Mvc
         public virtual IDictionary<string, object> Data(IDictionary<string, object> data, params object[] args)
         {
             int n = args.Length & ~1;
-            if (data == null) data = new Dictionary<string, object>();
+            if (data == null) data = new Dictionary<string, object>(n);
             for (int i = 0; i < n; i += 2)
             {
                 data[args[i].ToString()] = args[i + 1];
             }
             return data;
         }
+
         /// <summary>
         /// 使用默认的模版生成页面
         /// </summary>
@@ -72,6 +81,7 @@ namespace NewLife.Mvc
             data = Data(data, "Controller", this);
             Render(RouteContext.Current.RoutePath, data);
         }
+
         /// <summary>
         /// 使用指定模版生成页面
         /// </summary>
@@ -84,6 +94,7 @@ namespace NewLife.Mvc
             String html = engine.Render(path, data);
             Response.Write(html);
         }
-        #endregion
+
+        #endregion IController 成员
     }
 }

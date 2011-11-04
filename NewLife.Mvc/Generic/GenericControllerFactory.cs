@@ -10,7 +10,9 @@ namespace NewLife.Mvc
     public class GenericControllerFactory : IControllerFactory
     {
         #region IControllerFactory 成员
+
         private static string _TempleteDir;
+
         /// <summary>
         /// 一般控制器的模版根目录,默认为网站根目录 ~,以~或~/开始,始终不以/结尾
         /// </summary>
@@ -21,12 +23,12 @@ namespace NewLife.Mvc
                 if (_TempleteDir == null)
                 {
                     string s = Config.GetConfig<string>("NewLife.Mvc.TempleteDir", "~");
-
-                    if (s[0] == '/')
+                    // TODO
+                    if (s.StartsWith("/"))
                     {
                         s = "~" + s;
                     }
-                    else if (s[0] != '~' && s.Length > 1 && s[1] != '/')
+                    else if (!s.StartsWith("~/") && s != "~")
                     {
                         s = "~/" + s;
                     }
@@ -35,7 +37,9 @@ namespace NewLife.Mvc
                 return _TempleteDir;
             }
         }
+
         private static string[] _AcceptSuffixs;
+
         /// <summary>
         /// 一般控制器接受处理的请求后缀名,默认包含aspx,xt
         /// </summary>
@@ -46,26 +50,24 @@ namespace NewLife.Mvc
                 if (_AcceptSuffixs == null)
                 {
                     string[] s = Config.GetConfigSplit<string>("NewLife.Mvc.AcceptSuffixs", ",", null);
-                    List<string> suffixs = new List<string>();
-
-                    if (s == null || s.Length == 0 || s[0][0] != '*') // 没有标记为:* 覆盖,则添加默认的后缀
-                    {
-                        suffixs.AddRange(@"aspx,xt".Split(','));
-                    }
+                    List<string> suffixs = new List<string>(@"aspx,xt".Split(','));
 
                     if (s != null && s.Length > 0)
                     {
-                        if (s[0][0] == '*') s[0] = s[0].Substring(1);
-                        foreach (var item in s)
+                        string first = s[0];
+                        if (first.StartsWith("*")) //第一个为*表示覆盖掉默认控制器处理的后缀
                         {
-                            if (!string.IsNullOrEmpty(item)) suffixs.Add(item);
+                            suffixs.Clear();
+                            s[0] = first.Substring(0);
                         }
+                        suffixs.AddRange(Array.FindAll<string>(s, a => !string.IsNullOrEmpty(a.Trim())));
                     }
                     _AcceptSuffixs = suffixs.ToArray();
                 }
                 return _AcceptSuffixs;
             }
         }
+
         /// <summary>
         /// 将指定的路径解析为模板文件物理路径,不检查文件是否存在
         /// </summary>
@@ -74,12 +76,14 @@ namespace NewLife.Mvc
         public static string ResolveTempletePath(string path)
         {
             if (string.IsNullOrEmpty(path)) path = TempleteDir;
-            if (path[0] == '/') path = path.Substring(1);
-            if (path[0] == '~' && path.Length > 1 && path[1] == '/') path = path.Substring(2);
+            if (path.StartsWith("/")) path = path.Substring(1);
+            if (path.StartsWith("~/")) path = path.Substring(2);
 
             path = TempleteDir + "/" + path;
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path.Substring(1));
             return HttpContext.Current.Server.MapPath(path);
         }
+
         /// <summary>
         /// 当前控制器工厂产生的控制器是否支持指定路径的请求
         /// </summary>
@@ -101,7 +105,7 @@ namespace NewLife.Mvc
         /// </summary>
         /// <returns></returns>
         public IController Create() { return new GenericController(); }
-        #endregion
 
+        #endregion IControllerFactory 成员
     }
 }

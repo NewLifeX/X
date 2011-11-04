@@ -12,10 +12,12 @@ namespace NewLife.Mvc
     public class GenericTemplateEngine : ITemplateEngine
     {
         #region ITemplateEngine 成员
+
         /// <summary>名称</summary>
         public virtual string Name { get { return "XTemplate"; } }
 
         private Type _EngineType;
+
         /// <summary>XTemplate模版引擎类型</summary>
         public virtual Type EngineType
         {
@@ -45,6 +47,7 @@ namespace NewLife.Mvc
 
             return html;
         }
-        #endregion
+
+        #endregion ITemplateEngine 成员
     }
 }

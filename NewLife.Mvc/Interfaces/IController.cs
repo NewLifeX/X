@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace NewLife.Mvc
+﻿namespace NewLife.Mvc
 {
     /// <summary>控制器接口</summary>
     public interface IController

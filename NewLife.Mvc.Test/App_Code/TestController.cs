@@ -8,7 +8,7 @@ using NewLife.Mvc;
 /// </summary>
 public class TestController : GenericController, IController
 {
-    protected TestController()
+    public TestController()
     {
         world = "world";
     }
