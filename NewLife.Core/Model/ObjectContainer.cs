@@ -6,6 +6,7 @@ using System.Reflection;
 using NewLife.Configuration;
 using NewLife.Exceptions;
 using NewLife.Reflection;
+using NewLife;
 
 namespace NewLife.Model
 {
@@ -121,7 +122,7 @@ namespace NewLife.Model
             return null;
         }
 
-        private IObjectMap FindMap(IDictionary<String, IObjectMap> dic, String name)
+        private IObjectMap FindMap(IDictionary<String, IObjectMap> dic, String name, Boolean extend = false)
         {
             IObjectMap map = null;
             // 如果找到，直接返回
@@ -178,6 +179,10 @@ namespace NewLife.Model
                 set { _ImplementType = value; }
             }
 
+            private Boolean _Singleton;
+            /// <summary>单一实例</summary>
+            public Boolean Singleton { get { return _Singleton; } set { _Singleton = value; } }
+
             private Int32 _Priority;
             /// <summary>优先级</summary>
             public Int32 Priority
@@ -197,7 +202,8 @@ namespace NewLife.Model
                     if (_Instance != null || hasCheck) return _Instance;
 
                     // 如果模式指定使用实例，而实例又为空，则初始化一个实例
-                    if ((Mode & ModeFlags.Singleton) != ModeFlags.Singleton) return _Instance;
+                    //if ((Mode & ModeFlags.Singleton) != ModeFlags.Singleton) return _Instance;
+                    if (!Singleton) return _Instance;
 
                     hasCheck = true;
                     try
@@ -240,10 +246,10 @@ namespace NewLife.Model
         {
             None = 0,
 
-            /// <summary>
-            /// 以单例模式注册，如果注册的是类型，则new一个实例
-            /// </summary>
-            Singleton = 1,
+            ///// <summary>
+            ///// 以单例模式注册，如果注册的是类型，则new一个实例
+            ///// </summary>
+            //Singleton = 1,
 
             ///// <summary>
             ///// 是否覆盖已有的注册
@@ -285,11 +291,6 @@ namespace NewLife.Model
             Map map = null;
             if (dic.TryGetValue(name, out old))
             {
-                // 是否允许覆盖
-                //if (!overwrite) return this;
-
-                //if (OnRegistering != null) OnRegistering(this, new EventArgs<Type, IObjectMap>(from, old));
-
                 if (old is Map)
                 {
                     map = old as Map;
@@ -299,6 +300,7 @@ namespace NewLife.Model
                     map.Mode = mode;
                     map.ImplementType = to;
                     map.Instance = instance;
+                    map.Singleton = instance != null;
 
                     if (OnRegistering != null) OnRegistering(this, new EventArgs<Type, IObjectMap>(from, map));
                     if (OnRegistered != null) OnRegistered(this, new EventArgs<Type, IObjectMap>(from, map));
@@ -315,6 +317,8 @@ namespace NewLife.Model
             map.Mode = mode;
             map.ImplementType = to;
             map.Instance = instance;
+            map.Singleton = instance != null;
+
             if (!dic.ContainsKey(name))
             {
                 if (OnRegistering != null) OnRegistering(this, new EventArgs<Type, IObjectMap>(from, map));
@@ -360,8 +364,9 @@ namespace NewLife.Model
         /// </summary>
         /// <param name="from">接口类型</param>
         /// <param name="name">名称</param>
+        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        public virtual Object Resolve(Type from, String name = null)
+        public virtual Object Resolve(Type from, String name = null, Boolean extend = false)
         {
             if (from == null) throw new ArgumentNullException("from");
             // 名称不能是null，否则字典里面会报错
@@ -375,7 +380,7 @@ namespace NewLife.Model
             // 2，如果容器里面包含这个类型，并且指向的实例不为空，则返回
             // 根据名称去找，找不到返回空
             //if (!dic.TryGetValue(name, out map) || map == null) return null;
-            IObjectMap map = FindMap(dic, name);
+            IObjectMap map = FindMap(dic, name, extend);
             if (map == null) return null;
             if (map.Instance != null) return map.Instance;
 
@@ -466,8 +471,9 @@ namespace NewLife.Model
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="name">名称</param>
+        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        public virtual TInterface Resolve<TInterface>(String name = null) { return (TInterface)Resolve(typeof(TInterface), name); }
+        public virtual TInterface Resolve<TInterface>(String name = null, Boolean extend = false) { return (TInterface)Resolve(typeof(TInterface), name, extend); }
 
         /// <summary>
         /// 解析类型所有已注册的实例
@@ -505,20 +511,14 @@ namespace NewLife.Model
         #endregion
 
         #region 解析类型
-        ///// <summary>
-        ///// 解析接口的实现类型
-        ///// </summary>
-        ///// <param name="from">接口类型</param>
-        ///// <returns></returns>
-        //public virtual Type ResolveType(Type from) { return ResolveType(from, null); }
-
         /// <summary>
         /// 解析接口指定名称的实现类型
         /// </summary>
         /// <param name="from">接口类型</param>
         /// <param name="name">名称</param>
+        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        public virtual Type ResolveType(Type from, String name = null)
+        public virtual Type ResolveType(Type from, String name = null, Boolean extend = false)
         {
             if (from == null) throw new ArgumentNullException("from");
             // 名称不能是null，否则字典里面会报错
@@ -527,28 +527,20 @@ namespace NewLife.Model
             IDictionary<String, IObjectMap> dic = Find(from, false);
             if (dic == null) return null;
 
-            //IObjectMap map = null;
-            //if (!dic.TryGetValue(name, out map) || map == null) return null;
-            IObjectMap map = FindMap(dic, name);
+            IObjectMap map = FindMap(dic, name, extend);
             if (map == null) return null;
 
             return map.ImplementType;
         }
-
-        ///// <summary>
-        ///// 解析接口的实现类型
-        ///// </summary>
-        ///// <typeparam name="TInterface">接口类型</typeparam>
-        ///// <returns></returns>
-        //public virtual Type ResolveType<TInterface>() { return ResolveType(typeof(TInterface), null); }
 
         /// <summary>
         /// 解析接口指定名称的实现类型
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="name">名称</param>
+        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        public virtual Type ResolveType<TInterface>(String name = null) { return ResolveType(typeof(TInterface), name); }
+        public virtual Type ResolveType<TInterface>(String name = null, Boolean extend = false) { return ResolveType(typeof(TInterface), name, extend); }
 
         /// <summary>
         /// 解析类型所有已注册的实例
@@ -614,6 +606,16 @@ namespace NewLife.Model
                 Map map = GetConfig(value);
                 if (map == null) continue;
 
+                //// 扩展。马上实例化目标类型，目标类型要借助这个机会请求系统
+                //if (map.ImplementType != null && map.Mode.Has(ModeFlags.Extend))
+                //{
+                //    try
+                //    {
+                //        TypeX.CreateInstance(map.ImplementType);
+                //    }
+                //    catch { }
+                //}
+
                 Register(type, null, null, map.TypeName, map.Mode, map.Name, map.Priority);
             }
         }
@@ -637,6 +639,9 @@ namespace NewLife.Model
                         break;
                     case "type":
                         map.TypeName = item.Value;
+                        break;
+                    case "singleton":
+                        map.Singleton = item.Value.EqualIgnoreCase("true") || item.Value == "1";
                         break;
                     case "priority":
                         Int32 n = 0;

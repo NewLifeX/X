@@ -5,12 +5,25 @@ using System.ComponentModel;
 using System.Reflection;
 using NewLife.Reflection;
 
-namespace NewLife.Extension
+namespace NewLife
 {
     /// <summary>枚举类型助手类</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class EnumHelper
     {
+        /// <summary>
+        /// 获取枚举字段的注释
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Boolean Has(this Enum value, Enum flag)
+        {
+            if (value.GetType() != flag.GetType()) throw new ArgumentException("item", "枚举标识判断必须是相同的类型！");
+
+            UInt64 num = Convert.ToUInt64(flag);
+            return (Convert.ToUInt64(value) & num) == num;
+        }
+
         /// <summary>
         /// 获取枚举字段的注释
         /// </summary>

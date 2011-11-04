@@ -74,16 +74,18 @@ namespace NewLife.Model
         /// </summary>
         /// <param name="from">接口类型</param>
         /// <param name="name">名称</param>
+        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        Object Resolve(Type from, String name = null);
+        Object Resolve(Type from, String name = null, Boolean extend = false);
 
         /// <summary>
         /// 解析类型指定名称的实例
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="name">名称</param>
+        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        TInterface Resolve<TInterface>(String name = null);
+        TInterface Resolve<TInterface>(String name = null, Boolean extend = false);
 
         /// <summary>
         /// 解析类型所有已注册的实例
@@ -106,16 +108,18 @@ namespace NewLife.Model
         /// </summary>
         /// <param name="from">接口类型</param>
         /// <param name="name">名称</param>
+        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        Type ResolveType(Type from, String name = null);
+        Type ResolveType(Type from, String name = null, Boolean extend = false);
 
         /// <summary>
         /// 解析接口指定名称的实现类型
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="name">名称</param>
+        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        Type ResolveType<TInterface>(String name = null);
+        Type ResolveType<TInterface>(String name = null, Boolean extend = false);
 
         /// <summary>
         /// 解析接口所有已注册的实现类型
@@ -144,5 +148,8 @@ namespace NewLife.Model
 
         /// <summary>对象实例</summary>
         Object Instance { get; }
+
+        /// <summary>单一实例</summary>
+        Boolean Singleton { get; }
     }
 }

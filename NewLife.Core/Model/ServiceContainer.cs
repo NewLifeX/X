@@ -25,19 +25,6 @@ namespace NewLife.Model
         #endregion
 
         #region 服务
-        ///// <summary>
-        ///// 注册类型和名称
-        ///// </summary>
-        ///// <typeparam name="TInterface">接口类型</typeparam>
-        ///// <typeparam name="TImplement">实现类型</typeparam>
-        ///// <param name="name">名称</param>
-        ///// <param name="overwrite">是否覆盖</param>
-        ///// <returns></returns>
-        //public static IObjectContainer Register<TInterface, TImplement>(String name = null, Boolean overwrite = true)
-        //{
-        //    return Container.Register<TInterface, TImplement>(name, overwrite ? 1 : 0);
-        //}
-
         /// <summary>
         /// 注册类型和名称
         /// </summary>
@@ -68,21 +55,23 @@ namespace NewLife.Model
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="name">名称</param>
+        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        public static TInterface Resolve<TInterface>(String name = null)
+        public static TInterface Resolve<TInterface>(String name = null, Boolean extend = false)
         {
-            return Container.Resolve<TInterface>(name);
+            return Container.Resolve<TInterface>(name, extend);
         }
 
         /// <summary>
         /// 解析类型
         /// </summary>
-        /// <typeparam name="TInterface"></typeparam>
-        /// <param name="name"></param>
+        /// <typeparam name="TInterface">接口类型</typeparam>
+        /// <param name="name">名称</param>
+        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        public static Type ResolveType<TInterface>(String name = null)
+        public static Type ResolveType<TInterface>(String name = null, Boolean extend = false)
         {
-            return Container.ResolveType(typeof(TInterface), name);
+            return Container.ResolveType(typeof(TInterface), name, extend);
         }
         #endregion
     }
