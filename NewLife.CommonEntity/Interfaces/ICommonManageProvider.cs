@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Web.UI;
+using System.Web;
 
 namespace NewLife.CommonEntity
 {
@@ -193,8 +194,14 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public virtual IManagerPage CreatePage(Control container, Type entityType)
         {
+            Object key = typeof(IManagerPage);
+            if (HttpContext.Current.Items[key] != null) return HttpContext.Current.Items[key] as IManagerPage;
+
             IManagerPage page = CommonService.Resolve<IManagerPage>();
             page.Init(container, entityType);
+
+            HttpContext.Current.Items[key] = page;
+
             return page;
         }
 
@@ -206,8 +213,14 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public virtual IEntityForm CreateForm(Control container, Type entityType)
         {
+            Object key = typeof(IEntityForm);
+            if (HttpContext.Current.Items[key] != null) return HttpContext.Current.Items[key] as IEntityForm;
+
             IEntityForm form = CommonService.Resolve<IEntityForm>();
             form.Init(container, entityType);
+
+            HttpContext.Current.Items[key] = form;
+
             return form;
         }
         #endregion

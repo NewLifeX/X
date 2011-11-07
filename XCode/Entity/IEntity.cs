@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using NewLife.IO;
 using NewLife.Reflection;
-using System.Collections.Generic;
 
 namespace XCode
 {

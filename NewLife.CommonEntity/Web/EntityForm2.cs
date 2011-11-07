@@ -136,7 +136,7 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        private Boolean _CanSave;
+        private Boolean _CanSave = true;
         /// <summary>是否有权限保存数据</summary>
         public virtual Boolean CanSave { get { return _CanSave; } set { _CanSave = value; } }
         #endregion
@@ -257,6 +257,10 @@ namespace NewLife.CommonEntity.Web
             Control btn = SaveButton;
             if (!Page.IsPostBack)
             {
+                // 尝试获取页面控制器，如果取得，则可以控制权限
+                IManagerPage manager = CommonManageProvider.Provider.CreatePage(Container.Page, EntityType);
+                if (manager != null) CanSave = Entity.IsNullKey && manager.Acquire(PermissionFlags.Insert) || manager.Acquire(PermissionFlags.Update);
+
                 if (btn != null)
                 {
                     // 添加/编辑 按钮需要添加/编辑权限
@@ -307,10 +311,22 @@ namespace NewLife.CommonEntity.Web
         /// <summary>把实体的属性设置到控件上</summary>
         protected virtual void SetForm()
         {
-            // 是否有权限保存数据
-            Boolean canSave = CanSave;
-
+            Accessor.OnWrite += new EventHandler<EntityAccessorEventArgs>(Accessor_OnWrite);
             Accessor.Write(Entity);
+        }
+
+        void Accessor_OnWrite(object sender, EntityAccessorEventArgs e)
+        {
+            WebControl wc = ControlHelper.FindControlInPage<WebControl>("frm" + e.Field.Name);
+            if (wc == null) return;
+
+            if (!CanSave)
+            {
+                if (wc is TextBox)
+                    (wc as TextBox).ReadOnly = !CanSave;
+                else
+                    wc.Enabled = CanSave;
+            }
         }
 
         /// <summary>

@@ -276,7 +276,7 @@ namespace NewLife.Model
             return Register(from, to, instance, null, ModeFlags.None, name, priority);
         }
 
-        private IObjectContainer Register(Type from, Type to, Object instance, String typeName, ModeFlags mode, String name, Int32 priority)
+        private IObjectContainer Register(Type from, Type to, Object instance, String typeName, ModeFlags mode, String name, Int32 priority, Boolean singleton = false)
         {
             if (from == null) throw new ArgumentNullException("from");
             // 名称不能是null，否则字典里面会报错
@@ -298,7 +298,7 @@ namespace NewLife.Model
                     map.Mode = mode;
                     map.ImplementType = to;
                     map.Instance = instance;
-                    map.Singleton = instance != null;
+                    map.Singleton = instance != null || singleton;
 
                     if (OnRegistering != null) OnRegistering(this, new EventArgs<Type, IObjectMap>(from, map));
                     if (OnRegistered != null) OnRegistered(this, new EventArgs<Type, IObjectMap>(from, map));
@@ -313,9 +313,9 @@ namespace NewLife.Model
             map.Name = name;
             map.TypeName = typeName;
             map.Mode = mode;
-            map.ImplementType = to;
-            map.Instance = instance;
-            map.Singleton = instance != null;
+            if (to != null) map.ImplementType = to;
+            if (instance != null) map.Instance = instance;
+            map.Singleton = instance != null || singleton;
 
             if (!dic.ContainsKey(name))
             {
@@ -614,7 +614,7 @@ namespace NewLife.Model
                 //    catch { }
                 //}
 
-                Register(type, null, null, map.TypeName, map.Mode, map.Name, map.Priority);
+                Register(type, null, null, map.TypeName, map.Mode, map.Name, map.Priority, map.Singleton);
             }
         }
 
