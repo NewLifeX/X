@@ -358,11 +358,10 @@ namespace XCode.DataAccessLayer
         /// </summary>
         private void SetTables()
         {
-            if (NegativeEnable == null || NegativeExclude.Contains(ConnName)) return;
+            if (!NegativeEnable || NegativeExclude.Contains(ConnName)) return;
 
-            // 打开了开关，并且设置为true时，使用同步方式检查
-            // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
-            if (NegativeEnable != null && NegativeEnable.Value)
+            // NegativeCheckOnly设置为true时，使用异步方式检查，因为上级的意思是不大关心数据库架构
+            if (!NegativeCheckOnly)
                 CheckTables();
             else
                 ThreadPoolX.QueueUserWorkItem(CheckTables);

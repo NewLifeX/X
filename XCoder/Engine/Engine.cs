@@ -12,7 +12,6 @@ using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
-using NewLife;
 
 namespace XCoder
 {

@@ -64,21 +64,38 @@ namespace NewLife.Configuration
             catch (ConfigurationErrorsException) { return false; }
         }
 
-        /// <summary>
-        /// 取得指定名称的设置项，并转为指定类型
-        /// </summary>
+        /// <summary>依次尝试获取一批设置项，直到找到第一个为止</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
+        /// <param name="defaultValue"></param>
+        /// <param name="names"></param>
         /// <returns></returns>
-        public static T GetConfig<T>(String name)
+        public static T GetConfig<T>(T defaultValue, params String[] names)
         {
+            T value;
+            if (TryGetConfig<T>(out value, names)) return value;
+            return value;
+        }
+
+        /// <summary>依次尝试获取一批设置项，直到找到第一个为止</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="names"></param>
+        /// <returns></returns>
+        public static Boolean TryGetConfig<T>(out T value, params String[] names)
+        {
+            value = default(T);
             try
             {
-                if (AppSettings == null || AppSettings.Count < 1) return default(T);
+                if (AppSettings == null || AppSettings.Count < 1) return false;
 
-                return GetConfig<T>(name, default(T));
+                for (int i = 0; i < names.Length; i++)
+                {
+                    if (TryGetConfig<T>(names[i], out value)) return true;
+                }
+
+                return false;
             }
-            catch (ConfigurationErrorsException) { return default(T); }
+            catch (ConfigurationErrorsException) { return false; }
         }
 
         /// <summary>
@@ -88,46 +105,52 @@ namespace NewLife.Configuration
         /// <param name="name"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static T GetConfig<T>(String name, T defaultValue)
+        public static T GetConfig<T>(String name, T defaultValue = default(T))
         {
+            if (TryGetConfig<T>(name, out defaultValue)) return defaultValue;
+            return defaultValue;
+        }
+
+        /// <summary>
+        /// 尝试获取指定名称的设置项
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Boolean TryGetConfig<T>(String name, out T value)
+        {
+            value = default(T);
             try
             {
-                if (AppSettings == null || AppSettings.Count < 1) return defaultValue;
+                if (AppSettings == null || AppSettings.Count < 1) return false;
 
                 String str = AppSettings[name];
-                if (String.IsNullOrEmpty(str)) return defaultValue;
+                if (String.IsNullOrEmpty(str)) return false;
 
                 Type type = typeof(T);
                 TypeCode code = Type.GetTypeCode(type);
 
-                if (code == TypeCode.String) return (T)(Object)str;
-
-                if (code == TypeCode.Int32)
+                if (code == TypeCode.String)
+                    value = (T)(Object)str;
+                else if (code == TypeCode.Int32)
+                    value = (T)(Object)Convert.ToInt32(str);
+                else if (code == TypeCode.Boolean)
                 {
-                    return (T)(Object)Convert.ToInt32(str);
-                }
-
-                if (code == TypeCode.Boolean)
-                {
-                    //if (str == "1" || String.Equals(str, Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
-                    //    return (T)(Object)true;
-                    //else if (str == "0" || String.Equals(str, Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
-                    //    return (T)(Object)false;
-
-                    if (str == "1" || str.EqualIgnoreCase(Boolean.TrueString))
-                        return (T)(Object)true;
-                    else if (str == "0" || str.EqualIgnoreCase(Boolean.FalseString))
-                        return (T)(Object)false;
-
                     Boolean b = false;
-                    if (Boolean.TryParse(str.ToLower(), out b)) return (T)(Object)b;
+                    if (str == "1" || str.EqualIgnoreCase(Boolean.TrueString))
+                        value = (T)(Object)true;
+                    else if (str == "0" || str.EqualIgnoreCase(Boolean.FalseString))
+                        value = (T)(Object)false;
+                    else if (Boolean.TryParse(str.ToLower(), out b))
+                        value = (T)(Object)b;
                 }
+                else
+                    value = (T)TypeX.ChangeType(str, type);
 
-                T value = (T)TypeX.ChangeType(str, type);
-
-                return value;
+                return true;
             }
-            catch (ConfigurationErrorsException) { return defaultValue; }
+            catch (ConfigurationErrorsException) { return false; }
         }
 
         /// <summary>

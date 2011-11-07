@@ -276,7 +276,7 @@ namespace XCode
 
                 if (Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
                 {
-                    if (DAL.NegativeEnable == null || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName)) return;
+                    if (!DAL.NegativeEnable || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName)) return;
 
                     Func check = delegate
                     {
@@ -299,7 +299,7 @@ namespace XCode
 
                     // 打开了开关，并且设置为true时，使用同步方式检查
                     // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
-                    if (DAL.NegativeEnable != null && DAL.NegativeEnable.Value)
+                    if (!DAL.NegativeCheckOnly)
                         check();
                     else
                         ThreadPoolX.QueueUserWorkItem(check);

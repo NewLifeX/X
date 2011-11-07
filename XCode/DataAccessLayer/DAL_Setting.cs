@@ -113,19 +113,38 @@ namespace XCode.DataAccessLayer
 
         /// <summary>建立数据表对象</summary>
         /// <returns></returns>
-        internal static IDataTable CreateTable()
-        {
-            return XCodeService.CreateTable();
-        }
+        internal static IDataTable CreateTable() { return XCodeService.CreateTable(); }
         #endregion
 
         #region 设置
-        private static Boolean? _NegativeEnable = Config.GetConfig<Boolean?>("XCode.Negative.Enable", Config.GetConfig<Boolean?>("XCode.Schema.Enable", Config.GetConfig<Boolean?>("DatabaseSchema_Enable")));
+        private static Boolean? _NegativeEnable;
         /// <summary>是否启用数据架构</summary>
-        public static Boolean? NegativeEnable
+        public static Boolean NegativeEnable
         {
-            get { return _NegativeEnable; }
+            get
+            {
+                if (_NegativeEnable.HasValue) return _NegativeEnable.Value;
+
+                _NegativeEnable = Config.GetConfig<Boolean>(false, "XCode.Negative.Enable", "XCode.Schema.Enable", "DatabaseSchema_Enable");
+
+                return _NegativeEnable.Value;
+            }
             set { _NegativeEnable = value; }
+        }
+
+        private static Boolean? _NegativeCheckOnly;
+        /// <summary>是否只检查不操作</summary>
+        public static Boolean NegativeCheckOnly
+        {
+            get
+            {
+                if (_NegativeCheckOnly.HasValue) return _NegativeCheckOnly.Value;
+
+                _NegativeCheckOnly = Config.GetConfig<Boolean>("XCode.Negative.CheckOnly");
+
+                return _NegativeCheckOnly.Value;
+            }
+            set { _NegativeCheckOnly = value; }
         }
 
         private static Boolean? _NegativeNoDelete;
@@ -136,7 +155,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_NegativeNoDelete.HasValue) return _NegativeNoDelete.Value;
 
-                _NegativeNoDelete = Config.GetConfig<Boolean>("XCode.Negative.NoDelete", Config.GetConfig<Boolean>("XCode.Schema.NoDelete", Config.GetConfig<Boolean>("DatabaseSchema_NoDelete")));
+                _NegativeNoDelete = Config.GetConfig<Boolean>(false, "XCode.Negative.NoDelete", "XCode.Schema.NoDelete", "DatabaseSchema_NoDelete");
 
                 return _NegativeNoDelete.Value;
             }
@@ -151,7 +170,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_NegativeExclude != null) return _NegativeExclude;
 
-                String str = Config.GetConfig<String>("XCode.Negative.Exclude", Config.GetConfig<String>("XCode.Schema.Exclude", Config.GetConfig<String>("DatabaseSchema_Exclude")));
+                String str = Config.GetConfig<String>(null, "XCode.Negative.Exclude", "XCode.Schema.Exclude", "DatabaseSchema_Exclude");
 
                 if (String.IsNullOrEmpty(str))
                     _NegativeExclude = new HashSet<String>();

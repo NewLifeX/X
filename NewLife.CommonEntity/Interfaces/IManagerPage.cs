@@ -18,7 +18,27 @@ namespace NewLife.CommonEntity
         /// </summary>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
-        void Init(Control container, Type entityType);
+        IManagerPage Init(Control container, Type entityType);
+
+        /// <summary>导航 分为三级：栏目－子栏目－页面</summary>
+        String Navigation { get; }
+
+        /// <summary>本页菜单</summary>
+        IMenu CurrentMenu { get; set; }
+
+        /// <summary>是否检查权限</summary>
+        Boolean ValidatePermission { get; set; }
+
+        /// <summary>申请指定操作的权限</summary>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        Boolean Acquire(PermissionFlags flag);
+
+        /// <summary>申请指定权限项中指定操作的权限</summary>
+        /// <param name="name"></param>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        Boolean Acquire(String name, PermissionFlags flag);
     }
 
     /// <summary>管理页，用于控制页面权限等</summary>
@@ -51,7 +71,7 @@ namespace NewLife.CommonEntity
         /// </summary>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
-        public void Init(Control container, Type entityType)
+        public IManagerPage Init(Control container, Type entityType)
         {
             if (container == null)
             {
@@ -62,6 +82,8 @@ namespace NewLife.CommonEntity
             EntityType = entityType;
 
             Init();
+
+            return this;
         }
         #endregion
 

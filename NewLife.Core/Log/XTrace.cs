@@ -93,18 +93,11 @@ namespace NewLife.Log
             get
             {
                 if (_Debug != null) return _Debug.Value;
-                //String str = ConfigurationManager.AppSettings["NewLife.Debug"];
-                //if (String.IsNullOrEmpty(str)) str = ConfigurationManager.AppSettings["Debug"];
-                //if (String.IsNullOrEmpty(str)) return false;
-                //if (str == "1") return true;
-                //if (str == "0") return false;
-                //if (str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase)) return false;
-                //if (str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase)) return true;
-                //return false;
 
                 try
                 {
-                    return Config.GetConfig<Boolean>("NewLife.Debug", Config.GetConfig<Boolean>("Debug", false));
+                    //return Config.GetConfig<Boolean>("NewLife.Debug", Config.GetConfig<Boolean>("Debug", false));
+                    return Config.GetConfig<Boolean>(false, "NewLife.Debug", "Debug");
                 }
                 catch { return false; }
             }

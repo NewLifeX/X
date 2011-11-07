@@ -357,13 +357,7 @@ namespace NewLife.Threading
             {
                 if (_Debug != null) return _Debug.Value;
 
-                //String str = ConfigurationManager.AppSettings["ThreadPoolDebug"];
-                //if (String.IsNullOrEmpty(str)) return false;
-                //if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase)) return true;
-                //if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase)) return false;
-                //_Debug = Convert.ToBoolean(str);
-
-                _Debug = Config.GetConfig<Boolean>("NewLife.Thread.Debug", Config.GetConfig<Boolean>("ThreadPoolDebug", false));
+                _Debug = ThreadPoolX.Debug;
 
                 return _Debug.Value;
             }

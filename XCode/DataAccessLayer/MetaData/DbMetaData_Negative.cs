@@ -91,9 +91,9 @@ namespace XCode.DataAccessLayer
                 dbExist = true;
             }
 
-            if (!dbExist && DAL.NegativeEnable != null)
+            if (!dbExist && DAL.NegativeEnable)
             {
-                if (DAL.NegativeEnable.Value)
+                if (!DAL.NegativeCheckOnly)
                 {
                     WriteLog("创建数据库：{0}", ConnName);
                     SetSchema(DDLSchema.CreateDatabase, null, null);
@@ -142,7 +142,7 @@ namespace XCode.DataAccessLayer
 
         private void CheckTable(IDataTable entitytable, IDataTable dbtable)
         {
-            Boolean onlySql = !(DAL.NegativeEnable != null && DAL.NegativeEnable.Value);
+            Boolean onlySql = DAL.NegativeCheckOnly;
 
             if (dbtable == null)
             {

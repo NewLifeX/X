@@ -43,29 +43,10 @@ namespace XCode.Cache
         /// </summary>
         static XCache()
         {
-            //读取配置
             //读取缓存有效期
-            //String str = ConfigurationManager.AppSettings["XCacheExpiration"];
-            Expiration = Config.GetConfig<Int32>("XCode.Cache.Expiration", Config.GetConfig<Int32>("XCacheExpiration", -2));
-            //if (!String.IsNullOrEmpty(str))
-            //{
-            //    Int32 k = 0;
-            //    if (Int32.TryParse(str, out k))
-            //    {
-            //        if (k >= -2) Expiration = k;
-            //    }
-            //}
+            Expiration = Config.GetConfig<Int32>(-2, "XCode.Cache.Expiration", "XCacheExpiration");
             //读取检查周期
-            //str = ConfigurationManager.AppSettings["XCacheCheckPeriod"];
-            CheckPeriod = Config.GetConfig<Int32>("XCode.Cache.CheckPeriod", Config.GetConfig<Int32>("XCacheCheckPeriod"));
-            //if (!String.IsNullOrEmpty(str))
-            //{
-            //    Int32 k = 0;
-            //    if (Int32.TryParse(str, out k))
-            //    {
-            //        if (k > 0) CheckPeriod = k;
-            //    }
-            //}
+            CheckPeriod = Config.GetConfig<Int32>(0, "XCode.Cache.CheckPeriod", "XCacheCheckPeriod");
         }
         #endregion
 
