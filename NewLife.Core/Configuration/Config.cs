@@ -99,6 +99,23 @@ namespace NewLife.Configuration
         }
 
         /// <summary>
+        /// 取得指定名称的设置项，并转为指定类型
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static T GetConfig<T>(String name)
+        {
+            try
+            {
+                if (AppSettings == null || AppSettings.Count < 1) return default(T);
+
+                return GetConfig<T>(name, default(T));
+            }
+            catch (ConfigurationErrorsException) { return default(T); }
+        }
+
+        /// <summary>
         /// 取得指定名称的设置项，并转为指定类型。如果设置不存在，则返回默认值
         /// </summary>
         /// <typeparam name="T"></typeparam>

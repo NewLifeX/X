@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" MasterPageFile="~/Admin/MasterPage.master" AutoEventWireup="true" CodeFile="<#=Table.Alias#>Form.aspx.cs" Inherits="Pages_<#=Table.Alias#>Form"  Title="<#=Table.Description#>管理"%>
+﻿<%@ Page Language="C#" MasterPageFile="~/Admin/MasterPage.master" AutoEventWireup="true" CodeFile="<#=Table.Alias#>Form.aspx.cs" Inherits="<#=Config.NameSpace.Replace(".", "_")+"_"+Table.Alias#>Form" Title="<#=Table.Description#>管理"%>
 
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="ContentPlaceHolder1">
     <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">

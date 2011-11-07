@@ -169,6 +169,12 @@
     <EmbeddedResource Include="Template\页面2\类名Form.aspx.cs">
       <DependentUpon>类名Form.aspx</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Template\页面基类2\MyEntityForm.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Template\页面基类2\MyEntityList.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </EmbeddedResource>
     <Compile Include="TranslateResult.cs" />
     <EmbeddedResource Include="Template\实体\类名.Biz.cs" />
     <EmbeddedResource Include="Template\实体\类名.cs" />
@@ -188,12 +194,8 @@
   <ItemGroup>
     <EmbeddedResource Include="leaf.ico" />
     <EmbeddedResource Include="NewLife.ProcessHelper.exe" />
-    <EmbeddedResource Include="Template\页面2\类名.aspx">
-      <SubType>ASPXCodeBehind</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Template\页面2\类名Form.aspx">
-      <SubType>ASPXCodeBehind</SubType>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Template\页面2\类名.aspx" />
+    <EmbeddedResource Include="Template\页面2\类名Form.aspx" />
     <Content Include="UpdateInfo.txt" />
     <EmbeddedResource Include="Template\页面\类名.aspx">
       <SubType>ASPXCodeBehind</SubType>

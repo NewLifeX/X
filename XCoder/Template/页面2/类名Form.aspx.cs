@@ -4,25 +4,14 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
-using NewLife.CommonEntity.Web;
-using NewLife.Web;
-using XControl;
-using System.Xml.Serialization;
 using <#=Config.NameSpace#>;
 
-public partial class Pages_<#=Table.Alias#>Form : System.Web.UI.Page
+public partial class <#=Config.NameSpace.Replace(".", "_")+"_"+Table.Alias#>Form : MyEntityForm
 {
-    private EntityForm2 EntityForm;
-
-    protected override void OnPreInit(EventArgs e)
-    {
-        EntityForm = new EntityForm2(this,typeof(Admin));
-        //EntityForm.CanSave = true;
-        base.OnPreInit(e);
-    }
+    /// <summary>实体类型</summary>
+    public override Type EntityType { get { return typeof(<#=Table.Alias#>); } set { base.EntityType = value; } }
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        
     }
 }
