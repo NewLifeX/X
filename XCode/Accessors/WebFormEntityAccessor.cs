@@ -140,7 +140,11 @@ namespace XCode.Accessors
 
             Object v = null;
             if (!GetControlValue(control, out v)) v = control.Text;
-            if (!Object.Equals(entity[field.Name], v)) SetEntityItem(entity, field, v);
+            if (!Object.Equals(entity[field.Name], v))
+            {
+                // 如果是密码输入框，并且为空，不需要设置
+                if (!String.IsNullOrEmpty("" + v) || control.TextMode != TextBoxMode.Password) SetEntityItem(entity, field, v);
+            }
         }
 
         /// <summary>

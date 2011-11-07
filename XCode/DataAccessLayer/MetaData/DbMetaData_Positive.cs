@@ -78,87 +78,91 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected List<IDataTable> GetTables(DataRow[] rows)
         {
-            if (_columns == null) _columns = GetSchema(_.Columns, null);
-            if (_indexes == null) _indexes = GetSchema(_.Indexes, null);
-            if (_indexColumns == null) _indexColumns = GetSchema(_.IndexColumns, null);
+            //if (_columns == null) _columns = GetSchema(_.Columns, null);
+            //if (_indexes == null) _indexes = GetSchema(_.Indexes, null);
+            //if (_indexColumns == null) _indexColumns = GetSchema(_.IndexColumns, null);
+            _columns = GetSchema(_.Columns, null);
+            _indexes = GetSchema(_.Indexes, null);
+            _indexColumns = GetSchema(_.IndexColumns, null);
 
-            try
+            //try
+            //{
+            List<IDataTable> list = new List<IDataTable>();
+            foreach (DataRow dr in rows)
             {
-                List<IDataTable> list = new List<IDataTable>();
-                foreach (DataRow dr in rows)
-                {
-                    #region 基本属性
-                    IDataTable table = DAL.CreateTable();
-                    table.Name = GetDataRowValue<String>(dr, _.TalbeName);
+                #region 基本属性
+                IDataTable table = DAL.CreateTable();
+                table.Name = GetDataRowValue<String>(dr, _.TalbeName);
 
-                    // 顺序、编号
-                    Int32 id = 0;
-                    if (TryGetDataRowValue<Int32>(dr, "TABLE_ID", out id))
-                        table.ID = id;
-                    else
-                        table.ID = list.Count + 1;
+                // 顺序、编号
+                Int32 id = 0;
+                if (TryGetDataRowValue<Int32>(dr, "TABLE_ID", out id))
+                    table.ID = id;
+                else
+                    table.ID = list.Count + 1;
 
-                    // 描述
-                    table.Description = GetDataRowValue<String>(dr, "DESCRIPTION");
+                // 描述
+                table.Description = GetDataRowValue<String>(dr, "DESCRIPTION");
 
-                    // 拥有者
-                    table.Owner = GetDataRowValue<String>(dr, "OWNER");
+                // 拥有者
+                table.Owner = GetDataRowValue<String>(dr, "OWNER");
 
-                    // 是否视图
-                    table.IsView = String.Equals("View", GetDataRowValue<String>(dr, "TABLE_TYPE"), StringComparison.OrdinalIgnoreCase);
+                // 是否视图
+                table.IsView = String.Equals("View", GetDataRowValue<String>(dr, "TABLE_TYPE"), StringComparison.OrdinalIgnoreCase);
 
-                    table.DbType = Database.DbType;
-                    #endregion
-
-                    #region 字段及修正
-                    // 字段的获取可能有异常，但不应该影响整体架构的获取
-                    try
-                    {
-                        List<IDataColumn> columns = GetFields(table);
-                        if (columns != null && columns.Count > 0) table.Columns.AddRange(columns);
-
-                        List<IDataIndex> indexes = GetIndexes(table);
-                        if (indexes != null && indexes.Count > 0) table.Indexes.AddRange(indexes);
-
-                        // 先修正一次关系数据
-                        table.Fix();
-                    }
-                    catch (Exception ex)
-                    {
-                        if (DAL.Debug) DAL.WriteLog(ex.ToString());
-                    }
-
-                    FixTable(table, dr);
-
-                    list.Add(table);
-                    #endregion
-                }
-
-                #region 表间关系处理
-                // 某字段名，为另一个表的（表名+单主键名）形式时，作为关联字段处理
-                foreach (IDataTable table in list)
-                {
-                    foreach (IDataTable rtable in list)
-                    {
-                        if (table != rtable) table.Connect(rtable);
-                    }
-                }
-
-                // 因为可能修改了表间关系，再修正一次
-                foreach (IDataTable table in list)
-                {
-                    table.Fix();
-                }
+                table.DbType = Database.DbType;
                 #endregion
 
-                return list;
+                #region 字段及修正
+                // 字段的获取可能有异常，但不应该影响整体架构的获取
+                try
+                {
+                    List<IDataColumn> columns = GetFields(table);
+                    if (columns != null && columns.Count > 0) table.Columns.AddRange(columns);
+
+                    List<IDataIndex> indexes = GetIndexes(table);
+                    if (indexes != null && indexes.Count > 0) table.Indexes.AddRange(indexes);
+
+                    // 先修正一次关系数据
+                    table.Fix();
+                }
+                catch (Exception ex)
+                {
+                    if (DAL.Debug) DAL.WriteLog(ex.ToString());
+                }
+
+                FixTable(table, dr);
+
+                list.Add(table);
+                #endregion
             }
-            finally
+
+            #region 表间关系处理
+            // 某字段名，为另一个表的（表名+单主键名）形式时，作为关联字段处理
+            foreach (IDataTable table in list)
             {
-                _columns = null;
-                _indexes = null;
-                _indexColumns = null;
+                foreach (IDataTable rtable in list)
+                {
+                    if (table != rtable) table.Connect(rtable);
+                }
             }
+
+            // 因为可能修改了表间关系，再修正一次
+            foreach (IDataTable table in list)
+            {
+                table.Fix();
+            }
+            #endregion
+
+            return list;
+            // 不要把这些清空。因为，多线程同时操作的时候，前面的线程有可能把后面线程的数据给清空了
+            //}
+            //finally
+            //{
+            //    _columns = null;
+            //    _indexes = null;
+            //    _indexColumns = null;
+            //}
         }
 
         /// <summary>修正表</summary>

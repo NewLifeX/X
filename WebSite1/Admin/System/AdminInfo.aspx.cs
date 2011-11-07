@@ -9,15 +9,20 @@ public partial class Pages_AdminInfo : MyEntityForm
     /// <summary>实体类型</summary>
     public override Type EntityType { get { return CommonManageProvider.Provider.AdminstratorType; } set { base.EntityType = value; } }
 
+    protected override void OnInitComplete(EventArgs e)
+    {
+        base.OnInitComplete(e);
+
+        EntityForm.Accessor.OnRead += new EventHandler<EntityAccessorEventArgs>(Accessor_OnRead);
+        EntityForm.Accessor.OnWrite += new EventHandler<EntityAccessorEventArgs>(Accessor_OnWrite);
+    }
+
     protected void Page_Load(object sender, EventArgs e)
     {
         if ("" + EntityForm.EntityID != "" + Manager.Current.ID)
         {
             Response.Redirect("AdminInfo.aspx?ID=" + Manager.Current.ID);
         }
-
-        EntityForm.Accessor.OnRead += new EventHandler<EntityAccessorEventArgs>(Accessor_OnRead);
-        EntityForm.Accessor.OnWrite += new EventHandler<EntityAccessorEventArgs>(Accessor_OnWrite);
 
         if (!Page.IsPostBack)
         {
@@ -28,7 +33,7 @@ public partial class Pages_AdminInfo : MyEntityForm
 
     void Accessor_OnRead(object sender, EntityAccessorEventArgs e)
     {
-        if (!String.IsNullOrEmpty(frmPassword.Text)) EntityForm.Entity.SetItem("Password", DataHelper.Hash(frmPassword.Text));
+        if (e.Field.Name == "Password" && !String.IsNullOrEmpty(frmPassword.Text)) EntityForm.Entity.SetItem("Password", DataHelper.Hash(frmPassword.Text));
     }
 
     void Accessor_OnWrite(object sender, EntityAccessorEventArgs e)

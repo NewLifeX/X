@@ -294,7 +294,7 @@ $";
         /// <returns></returns>
         public SelectBuilder AppendColumn(String column)
         {
-            if (!String.IsNullOrEmpty(column))
+            if (ColumnOrDefault != "*" && !String.IsNullOrEmpty(column))
             {
                 if (String.IsNullOrEmpty(Column))
                     Column = column;
