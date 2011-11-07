@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Drawing.Design;
 using System.Drawing;
 using NewLife.Configuration;
+using NewLife.Log;
 
 
 // 特别要注意，这里得加上默认命名空间和目录名，因为vs2005编译的时候会给文件加上这些东东的
@@ -243,7 +244,7 @@ namespace XControl
         void UpdateOnClientClick()
         {
             String url = Url;
-            if (!url.StartsWith("http://", StringComparison.Ordinal)) url = Control.ResolveUrl(url);
+            if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)) url = Control.ResolveUrl(url);
             string jsFuncName = Control.ClientID + "ShowDialog";
 
             if (!Control.Page.ClientScript.IsClientScriptBlockRegistered(GetType(), jsFuncName))
@@ -282,22 +283,24 @@ AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
 
                 Control.Page.ClientScript.RegisterClientScriptBlock(GetType(), jsFuncName, Helper.JsMinSimple(@"
 ;function {0}(ele, event, title, url, msgRow, msgTitle, msg, btnRow){{
-    ShowDialog({{
-        ID:'win'+Math.random(),
-        Title:title,
-        URL:url,
-        ShowMessageRow:msgRow,
-        MessageTitle:msgTitle,
-        Message:msg,
-        {1}
-        ShowButtonRow:btnRow
-    }});
-    {2}
+    try{{
+        ShowDialog({{
+            ID:'win'+Math.random(),
+            Title:title,
+            URL:url,
+            ShowMessageRow:msgRow,
+            MessageTitle:msgTitle,
+            Message:msg,
+            {1}
+            ShowButtonRow:btnRow
+        }});
+        {2}
+    }}catch(ex){{{3}}};
     return false;
 }}
-", jsFuncName, showJs, moreJs), true);
+", jsFuncName, showJs, moreJs, XTrace.Debug ? "alert(ex);" : ""), true);
 
-
+                Control.Page.ClientScript.RegisterClientScriptResource(GetType(), "XControl.View.GridViewExtender.js");
             }
 
             OnClientClick = Helper.HTMLPropertyEscape(@"return {0}(this,event,'{1}','{2}',{3},'{4}','{5}',{6});",
