@@ -1,7 +1,7 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Admin.aspx.cs" Inherits="Pages_Admin"
-    Title="管理员管理" MasterPageFile="~/Admin/MasterPage.master" %>
+    Title="管理员管理" MasterPageFile="~/Admin/Main.master" %>
 
-<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+<asp:Content ID="C" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">
         <asp:Label Text="关键字" runat="server" />
         &nbsp;<asp:TextBox runat="server" ID="TB_key" />

@@ -1,7 +1,7 @@
-﻿<%@ Page Language="C#" MasterPageFile="~/Admin/MasterPage.master" AutoEventWireup="true"
+﻿<%@ Page Language="C#" MasterPageFile="~/Admin/Main.master" AutoEventWireup="true"
     CodeFile="AdminForm.aspx.cs" Inherits="Pages_AdminForm" Title="管理员管理" %>
 
-<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+<asp:Content ID="C" ContentPlaceHolderID="C" runat="server">
     <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
         <tr>
             <th colspan="2">

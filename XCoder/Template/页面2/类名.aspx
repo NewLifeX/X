@@ -1,6 +1,6 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="<#=Table.Alias#>.aspx.cs" Inherits="<#=Config.NameSpace.Replace(".", "_")+"_"+Table.Alias#>" MasterPageFile="~/Admin/MasterPage.master" Title="<#=Table.Description#>管理" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="<#=Table.Alias#>.aspx.cs" Inherits="<#=Config.NameSpace.Replace(".", "_")+"_"+Table.Alias#>" MasterPageFile="~/Admin/Main.master" Title="<#=Table.Description#>管理" %>
 
-<asp:Content ID="Content1" runat="server" ContentPlaceHolderID="ContentPlaceHolder1">
+<asp:Content ID="C" runat="server" ContentPlaceHolderID="C">
     <#
 // 表单页面，普通行行高
 Int32 LineHeight=27;
@@ -22,8 +22,16 @@ foreach(IDataColumn Field in Table.Columns){
             IconLeft="../images/icons/icon005a2.gif"><b>添加<#=Table.Description#></b></XCL:LinkBox>
         关键字：<asp:TextBox ID="txtKey" runat="server"></asp:TextBox>
         <asp:Button ID="btnSearch" runat="server" Text="查询" />
-    </div>
-    <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="<#=String.Join(",",Table.PrimaryKeys)#>" DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="gvTable" PageSize="20" CellPadding="0" GridLines="None" EnableModelValidation="True">
+    </div><#
+StringBuilder sbpk=new StringBuilder();
+foreach(IDataColumn Field in Table.Columns){
+    if(Field.PrimaryKey) {
+        if(sbpk.Length>0)sbpk.Append(",");
+        sbpk.Append(Field.Alias);
+    } 
+}
+    #>
+    <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="<#=sbpk#>" DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="m_table" PageSize="20" CellPadding="0" GridLines="None" EnableModelValidation="True">
         <Columns><#
 foreach(IDataColumn Field in Table.Columns){
     String pname = Field.Alias;
@@ -58,10 +66,7 @@ foreach(IDataColumn Field in Table.Columns){
             没有符合条件的数据！
         </EmptyDataTemplate>
     </asp:GridView>
-    <asp:ObjectDataSource ID="ods" runat="server" DataObjectTypeName="<#=Config.NameSpace#>.<#=Table.Alias#>"
-        DeleteMethod="Delete" EnablePaging="True" OldValuesParameterFormatString="original_{0}"
-        SelectCountMethod="SearchCount" SelectMethod="Search" SortParameterName="orderClause"
-        TypeName="<#=Config.NameSpace#>.<#=Table.Alias#>">
+    <asp:ObjectDataSource ID="ods" runat="server" EnablePaging="True" SelectCountMethod="SearchCount" SelectMethod="Search" SortParameterName="orderClause">
         <SelectParameters>
             <asp:ControlParameter ControlID="txtKey" Name="key" PropertyName="Text" Type="String" />
             <asp:Parameter Name="orderClause" Type="String" />

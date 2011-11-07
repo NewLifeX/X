@@ -120,6 +120,24 @@ namespace NewLife.CommonEntity
             {
                 XTrace.WriteException(ex);
             }
+
+            if (!Page.IsPostBack)
+            {
+                GridView gv = ControlHelper.FindControlInPage<GridView>("gv");
+                if (gv == null) gv = ControlHelper.FindControlInPage<GridView>("gv" + EntityType.Name);
+                if (gv == null) gv = ControlHelper.FindControlInPage<GridView>(null);
+                // 最后一列是删除列，需要删除权限
+                if (gv != null) gv.Columns[gv.Columns.Count - 1].Visible = Acquire(PermissionFlags.Delete);
+
+                Label lbAdd = ControlHelper.FindControlInPage<Label>("lbAdd");
+                // 添加按钮需要添加权限
+                if (lbAdd != null) lbAdd.Visible = Acquire(PermissionFlags.Insert);
+            }
+
+            ObjectDataSource ods = ControlHelper.FindControlInPage<ObjectDataSource>("ods");
+            if (ods == null) ods = ControlHelper.FindControlInPage<ObjectDataSource>("ods" + EntityType.Name);
+            if (ods == null) ods = ControlHelper.FindControlInPage<ObjectDataSource>(null);
+            if (ods != null) FixObjectDataSource(ods);
         }
 
         void OnLoadComplete(object sender, EventArgs e)
@@ -280,6 +298,26 @@ namespace NewLife.CommonEntity
         public virtual Boolean Acquire(String name)
         {
             return Acquire(name, PermissionFlags.None);
+        }
+        #endregion
+
+        #region ObjectDataSource完善
+        /// <summary>
+        /// 如果没有设置TypeName，则说明该控件还没有人工控制，采用自动控制
+        /// </summary>
+        /// <param name="ods"></param>
+        void FixObjectDataSource(ObjectDataSource ods)
+        {
+            if (!String.IsNullOrEmpty(ods.TypeName)) return;
+
+            ods.DataObjectTypeName = EntityType.FullName;
+            ods.TypeName = EntityType.FullName;
+            ods.EnablePaging = true;
+            ods.SelectMethod = "Search";
+            ods.SelectCountMethod = "SearchCount";
+            ods.SortParameterName = "orderClause";
+            ods.UpdateMethod = "Update";
+            ods.DeleteMethod = "Delete";
         }
         #endregion
     }
