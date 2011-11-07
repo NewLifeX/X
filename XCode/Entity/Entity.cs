@@ -1323,14 +1323,24 @@ namespace XCode
             if (fi != null)
             {
                 builder.Key = fi.Name;
-                if (fi.IsIdentity && Helper.IsIntType(fi.Type))
+                //if (fi.IsIdentity && Helper.IsIntType(fi.Type))
+                //{
+                //    // 默认获取数据时，还是需要指定安装自增字段降序，符合使用习惯
+                //    // 有GroupBy也不能加排序
+                //    if (String.IsNullOrEmpty(builder.OrderBy) && String.IsNullOrEmpty(builder.GroupBy))
+                //    {
+                //        builder.IsDesc = true;
+                //    }
+                //}
+
+                // 默认获取数据时，还是需要指定安装自增字段降序，符合使用习惯
+                // 有GroupBy也不能加排序
+                if (String.IsNullOrEmpty(builder.OrderBy) && String.IsNullOrEmpty(builder.GroupBy))
                 {
-                    // 默认获取数据时，还是需要指定安装自增字段降序，符合使用习惯
-                    // 有GroupBy也不能加排序
-                    if (String.IsNullOrEmpty(builder.OrderBy) && String.IsNullOrEmpty(builder.GroupBy))
-                    {
-                        builder.IsDesc = true;
-                    }
+                    // 数字降序，其它升序
+                    builder.IsDesc = Helper.IsIntType(fi.Type);
+
+                    builder.OrderBy = builder.KeyOrder;
                 }
             }
             else

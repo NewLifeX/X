@@ -124,7 +124,8 @@ namespace NewLife.Configuration
         /// <returns></returns>
         public static T GetConfig<T>(String name, T defaultValue)
         {
-            if (TryGetConfig<T>(name, out defaultValue)) return defaultValue;
+            T value;
+            if (TryGetConfig<T>(name, out value)) return value;
             return defaultValue;
         }
 
