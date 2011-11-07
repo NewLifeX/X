@@ -46,8 +46,9 @@ namespace XCode
 
         #region 创建实体
         /// <summary>创建一个实体对象</summary>
+        /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
         /// <returns></returns>
-        IEntity Create();
+        IEntity Create(Boolean forEdit = false);
         #endregion
 
         #region 填充数据

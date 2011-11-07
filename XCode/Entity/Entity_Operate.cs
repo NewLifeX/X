@@ -60,13 +60,10 @@ namespace XCode
             #endregion
 
             #region 创建实体
-            /// <summary>
-            /// 创建一个实体对象
-            /// </summary>
+            /// <summary>创建一个实体对象</summary>
+            /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
             /// <returns></returns>
-            public IEntity Create() { return (Default as TEntity).CreateInstance(); }
-
-            //public void InitData() { (Default as TEntity).InitData(); }
+            public IEntity Create(Boolean forEdit = false) { return (Default as TEntity).CreateInstance(forEdit); }
             #endregion
 
             #region 填充数据

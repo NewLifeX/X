@@ -51,8 +51,9 @@ namespace XCode
         /// <summary>
         /// 创建实体。可以重写改方法以实现实体对象的一些初始化工作。
         /// </summary>
+        /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
         /// <returns></returns>
-        protected virtual TEntity CreateInstance()
+        protected virtual TEntity CreateInstance(Boolean forEdit = false)
         {
             //return new TEntity();
             // new TEntity会被编译为Activator.CreateInstance<TEntity>()，还不如Activator.CreateInstance()呢
@@ -493,7 +494,7 @@ namespace XCode
             if (key == null)
             {
                 //IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
-                return Meta.Factory.Create() as TEntity;
+                return Meta.Factory.Create(true) as TEntity;
             }
 
             Type type = field.Type;
@@ -503,7 +504,7 @@ namespace XCode
             {
                 if (Helper.IsIntType(type) && !field.IsIdentity && DAL.Debug) DAL.WriteLog("{0}的{1}字段是整型主键，你是否忘记了设置自增？", Meta.TableName, field.ColumnName);
 
-                return Meta.Factory.Create() as TEntity;
+                return Meta.Factory.Create(true) as TEntity;
             }
 
             // 此外，一律返回 查找值，即使可能是空。而绝不能在找不到数据的情况下给它返回空，因为可能是找不到数据而已，而返回新实例会导致前端以为这里是新增数据
@@ -538,7 +539,7 @@ namespace XCode
 
         /// <summary>
         /// 查询并返回实体对象集合。
-        /// 表名以及所有字段名，请使用类名以及字段对应的属性名，方法内转换为表名和列名
+        /// 最经典的批量查询，看这个Select @selects From Table Where @whereClause Order By @orderClause Limit @startRowIndex,@maximumRows，你就明白各参数的意思了。
         /// </summary>
         /// <param name="whereClause">条件，不带Where</param>
         /// <param name="orderClause">排序，不带Order By</param>

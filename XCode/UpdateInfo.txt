@@ -10,6 +10,9 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
+v8.2.2011.1107   给IEntityOperate.Create和Entity.CreateInstance加上默认参数forEdit，表示是否为了编辑(FindByKeyForEdit)而创建，默认为false
+                 实体类可重写Entity.CreateInstance，根据参数forEdit，对为了在界面上新增而创建的实体进行初始化
+
 v8.2.2011.1103   重构MS分页算法，分为MaxMin分页（数字主键优先选择）、NotIn分页（基本废弃）、双Top分页（替代NotIn）、RowNumber分页（高版本选择）
 
 v8.2.2011.1101   SqlServer增加连接字符串设置DataPath，用于指定反向工程创建数据库时所使用的数据目录

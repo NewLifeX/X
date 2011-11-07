@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.2.*")]
-[assembly: AssemblyFileVersion("8.2.2011.1103")]
+[assembly: AssemblyFileVersion("8.2.2011.1107")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.2.2011.1107   给IEntityOperate.Create和Entity.CreateInstance加上默认参数forEdit，表示是否为了编辑(FindByKeyForEdit)而创建，默认为false
+ *                  实体类可重写Entity.CreateInstance，根据参数forEdit，对为了在界面上新增而创建的实体进行初始化
+ * 
  * v8.2.2011.1103   重构MS分页算法，分为MaxMin分页（数字主键优先选择）、NotIn分页（基本废弃）、双Top分页（替代NotIn）、RowNumber分页（高版本选择）
  * 
  * v8.2.2011.1101   SqlServer增加连接字符串设置DataPath，用于指定反向工程创建数据库时所使用的数据目录
