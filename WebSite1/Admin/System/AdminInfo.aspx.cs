@@ -1,17 +1,23 @@
 ﻿using System;
 using System.Web.UI;
+using NewLife.CommonEntity;
 using NewLife.Security;
-using NewLife.YWS.Entities;
-using XCode.Configuration;
+using XCode.Accessors;
 
-public partial class Pages_AdminInfo : EntityForm<Int32, Admin>
+public partial class Pages_AdminInfo : MyEntityForm
 {
+    /// <summary>实体类型</summary>
+    public override Type EntityType { get { return CommonManageProvider.Provider.AdminstratorType; } set { base.EntityType = value; } }
+
     protected void Page_Load(object sender, EventArgs e)
     {
-        if (EntityID != Current.ID)
+        if ("" + EntityForm.EntityID != "" + Manager.Current.ID)
         {
-            Response.Redirect("AdminInfo.aspx?ID=" + Current.ID);
+            Response.Redirect("AdminInfo.aspx?ID=" + Manager.Current.ID);
         }
+
+        EntityForm.Accessor.OnRead += new EventHandler<EntityAccessorEventArgs>(Accessor_OnRead);
+        EntityForm.Accessor.OnWrite += new EventHandler<EntityAccessorEventArgs>(Accessor_OnWrite);
 
         if (!Page.IsPostBack)
         {
@@ -20,33 +26,13 @@ public partial class Pages_AdminInfo : EntityForm<Int32, Admin>
         }
     }
 
-    public override bool CheckPermission()
+    void Accessor_OnRead(object sender, EntityAccessorEventArgs e)
     {
-        return true;
+        if (!String.IsNullOrEmpty(frmPassword.Text)) EntityForm.Entity.SetItem("Password", DataHelper.Hash(frmPassword.Text));
     }
 
-    protected override void SetForm()
+    void Accessor_OnWrite(object sender, EntityAccessorEventArgs e)
     {
-        base.SetForm();
-
-        btnSave.Visible = true;
-        btnSave.Text = "保存";
-
         frmPassword.Text = null;
-    }
-
-    protected override void SetFormItem(FieldItem field, Control control, bool canSave)
-    {
-        base.SetFormItem(field, control, true);
-    }
-
-    protected override void GetForm()
-    {
-        base.GetForm();
-
-        if (!String.IsNullOrEmpty(frmPassword.Text))
-        {
-            Entity.Password = DataHelper.Hash(frmPassword.Text);
-        }
     }
 }

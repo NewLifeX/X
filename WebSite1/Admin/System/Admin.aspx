@@ -14,8 +14,8 @@
         <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="370px" BoxWidth="440px" Url="AdminForm.aspx"
             IconLeft="../images/icons/icon005a2.gif"><b>添加管理员</b></XCL:LinkBox>
     </div>
-    <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
-        DataSourceID="ObjectDataSource1" CssClass="m_table" CellPadding="0" GridLines="None"
+    <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
+        DataSourceID="ods" CssClass="m_table" CellPadding="0" GridLines="None"
         EnableModelValidation="True" EnableViewState="False">
         <Columns>
             <asp:BoundField DataField="ID" HeaderText="编号" SortExpression="ID" InsertVisible="False"
@@ -59,8 +59,7 @@
             没有数据!
         </EmptyDataTemplate>
     </asp:GridView>
-    <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" OldValuesParameterFormatString="original_{0}"
-        SelectMethod="Search" TypeName="" DataObjectTypeName="" DeleteMethod="Delete">
+    <asp:ObjectDataSource ID="ods" runat="server" SelectMethod="Search" DeleteMethod="Delete">
         <SelectParameters>
             <asp:ControlParameter ControlID="TB_key" Name="key" Type="String" PropertyName="Text" />
             <asp:ControlParameter ControlID="DropdownList1" Name="roleID" Type="Int32" PropertyName="SelectedValue" />
@@ -69,9 +68,7 @@
             <asp:Parameter DefaultValue="2000" Name="maximumRows" Type="Int32" />
         </SelectParameters>
     </asp:ObjectDataSource>
-    <asp:ObjectDataSource ID="ObjectDataSource2" runat="server" OldValuesParameterFormatString="original_{0}"
-        SelectMethod="FindAllByName" TypeName="" DataObjectTypeName="" DeleteMethod="Delete"
-        InsertMethod="Insert" UpdateMethod="Update">
+    <asp:ObjectDataSource ID="ObjectDataSource2" runat="server" SelectMethod="FindAllByName">
         <SelectParameters>
             <asp:Parameter Name="name" Type="String" />
             <asp:Parameter Name="value" Type="Object" />
