@@ -163,10 +163,10 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Template\实体\扩展查询.xt" />
     <EmbeddedResource Include="Template\实体\扩展属性.xt" />
-    <EmbeddedResource Include="Template\页面EntityForm2\类名.aspx.cs">
+    <EmbeddedResource Include="Template\页面2\类名.aspx.cs">
       <DependentUpon>类名.aspx</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Template\页面EntityForm2\类名Form.aspx.cs">
+    <EmbeddedResource Include="Template\页面2\类名Form.aspx.cs">
       <DependentUpon>类名Form.aspx</DependentUpon>
     </EmbeddedResource>
     <Compile Include="TranslateResult.cs" />
@@ -188,10 +188,10 @@
   <ItemGroup>
     <EmbeddedResource Include="leaf.ico" />
     <EmbeddedResource Include="NewLife.ProcessHelper.exe" />
-    <EmbeddedResource Include="Template\页面EntityForm2\类名.aspx">
+    <EmbeddedResource Include="Template\页面2\类名.aspx">
       <SubType>ASPXCodeBehind</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Template\页面EntityForm2\类名Form.aspx">
+    <EmbeddedResource Include="Template\页面2\类名Form.aspx">
       <SubType>ASPXCodeBehind</SubType>
     </EmbeddedResource>
     <Content Include="UpdateInfo.txt" />
