@@ -23,6 +23,9 @@ namespace NewLife.CommonEntity
         /// <summary>导航 分为三级：栏目－子栏目－页面</summary>
         String Navigation { get; }
 
+        /// <summary>当前管理员</summary>
+        IAdministrator Current { get; }
+
         /// <summary>本页菜单</summary>
         IMenu CurrentMenu { get; set; }
 
@@ -312,12 +315,15 @@ namespace NewLife.CommonEntity
 
             ods.DataObjectTypeName = EntityType.FullName;
             ods.TypeName = EntityType.FullName;
-            ods.EnablePaging = true;
-            ods.SelectMethod = "Search";
-            ods.SelectCountMethod = "SearchCount";
-            ods.SortParameterName = "orderClause";
-            ods.UpdateMethod = "Update";
-            ods.DeleteMethod = "Delete";
+            if (String.IsNullOrEmpty(ods.SelectMethod))
+            {
+                ods.SelectMethod = "Search";
+                ods.EnablePaging = true;
+                if (String.IsNullOrEmpty(ods.SelectCountMethod)) ods.SelectCountMethod = "SearchCount";
+                if (String.IsNullOrEmpty(ods.SortParameterName)) ods.SortParameterName = "orderClause";
+                if (String.IsNullOrEmpty(ods.UpdateMethod)) ods.UpdateMethod = "Update";
+                if (String.IsNullOrEmpty(ods.DeleteMethod)) ods.DeleteMethod = "Delete";
+            }
         }
         #endregion
     }

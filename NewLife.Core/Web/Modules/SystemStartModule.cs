@@ -29,6 +29,9 @@ namespace NewLife.Web
         /// </summary>
         public static void CheckStarting()
         {
+            if (SystemStarted) return;
+            SystemStarted = true;
+
             if (HttpContext.Current == null) return;
 
             HttpRequest Request = HttpContext.Current.Request;
@@ -39,9 +42,6 @@ namespace NewLife.Web
 
             // 只处理GET，因为处理POST可能丢失提交的表单数据
             if (Request.HttpMethod != "GET") return;
-
-            if (SystemStarted) return;
-            SystemStarted = true;
 
             // 读取资源，输出脚本
             Stream stream = FileSource.GetFileResource(Assembly.GetExecutingAssembly(), "SystemStart.htm");

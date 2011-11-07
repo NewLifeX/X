@@ -83,6 +83,7 @@ namespace NewLife.CommonEntity.Web
                 if (_Accessor == null)
                 {
                     _Accessor = EntityAccessorFactory.Create(EntityAccessorTypes.WebForm)
+                        .SetConfig(EntityAccessorOptions.AllFields, true)
                         .SetConfig(EntityAccessorOptions.Container, Container)
                         .SetConfig(EntityAccessorOptions.ItemPrefix, ItemPrefix);
                 }
