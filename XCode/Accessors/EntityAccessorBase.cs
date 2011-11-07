@@ -10,9 +10,9 @@ namespace XCode.Accessors
     abstract class EntityAccessorBase : IEntityAccessor
     {
         #region 属性
-        private Boolean _AllFields;
+        private Boolean _AllFields = true;
         /// <summary>是否所有字段</summary>
-        public Boolean AllFields
+        public virtual Boolean AllFields
         {
             get { return _AllFields; }
             set { _AllFields = value; }

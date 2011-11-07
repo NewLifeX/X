@@ -407,7 +407,11 @@ namespace XCode.Accessors
         /// <param name="canSave"></param>
         protected virtual void SetFormItemListControl(IEntity entity, FieldItem field, ListControl control, Boolean canSave)
         {
-            if (control.Items.Count < 1) control.DataBind();
+            if (control.Items.Count < 1 || !String.IsNullOrEmpty(control.DataSourceID))
+            {
+                control.DataBind();
+                control.AppendDataBoundItems = false;
+            }
             if (control.Items.Count < 1) return;
 
             String value = String.Empty + entity[field.Name];

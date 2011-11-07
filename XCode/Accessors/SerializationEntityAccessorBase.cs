@@ -36,6 +36,9 @@ namespace XCode.Accessors
         /// <returns></returns>
         public override IEntityAccessor SetConfig(string name, object value)
         {
+            // 默认不要所有字段
+            AllFields = false;
+
             if (name.EqualIgnoreCase(EntityAccessorOptions.Stream))
                 Stream = value as Stream;
             else if (name.EqualIgnoreCase(EntityAccessorOptions.Encoding))
