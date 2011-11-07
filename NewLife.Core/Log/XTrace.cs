@@ -97,7 +97,7 @@ namespace NewLife.Log
                 try
                 {
                     //return Config.GetConfig<Boolean>("NewLife.Debug", Config.GetConfig<Boolean>("Debug", false));
-                    return Config.GetConfig<Boolean>(false, "NewLife.Debug", "Debug");
+                    return Config.GetMutilConfig<Boolean>(false, "NewLife.Debug", "Debug");
                 }
                 catch { return false; }
             }

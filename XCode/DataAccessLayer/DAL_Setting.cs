@@ -22,7 +22,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_Debug != null) return _Debug.Value;
 
-                _Debug = Config.GetConfig<Boolean>("XCode.Debug", Config.GetConfig<Boolean>("OrmDebug"));
+                _Debug = Config.GetMutilConfig<Boolean>(false, "XCode.Debug", "OrmDebug");
 
                 return _Debug.Value;
             }
@@ -125,7 +125,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_NegativeEnable.HasValue) return _NegativeEnable.Value;
 
-                _NegativeEnable = Config.GetConfig<Boolean>(false, "XCode.Negative.Enable", "XCode.Schema.Enable", "DatabaseSchema_Enable");
+                _NegativeEnable = Config.GetMutilConfig<Boolean>(false, "XCode.Negative.Enable", "XCode.Schema.Enable", "DatabaseSchema_Enable");
 
                 return _NegativeEnable.Value;
             }
@@ -155,7 +155,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_NegativeNoDelete.HasValue) return _NegativeNoDelete.Value;
 
-                _NegativeNoDelete = Config.GetConfig<Boolean>(false, "XCode.Negative.NoDelete", "XCode.Schema.NoDelete", "DatabaseSchema_NoDelete");
+                _NegativeNoDelete = Config.GetMutilConfig<Boolean>(false, "XCode.Negative.NoDelete", "XCode.Schema.NoDelete", "DatabaseSchema_NoDelete");
 
                 return _NegativeNoDelete.Value;
             }
@@ -170,7 +170,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_NegativeExclude != null) return _NegativeExclude;
 
-                String str = Config.GetConfig<String>(null, "XCode.Negative.Exclude", "XCode.Schema.Exclude", "DatabaseSchema_Exclude");
+                String str = Config.GetMutilConfig<String>(null, "XCode.Negative.Exclude", "XCode.Schema.Exclude", "DatabaseSchema_Exclude");
 
                 if (String.IsNullOrEmpty(str))
                     _NegativeExclude = new HashSet<String>();

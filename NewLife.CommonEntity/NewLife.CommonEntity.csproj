@@ -143,9 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="mssql_Common.xml" />
-    <EmbeddedResource Include="实体\AreaCode.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="实体\AreaCode.txt" />
     <Content Include="说明.txt" />
   </ItemGroup>
   <ItemGroup />

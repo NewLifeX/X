@@ -69,10 +69,10 @@ namespace NewLife.Configuration
         /// <param name="defaultValue"></param>
         /// <param name="names"></param>
         /// <returns></returns>
-        public static T GetConfig<T>(T defaultValue, params String[] names)
+        public static T GetMutilConfig<T>(T defaultValue, params String[] names)
         {
             T value;
-            if (TryGetConfig<T>(out value, names)) return value;
+            if (TryGetMutilConfig<T>(out value, names)) return value;
             return value;
         }
 
@@ -81,7 +81,7 @@ namespace NewLife.Configuration
         /// <param name="value"></param>
         /// <param name="names"></param>
         /// <returns></returns>
-        public static Boolean TryGetConfig<T>(out T value, params String[] names)
+        public static Boolean TryGetMutilConfig<T>(out T value, params String[] names)
         {
             value = default(T);
             try
@@ -122,7 +122,7 @@ namespace NewLife.Configuration
         /// <param name="name"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static T GetConfig<T>(String name, T defaultValue = default(T))
+        public static T GetConfig<T>(String name, T defaultValue)
         {
             if (TryGetConfig<T>(name, out defaultValue)) return defaultValue;
             return defaultValue;

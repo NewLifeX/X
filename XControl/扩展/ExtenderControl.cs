@@ -123,7 +123,7 @@ namespace XControl
 
                 if (typeof(V) == typeof(Color))
                 {
-                    String str = Config.GetConfig<String>(name, null);
+                    String str = Config.GetMutilConfig<String>(name, null);
                     if (!String.IsNullOrEmpty(str))
                     {
                         TypeConverter convert = new WebColorConverter();

@@ -192,7 +192,7 @@ namespace XControl
                 object o = ViewState["ClickedRowBackColor"];
                 if (o == null)
                 {
-                    string c = Config.GetConfig<string>(GetType().FullName + ".ClickedRowBackColor", null);
+                    string c = Config.GetMutilConfig<string>(GetType().FullName + ".ClickedRowBackColor", null);
                     if (!string.IsNullOrEmpty(c))
                     {
                         try

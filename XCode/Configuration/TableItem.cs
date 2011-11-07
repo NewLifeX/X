@@ -112,7 +112,7 @@ namespace XCode.Configuration
                 if (_ConnMaps != null) return _ConnMaps;
 
                 _ConnMaps = new List<String>();
-                String str = Config.GetConfig<String>(null, "XCode.ConnMaps", "XCodeConnMaps");
+                String str = Config.GetMutilConfig<String>(null, "XCode.ConnMaps", "XCodeConnMaps");
                 if (String.IsNullOrEmpty(str)) return _ConnMaps;
                 String[] ss = str.Split(',');
                 foreach (String item in ss)
