@@ -5,16 +5,15 @@ using System.ComponentModel;
 using System.Reflection;
 using NewLife.Reflection;
 
-namespace NewLife
+namespace System
 {
     /// <summary>枚举类型助手类</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class EnumHelper
     {
-        /// <summary>
-        /// 获取枚举字段的注释
-        /// </summary>
-        /// <param name="value"></param>
+        /// <summary>枚举变量是否包含指定标识</summary>
+        /// <param name="value">枚举变量</param>
+        /// <param name="flag">要判断的标识</param>
         /// <returns></returns>
         public static Boolean Has(this Enum value, Enum flag)
         {

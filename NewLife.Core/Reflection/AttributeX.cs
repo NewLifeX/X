@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
 
 namespace NewLife.Reflection
 {
-    /// <summary>
-    /// 特性辅助类
-    /// </summary>
+    /// <summary>特性辅助类</summary>
     public class AttributeX
     {
         #region 静态方法

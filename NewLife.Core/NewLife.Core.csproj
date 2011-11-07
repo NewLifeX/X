@@ -150,6 +150,7 @@
     <Compile Include="Reflection\DuckTyping.cs" />
     <Compile Include="Reflection\IL\ILInstruction.cs" />
     <Compile Include="Reflection\IL\MethodBodyReader.cs" />
+    <Compile Include="Reflection\ReflectionExtensions.cs" />
     <Compile Include="Reflection\快速反射\EventInfoX.cs" />
     <Compile Include="Reflection\OrcasNamer.cs" />
     <Compile Include="Reflection\TypeResolver.cs" />

@@ -33,10 +33,13 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.2.*")]
-[assembly: AssemblyFileVersion("3.2.2011.1018")]
+[assembly: AssemblyVersion("3.3.*")]
+[assembly: AssemblyFileVersion("3.3.2011.1107")]
 
 /*
+ * v3.3.2011.1107   字符串扩展和枚举扩展命名空间改为System
+ *                  增加快速反射的扩展方法类ReflectionExtensions
+ * 
  * v3.2.2011.1020   修正AssemblyX中一个可能导致无法从只加载程序集中获取类型的BUG
  *                  修正DisposeBase析构中调用XTrace.Debug可能配置系统已经释放的错误
  * 

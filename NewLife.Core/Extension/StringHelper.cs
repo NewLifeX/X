@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace NewLife
+namespace System
 {
     /// <summary>字符串助手类</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]

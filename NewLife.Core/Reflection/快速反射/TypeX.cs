@@ -233,6 +233,15 @@ namespace NewLife.Reflection
             return Create(type).CreateInstance(parameters);
         }
 
+        /// <summary>快速反射创建指定类型的实例</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public static Object CreateInstance<T>(params Object[] parameters)
+        {
+            return Create(typeof(T)).CreateInstance(parameters);
+        }
+
         /// <summary>
         /// 取值，返回自己
         /// </summary>
@@ -275,139 +284,6 @@ namespace NewLife.Reflection
             }
             //set { _Description = value; }
         }
-        #endregion
-
-        #region 成员缓冲
-        //public IEnumerable<MemberInfo> Members
-        //{
-        //    get
-        //    {
-
-        //    }
-        //}
-        //private ListX<MemberInfo> _Members;
-        ///// <summary>所有成员</summary>
-        //public ListX<MemberInfo> Members
-        //{
-        //    get
-        //    {
-        //        if (_Members == null && !hasLoad.Contains("Members"))
-        //        {
-        //            _Members = new ListX<MemberInfo>(BaseType.GetMembers(DefaultBinding));
-        //            hasLoad.Add("Members");
-        //        }
-        //        return _Members == null ? null : _Members.Clone();
-        //    }
-        //    //set { _Members = value; }
-        //}
-
-        //ListX<T> GetMembers<T>(MemberTypes memberType) where T : MemberInfo
-        //{
-        //    if (Members == null || Members.Count < 1) return null;
-
-        //    ListX<T> list = new ListX<T>();
-        //    foreach (MemberInfo item in Members)
-        //    {
-        //        if (item.MemberType == memberType) list.Add(item as T);
-        //    }
-        //    return list.Count > 0 ? list : null;
-        //}
-
-        //private ListX<FieldInfo> _Fields;
-        ///// <summary>字段集合</summary>
-        //public ListX<FieldInfo> Fields
-        //{
-        //    get
-        //    {
-        //        if (_Fields == null && !hasLoad.Contains("Fields"))
-        //        {
-        //            _Fields = GetMembers<FieldInfo>(MemberTypes.Field);
-        //            hasLoad.Add("Fields");
-        //        }
-        //        return _Fields == null ? null : _Fields.Clone();
-        //    }
-        //    //set { _Fields = value; }
-        //}
-
-        //private ListX<PropertyInfo> _Properties;
-        ///// <summary>属性集合</summary>
-        //public ListX<PropertyInfo> Properties
-        //{
-        //    get
-        //    {
-        //        if (_Properties == null && !hasLoad.Contains("Properties"))
-        //        {
-        //            _Properties = GetMembers<PropertyInfo>(MemberTypes.Property);
-        //            hasLoad.Add("Properties");
-        //        }
-        //        return _Properties == null ? null : _Properties.Clone();
-        //    }
-        //    //set { _Properties = value; }
-        //}
-
-        //private ListX<MethodInfo> _Methods;
-        ///// <summary>方法集合</summary>
-        //public ListX<MethodInfo> Methods
-        //{
-        //    get
-        //    {
-        //        if (_Methods == null && !hasLoad.Contains("Methods"))
-        //        {
-        //            _Methods = GetMembers<MethodInfo>(MemberTypes.Method);
-        //            hasLoad.Add("Methods");
-        //        }
-        //        return _Methods == null ? null : _Methods.Clone();
-        //    }
-        //    //set { _Methods = value; }
-        //}
-
-        //private ListX<ConstructorInfo> _Constructors;
-        ///// <summary>构造函数集合</summary>
-        //public ListX<ConstructorInfo> Constructors
-        //{
-        //    get
-        //    {
-        //        if (_Constructors == null && !hasLoad.Contains("Constructors"))
-        //        {
-        //            _Constructors = GetMembers<ConstructorInfo>(MemberTypes.Constructor);
-        //            hasLoad.Add("Constructors");
-        //        }
-        //        return _Constructors == null ? null : _Constructors.Clone();
-        //    }
-        //    //set { _Constructors = value; }
-        //}
-
-        //private ListX<EventInfo> _Events;
-        ///// <summary>事件集合</summary>
-        //public ListX<EventInfo> Events
-        //{
-        //    get
-        //    {
-        //        if (_Events == null && !hasLoad.Contains("Events"))
-        //        {
-        //            _Events = GetMembers<EventInfo>(MemberTypes.Event);
-        //            hasLoad.Add("Events");
-        //        }
-        //        return _Events == null ? null : _Events.Clone();
-        //    }
-        //    //set { _Events = value; }
-        //}
-
-        //private ListX<Type> _Interfaces;
-        ///// <summary>接口集合</summary>
-        //public ListX<Type> Interfaces
-        //{
-        //    get
-        //    {
-        //        if (_Interfaces == null && !hasLoad.Contains("Interfaces"))
-        //        {
-        //            _Interfaces = new ListX<System.Type>(BaseType.GetInterfaces());
-        //            hasLoad.Add("Interfaces");
-        //        }
-        //        return _Interfaces == null ? null : _Interfaces.Clone();
-        //    }
-        //    //set { _Interfaces = value; }
-        //}
         #endregion
 
         #region 方法
