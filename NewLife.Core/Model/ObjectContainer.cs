@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Reflection;
 using NewLife.Configuration;
 using NewLife.Exceptions;
 using NewLife.Reflection;
-using NewLife;
 
 namespace NewLife.Model
 {
@@ -294,7 +292,7 @@ namespace NewLife.Model
                 if (old is Map)
                 {
                     map = old as Map;
-                    if (priority < map.Priority) return this;
+                    if (priority <= map.Priority) return this;
 
                     map.TypeName = typeName;
                     map.Mode = mode;
