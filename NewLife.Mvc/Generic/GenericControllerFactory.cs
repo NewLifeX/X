@@ -14,7 +14,7 @@ namespace NewLife.Mvc
         private static string _TempleteDir;
 
         /// <summary>
-        /// 一般控制器的模版根目录,默认为网站根目录 ~,以~或~/开始,始终不以/结尾
+        /// 一般控制器的模版根目录,默认为网站根目录,即空白字符串,始终以普通字符开始,并且始终不以/符号结尾
         /// </summary>
         public static string TempleteDir
         {
@@ -22,16 +22,11 @@ namespace NewLife.Mvc
             {
                 if (_TempleteDir == null)
                 {
-                    string s = Config.GetConfig<string>("NewLife.Mvc.TempleteDir", "~");
-                    // TODO
-                    if (s.StartsWith("/"))
-                    {
-                        s = "~" + s;
-                    }
-                    else if (!s.StartsWith("~/") && s != "~")
-                    {
-                        s = "~/" + s;
-                    }
+                    string s = Config.GetConfig<string>("NewLife.Mvc.TempleteDir", "");
+
+                    if (s.StartsWith("/")) s = s.Substring(1);
+                    if (s.StartsWith("~/")) s = s.Substring(2);
+
                     _TempleteDir = s.TrimEnd('/');
                 }
                 return _TempleteDir;
@@ -75,13 +70,11 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public static string ResolveTempletePath(string path)
         {
-            if (string.IsNullOrEmpty(path)) path = TempleteDir;
+            if (path == null) path = "";
             if (path.StartsWith("/")) path = path.Substring(1);
             if (path.StartsWith("~/")) path = path.Substring(2);
 
-            path = TempleteDir + "/" + path;
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path.Substring(1));
-            return HttpContext.Current.Server.MapPath(path);
+            return Path.Combine(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, TempleteDir), path.TrimStart('/'));
         }
 
         /// <summary>

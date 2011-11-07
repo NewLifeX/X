@@ -34,6 +34,20 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
+        /// 指定路径路由到控制器工厂,自定义工厂的初始化
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="newFunc">工厂实例化方式</param>
+        /// <returns></returns>
+        public RouteConfigManager RouteToFactory(string path, Func<IControllerFactory> newFunc)
+        {
+            return Route(path, typeof(IControllerFactory), typeof(IControllerFactory), delegate(Rule r)
+            {
+                (r as FactoryRule).NewFactoryFunc = newFunc;
+            });
+        }
+
+        /// <summary>
         /// 指定路径路由到模块,模块是一个独立的路由配置,可以相对于自身所路由的路径,进一步路由到具体的控制器或者工厂
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -103,11 +117,13 @@ namespace NewLife.Mvc
 
         List<Rule> rules;
 
-        internal virtual RouteConfigManager Route(string path, Type type, Type ruleType)
+        internal virtual RouteConfigManager Route(string path, Type type, Type ruleType, Action<Rule> onCreatedRule = null)
         {
             if (rules == null) rules = new List<Rule>();
-            rules.Add(Rule.Create(path, type, ruleType));
-            return null;
+            Rule r = Rule.Create(path, type, ruleType);
+            if (onCreatedRule != null) onCreatedRule(r);
+            rules.Add(r);
+            return this;
         }
 
         /// <summary>
@@ -157,10 +173,19 @@ namespace NewLife.Mvc
     /// </summary>
     public class RouteConfigException : ArgumentException
     {
+        /// <summary>
+        /// 构造方法
+        /// </summary>
+        /// <param name="message"></param>
         public RouteConfigException(string message)
         {
         }
 
+        /// <summary>
+        /// 构造方法
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="paramName"></param>
         public RouteConfigException(string message, string paramName)
         {
         }

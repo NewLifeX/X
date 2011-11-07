@@ -52,10 +52,12 @@
     <Compile Include="Routing\RouteContext.cs" />
     <Compile Include="Routing\Rule.cs" />
     <Compile Include="Service.cs" />
-    <Compile Include="Routing\UrlRoute.cs" />
+    <Compile Include="Routing\Route.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="UpdateInfo.txt" />

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Web;
+using System.Web.SessionState;
 
 namespace NewLife.Mvc
 {
     /// <summary>Url路由处理器</summary>
-    public class UrlRoute : IHttpModule
+    public class Route : IHttpModule
     {
         #region IHttpModule 成员
 
@@ -61,6 +62,7 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
                                 }
                             }
                             cfg.SortConfigRule();
+                            cfg.RouteToFactory("", () => Service.Resolve<IControllerFactory>()); // 从对象容器中取默认控制器工厂
                             _RootConfig[0] = cfg;
                         }
                     }
@@ -72,20 +74,12 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
         private void context_BeginRequest(object sender, EventArgs e)
         {
             HttpApplication app = sender as HttpApplication;
-            RouteContext.Current = new RouteContext(app); //每次请求前重置路由上下文
+            RouteContext.Current = new RouteContext(app); // 每次请求前重置路由上下文
             string path = RouteContext.Current.RoutePath;
             IController c = RootConfig.GetRouteHandler(path);
-            if (c == null)
-            {
-                IControllerFactory factory = Service.Resolve<IControllerFactory>();
-                if (factory.Support(path))
-                {
-                    c = factory.Create();
-                }
-            }
             if (c != null)
             {
-                app.Context.RemapHandler(new HttpHandlerWrap(c));
+                app.Context.RemapHandler(HttpHandlerWrap.Create(c));
                 return;
             }
         }
@@ -98,7 +92,7 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
     {
         private IController Controller;
 
-        public HttpHandlerWrap(IController controller)
+        protected HttpHandlerWrap(IController controller)
         {
             Controller = controller;
         }
@@ -112,6 +106,41 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
         {
             // TODO 考虑拦截异常,提供运行时和生产时的开关控制产生不同的异常报告以针对不同的用户
             Controller.Execute();
+        }
+
+        /// <summary>
+        /// 创建指定控制器实例的IHttpHandler包装实例,会根据需要创建可以读写Session的IHttpHandler实现
+        /// </summary>
+        /// <param name="controller"></param>
+        /// <returns></returns>
+        public static HttpHandlerWrap Create(IController controller)
+        {
+            if (controller is IReadOnlySessionState)
+            {
+                return new ReadOnlySession(controller);
+            }
+            else if (controller is IRequiresSessionState)
+            {
+                return new ReadWriteSession(controller);
+            }
+            else
+            {
+                return new HttpHandlerWrap(controller);
+            }
+        }
+        /// <summary>
+        /// 提供只读访问HttpSession的HttpHandlerWrap子类
+        /// </summary>
+        class ReadOnlySession : HttpHandlerWrap, IReadOnlySessionState
+        {
+            public ReadOnlySession(IController controller) : base(controller) { }
+        }
+        /// <summary>
+        /// 提供读写访问HttpSession的HttpHandlerWrap子类
+        /// </summary>
+        class ReadWriteSession : HttpHandlerWrap, IRequiresSessionState
+        {
+            public ReadWriteSession(IController controller) : base(controller) { }
         }
     }
 }

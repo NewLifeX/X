@@ -12,10 +12,26 @@ public class TestController : GenericController, IController
     {
         world = "world";
     }
+
     public override void Execute()
     {
         Response.Write("Hello " + world + " ");
         Response.Write(Request.Url);
+        Info();
+    }
+
+    public void Info()
+    {
+        RouteContext c = RouteContext.Current;
+        Response.Write(string.Format(@"
+<pre>
+NewLife.Mvc.RouteContext.Current.RoutePath : {0}
+NewLife.Mvc.RouteContext.Current.Module : {1}
+NewLife.Mvc.RouteContext.Current.Factory.ToString() : {2}
+NewLife.Mvc.RouteContext.Current.Controller.ToString() : {3}
+NewLife.Mvc.RouteContext.Current.Path : {4}
+</pre>
+    ", c.RoutePath, c.Module ?? null, c.Factory ?? null, c.Controller ?? null, c.Path));
     }
 
     private string _world;

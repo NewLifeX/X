@@ -14,7 +14,7 @@ namespace NewLife.Mvc
         private string _Path;
 
         /// <summary>
-        /// 路由路径,赋值时如果以$符号结尾,表示是完整匹配(只会匹配Path部分,不包括Url中Query部分),而不是
+        /// 路由路径,赋值时如果以$符号结尾,表示是完整匹配(只会匹配Path部分,不包括Url中Query部分),而不是StartsWith匹配
         /// </summary>
         public string Path
         {
@@ -180,6 +180,11 @@ namespace NewLife.Mvc
     /// </summary>
     internal class FactoryRule : Rule
     {
+        /// <summary>
+        /// 工厂的创建方式,默认为直接创建Type指定的类型
+        /// </summary>
+        public Func<IControllerFactory> NewFactoryFunc { get; set; }
+
         IControllerFactory[] _Factory = new IControllerFactory[] { null };
 
         /// <summary>
@@ -195,7 +200,14 @@ namespace NewLife.Mvc
                     {
                         if (_Factory[0] == null)
                         {
-                            _Factory[0] = TypeX.CreateInstance(Type) as IControllerFactory;
+                            if (NewFactoryFunc != null)
+                            {
+                                _Factory[0] = NewFactoryFunc();
+                            }
+                            else
+                            {
+                                _Factory[0] = TypeX.CreateInstance(Type) as IControllerFactory;
+                            }
                         }
                     }
                 }
@@ -212,12 +224,12 @@ namespace NewLife.Mvc
                 IController c = null;
                 try
                 {
-                    if (Factory.Support(path))
+                    if (Factory.Support(rctx.Path))
                     {
                         c = Factory.Create();
                         if (c != null)
                         {
-                            RouteContext.Current.EnterController(Path, path, c);
+                            rctx.EnterController(Path, path, c);
                             return c;
                         }
                     }

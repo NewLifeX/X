@@ -10,10 +10,15 @@
         
 
         这是一个模版页
-        <p>
+        <pre>
         NewLife.Mvc.RouteContext.Current.RoutePath : <#= NewLife.Mvc.RouteContext.Current.RoutePath #>
-        
-        </p>
+        NewLife.Mvc.RouteContext.Current.Factory.ToString() : <#= NewLife.Mvc.RouteContext.Current.Factory.ToString() #>
+        NewLife.Mvc.RouteContext.Current.Controller.ToString() : <#= NewLife.Mvc.RouteContext.Current.Controller.ToString() #>
+        NewLife.Mvc.RouteContext.Current.Path : <#= NewLife.Mvc.RouteContext.Current.Path #>
+
+
+
+        </pre>
         <a href="Test">TestController</a>
         <a href="Test1">TestController1</a>
         <a href="Test2">TestController2</a>

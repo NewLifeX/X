@@ -13,22 +13,14 @@ namespace NewLife.Mvc
         /// <summary>Http上下文</summary>
         public HttpContext Context { get { return HttpContext.Current; } }
 
-        private HttpRequest _Request;
-
         /// <summary>Http请求</summary>
         public HttpRequest Request { get { return HttpContext.Current == null ? null : HttpContext.Current.Request; } }
-
-        private HttpResponse _Response;
 
         /// <summary>Http响应</summary>
         public HttpResponse Response { get { return HttpContext.Current == null ? null : HttpContext.Current.Response; } }
 
-        private HttpServerUtility _Server;
-
         /// <summary>HttpServer</summary>
         public HttpServerUtility Server { get { return HttpContext.Current == null ? null : HttpContext.Current.Server; } }
-
-        private HttpSessionState _Session;
 
         /// <summary>会话</summary>
         public HttpSessionState Session { get { return HttpContext.Current == null ? null : HttpContext.Current.Session; } }
