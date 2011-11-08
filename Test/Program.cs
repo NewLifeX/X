@@ -1,20 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using NewLife.CommonEntity;
 using NewLife.Log;
-using NewLife.Model;
 using XCode;
-using XCode.Accessors;
-using System.Text;
-using System.Reflection;
-using System.Data.Common;
-using NewLife.Reflection;
 using XCode.DataAccessLayer;
-using System.Collections.Generic;
-using System.Data.OracleClient;
+using XCode.Test;
 using System.Data;
 
 namespace Test
@@ -32,7 +24,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -153,6 +145,18 @@ namespace Test
             CodeTimer.TimeLine("尾页", t, n => op.FindAll(null, order, selects, p, pagesize), needTimeOne);
             Console.WriteLine(MSPageSplit.PageSplit(builder, p - pagesize * 2, pagesize, false));
             CodeTimer.TimeLine("倒数第三页", t, n => op.FindAll(null, order, selects, p - pagesize * 2, pagesize), needTimeOne);
+        }
+
+        static void Test3()
+        {
+            Int32 n = EntityTest.Meta.Count;
+            Console.WriteLine(n);
+
+            EntityList<EntityTest> list = EntityTest.FindAll();
+            DataTable dt = list.ToDataTable();
+            Console.WriteLine(dt);
+
+            dt = Administrator.FindAll().ToDataTable();
         }
     }
 }

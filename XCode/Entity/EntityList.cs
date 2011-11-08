@@ -816,8 +816,11 @@ namespace XCode
                 dc.DataType = item.Type;
                 dc.Caption = item.Description;
                 dc.AutoIncrement = item.IsIdentity;
-                dc.Unique = item.PrimaryKey;
-                dc.AllowDBNull = item.IsNullable;
+
+                // 关闭这两项，让DataTable宽松一点
+                //dc.Unique = item.PrimaryKey;
+                //dc.AllowDBNull = item.IsNullable;
+
                 //if (!item.DataObjectField.IsIdentity) dc.DefaultValue = item.Column.DefaultValue;
                 dt.Columns.Add(dc);
             }
