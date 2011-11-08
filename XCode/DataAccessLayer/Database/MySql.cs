@@ -264,9 +264,9 @@ namespace XCode.DataAccessLayer
         protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
         {
             // MySql没有ntext，映射到text
-            if (String.Equals(typeName, "ntext", StringComparison.OrdinalIgnoreCase)) typeName = "text";
+            if (typeName.EqualIgnoreCase("ntext")) typeName = "text";
             // MySql的默认值不能使用函数，所以无法设置当前时间作为默认值，但是第一个Timestamp类型字段会有当前时间作为默认值效果
-            if (String.Equals(typeName, "datetime", StringComparison.OrdinalIgnoreCase))
+            if (typeName.EqualIgnoreCase("datetime"))
             {
                 String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
                 if (String.IsNullOrEmpty(d)) typeName = "timestamp";
@@ -292,7 +292,7 @@ namespace XCode.DataAccessLayer
                 }
 
                 // 字符串
-                if (typeName == typeof(String).FullName || String.Equals(typeName, "varchar", StringComparison.OrdinalIgnoreCase))
+                if (typeName == typeof(String).FullName || typeName.EqualIgnoreCase("varchar"))
                 {
                     foreach (DataRow dr in drs)
                     {
@@ -305,7 +305,7 @@ namespace XCode.DataAccessLayer
                 }
 
                 // 时间日期
-                if (typeName == typeof(DateTime).FullName || String.Equals(typeName, "DateTime", StringComparison.OrdinalIgnoreCase))
+                if (typeName == typeof(DateTime).FullName || typeName.EqualIgnoreCase("DateTime"))
                 {
                     // DateTime的范围是0001到9999
                     // Timestamp的范围是1970到2038

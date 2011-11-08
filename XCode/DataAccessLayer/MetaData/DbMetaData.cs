@@ -162,7 +162,8 @@ namespace XCode.DataAccessLayer
             if (db == null) return oriDefault;
 
             // 原始默认值是否是原始时间
-            if (!oriDefault.Equals(db.DateTimeNow, StringComparison.OrdinalIgnoreCase)) return oriDefault;
+            //if (!oriDefault.Equals(db.DateTimeNow, StringComparison.OrdinalIgnoreCase)) return oriDefault;
+            if (!oriDefault.EqualIgnoreCase(db.DateTimeNow)) return oriDefault;
 
             return Database.DateTimeNow;
         }
