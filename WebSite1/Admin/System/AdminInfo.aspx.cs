@@ -38,6 +38,6 @@ public partial class Pages_AdminInfo : MyEntityForm
 
     void Accessor_OnWrite(object sender, EntityAccessorEventArgs e)
     {
-        frmPassword.Text = null;
+        if (e.Field.Name == "Password") frmPassword.Text = null;
     }
 }
