@@ -29,10 +29,12 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("4.4.*")]
-[assembly: AssemblyFileVersion("4.4.2011.1031")]
+[assembly: AssemblyVersion("4.5.*")]
+[assembly: AssemblyFileVersion("4.5.2011.1108")]
 
 /*
+ * v4.5.2011.1108   配合实体访问器和CommonEntity，增加第三代管理页面模版
+ * 
  * v4.4.2011.1031   增加查询分析器
  * 
  * v4.3.2011.0920   将在线翻译服务替换成s.nnhy.org上的翻译服务
