@@ -2,6 +2,7 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CSharp;
@@ -178,6 +179,9 @@ namespace XCoder
         static Boolean IsKeyWord(String name)
         {
             if (String.IsNullOrEmpty(name)) return false;
+
+            // 只要有大写字母，就不是关键字
+            if (name.Any(c => c >= 'A' && c <= 'Z')) return false;
 
             // 特殊处理item
             if (String.Equals(name, "item", StringComparison.OrdinalIgnoreCase)) return true;

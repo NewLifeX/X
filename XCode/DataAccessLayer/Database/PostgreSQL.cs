@@ -68,6 +68,7 @@ namespace XCode.DataAccessLayer
         public override bool Support(string providerName)
         {
             providerName = providerName.ToLower();
+            if (providerName.Contains("postgresql.data.postgresqlclient")) return true;
             if (providerName.Contains("postgresql")) return true;
             if (providerName.Contains("npgsql")) return true;
 

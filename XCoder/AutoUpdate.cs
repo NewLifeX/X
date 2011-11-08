@@ -188,7 +188,17 @@ namespace XCoder
 
             public VerFile(String xml)
             {
-                Parse(xml);
+                try
+                {
+                    Parse(xml);
+                }
+                catch (Exception ex)
+                {
+                    ex.Data["xml"] = xml;
+                    XTrace.WriteLine(xml);
+
+                    throw;
+                }
             }
 
             void Parse(String xml)

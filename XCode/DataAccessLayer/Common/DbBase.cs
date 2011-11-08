@@ -284,6 +284,7 @@ namespace XCode.DataAccessLayer
                     String dir = Path.GetDirectoryName(file);
                     DAL.WriteLog("下载完成，准备解压到{0}！", dir);
                     MemoryStream ms = new MemoryStream(data);
+                    if (file.EndsWith("64")) file = file.Substring(0, file.Length - 2);
                     IOHelper.DecompressFile(ms, dir, file, false);
                     DAL.WriteLog("解压完成！");
                 }

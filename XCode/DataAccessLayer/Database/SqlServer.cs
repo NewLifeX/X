@@ -107,7 +107,7 @@ namespace XCode.DataAccessLayer
             if (providerName.Contains("sql2008")) return true;
             if (providerName.Contains("sql2005")) return true;
             if (providerName.Contains("sql2000")) return true;
-            if (providerName.Contains("sqlclient")) return true;
+            //if (providerName.Contains("sqlclient")) return true;
             if (providerName.Contains("mssql")) return true;
 
             return false;
