@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Web;
 using System.Diagnostics;
+using System.Web;
 
 namespace NewLife.Mvc
 {
@@ -51,18 +51,18 @@ namespace NewLife.Mvc
         /// </summary>
         public string RoutePath { get; private set; }
 
-        private List<RouteMatchInfo<IRouteConfigMoudule>> _Modules;
+        private List<RouteMatchInfo<IRouteConfigModule>> _Modules;
 
         /// <summary>
         /// 当前路由经过的模块,在模块路由配置中可以获取到这个信息
         /// </summary>
-        public List<RouteMatchInfo<IRouteConfigMoudule>> Modules
+        public List<RouteMatchInfo<IRouteConfigModule>> Modules
         {
             get
             {
                 if (_Modules == null)
                 {
-                    _Modules = new List<RouteMatchInfo<IRouteConfigMoudule>>();
+                    _Modules = new List<RouteMatchInfo<IRouteConfigModule>>();
                 }
                 return _Modules;
             }
@@ -71,7 +71,7 @@ namespace NewLife.Mvc
         /// <summary>
         /// 当前路由最近一次经过的模块,如果没有将返回null
         /// </summary>
-        public RouteMatchInfo<IRouteConfigMoudule> Module
+        public RouteMatchInfo<IRouteConfigModule> Module
         {
             get
             {
@@ -93,13 +93,47 @@ namespace NewLife.Mvc
         /// </summary>
         public RouteMatchInfo<IController> Controller { get; private set; }
 
+        private string _Path;
+
         /// <summary>
         /// 当前的路径,在不同的上下文环境中有不同的含义
         ///  在模块路由中:路由路径中,匹配当前模块后剩下的路径
         ///  在控制器工厂中,路由路径中,匹配当前控制器工厂后剩下的路径
         ///  在控制器中,路由路径中,匹配当前控制器后剩下的路径
         /// </summary>
-        public string Path { get; set; }
+        public string Path
+        {
+            get
+            {
+                return _Path;
+            }
+            private set
+            {
+                _Path = value;
+                PathFragments = null;
+            }
+        }
+
+        private string[] _PathFragments = null;
+
+        /// <summary>
+        /// 当前路径使用/分割后的片段,不包含空白的,对于/foo/bar.foo这样的路径,将会返回["foo","bar.foo"]
+        /// </summary>
+        public string[] PathFragments
+        {
+            get
+            {
+                if (_PathFragments == null)
+                {
+                    _PathFragments = Path.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                }
+                return _PathFragments;
+            }
+            private set
+            {
+                _PathFragments = value;
+            }
+        }
 
         #endregion 公共
 
@@ -109,26 +143,28 @@ namespace NewLife.Mvc
         /// 进入指定的模块
         /// </summary>
         /// <param name="pattern">路由规则的路径</param>
+        /// <param name="match">匹配pattern的实际路径部分</param>
         /// <param name="path">当前请求的路径,当前模块路径尚未提取</param>
         /// <param name="module"></param>
-        internal void EnterModule(string pattern, string path, IRouteConfigMoudule module)
+        internal void EnterModule(string pattern, string match, string path, IRouteConfigModule module)
         {
-            string match = path.Substring(0, pattern.Length);
-            Path = path.Substring(pattern.Length);
-            Modules.Add(new RouteMatchInfo<IRouteConfigMoudule>(pattern, match, module));
+            Path = path.Substring(match.Length);
+            Modules.Add(new RouteMatchInfo<IRouteConfigModule>(pattern, match, module));
         }
 
         /// <summary>
         /// 退出指定的模块
         /// </summary>
         /// <param name="pattern">路由规则的路径</param>
+        /// <param name="match">匹配pattern的实际路径部分</param>
         /// <param name="path">当前请求的路径,当前模块路径尚未提取</param>
         /// <param name="module"></param>
-        internal void ExitModule(string pattern, string path, IRouteConfigMoudule module)
+        internal void ExitModule(string pattern, string match, string path, IRouteConfigModule module)
         {
 #if DEBUG
             Debug.Assert(Module.Pattern == pattern);
-            Debug.Assert(path.StartsWith(Module.Path));
+            Debug.Assert(Module.Path == match);
+            Debug.Assert(path.StartsWith(match));
             Debug.Assert(Module.RelatedObject == module);
 #endif
             Modules.RemoveAt(Modules.Count - 1);
@@ -138,12 +174,12 @@ namespace NewLife.Mvc
         /// 进入指定的工厂
         /// </summary>
         /// <param name="pattern">路由规则的路径</param>
+        /// <param name="match">匹配pattern的实际路径部分</param>
         /// <param name="path">当前请求的路径,当前控制器工厂路径尚未提取</param>
         /// <param name="factory"></param>
-        internal void EnterFactory(string pattern, string path, IControllerFactory factory)
+        internal void EnterFactory(string pattern, string match, string path, IControllerFactory factory)
         {
-            string match = path.Substring(0, pattern.Length);
-            Path = path.Substring(pattern.Length);
+            Path = path.Substring(match.Length);
             Factory = new RouteMatchInfo<IControllerFactory>(pattern, match, factory);
         }
 
@@ -151,13 +187,15 @@ namespace NewLife.Mvc
         /// 退出指定的工厂
         /// </summary>
         /// <param name="pattern">路由规则的路径</param>
+        /// <param name="match">匹配pattern的实际路径部分</param>
         /// <param name="path">当前请求的路径,当前控制器工厂路径尚未提取</param>
         /// <param name="factory"></param>
-        internal void ExitFactory(string pattern, string path, IControllerFactory factory)
+        internal void ExitFactory(string pattern, string match, string path, IControllerFactory factory)
         {
 #if DEBUG
             Debug.Assert(Factory.Pattern == pattern);
-            Debug.Assert(path.StartsWith(Factory.Path));
+            Debug.Assert(Factory.Path == match);
+            Debug.Assert(path.StartsWith(match));
             Debug.Assert(Factory.RelatedObject == factory);
 #endif
             Factory = null;
@@ -167,20 +205,21 @@ namespace NewLife.Mvc
         /// 进入指定的控制器
         /// </summary>
         /// <param name="pattern">路由规则的路径</param>
+        /// <param name="match">匹配pattern的实际路径部分</param>
         /// <param name="path">当前请求的路径,当前控制器路径尚未提取</param>
         /// <param name="controller"></param>
-        internal void EnterController(string pattern, string path, IController controller)
+        internal void EnterController(string pattern, string match, string path, IController controller)
         {
 #if DEBUG
-            RouteMatchInfo<IControllerFactory> r = Factory;
-            if (r != null)
+            RouteMatchInfo<IControllerFactory> f = Factory;
+            if (f != null)
             {
-                Debug.Assert(r.Pattern == pattern);
-                Debug.Assert(path.StartsWith(r.Path));
+                Debug.Assert(f.Pattern == pattern);
+                Debug.Assert(f.Path == match);
+                Debug.Assert(path.StartsWith(match));
             }
 #endif
-            string match = path.Substring(0, pattern.Length);
-            Path = path.Substring(pattern.Length);
+            Path = path.Substring(match.Length);
             Controller = new RouteMatchInfo<IController>(pattern, match, controller);
         }
 
@@ -220,5 +259,14 @@ namespace NewLife.Mvc
         /// 相关的处理对象,一般是IController,IControllerFactory,IRouteConfigMoudule
         /// </summary>
         public T RelatedObject { get; set; }
+
+        /// <summary>
+        /// 重载
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return string.Format("RouteMatchInfo<{0}> {2}({1}) -> {3}", typeof(T).Name, Path, Pattern, RelatedObject);
+        }
     }
 }

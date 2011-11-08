@@ -22,6 +22,7 @@
         <a href="Test">TestController</a>
         <a href="Test1">TestController1</a>
         <a href="Test2">TestController2</a>
+        <hr/>
         <img src="static.bmp" />
     </div>
 </body>

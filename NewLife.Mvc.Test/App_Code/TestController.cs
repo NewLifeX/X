@@ -23,15 +23,13 @@ public class TestController : GenericController, IController
     public void Info()
     {
         RouteContext c = RouteContext.Current;
-        Response.Write(string.Format(@"
-<pre>
+        Response.Write("<pre>" + Server.HtmlEncode(string.Format(@"
 NewLife.Mvc.RouteContext.Current.RoutePath : {0}
 NewLife.Mvc.RouteContext.Current.Module : {1}
-NewLife.Mvc.RouteContext.Current.Factory.ToString() : {2}
-NewLife.Mvc.RouteContext.Current.Controller.ToString() : {3}
+NewLife.Mvc.RouteContext.Current.Factory : {2}
+NewLife.Mvc.RouteContext.Current.Controller : {3}
 NewLife.Mvc.RouteContext.Current.Path : {4}
-</pre>
-    ", c.RoutePath, c.Module ?? null, c.Factory ?? null, c.Controller ?? null, c.Path));
+", c.RoutePath, c.Module ?? null, c.Factory ?? null, c.Controller ?? null, c.Path)) + "</pre>");
     }
 
     private string _world;

@@ -53,9 +53,9 @@ namespace NewLife.Mvc
         /// <typeparam name="T"></typeparam>
         /// <param name="path"></param>
         /// <returns></returns>
-        public RouteConfigManager RouteToModule<T>(string path) where T : IRouteConfigMoudule, new()
+        public RouteConfigManager RouteToModule<T>(string path) where T : IRouteConfigModule, new()
         {
-            return Route(path, typeof(T), typeof(IRouteConfigMoudule));
+            return Route(path, typeof(T), typeof(IRouteConfigModule));
         }
 
         /// <summary>
@@ -89,6 +89,7 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public RouteConfigManager Route(string path, Type type, params object[] args)
         {
+            // TODO 
             Route(path, type, typeof(object));
             int n = args.Length & ~1;
 
@@ -120,7 +121,16 @@ namespace NewLife.Mvc
         internal virtual RouteConfigManager Route(string path, Type type, Type ruleType, Action<Rule> onCreatedRule = null)
         {
             if (rules == null) rules = new List<Rule>();
-            Rule r = Rule.Create(path, type, ruleType);
+            Rule r = null;
+            try
+            {
+                r = Rule.Create(path, type, ruleType);
+            }
+            catch (RouteConfigException ex)
+            {
+                ex.RoutePath = path;
+                throw;
+            }
             if (onCreatedRule != null) onCreatedRule(r);
             rules.Add(r);
             return this;
@@ -131,10 +141,18 @@ namespace NewLife.Mvc
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        internal IRouteConfigMoudule Load(Type type)
+        internal IRouteConfigModule Load(Type type)
         {
-            IRouteConfigMoudule cfg = TypeX.CreateInstance(type) as IRouteConfigMoudule;
-            cfg.Config(this);
+            IRouteConfigModule cfg = TypeX.CreateInstance(type) as IRouteConfigModule;
+            try
+            {
+                cfg.Config(this);
+            }
+            catch (RouteConfigException ex)
+            {
+                ex.Module = cfg;
+                throw;
+            }
             return cfg;
         }
 
@@ -178,8 +196,7 @@ namespace NewLife.Mvc
         /// </summary>
         /// <param name="message"></param>
         public RouteConfigException(string message)
-        {
-        }
+            : base(message) { }
 
         /// <summary>
         /// 构造方法
@@ -187,7 +204,19 @@ namespace NewLife.Mvc
         /// <param name="message"></param>
         /// <param name="paramName"></param>
         public RouteConfigException(string message, string paramName)
+            : base(message, paramName) { }
+
+        /// <summary>
+        /// 路由配置异常消息
+        /// </summary>
+        public override string Message
         {
+            get
+            {
+                return string.Format("在路由配置 {0} 中的 {1} 路由项配置发生异常:{2}", Module != null ? Module.GetType().AssemblyQualifiedName : "", RoutePath, base.Message);
+            }
         }
+        internal IRouteConfigModule Module { get; set; }
+        internal string RoutePath { get; set; }
     }
 }

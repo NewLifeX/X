@@ -24,22 +24,15 @@ namespace NewLife.Mvc
             }
             set
             {
-                int n = value.Length;
-                bool f1 = false, f2 = false;
-                if (n >= 1)
+                IsCompleteMatch = false;
+                if (value != null)
                 {
-                    f1 = value[n - 1] == '$';
-                    if (n >= 2)
+                    if (value.EndsWith("$") && !value.EndsWith("$$"))
                     {
-                        f2 = value[n - 2] == '$';
+                        IsCompleteMatch = true;
                     }
                 }
-                if (f1 && f2 || f1)
-                {
-                    value = value.Substring(0, n - 1);
-                    IsCompleteMatch = f1 != f2;
-                }
-                _Path = value != "" ? value : "/";
+                _Path = value;
             }
         }
 
@@ -68,7 +61,7 @@ namespace NewLife.Mvc
                             _RuleTypeList[0] = new List<RuleType>();
                             _RuleTypeList[0].Add(RuleType.Create<IController>(() => new Rule()));
                             _RuleTypeList[0].Add(RuleType.Create<IControllerFactory>(() => new FactoryRule()));
-                            _RuleTypeList[0].Add(RuleType.Create<IRouteConfigMoudule>(() => new ModuleRule()));
+                            _RuleTypeList[0].Add(RuleType.Create<IRouteConfigModule>(() => new ModuleRule()));
                         }
                     }
                 }
@@ -139,12 +132,13 @@ namespace NewLife.Mvc
         /// <returns></returns>
         internal virtual IController GetRouteHandler(string path)
         {
-            if (IsMatch(path))
+            string match;
+            if (TryMatch(path, out match))
             {
                 IController c = TypeX.CreateInstance(Type) as IController;
                 if (c != null)
                 {
-                    RouteContext.Current.EnterController(Path, path, c);
+                    RouteContext.Current.EnterController(Path, match, path, c);
                     return c;
                 }
             }
@@ -155,12 +149,29 @@ namespace NewLife.Mvc
         /// 使用当前路由规则的路径匹配指定的路径,返回是否匹配
         /// </summary>
         /// <param name="path"></param>
+        /// <param name="match">返回匹配到的路径</param>
         /// <returns></returns>
-        internal bool IsMatch(string path)
+        internal virtual bool TryMatch(string path, out string match)
         {
-            return IsCompleteMatch ?
-                String.Equals(path, Path, StringComparison.OrdinalIgnoreCase) :
-                path.StartsWith(Path, StringComparison.OrdinalIgnoreCase);
+            bool ret;
+            match = null;
+            if (IsCompleteMatch)
+            {
+                ret = Path.Length - 1 == path.Length && Path.StartsWith(path, StringComparison.OrdinalIgnoreCase); // 因为IsCompleteMatch时Path末尾包含一个$符号
+                if (ret)
+                {
+                    match = path;
+                }
+            }
+            else
+            {
+                ret = path.StartsWith(Path, StringComparison.OrdinalIgnoreCase);
+                if (ret)
+                {
+                    match = path.Substring(0, Path.Length);
+                }
+            }
+            return ret;
         }
 
         #endregion 获取路由的目标,普通类型的将直接返回控制器
@@ -171,7 +182,7 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public override string ToString()
         {
-            return "{" + GetType().Name + "} " + Path + " " + Type.ToString();
+            return string.Format("{0} {1} -> {2}", GetType().Name, Path, Type.ToString());
         }
     }
 
@@ -217,10 +228,11 @@ namespace NewLife.Mvc
 
         internal override IController GetRouteHandler(string path)
         {
-            if (base.IsMatch(path))
+            string match;
+            if (base.TryMatch(path, out match))
             {
                 RouteContext rctx = RouteContext.Current;
-                rctx.EnterFactory(Path, path, Factory);
+                rctx.EnterFactory(Path, match, path, Factory);
                 IController c = null;
                 try
                 {
@@ -229,7 +241,7 @@ namespace NewLife.Mvc
                         c = Factory.Create();
                         if (c != null)
                         {
-                            rctx.EnterController(Path, path, c);
+                            rctx.EnterController(Path, match, path, c);
                             return c;
                         }
                     }
@@ -238,11 +250,20 @@ namespace NewLife.Mvc
                 {
                     if (c == null)
                     {
-                        rctx.ExitFactory(Path, path, Factory);
+                        rctx.ExitFactory(Path, match, path, Factory);
                     }
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// 重写
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return string.Format("{0} {1} -> {2}", GetType().Name, Path, Factory.GetType().ToString());
         }
     }
 
@@ -251,12 +272,12 @@ namespace NewLife.Mvc
     /// </summary>
     internal class ModuleRule : Rule
     {
-        IRouteConfigMoudule _Module;
+        IRouteConfigModule _Module;
 
         /// <summary>
         /// 当前模块路由规则对应的模块
         /// </summary>
-        private IRouteConfigMoudule Module
+        private IRouteConfigModule Module
         {
             get
             {
@@ -299,10 +320,11 @@ namespace NewLife.Mvc
 
         internal override IController GetRouteHandler(string path)
         {
-            if (base.IsMatch(path))
+            string match;
+            if (base.TryMatch(path, out match))
             {
                 RouteContext rctx = RouteContext.Current;
-                rctx.EnterModule(Path, path, Module);
+                rctx.EnterModule(Path, match, path, Module);
                 IController r = null;
                 try
                 {
@@ -313,7 +335,7 @@ namespace NewLife.Mvc
                 {
                     if (r == null)
                     {
-                        rctx.ExitModule(Path, path, Module);
+                        rctx.ExitModule(Path, match, path, Module);
                     }
                 }
                 return r;

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Web;
 using System.Web.SessionState;
+using NewLife.Configuration;
+using NewLife.Log;
 
 namespace NewLife.Mvc
 {
@@ -76,11 +78,66 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
             HttpApplication app = sender as HttpApplication;
             RouteContext.Current = new RouteContext(app); // 每次请求前重置路由上下文
             string path = RouteContext.Current.RoutePath;
-            IController c = RootConfig.GetRouteHandler(path);
+            IController c = null;
+            try
+            {
+                c = RootConfig.GetRouteHandler(path);
+            }
+            catch (Exception ex)
+            {
+                if (TryLogExceptionIfNonDebug(app.Response, ex, "发生路由错误"))
+                {
+                    app.CompleteRequest();
+                }
+                else
+                {
+                    throw;
+                }
+            }
             if (c != null)
             {
                 app.Context.RemapHandler(HttpHandlerWrap.Create(c));
                 return;
+            }
+        }
+
+        /// <summary>
+        /// 尝试将指定的异常信息写入到日志,如果当前是非Debug模式,Debug开关是NewLife.Mvc.Route.Debug配置项
+        /// 
+        /// 返回是否已写入,非Debug模式会返回true
+        /// </summary>
+        /// <param name="resp"></param>
+        /// <param name="ex"></param>
+        /// <param name="exceptName"></param>
+        /// <returns></returns>
+        public static bool TryLogExceptionIfNonDebug(HttpResponse resp, Exception ex, string exceptName)
+        {
+            if (!Debug)
+            {
+                string logId = Guid.NewGuid().ToString();
+                XTrace.WriteLine("{2} {0}\r\n{1}", logId, ex, exceptName);
+                resp.Clear();
+                resp.ContentType = "text/plain";
+                resp.Write(string.Format("{2},异常日志: {1} {0}", logId, DateTime.Now, exceptName));
+                return true;
+            }
+            return false;
+        }
+
+        private static bool? _Debug;
+
+        /// <summary>
+        /// 控制器路由调试开关,打开将会在路由和控制器执行期间发生异常时输出详细的异常信息,默认为false
+        /// </summary>
+        public static bool Debug
+        {
+            get
+            {
+                if (_Debug == null)
+                {
+                    _Debug = Config.GetConfig<bool>("NewLife.Mvc.Route.Debug", false);
+                }
+                return _Debug.Value;
             }
         }
     }
@@ -104,8 +161,20 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
 
         public void ProcessRequest(HttpContext context)
         {
-            // TODO 考虑拦截异常,提供运行时和生产时的开关控制产生不同的异常报告以针对不同的用户
-            Controller.Execute();
+            try
+            {
+                Controller.Execute();
+            }
+            catch (Exception ex)
+            {
+                if (Route.TryLogExceptionIfNonDebug(context.Response, ex, "控制器运行时发生错误"))
+                {
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
         /// <summary>
@@ -128,17 +197,19 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
                 return new HttpHandlerWrap(controller);
             }
         }
+
         /// <summary>
         /// 提供只读访问HttpSession的HttpHandlerWrap子类
         /// </summary>
-        class ReadOnlySession : HttpHandlerWrap, IReadOnlySessionState
+        private class ReadOnlySession : HttpHandlerWrap, IReadOnlySessionState
         {
             public ReadOnlySession(IController controller) : base(controller) { }
         }
+
         /// <summary>
         /// 提供读写访问HttpSession的HttpHandlerWrap子类
         /// </summary>
-        class ReadWriteSession : HttpHandlerWrap, IRequiresSessionState
+        private class ReadWriteSession : HttpHandlerWrap, IRequiresSessionState
         {
             public ReadWriteSession(IController controller) : base(controller) { }
         }
