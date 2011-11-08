@@ -8,7 +8,7 @@ using NewLife.Reflection;
 namespace System.Linq
 {
     /// <summary>提供一组用于查询实现 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 的对象的 static（在 Visual Basic 中为 Shared）方法。</summary>
-    public static class Enumerable
+    public static partial class Enumerable
     {
         #region 内部类
         private abstract class Iterator<TSource> : IEnumerable<TSource>, IEnumerable, IEnumerator<TSource>, IDisposable, IEnumerator

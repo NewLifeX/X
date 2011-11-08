@@ -111,11 +111,13 @@
     <Compile Include="Collections\Triplet.cs" />
     <Compile Include="Collections\WeakRefDictionary.cs" />
     <Compile Include="Common\Runtime.cs" />
+    <Compile Include="Reflection\Action.cs" />
     <Compile Include="Extension\EnumHelper.cs" />
     <Compile Include="Extension\Linq\Buffer.cs" />
     <Compile Include="Extension\Linq\EmptyEnumerable.cs" />
     <Compile Include="Extension\Linq\Enumerable.cs" />
     <Compile Include="Extension\Linq\EnumerableSorter.cs" />
+    <Compile Include="Extension\Linq\Enumerable_2.cs" />
     <Compile Include="Extension\Linq\ExtensionAttribute.cs" />
     <Compile Include="Extension\Linq\GroupedEnumerable.cs" />
     <Compile Include="Extension\Linq\IdentityFunction.cs" />
