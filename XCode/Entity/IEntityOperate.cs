@@ -148,6 +148,30 @@ namespace XCode
         IEntityList FindAllByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows);
         #endregion
 
+        #region 缓存查询
+        /// <summary>
+        /// 根据属性以及对应的值，在缓存中查找单个实体
+        /// </summary>
+        /// <param name="name">属性名称</param>
+        /// <param name="value">属性值</param>
+        /// <returns></returns>
+        IEntity FindWithCache(String name, Object value);
+
+        /// <summary>
+        /// 查找所有缓存
+        /// </summary>
+        /// <returns></returns>
+        IEntityList FindAllWithCache();
+
+        /// <summary>
+        /// 根据属性以及对应的值，在缓存中获取所有实体对象
+        /// </summary>
+        /// <param name="name">属性</param>
+        /// <param name="value">值</param>
+        /// <returns>实体数组</returns>
+        IEntityList FindAllWithCache(String name, Object value);
+        #endregion
+
         #region 取总记录数
         /// <summary>
         /// 返回总记录数

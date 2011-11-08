@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.2.*")]
-[assembly: AssemblyFileVersion("8.2.2011.1107")]
+[assembly: AssemblyFileVersion("8.2.2011.1108")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.2.2011.1108   IEntityOperate增加缓存查询
+ * 
  * v8.2.2011.1107   给IEntityOperate.Create和Entity.CreateInstance加上默认参数forEdit，表示是否为了编辑(FindByKeyForEdit)而创建，默认为false
  *                  实体类可重写Entity.CreateInstance，根据参数forEdit，对为了在界面上新增而创建的实体进行初始化
  * 
