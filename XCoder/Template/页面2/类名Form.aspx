@@ -1,6 +1,6 @@
-﻿<%@ Page Language="C#" MasterPageFile="~/Admin/Main.master" AutoEventWireup="true" CodeFile="<#=Table.Alias#>Form.aspx.cs" Inherits="<#=Config.NameSpace.Replace(".", "_")+"_"+Table.Alias#>Form" Title="<#=Table.Description#>管理"%>
+﻿<%@ Page Title="<#=Table.Description#>管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="<#=Table.Alias#>Form.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Alias#>Form"%>
 
-<asp:Content ID="C" runat="server" ContentPlaceHolderID="C">
+<asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
     <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
         <tr>
             <th colspan="2"><#=Table.Description#></th>

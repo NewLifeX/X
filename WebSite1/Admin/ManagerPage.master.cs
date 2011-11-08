@@ -2,12 +2,20 @@
 using NewLife.Reflection;
 using System.Web.UI.HtmlControls;
 
-public partial class Master_Main : System.Web.UI.MasterPage
+public partial class ManagerPage : System.Web.UI.MasterPage
 {
     protected void Page_Load(object sender, EventArgs e)
     {
-        PropertyInfoX pix = PropertyInfoX.Create(Page.GetType(), "Navigation");
-        if (pix != null) Navigation.Text = (String)pix.GetValue(Page);
+        FieldInfoX fix = FieldInfoX.Create(Page.GetType(), "Manager");
+        if (fix != null)
+        {
+            Object manager = fix.GetValue(Page);
+            if (manager != null)
+            {
+                PropertyInfoX pix = PropertyInfoX.Create(manager.GetType(), "Navigation");
+                if (pix != null) Navigation.Text = (String)pix.GetValue(manager);
+            }
+        }
 
         Page.ClientScript.RegisterClientScriptInclude("jquery", ResolveUrl("~/Scripts/jquery-1.4.1.min.js"));
         Page.ClientScript.RegisterClientScriptInclude("adminstyle", ResolveUrl("~/Scripts/adminstyle.js"));

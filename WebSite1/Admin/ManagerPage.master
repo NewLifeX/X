@@ -1,4 +1,4 @@
-﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="Main.master.cs" Inherits="Master_Main" %>
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="ManagerPage.master.cs" Inherits="ManagerPage" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -10,7 +10,7 @@
 <body>
     <form id="form1" runat="server">
     <div class="toolbar">
-        <img src="<%= ResolveUrl("~/Admin/images/tb.gif") %>" width="16" height="16" />
+        <img src="<%= ResolveUrl("~/Admin/images/tb.gif") %>" width="16" height="16" alt="" />
         你当前的位置：<asp:Literal ID="Navigation" runat="server"></asp:Literal>
     </div>
     <asp:ContentPlaceHolder ID="C" runat="server">

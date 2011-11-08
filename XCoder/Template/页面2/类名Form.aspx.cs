@@ -6,7 +6,7 @@ using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 using <#=Config.NameSpace#>;
 
-public partial class <#=Config.NameSpace.Replace(".", "_")+"_"+Table.Alias#>Form : MyEntityForm
+public partial class <#=Config.EntityConnName+"_"+Table.Alias#>Form : MyEntityForm
 {
     /// <summary>实体类型</summary>
     public override Type EntityType { get { return typeof(<#=Table.Alias#>); } set { base.EntityType = value; } }

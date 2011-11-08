@@ -1,6 +1,6 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="<#=Table.Alias#>.aspx.cs" Inherits="<#=Config.NameSpace.Replace(".", "_")+"_"+Table.Alias#>" MasterPageFile="~/Admin/Main.master" Title="<#=Table.Description#>管理" %>
+﻿<%@ Page Title="<#=Table.Description#>管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="<#=Table.Alias#>.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Alias#>" %>
 
-<asp:Content ID="C" runat="server" ContentPlaceHolderID="C">
+<asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
     <#
 // 表单页面，普通行行高
 Int32 LineHeight=27;
