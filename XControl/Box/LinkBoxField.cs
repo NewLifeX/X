@@ -259,6 +259,8 @@ namespace XControl
 BeforeShow:function(){{GridViewExtender.HighlightRow(ele,'{0}',true);}},
 AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
 ", color);
+                    // 使用到GridViewExtender的地方引入相关的js
+                    Control.Page.ClientScript.RegisterClientScriptResource(typeof(GridViewExtender), "XControl.View.GridViewExtender.js");
                 }
                 if (this.Control is GridView)
                 {
@@ -299,8 +301,6 @@ AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
     return false;
 }}
 ", jsFuncName, showJs, moreJs, XTrace.Debug ? "alert(ex);" : ""), true);
-
-                Control.Page.ClientScript.RegisterClientScriptResource(GetType(), "XControl.View.GridViewExtender.js");
             }
 
             OnClientClick = Helper.HTMLPropertyEscape(@"return {0}(this,event,'{1}','{2}',{3},'{4}','{5}',{6});",

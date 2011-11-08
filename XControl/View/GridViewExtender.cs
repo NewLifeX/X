@@ -313,8 +313,8 @@ e.ClickElement('a',function(i){{
 
             if (EventMapOptions != "{}")
             {
-                Page.ClientScript.RegisterClientScriptResource(GetType(), "XControl.View.GridViewExtender.js");
-                Page.ClientScript.RegisterStartupScript(GetType(), "InitGridView" + gv.ClientID, Helper.JsMinSimple(@"
+                Page.ClientScript.RegisterClientScriptResource(typeof(GridViewExtender), "XControl.View.GridViewExtender.js");
+                Page.ClientScript.RegisterStartupScript(typeof(GridViewExtender), "InitGridView" + gv.ClientID, Helper.JsMinSimple(@"
 ;(function(e){{
     e.ExtendDataRow('{0}', {{
             EventMap:{1}
