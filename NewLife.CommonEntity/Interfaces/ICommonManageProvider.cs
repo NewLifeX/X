@@ -68,12 +68,15 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         IEntityForm CreateForm(Control container, Type entityType);
         #endregion
+
+        #region 菜单
+        /// <summary>菜单根</summary>
+        IMenu MenuRoot { get; }
+        #endregion
     }
 
     /// <summary>通用实体类管理提供者</summary>
-    public class CommonManageProvider : CommonManageProvider<Administrator>
-    {
-    }
+    public class CommonManageProvider : CommonManageProvider<Administrator> { }
 
     /// <summary>通用实体类管理提供者</summary>
     /// <typeparam name="TAdministrator">管理员类</typeparam>
@@ -223,6 +226,11 @@ namespace NewLife.CommonEntity
 
             return form;
         }
+        #endregion
+
+        #region 菜单
+        /// <summary>菜单根</summary>
+        IMenu ICommonManageProvider.MenuRoot { get { return Menu.Root; } }
         #endregion
     }
 }

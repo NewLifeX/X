@@ -10,6 +10,7 @@ using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode;
+using System.Linq;
 
 namespace NewLife.CommonEntity
 {
@@ -668,6 +669,23 @@ namespace NewLife.CommonEntity
 
             return GetFullPath(includeSelf, separator, d);
         }
+
+        /// <summary>
+        /// 检查菜单名称，修改为新名称。返回自身，支持链式写法
+        /// </summary>
+        /// <param name="oldName"></param>
+        /// <param name="newName"></param>
+        IMenu IMenu.CheckMenuName(String oldName, String newName)
+        {
+            IMenu menu = AllChilds.Find(_.Name, oldName);
+            if (menu != null && menu.Name != newName)
+            {
+                menu.Name = menu.Permission = newName;
+                (menu as IEntity).Save();
+            }
+
+            return this;
+        }
         #endregion
     }
 
@@ -681,5 +699,12 @@ namespace NewLife.CommonEntity
         /// <param name="func">回调</param>
         /// <returns></returns>
         String GetFullPath(Boolean includeSelf, String separator, Func<IMenu, String> func);
+
+        /// <summary>
+        /// 检查菜单名称，修改为新名称。返回自身，支持链式写法
+        /// </summary>
+        /// <param name="oldName"></param>
+        /// <param name="newName"></param>
+        IMenu CheckMenuName(String oldName, String newName);
     }
 }
