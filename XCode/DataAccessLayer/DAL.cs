@@ -390,6 +390,8 @@ namespace XCode.DataAccessLayer
                             if (NegativeExclude.Contains(list[i].Name)) list.RemoveAt(i);
                         }
                     }
+                    // 过滤掉视图
+                    list.RemoveAll(dt => dt.IsView);
                     if (list != null && list.Count > 0)
                     {
                         WriteLog(ConnName + "实体个数：" + list.Count);
