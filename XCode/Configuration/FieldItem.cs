@@ -196,6 +196,12 @@ namespace XCode.Configuration
                 xf.Scale = _Column.Scale;
                 xf.IsUnicode = _Column.IsUnicode;
                 xf.Default = _Column.DefaultValue;
+
+                // 特别处理，兼容旧版本
+                if (xf.DataType == typeof(Decimal))
+                {
+                    if (xf.Precision == 0) xf.Precision = 18;
+                }
             }
             if (_DataObjectField != null)
             {

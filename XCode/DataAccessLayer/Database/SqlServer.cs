@@ -490,6 +490,13 @@ namespace XCode.DataAccessLayer
             if (field.DataType == typeof(String) && pi == "-1" && IsSQL2005) return "MAX";
             return pi;
         }
+
+        protected override string GetFieldDefault(IDataColumn field, bool onlyDefine)
+        {
+            if (!onlyDefine) return null;
+
+            return base.GetFieldDefault(field, onlyDefine);
+        }
         #endregion
 
         #region 取得字段信息的SQL模版
