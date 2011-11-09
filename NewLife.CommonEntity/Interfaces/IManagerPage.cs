@@ -320,9 +320,9 @@ namespace NewLife.CommonEntity
                 ods.EnablePaging = true;
                 if (String.IsNullOrEmpty(ods.SelectCountMethod)) ods.SelectCountMethod = "SearchCount";
                 if (String.IsNullOrEmpty(ods.SortParameterName)) ods.SortParameterName = "orderClause";
-                if (String.IsNullOrEmpty(ods.UpdateMethod)) ods.UpdateMethod = "Update";
-                if (String.IsNullOrEmpty(ods.DeleteMethod)) ods.DeleteMethod = "Delete";
             }
+            if (String.IsNullOrEmpty(ods.UpdateMethod)) ods.UpdateMethod = "Update";
+            if (String.IsNullOrEmpty(ods.DeleteMethod)) ods.DeleteMethod = "Delete";
         }
         #endregion
     }
