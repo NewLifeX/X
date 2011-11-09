@@ -5,7 +5,7 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="toolbar">
         <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="400px" BoxWidth="370px" Url="MenuForm.aspx"
-            IconLeft="../images/icons/icon005a2.gif" EnableViewState="False"><b>添加菜单</b></XCL:LinkBox>
+            IconLeft="~/Admin/images/icons/new.gif" EnableViewState="False"><b>添加菜单</b></XCL:LinkBox>
         <asp:Label ID="Label_Info" runat="server" ForeColor="Red"></asp:Label>
         &nbsp;&nbsp;&nbsp;<asp:Button ID="Button2" runat="server" Text="导出" OnClick="Button2_Click" />
         &nbsp;&nbsp;&nbsp;

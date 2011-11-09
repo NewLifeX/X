@@ -12,7 +12,7 @@
         &nbsp;<asp:Button ID="Button1" runat="server" Text="查询" />
         <asp:Label ID="Label_Info" runat="server" ForeColor="#FF3300"></asp:Label>
         <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="370px" BoxWidth="440px" Url="AdminForm.aspx"
-            IconLeft="../images/icons/icon005a2.gif"><b>添加管理员</b></XCL:LinkBox>
+            IconLeft="~/Admin/images/icons/new.gif"><b>添加管理员</b></XCL:LinkBox>
     </div>
     <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
         DataSourceID="ods" CssClass="m_table" CellPadding="0" GridLines="None"

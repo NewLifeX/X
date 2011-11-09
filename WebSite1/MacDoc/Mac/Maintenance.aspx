@@ -4,7 +4,7 @@
 <asp:Content ContentPlaceHolderID="ContentPlaceHolder1" runat="server" ID="content1">
     <div>
         <div class="toolbar">
-            <XCL:LinkBox ID="Button2" runat="server" Url="MaintenanceForm.aspx" IconLeft="../images/icons/icon005a2.gif"
+            <XCL:LinkBox ID="Button2" runat="server" Url="MaintenanceForm.aspx" IconLeft="~/Admin/images/icons/new.gif"
                 BoxWidth="440px" BoxHeight="535px"><b>添加维修保养记录</b></XCL:LinkBox>&nbsp; 客户：<asp:TextBox
                     ID="TextBox1" runat="server"></asp:TextBox>&nbsp; 机器名称：<asp:TextBox ID="txtNo" runat="server"></asp:TextBox>&nbsp;
             <asp:Button ID="Button1" runat="server" Text="查询" />

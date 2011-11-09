@@ -5,7 +5,7 @@
     <div>
         <div class="toolbar">
             <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="370px" BoxWidth="440px" Url="CustomerTypeForm.aspx"
-                IconLeft="../images/icons/icon005a2.gif"><b>添加客户类型</b></XCL:LinkBox>
+                IconLeft="~/Admin/images/icons/new.gif"><b>添加客户类型</b></XCL:LinkBox>
         </div>
         <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
             AllowPaging="True" AllowSorting="True" CssClass="m_table" CellPadding="0" GridLines="None"

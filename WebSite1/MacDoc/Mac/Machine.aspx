@@ -4,7 +4,7 @@
 <asp:Content ID="content1" runat="server" ContentPlaceHolderID="ContentPlaceHolder1">
     <div>
         <div class="toolbar">
-            <XCL:LinkBox ID="Button2" runat="server" Url="MachineForm.aspx" IconLeft="../images/icons/icon005a2.gif"
+            <XCL:LinkBox ID="Button2" runat="server" Url="MachineForm.aspx" IconLeft="~/Admin/images/icons/new.gif"
                 BoxWidth="720px" BoxHeight="500px"><b>添加机器零件规格</b></XCL:LinkBox>
             名称：<asp:TextBox ID="txtName" runat="server"></asp:TextBox>&nbsp;客户：<asp:TextBox ID="txtcustomer"
                 runat="server"></asp:TextBox>&nbsp;

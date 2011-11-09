@@ -4,7 +4,7 @@
 <asp:Content ID="content1" runat="server" ContentPlaceHolderID="ContentPlaceHolder1">
     <div>
         <div class="toolbar">
-            <XCL:LinkBox ID="Button2" runat="server" Url="RecordForm.aspx" IconLeft="../images/icons/icon005a2.gif"
+            <XCL:LinkBox ID="Button2" runat="server" Url="RecordForm.aspx" IconLeft="~/Admin/images/icons/new.gif"
                 BoxWidth="520px" BoxHeight="280px"><b>添加交易记录</b></XCL:LinkBox>
             机器名称：<asp:TextBox ID="txtName" runat="server"></asp:TextBox>&nbsp;客户：<asp:TextBox
                 ID="txtcustomer" runat="server"></asp:TextBox>&nbsp;

@@ -4,7 +4,7 @@
 <asp:Content ID="content1" runat="server" ContentPlaceHolderID="ContentPlaceHolder1">
     <div>
         <div class="toolbar">
-            <XCL:LinkBox ID="Button2" runat="server" Url="CustomerForm.aspx" IconLeft="../images/icons/icon005a2.gif"
+            <XCL:LinkBox ID="Button2" runat="server" Url="CustomerForm.aspx" IconLeft="~/Admin/images/icons/new.gif"
                 BoxWidth="440px" BoxHeight="530px"><b>添加客户</b></XCL:LinkBox>
             关键字：<asp:TextBox ID="txtName" runat="server"></asp:TextBox>
             <asp:Button ID="Button1" runat="server" Text="查询" />

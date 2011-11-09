@@ -4,7 +4,7 @@
 <asp:Content ID="content1" runat="server" ContentPlaceHolderID="ContentPlaceHolder1">
     <div>
         <div class="toolbar">
-            <XCL:LinkBox ID="Button2" runat="server" Url="FeedliquorForm.aspx" IconLeft="../images/icons/icon005a2.gif"
+            <XCL:LinkBox ID="Button2" runat="server" Url="FeedliquorForm.aspx" IconLeft="~/Admin/images/icons/new.gif"
                 BoxWidth="1020px" BoxHeight="500px"><b>添加液料规格</b></XCL:LinkBox>&nbsp; 客户：<asp:TextBox
                     ID="txtName" runat="server"></asp:TextBox>
             胶水组别：<asp:TextBox ID="TextBox1" runat="server"></asp:TextBox>&nbsp;
