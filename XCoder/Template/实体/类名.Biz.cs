@@ -12,9 +12,9 @@ namespace <#=Config.NameSpace#>
 {<#if(Config.RenderGenEntity){#>
     /// <summary><#=Table.Description#></summary>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class <#=Table.Alias#> : <#=Table.Alias#><<#=Table.Alias#>> { }<#
+    public class <#=Table.Alias#> : <#=Table.Alias#><<#=Table.Alias#>> { }
+    <#
 }#>
-
     /// <summary><#=Table.Description#></summary><#
 if(!Config.RenderGenEntity){#>
     public partial class <#=Table.Alias#> : <#=Config.BaseClass#><<#=Table.Alias#>><#

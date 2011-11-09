@@ -142,6 +142,10 @@ namespace XCode.DataAccessLayer
                 _connTypes.Add(connName, type);
             }
         }
+
+        /// <summary>获取所有已注册的连接名</summary>
+        /// <returns></returns>
+        public static IEnumerable<String> GetNames() { return ConnStrs.Keys; }
         #endregion
 
         #region 属性
