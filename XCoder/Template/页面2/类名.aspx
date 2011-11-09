@@ -19,7 +19,7 @@ foreach(IDataColumn Field in Table.Columns){
 }
 #><div class="toolbar">
         <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="<#=boxHeight#>px" BoxWidth="440px" Url="<#=Table.Alias#>Form.aspx"
-            IconLeft="../images/icons/icon005a2.gif"><b>添加<#=Table.Description#></b></XCL:LinkBox>
+            IconLeft="~/Admin/images/icons/new.gif"><b>添加<#=Table.Description#></b></XCL:LinkBox>
         关键字：<asp:TextBox ID="txtKey" runat="server"></asp:TextBox>
         <asp:Button ID="btnSearch" runat="server" Text="查询" />
     </div><#
