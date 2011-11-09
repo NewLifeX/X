@@ -40,6 +40,16 @@ namespace NewLife.Mvc
         /// <summary>
         /// 使用指定的参数产生模版中使用的数据
         /// </summary>
+        /// <example>
+        /// 一般用法:
+        /// <code>
+        /// Data(
+        ///     "keyname1", "value1", // 第一个必须是字符串
+        ///     "keyname2", "value2",
+        ///     "" // 会忽略没有成对出现的
+        /// );
+        /// </code>
+        /// </example>
         /// <param name="args"></param>
         /// <returns></returns>
         public virtual IDictionary<string, object> Data(params object[] args)
@@ -48,8 +58,17 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
-        /// 向指定模版数据添加额外的,如果参数data为null会自动创建一个新的data,返回附加了数据的data
+        /// 向指定模版数据添加额外的,如果参数data为null会自动创建一个新的data,返回添加了数据的data
         /// </summary>
+        /// <example>
+        /// 一般用法:
+        /// <code>
+        /// Data(dict,
+        ///     "newkeyname1", "value1", // 如果dict中已经包含newkeyname1则会覆盖
+        ///     ""
+        /// );
+        /// </code>
+        /// </example>
         /// <param name="data"></param>
         /// <param name="args"></param>
         /// <returns></returns>
@@ -77,7 +96,7 @@ namespace NewLife.Mvc
         /// <summary>
         /// 使用指定模版生成页面
         /// </summary>
-        /// <param name="path"></param>
+        /// <param name="path">相对于模版路径的</param>
         /// <param name="data"></param>
         public virtual void Render(string path, IDictionary<string, object> data)
         {

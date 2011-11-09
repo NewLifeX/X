@@ -62,7 +62,7 @@ namespace NewLife.Mvc
         /// 指定路径路由到指定名称的类型,目标类型需要是IController,IControllerFactory,IRouteConfigMoudule其中之一
         /// </summary>
         /// <param name="path"></param>
-        /// <param name="type"></param>
+        /// <param name="type">目标类型的完整名称,包括名称空间和类名</param>
         /// <returns></returns>
         public RouteConfigManager Route(string path, string type)
         {
@@ -83,14 +83,21 @@ namespace NewLife.Mvc
         /// <summary>
         /// 指定多个路径路由到指定的目标,目标需要是IController,IControllerFactory,IRouteConfigMoudule其中之一
         /// </summary>
-        /// <param name="path"></param>
-        /// <param name="type"></param>
+        /// <example>
+        /// 一般用法:
+        /// <code>
+        /// Route(
+        ///     "/foo", typeof(foo),
+        ///     "/bar", "namespaceName.bar",
+        ///     "" // 会忽略末尾不是成对出现的参数
+        /// );
+        /// </code>
+        /// </example>
         /// <param name="args">多个路由规则,其中type可以是具体的Type或者字符串指定的类型名称</param>
         /// <returns></returns>
-        public RouteConfigManager Route(string path, Type type, params object[] args)
+        public RouteConfigManager Route(params object[] args)
         {
-            // TODO 
-            Route(path, type, typeof(object));
+            string path;
             int n = args.Length & ~1;
 
             for (int i = 0; i < n; i += 2)
@@ -99,9 +106,9 @@ namespace NewLife.Mvc
                 object t = args[i + 1];
                 if (t != null)
                 {
-                    if (t is string)
+                    if (t is string && !string.IsNullOrEmpty(t as string))
                     {
-                        t = TypeX.GetType(t as string);
+                        Route(path, t as string);
                     }
                     if (t is Type)
                     {
@@ -118,6 +125,14 @@ namespace NewLife.Mvc
 
         List<Rule> rules;
 
+        /// <summary>
+        /// 最终添加路由配置的方法,上面的公共方法都会调用到这里
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="type"></param>
+        /// <param name="ruleType">路由规则类型,未知类型使用null或者typeof(object)</param>
+        /// <param name="onCreatedRule">创建路由规则后的回调,参数中包含刚创建的路由规则</param>
+        /// <returns></returns>
         internal virtual RouteConfigManager Route(string path, Type type, Type ruleType, Action<Rule> onCreatedRule = null)
         {
             if (rules == null) rules = new List<Rule>();
@@ -213,10 +228,12 @@ namespace NewLife.Mvc
         {
             get
             {
-                return string.Format("在路由配置 {0} 中的 {1} 路由项配置发生异常:{2}", Module != null ? Module.GetType().AssemblyQualifiedName : "", RoutePath, base.Message);
+                return string.Format("在路由配置 {0} 中的 {1} 路由项配置发生异常: {2}", Module != null ? Module.GetType().AssemblyQualifiedName : "", RoutePath, base.Message);
             }
         }
+
         internal IRouteConfigModule Module { get; set; }
+
         internal string RoutePath { get; set; }
     }
 }

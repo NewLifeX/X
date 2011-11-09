@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Web;
 using NewLife.Configuration;
 
 namespace NewLife.Mvc
@@ -74,7 +73,7 @@ namespace NewLife.Mvc
             if (path.StartsWith("/")) path = path.Substring(1);
             if (path.StartsWith("~/")) path = path.Substring(2);
 
-            return Path.Combine(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, TempleteDir), path.TrimStart('/'));
+            return Path.GetFullPath(Path.Combine(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, TempleteDir), path.TrimStart('/')));
         }
 
         /// <summary>

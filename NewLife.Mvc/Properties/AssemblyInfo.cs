@@ -31,10 +31,16 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyFileVersion("1.0.2011.1101")]
+[assembly: AssemblyVersion("1.2.*")]
+[assembly: AssemblyFileVersion("1.2.2011.1109")]
 
 /*
+ * v1.2.2011.1109   实现Http请求路由到控制器
+ *                  提供路由配置接口和模块路由配置接口
+ *                  提供路由上下文对象以方便的访问当前路由的状态,以及从Url中获取信息
+ *                  路由及执行控制器时将根据需要对浏览者隐藏详细异常信息
+ *                  
+ * 
  * v1.0.2011.1101   创建组件。
  *                  支持Url路由到具体控制器，也支持Url路由到其它Url
  *                  提供控制器接口

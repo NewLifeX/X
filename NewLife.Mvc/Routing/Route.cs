@@ -103,7 +103,7 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
 
         /// <summary>
         /// 尝试将指定的异常信息写入到日志,如果当前是非Debug模式,Debug开关是NewLife.Mvc.Route.Debug配置项
-        /// 
+        ///
         /// 返回是否已写入,非Debug模式会返回true
         /// </summary>
         /// <param name="resp"></param>
@@ -117,8 +117,9 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
                 string logId = Guid.NewGuid().ToString();
                 XTrace.WriteLine("{2} {0}\r\n{1}", logId, ex, exceptName);
                 resp.Clear();
-                resp.ContentType = "text/plain";
-                resp.Write(string.Format("{2},异常日志: {1} {0}", logId, DateTime.Now, exceptName));
+                resp.StatusCode = 500;
+                resp.ContentType = "text/html";
+                resp.Write(string.Format(@"{2},异常日志标识: <code style='font-weight:bold;'>{1} {0}</code>", logId, DateTime.Now, exceptName));
                 return true;
             }
             return false;
@@ -167,7 +168,10 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
             }
             catch (Exception ex)
             {
-                if (Route.TryLogExceptionIfNonDebug(context.Response, ex, "控制器运行时发生错误"))
+                // TODO 是否需要从对象容器中取得处理对象来处理异常
+                Exception controllException = new Exception(string.Format("{0} {1}",
+                    context.Request.HttpMethod, context.Request.Url), ex);
+                if (Route.TryLogExceptionIfNonDebug(context.Response, controllException, "控制器运行时发生错误"))
                 {
                 }
                 else

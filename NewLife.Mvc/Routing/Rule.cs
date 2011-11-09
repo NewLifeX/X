@@ -69,6 +69,23 @@ namespace NewLife.Mvc
             }
         }
 
+        private static string _RuleTypeNames;
+
+        /// <summary>
+        /// RuleTypeList中所有规则类型名称,逗号分割的
+        /// </summary>
+        private static string RuleTypeNames
+        {
+            get
+            {
+                if (_RuleTypeNames == null)
+                {
+                    _RuleTypeNames = string.Join(",", RuleTypeList.ConvertAll<string>(a => a.Type.Name).ToArray());
+                }
+                return _RuleTypeNames;
+            }
+        }
+
         /// <summary>
         /// 路由规则类型,及其对应的创建方法
         /// </summary>
@@ -115,7 +132,10 @@ namespace NewLife.Mvc
                     break;
                 }
             }
-            if (r == null) throw new RouteConfigException("无效的路由目标类型");
+            if (r == null)
+            {
+                throw new RouteConfigException(string.Format("无效的路由目标类型,目标需要是{0}其中一种类型", RuleTypeNames));
+            }
             r.Path = path;
             r.Type = type;
             return r;
@@ -308,9 +328,10 @@ namespace NewLife.Mvc
                     {
                         if (_Config[0] == null)
                         {
-                            _Config[0] = new RouteConfigManager();
-                            Module = _Config[0].Load(Type);
-                            Config.SortConfigRule();
+                            RouteConfigManager cfg = new RouteConfigManager();
+                            Module = cfg.Load(Type);
+                            cfg.SortConfigRule();
+                            _Config[0] = cfg;
                         }
                     }
                 }
@@ -320,6 +341,7 @@ namespace NewLife.Mvc
 
         internal override IController GetRouteHandler(string path)
         {
+            // TODO 是否有必要在非调试模式时 不要延迟加载模块的路由配置 方便尽早发现路由配置问题
             string match;
             if (base.TryMatch(path, out match))
             {
