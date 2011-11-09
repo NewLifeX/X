@@ -13,10 +13,11 @@ public class Urls : IRouteConfig
     {
         cfg.Route<TestController>("/Test")
             .Route(
-                "/Module", typeof(TestModuleRoute),
                 "/Test1$", typeof(TestController1),
                 "/Test2", typeof(TestController2),
                 "/Factory1", typeof(TestFactory),
+                "/Error", typeof(TestError),
+                "/Module", typeof(TestModuleRoute),
                 ""
             );
     }

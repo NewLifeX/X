@@ -1,0 +1,67 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Mvc", "NewLife.Mvc\NewLife.Mvc.csproj", "{E50FC131-90E6-4D21-8F87-84BDF4B841B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Core", "NewLife.Core\NewLife.Core.csproj", "{5813C22E-EEB3-4DEE-A45C-BB218041193A}"
+EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "NewLife.Mvc.Test", "NewLife.Mvc.Test\", "{FD6B2035-F3DD-4624-A095-D0B51908B917}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv2.0"
+		ProjectReferences = "{5813C22E-EEB3-4DEE-A45C-BB218041193A}|NewLife.Core.dll;{E50FC131-90E6-4D21-8F87-84BDF4B841B7}|NewLife.Mvc.dll;{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}|XTemplate.dll;"
+		Debug.AspNetCompiler.VirtualPath = "/NewLife.Mvc.Test"
+		Debug.AspNetCompiler.PhysicalPath = "NewLife.Mvc.Test\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\NewLife.Mvc.Test\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/NewLife.Mvc.Test"
+		Release.AspNetCompiler.PhysicalPath = "NewLife.Mvc.Test\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\NewLife.Mvc.Test\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "1111"
+		VWDDynamicPort = "false"
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XTemplate", "XTemplate\XTemplate.csproj", "{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		.Net 2.0|Any CPU = .Net 2.0|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}..Net 2.0|Any CPU.ActiveCfg = Release|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}..Net 2.0|Any CPU.Build.0 = Release|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E50FC131-90E6-4D21-8F87-84BDF4B841B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5813C22E-EEB3-4DEE-A45C-BB218041193A}..Net 2.0|Any CPU.ActiveCfg = .Net 2.0|Any CPU
+		{5813C22E-EEB3-4DEE-A45C-BB218041193A}..Net 2.0|Any CPU.Build.0 = .Net 2.0|Any CPU
+		{5813C22E-EEB3-4DEE-A45C-BB218041193A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5813C22E-EEB3-4DEE-A45C-BB218041193A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5813C22E-EEB3-4DEE-A45C-BB218041193A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5813C22E-EEB3-4DEE-A45C-BB218041193A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD6B2035-F3DD-4624-A095-D0B51908B917}..Net 2.0|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD6B2035-F3DD-4624-A095-D0B51908B917}..Net 2.0|Any CPU.Build.0 = Debug|Any CPU
+		{FD6B2035-F3DD-4624-A095-D0B51908B917}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD6B2035-F3DD-4624-A095-D0B51908B917}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD6B2035-F3DD-4624-A095-D0B51908B917}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD6B2035-F3DD-4624-A095-D0B51908B917}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}..Net 2.0|Any CPU.ActiveCfg = Release|Any CPU
+		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}..Net 2.0|Any CPU.Build.0 = Release|Any CPU
+		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
