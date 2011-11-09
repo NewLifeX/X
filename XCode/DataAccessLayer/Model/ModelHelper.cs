@@ -473,6 +473,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static String GetAlias(String name)
         {
+            if (String.IsNullOrEmpty(name)) return name;
+
             // 很多时候，这个别名就是表名
             return FixWord(CutPrefix(name.Replace("$", null)));
         }

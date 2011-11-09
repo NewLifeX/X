@@ -127,7 +127,7 @@ namespace NewLife.CommonEntity
             if (!Page.IsPostBack)
             {
                 GridView gv = ControlHelper.FindControlInPage<GridView>("gv");
-                if (gv == null) gv = ControlHelper.FindControlInPage<GridView>("gv" + EntityType.Name);
+                if (gv == null && EntityType != null) gv = ControlHelper.FindControlInPage<GridView>("gv" + EntityType.Name);
                 if (gv == null) gv = ControlHelper.FindControlInPage<GridView>(null);
                 // 最后一列是删除列，需要删除权限
                 if (gv != null) gv.Columns[gv.Columns.Count - 1].Visible = Acquire(PermissionFlags.Delete);
@@ -138,7 +138,7 @@ namespace NewLife.CommonEntity
             }
 
             ObjectDataSource ods = ControlHelper.FindControlInPage<ObjectDataSource>("ods");
-            if (ods == null) ods = ControlHelper.FindControlInPage<ObjectDataSource>("ods" + EntityType.Name);
+            if (ods == null && EntityType != null) ods = ControlHelper.FindControlInPage<ObjectDataSource>("ods" + EntityType.Name);
             if (ods == null) ods = ControlHelper.FindControlInPage<ObjectDataSource>(null);
             if (ods != null) FixObjectDataSource(ods);
         }
@@ -313,8 +313,7 @@ namespace NewLife.CommonEntity
         {
             if (!String.IsNullOrEmpty(ods.TypeName)) return;
 
-            ods.DataObjectTypeName = EntityType.FullName;
-            ods.TypeName = EntityType.FullName;
+            if (EntityType != null) ods.DataObjectTypeName = ods.TypeName = EntityType.FullName;
             if (String.IsNullOrEmpty(ods.SelectMethod))
             {
                 ods.SelectMethod = "Search";
