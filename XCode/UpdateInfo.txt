@@ -10,6 +10,10 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
+v8.3.2011.1109   增加实体持久化接口IEntityPersistence，实体类中的Insert/Update/Delete由该接口实现，可通过该接口实现参数化DbCommand
+                 IEntityOperate增加Execute等数据库操作，相比于DAL的数据库操作，这里的操作会触发实体类实体缓存更新
+                 实体类中，验证数据是否已存在时，忽略自增
+
 v8.2.2011.1108   IEntityOperate增加缓存查询
 
 v8.2.2011.1107   给IEntityOperate.Create和Entity.CreateInstance加上默认参数forEdit，表示是否为了编辑(FindByKeyForEdit)而创建，默认为false

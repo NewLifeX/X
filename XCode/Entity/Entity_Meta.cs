@@ -18,9 +18,7 @@ namespace XCode
 {
     partial class Entity<TEntity>
     {
-        /// <summary>
-        /// 元数据
-        /// </summary>
+        /// <summary>实体元数据</summary>
         public static class Meta
         {
             #region 基本属性
@@ -146,19 +144,6 @@ namespace XCode
                 CheckInitData();
 
                 return DBO.Select(sql, Meta.TableName);
-            }
-
-            /// <summary>
-            /// 查询
-            /// </summary>
-            /// <param name="sql">SQL语句</param>
-            /// <param name="tableNames">所依赖的表的表名</param>
-            /// <returns>结果记录集</returns>
-            public static DataSet Query(String sql, String[] tableNames)
-            {
-                CheckInitData();
-
-                return DBO.Select(sql, tableNames);
             }
 
             /// <summary>

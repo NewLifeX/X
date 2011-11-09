@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.IO;
+using System.Linq;
 using System.Text;
-using System.Web.Services;
 using System.Xml.Serialization;
 using NewLife.IO;
 using NewLife.Reflection;
@@ -17,9 +17,7 @@ using XCode.Model;
 
 namespace XCode
 {
-    /// <summary>
-    /// 数据实体类基类。所有数据实体类都必须继承该类。
-    /// </summary>
+    /// <summary>数据实体类基类。所有数据实体类都必须继承该类。</summary>
     [Serializable]
     public partial class Entity<TEntity> : EntityBase where TEntity : Entity<TEntity>, new()
     {
@@ -68,11 +66,7 @@ namespace XCode
         /// </summary>
         /// <param name="ds">记录集</param>
         /// <returns>实体数组</returns>
-        public static EntityList<TEntity> LoadData(DataSet ds)
-        {
-            //if (ds == null || ds.Tables.Count < 1 || ds.Tables[0].Rows.Count < 1) return null;
-            return LoadData(ds.Tables[0]);
-        }
+        public static EntityList<TEntity> LoadData(DataSet ds) { return LoadData(ds.Tables[0]); }
 
         /// <summary>
         /// 加载数据表。无数据时返回空集合而不是null。
@@ -81,8 +75,6 @@ namespace XCode
         /// <returns>实体数组</returns>
         public static EntityList<TEntity> LoadData(DataTable dt)
         {
-            //if (dt == null || dt.Rows.Count < 1) return null;
-
             IEntityList list = dreAccessor.LoadData(dt);
             if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
 
@@ -93,12 +85,7 @@ namespace XCode
         /// 从一个数据行对象加载数据。不加载关联对象。
         /// </summary>
         /// <param name="dr">数据行</param>
-        public override void LoadData(DataRow dr)
-        {
-            if (dr == null) return;
-
-            dreAccessor.LoadData(dr, this);
-        }
+        public override void LoadData(DataRow dr) { if (dr != null) dreAccessor.LoadData(dr, this); }
 
         /// <summary>
         /// 加载数据读写器。无数据时返回空集合而不是null。
@@ -107,8 +94,6 @@ namespace XCode
         /// <returns>实体数组</returns>
         public static EntityList<TEntity> LoadData(IDataReader dr)
         {
-            //if (dr == null) return null;
-
             IEntityList list = dreAccessor.LoadData(dr);
             if (list is EntityList<TEntity>) return list as EntityList<TEntity>;
 
@@ -119,143 +104,70 @@ namespace XCode
         /// 从一个数据行对象加载数据。不加载关联对象。
         /// </summary>
         /// <param name="dr">数据读写器</param>
-        public override void LoadDataReader(IDataReader dr)
-        {
-            if (dr == null) return;
-
-            dreAccessor.LoadData(dr, this);
-        }
+        public override void LoadDataReader(IDataReader dr) { if (dr != null)  dreAccessor.LoadData(dr, this); }
 
         /// <summary>
         /// 把数据复制到数据行对象中。
         /// </summary>
         /// <param name="dr">数据行</param>
-        public virtual DataRow ToData(ref DataRow dr)
-        {
-            if (dr == null) return null;
-
-            return dreAccessor.ToData(this, ref dr);
-        }
+        public virtual DataRow ToData(ref DataRow dr) { return dr == null ? null : dreAccessor.ToData(this, ref dr); }
 
         private static IDataRowEntityAccessor dreAccessor { get { return XCodeService.CreateDataRowEntityAccessor(Meta.ThisType); } }
         #endregion
 
         #region 操作
+        private static IEntityPersistence persistence { get { return XCodeService.Resolve<IEntityPersistence>(); } }
+
         /// <summary>
         /// 插入数据，通过调用OnInsert实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。
         /// </summary>
         /// <returns></returns>
-        public override Int32 Insert()
-        {
-            Valid(true);
-
-            Meta.BeginTrans();
-            try
-            {
-                Int32 rs = OnInsert();
-
-                Meta.Commit();
-
-                return rs;
-            }
-            catch { Meta.Rollback(); throw; }
-        }
+        public override Int32 Insert() { return DoAction(OnInsert, true); }
 
         /// <summary>
         /// 把该对象持久化到数据库。该方法提供原生的数据操作，不建议重载，建议重载Insert代替。
         /// </summary>
         /// <returns></returns>
-        protected virtual Int32 OnInsert()
-        {
-            String sql = SQL(this, DataObjectMethodType.Insert);
-            if (String.IsNullOrEmpty(sql)) return 0;
-
-            Int32 rs = 0;
-
-            //检查是否有标识列，标识列需要特殊处理
-            FieldItem field = Meta.Table.Identity;
-            if (field != null && field.IsIdentity)
-            {
-                Int64 res = Meta.InsertAndGetIdentity(sql);
-                if (res > 0) this[field.Name] = res;
-                rs = res > 0 ? 1 : 0;
-            }
-            else
-            {
-                rs = Meta.Execute(sql);
-            }
-
-            //清除脏数据，避免连续两次调用Save造成重复提交
-            if (Dirtys != null) Dirtys.Clear();
-
-            return rs;
-        }
+        protected virtual Int32 OnInsert() { return persistence.Insert(this); }
 
         /// <summary>
         /// 更新数据，通过调用OnUpdate实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。
         /// </summary>
         /// <returns></returns>
-        public override Int32 Update()
-        {
-            Valid(false);
-
-            Meta.BeginTrans();
-            try
-            {
-                Int32 rs = OnUpdate();
-
-                Meta.Commit();
-
-                return rs;
-            }
-            catch { Meta.Rollback(); throw; }
-        }
+        public override Int32 Update() { return DoAction(OnUpdate, false); }
 
         /// <summary>
         /// 更新数据库
         /// </summary>
         /// <returns></returns>
-        protected virtual Int32 OnUpdate()
-        {
-            //没有脏数据，不需要更新
-            if (Dirtys == null || Dirtys.Count <= 0) return 0;
-
-            String sql = SQL(this, DataObjectMethodType.Update);
-            if (String.IsNullOrEmpty(sql)) return 0;
-
-            Int32 rs = Meta.Execute(sql);
-
-            //清除脏数据，避免重复提交
-            if (Dirtys != null) Dirtys.Clear();
-
-            return rs;
-        }
+        protected virtual Int32 OnUpdate() { return persistence.Update(this); }
 
         /// <summary>
         /// 删除数据，通过调用OnDelete实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。
         /// </summary>
         /// <returns></returns>
-        public override Int32 Delete()
+        public override Int32 Delete() { return DoAction(OnDelete, null); }
+
+        /// <summary>
+        /// 从数据库中删除该对象
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Int32 OnDelete() { return persistence.Delete(this); }
+
+        Int32 DoAction(Func<Int32> func, Boolean? isnew)
         {
+            if (isnew != null) Valid(isnew.Value);
+
             Meta.BeginTrans();
             try
             {
-                Int32 rs = OnDelete();
+                Int32 rs = func();
 
                 Meta.Commit();
 
                 return rs;
             }
             catch { Meta.Rollback(); throw; }
-        }
-
-        /// <summary>
-        /// 从数据库中删除该对象
-        /// </summary>
-        /// <returns></returns>
-        protected virtual Int32 OnDelete()
-        {
-            return Meta.Execute(SQL(this, DataObjectMethodType.Delete));
         }
 
         /// <summary>
@@ -271,7 +183,7 @@ namespace XCode
             fi = Meta.Unique;
             if (fi != null) return Helper.IsNullKey(this[fi.Name]) ? Insert() : Update();
 
-            return FindCount(DefaultCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
+            return FindCount(EntityPersistence.DefaultCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
 
         /// <summary>
@@ -294,31 +206,15 @@ namespace XCode
                     IDataColumn[] columns = table.GetColumns(item.Columns);
                     if (columns == null || columns.Length < 1) continue;
 
-                    List<String> list = new List<string>();
-                    foreach (IDataColumn dc in columns)
-                    {
-                        if (!list.Contains(dc.Alias)) list.Add(dc.Alias);
-                    }
+                    // 不处理自增
+                    if (columns.All(c => c.Identity)) continue;
 
                     // 记录字段是否有更新
                     Boolean changed = false;
-                    if (!isNew)
-                    {
-                        foreach (IDataColumn dc in columns)
-                        {
-                            // 自增字段是不会有0的，我们认为都是1开始，增量为1。因此，为空的自增字段，也不要检查
-                            if (dc.Identity && Helper.IsNullKey(this[dc.Alias]))
-                            {
-                                changed = false;
-                                break;
-                            }
-
-                            if (Dirtys[dc.Alias]) changed = true;
-                        }
-                    }
+                    if (!isNew) changed = columns.Any(c => Dirtys[c.Alias]);
 
                     // 存在检查
-                    if (isNew || changed) CheckExist(list.ToArray());
+                    if (isNew || changed) CheckExist(columns.Select(c => c.Alias).Distinct().ToArray());
                 }
             }
         }
@@ -377,9 +273,6 @@ namespace XCode
 
             return !Object.Equals(this[field.Name], list[0][field.Name]);
         }
-
-        //public event EventHandler<CancelEventArgs> Inserting;
-        //public event EventHandler<EventArgs<Int32>> Inserted;
         #endregion
 
         #region 查找单个实体
@@ -389,12 +282,8 @@ namespace XCode
         /// <param name="name">属性名称</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
-        [WebMethod(Description = "根据属性以及对应的值，查找单个实体")]
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity Find(String name, Object value)
-        {
-            return Find(new String[] { name }, new Object[] { value });
-        }
+        public static TEntity Find(String name, Object value) { return Find(new String[] { name }, new Object[] { value }); }
 
         /// <summary>
         /// 根据属性列表以及对应的值列表，查找单个实体
@@ -532,10 +421,7 @@ namespace XCode
         /// </summary>
         /// <returns>实体数组</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAll()
-        {
-            return FindAll(SQL(null, DataObjectMethodType.Fill));
-        }
+        public static EntityList<TEntity> FindAll() { return FindAll(String.Format("Select * From {0}", Meta.FormatName(Meta.TableName))); }
 
         /// <summary>
         /// 查询并返回实体对象集合。
@@ -547,7 +433,6 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
-        [WebMethod(Description = "查询并返回实体对象集合")]
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
@@ -668,10 +553,7 @@ namespace XCode
         /// <param name="value">值</param>
         /// <returns>实体数组</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAll(String name, Object value)
-        {
-            return FindAll(new String[] { name }, new Object[] { value });
-        }
+        public static EntityList<TEntity> FindAll(String name, Object value) { return FindAll(new String[] { name }, new Object[] { value }); }
 
         /// <summary>
         /// 根据属性以及对应的值，获取所有实体对象
@@ -682,10 +564,7 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return FindAllByName(name, value, null, startRowIndex, maximumRows);
-        }
+        public static EntityList<TEntity> FindAll(String name, Object value, Int32 startRowIndex, Int32 maximumRows) { return FindAllByName(name, value, null, startRowIndex, maximumRows); }
 
         /// <summary>
         /// 根据属性以及对应的值，获取所有实体对象
@@ -724,10 +603,7 @@ namespace XCode
         /// </summary>
         /// <param name="sql">查询语句</param>
         /// <returns>实体数组</returns>
-        public static EntityList<TEntity> FindAll(String sql)
-        {
-            return LoadData(Meta.Query(sql));
-        }
+        public static EntityList<TEntity> FindAll(String sql) { return LoadData(Meta.Query(sql)); }
         #endregion
 
         #region 高级查询
@@ -740,10 +616,7 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return FindAll(SearchWhereByKeys(key, null), orderClause, null, startRowIndex, maximumRows);
-        }
+        public static EntityList<TEntity> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows) { return FindAll(SearchWhereByKeys(key, null), orderClause, null, startRowIndex, maximumRows); }
 
         /// <summary>
         /// 查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一
@@ -753,20 +626,14 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>记录数</returns>
-        public static Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return FindCount(SearchWhereByKeys(key, null), null, null, 0, 0);
-        }
+        public static Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows) { return FindCount(SearchWhereByKeys(key, null), null, null, 0, 0); }
 
         /// <summary>
         /// 构建关键字查询条件
         /// </summary>
         /// <param name="sb"></param>
         /// <param name="keys"></param>
-        public static void SearchWhereByKeys(StringBuilder sb, String keys)
-        {
-            SearchWhereByKeys(sb, keys, null);
-        }
+        public static void SearchWhereByKeys(StringBuilder sb, String keys) { SearchWhereByKeys(sb, keys, null); }
 
         /// <summary>
         /// 构建关键字查询条件
@@ -883,7 +750,6 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>总行数</returns>
-        [WebMethod(Description = "查询并返回总记录数")]
         public static Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
             SelectBuilder sb = new SelectBuilder();
@@ -931,10 +797,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>总行数</returns>
-        public static Int32 FindCount(String name, Object value, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return FindCountByName(name, value, null, startRowIndex, maximumRows);
-        }
+        public static Int32 FindCount(String name, Object value, Int32 startRowIndex, Int32 maximumRows) { return FindCountByName(name, value, null, startRowIndex, maximumRows); }
 
         /// <summary>
         /// 根据属性以及对应的值，返回总记录数
@@ -960,13 +823,8 @@ namespace XCode
         /// </summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
-        [DisplayName("插入")]
-        [WebMethod(Description = "插入")]
         [DataObjectMethod(DataObjectMethodType.Insert, true)]
-        public static Int32 Insert(TEntity obj)
-        {
-            return obj.Insert();
-        }
+        public static Int32 Insert(TEntity obj) { return obj.Insert(); }
 
         /// <summary>
         /// 把一个实体对象持久化到数据库
@@ -974,46 +832,15 @@ namespace XCode
         /// <param name="names">更新属性列表</param>
         /// <param name="values">更新值列表</param>
         /// <returns>返回受影响的行数</returns>
-        public static Int32 Insert(String[] names, Object[] values)
-        {
-            if (names == null) throw new ArgumentNullException("names", "属性列表和值列表不能为空");
-            if (values == null) throw new ArgumentNullException("values", "属性列表和值列表不能为空");
-
-            if (names.Length != values.Length) throw new ArgumentException("属性列表必须和值列表一一对应");
-            //FieldItem[] fis = Meta.Fields;
-            Dictionary<String, FieldItem> fs = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
-            foreach (FieldItem fi in Meta.Fields)
-                fs.Add(fi.Name, fi);
-            StringBuilder sbn = new StringBuilder();
-            StringBuilder sbv = new StringBuilder();
-            for (Int32 i = 0; i < names.Length; i++)
-            {
-                if (!fs.ContainsKey(names[i])) throw new ArgumentException("类[" + Meta.ThisType.FullName + "]中不存在[" + names[i] + "]属性");
-                // 同时构造SQL语句。names是属性列表，必须转换成对应的字段列表
-                if (i > 0)
-                {
-                    sbn.Append(", ");
-                    sbv.Append(", ");
-                }
-                sbn.Append(Meta.FormatName(fs[names[i]].Name));
-                //sbv.Append(SqlDataFormat(values[i], fs[names[i]]));
-                sbv.Append(Meta.FormatValue(names[i], values[i]));
-            }
-            return Meta.Execute(String.Format("Insert Into {2}({0}) values({1})", sbn.ToString(), sbv.ToString(), Meta.FormatName(Meta.TableName)));
-        }
+        public static Int32 Insert(String[] names, Object[] values) { return persistence.Insert(Meta.ThisType, names, values); }
 
         /// <summary>
         /// 把一个实体对象更新到数据库
         /// </summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
-        [DisplayName("更新")]
-        [WebMethod(Description = "更新")]
         [DataObjectMethod(DataObjectMethodType.Update, true)]
-        public static Int32 Update(TEntity obj)
-        {
-            return obj.Update();
-        }
+        public static Int32 Update(TEntity obj) { return obj.Update(); }
 
         /// <summary>
         /// 更新一批实体数据
@@ -1021,13 +848,7 @@ namespace XCode
         /// <param name="setClause">要更新的项和数据</param>
         /// <param name="whereClause">指定要更新的实体</param>
         /// <returns></returns>
-        public static Int32 Update(String setClause, String whereClause)
-        {
-            if (String.IsNullOrEmpty(setClause) || !setClause.Contains("=")) throw new ArgumentException("非法参数");
-            String sql = String.Format("Update {0} Set {1}", Meta.FormatName(Meta.TableName), setClause);
-            if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
-            return Meta.Execute(sql);
-        }
+        public static Int32 Update(String setClause, String whereClause) { return persistence.Update(Meta.ThisType, setClause, whereClause); }
 
         /// <summary>
         /// 更新一批实体数据
@@ -1037,12 +858,7 @@ namespace XCode
         /// <param name="whereNames">条件属性列表</param>
         /// <param name="whereValues">条件值列表</param>
         /// <returns>返回受影响的行数</returns>
-        public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
-        {
-            String sc = MakeCondition(setNames, setValues, ", ");
-            String wc = MakeCondition(whereNames, whereValues, " And ");
-            return Update(sc, wc);
-        }
+        public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues) { return persistence.Update(Meta.ThisType, setNames, setValues, whereNames, whereValues); }
 
         /// <summary>
         /// 从数据库中删除指定实体对象。
@@ -1050,24 +866,15 @@ namespace XCode
         /// </summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数，可用于判断被删除了多少行，从而知道操作是否成功</returns>
-        [WebMethod(Description = "删除")]
         [DataObjectMethod(DataObjectMethodType.Delete, true)]
-        public static Int32 Delete(TEntity obj)
-        {
-            return obj.Delete();
-        }
+        public static Int32 Delete(TEntity obj) { return obj.Delete(); }
 
         /// <summary>
         /// 从数据库中删除指定条件的实体对象。
         /// </summary>
         /// <param name="whereClause">限制条件</param>
         /// <returns></returns>
-        public static Int32 Delete(String whereClause)
-        {
-            String sql = String.Format("Delete From {0}", Meta.FormatName(Meta.TableName));
-            if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
-            return Meta.Execute(sql);
-        }
+        public static Int32 Delete(String whereClause) { return persistence.Delete(Meta.ThisType, whereClause); }
 
         /// <summary>
         /// 从数据库中删除指定属性列表和值列表所限定的实体对象。
@@ -1075,22 +882,14 @@ namespace XCode
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns></returns>
-        public static Int32 Delete(String[] names, Object[] values)
-        {
-            return Delete(MakeCondition(names, values, "And"));
-        }
+        public static Int32 Delete(String[] names, Object[] values) { return persistence.Delete(Meta.ThisType, names, values); }
 
         /// <summary>
         /// 把一个实体对象更新到数据库
         /// </summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
-        [WebMethod(Description = "保存")]
-        //[DataObjectMethod(DataObjectMethodType.Update, true)]
-        public static Int32 Save(TEntity obj)
-        {
-            return obj.Save();
-        }
+        public static Int32 Save(TEntity obj) { return obj.Save(); }
         #endregion
 
         #region 构造SQL语句
@@ -1100,94 +899,8 @@ namespace XCode
         /// <param name="obj">实体对象</param>
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
-        public static String SQL(Entity<TEntity> obj, DataObjectMethodType methodType)
-        {
-            String sql;
-            StringBuilder sbNames;
-            StringBuilder sbValues;
-            Boolean isFirst = true;
-            switch (methodType)
-            {
-                case DataObjectMethodType.Fill:
-                    //return String.Format("Select {0} From {1}", Meta.Selects, Meta.TableName);
-                    return String.Format("Select * From {0}", Meta.FormatName(Meta.TableName));
-                case DataObjectMethodType.Select:
-                    sql = DefaultCondition(obj);
-                    // 没有标识列和主键，返回取所有数据的语句
-                    if (String.IsNullOrEmpty(sql)) throw new XCodeException("实体类缺少主键！");
-                    return String.Format("Select * From {0} Where {1}", Meta.FormatName(Meta.TableName), sql);
-                case DataObjectMethodType.Insert:
-                    sbNames = new StringBuilder();
-                    sbValues = new StringBuilder();
-                    // 只读列没有插入操作
-                    foreach (FieldItem fi in Meta.Fields)
-                    {
-                        // 标识列不需要插入，别的类型都需要
-                        String idv = null;
-                        if (fi.IsIdentity)
-                        {
-                            idv = Meta.DBO.Db.FormatIdentity(fi.Field, obj[fi.Name]);
-                            //if (String.IsNullOrEmpty(idv)) continue;
-                            // 允许返回String.Empty作为插入空
-                            if (idv == null) continue;
-                        }
-
-                        // 有默认值，并且没有设置值时，不参与插入操作
-                        if (!String.IsNullOrEmpty(fi.DefaultValue) && !obj.Dirtys[fi.Name]) continue;
-
-                        if (!isFirst) sbNames.Append(", "); // 加逗号
-                        sbNames.Append(Meta.FormatName(fi.ColumnName));
-                        if (!isFirst)
-                            sbValues.Append(", "); // 加逗号
-                        else
-                            isFirst = false;
-
-                        //// 可空类型插入空
-                        //if (!obj.Dirtys[fi.Name] && fi.DataObjectField.IsNullable)
-                        //    sbValues.Append("null");
-                        //else
-                        //sbValues.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
-
-                        if (!fi.IsIdentity)
-                            sbValues.Append(Meta.FormatValue(fi, obj[fi.Name])); // 数据
-                        else
-                            sbValues.Append(idv);
-                    }
-                    return String.Format("Insert Into {0}({1}) Values({2})", Meta.FormatName(Meta.TableName), sbNames.ToString(), sbValues.ToString());
-                case DataObjectMethodType.Update:
-                    sbNames = new StringBuilder();
-                    // 只读列没有更新操作
-                    foreach (FieldItem fi in Meta.Fields)
-                    {
-                        if (fi.IsIdentity) continue;
-
-                        //脏数据判断
-                        if (!obj.Dirtys[fi.Name]) continue;
-
-                        if (!isFirst)
-                            sbNames.Append(", "); // 加逗号
-                        else
-                            isFirst = false;
-                        sbNames.Append(Meta.FormatName(fi.ColumnName));
-                        sbNames.Append("=");
-                        //sbNames.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
-                        sbNames.Append(Meta.FormatValue(fi, obj[fi.Name])); // 数据
-                    }
-
-                    if (sbNames.Length <= 0) return null;
-
-                    sql = DefaultCondition(obj);
-                    if (String.IsNullOrEmpty(sql)) return null;
-                    return String.Format("Update {0} Set {1} Where {2}", Meta.FormatName(Meta.TableName), sbNames.ToString(), sql);
-                case DataObjectMethodType.Delete:
-                    // 标识列作为删除关键字
-                    sql = DefaultCondition(obj);
-                    if (String.IsNullOrEmpty(sql))
-                        return null;
-                    return String.Format("Delete From {0} Where {1}", Meta.FormatName(Meta.TableName), sql);
-            }
-            return null;
-        }
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
+        public static String SQL(Entity<TEntity> obj, DataObjectMethodType methodType) { return EntityPersistence.SQL(obj, methodType); }
 
         /// <summary>
         /// 根据属性列表和值列表，构造查询条件。
@@ -1197,11 +910,12 @@ namespace XCode
         /// <param name="values">值列表</param>
         /// <param name="action">联合方式</param>
         /// <returns>条件子串</returns>
-        [WebMethod(Description = "构造查询条件")]
         public static String MakeCondition(String[] names, Object[] values, String action)
         {
-            if (names == null || names.Length <= 0) throw new ArgumentNullException("names", "属性列表和值列表不能为空");
-            if (values == null || values.Length <= 0) throw new ArgumentNullException("values", "属性列表和值列表不能为空");
+            //if (names == null || names.Length <= 0) throw new ArgumentNullException("names", "属性列表和值列表不能为空");
+            //if (values == null || values.Length <= 0) throw new ArgumentNullException("values", "属性列表和值列表不能为空");
+            if (names == null || names.Length <= 0) return null;
+            if (values == null || values.Length <= 0) return null;
             if (names.Length != values.Length) throw new ArgumentException("属性列表必须和值列表一一对应");
 
             StringBuilder sb = new StringBuilder();
@@ -1260,31 +974,8 @@ namespace XCode
         /// </summary>
         /// <param name="obj">实体对象</param>
         /// <returns>条件</returns>
-        protected static String DefaultCondition(Entity<TEntity> obj)
-        {
-            // 标识列作为查询关键字
-            FieldItem fi = Meta.Table.Identity;
-            if (fi != null) return MakeCondition(fi, obj[fi.Name], "=");
-
-            // 主键作为查询关键字
-            FieldItem[] ps = Meta.Table.PrimaryKeys;
-            // 没有标识列和主键，返回取所有数据的语句
-            if (ps == null || ps.Length < 1)
-            {
-                if (DAL.Debug) throw new XCodeException("因为没有主键，无法给实体类构造默认条件！");
-                return null;
-            }
-
-            StringBuilder sb = new StringBuilder();
-            foreach (FieldItem item in ps)
-            {
-                if (sb.Length > 0) sb.Append(" And ");
-                sb.Append(Meta.FormatName(item.ColumnName));
-                sb.Append("=");
-                sb.Append(Meta.FormatValue(item, obj[item.Name]));
-            }
-            return sb.ToString();
-        }
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
+        protected static String DefaultCondition(Entity<TEntity> obj) { return EntityPersistence.DefaultCondition(obj); }
 
         /// <summary>
         /// 取得指定实体类型的分页SQL
@@ -1486,10 +1177,7 @@ namespace XCode
         /// 创建当前对象的克隆对象，仅拷贝基本字段
         /// </summary>
         /// <returns></returns>
-        public override Object Clone()
-        {
-            return CloneEntity();
-        }
+        public override Object Clone() { return CloneEntity(); }
 
         /// <summary>
         /// 克隆实体。创建当前对象的克隆对象，仅拷贝基本字段
@@ -1497,7 +1185,6 @@ namespace XCode
         /// <returns></returns>
         public virtual TEntity CloneEntity()
         {
-            //TEntity obj = new TEntity();
             TEntity obj = CreateInstance();
             foreach (FieldItem fi in Meta.Fields)
             {
@@ -1515,9 +1202,7 @@ namespace XCode
         #endregion
 
         #region 其它
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {
@@ -1568,9 +1253,7 @@ namespace XCode
         #endregion
 
         #region 脏数据
-        /// <summary>
-        /// 设置所有数据的脏属性
-        /// </summary>
+        /// <summary>设置所有数据的脏属性</summary>
         /// <param name="isDirty">改变脏属性的属性个数</param>
         /// <returns></returns>
         protected override Int32 SetDirty(Boolean isDirty)
@@ -1631,10 +1314,7 @@ namespace XCode
         /// <param name="key">键</param>
         /// <param name="func">回调</param>
         /// <returns></returns>
-        protected TResult GetExtend<TResult>(String key, Func<String, Object> func)
-        {
-            return GetExtend<TEntity, TResult>(key, func);
-        }
+        protected TResult GetExtend<TResult>(String key, Func<String, Object> func) { return GetExtend<TEntity, TResult>(key, func); }
 
         /// <summary>
         /// 获取依赖于当前实体类的扩展属性
@@ -1644,20 +1324,14 @@ namespace XCode
         /// <param name="func">回调</param>
         /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
         /// <returns></returns>
-        protected TResult GetExtend<TResult>(String key, Func<String, Object> func, Boolean cacheDefault)
-        {
-            return GetExtend<TEntity, TResult>(key, func);
-        }
+        protected TResult GetExtend<TResult>(String key, Func<String, Object> func, Boolean cacheDefault) { return GetExtend<TEntity, TResult>(key, func); }
 
         /// <summary>
         /// 设置依赖于当前实体类的扩展属性
         /// </summary>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
-        protected void SetExtend(String key, Object value)
-        {
-            SetExtend<TEntity>(key, value);
-        }
+        protected void SetExtend(String key, Object value) { SetExtend<TEntity>(key, value); }
         #endregion
     }
 }

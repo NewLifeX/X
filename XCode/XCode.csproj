@@ -66,7 +66,6 @@
     <Reference Include="System.Management" />
     <Reference Include="System.Security" />
     <Reference Include="System.Web" />
-    <Reference Include="System.Web.Services" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.XML" />
   </ItemGroup>
@@ -131,6 +130,7 @@
     <Compile Include="Entity\EntityBase_Interface.cs" />
     <Compile Include="Entity\IEntityHandler.cs" />
     <Compile Include="Entity\IEntityList.cs" />
+    <Compile Include="Entity\IEntityPersistence.cs" />
     <Compile Include="Exceptions\XDbException.cs" />
     <Compile Include="Exceptions\XCodeException.cs" />
     <Compile Include="Exceptions\XDbMetaDataException.cs" />

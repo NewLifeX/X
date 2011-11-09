@@ -313,6 +313,36 @@ namespace XCode
             public IEntity FromJson(String json) { return Entity<TEntity>.FromJson(json); }
             #endregion
 
+            #region 数据库操作
+            /// <summary>
+            /// 查询
+            /// </summary>
+            /// <param name="sql">SQL语句</param>
+            /// <returns>结果记录集</returns>
+            public DataSet Query(String sql) { return Meta.Query(sql); }
+
+            /// <summary>
+            /// 查询记录数
+            /// </summary>
+            /// <param name="sql">SQL语句</param>
+            /// <returns>记录数</returns>
+            public Int32 QueryCount(String sql) { return Meta.QueryCount(sql); }
+
+            /// <summary>
+            /// 执行
+            /// </summary>
+            /// <param name="sql">SQL语句</param>
+            /// <returns>影响的结果</returns>
+            public Int32 Execute(String sql) { return Meta.Execute(sql); }
+
+            /// <summary>
+            /// 执行插入语句并返回新增行的自动编号
+            /// </summary>
+            /// <param name="sql">SQL语句</param>
+            /// <returns>新增行的自动编号</returns>
+            public Int64 InsertAndGetIdentity(String sql) { return Meta.InsertAndGetIdentity(sql); }
+            #endregion
+
             #region 事务
             /// <summary>
             /// 开始事务

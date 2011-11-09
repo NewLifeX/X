@@ -11,9 +11,7 @@ using XCode.Exceptions;
 
 namespace XCode
 {
-    /// <summary>
-    /// 实体工厂
-    /// </summary>
+    /// <summary>实体工厂</summary>
     public static class EntityFactory
     {
         #region 创建实体
@@ -22,13 +20,7 @@ namespace XCode
         /// </summary>
         /// <param name="typeName"></param>
         /// <returns></returns>
-        public static IEntity Create(String typeName)
-        {
-            Type type = GetType(typeName);
-            if (type == null) return null;
-
-            return Create(type);
-        }
+        public static IEntity Create(String typeName) { return Create(GetType(typeName)); }
 
         /// <summary>
         /// 创建指定类型的实例
@@ -39,16 +31,12 @@ namespace XCode
         {
             if (type == null || type.IsInterface || type.IsAbstract) return null;
 
-            //return Activator.CreateInstance(type) as IEntity;
-            //return TypeX.CreateInstance(type) as IEntity;
             return CreateOperate(type).Create();
         }
         #endregion
 
         #region 创建实体操作接口
-        /// <summary>
-        /// 创建实体操作接口
-        /// </summary>
+        /// <summary>创建实体操作接口</summary>
         /// <remarks>因为只用来做实体操作，所以只需要一个实例即可</remarks>
         /// <param name="typeName"></param>
         /// <returns></returns>
@@ -65,9 +53,7 @@ namespace XCode
         }
 
         private static DictionaryCache<Type, IEntityOperate> op_cache = new DictionaryCache<Type, IEntityOperate>();
-        /// <summary>
-        /// 创建实体操作接口
-        /// </summary>
+        /// <summary>创建实体操作接口</summary>
         /// <remarks>因为只用来做实体操作，所以只需要一个实例即可</remarks>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -310,9 +296,7 @@ namespace XCode
 
         #region 确保实体类已初始化
         static List<Type> _hasInited = new List<Type>();
-        /// <summary>
-        /// 确保实体类已经执行完静态构造函数，因为那里实在是太容易导致死锁了
-        /// </summary>
+        /// <summary>确保实体类已经执行完静态构造函数，因为那里实在是太容易导致死锁了</summary>
         /// <param name="type"></param>
         internal static void EnsureInit(Type type)
         {
@@ -324,22 +308,16 @@ namespace XCode
             {
                 if (_hasInited.Contains(type)) return;
 
-                Object obj = TypeX.CreateInstance(type);
+                TypeX.CreateInstance(type);
                 _hasInited.Add(type);
             }
         }
         #endregion
 
         #region 调试输出
-        private static void WriteLog(String msg)
-        {
-            if (DAL.Debug) DAL.WriteLog(msg);
-        }
+        private static void WriteLog(String msg) { if (DAL.Debug) DAL.WriteLog(msg); }
 
-        private static void WriteLog(String format, params Object[] args)
-        {
-            if (DAL.Debug) DAL.WriteLog(format, args);
-        }
+        private static void WriteLog(String format, params Object[] args) { if (DAL.Debug) DAL.WriteLog(format, args); }
         #endregion
     }
 }

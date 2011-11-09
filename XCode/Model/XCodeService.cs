@@ -14,16 +14,14 @@ namespace XCode.Model
         static XCodeService()
         {
             IObjectContainer container = Container;
-            container.Register<IDataTable, XTable>(null, 0)
-                .Register<IDataRowEntityAccessorProvider, DataRowEntityAccessorProvider>(null, 0);
+            container.Register<IDataTable, XTable>()
+                .Register<IDataRowEntityAccessorProvider, DataRowEntityAccessorProvider>()
+                .Register<IEntityPersistence, EntityPersistence>();
 
             DbFactory.Reg(container);
 
             EntityAccessorFactory.Reg(container);
         }
-
-        ///// <summary>对象容器</summary>
-        //static IObjectContainer Container { get { return ObjectContainer.Current; } }
 
         #region 方法
         //public static void Register<T>(Type impl, String name)

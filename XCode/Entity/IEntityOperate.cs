@@ -248,6 +248,36 @@ namespace XCode
         IEntity FromJson(String json);
         #endregion
 
+        #region 数据库操作
+        /// <summary>
+        /// 查询
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>结果记录集</returns>
+        DataSet Query(String sql);
+
+        /// <summary>
+        /// 查询记录数
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>记录数</returns>
+        Int32 QueryCount(String sql);
+
+        /// <summary>
+        /// 执行
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>影响的结果</returns>
+        Int32 Execute(String sql);
+
+        /// <summary>
+        /// 执行插入语句并返回新增行的自动编号
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>新增行的自动编号</returns>
+        Int64 InsertAndGetIdentity(String sql);
+        #endregion
+
         #region 事务
         /// <summary>
         /// 开始事务

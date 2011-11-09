@@ -34,8 +34,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("8.2.*")]
-[assembly: AssemblyFileVersion("8.2.2011.1108")]
+[assembly: AssemblyVersion("8.3.*")]
+[assembly: AssemblyFileVersion("8.3.2011.1109")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,10 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.3.2011.1109   增加实体持久化接口IEntityPersistence，实体类中的Insert/Update/Delete由该接口实现，可通过该接口实现参数化DbCommand
+ *                  IEntityOperate增加Execute等数据库操作，相比于DAL的数据库操作，这里的操作会触发实体类实体缓存更新
+ *                  实体类中，验证数据是否已存在时，忽略自增
+ * 
  * v8.2.2011.1108   IEntityOperate增加缓存查询
  * 
  * v8.2.2011.1107   给IEntityOperate.Create和Entity.CreateInstance加上默认参数forEdit，表示是否为了编辑(FindByKeyForEdit)而创建，默认为false
