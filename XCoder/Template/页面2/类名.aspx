@@ -32,17 +32,40 @@ foreach(IDataColumn Field in Table.Columns){
 }
     #>
     <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="<#=sbpk#>" DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="m_table" PageSize="20" CellPadding="0" GridLines="None" EnableModelValidation="True">
-        <Columns><#
+        <Columns>
+            <%--<asp:TemplateField>
+                <ItemTemplate>
+                    <asp:CheckBox ID="cb" runat="server" />
+                </ItemTemplate>
+                <HeaderStyle Width="20px" />
+                <ItemStyle HorizontalAlign="Center" />
+            </asp:TemplateField>--%><#
 foreach(IDataColumn Field in Table.Columns){
     String pname = Field.Alias;
     if(Field.Identity){#>
             <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
-                <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="60px" CssClass="key" />
+                <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" />
             </asp:BoundField><#}
     else if(Field.DataType == typeof(DateTime)){#>
             <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" DataFormatString="{0:yyyy-MM-dd HH:mm:ss}" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="120px" />
             </asp:BoundField><#}
+    else if(Field.DataType == typeof(Decimal)){#>
+            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" DataFormatString="{0:c}">
+                <ItemStyle HorizontalAlign="Right" Font-Bold="True" ForeColor="Blue" />
+            </asp:BoundField><#}
+    else if(Type.GetTypeCode(Field.DataType)>=TypeCode.Int16&&Type.GetTypeCode(Field.DataType)<=TypeCode.UInt64){#>
+            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" DataFormatString="{0:n0}">
+                <ItemStyle HorizontalAlign="Right" Font-Bold="True" />
+            </asp:BoundField><#}
+    else if(Field.DataType == typeof(Boolean)){#>
+            <asp:TemplateField HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>">
+                <ItemTemplate>
+                    <asp:Label ID="<#=pname#>1" runat="server" Text="√" Visible='<%# Eval("<#=pname#>") %>' Font-Bold="True" Font-Size="14pt" ForeColor="Green"></asp:Label>
+                    <asp:Label ID="<#=pname#>2" runat="server" Text="×" Visible='<%# !(Boolean)Eval("<#=pname#>") %>' Font-Bold="True" Font-Size="16pt" ForeColor="Red"></asp:Label>
+                </ItemTemplate>
+                <ItemStyle HorizontalAlign="Center" />
+            </asp:TemplateField><#}
     // 密码字段和大文本字段不输出
     else if(!pname.Equals("Password", StringComparison.OrdinalIgnoreCase) && 
        !pname.Equals("Pass", StringComparison.OrdinalIgnoreCase) && 
@@ -56,8 +79,7 @@ foreach(IDataColumn Field in Table.Columns){
             </XCL:LinkBoxField>
             <asp:TemplateField ShowHeader="False" HeaderText="删除">
                 <ItemTemplate>
-                    <asp:LinkButton ID="btnDelete" runat="server" CausesValidation="False" CommandName="Delete"
-                        OnClientClick='return confirm("确定删除吗？")' Text="删除"></asp:LinkButton>
+                    <asp:LinkButton ID="btnDelete" runat="server" CausesValidation="False" CommandName="Delete" OnClientClick='return confirm("确定删除吗？")' Text="删除"></asp:LinkButton>
                 </ItemTemplate>
                 <HeaderStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="30px" />
             </asp:TemplateField>
