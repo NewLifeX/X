@@ -1,4 +1,4 @@
-﻿<%@ Page Title="<#=Table.Description#>管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="<#=Table.Alias#>.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Alias#>" %>
+<%@ Page Title="<#=Table.Description#>管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="<#=Table.Alias#>.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Alias#>" %>
 
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
     <#
