@@ -52,6 +52,15 @@ if(Table.Relations!=null && Table.Relations.Count>0)
             set { _<#=keyName#> = value; }
         }
 <#
+			// 如果对方有名为Name的字符串字段，则加一个扩展属性
+			IDataColumn rname=rtable.GetColumn("Name");
+			if(rname!=null&&rname.DataType==typeof(String)){
+#>
+        /// <summary>该<#=Table.Description#>所对应的<#=rtable.Description#><#=rname.Description#></summary>
+        [XmlIgnore]
+        public String <#=keyName#>Name { get { return <#=keyName#> != null ? <#=keyName#>.Name : null; } }
+<#
+			}
         }else
         {
             keyName+="s";
