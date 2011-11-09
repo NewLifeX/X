@@ -206,9 +206,9 @@ namespace XControl
         /// <param name="writer"></param>
         protected override void RenderContents(HtmlTextWriter writer)
         {
-            if (!String.IsNullOrEmpty(IconLeft)) writer.Write("<img src=\"{0}\" style=\"border:none;\" />", IconLeft);
+            if (!String.IsNullOrEmpty(IconLeft)) writer.Write("<img src=\"{0}\" style=\"border:none;\" />", ResolveUrl(IconLeft));
             base.RenderContents(writer);
-            if (!String.IsNullOrEmpty(IconRight)) writer.Write("<img src=\"{0}\" style=\"border:none;\" />", IconRight);
+            if (!String.IsNullOrEmpty(IconRight)) writer.Write("<img src=\"{0}\" style=\"border:none;\" />", ResolveUrl(IconRight));
         }
     }
 }
