@@ -411,13 +411,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDataTable CopyTo(this IDataTable src, IDataTable des)
         {
-            des.ID = src.ID;
-            des.Name = src.Name;
-            des.Alias = src.Alias;
-            des.Owner = src.Owner;
-            des.DbType = src.DbType;
-            des.IsView = src.IsView;
-            des.Description = src.Description;
+            des.CopyFrom(src);
 
             return src;
         }
@@ -430,21 +424,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDataColumn CopyTo(this IDataColumn src, IDataColumn des)
         {
-            des.ID = src.ID;
-            des.Name = src.Name;
-            des.Alias = src.Alias;
-            des.DataType = src.DataType;
-            des.RawType = src.RawType;
-            des.Identity = src.Identity;
-            des.PrimaryKey = src.PrimaryKey;
-            des.Length = src.Length;
-            des.NumOfByte = src.NumOfByte;
-            des.Precision = src.Precision;
-            des.Scale = src.Scale;
-            des.Nullable = src.Nullable;
-            des.IsUnicode = src.IsUnicode;
-            des.Default = src.Default;
-            des.Description = src.Description;
+            des.CopyFrom(src);
 
             return src;
         }
@@ -457,11 +437,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDataIndex CopyTo(this IDataIndex src, IDataIndex des)
         {
-            des.Name = src.Name;
-            des.Columns = src.Columns;
-            des.Unique = src.Unique;
-            des.PrimaryKey = src.PrimaryKey;
-            des.Computed = src.Computed;
+            des.CopyFrom(src);
 
             return src;
         }
@@ -474,13 +450,112 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDataRelation CopyTo(this IDataRelation src, IDataRelation des)
         {
-            des.Column = src.Column;
-            des.RelationTable = src.RelationTable;
-            des.RelationColumn = src.RelationColumn;
-            des.Unique = src.Unique;
-            des.Computed = src.Computed;
+            des.CopyFrom(src);
 
             return src;
+        }
+
+        /// <summary>
+        /// 复制数据表到另一个数据表，不复制数据列、索引和关系
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="des"></param>
+        /// <returns></returns>
+        public static IDataTable CopyFrom(this IDataTable src, IDataTable des)
+        {
+            src.ID = des.ID;
+            src.Name = des.Name;
+            src.Alias = des.Alias;
+            src.Owner = des.Owner;
+            src.DbType = des.DbType;
+            src.IsView = des.IsView;
+            src.Description = des.Description;
+
+            return des;
+        }
+
+        /// <summary>
+        /// 复制数据表到另一个数据表，复制所有数据列、索引和关系
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="des"></param>
+        /// <returns></returns>
+        public static IDataTable CopyAllFrom(this IDataTable src, IDataTable des)
+        {
+            src.ID = des.ID;
+            src.Name = des.Name;
+            src.Alias = des.Alias;
+            src.Owner = des.Owner;
+            src.DbType = des.DbType;
+            src.IsView = des.IsView;
+            src.Description = des.Description;
+
+            src.Columns.AddRange(des.Columns.Select(i => src.CreateColumn().CopyFrom(i)));
+            src.Indexes.AddRange(des.Indexes.Select(i => src.CreateIndex().CopyFrom(i)));
+            src.Relations.AddRange(des.Relations.Select(i => src.CreateRelation().CopyFrom(i)));
+
+            return src;
+        }
+
+        /// <summary>
+        /// 赋值数据列到另一个数据列
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="des"></param>
+        /// <returns></returns>
+        public static IDataColumn CopyFrom(this IDataColumn src, IDataColumn des)
+        {
+            src.ID = des.ID;
+            src.Name = des.Name;
+            src.Alias = des.Alias;
+            src.DataType = des.DataType;
+            src.RawType = des.RawType;
+            src.Identity = des.Identity;
+            src.PrimaryKey = des.PrimaryKey;
+            src.Length = des.Length;
+            src.NumOfByte = des.NumOfByte;
+            src.Precision = des.Precision;
+            src.Scale = des.Scale;
+            src.Nullable = des.Nullable;
+            src.IsUnicode = des.IsUnicode;
+            src.Default = des.Default;
+            src.Description = des.Description;
+
+            return des;
+        }
+
+        /// <summary>
+        /// 赋值数据列到另一个数据列
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="des"></param>
+        /// <returns></returns>
+        public static IDataIndex CopyFrom(this IDataIndex src, IDataIndex des)
+        {
+            src.Name = des.Name;
+            src.Columns = des.Columns;
+            src.Unique = des.Unique;
+            src.PrimaryKey = des.PrimaryKey;
+            src.Computed = des.Computed;
+
+            return des;
+        }
+
+        /// <summary>
+        /// 赋值数据列到另一个数据列
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="des"></param>
+        /// <returns></returns>
+        public static IDataRelation CopyFrom(this IDataRelation src, IDataRelation des)
+        {
+            src.Column = des.Column;
+            src.RelationTable = des.RelationTable;
+            src.RelationColumn = des.RelationColumn;
+            src.Unique = des.Unique;
+            src.Computed = des.Computed;
+
+            return des;
         }
         #endregion
 
