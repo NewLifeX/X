@@ -416,44 +416,44 @@ namespace XCode.DataAccessLayer
             return src;
         }
 
-        /// <summary>
-        /// 赋值数据列到另一个数据列
-        /// </summary>
-        /// <param name="src"></param>
-        /// <param name="des"></param>
-        /// <returns></returns>
-        public static IDataColumn CopyTo(this IDataColumn src, IDataColumn des)
-        {
-            des.CopyFrom(src);
+        ///// <summary>
+        ///// 赋值数据列到另一个数据列
+        ///// </summary>
+        ///// <param name="src"></param>
+        ///// <param name="des"></param>
+        ///// <returns></returns>
+        //public static IDataColumn CopyTo(this IDataColumn src, IDataColumn des)
+        //{
+        //    des.CopyFrom(src);
 
-            return src;
-        }
+        //    return src;
+        //}
 
-        /// <summary>
-        /// 赋值数据列到另一个数据列
-        /// </summary>
-        /// <param name="src"></param>
-        /// <param name="des"></param>
-        /// <returns></returns>
-        public static IDataIndex CopyTo(this IDataIndex src, IDataIndex des)
-        {
-            des.CopyFrom(src);
+        ///// <summary>
+        ///// 赋值数据列到另一个数据列
+        ///// </summary>
+        ///// <param name="src"></param>
+        ///// <param name="des"></param>
+        ///// <returns></returns>
+        //public static IDataIndex CopyTo(this IDataIndex src, IDataIndex des)
+        //{
+        //    des.CopyFrom(src);
 
-            return src;
-        }
+        //    return src;
+        //}
 
-        /// <summary>
-        /// 赋值数据列到另一个数据列
-        /// </summary>
-        /// <param name="src"></param>
-        /// <param name="des"></param>
-        /// <returns></returns>
-        public static IDataRelation CopyTo(this IDataRelation src, IDataRelation des)
-        {
-            des.CopyFrom(src);
+        ///// <summary>
+        ///// 赋值数据列到另一个数据列
+        ///// </summary>
+        ///// <param name="src"></param>
+        ///// <param name="des"></param>
+        ///// <returns></returns>
+        //public static IDataRelation CopyTo(this IDataRelation src, IDataRelation des)
+        //{
+        //    des.CopyFrom(src);
 
-            return src;
-        }
+        //    return src;
+        //}
 
         /// <summary>
         /// 复制数据表到另一个数据表，不复制数据列、索引和关系
