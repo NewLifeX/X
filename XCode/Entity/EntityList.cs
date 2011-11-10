@@ -9,12 +9,11 @@ using System.Xml.Serialization;
 using NewLife.IO;
 using NewLife.Reflection;
 using XCode.Configuration;
+using XCode.Common;
 
 namespace XCode
 {
-    /// <summary>
-    /// 实体集合
-    /// </summary>
+    /// <summary>实体集合，提供批量查询和批量操作实体等操作</summary>
     [Serializable]
     public partial class EntityList<T> : List<T>, IEntityList, IList, IList<IEntity>, IListSource where T : IEntity
     {
@@ -131,6 +130,13 @@ namespace XCode
             //if (Count < 1) return null;
             if (Count < 1) return this;
 
+            FieldItem field = Factory.Table.FindByName(name);
+            if (field != null && (field.IsIdentity || field.PrimaryKey))
+            {
+                // 唯一键为自增且参数小于等于0时，返回空
+                if (Helper.IsNullKey(value)) return null;
+            }
+
             EntityList<T> list = new EntityList<T>();
             foreach (T item in this)
             {
@@ -151,6 +157,13 @@ namespace XCode
         {
             //if (Count < 1) return null;
             if (Count < 1) return this;
+
+            FieldItem field = Factory.Table.FindByName(names[0]);
+            if (field != null && (field.IsIdentity || field.PrimaryKey))
+            {
+                // 唯一键为自增且参数小于等于0时，返回空
+                if (Helper.IsNullKey(values[0])) return null;
+            }
 
             EntityList<T> list = new EntityList<T>();
             foreach (T item in this)
