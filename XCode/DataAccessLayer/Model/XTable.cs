@@ -213,7 +213,7 @@ namespace XCode.DataAccessLayer
         public override string ToString()
         {
             if (!String.IsNullOrEmpty(Description))
-                return String.Format("{0}({1})", Description, Name);
+                return String.Format("{0}({1})", Name, Description);
             else
                 return Name;
         }

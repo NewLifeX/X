@@ -1037,12 +1037,7 @@ namespace XCode
             else
             {
                 // 如果找不到唯一键，并且排序又为空，则采用全部字段一起，确保能够分页
-                if (String.IsNullOrEmpty(builder.OrderBy))
-                {
-                    String[] names = new String[Meta.FieldNames.Count];
-                    Meta.FieldNames.CopyTo(names, 0);
-                    builder.Keys = names;
-                }
+                if (String.IsNullOrEmpty(builder.OrderBy)) builder.Keys = Meta.FieldNames.ToArray();
             }
             return Meta.PageSplit(builder, startRowIndex, maximumRows);
         }

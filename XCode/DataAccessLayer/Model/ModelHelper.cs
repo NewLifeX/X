@@ -339,6 +339,25 @@ namespace XCode.DataAccessLayer
             }
             #endregion
 
+            #region 最后修复主键
+            if (table.PrimaryKeys.Length < 1)
+            {
+                // 自增作为主键，然后是ID/Guid/UID，最后默认使用第一个
+                // 没办法，如果没有主键，整个实体层都会面临大问题！
+                IDataColumn dc = null;
+                if ((dc = table.Columns.FirstOrDefault(c => c.Identity)) != null)
+                    dc.PrimaryKey = true;
+                else if ((dc = table.Columns.FirstOrDefault(c => c.Name.EqualIgnoreCase("ID"))) != null)
+                    dc.PrimaryKey = true;
+                else if ((dc = table.Columns.FirstOrDefault(c => c.Name.EqualIgnoreCase("Guid"))) != null)
+                    dc.PrimaryKey = true;
+                else if ((dc = table.Columns.FirstOrDefault(c => c.Name.EqualIgnoreCase("UID"))) != null)
+                    dc.PrimaryKey = true;
+                else if ((dc = table.Columns.FirstOrDefault()) != null)
+                    dc.PrimaryKey = true;
+            }
+            #endregion
+
             #region 给非主键的自增字段建立唯一索引
             foreach (IDataColumn dc in table.Columns)
             {
