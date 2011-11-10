@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.3.*")]
-[assembly: AssemblyFileVersion("3.3.2011.1107")]
+[assembly: AssemblyFileVersion("3.3.2011.1110")]
 
 /*
+ * v3.3.2011.1110   增加网页下载类WebDownload
+ * 
  * v3.3.2011.1107   字符串扩展和枚举扩展命名空间改为System
  *                  增加快速反射的扩展方法类ReflectionExtensions
  * 

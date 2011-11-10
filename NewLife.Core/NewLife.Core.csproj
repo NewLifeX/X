@@ -286,6 +286,7 @@
     <Compile Include="Web\WebClientX.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Web\WebDownload.cs" />
     <Compile Include="Web\WebHelper.cs" />
     <Compile Include="Xml\ExtendData.cs" />
     <Compile Include="Xml\XMLEntity.cs" />

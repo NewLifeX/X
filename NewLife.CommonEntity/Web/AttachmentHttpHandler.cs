@@ -1,15 +1,13 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using System.Web;
 using System.Web.Caching;
 using NewLife.Log;
+using NewLife.Web;
 
 namespace NewLife.CommonEntity.Web
 {
-    /// <summary>
-    /// 附件处理器
-    /// </summary>
+    /// <summary>附件处理器</summary>
     public class AttachmentHttpHandler : IHttpHandler
     {
         #region IHttpHandler 成员
@@ -166,37 +164,44 @@ namespace NewLife.CommonEntity.Web
         /// <param name="dispositionMode"></param>
         protected virtual void OnResponse(HttpContext context, Attachment attachment, Stream stream, String dispositionMode)
         {
-            HttpRequest Request = context.Request;
-            HttpResponse Response = context.Response;
+            WebDownload wd = new WebDownload();
+            wd.Stream = stream;
+            wd.FileName = attachment.FileName;
+            if (!String.IsNullOrEmpty(dispositionMode)) wd.Mode = (WebDownload.DispositionMode)Enum.Parse(typeof(WebDownload.DispositionMode), dispositionMode);
+            if (!String.IsNullOrEmpty(attachment.ContentType)) wd.ContentType = attachment.ContentType;
+            wd.Render();
 
-            Response.Buffer = false;
-            long fileLength = stream.Length;
+            //HttpRequest Request = context.Request;
+            //HttpResponse Response = context.Response;
 
-            int pack = 1024000;
+            //Response.Buffer = false;
+            //long fileLength = stream.Length;
 
-            Response.AddHeader("Content-Length", fileLength.ToString());
-            if (!String.IsNullOrEmpty(attachment.ContentType)) Response.ContentType = attachment.ContentType;
-            if (String.IsNullOrEmpty(dispositionMode)) dispositionMode = "inline"; // attachment/inline
-            Response.AddHeader("Content-Disposition", dispositionMode + "; filename=" + HttpUtility.UrlEncode(attachment.FileName, Encoding.UTF8));
+            //int pack = 1024000;
 
-            if (stream.CanSeek && stream.Position >= stream.Length) stream.Position = 0;
-            Byte[] buffer = new Byte[pack];
-            while (true)
-            {
-                if (!Response.IsClientConnected) break;
+            //Response.AddHeader("Content-Length", fileLength.ToString());
+            //if (!String.IsNullOrEmpty(attachment.ContentType)) Response.ContentType = attachment.ContentType;
+            //if (String.IsNullOrEmpty(dispositionMode)) dispositionMode = "inline"; // attachment/inline
+            //Response.AddHeader("Content-Disposition", dispositionMode + "; filename=" + HttpUtility.UrlEncode(attachment.FileName, Encoding.UTF8));
 
-                Int32 count = stream.Read(buffer, 0, buffer.Length);
-                if (count <= 0) break;
+            //if (stream.CanSeek && stream.Position >= stream.Length) stream.Position = 0;
+            //Byte[] buffer = new Byte[pack];
+            //while (true)
+            //{
+            //    if (!Response.IsClientConnected) break;
 
-                if (count == pack)
-                    Response.BinaryWrite(buffer);
-                else
-                {
-                    Byte[] data = new Byte[count];
-                    Buffer.BlockCopy(buffer, 0, data, 0, count);
-                    Response.BinaryWrite(data);
-                }
-            }
+            //    Int32 count = stream.Read(buffer, 0, buffer.Length);
+            //    if (count <= 0) break;
+
+            //    if (count == pack)
+            //        Response.BinaryWrite(buffer);
+            //    else
+            //    {
+            //        Byte[] data = new Byte[count];
+            //        Buffer.BlockCopy(buffer, 0, data, 0, count);
+            //        Response.BinaryWrite(data);
+            //    }
+            //}
         }
         #endregion
     }
