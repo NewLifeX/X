@@ -403,58 +403,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 复制扩展方法
-        ///// <summary>
-        ///// 复制数据表到另一个数据表，不复制数据列、索引和关系
-        ///// </summary>
-        ///// <param name="src"></param>
-        ///// <param name="des"></param>
-        ///// <returns></returns>
-        //public static IDataTable CopyTo(this IDataTable src, IDataTable des)
-        //{
-        //    des.CopyFrom(src);
-
-        //    return src;
-        //}
-
-        ///// <summary>
-        ///// 赋值数据列到另一个数据列
-        ///// </summary>
-        ///// <param name="src"></param>
-        ///// <param name="des"></param>
-        ///// <returns></returns>
-        //public static IDataColumn CopyTo(this IDataColumn src, IDataColumn des)
-        //{
-        //    des.CopyFrom(src);
-
-        //    return src;
-        //}
-
-        ///// <summary>
-        ///// 赋值数据列到另一个数据列
-        ///// </summary>
-        ///// <param name="src"></param>
-        ///// <param name="des"></param>
-        ///// <returns></returns>
-        //public static IDataIndex CopyTo(this IDataIndex src, IDataIndex des)
-        //{
-        //    des.CopyFrom(src);
-
-        //    return src;
-        //}
-
-        ///// <summary>
-        ///// 赋值数据列到另一个数据列
-        ///// </summary>
-        ///// <param name="src"></param>
-        ///// <param name="des"></param>
-        ///// <returns></returns>
-        //public static IDataRelation CopyTo(this IDataRelation src, IDataRelation des)
-        //{
-        //    des.CopyFrom(src);
-
-        //    return src;
-        //}
-
         /// <summary>
         /// 复制数据表到另一个数据表，不复制数据列、索引和关系
         /// </summary>
@@ -471,7 +419,7 @@ namespace XCode.DataAccessLayer
             src.IsView = des.IsView;
             src.Description = des.Description;
 
-            return des;
+            return src;
         }
 
         /// <summary>
@@ -479,20 +427,16 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="src"></param>
         /// <param name="des"></param>
+        /// <param name="resetColumnID">是否重置列ID</param>
         /// <returns></returns>
-        public static IDataTable CopyAllFrom(this IDataTable src, IDataTable des)
+        public static IDataTable CopyAllFrom(this IDataTable src, IDataTable des, Boolean resetColumnID = false)
         {
-            src.ID = des.ID;
-            src.Name = des.Name;
-            src.Alias = des.Alias;
-            src.Owner = des.Owner;
-            src.DbType = des.DbType;
-            src.IsView = des.IsView;
-            src.Description = des.Description;
-
+            src.CopyFrom(des);
             src.Columns.AddRange(des.Columns.Select(i => src.CreateColumn().CopyFrom(i)));
             src.Indexes.AddRange(des.Indexes.Select(i => src.CreateIndex().CopyFrom(i)));
             src.Relations.AddRange(des.Relations.Select(i => src.CreateRelation().CopyFrom(i)));
+            // 重载ID
+            if (resetColumnID) src.Columns.ForEach((it, i) => it.ID = i + 1);
 
             return src;
         }
@@ -521,7 +465,7 @@ namespace XCode.DataAccessLayer
             src.Default = des.Default;
             src.Description = des.Description;
 
-            return des;
+            return src;
         }
 
         /// <summary>
@@ -538,7 +482,7 @@ namespace XCode.DataAccessLayer
             src.PrimaryKey = des.PrimaryKey;
             src.Computed = des.Computed;
 
-            return des;
+            return src;
         }
 
         /// <summary>
@@ -555,7 +499,7 @@ namespace XCode.DataAccessLayer
             src.Unique = des.Unique;
             src.Computed = des.Computed;
 
-            return des;
+            return src;
         }
         #endregion
 
