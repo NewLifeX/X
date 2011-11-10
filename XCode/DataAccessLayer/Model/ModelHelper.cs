@@ -403,18 +403,18 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 复制扩展方法
-        /// <summary>
-        /// 复制数据表到另一个数据表，不复制数据列、索引和关系
-        /// </summary>
-        /// <param name="src"></param>
-        /// <param name="des"></param>
-        /// <returns></returns>
-        public static IDataTable CopyTo(this IDataTable src, IDataTable des)
-        {
-            des.CopyFrom(src);
+        ///// <summary>
+        ///// 复制数据表到另一个数据表，不复制数据列、索引和关系
+        ///// </summary>
+        ///// <param name="src"></param>
+        ///// <param name="des"></param>
+        ///// <returns></returns>
+        //public static IDataTable CopyTo(this IDataTable src, IDataTable des)
+        //{
+        //    des.CopyFrom(src);
 
-            return src;
-        }
+        //    return src;
+        //}
 
         ///// <summary>
         ///// 赋值数据列到另一个数据列
