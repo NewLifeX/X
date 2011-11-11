@@ -360,6 +360,30 @@ namespace XCode.Configuration
         }
 
         /// <summary>
+        /// IsNull操作
+        /// </summary>
+        /// <returns></returns>
+        public WhereExpression IsNull()
+        {
+            IEntityOperate op = EntityFactory.CreateOperate(Table.EntityType);
+            String name = op.FormatName(ColumnName);
+
+            return new WhereExpression(String.Format("{0} Is Null", name));
+        }
+
+        /// <summary>
+        /// NotIn操作
+        /// </summary>
+        /// <returns></returns>
+        public WhereExpression NotIsNull()
+        {
+            IEntityOperate op = EntityFactory.CreateOperate(Table.EntityType);
+            String name = op.FormatName(ColumnName);
+
+            return new WhereExpression(String.Format("Not {0} Is Null", name));
+        }
+
+        /// <summary>
         /// 大于
         /// </summary>
         /// <param name="field"></param>

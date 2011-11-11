@@ -5,7 +5,7 @@ using NewLife.Exceptions;
 namespace NewLife.CommonEntity.Exceptions
 {
     /// <summary>
-    /// 实体异常d
+    /// 实体异常
     /// </summary>
     public class EntityException : XException
     {

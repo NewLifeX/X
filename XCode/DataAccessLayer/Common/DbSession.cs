@@ -595,20 +595,30 @@ namespace XCode.DataAccessLayer
             QueryTimes++;
             if (!Opened) Open();
 
+            DbConnection conn = Conn;
             try
             {
+                // 如果启用了事务保护，这里要新开一个连接，否则MSSQL里面报错，SQLite不报错，其它数据库未测试
+                if (TransactionCount > 0)
+                {
+                    conn = Factory.CreateConnection();
+                    conn.ConnectionString = ConnectionString;
+                    conn.Open();
+                }
+
                 DataTable dt;
+
                 if (restrictionValues == null || restrictionValues.Length < 1)
                 {
                     if (String.IsNullOrEmpty(collectionName))
                     {
                         WriteSQL("GetSchema");
-                        dt = Conn.GetSchema();
+                        dt = conn.GetSchema();
                     }
                     else
                     {
                         WriteSQL("GetSchema(\"" + collectionName + "\")");
-                        dt = Conn.GetSchema(collectionName);
+                        dt = conn.GetSchema(collectionName);
                     }
                 }
                 else
@@ -623,7 +633,7 @@ namespace XCode.DataAccessLayer
                             sb.AppendFormat("\"{0}\"", item);
                     }
                     WriteSQL("GetSchema(\"" + collectionName + "\"" + sb + ")");
-                    dt = Conn.GetSchema(collectionName, restrictionValues);
+                    dt = conn.GetSchema(collectionName, restrictionValues);
                 }
 
                 return dt;
@@ -635,6 +645,7 @@ namespace XCode.DataAccessLayer
             finally
             {
                 AutoClose();
+                if (conn != Conn) conn.Close();
             }
         }
         #endregion
