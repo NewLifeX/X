@@ -35,10 +35,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.5.*")]
-[assembly: AssemblyFileVersion("2.5.2011.1018")]
+[assembly: AssemblyVersion("2.6.*")]
+[assembly: AssemblyFileVersion("2.6.2011.1111")]
 
 /*
+ * v2.6.2011.1111   增加接口IEntityForm，支持实体表单读写和验证保存
+ * 
  * v2.5.2011.1018   增加管理提供者接口IManageProvider和通用实体类管理提供者接口ICommonManageProvider，用于支持管理平台解耦
  * 
  * v2.4.2011.0908   支持XCode v8.0，重新生成实体类

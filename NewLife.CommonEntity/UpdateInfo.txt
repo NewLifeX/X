@@ -1,4 +1,6 @@
-﻿v2.5.2011.1018   增加管理提供者接口IManageProvider和通用实体类管理提供者接口ICommonManageProvider，用于支持管理平台解耦
+﻿v2.6.2011.1111   增加接口IEntityForm，支持实体表单读写和验证保存
+
+v2.5.2011.1018   增加管理提供者接口IManageProvider和通用实体类管理提供者接口ICommonManageProvider，用于支持管理平台解耦
 
 v2.4.2011.0908   支持XCode v8.0，重新生成实体类
 
