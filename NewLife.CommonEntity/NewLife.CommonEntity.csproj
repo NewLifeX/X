@@ -102,6 +102,12 @@
     <Compile Include="实体\简单分类.cs" />
     <Compile Include="实体\设置.Biz.cs" />
     <Compile Include="实体\设置.cs" />
+    <Compile Include="模版\模版.Biz.cs" />
+    <Compile Include="模版\模版.cs" />
+    <Compile Include="模版\模版内容.Biz.cs" />
+    <Compile Include="模版\模版内容.cs" />
+    <Compile Include="模版\模版项.Biz.cs" />
+    <Compile Include="模版\模版项.cs" />
     <Compile Include="管理和授权\日志.Biz.cs" />
     <Compile Include="管理和授权\日志.cs" />
     <Compile Include="管理和授权\用户.Biz.cs" />
