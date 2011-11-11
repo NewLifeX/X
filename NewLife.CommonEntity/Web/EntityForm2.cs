@@ -122,13 +122,13 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>是否空主键</summary>
-        protected virtual Boolean IsNullKey
+        public virtual Boolean IsNew
         {
             get
             {
                 Type type = Factory.Unique.Type;
-                if (type == typeof(Int32))
-                    return EntityID != null ? (Int32)EntityID <= 0 : true;
+                if (type == typeof(Int32) || type == typeof(Int16) || type == typeof(Int64))
+                    return EntityID != null ? Convert.ToInt64(EntityID) <= 0 : true;
                 else if (type == typeof(String))
                     return EntityID != null ? String.IsNullOrEmpty((String)EntityID) : true;
                 else
@@ -263,7 +263,7 @@ namespace NewLife.CommonEntity.Web
             if (entity == null)
             {
                 String msg = null;
-                if (IsNullKey)
+                if (IsNew)
                     msg = String.Format("参数错误！无法取得编号为{0}的{2}({1})！可能未设置自增主键！", EntityID, Factory.TableName, Factory.Table.Description);
                 else
                     msg = String.Format("参数错误！无法取得编号为{0}的{2}({1})！", EntityID, Factory.TableName, Factory.Table.Description);
@@ -291,7 +291,7 @@ namespace NewLife.CommonEntity.Web
 
                     btn.Visible = CanSave;
 
-                    if (btn is IButtonControl) (btn as IButtonControl).Text = IsNullKey ? "新增" : "更新";
+                    if (btn is IButtonControl) (btn as IButtonControl).Text = IsNew ? "新增" : "更新";
                 }
 
                 SetForm();
