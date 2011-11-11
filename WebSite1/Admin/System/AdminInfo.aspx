@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" MasterPageFile="~/Admin/Main.master" AutoEventWireup="true"
+﻿<%@ Page Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true"
     CodeFile="AdminInfo.aspx.cs" Inherits="Pages_AdminInfo" Title="用户信息" %>
 
 <asp:Content ID="C" ContentPlaceHolderID="C" runat="server">

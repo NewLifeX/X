@@ -56,7 +56,7 @@
                                                         <span class="STYLE1">用户：</span></div>
                                                 </td>
                                                 <td width="57%" height="25">
-                                                    <div align="center">
+                                                    <div style="text-align: left;">
                                                         <asp:TextBox ID="UserName" runat="server" Style="width: 105px; height: 17px; background-color: #292929;
                                                             border: solid 1px #7dbad7; font-size: 12px; color: #6cd0ff"></asp:TextBox>
                                                         <asp:RequiredFieldValidator ID="RequiredFieldValidator1" runat="server" ControlToValidate="UserName"
@@ -73,7 +73,7 @@
                                                         <span class="STYLE1">密码：</span></div>
                                                 </td>
                                                 <td height="25">
-                                                    <div align="center">
+                                                    <div style="text-align: left;">
                                                         <asp:TextBox ID="Password" runat="server" TextMode="Password" Style="width: 105px;
                                                             height: 17px; background-color: #292929; border: solid 1px #7dbad7; font-size: 12px;
                                                             color: #6cd0ff"></asp:TextBox>

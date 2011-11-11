@@ -1,5 +1,5 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Admin.aspx.cs" Inherits="Pages_Admin"
-    Title="管理员管理" MasterPageFile="~/Admin/Main.master" %>
+    Title="管理员管理" MasterPageFile="~/Admin/ManagerPage.master" %>
 
 <asp:Content ID="C" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">

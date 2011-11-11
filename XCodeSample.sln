@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YWS", "YWS\YWS.csproj", "{DBE2D3C8-24B9-4193-A568-66F550921702}"
-EndProject
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebSite1", "WebSite1\", "{4850E2DD-791A-47CE-A145-95417F05F46A}"
 	ProjectSection(WebsiteProperties) = preProject
 		SccProjectName = ""
@@ -30,20 +28,22 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebSite1", "WebSite1\", "{4
 		VWDVirtualPath = "/"
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.YWS", "YWS\NewLife.YWS.csproj", "{DBE2D3C8-24B9-4193-A568-66F550921702}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{DBE2D3C8-24B9-4193-A568-66F550921702}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DBE2D3C8-24B9-4193-A568-66F550921702}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DBE2D3C8-24B9-4193-A568-66F550921702}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DBE2D3C8-24B9-4193-A568-66F550921702}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4850E2DD-791A-47CE-A145-95417F05F46A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4850E2DD-791A-47CE-A145-95417F05F46A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4850E2DD-791A-47CE-A145-95417F05F46A}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{4850E2DD-791A-47CE-A145-95417F05F46A}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBE2D3C8-24B9-4193-A568-66F550921702}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
