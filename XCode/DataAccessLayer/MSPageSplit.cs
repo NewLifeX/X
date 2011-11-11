@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using XCode.Exceptions;
-using NewLife;
-using System.Linq;
 
 namespace XCode.DataAccessLayer
 {
@@ -78,7 +74,7 @@ namespace XCode.DataAccessLayer
 
             SelectBuilder builder2 = null;
             if (maximumRows < 1)
-                builder2 = builder.CloneWithGroupBy();
+                builder2 = builder.CloneWithGroupBy("XCode_T0");
             else
                 builder2 = builder.Clone().Top(maximumRows);
 
@@ -106,11 +102,11 @@ namespace XCode.DataAccessLayer
             // 构建Select Top 20 * From Table Order By ID Asc
             SelectBuilder builder1 = builder.Clone().AppendColumn(builder.Key).Top(startRowIndex + maximumRows);
 
-            SelectBuilder builder2 = builder1.AsChild().Top(maximumRows);
+            SelectBuilder builder2 = builder1.AsChild("XCode_T0").Top(maximumRows);
             // 要反向排序
             builder2.OrderBy = builder.ReverseKeyOrder;
 
-            SelectBuilder builder3 = builder2.AsChild();
+            SelectBuilder builder3 = builder2.AsChild("XCode_T1");
             // 让结果正向排序
             builder3.OrderBy = builder.KeyOrder;
 
@@ -130,12 +126,12 @@ namespace XCode.DataAccessLayer
             // Select Top 10 * From Table Where ID>(Select max(ID) From (Select Top 20 ID From Table Order By ID) Order By ID Desc) Order By ID Desc
 
             SelectBuilder builder1 = builder.Clone().Top(startRowIndex, builder.Key);
-            SelectBuilder builder2 = builder1.AsChild();
+            SelectBuilder builder2 = builder1.AsChild("XCode_T0");
             builder2.Column = builder.IsDesc ? "Min" : "Max";
 
             SelectBuilder builder3 = null;
             if (maximumRows < 1)
-                builder3 = builder.CloneWithGroupBy();
+                builder3 = builder.CloneWithGroupBy("XCode_T1");
             else
                 builder3 = builder.Clone().Top(maximumRows);
 
@@ -153,10 +149,10 @@ namespace XCode.DataAccessLayer
         static SelectBuilder RowNumber(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
             // 如果包含分组，则必须作为子查询
-            SelectBuilder builder1 = builder.CloneWithGroupBy();
+            SelectBuilder builder1 = builder.CloneWithGroupBy("XCode_T0");
             builder1.Column = String.Format("{0}, row_number() over({1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy);
 
-            SelectBuilder builder2 = builder.AsChild();
+            SelectBuilder builder2 = builder.AsChild("XCode_T1");
             if (maximumRows < 1)
                 builder2.Where = String.Format("rowNumber>={0}", startRowIndex + 1);
             else
