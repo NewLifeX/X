@@ -26,13 +26,9 @@ namespace NewLife.Web
         {
             WebRequest request = base.GetWebRequest(address);
 
-            if (request is HttpWebRequest)
-                (request as HttpWebRequest).CookieContainer = Cookie;
+            if (request is HttpWebRequest) (request as HttpWebRequest).CookieContainer = Cookie;
 
-            if (Timeout > 0)
-                request.Timeout = request.Timeout;
-            else
-                Timeout = request.Timeout;
+            if (Timeout > 0) request.Timeout = Timeout;
 
             return request;
         }
