@@ -6,7 +6,7 @@
             <th colspan="2">模版内容</th>
         </tr>
         <tr>
-            <td align="right">模版：</td>
+            <td align="right">模版项：</td>
             <td><XCL:NumberBox ID="frmTemplateItemID" runat="server" Width="80px"></XCL:NumberBox></td>
         </tr>
 <tr>
@@ -16,6 +16,22 @@
 <tr>
             <td align="right">内容备份：</td>
             <td><asp:TextBox ID="frmContentBackup" runat="server" TextMode="MultiLine" Width="300px" Height="80px"></asp:TextBox></td>
+        </tr>
+<tr>
+            <td align="right">版本：</td>
+            <td><XCL:NumberBox ID="frmVersion" runat="server" Width="80px"></XCL:NumberBox></td>
+        </tr>
+<tr>
+            <td align="right">作者编号：</td>
+            <td><XCL:NumberBox ID="frmAuthorID" runat="server" Width="80px"></XCL:NumberBox></td>
+        </tr>
+<tr>
+            <td align="right">作者：</td>
+            <td><asp:TextBox ID="frmAuthorName" runat="server" Width="150px"></asp:TextBox></td>
+        </tr>
+<tr>
+            <td align="right">创建时间：</td>
+            <td><XCL:DateTimePicker ID="frmCreateTime" runat="server"></XCL:DateTimePicker></td>
         </tr>
     </table>
     <table border="0" align="Center" width="100%">

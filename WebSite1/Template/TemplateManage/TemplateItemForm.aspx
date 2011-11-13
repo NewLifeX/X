@@ -14,8 +14,12 @@
             <td><asp:TextBox ID="frmName" runat="server" Width="150px"></asp:TextBox></td>
         </tr>
 <tr>
+            <td align="right">模版种类：</td>
+            <td><asp:TextBox ID="frmKind" runat="server" Width="150px"></asp:TextBox></td>
+        </tr>
+<tr>
             <td align="right">备注：</td>
-            <td><asp:TextBox ID="frmRemark" runat="server" Width="300px"></asp:TextBox></td>
+            <td><asp:TextBox ID="frmRemark" runat="server" TextMode="MultiLine" Width="300px" Height="80px"></asp:TextBox></td>
         </tr>
     </table>
     <table border="0" align="Center" width="100%">

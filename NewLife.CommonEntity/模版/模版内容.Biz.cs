@@ -1,7 +1,7 @@
 ﻿/*
  * XCoder v4.5.2011.1108
- * 作者：nnhy/NEWLIFE
- * 时间：2011-11-11 18:21:52
+ * 作者：nnhy/X
+ * 时间：2011-11-13 22:43:17
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
@@ -49,17 +49,15 @@ namespace NewLife.CommonEntity
 
         #region 扩展查询﻿
         /// <summary>
-        /// 根据模版查找
+        /// 根据模版项、版本查找
         /// </summary>
-        /// <param name="templateitemid">模版</param>
+        /// <param name="templateitemid">模版项</param>
+        /// <param name="version">版本</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAllByTemplateItemID(Int32 templateitemid)
+        public static TEntity FindByTemplateItemIDAndVersion(Int32 templateitemid, Int32 version)
         {
-            if (Meta.Count >= 1000)
-                return FindAll(new String[] { _.TemplateItemID }, new Object[] { templateitemid });
-            else // 实体缓存
-                return Meta.Cache.Entities.FindAll(_.TemplateItemID, templateitemid);
+            return Find(new String[] { _.TemplateItemID, _.Version }, new Object[] { templateitemid, version });
         }
 
         /// <summary>
@@ -76,6 +74,20 @@ namespace NewLife.CommonEntity
                 return Meta.Cache.Entities.Find(_.ID, id);
             // 单对象缓存
             //return Meta.SingleCache[id];
+        }
+
+        /// <summary>
+        /// 根据模版项查找
+        /// </summary>
+        /// <param name="templateitemid">模版项</param>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static EntityList<TEntity> FindAllByTemplateItemID(Int32 templateitemid)
+        {
+            if (Meta.Count >= 1000)
+                return FindAll(new String[] { _.TemplateItemID }, new Object[] { templateitemid });
+            else // 实体缓存
+                return Meta.Cache.Entities.FindAll(_.TemplateItemID, templateitemid);
         }
         #endregion
 

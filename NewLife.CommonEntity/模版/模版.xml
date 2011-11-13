@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Tables>
+  <Table ID="1" Name="TemplateContent" Alias="TemplateContent" DbType="SqlServer" IsView="False" Description="模版内容">
+    <Columns>
+      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
+      <Column ID="2" Name="TemplateItemID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="模版项" />
+      <Column ID="3" Name="Content" DataType="String" RawType="ntext" Length="1073741823" NumOfByte="16" Nullable="True" IsUnicode="True" Description="模版内容" />
+      <Column ID="4" Name="ContentBackup" DataType="String" RawType="ntext" Length="1073741823" NumOfByte="16" Nullable="True" IsUnicode="True" Description="内容备份" />
+      <Column ID="5" Name="Version" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Description="版本" />
+      <Column ID="6" Name="AuthorID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="作者编号" />
+      <Column ID="7" Name="AuthorName" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="作者" />
+      <Column ID="8" Name="CreateTime" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="创建时间" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_TemplateContent" Unique="True" Columns="TemplateItemID,Version" />
+      <Index Name="PK__Template__3214EC27182C9B23" Unique="True" PrimaryKey="True" Columns="ID" />
+      <Index Name="IX_TemplateContent_TemplateItemID" Computed="True" Columns="TemplateItemID" />
+    </Indexes>
+    <Relations>
+      <Relation Column="TemplateItemID" RelationTable="TemplateItem" RelationColumn="ID" Computed="True" />
+    </Relations>
+  </Table>
+  <Table ID="2" Name="TemplateItem" Alias="TemplateItem" DbType="SqlServer" IsView="False" Description="模版项">
+    <Columns>
+      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
+      <Column ID="2" Name="TemplateID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="模版" />
+      <Column ID="3" Name="Name" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="名称" />
+      <Column ID="4" Name="Kind" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="模版种类" />
+      <Column ID="5" Name="Remark" DataType="String" RawType="nvarchar(500)" Length="500" NumOfByte="1000" Nullable="True" IsUnicode="True" Description="备注" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_TemplateItem" Unique="True" Columns="TemplateID,Name" />
+      <Index Name="IX_TemplateItem_TemplateID" Columns="TemplateID" />
+      <Index Name="PK__Template__3214EC271BFD2C07" Unique="True" PrimaryKey="True" Columns="ID" />
+    </Indexes>
+    <Relations>
+      <Relation Column="ID" RelationTable="TemplateContent" RelationColumn="TemplateItemID" Unique="True" />
+      <Relation Column="TemplateID" RelationTable="Template" RelationColumn="ID" />
+    </Relations>
+  </Table>
+  <Table ID="3" Name="Template" Alias="Template" DbType="SqlServer" IsView="False" Description="模版">
+    <Columns>
+      <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
+      <Column ID="2" Name="Name" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="名称" />
+      <Column ID="3" Name="AuthorID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="作者编号" />
+      <Column ID="4" Name="AuthorName" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="作者" />
+      <Column ID="5" Name="CreateTime" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="创建时间" />
+      <Column ID="6" Name="LastModify" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="最后修改" />
+      <Column ID="7" Name="Remark" DataType="String" RawType="nvarchar(500)" Length="500" NumOfByte="1000" Nullable="True" IsUnicode="True" Description="备注" />
+    </Columns>
+    <Indexes>
+      <Index Name="IX_Template" Unique="True" Columns="Name" />
+      <Index Name="IX_Template_AuthorID" Columns="AuthorID" />
+      <Index Name="PK__Template__3214EC27145C0A3F" Unique="True" PrimaryKey="True" Columns="ID" />
+    </Indexes>
+    <Relations>
+      <Relation Column="ID" RelationTable="TemplateItem" RelationColumn="TemplateID" Unique="True" />
+    </Relations>
+  </Table>
+</Tables>

@@ -2,7 +2,7 @@
 
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
     <div class="toolbar">
-        <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="184px" BoxWidth="440px" Url="TemplateItemForm.aspx"
+        <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="274px" BoxWidth="440px" Url="TemplateItemForm.aspx"
             IconLeft="~/Admin/images/icons/new.gif"><b>添加模版项</b></XCL:LinkBox>
         关键字：<asp:TextBox ID="txtKey" runat="server"></asp:TextBox>
         <asp:Button ID="btnSearch" runat="server" Text="查询" />
@@ -23,8 +23,8 @@
                 <ItemStyle HorizontalAlign="Right" Font-Bold="True" />
             </asp:BoundField>
             <asp:BoundField DataField="Name" HeaderText="名称" SortExpression="Name" />
-            <asp:BoundField DataField="Remark" HeaderText="备注" SortExpression="Remark" />
-            <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="TemplateItemForm.aspx?ID={0}" Height="184px" Text="编辑" Width="440px" Title="编辑模版项">
+            <asp:BoundField DataField="Kind" HeaderText="模版种类" SortExpression="Kind" />
+            <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="TemplateItemForm.aspx?ID={0}" Height="274px" Text="编辑" Width="440px" Title="编辑模版项">
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" />
                 <HeaderStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="30px" />
             </XCL:LinkBoxField>

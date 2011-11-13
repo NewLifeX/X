@@ -1,7 +1,7 @@
 ﻿/*
  * XCoder v4.5.2011.1108
- * 作者：nnhy/NEWLIFE
- * 时间：2011-11-11 18:21:52
+ * 作者：nnhy/X
+ * 时间：2011-11-13 22:43:17
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
@@ -20,8 +20,9 @@ namespace NewLife.CommonEntity
     [Serializable]
     [DataObject]
     [Description("模版内容")]
-    [BindIndex("IX_TemplateContent", false, "TemplateItemID")]
-    [BindIndex("PK_TemplateContent", true, "ID")]
+    [BindIndex("IX_TemplateContent", true, "TemplateItemID,Version")]
+    [BindIndex("PK__Template__3214EC27182C9B23", true, "ID")]
+    [BindIndex("IX_TemplateContent_TemplateItemID", false, "TemplateItemID")]
     [BindRelation("TemplateItemID", false, "TemplateItem", "ID")]
     [BindTable("TemplateContent", Description = "模版内容", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public partial class TemplateContent<TEntity> : ITemplateContent
@@ -40,11 +41,11 @@ namespace NewLife.CommonEntity
         }
 
         private Int32 _TemplateItemID;
-        /// <summary>模版</summary>
-        [DisplayName("模版")]
-        [Description("模版")]
+        /// <summary>模版项</summary>
+        [DisplayName("模版项")]
+        [Description("模版项")]
         [DataObjectField(false, false, true, 10)]
-        [BindColumn(2, "TemplateItemID", "模版", null, "int", 10, 0, false)]
+        [BindColumn(2, "TemplateItemID", "模版项", null, "int", 10, 0, false)]
         public virtual Int32 TemplateItemID
         {
             get { return _TemplateItemID; }
@@ -74,6 +75,54 @@ namespace NewLife.CommonEntity
             get { return _ContentBackup; }
             set { if (OnPropertyChanging("ContentBackup", value)) { _ContentBackup = value; OnPropertyChanged("ContentBackup"); } }
         }
+
+        private Int32 _Version;
+        /// <summary>版本</summary>
+        [DisplayName("版本")]
+        [Description("版本")]
+        [DataObjectField(false, false, false, 10)]
+        [BindColumn(5, "Version", "版本", null, "int", 10, 0, false)]
+        public virtual Int32 Version
+        {
+            get { return _Version; }
+            set { if (OnPropertyChanging("Version", value)) { _Version = value; OnPropertyChanged("Version"); } }
+        }
+
+        private Int32 _AuthorID;
+        /// <summary>作者编号</summary>
+        [DisplayName("作者编号")]
+        [Description("作者编号")]
+        [DataObjectField(false, false, true, 10)]
+        [BindColumn(6, "AuthorID", "作者编号", null, "int", 10, 0, false)]
+        public virtual Int32 AuthorID
+        {
+            get { return _AuthorID; }
+            set { if (OnPropertyChanging("AuthorID", value)) { _AuthorID = value; OnPropertyChanged("AuthorID"); } }
+        }
+
+        private String _AuthorName;
+        /// <summary>作者</summary>
+        [DisplayName("作者")]
+        [Description("作者")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn(7, "AuthorName", "作者", null, "nvarchar(50)", 0, 0, true)]
+        public virtual String AuthorName
+        {
+            get { return _AuthorName; }
+            set { if (OnPropertyChanging("AuthorName", value)) { _AuthorName = value; OnPropertyChanged("AuthorName"); } }
+        }
+
+        private DateTime _CreateTime;
+        /// <summary>创建时间</summary>
+        [DisplayName("创建时间")]
+        [Description("创建时间")]
+        [DataObjectField(false, false, true, 3)]
+        [BindColumn(8, "CreateTime", "创建时间", null, "datetime", 3, 0, false)]
+        public virtual DateTime CreateTime
+        {
+            get { return _CreateTime; }
+            set { if (OnPropertyChanging("CreateTime", value)) { _CreateTime = value; OnPropertyChanged("CreateTime"); } }
+        }
 		#endregion
 
         #region 获取/设置 字段值
@@ -94,6 +143,10 @@ namespace NewLife.CommonEntity
                     case "TemplateItemID" : return _TemplateItemID;
                     case "Content" : return _Content;
                     case "ContentBackup" : return _ContentBackup;
+                    case "Version" : return _Version;
+                    case "AuthorID" : return _AuthorID;
+                    case "AuthorName" : return _AuthorName;
+                    case "CreateTime" : return _CreateTime;
                     default: return base[name];
                 }
             }
@@ -105,6 +158,10 @@ namespace NewLife.CommonEntity
                     case "TemplateItemID" : _TemplateItemID = Convert.ToInt32(value); break;
                     case "Content" : _Content = Convert.ToString(value); break;
                     case "ContentBackup" : _ContentBackup = Convert.ToString(value); break;
+                    case "Version" : _Version = Convert.ToInt32(value); break;
+                    case "AuthorID" : _AuthorID = Convert.ToInt32(value); break;
+                    case "AuthorName" : _AuthorName = Convert.ToString(value); break;
+                    case "CreateTime" : _CreateTime = Convert.ToDateTime(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -118,7 +175,7 @@ namespace NewLife.CommonEntity
             ///<summary>编号</summary>
             public static readonly FieldItem ID = Meta.Table.FindByName("ID");
 
-            ///<summary>模版</summary>
+            ///<summary>模版项</summary>
             public static readonly FieldItem TemplateItemID = Meta.Table.FindByName("TemplateItemID");
 
             ///<summary>模版内容</summary>
@@ -126,6 +183,18 @@ namespace NewLife.CommonEntity
 
             ///<summary>内容备份</summary>
             public static readonly FieldItem ContentBackup = Meta.Table.FindByName("ContentBackup");
+
+            ///<summary>版本</summary>
+            public static readonly FieldItem Version = Meta.Table.FindByName("Version");
+
+            ///<summary>作者编号</summary>
+            public static readonly FieldItem AuthorID = Meta.Table.FindByName("AuthorID");
+
+            ///<summary>作者</summary>
+            public static readonly FieldItem AuthorName = Meta.Table.FindByName("AuthorName");
+
+            ///<summary>创建时间</summary>
+            public static readonly FieldItem CreateTime = Meta.Table.FindByName("CreateTime");
         }
         #endregion
     }
@@ -137,7 +206,7 @@ namespace NewLife.CommonEntity
         /// <summary>编号</summary>
         Int32 ID { get; set; }
 
-        /// <summary>模版</summary>
+        /// <summary>模版项</summary>
         Int32 TemplateItemID { get; set; }
 
         /// <summary>模版内容</summary>
@@ -145,6 +214,18 @@ namespace NewLife.CommonEntity
 
         /// <summary>内容备份</summary>
         String ContentBackup { get; set; }
+
+        /// <summary>版本</summary>
+        Int32 Version { get; set; }
+
+        /// <summary>作者编号</summary>
+        Int32 AuthorID { get; set; }
+
+        /// <summary>作者</summary>
+        String AuthorName { get; set; }
+
+        /// <summary>创建时间</summary>
+        DateTime CreateTime { get; set; }
         #endregion
 
         #region 获取/设置 字段值

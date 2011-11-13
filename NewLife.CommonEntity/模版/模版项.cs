@@ -1,7 +1,7 @@
 ﻿/*
  * XCoder v4.5.2011.1108
- * 作者：nnhy/NEWLIFE
- * 时间：2011-11-11 18:21:52
+ * 作者：nnhy/X
+ * 时间：2011-11-13 22:43:14
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
@@ -21,8 +21,8 @@ namespace NewLife.CommonEntity
     [DataObject]
     [Description("模版项")]
     [BindIndex("IX_TemplateItem", true, "TemplateID,Name")]
-    [BindIndex("PK_TemplateItem", true, "ID")]
     [BindIndex("IX_TemplateItem_TemplateID", false, "TemplateID")]
+    [BindIndex("PK__Template__3214EC271BFD2C07", true, "ID")]
     [BindRelation("ID", true, "TemplateContent", "TemplateItemID")]
     [BindRelation("TemplateID", false, "Template", "ID")]
     [BindTable("TemplateItem", Description = "模版项", ConnName = "Common", DbType = DatabaseType.SqlServer)]
@@ -65,12 +65,24 @@ namespace NewLife.CommonEntity
             set { if (OnPropertyChanging("Name", value)) { _Name = value; OnPropertyChanged("Name"); } }
         }
 
+        private String _Kind;
+        /// <summary>模版种类</summary>
+        [DisplayName("模版种类")]
+        [Description("模版种类")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn(4, "Kind", "模版种类", null, "nvarchar(50)", 0, 0, true)]
+        public virtual String Kind
+        {
+            get { return _Kind; }
+            set { if (OnPropertyChanging("Kind", value)) { _Kind = value; OnPropertyChanged("Kind"); } }
+        }
+
         private String _Remark;
         /// <summary>备注</summary>
         [DisplayName("备注")]
         [Description("备注")]
-        [DataObjectField(false, false, true, 200)]
-        [BindColumn(4, "Remark", "备注", null, "nvarchar(200)", 0, 0, true)]
+        [DataObjectField(false, false, true, 500)]
+        [BindColumn(5, "Remark", "备注", null, "nvarchar(500)", 0, 0, true)]
         public virtual String Remark
         {
             get { return _Remark; }
@@ -95,6 +107,7 @@ namespace NewLife.CommonEntity
                     case "ID" : return _ID;
                     case "TemplateID" : return _TemplateID;
                     case "Name" : return _Name;
+                    case "Kind" : return _Kind;
                     case "Remark" : return _Remark;
                     default: return base[name];
                 }
@@ -106,6 +119,7 @@ namespace NewLife.CommonEntity
                     case "ID" : _ID = Convert.ToInt32(value); break;
                     case "TemplateID" : _TemplateID = Convert.ToInt32(value); break;
                     case "Name" : _Name = Convert.ToString(value); break;
+                    case "Kind" : _Kind = Convert.ToString(value); break;
                     case "Remark" : _Remark = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
@@ -126,6 +140,9 @@ namespace NewLife.CommonEntity
             ///<summary>名称</summary>
             public static readonly FieldItem Name = Meta.Table.FindByName("Name");
 
+            ///<summary>模版种类</summary>
+            public static readonly FieldItem Kind = Meta.Table.FindByName("Kind");
+
             ///<summary>备注</summary>
             public static readonly FieldItem Remark = Meta.Table.FindByName("Remark");
         }
@@ -144,6 +161,9 @@ namespace NewLife.CommonEntity
 
         /// <summary>名称</summary>
         String Name { get; set; }
+
+        /// <summary>模版种类</summary>
+        String Kind { get; set; }
 
         /// <summary>备注</summary>
         String Remark { get; set; }

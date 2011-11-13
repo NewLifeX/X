@@ -150,6 +150,7 @@
   <ItemGroup>
     <Content Include="mssql_Common.xml" />
     <EmbeddedResource Include="实体\AreaCode.txt" />
+    <Content Include="模版\模版.xml" />
     <Content Include="说明.txt" />
   </ItemGroup>
   <ItemGroup />

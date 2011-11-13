@@ -1,7 +1,7 @@
 ﻿/*
  * XCoder v4.5.2011.1108
- * 作者：nnhy/NEWLIFE
- * 时间：2011-11-11 18:21:52
+ * 作者：nnhy/X
+ * 时间：2011-11-13 22:43:14
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
@@ -79,6 +79,20 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>
+        /// 根据模版查找
+        /// </summary>
+        /// <param name="templateid">模版</param>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static EntityList<TEntity> FindAllByTemplateID(Int32 templateid)
+        {
+            if (Meta.Count >= 1000)
+                return FindAll(new String[] { _.TemplateID }, new Object[] { templateid });
+            else // 实体缓存
+                return Meta.Cache.Entities.FindAll(_.TemplateID, templateid);
+        }
+
+        /// <summary>
         /// 根据编号查找
         /// </summary>
         /// <param name="id">编号</param>
@@ -92,20 +106,6 @@ namespace NewLife.CommonEntity
                 return Meta.Cache.Entities.Find(_.ID, id);
             // 单对象缓存
             //return Meta.SingleCache[id];
-        }
-
-        /// <summary>
-        /// 根据模版查找
-        /// </summary>
-        /// <param name="templateid">模版</param>
-        /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAllByTemplateID(Int32 templateid)
-        {
-            if (Meta.Count >= 1000)
-                return FindAll(new String[] { _.TemplateID }, new Object[] { templateid });
-            else // 实体缓存
-                return Meta.Cache.Entities.FindAll(_.TemplateID, templateid);
         }
         #endregion
 

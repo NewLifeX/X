@@ -2,7 +2,7 @@
 
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
     <div class="toolbar">
-        <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="310px" BoxWidth="440px" Url="TemplateContentForm.aspx"
+        <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="418px" BoxWidth="440px" Url="TemplateContentForm.aspx"
             IconLeft="~/Admin/images/icons/new.gif"><b>添加模版内容</b></XCL:LinkBox>
         关键字：<asp:TextBox ID="txtKey" runat="server"></asp:TextBox>
         <asp:Button ID="btnSearch" runat="server" Text="查询" />
@@ -19,10 +19,20 @@
             <asp:BoundField DataField="ID" HeaderText="编号" SortExpression="ID" InsertVisible="False" ReadOnly="True" >
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" />
             </asp:BoundField>
-            <asp:BoundField DataField="TemplateItemID" HeaderText="模版" SortExpression="TemplateItemID" DataFormatString="{0:n0}">
+            <asp:BoundField DataField="TemplateItemID" HeaderText="模版项" SortExpression="TemplateItemID" DataFormatString="{0:n0}">
                 <ItemStyle HorizontalAlign="Right" Font-Bold="True" />
             </asp:BoundField>
-            <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="TemplateContentForm.aspx?ID={0}" Height="310px" Text="编辑" Width="440px" Title="编辑模版内容">
+            <asp:BoundField DataField="Version" HeaderText="版本" SortExpression="Version" DataFormatString="{0:n0}">
+                <ItemStyle HorizontalAlign="Right" Font-Bold="True" />
+            </asp:BoundField>
+            <asp:BoundField DataField="AuthorID" HeaderText="作者编号" SortExpression="AuthorID" DataFormatString="{0:n0}">
+                <ItemStyle HorizontalAlign="Right" Font-Bold="True" />
+            </asp:BoundField>
+            <asp:BoundField DataField="AuthorName" HeaderText="作者" SortExpression="AuthorName" />
+            <asp:BoundField DataField="CreateTime" HeaderText="创建时间" SortExpression="CreateTime" DataFormatString="{0:yyyy-MM-dd HH:mm:ss}" >
+                <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="120px" />
+            </asp:BoundField>
+            <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="TemplateContentForm.aspx?ID={0}" Height="418px" Text="编辑" Width="440px" Title="编辑模版内容">
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" />
                 <HeaderStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="30px" />
             </XCL:LinkBoxField>

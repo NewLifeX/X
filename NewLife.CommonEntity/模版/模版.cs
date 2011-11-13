@@ -1,7 +1,7 @@
 ﻿/*
  * XCoder v4.5.2011.1108
- * 作者：nnhy/NEWLIFE
- * 时间：2011-11-11 18:21:52
+ * 作者：nnhy/X
+ * 时间：2011-11-13 22:43:10
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
@@ -21,8 +21,8 @@ namespace NewLife.CommonEntity
     [DataObject]
     [Description("模版")]
     [BindIndex("IX_Template", true, "Name")]
-    [BindIndex("IX_Template_1", false, "AuthorID")]
-    [BindIndex("PK_Template", true, "ID")]
+    [BindIndex("IX_Template_AuthorID", false, "AuthorID")]
+    [BindIndex("PK__Template__3214EC27145C0A3F", true, "ID")]
     [BindRelation("ID", true, "TemplateItem", "TemplateID")]
     [BindTable("Template", Description = "模版", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public partial class Template<TEntity> : ITemplate
@@ -104,8 +104,8 @@ namespace NewLife.CommonEntity
         /// <summary>备注</summary>
         [DisplayName("备注")]
         [Description("备注")]
-        [DataObjectField(false, false, true, 200)]
-        [BindColumn(7, "Remark", "备注", null, "nvarchar(200)", 0, 0, true)]
+        [DataObjectField(false, false, true, 500)]
+        [BindColumn(7, "Remark", "备注", null, "nvarchar(500)", 0, 0, true)]
         public virtual String Remark
         {
             get { return _Remark; }
