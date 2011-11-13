@@ -19,28 +19,28 @@ namespace NewLife.CommonEntity
     /// <summary>模版项</summary>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class TemplateItem : TemplateItem<TemplateItem> { }
-    
+
     /// <summary>模版项</summary>
     public partial class TemplateItem<TEntity> : Entity<TEntity> where TEntity : TemplateItem<TEntity>, new()
     {
         #region 扩展属性﻿
         [NonSerialized]
-		private EntityList<TemplateContent> _TemplateContents;
-		/// <summary>该模版项所拥有的模版内容集合</summary>
-		[XmlIgnore]
-		public EntityList<TemplateContent> TemplateContents
-		{
-			get
-			{
-				if (_TemplateContents == null && ID > 0 && !Dirtys.ContainsKey("TemplateContents"))
+        private EntityList<TemplateContent> _TemplateContents;
+        /// <summary>该模版项所拥有的模版内容集合</summary>
+        [XmlIgnore]
+        public EntityList<TemplateContent> TemplateContents
+        {
+            get
+            {
+                if (_TemplateContents == null && ID > 0 && !Dirtys.ContainsKey("TemplateContents"))
                 {
-					_TemplateContents = TemplateContent.FindAllByTemplateItemID(ID);
-					Dirtys["TemplateContents"] = true;
-				}
-				return _TemplateContents;
-			}
-			set { _TemplateContents = value; }
-		}
+                    _TemplateContents = TemplateContent.FindAllByTemplateItemID(ID);
+                    Dirtys["TemplateContents"] = true;
+                }
+                return _TemplateContents;
+            }
+            set { _TemplateContents = value; }
+        }
 
         [NonSerialized]
         private Template _Template;
@@ -110,6 +110,18 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 对象操作﻿
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <param name="forEdit"></param>
+        /// <returns></returns>
+        protected override TEntity CreateInstance(bool forEdit = false)
+        {
+            TEntity entity = base.CreateInstance(forEdit);
+            if (forEdit) entity.Kind = "XTemplate";
+            return entity;
+        }
+
         ///// <summary>
         ///// 已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert
         ///// </summary>
@@ -153,7 +165,7 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         protected override int OnDelete()
         {
-			if (TemplateContents != null) TemplateContents.Delete();
+            if (TemplateContents != null) TemplateContents.Delete();
 
             return base.OnDelete();
         }
