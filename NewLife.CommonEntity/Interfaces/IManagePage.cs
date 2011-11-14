@@ -103,9 +103,15 @@ namespace NewLife.CommonEntity
         #region 生命周期
         void Init()
         {
+            Page.InitComplete += new EventHandler(Page_InitComplete);
             Page.PreLoad += new EventHandler(OnPreLoad);
-            Page.LoadComplete += new EventHandler(OnLoadComplete);
+            //Page.LoadComplete += new EventHandler(OnLoadComplete);
             //Page.PreRender += new EventHandler(Page_PreRender);
+        }
+
+        void Page_InitComplete(object sender, EventArgs e)
+        {
+            FixObjectDataSource();
         }
 
         void OnPreLoad(object sender, EventArgs e)
@@ -134,51 +140,12 @@ namespace NewLife.CommonEntity
                 XTrace.WriteException(ex);
             }
 
-            if (!Page.IsPostBack)
-            {
-                GridView gv = ControlHelper.FindControlInPage<GridView>("gv");
-                if (gv == null && EntityType != null) gv = ControlHelper.FindControlInPage<GridView>("gv" + EntityType.Name);
-                if (gv == null) gv = ControlHelper.FindControlInPage<GridView>(null);
-                // 最后一列是删除列，需要删除权限
-                if (gv != null) gv.Columns[gv.Columns.Count - 1].Visible = Acquire(PermissionFlags.Delete);
+            if (!Page.IsPostBack) CheckAddAndDeletePermission();
 
-                Label lbAdd = ControlHelper.FindControlInPage<Label>("lbAdd");
-                // 添加按钮需要添加权限
-                if (lbAdd != null) lbAdd.Visible = Acquire(PermissionFlags.Insert);
-            }
-
-            ObjectDataSource ods = ControlHelper.FindControlInPage<ObjectDataSource>("ods");
-            if (ods == null && EntityType != null) ods = ControlHelper.FindControlInPage<ObjectDataSource>("ods" + EntityType.Name);
-            if (ods == null) ods = ControlHelper.FindControlInPage<ObjectDataSource>(null);
-            if (ods != null) FixObjectDataSource(ods);
         }
 
         void OnLoadComplete(object sender, EventArgs e)
         {
-            if (!Page.IsPostBack)
-            {
-                // 添加按钮需要添加权限
-                Control lbAdd = ControlHelper.FindControlInPage<Control>("lbAdd");
-                if (lbAdd != null) lbAdd.Visible = Acquire(PermissionFlags.Insert);
-
-                // 最后一列是删除列，需要删除权限
-                GridView gv = ControlHelper.FindControlInPage<GridView>("gv");
-                if (gv != null)
-                {
-                    DataControlField dcf = gv.Columns[gv.Columns.Count - 1];
-                    if (dcf != null && dcf.HeaderText.Contains("删除")) dcf.Visible = Acquire(PermissionFlags.Delete);
-
-                    dcf = gv.Columns[gv.Columns.Count - 2];
-                    if (dcf != null && dcf.HeaderText.Contains("编辑"))
-                    {
-                        if (!Acquire(PermissionFlags.Update))
-                        {
-                            dcf.HeaderText = "查看";
-                            if (dcf is HyperLinkField) (dcf as HyperLinkField).Text = "查看";
-                        }
-                    }
-                }
-            }
         }
 
         void OnRender(object sender, EventArgs e)
@@ -317,7 +284,50 @@ namespace NewLife.CommonEntity
         }
         #endregion
 
+        #region 添加和删除权限
+        void CheckAddAndDeletePermission()
+        {
+            // 添加按钮需要添加权限
+            Control lbAdd = ControlHelper.FindControlInPage<Control>("lbAdd");
+            if (lbAdd != null) lbAdd.Visible = Acquire(PermissionFlags.Insert);
+
+            // 最后一列是删除列，需要删除权限
+            GridView gv = ControlHelper.FindControlInPage<GridView>("gv");
+            if (gv == null && EntityType != null) gv = ControlHelper.FindControlInPage<GridView>("gv" + EntityType.Name);
+            if (gv == null) gv = ControlHelper.FindControlInPage<GridView>(null);
+            if (gv != null)
+            {
+                DataControlField dcf = gv.Columns[gv.Columns.Count - 1];
+                if (dcf != null && dcf.HeaderText.Contains("删除")) dcf.Visible = Acquire(PermissionFlags.Delete);
+
+                dcf = gv.Columns[gv.Columns.Count - 2];
+                if (dcf != null && dcf.HeaderText.Contains("编辑"))
+                {
+                    if (!Acquire(PermissionFlags.Update))
+                    {
+                        dcf.HeaderText = "查看";
+                        if (dcf is HyperLinkField) (dcf as HyperLinkField).Text = "查看";
+                    }
+                }
+            }
+        }
+        #endregion
+
         #region ObjectDataSource完善
+        /// <summary>
+        /// 如果没有设置TypeName，则说明该控件还没有人工控制，采用自动控制
+        /// </summary>
+        void FixObjectDataSource()
+        {
+            ObjectDataSource ods = ControlHelper.FindControlInPage<ObjectDataSource>("ods");
+            if (ods == null && EntityType != null) ods = ControlHelper.FindControlInPage<ObjectDataSource>("ods" + EntityType.Name);
+            if (ods == null) ods = ControlHelper.FindControlInPage<ObjectDataSource>(null);
+            if (ods != null)
+            {
+                FixObjectDataSource(ods);
+            }
+        }
+
         /// <summary>
         /// 如果没有设置TypeName，则说明该控件还没有人工控制，采用自动控制
         /// </summary>
