@@ -347,14 +347,10 @@ namespace XCode.Accessors
             if (type == typeof(DateTime))
             {
                 DateTime d = (DateTime)value;
-                if (Helper.IsEntityNullKey(entity) && d == DateTime.MinValue) d = DateTime.Now;
-                //control.Text = d.ToString("yyyy-MM-dd HH:mm:ss");
-                //else
-                //    control.Text = null;
+                // 有时候可能并不需要默认时间
+                //if (Helper.IsEntityNullKey(entity) && d == DateTime.MinValue) d = DateTime.Now;
                 value = d.ToString("yyyy-MM-dd HH:mm:ss");
             }
-            //else
-            //    control.Text = String.Empty + entity[field.Name];
 
             if (!SetControlValue(control, value)) control.Text = value != null ? value.ToString() : "";
         }
