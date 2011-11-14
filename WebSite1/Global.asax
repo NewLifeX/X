@@ -17,7 +17,10 @@
     void Application_Error(object sender, EventArgs e)
     {
         Exception ex = Server.GetLastError();
+        if (ex == null) return;
+        if (ex is System.Threading.ThreadAbortException) return;
         if (ex is System.Security.Cryptography.CryptographicException && ex.Message.Contains("填充无效")) return;
+        
         String msg = ex.ToString();
         msg += Environment.NewLine + String.Format("来源：{0}", Request.UserHostAddress);
         msg += Environment.NewLine + String.Format("平台：{0}", Request.UserAgent);
