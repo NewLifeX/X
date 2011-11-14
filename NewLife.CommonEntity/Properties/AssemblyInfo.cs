@@ -41,6 +41,7 @@ using System.Runtime.InteropServices;
 /*
  * v2.6.2011.1114   精简ICommonManageProvider和IManagerPage，最大程度降低IManagerPage对IAdministator的依赖，目前可以做到不依赖
  *                  用户既可以不实现IAdministator，又可以享受IManagerPage的优势
+ *                  Menu初始化扫描页面时，自动读取页面的Title
  * 
  * v2.6.2011.1111   增加接口IEntityForm，支持实体表单读写和验证保存
  * 

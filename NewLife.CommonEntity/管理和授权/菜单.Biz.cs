@@ -11,6 +11,7 @@ using NewLife.Log;
 using NewLife.Reflection;
 using XCode;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace NewLife.CommonEntity
 {
@@ -557,6 +558,8 @@ namespace NewLife.CommonEntity
                 if (String.IsNullOrEmpty(top.Url))
                 {
                     top.Url = String.Format(@"../{0}/{1}", dir, Path.GetFileName(defFile));
+                    String title = GetPageTitle(defFile);
+                    if (!String.IsNullOrEmpty(title)) top.Name = top.Permission = title;
                     top.Save();
                 }
             }
@@ -605,6 +608,8 @@ namespace NewLife.CommonEntity
                     if (String.IsNullOrEmpty(parent.Url))
                     {
                         parent.Url = String.Format(@"../../{0}/{1}/{2}", dir, item, Path.GetFileName(defFile));
+                        String title = GetPageTitle(defFile);
+                        if (!String.IsNullOrEmpty(title)) parent.Name = parent.Permission = title;
                         parent.Save();
                     }
 
@@ -631,12 +636,39 @@ namespace NewLife.CommonEntity
                     entity = Find(_.Url, url);
                     if (entity != null) continue;
 
-                    parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
+                    entity = parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
+                    String title = GetPageTitle(elm);
+                    if (!String.IsNullOrEmpty(title)) entity.Name = entity.Permission = title;
+                    entity.Save();
+
                     num++;
                 }
             }
 
             return num;
+        }
+
+        static Regex reg_PageTitle = new Regex("\\bTitle=\"([^\"]*)\"", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static String GetPageTitle(String pagefile)
+        {
+            if (String.IsNullOrEmpty(pagefile) || !".aspx".EqualIgnoreCase(Path.GetExtension(pagefile)) || !File.Exists(pagefile)) return null;
+
+            // 读取aspx的第一行，里面有Title=""
+            String line = null;
+            using (StreamReader reader = new StreamReader(pagefile))
+            {
+                while (!reader.EndOfStream && line.IsNullOrWhiteSpace()) line = reader.ReadLine();
+                // 有时候Title跑到第二第三行去了
+                if (!reader.EndOfStream) line += Environment.NewLine + reader.ReadLine();
+                if (!reader.EndOfStream) line += Environment.NewLine + reader.ReadLine();
+            }
+            if (String.IsNullOrEmpty(line)) return null;
+
+            // 正则
+            Match m = reg_PageTitle.Match(line);
+            if (m != null) return m.Groups[1].Value;
+
+            return null;
         }
         #endregion
 
