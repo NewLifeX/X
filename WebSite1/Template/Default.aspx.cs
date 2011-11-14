@@ -15,7 +15,7 @@ public partial class Template_Default : System.Web.UI.Page
             if (root != null)
             {
                 root.CheckMenuName("Template", "模版子系统");
-                root.CheckMenuName("TemplateManage", "模版管理");
+                root.CheckMenuName("TemplateManage", "管理模版");
             }
         }
     }

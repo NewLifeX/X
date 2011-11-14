@@ -98,7 +98,6 @@
                     <tr>
                         <td height="213" background="images/login_08.gif">
                             &nbsp;
-                            <!--管理员：admin/admin 采购员：buy/buy 仓库管理员：stock/stock 销售员：sell/sell-->
                         </td>
                     </tr>
                 </table>

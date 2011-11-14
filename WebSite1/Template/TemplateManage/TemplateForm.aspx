@@ -10,22 +10,6 @@
             <td><asp:TextBox ID="frmName" runat="server" Width="150px"></asp:TextBox></td>
         </tr>
 <tr>
-            <td align="right">用户编号：</td>
-            <td><XCL:NumberBox ID="frmUserID" runat="server" Width="80px"></XCL:NumberBox></td>
-        </tr>
-<tr>
-            <td align="right">用户：</td>
-            <td><asp:TextBox ID="frmUserName" runat="server" Width="150px"></asp:TextBox></td>
-        </tr>
-<tr>
-            <td align="right">创建时间：</td>
-            <td><XCL:DateTimePicker ID="frmCreateTime" runat="server"></XCL:DateTimePicker></td>
-        </tr>
-<tr>
-            <td align="right">最后修改：</td>
-            <td><XCL:DateTimePicker ID="frmLastModify" runat="server"></XCL:DateTimePicker></td>
-        </tr>
-<tr>
             <td align="right">备注：</td>
             <td><asp:TextBox ID="frmRemark" runat="server" TextMode="MultiLine" Width="300px" Height="80px"></asp:TextBox></td>
         </tr>

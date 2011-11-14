@@ -1,6 +1,7 @@
 ﻿using System;
 using NewLife.Reflection;
 using System.Web.UI.HtmlControls;
+using NewLife.CommonEntity;
 
 public partial class ManagerPage : System.Web.UI.MasterPage
 {
@@ -9,12 +10,8 @@ public partial class ManagerPage : System.Web.UI.MasterPage
         FieldInfoX fix = FieldInfoX.Create(Page.GetType(), "Manager");
         if (fix != null)
         {
-            Object manager = fix.GetValue(Page);
-            if (manager != null)
-            {
-                PropertyInfoX pix = PropertyInfoX.Create(manager.GetType(), "Navigation");
-                if (pix != null) Navigation.Text = (String)pix.GetValue(manager);
-            }
+            IManagePage manager = fix.GetValue(Page) as IManagePage;
+            if (manager != null) Navigation.Text = manager.Navigation;
         }
 
         Page.ClientScript.RegisterClientScriptInclude("jquery", ResolveUrl("~/Scripts/jquery-1.4.1.min.js"));
