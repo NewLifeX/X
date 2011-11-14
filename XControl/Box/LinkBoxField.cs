@@ -244,7 +244,7 @@ namespace XControl
         void UpdateOnClientClick()
         {
             String url = Url;
-            if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)) url = Control.ResolveUrl(url);
+            url = Control.ResolveUrl(url); // ResolveUrl会自行处理绝对路径的问题
             string jsFuncName = Control.ClientID + "ShowDialog";
 
             if (!Control.Page.ClientScript.IsClientScriptBlockRegistered(GetType(), jsFuncName))

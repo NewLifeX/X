@@ -440,7 +440,7 @@ e.ClickElement('a',function(i){{
                 sb.AppendLine("<asp:LinkButton runat=\"server\" CommandArgument=\"Next\" CommandName=\"Page\" Visible='<%# ((GridView)Container.NamingContainer).PageIndex != ((GridView)Container.NamingContainer).PageCount - 1 %>'>下一页</asp:LinkButton>");
                 sb.AppendLine("<asp:LinkButton runat=\"server\" CommandArgument=\"Last\" CommandName=\"Page\" Visible='<%# ((GridView)Container.NamingContainer).PageIndex != ((GridView)Container.NamingContainer).PageCount - 1 %>'>尾页</asp:LinkButton>");
                 sb.AppendLine("转到第<input type=\"textbox\" style=\"width: 40px; text-align: right;\" value='<%# ((GridView)Container.Parent.Parent).PageIndex + 1 %>' />页");
-                sb.AppendLine("<input type=\"button\" value=\"GO\" onclick=\"javascript:__doPostBack('<%# ((GridView)Container.NamingContainer).UniqueID %>','Page$'+previousSibling.previousSibling.value)\" />");
+                sb.AppendLine("<input type=\"button\" value=\"GO\" onclick=\"javascript:__doPostBack('<%# ((GridView)Container.NamingContainer).UniqueID %>','Page$'+previousSibling.previousSibling.value);return false;\" />");
                 _pagerTemplate = sb.ToString();
 
                 return _pagerTemplate;
@@ -461,7 +461,7 @@ e.ClickElement('a',function(i){{
                 .AddLinkButton("btnNext", "下一页", "Next", delegate { return TargetControl.PageIndex != TargetControl.PageCount - 1; })
                 .AddLinkButton("btnLast", "尾页", "Last", delegate { return TargetControl.PageIndex != TargetControl.PageCount - 1; })
                 .Add("转到第").AddTextBox("txtNewPageIndex", delegate { return TargetControl.PageIndex + 1; }).Add("页")
-                .AddButton("btnGo", "GO", delegate { return String.Format("javascript:__doPostBack('{0}','Page$'+previousSibling.previousSibling.value)", TargetControl.UniqueID); });
+                .AddButton("btnGo", "GO", delegate { return String.Format("javascript:__doPostBack('{0}','Page$'+previousSibling.previousSibling.value);return false;", TargetControl.UniqueID); });
 
             WebControl wc = ctl as WebControl;
             if (wc != null && String.IsNullOrEmpty(wc.CssClass)) wc.CssClass = "page";
