@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.3.*")]
-[assembly: AssemblyFileVersion("8.3.2011.1111")]
+[assembly: AssemblyFileVersion("8.3.2011.1114")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.3.2011.1114   修改Entity<>.Meta.CheckModel，加上锁，让多个线程同时访问同一个实体表的操作，全部卡在检查模型之后，避免未创建实体表而报错
+ * 
  * v8.3.2011.1111   如果启用了事务保护，GetSchema要新开一个连接，否则MSSQL里面报错，SQLite不报错，其它数据库未测试
  * 
  * v8.3.2011.1109   增加实体持久化接口IEntityPersistence，实体类中的Insert/Update/Delete由该接口实现，可通过该接口实现参数化DbCommand

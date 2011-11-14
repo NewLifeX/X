@@ -255,39 +255,47 @@ namespace XCode
             }
 
             static Int32 hasCheckModel;
+            static Object _lock_CheckModel = new Object();
             private static void CheckModel()
             {
-                if (Interlocked.CompareExchange(ref hasCheckModel, 1, 0) != 0) return;
-
-                if (Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
+                //if (Interlocked.CompareExchange(ref hasCheckModel, 1, 0) != 0) return;
+                if (hasCheckModel > 0) return;
+                lock (_lock_CheckModel)
                 {
-                    if (!DAL.NegativeEnable || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName)) return;
+                    if (hasCheckModel > 0) return;
 
-                    Func check = delegate
+                    if (Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
                     {
-                        DAL.WriteLog("开始检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DbType);
+                        if (!DAL.NegativeEnable || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName)) return;
 
-                        Stopwatch sw = new Stopwatch();
-                        sw.Start();
-
-                        try
+                        Func check = delegate
                         {
-                            DBO.Db.CreateMetaData().SetTables(Table.DataTable);
-                        }
-                        finally
-                        {
-                            sw.Stop();
+                            DAL.WriteLog("开始检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DbType);
 
-                            DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2}", Table.DataTable.Name, DbType, sw.Elapsed);
-                        }
-                    };
+                            Stopwatch sw = new Stopwatch();
+                            sw.Start();
 
-                    // 打开了开关，并且设置为true时，使用同步方式检查
-                    // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
-                    if (!DAL.NegativeCheckOnly)
-                        check();
-                    else
-                        ThreadPoolX.QueueUserWorkItem(check);
+                            try
+                            {
+                                DBO.Db.CreateMetaData().SetTables(Table.DataTable);
+                            }
+                            finally
+                            {
+                                sw.Stop();
+
+                                DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2}", Table.DataTable.Name, DbType, sw.Elapsed);
+                            }
+                        };
+
+                        // 打开了开关，并且设置为true时，使用同步方式检查
+                        // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
+                        if (!DAL.NegativeCheckOnly)
+                            check();
+                        else
+                            ThreadPoolX.QueueUserWorkItem(check);
+                    }
+
+                    Interlocked.Increment(ref hasCheckModel);
                 }
             }
 

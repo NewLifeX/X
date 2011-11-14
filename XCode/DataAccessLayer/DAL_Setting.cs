@@ -133,7 +133,7 @@ namespace XCode.DataAccessLayer
         }
 
         private static Boolean? _NegativeCheckOnly;
-        /// <summary>是否只检查不操作</summary>
+        /// <summary>是否只检查不操作，默认不启用</summary>
         public static Boolean NegativeCheckOnly
         {
             get
