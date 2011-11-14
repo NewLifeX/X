@@ -12,18 +12,22 @@ public partial class Center_Frame_Left : System.Web.UI.Page
     {
         if (!IsPostBack)
         {
+            ICommonManageProvider provider = CommonManageProvider.Provider;
+            IMenu root = null;
+            if (provider != null) root = provider.MenuRoot;
+
             IMenu m = null;
 
             Int32 id = WebHelper.RequestInt("ID");
             if (id > 0)
             {
                 //m = Menu.FindByID(id);
-                m = MethodInfoX.Create(CommonManageProvider.Provider.MenuType, "FindByID").Invoke(null, id) as IMenu;
+                if (provider != null) m = MethodInfoX.Create(provider.MenuType, "FindByID").Invoke(null, id) as IMenu;
             }
 
             if (m == null)
             {
-                m = CommonManageProvider.Provider.MenuRoot;
+                m = root;
                 if (m == null || m.Childs == null || m.Childs.Count < 1) return;
                 m = m.Childs[0];
                 if (m == null) return;
@@ -63,7 +67,7 @@ public partial class Center_Frame_Left : System.Web.UI.Page
 
         IList<IMenu> ms = null;
 
-        IAdministrator admin = CommonManageProvider.Provider.Current as IAdministrator;
+        IAdministrator admin = ManageProvider.Provider.Current as IAdministrator;
         if (admin != null)
         {
             if (admin.Role != null) ms = admin.Role.GetMySubMenus(m.ID);

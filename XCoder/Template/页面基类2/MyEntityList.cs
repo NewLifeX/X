@@ -15,7 +15,7 @@ public abstract class MyEntityList : Page
 
     protected override void OnPreInit(EventArgs e)
     {
-        Manager = CommonManageProvider.Provider.CreatePage(this, EntityType);
+        Manager = ManageProvider.Provider.GetService<IManagePage>().Init(this, EntityType);
 
         base.OnPreInit(e);
     }

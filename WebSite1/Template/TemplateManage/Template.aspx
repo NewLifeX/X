@@ -20,9 +20,6 @@
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" />
             </asp:BoundField>
             <asp:BoundField DataField="Name" HeaderText="名称" SortExpression="Name" />
-            <asp:BoundField DataField="AuthorID" HeaderText="作者编号" SortExpression="AuthorID" DataFormatString="{0:n0}">
-                <ItemStyle HorizontalAlign="Right" Font-Bold="True" />
-            </asp:BoundField>
             <asp:BoundField DataField="AuthorName" HeaderText="作者" SortExpression="AuthorName" />
             <asp:BoundField DataField="CreateTime" HeaderText="创建时间" SortExpression="CreateTime" DataFormatString="{0:yyyy-MM-dd HH:mm:ss}" >
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="120px" />

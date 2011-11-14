@@ -11,14 +11,24 @@ using NewLife.Web;
 namespace NewLife.CommonEntity
 {
     /// <summary>管理页接口，用于控制页面权限等</summary>
-    public interface IManagerPage
+    [Obsolete("该成员在后续版本中讲不再被支持！")]
+    public interface IManagerPage : IManagePage { }
+
+    /// <summary>管理页接口，用于控制页面权限等</summary>
+    public interface IManagePage
     {
         /// <summary>
         /// 使用控件容器和实体类初始化接口
         /// </summary>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
-        IManagerPage Init(Control container, Type entityType);
+        IManagePage Init(Control container, Type entityType);
+
+        /// <summary>容器</summary>
+        Control Container { get; set; }
+
+        /// <summary>实体类</summary>
+        Type EntityType { get; set; }
 
         /// <summary>导航 分为三级：栏目－子栏目－页面</summary>
         String Navigation { get; }
@@ -45,7 +55,7 @@ namespace NewLife.CommonEntity
     }
 
     /// <summary>管理页，用于控制页面权限等</summary>
-    public class ManagerPage : IManagerPage
+    public class ManagePage : IManagePage
     {
         #region 属性
         private Control _Container;
@@ -74,7 +84,7 @@ namespace NewLife.CommonEntity
         /// </summary>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
-        public IManagerPage Init(Control container, Type entityType)
+        public IManagePage Init(Control container, Type entityType)
         {
             if (container == null)
             {

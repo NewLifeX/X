@@ -14,28 +14,28 @@ namespace NewLife.CommonEntity
     /// <summary>模版</summary>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class Template : Template<Template> { }
-    
+
     /// <summary>模版</summary>
     public partial class Template<TEntity> : Entity<TEntity> where TEntity : Template<TEntity>, new()
     {
         #region 扩展属性﻿
         [NonSerialized]
-		private EntityList<TemplateItem> _TemplateItems;
-		/// <summary>该模版所拥有的模版项集合</summary>
-		[XmlIgnore]
-		public EntityList<TemplateItem> TemplateItems
-		{
-			get
-			{
-				if (_TemplateItems == null && ID > 0 && !Dirtys.ContainsKey("TemplateItems"))
+        private EntityList<TemplateItem> _TemplateItems;
+        /// <summary>该模版所拥有的模版项集合</summary>
+        [XmlIgnore]
+        public EntityList<TemplateItem> TemplateItems
+        {
+            get
+            {
+                if (_TemplateItems == null && ID > 0 && !Dirtys.ContainsKey("TemplateItems"))
                 {
-					_TemplateItems = TemplateItem.FindAllByTemplateID(ID);
-					Dirtys["TemplateItems"] = true;
-				}
-				return _TemplateItems;
-			}
-			set { _TemplateItems = value; }
-		}
+                    _TemplateItems = TemplateItem.FindAllByTemplateID(ID);
+                    Dirtys["TemplateItems"] = true;
+                }
+                return _TemplateItems;
+            }
+            set { _TemplateItems = value; }
+        }
         #endregion
 
         #region 扩展查询﻿
@@ -105,24 +105,37 @@ namespace NewLife.CommonEntity
         //    return base.OnInsert();
         //}
 
-        ///// <summary>
-        ///// 验证数据，通过抛出异常的方式提示验证失败。
-        ///// </summary>
-        ///// <param name="isNew"></param>
-        //public override void Valid(Boolean isNew)
-        //{
-        //    // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
-        //    base.Valid(isNew);
+        /// <summary>
+        /// 已重载。记录默认作者
+        /// </summary>
+        /// <param name="forEdit"></param>
+        /// <returns></returns>
+        protected override TEntity CreateInstance(bool forEdit = false)
+        {
+            TEntity entity = base.CreateInstance(forEdit);
+            IManageUser user = CommonService.Resolve<IManageProvider>().Current;
+            if (user != null)
+            {
+                if (user.ID is Int32) AuthorID = (Int32)user.ID;
+                AuthorName = user.ToString();
+            }
+            return entity;
+        }
 
-        //    // 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框
-        //    if (String.IsNullOrEmpty(_.Name)) throw new ArgumentNullException(_.Name, _.Name.Description + "无效！");
-        //    if (!isNew && ID < 1) throw new ArgumentOutOfRangeException(_.ID, _.ID.Description + "必须大于0！");
+        /// <summary>
+        /// 验证数据，通过抛出异常的方式提示验证失败。
+        /// </summary>
+        /// <param name="isNew"></param>
+        public override void Valid(Boolean isNew)
+        {
+            // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
+            base.Valid(isNew);
 
-        //    // 在新插入数据或者修改了指定字段时进行唯一性验证，CheckExist内部抛出参数异常
-        //    if (isNew || Dirtys[_.Name]) CheckExist(_.Name);
-        //    if (isNew || Dirtys[_.Name] || Dirtys[_.DbType]) CheckExist(_.Name, _.DbType);
-        //    if ((isNew || Dirtys[_.Name]) && Exist(_.Name)) throw new ArgumentException(_.Name, "值为" + Name + "的" + _.Name.Description + "已存在！");
-        //}
+            if (isNew && !Dirtys[_.CreateTime])
+                CreateTime = DateTime.Now;
+            else if (!isNew && !Dirtys[_.LastModify])
+                LastModify = DateTime.Now;
+        }
 
         /// <summary>
         /// 已重载。删除关联数据
@@ -130,7 +143,7 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         protected override int OnDelete()
         {
-			if (TemplateItems != null) TemplateItems.Delete();
+            if (TemplateItems != null) TemplateItems.Delete();
 
             return base.OnDelete();
         }

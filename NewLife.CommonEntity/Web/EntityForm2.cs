@@ -239,8 +239,12 @@ namespace NewLife.CommonEntity.Web
         #endregion
 
         #region 生命周期
+        Boolean hasInit = false;
         void Init()
         {
+            if (hasInit) return;
+            hasInit = true;
+
             Page.PreLoad += new EventHandler(OnPreLoad);
             Page.LoadComplete += new EventHandler(OnLoadComplete);
         }
@@ -278,8 +282,8 @@ namespace NewLife.CommonEntity.Web
             if (!Page.IsPostBack)
             {
                 // 尝试获取页面控制器，如果取得，则可以控制权限
-                IManagerPage manager = CommonManageProvider.Provider.CreatePage(Container.Page, EntityType);
-                if (manager != null) CanSave = Entity.IsNullKey && manager.Acquire(PermissionFlags.Insert) || manager.Acquire(PermissionFlags.Update);
+                IManagePage manager = ManageProvider.Provider.GetService<IManagePage>();
+                if (manager != null && manager.Container != null) CanSave = Entity.IsNullKey && manager.Acquire(PermissionFlags.Insert) || manager.Acquire(PermissionFlags.Update);
 
                 if (btn != null)
                 {
@@ -529,7 +533,7 @@ namespace NewLife.CommonEntity.Web
         /// </summary>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
-        void IEntityForm.Init(Control container, Type entityType)
+        IEntityForm IEntityForm.Init(Control container, Type entityType)
         {
             if (container == null)
             {
@@ -540,6 +544,8 @@ namespace NewLife.CommonEntity.Web
             EntityType = entityType;
 
             Init();
+
+            return this;
         }
         #endregion
     }

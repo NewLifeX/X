@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Web.UI;
-using System.Web;
 
 namespace NewLife.CommonEntity
 {
@@ -24,33 +23,6 @@ namespace NewLife.CommonEntity
         Type RoleMenuType { get; }
         #endregion
 
-        #region 方法
-        ///// <summary>当前用户</summary>
-        //new IAdministrator Current { get; }
-
-        ///// <summary>
-        ///// 根据用户编号查找
-        ///// </summary>
-        ///// <param name="userid"></param>
-        ///// <returns></returns>
-        //new IAdministrator FindByID(Object userid);
-
-        ///// <summary>
-        ///// 根据用户帐号查找
-        ///// </summary>
-        ///// <param name="account"></param>
-        ///// <returns></returns>
-        //new IAdministrator FindByAccount(String account);
-
-        ///// <summary>
-        ///// 登录
-        ///// </summary>
-        ///// <param name="account"></param>
-        ///// <param name="password"></param>
-        ///// <returns></returns>
-        //new IAdministrator Login(String account, String password);
-        #endregion
-
         #region 页面和表单
         /// <summary>
         /// 创建管理页控制器
@@ -58,7 +30,8 @@ namespace NewLife.CommonEntity
         /// <param name="container"></param>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        IManagerPage CreatePage(Control container, Type entityType);
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
+        IManagePage CreatePage(Control container, Type entityType);
 
         /// <summary>
         /// 创建实体表单控制器
@@ -66,6 +39,7 @@ namespace NewLife.CommonEntity
         /// <param name="container"></param>
         /// <param name="entityType"></param>
         /// <returns></returns>
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
         IEntityForm CreateForm(Control container, Type entityType);
         #endregion
 
@@ -80,33 +54,33 @@ namespace NewLife.CommonEntity
 
     /// <summary>通用实体类管理提供者</summary>
     /// <typeparam name="TAdministrator">管理员类</typeparam>
-    public class CommonManageProvider<TAdministrator> : ICommonManageProvider where TAdministrator : Administrator<TAdministrator>, new()
+    public class CommonManageProvider<TAdministrator> : ManageProvider, ICommonManageProvider where TAdministrator : Administrator<TAdministrator>, new()
     {
         #region 静态实例
         /// <summary>当前提供者</summary>
-        public static ICommonManageProvider Provider { get { return CommonService.Resolve<ICommonManageProvider>(); } }
+        public new static ICommonManageProvider Provider { get { return CommonService.Resolve<IManageProvider>() as ICommonManageProvider; } }
         #endregion
 
         #region IManageProvider 接口
         /// <summary>管理用户类</summary>
-        Type IManageProvider.ManageUserType { get { return AdminstratorType; } }
+        public override Type ManageUserType { get { return AdminstratorType; } }
 
         /// <summary>当前用户</summary>
-        IManageUser IManageProvider.Current { get { return Current; } }
+        public override IManageUser Current { get { return Administrator<TAdministrator>.Current; } }
 
         /// <summary>
         /// 根据用户编号查找
         /// </summary>
         /// <param name="userid"></param>
         /// <returns></returns>
-        IManageUser IManageProvider.FindByID(Object userid) { return FindByID((Int32)userid); }
+        public override IManageUser FindByID(Object userid) { return Administrator<TAdministrator>.FindByID((Int32)userid); }
 
         /// <summary>
         /// 根据用户帐号查找
         /// </summary>
         /// <param name="account"></param>
         /// <returns></returns>
-        IManageUser IManageProvider.FindByAccount(String account) { return FindByAccount(account); }
+        public override IManageUser FindByAccount(String account) { return Administrator<TAdministrator>.FindByName(account); }
 
         /// <summary>
         /// 登录
@@ -114,7 +88,7 @@ namespace NewLife.CommonEntity
         /// <param name="account"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        IManageUser IManageProvider.Login(String account, String password) { return Login(account, password); }
+        public override IManageUser Login(String account, String password) { return Administrator<TAdministrator>.Login(account, password); }
         #endregion
 
         #region 类型
@@ -134,60 +108,6 @@ namespace NewLife.CommonEntity
         public virtual Type RoleMenuType { get { return typeof(RoleMenu); } }
         #endregion
 
-        #region ICommonManageProvider接口
-        ///// <summary>当前用户</summary>
-        //IAdministrator ICommonManageProvider.Current { get { return Current; } }
-
-        ///// <summary>
-        ///// 根据用户编号查找
-        ///// </summary>
-        ///// <param name="userid"></param>
-        ///// <returns></returns>
-        //IAdministrator ICommonManageProvider.FindByID(Object userid) { return FindByID((Int32)userid); }
-
-        ///// <summary>
-        ///// 根据用户帐号查找
-        ///// </summary>
-        ///// <param name="account"></param>
-        ///// <returns></returns>
-        //IAdministrator ICommonManageProvider.FindByAccount(String account) { return FindByAccount(account); }
-
-        ///// <summary>
-        ///// 登录
-        ///// </summary>
-        ///// <param name="account"></param>
-        ///// <param name="password"></param>
-        ///// <returns></returns>
-        //IAdministrator ICommonManageProvider.Login(String account, String password) { return Login(account, password); }
-        #endregion
-
-        #region 方法
-        /// <summary>当前用户</summary>
-        public virtual TAdministrator Current { get { return Administrator<TAdministrator>.Current; } }
-
-        /// <summary>
-        /// 根据用户编号查找
-        /// </summary>
-        /// <param name="userid"></param>
-        /// <returns></returns>
-        public virtual TAdministrator FindByID(Int32 userid) { return Administrator<TAdministrator>.FindByID(userid); }
-
-        /// <summary>
-        /// 根据用户帐号查找
-        /// </summary>
-        /// <param name="account"></param>
-        /// <returns></returns>
-        public virtual TAdministrator FindByAccount(String account) { return Administrator<TAdministrator>.FindByName(account); }
-
-        /// <summary>
-        /// 登录
-        /// </summary>
-        /// <param name="account"></param>
-        /// <param name="password"></param>
-        /// <returns></returns>
-        public virtual TAdministrator Login(String account, String password) { return Administrator<TAdministrator>.Login(account, password); }
-        #endregion
-
         #region 页面和表单
         /// <summary>
         /// 创建管理页控制器
@@ -195,15 +115,11 @@ namespace NewLife.CommonEntity
         /// <param name="container"></param>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        public virtual IManagerPage CreatePage(Control container, Type entityType)
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
+        public virtual IManagePage CreatePage(Control container, Type entityType)
         {
-            Object key = typeof(IManagerPage);
-            if (HttpContext.Current.Items[key] != null) return HttpContext.Current.Items[key] as IManagerPage;
-
-            IManagerPage page = CommonService.Resolve<IManagerPage>();
+            IManagePage page = GetService<IManagePage>();
             page.Init(container, entityType);
-
-            HttpContext.Current.Items[key] = page;
 
             return page;
         }
@@ -214,15 +130,11 @@ namespace NewLife.CommonEntity
         /// <param name="container"></param>
         /// <param name="entityType"></param>
         /// <returns></returns>
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
         public virtual IEntityForm CreateForm(Control container, Type entityType)
         {
-            Object key = typeof(IEntityForm);
-            if (HttpContext.Current.Items[key] != null) return HttpContext.Current.Items[key] as IEntityForm;
-
-            IEntityForm form = CommonService.Resolve<IEntityForm>();
+            IEntityForm form = GetService<IEntityForm>();
             form.Init(container, entityType);
-
-            HttpContext.Current.Items[key] = form;
 
             return form;
         }

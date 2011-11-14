@@ -13,7 +13,7 @@ namespace NewLife.CommonEntity
         /// </summary>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
-        void Init(Control container, Type entityType);
+        IEntityForm Init(Control container, Type entityType);
 
         /// <summary>访问器</summary>
         IEntityAccessor Accessor { get; set; }

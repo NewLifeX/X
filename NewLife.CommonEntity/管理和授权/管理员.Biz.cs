@@ -562,7 +562,11 @@ namespace NewLife.CommonEntity
         public static void WriteLog(String action, String remark)
         {
             //IEntityOperate op = EntityFactory.CreateOperate(TypeResolver.Resolve(typeof(IAdministrator), null));
-            IEntityOperate op = EntityFactory.CreateOperate(CommonManageProvider.Provider.AdminstratorType);
+
+            ICommonManageProvider provider = CommonManageProvider.Provider;
+            if (provider == null) return;
+
+            IEntityOperate op = EntityFactory.CreateOperate(provider.AdminstratorType);
             IAdministrator admin = op.Default as IAdministrator;
             if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
         }

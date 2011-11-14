@@ -146,12 +146,17 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>当前页所对应的菜单项。通过实体资格提供者，保证取得正确的菜单项</summary>
+        [Obsolete("该成员在后续版本中讲不再被支持！")]
         public static IMenu CurrentMenu
         {
             get
             {
                 //return TypeResolver.GetPropertyValue(typeof(IMenu), "Current") as IMenu;
-                Type type = CommonManageProvider.Provider.MenuType;
+
+                ICommonManageProvider provider = CommonManageProvider.Provider;
+                if (provider == null) return null;
+
+                Type type = provider.MenuType;
                 return PropertyInfoX.Create(type, "Current").GetValue() as IMenu;
             }
         }

@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Model;
+using System.Web;
+using NewLife.Reflection;
 
 namespace NewLife.CommonEntity
 {
@@ -35,6 +34,20 @@ namespace NewLife.CommonEntity
         /// <param name="password"></param>
         /// <returns></returns>
         IManageUser Login(String account, String password);
+
+        /// <summary>
+        /// 获取服务
+        /// </summary>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
+        TService GetService<TService>();
+
+        /// <summary>
+        /// 获取服务
+        /// </summary>
+        /// <param name="serviceType"></param>
+        /// <returns></returns>
+        Object GetService(Type serviceType);
     }
 
     /// <summary>管理提供者</summary>
@@ -81,6 +94,47 @@ namespace NewLife.CommonEntity
         public virtual IManageUser Login(String account, String password)
         {
             return User.Login(account, password);
+        }
+
+        /// <summary>
+        /// 获取服务
+        /// </summary>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
+        public TService GetService<TService>() { return (TService)GetService(typeof(TService)); }
+
+        /// <summary>
+        /// 获取服务
+        /// </summary>
+        /// <param name="serviceType"></param>
+        /// <returns></returns>
+        public virtual Object GetService(Type serviceType)
+        {
+            if (serviceType == typeof(IManagePage))
+                return GetHttpCache(typeof(IManagePage), k => CommonService.Resolve<IManagePage>());
+            else if (serviceType == typeof(IEntityForm))
+                return GetHttpCache(typeof(IEntityForm), k => CommonService.Resolve<IEntityForm>());
+
+            return CommonService.Resolve(serviceType);
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>
+        /// 获取Http缓存，如果不存在，则调用func去计算
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="func"></param>
+        /// <returns></returns>
+        protected Object GetHttpCache(Object key, Func<Object, Object> func)
+        {
+            if (HttpContext.Current.Items[key] != null) return HttpContext.Current.Items[key];
+
+            Object value = func(key);
+
+            HttpContext.Current.Items[key] = value;
+
+            return value;
         }
         #endregion
     }

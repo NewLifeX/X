@@ -13,9 +13,9 @@ public partial class Login : System.Web.UI.Page
         if (!IsPostBack)
         {
             // 引发反向工程
-            ThreadPoolX.QueueUserWorkItem(delegate() { EntityFactory.CreateOperate(CommonManageProvider.Provider.AdminstratorType).FindCount(); });
+            ThreadPoolX.QueueUserWorkItem(delegate() { EntityFactory.CreateOperate(ManageProvider.Provider.ManageUserType).FindCount(); });
 
-            IManageUser user = CommonManageProvider.Provider.Current;
+            IManageUser user = ManageProvider.Provider.Current;
             if (user != null)
             {
                 if (String.Equals("logout", Request["action"], StringComparison.OrdinalIgnoreCase))

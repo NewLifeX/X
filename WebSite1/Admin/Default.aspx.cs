@@ -12,13 +12,16 @@ public partial class Center_Default : System.Web.UI.Page
 
         base.OnPreLoad(e);
 
-        IManageUser user = CommonManageProvider.Provider.Current;
+        IManageUser user = ManageProvider.Provider.Current;
         if (user == null) Response.Redirect("Login.aspx");
+
+        ICommonManageProvider provider = CommonManageProvider.Provider;
+        IMenu root = null;
+        if (provider != null) root = provider.MenuRoot;
 
         IAdministrator admin = user as IAdministrator;
         if (admin == null)
         {
-            IMenu root = CommonManageProvider.Provider.MenuRoot;
             if (root != null)
             {
                 menuItem.DataSource = root.Childs;
@@ -36,8 +39,7 @@ public partial class Center_Default : System.Web.UI.Page
 
         if (admin.Role != null)
         {
-            Int32 rootid = (PropertyInfoX.Create(CommonManageProvider.Provider.MenuType, "Root").GetValue() as IMenu).ID;
-            List<IMenu> list2 = admin.Role.GetMySubMenus(rootid);
+            List<IMenu> list2 = admin.Role.GetMySubMenus(root.ID);
             menuItem.DataSource = list2;
             menuItem.DataBind();
 
@@ -53,6 +55,5 @@ public partial class Center_Default : System.Web.UI.Page
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        //ClientScript.RegisterClientScriptResource(this.GetType(), "XControl.Box.Box.js");
     }
 }

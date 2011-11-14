@@ -19,8 +19,8 @@ public class MyEntityForm : Page
     protected override void OnPreInit(EventArgs e)
     {
         // 让页面管理器先注册，因为页面管理器要控制权限
-        Manager = CommonManageProvider.Provider.CreatePage(this, EntityType);
-        EntityForm = CommonManageProvider.Provider.CreateForm(this, EntityType);
+        Manager = ManageProvider.Provider.GetService<IManagePage>().Init(this, EntityType);
+        EntityForm = ManageProvider.Provider.GetService<IEntityForm>().Init(this, EntityType);
 
         base.OnPreInit(e);
     }

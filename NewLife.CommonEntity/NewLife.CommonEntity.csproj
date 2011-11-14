@@ -72,7 +72,7 @@
     <Compile Include="Interfaces\ICommonManageProvider.cs" />
     <Compile Include="Interfaces\IEntityForm.cs" />
     <Compile Include="Interfaces\IManageProvider.cs" />
-    <Compile Include="Interfaces\IManagerPage.cs" />
+    <Compile Include="Interfaces\IManagePage.cs" />
     <Compile Include="Interfaces\IManageUser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Web\AttachmentHttpHandler.cs" />
