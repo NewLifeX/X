@@ -42,6 +42,23 @@ foreach(IDataColumn Field in Table.Columns){
             </asp:TemplateField>--%><#
 foreach(IDataColumn Field in Table.Columns){
     String pname = Field.Alias;
+
+    // 查找关系，如果对方有名为Name的字符串字段，则加一个扩展属性
+    IDataRelation dr=ModelHelper.GetRelation(Table, Field.Name);
+    if(dr!=null&&!dr.Unique){
+        IDataTable rtable=FindTable(dr.RelationTable);
+        if(rtable!=null){
+            IDataColumn rname=rtable.GetColumn("Name");
+            if(rname!=null&&rname.DataType==typeof(String)){#>
+            <%--<asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
+                <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" />
+            </asp:BoundField>--%>
+            <asp:BoundField DataField="<#=rtable.Alias+"Name"#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" /><#
+                continue;
+            }
+        }
+    }
+
     if(Field.Identity){#>
             <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" />

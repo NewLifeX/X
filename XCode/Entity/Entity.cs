@@ -48,6 +48,7 @@ namespace XCode
 
         /// <summary>
         /// 创建实体。可以重写改方法以实现实体对象的一些初始化工作。
+        /// 切记，写为实例方法仅仅是为了方便重载，所要返回的实例绝对不会是当前实例。
         /// </summary>
         /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
         /// <returns></returns>
