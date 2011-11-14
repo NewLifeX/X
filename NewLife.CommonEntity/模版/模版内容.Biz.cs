@@ -19,7 +19,7 @@ namespace NewLife.CommonEntity
     /// <summary>模版内容</summary>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class TemplateContent : TemplateContent<TemplateContent> { }
-    
+
     /// <summary>模版内容</summary>
     public partial class TemplateContent<TEntity> : Entity<TEntity> where TEntity : TemplateContent<TEntity>, new()
     {
@@ -61,6 +61,19 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>
+        /// 根据作者编号查找
+        /// </summary>
+        /// <param name="userid">作者编号</param>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static EntityList<TEntity> FindAllByUserID(Int32 userid)
+        {
+            if (Meta.Count >= 1000)
+                return FindAll(new String[] { _.UserID }, new Object[] { userid });
+            else // 实体缓存
+                return Meta.Cache.Entities.FindAll(_.UserID, userid);
+        }
+        /// <summary>
         /// 根据编号查找
         /// </summary>
         /// <param name="id">编号</param>
@@ -89,6 +102,16 @@ namespace NewLife.CommonEntity
             else // 实体缓存
                 return Meta.Cache.Entities.FindAll(_.TemplateItemID, templateitemid);
         }
+
+        /// <summary>
+        /// 根据模版项查找最后一个版本
+        /// </summary>
+        /// <param name="templateitemid"></param>
+        /// <returns></returns>
+        public static TEntity FindLastByTemplateItemID(Int32 templateitemid)
+        {
+            return FindAllByName(_.TemplateItemID, templateitemid, _.Version + " Desc", 0, 1).FirstOrDefault<TEntity>();
+        }
         #endregion
 
         #region 对象操作﻿
@@ -110,25 +133,45 @@ namespace NewLife.CommonEntity
         //    return base.OnInsert();
         //}
 
-        ///// <summary>
-        ///// 验证数据，通过抛出异常的方式提示验证失败。
-        ///// </summary>
-        ///// <param name="isNew"></param>
-        //public override void Valid(Boolean isNew)
-        //{
-        //    // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
-        //    base.Valid(isNew);
+        /// <summary>
+        /// 已重载。记录默认作者
+        /// </summary>
+        /// <param name="forEdit"></param>
+        /// <returns></returns>
+        protected override TEntity CreateInstance(bool forEdit = false)
+        {
+            TEntity entity = base.CreateInstance(forEdit);
 
-        //    // 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框
-        //    if (String.IsNullOrEmpty(_.Name)) throw new ArgumentNullException(_.Name, _.Name.Description + "无效！");
-        //    if (!isNew && ID < 1) throw new ArgumentOutOfRangeException(_.ID, _.ID.Description + "必须大于0！");
+            if (forEdit)
+            {
+                // 获取当前登录用户
+                IManageUser user = CommonService.Resolve<IManageProvider>().Current;
+                if (user != null)
+                {
+                    if (user.ID is Int32) entity.UserID = (Int32)user.ID;
+                    entity.UserName = user.ToString();
+                }
+            }
+            return entity;
+        }
 
-        //    // 在新插入数据或者修改了指定字段时进行唯一性验证，CheckExist内部抛出参数异常
-        //    if (isNew || Dirtys[_.Name]) CheckExist(_.Name);
-        //    if (isNew || Dirtys[_.Name] || Dirtys[_.DbType]) CheckExist(_.Name, _.DbType);
-        //    if ((isNew || Dirtys[_.Name]) && Exist(_.Name)) throw new ArgumentException(_.Name, "值为" + Name + "的" + _.Name.Description + "已存在！");
-        //}
+        /// <summary>
+        /// 验证数据，通过抛出异常的方式提示验证失败。
+        /// </summary>
+        /// <param name="isNew"></param>
+        public override void Valid(Boolean isNew)
+        {
+            if (isNew && !Dirtys[_.Version])
+            {
+                TEntity last = FindLastByTemplateItemID(TemplateItemID);
+                Version = last == null ? 1 : last.Version + 1;
+            }
 
+            // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
+            base.Valid(isNew);
+
+            if (isNew && !Dirtys[_.CreateTime]) CreateTime = DateTime.Now;
+        }
 
         ///// <summary>
         ///// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法

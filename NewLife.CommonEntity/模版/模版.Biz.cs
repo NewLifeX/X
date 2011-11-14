@@ -56,17 +56,17 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>
-        /// 根据作者编号查找
+        /// 根据用户编号查找
         /// </summary>
-        /// <param name="authorid">作者编号</param>
+        /// <param name="userid">用户编号</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAllByAuthorID(Int32 authorid)
+        public static EntityList<TEntity> FindAllByUserID(Int32 userid)
         {
             if (Meta.Count >= 1000)
-                return FindAll(new String[] { _.AuthorID }, new Object[] { authorid });
+                return FindAll(new String[] { _.UserID }, new Object[] { userid });
             else // 实体缓存
-                return Meta.Cache.Entities.FindAll(_.AuthorID, authorid);
+                return Meta.Cache.Entities.FindAll(_.UserID, userid);
         }
 
         /// <summary>
@@ -113,11 +113,16 @@ namespace NewLife.CommonEntity
         protected override TEntity CreateInstance(bool forEdit = false)
         {
             TEntity entity = base.CreateInstance(forEdit);
-            IManageUser user = CommonService.Resolve<IManageProvider>().Current;
-            if (user != null)
+
+            if (forEdit)
             {
-                if (user.ID is Int32) AuthorID = (Int32)user.ID;
-                AuthorName = user.ToString();
+                // 获取当前登录用户
+                IManageUser user = CommonService.Resolve<IManageProvider>().Current;
+                if (user != null)
+                {
+                    if (user.ID is Int32) entity.UserID = (Int32)user.ID;
+                    entity.UserName = user.ToString();
+                }
             }
             return entity;
         }
@@ -128,6 +133,8 @@ namespace NewLife.CommonEntity
         /// <param name="isNew"></param>
         public override void Valid(Boolean isNew)
         {
+            //if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(_.Name, _.Name.Description + "不能为空！");
+
             // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
             base.Valid(isNew);
 

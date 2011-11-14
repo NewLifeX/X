@@ -1,7 +1,7 @@
 ﻿/*
  * XCoder v4.5.2011.1108
- * 作者：nnhy/X
- * 时间：2011-11-13 22:43:14
+ * 作者：nnhy/NEWLIFE
+ * 时间：2011-11-14 16:58:16
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
@@ -45,7 +45,7 @@ namespace NewLife.CommonEntity
         /// <summary>模版</summary>
         [DisplayName("模版")]
         [Description("模版")]
-        [DataObjectField(false, false, true, 10)]
+        [DataObjectField(false, false, false, 10)]
         [BindColumn(2, "TemplateID", "模版", null, "int", 10, 0, false)]
         public virtual Int32 TemplateID
         {
@@ -57,7 +57,7 @@ namespace NewLife.CommonEntity
         /// <summary>名称</summary>
         [DisplayName("名称")]
         [Description("名称")]
-        [DataObjectField(false, false, true, 50)]
+        [DataObjectField(false, false, false, 50)]
         [BindColumn(3, "Name", "名称", null, "nvarchar(50)", 0, 0, true)]
         public virtual String Name
         {

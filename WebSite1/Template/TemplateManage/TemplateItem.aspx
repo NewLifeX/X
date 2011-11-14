@@ -19,9 +19,10 @@
             <asp:BoundField DataField="ID" HeaderText="编号" SortExpression="ID" InsertVisible="False" ReadOnly="True" >
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" />
             </asp:BoundField>
-            <asp:BoundField DataField="TemplateID" HeaderText="模版" SortExpression="TemplateID" DataFormatString="{0:n0}">
-                <ItemStyle HorizontalAlign="Right" Font-Bold="True" />
-            </asp:BoundField>
+            <%--<asp:BoundField DataField="TemplateID" HeaderText="模版" SortExpression="TemplateID" >
+                <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" />
+            </asp:BoundField>--%>
+            <asp:BoundField DataField="TemplateName" HeaderText="模版" SortExpression="TemplateID" />
             <asp:BoundField DataField="Name" HeaderText="名称" SortExpression="Name" />
             <asp:BoundField DataField="Kind" HeaderText="模版种类" SortExpression="Kind" />
             <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="TemplateItemForm.aspx?ID={0}" Height="274px" Text="编辑" Width="440px" Title="编辑模版项">

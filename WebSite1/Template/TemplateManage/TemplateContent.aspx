@@ -19,16 +19,17 @@
             <asp:BoundField DataField="ID" HeaderText="编号" SortExpression="ID" InsertVisible="False" ReadOnly="True" >
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" />
             </asp:BoundField>
-            <asp:BoundField DataField="TemplateItemID" HeaderText="模版项" SortExpression="TemplateItemID" DataFormatString="{0:n0}">
-                <ItemStyle HorizontalAlign="Right" Font-Bold="True" />
-            </asp:BoundField>
+            <%--<asp:BoundField DataField="TemplateItemID" HeaderText="模版项" SortExpression="TemplateItemID" >
+                <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" />
+            </asp:BoundField>--%>
+            <asp:BoundField DataField="TemplateItemName" HeaderText="模版项" SortExpression="TemplateItemID" />
             <asp:BoundField DataField="Version" HeaderText="版本" SortExpression="Version" DataFormatString="{0:n0}">
                 <ItemStyle HorizontalAlign="Right" Font-Bold="True" />
             </asp:BoundField>
-            <asp:BoundField DataField="AuthorID" HeaderText="作者编号" SortExpression="AuthorID" DataFormatString="{0:n0}">
+            <asp:BoundField DataField="UserID" HeaderText="作者编号" SortExpression="UserID" DataFormatString="{0:n0}">
                 <ItemStyle HorizontalAlign="Right" Font-Bold="True" />
             </asp:BoundField>
-            <asp:BoundField DataField="AuthorName" HeaderText="作者" SortExpression="AuthorName" />
+            <asp:BoundField DataField="UserName" HeaderText="作者" SortExpression="UserName" />
             <asp:BoundField DataField="CreateTime" HeaderText="创建时间" SortExpression="CreateTime" DataFormatString="{0:yyyy-MM-dd HH:mm:ss}" >
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="120px" />
             </asp:BoundField>

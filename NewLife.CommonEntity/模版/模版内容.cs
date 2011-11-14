@@ -1,7 +1,7 @@
 ﻿/*
  * XCoder v4.5.2011.1108
- * 作者：nnhy/X
- * 时间：2011-11-13 22:43:17
+ * 作者：nnhy/NEWLIFE
+ * 时间：2011-11-14 16:58:16
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
@@ -21,8 +21,9 @@ namespace NewLife.CommonEntity
     [DataObject]
     [Description("模版内容")]
     [BindIndex("IX_TemplateContent", true, "TemplateItemID,Version")]
-    [BindIndex("PK__Template__3214EC27182C9B23", true, "ID")]
+    [BindIndex("IX_TemplateContent_1", false, "UserID")]
     [BindIndex("IX_TemplateContent_TemplateItemID", false, "TemplateItemID")]
+    [BindIndex("PK__Template__3214EC27182C9B23", true, "ID")]
     [BindRelation("TemplateItemID", false, "TemplateItem", "ID")]
     [BindTable("TemplateContent", Description = "模版内容", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public partial class TemplateContent<TEntity> : ITemplateContent
@@ -44,7 +45,7 @@ namespace NewLife.CommonEntity
         /// <summary>模版项</summary>
         [DisplayName("模版项")]
         [Description("模版项")]
-        [DataObjectField(false, false, true, 10)]
+        [DataObjectField(false, false, false, 10)]
         [BindColumn(2, "TemplateItemID", "模版项", null, "int", 10, 0, false)]
         public virtual Int32 TemplateItemID
         {
@@ -88,28 +89,28 @@ namespace NewLife.CommonEntity
             set { if (OnPropertyChanging("Version", value)) { _Version = value; OnPropertyChanged("Version"); } }
         }
 
-        private Int32 _AuthorID;
+        private Int32 _UserID;
         /// <summary>作者编号</summary>
         [DisplayName("作者编号")]
         [Description("作者编号")]
         [DataObjectField(false, false, true, 10)]
-        [BindColumn(6, "AuthorID", "作者编号", null, "int", 10, 0, false)]
-        public virtual Int32 AuthorID
+        [BindColumn(6, "UserID", "作者编号", null, "int", 10, 0, false)]
+        public virtual Int32 UserID
         {
-            get { return _AuthorID; }
-            set { if (OnPropertyChanging("AuthorID", value)) { _AuthorID = value; OnPropertyChanged("AuthorID"); } }
+            get { return _UserID; }
+            set { if (OnPropertyChanging("UserID", value)) { _UserID = value; OnPropertyChanged("UserID"); } }
         }
 
-        private String _AuthorName;
+        private String _UserName;
         /// <summary>作者</summary>
         [DisplayName("作者")]
         [Description("作者")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(7, "AuthorName", "作者", null, "nvarchar(50)", 0, 0, true)]
-        public virtual String AuthorName
+        [BindColumn(7, "UserName", "作者", null, "nvarchar(50)", 0, 0, true)]
+        public virtual String UserName
         {
-            get { return _AuthorName; }
-            set { if (OnPropertyChanging("AuthorName", value)) { _AuthorName = value; OnPropertyChanged("AuthorName"); } }
+            get { return _UserName; }
+            set { if (OnPropertyChanging("UserName", value)) { _UserName = value; OnPropertyChanged("UserName"); } }
         }
 
         private DateTime _CreateTime;
@@ -144,8 +145,8 @@ namespace NewLife.CommonEntity
                     case "Content" : return _Content;
                     case "ContentBackup" : return _ContentBackup;
                     case "Version" : return _Version;
-                    case "AuthorID" : return _AuthorID;
-                    case "AuthorName" : return _AuthorName;
+                    case "UserID" : return _UserID;
+                    case "UserName" : return _UserName;
                     case "CreateTime" : return _CreateTime;
                     default: return base[name];
                 }
@@ -159,8 +160,8 @@ namespace NewLife.CommonEntity
                     case "Content" : _Content = Convert.ToString(value); break;
                     case "ContentBackup" : _ContentBackup = Convert.ToString(value); break;
                     case "Version" : _Version = Convert.ToInt32(value); break;
-                    case "AuthorID" : _AuthorID = Convert.ToInt32(value); break;
-                    case "AuthorName" : _AuthorName = Convert.ToString(value); break;
+                    case "UserID" : _UserID = Convert.ToInt32(value); break;
+                    case "UserName" : _UserName = Convert.ToString(value); break;
                     case "CreateTime" : _CreateTime = Convert.ToDateTime(value); break;
                     default: base[name] = value; break;
                 }
@@ -188,10 +189,10 @@ namespace NewLife.CommonEntity
             public static readonly FieldItem Version = Meta.Table.FindByName("Version");
 
             ///<summary>作者编号</summary>
-            public static readonly FieldItem AuthorID = Meta.Table.FindByName("AuthorID");
+            public static readonly FieldItem UserID = Meta.Table.FindByName("UserID");
 
             ///<summary>作者</summary>
-            public static readonly FieldItem AuthorName = Meta.Table.FindByName("AuthorName");
+            public static readonly FieldItem UserName = Meta.Table.FindByName("UserName");
 
             ///<summary>创建时间</summary>
             public static readonly FieldItem CreateTime = Meta.Table.FindByName("CreateTime");
@@ -219,10 +220,10 @@ namespace NewLife.CommonEntity
         Int32 Version { get; set; }
 
         /// <summary>作者编号</summary>
-        Int32 AuthorID { get; set; }
+        Int32 UserID { get; set; }
 
         /// <summary>作者</summary>
-        String AuthorName { get; set; }
+        String UserName { get; set; }
 
         /// <summary>创建时间</summary>
         DateTime CreateTime { get; set; }

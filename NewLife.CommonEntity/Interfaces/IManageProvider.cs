@@ -5,6 +5,12 @@ using NewLife.Reflection;
 namespace NewLife.CommonEntity
 {
     /// <summary>管理提供者接口</summary>
+    /// <remarks>
+    /// 管理提供者接口主要提供（或统一规范）用户提供者定位、用户查找登录等功能。
+    /// 只需要一个实现IManageUser接口的用户类即可实现IManageProvider接口。
+    /// IManageProvider足够精简，使得大多数用户可以自定义实现；
+    /// 也因为其简单稳定，大多数需要涉及用户与权限功能的操作，均可以直接使用该接口。
+    /// </remarks>
     public interface IManageProvider
     {
         /// <summary>管理用户类</summary>

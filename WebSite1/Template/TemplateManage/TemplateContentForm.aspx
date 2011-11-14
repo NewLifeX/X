@@ -23,11 +23,11 @@
         </tr>
 <tr>
             <td align="right">作者编号：</td>
-            <td><XCL:NumberBox ID="frmAuthorID" runat="server" Width="80px"></XCL:NumberBox></td>
+            <td><XCL:NumberBox ID="frmUserID" runat="server" Width="80px"></XCL:NumberBox></td>
         </tr>
 <tr>
             <td align="right">作者：</td>
-            <td><asp:TextBox ID="frmAuthorName" runat="server" Width="150px"></asp:TextBox></td>
+            <td><asp:TextBox ID="frmUserName" runat="server" Width="150px"></asp:TextBox></td>
         </tr>
 <tr>
             <td align="right">创建时间：</td>
