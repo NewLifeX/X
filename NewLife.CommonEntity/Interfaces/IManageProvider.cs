@@ -45,14 +45,6 @@ namespace NewLife.CommonEntity
         public static IManageProvider Provider { get { return CommonService.Resolve<IManageProvider>(); } }
         #endregion
 
-        #region 静态构造
-        //static ManageProvider()
-        //{
-        //    // 不覆盖注册，谁先被调用，就以它为准
-        //    CommonService.Register<IManageProvider, ManageProvider>(null, false);
-        //}
-        #endregion
-
         #region IManageProvider 接口
         /// <summary>管理用户类</summary>
         public virtual Type ManageUserType { get { return typeof(User); } }

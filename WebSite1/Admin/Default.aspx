@@ -48,7 +48,7 @@
                 </div>
                 <div class="toolbar" style="height: 23px;">
                     <div style="float: left; padding-left: 10px;">
-                        用户：<%=CommonManageProvider.Provider.Current.DisplayName%>
+                        用户：<%=CommonManageProvider.Provider.Current.ToString()%>
                         <span style="color: Blue; cursor: pointer;" onclick="location='Default.aspx?act=logout'"
                             title="注销当前登录用户，回到登录界面！">注销</span>
                     </div>

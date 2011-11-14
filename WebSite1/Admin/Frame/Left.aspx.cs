@@ -2,36 +2,52 @@
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 using NewLife.Web;
-using Menu = NewLife.CommonEntity.Menu;
+using NewLife.Reflection;
+using System.Collections.Generic;
+//using Menu = NewLife.CommonEntity.Menu;
 
 public partial class Center_Frame_Left : System.Web.UI.Page
 {
-    IAdministrator Current { get { return CommonManageProvider.Provider.Current; } }
-
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!IsPostBack)
         {
-            if (Current != null && Current.Role != null)
+            IMenu m = null;
+
+            Int32 id = WebHelper.RequestInt("ID");
+            if (id > 0)
             {
-                //Menu m = Menu.FindByName("管理平台");
-                Menu m = null;
+                //m = Menu.FindByID(id);
+                m = MethodInfoX.Create(CommonManageProvider.Provider.MenuType, "FindByID").Invoke(null, id) as IMenu;
+            }
 
-                Int32 id = WebHelper.RequestInt("ID");
-                if (id > 0) m = Menu.FindByID(id);
+            if (m == null)
+            {
+                m = CommonManageProvider.Provider.MenuRoot;
+                if (m == null || m.Childs == null || m.Childs.Count < 1) return;
+                m = m.Childs[0];
+                if (m == null) return;
+            }
 
-                if (m == null)
+            Literal1.Text = m.Name;
+
+            if (CommonManageProvider.Provider.Current != null)
+            {
+
+                IAdministrator admin = CommonManageProvider.Provider.Current as IAdministrator;
+                if (admin != null)
                 {
-                    m = Menu.Root;
-                    if (m == null || m.Childs == null || m.Childs.Count < 1) return;
-                    m = m.Childs[0];
-                    if (m == null) return;
+                    if (admin.Role != null)
+                    {
+                        menu.DataSource = admin.Role.GetMySubMenus(m.ID);
+                        menu.DataBind();
+                    }
                 }
-
-                Literal1.Text = m.Name;
-
-                menu.DataSource = Current.Role.GetMySubMenus(m.ID);
-                menu.DataBind();
+                else
+                {
+                    menu.DataSource = m.Childs;
+                    menu.DataBind();
+                }
             }
         }
     }
@@ -45,7 +61,17 @@ public partial class Center_Frame_Left : System.Web.UI.Page
         Repeater rp = e.Item.FindControl("menuItem") as Repeater;
         if (rp == null) return;
 
-        rp.DataSource = Current.Role.GetMySubMenus(m.ID);
+        IList<IMenu> ms = null;
+
+        IAdministrator admin = CommonManageProvider.Provider.Current as IAdministrator;
+        if (admin != null)
+        {
+            if (admin.Role != null) ms = admin.Role.GetMySubMenus(m.ID);
+        }
+        else
+            ms = m.Childs;
+
+        rp.DataSource = ms;
         rp.DataBind();
     }
 }

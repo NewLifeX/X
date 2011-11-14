@@ -87,6 +87,9 @@ namespace NewLife.CommonEntity
         /// </summary>
         public static void ClearRoleMenu()
         {
+            // 等待RoleMenu初始化完成
+            Int32 count = RoleMenu<TRoleMenuEntity>.Meta.Count;
+
             // 统计所有RoleID和MenuID
             List<TEntity> list1 = Meta.Cache.Entities;
             List<TMenuEntity> list2 = Menu<TMenuEntity>.Meta.Cache.Entities;
@@ -95,31 +98,6 @@ namespace NewLife.CommonEntity
             exp &= RoleMenu<TRoleMenuEntity>._.RoleID.NotIn(list1.Select(e => e.ID));
             exp |= RoleMenu<TRoleMenuEntity>._.MenuID.NotIn(list2.Select(e => e.ID));
             if (exp.Builder.Length < 1) return;
-
-            //StringBuilder sb = new StringBuilder();
-            //if (list1 != null && list1.Count > 0)
-            //{
-            //    sb.Append("RoleID Not in(");
-            //    for (int i = 0; i < list1.Count; i++)
-            //    {
-            //        if (i > 0) sb.Append(",");
-            //        sb.Append(list1[i].ID);
-            //    }
-            //    sb.Append(")");
-            //}
-            //if (list2 != null && list2.Count > 0)
-            //{
-            //    if (sb.Length > 0) sb.Append(" Or ");
-
-            //    sb.Append("MenuID Not in(");
-            //    for (int i = 0; i < list2.Count; i++)
-            //    {
-            //        if (i > 0) sb.Append(",");
-            //        sb.Append(list2[i].ID);
-            //    }
-            //    sb.Append(")");
-            //}
-            //if (sb.Length < 1) return;
 
             // 查询所有。之所以不是调用Delete删除，是为了引发RoleMenu里面的Delete写日志
             EntityList<TRoleMenuEntity> rms = RoleMenu<TRoleMenuEntity>.FindAll(exp.ToString(), null, null, 0, 0);

@@ -8,8 +8,6 @@ using XCode;
 
 public partial class Login : System.Web.UI.Page
 {
-    IAdministrator Current { get { return CommonManageProvider.Provider.Current; } }
-
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!IsPostBack)
@@ -17,10 +15,14 @@ public partial class Login : System.Web.UI.Page
             // 引发反向工程
             ThreadPoolX.QueueUserWorkItem(delegate() { EntityFactory.CreateOperate(CommonManageProvider.Provider.AdminstratorType).FindCount(); });
 
-            if (Current != null)
+            IManageUser user = CommonManageProvider.Provider.Current;
+            if (user != null)
             {
                 if (String.Equals("logout", Request["action"], StringComparison.OrdinalIgnoreCase))
-                    Current.Logout();
+                {
+                    IAdministrator admin = user as IAdministrator;
+                    if (admin == null) admin.Logout();
+                }
                 else
                     Response.Redirect("Default.aspx");
             }
@@ -32,7 +34,7 @@ public partial class Login : System.Web.UI.Page
         try
         {
             CommonManageProvider.Provider.Login(UserName.Text, Password.Text);
-            if (Current != null) Response.Redirect("Default.aspx");
+            if (CommonManageProvider.Provider.Current != null) Response.Redirect("Default.aspx");
         }
         catch (Exception ex)
         {

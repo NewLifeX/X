@@ -25,30 +25,30 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 方法
-        /// <summary>当前用户</summary>
-        new IAdministrator Current { get; }
+        ///// <summary>当前用户</summary>
+        //new IAdministrator Current { get; }
 
-        /// <summary>
-        /// 根据用户编号查找
-        /// </summary>
-        /// <param name="userid"></param>
-        /// <returns></returns>
-        new IAdministrator FindByID(Object userid);
+        ///// <summary>
+        ///// 根据用户编号查找
+        ///// </summary>
+        ///// <param name="userid"></param>
+        ///// <returns></returns>
+        //new IAdministrator FindByID(Object userid);
 
-        /// <summary>
-        /// 根据用户帐号查找
-        /// </summary>
-        /// <param name="account"></param>
-        /// <returns></returns>
-        new IAdministrator FindByAccount(String account);
+        ///// <summary>
+        ///// 根据用户帐号查找
+        ///// </summary>
+        ///// <param name="account"></param>
+        ///// <returns></returns>
+        //new IAdministrator FindByAccount(String account);
 
-        /// <summary>
-        /// 登录
-        /// </summary>
-        /// <param name="account"></param>
-        /// <param name="password"></param>
-        /// <returns></returns>
-        new IAdministrator Login(String account, String password);
+        ///// <summary>
+        ///// 登录
+        ///// </summary>
+        ///// <param name="account"></param>
+        ///// <param name="password"></param>
+        ///// <returns></returns>
+        //new IAdministrator Login(String account, String password);
         #endregion
 
         #region 页面和表单
@@ -70,7 +70,7 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 菜单
-        /// <summary>菜单根</summary>
+        /// <summary>菜单根，如果不支持则返回null</summary>
         IMenu MenuRoot { get; }
         #endregion
     }
@@ -135,30 +135,30 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region ICommonManageProvider接口
-        /// <summary>当前用户</summary>
-        IAdministrator ICommonManageProvider.Current { get { return Current; } }
+        ///// <summary>当前用户</summary>
+        //IAdministrator ICommonManageProvider.Current { get { return Current; } }
 
-        /// <summary>
-        /// 根据用户编号查找
-        /// </summary>
-        /// <param name="userid"></param>
-        /// <returns></returns>
-        IAdministrator ICommonManageProvider.FindByID(Object userid) { return FindByID((Int32)userid); }
+        ///// <summary>
+        ///// 根据用户编号查找
+        ///// </summary>
+        ///// <param name="userid"></param>
+        ///// <returns></returns>
+        //IAdministrator ICommonManageProvider.FindByID(Object userid) { return FindByID((Int32)userid); }
 
-        /// <summary>
-        /// 根据用户帐号查找
-        /// </summary>
-        /// <param name="account"></param>
-        /// <returns></returns>
-        IAdministrator ICommonManageProvider.FindByAccount(String account) { return FindByAccount(account); }
+        ///// <summary>
+        ///// 根据用户帐号查找
+        ///// </summary>
+        ///// <param name="account"></param>
+        ///// <returns></returns>
+        //IAdministrator ICommonManageProvider.FindByAccount(String account) { return FindByAccount(account); }
 
-        /// <summary>
-        /// 登录
-        /// </summary>
-        /// <param name="account"></param>
-        /// <param name="password"></param>
-        /// <returns></returns>
-        IAdministrator ICommonManageProvider.Login(String account, String password) { return Login(account, password); }
+        ///// <summary>
+        ///// 登录
+        ///// </summary>
+        ///// <param name="account"></param>
+        ///// <param name="password"></param>
+        ///// <returns></returns>
+        //IAdministrator ICommonManageProvider.Login(String account, String password) { return Login(account, password); }
         #endregion
 
         #region 方法

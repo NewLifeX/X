@@ -288,7 +288,7 @@ namespace NewLife.CommonEntity.Web
 
                 //return Administrator.CurrentAdministrator;
 
-                return CommonManageProvider.Provider.Current;
+                return CommonManageProvider.Provider.Current as IAdministrator;
             }
         }
 

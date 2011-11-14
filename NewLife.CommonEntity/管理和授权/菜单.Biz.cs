@@ -649,7 +649,7 @@ namespace NewLife.CommonEntity
         public static void WriteLog(String action, String remark)
         {
             //IAdministrator admin = Administrator.CurrentAdministrator;
-            IAdministrator admin = CommonManageProvider.Provider.Current;
+            IAdministrator admin = CommonManageProvider.Provider.Current as IAdministrator;
             if (admin != null) admin.WriteLog(typeof(TEntity), action, remark);
         }
         #endregion
@@ -686,6 +686,9 @@ namespace NewLife.CommonEntity
 
             return this;
         }
+
+        /// <summary>子菜单</summary>
+        IList<IMenu> IMenu.Childs { get { return Childs.OfType<IMenu>().ToList(); } }
         #endregion
     }
 
@@ -706,5 +709,8 @@ namespace NewLife.CommonEntity
         /// <param name="oldName"></param>
         /// <param name="newName"></param>
         IMenu CheckMenuName(String oldName, String newName);
+
+        /// <summary>子菜单</summary>
+        IList<IMenu> Childs { get; }
     }
 }

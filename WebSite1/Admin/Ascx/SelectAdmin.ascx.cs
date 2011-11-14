@@ -44,7 +44,7 @@ public partial class Admin_Ascx_SelectAdmin : System.Web.UI.UserControl
             if (_Admin == null && Value > 0)
             {
                 //_Admin = Admin.Meta.Cache.Entities.Find(Admin._.ID, Value);
-                _Admin = CommonManageProvider.Provider.FindByID(Value);
+                _Admin = CommonManageProvider.Provider.FindByID(Value) as IAdministrator;
             }
             return _Admin;
         }

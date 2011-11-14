@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using NewLife.CommonEntity;
 using <#=Config.NameSpace#>;
 
 public partial class <#=Config.EntityConnName+"_"+Table.Alias#> : MyEntityList

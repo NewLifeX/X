@@ -36,9 +36,12 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("2.6.*")]
-[assembly: AssemblyFileVersion("2.6.2011.1111")]
+[assembly: AssemblyFileVersion("2.6.2011.1114")]
 
 /*
+ * v2.6.2011.1114   精简ICommonManageProvider和IManagerPage，最大程度降低IManagerPage对IAdministator的依赖，目前可以做到不依赖
+ *                  用户既可以不实现IAdministator，又可以享受IManagerPage的优势
+ * 
  * v2.6.2011.1111   增加接口IEntityForm，支持实体表单读写和验证保存
  * 
  * v2.5.2011.1018   增加管理提供者接口IManageProvider和通用实体类管理提供者接口ICommonManageProvider，用于支持管理平台解耦

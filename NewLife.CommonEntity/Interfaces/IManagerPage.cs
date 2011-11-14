@@ -24,7 +24,7 @@ namespace NewLife.CommonEntity
         String Navigation { get; }
 
         /// <summary>当前管理员</summary>
-        IAdministrator Current { get; }
+        IManageUser Current { get; }
 
         /// <summary>本页菜单</summary>
         IMenu CurrentMenu { get; set; }
@@ -184,7 +184,10 @@ namespace NewLife.CommonEntity
         public HttpResponse Response { get { return Page.Response; } }
 
         /// <summary>当前管理员</summary>
-        public virtual IAdministrator Current { get { return CommonManageProvider.Provider.Current; } }
+        public virtual IManageUser Current { get { return CommonManageProvider.Provider.Current; } }
+
+        /// <summary>当前管理员</summary>
+        protected virtual IAdministrator CurrentAdmin { get { return Current as IAdministrator; } }
 
         /// <summary>导航 分为三级：栏目－子栏目－页面</summary>
         public virtual String Navigation
@@ -206,7 +209,7 @@ namespace NewLife.CommonEntity
             {
                 if (_CurrentMenu == null && !hasLoaded.Contains("CurrentMenu"))
                 {
-                    _CurrentMenu = Current.FindPermissionMenu(PermissionName);
+                    if (CurrentAdmin != null) _CurrentMenu = CurrentAdmin.FindPermissionMenu(PermissionName);
                     hasLoaded.Add("CurrentMenu");
                 }
                 return _CurrentMenu;
@@ -244,7 +247,7 @@ namespace NewLife.CommonEntity
         public virtual Boolean CheckLogin()
         {
             // 当前管理员
-            IAdministrator entity = Current;
+            IAdministrator entity = CurrentAdmin;
             if (entity == null) return false;
 
             return true;
@@ -269,7 +272,7 @@ namespace NewLife.CommonEntity
         public virtual Boolean Acquire(PermissionFlags flag)
         {
             // 当前管理员
-            IAdministrator admin = Current;
+            IAdministrator admin = CurrentAdmin;
             if (admin == null) return false;
 
             IMenu menu = CurrentMenu;
@@ -287,7 +290,7 @@ namespace NewLife.CommonEntity
         public virtual Boolean Acquire(String name, PermissionFlags flag)
         {
             // 当前管理员
-            IAdministrator admin = Current;
+            IAdministrator admin = CurrentAdmin;
             if (admin == null) return false;
 
             return admin.Acquire(name, flag);
