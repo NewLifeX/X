@@ -19,7 +19,7 @@ foreach(IDataColumn Field in Table.Columns){
 }
 #><div class="toolbar">
         <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="<#=boxHeight#>px" BoxWidth="440px" Url="<#=Table.Alias#>Form.aspx"
-            IconLeft="~/Admin/images/icons/new.gif"><b>添加<#=Table.Description#></b></XCL:LinkBox>
+            IconLeft="~/Admin/images/icons/new.gif" EnableViewState="false"><b>添加<#=Table.Description#></b></XCL:LinkBox>
         关键字：<asp:TextBox ID="txtKey" runat="server"></asp:TextBox>
         <asp:Button ID="btnSearch" runat="server" Text="查询" />
     </div><#
@@ -31,7 +31,7 @@ foreach(IDataColumn Field in Table.Columns){
     } 
 }
     #>
-    <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="<#=sbpk#>" DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="m_table" PageSize="20" CellPadding="0" GridLines="None" EnableModelValidation="True">
+    <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="<#=sbpk#>" DataSourceID="ods" AllowPaging="True" AllowSorting="True" CssClass="m_table" PageSize="20" CellPadding="0" GridLines="None" EnableModelValidation="True" EnableViewState="false">
         <Columns>
             <%--<asp:TemplateField>
                 <ItemTemplate>
@@ -105,7 +105,7 @@ foreach(IDataColumn Field in Table.Columns){
             没有符合条件的数据！
         </EmptyDataTemplate>
     </asp:GridView>
-    <asp:ObjectDataSource ID="ods" runat="server" EnablePaging="True" SelectCountMethod="SearchCount" SelectMethod="Search" SortParameterName="orderClause">
+    <asp:ObjectDataSource ID="ods" runat="server" EnablePaging="True" SelectCountMethod="SearchCount" SelectMethod="Search" SortParameterName="orderClause" EnableViewState="false">
         <SelectParameters>
             <asp:ControlParameter ControlID="txtKey" Name="key" PropertyName="Text" Type="String" />
             <asp:Parameter Name="orderClause" Type="String" />
