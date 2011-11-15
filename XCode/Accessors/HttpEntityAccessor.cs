@@ -13,8 +13,16 @@ namespace XCode.Accessors
         /// <summary>请求</summary>
         public HttpRequest Request
         {
-            get { return _Request; }
+            get { return _Request ?? (_Request = HttpContext.Current.Request); }
             private set { _Request = value; }
+        }
+
+        private String _ItemPrefix = "frm";
+        /// <summary>前缀，只用于Form</summary>
+        public String ItemPrefix
+        {
+            get { return _ItemPrefix; }
+            set { _ItemPrefix = value; }
         }
 
         private Int64 _MaxLength = 10 * 1024 * 1024;
@@ -52,6 +60,8 @@ namespace XCode.Accessors
                 Request = value as HttpRequest;
             else if (name.EqualIgnoreCase(EntityAccessorOptions.MaxLength))
                 MaxLength = (Int64)value;
+            else if (name.EqualIgnoreCase(EntityAccessorOptions.ItemPrefix))
+                ItemPrefix = (String)value;
 
             return base.SetConfig(name, value);
         }
@@ -95,10 +105,10 @@ namespace XCode.Accessors
 
         protected virtual Object GetRequestItem(FieldItem item)
         {
-            //TODO: 做一下不区分大小写的处理，因为实体字典有大小写，而Request里面可能不缺分大小写
+            if (item == null) return null;
 
-            String value = Request[item.Name];
-            if (value == null && item.Name != item.ColumnName) value = Request[item.ColumnName];
+            String value = GetRequest(item.Name);
+            if (value == null && item.Name != item.ColumnName) value = GetRequest(item.ColumnName);
 
             if (value != null) return value;
 
@@ -107,6 +117,25 @@ namespace XCode.Accessors
             if (file == null && item.Name != item.ColumnName) file = Request.Files[item.ColumnName];
 
             return file;
+        }
+
+        String GetRequest(String name)
+        {
+            String value = Request.QueryString[name];
+            if (!String.IsNullOrEmpty(value)) return value;
+
+            value = Request.Form[name];
+            if (!String.IsNullOrEmpty(value)) return value;
+
+            // 加上前缀再试试
+            value = Request.Form[ItemPrefix + name];
+            if (!String.IsNullOrEmpty(value)) return value;
+
+            HttpCookie cookie = Request.Cookies[name];
+            if (cookie != null) value = cookie.Value;
+            if (!String.IsNullOrEmpty(value)) return value;
+
+            return null;
         }
         #endregion
     }
