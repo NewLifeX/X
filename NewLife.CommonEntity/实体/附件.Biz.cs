@@ -122,7 +122,7 @@ namespace NewLife.CommonEntity
                 {
                     foreach (HttpHandlerAction item in Config.GethttpHandlers())
                     {
-                        if (!String.IsNullOrEmpty(item.Type) && item.Type.IndexOf(typeof(Attachment).FullName) > -1)
+                        if (!String.IsNullOrEmpty(item.Type) && item.Type.IndexOf(typeof(NewLife.CommonEntity.Web.AttachmentHttpHandler).FullName) > -1)
                         {
                             _httpHandler = item;
 
