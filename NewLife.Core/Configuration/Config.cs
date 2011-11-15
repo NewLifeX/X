@@ -46,8 +46,6 @@ namespace NewLife.Configuration
             //set { _ConnectionStrings = value; }
         }
 
-
-
         private static Object _httpHandlers;
         /// <summary>获取httphandlers</summary>
         public static Object httpHandlers
@@ -61,7 +59,6 @@ namespace NewLife.Configuration
                 }
                 return _httpHandlers;
             }
-            set { _httpHandlers = value; }
         }
         #endregion
 
