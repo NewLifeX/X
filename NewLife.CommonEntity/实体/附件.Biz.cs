@@ -12,6 +12,7 @@ using System.Web;
 using System.Web.UI.WebControls;
 using NewLife.Configuration;
 using XCode;
+using System.Web.Configuration;
 
 namespace NewLife.CommonEntity
 {
@@ -107,6 +108,44 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 扩展属性
+        /// <summary>
+        /// 是否进行过查询
+        /// </summary>
+        private static Boolean IsFindhttpHandler = false;
+        private static HttpHandlerAction _httpHandler;
+        /// <summary>Att httpHandler</summary>
+        public static HttpHandlerAction httpHandler
+        {
+            get
+            {
+                if (!IsFindhttpHandler)
+                {
+                    foreach (HttpHandlerAction item in Config.GethttpHandlers())
+                    {
+                        if (!String.IsNullOrEmpty(item.Type) && item.Type.IndexOf(typeof(Attachment).FullName) > -1)
+                        {
+                            _httpHandler = item;
+
+                            break;
+                        }
+                    }
+                }
+                return _httpHandler;
+            }
+        }
+
+        /// <summary>
+        /// 获取Config中Handler设置
+        /// </summary>
+        public String HenderUrl
+        {
+            get
+            {
+                return httpHandler == null ? null : String.Format("{0}?ID={1}", httpHandler.Path, ID);
+            }
+        }
+
+
         /// <summary>
         /// 完全文件路径
         /// </summary>
