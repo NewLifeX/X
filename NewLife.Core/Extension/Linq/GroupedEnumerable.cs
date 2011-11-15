@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime;
 using NewLife.Reflection;
-namespace System.Linq
+namespace NewLife.Linq
 {
     internal class GroupedEnumerable<TSource, TKey, TElement> : IEnumerable<IGrouping<TKey, TElement>>, IEnumerable
     {

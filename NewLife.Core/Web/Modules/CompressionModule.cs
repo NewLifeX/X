@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO.Compression;
-using System.Linq;
+using NewLife.Linq;
 using System.Web;
 using NewLife.Configuration;
 using NewLife.Reflection;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using NewLife.Linq;
 using System.Reflection;
 using System.Web;
 using NewLife.Collections;

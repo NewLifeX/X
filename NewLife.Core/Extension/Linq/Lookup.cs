@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using System.Runtime;
 using NewLife.Reflection;
 
-namespace System.Linq
+namespace NewLife.Linq
 {
     /// <summary>表示映射到一个或多个值的各个键的集合。</summary>
     /// <typeparam name="TKey">
-    ///   <see cref="T:System.Linq.Lookup`2" /> 中的键的类型。</typeparam>
+    ///   <see cref="T:NewLife.Linq.Lookup`2" /> 中的键的类型。</typeparam>
     /// <typeparam name="TElement">
-    ///   <see cref="T:System.Linq.Lookup`2" /> 中的每个 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 值的元素的类型。</typeparam>
+    ///   <see cref="T:NewLife.Linq.Lookup`2" /> 中的每个 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 值的元素的类型。</typeparam>
     /// <filterpriority>2</filterpriority>
     public class Lookup<TKey, TElement> : ILookup<TKey, TElement>, IEnumerable<IGrouping<TKey, TElement>>, IEnumerable
     {
@@ -121,9 +121,9 @@ namespace System.Linq
         private Lookup<TKey, TElement>.Grouping[] groupings;
         private Lookup<TKey, TElement>.Grouping lastGrouping;
         private int count;
-        /// <summary>获取 <see cref="T:System.Linq.Lookup`2" /> 中的键/值对集合的数目。</summary>
+        /// <summary>获取 <see cref="T:NewLife.Linq.Lookup`2" /> 中的键/值对集合的数目。</summary>
         /// <returns>
-        ///   <see cref="T:System.Linq.Lookup`2" /> 中键/值对集合的数目。</returns>
+        ///   <see cref="T:NewLife.Linq.Lookup`2" /> 中键/值对集合的数目。</returns>
         public int Count
         {
             [TargetedPatchingOptOut("Performance critical to inline this type of method across NGen image boundaries")]
@@ -190,16 +190,16 @@ namespace System.Linq
             this.comparer = comparer;
             this.groupings = new Lookup<TKey, TElement>.Grouping[7];
         }
-        /// <summary>确定指定的键是否位于 <see cref="T:System.Linq.Lookup`2" /> 中。</summary>
-        /// <returns>如果 <paramref name="key" /> 在 <see cref="T:System.Linq.Lookup`2" /> 中，则为 true；否则为 false。</returns>
-        /// <param name="key">要在 <see cref="T:System.Linq.Lookup`2" /> 中查找的键。</param>
+        /// <summary>确定指定的键是否位于 <see cref="T:NewLife.Linq.Lookup`2" /> 中。</summary>
+        /// <returns>如果 <paramref name="key" /> 在 <see cref="T:NewLife.Linq.Lookup`2" /> 中，则为 true；否则为 false。</returns>
+        /// <param name="key">要在 <see cref="T:NewLife.Linq.Lookup`2" /> 中查找的键。</param>
         public bool Contains(TKey key)
         {
             return this.GetGrouping(key, false) != null;
         }
-        /// <summary>返回循环访问 <see cref="T:System.Linq.Lookup`2" /> 的泛型枚举数。</summary>
+        /// <summary>返回循环访问 <see cref="T:NewLife.Linq.Lookup`2" /> 的泛型枚举数。</summary>
         /// <returns>
-        ///   <see cref="T:System.Linq.Lookup`2" /> 的枚举数。</returns>
+        ///   <see cref="T:NewLife.Linq.Lookup`2" /> 的枚举数。</returns>
         public IEnumerator<IGrouping<TKey, TElement>> GetEnumerator()
         {
             Lookup<TKey, TElement>.Grouping next = this.lastGrouping;
@@ -215,7 +215,7 @@ namespace System.Linq
             yield break;
         }
         /// <summary>对每个键及其关联值应用转换函数，并返回结果。</summary>
-        /// <returns>包含 <see cref="T:System.Linq.Lookup`2" /> 中的各个键/值对集合中的一个值的集合。</returns>
+        /// <returns>包含 <see cref="T:NewLife.Linq.Lookup`2" /> 中的各个键/值对集合中的一个值的集合。</returns>
         /// <param name="resultSelector">从每个键及其关联值投影结果值的函数。</param>
         /// <typeparam name="TResult">
         ///   <paramref name="resultSelector" /> 生成的结果值的类型。</typeparam>

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace System.Linq
+namespace NewLife.Linq
 {
     internal struct Buffer<TElement>
     {

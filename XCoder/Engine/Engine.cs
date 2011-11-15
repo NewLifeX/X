@@ -2,12 +2,12 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CSharp;
 using Microsoft.VisualBasic;
 using NewLife.Collections;
+using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Threading;
@@ -180,11 +180,11 @@ namespace XCoder
         {
             if (String.IsNullOrEmpty(name)) return false;
 
-            // 只要有大写字母，就不是关键字
-            if (name.Any(c => c >= 'A' && c <= 'Z')) return false;
-
             // 特殊处理item
             if (String.Equals(name, "item", StringComparison.OrdinalIgnoreCase)) return true;
+
+            // 只要有大写字母，就不是关键字
+            if (name.Any(c => c >= 'A' && c <= 'Z')) return false;
 
             foreach (CodeDomProvider item in CGS)
             {

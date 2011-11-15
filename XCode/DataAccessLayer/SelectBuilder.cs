@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using NewLife.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using NewLife;

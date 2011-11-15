@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime;
-namespace System.Linq
+namespace NewLife.Linq
 {
     internal class Set<TElement>
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime;
 using NewLife.Reflection;
-namespace System.Linq
+namespace NewLife.Linq
 {
     internal class IdentityFunction<TElement>
     {

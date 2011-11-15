@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime;
 using NewLife.Reflection;
-namespace System.Linq
+namespace NewLife.Linq
 {
     internal abstract class EnumerableSorter<TElement>
     {

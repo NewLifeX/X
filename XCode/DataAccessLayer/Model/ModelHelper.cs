@@ -1,8 +1,8 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CSharp;
+using NewLife.Linq;
 
 namespace XCode.DataAccessLayer
 {

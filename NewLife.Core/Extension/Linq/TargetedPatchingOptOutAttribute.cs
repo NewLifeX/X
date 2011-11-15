@@ -3,7 +3,7 @@ namespace System.Runtime
 {
     /// <summary>指示此特性应用于的 .NET Framework 类库方法不可能受服务版本的影响，因此它可以在本机映像生成器 (NGen) 格式的映像间内联。</summary>
     [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-    public sealed class TargetedPatchingOptOutAttribute : Attribute
+    sealed class TargetedPatchingOptOutAttribute : Attribute
     {
         private string m_reason;
         /// <summary>获取此特性应用于的方法被认为可以在本机映像生成器 (NGen) 格式的映像间内联的原因。</summary>

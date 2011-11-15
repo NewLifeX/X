@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Web.UI.WebControls;
-using NewLife.Collections;
-using NewLife.Reflection;
-using System.Diagnostics;
 using System.Collections.Generic;
-using System.Linq;
+using System.Web.UI.WebControls;
+using NewLife.Reflection;
 
 public partial class Pages_Main : System.Web.UI.Page
 {

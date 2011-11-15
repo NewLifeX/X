@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.IO;
-using System.Linq;
+using NewLife.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using NewLife.IO;

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using NewLife.Linq;
 using System.Reflection;
 using NewLife.Collections;
 using NewLife.Log;

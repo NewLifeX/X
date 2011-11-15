@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Linq;
+using NewLife.Linq;
 using XCode.Configuration;
 
 namespace XCode.Common

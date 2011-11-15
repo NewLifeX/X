@@ -9,7 +9,7 @@ using System.Text;
 using NewLife.Exceptions;
 using NewLife.Reflection;
 using NewLife.Log;
-using System.Linq;
+using NewLife.Linq;
 
 namespace NewLife.Serialization
 {

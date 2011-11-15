@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Linq;
+using NewLife.Linq;
 using NewLife.Reflection;
 
 namespace NewLife.Model

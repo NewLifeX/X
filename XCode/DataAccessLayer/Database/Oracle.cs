@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.IO;
-using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using NewLife;
 using NewLife.Configuration;
+using NewLife.Linq;
 using XCode.Common;
 using XCode.Exceptions;
-using System.Runtime.InteropServices;
 
 namespace XCode.DataAccessLayer
 {

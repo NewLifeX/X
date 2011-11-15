@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using NewLife.Reflection;
 
-namespace System.Linq
+namespace NewLife.Linq
 {
     public static partial class Enumerable
     {

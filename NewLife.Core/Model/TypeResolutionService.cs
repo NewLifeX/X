@@ -1,6 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Design;
-using System.Linq;
+using NewLife.Linq;
 using System.Reflection;
 using NewLife.Reflection;
 

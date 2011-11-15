@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
+using NewLife.Linq;
 using System.Threading;
 using System.Xml.Serialization;
 using NewLife.Log;

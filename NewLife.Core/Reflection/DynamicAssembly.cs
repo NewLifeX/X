@@ -4,7 +4,7 @@ using System.Text;
 using System.Reflection.Emit;
 using System.Reflection;
 using NewLife.Collections;
-using System.Linq;
+using NewLife.Linq;
 
 namespace NewLife.Reflection
 {

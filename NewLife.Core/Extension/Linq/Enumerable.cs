@@ -1,11 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime;
 using System.Threading;
 using NewLife.Reflection;
 
 #pragma warning disable 1734
-namespace System.Linq
+namespace NewLife.Linq
 {
     /// <summary>提供一组用于查询实现 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 的对象的 static（在 Visual Basic 中为 Shared）方法。</summary>
     public static partial class Enumerable
@@ -1090,7 +1091,7 @@ namespace System.Linq
             yield break;
         }
         /// <summary>根据键按升序对序列的元素排序。</summary>
-        /// <returns>一个 <see cref="T:System.Linq.IOrderedEnumerable`1" />，其元素按键排序。</returns>
+        /// <returns>一个 <see cref="T:NewLife.Linq.IOrderedEnumerable`1" />，其元素按键排序。</returns>
         /// <param name="source">一个要排序的值序列。</param>
         /// <param name="keySelector">用于从元素中提取键的函数。</param>
         /// <typeparam name="TSource">
@@ -1104,7 +1105,7 @@ namespace System.Linq
             return new OrderedEnumerable<TSource, TKey>(source, keySelector, null, false);
         }
         /// <summary>使用指定的比较器按升序对序列的元素排序。</summary>
-        /// <returns>一个 <see cref="T:System.Linq.IOrderedEnumerable`1" />，其元素按键排序。</returns>
+        /// <returns>一个 <see cref="T:NewLife.Linq.IOrderedEnumerable`1" />，其元素按键排序。</returns>
         /// <param name="source">一个要排序的值序列。</param>
         /// <param name="keySelector">用于从元素中提取键的函数。</param>
         /// <param name="comparer">一个用于比较键的 <see cref="T:System.Collections.Generic.IComparer`1" />。</param>
@@ -1119,7 +1120,7 @@ namespace System.Linq
             return new OrderedEnumerable<TSource, TKey>(source, keySelector, comparer, false);
         }
         /// <summary>根据键按降序对序列的元素排序。</summary>
-        /// <returns>一个 <see cref="T:System.Linq.IOrderedEnumerable`1" />，将根据键按降序对其元素进行排序。</returns>
+        /// <returns>一个 <see cref="T:NewLife.Linq.IOrderedEnumerable`1" />，将根据键按降序对其元素进行排序。</returns>
         /// <param name="source">一个要排序的值序列。</param>
         /// <param name="keySelector">用于从元素中提取键的函数。</param>
         /// <typeparam name="TSource">
@@ -1133,7 +1134,7 @@ namespace System.Linq
             return new OrderedEnumerable<TSource, TKey>(source, keySelector, null, true);
         }
         /// <summary>使用指定的比较器按降序对序列的元素排序。</summary>
-        /// <returns>一个 <see cref="T:System.Linq.IOrderedEnumerable`1" />，将根据键按降序对其元素进行排序。</returns>
+        /// <returns>一个 <see cref="T:NewLife.Linq.IOrderedEnumerable`1" />，将根据键按降序对其元素进行排序。</returns>
         /// <param name="source">一个要排序的值序列。</param>
         /// <param name="keySelector">用于从元素中提取键的函数。</param>
         /// <param name="comparer">一个用于比较键的 <see cref="T:System.Collections.Generic.IComparer`1" />。</param>
@@ -1148,8 +1149,8 @@ namespace System.Linq
             return new OrderedEnumerable<TSource, TKey>(source, keySelector, comparer, true);
         }
         /// <summary>根据某个键按升序对序列中的元素执行后续排序。</summary>
-        /// <returns>一个 <see cref="T:System.Linq.IOrderedEnumerable`1" />，其元素按键排序。</returns>
-        /// <param name="source">一个 <see cref="T:System.Linq.IOrderedEnumerable`1" />，包含要排序的元素。</param>
+        /// <returns>一个 <see cref="T:NewLife.Linq.IOrderedEnumerable`1" />，其元素按键排序。</returns>
+        /// <param name="source">一个 <see cref="T:NewLife.Linq.IOrderedEnumerable`1" />，包含要排序的元素。</param>
         /// <param name="keySelector">用于从每个元素中提取键的函数。</param>
         /// <typeparam name="TSource">
         ///   <paramref name="source" /> 中的元素的类型。</typeparam>
@@ -1166,8 +1167,8 @@ namespace System.Linq
             return source.CreateOrderedEnumerable<TKey>(keySelector, null, false);
         }
         /// <summary>使用指定的比较器按升序对序列中的元素执行后续排序。</summary>
-        /// <returns>一个 <see cref="T:System.Linq.IOrderedEnumerable`1" />，其元素按键排序。</returns>
-        /// <param name="source">一个 <see cref="T:System.Linq.IOrderedEnumerable`1" />，包含要排序的元素。</param>
+        /// <returns>一个 <see cref="T:NewLife.Linq.IOrderedEnumerable`1" />，其元素按键排序。</returns>
+        /// <param name="source">一个 <see cref="T:NewLife.Linq.IOrderedEnumerable`1" />，包含要排序的元素。</param>
         /// <param name="keySelector">用于从每个元素中提取键的函数。</param>
         /// <param name="comparer">一个用于比较键的 <see cref="T:System.Collections.Generic.IComparer`1" />。</param>
         /// <typeparam name="TSource">
@@ -1185,8 +1186,8 @@ namespace System.Linq
             return source.CreateOrderedEnumerable<TKey>(keySelector, comparer, false);
         }
         /// <summary>根据某个键按降序对序列中的元素执行后续排序。</summary>
-        /// <returns>一个 <see cref="T:System.Linq.IOrderedEnumerable`1" />，将根据键按降序对其元素进行排序。</returns>
-        /// <param name="source">一个 <see cref="T:System.Linq.IOrderedEnumerable`1" />，包含要排序的元素。</param>
+        /// <returns>一个 <see cref="T:NewLife.Linq.IOrderedEnumerable`1" />，将根据键按降序对其元素进行排序。</returns>
+        /// <param name="source">一个 <see cref="T:NewLife.Linq.IOrderedEnumerable`1" />，包含要排序的元素。</param>
         /// <param name="keySelector">用于从每个元素中提取键的函数。</param>
         /// <typeparam name="TSource">
         ///   <paramref name="source" /> 中的元素的类型。</typeparam>
@@ -1203,8 +1204,8 @@ namespace System.Linq
             return source.CreateOrderedEnumerable<TKey>(keySelector, null, true);
         }
         /// <summary>使用指定的比较器按降序对序列中的元素执行后续排序。</summary>
-        /// <returns>一个 <see cref="T:System.Linq.IOrderedEnumerable`1" />，将根据键按降序对其元素进行排序。</returns>
-        /// <param name="source">一个 <see cref="T:System.Linq.IOrderedEnumerable`1" />，包含要排序的元素。</param>
+        /// <returns>一个 <see cref="T:NewLife.Linq.IOrderedEnumerable`1" />，将根据键按降序对其元素进行排序。</returns>
+        /// <param name="source">一个 <see cref="T:NewLife.Linq.IOrderedEnumerable`1" />，包含要排序的元素。</param>
         /// <param name="keySelector">用于从每个元素中提取键的函数。</param>
         /// <param name="comparer">一个用于比较键的 <see cref="T:System.Collections.Generic.IComparer`1" />。</param>
         /// <typeparam name="TSource">
@@ -1222,7 +1223,7 @@ namespace System.Linq
             return source.CreateOrderedEnumerable<TKey>(keySelector, comparer, true);
         }
         /// <summary>根据指定的键选择器函数对序列中的元素进行分组。</summary>
-        /// <returns>在 C# 中为 IEnumerable&lt;IGrouping&lt;TKey, TSource&gt;&gt;，或者在 Visual Basic 中为 IEnumerable(Of IGrouping(Of TKey, TSource))，其中每个 <see cref="T:System.Linq.IGrouping`2" /> 对象都包含一个对象序列和一个键。</returns>
+        /// <returns>在 C# 中为 IEnumerable&lt;IGrouping&lt;TKey, TSource&gt;&gt;，或者在 Visual Basic 中为 IEnumerable(Of IGrouping(Of TKey, TSource))，其中每个 <see cref="T:NewLife.Linq.IGrouping`2" /> 对象都包含一个对象序列和一个键。</returns>
         /// <param name="source">要对其元素进行分组的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
         /// <param name="keySelector">用于提取每个元素的键的函数。</param>
         /// <typeparam name="TSource">
@@ -1236,7 +1237,7 @@ namespace System.Linq
             return new GroupedEnumerable<TSource, TKey, TSource>(source, keySelector, IdentityFunction<TSource>.Instance, null);
         }
         /// <summary>根据指定的键选择器函数对序列中的元素进行分组，并使用指定的比较器对键进行比较。</summary>
-        /// <returns>在 C# 中为 IEnumerable&lt;IGrouping&lt;TKey, TSource&gt;&gt;，或者在 Visual Basic 中为 IEnumerable(Of IGrouping(Of TKey, TSource))，其中每个 <see cref="T:System.Linq.IGrouping`2" /> 对象都包含一个对象集合和一个键。</returns>
+        /// <returns>在 C# 中为 IEnumerable&lt;IGrouping&lt;TKey, TSource&gt;&gt;，或者在 Visual Basic 中为 IEnumerable(Of IGrouping(Of TKey, TSource))，其中每个 <see cref="T:NewLife.Linq.IGrouping`2" /> 对象都包含一个对象集合和一个键。</returns>
         /// <param name="source">要对其元素进行分组的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
         /// <param name="keySelector">用于提取每个元素的键的函数。</param>
         /// <param name="comparer">一个用于对键进行比较的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" />。</param>
@@ -1251,16 +1252,16 @@ namespace System.Linq
             return new GroupedEnumerable<TSource, TKey, TSource>(source, keySelector, IdentityFunction<TSource>.Instance, comparer);
         }
         /// <summary>根据指定的键选择器函数对序列中的元素进行分组，并且通过使用指定的函数对每个组中的元素进行投影。</summary>
-        /// <returns>在 C# 中为 IEnumerable&lt;IGrouping&lt;TKey, TElement&gt;&gt;，或者在 Visual Basic 中为 IEnumerable(Of IGrouping(Of TKey, TElement))，其中每个 <see cref="T:System.Linq.IGrouping`2" /> 对象都包含一个类型为 <paramref name="TElement" /> 的对象集合和一个键。</returns>
+        /// <returns>在 C# 中为 IEnumerable&lt;IGrouping&lt;TKey, TElement&gt;&gt;，或者在 Visual Basic 中为 IEnumerable(Of IGrouping(Of TKey, TElement))，其中每个 <see cref="T:NewLife.Linq.IGrouping`2" /> 对象都包含一个类型为 <paramref name="TElement" /> 的对象集合和一个键。</returns>
         /// <param name="source">要对其元素进行分组的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
         /// <param name="keySelector">用于提取每个元素的键的函数。</param>
-        /// <param name="elementSelector">用于将每个源元素映射到 <see cref="T:System.Linq.IGrouping`2" /> 中的元素的函数。</param>
+        /// <param name="elementSelector">用于将每个源元素映射到 <see cref="T:NewLife.Linq.IGrouping`2" /> 中的元素的函数。</param>
         /// <typeparam name="TSource">
         ///   <paramref name="source" /> 中的元素的类型。</typeparam>
         /// <typeparam name="TKey">
         ///   <paramref name="keySelector" /> 返回的键的类型。</typeparam>
         /// <typeparam name="TElement">
-        ///   <see cref="T:System.Linq.IGrouping`2" /> 中的元素的类型。</typeparam>
+        ///   <see cref="T:NewLife.Linq.IGrouping`2" /> 中的元素的类型。</typeparam>
         /// <exception cref="T:System.ArgumentNullException">
         ///   <paramref name="source" /> 或 <paramref name="keySelector" /> 或 <paramref name="elementSelector" /> 为 null。</exception>
         public static IEnumerable<IGrouping<TKey, TElement>> GroupBy<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector)
@@ -1268,17 +1269,17 @@ namespace System.Linq
             return new GroupedEnumerable<TSource, TKey, TElement>(source, keySelector, elementSelector, null);
         }
         /// <summary>根据键选择器函数对序列中的元素进行分组。通过使用比较器对键进行比较，并且通过使用指定的函数对每个组的元素进行投影。</summary>
-        /// <returns>在 C# 中为 IEnumerable&lt;IGrouping&lt;TKey, TElement&gt;&gt;，或者在 Visual Basic 中为 IEnumerable(Of IGrouping(Of TKey, TElement))，其中每个 <see cref="T:System.Linq.IGrouping`2" /> 对象都包含一个类型为 <paramref name="TElement" /> 的对象集合和一个键。</returns>
+        /// <returns>在 C# 中为 IEnumerable&lt;IGrouping&lt;TKey, TElement&gt;&gt;，或者在 Visual Basic 中为 IEnumerable(Of IGrouping(Of TKey, TElement))，其中每个 <see cref="T:NewLife.Linq.IGrouping`2" /> 对象都包含一个类型为 <paramref name="TElement" /> 的对象集合和一个键。</returns>
         /// <param name="source">要对其元素进行分组的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
         /// <param name="keySelector">用于提取每个元素的键的函数。</param>
-        /// <param name="elementSelector">用于将每个源元素映射到 <see cref="T:System.Linq.IGrouping`2" /> 中的元素的函数。</param>
+        /// <param name="elementSelector">用于将每个源元素映射到 <see cref="T:NewLife.Linq.IGrouping`2" /> 中的元素的函数。</param>
         /// <param name="comparer">一个用于对键进行比较的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" />。</param>
         /// <typeparam name="TSource">
         ///   <paramref name="source" /> 中的元素的类型。</typeparam>
         /// <typeparam name="TKey">
         ///   <paramref name="keySelector" /> 返回的键的类型。</typeparam>
         /// <typeparam name="TElement">
-        ///   <see cref="T:System.Linq.IGrouping`2" /> 中的元素的类型。</typeparam>
+        ///   <see cref="T:NewLife.Linq.IGrouping`2" /> 中的元素的类型。</typeparam>
         /// <exception cref="T:System.ArgumentNullException">
         ///   <paramref name="source" /> 或 <paramref name="keySelector" /> 或 <paramref name="elementSelector" /> 为 null。</exception>
         public static IEnumerable<IGrouping<TKey, TElement>> GroupBy<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, IEqualityComparer<TKey> comparer)
@@ -1306,13 +1307,13 @@ namespace System.Linq
         ///   <paramref name="TResult" /> 类型的元素的集合，其中每个元素都表示对一个组及其键的投影。</returns>
         /// <param name="source">要对其元素进行分组的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
         /// <param name="keySelector">用于提取每个元素的键的函数。</param>
-        /// <param name="elementSelector">用于将每个源元素映射到 <see cref="T:System.Linq.IGrouping`2" /> 中的元素的函数。</param>
+        /// <param name="elementSelector">用于将每个源元素映射到 <see cref="T:NewLife.Linq.IGrouping`2" /> 中的元素的函数。</param>
         /// <param name="resultSelector">用于从每个组中创建结果值的函数。</param>
         /// <typeparam name="TSource">
         ///   <paramref name="source" /> 中的元素的类型。</typeparam>
         /// <typeparam name="TKey">
         ///   <paramref name="keySelector" /> 返回的键的类型。</typeparam>
-        /// <typeparam name="TElement">每个 <see cref="T:System.Linq.IGrouping`2" /> 中的元素的类型。</typeparam>
+        /// <typeparam name="TElement">每个 <see cref="T:NewLife.Linq.IGrouping`2" /> 中的元素的类型。</typeparam>
         /// <typeparam name="TResult">
         ///   <paramref name="resultSelector" /> 返回的结果值的类型。</typeparam>
         public static IEnumerable<TResult> GroupBy<TSource, TKey, TElement, TResult>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, Func<TKey, IEnumerable<TElement>, TResult> resultSelector)
@@ -1341,14 +1342,14 @@ namespace System.Linq
         ///   <paramref name="TResult" /> 类型的元素的集合，其中每个元素都表示对一个组及其键的投影。</returns>
         /// <param name="source">要对其元素进行分组的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
         /// <param name="keySelector">用于提取每个元素的键的函数。</param>
-        /// <param name="elementSelector">用于将每个源元素映射到 <see cref="T:System.Linq.IGrouping`2" /> 中的元素的函数。</param>
+        /// <param name="elementSelector">用于将每个源元素映射到 <see cref="T:NewLife.Linq.IGrouping`2" /> 中的元素的函数。</param>
         /// <param name="resultSelector">用于从每个组中创建结果值的函数。</param>
         /// <param name="comparer">一个用于对键进行比较的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" />。</param>
         /// <typeparam name="TSource">
         ///   <paramref name="source" /> 中的元素的类型。</typeparam>
         /// <typeparam name="TKey">
         ///   <paramref name="keySelector" /> 返回的键的类型。</typeparam>
-        /// <typeparam name="TElement">每个 <see cref="T:System.Linq.IGrouping`2" /> 中的元素的类型。</typeparam>
+        /// <typeparam name="TElement">每个 <see cref="T:NewLife.Linq.IGrouping`2" /> 中的元素的类型。</typeparam>
         /// <typeparam name="TResult">
         ///   <paramref name="resultSelector" /> 返回的结果值的类型。</typeparam>
         public static IEnumerable<TResult> GroupBy<TSource, TKey, TElement, TResult>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, Func<TKey, IEnumerable<TElement>, TResult> resultSelector, IEqualityComparer<TKey> comparer)
@@ -1848,9 +1849,9 @@ namespace System.Linq
             }
             return dictionary;
         }
-        /// <summary>根据指定的键选择器函数，从 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 创建一个 <see cref="T:System.Linq.Lookup`2" />。</summary>
-        /// <returns>一个包含键和值的 <see cref="T:System.Linq.Lookup`2" />。</returns>
-        /// <param name="source">要从其创建 <see cref="T:System.Linq.Lookup`2" /> 的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
+        /// <summary>根据指定的键选择器函数，从 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 创建一个 <see cref="T:NewLife.Linq.Lookup`2" />。</summary>
+        /// <returns>一个包含键和值的 <see cref="T:NewLife.Linq.Lookup`2" />。</returns>
+        /// <param name="source">要从其创建 <see cref="T:NewLife.Linq.Lookup`2" /> 的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
         /// <param name="keySelector">用于从每个元素中提取键的函数。</param>
         /// <typeparam name="TSource">
         ///   <paramref name="source" /> 中的元素的类型。</typeparam>
@@ -1862,9 +1863,9 @@ namespace System.Linq
         {
             return Lookup<TKey, TSource>.Create<TSource>(source, keySelector, IdentityFunction<TSource>.Instance, null);
         }
-        /// <summary>根据指定的键选择器函数和键比较器，从 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 创建一个 <see cref="T:System.Linq.Lookup`2" />。</summary>
-        /// <returns>一个包含键和值的 <see cref="T:System.Linq.Lookup`2" />。</returns>
-        /// <param name="source">要从其创建 <see cref="T:System.Linq.Lookup`2" /> 的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
+        /// <summary>根据指定的键选择器函数和键比较器，从 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 创建一个 <see cref="T:NewLife.Linq.Lookup`2" />。</summary>
+        /// <returns>一个包含键和值的 <see cref="T:NewLife.Linq.Lookup`2" />。</returns>
+        /// <param name="source">要从其创建 <see cref="T:NewLife.Linq.Lookup`2" /> 的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
         /// <param name="keySelector">用于从每个元素中提取键的函数。</param>
         /// <param name="comparer">一个用于对键进行比较的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" />。</param>
         /// <typeparam name="TSource">
@@ -1877,9 +1878,9 @@ namespace System.Linq
         {
             return Lookup<TKey, TSource>.Create<TSource>(source, keySelector, IdentityFunction<TSource>.Instance, comparer);
         }
-        /// <summary>根据指定的键选择器和元素选择器函数，从 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 创建一个 <see cref="T:System.Linq.Lookup`2" />。</summary>
-        /// <returns>一个 <see cref="T:System.Linq.Lookup`2" />，包含从输入序列中选择的类型为 <paramref name="TElement" /> 的值。</returns>
-        /// <param name="source">要从其创建 <see cref="T:System.Linq.Lookup`2" /> 的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
+        /// <summary>根据指定的键选择器和元素选择器函数，从 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 创建一个 <see cref="T:NewLife.Linq.Lookup`2" />。</summary>
+        /// <returns>一个 <see cref="T:NewLife.Linq.Lookup`2" />，包含从输入序列中选择的类型为 <paramref name="TElement" /> 的值。</returns>
+        /// <param name="source">要从其创建 <see cref="T:NewLife.Linq.Lookup`2" /> 的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
         /// <param name="keySelector">用于从每个元素中提取键的函数。</param>
         /// <param name="elementSelector">用于从每个元素产生结果元素值的转换函数。</param>
         /// <typeparam name="TSource">
@@ -1894,9 +1895,9 @@ namespace System.Linq
         {
             return Lookup<TKey, TElement>.Create<TSource>(source, keySelector, elementSelector, null);
         }
-        /// <summary>根据指定的键选择器函数、比较器和元素选择器函数，从 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 创建一个 <see cref="T:System.Linq.Lookup`2" />。</summary>
-        /// <returns>一个 <see cref="T:System.Linq.Lookup`2" />，包含从输入序列中选择的类型为 <paramref name="TElement" /> 的值。</returns>
-        /// <param name="source">要从其创建 <see cref="T:System.Linq.Lookup`2" /> 的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
+        /// <summary>根据指定的键选择器函数、比较器和元素选择器函数，从 <see cref="T:System.Collections.Generic.IEnumerable`1" /> 创建一个 <see cref="T:NewLife.Linq.Lookup`2" />。</summary>
+        /// <returns>一个 <see cref="T:NewLife.Linq.Lookup`2" />，包含从输入序列中选择的类型为 <paramref name="TElement" /> 的值。</returns>
+        /// <param name="source">要从其创建 <see cref="T:NewLife.Linq.Lookup`2" /> 的 <see cref="T:System.Collections.Generic.IEnumerable`1" />。</param>
         /// <param name="keySelector">用于从每个元素中提取键的函数。</param>
         /// <param name="elementSelector">用于从每个元素产生结果元素值的转换函数。</param>
         /// <param name="comparer">一个用于对键进行比较的 <see cref="T:System.Collections.Generic.IEqualityComparer`1" />。</param>

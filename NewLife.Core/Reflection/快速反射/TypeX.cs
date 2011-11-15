@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
+using NewLife.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
