@@ -33,16 +33,10 @@ namespace XCode
 
         #region 扩展属性
         /// <summary>关联键名称，一般是主键，如ID</summary>
-        protected virtual String KeyName
-        {
-            get { return Meta.Unique.Name; }
-        }
+        protected virtual String KeyName { get { return Meta.Unique.Name; } }
 
         /// <summary>关联父键名，一般是Parent加主键，如ParentID</summary>
-        protected virtual String ParentKeyName
-        {
-            get { return "Parent" + KeyName; }
-        }
+        protected virtual String ParentKeyName { get { return "Parent" + KeyName; } }
 
         private static String _SortingKeyName;
         /// <summary>排序字段，默认是"Sorting", "Sort", "Rank"之一</summary>
@@ -85,10 +79,7 @@ namespace XCode
         }
 
         /// <summary>子节点</summary>
-        protected virtual EntityList<TEntity> FindChilds()
-        {
-            return FindAllByParent((TKey)this[KeyName]);
-        }
+        protected virtual EntityList<TEntity> FindChilds() { return FindAllByParent((TKey)this[KeyName]); }
 
         /// <summary>父节点</summary>
         [XmlIgnore]
@@ -99,10 +90,7 @@ namespace XCode
         }
 
         /// <summary>父节点</summary>
-        protected virtual TEntity FindParent()
-        {
-            return Meta.Cache.Entities.Find(KeyName, this[ParentKeyName]);
-        }
+        protected virtual TEntity FindParent() { return Meta.Cache.Entities.Find(KeyName, this[ParentKeyName]); }
 
         /// <summary>子孙节点</summary>
         [XmlIgnore]
@@ -562,7 +550,7 @@ namespace XCode
         public void Up()
         {
             EntityList<TEntity> list = FindAllByParent((TKey)this[ParentKeyName]);
-            if (list == null || list.Count < 1 || list[0] == this) return;
+            if (list == null || list.Count < 1) return;
 
             for (int i = 0; i < list.Count; i++)
             {
@@ -582,7 +570,7 @@ namespace XCode
         public void Down()
         {
             EntityList<TEntity> list = FindAllByParent((TKey)this[ParentKeyName]);
-            if (list == null || list.Count < 1 || list[list.Count - 1] == this) return;
+            if (list == null || list.Count < 1) return;
 
             for (int i = 0; i < list.Count; i++)
             {
