@@ -7,8 +7,7 @@ using System.IO;
 using NewLife.Configuration;
 using NewLife.Log;
 
-
-public partial class Admin_System_WebLog : PageBase
+public partial class Admin_System_WebLog : MyEntityList
 {
     protected void Page_Load(object sender, EventArgs e)
     {

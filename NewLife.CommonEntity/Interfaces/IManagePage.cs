@@ -297,10 +297,10 @@ namespace NewLife.CommonEntity
             if (gv == null) gv = ControlHelper.FindControlInPage<GridView>(null);
             if (gv != null)
             {
-                DataControlField dcf = gv.Columns[gv.Columns.Count - 1];
+                DataControlField dcf = gv.Columns.Count > 1 ? gv.Columns[gv.Columns.Count - 1] : null;
                 if (dcf != null && dcf.HeaderText.Contains("删除")) dcf.Visible = Acquire(PermissionFlags.Delete);
 
-                dcf = gv.Columns[gv.Columns.Count - 2];
+                dcf = gv.Columns.Count > 2 ? gv.Columns[gv.Columns.Count - 2] : null;
                 if (dcf != null && dcf.HeaderText.Contains("编辑"))
                 {
                     if (!Acquire(PermissionFlags.Update))

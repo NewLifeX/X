@@ -5,8 +5,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.IO;
 
-
-public partial class Admin_System_WebConfig : PageBase
+public partial class Admin_System_WebConfig : MyEntityList
 {
     protected void Page_Load(object sender, EventArgs e)
     {

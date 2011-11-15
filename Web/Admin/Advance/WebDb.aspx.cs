@@ -8,10 +8,9 @@ using System.Reflection;
 using System.Web.UI.WebControls;
 using NewLife.Reflection;
 using NewLife.Web;
-
 using XCode.DataAccessLayer;
 
-public partial class Admin_System_WebDb : PageBase
+public partial class Admin_System_WebDb : MyEntityList
 {
     protected void Page_Load(object sender, EventArgs e)
     {
