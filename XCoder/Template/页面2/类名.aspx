@@ -1,4 +1,4 @@
-<%@ Page Title="<#=Table.Description#>管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="<#=Table.Alias#>.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Alias#>" %>
+<%@ Page Title="<#=Table.DisplayName#>管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="<#=Table.Alias#>.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Alias#>" %>
 
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
     <#
@@ -19,7 +19,7 @@ foreach(IDataColumn Field in Table.Columns){
 }
 #><div class="toolbar">
         <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="<#=boxHeight#>px" BoxWidth="440px" Url="<#=Table.Alias#>Form.aspx"
-            IconLeft="~/Admin/images/icons/new.gif" EnableViewState="false"><b>添加<#=Table.Description#></b></XCL:LinkBox>
+            IconLeft="~/Admin/images/icons/new.gif" EnableViewState="false"><b>添加<#=Table.DisplayName#></b></XCL:LinkBox>
         关键字：<asp:TextBox ID="txtKey" runat="server"></asp:TextBox>
         <asp:Button ID="btnSearch" runat="server" Text="查询" />
     </div><#
@@ -50,33 +50,33 @@ foreach(IDataColumn Field in Table.Columns){
         if(rtable!=null){
             IDataColumn rname=rtable.GetColumn("Name");
             if(rname!=null&&rname.DataType==typeof(String)){#>
-            <%--<asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
+            <%--<asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" />
             </asp:BoundField>--%>
-            <asp:BoundField DataField="<#=rtable.Alias+"Name"#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" /><#
+            <asp:BoundField DataField="<#=rtable.Alias+"Name"#>" HeaderText="<#=Field.DisplayName#>" SortExpression="<#=pname#>" /><#
                 continue;
             }
         }
     }
 
     if(Field.Identity){#>
-            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
+            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" />
             </asp:BoundField><#}
     else if(Field.DataType == typeof(DateTime)){#>
-            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" DataFormatString="{0:yyyy-MM-dd HH:mm:ss}" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
+            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortExpression="<#=pname#>" DataFormatString="{0:yyyy-MM-dd HH:mm:ss}" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>>
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="120px" />
             </asp:BoundField><#}
     else if(Field.DataType == typeof(Decimal)){#>
-            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" DataFormatString="{0:c}">
+            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortExpression="<#=pname#>" DataFormatString="{0:c}">
                 <ItemStyle HorizontalAlign="Right" Font-Bold="True" ForeColor="Blue" />
             </asp:BoundField><#}
     else if(Type.GetTypeCode(Field.DataType)>=TypeCode.Int16&&Type.GetTypeCode(Field.DataType)<=TypeCode.UInt64){#>
-            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" DataFormatString="{0:n0}">
+            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortExpression="<#=pname#>" DataFormatString="{0:n0}">
                 <ItemStyle HorizontalAlign="Right" Font-Bold="True" />
             </asp:BoundField><#}
     else if(Field.DataType == typeof(Boolean)){#>
-            <asp:TemplateField HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>">
+            <asp:TemplateField HeaderText="<#=Field.DisplayName#>" SortExpression="<#=pname#>">
                 <ItemTemplate>
                     <asp:Label ID="<#=pname#>1" runat="server" Text="√" Visible='<%# Eval("<#=pname#>") %>' Font-Bold="True" Font-Size="14pt" ForeColor="Green"></asp:Label>
                     <asp:Label ID="<#=pname#>2" runat="server" Text="×" Visible='<%# !(Boolean)Eval("<#=pname#>") %>' Font-Bold="True" Font-Size="16pt" ForeColor="Red"></asp:Label>
@@ -88,9 +88,9 @@ foreach(IDataColumn Field in Table.Columns){
        !pname.Equals("Pass", StringComparison.OrdinalIgnoreCase) && 
        !pname.Equals("Pwd", StringComparison.OrdinalIgnoreCase) && 
        Field.Length>0 && Field.Length<300){#>
-            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.Description#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>/><#
+            <asp:BoundField DataField="<#=pname#>" HeaderText="<#=Field.DisplayName#>" SortExpression="<#=pname#>" <# if(Field.PrimaryKey){#>InsertVisible="False" ReadOnly="True" <#}#>/><#
 }}#>
-            <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="<#=Table.Alias#>Form.aspx?ID={0}" Height="<#=boxHeight#>px" Text="编辑" Width="440px" Title="编辑<#=Table.Description#>">
+            <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="<#=Table.Alias#>Form.aspx?ID={0}" Height="<#=boxHeight#>px" Text="编辑" Width="440px" Title="编辑<#=Table.DisplayName#>">
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" />
                 <HeaderStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="30px" />
             </XCL:LinkBoxField>
