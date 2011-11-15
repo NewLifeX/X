@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.UI;
 using System.Xml.Serialization;
@@ -10,8 +12,6 @@ using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode;
-using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace NewLife.CommonEntity
 {
@@ -39,7 +39,7 @@ namespace NewLife.CommonEntity
             try
             {
                 Int32 sort = 1000;
-                TEntity top = Root.AddChild("管理平台", null, sort -= 10, null);
+                TEntity top = Root.AddChild("管理平台", null, sort -= 10, "Admin");
                 TEntity entity = top.AddChild("系统管理", null, sort -= 10, "System");
                 entity.AddChild("菜单管理", "../../Admin/System/Menu.aspx", sort -= 10, "菜单管理");
                 entity.AddChild("管理员管理", "../../Admin/System/Admin.aspx", sort -= 10, "管理员管理");
@@ -503,7 +503,7 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         public static Int32 ScanAndAdd()
         {
-            TEntity top = Root.Childs[0];
+            TEntity top = null;
 
             String[] AppDirs = Config.GetConfigSplit<String>("NewLife.CommonEntity.AppDirs", null);
             if (AppDirs == null)
@@ -518,19 +518,17 @@ namespace NewLife.CommonEntity
             Int32 total = 0;
             foreach (String item in AppDirs)
             {
-                top = Root.AddChild(item, null, 0, null);
+                // 根据目录找菜单，它将作为顶级菜单
+                top = FindForName(item);
+                if (top == null) top = Meta.Cache.Entities.Find(_.Remark, item);
+                if (top == null) top = Root.AddChild(item, null, 0, null);
                 total += ScanAndAdd(item, top);
             }
 
             return total;
         }
 
-        /// <summary>
-        /// 扫描指定目录并添加文件到第一个顶级菜单之下
-        /// </summary>
-        /// <param name="dir"></param>
-        /// <returns></returns>
-        public static Int32 ScanAndAdd(String dir)
+        static TEntity GetTopForDir(String dir)
         {
             // 根据目录找菜单，它将作为顶级菜单
             TEntity top = FindForName(dir);
@@ -547,8 +545,17 @@ namespace NewLife.CommonEntity
                     if (list != null && list.Count > 1) top = list[0];
                 }
             }
+            return top;
+        }
 
-            return ScanAndAdd(dir, top);
+        /// <summary>
+        /// 扫描指定目录并添加文件到第一个顶级菜单之下
+        /// </summary>
+        /// <param name="dir"></param>
+        /// <returns></returns>
+        public static Int32 ScanAndAdd(String dir)
+        {
+            return ScanAndAdd(dir, GetTopForDir(dir));
         }
 
         /// <summary>
@@ -664,6 +671,7 @@ namespace NewLife.CommonEntity
         }
 
         static Regex reg_PageTitle = new Regex("\\bTitle=\"([^\"]*)\"", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static Regex reg_PageTitle2 = new Regex("<title>([^<]*)</title>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         static String GetPageTitle(String pagefile)
         {
             if (String.IsNullOrEmpty(pagefile) || !".aspx".EqualIgnoreCase(Path.GetExtension(pagefile)) || !File.Exists(pagefile)) return null;
@@ -677,11 +685,17 @@ namespace NewLife.CommonEntity
                 if (!reader.EndOfStream) line += Environment.NewLine + reader.ReadLine();
                 if (!reader.EndOfStream) line += Environment.NewLine + reader.ReadLine();
             }
-            if (String.IsNullOrEmpty(line)) return null;
+            if (!String.IsNullOrEmpty(line))
+            {
+                // 正则
+                Match m = reg_PageTitle.Match(line);
+                if (m != null && m.Success) return m.Groups[1].Value;
+            }
 
-            // 正则
-            Match m = reg_PageTitle.Match(line);
-            if (m != null) return m.Groups[1].Value;
+            // 第二正则
+            String content = File.ReadAllText(pagefile);
+            Match m2 = reg_PageTitle2.Match(content);
+            if (m2 != null && m2.Success) return m2.Groups[1].Value;
 
             return null;
         }

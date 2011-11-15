@@ -13,9 +13,9 @@
         &nbsp;<asp:Button ID="Button3" runat="server" Text="导入" OnClick="Button3_Click" />
         &nbsp;<asp:Button ID="Button1" runat="server" Text="扫描目录" OnClick="Button1_Click" />
     </div>
-    <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
+    <asp:GridView ID="gv" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
         CssClass="m_table" CellPadding="0" GridLines="None" PageSize="15" EnableModelValidation="True"
-        DataSourceID="ObjectDataSource1" OnRowCommand="GridView1_RowCommand" EnableViewState="False">
+        DataSourceID="ods" OnRowCommand="GridView1_RowCommand" EnableViewState="False">
         <Columns>
             <asp:BoundField DataField="ID" HeaderText="编号" InsertVisible="False" ReadOnly="True"
                 SortExpression="ID">
@@ -36,9 +36,6 @@
                 <ItemTemplate>
                     <asp:CheckBox ID="checkebox1" runat="server" Enabled="false" Checked='<%# Bind("IsShow") %>' />
                 </ItemTemplate>
-                <EditItemTemplate>
-                    <asp:CheckBox ID="checkebox2" runat="server" Checked='<%# Bind("IsShow") %>' />
-                </EditItemTemplate>
             </asp:TemplateField>
             <asp:BoundField DataField="Remark" HeaderText="备注" SortExpression="Remark" />
             <asp:TemplateField HeaderText="升" ShowHeader="False">
@@ -76,7 +73,7 @@
             没有符合条件的数据！
         </EmptyDataTemplate>
     </asp:GridView>
-    <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" DataObjectTypeName="NewLife.CommonEntity.Menu"
+    <asp:ObjectDataSource ID="ods" runat="server" DataObjectTypeName="NewLife.CommonEntity.Menu"
         DeleteMethod="Delete" OldValuesParameterFormatString="original_{0}" SelectMethod="FindAllChildsByParent"
         TypeName="NewLife.CommonEntity.Menu" EnableViewState="False">
         <SelectParameters>

@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using NewLife.Web;
-
-using Menu = NewLife.CommonEntity.Menu;
 using NewLife.CommonEntity;
-using XCode;
-using NewLife;
 
 public partial class Pages_MenuForm : MyEntityForm
 {
