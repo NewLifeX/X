@@ -45,9 +45,40 @@ namespace NewLife.Configuration
             }
             //set { _ConnectionStrings = value; }
         }
+
+
+
+        private static Object _httpHandlers;
+        /// <summary>获取httphandlers</summary>
+        public static Object httpHandlers
+        {
+            get
+            {
+                if (_httpHandlers == null && !hasLoad.Contains("httpHandlers"))
+                {
+                    _httpHandlers = ConfigurationManager.GetSection("system.web/httpHandlers");
+                    hasLoad.Add("ConnectionStrings");
+                }
+                return _httpHandlers;
+            }
+            set { _httpHandlers = value; }
+        }
         #endregion
 
         #region 方法
+        /// <summary>
+        /// 获取httpHandlers
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static T GethttpHandlers<T>()
+        {
+            T value = httpHandlers == null ? (T)httpHandlers : default(T);
+
+            return value;
+        }
+
+
         /// <summary>
         /// 是否包含指定项的设置
         /// </summary>
