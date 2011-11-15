@@ -24,7 +24,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -63,19 +63,10 @@ namespace Test
 
         static void Test2()
         {
-            DAL dal = DAL.Create("db");
-            IDataTable table = null;
-            foreach (IDataTable item in DAL.Create("db").Tables)
-            {
-                table = item;
-                Console.WriteLine(item.Name);
-            }
-            //foreach (IDataColumn item in table.Columns)
-            //{
-            //    Console.WriteLine(item.Name);
-            //}
+            DAL dal = DAL.Create("Common1");
+            IDataTable table = Log.Meta.Table.DataTable;
 
-            IEntityOperate op = DAL.Create("db").CreateOperate(table.Name);
+            IEntityOperate op = dal.CreateOperate(table.Name);
             Int32 count = op.Count;
             Console.WriteLine(op.Count);
 
@@ -157,6 +148,53 @@ namespace Test
             Console.WriteLine(dt);
 
             dt = Administrator.FindAll().ToDataTable();
+        }
+
+        static void Test4()
+        {
+            IDataTable table = Log.Meta.Table.DataTable;
+
+            SelectBuilder builder = new SelectBuilder();
+            builder.Table = table.Name;
+            builder.Key = table.PrimaryKeys[0].Name;
+            builder.Keys = new String[] { "Category", "ID" };
+
+            String order = "Category Desc," + table.PrimaryKeys[0].Alias + " Asc";
+            String order2 = "Category Desc," + table.PrimaryKeys[0].Alias + " Desc";
+            String selects = "ID,"+table.Columns[2].Name;
+            //selects = table.PrimaryKeys[0].Name;
+
+            DAL.ShowSQL = false;
+
+            //selects = null;
+            TestPageSplit("未排序", builder, selects, null);
+            TestPageSplit("升序", builder, selects, order);
+            TestPageSplit("降序", builder, selects, order2);
+        }
+
+        static void TestPageSplit(String title, SelectBuilder builder, String selects, String order)
+        {
+            Int32 pagesize = 10;
+            Int32 p = 0;
+
+            builder.Column = selects;
+            builder.OrderBy = order;
+
+            String sql = null;
+
+            Console.WriteLine();
+            Console.WriteLine("--" + title);
+
+            //sql = MSPageSplit.PageSplit(builder, p, pagesize, false).ToString();
+            //Console.WriteLine("--首页SQL2000：\n{0}", sql);
+            //sql = MSPageSplit.PageSplit(builder, p, pagesize, true).ToString();
+            //Console.WriteLine("--首页SQL2005：\n{0}", sql);
+
+            p = 50 * pagesize;
+            sql = MSPageSplit.PageSplit(builder, p, pagesize, false).ToString();
+            Console.WriteLine("--50页SQL2000：\n{0}", sql);
+            sql = MSPageSplit.PageSplit(builder, p, pagesize, true).ToString();
+            Console.WriteLine("--50页SQL2005：\n{0}", sql);
         }
     }
 }

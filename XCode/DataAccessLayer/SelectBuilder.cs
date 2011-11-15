@@ -289,23 +289,21 @@ $";
             return this;
         }
 
-        /// <summary>增加一个字段，必须是当前表普通字段，如果内部是*则不加</summary>
-        /// <param name="column"></param>
+        /// <summary>增加多个字段，必须是当前表普通字段，如果内部是*则不加</summary>
+        /// <param name="columns"></param>
         /// <returns></returns>
-        public SelectBuilder AppendColumn(String column)
+        public SelectBuilder AppendColumn(params String[] columns)
         {
-            if (ColumnOrDefault != "*" && !String.IsNullOrEmpty(column))
+            if (ColumnOrDefault != "*" && columns != null && columns.Length > 0)
             {
                 if (String.IsNullOrEmpty(Column))
-                    Column = column;
+                    Column = String.Join(",", columns.Distinct(StringComparer.OrdinalIgnoreCase).ToArray());
                 else
                 {
                     // 检查是否已存在该字段
                     String[] selects = Column.Split(',');
-                    if (!selects.Any(c => c.Trim().EqualIgnoreCase(column)))
-                    {
-                        Column += "," + column;
-                    }
+                    selects = selects.Concat(columns).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+                    Column = String.Join(",", selects);
                 }
             }
             return this;
@@ -316,11 +314,23 @@ $";
         /// <returns></returns>
         public SelectBuilder AsChild(String alias = null)
         {
+            SelectBuilder t = this;
+            // 如果包含排序，则必须有Top，否则去掉
+            Boolean hasOrderWithoutTop = !String.IsNullOrEmpty(t.OrderBy) && !ColumnOrDefault.StartsWith("top ", StringComparison.OrdinalIgnoreCase);
+            if (hasOrderWithoutTop)
+            {
+                t = this.Clone();
+                t.OrderBy = null;
+            }
+
             SelectBuilder builder = new SelectBuilder();
             if (String.IsNullOrEmpty(alias))
-                builder.Table = String.Format("({0})", this.ToString());
+                builder.Table = String.Format("({0})", t.ToString());
             else
-                builder.Table = String.Format("({0}) {1}", this.ToString(), alias);
+                builder.Table = String.Format("({0}) {1}", t.ToString(), alias);
+
+            // 把排序加载外层
+            if (hasOrderWithoutTop) builder.OrderBy = this.OrderBy;
 
             return builder;
         }
@@ -330,7 +340,7 @@ $";
         /// <returns></returns>
         public SelectBuilder CloneWithGroupBy(String alias = null)
         {
-            if (!String.IsNullOrEmpty(this.GroupBy))
+            if (String.IsNullOrEmpty(this.GroupBy))
                 return this.Clone();
             else
                 return AsChild(alias);

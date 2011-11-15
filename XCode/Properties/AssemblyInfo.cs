@@ -53,6 +53,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v8.3.2011.1115   IDataTable和IDataColumn增加只读属性DisplayName，优先返回Description，然后才是Name
+ *                  修正MSPageSplit中关于RowNumber和DoubleTop分页的错误
  * 
  * v8.3.2011.1114   修改Entity<>.Meta.CheckModel，加上锁，让多个线程同时访问同一个实体表的操作，全部卡在检查模型之后，避免未创建实体表而报错
  * 

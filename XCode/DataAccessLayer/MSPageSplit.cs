@@ -42,7 +42,7 @@ namespace XCode.DataAccessLayer
             //    if (startRowIndex < 200) return TopNotIn(builder, startRowIndex, maximumRows);
             //}
 
-            if (isSql2005) return RowNumber(builder, 0, maximumRows);
+            if (isSql2005) return RowNumber(builder, startRowIndex, maximumRows);
 
             Boolean[] isdescs = null;
             String[] keys = SelectBuilder.Split(builder.OrderBy, out isdescs);
@@ -99,16 +99,36 @@ namespace XCode.DataAccessLayer
             // 显然，原始语句必须有排序，否则无法倒序。另外，也不能处理maximumRows<1的情况
             // Select * From (Select Top 10 * From (Select Top 20+10 * From Table Order By ID Desc) Order By ID Asc) Order By ID Desc
 
+            // 找到排序，优先采用排序字句来做双Top排序
+            String orderby = builder.OrderBy ?? builder.KeyOrder;
+            Boolean[] isdescs = null;
+            String[] keys = SelectBuilder.Split(orderby, out isdescs);
+
+            // 把排序反过来
+            Boolean[] isdescs2 = new Boolean[keys.Length];
+            for (int i = 0; i < keys.Length; i++)
+            {
+                if (isdescs != null && isdescs.Length > i)
+                    isdescs2[i] = !isdescs[i];
+                else
+                    isdescs2[i] = true;
+            }
+            String reversekeyorder = SelectBuilder.Join(keys, isdescs2);
+
             // 构建Select Top 20 * From Table Order By ID Asc
-            SelectBuilder builder1 = builder.Clone().AppendColumn(builder.Key).Top(startRowIndex + maximumRows);
+            SelectBuilder builder1 = builder.Clone().AppendColumn(keys).Top(startRowIndex + maximumRows);
+            // 必须加一个排序，否则会被优化掉而导致出错
+            if (String.IsNullOrEmpty(builder1.OrderBy)) builder1.OrderBy = builder1.KeyOrder;
 
             SelectBuilder builder2 = builder1.AsChild("XCode_T0").Top(maximumRows);
             // 要反向排序
-            builder2.OrderBy = builder.ReverseKeyOrder;
+            builder2.OrderBy = reversekeyorder;
 
             SelectBuilder builder3 = builder2.AsChild("XCode_T1");
+            // 结果列保持原样
+            builder3.Column = builder.Column;
             // 让结果正向排序
-            builder3.OrderBy = builder.KeyOrder;
+            builder3.OrderBy = orderby;
 
             return builder3;
         }
@@ -148,11 +168,20 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         static SelectBuilder RowNumber(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
+            //if (maximumRows < 1)
+            //    sql = String.Format("Select * From (Select *, row_number() over({2}) as rowNumber From {1}) XCode_Temp_b Where rowNumber>={0}", startRowIndex + 1, sql, orderBy);
+            //else
+            //    sql = String.Format("Select * From (Select *, row_number() over({3}) as rowNumber From {1}) XCode_Temp_b Where rowNumber Between {0} And {2}", startRowIndex + 1, sql, startRowIndex + maximumRows, orderBy);
+
             // 如果包含分组，则必须作为子查询
             SelectBuilder builder1 = builder.CloneWithGroupBy("XCode_T0");
-            builder1.Column = String.Format("{0}, row_number() over({1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy);
+            builder1.Column = String.Format("{0}, row_number() over(Order By {1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy ?? builder.KeyOrder);
 
-            SelectBuilder builder2 = builder.AsChild("XCode_T1");
+            SelectBuilder builder2 = builder1.AsChild("XCode_T1");
+            // 结果列保持原样
+            builder2.Column = builder.Column;
+            // row_number()直接影响了排序，这里不再需要
+            builder2.OrderBy = null;
             if (maximumRows < 1)
                 builder2.Where = String.Format("rowNumber>={0}", startRowIndex + 1);
             else
