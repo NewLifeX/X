@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
 using NewLife.Reflection;
+using System.Web.Configuration;
 
 namespace NewLife.Configuration
 {
@@ -66,11 +67,22 @@ namespace NewLife.Configuration
         /// <summary>
         /// 获取httpHandlers
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static T GethttpHandlers<T>()
+        public static List<HttpHandlerAction> GethttpHandlers()
         {
-            T value = httpHandlers == null ? (T)httpHandlers : default(T);
+            List<HttpHandlerAction> value = new List<HttpHandlerAction>();
+
+            if (httpHandlers == null) return value;
+
+            HttpHandlersSection httphanset = httpHandlers as HttpHandlersSection;
+            if (httphanset == null) return value;
+
+            System.Configuration.ConfigurationElementCollection cec = (System.Configuration.ConfigurationElementCollection)httphanset.Handlers;
+
+            for (Int32 i = 0; i < cec.Count; i++)
+            {
+                value.Add(httphanset.Handlers[0]);
+            }
 
             return value;
         }
