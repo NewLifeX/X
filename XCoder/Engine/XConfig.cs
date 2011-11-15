@@ -140,13 +140,13 @@ namespace XCoder
             set { _LastUpdate = value; }
         }
 
-        private String _LastBlogTitle;
-        /// <summary>最后弹窗的博文地址</summary>
-        public String LastBlogTitle
-        {
-            get { return _LastBlogTitle; }
-            set { _LastBlogTitle = value; }
-        }
+        //private String _LastBlogTitle;
+        ///// <summary>最后弹窗的博文地址</summary>
+        //public String LastBlogTitle
+        //{
+        //    get { return _LastBlogTitle; }
+        //    set { _LastBlogTitle = value; }
+        //}
 
         private Dictionary<String, String> _Items;
         /// <summary> 字典属性</summary>

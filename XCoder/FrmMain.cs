@@ -574,17 +574,17 @@ namespace XCoder
                 }
             }
 
-            if (articles.Count > 0)
-            {
-                Article entity = articles[0];
-                if (entity.Title != Config.LastBlogTitle)
-                {
-                    Config.LastBlogTitle = entity.Title;
-                    Config.Save();
+            //if (articles.Count > 0)
+            //{
+            //    Article entity = articles[0];
+            //    if (entity.Title != Config.LastBlogTitle)
+            //    {
+            //        Config.LastBlogTitle = entity.Title;
+            //        Config.Save();
 
-                    Process.Start(entity.Link);
-                }
-            }
+            //        Process.Start(entity.Link);
+            //    }
+            //}
         }
 
         Int32 articleIndex = 0;
