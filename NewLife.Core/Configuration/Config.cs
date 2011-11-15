@@ -206,11 +206,11 @@ namespace NewLife.Configuration
         {
             try
             {
-                if (AppSettings == null || AppSettings.Count < 1) return null;
+                if (AppSettings == null || AppSettings.Count < 1) return new T[0];
 
-                return GetConfigSplit<T>(name, split, null);
+                return GetConfigSplit<T>(name, split, new T[0]);
             }
-            catch (ConfigurationErrorsException) { return null; }
+            catch (ConfigurationErrorsException) { return new T[0]; }
         }
 
         /// <summary>

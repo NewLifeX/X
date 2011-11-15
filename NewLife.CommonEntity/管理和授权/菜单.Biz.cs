@@ -48,26 +48,8 @@ namespace NewLife.CommonEntity
                 entity.AddChild("日志查看", "../../Admin/System/Log.aspx", sort -= 10, "日志查看");
 
                 // 准备增加Admin目录下的所有页面
-                ScanAndAdd("Admin", top);
-
-                // 根据设置增加菜单
-                //String str = Config.GetConfig<String>("NewLife.CommonEntity.AppDirs");
-                //if (!String.IsNullOrEmpty(str))
-                //{
-                //String[] AppDirs = str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                String[] AppDirs = Config.GetConfigSplit<String>("NewLife.CommonEntity.AppDirs", null);
-                if (AppDirs != null && AppDirs.Length > 0)
-                {
-                    foreach (String item in AppDirs)
-                    {
-                        //if (String.Equals(item, "Admin")) continue;
-                        if (item.EqualIgnoreCase("Admin")) continue;
-
-                        top = Root.AddChild(item, null, sort -= 10, null);
-                        ScanAndAdd(item, top);
-                    }
-                }
-                //}
+                //ScanAndAdd(top);
+                ScanAndAdd();
 
                 Meta.Commit();
                 if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}菜单数据！", typeof(TEntity).Name);
@@ -516,6 +498,34 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>
+        ///  扫描配置文件中指定的目录
+        /// </summary>
+        /// <returns></returns>
+        public static Int32 ScanAndAdd()
+        {
+            TEntity top = Root.Childs[0];
+
+            String[] AppDirs = Config.GetConfigSplit<String>("NewLife.CommonEntity.AppDirs", null);
+            if (AppDirs == null)
+                AppDirs = new String[] { "Admin" };
+            else if (AppDirs.Length <= 0)
+            {
+                List<String> list = new List<string>(AppDirs);
+                if (!list.Contains("Admin")) list.Add("Admin");
+                AppDirs = list.ToArray();
+            }
+
+            Int32 total = 0;
+            foreach (String item in AppDirs)
+            {
+                top = Root.AddChild(item, null, 0, null);
+                total += ScanAndAdd(item, top);
+            }
+
+            return total;
+        }
+
+        /// <summary>
         /// 扫描指定目录并添加文件到第一个顶级菜单之下
         /// </summary>
         /// <param name="dir"></param>
@@ -726,6 +736,9 @@ namespace NewLife.CommonEntity
 
         /// <summary>子菜单</summary>
         IList<IMenu> IMenu.Childs { get { return Childs.OfType<IMenu>().ToList(); } }
+
+        /// <summary>子孙菜单</summary>
+        IList<IMenu> IMenu.AllChilds { get { return AllChilds.OfType<IMenu>().ToList(); } }
         #endregion
     }
 
@@ -749,5 +762,11 @@ namespace NewLife.CommonEntity
 
         /// <summary>子菜单</summary>
         IList<IMenu> Childs { get; }
+
+        /// <summary>子孙菜单</summary>
+        IList<IMenu> AllChilds { get; }
+
+        /// <summary>深度</summary>
+        Int32 Deepth { get; }
     }
 }

@@ -221,13 +221,17 @@ namespace NewLife.CommonEntity.Web
             {
                 if (_Entity == null)
                 {
+                    _Entity = Factory.FindByKeyForEdit(EntityID);
                     if (OnGetEntity != null)
                     {
-                        EventArgs<Object, IEntity> e = new EventArgs<object, IEntity>(EntityID, null);
+                        EventArgs<Object, IEntity> e = new EventArgs<object, IEntity>(EntityID, _Entity);
                         OnGetEntity(this, e);
                         _Entity = e.Arg2;
                     }
                     if (_Entity == null) _Entity = Factory.FindByKeyForEdit(EntityID);
+
+                    // 把Request参数读入到实体里面
+                    FillEntityWithRequest(_Entity);
                 }
                 return _Entity;
             }
@@ -236,6 +240,19 @@ namespace NewLife.CommonEntity.Web
 
         /// <summary>获取数据实体，允许页面重载改变实体</summary>
         public event EventHandler<EventArgs<Object, IEntity>> OnGetEntity;
+
+        /// <summary>
+        /// 使用Request参数填充entity
+        /// </summary>
+        /// <param name="entity"></param>
+        protected virtual void FillEntityWithRequest(IEntity entity)
+        {
+            if (entity == null) return;
+
+            // 借助Http实体访问器，直接把Request参数读入到实体里面
+            IEntityAccessor accessor = EntityAccessorFactory.Create(EntityAccessorTypes.Http);
+            accessor.Read(entity);
+        }
         #endregion
 
         #region 生命周期
