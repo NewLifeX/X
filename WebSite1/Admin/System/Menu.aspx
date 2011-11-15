@@ -55,6 +55,10 @@
                 </ItemTemplate>
                 <ItemStyle Font-Size="12pt" ForeColor="Green" />
             </asp:TemplateField>
+            <XCL:LinkBoxField HeaderText="添加子菜单" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="MenuForm.aspx?ParentID={0}"
+                Height="400px" Text="添加子菜单" Width="370px" Title="添加子菜单">
+                <ItemStyle HorizontalAlign="Center" />
+            </XCL:LinkBoxField>
             <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="MenuForm.aspx?ID={0}"
                 Height="400px" Text="编辑" Width="370px" Title="编辑菜单">
                 <ItemStyle HorizontalAlign="Center" />

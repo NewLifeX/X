@@ -24,9 +24,7 @@ public partial class Pages_Menu : PageBase
     {
         try
         {
-            Int32 n = Menu.ScanAndAdd("Admin");
-            n += Menu.ScanAndAdd("MacDoc");
-            n += Menu.ScanAndAdd("SCM");
+            Int32 n = Menu.ScanAndAdd();
 
             WebHelper.Alert("扫描完成，共添加菜单" + n + "个！");
         }
