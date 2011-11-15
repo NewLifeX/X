@@ -5,8 +5,15 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 
-public partial class Admin_SelectAdmin : PageBase
+public partial class Admin_SelectAdmin : MyEntityList
 {
+    protected override void OnPreLoad(EventArgs e)
+    {
+        Manager.ValidatePermission = false;
+
+        base.OnPreLoad(e);
+    }
+
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!IsPostBack)
@@ -21,10 +28,5 @@ public partial class Admin_SelectAdmin : PageBase
         type = CommonManageProvider.Provider.RoleType;
         ObjectDataSource2.TypeName = type.FullName;
         ObjectDataSource2.DataObjectTypeName = type.FullName;
-    }
-
-    public override bool CheckPermission()
-    {
-        return true;
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using NewLife.CommonEntity;
 
-public partial class Pages_Log : PageBase
+public partial class Pages_Log : MyEntityList
 {
     protected void Page_Load(object sender, EventArgs e)
     {

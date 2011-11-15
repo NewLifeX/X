@@ -4,19 +4,15 @@ using NewLife.Web;
 
 using Role = NewLife.CommonEntity.Role;
 
-public partial class Pages_Role : PageBase
+public partial class Pages_Role : MyEntityList
 {
     protected void Page_Load(object sender, EventArgs e)
     {
-        // 添加按钮需要添加权限
-        btnAdd.Visible = Acquire(PermissionFlags.Insert);
-        // 最后一列是删除列，需要删除权限
-        GridView1.Columns[GridView1.Columns.Count - 1].Visible = Acquire(PermissionFlags.Delete);
-        GridView1.Columns[GridView1.Columns.Count - 2].Visible = Acquire(PermissionFlags.Update);
     }
+
     protected void Button1_Click(object sender, EventArgs e)
     {
-        if (!Acquire(PermissionFlags.Insert))
+        if (!Manager.Acquire(PermissionFlags.Insert))
         {
             WebHelper.Alert("没有添加权限！");
             return;

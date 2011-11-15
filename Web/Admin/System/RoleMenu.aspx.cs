@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Reflection;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 using NewLife.Reflection;
-
-using Menu = NewLife.CommonEntity.Menu;
 using NewLife.Web;
-using System.Reflection;
+using Menu = NewLife.CommonEntity.Menu;
 
-public partial class Pages_RoleMenu : PageBase
+public partial class Pages_RoleMenu : MyEntityList
 {
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -90,7 +89,7 @@ public partial class Pages_RoleMenu : PageBase
             // 没有权限，增加
             if (rm == null)
             {
-                if (!Acquire(PermissionFlags.Insert))
+                if (!Manager.Acquire(PermissionFlags.Insert))
                 {
                     WebHelper.Alert("没有添加权限！");
                     return;
@@ -108,7 +107,7 @@ public partial class Pages_RoleMenu : PageBase
             // 如果有权限，删除
             if (rm != null)
             {
-                if (!Acquire(PermissionFlags.Delete))
+                if (!Manager.Acquire(PermissionFlags.Delete))
                 {
                     WebHelper.Alert("没有删除权限！");
                     return;
@@ -143,7 +142,7 @@ public partial class Pages_RoleMenu : PageBase
         // 没有权限，增加
         if (rm == null)
         {
-            if (!Acquire(PermissionFlags.Insert))
+            if (!Manager.Acquire(PermissionFlags.Insert))
             {
                 WebHelper.Alert("没有添加权限！");
                 return;
@@ -163,7 +162,7 @@ public partial class Pages_RoleMenu : PageBase
 
         if (rm.PermissionFlag != flag)
         {
-            if (!Acquire(PermissionFlags.Update))
+            if (!Manager.Acquire(PermissionFlags.Update))
             {
                 WebHelper.Alert("没有编辑权限！");
                 return;
