@@ -58,6 +58,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>主键集合。可以是空集合，但不能为null。</summary>
         IDataColumn[] PrimaryKeys { get; }
+
+        /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
+        String DisplayName { get; }
         #endregion
 
         #region 方法

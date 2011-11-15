@@ -90,6 +90,9 @@ namespace XCode.DataAccessLayer
         /// 说明数据表
         /// </summary>
         IDataTable Table { get; }
+
+        /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
+        String DisplayName { get; }
         #endregion
 
         #region 方法

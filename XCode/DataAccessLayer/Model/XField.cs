@@ -170,6 +170,10 @@ namespace XCode.DataAccessLayer
             get { return _Table; }
             set { _Table = value; }
         }
+
+        /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
+        [XmlIgnore]
+        public String DisplayName { get { return String.IsNullOrEmpty(Description) ? Name : Description; } }
         #endregion
 
         #region 构造
