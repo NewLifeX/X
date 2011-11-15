@@ -635,7 +635,20 @@ Dialog.CloseSelfDialog = function (frameElement) {
 //        var $ = parent.jQuery;
 //        parent.Dialog.getInstance(/_DialogDiv_(.+)/.exec($(frameElement).parents('div.dialog-div:first').attr('id'))[1]).close();
         //var $ = parent.jQuery;
-        Dialog.getInstance(/_DialogDiv_(.+)/.exec($(frameElement).parents('div.dialog-div:first').attr('id'))[1]).close();
+
+        var ele=frameElement;
+        while(true){
+            ele=ele.parentNode;
+            if( ele.tagName === 'DIV' && ele.className.indexOf('dialog-div') >= 0){
+                break;
+            }else if(ele.tagName==='HTML'){
+                ele=null;
+                break;
+            }
+        }
+        if(ele){
+            Dialog.getInstance(/_DialogDiv_(.+)/.exec(ele.id)[1]).close();
+        }
     } catch (e) {
     //    alert(e);
     }
