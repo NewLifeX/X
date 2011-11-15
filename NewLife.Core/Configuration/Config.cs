@@ -81,7 +81,7 @@ namespace NewLife.Configuration
 
             for (Int32 i = 0; i < cec.Count; i++)
             {
-                value.Add(httphanset.Handlers[0]);
+                value.Add(httphanset.Handlers[i]);
             }
 
             return value;
