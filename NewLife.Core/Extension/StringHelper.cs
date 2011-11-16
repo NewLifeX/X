@@ -182,7 +182,7 @@ namespace System
             bool[] flags = new bool[sLength];
             int[,] C = new int[sLength + 1, keys[keys.Length - 1].Length + 1];
             //int[,] C = new int[sLength + 1, words.Select(s => s.Length).Max() + 1];
-            foreach (string word in keys)
+            foreach (string key in keys)
             {
                 int wLength = word.Length;
                 int first = 0, last = 0;
