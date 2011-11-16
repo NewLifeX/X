@@ -13,8 +13,8 @@ public partial class Pages_AdminInfo : MyEntityForm
     {
         base.OnInitComplete(e);
 
-        EntityForm.Accessor.OnRead += new EventHandler<EntityAccessorEventArgs>(Accessor_OnRead);
-        EntityForm.Accessor.OnWrite += new EventHandler<EntityAccessorEventArgs>(Accessor_OnWrite);
+        EntityForm.Accessor.OnReadItem += new EventHandler<EntityAccessorEventArgs>(Accessor_OnRead);
+        EntityForm.Accessor.OnWriteItem += new EventHandler<EntityAccessorEventArgs>(Accessor_OnWrite);
     }
 
     protected void Page_Load(object sender, EventArgs e)

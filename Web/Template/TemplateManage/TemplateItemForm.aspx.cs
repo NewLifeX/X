@@ -11,6 +11,8 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.CommonEntity;
 using NewLife.Web;
+using NewLife;
+using XCode;
 
 public partial class Common_TemplateItemForm : MyEntityForm
 {

@@ -11,7 +11,7 @@
         </tr>
 <tr>
             <td align="right">模版内容：</td>
-            <td><asp:TextBox ID="frmContent" runat="server" TextMode="MultiLine" Width="300px" Height="500px"></asp:TextBox></td>
+            <td><asp:TextBox ID="frmContent" runat="server" TextMode="MultiLine" Width="300px" Height="300px"></asp:TextBox></td>
         </tr>
 <%--<tr>
             <td align="right">内容备份：</td>

@@ -34,7 +34,7 @@
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="120px" />
             </asp:BoundField>
             <asp:HyperLinkField DataNavigateUrlFields="ID" DataNavigateUrlFormatString="TemplateItem.aspx?TemplateID={0}"
-                HeaderText="模版项" Text="模版项" />
+                HeaderText="编辑模版项" Text="编辑模版项" />
             <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="TemplateForm.aspx?ID={0}"
                 Height="328px" Text="编辑" Width="440px" Title="编辑模版">
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" />

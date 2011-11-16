@@ -19,7 +19,7 @@
         </tr>
         <tr>
             <td align="right">
-                名称：
+                模版项名称：
             </td>
             <td>
                 <asp:TextBox ID="frmName" runat="server" Width="150px"></asp:TextBox>
@@ -39,6 +39,14 @@
             </td>
             <td>
                 <asp:TextBox ID="frmRemark" runat="server" TextMode="MultiLine" Width="300px" Height="80px"></asp:TextBox>
+            </td>
+        </tr>
+        <tr>
+            <td align="right">
+                模版内容：
+            </td>
+            <td>
+                <asp:TextBox ID="frmContent" runat="server" TextMode="MultiLine" Width="300px" Height="300px"></asp:TextBox>
             </td>
         </tr>
     </table>
