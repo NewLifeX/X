@@ -190,7 +190,7 @@ namespace System
                 //foreach 速度会有所提升，还可以加剪枝
                 for (i = 0; i < sLength; i++)
                     for (j = 0; j < wLength; j++)
-                        if (key[i] == key[j])
+                        if (word[i] == key[j])
                         {
                             C[i + 1, j + 1] = C[i, j] + 1;
                             if (first < C[i, j])
