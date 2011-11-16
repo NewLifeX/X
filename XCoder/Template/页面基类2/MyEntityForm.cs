@@ -11,7 +11,7 @@ public class MyEntityForm : Page
     public virtual Type EntityType { get { return _EntityType; } set { _EntityType = value; } }
 
     /// <summary>管理页控制器</summary>
-    protected IManagerPage Manager;
+    protected IManagePage Manager;
 
     /// <summary>表单控制器</summary>
     protected IEntityForm EntityForm;

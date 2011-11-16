@@ -11,7 +11,7 @@ public abstract class MyEntityList : Page
     public virtual Type EntityType { get { return _EntityType; } set { _EntityType = value; } }
 
     /// <summary>管理页控制器</summary>
-    protected IManagerPage Manager;
+    protected IManagePage Manager;
 
     protected override void OnPreInit(EventArgs e)
     {
