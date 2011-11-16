@@ -233,12 +233,35 @@ namespace XControl
         /// <summary>
         /// 将指定的javascript代码做简单压缩,去除换行和缩进
         /// </summary>
+        /// <param name="toggle"></param>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public static string JsMinSimple(bool toggle, string i)
+        {
+            return toggle ? JsMinSimple(i) : i;
+        }
+
+        /// <summary>
+        /// 将指定的javascript代码做简单压缩,去除换行和缩进
+        /// </summary>
         /// <param name="fmt"></param>
         /// <param name="args"></param>
         /// <returns></returns>
         public static string JsMinSimple(string fmt, params object[] args)
         {
-            return JsMinSimple(string.Format(fmt, args));
+            return JsMinSimple(true, fmt, args);
+        }
+
+        /// <summary>
+        /// 将指定的javascript代码做简单压缩,去除换行和缩进
+        /// </summary>
+        /// <param name="toggle">开关,为true时才会压缩</param>
+        /// <param name="fmt"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static string JsMinSimple(bool toggle, string fmt, params object[] args)
+        {
+            return JsMinSimple(toggle, string.Format(fmt, args));
         }
 
         #endregion Javascript和控件HTML属性工具方法

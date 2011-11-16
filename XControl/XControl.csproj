@@ -65,6 +65,7 @@
     <Compile Include="Box\LinkBox.cs" />
     <Compile Include="Box\LinkBoxField.cs" />
     <Compile Include="Button\LinkButtonField.cs" />
+    <Compile Include="XControlConfig.cs" />
     <Compile Include="ScriptHelper.cs" />
     <Compile Include="TextBox\DateTime.cs" />
     <Compile Include="TextBox\DecimalBox.cs" />

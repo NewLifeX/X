@@ -245,7 +245,9 @@ namespace XControl
         {
             String url = Url;
             url = Control.ResolveUrl(url); // ResolveUrl会自行处理绝对路径的问题
-            string jsFuncName = Control.ClientID + "ShowDialog";
+
+
+            string jsFuncName = "LinkBoxFieldShow" + GetHashCode();
 
             if (!Control.Page.ClientScript.IsClientScriptBlockRegistered(GetType(), jsFuncName))
             {
@@ -267,7 +269,8 @@ AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
                     moreJs.AppendFormat("stopEventPropagation(event);");
                     if (!Control.Page.ClientScript.IsClientScriptBlockRegistered(typeof(object), "stopEventPropagation"))
                     {
-                        Control.Page.ClientScript.RegisterClientScriptBlock(typeof(object), "stopEventPropagation", Helper.JsMinSimple(@"
+                        Control.Page.ClientScript.RegisterClientScriptBlock(typeof(object), "stopEventPropagation",
+                            Helper.JsMinSimple(!XControlConfig.Debug, @"
 ;function stopEventPropagation(e){
     try{
         if(typeof e != 'undefined'){
@@ -283,7 +286,8 @@ AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
                     }
                 }
 
-                Control.Page.ClientScript.RegisterClientScriptBlock(GetType(), jsFuncName, Helper.JsMinSimple(@"
+                Control.Page.ClientScript.RegisterClientScriptBlock(GetType(), jsFuncName,
+                    Helper.JsMinSimple(!XControlConfig.Debug, @"
 ;function {0}(ele, event, title, url, msgRow, msgTitle, msg, btnRow){{
     try{{
         ShowDialog({{

@@ -28,6 +28,9 @@
             <XCL:LinkBoxField HeaderText="编辑" Title="编辑窗口" Text="编辑" Width="480" Height="320"
                 DataNavigateUrlFields="ID" DataNavigateUrlFormatString="~/Test.aspx?ID={0}">
             </XCL:LinkBoxField>
+            <XCL:LinkBoxField HeaderText="编辑2" Title="编辑窗口2" Text="编辑2" Width="680" Height="480"
+                DataNavigateUrlFields="ID" DataNavigateUrlFormatString="~/Test.aspx?ID={0}">
+            </XCL:LinkBoxField>
         </Columns>
     </asp:GridView>
     <XCL:DataPager ID="DataPager1" runat="server" DataSourceID="ObjectDataSource1">
