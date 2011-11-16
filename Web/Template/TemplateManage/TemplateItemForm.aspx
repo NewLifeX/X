@@ -1,5 +1,6 @@
 ﻿<%@ Page Title="模版项管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master"
-    AutoEventWireup="true" CodeFile="TemplateItemForm.aspx.cs" Inherits="Common_TemplateItemForm" %>
+    AutoEventWireup="true" CodeFile="TemplateItemForm.aspx.cs" Inherits="Common_TemplateItemForm"
+    ValidateRequest="false" %>
 
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
     <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
@@ -23,16 +24,17 @@
             </td>
             <td>
                 <asp:TextBox ID="frmName" runat="server" Width="150px"></asp:TextBox>
+                &nbsp;版本：<asp:Label ID="frmVersion" runat="server" Font-Bold="true" ForeColor="Red" />
             </td>
         </tr>
-        <tr>
+        <%--<tr>
             <td align="right">
                 模版种类：
             </td>
             <td>
                 <asp:TextBox ID="frmKind" runat="server" Width="150px"></asp:TextBox>
             </td>
-        </tr>
+        </tr>--%>
         <tr>
             <td align="right">
                 备注：

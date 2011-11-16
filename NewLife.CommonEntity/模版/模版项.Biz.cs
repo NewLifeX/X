@@ -85,6 +85,10 @@ namespace NewLife.CommonEntity
         /// <summary>该模版项所对应的模版内容</summary>
         [XmlIgnore]
         public String Content { get { return LastTemplateContent != null ? LastTemplateContent.Content : null; } }
+
+        /// <summary>该模版项所对应的模版版本</summary>
+        [XmlIgnore]
+        public Int32 Version { get { return LastTemplateContent != null ? LastTemplateContent.Version : 0; } }
         #endregion
 
         #region 扩展查询﻿
@@ -179,8 +183,9 @@ namespace NewLife.CommonEntity
         {
             // 数据放在扩展里面
             String content = (String)Extends["Content"];
+
             // 如果扩展里面的内容跟最后内容不一致，则更新
-            if (isNew || LastTemplateContent == null || "" + content != "" + LastTemplateContent.Content)
+            if (isNew || Dirtys["Content"] && (LastTemplateContent == null || "" + content != "" + LastTemplateContent.Content))
             {
                 TemplateContent tc = new TemplateContent();
                 tc.TemplateItemID = ID;

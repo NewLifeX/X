@@ -365,7 +365,17 @@ namespace NewLife.CommonEntity
             if (Page.IsPostBack)
             {
                 Button btn = ControlHelper.FindControl<Button>(Page, "btnSearch");
-                //if (btn == null) btn = ControlHelper.FindControl<Button>(Page, null);
+                if (btn == null)
+                {
+                    // 找第一个按钮
+                    btn = ControlHelper.FindControl<Button>(Page, null);
+                    if (btn != null)
+                    {
+                        // 必须是这几个名字
+                        String[] names = new String[] { "查询", "查找", "搜索" };
+                        if (Array.IndexOf(names, btn.Text) < 0) btn = null;
+                    }
+                }
                 if (btn != null)
                 {
                     String js = "function reloadForm(){";
