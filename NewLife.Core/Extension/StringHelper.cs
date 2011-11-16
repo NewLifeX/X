@@ -158,11 +158,11 @@ namespace System
                                 .ToArray();
 
             //var q = from sentence in items.AsParallel()
-            var q = from item in words
-                    let MLL = LCSDistance(item, keys)
+            var q = from word in words
+                    let MLL = LCSDistance(word, keys)
                     where MLL >= 0
-                    orderby (MLL + 0.5) / item.Length, item
-                    select item;
+                    orderby (MLL + 0.5) / word.Length, word
+                    select word;
 
             return q.ToArray();
         }
@@ -172,17 +172,17 @@ namespace System
         /// 一个数列 S，如果分别是两个或多个已知数列的子序列，且是所有符合此条件序列中最长的，则 S 称为已知序列的最长公共子序列。
         /// The longest common subsequence (LCS) problem is to find the longest subsequence common to all sequences in a set of sequences (often just two). Note that subsequence is different from a substring, see substring vs. subsequence. It is a classic computer science problem, the basis of diff (a file comparison program that outputs the differences between two files), and has applications in bioinformatics.
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="words">多个关键字。长度必须大于0，必须按照字符串长度升序排列。</param>
+        /// <param name="word"></param>
+        /// <param name="keys">多个关键字。长度必须大于0，必须按照字符串长度升序排列。</param>
         /// <returns></returns>
-        public static int LCSDistance(string key, string[] words)
+        public static int LCSDistance(string word, string[] keys)
         {
-            int sLength = key.Length;
+            int sLength = word.Length;
             int result = sLength;
             bool[] flags = new bool[sLength];
-            int[,] C = new int[sLength + 1, words[words.Length - 1].Length + 1];
+            int[,] C = new int[sLength + 1, keys[keys.Length - 1].Length + 1];
             //int[,] C = new int[sLength + 1, words.Select(s => s.Length).Max() + 1];
-            foreach (string word in words)
+            foreach (string word in keys)
             {
                 int wLength = word.Length;
                 int first = 0, last = 0;
@@ -190,7 +190,7 @@ namespace System
                 //foreach 速度会有所提升，还可以加剪枝
                 for (i = 0; i < sLength; i++)
                     for (j = 0; j < wLength; j++)
-                        if (key[i] == word[j])
+                        if (word[i] == word[j])
                         {
                             C[i + 1, j + 1] = C[i, j] + 1;
                             if (first < C[i, j])
