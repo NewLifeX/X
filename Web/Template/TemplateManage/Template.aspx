@@ -23,6 +23,7 @@
                 ReadOnly="True">
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" CssClass="key" />
             </asp:BoundField>
+            <asp:BoundField DataField="FullParentPath" HeaderText="父路径" SortExpression="ParentID" />
             <asp:BoundField DataField="Name" HeaderText="名称" SortExpression="Name" />
             <asp:BoundField DataField="UserName" HeaderText="用户" SortExpression="UserName" />
             <asp:BoundField DataField="CreateTime" HeaderText="创建时间" SortExpression="CreateTime"
@@ -35,6 +36,10 @@
             </asp:BoundField>
             <asp:HyperLinkField DataNavigateUrlFields="ID" DataNavigateUrlFormatString="TemplateItem.aspx?TemplateID={0}"
                 HeaderText="编辑模版项" Text="编辑模版项" />
+            <XCL:LinkBoxField HeaderText="添加子模版" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="TemplateForm.aspx?ParentID={0}"
+                Height="400px" Text="添加子模版" Width="370px" Title="添加子模版">
+                <ItemStyle HorizontalAlign="Center" />
+            </XCL:LinkBoxField>
             <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="TemplateForm.aspx?ID={0}"
                 Height="328px" Text="编辑" Width="440px" Title="编辑模版">
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" />

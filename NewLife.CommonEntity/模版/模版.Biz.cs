@@ -16,7 +16,7 @@ namespace NewLife.CommonEntity
     public class Template : Template<Template> { }
 
     /// <summary>模版</summary>
-    public partial class Template<TEntity> : Entity<TEntity> where TEntity : Template<TEntity>, new()
+    public partial class Template<TEntity> : EntityTree<TEntity> where TEntity : Template<TEntity>, new()
     {
         #region 扩展属性﻿
         [NonSerialized]
@@ -40,19 +40,15 @@ namespace NewLife.CommonEntity
 
         #region 扩展查询﻿
         /// <summary>
-        /// 根据名称查找
+        /// 根据父编号、名称查找
         /// </summary>
+        /// <param name="parentid">父编号</param>
         /// <param name="name">名称</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity FindByName(String name)
+        public static TEntity FindByParentIDAndName(Int32 parentid, String name)
         {
-            if (Meta.Count >= 1000)
-                return Find(new String[] { _.Name }, new Object[] { name });
-            else // 实体缓存
-                return Meta.Cache.Entities.Find(_.Name, name);
-            // 单对象缓存
-            //return Meta.SingleCache[name];
+            return Find(new String[] { _.ParentID, _.Name }, new Object[] { parentid, name });
         }
 
         /// <summary>

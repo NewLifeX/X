@@ -4,14 +4,15 @@
     <Columns>
       <Column ID="1" Name="ID" DataType="Int32" RawType="int" Identity="True" PrimaryKey="True" Length="10" NumOfByte="4" Precision="10" Description="编号" />
       <Column ID="2" Name="Name" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="名称" />
-      <Column ID="3" Name="UserID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="用户编号" />
-      <Column ID="4" Name="UserName" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="用户" />
-      <Column ID="5" Name="CreateTime" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="创建时间" />
-      <Column ID="6" Name="LastModify" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="最后修改" />
-      <Column ID="7" Name="Remark" DataType="String" RawType="nvarchar(500)" Length="500" NumOfByte="1000" Nullable="True" IsUnicode="True" Description="备注" />
+      <Column ID="3" Name="ParentID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="父编号" />
+      <Column ID="4" Name="UserID" DataType="Int32" RawType="int" Length="10" NumOfByte="4" Precision="10" Nullable="True" Description="用户编号" />
+      <Column ID="5" Name="UserName" DataType="String" RawType="nvarchar(50)" Length="50" NumOfByte="100" Nullable="True" IsUnicode="True" Description="用户" />
+      <Column ID="6" Name="CreateTime" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="创建时间" />
+      <Column ID="7" Name="LastModify" DataType="DateTime" RawType="datetime" Length="3" NumOfByte="8" Precision="3" Nullable="True" Description="最后修改" />
+      <Column ID="8" Name="Remark" DataType="String" RawType="nvarchar(500)" Length="500" NumOfByte="1000" Nullable="True" IsUnicode="True" Description="备注" />
     </Columns>
     <Indexes>
-      <Index Name="IX_Template" Unique="True" Columns="Name" />
+      <Index Name="IX_Template" Unique="True" Columns="ParentID,Name" />
       <Index Name="IX_Template_1" Columns="UserID" />
       <Index Name="PK__Template__3214EC27145C0A3F" Unique="True" PrimaryKey="True" Columns="ID" />
     </Indexes>

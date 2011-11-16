@@ -1,7 +1,7 @@
 ﻿/*
  * XCoder v4.5.2011.1108
- * 作者：nnhy/NEWLIFE
- * 时间：2011-11-14 16:58:16
+ * 作者：nnhy/X
+ * 时间：2011-11-17 00:50:08
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
@@ -20,7 +20,7 @@ namespace NewLife.CommonEntity
     [Serializable]
     [DataObject]
     [Description("模版")]
-    [BindIndex("IX_Template", true, "Name")]
+    [BindIndex("IX_Template", true, "ParentID,Name")]
     [BindIndex("IX_Template_1", false, "UserID")]
     [BindIndex("PK__Template__3214EC27145C0A3F", true, "ID")]
     [BindRelation("ID", true, "TemplateItem", "TemplateID")]
@@ -44,7 +44,7 @@ namespace NewLife.CommonEntity
         /// <summary>名称</summary>
         [DisplayName("名称")]
         [Description("名称")]
-        [DataObjectField(false, false, false, 50)]
+        [DataObjectField(false, false, true, 50)]
         [BindColumn(2, "Name", "名称", null, "nvarchar(50)", 0, 0, true)]
         public virtual String Name
         {
@@ -52,12 +52,24 @@ namespace NewLife.CommonEntity
             set { if (OnPropertyChanging("Name", value)) { _Name = value; OnPropertyChanged("Name"); } }
         }
 
+        private Int32 _ParentID;
+        /// <summary>父编号</summary>
+        [DisplayName("父编号")]
+        [Description("父编号")]
+        [DataObjectField(false, false, true, 10)]
+        [BindColumn(3, "ParentID", "父编号", null, "int", 10, 0, false)]
+        public virtual Int32 ParentID
+        {
+            get { return _ParentID; }
+            set { if (OnPropertyChanging("ParentID", value)) { _ParentID = value; OnPropertyChanged("ParentID"); } }
+        }
+
         private Int32 _UserID;
         /// <summary>用户编号</summary>
         [DisplayName("用户编号")]
         [Description("用户编号")]
         [DataObjectField(false, false, true, 10)]
-        [BindColumn(3, "UserID", "用户编号", null, "int", 10, 0, false)]
+        [BindColumn(4, "UserID", "用户编号", null, "int", 10, 0, false)]
         public virtual Int32 UserID
         {
             get { return _UserID; }
@@ -69,7 +81,7 @@ namespace NewLife.CommonEntity
         [DisplayName("用户")]
         [Description("用户")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(4, "UserName", "用户", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(5, "UserName", "用户", null, "nvarchar(50)", 0, 0, true)]
         public virtual String UserName
         {
             get { return _UserName; }
@@ -81,7 +93,7 @@ namespace NewLife.CommonEntity
         [DisplayName("创建时间")]
         [Description("创建时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(5, "CreateTime", "创建时间", null, "datetime", 3, 0, false)]
+        [BindColumn(6, "CreateTime", "创建时间", null, "datetime", 3, 0, false)]
         public virtual DateTime CreateTime
         {
             get { return _CreateTime; }
@@ -93,7 +105,7 @@ namespace NewLife.CommonEntity
         [DisplayName("最后修改")]
         [Description("最后修改")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(6, "LastModify", "最后修改", null, "datetime", 3, 0, false)]
+        [BindColumn(7, "LastModify", "最后修改", null, "datetime", 3, 0, false)]
         public virtual DateTime LastModify
         {
             get { return _LastModify; }
@@ -105,7 +117,7 @@ namespace NewLife.CommonEntity
         [DisplayName("备注")]
         [Description("备注")]
         [DataObjectField(false, false, true, 500)]
-        [BindColumn(7, "Remark", "备注", null, "nvarchar(500)", 0, 0, true)]
+        [BindColumn(8, "Remark", "备注", null, "nvarchar(500)", 0, 0, true)]
         public virtual String Remark
         {
             get { return _Remark; }
@@ -129,6 +141,7 @@ namespace NewLife.CommonEntity
                 {
                     case "ID" : return _ID;
                     case "Name" : return _Name;
+                    case "ParentID" : return _ParentID;
                     case "UserID" : return _UserID;
                     case "UserName" : return _UserName;
                     case "CreateTime" : return _CreateTime;
@@ -143,6 +156,7 @@ namespace NewLife.CommonEntity
                 {
                     case "ID" : _ID = Convert.ToInt32(value); break;
                     case "Name" : _Name = Convert.ToString(value); break;
+                    case "ParentID" : _ParentID = Convert.ToInt32(value); break;
                     case "UserID" : _UserID = Convert.ToInt32(value); break;
                     case "UserName" : _UserName = Convert.ToString(value); break;
                     case "CreateTime" : _CreateTime = Convert.ToDateTime(value); break;
@@ -163,6 +177,9 @@ namespace NewLife.CommonEntity
 
             ///<summary>名称</summary>
             public static readonly FieldItem Name = Meta.Table.FindByName("Name");
+
+            ///<summary>父编号</summary>
+            public static readonly FieldItem ParentID = Meta.Table.FindByName("ParentID");
 
             ///<summary>用户编号</summary>
             public static readonly FieldItem UserID = Meta.Table.FindByName("UserID");
@@ -191,6 +208,9 @@ namespace NewLife.CommonEntity
 
         /// <summary>名称</summary>
         String Name { get; set; }
+
+        /// <summary>父编号</summary>
+        Int32 ParentID { get; set; }
 
         /// <summary>用户编号</summary>
         Int32 UserID { get; set; }
