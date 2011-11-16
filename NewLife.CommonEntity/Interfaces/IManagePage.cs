@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using System.Web;
@@ -55,6 +56,7 @@ namespace NewLife.CommonEntity
     }
 
     /// <summary>管理页，用于控制页面权限等</summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public class ManagePage : IManagePage
     {
         #region 属性
