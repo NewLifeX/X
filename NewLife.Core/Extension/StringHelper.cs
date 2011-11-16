@@ -6,7 +6,6 @@ using NewLife.Linq;
 namespace System
 {
     /// <summary>字符串助手类</summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
     public static class StringHelper
     {
         #region 字符串扩展
