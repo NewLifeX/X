@@ -50,10 +50,10 @@ namespace NewLife.CommonEntity
         event EventHandler<EventArgs<IEntity, Exception>> OnSaveFailure;
 
         /// <summary>从实体对象读取指定实体字段的信息后触发</summary>
-        event EventHandler<EntityAccessorEventArgs> OnRead;
+        event EventHandler<EntityAccessorEventArgs> OnReadItem;
 
         /// <summary>把指定实体字段的信息写入到实体对象后触发</summary>
-        event EventHandler<EntityAccessorEventArgs> OnWrite;
+        event EventHandler<EntityAccessorEventArgs> OnWriteItem;
         #endregion
     }
 }

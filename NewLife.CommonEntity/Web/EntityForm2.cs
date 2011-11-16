@@ -352,7 +352,7 @@ namespace NewLife.CommonEntity.Web
         /// <summary>把实体的属性设置到控件上</summary>
         protected virtual void SetForm()
         {
-            Accessor.OnWrite += new EventHandler<EntityAccessorEventArgs>(Accessor_OnWrite);
+            Accessor.OnWriteItem += new EventHandler<EntityAccessorEventArgs>(Accessor_OnWrite);
             Accessor.Write(Entity);
 
             if (OnSetForm != null) OnSetForm(this, new EventArgs<IEntity>(Entity));
@@ -510,10 +510,10 @@ namespace NewLife.CommonEntity.Web
 
         #region 事件
         /// <summary>从实体对象读取指定实体字段的信息后触发</summary>
-        public virtual event EventHandler<EntityAccessorEventArgs> OnRead { add { Accessor.OnRead += value; } remove { Accessor.OnRead -= value; } }
+        public virtual event EventHandler<EntityAccessorEventArgs> OnReadItem { add { Accessor.OnReadItem += value; } remove { Accessor.OnReadItem -= value; } }
 
         /// <summary>把指定实体字段的信息写入到实体对象后触发</summary>
-        public virtual event EventHandler<EntityAccessorEventArgs> OnWrite { add { Accessor.OnWrite += value; } remove { Accessor.OnWrite -= value; } }
+        public virtual event EventHandler<EntityAccessorEventArgs> OnWriteItem { add { Accessor.OnWriteItem += value; } remove { Accessor.OnWriteItem -= value; } }
         #endregion
 
         #region 辅助

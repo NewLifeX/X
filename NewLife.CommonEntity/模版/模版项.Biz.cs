@@ -63,6 +63,28 @@ namespace NewLife.CommonEntity
         /// <summary>该模版项所对应的模版名称</summary>
         [XmlIgnore]
         public String TemplateName { get { return Template != null ? Template.Name : null; } }
+
+        [NonSerialized]
+        private TemplateContent _LastTemplateContent;
+        /// <summary>该模版项所对应的最后一个模版内容</summary>
+        [XmlIgnore]
+        public TemplateContent LastTemplateContent
+        {
+            get
+            {
+                if (_LastTemplateContent == null && TemplateID > 0 && !Dirtys.ContainsKey("LastTemplateContent"))
+                {
+                    _LastTemplateContent = TemplateContent.FindLastByTemplateItemID(ID);
+                    Dirtys["LastTemplateContent"] = true;
+                }
+                return _LastTemplateContent;
+            }
+            set { _LastTemplateContent = value; }
+        }
+
+        /// <summary>该模版项所对应的模版内容</summary>
+        [XmlIgnore]
+        public String Content { get { return LastTemplateContent != null ? LastTemplateContent.Content : null; } }
         #endregion
 
         #region 扩展查询﻿
@@ -131,14 +153,41 @@ namespace NewLife.CommonEntity
         //    return base.Insert();
         //}
 
-        ///// <summary>
-        ///// 已重载。在事务保护范围内处理业务，位于Valid之后
-        ///// </summary>
-        ///// <returns></returns>
-        //protected override Int32 OnInsert()
-        //{
-        //    return base.OnInsert();
-        //}
+        /// <summary>
+        /// 已重载。在事务保护范围内处理业务，位于Valid之后
+        /// </summary>
+        /// <returns></returns>
+        protected override Int32 OnInsert()
+        {
+            SaveTemplateContent(true);
+
+            return base.OnInsert();
+        }
+
+        /// <summary>
+        /// 已重载
+        /// </summary>
+        /// <returns></returns>
+        protected override int OnUpdate()
+        {
+            SaveTemplateContent(false);
+
+            return base.OnUpdate();
+        }
+
+        void SaveTemplateContent(Boolean isNew)
+        {
+            // 数据放在扩展里面
+            String content = (String)Extends["Content"];
+            // 如果扩展里面的内容跟最后内容不一致，则更新
+            if (isNew || LastTemplateContent == null || "" + content != "" + LastTemplateContent.Content)
+            {
+                TemplateContent tc = new TemplateContent();
+                tc.TemplateItemID = ID;
+                tc.Content = content;
+                tc.Insert();
+            }
+        }
 
         ///// <summary>
         ///// 验证数据，通过抛出异常的方式提示验证失败。

@@ -8,6 +8,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Log;
 using NewLife.Web;
+using NewLife.Reflection;
 
 namespace NewLife.CommonEntity
 {
@@ -108,7 +109,7 @@ namespace NewLife.CommonEntity
             Page.InitComplete += new EventHandler(Page_InitComplete);
             Page.PreLoad += new EventHandler(OnPreLoad);
             //Page.LoadComplete += new EventHandler(OnLoadComplete);
-            //Page.PreRender += new EventHandler(Page_PreRender);
+            Page.PreRender += new EventHandler(OnRender);
         }
 
         void Page_InitComplete(object sender, EventArgs e)
@@ -152,6 +153,9 @@ namespace NewLife.CommonEntity
 
         void OnRender(object sender, EventArgs e)
         {
+            WriteReloadForm();
+
+            WriteEnterKeyPress();
         }
         #endregion
 
@@ -348,6 +352,52 @@ namespace NewLife.CommonEntity
             }
             if (String.IsNullOrEmpty(ods.UpdateMethod)) ods.UpdateMethod = "Update";
             if (String.IsNullOrEmpty(ods.DeleteMethod)) ods.DeleteMethod = "Delete";
+        }
+        #endregion
+
+        #region 关键字搜索按回车提交
+        /// <summary>
+        /// 写reloadForm，弹出层可能会调用该方法
+        /// </summary>
+        protected virtual void WriteReloadForm()
+        {
+            // 在页面回发后，如果reload页面，会提示重新发送啥啥啥的。找到搜索按钮，改变页面重刷为点击按钮
+            if (Page.IsPostBack)
+            {
+                Button btn = ControlHelper.FindControl<Button>(Page, "btnSearch");
+                //if (btn == null) btn = ControlHelper.FindControl<Button>(Page, null);
+                if (btn != null)
+                {
+                    String js = "function reloadForm(){";
+                    js += "document.getElementById('" + btn.ClientID + "').click();}";
+                    Page.ClientScript.RegisterStartupScript(GetType(), "reloadForm", js, true);
+                }
+                else
+                {
+                    String js = "function reloadForm(){/*可以通过把查询按钮改名为btnSearch来避免重发数据的提示！*/location.reload();}";
+                    Page.ClientScript.RegisterStartupScript(GetType(), "reloadForm", js, true);
+                }
+            }
+            else
+            {
+                String js = "function reloadForm(){location.reload();}";
+                Page.ClientScript.RegisterStartupScript(GetType(), "reloadForm", js, true);
+            }
+        }
+
+        /// <summary>
+        /// 在关键字输入框按下回车时，调用查询
+        /// </summary>
+        protected virtual void WriteEnterKeyPress()
+        {
+            TextBox box = ControlHelper.FindControlInPage<TextBox>("txtKey");
+            if (box == null) return;
+
+            Button btn = ControlHelper.FindControlInPage<Button>("btnSearch");
+            if (btn == null) return;
+
+            String js = "if((event.which || event.keyCode)==13){document.getElementById('" + btn.ClientID + "').click(); return false;} return true;";
+            box.Attributes["onkeypress"] = js;
         }
         #endregion
     }
