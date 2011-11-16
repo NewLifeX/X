@@ -74,7 +74,7 @@ namespace XCode.Accessors
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
-        protected override void OnReadItem(IEntity entity, FieldItem item)
+        protected override void ReadItem(IEntity entity, FieldItem item)
         {
             Object v = GetRequestItem(item);
             if (v == null) return;

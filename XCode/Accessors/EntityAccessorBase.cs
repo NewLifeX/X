@@ -21,10 +21,10 @@ namespace XCode.Accessors
 
         #region 事件
         /// <summary>从实体对象读取指定实体字段的信息后触发</summary>
-        public virtual event EventHandler<EntityAccessorEventArgs> OnRead;
+        public virtual event EventHandler<EntityAccessorEventArgs> OnReadItem;
 
         /// <summary>把指定实体字段的信息写入到实体对象后触发</summary>
-        public virtual event EventHandler<EntityAccessorEventArgs> OnWrite;
+        public virtual event EventHandler<EntityAccessorEventArgs> OnWriteItem;
         #endregion
 
         #region IEntityAccessor 成员
@@ -72,9 +72,9 @@ namespace XCode.Accessors
             if (eop == null) eop = EntityFactory.CreateOperate(entity.GetType());
             foreach (FieldItem item in GetFields(eop))
             {
-                OnReadItem(entity, item);
+                ReadItem(entity, item);
 
-                if (OnRead != null) OnRead(this, new EntityAccessorEventArgs { Entity = entity, Field = item });
+                if (OnReadItem != null) OnReadItem(this, new EntityAccessorEventArgs { Entity = entity, Field = item });
             }
         }
 
@@ -83,7 +83,7 @@ namespace XCode.Accessors
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
-        protected virtual void OnReadItem(IEntity entity, FieldItem item) { }
+        protected virtual void ReadItem(IEntity entity, FieldItem item) { }
 
         /// <summary>
         /// 实体=>外部，从实体对象读取信息并写入外部
@@ -99,9 +99,9 @@ namespace XCode.Accessors
             if (eop == null) eop = EntityFactory.CreateOperate(entity.GetType());
             foreach (FieldItem item in GetFields(eop))
             {
-                OnWriteItem(entity, item);
+                WriteItem(entity, item);
 
-                if (OnWrite != null) OnWrite(this, new EntityAccessorEventArgs { Entity = entity, Field = item });
+                if (OnWriteItem != null) OnWriteItem(this, new EntityAccessorEventArgs { Entity = entity, Field = item });
             }
         }
 
@@ -110,7 +110,7 @@ namespace XCode.Accessors
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
-        protected virtual void OnWriteItem(IEntity entity, FieldItem item) { }
+        protected virtual void WriteItem(IEntity entity, FieldItem item) { }
         #endregion
 
         #region 辅助
