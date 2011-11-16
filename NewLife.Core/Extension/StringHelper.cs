@@ -184,13 +184,13 @@ namespace System
             //int[,] C = new int[sLength + 1, words.Select(s => s.Length).Max() + 1];
             foreach (string key in keys)
             {
-                int wLength = word.Length;
+                int wLength = key.Length;
                 int first = 0, last = 0;
                 int i = 0, j = 0, LCS_L;
                 //foreach 速度会有所提升，还可以加剪枝
                 for (i = 0; i < sLength; i++)
                     for (j = 0; j < wLength; j++)
-                        if (word[i] == word[j])
+                        if (key[i] == key[j])
                         {
                             C[i + 1, j + 1] = C[i, j] + 1;
                             if (first < C[i, j])
