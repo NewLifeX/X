@@ -1067,7 +1067,7 @@ namespace XCode
 
                 //≥¢ ‘∆•≈‰ Ù–‘
                 PropertyInfoX property = PropertyInfoX.Create(this.GetType(), name);
-                if (property != null) return property.GetValue(this);
+                if (property != null && property.GetMethod != null) return property.GetValue(this);
 
                 Object obj = null;
                 if (Extends.TryGetValue(name, out obj)) return obj;
@@ -1091,7 +1091,7 @@ namespace XCode
 
                 //≥¢ ‘∆•≈‰ Ù–‘
                 PropertyInfoX property = PropertyInfoX.Create(this.GetType(), name);
-                if (property != null)
+                if (property != null && property.SetMethod != null)
                 {
                     property.SetValue(this, value);
                     return;
