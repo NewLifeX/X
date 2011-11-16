@@ -203,7 +203,6 @@ namespace XControl
         #endregion 扩展属性
 
         #region 方法
-
         /// <summary>
         /// 已重载。
         /// </summary>
@@ -216,12 +215,12 @@ namespace XControl
             GridView gv = TargetControl;
             if (gv == null) return;
 
-            //// 挂接ObjectDataSource的事件，记录总记录数
-            //if (!String.IsNullOrEmpty(gv.DataSourceID))
-            //{
-            //    ObjectDataSource ds = FindControl(gv.DataSourceID) as ObjectDataSource;
-            //    ds.Selected += new ObjectDataSourceStatusEventHandler(ds_Selected);
-            //}
+            // 挂接ObjectDataSource的事件
+            if (!String.IsNullOrEmpty(gv.DataSourceID))
+            {
+                ObjectDataSource ds = FindControl(gv.DataSourceID) as ObjectDataSource;
+                if (ds != null) FixObjectDataSourceOrder(ds);
+            }
 
             // 挂接分页模版
             if (!DesignMode && gv.AllowPaging && gv.PagerTemplate == null)
@@ -230,18 +229,7 @@ namespace XControl
 
                 if (!DesignMode && Page.EnableEventValidation) Page.EnableEventValidation = false;
             }
-
-            //// 多选框
-            //if (EnableMultiSelect)
-            //{
-            //    gv.RowCreated += new GridViewRowEventHandler(gv_RowCreated);
-            //}
         }
-
-        //void ds_Selected(object sender, ObjectDataSourceStatusEventArgs e)
-        //{
-        //    if (e.ReturnValue is Int32) TotalCount = (Int32)e.ReturnValue;
-        //}
 
         /// <summary>
         /// 已重载。
@@ -261,18 +249,6 @@ namespace XControl
             //if (EnableMultiSelect) CreateMutliSelect(TargetControl);
             if (!DesignMode) SetSelectAll(gv);
         }
-
-        ///// <summary>
-        ///// 已重载。
-        ///// </summary>
-        ///// <param name="writer"></param>
-        //protected override void Render(HtmlTextWriter writer)
-        //{
-        //    if (EnableMultiSelect) CreateMutliSelect(TargetControl);
-
-        //    base.Render(writer);
-        //}
-
         #endregion 方法
 
         #region 点击
@@ -672,5 +648,45 @@ e.ClickElement('a',function(i){{
         //}
 
         #endregion 多选
+
+        #region ObjectDataSource默认排序
+        void FixObjectDataSourceOrder(ObjectDataSource ods)
+        {
+            if (ods == null) return;
+
+            // 如果有排序参数，并且排序参数有默认值，并且传过来的为空，则处理
+            if (!String.IsNullOrEmpty(ods.SortParameterName))
+            {
+                Parameter p = ods.SelectParameters[ods.SortParameterName];
+                if (p != null && !String.IsNullOrEmpty(p.DefaultValue))
+                    ods.Selecting += new ObjectDataSourceSelectingEventHandler(ods_Selecting);
+            }
+        }
+
+        void ods_Selecting(object sender, ObjectDataSourceSelectingEventArgs e)
+        {
+            // 查询总记录数的就不要插手了
+            if (e.ExecutingSelectCount) return;
+
+            ObjectDataSource ods = sender.GetFieldValue("_owner") as ObjectDataSource;
+            if (ods == null) return;
+
+            // 如果有排序参数，并且排序参数有默认值，并且传过来的为空，则处理
+            if (!String.IsNullOrEmpty(ods.SortParameterName))
+            {
+                Parameter p = ods.SelectParameters[ods.SortParameterName];
+                if (p != null && !String.IsNullOrEmpty(p.DefaultValue))
+                {
+                    // Selecting事件之后，ObjectDataSource会用e.Arguments.SortExpression覆盖e.InputParameters[ods.SortParameterName]
+                    // 而e.InputParameters[ods.SortParameterName]里面有默认值，也就是ObjectDataSource只认外部的e.Arguments.SortExpression
+                    if (String.IsNullOrEmpty(e.Arguments.SortExpression))
+                    {
+                        e.Arguments.SortExpression = p.DefaultValue;
+                        e.InputParameters[ods.SortParameterName] = p.DefaultValue;
+                    }
+                }
+            }
+        }
+        #endregion
     }
 }

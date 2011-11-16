@@ -38,10 +38,12 @@ using System.Web.UI;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("1.11.*")]
-[assembly: AssemblyFileVersion("1.11.2011.1107")]
+[assembly: AssemblyVersion("1.12.*")]
+[assembly: AssemblyFileVersion("1.12.2011.1117")]
 
 /*
+ * v1.12.2011.1117  GridViewExtender增加一个功能，支持目标GridView绑定的ObjectDataSource使用排序的默认值
+ * 
  * v1.11.2011.1107  修正LinkBoxField中没有注册GridViewExtender.js的问题
  * 
  * v1.10.2011.0727  修正弹窗组件在第二次打开时z-index显示错误的bug
