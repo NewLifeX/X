@@ -61,6 +61,17 @@ namespace XCode
         /// <param name="values">值列表</param>
         /// <returns></returns>
         Int32 Delete(Type entityType, String[] names, Object[] values);
+
+        /// <summary>获取主键条件</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        String GetPrimaryCondition(IEntity entity);
+
+        /// <summary>把SQL模版格式化为SQL语句</summary>
+        /// <param name="entity">实体对象</param>
+        /// <param name="methodType"></param>
+        /// <returns>SQL字符串</returns>
+        String GetSql(IEntity entity, DataObjectMethodType methodType);
     }
 
     /// <summary>默认实体持久化</summary>
@@ -223,7 +234,13 @@ namespace XCode
         /// <param name="entity">实体对象</param>
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
-        internal protected static String SQL(IEntity entity, DataObjectMethodType methodType)
+        public virtual String GetSql(IEntity entity, DataObjectMethodType methodType) { return SQL(entity, methodType); }
+
+        /// <summary>把SQL模版格式化为SQL语句</summary>
+        /// <param name="entity">实体对象</param>
+        /// <param name="methodType"></param>
+        /// <returns>SQL字符串</returns>
+        static String SQL(IEntity entity, DataObjectMethodType methodType)
         {
             IEntityOperate op = EntityFactory.CreateOperate(entity.GetType());
 
@@ -313,6 +330,11 @@ namespace XCode
             return null;
         }
 
+        /// <summary>获取主键条件</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public virtual String GetPrimaryCondition(IEntity entity) { return DefaultCondition(entity); }
+
         /// <summary>
         /// 默认条件。
         /// 若有标识列，则使用一个标识列作为条件；
@@ -320,7 +342,7 @@ namespace XCode
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <returns>条件</returns>
-        internal protected static String DefaultCondition(IEntity entity)
+        static String DefaultCondition(IEntity entity)
         {
             IEntityOperate op = EntityFactory.CreateOperate(entity.GetType());
 

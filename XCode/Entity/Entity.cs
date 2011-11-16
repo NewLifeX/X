@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.IO;
-using NewLife.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using NewLife.IO;
+using NewLife.Linq;
 using NewLife.Reflection;
 using XCode.Common;
 using XCode.Configuration;
@@ -184,7 +184,7 @@ namespace XCode
             fi = Meta.Unique;
             if (fi != null) return Helper.IsNullKey(this[fi.Name]) ? Insert() : Update();
 
-            return FindCount(EntityPersistence.DefaultCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
+            return FindCount(persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
 
         /// <summary>
@@ -900,8 +900,8 @@ namespace XCode
         /// <param name="obj">实体对象</param>
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
-        [Obsolete("该成员在后续版本中讲不再被支持！")]
-        public static String SQL(Entity<TEntity> obj, DataObjectMethodType methodType) { return EntityPersistence.SQL(obj, methodType); }
+        [Obsolete("该成员在后续版本中讲不再被支持！请使用XCodeService.Resolve<IEntityPersistence>().GetSql()！")]
+        public static String SQL(Entity<TEntity> obj, DataObjectMethodType methodType) { return persistence.GetSql(obj, methodType); }
 
         /// <summary>
         /// 根据属性列表和值列表，构造查询条件。
@@ -975,8 +975,8 @@ namespace XCode
         /// </summary>
         /// <param name="obj">实体对象</param>
         /// <returns>条件</returns>
-        [Obsolete("该成员在后续版本中讲不再被支持！")]
-        protected static String DefaultCondition(Entity<TEntity> obj) { return EntityPersistence.DefaultCondition(obj); }
+        [Obsolete("该成员在后续版本中讲不再被支持！请使用XCodeService.Resolve<IEntityPersistence>().GetPrimaryCondition()！")]
+        protected static String DefaultCondition(Entity<TEntity> obj) { return persistence.GetPrimaryCondition(obj); }
 
         /// <summary>
         /// 取得指定实体类型的分页SQL
