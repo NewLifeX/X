@@ -659,10 +659,13 @@ Dialog.CloseAndRefresh = function (frameElement) {
         Dialog.CloseSelfDialog(frameElement);
         //window.frames["main"].location.reload()
         // 大石头 刷新本页面
-        if(window.reloadForm)
-            window.reloadForm();
-        else
+        if(window.reloadForm){
+            reloadForm();
+        } else if(window.__doPostBack){
+            __doPostBack();
+        } else {
             location.reload();
+        }
     } catch (e) {
         //alert(e);
     }
