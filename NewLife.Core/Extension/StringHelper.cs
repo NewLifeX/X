@@ -78,6 +78,9 @@ namespace System
         /// <summary>
         /// 编辑距离搜索，从词组中找到最接近关键字的若干匹配项
         /// </summary>
+        /// <remarks>
+        /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
+        /// </remarks>
         /// <param name="key">关键字</param>
         /// <param name="words">词组</param>
         /// <returns></returns>
@@ -113,6 +116,9 @@ namespace System
         /// <summary>
         /// 编辑距离，又称Levenshtein距离（也叫做Edit Distance），是指两个字串之间，由一个转成另一个所需的最少编辑操作次数。许可的编辑操作包括将一个字符替换成另一个字符，插入一个字符，删除一个字符。 
         /// </summary>
+        /// <remarks>
+        /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
+        /// </remarks>
         /// <param name="str1"></param>
         /// <param name="str2"></param>
         /// <returns></returns>
@@ -145,6 +151,9 @@ namespace System
         /// <summary>
         /// 最长公共子序列搜索，从词组中找到最接近关键字的若干匹配项
         /// </summary>
+        /// <remarks>
+        /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
+        /// </remarks>
         /// <param name="key"></param>
         /// <param name="words"></param>
         /// <returns></returns>
@@ -172,6 +181,9 @@ namespace System
         /// 一个数列 S，如果分别是两个或多个已知数列的子序列，且是所有符合此条件序列中最长的，则 S 称为已知序列的最长公共子序列。
         /// The longest common subsequence (LCS) problem is to find the longest subsequence common to all sequences in a set of sequences (often just two). Note that subsequence is different from a substring, see substring vs. subsequence. It is a classic computer science problem, the basis of diff (a file comparison program that outputs the differences between two files), and has applications in bioinformatics.
         /// </summary>
+        /// <remarks>
+        /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
+        /// </remarks>
         /// <param name="word"></param>
         /// <param name="keys">多个关键字。长度必须大于0，必须按照字符串长度升序排列。</param>
         /// <returns></returns>

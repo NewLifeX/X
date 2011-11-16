@@ -296,6 +296,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Serialization\Protocol\说明.txt" />
+    <EmbeddedResource Include="X组件.txt" />
     <EmbeddedResource Include="Web\Modules\SystemStart.htm" />
     <Content Include="说明.txt" />
     <EmbeddedResource Include="UpdateInfo.txt" />
