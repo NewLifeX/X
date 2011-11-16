@@ -36,7 +36,14 @@ namespace XCode
         protected virtual String KeyName { get { return Meta.Unique.Name; } }
 
         /// <summary>关联父键名，一般是Parent加主键，如ParentID</summary>
-        protected virtual String ParentKeyName { get { return "Parent" + KeyName; } }
+        protected virtual String ParentKeyName
+        {
+            get
+            {
+                String name = "Parent" + Meta.Unique.Name;
+                return Meta.FieldNames.Contains(name) ? name : null;
+            }
+        }
 
         private static String _SortingKeyName;
         /// <summary>排序字段，默认是"Sorting", "Sort", "Rank"之一</summary>
@@ -63,6 +70,9 @@ namespace XCode
                 return _SortingKeyName;
             }
         }
+
+        /// <summary>名称键名，如Name</summary>
+        protected virtual String NameKeyName { get { return Meta.FieldNames.Contains("Name") ? "Name" : null; } }
 
         /// <summary>排序值</summary>
         private Int32 Sort
@@ -135,6 +145,12 @@ namespace XCode
             }
             set { _Root = null; }
         }
+
+        /// <summary>斜杠分隔的全路径</summary>
+        public String FullPath { get { return GetFullPath2(true); } }
+
+        /// <summary>斜杠分隔的全父路径</summary>
+        public String FullParentPath { get { return GetFullPath2(false); } }
         #endregion
 
         #region 查询
@@ -477,9 +493,12 @@ namespace XCode
         /// <param name="separator">分隔符</param>
         /// <param name="func">回调</param>
         /// <returns></returns>
-        public String GetFullPath(Boolean includeSelf, String separator, Func<TEntity, String> func)
+        public String GetFullPath(Boolean includeSelf = true, String separator = @"\", Func<TEntity, String> func = null)
         {
             EntityList<TEntity> list = GetFullPath(includeSelf);
+            if (list == null || list.Count < 1) return null;
+
+            String namekey = NameKeyName;
 
             StringBuilder sb = new StringBuilder();
             foreach (TEntity item in list)
@@ -488,7 +507,36 @@ namespace XCode
                 if (func != null)
                     sb.Append(func(item));
                 else
-                    sb.Append(item.ToString());
+                {
+                    if (String.IsNullOrEmpty(namekey))
+                        sb.Append(item.ToString());
+                    else
+                        sb.Append(item[namekey]);
+                }
+            }
+            return sb.ToString();
+        }
+
+        String GetFullPath2(Boolean includeSelf = true, String separator = @"\", Func<TEntity, String> func = null)
+        {
+            EntityList<TEntity> list = GetFullPath(includeSelf);
+            if (list == null || list.Count < 1) return separator;
+
+            String namekey = NameKeyName;
+
+            StringBuilder sb = new StringBuilder();
+            foreach (TEntity item in list)
+            {
+                if (!String.IsNullOrEmpty(separator)) sb.Append(separator);
+                if (func != null)
+                    sb.Append(func(item));
+                else
+                {
+                    if (String.IsNullOrEmpty(namekey))
+                        sb.Append(item.ToString());
+                    else
+                        sb.Append(item[namekey]);
+                }
             }
             return sb.ToString();
         }
