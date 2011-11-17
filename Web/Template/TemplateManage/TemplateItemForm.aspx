@@ -3,7 +3,8 @@
     ValidateRequest="false" %>
 
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
-    <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
+    <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center"
+        style="width: 98%;">
         <tr>
             <td style="width: 50%;">
                 模版：
@@ -25,13 +26,13 @@
         </tr>--%>
         <tr>
             <td colspan="2">
-                <asp:TextBox ID="frmContent" runat="server" TextMode="MultiLine" Width="780px" Height="480px"></asp:TextBox>
+                <asp:TextBox ID="frmContent" runat="server" TextMode="MultiLine" Width="100%" Height="300px"></asp:TextBox>
             </td>
         </tr>
         <tr>
             <td align="right">
                 备注：
-                <asp:TextBox ID="frmRemark" runat="server" TextMode="MultiLine" Width="300px" Height="80px"></asp:TextBox>
+                <asp:TextBox ID="frmRemark" runat="server" Width="300px"></asp:TextBox>
             </td>
             <td>
             </td>

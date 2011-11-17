@@ -5,14 +5,10 @@
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using NewLife.Linq;
-using System.Text;
 using System.Xml.Serialization;
-using NewLife.Log;
+using NewLife.Linq;
 using XCode;
-using XCode.Configuration;
 
 namespace NewLife.CommonEntity
 {
@@ -44,7 +40,7 @@ namespace NewLife.CommonEntity
 
         /// <summary>该模版内容所对应的模版项名称</summary>
         [XmlIgnore]
-        public String TemplateItemName { get { return TemplateItem != null ? TemplateItem.Name : null; } }
+        public String TemplateItemName { get { return TemplateItem != null ? TemplateItem.TemplateName + @"\" + TemplateItem.Name : null; } }
         #endregion
 
         #region 扩展查询﻿

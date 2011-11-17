@@ -5,7 +5,7 @@
     <div class="toolbar">
         <asp:HyperLink ID="lnkReturn" runat="server" Visible="False" ImageUrl="~/Admin/images/icons/back.gif"
             NavigateUrl="Template.aspx">返回</asp:HyperLink>&nbsp;
-        <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="700px" BoxWidth="800px" Url="TemplateItemForm.aspx"
+        <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="500px" BoxWidth="800px" Url="TemplateItemForm.aspx"
             IconLeft="~/Admin/images/icons/new.gif"><b>添加模版项</b></XCL:LinkBox>
         关键字：<asp:TextBox ID="txtKey" runat="server"></asp:TextBox>
         <asp:Button ID="btnSearch" runat="server" Text="查询" />
@@ -32,7 +32,7 @@
             <asp:BoundField DataField="Name" HeaderText="名称" SortExpression="Name" />
             <asp:BoundField DataField="Kind" HeaderText="模版种类" SortExpression="Kind" />
             <XCL:LinkBoxField HeaderText="编辑" DataNavigateUrlFields="ID" DataNavigateUrlFormatString="TemplateItemForm.aspx?ID={0}"
-                Height="700px" Text="编辑" Width="800px" Title="编辑模版项">
+                Height="500px" Text="编辑" Width="800px" Title="编辑模版项">
                 <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" />
                 <HeaderStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="30px" />
             </XCL:LinkBoxField>
