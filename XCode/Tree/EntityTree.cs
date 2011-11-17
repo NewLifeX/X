@@ -121,6 +121,8 @@ namespace XCode
         {
             get
             {
+                if (IsNull((TKey)this[KeyName])) return 0;
+
                 Int32 _Deepth = 1;
                 if (AllParents != null && AllParents.Count > 0) _Deepth += AllParents.Count;
                 return _Deepth;
@@ -149,10 +151,26 @@ namespace XCode
         {
             get
             {
+                if (Deepth <= 0) return String.Empty;
+
                 String name = (String)this[NameKeyName];
                 return new String('　', (Deepth - 1) * 2) + name;
             }
         }
+
+        /// <summary>树形节点名，根据深度带全角空格前缀</summary>
+        [XmlIgnore]
+        public virtual String TreeNodeName2
+        {
+            get
+            {
+                if (Deepth <= 0) return "|- 根";
+
+                String name = (String)this[NameKeyName];
+                return new String('　', Deepth) + "|- " + name;
+            }
+        }
+
         /// <summary>斜杠分隔的全路径</summary>
         public String FullPath { get { return GetFullPath2(true); } }
 
@@ -232,6 +250,22 @@ namespace XCode
             TEntity entity = FindByKey(parentKey);
             if (entity == null) entity = Root;
 
+            EntityList<TEntity> list = FindAllChilds(entity);
+            list.Insert(0, entity);
+            return list;
+        }
+
+        /// <summary>
+        /// 查找指定键的所有子节点，以深度层次树结构输出
+        /// </summary>
+        /// <param name="parentKey"></param>
+        /// <returns></returns>
+        [DataObjectMethod(DataObjectMethodType.Select)]
+        public static EntityList<TEntity> FindAllChildsNoParent(TKey parentKey)
+        {
+            TEntity entity = FindByKey(parentKey);
+            if (entity == null) entity = Root;
+
             return FindAllChilds(entity);
         }
 
@@ -261,7 +295,6 @@ namespace XCode
             if (entity == null) return new EntityList<TEntity>();
             IEntityList childlist = entity.Childs;
             if (childlist == null) return new EntityList<TEntity>();
-            if (childlist.Count < 1) return childlist as EntityList<TEntity>;
 
             EntityList<TEntity> list = new EntityList<TEntity>();
             // 使用队列而不使用递归，避免死循环
