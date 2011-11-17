@@ -134,28 +134,6 @@ namespace NewLife.CommonEntity
         //}
 
         /// <summary>
-        /// 已重载。记录默认作者
-        /// </summary>
-        /// <param name="forEdit"></param>
-        /// <returns></returns>
-        protected override TEntity CreateInstance(bool forEdit = false)
-        {
-            TEntity entity = base.CreateInstance(forEdit);
-
-            if (forEdit)
-            {
-                // 获取当前登录用户
-                IManageUser user = CommonService.Resolve<IManageProvider>().Current;
-                if (user != null)
-                {
-                    if (user.ID is Int32) entity.UserID = (Int32)user.ID;
-                    entity.UserName = user.ToString();
-                }
-            }
-            return entity;
-        }
-
-        /// <summary>
         /// 验证数据，通过抛出异常的方式提示验证失败。
         /// </summary>
         /// <param name="isNew"></param>
@@ -171,6 +149,14 @@ namespace NewLife.CommonEntity
             base.Valid(isNew);
 
             if (isNew && !Dirtys[_.CreateTime]) CreateTime = DateTime.Now;
+
+            // 获取当前登录用户
+            IManageUser user = CommonService.Resolve<IManageProvider>().Current;
+            if (user != null && !Dirtys[_.UserID] && !Dirtys[_.UserName])
+            {
+                if (user.ID is Int32) UserID = (Int32)user.ID;
+                UserName = user.ToString();
+            }
         }
 
         ///// <summary>

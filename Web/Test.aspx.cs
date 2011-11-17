@@ -7,14 +7,14 @@ using NewLife.CommonEntity;
 using NewLife.Log;
 using NewLife.YWS.Entities;
 using XCode;
+using System.Reflection;
+using System.IO;
 
 public partial class Test : System.Web.UI.Page
 {
     protected void Page_Load(object sender, EventArgs e)
     {
-        EntityList<Admin> list = Admin.FindAll();
-
-        ICommonManageProvider provider = CommonManageProvider.Provider;
-        Response.Write(provider.AdminstratorType.FullName);
+        Assembly asm = Assembly.LoadFrom(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Bin\XCoder.exe"));
+        Template.ImportFromAssembly(0, asm, "XCoder.Template");
     }
 }

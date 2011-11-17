@@ -163,9 +163,15 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         protected override Int32 OnInsert()
         {
-            SaveTemplateContent(true);
+            Int32 rs = base.OnInsert();
 
-            return base.OnInsert();
+            TemplateContent tc = new TemplateContent();
+            tc.TemplateItemID = ID;
+            // 数据放在扩展里面
+            tc.Content = (String)Extends["Content"];
+            tc.Insert();
+
+            return rs;
         }
 
         /// <summary>
@@ -174,44 +180,36 @@ namespace NewLife.CommonEntity
         /// <returns></returns>
         protected override int OnUpdate()
         {
-            SaveTemplateContent(false);
-
-            return base.OnUpdate();
-        }
-
-        void SaveTemplateContent(Boolean isNew)
-        {
             // 数据放在扩展里面
             String content = (String)Extends["Content"];
 
             // 如果扩展里面的内容跟最后内容不一致，则更新
-            if (isNew || Dirtys["Content"] && (LastTemplateContent == null || "" + content != "" + LastTemplateContent.Content))
+            if (Dirtys["Content"] && (LastTemplateContent == null || "" + content != "" + LastTemplateContent.Content))
             {
                 TemplateContent tc = new TemplateContent();
                 tc.TemplateItemID = ID;
                 tc.Content = content;
                 tc.Insert();
             }
+
+            return base.OnUpdate();
         }
 
-        ///// <summary>
-        ///// 验证数据，通过抛出异常的方式提示验证失败。
-        ///// </summary>
-        ///// <param name="isNew"></param>
-        //public override void Valid(Boolean isNew)
-        //{
-        //    // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
-        //    base.Valid(isNew);
+        /// <summary>
+        /// 验证数据，通过抛出异常的方式提示验证失败。
+        /// </summary>
+        /// <param name="isNew"></param>
+        public override void Valid(Boolean isNew)
+        {
+            // 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框
+            if (String.IsNullOrEmpty(_.Name)) throw new ArgumentNullException(_.Name, _.Name.Description + "无效！");
+            if (!isNew && ID < 1) throw new ArgumentOutOfRangeException(_.ID, _.ID.Description + "必须大于0！");
 
-        //    // 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框
-        //    if (String.IsNullOrEmpty(_.Name)) throw new ArgumentNullException(_.Name, _.Name.Description + "无效！");
-        //    if (!isNew && ID < 1) throw new ArgumentOutOfRangeException(_.ID, _.ID.Description + "必须大于0！");
+            // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
+            base.Valid(isNew);
 
-        //    // 在新插入数据或者修改了指定字段时进行唯一性验证，CheckExist内部抛出参数异常
-        //    if (isNew || Dirtys[_.Name]) CheckExist(_.Name);
-        //    if (isNew || Dirtys[_.Name] || Dirtys[_.DbType]) CheckExist(_.Name, _.DbType);
-        //    if ((isNew || Dirtys[_.Name]) && Exist(_.Name)) throw new ArgumentException(_.Name, "值为" + Name + "的" + _.Name.Description + "已存在！");
-        //}
+            if (!Dirtys[_.Kind]) Kind = "XTemplate";
+        }
 
         /// <summary>
         /// 已重载。删除关联数据

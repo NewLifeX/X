@@ -5,24 +5,12 @@
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
     <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
         <tr>
-            <th colspan="2">
-                模版项
-            </th>
-        </tr>
-        <tr>
-            <td align="right">
+            <td style="width: 50%;">
                 模版：
-            </td>
-            <td>
-                <%--<XCL:NumberBox ID="frmTemplateID" runat="server" Width="80px"></XCL:NumberBox>--%>
                 <asp:Label ID="frmTemplateName" runat="server" />
             </td>
-        </tr>
-        <tr>
-            <td align="right">
-                模版项名称：
-            </td>
             <td>
+                模版项名称：
                 <asp:TextBox ID="frmName" runat="server" Width="150px"></asp:TextBox>
                 &nbsp;版本：<asp:Label ID="frmVersion" runat="server" Font-Bold="true" ForeColor="Red" />
             </td>
@@ -36,19 +24,16 @@
             </td>
         </tr>--%>
         <tr>
-            <td align="right">
-                备注：
-            </td>
-            <td>
-                <asp:TextBox ID="frmRemark" runat="server" TextMode="MultiLine" Width="300px" Height="80px"></asp:TextBox>
+            <td colspan="2">
+                <asp:TextBox ID="frmContent" runat="server" TextMode="MultiLine" Width="780px" Height="480px"></asp:TextBox>
             </td>
         </tr>
         <tr>
             <td align="right">
-                模版内容：
+                备注：
+                <asp:TextBox ID="frmRemark" runat="server" TextMode="MultiLine" Width="300px" Height="80px"></asp:TextBox>
             </td>
             <td>
-                <asp:TextBox ID="frmContent" runat="server" TextMode="MultiLine" Width="300px" Height="300px"></asp:TextBox>
             </td>
         </tr>
     </table>

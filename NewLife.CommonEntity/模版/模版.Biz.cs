@@ -9,6 +9,10 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using XCode;
 using XCode.DataAccessLayer;
+using System.Reflection;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 namespace NewLife.CommonEntity
 {
@@ -114,34 +118,12 @@ namespace NewLife.CommonEntity
         //}
 
         /// <summary>
-        /// 已重载。记录默认作者
-        /// </summary>
-        /// <param name="forEdit"></param>
-        /// <returns></returns>
-        protected override TEntity CreateInstance(bool forEdit = false)
-        {
-            TEntity entity = base.CreateInstance(forEdit);
-
-            if (forEdit)
-            {
-                // 获取当前登录用户
-                IManageUser user = CommonService.Resolve<IManageProvider>().Current;
-                if (user != null)
-                {
-                    if (user.ID is Int32) entity.UserID = (Int32)user.ID;
-                    entity.UserName = user.ToString();
-                }
-            }
-            return entity;
-        }
-
-        /// <summary>
         /// 验证数据，通过抛出异常的方式提示验证失败。
         /// </summary>
         /// <param name="isNew"></param>
         public override void Valid(Boolean isNew)
         {
-            //if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(_.Name, _.Name.Description + "不能为空！");
+            if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(_.Name, _.Name.Description + "不能为空！");
 
             // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
             base.Valid(isNew);
@@ -150,6 +132,14 @@ namespace NewLife.CommonEntity
                 CreateTime = DateTime.Now;
             else if (!isNew && !Dirtys[_.LastModify])
                 LastModify = DateTime.Now;
+
+            // 获取当前登录用户
+            IManageUser user = CommonService.Resolve<IManageProvider>().Current;
+            if (user != null && !Dirtys[_.UserID] && !Dirtys[_.UserName])
+            {
+                if (user.ID is Int32) UserID = (Int32)user.ID;
+                 UserName = user.ToString();
+            }
         }
 
         /// <summary>
@@ -159,6 +149,7 @@ namespace NewLife.CommonEntity
         protected override int OnDelete()
         {
             if (TemplateItems != null) TemplateItems.Delete();
+            if (Childs != null) Childs.Delete();
 
             return base.OnDelete();
         }
@@ -247,6 +238,91 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
+        #endregion
+
+        #region 检查并导入模版
+        /// <summary>检查并导入模版</summary>
+        /// <param name="pid">目标</param>
+        /// <param name="asm"></param>
+        /// <param name="prefix"></param>
+        public static void ImportFromAssembly(Int32 pid, Assembly asm, String prefix)
+        {
+            Meta.BeginTrans();
+            try
+            {
+                // 默认导入到全局中
+                TEntity parent = FindByID(pid);
+                if (parent == null)
+                {
+                    parent = new TEntity();
+                    parent.Name = "全局";
+                    parent.Save();
+                }
+
+                // 内置模版进入字典
+                Dictionary<String, List<String>> dic = new Dictionary<String, List<String>>();
+                if (asm == null) asm = Assembly.GetCallingAssembly();
+                foreach (String item in asm.GetManifestResourceNames())
+                {
+                    String name = item;
+                    // 去掉前缀，注意点号
+                    if (!name.StartsWith(prefix)) continue;
+                    name = name.Substring(prefix.Length + 1);
+
+                    Int32 p = name.IndexOf(".");
+                    String path = name.Substring(0, p);
+                    name = name.Substring(p + 1);
+
+                    List<String> list = null;
+                    if (!dic.TryGetValue(path, out list))
+                    {
+                        list = new List<string>();
+                        dic.Add(path, list);
+                    }
+
+                    list.Add(name);
+                }
+
+                // 开始处理模版
+                foreach (String path in dic.Keys)
+                {
+                    List<String> list = dic[path];
+
+                    TEntity entity = FindByParentIDAndName(parent.ID, path);
+                    if (entity == null)
+                    {
+                        entity = new TEntity();
+                        entity.Name = path;
+                        entity.ParentID = parent.ID;
+                        entity.Save();
+                    }
+
+                    // 读出模版，添加模版项
+                    foreach (String name in list)
+                    {
+                        TemplateItem ti = TemplateItem.FindByTemplateIDAndName(entity.ID, name);
+                        if (ti != null) continue;
+
+                        Stream stream = asm.GetManifestResourceStream(String.Format("{0}.{1}.{2}", prefix, path, name));
+                        Byte[] bts = new Byte[stream.Length];
+                        stream.Read(bts, 0, bts.Length);
+
+                        ti = new TemplateItem();
+                        ti.TemplateID = entity.ID;
+                        ti.Name = name;
+                        ti["Content"] = Encoding.UTF8.GetString(bts);
+                        ti.Save();
+                    }
+                }
+
+                Meta.Commit();
+            }
+            catch
+            {
+                Meta.Rollback();
+                throw;
+            }
+        }
         #endregion
     }
 }
