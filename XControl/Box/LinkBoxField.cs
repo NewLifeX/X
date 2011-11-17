@@ -305,6 +305,8 @@ AfterClose:function(){{GridViewExtender.HighlightRow(ele,'{0}',false);}},
     return false;
 }}
 ", jsFuncName, showJs, moreJs, XTrace.Debug ? "alert(ex);" : ""), true);
+
+                LinkBox.RegisterReloadFormJs(Control.Page.ClientScript, Control.Page.IsPostBack);
             }
 
             OnClientClick = Helper.HTMLPropertyEscape(@"return {0}(this,event,'{1}','{2}',{3},'{4}','{5}',{6});",

@@ -185,6 +185,8 @@ namespace XControl
             sb.AppendFormat("ShowButtonRow:{0}", ShowButtonRow.ToString().ToLower());
 
             OnClientClick = "ShowDialog({" + sb.ToString() + "}); return false;";
+
+            RegisterReloadFormJs(Page.ClientScript, Page.IsPostBack);
         }
 
         /// <summary>
@@ -209,6 +211,42 @@ namespace XControl
             if (!String.IsNullOrEmpty(IconLeft)) writer.Write("<img src=\"{0}\" style=\"border:none;\" />", ResolveUrl(IconLeft));
             base.RenderContents(writer);
             if (!String.IsNullOrEmpty(IconRight)) writer.Write("<img src=\"{0}\" style=\"border:none;\" />", ResolveUrl(IconRight));
+        }
+        /// <summary>
+        /// 返回默认的reloadForm实现,配合Box.js中的Dialog.CloseAndRefresh
+        /// </summary>
+        /// <returns></returns>
+        public static bool RegisterReloadFormJs(ClientScriptManager script, bool isPostback)
+        {
+            if (!script.IsClientScriptBlockRegistered(typeof(LinkBox), "ReloadFormJs"))
+            {
+                script.RegisterClientScriptBlock(typeof(LinkBox), "ReloadFormJs", Helper.JsMinSimple(!XControlConfig.Debug, @"
+function reloadForm(){
+    if(!" + (""+isPostback).ToLower() + @"){
+        location.reload();
+        return true;
+    }
+    var buttons = document.getElementsByTagName('input');
+    for(var i=0;i<buttons.length;i++){
+        var ele = buttons[i];
+        if((ele.type === 'submit' || ele.type === 'button') && ele.value === '查询'){
+            if(ele.click){
+                ele.click();
+            }else if(document.createEvent && ele.dispatchEvent){
+                var event = document.createEvent('MouseEvent');
+                event.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                ele.dispatchEvent(event);
+            }else{
+                break;
+            }
+            return true;
+        }
+    }
+    return false;
+}"), true);
+                return true;
+            }
+            return false;
         }
     }
 }

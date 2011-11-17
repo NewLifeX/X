@@ -659,9 +659,9 @@ Dialog.CloseAndRefresh = function (frameElement) {
         Dialog.CloseSelfDialog(frameElement);
         //window.frames["main"].location.reload()
         // 大石头 刷新本页面
-        if(window.reloadForm){
-            reloadForm();
-        } else if(window.__doPostBack){
+        if(window.reloadForm && reloadForm()){
+            return;
+        } else if(window.__doPostBack && !window.DisableDoPostBack){ // 如果DisableDoPostBack=true表示禁用了__doPostBack方式的刷新
             __doPostBack();
         } else {
             location.reload();
