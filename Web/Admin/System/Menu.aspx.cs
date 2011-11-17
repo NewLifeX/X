@@ -8,6 +8,9 @@ using Menu = NewLife.CommonEntity.Menu;
 
 public partial class Pages_Menu : MyEntityList
 {
+    /// <summary>实体类型</summary>
+    public override Type EntityType { get { return CommonManageProvider.Provider.MenuType; } set { base.EntityType = value; } }
+
     protected void Page_Load(object sender, EventArgs e)
     {
         //if (!IsPostBack)

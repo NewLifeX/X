@@ -410,7 +410,8 @@ namespace XCode.Accessors
             if (control.Items.Count < 1 || !String.IsNullOrEmpty(control.DataSourceID))
             {
                 control.DataBind();
-                control.AppendDataBoundItems = false;
+                // 这个赋值会影响RequiresDataBinding，而RequiresDataBinding会导致列表控件在OnPreRender阶段重新绑定，造成当前设定的值丢失。
+                //control.AppendDataBoundItems = false;
             }
             if (control.Items.Count < 1) return;
 

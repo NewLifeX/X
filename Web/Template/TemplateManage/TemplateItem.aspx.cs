@@ -30,7 +30,12 @@ public partial class Common_TemplateItem : MyEntityList
                 if (entity == null)
                     WebHelper.AlertAndEnd("非法参数！");
                 else
+                {
                     lbAdd.Url += "?TemplateID=" + TemplateID;
+
+                    lnkReturn.Text = lnkReturn.ToolTip = String.Format("返回模版管理【{0}】", entity.Name);
+                    lnkReturn.Visible = true;
+                }
             }
             else
                 lbAdd.Visible = false;

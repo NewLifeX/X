@@ -22,12 +22,7 @@
                 <HeaderStyle Width="40px" />
                 <ItemStyle CssClass="key" HorizontalAlign="Center" />
             </asp:BoundField>
-            <asp:TemplateField HeaderText="名称" SortExpression="Name">
-                <ItemTemplate>
-                    <%# new String('　', (Convert.ToInt32(Eval("Deepth"))-1)*2)%><asp:Label ID="Label1"
-                        runat="server" Text='<%# Eval("Name") %>'></asp:Label>
-                </ItemTemplate>
-            </asp:TemplateField>
+            <asp:BoundField DataField="TreeNodeName" HeaderText="名称" SortExpression="Name" />
             <asp:BoundField DataField="Url" HeaderText="链接" SortExpression="Url" />
             <asp:BoundField DataField="ParentMenuName" HeaderText="父菜单" SortExpression="ParentID" />
             <asp:BoundField DataField="Sort" HeaderText="序号" SortExpression="Sort" />
@@ -73,9 +68,8 @@
             没有符合条件的数据！
         </EmptyDataTemplate>
     </asp:GridView>
-    <asp:ObjectDataSource ID="ods" runat="server" DataObjectTypeName="NewLife.CommonEntity.Menu"
-        DeleteMethod="Delete" OldValuesParameterFormatString="original_{0}" SelectMethod="FindAllChildsByParent"
-        TypeName="NewLife.CommonEntity.Menu" EnableViewState="False">
+    <asp:ObjectDataSource ID="ods" runat="server" DeleteMethod="Delete" SelectMethod="FindAllChildsNoParent"
+        EnableViewState="False">
         <SelectParameters>
             <asp:Parameter DefaultValue="0" Name="parentKey" Type="Object" />
         </SelectParameters>

@@ -25,7 +25,7 @@ namespace NewLife.CommonEntity
     [BindIndex("PK__Template__3214EC271BFD2C07", true, "ID")]
     [BindRelation("ID", true, "TemplateContent", "TemplateItemID")]
     [BindRelation("TemplateID", false, "Template", "ID")]
-    [BindTable("TemplateItem", Description = "模版项", ConnName = "Common", DbType = DatabaseType.SqlServer)]
+    [BindTable("TemplateItem", Description = "模版项", ConnName = "Template", DbType = DatabaseType.SqlServer)]
     public partial class TemplateItem<TEntity> : ITemplateItem
     {
         #region 属性

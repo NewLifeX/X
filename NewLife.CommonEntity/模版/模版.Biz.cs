@@ -8,6 +8,7 @@
 using System.ComponentModel;
 using System.Xml.Serialization;
 using XCode;
+using XCode.DataAccessLayer;
 
 namespace NewLife.CommonEntity
 {
@@ -83,6 +84,17 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 对象操作﻿
+        static Template()
+        {
+            // 检查并增加连接
+            if (!DAL.ConnStrs.ContainsKey(Meta.ConnName))
+            {
+                String path = Runtime.IsWeb ? @"~\App_Data\" : @"Data\";
+                // 默认使用SQLite数据库
+                DAL.AddConnStr(Meta.ConnName, String.Format("Data Source={0}{1}.db", path, Meta.ConnName), null, "SQLite");
+            }
+        }
+
         ///// <summary>
         ///// 已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert
         ///// </summary>
@@ -159,22 +171,22 @@ namespace NewLife.CommonEntity
         //{
         //    base.InitData();
 
-        //    // InitData一般用于当数据表没有数据时添加一些默认数据，该实体类的任何第一次数据库操作都会触发该方法，默认异步调用
-        //    // Meta.Count是快速取得表记录数
-        //    if (Meta.Count > 0) return;
+        //    //// InitData一般用于当数据表没有数据时添加一些默认数据，该实体类的任何第一次数据库操作都会触发该方法，默认异步调用
+        //    //// Meta.Count是快速取得表记录数
+        //    //if (Meta.Count > 0) return;
 
-        //    // 需要注意的是，如果该方法调用了其它实体类的首次数据库操作，目标实体类的数据初始化将会在同一个线程完成
-        //    if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}模版数据……", typeof(TEntity).Name);
+        //    //// 需要注意的是，如果该方法调用了其它实体类的首次数据库操作，目标实体类的数据初始化将会在同一个线程完成
+        //    //if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}模版数据……", typeof(TEntity).Name);
 
-        //    TEntity user = new TEntity();
-        //    user.Name = "admin";
-        //    user.Password = DataHelper.Hash("admin");
-        //    user.DisplayName = "管理员";
-        //    user.RoleID = 1;
-        //    user.IsEnable = true;
-        //    user.Insert();
+        //    //TEntity user = new TEntity();
+        //    //user.Name = "admin";
+        //    //user.Password = DataHelper.Hash("admin");
+        //    //user.DisplayName = "管理员";
+        //    //user.RoleID = 1;
+        //    //user.IsEnable = true;
+        //    //user.Insert();
 
-        //    if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}模版数据！", typeof(TEntity).Name);
+        //    //if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}模版数据！", typeof(TEntity).Name);
         //}
         #endregion
 

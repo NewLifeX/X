@@ -12,11 +12,19 @@ using XCode.Exceptions;
 
 namespace NewLife.CommonEntity.Web
 {
-    /// <summary>第二代实体表单</summary>
+    /// <summary>第二代实体表单，在Page_Load之前给表单控件赋值，在Page_Load之后从表单控件取值并保存</summary>
     /// <remarks>
-    /// 作为第二代实体表单，必须解决几个问题：
-    /// 1，不能使用泛型；
-    /// 2，不能占用页面基类；
+    /// 在PreLoad阶段处理表单，SetForm把实体对象的字段数据设置到表单控件上，GetForm把表单控件的数据取回到实体字段中。
+    /// 之所以选择PreLoad阶段，是因为这是在Page_Load之前最早能拿到Request等数据的阶段，这样子使用者就可以在Page_Load中处理已经赋值完成的表单。
+    /// 保存表单时，PreLoad阶段仅仅是给保存按钮设置点击事件，真正的保存动作在点击事件里面，因为在保存表单之前，使用者可能在Page_Load里面对控件进行处理。
+    /// 所以，在Page_Load之前给表单控件赋值，在Page_Load之后从表单控件取值并保存。
+    /// 
+    /// 另外，DropDownList等数据绑定控件绑定ObjectDataSource时，会在OnPreRender阶段执行绑定，其中的开关是RequiresDataBinding。
+    /// 绑定方法DataBind会导致RequiresDataBinding=false，这样子人工DataBind之后，控件就不会在OnPreRender阶段自动绑定了。
+    /// 实体表单在SetForm时有个机制，如果遇到数据绑定的列表控件，会调用一次DataBind，取得列表值，然后再赋值，本以为这样子可以避免OnPreRender阶段的自动绑定。
+    /// 经查实，数据绑定控件会在PreLoad时间里面检查页面，如果页面不是回发或者关闭了ViewState，都会导致RequiresDataBinding=true。
+    /// 数据绑定控件在OnInit阶段绑定PreLoad事件，而EntityForm在OnPreInit阶段绑定，比数据绑定控件更早，导致了EntityForm的PreLoad先执行，先DataBind，而后控件还是会设置RequiresDataBinding=true。
+    /// 因此，EntityForm调整为在InitComplete阶段绑定PreLoad事件。
     /// </remarks>
     public class EntityForm2 : IEntityForm
     {
@@ -262,8 +270,14 @@ namespace NewLife.CommonEntity.Web
             if (hasInit) return;
             hasInit = true;
 
-            Page.PreLoad += new EventHandler(OnPreLoad);
+            Page.InitComplete += new EventHandler(Page_InitComplete);
+            //Page.PreLoad += new EventHandler(OnPreLoad);
             Page.LoadComplete += new EventHandler(OnLoadComplete);
+        }
+
+        void Page_InitComplete(object sender, EventArgs e)
+        {
+            Page.PreLoad += new EventHandler(OnPreLoad);
         }
 
         void OnPreLoad(object sender, EventArgs e)

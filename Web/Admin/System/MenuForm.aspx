@@ -29,9 +29,14 @@
                 上级：
             </td>
             <td width="65%">
-                <XCL:DropDownList ID="frmParentID" runat="server" DataTextField="Title" DataValueField="ID"
-                    AppendDataBoundItems="True">
+                <XCL:DropDownList ID="frmParentID" runat="server" DataTextField="TreeNodeName2" DataValueField="ID"
+                    AppendDataBoundItems="True" DataSourceID="ods">
                 </XCL:DropDownList>
+                <asp:ObjectDataSource ID="ods" runat="server" SelectMethod="FindAllChildsByParent">
+                    <SelectParameters>
+                        <asp:Parameter DefaultValue="0" Name="parentKey" Type="Int32" />
+                    </SelectParameters>
+                </asp:ObjectDataSource>
             </td>
         </tr>
         <tr>

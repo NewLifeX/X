@@ -3,6 +3,8 @@
 
 <asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
     <div class="toolbar">
+        <asp:HyperLink ID="lnkReturn" runat="server" Visible="False" ImageUrl="~/Admin/images/icons/back.gif"
+            NavigateUrl="Template.aspx">返回</asp:HyperLink>&nbsp;
         <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="600px" BoxWidth="440px" Url="TemplateItemForm.aspx"
             IconLeft="~/Admin/images/icons/new.gif"><b>添加模版项</b></XCL:LinkBox>
         关键字：<asp:TextBox ID="txtKey" runat="server"></asp:TextBox>
@@ -47,8 +49,7 @@
         </EmptyDataTemplate>
     </asp:GridView>
     <asp:ObjectDataSource ID="ods" runat="server" EnablePaging="True" SelectCountMethod="SearchCount"
-        SelectMethod="Search" SortParameterName="orderClause" 
-        onselecting="ods_Selecting">
+        SelectMethod="Search" SortParameterName="orderClause" OnSelecting="ods_Selecting">
         <SelectParameters>
             <asp:Parameter Name="templateid" Type="Int32" />
             <asp:ControlParameter ControlID="txtKey" Name="key" PropertyName="Text" Type="String" />
