@@ -8,7 +8,7 @@ public partial class Center_Default : System.Web.UI.Page
 {
     protected override void OnPreLoad(EventArgs e)
     {
-        PageBase.CheckStarting();
+        //PageBase.CheckStarting();
 
         base.OnPreLoad(e);
 

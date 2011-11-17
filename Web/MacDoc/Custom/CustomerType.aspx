@@ -16,12 +16,7 @@
                     <HeaderStyle Width="40px" />
                     <ItemStyle CssClass="key" HorizontalAlign="Center" />
                 </asp:BoundField>
-                <asp:TemplateField HeaderText="名称" SortExpression="Name">
-                    <ItemTemplate>
-                        <%# new String('　', (Convert.ToInt32(Eval("Deepth"))-1)*2)%><asp:Label ID="Label1"
-                            runat="server" Text='<%# Eval("Name") %>'></asp:Label>
-                    </ItemTemplate>
-                </asp:TemplateField>
+            <asp:BoundField DataField="TreeNodeName" HeaderText="名称" SortExpression="Name" />
                 <asp:BoundField DataField="ParentName" HeaderText="父类型" SortExpression="ParentID" />
                 <asp:BoundField DataField="AddTime" HeaderText="添加时间" SortExpression="AddTime" />
                 <asp:BoundField DataField="Operator2" HeaderText="添加人" SortExpression="Operator2" />
@@ -43,7 +38,7 @@
             </EmptyDataTemplate>
         </asp:GridView>
         <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" DataObjectTypeName="NewLife.YWS.Entities.CustomerType"
-            DeleteMethod="Delete" OldValuesParameterFormatString="original_{0}" SelectMethod="FindAllChildsByParent"
+            DeleteMethod="Delete" OldValuesParameterFormatString="original_{0}" SelectMethod="FindAllChildsNoParent"
             TypeName="NewLife.YWS.Entities.CustomerType">
             <SelectParameters>
                 <asp:Parameter DefaultValue="0" Name="parentKey" Type="Object" />
