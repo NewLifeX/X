@@ -1,7 +1,7 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="RoleMenu.aspx.cs" Inherits="Pages_RoleMenu"
-    Title="权限管理" MasterPageFile="~/Admin/MasterPage.master" MaintainScrollPositionOnPostback="true" %>
+    Title="权限管理" MasterPageFile="~/Admin/ManagerPage.master" MaintainScrollPositionOnPostback="true" %>
 
-<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+<asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">
         &nbsp;角色：<asp:DropDownList ID="DropDownList1" runat="server" DataSourceID="ObjectDataSource2"
             DataTextField="Name" DataValueField="ID" OnSelectedIndexChanged="DropDownList1_SelectedIndexChanged"
@@ -10,8 +10,7 @@
     </div>
     <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" DataKeyNames="ID"
         CssClass="m_table" CellPadding="0" GridLines="None" PageSize="15" EnableModelValidation="True"
-        DataSourceID="ObjectDataSource1" OnRowDataBound="GridView1_RowDataBound" 
-        EnableViewState="False">
+        DataSourceID="ObjectDataSource1" OnRowDataBound="GridView1_RowDataBound" EnableViewState="False">
         <Columns>
             <asp:BoundField DataField="ID" HeaderText="编号" InsertVisible="False" ReadOnly="True"
                 SortExpression="ID">
@@ -44,16 +43,12 @@
             没有符合条件的数据！
         </EmptyDataTemplate>
     </asp:GridView>
-    <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" DataObjectTypeName="NewLife.CommonEntity.Menu"
-        DeleteMethod="Delete" OldValuesParameterFormatString="original_{0}" SelectMethod="FindAllChildsByParent"
-        TypeName="NewLife.CommonEntity.Menu">
+    <asp:ObjectDataSource ID="ObjectDataSource1" runat="server" SelectMethod="FindAllChildsNoParent">
         <SelectParameters>
             <asp:Parameter DefaultValue="0" Name="parentKey" Type="Object" />
         </SelectParameters>
     </asp:ObjectDataSource>
-    <asp:ObjectDataSource ID="ObjectDataSource2" runat="server" OldValuesParameterFormatString="original_{0}"
-        SelectMethod="FindAllByName" TypeName="NewLife.CommonEntity.Role" DataObjectTypeName="NewLife.CommonEntity.Role"
-        DeleteMethod="Delete" InsertMethod="Insert" UpdateMethod="Update">
+    <asp:ObjectDataSource ID="ObjectDataSource2" runat="server" SelectMethod="FindAllByName">
         <SelectParameters>
             <asp:Parameter Name="name" Type="String" />
             <asp:Parameter Name="value" Type="Object" />

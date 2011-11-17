@@ -1,7 +1,7 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Log.aspx.cs" Inherits="Pages_Log"
-    Title="日志查看" MasterPageFile="~/Admin/MasterPage.master" EnableEventValidation="false" %>
+    Title="日志查看" MasterPageFile="~/Admin/ManagerPage.master" EnableEventValidation="false" %>
 
-<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+<asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">
         类别：<asp:DropDownList ID="DropDownList1" runat="server" AppendDataBoundItems="True"
             DataSourceID="ObjectDataSource3" DataTextField="Category" DataValueField="Category">

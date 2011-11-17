@@ -1,7 +1,7 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="CustomerType.aspx.cs" Inherits="Pages_CustomerType"
-    MasterPageFile="~/Admin/MasterPage.master" Title="客户类型管理" %>
+    MasterPageFile="~/Admin/ManagerPage.master" Title="客户类型管理" %>
 
-<asp:Content ID="content1" runat="server" ContentPlaceHolderID="ContentPlaceHolder1">
+<asp:Content ID="content1" runat="server" ContentPlaceHolderID="C">
     <div>
         <div class="toolbar">
             <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="370px" BoxWidth="440px" Url="CustomerTypeForm.aspx"

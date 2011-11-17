@@ -1,7 +1,7 @@
 ﻿
-<%@ Page Language="C#" MasterPageFile="~/Admin/MasterPage.master" AutoEventWireup="true" CodeFile="CustomerTypeForm.aspx.cs" Inherits="CustomerTypeForm" %>
+<%@ Page Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="CustomerTypeForm.aspx.cs" Inherits="CustomerTypeForm" %>
 
-<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+<asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
         <tr>
             <th colspan="2">客户类型</th>

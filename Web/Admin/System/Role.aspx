@@ -1,7 +1,7 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Role.aspx.cs" Inherits="Pages_Role"
-    MasterPageFile="~/Admin/MasterPage.master" Title="角色管理" MaintainScrollPositionOnPostback="true" EnableViewState="false" EnableEventValidation="false" %>
+    MasterPageFile="~/Admin/ManagerPage.master" Title="角色管理" MaintainScrollPositionOnPostback="true" EnableViewState="false" EnableEventValidation="false" %>
 
-<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+<asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">
         角色名称：
         <asp:TextBox ID="TextBox_Name" runat="server" CssClass="textfield"></asp:TextBox>

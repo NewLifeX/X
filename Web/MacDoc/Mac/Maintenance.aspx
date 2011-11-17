@@ -1,7 +1,7 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Maintenance.aspx.cs" Inherits="Pages_Maintenance"
-    Title="维修保养记录" MasterPageFile="~/Admin/MasterPage.master" %>
+    Title="维修保养记录" MasterPageFile="~/Admin/ManagerPage.master" %>
 
-<asp:Content ContentPlaceHolderID="ContentPlaceHolder1" runat="server" ID="content1">
+<asp:Content ContentPlaceHolderID="C" runat="server" ID="content1">
     <div>
         <div class="toolbar">
             <XCL:LinkBox ID="Button2" runat="server" Url="MaintenanceForm.aspx" IconLeft="~/Admin/images/icons/new.gif"

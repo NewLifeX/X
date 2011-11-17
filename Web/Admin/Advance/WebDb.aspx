@@ -1,7 +1,7 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="WebDb.aspx.cs" Inherits="Admin_System_WebDb"
-    Title="网站数据库" MasterPageFile="~/Admin/MasterPage.master" EnableEventValidation="false" %>
+    Title="网站数据库" MasterPageFile="~/Admin/ManagerPage.master" EnableEventValidation="false" %>
 
-<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+<asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">
         数据库链接：<asp:DropDownList ID="ddlConn" runat="server" AutoPostBack="True" OnSelectedIndexChanged="ddlConn_SelectedIndexChanged">
         </asp:DropDownList>

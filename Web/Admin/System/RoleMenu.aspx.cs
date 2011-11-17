@@ -10,12 +10,20 @@ using Menu = NewLife.CommonEntity.Menu;
 
 public partial class Pages_RoleMenu : MyEntityList
 {
+    protected override void OnInit(EventArgs e)
+    {
+        base.OnInit(e);
+
+        ObjectDataSource1.DataObjectTypeName = ObjectDataSource1.TypeName = CommonManageProvider.Provider.MenuType.FullName;
+        ObjectDataSource2.DataObjectTypeName = ObjectDataSource2.TypeName = CommonManageProvider.Provider.RoleType.FullName;
+    }
+
     protected void Page_Load(object sender, EventArgs e)
     {
-        if (!IsPostBack)
-        {
-            DropDownList1.DataBind();
-        }
+        //if (!IsPostBack)
+        //{
+        //    DropDownList1.DataBind();
+        //}
     }
 
     public Int32 RoleID

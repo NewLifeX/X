@@ -1,7 +1,7 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Record.aspx.cs" Inherits="Pages_Record"
-    Title="交易管理" MasterPageFile="~/Admin/MasterPage.master" %>
+    Title="交易管理" MasterPageFile="~/Admin/ManagerPage.master" %>
 
-<asp:Content ID="content1" runat="server" ContentPlaceHolderID="ContentPlaceHolder1">
+<asp:Content ID="content1" runat="server" ContentPlaceHolderID="C">
     <div>
         <div class="toolbar">
             <XCL:LinkBox ID="Button2" runat="server" Url="RecordForm.aspx" IconLeft="~/Admin/images/icons/new.gif"

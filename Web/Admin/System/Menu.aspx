@@ -1,8 +1,8 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Menu.aspx.cs" Inherits="Pages_Menu"
-    MasterPageFile="~/Admin/MasterPage.master" Title="菜单管理" MaintainScrollPositionOnPostback="true"
+    MasterPageFile="~/Admin/ManagerPage.master" Title="菜单管理" MaintainScrollPositionOnPostback="true"
     EnableViewState="false" EnableEventValidation="false" %>
 
-<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+<asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">
         <XCL:LinkBox ID="lbAdd" runat="server" BoxHeight="400px" BoxWidth="370px" Url="MenuForm.aspx"
             IconLeft="~/Admin/images/icons/new.gif" EnableViewState="False"><b>添加菜单</b></XCL:LinkBox>
@@ -60,7 +60,6 @@
                     <asp:LinkButton ID="LinkButton1" runat="server" CausesValidation="False" CommandName="Delete"
                         OnClientClick="return confirm('确定删除？');" Text="删除"></asp:LinkButton>
                 </ItemTemplate>
-                <ItemStyle HorizontalAlign="Center" VerticalAlign="Middle" Width="60px" />
             </asp:TemplateField>
             <asp:CheckBoxField />
         </Columns>

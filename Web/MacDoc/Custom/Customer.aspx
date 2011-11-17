@@ -1,7 +1,7 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Customer.aspx.cs" Inherits="MacDoc_Customer"
-    MasterPageFile="~/Admin/MasterPage.master" Title="客户管理" %>
+    MasterPageFile="~/Admin/ManagerPage.master" Title="客户管理" %>
 
-<asp:Content ID="content1" runat="server" ContentPlaceHolderID="ContentPlaceHolder1">
+<asp:Content ID="content1" runat="server" ContentPlaceHolderID="C">
     <div>
         <div class="toolbar">
             <XCL:LinkBox ID="Button2" runat="server" Url="CustomerForm.aspx" IconLeft="~/Admin/images/icons/new.gif"

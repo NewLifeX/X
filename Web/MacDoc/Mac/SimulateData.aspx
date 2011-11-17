@@ -1,7 +1,7 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="SimulateData.aspx.cs" Inherits="Admin_Center_SimulateData"
-    Title="数据模拟" MasterPageFile="~/Admin/MasterPage.master" %>
+    Title="数据模拟" MasterPageFile="~/Admin/ManagerPage.master" %>
 
-<asp:Content ID="content1" runat="server" ContentPlaceHolderID="ContentPlaceHolder1">
+<asp:Content ID="content1" runat="server" ContentPlaceHolderID="C">
     <div>
         <div class="toolbar">
         <asp:Button ID="Button5" runat="server" onclick="Button5_Click" 

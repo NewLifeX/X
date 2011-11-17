@@ -1,7 +1,7 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="FeedliquorForm.aspx.cs" Inherits="Pages_FeedliquorForm"
-    Title="液料规格" MasterPageFile="~/Admin/MasterPage.master" ValidateRequest="false" %>
+    Title="液料规格" MasterPageFile="~/Admin/ManagerPage.master" ValidateRequest="false" %>
 
-<asp:Content ID="content1" runat="server" ContentPlaceHolderID="ContentPlaceHolder1">
+<asp:Content ID="content1" runat="server" ContentPlaceHolderID="C">
     <div>
         <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
             <tr>

@@ -1,7 +1,7 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="WebLog.aspx.cs" Inherits="Admin_System_WebLog"
-    Title="网站日志" MasterPageFile="~/Admin/MasterPage.master" EnableEventValidation="false" %>
+    Title="网站日志" MasterPageFile="~/Admin/ManagerPage.master" EnableEventValidation="false" %>
 
-<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+<asp:Content ID="Content1" ContentPlaceHolderID="C" runat="server">
     <div class="toolbar">
         日志文件：
         <asp:DropDownList ID="DropDownList1" runat="server">
