@@ -13,7 +13,7 @@ namespace NewLife.YWS.Entities
     [BindIndex("IX_Administrator_Name", true, "Name")]
     [BindIndex("IX_Administrator_RoleID", false, "RoleID")]
     [BindIndex("PK__Admin__3214EC277F60ED59", true, "ID")]
-    [BindTable("Admin", Description = "管理员", ConnName = "YWS", DbType = DatabaseType.SqlServer)]
+    [BindTable("Admin", Description = "管理员", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public class Admin : Administrator<Admin, Role, Menu, RoleMenu, NewLife.CommonEntity.Log>
     {
         private String _Phone;
