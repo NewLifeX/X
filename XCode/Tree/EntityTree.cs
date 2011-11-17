@@ -9,20 +9,15 @@ using NewLife.Reflection;
 
 namespace XCode
 {
-    /// <summary>
-    /// 主键为整型的实体树基类
-    /// </summary>
+    /// <summary>主键为整型的实体树基类</summary>
     /// <typeparam name="TEntity"></typeparam>
     public class EntityTree<TEntity> : EntityTree<Int32, TEntity> where TEntity : EntityTree<TEntity>, new()
     { }
 
-    /// <summary>
-    /// 实体树基类，具有树形结构的实体继承该类即可得到各种树操作功能
-    /// </summary>
+    /// <summary>实体树基类，具有树形结构的实体继承该类即可得到各种树操作功能</summary>
     /// <typeparam name="TKey">主键类型</typeparam>
     /// <typeparam name="TEntity">实体类型</typeparam>
-    public abstract class EntityTree<TKey, TEntity> : Entity<TEntity>, IEntityTree<TEntity>, IEntityTreeExtend<TEntity>
-        where TEntity : EntityTree<TKey, TEntity>, new()
+    public abstract class EntityTree<TKey, TEntity> : Entity<TEntity>, IEntityTree where TEntity : EntityTree<TKey, TEntity>, new()
     {
         #region 构造
         //static EntityTree()
@@ -31,7 +26,7 @@ namespace XCode
         //}
         #endregion
 
-        #region 扩展属性
+        #region 设置型属性
         /// <summary>关联键名称，一般是主键，如ID</summary>
         protected virtual String KeyName { get { return Meta.Unique.Name; } }
 
@@ -71,9 +66,11 @@ namespace XCode
             }
         }
 
-        /// <summary>名称键名，如Name</summary>
-        protected virtual String NameKeyName { get { return Meta.FieldNames.Contains("Name") ? "Name" : null; } }
+        /// <summary>名称键名，如Name，否则使用第二个字段</summary>
+        protected virtual String NameKeyName { get { return Meta.FieldNames.Contains("Name") ? "Name" : Meta.FieldNames[1]; } }
+        #endregion
 
+        #region 扩展属性
         /// <summary>排序值</summary>
         private Int32 Sort
         {
@@ -146,6 +143,16 @@ namespace XCode
             set { _Root = null; }
         }
 
+        /// <summary>树形节点名，根据深度带全角空格前缀</summary>
+        [XmlIgnore]
+        public virtual String TreeNodeName
+        {
+            get
+            {
+                String name = (String)this[NameKeyName];
+                return new String('　', (Deepth - 1) * 2) + name;
+            }
+        }
         /// <summary>斜杠分隔的全路径</summary>
         public String FullPath { get { return GetFullPath2(true); } }
 
@@ -177,9 +184,9 @@ namespace XCode
                         list.AddRange(noParents);
                 }
             }
-            if (list == null || list.Count < 1) return null;
+            if (list == null) return new EntityList<TEntity>();
+            if (list.Count < 1) return list;
 
-            //String sort = entity.SortingKeyName;
             if (!String.IsNullOrEmpty(entity.SortingKeyName))
             {
                 list.Sort(delegate(TEntity item1, TEntity item2)
@@ -249,10 +256,12 @@ namespace XCode
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        protected static EntityList<TEntity> FindAllChilds(IEntityTree<TEntity> entity)
+        protected static EntityList<TEntity> FindAllChilds(IEntityTree entity)
         {
-            //XTrace.WriteLine("FindAllChilds ", entity);
-            if (entity == null || entity.Childs == null || entity.Childs.Count < 1) return null;
+            if (entity == null) return new EntityList<TEntity>();
+            IEntityList childlist = entity.Childs;
+            if (childlist == null) return new EntityList<TEntity>();
+            if (childlist.Count < 1) return childlist as EntityList<TEntity>;
 
             EntityList<TEntity> list = new EntityList<TEntity>();
             // 使用队列而不使用递归，避免死循环
@@ -282,9 +291,8 @@ namespace XCode
             }
             // 去掉第一个，那是自身
             list.RemoveAt(0);
-            //XTrace.WriteLine("FindAllChilds Count={0}", list.Count);
 
-            return list.Count > 0 ? list : null;
+            return list;
         }
 
         /// <summary>
@@ -292,9 +300,9 @@ namespace XCode
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        protected static EntityList<TEntity> FindAllParents(IEntityTree<TEntity> entity)
+        protected static EntityList<TEntity> FindAllParents(IEntityTree entity)
         {
-            if (entity == null || entity.Parent == null) return null;
+            if (entity == null || entity.Parent == null) return new EntityList<TEntity>();
 
             EntityList<TEntity> list = new EntityList<TEntity>();
             TEntity item = entity as TEntity;
@@ -309,10 +317,9 @@ namespace XCode
             }
             // 去掉第一个自己
             list.RemoveAt(0);
-            if (list == null || list.Count < 1) return null;
 
             // 反转
-            list.Reverse();
+            if (list.Count > 0) list.Reverse();
 
             return list;
         }
@@ -349,7 +356,7 @@ namespace XCode
             get
             {
                 EntityList<TEntity> list = Childs;
-                if (list == null || list.Count < 1) return null;
+                if (list == null || list.Count < 1) return new List<TKey>();
 
                 return list.GetItem<TKey>(KeyName);
             }
@@ -383,7 +390,7 @@ namespace XCode
             get
             {
                 EntityList<TEntity> list = AllChilds;
-                if (list == null || list.Count < 1) return null;
+                if (list == null || list.Count < 1) return new List<TKey>();
 
                 return list.GetItem<TKey>(KeyName);
             }
@@ -710,6 +717,20 @@ namespace XCode
             Valid();
             return base.Update();
         }
+        #endregion
+
+        #region IEntityTree 成员
+        /// <summary>父实体</summary>
+        IEntity IEntityTree.Parent { get { return Parent; } }
+
+        /// <summary>子实体集合</summary>
+        IEntityList IEntityTree.Childs { get { return Childs; } }
+
+        /// <summary>子孙实体集合。以深度层次树结构输出</summary>
+        IEntityList IEntityTree.AllChilds { get { return AllChilds; } }
+
+        /// <summary>父亲实体集合。以深度层次树结构输出</summary>
+        IEntityList IEntityTree.AllParents { get { return AllParents; } }
         #endregion
     }
 }

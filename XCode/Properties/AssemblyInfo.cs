@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.3.*")]
-[assembly: AssemblyFileVersion("8.3.2011.1115")]
+[assembly: AssemblyFileVersion("8.3.2011.1117")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.3.2011.1117   修改EntityTree，增加FullPath、FullParentPath、TreeNodeName等属性
+ *                  重构IEntityTree接口
+ * 
  * v8.3.2011.1115   IDataTable和IDataColumn增加只读属性DisplayName，优先返回Description，然后才是Name
  *                  修正MSPageSplit中关于RowNumber和DoubleTop分页的错误
  * 

@@ -129,18 +129,21 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
 
             // ConnStrs对象不可能为null，但可能没有元素
-            if (ConnStrs.ContainsKey(connName)) return;
-            lock (ConnStrs)
-            {
-                if (ConnStrs.ContainsKey(connName)) return;
+            //if (ConnStrs.ContainsKey(connName)) return;
+            //lock (ConnStrs)
+            //{
+            //    if (ConnStrs.ContainsKey(connName)) return;
 
-                if (type == null) type = DbFactory.GetProviderType(connStr, provider);
-                if (type == null) throw new XCodeException("无法识别的提供者" + provider + "！");
+            if (type == null) type = DbFactory.GetProviderType(connStr, provider);
+            if (type == null) throw new XCodeException("无法识别的提供者" + provider + "！");
 
-                ConnectionStringSettings set = new ConnectionStringSettings(connName, connStr, provider);
-                ConnStrs.Add(connName, set);
-                _connTypes.Add(connName, type);
-            }
+            // 允许后来者覆盖前面设置过了的
+            ConnectionStringSettings set = new ConnectionStringSettings(connName, connStr, provider);
+            //ConnStrs.Add(connName, set);
+            //_connTypes.Add(connName, type);
+            ConnStrs[connName] = set;
+            _connTypes[connName] = type;
+            //}
         }
 
         /// <summary>获取所有已注册的连接名</summary>

@@ -64,19 +64,22 @@ namespace XCode.Configuration
                     BindTableAttribute table = Table;
                     String str = table != null ? table.Name : EntityType.Name;
 
-                    // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
-                    DAL dal = DAL.Create(ConnName);
-                    if (dal != null && !str.Contains("."))
+                    if (DAL.ConnStrs.ContainsKey(ConnName))
                     {
-                        if (dal.DbType == DatabaseType.Oracle)
+                        // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
+                        DAL dal = DAL.Create(ConnName);
+                        if (dal != null && !str.Contains("."))
                         {
-                            // 加上用户名
-                            //String UserID = (dal.Db as Oracle).UserID;
-                            //if (!String.IsNullOrEmpty(UserID)) str = UserID + "." + str;
+                            if (dal.DbType == DatabaseType.Oracle)
+                            {
+                                // 加上用户名
+                                //String UserID = (dal.Db as Oracle).UserID;
+                                //if (!String.IsNullOrEmpty(UserID)) str = UserID + "." + str;
 
-                            DbConnectionStringBuilder ocsb = dal.Db.Factory.CreateConnectionStringBuilder();
-                            ocsb.ConnectionString = dal.ConnStr;
-                            if (ocsb.ContainsKey("User ID")) str = (String)ocsb["User ID"] + "." + str;
+                                DbConnectionStringBuilder ocsb = dal.Db.Factory.CreateConnectionStringBuilder();
+                                ocsb.ConnectionString = dal.ConnStr;
+                                if (ocsb.ContainsKey("User ID")) str = (String)ocsb["User ID"] + "." + str;
+                            }
                         }
                     }
                     _TableName = str;

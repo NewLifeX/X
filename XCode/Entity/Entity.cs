@@ -1320,7 +1320,7 @@ namespace XCode
         /// <param name="func">回调</param>
         /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
         /// <returns></returns>
-        protected TResult GetExtend<TResult>(String key, Func<String, Object> func, Boolean cacheDefault) { return GetExtend<TEntity, TResult>(key, func); }
+        protected TResult GetExtend<TResult>(String key, Func<String, Object> func, Boolean cacheDefault) { return GetExtend<TEntity, TResult>(key, func, cacheDefault); }
 
         /// <summary>
         /// 设置依赖于当前实体类的扩展属性
