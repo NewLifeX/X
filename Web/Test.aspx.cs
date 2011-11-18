@@ -14,7 +14,7 @@ public partial class Test : System.Web.UI.Page
 {
     protected void Page_Load(object sender, EventArgs e)
     {
-        Assembly asm = Assembly.LoadFrom(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Bin\XCoder.exe"));
+        Assembly asm = Assembly.LoadFrom(@"E:\X\代码生成\XCoder.exe");
         Template.ImportFromAssembly(0, asm, "XCoder.Template");
     }
 }
