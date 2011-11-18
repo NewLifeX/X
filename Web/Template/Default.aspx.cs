@@ -14,8 +14,8 @@ public partial class Template_Default : System.Web.UI.Page
             IMenu root = CommonManageProvider.Provider.MenuRoot;
             if (root != null)
             {
-                root.CheckMenuName("Template", "模版子系统");
-                root.CheckMenuName("TemplateManage", "管理模版");
+                root.CheckMenuName("Template", "模版子系统")
+                    .CheckMenuName(@"Template\TemplateManage", "管理模版");
             }
         }
     }

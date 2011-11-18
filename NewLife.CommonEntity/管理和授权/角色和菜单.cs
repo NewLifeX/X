@@ -17,7 +17,13 @@ namespace NewLife.CommonEntity
 	/// </summary>
 	[Serializable]
 	[DataObject]
-	[Description("角色和菜单")]
+    [BindIndex("IX_RoleMenu_MenuID_RoleID", true, "MenuID,RoleID")]
+    [BindIndex("PK__RoleMenu", true, "ID")]
+    [BindIndex("IX_RoleMenu_MenuID", false, "MenuID")]
+    [BindIndex("IX_RoleMenu_RoleID", false, "RoleID")]
+    [BindRelation("MenuID", false, "Menu", "ID")]
+    [BindRelation("RoleID", false, "Role", "ID")]
+    [Description("角色和菜单")]
 	[BindTable("RoleMenu", Description = "角色和菜单", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public partial class RoleMenu<TEntity> : IRoleMenu
 	{

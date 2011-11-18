@@ -17,7 +17,11 @@ namespace NewLife.CommonEntity
 	/// </summary>
 	[Serializable]
 	[DataObject]
-	[Description("菜单")]
+    [BindIndex("IX_Menu_Url", false, "Url")]
+    [BindIndex("IX_Menu_Name", false, "Name")]
+    [BindIndex("PK__Menu", true, "ID")]
+    [BindRelation("ID", true, "RoleMenu", "MenuID")]
+    [Description("菜单")]
 	[BindTable("Menu", Description = "菜单", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public partial class Menu<TEntity> : IMenu
 	{

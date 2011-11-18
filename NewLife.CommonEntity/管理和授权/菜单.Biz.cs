@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using NewLife.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.UI;
 using System.Xml.Serialization;
 using NewLife.Configuration;
+using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode;
@@ -16,10 +16,6 @@ using XCode;
 namespace NewLife.CommonEntity
 {
     /// <summary>菜单</summary>
-    [BindIndex("IX_Menu_Url", false, "Url")]
-    [BindIndex("IX_Menu_Name", false, "Name")]
-    [BindIndex("PK__Menu", true, "ID")]
-    [BindRelation("ID", true, "RoleMenu", "MenuID")]
     public partial class Menu<TEntity> : EntityTree<TEntity>, IMenu where TEntity : Menu<TEntity>, new()
     {
         #region 对象操作
@@ -38,14 +34,14 @@ namespace NewLife.CommonEntity
             Meta.BeginTrans();
             try
             {
-                Int32 sort = 1000;
-                TEntity top = Root.AddChild("管理平台", null, sort -= 10, "Admin");
-                TEntity entity = top.AddChild("系统管理", null, sort -= 10, "System");
-                entity.AddChild("菜单管理", "../../Admin/System/Menu.aspx", sort -= 10, "菜单管理");
-                entity.AddChild("管理员管理", "../../Admin/System/Admin.aspx", sort -= 10, "管理员管理");
-                entity.AddChild("角色管理", "../../Admin/System/Role.aspx", sort -= 10, "角色管理");
-                entity.AddChild("权限管理", "../../Admin/System/RoleMenu.aspx", sort -= 10, "权限管理");
-                entity.AddChild("日志查看", "../../Admin/System/Log.aspx", sort -= 10, "日志查看");
+                //Int32 sort = 1000;
+                //TEntity top = Root.AddChild("管理平台", null, sort -= 10, "Admin");
+                //TEntity entity = top.AddChild("系统管理", null, sort -= 10, "System");
+                //entity.AddChild("菜单管理", "../../Admin/System/Menu.aspx", sort -= 10, "菜单管理");
+                //entity.AddChild("管理员管理", "../../Admin/System/Admin.aspx", sort -= 10, "管理员管理");
+                //entity.AddChild("角色管理", "../../Admin/System/Role.aspx", sort -= 10, "角色管理");
+                //entity.AddChild("权限管理", "../../Admin/System/RoleMenu.aspx", sort -= 10, "权限管理");
+                //entity.AddChild("日志查看", "../../Admin/System/Log.aspx", sort -= 10, "日志查看");
 
                 // 准备增加Admin目录下的所有页面
                 //ScanAndAdd(top);
@@ -194,22 +190,6 @@ namespace NewLife.CommonEntity
 
         #region 扩展查询
         /// <summary>
-        /// 根据主键查询一个菜单实体对象用于表单编辑
-        /// </summary>
-        /// <param name="__ID">编号</param>
-        /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity FindByKeyForEdit(Int32 __ID)
-        {
-            TEntity entity = FindByKey(__ID);
-            if (entity == null)
-            {
-                entity = new TEntity();
-            }
-            return entity;
-        }
-
-        /// <summary>
         /// 根据编号查找
         /// </summary>
         /// <param name="id"></param>
@@ -225,20 +205,14 @@ namespace NewLife.CommonEntity
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static TEntity FindByName(String name)
-        {
-            return Meta.Cache.Entities.Find(_.Name, name);
-        }
+        public static TEntity FindByName(String name) { return Meta.Cache.Entities.Find(_.Name, name); }
 
         /// <summary>
         /// 根据Url查找
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public static TEntity FindByUrl(String url)
-        {
-            return Meta.Cache.Entities.FindIgnoreCase(_.Url, url);
-        }
+        public static TEntity FindByUrl(String url) { return Meta.Cache.Entities.FindIgnoreCase(_.Url, url); }
 
         /// <summary>
         /// 根据名字查找，支持路径查找
@@ -258,10 +232,7 @@ namespace NewLife.CommonEntity
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static TEntity FindByPerssion(String name)
-        {
-            return Meta.Cache.Entities.Find(_.Permission, name);
-        }
+        public static TEntity FindByPerssion(String name) { return Meta.Cache.Entities.Find(_.Permission, name); }
 
         /// <summary>
         /// 为了权限而查找，支持路径查找
@@ -321,39 +292,50 @@ namespace NewLife.CommonEntity
             if (list == null || list.Count < 1) return null;
             if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name)) return null;
 
-            String[] ss = path.Split(new Char[] { '.', '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length < 1) return null;
-
             // 尝试一次性查找
             TEntity entity = list.Find(name, path);
             if (entity != null) return entity;
 
-            EntityList<TEntity> list3 = new EntityList<TEntity>();
-            for (int i = 0; i < ss.Length; i++)
-            {
-                // 找到符合当前级别的所有节点
-                EntityList<TEntity> list2 = list.FindAll(name, ss[i]);
-                if (list2 == null || list2.Count < 1) return null;
+            String[] ss = path.Split(new Char[] { '.', '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+            if (ss == null || ss.Length < 1) return null;
 
-                // 是否到了最后
-                if (i == ss.Length - 1)
-                {
-                    list3 = list2;
-                    break;
-                }
+            // 找第一级
+            entity = list.Find(name, ss[0]);
+            if (entity == null) entity = list.Find(_.Remark, ss[0]);
+            if (entity == null) return null;
 
-                // 找到它们的子节点
-                list3.Clear();
-                foreach (TEntity item in list2)
-                {
-                    if (item.Childs != null && item.Childs.Count > 0) list3.AddRange(item.Childs);
-                }
-                if (list3 == null || list3.Count < 1) return null;
-            }
-            if (list3 != null && list3.Count > 0)
-                return list[0];
-            else
-                return null;
+            // 是否还有下级
+            if (ss.Length == 1) return entity;
+
+            // 递归找下级
+            return FindByPath(entity.Childs, String.Join("\\", ss, 1, ss.Length - 1), name);
+
+            //EntityList<TEntity> list3 = new EntityList<TEntity>();
+            //for (int i = 0; i < ss.Length; i++)
+            //{
+            //    // 找到符合当前级别的所有节点
+            //    EntityList<TEntity> list2 = list.FindAll(name, ss[i]);
+            //    if (list2 == null || list2.Count < 1) return null;
+
+            //    // 是否到了最后
+            //    if (i == ss.Length - 1)
+            //    {
+            //        list3 = list2;
+            //        break;
+            //    }
+
+            //    // 找到它们的子节点
+            //    list3.Clear();
+            //    foreach (TEntity item in list2)
+            //    {
+            //        if (item.Childs != null && item.Childs.Count > 0) list3.AddRange(item.Childs);
+            //    }
+            //    if (list3 == null || list3.Count < 1) return null;
+            //}
+            //if (list3 != null && list3.Count > 0)
+            //    return list[0];
+            //else
+            //    return null;
         }
 
         /// <summary>
@@ -521,7 +503,7 @@ namespace NewLife.CommonEntity
                 // 根据目录找菜单，它将作为顶级菜单
                 top = FindForName(item);
                 if (top == null) top = Meta.Cache.Entities.Find(_.Remark, item);
-                if (top == null) top = Root.AddChild(item, null, 0, null);
+                if (top == null) top = Root.AddChild(item, null, 0, item);
                 total += ScanAndAdd(item, top);
             }
 
@@ -619,7 +601,7 @@ namespace NewLife.CommonEntity
                 if (parent == null) parent = Find(_.Remark, dirName);
                 if (parent == null)
                 {
-                    parent = top.AddChild(dirName, null);
+                    parent = top.AddChild(dirName, null, 0, dirName);
                     num++;
                 }
 
@@ -738,7 +720,7 @@ namespace NewLife.CommonEntity
         /// <param name="newName"></param>
         IMenu IMenu.CheckMenuName(String oldName, String newName)
         {
-            IMenu menu = AllChilds.Find(_.Name, oldName);
+            IMenu menu = FindByPath(AllChilds, oldName, _.Name);
             if (menu != null && menu.Name != newName)
             {
                 menu.Name = menu.Permission = newName;

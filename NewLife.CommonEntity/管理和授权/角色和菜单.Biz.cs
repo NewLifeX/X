@@ -94,12 +94,6 @@ namespace NewLife.CommonEntity
     /// <summary>
     /// 角色和菜单
     /// </summary>
-    [BindIndex("IX_RoleMenu_MenuID_RoleID", true, "MenuID,RoleID")]
-    [BindIndex("PK__RoleMenu", true, "ID")]
-    [BindIndex("IX_RoleMenu_MenuID", false, "MenuID")]
-    [BindIndex("IX_RoleMenu_RoleID", false, "RoleID")]
-    [BindRelation("MenuID", false, "Menu", "ID")]
-    [BindRelation("RoleID", false, "Role", "ID")]
     public partial class RoleMenu<TEntity> : CommonEntityBase<TEntity> where TEntity : RoleMenu<TEntity>, new()
     {
         #region 对象操作

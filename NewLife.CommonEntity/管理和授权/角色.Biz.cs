@@ -89,6 +89,7 @@ namespace NewLife.CommonEntity
         {
             // 等待RoleMenu初始化完成
             Int32 count = RoleMenu<TRoleMenuEntity>.Meta.Count;
+            count = Menu<TMenuEntity>.Meta.Count;
 
             // 统计所有RoleID和MenuID
             List<TEntity> list1 = Meta.Cache.Entities;
@@ -223,14 +224,16 @@ namespace NewLife.CommonEntity
 
     /// <summary>角色</summary>
     /// <typeparam name="TEntity"></typeparam>
-    [BindIndex("IX_Role_Name", true, "Name")]
-    [BindIndex("PK__Role", true, "ID")]
-    [BindRelation("ID", true, "RoleMenu", "RoleID")]
-    [BindRelation("ID", true, "Administrator", "RoleID")]
     public abstract partial class Role<TEntity> : CommonEntityBase<TEntity>
           where TEntity : Role<TEntity>, new()
     {
         #region 对象操作
+        static Role()
+        {
+            // 用于引发基类的静态构造函数
+            TEntity entity = new TEntity();
+        }
+
         /// <summary>
         /// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
         /// </summary>
