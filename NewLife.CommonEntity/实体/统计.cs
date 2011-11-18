@@ -252,43 +252,43 @@ namespace NewLife.CommonEntity
 		public class _
 		{
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>总数</summary>
-            public static readonly FieldItem Total = Meta.Table.FindByName("Total");
+            public static readonly Field Total = Meta.Table.FindByName("Total");
 
             ///<summary>今天</summary>
-            public static readonly FieldItem Today = Meta.Table.FindByName("Today");
+            public static readonly Field Today = Meta.Table.FindByName("Today");
 
             ///<summary>昨天</summary>
-            public static readonly FieldItem Yesterday = Meta.Table.FindByName("Yesterday");
+            public static readonly Field Yesterday = Meta.Table.FindByName("Yesterday");
 
             ///<summary>本周</summary>
-            public static readonly FieldItem ThisWeek = Meta.Table.FindByName("ThisWeek");
+            public static readonly Field ThisWeek = Meta.Table.FindByName("ThisWeek");
 
             ///<summary>上周</summary>
-            public static readonly FieldItem LastWeek = Meta.Table.FindByName("LastWeek");
+            public static readonly Field LastWeek = Meta.Table.FindByName("LastWeek");
 
             ///<summary>本月</summary>
-            public static readonly FieldItem ThisMonth = Meta.Table.FindByName("ThisMonth");
+            public static readonly Field ThisMonth = Meta.Table.FindByName("ThisMonth");
 
             ///<summary>上月</summary>
-            public static readonly FieldItem LastMonth = Meta.Table.FindByName("LastMonth");
+            public static readonly Field LastMonth = Meta.Table.FindByName("LastMonth");
 
             ///<summary>本年</summary>
-            public static readonly FieldItem ThisYear = Meta.Table.FindByName("ThisYear");
+            public static readonly Field ThisYear = Meta.Table.FindByName("ThisYear");
 
             ///<summary>去年</summary>
-            public static readonly FieldItem LastYear = Meta.Table.FindByName("LastYear");
+            public static readonly Field LastYear = Meta.Table.FindByName("LastYear");
 
             ///<summary>最后时间</summary>
-            public static readonly FieldItem LastTime = Meta.Table.FindByName("LastTime");
+            public static readonly Field LastTime = Meta.Table.FindByName("LastTime");
 
             ///<summary>最后IP</summary>
-            public static readonly FieldItem LastIP = Meta.Table.FindByName("LastIP");
+            public static readonly Field LastIP = Meta.Table.FindByName("LastIP");
 
             ///<summary>备注</summary>
-            public static readonly FieldItem Remark = Meta.Table.FindByName("Remark");
+            public static readonly Field Remark = Meta.Table.FindByName("Remark");
 		}
 		#endregion
 	}

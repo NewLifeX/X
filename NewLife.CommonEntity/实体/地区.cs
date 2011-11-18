@@ -146,22 +146,22 @@ namespace NewLife.CommonEntity
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>代码</summary>
-            public static readonly FieldItem Code = Meta.Table.FindByName("Code");
+            public static readonly Field Code = Meta.Table.FindByName("Code");
 
             /// <summary>旧版本代码 </summary>
-            public static readonly FieldItem OldCode = Meta.Table.FindByName("OldCode");
+            public static readonly Field OldCode = Meta.Table.FindByName("OldCode");
 
             ///<summary>名称</summary>
-            public static readonly FieldItem Name = Meta.Table.FindByName("Name");
+            public static readonly Field Name = Meta.Table.FindByName("Name");
 
             ///<summary>父地区代码</summary>
-            public static readonly FieldItem ParentCode = Meta.Table.FindByName("ParentCode");
+            public static readonly Field ParentCode = Meta.Table.FindByName("ParentCode");
 
             ///<summary>描述</summary>
-            public static readonly FieldItem Description = Meta.Table.FindByName("Description");
+            public static readonly Field Description = Meta.Table.FindByName("Description");
         }
         #endregion
     }

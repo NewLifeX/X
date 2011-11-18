@@ -338,64 +338,64 @@ namespace XCode.Test
         public class _
         {
             ///<summary>主键一</summary>
-            public static readonly FieldItem Guid = Meta.Table.FindByName("Guid");
+            public static readonly Field Guid = Meta.Table.FindByName("Guid");
 
             ///<summary>主键二</summary>
-            public static readonly FieldItem Guid2 = Meta.Table.FindByName("Guid2");
+            public static readonly Field Guid2 = Meta.Table.FindByName("Guid2");
 
             ///<summary>自增编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>编号二</summary>
-            public static readonly FieldItem ID2 = Meta.Table.FindByName("ID2");
+            public static readonly Field ID2 = Meta.Table.FindByName("ID2");
 
             ///<summary>名称</summary>
-            public static readonly FieldItem Name = Meta.Table.FindByName("Name");
+            public static readonly Field Name = Meta.Table.FindByName("Name");
 
             ///<summary>密码</summary>
-            public static readonly FieldItem Password = Meta.Table.FindByName("Password");
+            public static readonly Field Password = Meta.Table.FindByName("Password");
 
             ///<summary>显示名</summary>
-            public static readonly FieldItem DisplayName = Meta.Table.FindByName("DisplayName");
+            public static readonly Field DisplayName = Meta.Table.FindByName("DisplayName");
 
             ///<summary>启用</summary>
-            public static readonly FieldItem IsEnable = Meta.Table.FindByName("IsEnable");
+            public static readonly Field IsEnable = Meta.Table.FindByName("IsEnable");
 
             ///<summary>登录次数</summary>
-            public static readonly FieldItem Logins = Meta.Table.FindByName("Logins");
+            public static readonly Field Logins = Meta.Table.FindByName("Logins");
 
             ///<summary>最后登陆</summary>
-            public static readonly FieldItem LastLogin = Meta.Table.FindByName("LastLogin");
+            public static readonly Field LastLogin = Meta.Table.FindByName("LastLogin");
 
             ///<summary>开始日期</summary>
-            public static readonly FieldItem StartDate = Meta.Table.FindByName("StartDate");
+            public static readonly Field StartDate = Meta.Table.FindByName("StartDate");
 
             ///<summary>结束时间</summary>
-            public static readonly FieldItem EndTime = Meta.Table.FindByName("EndTime");
+            public static readonly Field EndTime = Meta.Table.FindByName("EndTime");
 
             ///<summary>总数</summary>
-            public static readonly FieldItem Total = Meta.Table.FindByName("Total");
+            public static readonly Field Total = Meta.Table.FindByName("Total");
 
             ///<summary>百分比</summary>
-            public static readonly FieldItem Item2 = Meta.Table.FindByName("Item2");
+            public static readonly Field Item2 = Meta.Table.FindByName("Item2");
 
             ///<summary>实数</summary>
-            public static readonly FieldItem EntityTest2 = Meta.Table.FindByName("EntityTest2");
+            public static readonly Field EntityTest2 = Meta.Table.FindByName("EntityTest2");
 
             ///<summary>金额</summary>
-            public static readonly FieldItem Money = Meta.Table.FindByName("Money");
+            public static readonly Field Money = Meta.Table.FindByName("Money");
 
             ///<summary>文件</summary>
-            public static readonly FieldItem File = Meta.Table.FindByName("File");
+            public static readonly Field File = Meta.Table.FindByName("File");
 
             ///<summary>备注一</summary>
-            public static readonly FieldItem Remark = Meta.Table.FindByName("Remark");
+            public static readonly Field Remark = Meta.Table.FindByName("Remark");
 
             ///<summary>备注二</summary>
-            public static readonly FieldItem Remark2 = Meta.Table.FindByName("Remark2");
+            public static readonly Field Remark2 = Meta.Table.FindByName("Remark2");
 
             ///<summary>说明</summary>
-            public static readonly FieldItem Description = Meta.Table.FindByName("Description");
+            public static readonly Field Description = Meta.Table.FindByName("Description");
         }
         #endregion
     }

@@ -118,16 +118,16 @@ namespace NewLife.CommonEntity
 		public class _
 		{
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>角色编号</summary>
-            public static readonly FieldItem RoleID = Meta.Table.FindByName("RoleID");
+            public static readonly Field RoleID = Meta.Table.FindByName("RoleID");
 
             ///<summary>菜单编号</summary>
-            public static readonly FieldItem MenuID = Meta.Table.FindByName("MenuID");
+            public static readonly Field MenuID = Meta.Table.FindByName("MenuID");
 
             ///<summary>权限</summary>
-            public static readonly FieldItem Permission = Meta.Table.FindByName("Permission");
+            public static readonly Field Permission = Meta.Table.FindByName("Permission");
 		}
 		#endregion
 	}

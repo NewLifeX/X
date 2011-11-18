@@ -116,16 +116,16 @@ namespace NewLife.CommonEntity
         public class _
         {
             ///<summary></summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>名称索引</summary>
-            public static readonly FieldItem Name = Meta.Table.FindByName("Name");
+            public static readonly Field Name = Meta.Table.FindByName("Name");
 
             ///<summary></summary>
-            public static readonly FieldItem ParentID = Meta.Table.FindByName("ParentID");
+            public static readonly Field ParentID = Meta.Table.FindByName("ParentID");
 
             ///<summary></summary>
-            public static readonly FieldItem Sort = Meta.Table.FindByName("Sort");
+            public static readonly Field Sort = Meta.Table.FindByName("Sort");
         }
         #endregion
     }

@@ -187,31 +187,31 @@ namespace NewLife.YWS.Entities
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>客户编号</summary>
-            public static readonly FieldItem CustomerID = Meta.Table.FindByName("CustomerID");
+            public static readonly Field CustomerID = Meta.Table.FindByName("CustomerID");
 
             ///<summary>机器编号</summary>
-            public static readonly FieldItem MachineID = Meta.Table.FindByName("MachineID");
+            public static readonly Field MachineID = Meta.Table.FindByName("MachineID");
 
             ///<summary>技术员</summary>
-            public static readonly FieldItem Technician = Meta.Table.FindByName("Technician");
+            public static readonly Field Technician = Meta.Table.FindByName("Technician");
 
             ///<summary>故障原因</summary>
-            public static readonly FieldItem Reason = Meta.Table.FindByName("Reason");
+            public static readonly Field Reason = Meta.Table.FindByName("Reason");
 
             ///<summary>更换配件</summary>
-            public static readonly FieldItem Fittings = Meta.Table.FindByName("Fittings");
+            public static readonly Field Fittings = Meta.Table.FindByName("Fittings");
 
             ///<summary>改进建议</summary>
-            public static readonly FieldItem Propose = Meta.Table.FindByName("Propose");
+            public static readonly Field Propose = Meta.Table.FindByName("Propose");
 
             ///<summary>维修备注</summary>
-            public static readonly FieldItem Remark = Meta.Table.FindByName("Remark");
+            public static readonly Field Remark = Meta.Table.FindByName("Remark");
 
             ///<summary>添加时间</summary>
-            public static readonly FieldItem AddTime = Meta.Table.FindByName("AddTime");
+            public static readonly Field AddTime = Meta.Table.FindByName("AddTime");
         }
         #endregion
     }

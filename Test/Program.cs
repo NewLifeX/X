@@ -8,6 +8,7 @@ using XCode;
 using XCode.DataAccessLayer;
 using XCode.Test;
 using System.Data;
+using System.Collections.Generic;
 
 namespace Test
 {
@@ -24,7 +25,7 @@ namespace Test
                 try
                 {
 #endif
-                Test4();
+                Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -161,7 +162,7 @@ namespace Test
 
             String order = "Category Desc," + table.PrimaryKeys[0].Alias + " Asc";
             String order2 = "Category Desc," + table.PrimaryKeys[0].Alias + " Desc";
-            String selects = "ID,"+table.Columns[2].Name;
+            String selects = "ID," + table.Columns[2].Name;
             //selects = table.PrimaryKeys[0].Name;
 
             DAL.ShowSQL = false;
@@ -195,6 +196,26 @@ namespace Test
             Console.WriteLine("--50页SQL2000：\n{0}", sql);
             sql = MSPageSplit.PageSplit(builder, p, pagesize, true).ToString();
             Console.WriteLine("--50页SQL2005：\n{0}", sql);
+        }
+
+        static void Test5()
+        {
+            WhereExpression exp = Administrator._.Name == "admin";
+            //exp |= Administrator._.Logins > 0;
+            //exp &= Administrator._.LastLogin > DateTime.Now;
+
+            //Console.WriteLine(exp);
+
+            //exp = Administrator._.Name == "admin" | Administrator._.Logins > 0 & Administrator._.LastLogin > DateTime.Now;
+            //Console.WriteLine(exp);
+
+            exp = (Administrator._.Name == "admin" | Administrator._.Logins > 0) & (Administrator._.IsEnable != false | Administrator._.LastLogin > DateTime.Now);
+            Console.WriteLine(exp);
+
+            //Administrator.FindCount("aa group by bb order xxx", null, null, 0, 0);
+
+            //Administrator admin = Administrator.Find(exp);
+            //Console.WriteLine(admin);
         }
     }
 }

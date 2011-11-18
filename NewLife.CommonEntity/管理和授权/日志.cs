@@ -178,28 +178,28 @@ namespace NewLife.CommonEntity
 		public class _
 		{
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>类别</summary>
-            public static readonly FieldItem Category = Meta.Table.FindByName("Category");
+            public static readonly Field Category = Meta.Table.FindByName("Category");
 
             ///<summary>操作</summary>
-            public static readonly FieldItem Action = Meta.Table.FindByName("Action");
+            public static readonly Field Action = Meta.Table.FindByName("Action");
 
             ///<summary>用户编号</summary>
-            public static readonly FieldItem UserID = Meta.Table.FindByName("UserID");
+            public static readonly Field UserID = Meta.Table.FindByName("UserID");
 
             ///<summary>用户名</summary>
-            public static readonly FieldItem UserName = Meta.Table.FindByName("UserName");
+            public static readonly Field UserName = Meta.Table.FindByName("UserName");
 
             ///<summary>IP地址</summary>
-            public static readonly FieldItem IP = Meta.Table.FindByName("IP");
+            public static readonly Field IP = Meta.Table.FindByName("IP");
 
             ///<summary>时间</summary>
-            public static readonly FieldItem OccurTime = Meta.Table.FindByName("OccurTime");
+            public static readonly Field OccurTime = Meta.Table.FindByName("OccurTime");
 
             ///<summary>详细信息</summary>
-            public static readonly FieldItem Remark = Meta.Table.FindByName("Remark");
+            public static readonly Field Remark = Meta.Table.FindByName("Remark");
 		}
 		#endregion
 	}

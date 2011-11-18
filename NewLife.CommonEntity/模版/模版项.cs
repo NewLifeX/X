@@ -132,19 +132,19 @@ namespace NewLife.CommonEntity
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>模版</summary>
-            public static readonly FieldItem TemplateID = Meta.Table.FindByName("TemplateID");
+            public static readonly Field TemplateID = Meta.Table.FindByName("TemplateID");
 
             ///<summary>名称</summary>
-            public static readonly FieldItem Name = Meta.Table.FindByName("Name");
+            public static readonly Field Name = Meta.Table.FindByName("Name");
 
             ///<summary>模版种类</summary>
-            public static readonly FieldItem Kind = Meta.Table.FindByName("Kind");
+            public static readonly Field Kind = Meta.Table.FindByName("Kind");
 
             ///<summary>备注</summary>
-            public static readonly FieldItem Remark = Meta.Table.FindByName("Remark");
+            public static readonly Field Remark = Meta.Table.FindByName("Remark");
         }
         #endregion
     }

@@ -717,145 +717,145 @@ namespace NewLife.YWS.Entities
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>客户ID</summary>
-            public static readonly FieldItem CustomerID = Meta.Table.FindByName("CustomerID");
+            public static readonly Field CustomerID = Meta.Table.FindByName("CustomerID");
 
             ///<summary>制造商</summary>
-            public static readonly FieldItem Manufacturer = Meta.Table.FindByName("Manufacturer");
+            public static readonly Field Manufacturer = Meta.Table.FindByName("Manufacturer");
 
             ///<summary>联系电话</summary>
-            public static readonly FieldItem Tel = Meta.Table.FindByName("Tel");
+            public static readonly Field Tel = Meta.Table.FindByName("Tel");
 
             ///<summary>联系地址</summary>
-            public static readonly FieldItem Address = Meta.Table.FindByName("Address");
+            public static readonly Field Address = Meta.Table.FindByName("Address");
 
             ///<summary>胶水组别</summary>
-            public static readonly FieldItem CementGroup = Meta.Table.FindByName("CementGroup");
+            public static readonly Field CementGroup = Meta.Table.FindByName("CementGroup");
 
             ///<summary>产品编号</summary>
-            public static readonly FieldItem ProductNo = Meta.Table.FindByName("ProductNo");
+            public static readonly Field ProductNo = Meta.Table.FindByName("ProductNo");
 
             ///<summary>重量比</summary>
-            public static readonly FieldItem WeightRatio = Meta.Table.FindByName("WeightRatio");
+            public static readonly Field WeightRatio = Meta.Table.FindByName("WeightRatio");
 
             ///<summary>体积比</summary>
-            public static readonly FieldItem VolumeRatio = Meta.Table.FindByName("VolumeRatio");
+            public static readonly Field VolumeRatio = Meta.Table.FindByName("VolumeRatio");
 
             ///<summary>黏稠度</summary>
-            public static readonly FieldItem Viscosity = Meta.Table.FindByName("Viscosity");
+            public static readonly Field Viscosity = Meta.Table.FindByName("Viscosity");
 
             ///<summary>A/B混合后黏稠度</summary>
-            public static readonly FieldItem MixViscosity = Meta.Table.FindByName("MixViscosity");
+            public static readonly Field MixViscosity = Meta.Table.FindByName("MixViscosity");
 
             ///<summary>比重</summary>
-            public static readonly FieldItem SpecificGravity = Meta.Table.FindByName("SpecificGravity");
+            public static readonly Field SpecificGravity = Meta.Table.FindByName("SpecificGravity");
 
             ///<summary>工作温度</summary>
-            public static readonly FieldItem Temperature = Meta.Table.FindByName("Temperature");
+            public static readonly Field Temperature = Meta.Table.FindByName("Temperature");
 
             ///<summary>工作温度下的黏稠度</summary>
-            public static readonly FieldItem WViscosity = Meta.Table.FindByName("WViscosity");
+            public static readonly Field WViscosity = Meta.Table.FindByName("WViscosity");
 
             ///<summary>是否有填充剂</summary>
-            public static readonly FieldItem IsFillers = Meta.Table.FindByName("IsFillers");
+            public static readonly Field IsFillers = Meta.Table.FindByName("IsFillers");
 
             ///<summary>填充剂类型</summary>
-            public static readonly FieldItem FillersType = Meta.Table.FindByName("FillersType");
+            public static readonly Field FillersType = Meta.Table.FindByName("FillersType");
 
             ///<summary>填充剂分量</summary>
-            public static readonly FieldItem FillersAmount = Meta.Table.FindByName("FillersAmount");
+            public static readonly Field FillersAmount = Meta.Table.FindByName("FillersAmount");
 
             ///<summary>是否磨损</summary>
-            public static readonly FieldItem IsAbradability = Meta.Table.FindByName("IsAbradability");
+            public static readonly Field IsAbradability = Meta.Table.FindByName("IsAbradability");
 
             ///<summary>是否腐蚀</summary>
-            public static readonly FieldItem IsCorrosivity = Meta.Table.FindByName("IsCorrosivity");
+            public static readonly Field IsCorrosivity = Meta.Table.FindByName("IsCorrosivity");
 
             ///<summary>材料是否潮湿敏感</summary>
-            public static readonly FieldItem IsSensitivity = Meta.Table.FindByName("IsSensitivity");
+            public static readonly Field IsSensitivity = Meta.Table.FindByName("IsSensitivity");
 
             ///<summary>是否需要搅拌</summary>
-            public static readonly FieldItem IsAgitation = Meta.Table.FindByName("IsAgitation");
+            public static readonly Field IsAgitation = Meta.Table.FindByName("IsAgitation");
 
             ///<summary>是否需要真空初除泡</summary>
-            public static readonly FieldItem IsExcept = Meta.Table.FindByName("IsExcept");
+            public static readonly Field IsExcept = Meta.Table.FindByName("IsExcept");
 
             ///<summary>材料混合后可工作时间(单位:分钟)</summary>
-            public static readonly FieldItem WorkingHours = Meta.Table.FindByName("WorkingHours");
+            public static readonly Field WorkingHours = Meta.Table.FindByName("WorkingHours");
 
             ///<summary>有无溶剂名称</summary>
-            public static readonly FieldItem IsSolventName = Meta.Table.FindByName("IsSolventName");
+            public static readonly Field IsSolventName = Meta.Table.FindByName("IsSolventName");
 
             ///<summary>材料混合后完全硬化时间</summary>
-            public static readonly FieldItem Hardening = Meta.Table.FindByName("Hardening");
+            public static readonly Field Hardening = Meta.Table.FindByName("Hardening");
 
             ///<summary>B组胶水组别</summary>
-            public static readonly FieldItem CementGroupB = Meta.Table.FindByName("CementGroupB");
+            public static readonly Field CementGroupB = Meta.Table.FindByName("CementGroupB");
 
             ///<summary>B组产品编号</summary>
-            public static readonly FieldItem ProductNoB = Meta.Table.FindByName("ProductNoB");
+            public static readonly Field ProductNoB = Meta.Table.FindByName("ProductNoB");
 
             ///<summary>B组重量比</summary>
-            public static readonly FieldItem WeightRatioB = Meta.Table.FindByName("WeightRatioB");
+            public static readonly Field WeightRatioB = Meta.Table.FindByName("WeightRatioB");
 
             ///<summary>B组体积比</summary>
-            public static readonly FieldItem VolumeRatioB = Meta.Table.FindByName("VolumeRatioB");
+            public static readonly Field VolumeRatioB = Meta.Table.FindByName("VolumeRatioB");
 
             ///<summary>B组黏稠度</summary>
-            public static readonly FieldItem ViscosityB = Meta.Table.FindByName("ViscosityB");
+            public static readonly Field ViscosityB = Meta.Table.FindByName("ViscosityB");
 
             ///<summary>B组A/B混合后黏稠度</summary>
-            public static readonly FieldItem MixViscosityB = Meta.Table.FindByName("MixViscosityB");
+            public static readonly Field MixViscosityB = Meta.Table.FindByName("MixViscosityB");
 
             ///<summary>B组比重</summary>
-            public static readonly FieldItem SpecificGravityB = Meta.Table.FindByName("SpecificGravityB");
+            public static readonly Field SpecificGravityB = Meta.Table.FindByName("SpecificGravityB");
 
             ///<summary>B组工作温度</summary>
-            public static readonly FieldItem TemperatureB = Meta.Table.FindByName("TemperatureB");
+            public static readonly Field TemperatureB = Meta.Table.FindByName("TemperatureB");
 
             ///<summary>B组工作温度下的黏稠度</summary>
-            public static readonly FieldItem WViscosityB = Meta.Table.FindByName("WViscosityB");
+            public static readonly Field WViscosityB = Meta.Table.FindByName("WViscosityB");
 
             ///<summary>B组是否有填充剂</summary>
-            public static readonly FieldItem IsFillersB = Meta.Table.FindByName("IsFillersB");
+            public static readonly Field IsFillersB = Meta.Table.FindByName("IsFillersB");
 
             ///<summary>B组填充剂类型</summary>
-            public static readonly FieldItem FillersTypeB = Meta.Table.FindByName("FillersTypeB");
+            public static readonly Field FillersTypeB = Meta.Table.FindByName("FillersTypeB");
 
             ///<summary>B组填充剂分量</summary>
-            public static readonly FieldItem FillersAmountB = Meta.Table.FindByName("FillersAmountB");
+            public static readonly Field FillersAmountB = Meta.Table.FindByName("FillersAmountB");
 
             ///<summary>B组是否磨损</summary>
-            public static readonly FieldItem IsAbradabilityB = Meta.Table.FindByName("IsAbradabilityB");
+            public static readonly Field IsAbradabilityB = Meta.Table.FindByName("IsAbradabilityB");
 
             ///<summary>B组是否腐蚀</summary>
-            public static readonly FieldItem IsCorrosivityB = Meta.Table.FindByName("IsCorrosivityB");
+            public static readonly Field IsCorrosivityB = Meta.Table.FindByName("IsCorrosivityB");
 
             ///<summary>B组材料是否潮湿敏感</summary>
-            public static readonly FieldItem IsSensitivityB = Meta.Table.FindByName("IsSensitivityB");
+            public static readonly Field IsSensitivityB = Meta.Table.FindByName("IsSensitivityB");
 
             ///<summary>B组是否需要搅拌</summary>
-            public static readonly FieldItem IsAgitationB = Meta.Table.FindByName("IsAgitationB");
+            public static readonly Field IsAgitationB = Meta.Table.FindByName("IsAgitationB");
 
             ///<summary>B组是否需要真空初除泡</summary>
-            public static readonly FieldItem IsExceptB = Meta.Table.FindByName("IsExceptB");
+            public static readonly Field IsExceptB = Meta.Table.FindByName("IsExceptB");
 
             ///<summary>B组材料混合后可工作时间(单位:分钟)</summary>
-            public static readonly FieldItem WorkingHoursB = Meta.Table.FindByName("WorkingHoursB");
+            public static readonly Field WorkingHoursB = Meta.Table.FindByName("WorkingHoursB");
 
             ///<summary>B组有无溶剂名称</summary>
-            public static readonly FieldItem IsSolventNameB = Meta.Table.FindByName("IsSolventNameB");
+            public static readonly Field IsSolventNameB = Meta.Table.FindByName("IsSolventNameB");
 
             ///<summary>B组材料混合后完全硬化时间</summary>
-            public static readonly FieldItem HardeningB = Meta.Table.FindByName("HardeningB");
+            public static readonly Field HardeningB = Meta.Table.FindByName("HardeningB");
 
             ///<summary>发布时间</summary>
-            public static readonly FieldItem AddTime = Meta.Table.FindByName("AddTime");
+            public static readonly Field AddTime = Meta.Table.FindByName("AddTime");
 
             ///<summary>备注</summary>
-            public static readonly FieldItem Remark = Meta.Table.FindByName("Remark");
+            public static readonly Field Remark = Meta.Table.FindByName("Remark");
         }
         #endregion
     }

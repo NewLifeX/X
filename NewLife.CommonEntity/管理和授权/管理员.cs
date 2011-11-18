@@ -17,6 +17,10 @@ namespace NewLife.CommonEntity
     /// </summary>
     [Serializable]
     [DataObject]
+    [BindIndex("IX_Administrator_Name", true, "Name")]
+    [BindIndex("PK__Administrator", true, "ID")]
+    [BindIndex("IX_Administrator_RoleID", false, "RoleID")]
+    [BindRelation("RoleID", false, "Role", "ID")]
     [Description("管理员")]
     [BindTable("Administrator", Description = "管理员", ConnName = "Common", DbType = DatabaseType.SqlServer)]
     public partial class Administrator<TEntity> : IAdministrator
@@ -208,34 +212,34 @@ namespace NewLife.CommonEntity
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>名称</summary>
-            public static readonly FieldItem Name = Meta.Table.FindByName("Name");
+            public static readonly Field Name = Meta.Table.FindByName("Name");
 
             ///<summary>密码</summary>
-            public static readonly FieldItem Password = Meta.Table.FindByName("Password");
+            public static readonly Field Password = Meta.Table.FindByName("Password");
 
             ///<summary>显示名</summary>
-            public static readonly FieldItem DisplayName = Meta.Table.FindByName("DisplayName");
+            public static readonly Field DisplayName = Meta.Table.FindByName("DisplayName");
 
             ///<summary>角色</summary>
-            public static readonly FieldItem RoleID = Meta.Table.FindByName("RoleID");
+            public static readonly Field RoleID = Meta.Table.FindByName("RoleID");
 
             ///<summary>登录次数</summary>
-            public static readonly FieldItem Logins = Meta.Table.FindByName("Logins");
+            public static readonly Field Logins = Meta.Table.FindByName("Logins");
 
             ///<summary>最后登录</summary>
-            public static readonly FieldItem LastLogin = Meta.Table.FindByName("LastLogin");
+            public static readonly Field LastLogin = Meta.Table.FindByName("LastLogin");
 
             ///<summary>最后登陆IP</summary>
-            public static readonly FieldItem LastLoginIP = Meta.Table.FindByName("LastLoginIP");
+            public static readonly Field LastLoginIP = Meta.Table.FindByName("LastLoginIP");
 
             ///<summary>登录用户编号</summary>
-            public static readonly FieldItem SSOUserID = Meta.Table.FindByName("SSOUserID");
+            public static readonly Field SSOUserID = Meta.Table.FindByName("SSOUserID");
 
             ///<summary>是否使用</summary>
-            public static readonly FieldItem IsEnable = Meta.Table.FindByName("IsEnable");
+            public static readonly Field IsEnable = Meta.Table.FindByName("IsEnable");
         }
         #endregion
     }

@@ -178,28 +178,28 @@ namespace NewLife.CommonEntity
 		public class _
 		{
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>名称</summary>
-            public static readonly FieldItem Name = Meta.Table.FindByName("Name");
+            public static readonly Field Name = Meta.Table.FindByName("Name");
 
             ///<summary>父编号</summary>
-            public static readonly FieldItem ParentID = Meta.Table.FindByName("ParentID");
+            public static readonly Field ParentID = Meta.Table.FindByName("ParentID");
 
             ///<summary>链接</summary>
-            public static readonly FieldItem Url = Meta.Table.FindByName("Url");
+            public static readonly Field Url = Meta.Table.FindByName("Url");
 
             ///<summary>序号</summary>
-            public static readonly FieldItem Sort = Meta.Table.FindByName("Sort");
+            public static readonly Field Sort = Meta.Table.FindByName("Sort");
 
             ///<summary>备注</summary>
-            public static readonly FieldItem Remark = Meta.Table.FindByName("Remark");
+            public static readonly Field Remark = Meta.Table.FindByName("Remark");
 
             ///<summary>权限</summary>
-            public static readonly FieldItem Permission = Meta.Table.FindByName("Permission");
+            public static readonly Field Permission = Meta.Table.FindByName("Permission");
 
             ///<summary>是否显示</summary>
-            public static readonly FieldItem IsShow = Meta.Table.FindByName("IsShow");
+            public static readonly Field IsShow = Meta.Table.FindByName("IsShow");
 		}
 		#endregion
 	}

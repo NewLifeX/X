@@ -128,19 +128,19 @@ namespace NewLife.CommonEntity
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>名称</summary>
-            public static readonly FieldItem Name = Meta.Table.FindByName("Name");
+            public static readonly Field Name = Meta.Table.FindByName("Name");
 
             ///<summary>父分类</summary>
-            public static readonly FieldItem ParentID = Meta.Table.FindByName("ParentID");
+            public static readonly Field ParentID = Meta.Table.FindByName("ParentID");
 
             ///<summary>排序</summary>
-            public static readonly FieldItem Sort = Meta.Table.FindByName("Sort");
+            public static readonly Field Sort = Meta.Table.FindByName("Sort");
 
             ///<summary>备注</summary>
-            public static readonly FieldItem Remark = Meta.Table.FindByName("Remark");
+            public static readonly Field Remark = Meta.Table.FindByName("Remark");
         }
         #endregion
     }

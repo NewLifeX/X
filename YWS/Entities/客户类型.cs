@@ -129,19 +129,19 @@ namespace NewLife.YWS.Entities
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>名称</summary>
-            public static readonly FieldItem Name = Meta.Table.FindByName("Name");
+            public static readonly Field Name = Meta.Table.FindByName("Name");
 
             ///<summary>ParentID</summary>
-            public static readonly FieldItem ParentID = Meta.Table.FindByName("ParentID");
+            public static readonly Field ParentID = Meta.Table.FindByName("ParentID");
 
             ///<summary>添加时间</summary>
-            public static readonly FieldItem AddTime = Meta.Table.FindByName("AddTime");
+            public static readonly Field AddTime = Meta.Table.FindByName("AddTime");
 
             ///<summary>添加人</summary>
-            public static readonly FieldItem Operator2 = Meta.Table.FindByName("Operator2");
+            public static readonly Field Operator2 = Meta.Table.FindByName("Operator2");
         }
         #endregion
     }

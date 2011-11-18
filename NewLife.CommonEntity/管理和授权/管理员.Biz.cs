@@ -124,10 +124,6 @@ namespace NewLife.CommonEntity
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
     /// <typeparam name="TEntity">管理员类型</typeparam>
-    [BindIndex("IX_Administrator_Name", true, "Name")]
-    [BindIndex("PK__Administrator", true, "ID")]
-    [BindIndex("IX_Administrator_RoleID", false, "RoleID")]
-    [BindRelation("RoleID", false, "Role", "ID")]
     public abstract partial class Administrator<TEntity> : Entity<TEntity>, IAdministrator, IManageUser//, IPrincipal//, IIdentity
         where TEntity : Administrator<TEntity>, new()
     {

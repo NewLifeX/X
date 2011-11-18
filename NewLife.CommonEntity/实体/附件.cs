@@ -221,37 +221,37 @@ namespace NewLife.CommonEntity
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>文件名</summary>
-            public static readonly FieldItem FileName = Meta.Table.FindByName("FileName");
+            public static readonly Field FileName = Meta.Table.FindByName("FileName");
 
             ///<summary>大小</summary>
-            public static readonly FieldItem Size = Meta.Table.FindByName("Size");
+            public static readonly Field Size = Meta.Table.FindByName("Size");
 
             ///<summary>扩展名</summary>
-            public static readonly FieldItem Extension = Meta.Table.FindByName("Extension");
+            public static readonly Field Extension = Meta.Table.FindByName("Extension");
 
             ///<summary>分类</summary>
-            public static readonly FieldItem Category = Meta.Table.FindByName("Category");
+            public static readonly Field Category = Meta.Table.FindByName("Category");
 
             ///<summary>文件路径</summary>
-            public static readonly FieldItem FilePath = Meta.Table.FindByName("FilePath");
+            public static readonly Field FilePath = Meta.Table.FindByName("FilePath");
 
             ///<summary>上传者</summary>
-            public static readonly FieldItem UserName = Meta.Table.FindByName("UserName");
+            public static readonly Field UserName = Meta.Table.FindByName("UserName");
 
             ///<summary>上传时间</summary>
-            public static readonly FieldItem UploadTime = Meta.Table.FindByName("UploadTime");
+            public static readonly Field UploadTime = Meta.Table.FindByName("UploadTime");
 
             ///<summary>内容类型</summary>
-            public static readonly FieldItem ContentType = Meta.Table.FindByName("ContentType");
+            public static readonly Field ContentType = Meta.Table.FindByName("ContentType");
 
             ///<summary>访问统计</summary>
-            public static readonly FieldItem StatID = Meta.Table.FindByName("StatID");
+            public static readonly Field StatID = Meta.Table.FindByName("StatID");
 
             ///<summary>是否启用</summary>
-            public static readonly FieldItem IsEnable = Meta.Table.FindByName("IsEnable");
+            public static readonly Field IsEnable = Meta.Table.FindByName("IsEnable");
         }
         #endregion
     }

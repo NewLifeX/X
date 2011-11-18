@@ -174,28 +174,28 @@ namespace NewLife.CommonEntity
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>模版项</summary>
-            public static readonly FieldItem TemplateItemID = Meta.Table.FindByName("TemplateItemID");
+            public static readonly Field TemplateItemID = Meta.Table.FindByName("TemplateItemID");
 
             ///<summary>模版内容</summary>
-            public static readonly FieldItem Content = Meta.Table.FindByName("Content");
+            public static readonly Field Content = Meta.Table.FindByName("Content");
 
             ///<summary>内容备份</summary>
-            public static readonly FieldItem ContentBackup = Meta.Table.FindByName("ContentBackup");
+            public static readonly Field ContentBackup = Meta.Table.FindByName("ContentBackup");
 
             ///<summary>版本</summary>
-            public static readonly FieldItem Version = Meta.Table.FindByName("Version");
+            public static readonly Field Version = Meta.Table.FindByName("Version");
 
             ///<summary>作者编号</summary>
-            public static readonly FieldItem UserID = Meta.Table.FindByName("UserID");
+            public static readonly Field UserID = Meta.Table.FindByName("UserID");
 
             ///<summary>作者</summary>
-            public static readonly FieldItem UserName = Meta.Table.FindByName("UserName");
+            public static readonly Field UserName = Meta.Table.FindByName("UserName");
 
             ///<summary>创建时间</summary>
-            public static readonly FieldItem CreateTime = Meta.Table.FindByName("CreateTime");
+            public static readonly Field CreateTime = Meta.Table.FindByName("CreateTime");
         }
         #endregion
     }

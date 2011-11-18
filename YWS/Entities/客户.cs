@@ -260,46 +260,46 @@ namespace NewLife.YWS.Entities
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>客户编号</summary>
-            public static readonly FieldItem No = Meta.Table.FindByName("No");
+            public static readonly Field No = Meta.Table.FindByName("No");
 
             ///<summary>名称</summary>
-            public static readonly FieldItem Name = Meta.Table.FindByName("Name");
+            public static readonly Field Name = Meta.Table.FindByName("Name");
 
             ///<summary>联系人</summary>
-            public static readonly FieldItem Linkman = Meta.Table.FindByName("Linkman");
+            public static readonly Field Linkman = Meta.Table.FindByName("Linkman");
 
             ///<summary>部门</summary>
-            public static readonly FieldItem Department = Meta.Table.FindByName("Department");
+            public static readonly Field Department = Meta.Table.FindByName("Department");
 
             ///<summary>电话</summary>
-            public static readonly FieldItem Tel = Meta.Table.FindByName("Tel");
+            public static readonly Field Tel = Meta.Table.FindByName("Tel");
 
             ///<summary>传真</summary>
-            public static readonly FieldItem Fax = Meta.Table.FindByName("Fax");
+            public static readonly Field Fax = Meta.Table.FindByName("Fax");
 
             ///<summary>邮箱</summary>
-            public static readonly FieldItem Email = Meta.Table.FindByName("Email");
+            public static readonly Field Email = Meta.Table.FindByName("Email");
 
             ///<summary>QQ</summary>
-            public static readonly FieldItem QQ = Meta.Table.FindByName("QQ");
+            public static readonly Field QQ = Meta.Table.FindByName("QQ");
 
             ///<summary>MSN</summary>
-            public static readonly FieldItem MSN = Meta.Table.FindByName("MSN");
+            public static readonly Field MSN = Meta.Table.FindByName("MSN");
 
             ///<summary>客户地址</summary>
-            public static readonly FieldItem Address = Meta.Table.FindByName("Address");
+            public static readonly Field Address = Meta.Table.FindByName("Address");
 
             ///<summary>添加时间</summary>
-            public static readonly FieldItem AddTime = Meta.Table.FindByName("AddTime");
+            public static readonly Field AddTime = Meta.Table.FindByName("AddTime");
 
             ///<summary>备注</summary>
-            public static readonly FieldItem Remark = Meta.Table.FindByName("Remark");
+            public static readonly Field Remark = Meta.Table.FindByName("Remark");
 
             ///<summary>类别</summary>
-            public static readonly FieldItem CustomerTypeID = Meta.Table.FindByName("CustomerTypeID");
+            public static readonly Field CustomerTypeID = Meta.Table.FindByName("CustomerTypeID");
         }
         #endregion
     }

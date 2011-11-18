@@ -101,13 +101,13 @@ namespace NewLife.CommonEntity
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>账号</summary>
-            public static readonly FieldItem Account = Meta.Table.FindByName("Account");
+            public static readonly Field Account = Meta.Table.FindByName("Account");
 
             ///<summary>密码</summary>
-            public static readonly FieldItem Password = Meta.Table.FindByName("Password");
+            public static readonly Field Password = Meta.Table.FindByName("Password");
         }
         #endregion
     }

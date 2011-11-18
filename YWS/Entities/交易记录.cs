@@ -440,85 +440,85 @@ namespace NewLife.YWS.Entities
         public class _
         {
             ///<summary>编号</summary>
-            public static readonly FieldItem ID = Meta.Table.FindByName("ID");
+            public static readonly Field ID = Meta.Table.FindByName("ID");
 
             ///<summary>名称</summary>
-            public static readonly FieldItem Name = Meta.Table.FindByName("Name");
+            public static readonly Field Name = Meta.Table.FindByName("Name");
 
             ///<summary>客户ID</summary>
-            public static readonly FieldItem CustomerID = Meta.Table.FindByName("CustomerID");
+            public static readonly Field CustomerID = Meta.Table.FindByName("CustomerID");
 
             ///<summary>机器ID</summary>
-            public static readonly FieldItem MachineID = Meta.Table.FindByName("MachineID");
+            public static readonly Field MachineID = Meta.Table.FindByName("MachineID");
 
             ///<summary>经手人</summary>
-            public static readonly FieldItem Transactor = Meta.Table.FindByName("Transactor");
+            public static readonly Field Transactor = Meta.Table.FindByName("Transactor");
 
             ///<summary>出厂日期</summary>
-            public static readonly FieldItem LeaveTime = Meta.Table.FindByName("LeaveTime");
+            public static readonly Field LeaveTime = Meta.Table.FindByName("LeaveTime");
 
             ///<summary>机器外形尺寸</summary>
-            public static readonly FieldItem OutlineSize = Meta.Table.FindByName("OutlineSize");
+            public static readonly Field OutlineSize = Meta.Table.FindByName("OutlineSize");
 
             ///<summary>附送配件</summary>
-            public static readonly FieldItem Attachment = Meta.Table.FindByName("Attachment");
+            public static readonly Field Attachment = Meta.Table.FindByName("Attachment");
 
             ///<summary>点胶阀门类型</summary>
-            public static readonly FieldItem Type = Meta.Table.FindByName("Type");
+            public static readonly Field Type = Meta.Table.FindByName("Type");
 
             ///<summary>混合管型号</summary>
-            public static readonly FieldItem Model = Meta.Table.FindByName("Model");
+            public static readonly Field Model = Meta.Table.FindByName("Model");
 
             ///<summary>真空泵规格</summary>
-            public static readonly FieldItem VacuumpumpSpec = Meta.Table.FindByName("VacuumpumpSpec");
+            public static readonly Field VacuumpumpSpec = Meta.Table.FindByName("VacuumpumpSpec");
 
             ///<summary>数据显示屏种类</summary>
-            public static readonly FieldItem Kind = Meta.Table.FindByName("Kind");
+            public static readonly Field Kind = Meta.Table.FindByName("Kind");
 
             ///<summary>计量泵组别</summary>
-            public static readonly FieldItem Groupings = Meta.Table.FindByName("Groupings");
+            public static readonly Field Groupings = Meta.Table.FindByName("Groupings");
 
             ///<summary>计量泵尺寸</summary>
-            public static readonly FieldItem Size = Meta.Table.FindByName("Size");
+            public static readonly Field Size = Meta.Table.FindByName("Size");
 
             ///<summary>计量泵密封件规格</summary>
-            public static readonly FieldItem MeteringpumpSpec = Meta.Table.FindByName("MeteringpumpSpec");
+            public static readonly Field MeteringpumpSpec = Meta.Table.FindByName("MeteringpumpSpec");
 
             ///<summary>压力桶大小</summary>
-            public static readonly FieldItem PresSize = Meta.Table.FindByName("PresSize");
+            public static readonly Field PresSize = Meta.Table.FindByName("PresSize");
 
             ///<summary>进料管规格</summary>
-            public static readonly FieldItem SupplypipeSpec = Meta.Table.FindByName("SupplypipeSpec");
+            public static readonly Field SupplypipeSpec = Meta.Table.FindByName("SupplypipeSpec");
 
             ///<summary>出料管规格</summary>
-            public static readonly FieldItem DischargeSpec = Meta.Table.FindByName("DischargeSpec");
+            public static readonly Field DischargeSpec = Meta.Table.FindByName("DischargeSpec");
 
             ///<summary>B料计量泵组别</summary>
-            public static readonly FieldItem GroupingsB = Meta.Table.FindByName("GroupingsB");
+            public static readonly Field GroupingsB = Meta.Table.FindByName("GroupingsB");
 
             ///<summary>B料计量泵尺寸</summary>
-            public static readonly FieldItem SizeB = Meta.Table.FindByName("SizeB");
+            public static readonly Field SizeB = Meta.Table.FindByName("SizeB");
 
             ///<summary>B料计量泵密封件规格</summary>
-            public static readonly FieldItem MeteringpumpSpecB = Meta.Table.FindByName("MeteringpumpSpecB");
+            public static readonly Field MeteringpumpSpecB = Meta.Table.FindByName("MeteringpumpSpecB");
 
             ///<summary>B料压力桶大小</summary>
-            public static readonly FieldItem PresSizeB = Meta.Table.FindByName("PresSizeB");
+            public static readonly Field PresSizeB = Meta.Table.FindByName("PresSizeB");
 
             ///<summary>B料进料管规格</summary>
-            public static readonly FieldItem SupplypipeSpecB = Meta.Table.FindByName("SupplypipeSpecB");
+            public static readonly Field SupplypipeSpecB = Meta.Table.FindByName("SupplypipeSpecB");
 
             ///<summary>B料出料管规格</summary>
-            public static readonly FieldItem DischargeSpecB = Meta.Table.FindByName("DischargeSpecB");
+            public static readonly Field DischargeSpecB = Meta.Table.FindByName("DischargeSpecB");
 
             ///<summary></summary>
-            public static readonly FieldItem Pic = Meta.Table.FindByName("Pic");
+            public static readonly Field Pic = Meta.Table.FindByName("Pic");
 
             ///<summary>添加时间</summary>
-            public static readonly FieldItem AddTime = Meta.Table.FindByName("AddTime");
+            public static readonly Field AddTime = Meta.Table.FindByName("AddTime");
 
             ///<summary>备注</summary>
-            public static readonly FieldItem Remark = Meta.Table.FindByName("Remark");
+            public static readonly Field Remark = Meta.Table.FindByName("Remark");
         }
         #endregion
     }
