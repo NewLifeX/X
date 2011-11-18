@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.3.*")]
-[assembly: AssemblyFileVersion("8.3.2011.1117")]
+[assembly: AssemblyFileVersion("8.3.2011.1118")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,10 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.3.2011.1118   修正SelectBuilder.SelectCount方法中的BUG，当条件字句包含GroupBy时，处理不正确。该BUG由@行走江湖（534163320）发现
+ *                  新增字段信息类Field，继承自FieldItem，仅仅为了重载等号运算符，用于实体数据类内置的字段信息类
+ *                  WhereExpression增加左右小括号支持，And运算自动检测左右字句并加上小括号（保守做法，只要有Or就加）
+ * 
  * v8.3.2011.1117   修改EntityTree，增加FullPath、FullParentPath、TreeNodeName等属性
  *                  重构IEntityTree接口
  * 

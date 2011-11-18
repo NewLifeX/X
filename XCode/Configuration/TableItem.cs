@@ -11,9 +11,7 @@ using XCode.DataAccessLayer;
 
 namespace XCode.Configuration
 {
-    /// <summary>
-    /// 数据表元数据
-    /// </summary>
+    /// <summary>数据表元数据</summary>
     public class TableItem
     {
         #region 特性
@@ -274,7 +272,7 @@ namespace XCode.Configuration
                 // 排除索引器
                 if (item.GetIndexParameters().Length > 0) continue;
 
-                FieldItem fi = new FieldItem(this, item);
+                FieldItem fi = new Field(this, item);
                 allfields.Add(fi);
 
                 if (fi.IsDataObjectField)
@@ -344,19 +342,18 @@ namespace XCode.Configuration
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        //[Obsolete("请使用FieldItems替代。")]
-        public FieldItem FindByName(String name)
+        public Field FindByName(String name)
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
             foreach (FieldItem item in Fields)
             {
-                if (String.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase)) return item;
+                if (String.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase)) return item as Field;
             }
 
             foreach (FieldItem item in Fields)
             {
-                if (String.Equals(item.ColumnName, name, StringComparison.OrdinalIgnoreCase)) return item;
+                if (String.Equals(item.ColumnName, name, StringComparison.OrdinalIgnoreCase)) return item as Field;
             }
 
             return null;

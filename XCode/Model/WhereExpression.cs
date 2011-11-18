@@ -48,9 +48,32 @@ namespace XCode
         /// <returns></returns>
         public WhereExpression And(String exp)
         {
+            if (String.IsNullOrEmpty(exp)) return this;
+
             //if (Builder.Length > 0 && Builder[Builder.Length - 1] != '(') Builder.Append(" And ");
             //Builder.Append(exp);
-            if (!String.IsNullOrEmpty(exp)) Append("And", exp);
+            if (!String.IsNullOrEmpty(exp))
+            {
+                // And连接，如果左右两端其中一段有Or，则必须加括号
+                if (Builder.Length > 0 && Builder.ToString().IndexOf("Or", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    // 有可能本身就有括号了
+                    if (Builder[0] != '(' && Builder[Builder.Length - 1] != ')')
+                    {
+                        Builder.Insert(0, "(");
+                        Builder.Append(")");
+                    }
+                }
+
+                // And连接，如果左右两端其中一段有Or，则必须加括号
+                if (exp.IndexOf("Or", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    // 有可能本身就有括号了
+                    if (exp[0] != '(' && exp[exp.Length - 1] != ')') exp = "(" + exp + ")";
+                }
+
+                Append("And", exp);
+            }
 
             return this;
         }
@@ -62,6 +85,8 @@ namespace XCode
         /// <returns></returns>
         public WhereExpression Or(String exp)
         {
+            if (String.IsNullOrEmpty(exp)) return this;
+
             //if (Builder.Length > 0 && Builder[Builder.Length - 1] != '(') Builder.Append(" Or ");
             //Builder.Append(exp);
             if (!String.IsNullOrEmpty(exp)) Append("Or", exp);
@@ -75,10 +100,7 @@ namespace XCode
         /// <param name="condition"></param>
         /// <param name="exp"></param>
         /// <returns></returns>
-        public WhereExpression AndIf(Boolean condition, String exp)
-        {
-            return condition ? And(exp) : this;
-        }
+        public WhereExpression AndIf(Boolean condition, String exp) { return condition ? And(exp) : this; }
 
         /// <summary>
         /// 有条件Or操作
@@ -86,10 +108,15 @@ namespace XCode
         /// <param name="condition"></param>
         /// <param name="exp"></param>
         /// <returns></returns>
-        public WhereExpression OrIf(Boolean condition, String exp)
-        {
-            return condition ? Or(exp) : this;
-        }
+        public WhereExpression OrIf(Boolean condition, String exp) { return condition ? Or(exp) : this; }
+
+        /// <summary>左括号</summary>
+        /// <returns></returns>
+        public WhereExpression Left() { Builder.Append("("); return this; }
+
+        /// <summary>右括号</summary>
+        /// <returns></returns>
+        public WhereExpression Right() { Builder.Append(")"); return this; }
 
         /// <summary>
         /// 已重载。

@@ -746,10 +746,10 @@ namespace XCode
         /// 返回总记录数
         /// </summary>
         /// <param name="whereClause">条件，不带Where</param>
-        /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="selects">查询列</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <param name="orderClause">排序，不带Order By。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <param name="selects">查询列。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <returns>总行数</returns>
         public static Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
@@ -795,8 +795,8 @@ namespace XCode
         /// </summary>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <returns>总行数</returns>
         public static Int32 FindCount(String name, Object value, Int32 startRowIndex, Int32 maximumRows) { return FindCountByName(name, value, null, startRowIndex, maximumRows); }
 
@@ -805,9 +805,9 @@ namespace XCode
         /// </summary>
         /// <param name="name">属性</param>
         /// <param name="value">值</param>
-        /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <param name="orderClause">排序，不带Order By。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <returns>总行数</returns>
         public static Int32 FindCountByName(String name, Object value, String orderClause, int startRowIndex, int maximumRows)
         {

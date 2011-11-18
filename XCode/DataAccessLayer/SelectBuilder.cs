@@ -239,11 +239,19 @@ $";
         /// <returns></returns>
         public virtual SelectBuilder SelectCount()
         {
-            SelectBuilder sb = this.Clone();
-            sb.OrderBy = null;
+            //SelectBuilder sb = this.Clone();
+            //sb.OrderBy = null;
+            //// 包含GroupBy时，作为子查询
+            //if (!String.IsNullOrEmpty(GroupBy)) sb.Table = String.Format("({0}) as SqlBuilder_T0", sb.ToString());
+            //sb.Column = "Count(*)";
+            //return sb;
+
+            // 该BUG由@行走江湖（534163320）发现
+
             // 包含GroupBy时，作为子查询
-            if (!String.IsNullOrEmpty(GroupBy)) sb.Table = String.Format("({0}) as SqlBuilder_T0", sb.ToString());
+            SelectBuilder sb = this.CloneWithGroupBy("XCode_T0");
             sb.Column = "Count(*)";
+            sb.OrderBy = null;
             return sb;
         }
         #endregion

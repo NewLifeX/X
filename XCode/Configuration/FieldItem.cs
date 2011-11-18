@@ -7,9 +7,7 @@ using XCode.DataAccessLayer;
 
 namespace XCode.Configuration
 {
-    /// <summary>
-    /// 数据属性元数据以及特性
-    /// </summary>
+    /// <summary>数据属性元数据以及特性</summary>
     public class FieldItem
     {
         #region 属性
@@ -415,7 +413,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public static WhereExpression operator <=(FieldItem field, Object value) { return MakeCondition(field, value, "<="); }
 
-        static WhereExpression MakeCondition(FieldItem field, Object value, String action)
+        internal static WhereExpression MakeCondition(FieldItem field, Object value, String action)
         {
             //IEntityOperate op = EntityFactory.CreateOperate(field.Table.EntityType);
             //return new WhereExpression(String.Format("{0}{1}{2}", op.FormatName(field.ColumnName), action, op.FormatValue(field, value)));
@@ -434,5 +432,40 @@ namespace XCode.Configuration
             return !obj.Equals(null) ? obj.ColumnName : null;
         }
         #endregion
+    }
+
+    /// <summary>继承FieldItem，仅仅为了重载==和!=运算符</summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public class Field : FieldItem
+    {
+        #region 构造
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="property"></param>
+        public Field(TableItem table, PropertyInfo property) : base(table, property) { }
+        #endregion
+
+        /// <summary>等于</summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static WhereExpression operator ==(Field field, Object value) { return field.Equal(value); }
+
+        /// <summary>不等于</summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static WhereExpression operator !=(Field field, Object value) { return field.NotEqual(value); }
+
+        /// <summary>重写一下</summary>
+        /// <returns></returns>
+        public override int GetHashCode() { return base.GetHashCode(); }
+
+        /// <summary>重写一下</summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override bool Equals(object obj) { return base.Equals(obj); }
     }
 }
