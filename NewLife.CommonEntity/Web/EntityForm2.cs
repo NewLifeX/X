@@ -336,7 +336,7 @@ namespace NewLife.CommonEntity.Web
                 if (btn != null && btn is IButtonControl)
                     (btn as IButtonControl).Click += delegate
                     {
-                        Accessor.Read(entity);
+                        GetForm();
                         if (ValidForm()) SaveFormWithTrans();
                     };
                 // 这里还不能保存表单，因为使用者习惯性在Load事件里面写业务代码，所以只能在Load完成后保存
