@@ -105,7 +105,7 @@ namespace NewLife.Mvc
                             }
 
                             cfg.SortConfigRule();
-                            cfg.RouteToFactory("", () => Service.Resolve<IControllerFactory>()); // 从对象容器中取默认控制器工厂
+                            //cfg.RouteToFactory("", () => Service.Resolve<IControllerFactory>()); // 从对象容器中取默认控制器工厂
                             _RootConfig[0] = cfg;
                         }
                     }
