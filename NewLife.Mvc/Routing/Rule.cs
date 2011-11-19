@@ -256,9 +256,10 @@ namespace NewLife.Mvc
                 IController c = null;
                 try
                 {
-                    if (Factory.Support(rctx.Path))
+                    //if (Factory.Support(rctx.Path))
                     {
-                        c = Factory.Create();
+                        //c = Factory.Create();
+                        c = Factory.GetController(rctx);
                         if (c != null)
                         {
                             rctx.EnterController(Path, match, path, c);

@@ -7,6 +7,9 @@ using NewLife.Log;
 namespace NewLife.Mvc
 {
     /// <summary>Url路由处理器</summary>
+    /// <remarks>
+    /// 
+    /// </remarks>
     public class Route : IHttpModule
     {
         #region IHttpModule 成员
@@ -28,6 +31,35 @@ namespace NewLife.Mvc
         }
 
         #endregion IHttpModule 成员
+
+        private void context_BeginRequest(object sender, EventArgs e)
+        {
+            HttpApplication app = sender as HttpApplication;
+            RouteContext context = new RouteContext(app); // 每次请求前重置路由上下文
+            RouteContext.Current = context;
+            string path = context.RoutePath;
+            IController controller = null;
+            try
+            {
+                controller = RootConfig.GetRouteHandler(path);
+            }
+            catch (Exception ex)
+            {
+                if (TryLogExceptionIfNonDebug(app.Response, ex, "发生路由错误"))
+                {
+                    app.CompleteRequest();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            if (controller != null)
+            {
+                app.Context.RemapHandler(HttpHandlerWrap.Create(context, controller));
+                return;
+            }
+        }
 
         static RouteConfigManager[] _RootConfig = new RouteConfigManager[] { null };
 
@@ -73,34 +105,6 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
             }
         }
 
-        private void context_BeginRequest(object sender, EventArgs e)
-        {
-            HttpApplication app = sender as HttpApplication;
-            RouteContext.Current = new RouteContext(app); // 每次请求前重置路由上下文
-            string path = RouteContext.Current.RoutePath;
-            IController c = null;
-            try
-            {
-                c = RootConfig.GetRouteHandler(path);
-            }
-            catch (Exception ex)
-            {
-                if (TryLogExceptionIfNonDebug(app.Response, ex, "发生路由错误"))
-                {
-                    app.CompleteRequest();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            if (c != null)
-            {
-                app.Context.RemapHandler(HttpHandlerWrap.Create(c));
-                return;
-            }
-        }
-
         /// <summary>
         /// 尝试将指定的异常信息写入到日志,如果当前是非Debug模式,Debug开关是NewLife.Mvc.Route.Debug配置项
         ///
@@ -143,15 +147,15 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
         }
     }
 
-    /// <summary>
-    /// 将IController包装为IHttpHandler,用于给HttpContext.RemapHandler方法使用
-    /// </summary>
+    /// <summary>将IController包装为IHttpHandler,用于给HttpContext.RemapHandler方法使用</summary>
     internal class HttpHandlerWrap : IHttpHandler
     {
+        private IRouteContext Context;
         private IController Controller;
 
-        protected HttpHandlerWrap(IController controller)
+        protected HttpHandlerWrap(IRouteContext context, IController controller)
         {
+            Context = context;
             Controller = controller;
         }
 
@@ -164,7 +168,7 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
         {
             try
             {
-                Controller.Execute();
+                Controller.ProcessRequest(Context);
             }
             catch (Exception ex)
             {
@@ -186,19 +190,19 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
         /// </summary>
         /// <param name="controller"></param>
         /// <returns></returns>
-        public static HttpHandlerWrap Create(IController controller)
+        public static HttpHandlerWrap Create(IRouteContext context, IController controller)
         {
             if (controller is IReadOnlySessionState)
             {
-                return new ReadOnlySession(controller);
+                return new ReadOnlySession(context, controller);
             }
             else if (controller is IRequiresSessionState)
             {
-                return new ReadWriteSession(controller);
+                return new ReadWriteSession(context, controller);
             }
             else
             {
-                return new HttpHandlerWrap(controller);
+                return new HttpHandlerWrap(context, controller);
             }
         }
 
@@ -207,7 +211,7 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
         /// </summary>
         private class ReadOnlySession : HttpHandlerWrap, IReadOnlySessionState
         {
-            public ReadOnlySession(IController controller) : base(controller) { }
+            public ReadOnlySession(IRouteContext context, IController controller) : base(context, controller) { }
         }
 
         /// <summary>
@@ -215,7 +219,7 @@ System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Window
         /// </summary>
         private class ReadWriteSession : HttpHandlerWrap, IRequiresSessionState
         {
-            public ReadWriteSession(IController controller) : base(controller) { }
+            public ReadWriteSession(IRouteContext context, IController controller) : base(context, controller) { }
         }
     }
 }

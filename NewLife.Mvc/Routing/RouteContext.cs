@@ -14,7 +14,7 @@ namespace NewLife.Mvc
     ///   控制器匹配的路径,路由到控制器时会提供的值,如果是通过工厂路由到控制器的,那么和上一个工厂匹配的路径相同
     ///   剩余的路径,其它情况下的路径
     /// </summary>
-    public class RouteContext
+    public class RouteContext : IRouteContext
     {
         internal RouteContext(HttpApplication app)
         {
@@ -26,21 +26,8 @@ namespace NewLife.Mvc
 
         [ThreadStatic]
         private static RouteContext _Current;
-
-        /// <summary>
-        /// 当前请求路由上下文信息
-        /// </summary>
-        public static RouteContext Current
-        {
-            get
-            {
-                return _Current;
-            }
-            set
-            {
-                _Current = value;
-            }
-        }
+        /// <summary>当前请求路由上下文信息</summary>
+        public static RouteContext Current { get { return _Current; } set { _Current = value; } }
 
         /// <summary>
         /// 当前请求的路由路径,即url排除掉当前应用部署的路径后,以/开始的路径,不包括url中?及其后面的

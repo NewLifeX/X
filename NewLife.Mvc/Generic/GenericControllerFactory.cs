@@ -8,7 +8,7 @@ namespace NewLife.Mvc
     /// <summary>一般控制器工厂接口</summary>
     public class GenericControllerFactory : IControllerFactory
     {
-        #region IControllerFactory 成员
+        #region 方法
 
         private static string _TempleteDir;
 
@@ -92,12 +92,26 @@ namespace NewLife.Mvc
             return false;
         }
 
-        /// <summary>
-        /// 创建控制器
-        /// </summary>
-        /// <returns></returns>
-        public IController Create() { return new GenericController(); }
+        ///// <summary>
+        ///// 创建控制器
+        ///// </summary>
+        ///// <returns></returns>
+        //public IController Create() { return new GenericController(); }
 
-        #endregion IControllerFactory 成员
+        #endregion
+
+        #region IControllerFactory 成员
+        /// <summary>返回实现 <see cref="T:NewLife.Mvc.IController" /> 接口的类的实例。</summary>
+        /// <returns>处理请求的新的 <see cref="T:NewLife.Mvc.IController" /> 对象。</returns>
+        /// <param name="context"><see cref="T:NewLife.Mvc.IRouteContext" /> 类的实例，它提供对用于为 HTTP 请求提供服务的内部服务器对象的引用。</param>
+        public IController GetController(IRouteContext context)
+        {
+            return Support(context.Path) ? new GenericController() : null;
+        }
+
+        /// <summary>使工厂可以重用现有的处理程序实例。</summary>
+        /// <param name="handler">要重用的 <see cref="T:NewLife.Mvc.IController" /> 对象。</param>
+        public void ReleaseController(IController handler) { }
+        #endregion
     }
 }

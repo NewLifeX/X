@@ -27,16 +27,7 @@ namespace NewLife.Mvc
 
         #endregion 属性
 
-        #region IController 成员
-
-        /// <summary>
-        /// 执行
-        /// </summary>
-        public virtual void Execute()
-        {
-            Render(null);
-        }
-
+        #region 方法
         /// <summary>
         /// 使用指定的参数产生模版中使用的数据
         /// </summary>
@@ -105,7 +96,22 @@ namespace NewLife.Mvc
             String html = engine.Render(path, data);
             Response.Write(html);
         }
+        #endregion
 
-        #endregion IController 成员
+        #region IController 成员
+        /// <summary>通过实现 <see cref="T:NewLife.Mvc.IController" /> 接口的自定义 Controller 启用 HTTP Web 请求的处理。</summary>
+        /// <param name="context"><see cref="T:NewLife.Mvc.IRouteContext" /> 对象，它提供对用于为 HTTP 请求提供服务的内部服务器对象的引用。</param>
+        public void ProcessRequest(IRouteContext context)
+        {
+            Render(null);
+        }
+
+        /// <summary>获取一个值，该值指示其他请求是否可以使用 <see cref="T:NewLife.Mvc.IController" /> 实例。</summary>
+        /// <returns>如果 <see cref="T:NewLife.Mvc.IController" /> 实例可再次使用，则为 true；否则为 false。</returns>
+        public bool IsReusable
+        {
+            get { return false; }
+        }
+        #endregion
     }
 }
