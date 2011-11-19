@@ -356,6 +356,47 @@ namespace XCode
 
             return list;
         }
+
+        /// <summary>根据层次路径查找</summary>
+        /// <param name="path">层次路径</param>
+        /// <param name="keys">用于在每一层匹配实体的键值，默认是NameKeyName</param>
+        /// <returns></returns>
+        public TEntity FindByPath(String path, params String[] keys)
+        {
+            if (String.IsNullOrEmpty(path)) return null;
+
+            if (keys == null || keys.Length < 1)
+            {
+                if (String.IsNullOrEmpty(NameKeyName)) return null;
+
+                keys = new String[] { NameKeyName };
+            }
+
+            EntityList<TEntity> list = Childs;
+            if (list == null || list.Count < 1) return null;
+
+            //// 尝试一次性查找
+            //TEntity entity = list.Find(name, path);
+            //if (entity != null) return entity;
+
+            String[] ss = path.Split(new Char[] { '.', '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+            if (ss == null || ss.Length < 1) return null;
+
+            // 找第一级
+            TEntity entity = null;
+            foreach (String item in keys)
+            {
+                entity = list.Find(item, ss[0]);
+                if (entity != null) break;
+            }
+            if (entity == null) return null;
+
+            // 是否还有下级
+            if (ss.Length == 1) return entity;
+
+            // 递归找下级
+            return entity.FindByPath(String.Join("\\", ss, 1, ss.Length - 1));
+        }
         #endregion
 
         #region 集合运算

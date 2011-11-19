@@ -224,7 +224,8 @@ namespace NewLife.CommonEntity
             TEntity entity = FindByName(name);
             if (entity != null) return entity;
 
-            return FindByPath(Meta.Cache.Entities, name, _.Name);
+            //return FindByPath(Meta.Cache.Entities, name, _.Name);
+            return Root.FindByPath(name, _.Name, _.Permission, _.Remark);
         }
 
         /// <summary>
@@ -267,7 +268,8 @@ namespace NewLife.CommonEntity
             //TEntity entity = FindByPerssion(name);
             //if (entity != null) return entity;
 
-            TEntity entity = FindByPath(Meta.Cache.Entities, name, _.Permission);
+            //TEntity entity = FindByPath(Meta.Cache.Entities, name, _.Permission);
+            TEntity entity = Root.FindByPath(name, _.Permission);
             // 找不到的时候，修改当前页面
             if (entity == null)
             {
@@ -280,63 +282,63 @@ namespace NewLife.CommonEntity
             return entity;
         }
 
-        /// <summary>
-        /// 路径查找
-        /// </summary>
-        /// <param name="list"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public static TEntity FindByPath(EntityList<TEntity> list, String path, String name)
-        {
-            if (list == null || list.Count < 1) return null;
-            if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name)) return null;
+        ///// <summary>
+        ///// 路径查找
+        ///// </summary>
+        ///// <param name="list"></param>
+        ///// <param name="path"></param>
+        ///// <param name="name"></param>
+        ///// <returns></returns>
+        //public static TEntity FindByPath(EntityList<TEntity> list, String path, String name)
+        //{
+        //    if (list == null || list.Count < 1) return null;
+        //    if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name)) return null;
 
-            // 尝试一次性查找
-            TEntity entity = list.Find(name, path);
-            if (entity != null) return entity;
+        //    // 尝试一次性查找
+        //    TEntity entity = list.Find(name, path);
+        //    if (entity != null) return entity;
 
-            String[] ss = path.Split(new Char[] { '.', '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length < 1) return null;
+        //    String[] ss = path.Split(new Char[] { '.', '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+        //    if (ss == null || ss.Length < 1) return null;
 
-            // 找第一级
-            entity = list.Find(name, ss[0]);
-            if (entity == null) entity = list.Find(_.Remark, ss[0]);
-            if (entity == null) return null;
+        //    // 找第一级
+        //    entity = list.Find(name, ss[0]);
+        //    if (entity == null) entity = list.Find(_.Remark, ss[0]);
+        //    if (entity == null) return null;
 
-            // 是否还有下级
-            if (ss.Length == 1) return entity;
+        //    // 是否还有下级
+        //    if (ss.Length == 1) return entity;
 
-            // 递归找下级
-            return FindByPath(entity.Childs, String.Join("\\", ss, 1, ss.Length - 1), name);
+        //    // 递归找下级
+        //    return FindByPath(entity.Childs, String.Join("\\", ss, 1, ss.Length - 1), name);
 
-            //EntityList<TEntity> list3 = new EntityList<TEntity>();
-            //for (int i = 0; i < ss.Length; i++)
-            //{
-            //    // 找到符合当前级别的所有节点
-            //    EntityList<TEntity> list2 = list.FindAll(name, ss[i]);
-            //    if (list2 == null || list2.Count < 1) return null;
+        //    //EntityList<TEntity> list3 = new EntityList<TEntity>();
+        //    //for (int i = 0; i < ss.Length; i++)
+        //    //{
+        //    //    // 找到符合当前级别的所有节点
+        //    //    EntityList<TEntity> list2 = list.FindAll(name, ss[i]);
+        //    //    if (list2 == null || list2.Count < 1) return null;
 
-            //    // 是否到了最后
-            //    if (i == ss.Length - 1)
-            //    {
-            //        list3 = list2;
-            //        break;
-            //    }
+        //    //    // 是否到了最后
+        //    //    if (i == ss.Length - 1)
+        //    //    {
+        //    //        list3 = list2;
+        //    //        break;
+        //    //    }
 
-            //    // 找到它们的子节点
-            //    list3.Clear();
-            //    foreach (TEntity item in list2)
-            //    {
-            //        if (item.Childs != null && item.Childs.Count > 0) list3.AddRange(item.Childs);
-            //    }
-            //    if (list3 == null || list3.Count < 1) return null;
-            //}
-            //if (list3 != null && list3.Count > 0)
-            //    return list[0];
-            //else
-            //    return null;
-        }
+        //    //    // 找到它们的子节点
+        //    //    list3.Clear();
+        //    //    foreach (TEntity item in list2)
+        //    //    {
+        //    //        if (item.Childs != null && item.Childs.Count > 0) list3.AddRange(item.Childs);
+        //    //    }
+        //    //    if (list3 == null || list3.Count < 1) return null;
+        //    //}
+        //    //if (list3 != null && list3.Count > 0)
+        //    //    return list[0];
+        //    //else
+        //    //    return null;
+        //}
 
         /// <summary>
         /// 查找指定菜单的子菜单
@@ -720,7 +722,8 @@ namespace NewLife.CommonEntity
         /// <param name="newName"></param>
         IMenu IMenu.CheckMenuName(String oldName, String newName)
         {
-            IMenu menu = FindByPath(AllChilds, oldName, _.Name);
+            //IMenu menu = FindByPath(AllChilds, oldName, _.Name);
+            IMenu menu = FindByPath(oldName, _.Name);
             if (menu != null && menu.Name != newName)
             {
                 menu.Name = menu.Permission = newName;
