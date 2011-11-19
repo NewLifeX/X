@@ -7,8 +7,8 @@ namespace NewLife.Mvc
         static Service()
         {
             Container
-                .Register<IControllerFactory, GenericControllerFactory>(null)
-                .Register<ITemplateEngine>(new GenericTemplateEngine(), null);
+                .Register<IControllerFactory, GenericControllerFactory>()
+                .Register<ITemplateEngine>(new GenericTemplateEngine());
         }
     }
 }

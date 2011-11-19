@@ -4,9 +4,7 @@ using NewLife.Reflection;
 
 namespace NewLife.Mvc
 {
-    /// <summary>
-    /// 路由配置管理器
-    /// </summary>
+    /// <summary>路由配置管理器</summary>
     public class RouteConfigManager
     {
         #region 公共
@@ -159,6 +157,8 @@ namespace NewLife.Mvc
         internal IRouteConfigModule Load(Type type)
         {
             IRouteConfigModule cfg = TypeX.CreateInstance(type) as IRouteConfigModule;
+            if (cfg == null) return null;
+
             try
             {
                 cfg.Config(this);

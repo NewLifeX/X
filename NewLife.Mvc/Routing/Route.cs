@@ -3,6 +3,7 @@ using System.Web;
 using System.Web.SessionState;
 using NewLife.Configuration;
 using NewLife.Log;
+using NewLife.Reflection;
 
 namespace NewLife.Mvc
 {
@@ -76,25 +77,33 @@ namespace NewLife.Mvc
                     {
                         if (_RootConfig[0] == null)
                         {
-                            string exclude = @"mscorlib,
-System.Web,System,System.Configuration,System.Xml,System.Web.resources,Microsoft.JScript,System.Data,System.Web.Services,
-System.Drawing,System.EnterpriseServices,System.Web.Mobile,NewLife.Core,NewLife.Mvc,System.Runtime.Serialization,
-System.IdentityModel,System.ServiceModel,System.ServiceModel.Web,System.WorkflowServices,System.resources,
-System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Windows.Forms,";
+                            //                            string exclude = @"mscorlib,
+                            //System.Web,System,System.Configuration,System.Xml,System.Web.resources,Microsoft.JScript,System.Data,System.Web.Services,
+                            //System.Drawing,System.EnterpriseServices,System.Web.Mobile,NewLife.Core,NewLife.Mvc,System.Runtime.Serialization,
+                            //System.IdentityModel,System.ServiceModel,System.ServiceModel.Web,System.WorkflowServices,System.resources,
+                            //System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Windows.Forms,";
+                            //                            RouteConfigManager cfg = new RouteConfigManager();
+                            //                            foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
+                            //                            {
+                            //                                string name = ass.FullName;
+                            //                                name = name.Substring(0, name.IndexOf(',') + 1);
+                            //                                if (exclude.Contains(name)) continue;
+                            //                                foreach (var type in ass.GetTypes())
+                            //                                {
+                            //                                    if (typeof(IRouteConfig).IsAssignableFrom(type))
+                            //                                    {
+                            //                                        cfg.Load(type);
+                            //                                    }
+                            //                                }
+                            //                            }
+
                             RouteConfigManager cfg = new RouteConfigManager();
-                            foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
+                            // 找到所有实现IRouteConfig接口的类
+                            foreach (Type item in AssemblyX.FindAllPlugins(typeof(IRouteConfig)))
                             {
-                                string name = ass.FullName;
-                                name = name.Substring(0, name.IndexOf(',') + 1);
-                                if (exclude.Contains(name)) continue;
-                                foreach (var type in ass.GetTypes())
-                                {
-                                    if (typeof(IRouteConfig).IsAssignableFrom(type))
-                                    {
-                                        cfg.Load(type);
-                                    }
-                                }
+                                cfg.Load(item);
                             }
+
                             cfg.SortConfigRule();
                             cfg.RouteToFactory("", () => Service.Resolve<IControllerFactory>()); // 从对象容器中取默认控制器工厂
                             _RootConfig[0] = cfg;
