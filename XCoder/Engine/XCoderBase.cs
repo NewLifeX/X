@@ -174,17 +174,7 @@ namespace XCoder
         /// <returns></returns>
         public IDataTable FindTable(String tableName)
         {
-            return Tables.Find(delegate(IDataTable item)
-            {
-                String name = item.Name;
-                if (String.Equals(name, tableName, StringComparison.OrdinalIgnoreCase)) return true;
-
-                if (Config.AutoCutPrefix) name = CutPrefix(name);
-                if (String.Equals(name, tableName, StringComparison.OrdinalIgnoreCase)) return true;
-
-                return false;
-
-            });
+            return Tables.Find(t => t.Name.EqualIgnoreCase(tableName) || t.Alias.EqualIgnoreCase(tableName));
         }
         #endregion
     }
