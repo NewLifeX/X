@@ -239,7 +239,7 @@ namespace XTemplate.Templating
                     entity.AddTemplateItem(item.Key, item.Value);
                 }
 
-                entity.Process();
+                //entity.Process();
                 //entity.Compile();
                 return entity;
             });
@@ -588,10 +588,12 @@ namespace XTemplate.Templating
             codeNamespace.Types.Add(typeDec);
 
             // 基类
-            if (String.IsNullOrEmpty(item.BaseClassName))
-                typeDec.BaseTypes.Add(new CodeTypeReference(typeof(TemplateBase)));
-            else
+            if (!String.IsNullOrEmpty(item.BaseClassName))
                 typeDec.BaseTypes.Add(new CodeTypeReference(item.BaseClassName));
+            else if (!String.IsNullOrEmpty(BaseClassName))
+                typeDec.BaseTypes.Add(new CodeTypeReference(BaseClassName));
+            else
+                typeDec.BaseTypes.Add(new CodeTypeReference(typeof(TemplateBase)));
 
             if (!String.IsNullOrEmpty(item.Name)) typeDec.LinePragma = new CodeLinePragma(item.Name, 1);
 

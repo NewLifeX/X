@@ -105,6 +105,21 @@ namespace XTemplate.Templating
             set { _BaseClassName = value; }
         }
 
+        //private static String _BaseClass;
+        ///// <summary>
+        ///// 默认基类名称
+        ///// </summary>
+        //public static String BaseClass
+        //{
+        //    get
+        //    {
+        //        if (_BaseClass == null) _BaseClass = BaseClassName;
+
+        //        return _BaseClass;
+        //    }
+        //    set { _BaseClass = value; }
+        //}
+
         private static List<String> _References;
         /// <summary>
         /// 标准程序集引用

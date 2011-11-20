@@ -79,7 +79,7 @@ namespace NewLife.CommonEntity.Web
             fs.Close();
 
             stream = new MemoryStream(buffer);
-            HttpRuntime.Cache.Insert(key, stream, null, Cache.NoAbsoluteExpiration, CacheTime);
+            HttpRuntime.Cache.Insert(key, stream, null, DateTime.Now.Add(CacheTime), Cache.NoSlidingExpiration);
             return stream;
         }
 

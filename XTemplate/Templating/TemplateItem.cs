@@ -50,10 +50,10 @@ namespace XTemplate.Templating
         }
 
         private String _BaseClassName;
-        /// <summary>基类名</summary>
+        /// <summary>模版头指令指定的基类名。如果为空表示没有指令指定基类</summary>
         public String BaseClassName
         {
-            get { return _BaseClassName ?? (_BaseClassName = Template.BaseClassName); }
+            get { return _BaseClassName; }
             set { _BaseClassName = value; }
         }
 
