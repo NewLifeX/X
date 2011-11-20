@@ -2,15 +2,12 @@
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CSharp;
 using NewLife;
 using NewLife.Collections;
-using NewLife.Log;
 using NewLife.Reflection;
 
 namespace XTemplate.Templating
@@ -21,13 +18,32 @@ namespace XTemplate.Templating
     /// 一个模版引擎实例，可用重复使用以处理多个模版。
     /// </remarks>
     /// <example>
-    /// 快速用法：
+    /// 快速用法（单个模版处理）：
     /// <code>
+    /// // 以名值字典的方式传入参数，模版内部通过Data["name"]的方式获取，也可以使用GetData&lt;T&gt;(String name)方法
     /// Dictionary&lt;String, Object&gt; data = new Dictionary&lt;String, Object&gt;();
     /// data["name"] = "参数测试";
-    /// String content = Template.Process("模版文件.txt", data);
+    /// 
+    /// // 如果有包含模版，则以相对于模版文件的路径加载
+    /// String content = Template.ProcessFile("模版文件.txt", data);
+    /// // 传入内容的用法。如果不指定模版名，则默认使用Class。如果有包含模版，则无法识别。
+    /// // String content = Template.ProcessTemplate("模版名", "模版内容", data);
     /// </code>
-    /// 高级用法：
+    /// 中级用法（多模版处理推荐）：
+    /// <code>
+    /// // 多个模版，包括被包含的模版，一起打包成为模版集合。如果有包含模版，则根据模版名来引用
+    /// Dictionary&lt;String, String&gt; templates = new Dictionary&lt;String, String&gt;();
+    /// templates.Add("模版1"， File.ReadAllText("模版文件1.txt"));
+    /// templates.Add("模版2"， File.ReadAllText("模版文件2.txt"));
+    /// templates.Add("模版3"， File.ReadAllText("模版文件3.txt"));
+    /// 
+    /// Dictionary&lt;String, Object&gt; data = new Dictionary&lt;String, Object&gt;();
+    /// data["name"] = "参数测试";
+    /// 
+    /// Template tt = Create(name, template);
+    /// String content = tt.Render("模版1", data);
+    /// </code>
+    /// 高级用法（仅用于需要仔细控制每一步的场合，比如仅编译模版来检查语法）：
     /// <code>
     /// Template tt = new Template();
     /// tt.AddTemplateItem("模版1"， File.ReadAllText("模版文件1.txt"));
@@ -40,7 +56,7 @@ namespace XTemplate.Templating
     /// return temp.Render();
     /// </code>
     /// </example>
-    public class Template : DisposeBase
+    public partial class Template : DisposeBase
     {
         #region 属性
         private CompilerErrorCollection _Errors;
@@ -431,6 +447,7 @@ namespace XTemplate.Templating
                 // 包含指令时，返回多个代码块
                 //List<Block> list = ProcessDirective(directive, item);
                 TemplateItem ti = ProcessDirective(directive, item);
+                if (ti == null) continue;
                 //List<Block> list = TemplateParser.Parse(ti.Name, ti.Content);
                 // 拆分成块
                 if (ti.Blocks == null || ti.Blocks.Count < 1) ti.Blocks = TemplateParser.Parse(ti.Name, ti.Content);
@@ -1048,24 +1065,32 @@ namespace XTemplate.Templating
 
             if (String.IsNullOrEmpty(className))
             {
-                // 检查是否只有一个模版类
-                Int32 n = 0;
-                foreach (Type type in Assembly.GetTypes())
+                Type[] ts = Assembly.GetTypes();
+                if (ts != null && ts.Length > 0)
                 {
-                    if (!typeof(TemplateBase).IsAssignableFrom(type)) continue;
+                    // 检查是否只有一个模版类
+                    Int32 n = 0;
+                    foreach (Type type in ts)
+                    {
+                        if (!typeof(TemplateBase).IsAssignableFrom(type)) continue;
 
-                    className = type.FullName;
-                    if (n++ > 1) break;
+                        className = type.FullName;
+                        if (n++ > 1) break;
+                    }
+
+                    //// 干脆用第一个
+                    //if (n == 0) className = ts[0].FullName;
+
+                    // 如果只有一个模版类，则使用该类作为类名
+                    if (n != 1) throw new ArgumentNullException("className", "请指定模版类类名！");
                 }
-
-                // 如果只有一个模版类，则使用该类作为类名
-                if (n != 1) throw new ArgumentNullException("className", "请指定模版类类名！");
             }
             else
                 className = GetClassName(className);
 
             if (!className.Contains(".")) className = NameSpace + "." + className;
-            TemplateBase temp = Assembly.CreateInstance(className) as TemplateBase;
+            // 可能存在大小写不匹配等问题，这里需要修正
+            TemplateBase temp = Assembly.CreateInstance(className, true) as TemplateBase;
             if (temp == null) throw new Exception(String.Format("没有找到模版类[{0}]！", className));
 
             return temp;
@@ -1082,220 +1107,14 @@ namespace XTemplate.Templating
             TemplateBase temp = CreateInstance(className);
             temp.Data = data;
             temp.Initialize();
-            return temp.Render();
-        }
-        #endregion
 
-        #region 辅助函数
-        /// <summary>
-        /// MD5散列
-        /// </summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        protected static String Hash(String str)
-        {
-            if (String.IsNullOrEmpty(str)) return null;
-
-            MD5 md5 = MD5.Create();
-            return BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(str))).Replace("-", null);
-        }
-
-        /// <summary>
-        /// 把名称处理为标准类名
-        /// </summary>
-        /// <param name="fileName"></param>
-        /// <returns></returns>
-        public static String GetClassName(String fileName)
-        {
-            String name = fileName;
-            //if (name.Contains(".")) name = name.Substring(0, name.LastIndexOf("."));
-            name = name.Replace(@"\", "_").Replace(@"/", "_").Replace(".", "_");
-            name = name.Replace(Path.VolumeSeparatorChar, '_');
-            name = name.Replace(Path.PathSeparator, '_');
-            return name;
-        }
-        #endregion
-
-        #region 调试
-        private static Boolean? _Debug;
-        /// <summary>
-        /// 是否调试
-        /// </summary>
-        public static Boolean Debug
-        {
-            get
+            try
             {
-                if (_Debug != null) return _Debug.Value;
-
-                String str = ConfigurationManager.AppSettings["XTemplate.Debug"];
-                if (String.IsNullOrEmpty(str))
-                    _Debug = false;
-                else if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
-                    _Debug = true;
-                else if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
-                    _Debug = false;
-                else
-                    _Debug = Convert.ToBoolean(str);
-                return _Debug.Value;
+                return temp.Render();
             }
-            set { _Debug = value; }
-        }
-
-        /// <summary>
-        /// 输出日志
-        /// </summary>
-        /// <param name="msg"></param>
-        public static void WriteLog(String msg)
-        {
-            XTrace.WriteLine(msg);
-        }
-
-        /// <summary>
-        /// 输出日志
-        /// </summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public static void WriteLog(String format, params Object[] args)
-        {
-            XTrace.WriteLine(format, args);
-        }
-        #endregion
-
-        #region 配置
-        private static String _BaseClassName;
-        /// <summary>
-        /// 默认基类名称
-        /// </summary>
-        public static String BaseClassName
-        {
-            get
+            catch (Exception ex)
             {
-                if (_BaseClassName == null)
-                {
-                    _BaseClassName = ConfigurationManager.AppSettings["XTemplate.BaseClassName"];
-                    if (String.IsNullOrEmpty(_BaseClassName)) _BaseClassName = "";
-                }
-                return _BaseClassName;
-            }
-            set { _BaseClassName = value; }
-        }
-
-        private static List<String> _References;
-        /// <summary>
-        /// 标准程序集引用
-        /// </summary>
-        public static List<String> References
-        {
-            get
-            {
-                if (_References != null) return _References;
-
-                // 程序集路径
-                List<String> list = new List<String>();
-                // 程序集名称，小写，用于重复判断
-                List<String> names = new List<String>();
-
-                // 加入配置的程序集
-                String str = ConfigurationManager.AppSettings["XTemplate.References"];
-                if (!String.IsNullOrEmpty(str))
-                {
-                    String[] ss = str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (ss != null && ss.Length > 0)
-                    {
-                        //list.AddRange(ss);
-                        foreach (String item in ss)
-                        {
-                            list.Add(item);
-
-                            String name = Path.GetFileName(item);
-                            names.Add(item.ToLower());
-                        }
-                    }
-                }
-
-                // 当前应用程序域所有程序集，虽然加上了很多引用，但是编译时会自动忽略没有实际引用的程序集！
-                Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
-                if (asms == null || asms.Length < 1) return null;
-                foreach (Assembly item in asms)
-                {
-                    try
-                    {
-                        if (String.IsNullOrEmpty(item.Location)) continue;
-
-                        String name = Path.GetFileName(item.Location);
-                        if (!String.IsNullOrEmpty(name)) name = name.ToLower();
-                        if (names.Contains(name)) continue;
-                        names.Add(name);
-                        list.Add(item.Location);
-                    }
-                    catch { }
-                }
-
-                return _References = list;
-            }
-        }
-
-        private static List<String> _Imports;
-        /// <summary>
-        /// 标准命名空间引用
-        /// </summary>
-        public static List<String> Imports
-        {
-            get
-            {
-                if (_Imports != null) return _Imports;
-
-                // 命名空间
-                List<String> list = new List<String>();
-
-                // 加入配置的命名空间
-                String str = ConfigurationManager.AppSettings["XTemplate.Imports"];
-                if (!String.IsNullOrEmpty(str))
-                {
-                    String[] ss = str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (ss != null && ss.Length > 0)
-                    {
-                        list.AddRange(ss);
-                    }
-                }
-
-                String[] names = new String[] { "System", "System.Collections", "System.Collections.Generic", "System.Text" };
-                if (names != null && names.Length > 0)
-                {
-                    foreach (String item in names)
-                    {
-                        if (!list.Contains(item)) list.Add(item);
-                    }
-                }
-
-                // 特别支持
-                Dictionary<String, String[]> supports = new Dictionary<String, String[]>();
-                supports.Add("XCode", new String[] { "XCode", "XCode.DataAccessLayer" });
-                supports.Add("XCommon", new String[] { "XCommon" });
-                supports.Add("XControl", new String[] { "XControl" });
-                supports.Add("NewLife.CommonEntity", new String[] { "NewLife.CommonEntity" });
-                supports.Add("System.Web", new String[] { "System.Web" });
-                supports.Add("System.Xml", new String[] { "System.Xml" });
-
-                foreach (String item in supports.Keys)
-                {
-                    Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
-                    foreach (Assembly asm in asms)
-                    {
-                        if (!asm.FullName.StartsWith(item + ",")) continue;
-
-                        names = supports[item];
-                        if (names != null && names.Length > 0)
-                        {
-                            foreach (String name in names)
-                            {
-                                if (!list.Contains(name)) list.Add(name);
-                            }
-                        }
-                    }
-                }
-
-                return _Imports = list;
+                throw new TemplateExecutionException("模版执行错误！", ex);
             }
         }
         #endregion

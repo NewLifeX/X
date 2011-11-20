@@ -1,53 +1,56 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Text;
-using System.IO;
-using System.Reflection;
+using NewLife;
 using NewLife.Reflection;
 
 namespace XTemplate.Templating
 {
-    /// <summary>
-    /// 模版基类，所有模版继承自该类
-    /// </summary>
+    /// <summary>模版基类，所有模版继承自该类</summary>
+    /// <remarks>模版的原理其实就是生成一个继承自该类的模版类，并重载Render方法</remarks>
     [Serializable]
-    public abstract class TemplateBase : IDisposable
+    public abstract class TemplateBase : DisposeBase
     {
         #region 构造和释放
-        /// <summary>
-        /// 实例化一个模版
-        /// </summary>
-        protected TemplateBase()
-        {
-        }
+        ///// <summary>
+        ///// 实例化一个模版
+        ///// </summary>
+        //protected TemplateBase() { }
 
-        /// <summary>
-        /// 释放
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+        ///// <summary>
+        ///// 释放
+        ///// </summary>
+        //public void Dispose()
+        //{
+        //    Dispose(true);
+        //    GC.SuppressFinalize(this);
+        //}
 
-        /// <summary>
-        /// 释放
-        /// </summary>
+        ///// <summary>
+        ///// 释放
+        ///// </summary>
+        ///// <param name="disposing"></param>
+        //protected virtual void Dispose(Boolean disposing)
+        //{
+        //    _Output = null;
+        //}
+
+        ///// <summary>
+        ///// 析构
+        ///// </summary>
+        //~TemplateBase()
+        //{
+        //    Dispose(false);
+        //}
+
+        /// <summary>释放</summary>
         /// <param name="disposing"></param>
-        protected virtual void Dispose(Boolean disposing)
+        protected override void OnDispose(bool disposing)
         {
-            _Output = null;
-        }
+            base.OnDispose(disposing);
 
-        /// <summary>
-        /// 析构
-        /// </summary>
-        ~TemplateBase()
-        {
-            Dispose(false);
+            if (_Output != null) _Output = null;
         }
         #endregion
 
@@ -229,9 +232,7 @@ namespace XTemplate.Templating
         /// <summary>
         /// 初始化
         /// </summary>
-        public virtual void Initialize()
-        {
-        }
+        public virtual void Initialize() { }
 
         /// <summary>
         /// 转换文本
@@ -257,18 +258,14 @@ namespace XTemplate.Templating
 
         #region 属性
         private IDictionary<String, Object> _Data;
-        /// <summary>
-        /// 数据
-        /// </summary>
+        /// <summary>数据</summary>
         public IDictionary<String, Object> Data
         {
             get { return _Data ?? (_Data = new Dictionary<String, Object>()); }
             set { _Data = value; }
         }
 
-        /// <summary>
-        /// 获取数据，主要处理数据字典中不存在的元素
-        /// </summary>
+        /// <summary>获取数据，主要处理数据字典中不存在的元素</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         protected Object GetData(String name)
@@ -277,9 +274,7 @@ namespace XTemplate.Templating
             return Data.TryGetValue(name, out obj) ? obj : null;
         }
 
-        /// <summary>
-        /// 获取数据，主要处理类型转换
-        /// </summary>
+        /// <summary>获取数据，主要处理类型转换</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="name"></param>
         /// <returns></returns>
