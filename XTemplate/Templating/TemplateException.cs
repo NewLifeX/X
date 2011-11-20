@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 using System.CodeDom.Compiler;
+using NewLife.Exceptions;
 
 namespace XTemplate.Templating
 {
     /// <summary>
     /// 模版异常
     /// </summary>
-    public class TemplateException : Exception
+    public class TemplateException : XException
     {
         #region 属性
         private Block _Block;
