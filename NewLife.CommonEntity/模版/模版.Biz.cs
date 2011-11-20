@@ -53,7 +53,10 @@ namespace NewLife.CommonEntity
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindByParentIDAndName(Int32 parentid, String name)
         {
-            return Find(new String[] { _.ParentID, _.Name }, new Object[] { parentid, name });
+            if (Meta.Count >= 1000)
+                return Find(new String[] { _.ParentID, _.Name }, new Object[] { parentid, name });
+            else // 实体缓存
+                return Meta.Cache.Entities.Find(e => e.ParentID == parentid && e.Name == name);
         }
 
         /// <summary>
@@ -138,7 +141,7 @@ namespace NewLife.CommonEntity
             if (user != null && !Dirtys[_.UserID] && !Dirtys[_.UserName])
             {
                 if (user.ID is Int32) UserID = (Int32)user.ID;
-                 UserName = user.ToString();
+                UserName = user.ToString();
             }
         }
 

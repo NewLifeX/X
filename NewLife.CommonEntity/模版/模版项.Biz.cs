@@ -96,7 +96,10 @@ namespace NewLife.CommonEntity
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindByTemplateIDAndName(Int32 templateid, String name)
         {
-            return Find(new String[] { _.TemplateID, _.Name }, new Object[] { templateid, name });
+            if (Meta.Count >= 1000)
+                return Find(new String[] { _.TemplateID, _.Name }, new Object[] { templateid, name });
+            else // 实体缓存
+                return Meta.Cache.Entities.Find(e => e.TemplateID == templateid && e.Name == name);
         }
 
         /// <summary>
