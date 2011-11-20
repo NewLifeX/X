@@ -87,6 +87,7 @@
     <Compile Include="Attributes\BindTableAttribute.cs" />
     <Compile Include="Attributes\BindRelationAttribute.cs" />
     <Compile Include="Attributes\ModelCheckModeAttribute.cs" />
+    <Compile Include="Cache\EntityDependency.cs" />
     <Compile Include="Cache\IEntityCache.cs" />
     <Compile Include="Cctor.cs" />
     <Compile Include="Code\EntityAssembly.cs" />

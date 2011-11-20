@@ -238,7 +238,7 @@ namespace XCode
 
             //private static WeakReference<Action<Type>> _OnDataChange = new WeakReference<Action<Type>>();
             private static Action<Type> _OnDataChange;
-            /// <summary>数据改变后触发</summary>
+            /// <summary>数据改变后触发。参数指定触发该事件的实体类</summary>
             public static event Action<Type> OnDataChange
             {
                 add
