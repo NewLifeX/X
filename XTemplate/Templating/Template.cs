@@ -15,9 +15,7 @@ using NewLife.Reflection;
 
 namespace XTemplate.Templating
 {
-    /// <summary>
-    /// 模版引擎
-    /// </summary>
+    /// <summary>模版引擎</summary>
     /// <remarks>
     /// 模版引擎分为快速用法和增强用法两种，其中增强用法可用于对模版处理的全程进行干预。
     /// 一个模版引擎实例，可用重复使用以处理多个模版。
@@ -159,9 +157,7 @@ namespace XTemplate.Templating
         //public Template() { }
 
         private static DictionaryCache<String, Template> cache = new DictionaryCache<string, Template>();
-        /// <summary>
-        /// 根据名称和模版创建模版实例，带缓存，避免重复编译
-        /// </summary>
+        /// <summary>根据名称和模版创建模版实例，带缓存，避免重复编译</summary>
         /// <param name="name">名称</param>
         /// <param name="templates">模版</param>
         /// <returns></returns>
@@ -255,7 +251,6 @@ namespace XTemplate.Templating
         #endregion
 
         #region 快速处理
-        //static DictionaryCache<String, Template> tempCache = new DictionaryCache<String, Template>();
         /// <summary>
         /// 通过指定模版文件和传入模版的参数处理模版，返回结果
         /// </summary>
@@ -278,19 +273,6 @@ namespace XTemplate.Templating
         {
             // 尽量以模版内容为key，防止模版内容改变后没有生效
             String template = File.ReadAllText(templateFile);
-
-            //Template tt = tempCache.GetItem<String, String>(Hash(template), templateFile, template, delegate(String key, String file, String content)
-            //{
-            //    Template entity = new Template();
-            //    entity.AddTemplateItem(file, content);
-            //    entity.Process();
-            //    entity.Compile();
-            //    return entity;
-            //});
-
-            //TemplateBase temp = tt.CreateInstance(tt.Templates[0].ClassName);
-            //temp.Data = data;
-            //return temp.Render();
 
             return ProcessTemplate(templateFile, template, data);
         }
@@ -324,18 +306,6 @@ namespace XTemplate.Templating
         public static String ProcessTemplate(String name, String template, IDictionary<String, Object> data)
         {
             if (String.IsNullOrEmpty(template)) throw new ArgumentNullException("template");
-
-            //// 尽量以模版内容为key，防止模版内容改变后没有生效
-            //if (String.IsNullOrEmpty(name)) name = Hash(template);
-
-            //Template tt = tempCache.GetItem<String>(name, template, delegate(String key, String content)
-            //{
-            //    Template entity = new Template();
-            //    entity.AddTemplateItem(key, content);
-            //    entity.Process();
-            //    entity.Compile();
-            //    return entity;
-            //});
 
             Template tt = Create(name, template);
 
