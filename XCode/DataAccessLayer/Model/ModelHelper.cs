@@ -6,9 +6,7 @@ using NewLife.Linq;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>
-    /// 数据模型扩展。
-    /// </summary>
+    /// <summary>数据模型扩展</summary>
     public static class ModelHelper
     {
         #region 模型扩展方法
@@ -22,16 +20,18 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return null;
 
-            foreach (IDataColumn item in table.Columns)
-            {
-                if (String.Equals(name, item.Name, StringComparison.OrdinalIgnoreCase)) return item;
-            }
+            //foreach (IDataColumn item in table.Columns)
+            //{
+            //    if (String.Equals(name, item.Name, StringComparison.OrdinalIgnoreCase)) return item;
+            //}
 
-            foreach (IDataColumn item in table.Columns)
-            {
-                if (String.Equals(name, item.Alias, StringComparison.OrdinalIgnoreCase)) return item;
-            }
-            return null;
+            //foreach (IDataColumn item in table.Columns)
+            //{
+            //    if (String.Equals(name, item.Alias, StringComparison.OrdinalIgnoreCase)) return item;
+            //}
+            //return null;
+
+            return table.Columns.FirstOrDefault(c => c.Is(name));
         }
 
         /// <summary>
@@ -44,15 +44,39 @@ namespace XCode.DataAccessLayer
         {
             if (names == null || names.Length < 1) return null;
 
-            List<IDataColumn> list = new List<IDataColumn>();
-            foreach (String item in names)
-            {
-                IDataColumn dc = table.GetColumn(item);
-                if (dc != null) list.Add(dc);
-            }
+            //List<IDataColumn> list = new List<IDataColumn>();
+            //foreach (String item in names)
+            //{
+            //    IDataColumn dc = table.GetColumn(item);
+            //    if (dc != null) list.Add(dc);
+            //}
 
-            if (list.Count < 1) return null;
-            return list.ToArray();
+            //if (list.Count < 1) return null;
+            //return list.ToArray();
+
+            return table.Columns.Where(c => names.Any(n => c.Is(n))).ToArray();
+        }
+
+        /// <summary>判断表是否等于指定名字</summary>
+        /// <param name="table"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static Boolean Is(this IDataTable table, String name)
+        {
+            if (String.IsNullOrEmpty(name)) return false;
+
+            return table.Name.EqualIgnoreCase(name) || table.Alias.EqualIgnoreCase(name);
+        }
+
+        /// <summary>判断字段是否等于指定名字</summary>
+        /// <param name="column"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static Boolean Is(this IDataColumn column, String name)
+        {
+            if (String.IsNullOrEmpty(name)) return false;
+
+            return column.Name.EqualIgnoreCase(name) || column.Alias.EqualIgnoreCase(name);
         }
 
         /// <summary>
@@ -65,70 +89,69 @@ namespace XCode.DataAccessLayer
         {
             if (table == null || table.Indexes == null || table.Indexes.Count < 1) return null;
 
-            //foreach (IDataIndex item in table.Indexes)
-            //{
-            //    if (item.Columns == null || item.Columns.Length < 1) continue;
-
-            //    if (CompareStringArray(item.Columns, columnNames)) return item;
-            //}
-
-            IDataIndex di = table.Indexes.FirstOrDefault(e => e.Columns != null && e.Columns.Length > 0 && CompareStringArray(e.Columns, columnNames));
+            IDataIndex di = table.Indexes.FirstOrDefault(
+                e => e.Columns != null &&
+                    e.Columns.Length == columnNames.Length &&
+                    e.Columns.Except(columnNames, StringComparer.OrdinalIgnoreCase).Any());
             if (di != null) return di;
 
             // 用别名再试一次
             IDataColumn[] columns = table.GetColumns(columnNames);
             if (columns == null || columns.Length < 1) return null;
             columnNames = columns.Select(e => e.Alias).ToArray();
-            di = table.Indexes.FirstOrDefault(e => e.Columns != null && e.Columns.Length > 0 && CompareStringArray(e.Columns, columnNames));
+            di = table.Indexes.FirstOrDefault(
+                e => e.Columns != null &&
+                    e.Columns.Length == columnNames.Length &&
+                    e.Columns.Except(columnNames, StringComparer.OrdinalIgnoreCase).Any());
             if (di != null) return di;
 
             return null;
         }
 
-        private static Boolean CompareStringArray(String[] arr1, String[] arr2)
-        {
-            arr1 = prepare(arr1);
-            arr2 = prepare(arr2);
-            if (arr1 == arr2) return true;
-            if (arr1.Length != arr2.Length) return false;
+        //private static Boolean CompareStringArray(String[] arr1, String[] arr2)
+        //{
+        //    arr1 = prepare(arr1);
+        //    arr2 = prepare(arr2);
+        //    if (arr1 == arr2) return true;
+        //    if (arr1.Length != arr2.Length) return false;
 
-            for (int i = 0; i < arr1.Length; i++)
-            {
-                if (arr1[i] != arr2[i]) return false;
-            }
+        //    for (int i = 0; i < arr1.Length; i++)
+        //    {
+        //        if (arr1[i] != arr2[i]) return false;
+        //    }
 
-            //for (int i = 0; i < arr1.Length; i++)
-            //{
-            //    Boolean b = false;
-            //    for (int j = 0; j < arr2.Length; j++)
-            //    {
-            //        if (String.Equals(arr1[i], arr2[j], StringComparison.OrdinalIgnoreCase))
-            //        {
-            //            b = true;
-            //            // 清空该项，不再跟后续项匹配
-            //            arr2[j] = null;
-            //            break;
-            //        }
-            //    }
-            //    // 只要有一个找不到对应项，就是不存在
-            //    if (!b) return false;
-            //}
+        //    //for (int i = 0; i < arr1.Length; i++)
+        //    //{
+        //    //    Boolean b = false;
+        //    //    for (int j = 0; j < arr2.Length; j++)
+        //    //    {
+        //    //        if (String.Equals(arr1[i], arr2[j], StringComparison.OrdinalIgnoreCase))
+        //    //        {
+        //    //            b = true;
+        //    //            // 清空该项，不再跟后续项匹配
+        //    //            arr2[j] = null;
+        //    //            break;
+        //    //        }
+        //    //    }
+        //    //    // 只要有一个找不到对应项，就是不存在
+        //    //    if (!b) return false;
+        //    //}
 
-            return true;
-        }
+        //    return true;
+        //}
 
-        private static String[] prepare(String[] arr)
-        {
-            if (arr == null || arr.Length < 1) return null;
+        //private static String[] prepare(String[] arr)
+        //{
+        //    if (arr == null || arr.Length < 1) return null;
 
-            List<String> list = new List<string>();
-            for (int i = 0; i < arr.Length; i++)
-            {
-                String item = arr[i] == null ? "" : arr[i].ToLower();
-                if (!list.Contains(item)) list.Add(item);
-            }
-            return list.ToArray();
-        }
+        //    List<String> list = new List<string>();
+        //    for (int i = 0; i < arr.Length; i++)
+        //    {
+        //        String item = arr[i] == null ? "" : arr[i].ToLower();
+        //        if (!list.Contains(item)) list.Add(item);
+        //    }
+        //    return list.ToArray();
+        //}
 
         /// <summary>
         /// 根据字段从指定表中查找关系
@@ -190,15 +213,17 @@ namespace XCode.DataAccessLayer
                 if (dc.PrimaryKey || dc.Identity) continue;
 
                 if (FindRelation(table, rtable, rtable.Name, dc, dc.Name) != null) continue;
-                if (!String.Equals(dc.Alias, dc.Name, StringComparison.OrdinalIgnoreCase))
+                if (!dc.Name.EqualIgnoreCase(dc.Alias))
                 {
                     if (FindRelation(table, rtable, rtable.Name, dc, dc.Alias) != null) continue;
                 }
 
-                if (String.Equals(rtable.Alias, rtable.Name, StringComparison.OrdinalIgnoreCase)) continue;
+                //if (String.Equals(rtable.Alias, rtable.Name, StringComparison.OrdinalIgnoreCase)) continue;
+                if (rtable.Name.EqualIgnoreCase(rtable.Alias)) continue;
+
                 // 如果表2的别名和名称不同，还要继续
                 if (FindRelation(table, rtable, rtable.Alias, dc, dc.Name) != null) continue;
-                if (!String.Equals(dc.Alias, dc.Name, StringComparison.OrdinalIgnoreCase))
+                if (!dc.Name.EqualIgnoreCase(dc.Alias))
                 {
                     if (FindRelation(table, rtable, rtable.Alias, dc, dc.Alias) != null) continue;
                 }
@@ -260,9 +285,7 @@ namespace XCode.DataAccessLayer
             return dr;
         }
 
-        /// <summary>
-        /// 修正数据
-        /// </summary>
+        /// <summary>修正数据</summary>
         /// <param name="table"></param>
         public static void Fix(this IDataTable table)
         {
@@ -347,11 +370,11 @@ namespace XCode.DataAccessLayer
                 IDataColumn dc = null;
                 if ((dc = table.Columns.FirstOrDefault(c => c.Identity)) != null)
                     dc.PrimaryKey = true;
-                else if ((dc = table.Columns.FirstOrDefault(c => c.Name.EqualIgnoreCase("ID"))) != null)
+                else if ((dc = table.Columns.FirstOrDefault(c => c.Is("ID"))) != null)
                     dc.PrimaryKey = true;
-                else if ((dc = table.Columns.FirstOrDefault(c => c.Name.EqualIgnoreCase("Guid"))) != null)
+                else if ((dc = table.Columns.FirstOrDefault(c => c.Is("Guid"))) != null)
                     dc.PrimaryKey = true;
-                else if ((dc = table.Columns.FirstOrDefault(c => c.Name.EqualIgnoreCase("UID"))) != null)
+                else if ((dc = table.Columns.FirstOrDefault(c => c.Is("UID"))) != null)
                     dc.PrimaryKey = true;
                 else if ((dc = table.Columns.FirstOrDefault()) != null)
                     dc.PrimaryKey = true;
