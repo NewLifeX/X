@@ -400,7 +400,7 @@ namespace XCode.DataAccessLayer
                 if (rs > 0)
                 {
                     Match m = reg_SEQ.Match(sql);
-                    if (m != null && m.Groups != null && m.Groups.Count > 0)
+                    if (m != null && m.Success && m.Groups != null && m.Groups.Count > 0)
                         rs = ExecuteScalar<Int64>(String.Format("Select {0}.currval", m.Groups[1].Value));
                 }
                 Commit();

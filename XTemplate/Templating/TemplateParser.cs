@@ -87,7 +87,7 @@ namespace XTemplate.Templating
 
             foreach (Block block in blocks)
             {
-                if (unescapedTagFindingRegex.Match(block.Text).Success) throw new TemplateException(block, "不可识别的标记！");
+                if (unescapedTagFindingRegex.Match(block.Text).Success) throw new TemplateException(block, "不可识别的标记！可能有未编码的字符，比如\\<#。");
             }
 
             StripEscapeCharacters(blocks);
