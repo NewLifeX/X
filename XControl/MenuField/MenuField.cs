@@ -6,9 +6,12 @@ using System.Web.UI;
 using System.ComponentModel;
 using System.Drawing.Design;
 using System.Web;
+using System.Web.UI.HtmlControls;
 
 // 特别要注意，这里得加上默认命名空间和目录名，因为vs2005编译的时候会给文件加上这些东东的
 [assembly: WebResource("XControl.MenuField.jquery.contextmenu.r2.packed.js", "text/javascript", PerformSubstitution = true)]
+[assembly: WebResource("XControl.MenuField.MenuFieldCss.css", "text/css", PerformSubstitution = true)]
+[assembly: WebResource("XControl.MenuField.dropdown.gif", "image/jpg")]
 
 namespace XControl
 {
@@ -376,12 +379,27 @@ namespace XControl
         {
             Panel p = sender as Panel;
 
-            p.Controls.Add(new Literal() { Text = this.Text });
+            //&nbsp; 统一行高
+            p.Controls.Add(new Literal() { Text = !String.IsNullOrEmpty(this.Text) ? this.Text : "&nbsp;<img src='" + p.Page.ClientScript.GetWebResourceUrl(typeof(MenuField), "XControl.MenuField.dropdown.gif") + "'/>&nbsp;" });
             p.Style.Add(HtmlTextWriterStyle.TextAlign, "center");
             //p.Attributes.Add("onclick", "javascript:showMenu('" + p.ClientID + "','" + CreateMenuDivID(p.ClientID) + "');");
 
             p.Page.ClientScript.RegisterClientScriptResource(typeof(MenuField), "XControl.MenuField.jquery.contextmenu.r2.packed.js");
 
+            //      HtmlLink link = new HtmlLink();
+            //      link.Href = p.Page.ClientScript.GetWebResourceUrl(typeof(MenuField), "XControl.MenuField.MenuFieldCss.css");
+            //      link.Attributes["rel"] = "stylesheet";
+            //      link.Attributes["type"] = "text/css";
+            //      p.Page.Form.Controls.Add(link);
+
+
+            //      string includeTemplate =
+            //"<link rel='stylesheet' text='text/css' href='{0}' />";
+            //      string includeLocation =
+            //            Page.ClientScript.GetWebResourceUrl(this.GetType(), "myStylesheet _Links.css");
+            //      LiteralControl include =
+            //            new LiteralControl(String.Format(includeTemplate, includeLocation));
+            //      ((HtmlControls.HtmlHead)Page.Header).Controls.Add(include);
         }
 
         /// <summary>
@@ -418,7 +436,7 @@ namespace XControl
             xl.DataFieldValue = GetDataFileValue(component, DataField);
             xl.DataField = DataField;
 
-            xl.ConditionFieldValue = GetDataFileValue(component, DataField);
+            xl.ConditionFieldValue = GetDataFileValue(component, ConditionField);
             xl.ConditionField = ConditionField;
         }
 

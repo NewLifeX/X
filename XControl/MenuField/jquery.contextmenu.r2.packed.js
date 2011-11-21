@@ -2,6 +2,10 @@
 * 修改自：http://www.trendskitchens.co.nz/jquery/contextmenu/
 *
 */
+
+/*输出Css*/
+document.write('<link rel="stylesheet" type="text\/css" id="MenuFieldCss" href="<%=WebResource("XControl.MenuField.MenuFieldCss.css") %>" \/>');
+
 (function ($) {
     var menu, shadow, trigger, content, hash, currentTarget, bgIframe;
     var defaults = {
