@@ -9,6 +9,12 @@ using XCode.DataAccessLayer;
 using XCode.Test;
 using System.Data;
 using System.Collections.Generic;
+using System.Web;
+using System.Web.Caching;
+using System.Threading;
+using NewLife.Threading;
+using NewLife.Reflection;
+using XCode.Configuration;
 
 namespace Test
 {
@@ -25,7 +31,7 @@ namespace Test
                 try
                 {
 #endif
-                Test5();
+                Test6();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -200,22 +206,130 @@ namespace Test
 
         static void Test5()
         {
-            WhereExpression exp = Administrator._.Name == "admin";
-            //exp |= Administrator._.Logins > 0;
-            //exp &= Administrator._.LastLogin > DateTime.Now;
+            ThreadPoolX.QueueUserWorkItem(Test5_0);
 
-            //Console.WriteLine(exp);
+            String k = "asdf";
+            String value = "vvv";
+            CacheItemUpdateCallback callback = new CacheItemUpdateCallback(delegate(string key, CacheItemUpdateReason reason, out object expensiveObject, out CacheDependency dependency, out DateTime absoluteExpiration, out TimeSpan slidingExpiration)
+            {
+                XTrace.WriteLine("Update:{0}", reason);
 
-            //exp = Administrator._.Name == "admin" | Administrator._.Logins > 0 & Administrator._.LastLogin > DateTime.Now;
-            //Console.WriteLine(exp);
+                expensiveObject = null;
+                dependency = null;
+                absoluteExpiration = Cache.NoAbsoluteExpiration;
+                //slidingExpiration = new TimeSpan(0, 0, 9);
+                slidingExpiration = Cache.NoSlidingExpiration;
+            });
 
-            exp = (Administrator._.Name == "admin" | Administrator._.Logins > 0) & (Administrator._.IsEnable != false | Administrator._.LastLogin > DateTime.Now);
-            Console.WriteLine(exp);
+            //HttpRuntime.Cache.Insert(k, value, null, DateTime.UtcNow.AddSeconds(5), Cache.NoSlidingExpiration, callback);
+            //HttpRuntime.Cache.Insert(k, value, null, Cache.NoAbsoluteExpiration, new TimeSpan(0, 0, 30), callback);
+            //HttpRuntime.Cache.Insert(k, value, new EntityCacheDependency<Administrator>(), Cache.NoAbsoluteExpiration, Cache.NoSlidingExpiration, callback);
 
-            //Administrator.FindCount("aa group by bb order xxx", null, null, 0, 0);
+            Thread.Sleep(9000);
 
-            //Administrator admin = Administrator.Find(exp);
-            //Console.WriteLine(admin);
+            Administrator admin = Administrator.Login("admin", "admin");
+            Console.WriteLine(admin);
+        }
+
+        static void Test5_0()
+        {
+            String k = "asdf";
+            String value = "vvv";
+            for (int i = 0; i < 100; i++)
+            {
+                Thread.Sleep(1000);
+
+                value = HttpRuntime.Cache[k] as String;
+                XTrace.WriteLine("{0} {1}", i, value);
+            }
+        }
+
+        static void Test6()
+        {
+            // 添加一个连接
+            //DAL.AddConnStr("test", "Provider=Microsoft.Jet.OLEDB.4.0;" + "Data Source=netbar.xls;" + "Extended Properties=Excel 8.0;", null, null);
+            DAL.AddConnStr("test", "Provider=Microsoft.Jet.OLEDB.4.0;" + "Data Source=netbar2.xls;", null, null);
+            DAL.AddConnStr("netbar", "Data Source=.;Initial Catalog=Console;user id=sa;password=Pass@word", null, "mssql");
+            DAL dal = DAL.Create("test");
+            DAL netbar = DAL.Create("netbar");
+            IEntityOperate nb = netbar.CreateOperate("Netbar");
+
+            // 遍历所有表
+            foreach (var table in dal.Tables)
+            {
+                Console.WriteLine("表 {0}：", table.Name);
+
+                // 创建一个实体操作者，这里会为数据表动态生成一个实体类，并使用CodeDom编译
+                IEntityOperate op = dal.CreateOperate(table.Alias);
+                if (op == null) continue;
+
+                //// 因为动态生成代码的缺陷，表名中的$已经被去掉，并且Excel的查询总必须给表名加上方括号，还是因为有$
+                //// 下面通过快速反射设置Meta.TableName
+                //Type type = op.GetType();
+                //type = typeof(Entity<>.Meta).MakeGenericType(type);
+                //PropertyInfoX.Create(type, "TableName").SetValue("[" + table.Name + "]");
+
+                // 如果没有记录，跳过
+                if (op.FindCount() < 1) continue;
+
+                // 输出表头
+                if (op.Fields == null || op.Fields.Length < 1) continue;
+                foreach (var item in op.Fields)
+                {
+                    if (item.Name.StartsWith("F")) break;
+
+                    Console.Write("{0}\t", item.Name);
+                }
+                Console.WriteLine();
+
+                // 查找所有数据
+                IEntityList list = op.FindAll();
+                //DataSet ds = list.ToDataSet();
+
+                // 输出数据
+                foreach (IEntity entity in list)
+                {
+                    String name = (String)entity["门店名称"];
+                    if (nb.FindCount("Name", name) > 0)
+                    {
+                        Console.WriteLine("{0}已存在，跳过！", name);
+                        continue;
+                    }
+
+                    IEntity n = nb.Create();
+                    foreach (FieldItem item in op.Fields)
+                    {
+                        //if (item.Name.StartsWith("F")) break;
+
+                        //Console.Write("{0}\t", entity[item.Name]);
+
+                        if (item.Name == "门店名称")
+                            n.SetItem("Name", entity[item.Name]);
+                        else if (item.Field.Alias == "地址")
+                            n.SetItem("Address", entity[item.Name]);
+                        else if (item.Field.Alias == "联系电话")
+                            n.SetItem("Tel", entity[item.Name]);
+                        else if (item.Field.Alias == "法定代表人")
+                            n.SetItem("Manager", entity[item.Name]);
+                        else if (item.Field.Alias == "门店性质")
+                            n.SetItem("NetType", entity[item.Name]);
+                        else if (item.Field.Alias == "备注")
+                            n.SetItem("Remark", entity[item.Name]);
+                        else if (item.Field.Alias == "地区")
+                        {
+                            String str = (String)entity[item.Name];
+                            if (!String.IsNullOrEmpty(str))
+                            {
+                                List<Area> ss = Area.FindByName(str);
+                                if (ss != null && ss.Count > 0) n.SetItem("AreaCode", ss[0].Code);
+                            }
+                        }
+                    }
+                    //Console.WriteLine();
+
+                    n.Save();
+                }
+            }
         }
     }
 }

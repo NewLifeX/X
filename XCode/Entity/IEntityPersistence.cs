@@ -294,6 +294,9 @@ namespace XCode
                         else
                             sbValues.Append(idv);
                     }
+
+                    if (sbNames.Length <= 0) return null;
+
                     return String.Format("Insert Into {0}({1}) Values({2})", op.FormatName(op.TableName), sbNames.ToString(), sbValues.ToString());
                 case DataObjectMethodType.Update:
                     sbNames = new StringBuilder();

@@ -435,6 +435,7 @@ namespace XCode.DataAccessLayer
         {
             Assembly asm = EntityAssembly.Create(this);
             Type type = TypeX.GetType(asm, tableName);
+            if (type == null) return null;
 
             return EntityFactory.CreateOperate(type);
         }

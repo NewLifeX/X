@@ -467,5 +467,17 @@ namespace XCode.Configuration
         /// <param name="obj"></param>
         /// <returns></returns>
         public override bool Equals(object obj) { return base.Equals(obj); }
+
+        #region 类型转换
+        /// <summary>
+        /// 类型转换
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static implicit operator String(Field obj)
+        {
+            return !obj.Equals(null) ? obj.ColumnName : null;
+        }
+        #endregion
     }
 }

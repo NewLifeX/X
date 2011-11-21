@@ -314,7 +314,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="providerName">提供者</param>
         /// <returns></returns>
-        public virtual Boolean Support(String providerName) { return providerName.ToLower().Contains(this.DbType.ToString().ToLower()); }
+        public virtual Boolean Support(String providerName) { return !String.IsNullOrEmpty(providerName) && providerName.ToLower().Contains(this.DbType.ToString().ToLower()); }
         #endregion
 
         #region 分页

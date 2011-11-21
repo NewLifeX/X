@@ -125,6 +125,8 @@ namespace XCode.Code
         /// </summary>
         public void AddProperties()
         {
+            if (Table.Columns == null || Table.Columns.Count < 1) return;
+
             Int32 n = Class.Members.Count;
             foreach (IDataColumn item in Table.Columns)
             {

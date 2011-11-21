@@ -91,6 +91,9 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="netbar.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="XMLFile.xml">

@@ -144,11 +144,11 @@ namespace XCode.DataAccessLayer
             //    if (db.Support(pname)) return item.Value;
             //}
 
-            Type type = XCodeService.ResolveType<IDatabase>(m => !String.IsNullOrEmpty(m.Name) && GetDefault(m.Name).Support(provider));
-            if (type != null) return type;
-
             if (!String.IsNullOrEmpty(provider))
             {
+                Type type = XCodeService.ResolveType<IDatabase>(m => !String.IsNullOrEmpty(m.Name) && GetDefault(m.Name).Support(provider));
+                if (type != null) return type;
+
                 type = TypeX.GetType(provider, true);
                 XCodeService.Register<IDatabase>(type, provider);
                 return type;

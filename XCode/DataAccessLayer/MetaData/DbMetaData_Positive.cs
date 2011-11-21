@@ -81,9 +81,12 @@ namespace XCode.DataAccessLayer
             //if (_columns == null) _columns = GetSchema(_.Columns, null);
             //if (_indexes == null) _indexes = GetSchema(_.Indexes, null);
             //if (_indexColumns == null) _indexColumns = GetSchema(_.IndexColumns, null);
-            _columns = GetSchema(_.Columns, null);
-            _indexes = GetSchema(_.Indexes, null);
-            _indexColumns = GetSchema(_.IndexColumns, null);
+            try { _columns = GetSchema(_.Columns, null); }
+            catch (Exception ex) { DAL.WriteDebugLog(ex.ToString()); }
+            try { _indexes = GetSchema(_.Indexes, null); }
+            catch (Exception ex) { DAL.WriteDebugLog(ex.ToString()); }
+            try { _indexColumns = GetSchema(_.IndexColumns, null); }
+            catch (Exception ex) { DAL.WriteDebugLog(ex.ToString()); }
 
             //try
             //{
@@ -180,6 +183,7 @@ namespace XCode.DataAccessLayer
         {
             //DataTable dt = GetSchema(_.Columns, new String[] { null, null, table.Name });
             DataTable dt = _columns;
+            if (dt == null) return null;
 
             DataRow[] drs = null;
             String where = String.Format("{0}='{1}'", _.TalbeName, table.Name);

@@ -108,7 +108,7 @@ namespace XCode.Code
         {
             // 复制一份，以免修改原来的结构
             IDataTable tb = table.Clone() as IDataTable;
-            String className = tb.Name.Replace("$", null);
+            //String className = tb.Name.Replace("$", null);
 
             //// 计算名称，防止属性名和类型名重名
             //StringCollection list = new StringCollection();
@@ -131,7 +131,7 @@ namespace XCode.Code
 
             EntityClass entity = new EntityClass();
             entity.Assembly = this;
-            entity.ClassName = className;
+            entity.ClassName = tb.Alias;
             entity.Table = tb;
             //entity.FieldNames = fieldNames;
             entity.Create();

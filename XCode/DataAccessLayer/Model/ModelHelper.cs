@@ -536,8 +536,16 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return name;
 
+            name = name.Replace("$", null);
+            name = name.Replace("(", null);
+            name = name.Replace(")", null);
+            name = name.Replace("（", null);
+            name = name.Replace("）", null);
+            name = name.Replace(" ", null);
+            name = name.Replace("　", null);
+
             // 很多时候，这个别名就是表名
-            return FixWord(CutPrefix(name.Replace("$", null)));
+            return FixWord(CutPrefix(name));
         }
 
         static String CutPrefix(String name)
@@ -546,8 +554,8 @@ namespace XCode.DataAccessLayer
 
             // 自动去掉前缀
             Int32 n = name.IndexOf("_");
-            // _后至少要有2个字母
-            if (n >= 0 && n < name.Length - 2)
+            // _后至少要有2个字母，并且后一个不能是_
+            if (n >= 0 && n < name.Length - 2 && name[n + 1] != '_')
             {
                 String str = name.Substring(n + 1);
                 if (!IsKeyWord(str)) name = str;
