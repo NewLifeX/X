@@ -170,7 +170,7 @@ namespace XControl
         /// <summary>
         /// 条件模版
         /// </summary>
-        [DefaultValue(null), MergableProperty(false), WebCategory("Menu"), WebSysDescription("MenuField_MenuTemplate")]
+        [DefaultValue(null), MergableProperty(false), PersistenceMode(PersistenceMode.InnerProperty), WebCategory("Menu"), WebSysDescription("MenuField_MenuTemplate")]
         public virtual List<MenuTemplateItem> MenuTemplate
         {
             get
