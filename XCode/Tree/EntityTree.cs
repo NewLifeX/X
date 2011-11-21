@@ -35,7 +35,7 @@ namespace XCode
         {
             get
             {
-                String name = "Parent" + Meta.Unique.Name;
+                String name = "Parent" + KeyName;
                 return Meta.FieldNames.Contains(name) ? name : null;
             }
         }
@@ -68,6 +68,9 @@ namespace XCode
 
         /// <summary>名称键名，如Name，否则使用第二个字段</summary>
         protected virtual String NameKeyName { get { return Meta.FieldNames.Contains("Name") ? "Name" : Meta.FieldNames[1]; } }
+
+        /// <summary>是否缓存Childs、AllChilds、Parent等</summary>
+        protected virtual Boolean EnableCaching { get { return true; } }
         #endregion
 
         #region 扩展属性
@@ -81,7 +84,7 @@ namespace XCode
         /// <summary>子节点</summary>
         public virtual EntityList<TEntity> Childs
         {
-            get { return GetExtend<EntityList<TEntity>>("Childs", e => FindChilds(), !IsNull((TKey)this[KeyName])); }
+            get { return EnableCaching ? GetExtend<EntityList<TEntity>>("Childs", e => FindChilds(), !IsNull((TKey)this[KeyName])) : FindChilds(); }
             set { SetExtend("Childs", value); }
         }
 
@@ -92,7 +95,7 @@ namespace XCode
         [XmlIgnore]
         public virtual TEntity Parent
         {
-            get { return GetExtend<TEntity>("Parent", e => FindParent()); }
+            get { return EnableCaching ? GetExtend<TEntity>("Parent", e => FindParent()) : FindParent(); }
             set { SetExtend("Parent", value); }
         }
 
@@ -103,7 +106,7 @@ namespace XCode
         [XmlIgnore]
         public virtual EntityList<TEntity> AllChilds
         {
-            get { return GetExtend<EntityList<TEntity>>("AllChilds", e => FindAllChilds(this), !IsNull((TKey)this[KeyName])); }
+            get { return EnableCaching ? GetExtend<EntityList<TEntity>>("AllChilds", e => FindAllChilds(this), !IsNull((TKey)this[KeyName])) : FindAllChilds(this); }
             set { SetExtend("AllChilds", value); }
         }
 
@@ -111,7 +114,7 @@ namespace XCode
         [XmlIgnore]
         public virtual EntityList<TEntity> AllParents
         {
-            get { return GetExtend<EntityList<TEntity>>("AllParents", e => FindAllParents(this)); }
+            get { return EnableCaching ? GetExtend<EntityList<TEntity>>("AllParents", e => FindAllParents(this)) : FindAllParents(this); }
             set { SetExtend("AllParents", value); }
         }
 
@@ -124,7 +127,8 @@ namespace XCode
                 if (IsNull((TKey)this[KeyName])) return 0;
 
                 Int32 _Deepth = 1;
-                if (AllParents != null && AllParents.Count > 0) _Deepth += AllParents.Count;
+                var list = AllParents;
+                if (list != null && list.Count > 0) _Deepth += list.Count;
                 return _Deepth;
             }
         }
@@ -179,9 +183,7 @@ namespace XCode
         #endregion
 
         #region 查询
-        /// <summary>
-        /// 根据父级查找所有子级，带排序功能
-        /// </summary>
+        /// <summary>根据父级查找所有子级，带排序功能</summary>
         /// <param name="parentKey"></param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select)]
@@ -218,15 +220,13 @@ namespace XCode
             return list;
         }
 
-        /// <summary>
-        /// 查找所有没有父节点的节点集合
-        /// </summary>
+        /// <summary>查找所有没有父节点的节点集合</summary>
         /// <returns></returns>
         public static EntityList<TEntity> FindAllNoParent()
         {
             TEntity entity = EntityFactory.CreateOperate(typeof(TEntity)).Default as TEntity;
 
-            EntityList<TEntity> noParents = new EntityList<TEntity>();
+            EntityList<TEntity> list = new EntityList<TEntity>();
             foreach (TEntity item in Meta.Cache.Entities)
             {
                 // 有父节点的跳过
@@ -234,14 +234,12 @@ namespace XCode
                 // 父节点为空的跳过
                 if (IsNull((TKey)item[entity.ParentKeyName])) continue;
 
-                noParents.Add(item);
+                list.Add(item);
             }
-            return noParents.Count > 0 ? noParents : null;
+            return list;
         }
 
-        /// <summary>
-        /// 查找指定键的所有子节点，以深度层次树结构输出
-        /// </summary>
+        /// <summary>查找指定键的所有子节点，以深度层次树结构输出，包括当前节点，并作为根节点</summary>
         /// <param name="parentKey"></param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select)]
@@ -255,9 +253,7 @@ namespace XCode
             return list;
         }
 
-        /// <summary>
-        /// 查找指定键的所有子节点，以深度层次树结构输出
-        /// </summary>
+        /// <summary>查找指定键的所有子节点，以深度层次树结构输出</summary>
         /// <param name="parentKey"></param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select)]
@@ -269,9 +265,7 @@ namespace XCode
             return FindAllChilds(entity);
         }
 
-        /// <summary>
-        /// 查找指定键的所有父节点，从高到底以深度层次树结构输出
-        /// </summary>
+        /// <summary>查找指定键的所有父节点，从高到底以深度层次树结构输出</summary>
         /// <param name="key"></param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select)]
@@ -285,9 +279,7 @@ namespace XCode
         #endregion
 
         #region 树形计算
-        /// <summary>
-        /// 查找指定节点的所有子节点，以深度层次树结构输出
-        /// </summary>
+        /// <summary>查找指定节点的所有子节点，以深度层次树结构输出</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
         protected static EntityList<TEntity> FindAllChilds(IEntityTree entity)
@@ -328,9 +320,7 @@ namespace XCode
             return list;
         }
 
-        /// <summary>
-        /// 查找指定节点的所有父节点，从高到底以深度层次树结构输出
-        /// </summary>
+        /// <summary>查找指定节点的所有父节点，从高到底以深度层次树结构输出</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
         protected static EntityList<TEntity> FindAllParents(IEntityTree entity)
@@ -414,10 +404,12 @@ namespace XCode
             if (Object.Equals((TKey)this[KeyName], key)) return true;
 
             // 子级
-            if (Childs != null && Childs.Exists(KeyName, key)) return true;
+            var list = Childs;
+            if (list != null && list.Exists(KeyName, key)) return true;
 
             // 子孙
-            if (AllChilds != null && AllChilds.Exists(KeyName, key)) return true;
+            list = AllChilds;
+            if (list != null && list.Exists(KeyName, key)) return true;
 
             return false;
         }
@@ -429,7 +421,7 @@ namespace XCode
         {
             get
             {
-                EntityList<TEntity> list = Childs;
+                var list = Childs;
                 if (list == null || list.Count < 1) return new List<TKey>();
 
                 return list.GetItem<TKey>(KeyName);
@@ -463,7 +455,7 @@ namespace XCode
         {
             get
             {
-                EntityList<TEntity> list = AllChilds;
+                var list = AllChilds;
                 if (list == null || list.Count < 1) return new List<TKey>();
 
                 return list.GetItem<TKey>(KeyName);
@@ -541,7 +533,8 @@ namespace XCode
                     node = func(item);
                 }
 
-                if (item.Childs != null && item.Childs.Count > 0) MakeTree(node.ChildNodes, item.Childs, url, func, parents);
+                var list2 = item.Childs;
+                if (list2 != null && list2.Count > 0) MakeTree(node.ChildNodes, list2, url, func, parents);
 
                 if (node != null) nodes.Add(node);
             }
@@ -627,9 +620,10 @@ namespace XCode
         /// </summary>
         public virtual void ClearRelation()
         {
-            if (Childs == null || Childs.Count < 1) return;
+            var list = Childs;
+            if (list == null || list.Count < 1) return;
 
-            foreach (TEntity item in Childs)
+            foreach (TEntity item in list)
             {
                 item[KeyName] = default(TKey);
                 item[ParentKeyName] = default(TKey);

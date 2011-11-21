@@ -14,6 +14,7 @@ using NewLife.IO;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Exceptions;
+using System.IO;
 
 namespace XCode.DataAccessLayer
 {
@@ -61,6 +62,21 @@ namespace XCode.DataAccessLayer
             if (providerName.Contains("access")) return true;
 
             return false;
+        }
+
+        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        {
+            base.OnSetConnectionString(builder);
+
+            // 特别处理一下Excel
+            if (!String.IsNullOrEmpty(FileName))
+            {
+                String ext = Path.GetExtension(FileName);
+                if (ext.EqualIgnoreCase(".xls"))
+                {
+                    if (!builder.ContainsKey("Extended Properties")) builder["Extended Properties"] = "Excel 8.0";
+                }
+            }
         }
         #endregion
 

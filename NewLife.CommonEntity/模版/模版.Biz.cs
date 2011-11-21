@@ -152,7 +152,8 @@ namespace NewLife.CommonEntity
         protected override int OnDelete()
         {
             if (TemplateItems != null) TemplateItems.Delete();
-            if (Childs != null) Childs.Delete();
+            var list = Childs;
+            if (list != null) list.Delete();
 
             return base.OnDelete();
         }

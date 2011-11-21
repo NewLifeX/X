@@ -429,7 +429,7 @@ namespace NewLife.CommonEntity.Web
                     if (String.IsNullOrEmpty((String)Entity[field.Name]))
                     {
                         WebHelper.Alert(String.Format("{0}不能为空！", field.DisplayName));
-                        control.Focus();
+                        if (!(control is HiddenField)) control.Focus();
                         return false;
                     }
                 }
@@ -439,7 +439,7 @@ namespace NewLife.CommonEntity.Web
                     if (d == DateTime.MinValue || d == DateTime.MaxValue)
                     {
                         WebHelper.Alert(String.Format("{0}不能为空！", field.DisplayName));
-                        control.Focus();
+                        if (!(control is HiddenField)) control.Focus();
                         return false;
                     }
                 }
@@ -514,7 +514,7 @@ namespace NewLife.CommonEntity.Web
                 if (ae != null && !String.IsNullOrEmpty(ae.ParamName))
                 {
                     Control control = FindControl(ItemPrefix + ae.ParamName);
-                    if (control != null) control.Focus();
+                    if (control != null && !(control is HiddenField)) control.Focus();
                 }
 
                 WebHelper.Alert("失败！" + ex.Message);

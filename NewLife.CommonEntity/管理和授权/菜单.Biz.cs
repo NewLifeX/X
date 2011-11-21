@@ -419,9 +419,10 @@ namespace NewLife.CommonEntity
                 }
 
                 //更新编号
-                if (Childs != null && Childs.Count > 0)
+                var list = Childs;
+                if (list != null && list.Count > 0)
                 {
-                    foreach (TEntity item in Childs)
+                    foreach (TEntity item in list)
                     {
                         item.ParentID = ID;
 
@@ -521,8 +522,9 @@ namespace NewLife.CommonEntity
             // 如果找不到，就取第一个作为顶级
             if (top == null)
             {
-                if (Root.Childs != null && Root.Childs.Count > 0)
-                    top = Root.Childs[0];
+                var childs = Root.Childs;
+                if (childs != null && childs.Count > 0)
+                    top = childs[0];
                 else
                 {
                     EntityList<TEntity> list = FindAllByName(_.ParentID, 0, _.ID + " Desc", 0, 1);

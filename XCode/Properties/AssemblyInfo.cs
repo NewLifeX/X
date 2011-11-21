@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.3.*")]
-[assembly: AssemblyFileVersion("8.3.2011.1120")]
+[assembly: AssemblyFileVersion("8.3.2011.1121")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.3.2011.1121   EntityTree增加EnableCaching属性，指定是否缓存Childs、AllChilds、Parent等，默认为true
+ * 
  * v8.3.2011.1120   增加实体依赖类EntityDependency。用于HttpRuntime.Cache，一旦指定的实体类数据改变，马上让缓存过期。
  * 
  * v8.3.2011.1118   修正SelectBuilder.SelectCount方法中的BUG，当条件字句包含GroupBy时，处理不正确。该BUG由@行走江湖（534163320）发现
