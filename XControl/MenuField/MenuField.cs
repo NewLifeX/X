@@ -168,9 +168,9 @@ namespace XControl
 
 
         /// <summary>
-        /// 绑定字段
+        /// 条件模版
         /// </summary>
-        [DefaultValue(null), WebCategory("Menu"), WebSysDescription("MenuField_MenuTemplate")]
+        [DefaultValue(null), MergableProperty(false), WebCategory("Menu"), WebSysDescription("MenuField_MenuTemplate")]
         public virtual List<MenuTemplateItem> MenuTemplate
         {
             get

@@ -10,7 +10,7 @@ namespace XControl
     /// <summary>
     /// 菜单模版项
     /// </summary>
-    [PersistenceMode(PersistenceMode.InnerProperty)]
+    ///[PersistenceMode(PersistenceMode.InnerProperty)]
     public class MenuTemplateItem
     {
         private String _ConditionFieldValue;
