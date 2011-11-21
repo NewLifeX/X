@@ -13,7 +13,7 @@ public class TestController : GenericController, IController
         world = "world";
     }
 
-    public override void Execute()
+    public override void Render(IDictionary<string, object> data)
     {
         Response.Write("Hello " + world + " ");
         Response.Write(Request.Url);

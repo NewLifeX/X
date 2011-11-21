@@ -13,6 +13,7 @@ public class Urls : IRouteConfig
     {
         cfg.Route<TestController>("/Test")
             .Route(
+                "/foo.aspx$", typeof(GenericControllerFactory),
                 "/Test1$", typeof(TestController1),
                 "/Test2", typeof(TestController2),
                 "/Factory1", typeof(TestFactory),

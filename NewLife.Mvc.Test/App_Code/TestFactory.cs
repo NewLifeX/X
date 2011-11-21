@@ -8,13 +8,12 @@ using NewLife.Mvc;
 /// </summary>
 public class TestFactory : IControllerFactory
 {
-    public bool Support(string path)
-    {
-        return true;
-    }
-
-    public IController Create()
+    public IController GetController(IRouteContext context)
     {
         return new TestController();
+    }
+
+    public void ReleaseController(IController handler)
+    {
     }
 }

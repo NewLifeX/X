@@ -8,8 +8,13 @@ using NewLife.Mvc;
 /// </summary>
 public class TestError : IController
 {
-    public void Execute()
+    public void ProcessRequest(IRouteContext context)
     {
         throw new Exception("控制器内部抛出的异常");
+    }
+
+    public bool IsReusable
+    {
+        get { return true; }
     }
 }
