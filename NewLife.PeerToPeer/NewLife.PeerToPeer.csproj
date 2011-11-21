@@ -67,6 +67,7 @@
     <Compile Include="MessageProcess\ProcessBase.cs" />
     <Compile Include="Messages\CommandMessage\CommandMessageBase.cs" />
     <Compile Include="Messages\CommandMessage\FindTorrentMessage.cs" />
+    <Compile Include="Messages\CommandMessage\ResetCommandClientMessage.cs" />
     <Compile Include="Messages\PeerMessage\InviteMessage.cs" />
     <Compile Include="Messages\MessageServer.cs" />
     <Compile Include="Messages\P2PMessage.cs" />
