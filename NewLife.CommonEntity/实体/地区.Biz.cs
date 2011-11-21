@@ -15,10 +15,10 @@ namespace NewLife.CommonEntity
     {
         #region 扩展属性
         /// <summary>已重载。</summary>
-        protected override string KeyName
-        {
-            get { return "Code"; }
-        }
+        protected override string KeyName { get { return _.Code; } }
+
+        /// <summary>关联父键名，一般是Parent加主键，如ParentID</summary>
+        protected override string ParentKeyName { get { return _.ParentCode; } }
 
         [NonSerialized]
         private String _FriendName;
@@ -127,7 +127,7 @@ namespace NewLife.CommonEntity
                 return FindAllByParent(a.OldCode);
             else
                 return FindAllByParent(a.Code);
-                
+
         }
         #endregion
 
