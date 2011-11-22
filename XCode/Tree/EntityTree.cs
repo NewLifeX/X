@@ -102,6 +102,12 @@ namespace XCode
         /// <summary>父节点</summary>
         protected virtual TEntity FindParent() { return Meta.Cache.Entities.Find(KeyName, this[ParentKeyName]); }
 
+        /// <summary>父节点</summary>
+        protected static TEntity FindByKeyWithCache(TKey key)
+        {
+            return Meta.Cache.Entities.Find((Meta.Factory.Default as TEntity).KeyName, key);
+        }
+
         /// <summary>子孙节点</summary>
         [XmlIgnore]
         public virtual EntityList<TEntity> AllChilds
@@ -189,7 +195,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select)]
         public static EntityList<TEntity> FindAllByParent(TKey parentKey)
         {
-            TEntity entity = EntityFactory.CreateOperate(typeof(TEntity)).Default as TEntity;
+            TEntity entity = Meta.Factory.Default as TEntity;
 
             EntityList<TEntity> list = Meta.Cache.Entities.FindAll(entity.ParentKeyName, parentKey);
             // 如果是顶级，那么包含所有无头节点
@@ -224,7 +230,7 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<TEntity> FindAllNoParent()
         {
-            TEntity entity = EntityFactory.CreateOperate(typeof(TEntity)).Default as TEntity;
+            TEntity entity = Meta.Factory.Default as TEntity;
 
             EntityList<TEntity> list = new EntityList<TEntity>();
             foreach (TEntity item in Meta.Cache.Entities)
@@ -245,7 +251,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select)]
         public static EntityList<TEntity> FindAllChildsByParent(TKey parentKey)
         {
-            TEntity entity = FindByKey(parentKey);
+            TEntity entity = FindByKeyWithCache(parentKey);
             if (entity == null) entity = Root;
 
             EntityList<TEntity> list = FindAllChilds(entity);
@@ -259,7 +265,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select)]
         public static EntityList<TEntity> FindAllChildsNoParent(TKey parentKey)
         {
-            TEntity entity = FindByKey(parentKey);
+            TEntity entity = FindByKeyWithCache(parentKey);
             if (entity == null) entity = Root;
 
             return FindAllChilds(entity);
@@ -271,7 +277,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select)]
         public static EntityList<TEntity> FindAllParentsByKey(TKey key)
         {
-            TEntity entity = FindByKey(key);
+            TEntity entity = FindByKeyWithCache(key);
             if (entity == null) entity = Root;
 
             return FindAllParents(entity);

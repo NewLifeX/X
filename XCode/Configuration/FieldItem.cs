@@ -131,6 +131,18 @@ namespace XCode.Configuration
             get { return _Field; }
             //set { _Field = value; }
         }
+
+        /// <summary>实体操作者</summary>
+        public IEntityOperate Factory
+        {
+            get
+            {
+                Type type = Table.EntityType;
+                if (type.IsInterface) return null;
+
+                return EntityFactory.CreateOperate(type);
+            }
+        }
         #endregion
 
         #region 构造
@@ -218,7 +230,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public WhereExpression CreateExpression(String action, Object value)
         {
-            IEntityOperate op = EntityFactory.CreateOperate(Table.EntityType);
+            IEntityOperate op = Factory;
             String sql = null;
             String name = op.FormatName(ColumnName);
             if (!String.IsNullOrEmpty(action) && action.Contains("{0}"))
@@ -280,10 +292,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public WhereExpression In(String value)
         {
-            IEntityOperate op = EntityFactory.CreateOperate(Table.EntityType);
-            String name = op.FormatName(ColumnName);
-
-            return new WhereExpression(String.Format("{0} In({1})", name, value));
+            return new WhereExpression(String.Format("{0} In({1})", Factory.FormatName(ColumnName), value));
         }
 
         /// <summary>
@@ -295,7 +304,7 @@ namespace XCode.Configuration
         {
             if (value == null) return new WhereExpression();
 
-            IEntityOperate op = EntityFactory.CreateOperate(Table.EntityType);
+            IEntityOperate op = Factory;
             String name = op.FormatName(ColumnName);
 
             List<Object> vs = new List<Object>();
@@ -322,10 +331,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public WhereExpression NotIn(String value)
         {
-            IEntityOperate op = EntityFactory.CreateOperate(Table.EntityType);
-            String name = op.FormatName(ColumnName);
-
-            return new WhereExpression(String.Format("{0} Not In({1})", name, value));
+            return new WhereExpression(String.Format("{0} Not In({1})", Factory.FormatName(ColumnName), value));
         }
 
         /// <summary>
@@ -337,7 +343,7 @@ namespace XCode.Configuration
         {
             if (value == null) return new WhereExpression();
 
-            IEntityOperate op = EntityFactory.CreateOperate(Table.EntityType);
+            IEntityOperate op = Factory;
             String name = op.FormatName(ColumnName);
 
             List<Object> vs = new List<Object>();
@@ -363,10 +369,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public WhereExpression IsNull()
         {
-            IEntityOperate op = EntityFactory.CreateOperate(Table.EntityType);
-            String name = op.FormatName(ColumnName);
-
-            return new WhereExpression(String.Format("{0} Is Null", name));
+            return new WhereExpression(String.Format("{0} Is Null", Factory.FormatName(ColumnName)));
         }
 
         /// <summary>
@@ -375,10 +378,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public WhereExpression NotIsNull()
         {
-            IEntityOperate op = EntityFactory.CreateOperate(Table.EntityType);
-            String name = op.FormatName(ColumnName);
-
-            return new WhereExpression(String.Format("Not {0} Is Null", name));
+            return new WhereExpression(String.Format("Not {0} Is Null", Factory.FormatName(ColumnName)));
         }
 
         /// <summary>
