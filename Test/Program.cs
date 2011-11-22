@@ -258,6 +258,8 @@ namespace Test
             if (ars != null && ars.Count > 0) Console.WriteLine(ars[0]);
             Area root = ars[0];
 
+            DAL.ShowSQL = false;
+
             // 遍历所有表
             foreach (var table in dal.Tables)
             {
