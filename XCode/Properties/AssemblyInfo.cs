@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.3.*")]
-[assembly: AssemblyFileVersion("8.3.2011.1121")]
+[assembly: AssemblyFileVersion("8.3.2011.1122")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.3.2011.1122   复审一级缓存、实体缓存、单对象缓存代码，增加关键点写日志功能，方便调试可能因缓存而引起的各种问题
+ * 
  * v8.3.2011.1121   EntityTree增加EnableCaching属性，指定是否缓存Childs、AllChilds、Parent等，默认为true
  * 
  * v8.3.2011.1120   增加实体依赖类EntityDependency。用于HttpRuntime.Cache，一旦指定的实体类数据改变，马上让缓存过期。
@@ -271,7 +273,7 @@ using System.Runtime.InteropServices;
  *                  单对象实体缓存改为弱引用，使得缓存对象在没有引用时得到回收
  *                  单对象实体缓存默认填充方法改为实体基类的FindByKey（前面某个版本增加，参数为Object），据说Delegate.CreateDelegate出来的委托会很慢
  *                  实体元数据类Meta增加单对象实体缓存SingleCache，给SingleCacheInt和SingleCacheStr加上过期标识，到v7.0将不再支持
- *                  实体元数据类Meta增加OnDataChange的数据改变事件，并使用弱引用，当该实体有数据改变后，触发事件，可用于在外部清楚该对象的缓存
+ *                  实体元数据类Meta增加OnDataChange的数据改变事件，并使用弱引用，当该实体有数据改变后，触发事件，可用于在外部删除该对象的缓存
  *                  （重要更新）实体基类增加字典缓存Extends，用于存储扩展属性，并增加专属的GetExtend方法用于获取扩展属性，向依赖实体类注册数据更改事件
  *                  （重要更新）实体树类升级为实体树基类，所有具有树形结构数据的实体类，继承自该类，享受树形实体的各种功能
  *                  实体基类增加虚拟的CreateXmlSerializer，允许实体类重载以改变Xml序列化行为，默认序列化行为改为序列化为特性

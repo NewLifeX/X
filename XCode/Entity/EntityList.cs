@@ -995,6 +995,10 @@ namespace XCode
         #endregion
 
         #region 辅助函数
+        private static EntityList<T> _Empty;
+        /// <summary>空集合</summary>
+        public static EntityList<T> Empty { get { return _Empty ?? (_Empty = new EntityList<T>()); } }
+
         /// <summary>
         /// 真正的实体类型。有些场合为了需要会使用IEntity。
         /// </summary>

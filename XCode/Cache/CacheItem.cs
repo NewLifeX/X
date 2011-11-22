@@ -1,71 +1,62 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
+using NewLife.Collections;
 
 namespace XCode.Cache
 {
-    internal class CacheItem<T>
+    class CacheItem
     {
-        private T _TValue;
-        /// <summary>
-        /// 缓存的DataSet
-        /// </summary>
-        public T TValue
-        {
-            get { return _TValue; }
-        }
+        /// <summary>所依赖的表的表名</summary>
+        private ICollection<String> _TableNames;
 
-        /// <summary>
-        /// 所依赖的表的表名
-        /// </summary>
-        private Dictionary<String, String> _TableNames;
-        ///// <summary>
-        ///// 所依赖的表的表名
-        ///// </summary>
-        //public List<String> TableNames
-        //{
-        //    get { return _TableNames; }
-        //}
+        /// <summary>到期时间</summary>
+        public DateTime ExpireTime;
 
-        /// <summary>
-        /// 缓存时间
-        /// </summary>
-        public DateTime CacheTime = DateTime.Now;
-
-        /// <summary>
-        /// 构造函数
-        /// </summary>
+        /// <summary>构造函数</summary>
         /// <param name="tableNames"></param>
-        /// <param name="tvalue"></param>
-        public CacheItem(String[] tableNames, T tvalue)
-        {
-            if (tableNames != null && tableNames.Length > 0)
-            {
-                if (_TableNames == null)
-                    _TableNames = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-                else
-                    _TableNames.Clear();
+        public CacheItem(String[] tableNames) : this(tableNames, 0) { }
 
-                for (Int32 i = 0; i < tableNames.Length; i++)
-                    if (!_TableNames.ContainsKey(tableNames[i]))
-                        _TableNames.Add(tableNames[i], null);
-            }
-            _TValue = tvalue;
+        /// <summary>构造函数</summary>
+        /// <param name="tableNames"></param>
+        /// <param name="time">缓存时间，单位秒</param>
+        public CacheItem(String[] tableNames, Int32 time)
+        {
+            if (tableNames != null && tableNames.Length > 0) _TableNames = new HashSet<String>(tableNames);
+
+            if (time > 0) ExpireTime = DateTime.Now.AddSeconds(time);
         }
 
-        /// <summary>
-        /// 是否依赖于某个表
-        /// </summary>
+        /// <summary>是否依赖于某个表</summary>
         /// <param name="tableName">表名</param>
         /// <returns></returns>
         public Boolean IsDependOn(String tableName)
         {
-            // 空表名，或者*，表示全局匹配
-            if (String.IsNullOrEmpty(tableName) || tableName == "*") return true;
+            // 空表名，不匹配
+            if (String.IsNullOrEmpty(tableName)) return false;
+
+            // *表示全局匹配
+            if (tableName == "*") return true;
+
             // 包含完整表名，匹配
-            if (_TableNames.ContainsKey(tableName)) return true;
-            // 可以考虑增加使用*实现前缀匹配或后缀匹配
-            return false;
+            return _TableNames.Contains(tableName);
         }
+    }
+
+    class CacheItem<T> : CacheItem
+    {
+        private T _Value;
+        /// <summary>缓存的数据</summary>
+        public T Value { get { return _Value; } }
+
+        /// <summary>构造函数</summary>
+        /// <param name="tableNames"></param>
+        /// <param name="value"></param>
+        public CacheItem(String[] tableNames, T value) : this(tableNames, value, 0) { }
+
+        /// <summary>构造函数</summary>
+        /// <param name="tableNames"></param>
+        /// <param name="value"></param>
+        /// <param name="time">缓存时间，单位秒</param>
+        public CacheItem(String[] tableNames, T value, Int32 time) : base(tableNames, time) { _Value = value; }
     }
 }

@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using NewLife.Log;
+using NewLife.Threading;
+using XCode.DataAccessLayer;
 
 namespace XCode.Cache
 {
-    /// <summary>
-    /// 单对象缓存
-    /// </summary>
+    /// <summary>单对象缓存</summary>
+    /// <remarks>
+    /// 用一个值为实体的字典作为缓存（键一般就是主键），适用于单表大量互相没有关系的数据。
+    /// 同时，AutoSave能够让缓存项在过期时自动保存数据，该特性特别适用于点击计数等场合。
+    /// </remarks>
     /// <typeparam name="TKey">键值类型</typeparam>
     /// <typeparam name="TEntity">实体类型</typeparam>
     public class SingleEntityCache<TKey, TEntity> : CacheBase<TEntity>, ISingleEntityCache where TEntity : Entity<TEntity>, new()
@@ -54,11 +58,6 @@ namespace XCode.Cache
             {
                 if (_FindKeyMethod == null)
                 {
-                    //Type t = typeof(TEntity);
-                    //MethodInfo method = t.GetMethod("FindByKey");
-                    //if (method != null)
-                    //    _FindKeyMethod = Delegate.CreateDelegate(typeof(FindKeyDelegate<TKey, TEntity>), method) as FindKeyDelegate<TKey, TEntity>;
-                    //_FindKeyMethod = delegate(TKey key) { return Entity<TEntity>.FindByKey(key); };
                     _FindKeyMethod = key => Entity<TEntity>.FindByKey(key);
 
                     if (_FindKeyMethod == null) throw new ArgumentNullException("FindKeyMethod", "没有找到FindByKey方法，请先设置查找数据的方法！");
@@ -77,33 +76,61 @@ namespace XCode.Cache
         //}
         #endregion
 
-        #region 缓存对象
-        /// <summary>
-        /// 缓存对象
-        /// </summary>
-        class CacheItem
+        #region 构造
+        TimerX timer = null;
+        /// <summary>实例化一个实体缓存</summary>
+        public SingleEntityCache()
         {
-            ///// <summary>
-            ///// 实体
-            ///// </summary>
-            //public TEntity Entity;
 
-            //// nnhy 2010-10-21
-            //// 改为使用弱引用，避免单对象实体永久缓存一些不再使用的对象
+            timer = new TimerX(d => Check(), null, Expriod * 1000, Expriod * 1000);
+        }
 
-            //private WeakReference<TEntity> _Entity;
-            private TEntity _Entity;
-            /// <summary>实体</summary>
-            public TEntity Entity
+        /// <summary>定期检查实体，如果过期，则触发保存</summary>
+        void Check()
+        {
+            CacheItem[] cs = null;
+            if (Entities.Count <= 0) return;
+            lock (Entities)
             {
-                get { return _Entity; }
-                set { _Entity = value; }
+                if (Entities.Count <= 0) return;
+
+                cs = new CacheItem[Entities.Count];
+                Entities.Values.CopyTo(cs, 0);
             }
 
-            /// <summary>
-            /// 缓存时间
-            /// </summary>
-            public DateTime CacheTime = DateTime.Now.AddDays(-100);
+            if (cs != null && cs.Length > 0)
+            {
+                foreach (var item in cs)
+                {
+                    // 是否过期
+                    if (item.ExpireTime > DateTime.Now && item.Entity != null)
+                    {
+                        // 自动保存
+                        if (AutoSave)
+                        {
+                            // 捕获异常，不影响别人
+                            try
+                            {
+                                item.Entity.Update();
+                            }
+                            catch { }
+                        }
+                        item.Entity = null;
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region 缓存对象
+        /// <summary>缓存对象</summary>
+        class CacheItem
+        {
+            /// <summary>实体</summary>
+            public TEntity Entity;
+
+            /// <summary>缓存过期时间</summary>
+            public DateTime ExpireTime;
         }
         #endregion
 
@@ -208,6 +235,8 @@ namespace XCode.Cache
                         CacheItem item2 = null;
                         if (Entities.TryGetValue(keyFirst, out item2) && item2 != null)
                         {
+                            if (DAL.Debug) DAL.WriteLog("单实体缓存{0}超过最大数量限制{1}，准备移除第一项{2}", typeof(TEntity), MaxEntity, keyFirst);
+
                             Entities.Remove(keyFirst);
 
                             //自动保存
@@ -223,7 +252,7 @@ namespace XCode.Cache
                 if (entity != null || AllowNull)
                 {
                     item.Entity = entity;
-                    item.CacheTime = DateTime.Now;
+                    item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
 
                     if (!Entities.ContainsKey(key)) Entities.Add(key, item);
                 }
@@ -248,7 +277,7 @@ namespace XCode.Cache
             if (item == null) return null;
 
             //未过期，直接返回
-            if (DateTime.Now <= item.CacheTime.AddSeconds(Expriod))
+            if (DateTime.Now <= item.ExpireTime)
             {
                 Interlocked.Increment(ref Shoot);
                 return item.Entity;
@@ -260,49 +289,40 @@ namespace XCode.Cache
             //查找数据
             //item.Entity = FindKeyMethod(key);
             InvokeFill(delegate { item.Entity = FindKeyMethod(key); });
-            item.CacheTime = DateTime.Now;
+            item.ExpireTime = DateTime.Now.AddSeconds(Expriod);
 
             return item.Entity;
         }
 
-        /// <summary>
-        /// 获取数据
-        /// </summary>
+        /// <summary>获取数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public TEntity this[TKey key]
-        {
-            get
-            {
-                return GetItem(key);
-            }
-        }
+        public TEntity this[TKey key] { get { return GetItem(key); } }
 
         private TKey GetFirstKey()
         {
-            Dictionary<TKey, CacheItem>.Enumerator em = Entities.GetEnumerator();
-            if (!em.MoveNext()) return default(TKey);
+            foreach (var item in Entities)
+            {
+                return item.Key;
+            }
+            return default(TKey);
 
-            TKey key = em.Current.Key;
-            em.Dispose();
-            return key;
+            //Dictionary<TKey, CacheItem>.Enumerator em = Entities.GetEnumerator();
+            //if (!em.MoveNext()) return default(TKey);
+
+            //TKey key = em.Current.Key;
+            //em.Dispose();
+            //return key;
         }
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 是否包含指定键
-        /// </summary>
+        /// <summary>是否包含指定键</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public Boolean ContainsKey(TKey key)
-        {
-            return Entities.ContainsKey(key);
-        }
+        public Boolean ContainsKey(TKey key) { return Entities.ContainsKey(key); }
 
-        /// <summary>
-        /// 移除指定项
-        /// </summary>
+        /// <summary>移除指定项</summary>
         /// <param name="key"></param>
         public void RemoveKey(TKey key)
         {
@@ -318,11 +338,11 @@ namespace XCode.Cache
             }
         }
 
-        /// <summary>
-        /// 清除所有数据
-        /// </summary>
+        /// <summary>清除所有数据</summary>
         public void Clear()
         {
+            if (DAL.Debug) DAL.WriteLog("清空单对象缓存：{0}", typeof(TEntity).FullName);
+
             if (AutoSave)
             {
                 lock (Entities)
@@ -343,18 +363,14 @@ namespace XCode.Cache
         #endregion
 
         #region ISingleEntityCache 成员
-
-        IEntity ISingleEntityCache.this[object key]
-        {
-            get { return GetItem((TKey)key); }
-        }
-
+        /// <summary>获取数据</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        IEntity ISingleEntityCache.this[object key] { get { return GetItem((TKey)key); } }
         #endregion
     }
 
-    /// <summary>
-    /// 查找数据的方法
-    /// </summary>
+    /// <summary>查找数据的方法</summary>
     /// <typeparam name="TKey">键值类型</typeparam>
     /// <typeparam name="TEntity">实体类型</typeparam>
     /// <param name="key">键值</param>

@@ -152,7 +152,6 @@
     <Compile Include="DataAccessLayer\Model\XTable.cs" />
     <Compile Include="Cache\CacheItem.cs" />
     <Compile Include="Cache\XCache.cs" />
-    <Compile Include="Cache\SqlCache.cs" />
     <Compile Include="Cache\CacheBase.cs" />
     <Compile Include="Entity\DirtyCollection.cs" />
     <Compile Include="Entity\Entity.cs" />

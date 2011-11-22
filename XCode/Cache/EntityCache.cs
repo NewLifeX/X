@@ -3,25 +3,25 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using NewLife.Log;
+using XCode.DataAccessLayer;
+using NewLife.Threading;
 
 namespace XCode.Cache
 {
-    /// <summary>
-    /// 实体缓存
-    /// </summary>
+    /// <summary>实体缓存</summary>
     /// <typeparam name="TEntity">实体类型</typeparam>
     public class EntityCache<TEntity> : CacheBase<TEntity>, IEntityCache where TEntity : Entity<TEntity>, new()
     {
         #region 基本
         private EntityList<TEntity> _Entities;
-        /// <summary>实体集合</summary>
+        /// <summary>实体集合。无数据返回空集合而不是null</summary>
         public EntityList<TEntity> Entities
         {
             get
             {
                 #region 统计
                 if (LastShow == DateTime.MinValue) LastShow = DateTime.Now;
-                if (LastShow.AddHours(10) < DateTime.Now)
+                if (LastShow.AddHours(24) < DateTime.Now)
                 {
                     LastShow = DateTime.Now;
 
@@ -31,7 +31,6 @@ namespace XCode.Cache
                 Interlocked.Increment(ref Total);
                 #endregion
 
-                //if (DateTime.Now > CacheTime.AddSeconds(Expriod))
                 // 两种情况更新缓存：1，缓存过期；2，不允许空但是集合又是空
                 Boolean isnull = !AllowNull && _Entities == null;
                 if (isnull || DateTime.Now > CacheTime)
@@ -48,11 +47,15 @@ namespace XCode.Cache
                                 // 设置时间放在获取缓存之前，让其它线程不要空等
                                 CacheTime = DateTime.Now.AddSeconds(Expriod);
 
-                                ThreadPool.QueueUserWorkItem(FillWaper);
+                                if (DAL.Debug) DAL.WriteLog("异步更新实体缓存：{0} 原因：{1}", typeof(TEntity).FullName, isnull ? "空集合" : Expriod + "秒过期");
+
+                                ThreadPool.QueueUserWorkItem(FillWaper, isnull);
                             }
                             else
                             {
-                                FillWaper(null);
+                                if (DAL.Debug) DAL.WriteLog("更新实体缓存：{0} 原因：{1}", typeof(TEntity).FullName, isnull ? "空集合" : Expriod + "秒过期");
+
+                                FillWaper(isnull);
 
                                 // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
                                 // 设置时间放在获取缓存之后，避免缓存尚未拿到，其它线程拿到空数据
@@ -66,10 +69,8 @@ namespace XCode.Cache
                 else
                     Interlocked.Increment(ref Shoot1);
 
-                //if (_Entities == null || _Entities.Count < 1) return new EntityList<TEntity>();
-                return _Entities ?? Empty;
+                return _Entities ?? EntityList<TEntity>.Empty;
             }
-            //set { _Entities = value; }
         }
 
         private void FillWaper(Object state)
@@ -87,12 +88,7 @@ namespace XCode.Cache
             }
         }
 
-        /// <summary>
-        /// 空集合
-        /// </summary>
-        private static EntityList<TEntity> Empty = new EntityList<TEntity>();
-
-        private DateTime _CacheTime = DateTime.Now.AddDays(-100);
+        private DateTime _CacheTime;
         /// <summary>缓存时间</summary>
         public DateTime CacheTime
         {
@@ -136,12 +132,12 @@ namespace XCode.Cache
             set { _AllowNull = value; }
         }
 
-        /// <summary>
-        /// 清除缓存
-        /// </summary>
+        /// <summary>清除缓存</summary>
         public void Clear()
         {
-            CacheTime = DateTime.Now.AddDays(-100);
+            if (_Entities != null && _Entities.Count > 0 && DAL.Debug) DAL.WriteLog("清空实体缓存：{0}", typeof(TEntity).FullName);
+
+            CacheTime = DateTime.MinValue;
             _Entities = null;
         }
         #endregion
@@ -200,10 +196,7 @@ namespace XCode.Cache
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
-        public IEntity Find(string name, object value)
-        {
-            return Entities.Find(name, value);
-        }
+        public IEntity Find(string name, object value) { return Entities.Find(name, value); }
 
         /// <summary>
         /// 根据指定项查找

@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace XCode.Cache
 {
-    /// <summary>
-    /// 缓存基接口
-    /// </summary>
+    /// <summary>缓存基接口</summary>
     public interface IEntityCacheBase
     {
         /// <summary>连接名</summary>
@@ -16,9 +12,7 @@ namespace XCode.Cache
         String TableName { get; set; }
     }
 
-    /// <summary>
-    /// 实体缓存接口
-    /// </summary>
+    /// <summary>实体缓存接口</summary>
     public interface IEntityCache : IEntityCacheBase
     {
         /// <summary>实体集合。因为涉及一个转换，数据量大是很耗性能，建议不要使用。</summary>
@@ -55,14 +49,10 @@ namespace XCode.Cache
         //void Sort(String name, Boolean isDesc);
     }
 
-    /// <summary>
-    /// 单对象缓存接口
-    /// </summary>
+    /// <summary>单对象缓存接口</summary>
     public interface ISingleEntityCache : IEntityCacheBase
     {
-        /// <summary>
-        /// 获取数据
-        /// </summary>
+        /// <summary>获取数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
         IEntity this[Object key] { get; }

@@ -51,19 +51,20 @@ public partial class Center_Default : System.Web.UI.Page
                 ClientScript.RegisterStartupScript(this.GetType(), "location", js, true);
             }
         }
+
+        //IMenu root = CommonManageProvider.Provider.MenuRoot;
+        if (root != null)
+        {
+            root.CheckMenuName("Admin", "管理平台")
+                .CheckMenuName(@"Admin\Sys", "系统管理")
+                .CheckMenuName(@"Admin\Advance", "高级设置");
+        }
     }
 
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!IsPostBack)
         {
-            IMenu root = CommonManageProvider.Provider.MenuRoot;
-            if (root != null)
-            {
-                root.CheckMenuName("Admin", "管理平台")
-                    .CheckMenuName(@"Admin\Sys", "系统管理")
-                    .CheckMenuName(@"Admin\Advance", "高级设置");
-            }
         }
     }
 }

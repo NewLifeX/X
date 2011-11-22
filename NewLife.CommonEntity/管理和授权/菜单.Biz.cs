@@ -725,7 +725,7 @@ namespace NewLife.CommonEntity
         IMenu IMenu.CheckMenuName(String oldName, String newName)
         {
             //IMenu menu = FindByPath(AllChilds, oldName, _.Name);
-            IMenu menu = FindByPath(oldName, _.Name);
+            IMenu menu = FindByPath(oldName, _.Name, _.Permission, _.Remark);
             if (menu != null && menu.Name != newName)
             {
                 menu.Name = menu.Permission = newName;

@@ -10,12 +10,9 @@ using ThreadState = System.Threading.ThreadState;
 
 namespace NewLife.Threading
 {
-    /// <summary>
-    /// 线程池。所有静态方法和实例方法均是线程安全。
-    /// </summary>
+    /// <summary>线程池。所有静态方法和实例方法均是线程安全。</summary>
     public sealed class ThreadPoolX : IDisposable
     {
-        #region 属性
         #region 基本属性
         private Int32 _MaxThreads;
         /// <summary>最大线程数</summary>
@@ -93,9 +90,7 @@ namespace NewLife.Threading
             //set { _ManagerThread = value; }
         }
 
-        /// <summary>
-        /// 第一个任务到来时初始化线程池
-        /// </summary>
+        /// <summary>第一个任务到来时初始化线程池</summary>
         private void Init()
         {
             if (ManagerThread.IsAlive) return;
@@ -145,7 +140,6 @@ namespace NewLife.Threading
         /// 用户维护线程组的锁
         /// </summary>
         private Object SyncLock_Threads = new object();
-        #endregion
         #endregion
 
         #region 任务队列
@@ -207,16 +201,21 @@ namespace NewLife.Threading
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException(name, "线程池名字不能为空！");
 
             return _cache.GetItem(name, delegate(String key) { return new ThreadPoolX(key); });
-            //if (_cache.ContainsKey(name)) return _cache[name];
-            //lock (_cache)
-            //{
-            //    if (_cache.ContainsKey(name)) return _cache[name];
+        }
 
-            //    ThreadPoolX pool = new ThreadPoolX(name);
-            //    _cache.Add(name, pool);
-
-            //    return pool;
-            //}
+        private static ThreadPoolX _Instance;
+        /// <summary>默认线程池</summary>
+        public static ThreadPoolX Instance
+        {
+            get
+            {
+                if (_Instance == null)
+                {
+                    _Instance = Create("X");
+                }
+                return _Instance;
+            }
+            set { _Instance = value; }
         }
         #endregion
 

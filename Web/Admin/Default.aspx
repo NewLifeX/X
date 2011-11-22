@@ -60,7 +60,7 @@
                                         <%# Eval("Name") %></b></a>
                             </ItemTemplate>
                         </asp:Repeater>
-                        <a href="System/AdminInfo.aspx?ID=<%=CommonManageProvider.Provider.Current.ID%>"
+                        <a href="Sys/AdminInfo.aspx?ID=<%=CommonManageProvider.Provider.Current.ID%>"
                             target="main" title="修改当前用户密码等信息！"><b>用户信息</b></a>
                     </div>
                 </div>

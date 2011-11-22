@@ -7,14 +7,18 @@ using NewLife.Configuration;
 
 namespace XCode.Cache
 {
-    /// <summary>
-    /// 数据缓存类
-    /// </summary>
-    internal static class XCache
+    /// <summary>数据缓存类</summary>
+    /// <remarks>
+    /// 以SQL为键对查询进行缓存，同时关联表。执行SQL时，根据关联表删除缓存。
+    /// </remarks>
+    static class XCache
     {
         #region 初始化
-        private static SqlCache<CacheItem<DataSet>> _TableCache = new SqlCache<CacheItem<DataSet>>();
-        private static SqlCache<CacheItem<Int32>> _IntCache = new SqlCache<CacheItem<Int32>>();
+        private static Dictionary<String, CacheItem<DataSet>> _TableCache = new Dictionary<String, CacheItem<DataSet>>();
+        private static Dictionary<String, CacheItem<Int32>> _IntCache = new Dictionary<String, CacheItem<Int32>>();
+
+        static readonly String _dst = "XCache_DataSet_";
+        static readonly String _int = "XCache_Int32_";
 
         /// <summary>
         /// 缓存相对有效期。
@@ -25,9 +29,7 @@ namespace XCode.Cache
         /// </summary>
         public static Int32 Expiration = -1;
 
-        /// <summary>
-        /// 数据缓存类型
-        /// </summary>
+        /// <summary>数据缓存类型</summary>
         public static XCacheType CacheType
         {
             get
@@ -46,7 +48,10 @@ namespace XCode.Cache
             //读取缓存有效期
             Expiration = Config.GetMutilConfig<Int32>(-2, "XCode.Cache.Expiration", "XCacheExpiration");
             //读取检查周期
-            CheckPeriod = Config.GetMutilConfig<Int32>(0, "XCode.Cache.CheckPeriod", "XCacheCheckPeriod");
+            CheckPeriod = Config.GetMutilConfig<Int32>(5, "XCode.Cache.CheckPeriod", "XCacheCheckPeriod");
+
+            if (Expiration < -2) Expiration = -2;
+            if (CheckPeriod <= 0) CheckPeriod = 5;
         }
         #endregion
 
@@ -78,7 +83,7 @@ namespace XCode.Cache
                     {
                         List<String> toDel = null;
                         foreach (String sql in _TableCache.Keys)
-                            if (_TableCache[sql].CacheTime.AddSeconds(Expiration) < DateTime.Now)
+                            if (_TableCache[sql].ExpireTime < DateTime.Now)
                             {
                                 if (toDel == null) toDel = new List<String>();
                                 toDel.Add(sql);
@@ -97,7 +102,7 @@ namespace XCode.Cache
                     {
                         List<String> toDel = null;
                         foreach (String sql in _IntCache.Keys)
-                            if (_IntCache[sql].CacheTime.AddSeconds(Expiration) < DateTime.Now)
+                            if (_IntCache[sql].ExpireTime < DateTime.Now)
                             {
                                 if (toDel == null) toDel = new List<String>();
                                 toDel.Add(sql);
@@ -126,9 +131,7 @@ namespace XCode.Cache
         #endregion
 
         #region 添加缓存
-        /// <summary>
-        /// 添加数据表缓存。
-        /// </summary>
+        /// <summary>添加数据表缓存。</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="ds">待缓存记录集</param>
         /// <param name="tableNames">表名数组</param>
@@ -136,32 +139,29 @@ namespace XCode.Cache
         {
             //关闭缓存
             if (CacheType == XCacheType.Close) return;
+
             //请求级缓存
             if (CacheType == XCacheType.RequestCache)
             {
                 if (HttpContext.Current == null) return;
-                HttpContext.Current.Items.Add("XCache_DataSet_" + sql, new CacheItem<DataSet>(tableNames, ds));
+                HttpContext.Current.Items.Add(_dst + sql, new CacheItem<DataSet>(tableNames, ds));
                 return;
             }
+
             //静态缓存
             if (_TableCache.ContainsKey(sql)) return;
             lock (_TableCache)
             {
                 if (_TableCache.ContainsKey(sql)) return;
 
-                _TableCache.Add(sql, new CacheItem<DataSet>(tableNames, ds));
+                _TableCache.Add(sql, new CacheItem<DataSet>(tableNames, ds, Expiration));
             }
+
             //带有效期
             if (CacheType == XCacheType.Period) CreateTimer();
-
-            ////检查缓存授权
-            //if (License.CacheCount != Count)
-            //    License.CacheCount = Count;
         }
 
-        /// <summary>
-        /// 添加Int32缓存。
-        /// </summary>
+        /// <summary>添加Int32缓存。</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="n">待缓存整数</param>
         /// <param name="tableNames">表名数组</param>
@@ -169,34 +169,31 @@ namespace XCode.Cache
         {
             //关闭缓存
             if (CacheType == XCacheType.Close) return;
+
             //请求级缓存
             if (CacheType == XCacheType.RequestCache)
             {
                 if (HttpContext.Current == null) return;
-                HttpContext.Current.Items.Add("XCache_Int32_" + sql, new CacheItem<Int32>(tableNames, n));
+                HttpContext.Current.Items.Add(_int + sql, new CacheItem<Int32>(tableNames, n));
                 return;
             }
+
             //静态缓存
             if (_IntCache.ContainsKey(sql)) return;
             lock (_IntCache)
             {
                 if (_IntCache.ContainsKey(sql)) return;
 
-                _IntCache.Add(sql, new CacheItem<Int32>(tableNames, n));
+                _IntCache.Add(sql, new CacheItem<Int32>(tableNames, n, Expiration));
             }
+
             //带有效期
             if (CacheType == XCacheType.Period) CreateTimer();
-
-            ////检查缓存授权
-            //if (License.CacheCount != Count)
-            //    License.CacheCount = Count;
         }
         #endregion
 
         #region 删除缓存
-        /// <summary>
-        /// 移除依赖于某个数据表的缓存
-        /// </summary>
+        /// <summary>移除依赖于某个数据表的缓存</summary>
         /// <param name="tableName">数据表</param>
         public static void Remove(String tableName)
         {
@@ -204,77 +201,70 @@ namespace XCode.Cache
             if (CacheType == XCacheType.RequestCache)
             {
                 if (HttpContext.Current == null) return;
+
+                var cs = HttpContext.Current.Items;
                 List<Object> toDel = new List<Object>();
-                foreach (Object obj in HttpContext.Current.Items.Keys)
+                foreach (Object obj in cs.Keys)
                 {
                     String str = obj as String;
-                    if (!String.IsNullOrEmpty(str))
+                    if (!String.IsNullOrEmpty(str) && (str.StartsWith(_dst) || str.StartsWith(_int)))
                     {
-                        if (str.StartsWith("XCache_DataSet_"))
-                        {
-                            CacheItem<DataSet> ci = HttpContext.Current.Items[obj] as CacheItem<DataSet>;
-                            if (ci != null && ci.IsDependOn(tableName)) toDel.Add(obj);
-                        }
-                        if (str.StartsWith("XCache_Int32_"))
-                        {
-                            CacheItem<Int32> ci = HttpContext.Current.Items[obj] as CacheItem<Int32>;
-                            if (ci != null && ci.IsDependOn(tableName)) toDel.Add(obj);
-                        }
+                        CacheItem ci = cs[obj] as CacheItem;
+                        if (ci != null && ci.IsDependOn(tableName)) toDel.Add(obj);
                     }
                 }
                 foreach (Object obj in toDel)
-                    HttpContext.Current.Items.Remove(obj);
+                    cs.Remove(obj);
                 return;
             }
+
             //静态缓存
             lock (_TableCache)
             {
-                //TODO 2011-03-11 大石头 这里已经成为性能瓶颈，将来需要优化，瓶颈在于_TableCache[sql]
+                // 2011-03-11 大石头 这里已经成为性能瓶颈，将来需要优化，瓶颈在于_TableCache[sql]
+                // 2011-11-22 大石头 改为遍历集合，而不是键值，避免每次取值的时候都要重新查找
                 List<String> toDel = new List<String>();
-                foreach (String sql in _TableCache.Keys)
-                    if (_TableCache[sql].IsDependOn(tableName)) toDel.Add(sql);
+                foreach (var item in _TableCache)
+                    if (item.Value.IsDependOn(tableName)) toDel.Add(item.Key);
+
                 foreach (String sql in toDel)
                     _TableCache.Remove(sql);
             }
             lock (_IntCache)
             {
                 List<String> toDel = new List<String>();
-                foreach (String sql in _IntCache.Keys)
-                    if (_IntCache[sql].IsDependOn(tableName)) toDel.Add(sql);
+                foreach (var item in _IntCache)
+                    if (item.Value.IsDependOn(tableName)) toDel.Add(item.Key);
+
                 foreach (String sql in toDel)
                     _IntCache.Remove(sql);
             }
         }
 
-        /// <summary>
-        /// 移除依赖于一组数据表的缓存
-        /// </summary>
+        /// <summary>移除依赖于一组数据表的缓存</summary>
         /// <param name="tableNames"></param>
         public static void Remove(String[] tableNames)
         {
             foreach (String tn in tableNames) Remove(tn);
         }
 
-        /// <summary>
-        /// 清空缓存
-        /// </summary>
+        /// <summary>清空缓存</summary>
         public static void RemoveAll()
         {
             //请求级缓存
             if (CacheType == XCacheType.RequestCache)
             {
                 if (HttpContext.Current == null) return;
+
+                var cs = HttpContext.Current.Items;
                 List<Object> toDel = new List<Object>();
-                foreach (Object obj in HttpContext.Current.Items.Keys)
+                foreach (Object obj in cs.Keys)
                 {
                     String str = obj as String;
-                    if (!String.IsNullOrEmpty(str))
-                    {
-                        if (str.StartsWith("XCache_DataSet_") || str.StartsWith("XCache_Int32_")) toDel.Add(obj);
-                    }
+                    if (!String.IsNullOrEmpty(str) && (str.StartsWith(_dst) || str.StartsWith(_int))) toDel.Add(obj);
                 }
                 foreach (Object obj in toDel)
-                    HttpContext.Current.Items.Remove(obj);
+                    cs.Remove(obj);
                 return;
             }
             //静态缓存
@@ -290,9 +280,7 @@ namespace XCode.Cache
         #endregion
 
         #region 查找缓存
-        /// <summary>
-        /// 查找缓存中是否包含某一项
-        /// </summary>
+        /// <summary>查找缓存中是否包含某一项</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
         public static Boolean Contain(String sql)
@@ -303,7 +291,7 @@ namespace XCode.Cache
             if (CacheType == XCacheType.RequestCache)
             {
                 if (HttpContext.Current == null) return false;
-                return HttpContext.Current.Items.Contains("XCache_DataSet_" + sql);
+                return HttpContext.Current.Items.Contains(_dst + sql);
             }
             return _TableCache.ContainsKey(sql);
         }
@@ -321,11 +309,11 @@ namespace XCode.Cache
             if (CacheType == XCacheType.RequestCache)
             {
                 if (HttpContext.Current == null) return null;
-                CacheItem<DataSet> ci = HttpContext.Current.Items["XCache_DataSet_" + sql] as CacheItem<DataSet>;
+                CacheItem<DataSet> ci = HttpContext.Current.Items[_dst + sql] as CacheItem<DataSet>;
                 if (ci == null) return null;
-                return ci.TValue;
+                return ci.Value;
             }
-            return _TableCache[sql].TValue;
+            return _TableCache[sql].Value;
         }
 
         /// <summary>
@@ -341,7 +329,7 @@ namespace XCode.Cache
             if (CacheType == XCacheType.RequestCache)
             {
                 if (HttpContext.Current == null) return false;
-                return HttpContext.Current.Items.Contains("XCache_Int32_" + sql);
+                return HttpContext.Current.Items.Contains(_int + sql);
             }
             return _IntCache.ContainsKey(sql);
         }
@@ -359,14 +347,15 @@ namespace XCode.Cache
             if (CacheType == XCacheType.RequestCache)
             {
                 if (HttpContext.Current == null) return -1;
-                CacheItem<Int32> ci = HttpContext.Current.Items["XCache_Int32_" + sql] as CacheItem<Int32>;
+                CacheItem<Int32> ci = HttpContext.Current.Items[_int + sql] as CacheItem<Int32>;
                 if (ci == null) return -1;
-                return ci.TValue;
+                return ci.Value;
             }
-            return _IntCache[sql].TValue;
+            return _IntCache[sql].Value;
         }
         #endregion
 
+        #region 属性
         /// <summary>
         /// 缓存个数
         /// </summary>
@@ -384,38 +373,41 @@ namespace XCode.Cache
                     foreach (Object obj in HttpContext.Current.Items.Keys)
                     {
                         String str = obj as String;
-                        if (!String.IsNullOrEmpty(str))
-                        {
-                            if (str.StartsWith("XCache_DataSet_") || str.StartsWith("XCache_Int32_")) k++;
-                        }
+                        if (!String.IsNullOrEmpty(str) && (str.StartsWith(_dst) || str.StartsWith(_int))) k++;
                     }
                     return k;
                 }
                 return _TableCache.Count + _IntCache.Count;
             }
         }
+
+        //private static Boolean? _Debug;
+        ///// <summary>是否调试</summary>
+        //public static Boolean Debug
+        //{
+        //    get
+        //    {
+        //        if (_Debug == null) _Debug = Config.GetConfig<Boolean>("XCode.Cache.Debug", false);
+        //        return _Debug.Value;
+        //    }
+        //    set { _Debug = value; }
+        //}
+        #endregion
     }
 
-    /// <summary>
-    /// 数据缓存类型
-    /// </summary>
+    /// <summary>数据缓存类型</summary>
     internal enum XCacheType
     {
-        /// <summary>
-        /// 关闭缓存
-        /// </summary>
+        /// <summary>关闭缓存</summary>
         Close = -2,
-        /// <summary>
-        /// 请求级缓存
-        /// </summary>
+
+        /// <summary>请求级缓存</summary>
         RequestCache = -1,
-        /// <summary>
-        /// 永久静态缓存
-        /// </summary>
+
+        /// <summary>永久静态缓存</summary>
         Infinite = 0,
-        /// <summary>
-        /// 带有效期缓存
-        /// </summary>
+
+        /// <summary>带有效期缓存</summary>
         Period = 1
     }
 }

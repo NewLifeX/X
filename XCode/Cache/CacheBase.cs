@@ -1,14 +1,10 @@
 ﻿using System;
 using NewLife.Reflection;
-using NewLife.Log;
-using NewLife.Configuration;
 using XCode.DataAccessLayer;
 
 namespace XCode.Cache
 {
-    /// <summary>
-    /// 缓存基类
-    /// </summary>
+    /// <summary>缓存基类</summary>
     public abstract class CacheBase<TEntity> where TEntity : Entity<TEntity>, new()
     {
         #region 属性
@@ -29,9 +25,7 @@ namespace XCode.Cache
         }
         #endregion
 
-        /// <summary>
-        /// 调用填充方法前设置连接名和表名，调用后还原
-        /// </summary>
+        /// <summary>调用填充方法前设置连接名和表名，调用后还原</summary>
         internal void InvokeFill(Func callback)
         {
             String cn = Entity<TEntity>.Meta.ConnName;
@@ -46,7 +40,6 @@ namespace XCode.Cache
             }
             catch (Exception ex)
             {
-                //if (Config.GetConfig<Boolean>("XCode.Debug")) XTrace.WriteException(ex);
                 if (DAL.Debug) DAL.WriteLog(ex.ToString());
             }
             finally

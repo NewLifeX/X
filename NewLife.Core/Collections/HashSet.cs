@@ -47,7 +47,8 @@ namespace NewLife.Collections
             {
                 foreach (T item in data)
                 {
-                    _dic.Add(item, item);
+                    //_dic.Add(item, item);
+                    _dic[item] = item;
                 }
             }
         }
