@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Text;
 using System.Xml.Serialization;
 using XCode;
+using NewLife.Linq;
 
 namespace NewLife.CommonEntity
 {
@@ -109,7 +110,84 @@ namespace NewLife.CommonEntity
         public static EntityList<TEntity> FindByName(String name)
         {
             if (String.IsNullOrEmpty(name)) return null;
-            return Meta.Cache.Entities.FindAll(_.Name, name);
+            //return Meta.Cache.Entities.FindAll(_.Name, name);
+
+            //return FindAllByName(name);
+            return Root.FindAllByName(name);
+        }
+
+        /// <summary>
+        /// 按名称查找。实体缓存
+        /// </summary>
+        /// <param name="name">地区名称</param>
+        /// <param name="withLike">未找到时，是否查找相似的地区。因为地区可能有市、县、区等字样，而查询名称没填</param>
+        /// <param name="deepth">地区路径的最大可能层次。内置地区数据库只有三层</param>
+        /// <returns></returns>
+        public EntityList<TEntity> FindAllByName(String name, Boolean withLike = true, Int32 deepth = 0)
+        {
+            if (String.IsNullOrEmpty(name)) return null;
+            if (deepth <= 0)
+            {
+                if ((this as IEntity).IsNullKey)
+                    deepth = 3;
+                else if ((this.Parent as IEntity).IsNullKey)
+                    deepth = 2;
+                else
+                    deepth = 1;
+            }
+
+            //EntityList<TEntity> list = Meta.Cache.Entities.FindAll(_.Name, name);
+            EntityList<TEntity> list = Childs.FindAll(_.Name, name);
+            if (list != null && list.Count > 0) return list;
+
+            // 试试下一级
+            if (deepth >= 2)
+            {
+                foreach (var item in Childs)
+                {
+                    list = item.FindAllByName(name, withLike, deepth - 1);
+                    if (list != null && list.Count > 0) return list;
+                }
+            }
+
+            if (!withLike) return list;
+
+            // 未找到，开始模糊查找
+            //String[] names = Meta.Cache.Entities.Select<TEntity, String>(e => e.Name).ToArray();
+            String[] names = Childs.Select<TEntity, String>(e => e.Name).ToArray();
+            String[] rs = StringHelper.LCSSearch(name, names);
+            if (rs != null && rs.Length > 0)
+            {
+                list = new EntityList<TEntity>(Childs.Where<TEntity>(e => rs.Contains(e.Name, StringComparer.OrdinalIgnoreCase)));
+                return list;
+            }
+
+            // 如果层次大于1，开始拆分。比如江苏省南京市鼓楼区，第一段至少一个字
+            if (deepth > 1)
+            {
+                // 应该从右往左，这样子才能做到最大匹配，否则会因为模糊查找而混杂很多其它东西
+                //for (int i = name.Length - 1; i >= 1; i--)
+                for (int i = 0; i < name.Length; i++)
+                {
+                    String first = name.Substring(0, i);
+                    String last = name.Substring(i);
+
+                    // 必须找到左边的，否则这个匹配没有意义
+                    //TEntity entity = Meta.Cache.Entities.Find(_.Name, first);
+                    // 模糊查询一层
+                    var list2 = FindAllByName(first, true, 1);
+                    if (list2 != null && list2.Count > 0)
+                    {
+                        foreach (var item in list2)
+                        {
+                            list = item.FindAllByName(last, withLike, deepth - 1);
+                            if (list != null && list.Count > 0) return list;
+                        }
+                    }
+                }
+            }
+
+            return list;
         }
 
         /// <summary>

@@ -254,6 +254,10 @@ namespace Test
             DAL netbar = DAL.Create("netbar");
             IEntityOperate nb = netbar.CreateOperate("Netbar");
 
+            List<Area> ars = Area.FindByName("江苏省");
+            if (ars != null && ars.Count > 0) Console.WriteLine(ars[0]);
+            Area root = ars[0];
+
             // 遍历所有表
             foreach (var table in dal.Tables)
             {
@@ -290,6 +294,7 @@ namespace Test
                 foreach (IEntity entity in list)
                 {
                     String name = (String)entity["门店名称"];
+                    Console.WriteLine("正在处理 {0}", name);
                     if (nb.FindCount("Name", name) > 0)
                     {
                         Console.WriteLine("{0}已存在，跳过！", name);
@@ -320,8 +325,15 @@ namespace Test
                             String str = (String)entity[item.Name];
                             if (!String.IsNullOrEmpty(str))
                             {
-                                List<Area> ss = Area.FindByName(str);
-                                if (ss != null && ss.Count > 0) n.SetItem("AreaCode", ss[0].Code);
+                                if (str.EndsWith("开发区")) str = str.Substring(0, str.Length - 3);
+                                //if (str.Length > 3 && str.StartsWith("连云港")) str = str.Substring(3);
+                                List<Area> ss = root.FindAllByName(str, true, 2);
+                                if (ss != null && ss.Count > 0)
+                                    n.SetItem("AreaCode", ss[0].Code);
+                                else
+                                {
+
+                                }
                             }
                         }
                     }
