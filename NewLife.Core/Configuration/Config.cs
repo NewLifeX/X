@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
-using NewLife.Reflection;
 using System.Web.Configuration;
+using NewLife.Reflection;
 
 namespace NewLife.Configuration
 {
@@ -113,7 +113,7 @@ namespace NewLife.Configuration
         {
             T value;
             if (TryGetMutilConfig<T>(out value, names)) return value;
-            return value;
+            return defaultValue;
         }
 
         /// <summary>依次尝试获取一批设置项，直到找到第一个为止</summary>
