@@ -43,6 +43,7 @@ using System.Web.UI;
 
 /*
  * v1.13.2011.1123  更新My97 DatePicker的版本到4.72,以及对应的asp.net服务端控件封装,会解决IE9下,在运行时创建的iframe中只能使用一次的问题
+ *                  增加MenuField,在GridView中使用的数据绑定字段,可显示菜单样式的字段
  * 
  * v1.12.2011.1117  GridViewExtender增加一个功能，支持目标GridView绑定的ObjectDataSource使用排序的默认值
  * 

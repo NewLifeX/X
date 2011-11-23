@@ -52,9 +52,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NewLife.Core, Version=3.3.4336.29474, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>D:\项目管理\团队项目\FangChengGang\Dll\NewLife.Core.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Design" />
@@ -159,7 +156,7 @@
     <EmbeddedResource Include="MenuField\jquery.contextmenu.r2.packed.js" />
     <EmbeddedResource Include="MenuField\MenuFieldCss.css" />
     <EmbeddedResource Include="MenuField\dropdown.gif" />
-    <Content Include="TextBox\DateTime\images\datePicker.gif" />
+    <EmbeddedResource Include="TextBox\DateTime\images\datePicker.gif" />
     <EmbeddedResource Include="TextBox\DateTime\images\lhgcal_bg.gif" />
     <EmbeddedResource Include="TextBox\DateTime\images\lhgcal_month.gif" />
     <EmbeddedResource Include="TextBox\DateTime\images\lhgcal_x.gif" />
@@ -169,6 +166,12 @@
     <EmbeddedResource Include="TextBox\DateTime\lhgcore.min.js" />
     <EmbeddedResource Include="View\GridViewExtender.js" />
     <Content Include="说明.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
+      <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
+      <Name>NewLife.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
