@@ -9,9 +9,16 @@
 <body>
     <form id="form1" runat="server">
     <div>
-            <XCL:LinkBox runat="server" ID="LinkBox1" Url="Dialog.aspx" Text="新窗口链接"></XCL:LinkBox>
+            <XCL:LinkBox runat="server" ID="LinkBox1" Url="Dialog.aspx" Text="使用XControl中封装的My97 DatePicker"></XCL:LinkBox>
+            <br/>
 
+            <XCL:LinkBox runat="server" ID="LinkBox2" Url="demo.htm" Text="使用静态的My97 DatePicker 4.7最终版"></XCL:LinkBox>如果点了上一个窗口请刷新整个窗口后再点这个
+
+            <p>
+            刷新内容帧后检查是否继续可用
+            </p>
     </div>
+    
     </form>
 </body>
 </html>
