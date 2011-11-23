@@ -58,7 +58,7 @@ namespace NewLife.Reflection
                 _Name = "";
 
                 Type type = BaseType;
-                if (type.IsGenericType)
+                if (type.IsGenericType && !type.IsGenericTypeDefinition)
                 {
                     StringBuilder sb = new StringBuilder();
                     String name = type.GetGenericTypeDefinition().Name;

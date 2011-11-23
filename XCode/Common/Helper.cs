@@ -93,9 +93,9 @@ namespace XCode.Common
             return false;
         }
 
-        /// <summary>获取调用者，3层</summary>
+        /// <summary>获取调用者</summary>
         /// <returns></returns>
-        public static String GetCaller(Int32 maxNum = 3)
+        public static String GetCaller(Int32 maxNum = 10)
         {
             StackTrace st = new StackTrace(2, true);
             StringBuilder sb = new StringBuilder();
@@ -109,7 +109,7 @@ namespace XCode.Common
                 // 去掉前面的返回类型
                 if (name.Contains(" ")) name = name.Substring(name.IndexOf(" ") + 1);
                 if (method.DeclaringType != last)
-                    sb.AppendFormat("{0}.{1}", TypeX.Create(method.DeclaringType).FullName, name);
+                    sb.AppendFormat("{0}.{1}", TypeX.Create(method.DeclaringType).Name, name);
                 else
                     sb.AppendFormat("{0}", name);
 
