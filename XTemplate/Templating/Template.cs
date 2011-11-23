@@ -136,42 +136,7 @@ namespace XTemplate.Templating
         }
         #endregion
 
-        #region 释放
-        ///// <summary>
-        ///// 释放资源
-        ///// </summary>
-        //public void Dispose()
-        //{
-        //    Dispose(true);
-        //    GC.SuppressFinalize(this);
-        //}
-
-        //private void Dispose(Boolean dispose)
-        //{
-        //    if (dispose && (_Provider != null))
-        //    {
-        //        //_Provider.Dispose();
-        //        //_Provider = null;
-        //        Provider = null;
-        //    }
-        //}
-
-        ///// <summary>
-        ///// 释放资源
-        ///// </summary>
-        //~Template()
-        //{
-        //    Dispose(false);
-        //}
-        #endregion
-
         #region 创建
-        ///// <summary>
-        ///// 构造一个模版实例。为了向下兼容，暂时还不能私有化构造函数
-        ///// </summary>
-        //[Obsolete("建议使用带有缓存的Create方法！")]
-        //public Template() { }
-
         private static DictionaryCache<String, Template> cache = new DictionaryCache<string, Template>();
         /// <summary>根据名称和模版创建模版实例，带缓存，避免重复编译</summary>
         /// <param name="name">名称</param>
@@ -200,9 +165,7 @@ namespace XTemplate.Templating
             return Create(dic);
         }
 
-        /// <summary>
-        /// 根据名称和模版创建模版实例，带缓存，避免重复编译
-        /// </summary>
+        /// <summary>根据名称和模版创建模版实例，带缓存，避免重复编译</summary>
         /// <param name="templates">模版集合</param>
         /// <returns></returns>
         public static Template Create(IDictionary<String, String> templates)
@@ -222,17 +185,6 @@ namespace XTemplate.Templating
             return cache.GetItem<IDictionary<String, String>>(hash, templates, delegate(String key, IDictionary<String, String> contents)
             {
                 Template entity = new Template();
-                //entity.AddTemplateItem(key, content);
-
-                //// 如果只有一个名字，则作为所有模版名的前缀，否则使用Class作为前缀
-                //String firstName = names2 != null && names2.Length == 1 && !String.IsNullOrEmpty(names[0]) ? names2[0] : "Class";
-                //for (int i = 0; i < contents.Length; i++)
-                //{
-                //    // 如果存在名称，则使用名称，否则讲使用常量加上编号作为名称
-                //    //String elm = names2 != null && names2.Length > i ? names2[i] : key + i;
-                //    String elm = names2 != null && names2.Length > i ? names2[i] : firstName + i;
-                //    entity.AddTemplateItem(elm, contents[i]);
-                //}
 
                 foreach (KeyValuePair<String, String> item in contents)
                 {
@@ -331,20 +283,13 @@ namespace XTemplate.Templating
 
         #region 分析模版
         const Int32 Step_Process = 1;
-        /// <summary>
-        /// 处理预先写入Templates的模版集合，模版生成类的代码在Sources中返回
-        /// </summary>
+        /// <summary>处理预先写入Templates的模版集合，模版生成类的代码在Sources中返回</summary>
         public void Process()
         {
             if (Templates == null || Templates.Count < 1) throw new InvalidOperationException("在Templates中未找到待处理模版！");
 
             if (Step >= Step_Process) return;
-            //if (Step > Step_Process) throw new InvalidOperationException("模版已分析处理！");
 
-            //foreach (TemplateItem item in Templates)
-            //{
-            //    item.Source = Process(item);
-            //}
             for (int i = 0; i < Templates.Count; i++)
             {
                 Process(Templates[i]);
@@ -378,9 +323,7 @@ namespace XTemplate.Templating
             item.Content = content;
         }
 
-        /// <summary>
-        /// 查找指定名称的模版
-        /// </summary>
+        /// <summary>查找指定名称的模版</summary>
         /// <param name="name"></param>
         /// <returns></returns>
         private TemplateItem FindTemplateItem(String name)
@@ -389,15 +332,13 @@ namespace XTemplate.Templating
 
             foreach (TemplateItem item in Templates)
             {
-                if (item.Name == name) return item;
+                if (item.Name.EqualIgnoreCase(name)) return item;
             }
 
             return null;
         }
 
-        /// <summary>
-        /// 处理指定模版
-        /// </summary>
+        /// <summary>处理指定模版</summary>
         /// <param name="item">模版项</param>
         private void Process(TemplateItem item)
         {
@@ -417,9 +358,7 @@ namespace XTemplate.Templating
         #endregion
 
         #region 处理指令
-        /// <summary>
-        /// 处理指令
-        /// </summary>
+        /// <summary>处理指令</summary>
         /// <param name="item"></param>
         /// <returns>返回指令集合</returns>
         private void ProcessDirectives(TemplateItem item)
@@ -455,8 +394,7 @@ namespace XTemplate.Templating
 
                 List<Block> list = ti.Blocks;
                 String name = ti.Name;
-                if (includeStack.Contains(name))
-                    throw new TemplateException(block, String.Format("循环包含名为[{0}]的模版！", name));
+                if (includeStack.Contains(name)) throw new TemplateException(block, String.Format("循环包含名为[{0}]的模版！", name));
 
                 includeStack.Push(name);
 
@@ -495,10 +433,8 @@ namespace XTemplate.Templating
                         content = ti.Content;
                     }
                 }
-                if (String.IsNullOrEmpty(content))
-                    throw new TemplateException(directive.Block, String.Format("加载模版[{0}]失败！", name));
+                if (String.IsNullOrEmpty(content)) throw new TemplateException(directive.Block, String.Format("加载模版[{0}]失败！", name));
 
-                //return TemplateParser.Parse(name, content);
                 return ti;
             }
             #endregion
@@ -544,9 +480,7 @@ namespace XTemplate.Templating
             return null;
         }
 
-        /// <summary>
-        /// 导入某类型，导入程序集引用及命名空间引用，主要处理泛型
-        /// </summary>
+        /// <summary>导入某类型，导入程序集引用及命名空间引用，主要处理泛型</summary>
         /// <param name="item"></param>
         /// <param name="type"></param>
         void ImportType(TemplateItem item, Type type)
@@ -557,6 +491,7 @@ namespace XTemplate.Templating
                 name = type.Assembly.Location;
             }
             catch { }
+
             if (!String.IsNullOrEmpty(name) && !AssemblyReferences.Contains(name)) AssemblyReferences.Add(name);
             name = type.Namespace;
             if (!item.Imports.Contains(name)) item.Imports.Add(name);
@@ -652,9 +587,7 @@ namespace XTemplate.Templating
             }
         }
 
-        /// <summary>
-        /// 生成Render方法
-        /// </summary>
+        /// <summary>生成Render方法</summary>
         /// <param name="blocks"></param>
         /// <param name="lineNumbers"></param>
         /// <param name="typeDec"></param>
@@ -719,7 +652,6 @@ namespace XTemplate.Templating
             statementsMain.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(new CodeMethodReferenceExpression(new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "Output"), "ToString"), new CodeExpression[0])));
         }
 
-
         private static void CreateCctorMethod(CodeTypeDeclaration typeDec, IDictionary<String, Type> vars)
         {
             //CodeTypeConstructor method = new CodeTypeConstructor();
@@ -749,9 +681,7 @@ namespace XTemplate.Templating
             if (String.IsNullOrEmpty(block.Name)) statements.Add(new CodeSnippetStatement("#line default"));
         }
 
-        /// <summary>
-        /// 生成成员代码块
-        /// </summary>
+        /// <summary>生成成员代码块</summary>
         /// <param name="block"></param>
         /// <param name="generatorType"></param>
         /// <param name="lineNumbers"></param>
@@ -826,9 +756,7 @@ namespace XTemplate.Templating
 
         #region 编译模版
         const Int32 Step_Compile = Step_Process + 1;
-        /// <summary>
-        /// 编译运行
-        /// </summary>
+        /// <summary>编译运行</summary>
         /// <returns></returns>
         public Assembly Compile()
         {
@@ -836,17 +764,8 @@ namespace XTemplate.Templating
 
             if (Step < Step_Compile - 1) Process();
 
-            //else if (Step > Step_Compile)
-            //    throw new InvalidOperationException("模版已编译！");
-
-            List<String> sources = new List<string>();
-            foreach (TemplateItem item in Templates)
-            {
-                if (!item.Included) sources.Add(item.Source);
-            }
-
             if (References != null) AssemblyReferences.AddRange(References);
-            Assembly asm = Compile(AssemblyName, sources.ToArray(), AssemblyReferences, Provider, Errors, this);
+            Assembly asm = Compile(AssemblyName, Templates, AssemblyReferences, Provider, Errors, this);
             if (asm != null) Assembly = asm;
 
             // 释放提供者
@@ -858,10 +777,18 @@ namespace XTemplate.Templating
         }
 
         private static Dictionary<String, Assembly> asmCache = new Dictionary<String, Assembly>();
-        private static Assembly Compile(String outputAssembly, String[] sources, IEnumerable<String> references, CodeDomProvider provider, CompilerErrorCollection errors, Template tmp)
+        private static Assembly Compile(String outputAssembly, List<TemplateItem> templates, IEnumerable<String> references, CodeDomProvider provider, CompilerErrorCollection errors, Template tmp)
         {
-            String key = outputAssembly;
-            if (String.IsNullOrEmpty(key)) key = Hash(String.Join(Environment.NewLine, sources));
+            //String key = outputAssembly;
+            //if (String.IsNullOrEmpty(key)) key = Hash(String.Join(Environment.NewLine, sources));
+
+            StringBuilder sb = new StringBuilder();
+            foreach (var item in templates)
+            {
+                if (sb.Length > 0) sb.AppendLine();
+                sb.Append(item.Source);
+            }
+            String key = Hash(sb.ToString());
 
             Assembly assembly = null;
             if (asmCache.TryGetValue(key, out assembly)) return assembly;
@@ -877,15 +804,14 @@ namespace XTemplate.Templating
                     catch { }
                 }
 
-                assembly = CompileInternal(outputAssembly, sources, references, provider, errors, tmp);
-                //if (assembly != null && !asmCache.ContainsKey(key)) asmCache.Add(key, assembly);
+                assembly = CompileInternal(outputAssembly, templates, references, provider, errors, tmp);
                 if (assembly != null) asmCache.Add(key, assembly);
 
                 return assembly;
             }
         }
 
-        private static Assembly CompileInternal(String outputAssembly, String[] sources, IEnumerable<String> references, CodeDomProvider provider, CompilerErrorCollection Errors, Template tmp)
+        private static Assembly CompileInternal(String outputAssembly, List<TemplateItem> templates, IEnumerable<String> references, CodeDomProvider provider, CompilerErrorCollection Errors, Template tmp)
         {
             CompilerParameters options = new CompilerParameters();
             foreach (String str in references)
@@ -897,7 +823,36 @@ namespace XTemplate.Templating
             String tempPath = "XTemp";
             tempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, tempPath);
             if (!Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);
-            options.TempFiles = new TempFileCollection(tempPath, Debug);
+            //options.TempFiles = new TempFileCollection(tempPath, Debug);
+            TempFileCollection tfc = new TempFileCollection();
+            tfc.KeepFiles = Debug;
+
+            List<String> sources = new List<String>();
+            List<String> names = new List<String>();
+            foreach (var item in templates)
+            {
+                String name = item.Name;
+                String ext = Path.GetExtension(name);
+                if (String.IsNullOrEmpty(ext) || !ext.EqualIgnoreCase(".cs"))
+                {
+                    String str = name + ".cs";
+                    Int32 i = 2;
+                    while (names.Contains(str))
+                    {
+                        str = name + i++ + ".cs";
+                    }
+                    name = str;
+                }
+
+                name = Path.Combine(tempPath, name);
+
+                names.Add(name);
+                tfc.AddFile(name, Debug);
+
+                sources.Add(item.Source);
+            }
+
+            options.TempFiles = tfc;
 
             if (Debug || !String.IsNullOrEmpty(outputAssembly))
             {
@@ -916,7 +871,7 @@ namespace XTemplate.Templating
                 options.TempFiles.KeepFiles = false;
             }
 
-            CompilerResults results = provider.CompileAssemblyFromSource(options, sources);
+            CompilerResults results = provider.CompileAssemblyFromSource(options, sources.ToArray());
             if (results.Errors.Count > 0)
             {
                 Errors.AddRange(results.Errors);
