@@ -1,4 +1,7 @@
-﻿v3.3.2011.1110   增加网页下载类WebDownload
+﻿v3.4.2011.1123   修正Config.GetMutilConfig中没有正确返回默认值的错误
+                 修改XTrace，输出日志时，是否线程池除了Y和N外，增加W表示是否Web线程
+
+v3.3.2011.1110   增加网页下载类WebDownload
 
 v3.3.2011.1107   字符串扩展和枚举扩展命名空间改为System
                  增加快速反射的扩展方法类ReflectionExtensions

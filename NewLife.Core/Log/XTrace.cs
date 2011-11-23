@@ -64,6 +64,14 @@ namespace NewLife.Log
             Log.DebugStack(maxNum);
         }
 
+        /// <summary>堆栈调试</summary>
+        /// <param name="start">开始方法数，0是DebugStack的直接调用者</param>
+        /// <param name="maxNum">最大捕获堆栈方法数</param>
+        public static void DebugStack(int start, int maxNum)
+        {
+            Log.DebugStack(start, maxNum);
+        }
+
         /// <summary>
         /// 写日志事件。绑定该事件后，XTrace将不再把日志写到日志文件中去。
         /// </summary>

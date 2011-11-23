@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Web;
 
 namespace NewLife.Log
 {
@@ -96,7 +97,7 @@ namespace NewLife.Log
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("{0:HH:mm:ss.fff} {1} {2} {3} {4}", Time, ThreadID, IsPoolThread ? 'Y' : 'N', String.IsNullOrEmpty(ThreadName) ? "-" : ThreadName, Message);
+            return String.Format("{0:HH:mm:ss.fff} {1} {2} {3} {4}", Time, ThreadID, IsPoolThread ? (HttpContext.Current != null ? 'W' : 'Y') : 'N', String.IsNullOrEmpty(ThreadName) ? "-" : ThreadName, Message);
         }
         #endregion
     }

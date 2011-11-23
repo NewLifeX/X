@@ -239,7 +239,10 @@ namespace NewLife.Log
             DebugStack(1, maxNum);
         }
 
-        void DebugStack(int start, int maxNum)
+        /// <summary>堆栈调试</summary>
+        /// <param name="start">开始方法数，0是DebugStack的直接调用者</param>
+        /// <param name="maxNum">最大捕获堆栈方法数</param>
+        public void DebugStack(int start, int maxNum)
         {
             int skipFrames = 1;
             if (maxNum == int.MaxValue) skipFrames = 2;

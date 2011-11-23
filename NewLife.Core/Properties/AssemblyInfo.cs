@@ -33,10 +33,13 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.3.*")]
-[assembly: AssemblyFileVersion("3.3.2011.1110")]
+[assembly: AssemblyVersion("3.4.*")]
+[assembly: AssemblyFileVersion("3.4.2011.1123")]
 
 /*
+ * v3.4.2011.1123   修正Config.GetMutilConfig中没有正确返回默认值的错误
+ *                  修改XTrace，输出日志时，是否线程池除了Y和N外，增加W表示是否Web线程
+ * 
  * v3.3.2011.1110   增加网页下载类WebDownload
  * 
  * v3.3.2011.1107   字符串扩展和枚举扩展命名空间改为System
