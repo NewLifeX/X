@@ -11,6 +11,7 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.Cache;
+using XCode.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
@@ -264,13 +265,28 @@ namespace XCode
                 {
                     if (hasCheckModel > 0) return;
 
-                    if (Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse)
+                    // 输出调用者，方便调试
+                    if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, Helper.GetCaller());
+
+                    // 第一次使用才检查的，此时检查
+                    Boolean ck = false;
+                    if (Table.ModelCheckMode == ModelCheckModes.CheckTableWhenFirstUse) ck = true;
+                    // 或者前面初始化的时候没有涉及的，也在这个时候检查
+                    if (!DBO.HasCheckTables.Contains(TableName))
+                    {
+                        DBO.HasCheckTables.Add(TableName);
+
+                        if (!ck && DAL.Debug) DAL.WriteLog("集中初始化表架构时没赶上，现在补上！");
+
+                        ck = true;
+                    }
+                    if (ck)
                     {
                         if (!DAL.NegativeEnable || DAL.NegativeExclude.Contains(ConnName) || DAL.NegativeExclude.Contains(TableName)) return;
 
                         Func check = delegate
                         {
-                            DAL.WriteLog("开始检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DbType);
+                            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
 
                             Stopwatch sw = new Stopwatch();
                             sw.Start();
@@ -303,9 +319,7 @@ namespace XCode
             /// 记录已进行数据初始化的表
             /// </summary>
             static List<String> hasCheckInitData = new List<String>();
-            /// <summary>
-            /// 检查并初始化数据
-            /// </summary>
+            /// <summary>检查并初始化数据</summary>
             public static void CheckInitData()
             {
                 String key = ConnName + "$$$" + TableName;
@@ -319,8 +333,6 @@ namespace XCode
                 {
                     try
                     {
-                        //Factory.InitData();
-                        //if (Factory.Default is EntityBase) (Factory.Default as EntityBase).InitData();
                         EntityBase entity = Factory.Default as EntityBase;
                         if (entity != null) entity.InitData();
                     }
@@ -333,6 +345,9 @@ namespace XCode
                 // 异步执行，并捕获错误日志
                 if (Config.GetConfig<Boolean>("XCode.InitDataAsync", true) && !InitDataHelper.Running)
                 {
+                    // 输出调用者，方便调试
+                    if (DAL.Debug) DAL.WriteLog("异步初始化{0}数据，调用栈：{1}", ThisType.FullName, Helper.GetCaller());
+
                     ThreadPool.QueueUserWorkItem(delegate
                     {
                         // 记录当前线程正在初始化数据，内部调用的时候，不要再使用异步
@@ -350,6 +365,9 @@ namespace XCode
                 }
                 else
                 {
+                    // 输出调用者，方便调试
+                    if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", ThisType.FullName, Helper.GetCaller());
+
                     check();
                 }
             }

@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
+using System.Text;
 using NewLife.Linq;
+using NewLife.Reflection;
 using XCode.Configuration;
 
 namespace XCode.Common
@@ -87,6 +91,33 @@ namespace XCode.Common
             }
 
             return false;
+        }
+
+        /// <summary>获取调用者，3层</summary>
+        /// <returns></returns>
+        public static String GetCaller(Int32 maxNum = 3)
+        {
+            StackTrace st = new StackTrace(2, true);
+            StringBuilder sb = new StringBuilder();
+            int count = Math.Min(maxNum, st.FrameCount);
+            Type last = null;
+            for (int i = 0; i < count; i++)
+            {
+                StackFrame sf = st.GetFrame(i);
+                MethodBase method = sf.GetMethod();
+                String name = method.ToString();
+                // 去掉前面的返回类型
+                if (name.Contains(" ")) name = name.Substring(name.IndexOf(" ") + 1);
+                if (method.DeclaringType != last)
+                    sb.AppendFormat("{0}.{1}", TypeX.Create(method.DeclaringType).FullName, name);
+                else
+                    sb.AppendFormat("{0}", name);
+
+                if (i < count - 1) sb.Append("<-");
+
+                last = method.DeclaringType;
+            }
+            return sb.ToString();
         }
     }
 }

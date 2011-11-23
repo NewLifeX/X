@@ -24,8 +24,6 @@ namespace NewLife.CommonEntity
         {
             base.InitData();
 
-            ClearRoleMenu();
-
             // 如果角色菜单对应关系为空或者只有一个，则授权第一个角色访问所有菜单
             //if (RoleMenu<TRoleMenuEntity>.Meta.Count > 1) return;
             if (RoleMenu<TRoleMenuEntity>.Meta.Count > 0)
@@ -36,6 +34,8 @@ namespace NewLife.CommonEntity
                 {
                     RoleMenu<TRoleMenuEntity>.CheckNonePerssion(item.ID);
                 }
+
+                ClearRoleMenu();
                 return;
             }
 

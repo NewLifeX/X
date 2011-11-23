@@ -19,47 +19,47 @@ namespace XCode.Cache
         {
             get
             {
-                #region 统计
-                if (LastShow == DateTime.MinValue) LastShow = DateTime.Now;
-                if (LastShow.AddHours(24) < DateTime.Now)
-                {
-                    LastShow = DateTime.Now;
-
-                    ShowStatics();
-                }
-
-                Interlocked.Increment(ref Total);
-                #endregion
+                XCache.CheckShowStatics(ref NextShow, ref Total, ShowStatics);
 
                 // 两种情况更新缓存：1，缓存过期；2，不允许空但是集合又是空
                 Boolean isnull = !AllowNull && _Entities == null;
-                if (isnull || DateTime.Now > CacheTime)
+                if (isnull || DateTime.Now > ExpireTime)
                 {
                     lock (this)
                     {
                         isnull = !AllowNull && _Entities == null;
-                        if (isnull || DateTime.Now > CacheTime)
+                        if (isnull || DateTime.Now > ExpireTime)
                         {
                             // 异步更新时，如果为空，表明首次，同步获取数据
                             if (Asynchronous && !isnull)
                             {
                                 // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
                                 // 设置时间放在获取缓存之前，让其它线程不要空等
-                                CacheTime = DateTime.Now.AddSeconds(Expriod);
+                                ExpireTime = DateTime.Now.AddSeconds(Expriod);
+                                Times++;
 
-                                if (DAL.Debug) DAL.WriteLog("异步更新实体缓存：{0} 原因：{1}", typeof(TEntity).FullName, isnull ? "空集合" : Expriod + "秒过期");
+                                if (DAL.Debug)
+                                {
+                                    String reason = ExpireTime <= DateTime.MinValue ? "第一次" : (isnull ? "无缓存数据" : Expriod + "秒过期");
+                                    DAL.WriteLog("异步更新实体缓存（第{2}次）：{0} 原因：{1}", typeof(TEntity).FullName, reason, Times);
+                                }
 
                                 ThreadPool.QueueUserWorkItem(FillWaper, isnull);
                             }
                             else
                             {
-                                if (DAL.Debug) DAL.WriteLog("更新实体缓存：{0} 原因：{1}", typeof(TEntity).FullName, isnull ? "空集合" : Expriod + "秒过期");
+                                Times++;
+                                if (DAL.Debug)
+                                {
+                                    String reason = ExpireTime <= DateTime.MinValue ? "第一次" : (isnull ? "无缓存数据" : Expriod + "秒过期");
+                                    DAL.WriteLog("更新实体缓存（第{2}次）：{0} 原因：{1}", typeof(TEntity).FullName, reason, Times);
+                                }
 
                                 FillWaper(isnull);
 
                                 // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
                                 // 设置时间放在获取缓存之后，避免缓存尚未拿到，其它线程拿到空数据
-                                CacheTime = DateTime.Now.AddSeconds(Expriod);
+                                ExpireTime = DateTime.Now.AddSeconds(Expriod);
                             }
                         }
                         else
@@ -81,6 +81,8 @@ namespace XCode.Cache
 
                 // 清空
                 if (_Entities != null && _Entities.Count < 1) _Entities = null;
+
+                if (DAL.Debug) DAL.WriteLog("完成更新缓存（第{1}次）：{0}", typeof(TEntity).FullName, Times);
             }
             catch (Exception ex)
             {
@@ -88,13 +90,16 @@ namespace XCode.Cache
             }
         }
 
-        private DateTime _CacheTime;
-        /// <summary>缓存时间</summary>
-        public DateTime CacheTime
+        private DateTime _ExpireTime;
+        /// <summary>缓存过期时间</summary>
+        public DateTime ExpireTime
         {
-            get { return _CacheTime; }
-            set { _CacheTime = value; }
+            get { return _ExpireTime; }
+            set { _ExpireTime = value; }
         }
+
+        /// <summary>缓存更新次数</summary>
+        private Int64 Times;
 
         private Int32 _Expriod = 60;
         /// <summary>过期时间。单位是秒，默认60秒</summary>
@@ -137,7 +142,7 @@ namespace XCode.Cache
         {
             if (_Entities != null && _Entities.Count > 0 && DAL.Debug) DAL.WriteLog("清空实体缓存：{0}", typeof(TEntity).FullName);
 
-            CacheTime = DateTime.MinValue;
+            ExpireTime = DateTime.Now;
             _Entities = null;
         }
         #endregion
@@ -152,8 +157,8 @@ namespace XCode.Cache
         /// <summary>第二次命中</summary>
         public Int32 Shoot2;
 
-        /// <summary>最后显示时间</summary>
-        public DateTime LastShow;
+        /// <summary>下一次显示时间</summary>
+        public DateTime NextShow;
 
         /// <summary>
         /// 显示统计信息

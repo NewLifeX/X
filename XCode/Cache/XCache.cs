@@ -1,9 +1,14 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Text;
 using System.Threading;
 using System.Web;
 using NewLife.Configuration;
+using NewLife.Log;
+using XCode.DataAccessLayer;
+using NewLife.Reflection;
 
 namespace XCode.Cache
 {
@@ -30,14 +35,7 @@ namespace XCode.Cache
         public static Int32 Expiration = -1;
 
         /// <summary>数据缓存类型</summary>
-        public static XCacheType CacheType
-        {
-            get
-            {
-                if (Expiration > 0) return XCacheType.Period;
-                return (XCacheType)Expiration;
-            }
-        }
+        static CacheKinds Kind { get { return Expiration > 0 ? CacheKinds.有效期缓存 : (CacheKinds)Expiration; } }
 
         /// <summary>
         /// 初始化设置。
@@ -52,6 +50,14 @@ namespace XCode.Cache
 
             if (Expiration < -2) Expiration = -2;
             if (CheckPeriod <= 0) CheckPeriod = 5;
+
+            if (DAL.Debug)
+            {
+                if (Kind < CacheKinds.有效期缓存)
+                    DAL.WriteLog("一级缓存：{0}", Kind);
+                else
+                    DAL.WriteLog("一级缓存：{0}秒{1}", Expiration, Kind);
+            }
         }
         #endregion
 
@@ -73,7 +79,7 @@ namespace XCode.Cache
         private static void Check(Object obj)
         {
             //关闭缓存、永久静态缓存和请求级缓存时，不需要检查
-            if (CacheType != XCacheType.Period) return;
+            if (Kind != CacheKinds.有效期缓存) return;
 
             if (_TableCache.Count > 0)
             {
@@ -121,6 +127,9 @@ namespace XCode.Cache
         /// </summary>
         private static void CreateTimer()
         {
+            //关闭缓存、永久静态缓存和请求级缓存时，不需要检查
+            if (Kind != CacheKinds.有效期缓存) return;
+
             if (AutoCheckCacheTimer != null) return;
 
             // 声明定时器。无限延长时间，实际上不工作
@@ -138,13 +147,13 @@ namespace XCode.Cache
         public static void Add(String sql, DataSet ds, String[] tableNames)
         {
             //关闭缓存
-            if (CacheType == XCacheType.Close) return;
+            if (Kind == CacheKinds.关闭缓存) return;
 
             //请求级缓存
-            if (CacheType == XCacheType.RequestCache)
+            if (Kind == CacheKinds.请求级缓存)
             {
-                if (HttpContext.Current == null) return;
-                HttpContext.Current.Items.Add(_dst + sql, new CacheItem<DataSet>(tableNames, ds));
+                if (Items == null) return;
+                Items.Add(_dst + sql, new CacheItem<DataSet>(tableNames, ds));
                 return;
             }
 
@@ -158,7 +167,7 @@ namespace XCode.Cache
             }
 
             //带有效期
-            if (CacheType == XCacheType.Period) CreateTimer();
+            if (Kind == CacheKinds.有效期缓存) CreateTimer();
         }
 
         /// <summary>添加Int32缓存。</summary>
@@ -168,13 +177,13 @@ namespace XCode.Cache
         public static void Add(String sql, Int32 n, String[] tableNames)
         {
             //关闭缓存
-            if (CacheType == XCacheType.Close) return;
+            if (Kind == CacheKinds.关闭缓存) return;
 
             //请求级缓存
-            if (CacheType == XCacheType.RequestCache)
+            if (Kind == CacheKinds.请求级缓存)
             {
-                if (HttpContext.Current == null) return;
-                HttpContext.Current.Items.Add(_int + sql, new CacheItem<Int32>(tableNames, n));
+                if (Items == null) return;
+                Items.Add(_int + sql, new CacheItem<Int32>(tableNames, n));
                 return;
             }
 
@@ -188,7 +197,7 @@ namespace XCode.Cache
             }
 
             //带有效期
-            if (CacheType == XCacheType.Period) CreateTimer();
+            if (Kind == CacheKinds.有效期缓存) CreateTimer();
         }
         #endregion
 
@@ -198,11 +207,11 @@ namespace XCode.Cache
         public static void Remove(String tableName)
         {
             //请求级缓存
-            if (CacheType == XCacheType.RequestCache)
+            if (Kind == CacheKinds.请求级缓存)
             {
-                if (HttpContext.Current == null) return;
+                var cs = Items;
+                if (cs == null) return;
 
-                var cs = HttpContext.Current.Items;
                 List<Object> toDel = new List<Object>();
                 foreach (Object obj in cs.Keys)
                 {
@@ -252,11 +261,11 @@ namespace XCode.Cache
         public static void RemoveAll()
         {
             //请求级缓存
-            if (CacheType == XCacheType.RequestCache)
+            if (Kind == CacheKinds.请求级缓存)
             {
-                if (HttpContext.Current == null) return;
+                var cs = Items;
+                if (cs == null) return;
 
-                var cs = HttpContext.Current.Items;
                 List<Object> toDel = new List<Object>();
                 foreach (Object obj in cs.Keys)
                 {
@@ -280,97 +289,90 @@ namespace XCode.Cache
         #endregion
 
         #region 查找缓存
-        /// <summary>查找缓存中是否包含某一项</summary>
+        /// <summary>获取DataSet缓存</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
-        public static Boolean Contain(String sql)
+        public static Boolean TryGetItem(String sql, out DataSet ds)
         {
+            ds = null;
+
             //关闭缓存
-            if (CacheType == XCacheType.Close) return false;
+            if (Kind == CacheKinds.关闭缓存) return false;
+
+            CheckShowStatics(ref NextShow, ref Total, ShowStatics);
+
             //请求级缓存
-            if (CacheType == XCacheType.RequestCache)
+            if (Kind == CacheKinds.请求级缓存)
             {
-                if (HttpContext.Current == null) return false;
-                return HttpContext.Current.Items.Contains(_dst + sql);
+                if (Items == null) return false;
+
+                CacheItem<DataSet> ci = Items[_dst + sql] as CacheItem<DataSet>;
+                if (ci == null) return false;
+
+                ds = ci.Value;
             }
-            return _TableCache.ContainsKey(sql);
+            else
+            {
+                CacheItem<DataSet> ci = null;
+                if (!_TableCache.TryGetValue(sql, out ci) || ci == null) return false;
+                ds = ci.Value;
+            }
+
+            Interlocked.Increment(ref Shoot);
+
+            return true;
         }
 
-        /// <summary>
-        /// 获取DataSet缓存
-        /// </summary>
+        /// <summary>获取Int32缓存</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
-        public static DataSet Item(String sql)
+        public static Boolean TryGetItem(String sql, out Int32 count)
         {
-            //关闭缓存
-            if (CacheType == XCacheType.Close) return null;
-            //请求级缓存
-            if (CacheType == XCacheType.RequestCache)
-            {
-                if (HttpContext.Current == null) return null;
-                CacheItem<DataSet> ci = HttpContext.Current.Items[_dst + sql] as CacheItem<DataSet>;
-                if (ci == null) return null;
-                return ci.Value;
-            }
-            return _TableCache[sql].Value;
-        }
+            count = -1;
 
-        /// <summary>
-        /// 查找Int32缓存中是否包含某一项
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns></returns>
-        public static Boolean IntContain(String sql)
-        {
             //关闭缓存
-            if (CacheType == XCacheType.Close) return false;
-            //请求级缓存
-            if (CacheType == XCacheType.RequestCache)
-            {
-                if (HttpContext.Current == null) return false;
-                return HttpContext.Current.Items.Contains(_int + sql);
-            }
-            return _IntCache.ContainsKey(sql);
-        }
+            if (Kind == CacheKinds.关闭缓存) return false;
 
-        /// <summary>
-        /// 获取Int32缓存
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns></returns>
-        public static Int32 IntItem(String sql)
-        {
-            //关闭缓存
-            if (CacheType == XCacheType.Close) return -1;
+            CheckShowStatics(ref NextShow, ref Total, ShowStatics);
+
             //请求级缓存
-            if (CacheType == XCacheType.RequestCache)
+            if (Kind == CacheKinds.请求级缓存)
             {
-                if (HttpContext.Current == null) return -1;
-                CacheItem<Int32> ci = HttpContext.Current.Items[_int + sql] as CacheItem<Int32>;
-                if (ci == null) return -1;
-                return ci.Value;
+                if (Items == null) return false;
+
+                CacheItem<Int32> ci = Items[_int + sql] as CacheItem<Int32>;
+                if (ci == null) return false;
+
+                count = ci.Value;
             }
-            return _IntCache[sql].Value;
+            else
+            {
+                CacheItem<Int32> ci = null;
+                if (!_IntCache.TryGetValue(sql, out ci) || ci == null) return false;
+                count = ci.Value;
+            }
+            count = _IntCache[sql].Value;
+
+            Interlocked.Increment(ref Shoot);
+
+            return true;
         }
         #endregion
 
         #region 属性
-        /// <summary>
-        /// 缓存个数
-        /// </summary>
+        /// <summary>缓存个数</summary>
         internal static Int32 Count
         {
             get
             {
                 //关闭缓存
-                if (CacheType == XCacheType.Close) return 0;
+                if (Kind == CacheKinds.关闭缓存) return 0;
                 //请求级缓存
-                if (CacheType == XCacheType.RequestCache)
+                if (Kind == CacheKinds.请求级缓存)
                 {
-                    if (HttpContext.Current == null) return 0;
+                    if (Items == null) return 0;
                     Int32 k = 0;
-                    foreach (Object obj in HttpContext.Current.Items.Keys)
+                    foreach (Object obj in Items.Keys)
                     {
                         String str = obj as String;
                         if (!String.IsNullOrEmpty(str) && (str.StartsWith(_dst) || str.StartsWith(_int))) k++;
@@ -380,6 +382,9 @@ namespace XCode.Cache
                 return _TableCache.Count + _IntCache.Count;
             }
         }
+
+        /// <summary>请求级缓存项</summary>
+        static IDictionary Items { get { return HttpContext.Current != null ? HttpContext.Current.Items : null; } }
 
         //private static Boolean? _Debug;
         ///// <summary>是否调试</summary>
@@ -393,21 +398,67 @@ namespace XCode.Cache
         //    set { _Debug = value; }
         //}
         #endregion
-    }
 
-    /// <summary>数据缓存类型</summary>
-    internal enum XCacheType
-    {
-        /// <summary>关闭缓存</summary>
-        Close = -2,
+        #region 统计
+        /// <summary>总次数</summary>
+        public static Int32 Total;
 
-        /// <summary>请求级缓存</summary>
-        RequestCache = -1,
+        /// <summary>命中</summary>
+        public static Int32 Shoot;
 
-        /// <summary>永久静态缓存</summary>
-        Infinite = 0,
+        /// <summary>下一次显示时间</summary>
+        public static DateTime NextShow;
 
-        /// <summary>带有效期缓存</summary>
-        Period = 1
+        /// <summary>检查并显示统计信息</summary>
+        /// <param name="next"></param>
+        /// <param name="total"></param>
+        /// <param name="show"></param>
+        public static void CheckShowStatics(ref DateTime next, ref Int32 total, Func show)
+        {
+            if (next < DateTime.Now)
+            {
+                Boolean isfirst = next == DateTime.MinValue;
+                next = DAL.Debug ? DateTime.Now.AddMinutes(10) : DateTime.Now.AddHours(24);
+
+                if (!isfirst) show();
+            }
+
+            Interlocked.Increment(ref total);
+        }
+
+        /// <summary>
+        /// 显示统计信息
+        /// </summary>
+        public static void ShowStatics()
+        {
+            if (Total > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendFormat("一级缓存<{0}>", Kind);
+                sb.AppendFormat("总次数{0}", Total);
+                if (Shoot > 0) sb.AppendFormat("，命中{0}（{1:P02}）", Shoot, (Double)Shoot / Total);
+
+                XTrace.WriteLine(sb.ToString());
+            }
+        }
+        #endregion
+
+        #region 缓存类型
+        /// <summary>数据缓存类型</summary>
+        enum CacheKinds
+        {
+            /// <summary>关闭缓存</summary>
+            关闭缓存 = -2,
+
+            /// <summary>请求级缓存</summary>
+            请求级缓存 = -1,
+
+            /// <summary>永久静态缓存</summary>
+            永久静态缓存 = 0,
+
+            /// <summary>带有效期缓存</summary>
+            有效期缓存 = 1
+        }
+        #endregion
     }
 }

@@ -165,21 +165,6 @@ namespace XCode
         /// <returns></returns>
         public static IEnumerable<Type> LoadEntities(String connName)
         {
-            //List<Type> list = LoadEntities();
-            //if (list == null || list.Count < 1) return null;
-
-            //List<Type> list2 = new List<Type>();
-            //foreach (Type item in list)
-            //{
-            //    if (TableItem.Create(item).ConnName == connName) list2.Add(item);
-            //}
-            //return list2;
-
-            //foreach (Type item in AssemblyX.FindAllPlugins(typeof(IEntity)))
-            //{
-            //    if (TableItem.Create(item).ConnName == connName) yield return item;
-            //}
-
             return AssemblyX.FindAllPlugins(typeof(IEntity)).Where(t => TableItem.Create(t).ConnName == connName);
         }
 
@@ -193,8 +178,11 @@ namespace XCode
             List<IDataTable> tables = new List<IDataTable>();
             // 记录每个表名对应的实体类
             Dictionary<String, Type> dic = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
+            List<String> list = new List<String>();
             foreach (Type item in LoadEntities(connName))
             {
+                list.Add(item.Name);
+
                 // 过滤掉第一次使用才加载的
                 ModelCheckModeAttribute att = ModelCheckModeAttribute.GetCustomAttribute(item);
                 if (att != null && att.Mode != ModelCheckModes.CheckAllTablesWhenInit) continue;
@@ -232,6 +220,9 @@ namespace XCode
 
                 tables.Add(table);
             }
+
+            if (DAL.Debug) DAL.WriteLog("[{0}]的所有实体类（{1}个）：{2}", connName, list.Count, String.Join(",", list.ToArray()));
+
             return tables;
         }
 

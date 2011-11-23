@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.3.*")]
-[assembly: AssemblyFileVersion("8.3.2011.1122")]
+[assembly: AssemblyFileVersion("8.3.2011.1123")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.3.2011.1123   修正反向工程检查实体类表架构时，有些实体类所在程序集尚未加载，导致未能检查的问题，改为首次使用时检查
+ *                  针对缓存、数据初始化、检查表架构，添加各种调试日志，方便检查调试程序
+ * 
  * v8.3.2011.1122   复审一级缓存、实体缓存、单对象缓存代码，增加关键点写日志功能，方便调试可能因缓存而引起的各种问题
  * 
  * v8.3.2011.1121   EntityTree增加EnableCaching属性，指定是否缓存Childs、AllChilds、Parent等，默认为true

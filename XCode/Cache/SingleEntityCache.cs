@@ -164,8 +164,8 @@ namespace XCode.Cache
         /// <summary>无效次数</summary>
         public Int32 Invalid;
 
-        /// <summary>最后显示时间</summary>
-        public DateTime LastShow;
+        /// <summary>下一次显示时间</summary>
+        public DateTime NextShow;
 
         /// <summary>
         /// 显示统计信息
@@ -197,17 +197,7 @@ namespace XCode.Cache
                 if (String.IsNullOrEmpty(value)) return null;
             }
 
-            #region 统计
-            if (LastShow == DateTime.MinValue) LastShow = DateTime.Now;
-            if (LastShow.AddHours(10) < DateTime.Now)
-            {
-                LastShow = DateTime.Now;
-
-                ShowStatics();
-            }
-
-            Interlocked.Increment(ref Total);
-            #endregion
+            XCache.CheckShowStatics(ref NextShow, ref Total, ShowStatics);
 
             CacheItem item = null;
             if (Entities.TryGetValue(key, out item) && item != null)

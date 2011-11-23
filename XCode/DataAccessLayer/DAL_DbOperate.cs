@@ -126,10 +126,14 @@ namespace XCode.DataAccessLayer
         public DataSet Select(String sql, String[] tableNames)
         {
             String cacheKey = sql + "_" + ConnName;
-            if (EnableCache && XCache.Contain(cacheKey)) return XCache.Item(cacheKey);
+            DataSet ds = null;
+            if (EnableCache && XCache.TryGetItem(cacheKey, out ds)) return ds;
+
             Interlocked.Increment(ref _QueryTimes);
-            DataSet ds = Session.Query(sql);
+            ds = Session.Query(sql);
+
             if (EnableCache) XCache.Add(cacheKey, ds, tableNames);
+
             return ds;
         }
 
@@ -181,11 +185,15 @@ namespace XCode.DataAccessLayer
         public Int32 SelectCount(String sql, String[] tableNames)
         {
             String cacheKey = sql + "_SelectCount" + "_" + ConnName;
-            if (EnableCache && XCache.IntContain(cacheKey)) return XCache.IntItem(cacheKey);
+            Int32 rs = 0;
+            if (EnableCache && XCache.TryGetItem(cacheKey, out rs)) return rs;
+
             Interlocked.Increment(ref _QueryTimes);
             // 为了向前兼容，这里转为Int32，如果需要获取Int64，可直接调用Session
-            Int32 rs = (Int32)Session.QueryCount(sql);
+            rs = (Int32)Session.QueryCount(sql);
+
             if (EnableCache) XCache.Add(cacheKey, rs, tableNames);
+
             return rs;
         }
 
@@ -210,10 +218,14 @@ namespace XCode.DataAccessLayer
         {
             String sql = sb.ToString();
             String cacheKey = sql + "_SelectCount" + "_" + ConnName;
-            if (EnableCache && XCache.IntContain(cacheKey)) return XCache.IntItem(cacheKey);
+            Int32 rs = 0;
+            if (EnableCache && XCache.TryGetItem(cacheKey, out rs)) return rs;
+
             Interlocked.Increment(ref _QueryTimes);
-            Int32 rs = (Int32)Session.QueryCount(sb);
+            rs = (Int32)Session.QueryCount(sb);
+
             if (EnableCache) XCache.Add(cacheKey, rs, tableNames);
+
             return rs;
         }
 
@@ -276,10 +288,14 @@ namespace XCode.DataAccessLayer
         public DataSet Select(DbCommand cmd, String[] tableNames)
         {
             String cacheKey = cmd.CommandText + "_" + ConnName;
-            if (EnableCache && XCache.Contain(cacheKey)) return XCache.Item(cacheKey);
+            DataSet ds = null;
+            if (EnableCache && XCache.TryGetItem(cacheKey, out ds)) return ds;
+
             Interlocked.Increment(ref _QueryTimes);
-            DataSet ds = Session.Query(cmd);
+            ds = Session.Query(cmd);
+
             if (EnableCache) XCache.Add(cacheKey, ds, tableNames);
+
             Session.AutoClose();
             return ds;
         }

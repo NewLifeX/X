@@ -384,9 +384,9 @@ namespace XCode.DataAccessLayer
                 ThreadPoolX.QueueUserWorkItem(CheckTables);
         }
 
-        /// <summary>
-        /// 检查数据表架构，不受反向工程启用开关限制
-        /// </summary>
+        internal List<String> HasCheckTables = new List<String>();
+
+        /// <summary>检查数据表架构，不受反向工程启用开关限制</summary>
         public void CheckTables()
         {
             WriteLog("开始检查连接[{0}/{1}]的数据库架构……", ConnName, DbType);
@@ -399,6 +399,12 @@ namespace XCode.DataAccessLayer
                 List<IDataTable> list = EntityFactory.GetTables(ConnName);
                 if (list != null && list.Count > 0)
                 {
+                    // 全都标为已初始化的
+                    foreach (IDataTable item in list)
+                    {
+                        if (!HasCheckTables.Contains(item.Name)) HasCheckTables.Add(item.Name);
+                    }
+
                     // 过滤掉被排除的表名
                     if (NegativeExclude.Count > 0)
                     {
@@ -411,7 +417,7 @@ namespace XCode.DataAccessLayer
                     list.RemoveAll(dt => dt.IsView);
                     if (list != null && list.Count > 0)
                     {
-                        WriteLog(ConnName + "实体个数：" + list.Count);
+                        WriteLog(ConnName + "待检查表架构的实体个数：" + list.Count);
 
                         Db.CreateMetaData().SetTables(list.ToArray());
                     }
