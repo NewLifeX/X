@@ -7,39 +7,25 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 
 #region 资源引用
-[assembly: WebResource("XControl.TextBox.DateTimePicker.calendar.js", "text/javascript", PerformSubstitution = true)]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.config.js", "text/javascript", PerformSubstitution = true)]
+[assembly: WebResource("XControl.TextBox.DateTimePicker.calendar.js", "application/javascript")]
+[assembly: WebResource("XControl.TextBox.DateTimePicker.config.js", "application/javascript", PerformSubstitution = true)]
 [assembly: WebResource("XControl.TextBox.DateTimePicker.My97DatePicker.htm", "text/html", PerformSubstitution = true)]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.WdatePicker.js", "text/javascript", PerformSubstitution = true)]
+[assembly: WebResource("XControl.TextBox.DateTimePicker.WdatePicker.js", "application/javascript", PerformSubstitution = true)]
 
-[assembly: WebResource("XControl.TextBox.DateTimePicker.lang.en.js", "text/javascript", PerformSubstitution = true)]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.lang.zh-cn.js", "text/javascript", PerformSubstitution = true)]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.lang.zh-tw.js", "text/javascript", PerformSubstitution = true)]
+[assembly: WebResource("XControl.TextBox.DateTimePicker.lang.en.js", "application/javascript")]
+[assembly: WebResource("XControl.TextBox.DateTimePicker.lang.zh-cn.js", "application/javascript")]
+[assembly: WebResource("XControl.TextBox.DateTimePicker.lang.zh-tw.js", "application/javascript")]
 
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.WdatePicker.css", "text/css", PerformSubstitution = true)]
 [assembly: WebResource("XControl.TextBox.DateTimePicker.skin.datePicker.gif", "image/gif")]
-
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.blue.datepicker.css", "text/css", PerformSubstitution = true)]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.blue.bg.jpg", "image/jpeg")]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.blue.btnbg.jpg", "image/jpeg")]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.blue.down.jpg", "image/jpeg")]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.blue.left.gif", "image/gif")]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.blue.navLeft.gif", "image/gif")]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.blue.navRight.gif", "image/gif")]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.blue.qs.jpg", "image/jpeg")]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.blue.right.gif", "image/gif")]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.blue.up.jpg", "image/jpeg")]
+[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.WdatePicker.css", "text/css", PerformSubstitution = true)]
 
 [assembly: WebResource("XControl.TextBox.DateTimePicker.skin.default.datepicker.css", "text/css", PerformSubstitution = true)]
 [assembly: WebResource("XControl.TextBox.DateTimePicker.skin.default.img.gif", "image/gif")]
 
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.green.datepicker.css", "text/javascript", PerformSubstitution = true)]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.green.bg.jpg", "image/jpeg")]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.green.img.gif", "image/gif")]
+[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.whyGreen.bg.jpg", "image/jpeg")]
+[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.whyGreen.datepicker.css", "text/css", PerformSubstitution = true)]
+[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.whyGreen.img.gif", "image/gif")]
 
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.red.datepicker.css", "text/javascript", PerformSubstitution = true)]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.red.bg.gif", "image/gif")]
-[assembly: WebResource("XControl.TextBox.DateTimePicker.skin.red.qs.jpg", "image/jpeg")]
 #endregion
 
 namespace XControl

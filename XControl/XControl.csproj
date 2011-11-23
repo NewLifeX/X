@@ -114,7 +114,7 @@
     <EmbeddedResource Include="TextBox\Validator.js" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="TextBox\DateTimePicker\**\*" Exclude="TextBox\DateTimePicker\**\*.scc" />
+    <EmbeddedResource Include="TextBox\DateTimePicker\**" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Button\choose.gif" />
@@ -149,7 +149,6 @@
     <EmbeddedResource Include="Box\Dialog\window.gif" />
     <EmbeddedResource Include="TextBox\VerifyCode.js" />
     <EmbeddedResource Include="UpdateInfo.txt" />
-    <Content Include="TextBox\DateTime\images\datePicker.gif" />
     <EmbeddedResource Include="TextBox\DateTime\images\lhgcal_bg.gif" />
     <EmbeddedResource Include="TextBox\DateTime\images\lhgcal_month.gif" />
     <EmbeddedResource Include="TextBox\DateTime\images\lhgcal_x.gif" />

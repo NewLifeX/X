@@ -1,4 +1,4 @@
-﻿.Wdate{
+.Wdate{
 	border:#999 1px solid;
 	height:20px;
 	background:#fff url(<%= WebResource("XControl.TextBox.DateTimePicker.skin.datePicker.gif") %>) no-repeat right;

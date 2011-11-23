@@ -1,4 +1,8 @@
-﻿v1.11.2011.1107  修正LinkBoxField中没有注册GridViewExtender.js的问题
+﻿v1.13.2011.1123  更新My97 DatePicker的版本到4.72,以及对应的asp.net服务端控件封装,会解决IE9下,在运行时创建的iframe中只能使用一次的问题
+
+v1.12.2011.1117  GridViewExtender增加一个功能，支持目标GridView绑定的ObjectDataSource使用排序的默认值
+
+v1.11.2011.1107  修正LinkBoxField中没有注册GridViewExtender.js的问题
 
 v1.10.2011.0628  给每一个Box控件加上默认值属性的特性，以便于自定义表单处理
 

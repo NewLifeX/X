@@ -1,64 +1,50 @@
-﻿<html>
+<html>
 <head>
 <meta http-equiv="content-type" content="text/xml; charset=utf-8" />
 <title>My97DatePicker</title>
-<script type="text/javascript" src="<%=WebResource("XControl.TextBox.DateTimePicker.config.js") %>"></script>
-<script>
-if(parent==window)
-	location.href = 'http://www.my97.net/';
-var $d, $dp, $pdp = parent.$dp, $dt, $tdt, $sdt, $IE=$pdp.ie, $FF = $pdp.ff,$OPERA=$pdp.opera, $ny, $cMark = false;
+<script type="text/javascript" src="<%= WebResource("XControl.TextBox.DateTimePicker.config.js") %>"></script>
+<script type="text/javascript" language="javascript">
+//if (parent == window) location.href = 'http://www.my97.net';
+var $d, $dp, $pdp = parent.$dp,
+    $dt, $tdt, $sdt, $IE = $pdp.ie,
+    $FF = $pdp.ff,
+    $OPERA = $pdp.opera,
+    $ny, $cMark = false;
 if ($pdp.eCont) {
-	$dp = {};
-	for (var p in $pdp) {
-		$dp[p] = $pdp[p];
-	}
-}
-else
-	$dp = $pdp;
-	
-$dp.getLangIndex = function(name){
-	var arr = langList;
-	for (var i = 0; i < arr.length; i++) {
-		if (arr[i].name == name) {
-			return i;
-		}
-	}
-	return -1;
+    $dp = {};
+    for (var p in $pdp) {
+        $dp[p] = $pdp[p];
+    }
+} else $dp = $pdp;
+
+$dp.getLangIndex = function (name) {
+    var arr = langList;
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i].name == name) {
+            return i;
+        }
+    }
+    return -1;
 }
 
-$dp.getLang = function(name){
-	var index = $dp.getLangIndex(name);
-	if (index == -1) {
-		index = 0;
-	}
-	return langList[index];
+$dp.getLang = function (name) {
+    var index = $dp.getLangIndex(name);
+    if (index == -1) {
+        index = 0;
+    }
+    return langList[index];
 }
 
 $dp.realLang = $dp.getLang($dp.lang);
-(function () { 
-    var langs={};
-    langs['en']=     '<%=WebResource("XControl.TextBox.DateTimePicker.lang.en.js") %>';
-    langs['zh-cn'] = '<%=WebResource("XControl.TextBox.DateTimePicker.lang.zh-cn.js") %>';
-    langs['zh-tw'] = '<%=WebResource("XControl.TextBox.DateTimePicker.lang.zh-tw.js") %>';
+document.write("<script src='" + $dp.realLang.script + "' charset='" + $dp.realLang.charset + "'><\/script>");
 
-    document.write("<script src='" + langs[$dp.realLang.name] + "' charset='" + $dp.realLang.charset + "'><\/script>");
-})();
-
-(function(){
-    var skins={};
-    skins['blue'] =    '<%=WebResource("XControl.TextBox.DateTimePicker.skin.blue.datepicker.css") %>';
-    skins['default'] = '<%=WebResource("XControl.TextBox.DateTimePicker.skin.default.datepicker.css") %>';
-    skins['green'] = '<%= WebResource("XControl.TextBox.DateTimePicker.skin.green.datepicker.css") %>';
-    skins['red'] = '<%= WebResource("XControl.TextBox.DateTimePicker.skin.red.datepicker.css") %>';
-
-    for (var i = 0; i < skinList.length; i++) {
-        document.write('<link rel="stylesheet" type="text/css" href="' + skins[skinList[i].name] + '" title="' + skinList[i].name + '" charset="' + skinList[i].charset + '" disabled="true"/>');
-    }
-})();
+for (var i = 0; i < skinList.length; i++) {
+    document.write('<link rel="stylesheet" type="text/css" href="' + skinList[i].css + '" title="' + skinList[i].name + '" charset="' + skinList[i].charset + '" disabled="true"/>');
+}
 </script>
-<script type="text/javascript" src="<%=WebResource("XControl.TextBox.DateTimePicker.calendar.js") %>"></script>
+<script type="text/javascript" src="<%= WebResource("XControl.TextBox.DateTimePicker.calendar.js") %>"></script>
 </head>
-<body leftmargin="0" topmargin="0" onload="$c.autoSize()">
+<body leftmargin="0" topmargin="0" onload="$c.autoSize()" tabindex=0>
 </body>
 </html>
 <script>new My97DP();</script>
