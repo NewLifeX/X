@@ -92,7 +92,7 @@ namespace XCode.DataAccessLayer
             IDataIndex di = table.Indexes.FirstOrDefault(
                 e => e.Columns != null &&
                     e.Columns.Length == columnNames.Length &&
-                    e.Columns.Except(columnNames, StringComparer.OrdinalIgnoreCase).Any());
+                    !e.Columns.Except(columnNames, StringComparer.OrdinalIgnoreCase).Any());
             if (di != null) return di;
 
             // 用别名再试一次
@@ -102,7 +102,7 @@ namespace XCode.DataAccessLayer
             di = table.Indexes.FirstOrDefault(
                 e => e.Columns != null &&
                     e.Columns.Length == columnNames.Length &&
-                    e.Columns.Except(columnNames, StringComparer.OrdinalIgnoreCase).Any());
+                    !e.Columns.Except(columnNames, StringComparer.OrdinalIgnoreCase).Any());
             if (di != null) return di;
 
             return null;
