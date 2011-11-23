@@ -7,8 +7,8 @@ using System.Threading;
 using System.Web;
 using NewLife.Configuration;
 using NewLife.Log;
-using XCode.DataAccessLayer;
 using NewLife.Reflection;
+using XCode.DataAccessLayer;
 
 namespace XCode.Cache
 {
@@ -53,10 +53,29 @@ namespace XCode.Cache
 
             if (DAL.Debug)
             {
+                // 需要处理一下，而不是直接用Kind转换而来的字符串，否则可能因为枚举呗混淆后而无法显示正确的名字
+                String name = null;
+                switch (Kind)
+                {
+                    case CacheKinds.关闭缓存:
+                        name = "关闭缓存";
+                        break;
+                    case CacheKinds.请求级缓存:
+                        name = "请求级缓存";
+                        break;
+                    case CacheKinds.永久静态缓存:
+                        name = "永久静态缓存";
+                        break;
+                    case CacheKinds.有效期缓存:
+                        name = "有效期缓存";
+                        break;
+                    default:
+                        break;
+                }
                 if (Kind < CacheKinds.有效期缓存)
-                    DAL.WriteLog("一级缓存：{0}", Kind);
+                    DAL.WriteLog("一级缓存：{0}", name);
                 else
-                    DAL.WriteLog("一级缓存：{0}秒{1}", Expiration, Kind);
+                    DAL.WriteLog("一级缓存：{0}秒{1}", Expiration, name);
             }
         }
         #endregion
