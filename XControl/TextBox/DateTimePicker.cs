@@ -244,12 +244,8 @@ namespace XControl
             {
                 case Skins.默认:
                     return "default";
-                case Skins.蓝色:
-                    return "blue";
                 case Skins.绿色:
-                    return "green";
-                case Skins.红色:
-                    return "red";
+                    return "whyGreen";
                 default:
                     return "default";
             }
@@ -284,21 +280,10 @@ namespace XControl
         默认,
 
         /// <summary>
-        /// 蓝色
-        /// </summary>
-        蓝色,
-
-        /// <summary>
         /// 绿色
         /// </summary>
-        绿色,
-
-        /// <summary>
-        /// 红色
-        /// </summary>
-        红色
+        绿色
     }
-
     /// <summary>
     /// 语言
     /// </summary>
