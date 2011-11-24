@@ -765,7 +765,10 @@ namespace XTemplate.Templating
             if (Step < Step_Compile - 1) Process();
 
             if (References != null) AssemblyReferences.AddRange(References);
-            Assembly asm = Compile(AssemblyName, Templates, AssemblyReferences, Provider, Errors, this);
+
+            String name = AssemblyName;
+            if (String.IsNullOrEmpty(Path.GetExtension(name))) name += ".dll";
+            Assembly asm = Compile(name, AssemblyReferences, Provider, Errors, this);
             if (asm != null) Assembly = asm;
 
             // 释放提供者
@@ -777,13 +780,13 @@ namespace XTemplate.Templating
         }
 
         private static Dictionary<String, Assembly> asmCache = new Dictionary<String, Assembly>();
-        private static Assembly Compile(String outputAssembly, List<TemplateItem> templates, IEnumerable<String> references, CodeDomProvider provider, CompilerErrorCollection errors, Template tmp)
+        private static Assembly Compile(String outputAssembly, IEnumerable<String> references, CodeDomProvider provider, CompilerErrorCollection errors, Template tmp)
         {
             //String key = outputAssembly;
             //if (String.IsNullOrEmpty(key)) key = Hash(String.Join(Environment.NewLine, sources));
 
             StringBuilder sb = new StringBuilder();
-            foreach (var item in templates)
+            foreach (var item in tmp.Templates)
             {
                 if (sb.Length > 0) sb.AppendLine();
                 sb.Append(item.Source);
@@ -804,14 +807,14 @@ namespace XTemplate.Templating
                     catch { }
                 }
 
-                assembly = CompileInternal(outputAssembly, templates, references, provider, errors, tmp);
+                assembly = CompileInternal(outputAssembly, references, provider, errors, tmp);
                 if (assembly != null) asmCache.Add(key, assembly);
 
                 return assembly;
             }
         }
 
-        private static Assembly CompileInternal(String outputAssembly, List<TemplateItem> templates, IEnumerable<String> references, CodeDomProvider provider, CompilerErrorCollection Errors, Template tmp)
+        private static Assembly CompileInternal(String outputAssembly, IEnumerable<String> references, CodeDomProvider provider, CompilerErrorCollection Errors, Template tmp)
         {
             CompilerParameters options = new CompilerParameters();
             foreach (String str in references)
@@ -822,56 +825,59 @@ namespace XTemplate.Templating
 
             String tempPath = "XTemp";
             tempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, tempPath);
+            if (!String.IsNullOrEmpty(outputAssembly)) tempPath = Path.Combine(tempPath, Path.GetFileNameWithoutExtension(outputAssembly));
+
             if (!Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);
-            //options.TempFiles = new TempFileCollection(tempPath, Debug);
-            TempFileCollection tfc = new TempFileCollection();
-            tfc.KeepFiles = Debug;
+            options.TempFiles = new TempFileCollection(tempPath);
 
-            List<String> sources = new List<String>();
-            List<String> names = new List<String>();
-            foreach (var item in templates)
+            CompilerResults results = null;
+            if (Debug)
             {
-                String name = item.Name;
-                String ext = Path.GetExtension(name);
-                if (String.IsNullOrEmpty(ext) || !ext.EqualIgnoreCase(".cs"))
+                List<String> files = new List<String>();
+                foreach (var item in tmp.Templates)
                 {
-                    String str = name + ".cs";
-                    Int32 i = 2;
-                    while (names.Contains(str))
-                    {
-                        str = name + i++ + ".cs";
-                    }
-                    name = str;
+                    //if (item.Included) continue;
+
+                    String name = item.ClassName;
+                    // 猜测后缀
+                    Int32 p = name.LastIndexOf("_");
+                    if (p > 0 && name.Length - p <= 5)
+                        name = name.Substring(0, p) + "." + name.Substring(p + 1, name.Length - p - 1);
+                    else
+                        name += ".cs";
+
+                    name = Path.Combine(tempPath, name);
+                    File.WriteAllText(name, item.Source);
+
+                    files.Add(name);
                 }
 
-                name = Path.Combine(tempPath, name);
+                if (!String.IsNullOrEmpty(outputAssembly)) options.OutputAssembly = Path.Combine(tempPath, outputAssembly);
+                options.GenerateInMemory = true;
+                //if (Debug)
+                //{
+                //    options.IncludeDebugInformation = true;
+                //    options.TempFiles.KeepFiles = true;
+                //}
 
-                names.Add(name);
-                tfc.AddFile(name, Debug);
-
-                sources.Add(item.Source);
-            }
-
-            options.TempFiles = tfc;
-
-            if (Debug || !String.IsNullOrEmpty(outputAssembly))
-            {
-                options.OutputAssembly = outputAssembly;
-                options.GenerateInMemory = false;
-                if (Debug)
-                {
-                    options.IncludeDebugInformation = true;
-                    options.TempFiles.KeepFiles = true;
-                }
+                results = provider.CompileAssemblyFromFile(options, files.ToArray());
             }
             else
             {
+                List<String> sources = new List<String>();
+                foreach (var item in tmp.Templates)
+                {
+                    sources.Add(item.Source);
+                }
+
+                if (!String.IsNullOrEmpty(outputAssembly)) options.OutputAssembly = Path.Combine(tempPath, outputAssembly);
                 options.GenerateInMemory = true;
-                options.IncludeDebugInformation = false;
-                options.TempFiles.KeepFiles = false;
+                //options.IncludeDebugInformation = false;
+                //options.TempFiles.KeepFiles = false;
+
+                results = provider.CompileAssemblyFromSource(options, sources.ToArray());
             }
 
-            CompilerResults results = provider.CompileAssemblyFromSource(options, sources.ToArray());
             if (results.Errors.Count > 0)
             {
                 Errors.AddRange(results.Errors);
@@ -902,18 +908,23 @@ namespace XTemplate.Templating
                     }
                 }
             }
-
-            if (!Debug && String.IsNullOrEmpty(outputAssembly) && Directory.Exists(tempPath))
+            else
             {
                 try
                 {
-                    Directory.Delete(tempPath, true);
+                    options.TempFiles.Delete();
                 }
                 catch { }
             }
 
-            if (!results.Errors.HasErrors && String.IsNullOrEmpty(outputAssembly)) return results.CompiledAssembly;
-
+            if (!results.Errors.HasErrors)
+            {
+                try
+                {
+                    return results.CompiledAssembly;
+                }
+                catch { }
+            }
             return null;
         }
 
