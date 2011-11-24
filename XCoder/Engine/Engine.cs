@@ -472,6 +472,8 @@ namespace XCoder
             if (templates.Count < 1) throw new Exception("没有可用模版！");
 
             Template tt = Template.Create(templates);
+            if (tempName.StartsWith("*")) tempName = tempName.Substring(1);
+            tt.AssemblyName = tempName;
 
             List<String> rs = new List<string>();
             foreach (TemplateItem item in tt.Templates)
