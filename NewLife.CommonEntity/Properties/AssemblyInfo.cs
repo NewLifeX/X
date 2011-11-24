@@ -36,9 +36,12 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("2.6.*")]
-[assembly: AssemblyFileVersion("2.6.2011.1114")]
+[assembly: AssemblyFileVersion("2.7.2011.1124")]
 
 /*
+ * v2.7.2011.1124   调整地区架构，收集所有新旧行政区域编码，满足身份证地区识别，增加相应的附加地区数据的方法
+ *                  地区导入功能采用了快速导入方法，需要最新的XCode支持
+ * 
  * v2.6.2011.1114   精简ICommonManageProvider和IManagerPage，最大程度降低IManagerPage对IAdministator的依赖，目前可以做到不依赖
  *                  用户既可以不实现IAdministator，又可以享受IManagerPage的优势
  *                  Menu初始化扫描页面时，自动读取页面的Title

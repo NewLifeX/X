@@ -93,6 +93,8 @@
     <Compile Include="实体\地区.Biz.cs" />
     <Compile Include="实体\地区.cs" />
     <Compile Include="实体\地区.Init.cs" />
+    <None Include="实体\地区编码.Biz.cs" />
+    <None Include="实体\地区编码.cs" />
     <Compile Include="实体\序列.Biz.cs" />
     <Compile Include="实体\序列.cs" />
     <Compile Include="实体\用户配置.Biz.cs" />

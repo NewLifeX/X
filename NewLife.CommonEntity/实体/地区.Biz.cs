@@ -1,16 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Xml.Serialization;
-using XCode;
 using NewLife.Linq;
+using XCode;
+using System.IO;
 
 namespace NewLife.CommonEntity
 {
     /// <summary>地区</summary>
-    [BindIndex("IX_Area_Code", true, "Code")]
-    [BindIndex("IX_Area_Name", false, "Name")]
-    [BindIndex("PK_Area_ID", true, "ID")]
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public partial class Area<TEntity> : EntityTree<TEntity> where TEntity : Area<TEntity>, new()
     {
@@ -40,21 +39,39 @@ namespace NewLife.CommonEntity
 
                         sb.Append(item.Name);
                     }
-                    //for (int i = 0; i < list.Count; i++)
-                    //{
-                    //    if (i < list.Count - 1)
-                    //    {
-                    //        if (list[i].Name == "市辖区") continue;
-                    //        if (list[i].Name == "县") continue;
-                    //    }
-
-                    //    sb.Append(list[i].Name);
-                    //}
                     _FriendName = sb.ToString();
                 }
                 return _FriendName;
             }
             set { _FriendName = value; }
+        }
+
+        private Dictionary<Int32, String> _OldArea;
+        /// <summary>旧地区</summary>
+        public Dictionary<Int32, String> OldArea
+        {
+            get
+            {
+                if (_OldArea == null)
+                {
+                    _OldArea = new Dictionary<Int32, String>();
+
+                    if (!String.IsNullOrEmpty(Description))
+                    {
+                        String[] ss = Description.Split(";", "；");
+                        foreach (var item in ss)
+                        {
+                            String[] ss2 = item.Split("|");
+                            if (ss2 != null && ss2.Length > 0)
+                            {
+                                Int32 code = 0;
+                                if (Int32.TryParse(ss2[0], out code)) _OldArea.Add(code, ss2.Length > 1 ? ss2[1] : null);
+                            }
+                        }
+                    }
+                }
+                return _OldArea;
+            }
         }
         #endregion
 
@@ -75,7 +92,6 @@ namespace NewLife.CommonEntity
             return entity;
         }
 
-
         /// <summary>
         /// 根据编号查找。实体缓存
         /// </summary>
@@ -95,11 +111,11 @@ namespace NewLife.CommonEntity
         public static TEntity FindByCode(Int32 code)
         {
             if (code <= 0) return null;
-            //return Meta.Cache.Entities.Find(_.Code, code);
-            if (Meta.Cache.Entities.Find(_.Code, code) == null)
-                return Meta.Cache.Entities.Find(_.OldCode, code);
-            else
-                return Meta.Cache.Entities.Find(_.Code, code);
+
+            TEntity entity = Meta.Cache.Entities.Find(a => a.Code == code || a.OldCode == code || a.OldCode2 == code || a.OldCode3 == code);
+            if (entity != null) return entity;
+
+            return Meta.Cache.Entities.Find(a => a.OldArea.ContainsKey(code));
         }
 
         /// <summary>
@@ -107,6 +123,7 @@ namespace NewLife.CommonEntity
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
+        [Obsolete("请改为使用指定地区下的FindAllByName或Root.FindAllByName！")]
         public static EntityList<TEntity> FindByName(String name)
         {
             if (String.IsNullOrEmpty(name)) return null;
@@ -130,14 +147,15 @@ namespace NewLife.CommonEntity
             {
                 if ((this as IEntity).IsNullKey)
                     deepth = 3;
-                else if ((this.Parent as IEntity).IsNullKey)
+                else if (this.Parent == null || (this.Parent as IEntity).IsNullKey)
                     deepth = 2;
                 else
                     deepth = 1;
             }
 
             //EntityList<TEntity> list = Meta.Cache.Entities.FindAll(_.Name, name);
-            EntityList<TEntity> list = Childs.FindAll(_.Name, name);
+            //EntityList<TEntity> list = Childs.FindAll(_.Name, name);
+            EntityList<TEntity> list = Childs.FindAll(a => CompAreaName(a.Name, name));
             if (list != null && list.Count > 0) return list;
 
             // 试试下一级
@@ -190,6 +208,55 @@ namespace NewLife.CommonEntity
             return list;
         }
 
+        static Dictionary<String, String> maps;
+        /// <summary>比较地区名，考虑砍掉后缀的比较</summary>
+        /// <param name="name1"></param>
+        /// <param name="name2"></param>
+        /// <returns></returns>
+        static Boolean CompAreaName(String name1, String name2)
+        {
+            if (name1 == name2) return true;
+            name1 = CutName(name1);
+            name2 = CutName(name2);
+            if (name1 == name2) return true;
+
+            // 再来一次
+            name1 = CutName(name1);
+            name2 = CutName(name2);
+            if (name1 == name2) return true;
+
+            if (maps == null)
+            {
+                maps = new Dictionary<string, string>();
+                //maps.Add("通州", "通");
+                maps.Add("邱", "丘");
+                //maps.Add("涿州", "涿");
+                maps.Add("峨眉山", "峨眉");
+                maps.Add("伊犁", "伊犁哈萨克");
+            }
+
+            String v = null;
+            if (maps.TryGetValue(name1, out v) && v == name2) return true;
+            if (maps.TryGetValue(name2, out v) && v == name1) return true;
+
+            if (name1.Length < 1 || name2.Length < 1) return false;
+
+            if (name1.Contains(name2) || name2.Contains(name1)) return true;
+
+            return false;
+        }
+
+        static String[] suffixs = new String[] { "自治区", "自治州", "各族自治县", "自治县", "地区", "辖区", "区", "市", "盟", "州", "县", "旗" };
+        static String CutName(String name)
+        {
+            foreach (var item in suffixs)
+            {
+                if (name.EndsWith(item)) return name = name.Substring(0, name.Length - item.Length);
+            }
+
+            return name;
+        }
+
         /// <summary>
         /// 查找指定名称的父菜单下一级的子菜单
         /// </summary>
@@ -210,14 +277,41 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 对象操作
-        ///// <summary>
-        ///// 已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert
-        ///// </summary>
-        ///// <returns></returns>
-        //public override Int32 Insert()
-        //{
-        //    return base.Insert();
-        //}
+        /// <summary>
+        /// 已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert
+        /// </summary>
+        /// <returns></returns>
+        public override Int32 Insert()
+        {
+            CheckOldArea();
+
+            return base.Insert();
+        }
+
+        /// <summary>
+        /// 已重载
+        /// </summary>
+        /// <returns></returns>
+        public override Int32 Update()
+        {
+            CheckOldArea();
+
+            return base.Update();
+        }
+
+        void CheckOldArea()
+        {
+            if (OldArea.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (var item in OldArea)
+                {
+                    if (sb.Length > 0) sb.Append(";");
+                    sb.AppendFormat("{0}|{1}", item.Key, item.Value);
+                }
+                Description = sb.ToString();
+            }
+        }
 
         ///// <summary>
         ///// 已重载。在事务保护范围内处理业务，位于Valid之后
@@ -246,7 +340,6 @@ namespace NewLife.CommonEntity
             if (isNew || Dirtys[_.Name] || Dirtys[_.ParentCode]) CheckExist(_.Name, _.ParentCode);
             //if ((isNew || Dirtys[_.Name]) && Exist(_.Name)) throw new ArgumentException(_.Name, "值为" + Name + "的" + _.Name.Description + "已存在！");
         }
-
 
         ///// <summary>
         ///// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
@@ -332,13 +425,205 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
+        /// <summary>查找地区。查找编码是否存在，若不存在，则按照名称匹配</summary>
+        /// <param name="code"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static TEntity FindByCodeAndName(Int32 code, String name)
+        {
+            TEntity entity = FindByCode(code);
+            // 如果编码找不到，则从上级开始找名字
+            if (entity == null)
+            {
+                // 直接上级
+                TEntity parent = null;
+                if (code % 100 != 0) parent = FindByCode(code / 100 * 100);
+                if (parent != null)
+                {
+                    EntityList<TEntity> list = parent.FindAllByName(name, false);
+                    if (list != null && list.Count > 0) entity = list[0];
+                }
+                if (entity == null)
+                {
+                    // 再上一级
+                    parent = FindByCode(code / 10000 * 10000);
+
+                    // 上级都找不到，就没有意义了
+                    if (parent == null) return null;
+
+                    EntityList<TEntity> list = parent.FindAllByName(name, false);
+                    if (list != null && list.Count > 0) entity = list[0];
+                }
+                if (entity == null && code / 10000 * 10000 == 510000)
+                {
+                    // 四川省51划分出重庆直辖市50
+                    parent = FindByCode(500000);
+
+                    // 上级都找不到，就没有意义了
+                    if (parent == null) return null;
+
+                    EntityList<TEntity> list = parent.FindAllByName(name, false);
+                    if (list != null && list.Count > 0) entity = list[0];
+                }
+            }
+
+            return entity;
+        }
+
+        /// <summary>检查并附件到现有地区，如果没有找到匹配地区，则附加到最近的顶级地区，不会新增地区</summary>
+        /// <param name="code"></param>
+        /// <param name="name"></param>
+        /// <param name="fullname"></param>
+        /// <returns></returns>
+        public static TEntity CheckAndAppend(Int32 code, String name, String fullname = null)
+        {
+            TEntity entity = FindByCodeAndName(code, name);
+            if (entity != null)
+            {
+                if (entity.Code == entity.OldCode) entity.OldCode = 0;
+                if (entity.Code == entity.OldCode2) entity.OldCode2 = 0;
+                if (entity.Code == entity.OldCode3) entity.OldCode3 = 0;
+                if (entity.Code != code && entity.OldCode != code && entity.OldCode2 != code && entity.OldCode3 != code && !entity.OldArea.ContainsKey(code))
+                {
+                    if (entity.OldCode == 0)
+                        entity.OldCode = code;
+                    else if (entity.OldCode2 == 0)
+                        entity.OldCode2 = code;
+                    else if (entity.OldCode3 == 0)
+                        entity.OldCode3 = code;
+                    else
+                        entity.OldArea.Add(code, fullname);
+
+                    entity.SaveWithoutValid();
+                }
+
+                return entity;
+            }
+
+            // 直接上级
+            TEntity parent = null;
+            if (code % 100 != 0) parent = FindByCode(code / 100 * 100);
+            // 再上一级
+            if (parent == null) parent = FindByCode(code / 10000 * 10000);
+
+            // 上级都找不到，就没有意义了
+            if (parent == null) return null;
+
+            // 挂在直接上级的扩展里面
+            if (!parent.OldArea.ContainsKey(code))
+            {
+                parent.OldArea.Add(code, fullname);
+                parent.SaveWithoutValid();
+            }
+
+            return parent;
+        }
+
         /// <summary>
         /// 已重载。
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("{0} {1}", Code, Name);
+            return String.Format("{0} {1} {2} {3} {4} {5} {6}", Code, OldCode, OldCode2, OldCode3, Name, FriendName, Description);
+
+            //StringBuilder sb = new StringBuilder();
+            //sb.AppendFormat("{0} {1}", Code, Name);
+
+            //if (OldCode2 > 0) sb.AppendFormat(" {0}", OldCode2);
+            //if (OldCode3 > 0) sb.AppendFormat(" {0}", OldCode3);
+
+            //sb.AppendFormat(" {0}", FriendName);
+
+            //return sb.ToString();
+        }
+        #endregion
+
+        #region 导入导出
+        /// <summary>导入</summary>
+        /// <param name="reader"></param>
+        public static void Import(StreamReader reader)
+        {
+            Meta.BeginTrans();
+            try
+            {
+                while (!reader.EndOfStream)
+                {
+                    String context = reader.ReadLine();
+                    if (String.IsNullOrEmpty(context)) break;
+
+                    String[] ss = context.Split(new Char[] { ' ' });
+
+                    TEntity entity = new TEntity();
+                    Int32 code = Int32.Parse(ss[0]);
+                    entity.Code = code;
+
+                    Int32 oldcode = Int32.Parse(ss[1]);
+                    if (code != oldcode) entity.OldCode = oldcode;
+
+                    Int32 oldcode2 = Int32.Parse(ss[2]);
+                    if (code != oldcode2) entity.OldCode2 = oldcode2;
+
+                    Int32 oldcode3 = Int32.Parse(ss[3]);
+                    if (code != oldcode3) entity.OldCode3 = oldcode3;
+
+                    entity.Name = ss[4];
+
+                    if (ss.Length > 5) entity.Description = ss[5];
+
+                    // 查找父级地区
+                    if (code % 10000 == 0)
+                        entity.ParentCode = 0;
+                    else if (code % 100 == 0)
+                        entity.ParentCode = code / 10000;
+                    else
+                        entity.ParentCode = code / 100;
+
+                    entity.SaveWithoutValid();
+                }
+                Meta.Commit();
+            }
+            catch
+            {
+                Meta.Rollback();
+                throw;
+            }
+        }
+
+        /// <summary>从文本文件导入</summary>
+        /// <param name="fileName"></param>
+        public static void Import(String fileName = "AreaCode.txt")
+        {
+            using (StreamReader reader = new StreamReader(fileName))
+            {
+                Import(reader);
+            }
+        }
+
+        /// <summary>导出</summary>
+        /// <param name="writer"></param>
+        public static void Export(StreamWriter writer)
+        {
+            var list = FindAllByName(null, null, _.Code, 0, 0);
+            if (list == null || list.Count < 1) return;
+
+            foreach (var item in list)
+            {
+                writer.Write("{0} {1} {2} {3} {4}", item.Code, item.OldCode, item.OldCode2, item.OldCode3, item.Name);
+                if (!String.IsNullOrEmpty(item.Description)) writer.Write(" {0}", item.Description);
+
+                writer.WriteLine();
+            }
+        }
+
+        /// <summary>导出到文本文件</summary>
+        /// <param name="fileName"></param>
+        public static void Export(String fileName = "AreaCode.txt")
+        {
+            using (StreamWriter writer = new StreamWriter(fileName, false))
+            {
+                Export(writer);
+            }
         }
         #endregion
     }

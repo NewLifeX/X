@@ -4,6 +4,7 @@ using NewLife.Log;
 using System.ComponentModel;
 using System.IO;
 using NewLife.IO;
+using System.Reflection;
 
 namespace NewLife.CommonEntity
 {
@@ -3584,56 +3585,11 @@ namespace NewLife.CommonEntity
             #endregion
 
             #region 新数据添加
-
-            String context = string.Empty;
-            //Type type = typeof(Area);
-            // 进来不要引用实际类型，用泛型更合适，Area<>才表示当前泛型类
-            Type type = typeof(Area<>);
-            StreamReader sr = new StreamReader(FileSource.GetFileResource(type.Assembly, "AreaCode.txt"));
-
-            Meta.BeginTrans();
-            try
+            using (StreamReader sr = new StreamReader(FileSource.GetFileResource(Assembly.GetExecutingAssembly(), "AreaCode.txt")))
             {
-                while (true)
-                {
-                    context = sr.ReadLine();
-                    if (String.IsNullOrEmpty(context)) break;
-
-                    String[] str = context.Split(new Char[] { ' ' });
-
-                    TEntity entity = new TEntity();
-                    entity.Code = Int32.Parse(str[0]);
-                    entity.OldCode = Int32.Parse(str[1]);
-                    entity.Name = str[2];
-
-                    String codeStr = str[0];
-
-                    // 查找父级地区
-                    if (codeStr.EndsWith("0000"))
-                    {
-                        entity.ParentCode = 0;
-                    }
-                    else if (codeStr.EndsWith("00"))
-                    {
-                        entity.ParentCode = Convert.ToInt32(codeStr.Substring(0, 2) + "0000");
-                    }
-                    else
-                    {
-                        entity.ParentCode = Convert.ToInt32(codeStr.Substring(0, 4) + "00");
-                    }
-
-                    entity.Save();
-                }
-                Meta.Commit();
+                Import(sr);
             }
-            catch (Exception)
-            {
-                Meta.Rollback();
-                throw;
-            }
-
             #endregion
-
 
             if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}地区数据！", typeof(TEntity).Name);
         }
