@@ -68,6 +68,7 @@ namespace XCode
         }
 
         /// <summary>名称键名，如Name，否则使用第二个字段</summary>
+        /// <remarks>影响NodeName、TreeNodeName、TreeNodeName2、FindByPath、GetFullPath、GetFullPath2等</remarks>
         protected virtual String NameKeyName { get { return Meta.FieldNames.Contains("Name") ? "Name" : Meta.FieldNames[1]; } }
 
         /// <summary>是否缓存Childs、AllChilds、Parent等</summary>
@@ -156,16 +157,32 @@ namespace XCode
             set { _Root = null; }
         }
 
+        /// <summary>节点名</summary>
+        [XmlIgnore]
+        public virtual String NodeName
+        {
+            get
+            {
+                String key = NameKeyName;
+                if (String.IsNullOrEmpty(key)) return String.Empty;
+
+                return (String)this[key];
+            }
+        }
+
         /// <summary>树形节点名，根据深度带全角空格前缀</summary>
         [XmlIgnore]
         public virtual String TreeNodeName
         {
             get
             {
-                if (Deepth <= 0) return String.Empty;
+                String key = NameKeyName;
+                if (String.IsNullOrEmpty(key)) return String.Empty;
 
-                String name = (String)this[NameKeyName];
-                return new String('　', (Deepth - 1) * 2) + name;
+                Int32 d = Deepth;
+                if (d <= 0) return String.Empty;
+
+                return new String('　', (d - 1) * 2) + this[key];
             }
         }
 
@@ -175,10 +192,13 @@ namespace XCode
         {
             get
             {
-                if (Deepth <= 0) return "|- 根";
+                String key = NameKeyName;
+                if (String.IsNullOrEmpty(key)) return String.Empty;
 
-                String name = (String)this[NameKeyName];
-                return new String('　', Deepth) + "|- " + name;
+                Int32 d = Deepth;
+                if (d <= 0) return "|- 根";
+
+                return new String('　', d) + "|- " + this[key];
             }
         }
 
