@@ -1,5 +1,5 @@
 ﻿<#if(Config.RenderGenEntity){#>
-        static Administrator()
+        static <#=Table.Alias#>()
         {
             // 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个
             TEntity entity = new TEntity();
