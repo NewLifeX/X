@@ -157,7 +157,7 @@ namespace XCode
 
         Int32 DoAction(Func<Int32> func, Boolean? isnew)
         {
-            if (isnew != null) Valid(isnew.Value);
+            if (isnew != null && enableValid) Valid(isnew.Value);
 
             Meta.BeginTrans();
             try
@@ -186,6 +186,18 @@ namespace XCode
 
             return FindCount(persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
+
+        /// <summary>不需要验证的保存，不执行Valid，一般用于快速导入数据</summary>
+        /// <returns></returns>
+        public override Int32 SaveWithoutValid()
+        {
+            enableValid = false;
+            try { return Save(); }
+            finally { enableValid = true; }
+        }
+
+        [NonSerialized]
+        Boolean enableValid = true;
 
         /// <summary>
         /// 验证数据，通过抛出异常的方式提示验证失败。建议重写者调用基类的实现，因为将来可能根据数据字段的特性进行数据验证。

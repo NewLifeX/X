@@ -6,6 +6,7 @@ using System.Web.UI.WebControls;
 using System.Xml.Serialization;
 using NewLife.Exceptions;
 using NewLife.Reflection;
+using NewLife.Linq;
 
 namespace XCode
 {
@@ -729,8 +730,11 @@ namespace XCode
         /// <summary>
         /// 验证树形数据是否有效
         /// </summary>
-        public virtual void Valid()
+        /// <param name="isNew">是否新数据</param>
+        public override void Valid(Boolean isNew)
         {
+            base.Valid(isNew);
+
             TKey key = (TKey)this[KeyName];
             TKey pkey = (TKey)this[ParentKeyName];
 
@@ -738,7 +742,7 @@ namespace XCode
             Boolean pisnull = IsNull(pkey);
 
             // 无主检查
-            //if (!Meta.Cache.Entities.Exists(KeyName, pkey)) throw new Exception("无效上级[" + pkey + "]！");
+            //if (!pisnull && !Meta.Cache.Entities.Exists(KeyName, pkey)) throw new Exception("无效上级[" + pkey + "]！");
             if (!pisnull && FindCount(KeyName, pkey) <= 0) throw new XException("无效上级[" + pkey + "]！");
 
             // 死循环检查
@@ -770,26 +774,6 @@ namespace XCode
             if (typeof(TKey) == typeof(String) && String.IsNullOrEmpty(value.ToString())) return true;
 
             return false;
-        }
-
-        /// <summary>
-        /// 已重载。操作前验证树形数据是否有效
-        /// </summary>
-        /// <returns></returns>
-        public override int Insert()
-        {
-            Valid();
-            return base.Insert();
-        }
-
-        /// <summary>
-        /// 已重载。操作前验证树形数据是否有效
-        /// </summary>
-        /// <returns></returns>
-        public override int Update()
-        {
-            Valid();
-            return base.Update();
         }
         #endregion
 

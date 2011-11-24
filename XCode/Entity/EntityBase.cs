@@ -64,6 +64,10 @@ namespace XCode
         /// </summary>
         /// <returns></returns>
         public abstract Int32 Save();
+
+        /// <summary>不需要验证的保存</summary>
+        /// <returns></returns>
+        public abstract Int32 SaveWithoutValid();
         #endregion
 
         #region 获取/设置 字段值

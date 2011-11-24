@@ -181,7 +181,8 @@ namespace XCode
                 CheckInitData();
 
                 Int32 rs = DBO.Execute(sql, Meta.TableName);
-                if (rs > 0) DataChange();
+                executeCount++;
+                DataChange();
                 return rs;
             }
 
@@ -195,7 +196,8 @@ namespace XCode
                 CheckInitData();
 
                 Int64 rs = DBO.InsertAndGetIdentity(sql, Meta.TableName);
-                if (rs > 0) DataChange();
+                executeCount++;
+                DataChange();
                 return rs;
             }
 
@@ -376,10 +378,16 @@ namespace XCode
             #region 事务保护
             [ThreadStatic]
             private static Int32 TransCount = 0;
+            [ThreadStatic]
+            private static Int32 executeCount = 0;
 
             /// <summary>开始事务</summary>
             /// <returns></returns>
-            public static Int32 BeginTrans() { return TransCount = DBO.BeginTransaction(); }
+            public static Int32 BeginTrans()
+            {
+                executeCount = 0;
+                return TransCount = DBO.BeginTransaction();
+            }
 
             /// <summary>提交事务</summary>
             /// <returns></returns>
@@ -387,7 +395,8 @@ namespace XCode
             {
                 TransCount = DBO.Commit();
                 // 提交事务时更新数据，虽然不是绝对准确，但没有更好的办法
-                if (TransCount <= 0) DataChange();
+                if (TransCount <= 0 && executeCount > 0) DataChange();
+                executeCount = 0;
                 return TransCount;
             }
 
@@ -396,7 +405,8 @@ namespace XCode
             public static Int32 Rollback()
             {
                 TransCount = DBO.Rollback();
-                if (TransCount <= 0) DataChange();
+                if (TransCount <= 0 && executeCount > 0) DataChange();
+                executeCount = 0;
                 return TransCount;
             }
             #endregion
@@ -518,7 +528,7 @@ namespace XCode
                     Int64? n = _Count;
                     if (n != null && n.HasValue)
                     {
-                        if (n.Value < 1000) return n.Value;
+                        if (n.Value > 0 && n.Value < 1000) return n.Value;
 
                         // 大于1000，使用HttpCache
                         String key = ThisType.Name + "_Count";
