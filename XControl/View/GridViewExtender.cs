@@ -78,6 +78,23 @@ namespace XControl
             set { SetPropertyValue<Int32>("CheckBoxIndex", value); }
         }
 
+        /// <summary>
+        /// 双击行时点击的列文本,一般在前端表现为A标签的内容
+        /// </summary>
+        [Description("双击行时点击的列文本,一般在前端表现为A标签的内容")]
+        [DefaultValue("编辑")]
+        public string DblClickRowFieldText
+        {
+            get
+            {
+                return GetPropertyValue<string>("DblClickRowFieldText", "编辑");
+            }
+            set
+            {
+                SetPropertyValue<string>("DblClickRowFieldText", value);
+            }
+        }
+
         #endregion 属性
 
         #region 扩展属性
@@ -255,7 +272,7 @@ namespace XControl
 
         private void RenderOnClick(GridView gv)
         {
-            string editLinkBoxText = "编辑";
+            string editLinkBoxText = DblClickRowFieldText;
             // 找到编辑列所在列序号
             int editColumIndex = -1;
             for (int i = 0; i < gv.Columns.Count; i++)
