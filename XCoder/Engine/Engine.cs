@@ -528,7 +528,7 @@ namespace XCoder
                 // 别名、类名
                 String name = table.Name;
                 if (IsKeyWord(name)) name = name + "1";
-                if (Config.AutoCutPrefix) name = CutPrefix(name);
+                if (Config.AutoCutPrefix || !string.IsNullOrEmpty(Config.Prefix)) name = CutPrefix(name);
                 if (Config.AutoFixWord) name = FixWord(name);
                 table.Alias = name;
                 // 描述
@@ -548,7 +548,7 @@ namespace XCoder
                 foreach (IDataColumn dc in table.Columns)
                 {
                     name = dc.Name;
-                    if (Config.AutoCutPrefix)
+                    if (Config.AutoCutPrefix || !string.IsNullOrEmpty(Config.Prefix))
                     {
                         String s = CutPrefix(name);
                         if (dc.Table.Columns.Exists(item => item.Name == s)) name = s;
