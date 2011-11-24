@@ -353,7 +353,7 @@ namespace XTemplate.Templating
             //if (References != null) context.References.AddRange(References);
 
             // 生成代码
-            item.Source = ConstructGeneratorCode(item, true, NameSpace, Provider);
+            item.Source = ConstructGeneratorCode(item, Debug, NameSpace, Provider);
         }
         #endregion
 
@@ -823,20 +823,21 @@ namespace XTemplate.Templating
             }
             options.WarningLevel = 4;
 
-            String tempPath = "XTemp";
-            tempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, tempPath);
-            if (!String.IsNullOrEmpty(outputAssembly)) tempPath = Path.Combine(tempPath, Path.GetFileNameWithoutExtension(outputAssembly));
-
-            if (!Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);
-            options.TempFiles = new TempFileCollection(tempPath);
-
             CompilerResults results = null;
             if (Debug)
             {
+                #region 调试状态，把生成的类文件和最终dll输出到XTemp目录下
+                String tempPath = "XTemp";
+                tempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, tempPath);
+                if (!String.IsNullOrEmpty(outputAssembly)) tempPath = Path.Combine(tempPath, Path.GetFileNameWithoutExtension(outputAssembly));
+
+                if (!Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);
+                options.TempFiles = new TempFileCollection(tempPath, false);
+
                 List<String> files = new List<String>();
                 foreach (var item in tmp.Templates)
                 {
-                    //if (item.Included) continue;
+                    if (item.Included) continue;
 
                     String name = item.ClassName;
                     // 猜测后缀
@@ -851,14 +852,11 @@ namespace XTemplate.Templating
 
                     files.Add(name);
                 }
+                #endregion
 
                 if (!String.IsNullOrEmpty(outputAssembly)) options.OutputAssembly = Path.Combine(tempPath, outputAssembly);
                 options.GenerateInMemory = true;
-                //if (Debug)
-                //{
-                //    options.IncludeDebugInformation = true;
-                //    options.TempFiles.KeepFiles = true;
-                //}
+                options.IncludeDebugInformation = true;
 
                 results = provider.CompileAssemblyFromFile(options, files.ToArray());
             }
@@ -870,14 +868,12 @@ namespace XTemplate.Templating
                     sources.Add(item.Source);
                 }
 
-                if (!String.IsNullOrEmpty(outputAssembly)) options.OutputAssembly = Path.Combine(tempPath, outputAssembly);
                 options.GenerateInMemory = true;
-                //options.IncludeDebugInformation = false;
-                //options.TempFiles.KeepFiles = false;
 
                 results = provider.CompileAssemblyFromSource(options, sources.ToArray());
             }
 
+            #region 编译错误处理
             if (results.Errors.Count > 0)
             {
                 Errors.AddRange(results.Errors);
@@ -916,6 +912,7 @@ namespace XTemplate.Templating
                 }
                 catch { }
             }
+            #endregion
 
             if (!results.Errors.HasErrors)
             {

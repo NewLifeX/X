@@ -475,6 +475,9 @@ namespace XCoder
             if (tempName.StartsWith("*")) tempName = tempName.Substring(1);
             tt.AssemblyName = tempName;
 
+            // 编译模版。这里至少要处理，只有经过了处理，才知道模版项是不是被包含的
+            tt.Compile();
+
             List<String> rs = new List<string>();
             foreach (TemplateItem item in tt.Templates)
             {
