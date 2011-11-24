@@ -316,7 +316,15 @@ namespace XCoder
                 cbTableList.Items.Clear();
             else
             {
-                cbTableList.DataSource = source;
+                // ±Ì√˚≈≈–Ú
+                List<IDataTable> tables = source as List<IDataTable>;
+                if (tables == null)
+                    cbTableList.DataSource = source;
+                else
+                {
+                    tables.Sort((t1, t2) => t1.Name.CompareTo(t2.Name));
+                    cbTableList.DataSource = tables;
+                }
                 //cbTableList.DisplayMember = "Name";
                 cbTableList.ValueMember = "Name";
             }
