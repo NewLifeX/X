@@ -13,6 +13,7 @@ using System.Web.UI.WebControls;
 using NewLife.Configuration;
 using XCode;
 using System.Web.Configuration;
+using NewLife.CommonEntity.Web;
 
 namespace NewLife.CommonEntity
 {
@@ -120,9 +121,12 @@ namespace NewLife.CommonEntity
             {
                 if (!IsFindhttpHandler)
                 {
+                    // 2011-11-25 大石头 我猜，IsFindhttpHandler应该是用来判断是否已经查找过了的吧
+                    IsFindhttpHandler = true;
+
                     foreach (HttpHandlerAction item in Config.GethttpHandlers())
                     {
-                        if (!String.IsNullOrEmpty(item.Type) && item.Type.IndexOf(typeof(NewLife.CommonEntity.Web.AttachmentHttpHandler).FullName) > -1)
+                        if (!String.IsNullOrEmpty(item.Type) && item.Type.IndexOf(typeof(AttachmentHttpHandler).FullName) > -1)
                         {
                             _httpHandler = item;
 
@@ -137,13 +141,11 @@ namespace NewLife.CommonEntity
         /// <summary>
         /// 获取Config中Handler设置
         /// </summary>
-        public String HenderUrl
-        {
-            get
-            {
-                return httpHandler == null ? null : String.Format("{0}?ID={1}", httpHandler.Path, ID);
-            }
-        }
+        [Obsolete("这个是不是拼写错误？使用HandlerUrl？")]
+        public String HenderUrl { get { return HandlerUrl; } }
+
+        /// <summary>获取Config中Handler设置的用于访问当前附件的Url</summary>
+        public String HandlerUrl { get { return httpHandler == null ? null : String.Format("{0}?ID={1}", httpHandler.Path, ID); } }
 
 
         /// <summary>

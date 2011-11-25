@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Log;
+using NewLife.Configuration;
 
 namespace NewLife.Net.Common
 {
@@ -23,15 +24,8 @@ namespace NewLife.Net.Common
             {
                 if (_Debug != null) return _Debug.Value;
 
-                String str = ConfigurationManager.AppSettings["NewLife.Net.Debug"];
-                if (String.IsNullOrEmpty(str))
-                    _Debug = false;
-                else if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
-                    _Debug = true;
-                else if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
-                    _Debug = false;
-                else
-                    _Debug = Convert.ToBoolean(str);
+                _Debug = Config.GetConfig<Boolean>("NewLife.Net.Debug", false);
+
                 return _Debug.Value;
             }
             set { _Debug = value; }

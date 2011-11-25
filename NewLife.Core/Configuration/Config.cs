@@ -7,45 +7,20 @@ using NewLife.Reflection;
 
 namespace NewLife.Configuration
 {
-    /// <summary>
-    /// 通用配置辅助类
-    /// </summary>
+    /// <summary>通用配置辅助类</summary>
+    /// <remarks>
+    /// 一定要注意的是：ConfigurationManager.AppSettings会获取当前应用的设置，如果子目录里面的web.config有设置，则会获取最近的设置。
+    /// </remarks>
     public static class Config
     {
         #region 属性
         private static List<String> hasLoad = new List<String>();
 
-        private static NameValueCollection _AppSettings;
         /// <summary>应用设置</summary>
-        public static NameValueCollection AppSettings
-        {
-            get
-            {
-                if (_AppSettings == null && !hasLoad.Contains("AppSettings"))
-                {
-                    _AppSettings = ConfigurationManager.AppSettings;
-                    hasLoad.Add("AppSettings");
-                }
-                return _AppSettings;
-            }
-            //set { _AppSettings = value; }
-        }
+        public static NameValueCollection AppSettings { get { return ConfigurationManager.AppSettings; } }
 
-        private static ConnectionStringSettingsCollection _ConnectionStrings;
         /// <summary>连接字符串设置</summary>
-        public static ConnectionStringSettingsCollection ConnectionStrings
-        {
-            get
-            {
-                if (_ConnectionStrings == null && !hasLoad.Contains("ConnectionStrings"))
-                {
-                    _ConnectionStrings = ConfigurationManager.ConnectionStrings;
-                    hasLoad.Add("ConnectionStrings");
-                }
-                return _ConnectionStrings;
-            }
-            //set { _ConnectionStrings = value; }
-        }
+        public static ConnectionStringSettingsCollection ConnectionStrings { get { return ConfigurationManager.ConnectionStrings; } }
 
         private static Object _httpHandlers;
         /// <summary>获取httphandlers</summary>
@@ -72,12 +47,10 @@ namespace NewLife.Configuration
         {
             List<HttpHandlerAction> value = new List<HttpHandlerAction>();
 
-            if (httpHandlers == null) return value;
-
             HttpHandlersSection httphanset = httpHandlers as HttpHandlersSection;
             if (httphanset == null) return value;
 
-            System.Configuration.ConfigurationElementCollection cec = (System.Configuration.ConfigurationElementCollection)httphanset.Handlers;
+            ConfigurationElementCollection cec = (ConfigurationElementCollection)httphanset.Handlers;
 
             for (Int32 i = 0; i < cec.Count; i++)
             {
@@ -86,7 +59,6 @@ namespace NewLife.Configuration
 
             return value;
         }
-
 
         /// <summary>
         /// 是否包含指定项的设置
@@ -97,9 +69,10 @@ namespace NewLife.Configuration
         {
             try
             {
-                if (AppSettings == null || AppSettings.Count < 1) return false;
+                NameValueCollection nvs = AppSettings;
+                if (nvs == null || nvs.Count < 1) return false;
 
-                return Array.IndexOf(AppSettings.AllKeys, name) >= 0;
+                return Array.IndexOf(nvs.AllKeys, name) >= 0;
             }
             catch (ConfigurationErrorsException) { return false; }
         }
@@ -126,7 +99,8 @@ namespace NewLife.Configuration
             value = default(T);
             try
             {
-                if (AppSettings == null || AppSettings.Count < 1) return false;
+                NameValueCollection nvs = AppSettings;
+                if (nvs == null || nvs.Count < 1) return false;
 
                 for (int i = 0; i < names.Length; i++)
                 {
@@ -148,7 +122,8 @@ namespace NewLife.Configuration
         {
             try
             {
-                if (AppSettings == null || AppSettings.Count < 1) return default(T);
+                NameValueCollection nvs = AppSettings;
+                if (nvs == null || nvs.Count < 1) return default(T);
 
                 return GetConfig<T>(name, default(T));
             }
@@ -181,9 +156,10 @@ namespace NewLife.Configuration
             value = default(T);
             try
             {
-                if (AppSettings == null || AppSettings.Count < 1) return false;
+                NameValueCollection nvs = AppSettings;
+                if (nvs == null || nvs.Count < 1) return false;
 
-                String str = AppSettings[name];
+                String str = nvs[name];
                 if (String.IsNullOrEmpty(str)) return false;
 
                 Type type = typeof(T);
@@ -220,14 +196,13 @@ namespace NewLife.Configuration
         {
             try
             {
-                if (AppSettings == null || AppSettings.Count < 1) return null;
+                NameValueCollection nvs = AppSettings;
+                if (nvs == null || nvs.Count < 1) return null;
 
-                //List<String> list = new List<String>();
                 NameValueCollection nv = new NameValueCollection();
-                foreach (String item in AppSettings.Keys)
+                foreach (String item in nvs)
                 {
-                    //if (item.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) list.Add(AppSettings[item]);
-                    if (item.Length > prefix.Length && item.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) nv.Add(item, AppSettings[item]);
+                    if (item.Length > prefix.Length && item.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) nv.Add(item, nvs[item]);
                 }
                 //return list.Count > 0 ? list.ToArray() : null;
                 return nv.Count > 0 ? nv : null;
@@ -246,7 +221,8 @@ namespace NewLife.Configuration
         {
             try
             {
-                if (AppSettings == null || AppSettings.Count < 1) return new T[0];
+                NameValueCollection nvs = AppSettings;
+                if (nvs == null || nvs.Count < 1) return new T[0];
 
                 return GetConfigSplit<T>(name, split, new T[0]);
             }
@@ -265,7 +241,8 @@ namespace NewLife.Configuration
         {
             try
             {
-                if (AppSettings == null || AppSettings.Count < 1) return defaultValue;
+                NameValueCollection nvs = AppSettings;
+                if (nvs == null || nvs.Count < 1) return defaultValue;
 
                 String str = GetConfig<String>(name);
                 if (String.IsNullOrEmpty(str)) return defaultValue;
@@ -274,15 +251,6 @@ namespace NewLife.Configuration
                 String[] ss = str.Split(sps, StringSplitOptions.RemoveEmptyEntries);
                 if (ss == null || ss.Length < 1) return defaultValue;
 
-                //List<T> list = new List<T>(ss.Length);
-                //foreach (String item in ss)
-                //{
-                //    str = item.Trim();
-                //    if (String.IsNullOrEmpty(str)) continue;
-
-                //    T result = TypeX.ChangeType<T>(str);
-                //    list.Add(result);
-                //}
                 T[] arr = new T[ss.Length];
                 for (int i = 0; i < ss.Length; i++)
                 {

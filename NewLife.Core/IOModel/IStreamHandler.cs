@@ -5,6 +5,7 @@ using System.Configuration;
 using System.IO;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Configuration;
 
 namespace NewLife.IO
 {
@@ -140,12 +141,12 @@ namespace NewLife.IO
         /// <returns></returns>
         static Dictionary<String, List<Type>> GetHandler()
         {
-            NameValueCollection nvcs = ConfigurationManager.AppSettings;
-            if (nvcs == null || nvcs.Count < 1) return null;
+            NameValueCollection nvs = Config.AppSettings;
+            if (nvs == null || nvs.Count < 1) return null;
 
             Dictionary<String, List<Type>> dic = new Dictionary<String, List<Type>>();
             // 遍历设置项
-            foreach (String appName in nvcs)
+            foreach (String appName in nvs)
             {
                 // 必须以指定名称开始
                 if (!appName.StartsWith(handlerKey, StringComparison.OrdinalIgnoreCase)) continue;
@@ -153,7 +154,7 @@ namespace NewLife.IO
                 // 总线通道名称
                 String name = appName.Substring(handlerKey.Length);
 
-                String str = ConfigurationManager.AppSettings[appName];
+                String str = nvs[appName];
                 if (String.IsNullOrEmpty(str)) continue;
 
                 String[] ss = str.Split(new Char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);

@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.IO;
 using System.Reflection;
 using NewLife.Log;
+using NewLife.Configuration;
 
 namespace XTemplate.Templating
 {
@@ -52,15 +53,8 @@ namespace XTemplate.Templating
             {
                 if (_Debug != null) return _Debug.Value;
 
-                String str = ConfigurationManager.AppSettings["XTemplate.Debug"];
-                if (String.IsNullOrEmpty(str))
-                    _Debug = false;
-                else if (str == "1" || str.Equals(Boolean.TrueString, StringComparison.OrdinalIgnoreCase))
-                    _Debug = true;
-                else if (str == "0" || str.Equals(Boolean.FalseString, StringComparison.OrdinalIgnoreCase))
-                    _Debug = false;
-                else
-                    _Debug = Convert.ToBoolean(str);
+                _Debug = Config.GetConfig<Boolean>("XTemplate.Debug", false);
+
                 return _Debug.Value;
             }
             set { _Debug = value; }
@@ -93,32 +87,9 @@ namespace XTemplate.Templating
         /// </summary>
         public static String BaseClassName
         {
-            get
-            {
-                if (_BaseClassName == null)
-                {
-                    _BaseClassName = ConfigurationManager.AppSettings["XTemplate.BaseClassName"];
-                    if (String.IsNullOrEmpty(_BaseClassName)) _BaseClassName = "";
-                }
-                return _BaseClassName;
-            }
+            get { return _BaseClassName ?? (_BaseClassName = Config.GetConfig<String>("XTemplate.BaseClassName", String.Empty)); }
             set { _BaseClassName = value; }
         }
-
-        //private static String _BaseClass;
-        ///// <summary>
-        ///// 默认基类名称
-        ///// </summary>
-        //public static String BaseClass
-        //{
-        //    get
-        //    {
-        //        if (_BaseClass == null) _BaseClass = BaseClassName;
-
-        //        return _BaseClass;
-        //    }
-        //    set { _BaseClass = value; }
-        //}
 
         private static List<String> _References;
         /// <summary>
@@ -136,20 +107,14 @@ namespace XTemplate.Templating
                 List<String> names = new List<String>();
 
                 // 加入配置的程序集
-                String str = ConfigurationManager.AppSettings["XTemplate.References"];
-                if (!String.IsNullOrEmpty(str))
+                String[] ss = Config.GetConfigSplit<String>("XTemplate.References", null);
+                if (ss != null && ss.Length > 0)
                 {
-                    String[] ss = str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (ss != null && ss.Length > 0)
+                    foreach (String item in ss)
                     {
-                        //list.AddRange(ss);
-                        foreach (String item in ss)
-                        {
-                            list.Add(item);
+                        list.Add(item);
 
-                            String name = Path.GetFileName(item);
-                            names.Add(item.ToLower());
-                        }
+                        names.Add(item.ToLower());
                     }
                 }
 
@@ -189,15 +154,8 @@ namespace XTemplate.Templating
                 List<String> list = new List<String>();
 
                 // 加入配置的命名空间
-                String str = ConfigurationManager.AppSettings["XTemplate.Imports"];
-                if (!String.IsNullOrEmpty(str))
-                {
-                    String[] ss = str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (ss != null && ss.Length > 0)
-                    {
-                        list.AddRange(ss);
-                    }
-                }
+                String[] ss = Config.GetConfigSplit<String>("XTemplate.Imports", null);
+                if (ss != null && ss.Length > 0) list.AddRange(ss);
 
                 String[] names = new String[] { "System", "System.Collections", "System.Collections.Generic", "System.Text" };
                 if (names != null && names.Length > 0)

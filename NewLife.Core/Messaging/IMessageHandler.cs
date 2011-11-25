@@ -5,6 +5,7 @@ using System.Configuration;
 using System.IO;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Configuration;
 
 namespace NewLife.Messaging
 {
@@ -166,12 +167,12 @@ namespace NewLife.Messaging
         /// <returns></returns>
         static Dictionary<Int32, List<Type>> GetHandler()
         {
-            NameValueCollection nvcs = ConfigurationManager.AppSettings;
-            if (nvcs == null || nvcs.Count < 1) return null;
+            NameValueCollection nvs = Config.AppSettings;
+            if (nvs == null || nvs.Count < 1) return null;
 
             Dictionary<Int32, List<Type>> dic = new Dictionary<Int32, List<Type>>();
             // 遍历设置项
-            foreach (String appName in nvcs)
+            foreach (String appName in nvs)
             {
                 // 必须以指定名称开始
                 if (!appName.StartsWith(handlerKey, StringComparison.OrdinalIgnoreCase)) continue;
@@ -181,7 +182,7 @@ namespace NewLife.Messaging
                 Int32 id = 0;
                 if (!Int32.TryParse(name, out id)) throw new InvalidDataException("错误的消息编号" + id + "！");
 
-                String str = ConfigurationManager.AppSettings[appName];
+                String str = nvs[appName];
                 if (String.IsNullOrEmpty(str)) continue;
 
                 String[] ss = str.Split(new Char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
