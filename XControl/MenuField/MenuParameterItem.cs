@@ -8,7 +8,7 @@ namespace XControl
     /// <summary>
     /// 菜单项
     /// </summary>
-    public class MenuItem
+    public class MenuParameterItem
     {
         #region 属性
 
@@ -64,7 +64,7 @@ namespace XControl
         /// 构造方法
         /// </summary>
         /// <param name="original"></param>
-        protected MenuItem(MenuItem original)
+        protected MenuParameterItem(MenuParameterItem original)
         {
             this.Text = original.Text;
             this.Url = original.Url;
@@ -75,7 +75,7 @@ namespace XControl
         /// <summary>
         /// 构造方法
         /// </summary>
-        public MenuItem()
+        public MenuParameterItem()
         { }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace XControl
         /// <param name="url"></param>
         /// <param name="onclick"></param>
         /// <param name="icon"></param>
-        public MenuItem(String text, String url, String onclick, String icon)
+        public MenuParameterItem(String text, String url, String onclick, String icon)
         {
             this.Text = text;
             this.Url = url;
@@ -93,7 +93,6 @@ namespace XControl
             this.IConCss = icon;
         }
         #endregion
-
 
         #region 接口实现
         ///// <summary>
@@ -199,8 +198,5 @@ namespace XControl
         //    }
         //}
         #endregion
-
-
     }
-
 }

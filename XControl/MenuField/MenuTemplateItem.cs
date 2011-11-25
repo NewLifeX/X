@@ -20,10 +20,10 @@ namespace XControl
             set { _ConditionFieldValue = value; }
         }
 
-        private String _Template;
+        private ITemplate _Template;
         /// <summary>属性说明</summary>
-        [PersistenceMode(PersistenceMode.InnerProperty)]
-        public String Template
+        [WebSysDescription("TemplateField_InsertItemTemplate"), PersistenceMode(PersistenceMode.InnerProperty), TemplateContainer(typeof(IDataItemContainer), BindingDirection.TwoWay), DefaultValue((string)null), Browsable(false)]
+        public ITemplate Template
         {
             get { return _Template; }
             set { _Template = value; }

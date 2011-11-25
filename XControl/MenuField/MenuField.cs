@@ -18,7 +18,7 @@ namespace XControl
     /// <summary>
     ///MenuField 的摘要说明
     /// </summary>
-    public class MenuField : ButtonFieldBase
+    public class MenuField : DataControlField
     {
 
         #region 属性
@@ -56,28 +56,31 @@ namespace XControl
             }
         }
 
+        private List<MenuParameterItem> _MenuParameters;
         /// <summary>
         /// 重写CssClass
         /// </summary>
-        [DefaultValue(null), MergableProperty(false), PersistenceMode(PersistenceMode.InnerProperty), WebCategory("Data"), WebSysDescription("MenuField_MenuParameters")]
-        public virtual List<MenuItem> MenuParameters
+        [DefaultValue(null), WebCategory("Data"), WebSysDescription("MenuField_MenuParameters"), PersistenceMode(PersistenceMode.InnerProperty)]
+        public virtual List<MenuParameterItem> MenuParameters
         {
             get
             {
-                List<MenuItem> mp = (List<MenuItem>)ViewState["MenuParameters"];
+                if (_MenuParameters == null)
+                    _MenuParameters = new List<MenuParameterItem>();
 
-                return mp == null ? new List<MenuItem>() : mp;
+                return _MenuParameters;
             }
             set
             {
-                ViewState["MenuParameters"] = value;
+                _MenuParameters = value;
+                this.OnFieldChanged();
             }
         }
 
         /// <summary>
-        /// Text
+        /// 项显示内容
         /// </summary>
-        [Localizable(true), WebCategory("Appearance"), DefaultValue(""), WebSysDescription("MenuField_Text")]
+        [WebCategory("Appearance"), DefaultValue(""), WebSysDescription("MenuField_Text")]
         public virtual String Text
         {
             get
@@ -91,9 +94,7 @@ namespace XControl
             }
             set
             {
-
                 ViewState["Text"] = value;
-                this.OnFieldChanged();
             }
         }
 
@@ -101,7 +102,7 @@ namespace XControl
         /// <summary>
         /// 菜单响应事件
         /// </summary>
-        [Localizable(true), WebCategory("Menu"), DefaultValue(""), WebSysDescription("MenuField_Mouse")]
+        [Localizable(true), WebCategory("Menu"), DefaultValue("click"), WebSysDescription("MenuField_Mouse")]
         public virtual String TriggerEvent
         {
             get
@@ -117,14 +118,13 @@ namespace XControl
             {
 
                 ViewState["TriggerEvent"] = value;
-                this.OnFieldChanged();
             }
         }
 
         /// <summary>
         /// 绑定字段
         /// </summary>
-        [Localizable(true), WebCategory("Data"), DefaultValue(""), WebSysDescription("MenuField_Data")]
+        [WebCategory("Data"), DefaultValue(""), WebSysDescription("MenuField_Data")]
         public virtual String DataField
         {
             get
@@ -139,7 +139,6 @@ namespace XControl
             set
             {
                 ViewState["DataField"] = value;
-                this.OnFieldChanged();
             }
         }
 
@@ -162,11 +161,10 @@ namespace XControl
             set
             {
                 ViewState["ConditionField"] = value;
-                this.OnFieldChanged();
             }
         }
 
-
+        private List<MenuTemplateItem> _MenuTemplate;
         /// <summary>
         /// 条件模版
         /// </summary>
@@ -175,13 +173,15 @@ namespace XControl
         {
             get
             {
-                List<MenuTemplateItem> mp = (List<MenuTemplateItem>)ViewState["MenuTemplate"];
+                if (_MenuTemplate == null)
+                    _MenuTemplate = new List<MenuTemplateItem>();
 
-                return mp == null ? new List<MenuTemplateItem>() : mp;
+                return _MenuTemplate;
             }
             set
             {
-                ViewState["MenuTemplate"] = value;
+                _MenuTemplate = value;
+                this.OnFieldChanged();
             }
 
         }
@@ -192,20 +192,17 @@ namespace XControl
         /// </summary>
         public MenuField()
         {
-            //
-            //TODO: 在此处添加构造函数逻辑
-            //
+
         }
 
         /// <summary>
-        /// 
+        /// 重写
         /// </summary>
         /// <returns></returns>
         protected override DataControlField CreateField()
         {
             return new MenuField();
         }
-
 
 
         /// <summary>
@@ -219,92 +216,124 @@ namespace XControl
         {
             base.InitializeCell(cell, cellType, rowState, rowIndex);
 
-            if (cellType != DataControlCellType.DataCell) return;
+            switch (cellType)
+            {
+                case DataControlCellType.DataCell:
+
+                    cell.DataBinding += new EventHandler(CellDataBinding);
+
+                    #region 原始实现
+                    //if (cellType != DataControlCellType.DataCell) return;
+
+                    //////添加按钮
+                    //Panel CurrentPanel = CreateMenuButton();
+
+                    //cell.Controls.Add(CurrentPanel);
+
+                    ////添加菜单
+                    //XLiteral lit = CreateMenuLiteral(CurrentPanel);
+
+                    //if ((this.DataField.Length != 0) && base.Visible)
+                    //{
+                    //    lit.DataBinding += new EventHandler(this.OnDataBindField);
+                    //}
+
+                    //cell.Controls.Add(lit);
+                    #endregion
+                    break;
+                case DataControlCellType.Footer:
+                    cell.Text = FooterText;
+                    break;
+                case DataControlCellType.Header:
+                    cell.Text = HeaderText;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 单无格数据绑定事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        public void CellDataBinding(Object sender, EventArgs args)
+        {
+
+            DataControlFieldCell cell = sender as DataControlFieldCell;
 
             ////添加按钮
             Panel CurrentPanel = CreateMenuButton();
 
             cell.Controls.Add(CurrentPanel);
 
-            //添加菜单
-            XLiteral lit = CreateMenuLiteral(CurrentPanel);
-
-            if ((this.DataField.Length != 0) && base.Visible)
+            //菜单开头
+            Literal MenuStart = new Literal()
             {
-                lit.DataBinding += new EventHandler(this.OnDataBindField);
-            }
-
-            cell.Controls.Add(lit);
-
-            //cell.
-
-            //添加JS
-        }
-
-        /// <summary>
-        /// 创建菜单
-        /// </summary>
-        /// <returns></returns>
-        private XLiteral CreateMenuLiteral(Control control)
-        {
-            XLiteral literal = new XLiteral();
-            literal.PreRender += delegate(object sender, EventArgs err)
-            {
-                MenuOnPreRender(sender, control);
+                Text = String.Format("<div class=\"{0}\" id=\"{1}\" style=\"display:none;\">", MenuCss, CreateMenuDivID(CurrentPanel.ClientID))
             };
 
-            return literal;
+            cell.Controls.Add(MenuStart);
+
+            //生成菜单
+            CreateMenu(cell);
+
+            //菜单结尾
+            Literal MenuEnd = new Literal()
+            {
+                Text = "</div>" + CreateJSBlack(CurrentPanel)
+            };
+
+            cell.Controls.Add(MenuEnd);
         }
 
         /// <summary>
-        /// 菜单呈显事件
+        /// 生成菜单
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="control"></param>
-        private void MenuOnPreRender(object sender, Control buttonControl)
+        /// <param name="cell"></param>
+        public void CreateMenu(DataControlFieldCell cell)
         {
-            XLiteral menu = sender as XLiteral;
-            if (menu == null) return;
+            Control namingContainer = cell.NamingContainer;
+            object component = null;
+            if (namingContainer == null)
+            {
+                throw new HttpException("DataControlField_NoContainer Is Null");
+            }
+            component = DataBinder.GetDataItem(namingContainer);
+            if ((component == null) && !base.DesignMode)
+            {
+                throw new HttpException("DataItem_Not_Found");
+            }
 
-            menu.Text = CreateMenuDiv(menu, buttonControl);
-        }
+            //获取绑定字段值
+            String DataFieldValue = GetDataFileValue(component, DataField);
 
+            //获取条件模版字段值
+            String ConditionFieldValue = GetDataFileValue(component, ConditionField);
 
-
-        /// <summary>
-        /// 生成DIV文本
-        /// </summary>
-        /// <param name="literalControl"></param>
-        /// <param name="buttoncontrol"></param>
-        /// <returns></returns>
-        private String CreateMenuDiv(XLiteral literalControl, Control buttoncontrol)
-        {
-
-            String menu = "<div class=\"{0}\" id=\"{1}\" style=\"display:none;\"><ul>{2}</ul></div>{3}";
-
-            StringBuilder sb = new StringBuilder();
 
             //菜单参数创建
             if (MenuParameters != null && MenuParameters.Count > 0)
             {
-                foreach (MenuItem item in MenuParameters)
+                StringBuilder sb = new StringBuilder();
+                foreach (MenuParameterItem item in MenuParameters)
                 {
                     String iConCss = item.IConCss;
                     String url = item.Url;
                     String onClick = item.OnClick;
                     String text = item.Text;
 
-                    if (!String.IsNullOrEmpty(literalControl.DataFieldValue) && !String.IsNullOrEmpty(iConCss))
-                        iConCss = " class=\"" + String.Format(iConCss, literalControl.DataFieldValue) + "\"";
+                    if (!String.IsNullOrEmpty(DataFieldValue) && !String.IsNullOrEmpty(iConCss))
+                        iConCss = " class=\"" + String.Format(iConCss, DataFieldValue) + "\"";
 
-                    if (!String.IsNullOrEmpty(literalControl.DataFieldValue) && !String.IsNullOrEmpty(url))
-                        url = " href=\"" + String.Format(url, literalControl.DataFieldValue) + "\"";
+                    if (!String.IsNullOrEmpty(DataFieldValue) && !String.IsNullOrEmpty(url))
+                        url = " href=\"" + String.Format(url, DataFieldValue) + "\"";
 
-                    if (!String.IsNullOrEmpty(literalControl.DataFieldValue) && !String.IsNullOrEmpty(onClick))
-                        onClick = " onclick=\"" + String.Format(onClick, literalControl.DataFieldValue) + "\"";
+                    if (!String.IsNullOrEmpty(DataFieldValue) && !String.IsNullOrEmpty(onClick))
+                        onClick = " onclick=\"" + String.Format(onClick, DataFieldValue) + "\"";
 
-                    if (!String.IsNullOrEmpty(literalControl.DataFieldValue) && !String.IsNullOrEmpty(text))
-                        text = String.Format(text, literalControl.DataFieldValue);
+                    if (!String.IsNullOrEmpty(DataFieldValue) && !String.IsNullOrEmpty(text))
+                        text = String.Format(text, DataFieldValue);
 
                     sb.AppendFormat("<li{0}><a{1}{2}>{3}</a></li>"
                         , iConCss
@@ -313,8 +342,10 @@ namespace XControl
                         , text
                         );
                     sb.AppendLine();
-
                 }
+
+                //加入菜单
+                cell.Controls.Add(new Literal() { Text = "<ul>" + sb.ToString() + "</ul>" });
             }
             else if (MenuTemplate != null && MenuTemplate.Count > 0)
             {
@@ -322,7 +353,7 @@ namespace XControl
                 //条件模版创建
                 foreach (MenuTemplateItem item in MenuTemplate)
                 {
-                    if (String.Equals(item.ConditionFieldValue, literalControl.ConditionFieldValue, StringComparison.CurrentCultureIgnoreCase))
+                    if (String.Equals(item.ConditionFieldValue, ConditionFieldValue, StringComparison.CurrentCultureIgnoreCase))
                     {
                         currentMenu = item;
                         break;
@@ -331,20 +362,24 @@ namespace XControl
 
                 if (currentMenu != null)
                 {
-                    sb.AppendFormat(currentMenu.Template, literalControl.DataFieldValue);
+                    currentMenu.Template.InstantiateIn(cell);
                 }
             }
+        }
 
-            String menuDivID = CreateMenuDivID(buttoncontrol.ClientID);
 
-            // 菜单 JS
-            String MenuJS = String.Format(@"<script type='text/javascript'>
+        /// <summary>
+        /// 生成菜单 JS
+        /// </summary>
+        /// <param name="control"></param>
+        /// <returns></returns>
+        private String CreateJSBlack(Control control)
+        {
+            return String.Format(@"<script type='text/javascript'>
                                $(document).ready(function () {{
                                    $('#{0}').contextMenu('#{1}', {{triggerEvent: '{2}', menuOffset: 'under'}});
                                }});
-                            </script>", buttoncontrol.ClientID, menuDivID, TriggerEvent);
-
-            return String.Format(menu, MenuCss, menuDivID, sb.ToString(), MenuJS);
+                            </script>", control.ClientID, CreateMenuDivID(control.ClientID), TriggerEvent);
         }
 
         /// <summary>
@@ -408,36 +443,18 @@ namespace XControl
         /// <param name="newField"></param>
         protected override void CopyProperties(DataControlField newField)
         {
+
+            MenuField f = newField as MenuField;
+            f.MenuCss = this.MenuCss;
+            f.ControlCss = this.ControlCss;
+            f.MenuParameters = this.MenuParameters;
+            f.Text = this.Text;
+            f.TriggerEvent = this.TriggerEvent;
+            f.DataField = this.DataField;
+            f.ConditionField = this.ConditionField;
+            f.MenuTemplate = this.MenuTemplate;
+
             base.CopyProperties(newField);
-        }
-
-        /// <summary>
-        /// 设置DataField
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void OnDataBindField(object sender, EventArgs e)
-        {
-            Control control = (Control)sender;
-            Control namingContainer = control.NamingContainer;
-            object component = null;
-            if (namingContainer == null)
-            {
-                throw new HttpException("DataControlField_NoContainer Is Null");
-            }
-            component = DataBinder.GetDataItem(namingContainer);
-            if ((component == null) && !base.DesignMode)
-            {
-                throw new HttpException("DataItem_Not_Found");
-            }
-
-            XLiteral xl = control as XLiteral;
-
-            xl.DataFieldValue = GetDataFileValue(component, DataField);
-            xl.DataField = DataField;
-
-            xl.ConditionFieldValue = GetDataFileValue(component, ConditionField);
-            xl.ConditionField = ConditionField;
         }
 
         /// <summary>
@@ -474,6 +491,140 @@ namespace XControl
             return r;
         }
 
+        #region 原始实现
+        //        /// <summary>
+        //        /// 创建菜单
+        //        /// </summary>
+        //        /// <returns></returns>
+        //        private XLiteral CreateMenuLiteral(Control control)
+        //        {
+        //            XLiteral literal = new XLiteral();
+        //            literal.PreRender += delegate(object sender, EventArgs err)
+        //            {
+        //                MenuOnPreRender(sender, control);
+        //            };
+
+        //            return literal;
+        //        }
+
+        //        /// <summary>
+        //        /// 菜单呈显事件
+        //        /// </summary>
+        //        /// <param name="sender"></param>
+        //        /// <param name="control"></param>
+        //        private void MenuOnPreRender(object sender, Control buttonControl)
+        //        {
+        //            XLiteral menu = sender as XLiteral;
+        //            if (menu == null) return;
+
+        //            menu.Text = CreateMenuDiv(menu, buttonControl);
+        //        }
+
+        //        /// <summary>
+        //        /// 生成DIV文本
+        //        /// </summary>
+        //        /// <param name="literalControl"></param>
+        //        /// <param name="buttoncontrol"></param>
+        //        /// <returns></returns>
+        //        private String CreateMenuDiv(XLiteral literalControl, Control buttoncontrol)
+        //        {
+
+        //            String menu = "<div class=\"{0}\" id=\"{1}\" style=\"display:none;\"><ul>{2}</ul></div>{3}";
+
+        //            StringBuilder sb = new StringBuilder();
+
+        //            //菜单参数创建
+        //            if (MenuParameters != null && MenuParameters.Count > 0)
+        //            {
+        //                foreach (MenuItem item in MenuParameters)
+        //                {
+        //                    String iConCss = item.IConCss;
+        //                    String url = item.Url;
+        //                    String onClick = item.OnClick;
+        //                    String text = item.Text;
+
+        //                    if (!String.IsNullOrEmpty(literalControl.DataFieldValue) && !String.IsNullOrEmpty(iConCss))
+        //                        iConCss = " class=\"" + String.Format(iConCss, literalControl.DataFieldValue) + "\"";
+
+        //                    if (!String.IsNullOrEmpty(literalControl.DataFieldValue) && !String.IsNullOrEmpty(url))
+        //                        url = " href=\"" + String.Format(url, literalControl.DataFieldValue) + "\"";
+
+        //                    if (!String.IsNullOrEmpty(literalControl.DataFieldValue) && !String.IsNullOrEmpty(onClick))
+        //                        onClick = " onclick=\"" + String.Format(onClick, literalControl.DataFieldValue) + "\"";
+
+        //                    if (!String.IsNullOrEmpty(literalControl.DataFieldValue) && !String.IsNullOrEmpty(text))
+        //                        text = String.Format(text, literalControl.DataFieldValue);
+
+        //                    sb.AppendFormat("<li{0}><a{1}{2}>{3}</a></li>"
+        //                        , iConCss
+        //                        , url
+        //                        , onClick
+        //                        , text
+        //                        );
+        //                    sb.AppendLine();
+
+        //                }
+        //            }
+        //            else if (MenuTemplate != null && MenuTemplate.Count > 0)
+        //            {
+        //                MenuTemplateItem currentMenu = null; ;
+        //                //条件模版创建
+        //                foreach (MenuTemplateItem item in MenuTemplate)
+        //                {
+        //                    if (String.Equals(item.ConditionFieldValue, literalControl.ConditionFieldValue, StringComparison.CurrentCultureIgnoreCase))
+        //                    {
+        //                        currentMenu = item;
+        //                        break;
+        //                    }
+        //                }
+
+        //                if (currentMenu != null)
+        //                {
+        //                    //sb.AppendFormat(currentMenu.Template, literalControl.DataFieldValue);
+        //                }
+        //            }
+
+        //            String menuDivID = CreateMenuDivID(buttoncontrol.ClientID);
+
+        //            // 菜单 JS
+        //            String MenuJS = String.Format(@"<script type='text/javascript'>
+        //                               $(document).ready(function () {{
+        //                                   $('#{0}').contextMenu('#{1}', {{triggerEvent: '{2}', menuOffset: 'under'}});
+        //                               }});
+        //                            </script>", buttoncontrol.ClientID, menuDivID, TriggerEvent);
+
+        //            return String.Format(menu, MenuCss, menuDivID, sb.ToString(), MenuJS);
+        //        }
+
+        //        /// <summary>
+        //        /// 设置DataField
+        //        /// </summary>
+        //        /// <param name="sender"></param>
+        //        /// <param name="e"></param>
+        //        private void OnDataBindField(object sender, EventArgs e)
+        //        {
+        //            Control control = (Control)sender;
+        //            Control namingContainer = control.NamingContainer;
+        //            object component = null;
+        //            if (namingContainer == null)
+        //            {
+        //                throw new HttpException("DataControlField_NoContainer Is Null");
+        //            }
+        //            component = DataBinder.GetDataItem(namingContainer);
+        //            if ((component == null) && !base.DesignMode)
+        //            {
+        //                throw new HttpException("DataItem_Not_Found");
+        //            }
+
+        //            XLiteral xl = control as XLiteral;
+
+        //            xl.DataFieldValue = GetDataFileValue(component, DataField);
+        //            xl.DataField = DataField;
+
+        //            xl.ConditionFieldValue = GetDataFileValue(component, ConditionField);
+        //            xl.ConditionField = ConditionField;
+        //        }
+        #endregion
     }
 
 }
