@@ -248,7 +248,7 @@ namespace NewLife.CommonEntity.Web
                         _Entity = e.Arg2;
                     }
 
-                    if (_Entity == null) _Entity = Factory.FindByKeyForEdit(eid);
+                    if (_Entity == null && !String.IsNullOrEmpty(KeyName)) _Entity = Factory.FindByKeyForEdit(eid);
 
                     // 把Request参数读入到实体里面
                     FillEntityWithRequest(_Entity);
