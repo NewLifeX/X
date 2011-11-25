@@ -117,9 +117,9 @@ namespace NewLife.CommonEntity
         public virtual Object GetService(Type serviceType)
         {
             if (serviceType == typeof(IManagePage))
-                return GetHttpCache(typeof(IManagePage), k => CommonService.Resolve<IManagePage>());
+                return CommonService.Resolve<IManagePage>();
             else if (serviceType == typeof(IEntityForm))
-                return GetHttpCache(typeof(IEntityForm), k => CommonService.Resolve<IEntityForm>());
+                return CommonService.Resolve<IEntityForm>();
 
             return CommonService.Resolve(serviceType);
         }
