@@ -206,7 +206,9 @@ namespace XTemplate.Templating
                         foreach (var type in asm.GetTypes())
                         {
                             String name = type.Namespace;
-                            if (!String.IsNullOrEmpty(name) && !list.Contains(name)) list.Add(name);
+                            if (String.IsNullOrEmpty(name)) continue;
+                            if (!name.StartsWith("XCode") && !name.StartsWith("NewLife")) continue;
+                            if (!list.Contains(name)) list.Add(name);
                         }
                     }
                 }
