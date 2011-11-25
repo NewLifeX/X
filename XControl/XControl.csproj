@@ -65,10 +65,10 @@
     <Compile Include="Box\LinkBox.cs" />
     <Compile Include="Box\LinkBoxField.cs" />
     <Compile Include="Button\LinkButtonField.cs" />
+    <Compile Include="MenuField\MenuParameterItem.cs" />
     <Compile Include="XControlConfig.cs" />
     <Compile Include="MenuField\MenuTemplateItem.cs" />
     <Compile Include="MenuField\MenuField.cs" />
-    <Compile Include="MenuField\MenuItem.cs" />
     <Compile Include="MenuField\XLiteral.cs" />
     <Compile Include="ScriptHelper.cs" />
     <Compile Include="TextBox\DateTime.cs" />
