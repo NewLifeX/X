@@ -13,37 +13,6 @@ namespace XTemplate.Templating
     public abstract class TemplateBase : DisposeBase
     {
         #region 构造和释放
-        ///// <summary>
-        ///// 实例化一个模版
-        ///// </summary>
-        //protected TemplateBase() { }
-
-        ///// <summary>
-        ///// 释放
-        ///// </summary>
-        //public void Dispose()
-        //{
-        //    Dispose(true);
-        //    GC.SuppressFinalize(this);
-        //}
-
-        ///// <summary>
-        ///// 释放
-        ///// </summary>
-        ///// <param name="disposing"></param>
-        //protected virtual void Dispose(Boolean disposing)
-        //{
-        //    _Output = null;
-        //}
-
-        ///// <summary>
-        ///// 析构
-        ///// </summary>
-        //~TemplateBase()
-        //{
-        //    Dispose(false);
-        //}
-
         /// <summary>释放</summary>
         /// <param name="disposing"></param>
         protected override void OnDispose(bool disposing)
@@ -228,6 +197,16 @@ namespace XTemplate.Templating
         }
         #endregion
 
+        #region 属性
+        private Template _Template;
+        /// <summary>模版引擎实例</summary>
+        public Template Template { get { return _Template; } set { _Template = value; } }
+
+        private TemplateItem _TemplateItem;
+        /// <summary>模版项实例</summary>
+        public TemplateItem TemplateItem { get { return _TemplateItem; } set { _TemplateItem = value; } }
+        #endregion
+
         #region 生成
         /// <summary>
         /// 初始化
@@ -256,7 +235,7 @@ namespace XTemplate.Templating
         }
         #endregion
 
-        #region 属性
+        #region 数据属性
         private IDictionary<String, Object> _Data;
         /// <summary>数据</summary>
         public IDictionary<String, Object> Data

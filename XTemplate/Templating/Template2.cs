@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Text;
-using System.Configuration;
-using System.Security.Cryptography;
 using System.IO;
 using System.Reflection;
-using NewLife.Log;
+using System.Security.Cryptography;
+using System.Text;
+using NewLife.Collections;
 using NewLife.Configuration;
+using NewLife.Log;
 
 namespace XTemplate.Templating
 {
@@ -82,9 +83,7 @@ namespace XTemplate.Templating
 
         #region 配置
         private static String _BaseClassName;
-        /// <summary>
-        /// 默认基类名称
-        /// </summary>
+        /// <summary>默认基类名称</summary>
         public static String BaseClassName
         {
             get { return _BaseClassName ?? (_BaseClassName = Config.GetConfig<String>("XTemplate.BaseClassName", String.Empty)); }
@@ -92,9 +91,7 @@ namespace XTemplate.Templating
         }
 
         private static List<String> _References;
-        /// <summary>
-        /// 标准程序集引用
-        /// </summary>
+        /// <summary>标准程序集引用</summary>
         public static List<String> References
         {
             get
@@ -141,9 +138,7 @@ namespace XTemplate.Templating
         }
 
         private static List<String> _Imports;
-        /// <summary>
-        /// 标准命名空间引用
-        /// </summary>
+        /// <summary>标准命名空间引用</summary>
         public static List<String> Imports
         {
             get
@@ -152,6 +147,8 @@ namespace XTemplate.Templating
 
                 // 命名空间
                 List<String> list = new List<String>();
+                // 尽快赋值，避免重入
+                _Imports = list;
 
                 // 加入配置的命名空间
                 String[] ss = Config.GetConfigSplit<String>("XTemplate.Imports", null);
@@ -168,16 +165,16 @@ namespace XTemplate.Templating
 
                 // 特别支持
                 Dictionary<String, String[]> supports = new Dictionary<String, String[]>();
-                supports.Add("XCode", new String[] { "XCode", "XCode.DataAccessLayer" });
+                //supports.Add("XCode", new String[] { "XCode", "XCode.DataAccessLayer" });
                 supports.Add("XCommon", new String[] { "XCommon" });
                 supports.Add("XControl", new String[] { "XControl" });
-                supports.Add("NewLife.CommonEntity", new String[] { "NewLife.CommonEntity" });
+                //supports.Add("NewLife.CommonEntity", new String[] { "NewLife.CommonEntity" });
                 supports.Add("System.Web", new String[] { "System.Web" });
                 supports.Add("System.Xml", new String[] { "System.Xml" });
 
+                Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
                 foreach (String item in supports.Keys)
                 {
-                    Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
                     foreach (Assembly asm in asms)
                     {
                         if (!asm.FullName.StartsWith(item + ",")) continue;
@@ -189,6 +186,27 @@ namespace XTemplate.Templating
                             {
                                 if (!list.Contains(name)) list.Add(name);
                             }
+                        }
+                    }
+                }
+
+                // 特别支持，导入它们的所有命名空间
+                ICollection<String> maps = new HashSet<String>();
+                maps.Add("XCode");
+                maps.Add("NewLife.Core");
+                maps.Add("NewLife.CommonEntity");
+
+                foreach (String item in maps)
+                {
+                    foreach (Assembly asm in asms)
+                    {
+                        if (!asm.FullName.StartsWith(item + ",")) continue;
+
+                        // 遍历所有公开类，导入它们的所有命名空间
+                        foreach (var type in asm.GetTypes())
+                        {
+                            String name = type.Namespace;
+                            if (!String.IsNullOrEmpty(name) && !list.Contains(name)) list.Add(name);
                         }
                     }
                 }

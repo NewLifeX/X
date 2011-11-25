@@ -127,12 +127,12 @@ namespace XTemplate.Templating
             set { _NameSpace = value; }
         }
 
-        private Int32 _Step;
-        /// <summary>处理步骤</summary>
-        private Int32 Step
+        private TemplateStatus _Status;
+        /// <summary>模版引擎状态</summary>
+        public TemplateStatus Status
         {
-            get { return _Step; }
-            set { _Step = value; }
+            get { return _Status; }
+            set { _Status = value; }
         }
         #endregion
 
@@ -282,20 +282,19 @@ namespace XTemplate.Templating
         #endregion
 
         #region 分析模版
-        const Int32 Step_Process = 1;
         /// <summary>处理预先写入Templates的模版集合，模版生成类的代码在Sources中返回</summary>
         public void Process()
         {
             if (Templates == null || Templates.Count < 1) throw new InvalidOperationException("在Templates中未找到待处理模版！");
 
-            if (Step >= Step_Process) return;
+            if (Status >= TemplateStatus.Process) return;
 
             for (int i = 0; i < Templates.Count; i++)
             {
                 Process(Templates[i]);
             }
 
-            Step = Step_Process;
+            Status = TemplateStatus.Process;
         }
 
         /// <summary>
@@ -308,7 +307,7 @@ namespace XTemplate.Templating
         {
             if (String.IsNullOrEmpty(content)) throw new ArgumentNullException("content", "模版内容不能为空！");
 
-            if (Step >= 1) throw new InvalidOperationException("模版已分析处理，不能再添加模版！");
+            if (Status >= TemplateStatus.Process) throw new InvalidOperationException("模版已分析处理，不能再添加模版！");
 
             // 未指定模版名称时，使用模版的散列作为模版名称
             if (String.IsNullOrEmpty(name)) name = Hash(content);
@@ -333,6 +332,12 @@ namespace XTemplate.Templating
             foreach (TemplateItem item in Templates)
             {
                 if (item.Name.EqualIgnoreCase(name)) return item;
+            }
+
+            // 再根据类名找
+            foreach (TemplateItem item in Templates)
+            {
+                if (item.ClassName.EqualIgnoreCase(name)) return item;
             }
 
             return null;
@@ -755,26 +760,25 @@ namespace XTemplate.Templating
         #endregion
 
         #region 编译模版
-        const Int32 Step_Compile = Step_Process + 1;
         /// <summary>编译运行</summary>
         /// <returns></returns>
         public Assembly Compile()
         {
-            if (Step >= Step_Compile) return Assembly;
+            if (Status >= TemplateStatus.Compile) return Assembly;
 
-            if (Step < Step_Compile - 1) Process();
+            if (Status < TemplateStatus.Process) Process();
 
             if (References != null) AssemblyReferences.AddRange(References);
 
             String name = AssemblyName;
-            if (String.IsNullOrEmpty(Path.GetExtension(name))) name += ".dll";
+            if (!String.IsNullOrEmpty(Path.GetExtension(name))) name += ".dll";
             Assembly asm = Compile(name, AssemblyReferences, Provider, Errors, this);
             if (asm != null) Assembly = asm;
 
             // 释放提供者
             Provider = null;
 
-            Step = Step_Compile;
+            Status = TemplateStatus.Compile;
 
             return asm;
         }
@@ -1024,7 +1028,7 @@ namespace XTemplate.Templating
         /// <returns></returns>
         public TemplateBase CreateInstance(String className)
         {
-            if (Step < Step_Compile) Compile();
+            if (Status < TemplateStatus.Compile) Compile();
 
             if (Assembly == null) throw new InvalidOperationException("尚未编译模版！");
 
@@ -1057,6 +1061,9 @@ namespace XTemplate.Templating
             // 可能存在大小写不匹配等问题，这里需要修正
             TemplateBase temp = Assembly.CreateInstance(className, true) as TemplateBase;
             if (temp == null) throw new Exception(String.Format("没有找到模版类[{0}]！", className));
+
+            temp.Template = this;
+            temp.TemplateItem = FindTemplateItem(className);
 
             return temp;
         }
