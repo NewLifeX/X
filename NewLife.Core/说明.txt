@@ -1,4 +1,7 @@
-﻿2011-10-01
+﻿2011-11-25
+1，考虑设计一个HttpModuleLoader的IHttpModule，用于加载子目录web.config中配置的IHttpModule
+
+2011-10-01
 1，反射库应该提供一个动态执行代码的封装，ScriptEngine，ScriptSession
 
 2011-09-26
