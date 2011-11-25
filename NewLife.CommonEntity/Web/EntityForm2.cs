@@ -135,10 +135,11 @@ namespace NewLife.CommonEntity.Web
             get
             {
                 Type type = Factory.Unique.Type;
+                Object eid = EntityID;
                 if (type == typeof(Int32) || type == typeof(Int16) || type == typeof(Int64))
-                    return EntityID != null ? Convert.ToInt64(EntityID) <= 0 : true;
+                    return eid != null ? Convert.ToInt64(eid) <= 0 : true;
                 else if (type == typeof(String))
-                    return EntityID != null ? String.IsNullOrEmpty((String)EntityID) : true;
+                    return eid != null ? String.IsNullOrEmpty((String)eid) : true;
                 else
                     throw new NotSupportedException("仅支持整数和字符串类型！");
             }
@@ -171,7 +172,7 @@ namespace NewLife.CommonEntity.Web
 
         #region 实体相关
         private String _KeyName;
-        /// <summary>键名</summary>
+        /// <summary>键名。使用者可以通过给KeyName置空来避免内部自动根据Request[KeyName]取值</summary>
         public virtual String KeyName
         {
             get
@@ -194,11 +195,17 @@ namespace NewLife.CommonEntity.Web
             set { _KeyName = value; }
         }
 
-        /// <summary>主键</summary>
+        /// <summary>主键。如果实体已经存在，则使用实体的主键值。因为有些时候实体是由外部赋值的</summary>
         public virtual Object EntityID
         {
             get
             {
+                // 如果实体已经存在，则使用实体的主键值。
+                if (_Entity != null && Factory.Unique != null) return _Entity[Factory.Unique.Name];
+
+                // 使用者可以通过给KeyName置空来避免内部自动根据Request[KeyName]取值
+                if (String.IsNullOrEmpty(KeyName)) return null;
+
                 String str = HttpContext.Current.Request[KeyName];
                 if (String.IsNullOrEmpty(str)) return null;
 
@@ -222,21 +229,26 @@ namespace NewLife.CommonEntity.Web
         }
 
         private IEntity _Entity;
-        /// <summary>数据实体</summary>
+        /// <summary>数据实体。使用者可以通过给KeyName置空来避免内部自动根据Request[KeyName]取值</summary>
         public virtual IEntity Entity
         {
             get
             {
                 if (_Entity == null)
                 {
-                    _Entity = Factory.FindByKeyForEdit(EntityID);
+                    Object eid = EntityID;
+
+                    // 使用者可以通过给KeyName置空来避免内部自动根据Request[KeyName]取值
+                    if (!String.IsNullOrEmpty(KeyName)) _Entity = Factory.FindByKeyForEdit(eid);
+
                     if (OnGetEntity != null)
                     {
-                        EventArgs<Object, IEntity> e = new EventArgs<object, IEntity>(EntityID, _Entity);
+                        EventArgs<Object, IEntity> e = new EventArgs<object, IEntity>(eid, _Entity);
                         OnGetEntity(this, e);
                         _Entity = e.Arg2;
                     }
-                    if (_Entity == null) _Entity = Factory.FindByKeyForEdit(EntityID);
+
+                    if (_Entity == null) _Entity = Factory.FindByKeyForEdit(eid);
 
                     // 把Request参数读入到实体里面
                     FillEntityWithRequest(_Entity);
@@ -255,7 +267,7 @@ namespace NewLife.CommonEntity.Web
         /// <param name="entity"></param>
         protected virtual void FillEntityWithRequest(IEntity entity)
         {
-            if (entity == null) return;
+            if (entity == null || HttpContext.Current == null || HttpContext.Current.Request == null) return;
 
             // 借助Http实体访问器，直接把Request参数读入到实体里面
             IEntityAccessor accessor = EntityAccessorFactory.Create(EntityAccessorTypes.Http);
@@ -298,10 +310,11 @@ namespace NewLife.CommonEntity.Web
             if (entity == null)
             {
                 String msg = null;
+                Object eid = EntityID;
                 if (IsNew)
-                    msg = String.Format("参数错误！无法取得编号为{0}的{2}({1})！可能未设置自增主键！", EntityID, Factory.TableName, Factory.Table.Description);
+                    msg = String.Format("参数错误！无法取得编号为{0}的{2}({1})！可能未设置自增主键！", eid, Factory.TableName, Factory.Table.Description);
                 else
-                    msg = String.Format("参数错误！无法取得编号为{0}的{2}({1})！", EntityID, Factory.TableName, Factory.Table.Description);
+                    msg = String.Format("参数错误！无法取得编号为{0}的{2}({1})！", eid, Factory.TableName, Factory.Table.Description);
 
                 WebHelper.Alert(msg);
                 Response.Write(msg);
