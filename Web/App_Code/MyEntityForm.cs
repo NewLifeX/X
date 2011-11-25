@@ -7,6 +7,7 @@
 ﻿using System;
 using System.Web.UI;
 using NewLife.CommonEntity;
+using XCode;
 
 /// <summary>实体表单页面基类</summary>
 public class MyEntityForm : Page
@@ -31,4 +32,15 @@ public class MyEntityForm : Page
         base.OnPreInit(e);
     }
     #endregion
+}
+
+/// <summary>实体表单页面基类</summary>
+public class MyEntityForm<TEntity> : MyEntityForm where TEntity : Entity<TEntity>, new()
+{
+    /// <summary>实体类</summary>
+    public override Type EntityType { get { return base.EntityType ?? (base.EntityType = typeof(TEntity)); } set { base.EntityType = value; } }
+
+    private TEntity _Entity;
+    /// <summary>实体</summary>
+    public virtual TEntity Entity { get { return EntityForm == null ? null : EntityForm.Entity as TEntity; } set { if (EntityForm != null) EntityForm.Entity = value; } }
 }

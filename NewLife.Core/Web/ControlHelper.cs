@@ -134,5 +134,31 @@ namespace NewLife.Web
 
             return fix.GetValue(handler) as T;
         }
+
+        /// <summary>根据字段查找指定ID的控件，采用反射字段的方法，避免遍历Controls引起子控件构造</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="control">容器</param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public static T FindControlByField<T>(Control control, String id) where T : Control
+        {
+            if (control == null) return null;
+
+            FieldInfoX fix = null;
+            if (!String.IsNullOrEmpty(id))
+            {
+                fix = FieldInfoX.Create(control.GetType(), id);
+            }
+            else
+            {
+                Type t = typeof(T);
+                FieldInfo fi = control.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(item => item.FieldType == t);
+                if (fi != null) fix = FieldInfoX.Create(fi);
+            }
+
+            if (fix == null) return null;
+
+            return fix.GetValue(control) as T;
+        }
     }
 }

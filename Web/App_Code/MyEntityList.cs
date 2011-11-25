@@ -7,6 +7,7 @@
 ﻿using System;
 using System.Web.UI;
 using NewLife.CommonEntity;
+using XCode;
 
 /// <summary>实体列表页面基类</summary>
 public abstract class MyEntityList : Page
@@ -26,4 +27,11 @@ public abstract class MyEntityList : Page
         base.OnPreInit(e);
     }
     #endregion
+}
+
+/// <summary>实体列表页面基类</summary>
+public class MyEntityList<TEntity> : MyEntityForm where TEntity : Entity<TEntity>, new()
+{
+    /// <summary>实体类</summary>
+    public override Type EntityType { get { return base.EntityType ?? (base.EntityType = typeof(TEntity)); } set { base.EntityType = value; } }
 }

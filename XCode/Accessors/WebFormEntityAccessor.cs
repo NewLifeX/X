@@ -540,7 +540,7 @@ namespace XCode.Accessors
         /// <returns></returns>
         protected virtual Control FindControl(string id)
         {
-            Control control = ControlHelper.FindControlInPage<Control>(id);
+            Control control = ControlHelper.FindControlByField<Control>(Container, id);
             if (control != null) return control;
 
             control = Container.FindControl(id);

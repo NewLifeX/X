@@ -67,16 +67,6 @@ namespace NewLife.CommonEntity.Web
         /// <param name="type"></param>
         public EntityForm2(Control container, Type type)
         {
-            //if (container == null)
-            //{
-            //    if (HttpContext.Current.Handler is Page) container = HttpContext.Current.Handler as Page;
-            //}
-
-            //Container = container;
-            //EntityType = type;
-
-            //Init();
-
             (this as IEntityForm).Init(container, type);
         }
         #endregion
@@ -108,7 +98,7 @@ namespace NewLife.CommonEntity.Web
         protected Page Page { get { return Container.Page; } }
 
         /// <summary>响应</summary>
-        protected HttpResponse Response { get { return Container.Page.Response; } }
+        protected HttpResponse Response { get { return HttpContext.Current.Response; } }
 
         /// <summary>保存按钮，查找名为btnSave或UpdateButton（兼容旧版本）的按钮，如果没找到，将使用第一个使用了提交行为的按钮</summary>
         protected virtual Control SaveButton
@@ -122,7 +112,7 @@ namespace NewLife.CommonEntity.Web
                 if (control != null) return control;
 
                 // 随便找一个按钮
-                Button btn = ControlHelper.FindControl<Button>(Page, null);
+                Button btn = ControlHelper.FindControl<Button>(Container, null);
                 if (btn != null && btn.UseSubmitBehavior) return btn;
 
                 return null;
@@ -301,10 +291,8 @@ namespace NewLife.CommonEntity.Web
             }
             catch (XCodeException ex)
             {
-                if (!ex.Message.Contains("参数错误！无法取得编号为")) // 由下面自行处理,而不是抛出这个异常
-                {
-                    throw;
-                }
+                // 由下面自行处理,而不是抛出这个异常
+                if (!ex.Message.Contains("参数错误！无法取得编号为")) throw;
             }
             // 判断实体
             if (entity == null)
@@ -331,12 +319,6 @@ namespace NewLife.CommonEntity.Web
 
                 if (btn != null)
                 {
-                    // 添加/编辑 按钮需要添加/编辑权限
-                    //if (IsNullKey)
-                    //    btn.Visible = Acquire(PermissionFlags.Insert);
-                    //else
-                    //    btn.Visible = Acquire(PermissionFlags.Update);
-
                     btn.Visible = CanSave;
 
                     if (btn is IButtonControl) (btn as IButtonControl).Text = IsNew ? "新增" : "更新";
@@ -551,13 +533,13 @@ namespace NewLife.CommonEntity.Web
         /// <returns></returns>
         protected virtual Control FindControl(string id)
         {
-            Control control = ControlHelper.FindControlInPage<Control>(id);
+            Control control = ControlHelper.FindControlByField<Control>(Container, id);
             if (control != null) return control;
 
             control = Container.FindControl(id);
             if (control != null) return control;
 
-            return ControlHelper.FindControl<Control>(Page.Form, id);
+            return ControlHelper.FindControl<Control>(Container, id);
         }
 
         /// <summary>

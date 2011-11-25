@@ -175,6 +175,9 @@
     <EmbeddedResource Include="Template\页面基类2\MyEntityList.cs">
       <SubType>ASPXCodeBehind</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="Template\页面基类2\MyEntityUserControl.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </EmbeddedResource>
     <Compile Include="TranslateResult.cs" />
     <EmbeddedResource Include="Template\实体\类名.Biz.cs" />
     <EmbeddedResource Include="Template\实体\类名.cs" />

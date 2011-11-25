@@ -7,14 +7,8 @@ using NewLife.Log;
 using NewLife.Web;
 using <#=Config.NameSpace#>;
 
-public partial class <#=Config.EntityConnName+"_"+Table.Alias#>Form : MyEntityForm
+public partial class <#=Config.EntityConnName+"_"+Table.Alias#>Form : MyEntityForm<<#=Table.Alias#>>
 {
-    /// <summary>实体类型</summary>
-    public override Type EntityType { get { return typeof(<#=Table.Alias#>); } set { base.EntityType = value; } }
-
-    /// <summary>实体</summary>
-    public <#=Table.Alias#> Entity { get { return EntityForm.Entity as <#=Table.Alias#>; } }
-
     protected void Page_Load(object sender, EventArgs e)
     {
     }
