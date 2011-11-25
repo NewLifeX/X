@@ -176,8 +176,61 @@ namespace NewLife.Mvc
         /// </summary>
         internal void SortConfigRule()
         {
-            rules.Sort((a, b) => b.Path.Length - a.Path.Length);
+            StableSort(rules, false, (a, b) => -a.Path.Length - b.Path.Length);
         }
+
+        #region 稳定排序实现
+
+        /// <summary>
+        /// 提供稳定排序,因为内部实现还是快速排序,所以需要指定isDesc参数
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="isDesc">使用comp比较相同的元素是否使用和默认顺序相反的顺序排列,想保持默认顺序的话应使用false</param>
+        /// <param name="comp"></param>
+        /// <returns></returns>
+        public static IList<T> StableSort<T>(IList<T> list, bool isDesc, Comparison<T> comp)
+        {
+            StableSortItem<T>[] sortList = new StableSortItem<T>[list.Count];
+            for (int i = 0; i < sortList.Length; i++)
+            {
+                sortList[i] = new StableSortItem<T>(i, list[i]);
+            }
+            Array.Sort<StableSortItem<T>>(sortList, delegate(StableSortItem<T> a, StableSortItem<T> b)
+            {
+                int r = comp(a.Value, b.Value);
+                if (r == 0)
+                {
+                    r = a.Index - b.Index;
+                    if (isDesc) return -r;
+                }
+                return r;
+            });
+            for (int i = 0; i < sortList.Length; i++)
+            {
+                list[i] = sortList[i].Value;
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// 稳定排序使用的集合元素,只是简单的记录原始集合的元素顺序
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        struct StableSortItem<T>
+        {
+            public StableSortItem(int index, T val)
+            {
+                Index = index;
+                Value = val;
+            }
+
+            public int Index { get; set; }
+
+            public T Value { get; set; }
+        }
+
+        #endregion 稳定排序实现
 
         /// <summary>
         /// 返回当前路由配置的路由目标HttpHandler,如果无法匹配任何路由目标则返回null
