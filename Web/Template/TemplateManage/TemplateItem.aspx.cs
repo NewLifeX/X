@@ -42,19 +42,6 @@ public partial class Common_TemplateItem : MyEntityList
         }
     }
 
-    protected override void OnLoadComplete(EventArgs e)
-    {
-        base.OnLoadComplete(e);
-
-        //// 不允许直接添加，必须从模版管理过来
-        //if (!IsPostBack && TemplateID <= 0) lbAdd.Visible = false;
-    }
-
-    protected override void Render(HtmlTextWriter writer)
-    {
-        base.Render(writer);
-    }
-
     protected void ods_Selecting(object sender, ObjectDataSourceSelectingEventArgs e)
     {
         e.InputParameters["templateid"] = TemplateID;
