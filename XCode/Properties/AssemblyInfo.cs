@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.3.*")]
-[assembly: AssemblyFileVersion("8.3.2011.1124")]
+[assembly: AssemblyFileVersion("8.3.2011.1126")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.3.2011.1126   HttpEntityAccessor检查数据类型是否满足目标类型，如果不满足则跳过，以免内部赋值异常导致程序处理出错
+ * 
  * v8.3.2011.1124   Entity增加SaveWithoutValid方法，不需要验证的保存，不执行Valid，一般用于快速导入数据
  * 
  * v8.3.2011.1123   修正反向工程检查实体类表架构时，有些实体类所在程序集尚未加载，导致未能检查的问题，改为首次使用时检查

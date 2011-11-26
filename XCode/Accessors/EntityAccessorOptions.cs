@@ -10,9 +10,6 @@ namespace XCode.Accessors
         /// <summary>是否所有字段</summary>
         AllFields,
 
-        /// <summary>请求</summary>
-        Request,
-
         /// <summary>最大文件大小，默认10M</summary>
         MaxLength,
 

@@ -2,6 +2,7 @@
 using System.Web;
 using XCode.Configuration;
 using XCode.Exceptions;
+using XCode.Common;
 
 namespace XCode.Accessors
 {
@@ -14,7 +15,6 @@ namespace XCode.Accessors
         public HttpRequest Request
         {
             get { return _Request ?? (_Request = HttpContext.Current.Request); }
-            private set { _Request = value; }
         }
 
         private String _ItemPrefix = "frm";
@@ -34,19 +34,6 @@ namespace XCode.Accessors
         }
         #endregion
 
-        #region 构造
-        ///// <summary>
-        ///// 实例化一个Http实体访问器
-        ///// </summary>
-        ///// <param name="request"></param>
-        //public HttpEntityAccessor(HttpRequest request)
-        //{
-        //    if (request == null) throw new ArgumentNullException("request");
-
-        //    Request = request;
-        //}
-        #endregion
-
         #region IEntityAccessor 成员
         /// <summary>
         /// 设置参数。返回自身，方便链式写法。
@@ -56,9 +43,7 @@ namespace XCode.Accessors
         /// <returns></returns>
         public override IEntityAccessor SetConfig(string name, object value)
         {
-            if (name.EqualIgnoreCase(EntityAccessorOptions.Request))
-                Request = value as HttpRequest;
-            else if (name.EqualIgnoreCase(EntityAccessorOptions.MaxLength))
+            if (name.EqualIgnoreCase(EntityAccessorOptions.MaxLength))
                 MaxLength = (Int64)value;
             else if (name.EqualIgnoreCase(EntityAccessorOptions.ItemPrefix))
                 ItemPrefix = (String)value;
@@ -81,6 +66,40 @@ namespace XCode.Accessors
 
             if (v is String)
             {
+                #region 检查数据类型是否满足目标类型，如果不满足则跳过，以免内部赋值异常导致程序处理出错
+                TypeCode code = Type.GetTypeCode(item.Type);
+                if (code >= TypeCode.Int16 && code <= TypeCode.UInt64)
+                {
+                    Int64 n = 0;
+                    if (!Int64.TryParse((String)v, out n)) return;
+                    v = n;
+                }
+                else if (code == TypeCode.Single || code == TypeCode.Double)
+                {
+                    Double d = 0;
+                    if (!Double.TryParse((String)v, out d)) return;
+                    v = d;
+                }
+                else if (code == TypeCode.Decimal)
+                {
+                    Decimal d = 0;
+                    if (!Decimal.TryParse((String)v, out d)) return;
+                    v = d;
+                }
+                else if (code == TypeCode.Boolean)
+                {
+                    Boolean b;
+                    if (!Boolean.TryParse((String)v, out b)) return;
+                    v = b;
+                }
+                else if (code == TypeCode.DateTime)
+                {
+                    DateTime d;
+                    if (!DateTime.TryParse((String)v, out d)) return;
+                    v = d;
+                }
+                #endregion
+
                 entity.SetItem(item.Name, v);
             }
             else
@@ -119,6 +138,11 @@ namespace XCode.Accessors
             return file;
         }
 
+        /// <summary>
+        /// 采用该方法而不再用Request[name]，主要是后者还处理服务器变量ServerVar，这是不需要的，还有可能得到错误的数据
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         String GetRequest(String name)
         {
             String value = Request.QueryString[name];
