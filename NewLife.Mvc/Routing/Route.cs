@@ -36,13 +36,12 @@ namespace NewLife.Mvc
         private void context_BeginRequest(object sender, EventArgs e)
         {
             HttpApplication app = sender as HttpApplication;
-            RouteContext context = new RouteContext(app); // 每次请求前重置路由上下文
-            RouteContext.Current = context;
-            string path = context.RoutePath;
+            RouteContext ctx = RouteContext.Current = new RouteContext(app); // 每次请求前重置路由上下文
             IController controller = null;
             try
             {
-                controller = RootConfig.GetRouteHandler(path);
+
+                controller = ctx.RouteTo(RootConfig);
             }
             catch (Exception ex)
             {
@@ -57,7 +56,7 @@ namespace NewLife.Mvc
             }
             if (controller != null)
             {
-                app.Context.RemapHandler(HttpHandlerWrap.Create(context, controller));
+                app.Context.RemapHandler(HttpHandlerWrap.Create(ctx, controller));
                 return;
             }
         }
@@ -103,8 +102,6 @@ namespace NewLife.Mvc
                             {
                                 cfg.Load(item);
                             }
-
-                            cfg.SortConfigRule();
                             //cfg.RouteToFactory("", () => Service.Resolve<IControllerFactory>()); // 从对象容器中取默认控制器工厂
                             _RootConfig[0] = cfg;
                         }
@@ -197,6 +194,7 @@ namespace NewLife.Mvc
         /// <summary>
         /// 创建指定控制器实例的IHttpHandler包装实例,会根据需要创建可以读写Session的IHttpHandler实现
         /// </summary>
+        /// <param name="context"></param>
         /// <param name="controller"></param>
         /// <returns></returns>
         public static HttpHandlerWrap Create(IRouteContext context, IController controller)

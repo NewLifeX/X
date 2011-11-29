@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Web;
+using NewLife.Reflection;
 
 namespace NewLife.Mvc
 {
@@ -19,13 +20,14 @@ namespace NewLife.Mvc
         internal RouteContext(HttpApplication app)
         {
             HttpRequest r = app.Context.Request;
-            RoutePath = r.Path.Substring(r.ApplicationPath.TrimEnd('/').Length);
+            Path = RoutePath = r.Path.Substring(r.ApplicationPath.TrimEnd('/').Length);
         }
 
-        #region 公共
+        #region 公共属性
 
         [ThreadStatic]
         private static RouteContext _Current;
+
         /// <summary>当前请求路由上下文信息</summary>
         public static RouteContext Current { get { return _Current; } set { _Current = value; } }
 
@@ -38,47 +40,68 @@ namespace NewLife.Mvc
         /// </summary>
         public string RoutePath { get; private set; }
 
-        private List<RouteMatchInfo<IRouteConfigModule>> _Modules;
+        Stack<RouteFrag> _Frags = new Stack<RouteFrag>();
 
         /// <summary>
-        /// 当前路由经过的模块,在模块路由配置中可以获取到这个信息
+        /// 当前路由的片段,先匹配的在数组的开始
         /// </summary>
-        public List<RouteMatchInfo<IRouteConfigModule>> Modules
+        public RouteFrag[] Frags
         {
             get
             {
-                if (_Modules == null)
-                {
-                    _Modules = new List<RouteMatchInfo<IRouteConfigModule>>();
-                }
-                return _Modules;
+                RouteFrag[] ret = _Frags.ToArray();
+                Array.Reverse(ret);
+                return ret;
             }
         }
 
         /// <summary>
-        /// 当前路由最近一次经过的模块,如果没有将返回null
+        /// 当前路由最近的一个模块
         /// </summary>
-        public RouteMatchInfo<IRouteConfigModule> Module
+        public RouteFrag? Module
         {
             get
             {
-                if (Modules.Count > 0)
+                foreach (var f in _Frags)
                 {
-                    return Modules[Modules.Count - 1];
+                    if (f.Type == RouteFragType.Module) return f;
                 }
                 return null;
             }
         }
 
         /// <summary>
-        /// 当前路由经过的控制器工厂,如果没有经过将返回null
+        /// 路由最近的一个控制器工厂,如果没有路由进工厂则返回null
         /// </summary>
-        public RouteMatchInfo<IControllerFactory> Factory { get; private set; }
+        public RouteFrag? Factory
+        {
+            get
+            {
+                foreach (var f in _Frags)
+                {
+                    if (f.Type == RouteFragType.Factory) return f;
+                    if (f.Type == RouteFragType.Module) break;
+                }
+                return null;
+            }
+        }
 
         /// <summary>
-        /// 当前路由经过的控制器,如果还未路由到控制器将返回null
+        /// 路由最近的一个控制器,如果没有路由进控制器则返回null
         /// </summary>
-        public RouteMatchInfo<IController> Controller { get; private set; }
+        public RouteFrag? Controller
+        {
+            get
+            {
+                foreach (var f in _Frags)
+                {
+                    if (f.Type == RouteFragType.Controller) return f;
+                    if (f.Type == RouteFragType.Factory) break;
+                    if (f.Type == RouteFragType.Module) break;
+                }
+                return null;
+            }
+        }
 
         private string _Path;
 
@@ -122,138 +145,310 @@ namespace NewLife.Mvc
             }
         }
 
-        #endregion 公共
+        #endregion 公共属性
 
-        #region 上下文信息切换
+        #region 公共方法
 
         /// <summary>
-        /// 进入指定的模块
+        /// 在Frags中查找第一个符合指定条件的RouteFrag
         /// </summary>
-        /// <param name="pattern">路由规则的路径</param>
-        /// <param name="match">匹配pattern的实际路径部分</param>
-        /// <param name="path">当前请求的路径,当前模块路径尚未提取</param>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        public RouteFrag? FindFrag(Func<RouteFrag, bool> filter)
+        {
+            foreach (var f in _Frags)
+            {
+                if (filter(f)) return f;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 在Frags中查找符合指定条件的RouteFrag
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        public List<RouteFrag> FindAllFrags(Func<RouteFrag, bool> filter)
+        {
+            List<RouteFrag> ret = new List<RouteFrag>();
+            foreach (var f in _Frags)
+            {
+                if (filter(f)) ret.Add(f);
+            }
+            return ret;
+        }
+
+        /// <summary>
+        /// 路由当前路径到指定模块路由配置
+        ///
+        /// 适用于临时路由,使用 RouteTo(RouteConfigManager cfg) 能避免重复的对象实例化
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public IController RouteTo<T>() where T : IRouteConfigModule
+        {
+            return RouteTo((IRouteConfigModule)TypeX.CreateInstance<T>());
+        }
+
+        /// <summary>
+        /// 路由当前路径到指定的模块路由配置
+        ///
+        /// 适用于临时路由,使用 RouteTo(RouteConfigManager cfg) 能避免重复的对象实例化.
+        /// </summary>
         /// <param name="module"></param>
-        internal void EnterModule(string pattern, string match, string path, IRouteConfigModule module)
+        /// <returns></returns>
+        public IController RouteTo(IRouteConfigModule module)
+        {
+            RouteConfigManager cfg = new RouteConfigManager();
+            module.Config(cfg);
+            cfg.Sort();
+            return RouteTo(cfg);
+        }
+
+        /// <summary>
+        /// 路由当前路径到指定的路由配置
+        /// </summary>
+        /// <param name="cfg"></param>
+        /// <returns></returns>
+        public IController RouteTo(RouteConfigManager cfg)
+        {
+            IController c = null;
+            cfg.Sort();
+            foreach (var r in cfg.Rules)
+            {
+                c = r.RouteTo(this);
+                if (c != null) break;
+            }
+            return c;
+        }
+
+        #endregion 公共方法
+
+        #region 上下文状态进出
+
+        /// <summary>
+        /// 上下文进入特定路由配置
+        /// </summary>
+        /// <param name="match"></param>
+        /// <param name="path"></param>
+        /// <param name="r"></param>
+        /// <param name="related"></param>
+        internal void EnterConfigManager(string match, string path, Rule r, RouteConfigManager related)
         {
             Path = path.Substring(match.Length);
-            Modules.Add(new RouteMatchInfo<IRouteConfigModule>(pattern, match, module));
+            _Frags.Push(new RouteFrag()
+            {
+                Type = RouteFragType.Config,
+                Path = match,
+                Rule = r,
+                Related = related
+            });
         }
-
         /// <summary>
-        /// 退出指定的模块
+        /// 上下文退出特定路由配置
         /// </summary>
-        /// <param name="pattern">路由规则的路径</param>
-        /// <param name="match">匹配pattern的实际路径部分</param>
-        /// <param name="path">当前请求的路径,当前模块路径尚未提取</param>
-        /// <param name="module"></param>
-        internal void ExitModule(string pattern, string match, string path, IRouteConfigModule module)
+        /// <param name="match"></param>
+        /// <param name="path"></param>
+        /// <param name="r"></param>
+        /// <param name="related"></param>
+        internal void ExitConfigManager(string match, string path, Rule r, RouteConfigManager related)
         {
 #if DEBUG
-            Debug.Assert(Module.Pattern == pattern);
-            Debug.Assert(Module.Path == match);
             Debug.Assert(path.StartsWith(match));
-            Debug.Assert(Module.RelatedObject == module);
+            RouteFrag m = _Frags.Peek();
+            Debug.Assert(m.Path == match);
+            Debug.Assert(m.Rule == r);
+            Debug.Assert(m.Related == related);
 #endif
-            Modules.RemoveAt(Modules.Count - 1);
+            _Frags.Pop();
         }
 
         /// <summary>
-        /// 进入指定的工厂
+        /// 上下文进入模块
         /// </summary>
-        /// <param name="pattern">路由规则的路径</param>
-        /// <param name="match">匹配pattern的实际路径部分</param>
-        /// <param name="path">当前请求的路径,当前控制器工厂路径尚未提取</param>
-        /// <param name="factory"></param>
-        internal void EnterFactory(string pattern, string match, string path, IControllerFactory factory)
+        /// <param name="match">匹配到的路径,需要是Path参数的开始部分</param>
+        /// <param name="path">进入模块前的路径</param>
+        /// <param name="r">当前匹配的路由规则</param>
+        /// <param name="related">模块实例</param>
+        internal void EnterModule(string match, string path, Rule r, IRouteConfigModule related)
         {
             Path = path.Substring(match.Length);
-            Factory = new RouteMatchInfo<IControllerFactory>(pattern, match, factory);
+            _Frags.Push(new RouteFrag()
+            {
+                Type = RouteFragType.Module,
+                Path = match,
+                Rule = r,
+                Related = related
+            });
         }
 
         /// <summary>
-        /// 退出指定的工厂
+        /// 上下文退出模块
         /// </summary>
-        /// <param name="pattern">路由规则的路径</param>
-        /// <param name="match">匹配pattern的实际路径部分</param>
-        /// <param name="path">当前请求的路径,当前控制器工厂路径尚未提取</param>
-        /// <param name="factory"></param>
-        internal void ExitFactory(string pattern, string match, string path, IControllerFactory factory)
+        /// <param name="match"></param>
+        /// <param name="path"></param>
+        /// <param name="r"></param>
+        /// <param name="related"></param>
+        internal void ExitModule(string match, string path, Rule r, IRouteConfigModule related)
         {
 #if DEBUG
-            Debug.Assert(Factory.Pattern == pattern);
-            Debug.Assert(Factory.Path == match);
             Debug.Assert(path.StartsWith(match));
-            Debug.Assert(Factory.RelatedObject == factory);
+            RouteFrag m = _Frags.Peek();
+            Debug.Assert(m.Path == match);
+            Debug.Assert(m.Rule == r);
+            Debug.Assert(m.Related == related);
 #endif
-            Factory = null;
+            _Frags.Pop();
         }
 
         /// <summary>
-        /// 进入指定的控制器
+        /// 上下文进入工厂
         /// </summary>
-        /// <param name="pattern">路由规则的路径</param>
-        /// <param name="match">匹配pattern的实际路径部分</param>
-        /// <param name="path">当前请求的路径,当前控制器路径尚未提取</param>
-        /// <param name="controller"></param>
-        internal void EnterController(string pattern, string match, string path, IController controller)
+        /// <param name="match"></param>
+        /// <param name="path"></param>
+        /// <param name="r"></param>
+        /// <param name="related"></param>
+        internal void EnterFactory(string match, string path, Rule r, IControllerFactory related)
+        {
+            Path = path.Substring(match.Length);
+            _Frags.Push(new RouteFrag()
+            {
+                Type = RouteFragType.Factory,
+                Path = match,
+                Rule = r,
+                Related = related
+            });
+        }
+        /// <summary>
+        /// 上下文退出工厂
+        /// </summary>
+        /// <param name="match"></param>
+        /// <param name="path"></param>
+        /// <param name="r"></param>
+        /// <param name="related"></param>
+        internal void ExitFactory(string match, string path, Rule r, IControllerFactory related)
         {
 #if DEBUG
-            RouteMatchInfo<IControllerFactory> f = Factory;
+            Debug.Assert(path.StartsWith(match));
+            RouteFrag m = _Frags.Peek();
+            Debug.Assert(m.Type == RouteFragType.Factory);
+            Debug.Assert(m.Path == match);
+            Debug.Assert(m.Rule == r);
+            Debug.Assert(m.Related == related);
+#endif
+            _Frags.Pop();
+        }
+
+        /// <summary>
+        /// 上下文进入控制器
+        /// </summary>
+        /// <param name="match"></param>
+        /// <param name="path"></param>
+        /// <param name="r"></param>
+        /// <param name="related"></param>
+        internal void EnterController(string match, string path, Rule r, IController related)
+        {
+#if DEBUG
+            Debug.Assert(path.StartsWith(match));
+            RouteFrag? f = Factory;
             if (f != null)
             {
-                Debug.Assert(f.Pattern == pattern);
-                Debug.Assert(f.Path == match);
-                Debug.Assert(path.StartsWith(match));
+                Debug.Assert(f.Value.Path == match);
+                Debug.Assert(f.Value.Rule == r);
             }
 #endif
             Path = path.Substring(match.Length);
-            Controller = new RouteMatchInfo<IController>(pattern, match, controller);
+            _Frags.Push(new RouteFrag()
+            {
+                Type = RouteFragType.Controller,
+                Path = match,
+                Rule = r,
+                Related = related
+            });
         }
-
-        #endregion 上下文信息切换
+        #endregion
     }
 
     /// <summary>
-    /// 路由上下文中使用的,用于表示当前路径中匹配路由规则的信息
+    /// 路由片段结构体,表示当前请求路径每个匹配的路径信息
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class RouteMatchInfo<T>
+    public struct RouteFrag
     {
         /// <summary>
-        /// 构造方法
+        /// 片段类型
         /// </summary>
-        /// <param name="pattern"></param>
-        /// <param name="path"></param>
-        /// <param name="related"></param>
-        public RouteMatchInfo(string pattern, string path, T related)
-        {
-            Pattern = pattern;
-            Path = path;
-            RelatedObject = related;
-        }
+        public RouteFragType Type { get; internal set; }
 
         /// <summary>
-        /// 匹配路径时使用的模式
+        /// 片段匹配的实际路径
         /// </summary>
-        public string Pattern { get; set; }
+        public string Path { get; internal set; }
 
         /// <summary>
-        /// 实际匹配到的路径
+        /// 片段匹配的路由规则实例
         /// </summary>
-        public string Path { get; set; }
+        public Rule Rule { get; internal set; }
 
         /// <summary>
-        /// 相关的处理对象,一般是IController,IControllerFactory,IRouteConfigMoudule
+        /// 相关的对象,和Type关联
         /// </summary>
-        public T RelatedObject { get; set; }
+        public object Related { get; internal set; }
 
         /// <summary>
-        /// 重载
+        /// 重写
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return string.Format("RouteMatchInfo<{0}> {2}({1}) -> {3}", typeof(T).Name, Path, Pattern, RelatedObject);
+            return string.Format("{{RouteFrag {0} -> {1} [{2}] {3}}}", Path, Rule, Type, Related);
         }
+
+        /// <summary>
+        /// 返回当前片段关联对象的强类型实例,如果和指定类型不符则返回default(T)
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T GetRelated<T>()
+        {
+            switch (Type)
+            {
+                case RouteFragType.Controller:
+                    if (typeof(T) == typeof(IController) && Related is IController) return (T)Related;
+                    break;
+                case RouteFragType.Factory:
+                    if (typeof(T) == typeof(IControllerFactory) && Related is IControllerFactory) return (T)Related;
+                    break;
+                case RouteFragType.Module:
+                    if (typeof(T) == typeof(IRouteConfigModule) && Related is IRouteConfigModule) return (T)Related;
+                    break;
+                case RouteFragType.Config:
+                    if (typeof(RouteConfigManager).IsAssignableFrom(typeof(T)) && Related is RouteConfigManager) return (T)Related;
+                    break;
+            }
+            return default(T);
+        }
+    }
+
+    /// <summary>
+    /// 路由片段类型
+    /// </summary>
+    public enum RouteFragType
+    {
+        /// <summary>
+        /// 控制器,Related是IController类型
+        /// </summary>
+        Controller,
+        /// <summary>
+        /// 控制器工厂,Related是IControllerFactory类型
+        /// </summary>
+        Factory,
+        /// <summary>
+        /// 模块,Related是IRouteConfigModule类型
+        /// </summary>
+        Module,
+        /// <summary>
+        /// 路由配置,Related是RouteConfigManager类型
+        /// </summary>
+        Config
     }
 }

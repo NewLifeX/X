@@ -117,11 +117,82 @@ namespace NewLife.Mvc
             return this;
         }
 
+        /// <summary>
+        /// 从指定类型的模块加载路由配置
+        ///
+        /// 这将会实例化指定类型
+        /// </summary>
+        /// <typeparam name="T">指定类型,将会返回这个类型的实例</typeparam>
+        /// <returns></returns>
+        public T Load<T>() where T : IRouteConfigModule, new()
+        {
+            return (T)Load(typeof(T));
+        }
+
+        /// <summary>
+        /// 从指定类型的模块加载路由配置
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public IRouteConfigModule Load(Type type)
+        {
+            IRouteConfigModule m = (IRouteConfigModule)TypeX.CreateInstance(type);
+            if (m == null) return null;
+            Load(m);
+            return m;
+        }
+
+        /// <summary>
+        /// 从指定模块加载路由配置
+        /// </summary>
+        /// <param name="module"></param>
+        /// <returns></returns>
+        public RouteConfigManager Load(IRouteConfigModule module)
+        {
+            if (module != null)
+            {
+                try
+                {
+                    module.Config(this);
+                }
+                catch (RouteConfigException ex)
+                {
+                    ex.Module = module;
+                    throw;
+                }
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 对路由规则进行排序 在使用这个路由配置前建议进行排序
+        /// </summary>
+        /// <returns></returns>
+        public RouteConfigManager Sort()
+        {
+            return Sort(false);
+        }
+
+        /// <summary>
+        /// 对路由规则进行排序 在使用这个路由配置前建议进行排序
+        /// </summary>
+        /// <param name="force">是否强制排序,一般使用false</param>
+        public RouteConfigManager Sort(bool force)
+        {
+            if (!sorted || force)
+            {
+                StableSort(Rules, false, (a, b) => -(a.Path.Length - b.Path.Length));
+                sorted = true;
+            }
+            return this;
+        }
+
         #endregion 公共
 
         #region 内部
 
-        List<Rule> rules;
+        internal List<Rule> Rules;
+        bool sorted = false;
 
         /// <summary>
         /// 最终添加路由配置的方法,上面的公共方法都会调用到这里
@@ -133,7 +204,7 @@ namespace NewLife.Mvc
         /// <returns></returns>
         internal virtual RouteConfigManager Route(string path, Type type, Type ruleType, Action<Rule> onCreatedRule = null)
         {
-            if (rules == null) rules = new List<Rule>();
+            if (Rules == null) Rules = new List<Rule>();
             Rule r = null;
             try
             {
@@ -145,39 +216,12 @@ namespace NewLife.Mvc
                 throw;
             }
             if (onCreatedRule != null) onCreatedRule(r);
-            rules.Add(r);
+            Rules.Add(r);
+            sorted = false;
             return this;
         }
 
-        /// <summary>
-        /// 加载指定类型的路由配置模块,返回创建的模块实例
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        internal IRouteConfigModule Load(Type type)
-        {
-            IRouteConfigModule cfg = TypeX.CreateInstance(type) as IRouteConfigModule;
-            if (cfg == null) return null;
-
-            try
-            {
-                cfg.Config(this);
-            }
-            catch (RouteConfigException ex)
-            {
-                ex.Module = cfg;
-                throw;
-            }
-            return cfg;
-        }
-
-        /// <summary>
-        /// 按照路由配置的路径可能的匹配程度倒序排列,目前的实现是路由路径的长度
-        /// </summary>
-        internal void SortConfigRule()
-        {
-            StableSort(rules, false, (a, b) => -a.Path.Length - b.Path.Length);
-        }
+        #endregion 内部
 
         #region 稳定排序实现
 
@@ -185,7 +229,7 @@ namespace NewLife.Mvc
         /// 提供稳定排序,因为内部实现还是快速排序,所以需要指定isDesc参数
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="list"></param>
+        /// <param name="list">待排序的的列表,返回值也将是这个</param>
         /// <param name="isDesc">使用comp比较相同的元素是否使用和默认顺序相反的顺序排列,想保持默认顺序的话应使用false</param>
         /// <param name="comp"></param>
         /// <returns></returns>
@@ -220,6 +264,7 @@ namespace NewLife.Mvc
         struct StableSortItem<T>
         {
             public StableSortItem(int index, T val)
+                : this()
             {
                 Index = index;
                 Value = val;
@@ -231,27 +276,6 @@ namespace NewLife.Mvc
         }
 
         #endregion 稳定排序实现
-
-        /// <summary>
-        /// 返回当前路由配置的路由目标HttpHandler,如果无法匹配任何路由目标则返回null
-        /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
-        internal IController GetRouteHandler(string path)
-        {
-            IController c = null;
-            foreach (var r in rules)
-            {
-                c = r.GetRouteHandler(path);
-                if (c != null)
-                {
-                    break;
-                }
-            }
-            return c;
-        }
-
-        #endregion 内部
     }
 
     /// <summary>
