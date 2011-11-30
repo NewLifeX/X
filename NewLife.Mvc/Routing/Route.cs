@@ -66,7 +66,7 @@ namespace NewLife.Mvc
         /// <summary>
         /// 根路由配置,自动加载实现了IRouteConfig接口的类中配置的路由规则
         /// </summary>
-        private static RouteConfigManager RootConfig
+        public static RouteConfigManager RootConfig
         {
             get
             {

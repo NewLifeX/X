@@ -12,7 +12,7 @@ public class Urls : IRouteConfig
     public void Config(RouteConfigManager cfg)
     {
         cfg
-            .RouteToFactory<RouteFactory>("/")
+            .RouteToFactory<RouteFactory>("/Module")
             .Route<TestController>("/Test")
             .Route(
                 "/foo.aspx$", typeof(GenericControllerFactory),

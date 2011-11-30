@@ -56,6 +56,21 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
+        /// 当前路由最近的一个路由配置
+        /// </summary>
+        public RouteFrag? Config
+        {
+            get
+            {
+                foreach (var f in _Frags)
+                {
+                    if (f.Type == RouteFragType.Config) return f;
+                }
+                return null;
+            }
+        }
+
+        /// <summary>
         /// 当前路由最近的一个模块
         /// </summary>
         public RouteFrag? Module
@@ -79,8 +94,9 @@ namespace NewLife.Mvc
             {
                 foreach (var f in _Frags)
                 {
+                    if (f.Type == RouteFragType.Controller) continue;
                     if (f.Type == RouteFragType.Factory) return f;
-                    if (f.Type == RouteFragType.Module) break;
+                    break;
                 }
                 return null;
             }
@@ -93,11 +109,10 @@ namespace NewLife.Mvc
         {
             get
             {
-                foreach (var f in _Frags)
+                if (_Frags.Count > 0)
                 {
+                    RouteFrag f = _Frags.Peek();
                     if (f.Type == RouteFragType.Controller) return f;
-                    if (f.Type == RouteFragType.Factory) break;
-                    if (f.Type == RouteFragType.Module) break;
                 }
                 return null;
             }
@@ -201,7 +216,7 @@ namespace NewLife.Mvc
         {
             RouteConfigManager cfg = new RouteConfigManager();
             module.Config(cfg);
-            cfg.Sort();
+            // TODO 模块上下文进出
             return RouteTo(cfg);
         }
 
@@ -212,12 +227,27 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public IController RouteTo(RouteConfigManager cfg)
         {
-            IController c = null;
             cfg.Sort();
-            foreach (var r in cfg.Rules)
+            // TODO 是否有必要所有的路由配置都要进出
+            EnterConfigManager("", Path, null, cfg);
+            IController c = null;
+            try
             {
-                c = r.RouteTo(this);
-                if (c != null) break;
+                foreach (var r in cfg.Rules)
+                {
+                    c = r.RouteTo(this);
+                    if (c != null) break;
+                }
+            }
+            finally
+            {
+                if (c != null)
+                {
+                }
+                else
+                {
+                    ExitConfigManager("", Path, null, cfg);
+                }
             }
             return c;
         }
@@ -260,6 +290,7 @@ namespace NewLife.Mvc
             Debug.Assert(m.Rule == r);
             Debug.Assert(m.Related == related);
 #endif
+            Path = path;
             _Frags.Pop();
         }
 
@@ -298,6 +329,7 @@ namespace NewLife.Mvc
             Debug.Assert(m.Rule == r);
             Debug.Assert(m.Related == related);
 #endif
+            Path = path;
             _Frags.Pop();
         }
 
@@ -336,6 +368,7 @@ namespace NewLife.Mvc
             Debug.Assert(m.Rule == r);
             Debug.Assert(m.Related == related);
 #endif
+            Path = path;
             _Frags.Pop();
         }
 
@@ -367,6 +400,13 @@ namespace NewLife.Mvc
             });
         }
         #endregion
+
+        public override string ToString()
+        {
+            return base.ToString();
+
+            // TODO 输出路由上下文信息
+        }
     }
 
     /// <summary>

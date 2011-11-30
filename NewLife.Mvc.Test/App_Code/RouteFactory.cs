@@ -8,7 +8,16 @@ class RouteFactory : IControllerFactory
 {
     public IController GetController(IRouteContext context)
     {
-        if (HttpContext.Current.Request.Url.Host.EndsWith(".localhost.com"))
+        HttpRequest r = HttpContext.Current.Request;
+        string host = r.Headers["Host"];
+        string[] hostport = host.Split(':');
+        int port = 80;
+        if (hostport.Length > 1)
+        {
+            Int32.TryParse(hostport[1], out port);
+        }
+        host = hostport[0];
+        if (host.EndsWith(".localhost"))
         {
             try
             {

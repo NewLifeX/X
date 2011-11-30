@@ -336,7 +336,6 @@ namespace NewLife.Mvc
                         {
                             RouteConfigManager cfg = new RouteConfigManager();
                             Module = cfg.Load(Type);
-                            cfg.Sort();
                             _Config[0] = cfg;
                         }
                     }
