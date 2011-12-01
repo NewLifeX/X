@@ -53,7 +53,7 @@ namespace NewLife.CommonEntity
             //ms = Menu<TMenuEntity>.FindAll();
 
             Menu<TMenuEntity>.Meta.WaitForInitData(10000);
-            var ms = Menu<TMenuEntity>.FindAll();
+            var ms = Menu<TMenuEntity>.Meta.Cache.Entities;
 
             if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}授权数据……", typeof(TRoleMenuEntity).Name);
 
@@ -249,13 +249,13 @@ namespace NewLife.CommonEntity
 
             if (Meta.Count > 0) return;
 
-            if (XTrace.Debug) XTrace.WriteLine("开始初始化角色数据……");
+            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}角色数据……", typeof(TEntity).Name);
 
             TEntity entity = new TEntity();
             entity.Name = "管理员";
             entity.Save();
 
-            if (XTrace.Debug) XTrace.WriteLine("完成初始化角色数据！");
+            if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
         }
 
         /// <summary>

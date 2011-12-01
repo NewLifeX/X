@@ -6,7 +6,6 @@ using System.Threading;
 using System.Web;
 using NewLife;
 using NewLife.Collections;
-using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Threading;
@@ -332,8 +331,16 @@ namespace XCode
                     // 是否需要等待
                     if (millisecondsTimeout != 0 && e != null)
                     {
-                        // 如果未收到信号，表示超时
-                        if (!e.WaitOne(millisecondsTimeout, false)) return false;
+                        if (DAL.Debug) DAL.WriteLog("开始等待初始化{0}数据{2}ms，调用栈：{1}", ThisType.FullName, Helper.GetCaller(), millisecondsTimeout);
+                        try
+                        {
+                            // 如果未收到信号，表示超时
+                            if (!e.WaitOne(millisecondsTimeout, false)) return false;
+                        }
+                        finally
+                        {
+                            if (DAL.Debug) DAL.WriteLog("结束等待初始化{0}数据，调用栈：{1}", ThisType.FullName, Helper.GetCaller());
+                        }
                     }
                     return true;
                 }
@@ -344,53 +351,19 @@ namespace XCode
                 // 如果该实体类是首次使用检查模型，则在这个时候检查
                 CheckModel();
 
-                Func check = delegate
+                // 输出调用者，方便调试
+                if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", ThisType.FullName, Helper.GetCaller());
+
+                try
                 {
-                    try
-                    {
-                        EntityBase entity = Factory.Default as EntityBase;
-                        if (entity != null) entity.InitData();
-                    }
-                    catch (Exception ex)
-                    {
-                        if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
-                    }
-                };
-
-                // 异步执行，并捕获错误日志
-                if (Config.GetConfig<Boolean>("XCode.InitDataAsync", true) && !InitDataHelper.Running)
-                {
-                    // 输出调用者，方便调试
-                    if (DAL.Debug) DAL.WriteLog("异步初始化{0}数据，调用栈：{1}", ThisType.FullName, Helper.GetCaller());
-
-                    ThreadPool.QueueUserWorkItem(delegate
-                    {
-                        // 记录当前线程正在初始化数据，内部调用的时候，不要再使用异步
-                        InitDataHelper.Running = true;
-                        try
-                        {
-                            check();
-                        }
-                        finally
-                        {
-                            // 异步完成，修改设置
-                            InitDataHelper.Running = false;
-
-                            e.Set();
-                        }
-                    });
+                    EntityBase entity = Factory.Default as EntityBase;
+                    if (entity != null) entity.InitData();
                 }
-                else
+                catch (Exception ex)
                 {
-                    // 输出调用者，方便调试
-                    if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", ThisType.FullName, Helper.GetCaller());
-
-                    try
-                    {
-                        check();
-                    }
-                    finally { e.Set(); }
+                    if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
                 }
+                finally { e.Set(); }
 
                 return true;
             }
@@ -599,17 +572,5 @@ namespace XCode
             }
             #endregion
         }
-    }
-
-    /// <summary>
-    /// 初始化数据助手，用于判断当前线程是否正在初始化之中
-    /// </summary>
-    static class InitDataHelper
-    {
-        /// <summary>
-        /// 是否正在运行
-        /// </summary>
-        [ThreadStatic]
-        public static Boolean Running;
     }
 }

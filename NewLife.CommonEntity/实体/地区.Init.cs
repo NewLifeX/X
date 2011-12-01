@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.IO;
 using NewLife.IO;
 using System.Reflection;
+using NewLife.Threading;
 
 namespace NewLife.CommonEntity
 {
@@ -23,8 +24,6 @@ namespace NewLife.CommonEntity
             base.InitData();
 
             if (Meta.Count > 0) return;
-
-            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}地区数据……", typeof(TEntity).Name);
 
             #region 原数据添加
             //Dictionary<Int32, String> data = new Dictionary<Int32, String>();
@@ -3585,13 +3584,19 @@ namespace NewLife.CommonEntity
             #endregion
 
             #region 新数据添加
-            using (StreamReader sr = new StreamReader(FileSource.GetFileResource(Assembly.GetExecutingAssembly(), "AreaCode.txt")))
+            // 异步初始化
+            ThreadPoolX.QueueUserWorkItem(() =>
             {
-                Import(sr);
-            }
-            #endregion
+                if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}地区数据……", typeof(TEntity).Name);
 
-            if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}地区数据！", typeof(TEntity).Name);
+                using (StreamReader sr = new StreamReader(FileSource.GetFileResource(Assembly.GetExecutingAssembly(), "AreaCode.txt")))
+                {
+                    Import(sr);
+                }
+
+                if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}地区数据！", typeof(TEntity).Name);
+            });
+            #endregion
         }
         #endregion
     }
