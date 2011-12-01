@@ -20,9 +20,9 @@ namespace NewLife.IO
         /// <param name="overWrite"></param>
         public static void ReleaseFile(Assembly asm, String filename, String dest, Boolean overWrite)
         {
-            if (asm == null || String.IsNullOrEmpty(filename)) return;
+            if (String.IsNullOrEmpty(filename)) return;
 
-            //Stream stream = asm.GetManifestResourceStream(filename);
+            if (asm == null) asm = Assembly.GetCallingAssembly();
             Stream stream = GetFileResource(asm, filename);
             if (stream == null) throw new ArgumentException("filename", String.Format("在程序集{0}中无法找到名为{1}的资源！", asm.GetName().Name, filename));
 
@@ -60,6 +60,7 @@ namespace NewLife.IO
         /// <param name="overWrite"></param>
         public static void ReleaseFolder(Assembly asm, String prefix, String dest, Boolean overWrite)
         {
+            if (asm == null) asm = Assembly.GetCallingAssembly();
             ReleaseFolder(asm, prefix, dest, overWrite, null);
         }
 
@@ -73,7 +74,7 @@ namespace NewLife.IO
         /// <param name="filenameResolver"></param>
         public static void ReleaseFolder(Assembly asm, String prefix, String dest, Boolean overWrite, Func<String, String> filenameResolver)
         {
-            if (asm == null) return;
+            if (asm == null) asm = Assembly.GetCallingAssembly();
 
             // 找到符合条件的资源
             String[] names = asm.GetManifestResourceNames();
@@ -140,9 +141,10 @@ namespace NewLife.IO
         /// <returns></returns>
         public static Stream GetFileResource(Assembly asm, String filename)
         {
-            if (asm == null || String.IsNullOrEmpty(filename)) return null;
+            if (String.IsNullOrEmpty(filename)) return null;
 
             String name = String.Empty;
+            if (asm == null) asm = Assembly.GetCallingAssembly();
             String[] ss = asm.GetManifestResourceNames();
             if (ss != null && ss.Length > 0)
             {
