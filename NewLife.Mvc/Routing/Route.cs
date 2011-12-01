@@ -9,7 +9,7 @@ namespace NewLife.Mvc
 {
     /// <summary>Url路由处理器</summary>
     /// <remarks>
-    /// 
+    ///
     /// </remarks>
     public class Route : IHttpModule
     {
@@ -36,12 +36,13 @@ namespace NewLife.Mvc
         private void context_BeginRequest(object sender, EventArgs e)
         {
             HttpApplication app = sender as HttpApplication;
-            RouteContext ctx = RouteContext.Current = new RouteContext(app); // 每次请求前重置路由上下文
+            HttpRequest req = app.Request;
+
+            RouteContext ctx = RouteContext.Current = new RouteContext(req.Path.Substring(req.ApplicationPath.TrimEnd('/').Length)); // 每次请求前重置路由上下文
             IController controller = null;
             try
             {
-
-                controller = ctx.RouteTo(RootConfig);
+                controller = ctx.RouteTo(RootConfig, false);
             }
             catch (Exception ex)
             {
@@ -76,26 +77,6 @@ namespace NewLife.Mvc
                     {
                         if (_RootConfig[0] == null)
                         {
-                            //                            string exclude = @"mscorlib,
-                            //System.Web,System,System.Configuration,System.Xml,System.Web.resources,Microsoft.JScript,System.Data,System.Web.Services,
-                            //System.Drawing,System.EnterpriseServices,System.Web.Mobile,NewLife.Core,NewLife.Mvc,System.Runtime.Serialization,
-                            //System.IdentityModel,System.ServiceModel,System.ServiceModel.Web,System.WorkflowServices,System.resources,
-                            //System.Data.SqlXml,Microsoft.Vsa,System.Transactions,System.Design,System.Windows.Forms,";
-                            //                            RouteConfigManager cfg = new RouteConfigManager();
-                            //                            foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
-                            //                            {
-                            //                                string name = ass.FullName;
-                            //                                name = name.Substring(0, name.IndexOf(',') + 1);
-                            //                                if (exclude.Contains(name)) continue;
-                            //                                foreach (var type in ass.GetTypes())
-                            //                                {
-                            //                                    if (typeof(IRouteConfig).IsAssignableFrom(type))
-                            //                                    {
-                            //                                        cfg.Load(type);
-                            //                                    }
-                            //                                }
-                            //                            }
-
                             RouteConfigManager cfg = new RouteConfigManager();
                             // 找到所有实现IRouteConfig接口的类
                             foreach (Type item in AssemblyX.FindAllPlugins(typeof(IRouteConfig)))

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Web;
 using NewLife.Reflection;
 
 namespace NewLife.Mvc
@@ -15,13 +14,20 @@ namespace NewLife.Mvc
     ///   控制器匹配的路径,路由到控制器时会提供的值,如果是通过工厂路由到控制器的,那么和上一个工厂匹配的路径相同
     ///   剩余的路径,其它情况下的路径
     /// </summary>
-    public class RouteContext : IRouteContext
+    public class RouteContext : IRouteContext, IEnumerable<RouteFrag>
     {
-        internal RouteContext(HttpApplication app)
+        #region 构造方法
+
+        /// <summary>
+        /// 构造方法,初始化一个路由上下文信息,指定初始的路由路径
+        /// </summary>
+        /// <param name="routePath"></param>
+        public RouteContext(string routePath)
         {
-            HttpRequest r = app.Context.Request;
-            Path = RoutePath = r.Path.Substring(r.ApplicationPath.TrimEnd('/').Length);
+            Path = RoutePath = routePath;
         }
+
+        #endregion 构造方法
 
         #region 公共属性
 
@@ -43,7 +49,7 @@ namespace NewLife.Mvc
         Stack<RouteFrag> _Frags = new Stack<RouteFrag>();
 
         /// <summary>
-        /// 当前路由的片段,先匹配的在数组的开始
+        /// 当前路由的片段,下标为0的片段是地址最左边匹配的
         /// </summary>
         public RouteFrag[] Frags
         {
@@ -195,29 +201,39 @@ namespace NewLife.Mvc
 
         /// <summary>
         /// 路由当前路径到指定模块路由配置
-        ///
-        /// 适用于临时路由,使用 RouteTo(RouteConfigManager cfg) 能避免重复的对象实例化
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public IController RouteTo<T>() where T : IRouteConfigModule
         {
+            // TODO 待优化
             return RouteTo((IRouteConfigModule)TypeX.CreateInstance<T>());
         }
 
         /// <summary>
         /// 路由当前路径到指定的模块路由配置
-        ///
-        /// 适用于临时路由,使用 RouteTo(RouteConfigManager cfg) 能避免重复的对象实例化.
         /// </summary>
         /// <param name="module"></param>
         /// <returns></returns>
         public IController RouteTo(IRouteConfigModule module)
         {
+            // TODO 待优化 考虑RouteTo(IRouteConfigModule module, RouteConfigManager cfg接口)
             RouteConfigManager cfg = new RouteConfigManager();
             module.Config(cfg);
-            // TODO 模块上下文进出
-            return RouteTo(cfg);
+            EnterModule("", Path, null, module);
+            IController c = null;
+            try
+            {
+                c = RouteTo(cfg);
+            }
+            finally
+            {
+                if (c == null)
+                {
+                    ExitModule("", Path, null, module);
+                }
+            }
+            return c;
         }
 
         /// <summary>
@@ -227,13 +243,23 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public IController RouteTo(RouteConfigManager cfg)
         {
+            return RouteTo(cfg, true);
+        }
+
+        /// <summary>
+        /// 路由当前路径到指定的路由配置,可指定进行上下文进出
+        /// </summary>
+        /// <param name="cfg"></param>
+        /// <param name="enterContext"></param>
+        /// <returns></returns>
+        internal IController RouteTo(RouteConfigManager cfg, bool enterContext)
+        {
             cfg.Sort();
-            // TODO 是否有必要所有的路由配置都要进出
-            EnterConfigManager("", Path, null, cfg);
+            if (enterContext) EnterConfigManager("", Path, null, cfg);
             IController c = null;
             try
             {
-                foreach (var r in cfg.Rules)
+                foreach (var r in cfg)
                 {
                     c = r.RouteTo(this);
                     if (c != null) break;
@@ -241,12 +267,9 @@ namespace NewLife.Mvc
             }
             finally
             {
-                if (c != null)
+                if (c == null)
                 {
-                }
-                else
-                {
-                    ExitConfigManager("", Path, null, cfg);
+                    if (enterContext) ExitConfigManager("", Path, null, cfg);
                 }
             }
             return c;
@@ -274,6 +297,7 @@ namespace NewLife.Mvc
                 Related = related
             });
         }
+
         /// <summary>
         /// 上下文退出特定路由配置
         /// </summary>
@@ -351,6 +375,7 @@ namespace NewLife.Mvc
                 Related = related
             });
         }
+
         /// <summary>
         /// 上下文退出工厂
         /// </summary>
@@ -399,13 +424,40 @@ namespace NewLife.Mvc
                 Related = related
             });
         }
-        #endregion
 
+        #endregion 上下文状态进出
+
+        #region 实现IEnumerable接口
+
+        public IEnumerator<RouteFrag> GetEnumerator()
+        {
+            RouteFrag[] ary = Frags;
+            foreach (var item in ary)
+            {
+                yield return item;
+            }
+            yield break;
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return Frags.GetEnumerator();
+        }
+
+        #endregion 实现IEnumerable接口
+
+        /// <summary>
+        /// 重写,将输出
+        /// {RouteContext 第1个路由片段信息
+        ///   => 第2个路由片段信息
+        ///   => 第n个路由片段信息}
+        /// </summary>
+        /// <returns></returns>
+        /// <see cref="RouteFrag"/>
         public override string ToString()
         {
-            return base.ToString();
-
-            // TODO 输出路由上下文信息
+            RouteFrag[] ary = Frags;
+            return "{RouteContext " + string.Join("\r\n  => ", Array.ConvertAll<RouteFrag, string>(ary, i => i.ToString())) + "}";
         }
     }
 
@@ -435,18 +487,22 @@ namespace NewLife.Mvc
         public object Related { get; internal set; }
 
         /// <summary>
-        /// 重写
+        /// 重写,将会输出
+        /// {RouteFrag 匹配到的原始路径 -> 处理这个片段的实例 [片段类型] 匹配到的路由规则}
+        ///
+        /// 其中"处理这个片段的实例"和"片段类型"有关,一般是IController IControllerFactory IRouteConfigModule RouteConfigManager的实例
         /// </summary>
         /// <returns></returns>
+        /// <see cref="Rule"/>
         public override string ToString()
         {
-            return string.Format("{{RouteFrag {0} -> {1} [{2}] {3}}}", Path, Rule, Type, Related);
+            return string.Format("{{RouteFrag {0} -> {3} [{2}] {1}}}", Path, Rule, Type, Related);
         }
 
         /// <summary>
         /// 返回当前片段关联对象的强类型实例,如果和指定类型不符则返回default(T)
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">一般是IController IControllerFactory IRouteConfigModule RouteConfigManager类型</typeparam>
         /// <returns></returns>
         public T GetRelated<T>()
         {

@@ -5,7 +5,7 @@ using NewLife.Reflection;
 namespace NewLife.Mvc
 {
     /// <summary>路由配置管理器</summary>
-    public class RouteConfigManager
+    public class RouteConfigManager : IList<Rule>
     {
         #region 公共
 
@@ -126,6 +126,7 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public T Load<T>() where T : IRouteConfigModule, new()
         {
+            // TODO 考虑是否有必要优化
             return (T)Load(typeof(T));
         }
 
@@ -136,6 +137,7 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public IRouteConfigModule Load(Type type)
         {
+            // TODO 考虑是否有必要优化
             IRouteConfigModule m = (IRouteConfigModule)TypeX.CreateInstance(type);
             if (m == null) return null;
             Load(m);
@@ -191,7 +193,17 @@ namespace NewLife.Mvc
 
         #region 内部
 
-        internal List<Rule> Rules;
+        List<Rule> _Rules;
+
+        internal List<Rule> Rules
+        {
+            get
+            {
+                if (_Rules == null) _Rules = new List<Rule>();
+                return _Rules;
+            }
+        }
+
         bool sorted = false;
 
         /// <summary>
@@ -204,7 +216,6 @@ namespace NewLife.Mvc
         /// <returns></returns>
         internal virtual RouteConfigManager Route(string path, Type type, Type ruleType, Action<Rule> onCreatedRule = null)
         {
-            if (Rules == null) Rules = new List<Rule>();
             Rule r = null;
             try
             {
@@ -276,6 +287,87 @@ namespace NewLife.Mvc
         }
 
         #endregion 稳定排序实现
+
+        #region 实现IList接口
+
+        public IEnumerator<Rule> GetEnumerator()
+        {
+            return Rules.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public int Count
+        {
+            get
+            {
+                return Rules != null ? Rules.Count : 0;
+            }
+        }
+
+        public int IndexOf(Rule item)
+        {
+            return Rules.IndexOf(item);
+        }
+
+        [Obsolete("请使用Route方法系列或Load方法", true)]
+        public void Insert(int index, Rule item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveAt(int index)
+        {
+            Rules.RemoveAt(index);
+        }
+
+        public Rule this[int index]
+        {
+            get
+            {
+                return Rules[index];
+            }
+            set
+            {
+                Rules[index] = value;
+            }
+        }
+
+        [Obsolete("请使用Route方法系列或Load方法", true)]
+        public void Add(Rule item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Clear()
+        {
+            Rules.Clear();
+        }
+
+        public bool Contains(Rule item)
+        {
+            return Rules.Contains(item);
+        }
+
+        public void CopyTo(Rule[] array, int arrayIndex)
+        {
+            Rules.CopyTo(array, arrayIndex);
+        }
+
+        public bool IsReadOnly
+        {
+            get { return false; }
+        }
+
+        public bool Remove(Rule item)
+        {
+            return Rules.Remove(item);
+        }
+
+        #endregion 实现IList接口
     }
 
     /// <summary>

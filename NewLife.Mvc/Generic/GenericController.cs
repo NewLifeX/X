@@ -28,6 +28,7 @@ namespace NewLife.Mvc
         #endregion 属性
 
         #region 方法
+
         /// <summary>
         /// 使用指定的参数产生模版中使用的数据
         /// </summary>
@@ -96,9 +97,11 @@ namespace NewLife.Mvc
             String html = engine.Render(path, data);
             Response.Write(html);
         }
-        #endregion
+
+        #endregion 方法
 
         #region IController 成员
+
         /// <summary>通过实现 <see cref="T:NewLife.Mvc.IController" /> 接口的自定义 Controller 启用 HTTP Web 请求的处理。</summary>
         /// <param name="context"><see cref="T:NewLife.Mvc.IRouteContext" /> 对象，它提供对用于为 HTTP 请求提供服务的内部服务器对象的引用。</param>
         public void ProcessRequest(IRouteContext context)
@@ -112,6 +115,7 @@ namespace NewLife.Mvc
         {
             get { return false; }
         }
-        #endregion
+
+        #endregion IController 成员
     }
 }

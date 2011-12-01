@@ -203,12 +203,13 @@ namespace NewLife.Mvc
         #endregion 路由
 
         /// <summary>
-        /// 重写
+        /// 重写,将输出
+        /// {Rule 规则配置的路径 -> 规则配置的目标类型}
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return string.Format("{{{0} {1} -> {2}}}", GetType().Name, Path, Type.ToString());
+            return string.Format("{{Rule {0} -> {1}}}", Path, Type.FullName);
         }
     }
 
@@ -284,12 +285,15 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
-        /// 重写
+        /// 重写,将输出
+        /// {FactoryRule 规则配置的路径 -> 规则配置的目标类型 目标工厂类型实例}
+        /// 其中"目标工厂类型实例"只有在不为null是输出
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return string.Format("{{{0} {1} -> {2}}}", GetType().Name, Path, Factory != null ? Factory.ToString() : "Non Factory");
+            Type t = Factory != null ? Factory.GetType() : Type;
+            return string.Format("{{FactoryRule {0} -> {1}{2}}}", Path, t.FullName, Factory != null ? " " + Factory.ToString() : "");
         }
     }
 
@@ -309,7 +313,7 @@ namespace NewLife.Mvc
             {
                 if (_Module == null)
                 {
-                    Config.ToString();
+                    Config.GetType();
                 }
                 return _Module;
             }
@@ -376,12 +380,13 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
-        /// 重写
+        /// 重写,将输出
+        /// {ModuleRule 规则配置的路径 -> 规则配置的目标类型 目标模块类型实例 模块产生的路由配置数量}
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return string.Format("{{{0} {1} -> {2}}}", GetType().Name, Path, Module != null ? Module.ToString() : "Non Module");
+            return string.Format("{{ModuleRule {0} -> {1} {2} {3}}}", Path, Type.FullName, Module, Config.Count);
         }
     }
 }

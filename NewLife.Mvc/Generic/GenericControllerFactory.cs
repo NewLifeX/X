@@ -98,9 +98,10 @@ namespace NewLife.Mvc
         ///// <returns></returns>
         //public IController Create() { return new GenericController(); }
 
-        #endregion
+        #endregion 方法
 
         #region IControllerFactory 成员
+
         /// <summary>返回实现 <see cref="T:NewLife.Mvc.IController" /> 接口的类的实例。</summary>
         /// <returns>处理请求的新的 <see cref="T:NewLife.Mvc.IController" /> 对象。</returns>
         /// <param name="context"><see cref="T:NewLife.Mvc.IRouteContext" /> 类的实例，它提供对用于为 HTTP 请求提供服务的内部服务器对象的引用。</param>
@@ -112,6 +113,7 @@ namespace NewLife.Mvc
         /// <summary>使工厂可以重用现有的处理程序实例。</summary>
         /// <param name="handler">要重用的 <see cref="T:NewLife.Mvc.IController" /> 对象。</param>
         public void ReleaseController(IController handler) { }
-        #endregion
+
+        #endregion IControllerFactory 成员
     }
 }

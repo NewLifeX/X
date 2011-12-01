@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace NewLife.Mvc
+﻿namespace NewLife.Mvc
 {
     /// <summary>运行时的路由上下文</summary>
     public interface IRouteContext
@@ -17,7 +13,7 @@ namespace NewLife.Mvc
 
         /// <summary>
         /// 路由当前的路径到指定的模块路由配置类
-        /// 
+        ///
         /// 一般在控制器工厂中使用
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -26,7 +22,7 @@ namespace NewLife.Mvc
 
         /// <summary>
         /// 路由当前路径到指定的模块路由配置实例
-        /// 
+        ///
         /// 一般在控制器工厂中使用
         /// </summary>
         /// <param name="module"></param>
@@ -35,7 +31,7 @@ namespace NewLife.Mvc
 
         /// <summary>
         /// 路由当前路径到指定的路由配置
-        /// 
+        ///
         /// 一般在控制器工厂中使用
         /// </summary>
         /// <param name="cfg"></param>
