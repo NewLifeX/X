@@ -38,21 +38,24 @@ namespace NewLife.CommonEntity
                 return;
             }
 
-            EntityList<TMenuEntity> ms = null;
-            // 等一下菜单那边初始化
-            for (int i = 0; i < 100; i++)
-            {
-                ms = Menu<TMenuEntity>.Meta.Cache.Entities;
-                if (ms != null && ms.Count > 0) break;
+            //EntityList<TMenuEntity> ms = null;
+            //// 等一下菜单那边初始化
+            //for (int i = 0; i < 100; i++)
+            //{
+            //    ms = Menu<TMenuEntity>.Meta.Cache.Entities;
+            //    if (ms != null && ms.Count > 0) break;
 
-                Thread.Sleep(100);
-            }
-            if (ms == null || ms.Count < 1) return;
+            //    Thread.Sleep(100);
+            //}
+            //if (ms == null || ms.Count < 1) return;
 
-            // 上面通过缓存获取可能不完整，这里完整获取一次。其实能到达这里的，基本上就是系统初始化。这里经常因为无法取到完整的菜单列表就开始初始化权限
-            ms = Menu<TMenuEntity>.FindAll();
+            //// 上面通过缓存获取可能不完整，这里完整获取一次。其实能到达这里的，基本上就是系统初始化。这里经常因为无法取到完整的菜单列表就开始初始化权限
+            //ms = Menu<TMenuEntity>.FindAll();
 
-            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}授权数据……", typeof(TEntity).Name);
+            Menu<TMenuEntity>.Meta.WaitForInitData(10000);
+            var ms = Menu<TMenuEntity>.FindAll();
+
+            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}授权数据……", typeof(TRoleMenuEntity).Name);
 
             Meta.BeginTrans();
             try
@@ -79,7 +82,7 @@ namespace NewLife.CommonEntity
                 }
 
                 Meta.Commit();
-                if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}授权数据！", typeof(TEntity).Name);
+                if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}授权数据！", typeof(TRoleMenuEntity).Name);
             }
             catch { Meta.Rollback(); throw; }
         }

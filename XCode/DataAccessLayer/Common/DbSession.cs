@@ -298,6 +298,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public Int32 Rollback()
         {
+            // 这里要小心，在多层事务中，如果内层回滚，而最外层提交，则内层的回滚会变成提交
             TransactionCount--;
             if (TransactionCount > 0) return TransactionCount;
 

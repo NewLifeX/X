@@ -142,7 +142,7 @@ namespace XCode
             /// <returns>结果记录集</returns>
             public static DataSet Query(String sql)
             {
-                CheckInitData();
+                WaitForInitData();
 
                 return DBO.Select(sql, Meta.TableName);
             }
@@ -154,7 +154,7 @@ namespace XCode
             /// <returns>记录数</returns>
             public static Int32 QueryCount(String sql)
             {
-                CheckInitData();
+                WaitForInitData();
 
                 return DBO.SelectCount(sql, Meta.TableName);
             }
@@ -166,7 +166,7 @@ namespace XCode
             /// <returns>记录数</returns>
             public static Int32 QueryCount(SelectBuilder sb)
             {
-                CheckInitData();
+                WaitForInitData();
 
                 return DBO.SelectCount(sb, new String[] { Meta.TableName });
             }
@@ -178,7 +178,7 @@ namespace XCode
             /// <returns>影响的结果</returns>
             public static Int32 Execute(String sql)
             {
-                CheckInitData();
+                WaitForInitData();
 
                 Int32 rs = DBO.Execute(sql, Meta.TableName);
                 executeCount++;
@@ -193,7 +193,7 @@ namespace XCode
             /// <returns>新增行的自动编号</returns>
             public static Int64 InsertAndGetIdentity(String sql)
             {
-                CheckInitData();
+                WaitForInitData();
 
                 Int64 rs = DBO.InsertAndGetIdentity(sql, Meta.TableName);
                 executeCount++;
@@ -257,15 +257,14 @@ namespace XCode
                 remove { }
             }
 
-            static Int32 hasCheckModel;
-            static Object _lock_CheckModel = new Object();
+            static Int32[] hasCheckModel = new Int32[] { 0 };
             private static void CheckModel()
             {
                 //if (Interlocked.CompareExchange(ref hasCheckModel, 1, 0) != 0) return;
-                if (hasCheckModel > 0) return;
-                lock (_lock_CheckModel)
+                if (hasCheckModel[0] > 0) return;
+                lock (hasCheckModel)
                 {
-                    if (hasCheckModel > 0) return;
+                    if (hasCheckModel[0] > 0) return;
 
                     // 输出调用者，方便调试
                     if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, Helper.GetCaller());
@@ -313,20 +312,34 @@ namespace XCode
                             ThreadPoolX.QueueUserWorkItem(check);
                     }
 
-                    Interlocked.Increment(ref hasCheckModel);
+                    hasCheckModel[0] = 1;
                 }
             }
 
-            /// <summary>
-            /// 记录已进行数据初始化的表
-            /// </summary>
-            static List<String> hasCheckInitData = new List<String>();
-            /// <summary>检查并初始化数据</summary>
-            public static void CheckInitData()
+            /// <summary>记录已进行数据初始化的表</summary>
+            static Dictionary<String, AutoResetEvent> hasCheckInitData = new Dictionary<string, AutoResetEvent>(StringComparer.OrdinalIgnoreCase);
+            //static List<String> hasCheckInitData = new List<String>();
+
+            /// <summary>检查并初始化数据。参数等待时间为0表示不等待</summary>
+            /// <param name="millisecondsTimeout">等待时间，-1表示不限，0表示不等待</param>
+            /// <returns>如果等待，返回是否收到信号</returns>
+            public static Boolean WaitForInitData(Int32 millisecondsTimeout = 0)
             {
                 String key = ConnName + "$$$" + TableName;
-                if (hasCheckInitData.Contains(key)) return;
-                hasCheckInitData.Add(key);
+                AutoResetEvent e;
+                if (hasCheckInitData.TryGetValue(key, out e))
+                {
+                    // 是否需要等待
+                    if (millisecondsTimeout != 0 && e != null)
+                    {
+                        // 如果未收到信号，表示超时
+                        if (!e.WaitOne(millisecondsTimeout, false)) return false;
+                    }
+                    return true;
+                }
+
+                e = new AutoResetEvent(false);
+                hasCheckInitData.Add(key, e);
 
                 // 如果该实体类是首次使用检查模型，则在这个时候检查
                 CheckModel();
@@ -362,6 +375,8 @@ namespace XCode
                         {
                             // 异步完成，修改设置
                             InitDataHelper.Running = false;
+
+                            e.Set();
                         }
                     });
                 }
@@ -370,8 +385,14 @@ namespace XCode
                     // 输出调用者，方便调试
                     if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", ThisType.FullName, Helper.GetCaller());
 
-                    check();
+                    try
+                    {
+                        check();
+                    }
+                    finally { e.Set(); }
                 }
+
+                return true;
             }
             #endregion
 
@@ -385,7 +406,8 @@ namespace XCode
             /// <returns></returns>
             public static Int32 BeginTrans()
             {
-                executeCount = 0;
+                // 可能存在多层事务，这里不能把这个清零
+                //executeCount = 0;
                 return TransCount = DBO.BeginTransaction();
             }
 
@@ -395,8 +417,13 @@ namespace XCode
             {
                 TransCount = DBO.Commit();
                 // 提交事务时更新数据，虽然不是绝对准确，但没有更好的办法
-                if (TransCount <= 0 && executeCount > 0) DataChange();
-                executeCount = 0;
+                // 即使提交了事务，但只要事务内没有执行更新数据的操作，也不更新
+                if (TransCount <= 0 && executeCount > 0)
+                {
+                    DataChange();
+                    // 回滚到顶层才更新数据
+                    executeCount = 0;
+                }
                 return TransCount;
             }
 
@@ -405,8 +432,9 @@ namespace XCode
             public static Int32 Rollback()
             {
                 TransCount = DBO.Rollback();
-                if (TransCount <= 0 && executeCount > 0) DataChange();
-                executeCount = 0;
+                // 回滚的时候貌似不需要更新缓存
+                //if (TransCount <= 0 && executeCount > 0) DataChange();
+                if (TransCount <= 0 && executeCount > 0) executeCount = 0;
                 return TransCount;
             }
             #endregion
@@ -548,7 +576,7 @@ namespace XCode
                     if (m >= 1000) HttpRuntime.Cache.Insert(ThisType.Name + "_Count", m, null, DateTime.Now.AddMinutes(10), System.Web.Caching.Cache.NoSlidingExpiration);
 
                     // 先拿到记录数再初始化，因为初始化时会用到记录数，同时也避免了死循环
-                    CheckInitData();
+                    WaitForInitData();
 
                     return m;
                 }
