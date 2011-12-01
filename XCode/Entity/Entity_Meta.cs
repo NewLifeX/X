@@ -346,6 +346,7 @@ namespace XCode
                 }
 
                 e = new AutoResetEvent(false);
+                if (hasCheckInitData.ContainsKey(key)) return true;
                 hasCheckInitData.Add(key, e);
 
                 // 如果该实体类是首次使用检查模型，则在这个时候检查
