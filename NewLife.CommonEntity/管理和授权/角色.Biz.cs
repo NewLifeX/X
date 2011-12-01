@@ -25,11 +25,10 @@ namespace NewLife.CommonEntity
             base.InitData();
 
             // 如果角色菜单对应关系为空或者只有一个，则授权第一个角色访问所有菜单
-            //if (RoleMenu<TRoleMenuEntity>.Meta.Count > 1) return;
             if (RoleMenu<TRoleMenuEntity>.Meta.Count > 0)
             {
-                // 检查是否所有人都没有权限
-                //CheckNonePerssion(0);
+                if (XTrace.Debug) XTrace.WriteLine("如果角色菜单对应关系为空或者只有一个，则授权第一个角色访问所有菜单！");
+
                 foreach (TMenuEntity item in Menu<TMenuEntity>.Root.AllChilds)
                 {
                     RoleMenu<TRoleMenuEntity>.CheckNonePerssion(item.ID);
@@ -49,6 +48,9 @@ namespace NewLife.CommonEntity
                 Thread.Sleep(100);
             }
             if (ms == null || ms.Count < 1) return;
+
+            // 上面通过缓存获取可能不完整，这里完整获取一次。其实能到达这里的，基本上就是系统初始化。这里经常因为无法取到完整的菜单列表就开始初始化权限
+            ms = Menu<TMenuEntity>.FindAll();
 
             if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}授权数据……", typeof(TEntity).Name);
 
@@ -82,9 +84,7 @@ namespace NewLife.CommonEntity
             catch { Meta.Rollback(); throw; }
         }
 
-        /// <summary>
-        /// 删除RoleMenu中无效的RoleID和无效的MenuID
-        /// </summary>
+        /// <summary>删除RoleMenu中无效的RoleID和无效的MenuID</summary>
         public static void ClearRoleMenu()
         {
             // 等待RoleMenu初始化完成
@@ -103,6 +103,8 @@ namespace NewLife.CommonEntity
             // 查询所有。之所以不是调用Delete删除，是为了引发RoleMenu里面的Delete写日志
             EntityList<TRoleMenuEntity> rms = RoleMenu<TRoleMenuEntity>.FindAll(exp.ToString(), null, null, 0, 0);
             if (rms == null || rms.Count < 1) return;
+
+            if (XTrace.Debug) XTrace.WriteLine("删除RoleMenu中无效的RoleID和无效的MenuID！");
 
             rms.Delete();
         }

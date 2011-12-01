@@ -52,6 +52,10 @@ namespace NewLife.Log
             set { _IsPoolThread = value; }
         }
 
+        private Boolean _IsWeb;
+        /// <summary>是否Web线程</summary>
+        public Boolean IsWeb { get { return _IsWeb; } set { _IsWeb = value; } }
+
         private String _ThreadName;
         /// <summary>线程名</summary>
         public String ThreadName
@@ -89,6 +93,7 @@ namespace NewLife.Log
             ThreadID = Thread.CurrentThread.ManagedThreadId;
             IsPoolThread = Thread.CurrentThread.IsThreadPoolThread;
             ThreadName = Thread.CurrentThread.Name;
+            IsWeb = HttpContext.Current != null;
         }
 
         /// <summary>
@@ -97,7 +102,7 @@ namespace NewLife.Log
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("{0:HH:mm:ss.fff} {1} {2} {3} {4}", Time, ThreadID, IsPoolThread ? (HttpContext.Current != null ? 'W' : 'Y') : 'N', String.IsNullOrEmpty(ThreadName) ? "-" : ThreadName, Message);
+            return String.Format("{0:HH:mm:ss.fff} {1} {2} {3} {4}", Time, ThreadID, IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N', String.IsNullOrEmpty(ThreadName) ? "-" : ThreadName, Message);
         }
         #endregion
     }
