@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Threading;
 using System.Web;
+using NewLife.Collections;
 
 namespace NewLife.Log
 {
-    /// <summary>
-    /// 写日志事件参数
-    /// </summary>
+    /// <summary>写日志事件参数</summary>
     public class WriteLogEventArgs : EventArgs
     {
         #region 属性
@@ -66,6 +65,9 @@ namespace NewLife.Log
         #endregion
 
         #region 构造
+        /// <summary>实例化一个日志事件参数</summary>
+        internal WriteLogEventArgs() { }
+
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -90,9 +92,10 @@ namespace NewLife.Log
         void Init()
         {
             Time = DateTime.Now;
-            ThreadID = Thread.CurrentThread.ManagedThreadId;
-            IsPoolThread = Thread.CurrentThread.IsThreadPoolThread;
-            ThreadName = Thread.CurrentThread.Name;
+            var thread = Thread.CurrentThread;
+            ThreadID = thread.ManagedThreadId;
+            IsPoolThread = thread.IsThreadPoolThread;
+            ThreadName = thread.Name;
             IsWeb = HttpContext.Current != null;
         }
 
@@ -104,6 +107,29 @@ namespace NewLife.Log
         {
             return String.Format("{0:HH:mm:ss.fff} {1} {2} {3} {4}", Time, ThreadID, IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N', String.IsNullOrEmpty(ThreadName) ? "-" : ThreadName, Message);
         }
+        #endregion
+
+        #region 对象池
+        private static WriteLogEventArgsPool pool = new WriteLogEventArgsPool();
+
+        internal static WriteLogEventArgs Create(String message, Exception exception)
+        {
+            var e = pool.Pop();
+            e.Message = message;
+            e.Exception = exception;
+            e.Init();
+            return e;
+        }
+
+        /// <summary>归还</summary>
+        /// <param name="e"></param>
+        internal static void Push(WriteLogEventArgs e)
+        {
+            if (e != null) pool.Push(e);
+        }
+
+        /// <summary>日志事件参数池。避免大量写日志时的零碎对象造成GC压力。</summary>
+        class WriteLogEventArgsPool : ObjectPool<WriteLogEventArgs> { }
         #endregion
     }
 }

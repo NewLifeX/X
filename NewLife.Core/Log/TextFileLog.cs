@@ -210,14 +210,20 @@ namespace NewLife.Log
         /// <param name="msg">信息</param>
         public void WriteLine(String msg)
         {
-            WriteLogEventArgs e = new WriteLogEventArgs(msg);
-            if (OnWriteLog != null)
+            //WriteLogEventArgs e = new WriteLogEventArgs(msg);
+            // 采用对象池，避免太多小对象造成GC压力
+            var e = WriteLogEventArgs.Create(msg, null);
+            try
             {
-                OnWriteLog(null, e);
-                return;
-            }
+                if (OnWriteLog != null)
+                {
+                    OnWriteLog(null, e);
+                    return;
+                }
 
-            PerformWriteLog(e.ToString());
+                PerformWriteLog(e.ToString());
+            }
+            finally { WriteLogEventArgs.Push(e); }
         }
 
         /// <summary>

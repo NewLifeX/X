@@ -4,9 +4,7 @@ using NewLife.Reflection;
 
 namespace NewLife.Collections
 {
-    /// <summary>
-    /// 对象池。采用原子栈设计，避免锁资源的争夺。
-    /// </summary>
+    /// <summary>对象池。采用原子栈设计，避免锁资源的争夺。</summary>
     /// <typeparam name="T"></typeparam>
     public class ObjectPool<T> : DisposeBase //where T : new()
     {
