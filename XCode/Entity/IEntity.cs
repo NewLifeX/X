@@ -52,6 +52,10 @@ namespace XCode
         /// </summary>
         /// <returns></returns>
         Int32 Save();
+
+        /// <summary>不需要验证的保存，不执行Valid，一般用于快速导入数据</summary>
+        /// <returns></returns>
+        Int32 SaveWithoutValid();
         #endregion
 
         #region 获取/设置 字段值
