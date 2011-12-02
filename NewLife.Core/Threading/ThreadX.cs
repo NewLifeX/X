@@ -268,7 +268,7 @@ namespace NewLife.Threading
 
                     AliveTime = DateTime.Now;
 
-                    //不管怎么样，都要标志线程不在运行
+                    //不管怎么样，都要标志线程不再运行
                     Running = false;
                 }
             }
