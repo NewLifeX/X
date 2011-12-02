@@ -530,7 +530,7 @@ namespace XCoder
 
         private void label3_Click(object sender, EventArgs e)
         {
-            Clipboard.SetData("10193406", null);
+            Clipboard.SetData("1600800", null);
             MessageBox.Show("QQ群号已复制到剪切板！", "提示");
         }
 

@@ -348,7 +348,7 @@
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(149, 12);
             this.label3.TabIndex = 29;
-            this.label3.Text = ".Net技术交流群：10193406";
+            this.label3.Text = ".Net技术交流群：1600800";
             this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
             // linkLabel1
