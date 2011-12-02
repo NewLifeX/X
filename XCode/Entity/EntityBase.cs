@@ -170,6 +170,17 @@ namespace XCode
                     n++;
                 }
             }
+            // 赋值扩展数据
+            if (entity.Extends != null)
+            {
+                foreach (var item in entity.Extends)
+                {
+                    src.Extends[item.Key] = item.Value;
+                    if (setDirty) src[item.Key] = true;
+
+                    n++;
+                }
+            }
             return n;
         }
         #endregion

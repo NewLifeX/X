@@ -247,7 +247,7 @@ namespace XCode
             return list;
         }
 
-        /// <summary>查找所有没有父节点的节点集合</summary>
+        /// <summary>查找所有没有父节点的节点集合（其实就是父节点已经被删掉了的非法节点）</summary>
         /// <returns></returns>
         public static EntityList<TEntity> FindAllNoParent()
         {
