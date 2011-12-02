@@ -5,14 +5,14 @@
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Reflection;
+using System.Text;
 using System.Xml.Serialization;
 using XCode;
 using XCode.DataAccessLayer;
-using System.Reflection;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
 
 namespace NewLife.CommonEntity
 {
@@ -242,6 +242,126 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
+        /// <summary>根据路径创建，自动识别或创建父级</summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static TEntity Create(String path)
+        {
+            if (String.IsNullOrEmpty(path)) return null;
+
+            String[] ss = path.Split(@"\");
+            if (ss.Length < 1) return null;
+
+            // 先解决父级，这里用到递归
+            TEntity parent = null;
+            if (ss.Length <= 1)
+                parent = Root;
+            else
+                parent = Create(String.Join(@"\", ss, 0, ss.Length - 1));
+
+            // 如果找不到父级，就有问题了
+            if (parent == null) return null;
+
+            String name = ss[ss.Length - 1];
+            TEntity entity = FindByParentIDAndName(parent.ID, name);
+            if (entity != null) return entity;
+
+            entity = new TEntity();
+            entity.ParentID = parent.ID;
+            entity.Name = name;
+            entity.Save();
+
+            return entity;
+        }
+
+        /// <summary>复制所有子项</summary>
+        /// <param name="src"></param>
+        public void CopyItems(TEntity src)
+        {
+
+        }
+        #endregion
+
+        #region 静态方法
+        /// <summary>复制模版</summary>
+        /// <param name="src"></param>
+        /// <param name="des"></param>
+        public static void Copy(string src, string des)
+        {
+            if (String.IsNullOrEmpty(src) || String.IsNullOrEmpty(des)) return;
+            // 相同路径也不处理
+            if (src.EqualIgnoreCase(des)) return;
+
+            var obj1 = GetTemplateObject(src);
+            if (obj1 == null) return;
+
+            var obj2 = GetTemplateObject(des);
+            // 目标允许不存在
+            //if (obj2 == null) return;
+
+            Meta.BeginTrans();
+            try
+            {
+                if (obj1 is Template)
+                {
+                    var ts = obj1 as TEntity;
+                    var td = obj2 as TEntity;
+                    if (ts == null) return;
+                    // 如果目标存在，必须是相同类型
+                    if (obj2 != null && td == null) return;
+
+                    if (td == null) td = Create(des);
+                    // 复制子项
+                }
+                else
+                {
+                    var ts = obj1 as TemplateItem;
+                    var td = obj2 as TemplateItem;
+                    if (ts == null) return;
+                    // 如果目标存在，必须是相同类型
+                    if (obj2 != null && td == null) return;
+
+                    if (td == null) td = TemplateItem.CreateItem(des);
+                    // 复制内容
+                    td.CopyContent(ts);
+                    td.Save();
+                }
+
+                Meta.Commit();
+            }
+            catch { Meta.Rollback(); throw; }
+        }
+
+        /// <summary>获取路径所指定的模版，如果是模版目录，则返回Template，否则返回TemplateItem</summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static Object GetTemplateObject(String path)
+        {
+            if (String.IsNullOrEmpty(path)) return null;
+
+            // 父目录，以此来获取一次Template
+            String parent = Path.GetDirectoryName(path);
+            if (String.IsNullOrEmpty(path)) return null;
+
+            var tmpParent = Root.FindByPath(parent);
+            // 如果父目录都找不到，剩下的就不要想了
+            if (tmpParent == null) return null;
+
+            // 获取文件名部分，当然，也有可能是下一级目录
+            String filename = Path.GetFileName(path);
+            if (String.IsNullOrEmpty(filename)) return tmpParent;
+
+            // 先来试试这个是不是目录
+            var entity = tmpParent.Childs.FindIgnoreCase(_.Name, filename);
+            if (entity != null) return entity;
+
+            // 再试试是不是模版项
+            TemplateItem ti = tmpParent.TemplateItems.FindIgnoreCase(TemplateItem._.Name, filename);
+            if (ti != null) return ti;
+
+            // 最后，即使找到了父目录，但是因为找不到子目录或者模版项，也是返回空
+            return null;
+        }
         #endregion
 
         #region 检查并导入模版

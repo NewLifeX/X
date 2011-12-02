@@ -307,6 +307,45 @@ namespace NewLife.CommonEntity
         #endregion
 
         #region 业务
+        /// <summary>根据路径创建，自动识别或创建父级</summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static TEntity CreateItem(String path)
+        {
+            if (String.IsNullOrEmpty(path)) return null;
+
+            String[] ss = path.Split(@"\");
+            // 必须至少包含两级，目录和模版项
+            if (ss.Length < 2) return null;
+
+            // 先解决父级
+            Template parent = null;
+            if (ss.Length <= 1)
+                parent = Template.Root;
+            else
+                parent = Template.Create(String.Join(@"\", ss, 0, ss.Length - 1));
+
+            // 如果找不到父级，就有问题了
+            if (parent == null) return null;
+
+            String name = ss[ss.Length - 1];
+            TEntity entity = FindByTemplateIDAndName(parent.ID, name);
+            if (entity != null) return entity;
+
+            entity = new TEntity();
+            entity.TemplateID = parent.ID;
+            entity.Name = name;
+            entity.Save();
+
+            return entity;
+        }
+
+        /// <summary>复制子项</summary>
+        /// <param name="src"></param>
+        public void CopyContent(TEntity src)
+        {
+            Extends["Content"] = src.Content;
+        }
         #endregion
     }
 }
