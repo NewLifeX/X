@@ -339,7 +339,9 @@ namespace NewLife.Mvc
                         if (_Config[0] == null)
                         {
                             RouteConfigManager cfg = new RouteConfigManager();
-                            Module = cfg.Load(Type);
+                            IRouteConfigModule m;
+                            cfg.Load(Type, out m);
+                            Module = m;
                             _Config[0] = cfg;
                         }
                     }

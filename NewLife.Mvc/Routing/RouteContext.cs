@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using NewLife.Collections;
 using NewLife.Reflection;
+using Pair = System.Collections.Generic.KeyValuePair<NewLife.Mvc.IRouteConfigModule, NewLife.Mvc.RouteConfigManager>;
 
 namespace NewLife.Mvc
 {
@@ -35,7 +37,7 @@ namespace NewLife.Mvc
         private static RouteContext _Current;
 
         /// <summary>当前请求路由上下文信息</summary>
-        public static RouteContext Current { get { return _Current; } set { _Current = value; } }
+        public static RouteContext Current { get { return _Current; } internal set { _Current = value; } }
 
         /// <summary>
         /// 当前请求的路由路径,即url排除掉当前应用部署的路径后,以/开始的路径,不包括url中?及其后面的
@@ -49,7 +51,7 @@ namespace NewLife.Mvc
         Stack<RouteFrag> _Frags = new Stack<RouteFrag>();
 
         /// <summary>
-        /// 当前路由的片段,下标为0的片段是地址最左边匹配的
+        /// 当前路由的片段,Url从左向右,分别表示数组下标从0开始的路由片段
         /// </summary>
         public RouteFrag[] Frags
         {
@@ -77,7 +79,7 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
-        /// 当前路由最近的一个模块
+        /// 返回路由最近的一个模块
         /// </summary>
         public RouteFrag? Module
         {
@@ -92,7 +94,7 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
-        /// 路由最近的一个控制器工厂,如果没有路由进工厂则返回null
+        /// 返回路由最近的一个控制器工厂,如果没有路由进工厂则返回null
         /// </summary>
         public RouteFrag? Factory
         {
@@ -109,7 +111,7 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
-        /// 路由最近的一个控制器,如果没有路由进控制器则返回null
+        /// 返回路由最近的一个控制器,如果没有路由进控制器则返回null
         /// </summary>
         public RouteFrag? Controller
         {
@@ -171,7 +173,7 @@ namespace NewLife.Mvc
         #region 公共方法
 
         /// <summary>
-        /// 在Frags中查找第一个符合指定条件的RouteFrag
+        /// 在当前所有路由片段中查找第一个符合指定条件的路由片段
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
@@ -185,7 +187,7 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
-        /// 在Frags中查找符合指定条件的RouteFrag
+        /// 在当前所有路由片段中查找符合指定条件的所有路由片段
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
@@ -200,26 +202,48 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
-        /// 路由当前路径到指定模块路由配置
+        /// 路由当前路径到指定类的模块路由配置
+        ///
+        /// 一般在控制器工厂中使用,用于运行时路由,相对应的是实现IRouteConfigModule接口配置路由
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public IController RouteTo<T>() where T : IRouteConfigModule
+        public IController RouteTo<T>() where T : IRouteConfigModule, new()
         {
-            // TODO 待优化
-            return RouteTo((IRouteConfigModule)TypeX.CreateInstance<T>());
+            return RouteTo(typeof(T));
         }
 
         /// <summary>
-        /// 路由当前路径到指定的模块路由配置
+        /// 路由当前路径到指定类型的模块路由配置
+        ///
+        /// 一般在控制器工厂中使用,用于运行时路由,相对应的是实现IRouteConfigModule接口配置路由
         /// </summary>
-        /// <param name="module"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
-        public IController RouteTo(IRouteConfigModule module)
+        public IController RouteTo(Type type)
         {
-            // TODO 待优化 考虑RouteTo(IRouteConfigModule module, RouteConfigManager cfg接口)
-            RouteConfigManager cfg = new RouteConfigManager();
-            module.Config(cfg);
+            if (type != null && typeof(IRouteConfigModule).IsAssignableFrom(type))
+            {
+                Pair item = ModuleRouteCache.GetItem(type, NewRouteConfigFunc);
+                return RouteTo(item.Key, item.Value);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 路由当前路径到指定的路由配置模块,
+        ///
+        /// 一般在控制器工厂中使用,用于运行时路由,相对应的是实现IRouteConfigModule接口配置路由
+        /// </summary>
+        /// <param name="module">配置cfg的路由模块</param>
+        /// <param name="cfg">如果尚未有任何路由规则,则使用module配置的规则</param>
+        /// <returns></returns>
+        public IController RouteTo(IRouteConfigModule module, RouteConfigManager cfg)
+        {
+            if (cfg.Count == 0)
+            {
+                module.Config(cfg);
+            }
             EnterModule("", Path, null, module);
             IController c = null;
             try
@@ -238,6 +262,10 @@ namespace NewLife.Mvc
 
         /// <summary>
         /// 路由当前路径到指定的路由配置
+        ///
+        /// 一般在控制器工厂中使用,用于运行时路由,相对应的是实现IRouteConfigModule接口配置路由
+        ///
+        /// 建议使用RouteTo(IRouteConfigModule module, RouteConfigManager cfg),可以在上下文中留下模块路由信息,这个只能留下路由配置信息
         /// </summary>
         /// <param name="cfg"></param>
         /// <returns></returns>
@@ -459,6 +487,44 @@ namespace NewLife.Mvc
             RouteFrag[] ary = Frags;
             return "{RouteContext " + string.Join("\r\n  => ", Array.ConvertAll<RouteFrag, string>(ary, i => i.ToString())) + "}";
         }
+
+        #region 私有成员
+
+        static DictionaryCache<Type, Pair>[] _ModuleRouteCache = new DictionaryCache<Type, Pair>[] { null };
+
+        /// <summary>
+        /// RouteTo(Type type)方法使用的缓存的RouteConfigManager,方便在工厂中使用,避免重复创建路由配置
+        /// </summary>
+        internal static DictionaryCache<Type, Pair> ModuleRouteCache
+        {
+            get
+            {
+                if (_ModuleRouteCache[0] == null)
+                {
+                    lock (_ModuleRouteCache)
+                    {
+                        if (_ModuleRouteCache[0] == null)
+                        {
+                            _ModuleRouteCache[0] = new DictionaryCache<Type, Pair>();
+                        }
+                    }
+                }
+                return _ModuleRouteCache[0];
+            }
+        }
+
+        /// <summary>
+        /// 在获取ModuleRouteCache属性中的值时使用
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        internal static Pair NewRouteConfigFunc(Type t)
+        {
+            return new Pair(RouteConfigManager.LoadModuleCache.GetItem(t, RouteConfigManager.NewModuleFunc),
+                new RouteConfigManager());
+        }
+
+        #endregion 私有成员
     }
 
     /// <summary>

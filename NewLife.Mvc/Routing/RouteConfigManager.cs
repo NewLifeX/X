@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace NewLife.Mvc
@@ -75,7 +76,21 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public RouteConfigManager Route(string path, Type type)
         {
-            return Route(path, type, typeof(object));
+            return Route(path, type, null);
+        }
+
+        /// <summary>
+        /// 指定路径路由到指定类型,类型需要是IController,IControllerFactory,IRouteConfigMoudule其中之一
+        ///
+        /// onCreatedRule在创建了路由规则后会调用,可用于对路由规则做细节调整
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="type">需要指定一个类型,可以是IController,IControllerFactory,IRouteConfigMoudule或其实现类型</param>
+        /// <param name="onCreatedRule">根据Type类型的不同,参数可能是Rule或其子类FactoryRule,ModuleRule</param>
+        /// <returns></returns>
+        public RouteConfigManager Route(string path, Type type, Action<Rule> onCreatedRule)
+        {
+            return Route(path, type, typeof(object), null);
         }
 
         /// <summary>
@@ -118,34 +133,65 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
-        /// 从指定类型的模块加载路由配置
-        ///
-        /// 这将会实例化指定类型
+        /// 加载指定模块类型的路由配置,不同于RouteToModule(string path),这个相当于IRouteConfigModule.Config(this)
         /// </summary>
-        /// <typeparam name="T">指定类型,将会返回这个类型的实例</typeparam>
         /// <returns></returns>
-        public T Load<T>() where T : IRouteConfigModule, new()
+        public RouteConfigManager Load<T>() where T : IRouteConfigModule, new()
         {
-            // TODO 考虑是否有必要优化
-            return (T)Load(typeof(T));
+            T m;
+            Load<T>(out m);
+            return this;
         }
 
         /// <summary>
-        /// 从指定类型的模块加载路由配置
+        /// 加载指定模块类型的路由配置,不同于RouteToModule(string path),这个相当于IRouteConfigModule.Config(this)
+        ///
+        /// 其中module是创建的T类型的实例,全局单例的
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="module"></param>
+        /// <returns></returns>
+        public RouteConfigManager Load<T>(out T module) where T : IRouteConfigModule, new()
+        {
+            IRouteConfigModule m = null;
+            Load(typeof(T), out m);
+            module = (T)m;
+            return this;
+        }
+
+        /// <summary>
+        /// 加载指定模块类型的路由配置,不同于RouteToModule(string path),这个相当于IRouteConfigModule.Config(this)
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public IRouteConfigModule Load(Type type)
+        public RouteConfigManager Load(Type type)
         {
-            // TODO 考虑是否有必要优化
-            IRouteConfigModule m = (IRouteConfigModule)TypeX.CreateInstance(type);
-            if (m == null) return null;
-            Load(m);
-            return m;
+            IRouteConfigModule m;
+            Load(type, out m);
+            return this;
         }
 
         /// <summary>
-        /// 从指定模块加载路由配置
+        /// 加载指定模块类型的路由配置,不同于RouteToModule(string path),这个相当于IRouteConfigModule.Config(this)
+        ///
+        /// 其中module是创建的type类型的实例,全局单例的
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="module">type参数的具体实例,如果未创建会为null</param>
+        /// <returns></returns>
+        public RouteConfigManager Load(Type type, out IRouteConfigModule module)
+        {
+            module = null;
+            if (type != null && typeof(IRouteConfigModule).IsAssignableFrom(type))
+            {
+                module = LoadModuleCache.GetItem(type, NewModuleFunc);
+                Load(module);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 加载指定模块的路由配置,不同于RouteToModule(string path),这个相当于IRouteConfigModule.Config(this)
         /// </summary>
         /// <param name="module"></param>
         /// <returns></returns>
@@ -159,7 +205,7 @@ namespace NewLife.Mvc
                 }
                 catch (RouteConfigException ex)
                 {
-                    ex.Module = module;
+                    if (ex.Module == null) ex.Module = module;
                     throw;
                 }
             }
@@ -191,7 +237,7 @@ namespace NewLife.Mvc
 
         #endregion 公共
 
-        #region 内部
+        #region 私有
 
         List<Rule> _Rules;
 
@@ -223,7 +269,7 @@ namespace NewLife.Mvc
             }
             catch (RouteConfigException ex)
             {
-                ex.RoutePath = path;
+                if (ex.RoutePath == null) ex.RoutePath = path;
                 throw;
             }
             if (onCreatedRule != null) onCreatedRule(r);
@@ -232,9 +278,42 @@ namespace NewLife.Mvc
             return this;
         }
 
-        #endregion 内部
+        static DictionaryCache<Type, IRouteConfigModule>[] _LoadModuleCache = new DictionaryCache<Type, IRouteConfigModule>[] { null };
 
-        #region 稳定排序实现
+        /// <summary>
+        /// 加载模块的IRouteConfigModule实例缓存,Type为键,用于Load&lt;Type&gt;()和Load(Type type)方法
+        /// </summary>
+        internal static DictionaryCache<Type, IRouteConfigModule> LoadModuleCache
+        {
+            get
+            {
+                if (_LoadModuleCache[0] == null)
+                {
+                    lock (_LoadModuleCache)
+                    {
+                        if (_LoadModuleCache[0] == null)
+                        {
+                            _LoadModuleCache[0] = new DictionaryCache<Type, IRouteConfigModule>();
+                        }
+                    }
+                }
+                return _LoadModuleCache[0];
+            }
+        }
+
+        /// <summary>
+        /// 实例化指定的IRouteConfigModule
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        internal static IRouteConfigModule NewModuleFunc(Type type)
+        {
+            return (IRouteConfigModule)TypeX.CreateInstance(type);
+        }
+
+        #endregion 私有
+
+        #region 静态方法
 
         /// <summary>
         /// 提供稳定排序,因为内部实现还是快速排序,所以需要指定isDesc参数
@@ -246,17 +325,17 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public static IList<T> StableSort<T>(IList<T> list, bool isDesc, Comparison<T> comp)
         {
-            StableSortItem<T>[] sortList = new StableSortItem<T>[list.Count];
+            KeyValuePair<int, T>[] sortList = new KeyValuePair<int, T>[list.Count];
             for (int i = 0; i < sortList.Length; i++)
             {
-                sortList[i] = new StableSortItem<T>(i, list[i]);
+                sortList[i] = new KeyValuePair<int, T>(i, list[i]);
             }
-            Array.Sort<StableSortItem<T>>(sortList, delegate(StableSortItem<T> a, StableSortItem<T> b)
+            Array.Sort<KeyValuePair<int, T>>(sortList, delegate(KeyValuePair<int, T> a, KeyValuePair<int, T> b)
             {
                 int r = comp(a.Value, b.Value);
                 if (r == 0)
                 {
-                    r = a.Index - b.Index;
+                    r = a.Key - b.Key;
                     if (isDesc) return -r;
                 }
                 return r;
@@ -268,38 +347,31 @@ namespace NewLife.Mvc
             return list;
         }
 
-        /// <summary>
-        /// 稳定排序使用的集合元素,只是简单的记录原始集合的元素顺序
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        struct StableSortItem<T>
-        {
-            public StableSortItem(int index, T val)
-                : this()
-            {
-                Index = index;
-                Value = val;
-            }
-
-            public int Index { get; set; }
-
-            public T Value { get; set; }
-        }
-
-        #endregion 稳定排序实现
+        #endregion 静态方法
 
         #region 实现IList接口
 
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <returns></returns>
         public IEnumerator<Rule> GetEnumerator()
         {
             return Rules.GetEnumerator();
         }
 
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <returns></returns>
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
 
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
         public int Count
         {
             get
@@ -308,22 +380,40 @@ namespace NewLife.Mvc
             }
         }
 
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public int IndexOf(Rule item)
         {
             return Rules.IndexOf(item);
         }
 
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="item"></param>
         [Obsolete("请使用Route方法系列或Load方法", true)]
         public void Insert(int index, Rule item)
         {
-            throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="index"></param>
         public void RemoveAt(int index)
         {
             Rules.RemoveAt(index);
         }
 
+        /// <summary>
+        /// 实现IList接口 get是可用的,set将抛出NotImplementedException异常,请使用Route方法系列或Load方法
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         public Rule this[int index]
         {
             get
@@ -332,36 +422,61 @@ namespace NewLife.Mvc
             }
             set
             {
-                Rules[index] = value;
+                throw new NotImplementedException();
             }
         }
 
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="item"></param>
         [Obsolete("请使用Route方法系列或Load方法", true)]
         public void Add(Rule item)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
         public void Clear()
         {
             Rules.Clear();
         }
 
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public bool Contains(Rule item)
         {
             return Rules.Contains(item);
         }
 
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="array"></param>
+        /// <param name="arrayIndex"></param>
         public void CopyTo(Rule[] array, int arrayIndex)
         {
             Rules.CopyTo(array, arrayIndex);
         }
 
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
         public bool IsReadOnly
         {
             get { return false; }
         }
 
+        /// <summary>
+        /// 实现IList接口
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public bool Remove(Rule item)
         {
             return Rules.Remove(item);

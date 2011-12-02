@@ -17,7 +17,7 @@ class RouteFactory : IControllerFactory
             Int32.TryParse(hostport[1], out port);
         }
         host = hostport[0];
-        if (host.EndsWith(".localhost"))
+        if (host.EndsWith("test.localhost"))
         {
             try
             {
@@ -25,7 +25,7 @@ class RouteFactory : IControllerFactory
             }
             catch
             {
-                context.RouteTo(new TestModuleRoute());
+                context.RouteTo(new TestModuleRoute(), new RouteConfigManager()); // 自行控制模块和模块路由配置实例初始化
                 context.RouteTo(new RouteConfigManager());
             }
         }
