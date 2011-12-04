@@ -13,6 +13,7 @@ using System.Text;
 using System.Xml.Serialization;
 using XCode;
 using XCode.DataAccessLayer;
+using NewLife.Exceptions;
 
 namespace NewLife.CommonEntity
 {
@@ -281,12 +282,27 @@ namespace NewLife.CommonEntity
         /// <param name="src"></param>
         public void CopyItems(TEntity src)
         {
+            if (src == null) return;
 
+            var items = src.TemplateItems;
+            if (items == null) return;
+
+            foreach (var item in items)
+            {
+                // 看看本地是否存在该模版
+                var ti = TemplateItem.FindByTemplateIDAndName(ID, item.Name);
+                // 如果不存在，新建一个
+                if (ti == null) ti = new TemplateItem { TemplateID = ID, Name = item.Name };
+                // 复制内容
+                ti.CopyContent(item);
+                // 保存
+                ti.Save();
+            }
         }
         #endregion
 
         #region 静态方法
-        /// <summary>复制模版</summary>
+        /// <summary>复制模版。若目标存在，则复制内容；否则新建</summary>
         /// <param name="src"></param>
         /// <param name="des"></param>
         public static void Copy(string src, string des)
@@ -311,10 +327,11 @@ namespace NewLife.CommonEntity
                     var td = obj2 as TEntity;
                     if (ts == null) return;
                     // 如果目标存在，必须是相同类型
-                    if (obj2 != null && td == null) return;
+                    if (obj2 != null && td == null) throw new XException("已存在目标模版项{0}，无法复制！", des);
 
                     if (td == null) td = Create(des);
                     // 复制子项
+                    td.CopyItems(ts);
                 }
                 else
                 {
@@ -322,7 +339,7 @@ namespace NewLife.CommonEntity
                     var td = obj2 as TemplateItem;
                     if (ts == null) return;
                     // 如果目标存在，必须是相同类型
-                    if (obj2 != null && td == null) return;
+                    if (obj2 != null && td == null) throw new XException("已存在目标模版{0}，无法复制！", des);
 
                     if (td == null) td = TemplateItem.CreateItem(des);
                     // 复制内容
@@ -344,9 +361,7 @@ namespace NewLife.CommonEntity
 
             // 父目录，以此来获取一次Template
             String parent = Path.GetDirectoryName(path);
-            if (String.IsNullOrEmpty(path)) return null;
-
-            var tmpParent = Root.FindByPath(parent);
+            var tmpParent = String.IsNullOrEmpty(parent) ? Root : Root.FindByPath(parent);
             // 如果父目录都找不到，剩下的就不要想了
             if (tmpParent == null) return null;
 

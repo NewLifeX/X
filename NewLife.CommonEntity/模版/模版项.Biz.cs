@@ -206,7 +206,7 @@ namespace NewLife.CommonEntity
             // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
             base.Valid(isNew);
 
-            if (!Dirtys[_.Kind]) Kind = "XTemplate";
+            if (isNew && !Dirtys[_.Kind]) Kind = "XTemplate";
         }
 
         /// <summary>
@@ -319,11 +319,7 @@ namespace NewLife.CommonEntity
             if (ss.Length < 2) return null;
 
             // 先解决父级
-            Template parent = null;
-            if (ss.Length <= 1)
-                parent = Template.Root;
-            else
-                parent = Template.Create(String.Join(@"\", ss, 0, ss.Length - 1));
+            Template parent = Template.Create(String.Join(@"\", ss, 0, ss.Length - 1));
 
             // 如果找不到父级，就有问题了
             if (parent == null) return null;
