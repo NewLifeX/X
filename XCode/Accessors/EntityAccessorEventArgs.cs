@@ -16,6 +16,14 @@ namespace XCode.Accessors
         private FieldItem _Field;
         /// <summary>字段信息</summary>
         public FieldItem Field { get { return _Field; } set { _Field = value; } }
+
+        private Exception _Error;
+        /// <summary>异常对象</summary>
+        public Exception Error
+        {
+            get { return _Error; }
+            set { _Error = value; }
+        }
         #endregion
 
         //#region 构造

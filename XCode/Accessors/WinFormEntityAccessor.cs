@@ -1,10 +1,9 @@
 ﻿using System;
+using System.Reflection;
 using System.Windows.Forms;
-using NewLife;
 using NewLife.Reflection;
 using XCode.Configuration;
-using NewLife.Web;
-using System.Reflection;
+using XCode.Exceptions;
 
 namespace XCode.Accessors
 {
@@ -101,7 +100,7 @@ namespace XCode.Accessors
             }
             catch (Exception ex)
             {
-                throw new Exception("设置" + item.Name + "的数据时出错！" + ex.Message);
+                throw new XCodeException("读取" + item.Name + "的数据时出错！" + ex.Message, ex);
             }
         }
 
@@ -265,7 +264,7 @@ namespace XCode.Accessors
             }
             catch (Exception ex)
             {
-                throw new Exception("设置" + item.Name + "的数据时出错！" + ex.Message);
+                throw new XCodeException("设置" + item.Name + "的数据时出错！" + ex.Message, ex);
             }
         }
 

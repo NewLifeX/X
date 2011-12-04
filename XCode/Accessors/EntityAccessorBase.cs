@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using NewLife;
 using XCode.Configuration;
+using XCode.Exceptions;
 
 namespace XCode.Accessors
 {
@@ -25,6 +24,9 @@ namespace XCode.Accessors
 
         /// <summary>把指定实体字段的信息写入到实体对象后触发</summary>
         public virtual event EventHandler<EntityAccessorEventArgs> OnWriteItem;
+
+        /// <summary>读写异常发生时触发</summary>
+        public virtual event EventHandler<EntityAccessorEventArgs> OnError;
         #endregion
 
         #region IEntityAccessor 成员
@@ -72,9 +74,19 @@ namespace XCode.Accessors
             if (eop == null) eop = EntityFactory.CreateOperate(entity.GetType());
             foreach (FieldItem item in GetFields(eop))
             {
-                ReadItem(entity, item);
+                try
+                {
+                    ReadItem(entity, item);
 
-                if (OnReadItem != null) OnReadItem(this, new EntityAccessorEventArgs { Entity = entity, Field = item });
+                    if (OnReadItem != null) OnReadItem(this, new EntityAccessorEventArgs { Entity = entity, Field = item });
+                }
+                catch (Exception ex)
+                {
+                    if (OnError != null)
+                        OnError(this, new EntityAccessorEventArgs { Entity = entity, Field = item, Error = ex });
+                    else
+                        throw new XCodeException("读取" + item.Name + "的数据时出错！" + ex.Message, ex);
+                }
             }
         }
 
@@ -99,9 +111,19 @@ namespace XCode.Accessors
             if (eop == null) eop = EntityFactory.CreateOperate(entity.GetType());
             foreach (FieldItem item in GetFields(eop))
             {
-                WriteItem(entity, item);
+                try
+                {
+                    WriteItem(entity, item);
 
-                if (OnWriteItem != null) OnWriteItem(this, new EntityAccessorEventArgs { Entity = entity, Field = item });
+                    if (OnWriteItem != null) OnWriteItem(this, new EntityAccessorEventArgs { Entity = entity, Field = item });
+                }
+                catch (Exception ex)
+                {
+                    if (OnError != null)
+                        OnError(this, new EntityAccessorEventArgs { Entity = entity, Field = item, Error = ex });
+                    else
+                        throw new XCodeException("设置" + item.Name + "的数据时出错！" + ex.Message, ex);
+                }
             }
         }
 

@@ -69,15 +69,14 @@ namespace XCode.Accessors
             Control control = FindControlByField(item);
             if (control == null) return;
 
-            try
-            {
-                GetFormItem(entity, item, control);
-            }
-            catch (Exception ex)
-            {
-                WebHelper.Alert("读取" + item.Name + "的数据时出错！" + ex.Message);
-                return;
-            }
+            //try
+            //{
+            GetFormItem(entity, item, control);
+            //}
+            //catch (Exception ex)
+            //{
+            //    throw new XCodeException("读取" + item.Name + "的数据时出错！" + ex.Message, ex);
+            //}
         }
 
         /// <summary>
@@ -256,15 +255,14 @@ namespace XCode.Accessors
             if (control == null) return;
 
             Boolean canSave = true;
-            try
-            {
-                SetFormItem(entity, item, control, canSave);
-            }
-            catch (Exception ex)
-            {
-                WebHelper.Alert("设置" + item.Name + "的数据时出错！" + ex.Message);
-                return;
-            }
+            //try
+            //{
+            SetFormItem(entity, item, control, canSave);
+            //}
+            //catch (Exception ex)
+            //{
+            //    throw new XCodeException("设置" + item.Name + "的数据时出错！" + ex.Message, ex);
+            //}
         }
 
         /// <summary>

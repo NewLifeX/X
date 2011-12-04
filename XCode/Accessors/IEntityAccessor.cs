@@ -48,6 +48,9 @@ namespace XCode.Accessors
 
         /// <summary>把指定实体字段的信息写入到实体对象后触发</summary>
         event EventHandler<EntityAccessorEventArgs> OnWriteItem;
+
+        /// <summary>读写异常发生时触发</summary>
+        event EventHandler<EntityAccessorEventArgs> OnError;
     }
 
     ///// <summary>实体数据存取器接口</summary>
