@@ -305,7 +305,8 @@ namespace XTemplate.Templating
         /// <param name="content"></param>
         public void AddTemplateItem(String name, String content)
         {
-            if (String.IsNullOrEmpty(content)) throw new ArgumentNullException("content", "模版内容不能为空！");
+            if (String.IsNullOrEmpty(name) && String.IsNullOrEmpty(content))
+                throw new ArgumentNullException("content", "名称和模版内容不能同时为空！");
 
             if (Status >= TemplateStatus.Process) throw new InvalidOperationException("模版已分析处理，不能再添加模版！");
 
@@ -438,7 +439,8 @@ namespace XTemplate.Templating
                         content = ti.Content;
                     }
                 }
-                if (String.IsNullOrEmpty(content)) throw new TemplateException(directive.Block, String.Format("加载模版[{0}]失败！", name));
+                // 允许内容为空
+                //if (String.IsNullOrEmpty(content)) throw new TemplateException(directive.Block, String.Format("加载模版[{0}]失败！", name));
 
                 return ti;
             }
@@ -771,7 +773,7 @@ namespace XTemplate.Templating
             if (References != null) AssemblyReferences.AddRange(References);
 
             String name = AssemblyName;
-            if (!String.IsNullOrEmpty(Path.GetExtension(name))) name += ".dll";
+            if (String.IsNullOrEmpty(Path.GetExtension(name))) name += ".dll";
             Assembly asm = Compile(name, AssemblyReferences, Provider, Errors, this);
             if (asm != null) Assembly = asm;
 

@@ -58,9 +58,11 @@ namespace XTemplate.Templating
         /// <returns></returns>
         public static List<Block> Parse(String name, String content)
         {
-            if (content == null) throw new ArgumentNullException("content");
+            //if (content == null) throw new ArgumentNullException("content");
 
             List<Block> blocks = new List<Block>();
+            if (String.IsNullOrEmpty(content)) return blocks;
+
             foreach (Match match in templateParsingRegex.Matches(content))
             {
                 Block item = new Block();
