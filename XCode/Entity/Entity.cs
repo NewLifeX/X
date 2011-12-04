@@ -146,8 +146,40 @@ namespace XCode
         /// <summary>
         /// 删除数据，通过调用OnDelete实现，另外增加了数据验证和事务保护支持，将来可能实现事件支持。
         /// </summary>
+        /// <remarks>
+        /// 删除时，如果有且仅有主键有脏数据，则可能是ObjectDataSource之类的删除操作。
+        /// 该情况下，实体类没有完整的信息（仅有主键信息），将会导致无法通过扩展属性删除附属数据。
+        /// 如果需要避开该机制，请清空脏数据。
+        /// </remarks>
         /// <returns></returns>
-        public override Int32 Delete() { return DoAction(OnDelete, null); }
+        public override Int32 Delete()
+        {
+            if (Dirtys.Count > 0)
+            {
+                // 是否有且仅有主键有脏数据
+                var names = Meta.Table.PrimaryKeys.Select(f => f.Name).OrderBy(k => k).ToArray();
+                // 脏数据里面是否存在非主键且为true的
+                var names2 = Dirtys.Where(d => d.Value).Select(d => d.Key).OrderBy(k => k).ToArray();
+                // 序列相等，符合条件
+                if (names.SequenceEqual(names2))
+                {
+                    // 再次查询
+                    TEntity entity = Find(persistence.GetPrimaryCondition(this));
+                    // 如果目标数据不存在，就没必要删除了
+                    if (entity == null) return 0;
+
+                    // 复制脏数据和扩展数据
+                    names.ForEach((n, i) => entity.Dirtys[n] = true);
+                    //names.ForEach(n => entity.Dirtys[n] = true);
+                    this.Extends.ForEach((d, i) => entity.Extends[d.Key] = d.Value);
+                    //this.Extends.ForEach(d => entity.Extends[d.Key] = d.Value);
+
+                    return entity.OnDelete();
+                }
+            }
+
+            return DoAction(OnDelete, null);
+        }
 
         /// <summary>
         /// 从数据库中删除该对象

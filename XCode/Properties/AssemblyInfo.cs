@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.3.*")]
-[assembly: AssemblyFileVersion("8.3.2011.1201")]
+[assembly: AssemblyFileVersion("8.3.2011.1204")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.3.2011.1204   实体访问器接口增加OnError事件，允许外部控制异常，默认向外抛出。
+ *                  Entity<>.Delete删除实体时，如果实体有且仅有主键有脏数据，则先查询一次再调用OnDelete删除，避免扩展删除失败
+ * 
  * v8.3.2011.1201   不再支持异步初始化数据InitData，因为它实在容易出问题。如若需要异步初始化，可在InitData中自己实现。
  * 
  * v8.3.2011.1126   HttpEntityAccessor检查数据类型是否满足目标类型，如果不满足则跳过，以免内部赋值异常导致程序处理出错
