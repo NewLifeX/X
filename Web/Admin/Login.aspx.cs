@@ -33,8 +33,8 @@ public partial class Login : System.Web.UI.Page
     {
         try
         {
-            CommonManageProvider.Provider.Login(UserName.Text, Password.Text);
-            if (CommonManageProvider.Provider.Current != null) Response.Redirect("Default.aspx");
+            ManageProvider.Provider.Login(UserName.Text, Password.Text);
+            if (ManageProvider.Provider.Current != null) Response.Redirect("Default.aspx");
         }
         catch (Exception ex)
         {

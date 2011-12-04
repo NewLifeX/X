@@ -36,7 +36,7 @@ public abstract class PageBase : WebPageBase
 
     public override bool CheckLogin()
     {
-        if (CommonManageProvider.Provider.Current == null)
+        if (ManageProvider.Provider.Current == null)
         {
             // 不可能出现的情况，记录Cookie
             StringBuilder sb = new StringBuilder();
