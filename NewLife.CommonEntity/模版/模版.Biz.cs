@@ -136,12 +136,15 @@ namespace NewLife.CommonEntity
             else if (!isNew && !Dirtys[_.LastModify])
                 LastModify = DateTime.Now;
 
-            // 获取当前登录用户
-            IManageUser user = CommonService.Resolve<IManageProvider>().Current;
-            if (user != null && !Dirtys[_.UserID] && !Dirtys[_.UserName])
+            if (!Dirtys[_.UserID] && !Dirtys[_.UserName])
             {
-                if (user.ID is Int32) UserID = (Int32)user.ID;
-                UserName = user.ToString();
+                // 获取当前登录用户
+                IManageUser user = ManageProvider.Provider.Current;
+                if (user != null)
+                {
+                    if (user.ID is Int32) UserID = (Int32)user.ID;
+                    UserName = user.ToString();
+                }
             }
         }
 

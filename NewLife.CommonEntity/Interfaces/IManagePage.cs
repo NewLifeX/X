@@ -167,7 +167,7 @@ namespace NewLife.CommonEntity
         public HttpResponse Response { get { return Page.Response; } }
 
         /// <summary>当前管理员</summary>
-        public virtual IManageUser Current { get { return CommonManageProvider.Provider.Current; } }
+        public virtual IManageUser Current { get { return ManageProvider.Provider.Current; } }
 
         /// <summary>当前管理员</summary>
         protected virtual IAdministrator CurrentAdmin { get { return Current as IAdministrator; } }

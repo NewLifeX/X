@@ -250,7 +250,7 @@ namespace NewLife.CommonEntity
             get
             {
                 //return TypeResolver.GetPropertyValue(typeof(IAdministrator), "Current") as IAdministrator;
-                return CommonManageProvider.Provider.Current as IAdministrator;
+                return ManageProvider.Provider.Current as IAdministrator;
             }
         }
 

@@ -35,23 +35,19 @@ public partial class Center_Frame_Left : System.Web.UI.Page
 
             Literal1.Text = m.Name;
 
-            if (CommonManageProvider.Provider.Current != null)
+            IAdministrator admin = ManageProvider.Provider.Current as IAdministrator;
+            if (admin != null)
             {
-
-                IAdministrator admin = CommonManageProvider.Provider.Current as IAdministrator;
-                if (admin != null)
+                if (admin.Role != null)
                 {
-                    if (admin.Role != null)
-                    {
-                        menu.DataSource = admin.Role.GetMySubMenus(m.ID);
-                        menu.DataBind();
-                    }
-                }
-                else
-                {
-                    menu.DataSource = m.Childs;
+                    menu.DataSource = admin.Role.GetMySubMenus(m.ID);
                     menu.DataBind();
                 }
+            }
+            else
+            {
+                menu.DataSource = m.Childs;
+                menu.DataBind();
             }
         }
     }
