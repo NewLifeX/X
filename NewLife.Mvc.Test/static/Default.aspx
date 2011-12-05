@@ -1,7 +1,6 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="bar.aspx.cs" Inherits="bar" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Default.aspx.cs" Inherits="static_Default" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
     <title></title>
@@ -9,7 +8,10 @@
 <body>
     <form id="form1" runat="server">
     <div>
-        暂时没有额外用途
+        hello aspx页面 MVC路由直接忽略
+        <pre>
+        <%= NewLife.Mvc.RouteContext.Current.ToString() %>
+        </pre>
     </div>
     </form>
 </body>

@@ -133,6 +133,23 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
+        /// 忽略指定路径的路由请求 后续的路由规则将不会尝试匹配
+        ///
+        /// 在Route(params object[] args) 中可以使用IgnoreRoute类来忽略路由请求
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        /// <see cref="IgnoreRoute"/>
+        public RouteConfigManager Ignore(params string[] path)
+        {
+            foreach (var p in path)
+            {
+                RouteToFactory(p, IgnoreRoute.InstanceFunc);
+            }
+            return this;
+        }
+
+        /// <summary>
         /// 加载指定模块类型的路由配置,不同于RouteToModule(string path),这个相当于IRouteConfigModule.Config(this)
         /// </summary>
         /// <returns></returns>

@@ -42,6 +42,7 @@
     <Compile Include="Generic\GenericController.cs" />
     <Compile Include="Generic\GenericControllerFactory.cs" />
     <Compile Include="Generic\GenericTemplateEngine.cs" />
+    <Compile Include="Generic\IgnoreRoute.cs" />
     <Compile Include="Interfaces\IController.cs" />
     <Compile Include="Interfaces\IControllerFactory.cs" />
     <Compile Include="Interfaces\IRouteContext.cs" />

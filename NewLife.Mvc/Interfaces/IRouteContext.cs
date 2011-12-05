@@ -52,6 +52,8 @@ namespace NewLife.Mvc
 
         /// <summary>
         /// 在Frags中查找第一个符合指定条件的RouteFrag
+        /// 
+        /// 匹配的Url片段将按照从右向左遍历,不同于Frags属性返回的是从左向右的
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
@@ -59,10 +61,12 @@ namespace NewLife.Mvc
 
         /// <summary>
         /// 在Frags中查找符合指定条件的RouteFrag
+        /// 
+        /// 匹配的Url片段将按照从右向左遍历,不同于Frags属性返回的是从左向右的
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
-        List<RouteFrag> FindAllFrags(Func<RouteFrag, bool> filter);
+        List<RouteFrag> FindAllFrag(Func<RouteFrag, bool> filter);
 
         /// <summary>
         /// 路由当前路径到指定类的模块路由配置

@@ -11,9 +11,9 @@ public partial class foo : System.Web.UI.Page
     protected void Page_Load(object sender, EventArgs e)
     {
         Uri u = Request.Url;
-        specUrl = string.Format("http://test.localhost{0}/{1}",
+        specUrl = string.Format("http://test.localhost{0}{1}",
             u.IsDefaultPort ? "" : ":" + u.Port,
-            Request.ApplicationPath.Trim('/')
+             Request.ApplicationPath.TrimEnd('/')
         );
     }
 }

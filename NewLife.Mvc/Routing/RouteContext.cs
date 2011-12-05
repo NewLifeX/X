@@ -36,8 +36,12 @@ namespace NewLife.Mvc
         [ThreadStatic]
         private static RouteContext _Current;
 
-        /// <summary>当前请求路由上下文信息</summary>
-        public static RouteContext Current { get { return _Current; } internal set { _Current = value; } }
+        /// <summary>
+        /// 当前请求路由上下文信息
+        ///
+        /// 通过给当前属性赋值可以实现路由探测,即尝试匹配路由规则,但是不执行最终的控制器
+        /// </summary>
+        public static RouteContext Current { get { return _Current; } set { _Current = value; } }
 
         /// <summary>
         /// 当前请求的路由路径,即url排除掉当前应用部署的路径后,以/开始的路径,不包括url中?及其后面的
@@ -174,6 +178,8 @@ namespace NewLife.Mvc
 
         /// <summary>
         /// 在当前所有路由片段中查找第一个符合指定条件的路由片段
+        /// 
+        /// 匹配的Url片段将按照从右向左遍历,不同于Frags属性返回的是从左向右的
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
@@ -188,10 +194,12 @@ namespace NewLife.Mvc
 
         /// <summary>
         /// 在当前所有路由片段中查找符合指定条件的所有路由片段
+        /// 
+        /// 匹配的Url片段将按照从右向左遍历,不同于Frags属性返回的是从左向右的
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
-        public List<RouteFrag> FindAllFrags(Func<RouteFrag, bool> filter)
+        public List<RouteFrag> FindAllFrag(Func<RouteFrag, bool> filter)
         {
             List<RouteFrag> ret = new List<RouteFrag>();
             foreach (var f in _Frags)
@@ -244,7 +252,8 @@ namespace NewLife.Mvc
             {
                 module.Config(cfg);
             }
-            EnterModule("", Path, null, module);
+            Rule rule = _Frags.Count > 0 ? _Frags.Peek().Rule : null;
+            EnterModule("", Path, rule, module);
             IController c = null;
             try
             {
@@ -254,7 +263,7 @@ namespace NewLife.Mvc
             {
                 if (c == null)
                 {
-                    ExitModule("", Path, null, module);
+                    ExitModule("", Path, rule, module);
                 }
             }
             return c;
@@ -265,42 +274,14 @@ namespace NewLife.Mvc
         ///
         /// 一般在控制器工厂中使用,用于运行时路由,相对应的是实现IRouteConfigModule接口配置路由
         ///
-        /// 建议使用RouteTo(IRouteConfigModule module, RouteConfigManager cfg),可以在上下文中留下模块路由信息,这个只能留下路由配置信息
+        /// 建议使用RouteTo(IRouteConfigModule module, RouteConfigManager cfg)  RouteTo(Type type)  RouteTo<T>() 这3个方法
+        /// 可以在上下文中留下模块路由信息,这个只能留下路由配置信息
         /// </summary>
         /// <param name="cfg"></param>
         /// <returns></returns>
         public IController RouteTo(RouteConfigManager cfg)
         {
             return RouteTo(cfg, true);
-        }
-
-        /// <summary>
-        /// 路由当前路径到指定的路由配置,可指定进行上下文进出
-        /// </summary>
-        /// <param name="cfg"></param>
-        /// <param name="enterContext"></param>
-        /// <returns></returns>
-        internal IController RouteTo(RouteConfigManager cfg, bool enterContext)
-        {
-            cfg.Sort();
-            if (enterContext) EnterConfigManager("", Path, null, cfg);
-            IController c = null;
-            try
-            {
-                foreach (var r in cfg)
-                {
-                    c = r.RouteTo(this);
-                    if (c != null) break;
-                }
-            }
-            finally
-            {
-                if (c == null)
-                {
-                    if (enterContext) ExitConfigManager("", Path, null, cfg);
-                }
-            }
-            return c;
         }
 
         #endregion 公共方法
@@ -442,6 +423,11 @@ namespace NewLife.Mvc
                 Debug.Assert(f.Value.Path == match);
                 Debug.Assert(f.Value.Rule == r);
             }
+            RouteFrag? c = Controller;
+            if (c != null)
+            {
+                Debug.Fail("不能重复进入控制器");
+            }
 #endif
             Path = path.Substring(match.Length);
             _Frags.Push(new RouteFrag()
@@ -489,6 +475,36 @@ namespace NewLife.Mvc
         }
 
         #region 私有成员
+
+        /// <summary>
+        /// 路由当前路径到指定的路由配置,可指定进行上下文进出
+        /// </summary>
+        /// <param name="cfg"></param>
+        /// <param name="enterContext"></param>
+        /// <returns></returns>
+        internal IController RouteTo(RouteConfigManager cfg, bool enterContext)
+        {
+            cfg.Sort();
+            Rule rule = _Frags.Count > 0 ? _Frags.Peek().Rule : null;
+            if (enterContext) EnterConfigManager("", Path, rule, cfg);
+            IController c = null;
+            try
+            {
+                foreach (var r in cfg)
+                {
+                    c = r.RouteTo(this);
+                    if (c != null) break;
+                }
+            }
+            finally
+            {
+                if (c == null)
+                {
+                    if (enterContext) ExitConfigManager("", Path, rule, cfg);
+                }
+            }
+            return c;
+        }
 
         static DictionaryCache<Type, Pair>[] _ModuleRouteCache = new DictionaryCache<Type, Pair>[] { null };
 
@@ -562,7 +578,7 @@ namespace NewLife.Mvc
         /// <see cref="Rule"/>
         public override string ToString()
         {
-            return string.Format("{{RouteFrag {0} -> {3} [{2}] {1}}}", Path, Rule, Type, Related);
+            return string.Format("{{RouteFrag {0} -> {3} [{2}] {1}}}", !string.IsNullOrEmpty(Path) ? Path : "未匹配路径", Rule, Type, Related);
         }
 
         /// <summary>

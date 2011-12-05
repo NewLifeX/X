@@ -46,7 +46,7 @@ namespace NewLife.Mvc
             }
             catch (Exception ex)
             {
-                if (TryLogExceptionIfNonDebug(app.Response, ex, "发生路由错误"))
+                if (LogException(app.Response, ex, "发生路由错误"))
                 {
                     app.CompleteRequest();
                 }
@@ -55,7 +55,7 @@ namespace NewLife.Mvc
                     throw;
                 }
             }
-            if (controller != null)
+            if (!IgnoreRoute.IsIgnore(controller))
             {
                 app.Context.RemapHandler(HttpHandlerWrap.Create(ctx, controller));
                 return;
@@ -93,15 +93,15 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
-        /// 尝试将指定的异常信息写入到日志,如果当前是非Debug模式,Debug开关是NewLife.Mvc.Route.Debug配置项
+        /// 向指定Http响应写入异常标识信息,同时将异常以对应标识写入日志文件,方便根据异常标识查找异常信息
         ///
-        /// 返回是否已写入,非Debug模式会返回true
+        /// 只在生产环境下模式下返回true,打开调试开关将返回false,方便调试时查错
         /// </summary>
         /// <param name="resp"></param>
         /// <param name="ex"></param>
         /// <param name="exceptName"></param>
         /// <returns></returns>
-        public static bool TryLogExceptionIfNonDebug(HttpResponse resp, Exception ex, string exceptName)
+        public static bool LogException(HttpResponse resp, Exception ex, string exceptName)
         {
             if (!Debug)
             {
@@ -162,7 +162,7 @@ namespace NewLife.Mvc
                 // TODO 是否需要从对象容器中取得处理对象来处理异常
                 Exception controllException = new Exception(string.Format("{0} {1}",
                     context.Request.HttpMethod, context.Request.Url), ex);
-                if (Route.TryLogExceptionIfNonDebug(context.Response, controllException, "控制器运行时发生错误"))
+                if (Route.LogException(context.Response, controllException, "控制器运行时发生错误"))
                 {
                 }
                 else

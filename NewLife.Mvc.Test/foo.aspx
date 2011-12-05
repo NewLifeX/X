@@ -7,6 +7,9 @@
 </head>
 <body>
     <div>
+    <asp:PlaceHolder runat="server" ID="ph1" Visible="false">
+    <#="<p style='font-weight:bold;color:#f00;padding:3em;border:1px solid #f00;'>如果能看到这段文字表示是有模版引擎处理的,而不是asp.net的引擎,应该在路由规则中将当前页的路由规则注释</p>"#>
+    </asp:PlaceHolder>        
         <p>
             <h4>控制器和控制器工厂测试</h4>
             <a href="Test">/Test TestController</a>
@@ -30,11 +33,16 @@
             <p>
                 需要在host中有<code>127.0.0.1    test.localhost</code>
             </p>
-            <a href="<%= specUrl %>specFactory/foo">/foo$ TestModuleRoute TestController</a>
-            <a href="<%= specUrl %>specFactory/foo123">/foo TestModuleRoute TestController</a>
-            <a href="<%= specUrl %>specFactory/f123">/f TestModuleRoute TestController</a>
-            <a href="<%= specUrl %>specFactory/foo2">/foo2 TestModuleRoute TestController</a>
-            <a href="<%= specUrl %>specFactory/notfound">404</a>
+            <a href="<%= specUrl %>/specFactory/foo">/foo$ TestModuleRoute TestController</a>
+            <a href="<%= specUrl %>/specFactory/foo123">/foo TestModuleRoute TestController</a>
+            <a href="<%= specUrl %>/specFactory/f123">/f TestModuleRoute TestController</a>
+            <a href="<%= specUrl %>/specFactory/foo2">/foo2 TestModuleRoute TestController</a>
+            <a href="<%= specUrl %>/specFactory/notfound">404</a>
+        </p>
+        <p>
+            <h4>忽略路由请求测试</h4>
+            <a href="static/">static目录</a>
+            <a href="static/TextFile.txt">文本文件</a>
         </p>
         <p>
             <h4>外链请求测试</h4>

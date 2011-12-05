@@ -272,7 +272,12 @@ namespace NewLife.Mvc
                 {
                     if (c != null)
                     {
-                        ctx.EnterController(match, path, this, c);
+                        RouteFrag? f = ctx.Controller;
+                        if (f == null)
+                        {
+                            // 控制器工厂内部有可能通过RouteContext.RouteTo已经调用了进入控制器 所以退出时需要检查是否有需要进入控制器工厂
+                            ctx.EnterController(match, path, this, c);
+                        }
                     }
                     else
                     {
