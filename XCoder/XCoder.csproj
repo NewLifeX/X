@@ -89,7 +89,8 @@
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.XML" />
-    <Reference Include="XCode, Version=8.3.4352.37758, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="XCode, Version=8.3.4356.17837, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\DLL\XCode.dll</HintPath>
     </Reference>
     <Reference Include="XTemplate, Version=1.8.4345.38322, Culture=neutral, processorArchitecture=MSIL">
