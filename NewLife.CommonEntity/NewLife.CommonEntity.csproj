@@ -59,8 +59,9 @@
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NewLife.Core, Version=3.4.4352.36616, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="NewLife.Core, Version=3.4.4356.17832, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\DLL\NewLife.Core.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
