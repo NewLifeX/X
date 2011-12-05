@@ -79,7 +79,15 @@ namespace NewLife.CommonEntity
 
         /// <summary>该模版项所对应的模版内容</summary>
         [XmlIgnore]
-        public String Content { get { return LastTemplateContent != null ? LastTemplateContent.Content : null; } }
+        public String Content
+        {
+            get { return LastTemplateContent != null ? LastTemplateContent.Content : null; }
+            set
+            {
+                Extends["Content"] = value;
+                Dirtys["Content"] = true;
+            }
+        }
 
         /// <summary>该模版项所对应的模版版本</summary>
         [XmlIgnore]
@@ -340,7 +348,7 @@ namespace NewLife.CommonEntity
         /// <param name="src"></param>
         public void CopyContent(TEntity src)
         {
-            Extends["Content"] = src.Content;
+            this.Content = src.Content;
         }
         #endregion
     }
