@@ -108,14 +108,16 @@ namespace XCode.Common
                 String name = method.ToString();
                 // 去掉前面的返回类型
                 if (name.Contains(" ")) name = name.Substring(name.IndexOf(" ") + 1);
-                if (method.DeclaringType != last)
-                    sb.AppendFormat("{0}.{1}", TypeX.Create(method.DeclaringType).Name, name);
+
+                var type = method.DeclaringType;
+                if (type != null && type != last)
+                    sb.AppendFormat("{0}.{1}", TypeX.Create(type).Name, name);
                 else
                     sb.AppendFormat("{0}", name);
 
                 if (i < count - 1) sb.Append("<-");
 
-                last = method.DeclaringType;
+                last = type;
             }
             return sb.ToString();
         }

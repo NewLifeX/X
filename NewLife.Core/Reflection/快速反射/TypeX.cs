@@ -130,6 +130,8 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static TypeX Create(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
+
             return cache.GetItem(type, delegate(Type key)
             {
                 return new TypeX(key);
