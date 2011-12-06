@@ -503,6 +503,15 @@ namespace NewLife.CommonEntity
             Int32 total = 0;
             foreach (String item in AppDirs)
             {
+                // 如果目录不存在，就没必要扫描了
+                String p = item;
+                if (!Path.IsPathRooted(p)) p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, p);
+                if (!Directory.Exists(p))
+                {
+                    p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path.Combine("Admin", item));
+                    if (!Directory.Exists(p)) continue;
+                }
+
                 // 根据目录找菜单，它将作为顶级菜单
                 top = FindForName(item);
                 if (top == null) top = Meta.Cache.Entities.Find(_.Remark, item);
