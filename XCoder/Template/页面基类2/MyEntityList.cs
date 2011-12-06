@@ -24,7 +24,7 @@ public abstract class MyEntityList : Page
 }
 
 /// <summary>实体列表页面基类</summary>
-public class MyEntityList<TEntity> : MyEntityForm where TEntity : Entity<TEntity>, new()
+public class MyEntityList<TEntity> : MyEntityList where TEntity : Entity<TEntity>, new()
 {
     /// <summary>实体类</summary>
     public override Type EntityType { get { return base.EntityType ?? (base.EntityType = typeof(TEntity)); } set { base.EntityType = value; } }
