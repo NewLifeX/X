@@ -9,9 +9,7 @@
     <form id="form1" runat="server">
     <div>
         hello aspx页面 MVC路由直接忽略
-        <pre>
-        <%= NewLife.Mvc.RouteContext.Current.ToString() %>
-        </pre>
+        <pre><%= NewLife.Mvc.RouteContext.Current.ToString() %></pre>
     </div>
     </form>
 </body>

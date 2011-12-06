@@ -30,6 +30,8 @@ NewLife.Mvc.RouteContext.Current.Factory : {2}
 NewLife.Mvc.RouteContext.Current.Controller : {3}
 NewLife.Mvc.RouteContext.Current.Path : {4}
 ", c.RoutePath, c.Module ?? null, c.Factory ?? null, c.Controller ?? null, c.Path)) + "</pre>");
+        Response.Write("<h4>完整路由上下文跟踪</h4>");
+        Response.Write("<pre>" + c.ToString() + "</pre>");
     }
 
     private string _world;
