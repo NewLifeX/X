@@ -100,23 +100,24 @@ namespace NewLife.CommonEntity.Web
         /// <summary>响应</summary>
         protected HttpResponse Response { get { return HttpContext.Current.Response; } }
 
+        private Control _SaveButton;
         /// <summary>保存按钮，查找名为btnSave或UpdateButton（兼容旧版本）的按钮，如果没找到，将使用第一个使用了提交行为的按钮</summary>
         protected virtual Control SaveButton
         {
             get
             {
-                Control control = FindControl("btnSave");
-                if (control != null) return control;
+                if (_SaveButton != null) return _SaveButton;
 
-                control = FindControl("UpdateButton");
-                if (control != null) return control;
+                _SaveButton = FindControl("btnSave");
+                if (_SaveButton == null) _SaveButton = FindControl("UpdateButton");
 
-                // 随便找一个按钮
-                Button btn = ControlHelper.FindControl<Button>(Container, null);
-                if (btn != null && btn.UseSubmitBehavior) return btn;
+                //// 随便找一个按钮
+                //Button btn = ControlHelper.FindControl<Button>(Container, null);
+                //if (btn != null && btn.UseSubmitBehavior) return btn;
 
-                return null;
+                return _SaveButton;
             }
+            set { _SaveButton = value; }
         }
 
         /// <summary>是否空主键</summary>
@@ -274,7 +275,7 @@ namespace NewLife.CommonEntity.Web
 
             Page.InitComplete += new EventHandler(Page_InitComplete);
             //Page.PreLoad += new EventHandler(OnPreLoad);
-            Page.LoadComplete += new EventHandler(OnLoadComplete);
+            //Page.LoadComplete += new EventHandler(OnLoadComplete);
         }
 
         void Page_InitComplete(object sender, EventArgs e)
@@ -343,18 +344,18 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        void OnLoadComplete(object sender, EventArgs e)
-        {
-            if (Page.IsPostBack && Page.AutoPostBackControl == null)
-            {
-                Control btn = SaveButton;
-                if (btn == null || !(btn is IButtonControl))
-                {
-                    Accessor.Read(Entity);
-                    if (ValidForm()) SaveFormWithTrans();
-                }
-            }
-        }
+        //void OnLoadComplete(object sender, EventArgs e)
+        //{
+        //    if (Page.IsPostBack && Page.AutoPostBackControl == null)
+        //    {
+        //        Control btn = SaveButton;
+        //        if (btn == null || !(btn is IButtonControl))
+        //        {
+        //            Accessor.Read(Entity);
+        //            if (ValidForm()) SaveFormWithTrans();
+        //        }
+        //    }
+        //}
         #endregion
 
         #region 方法

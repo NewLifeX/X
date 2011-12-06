@@ -35,10 +35,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.6.*")]
-[assembly: AssemblyFileVersion("2.7.2011.1124")]
+[assembly: AssemblyVersion("2.7.*")]
+[assembly: AssemblyFileVersion("2.7.2011.1206")]
 
 /*
+ * v2.7.2011.1206   EntityForm2在找不到保存按钮时，不保存表单
+ * 
  * v2.7.2011.1124   调整地区架构，收集所有新旧行政区域编码，满足身份证地区识别，增加相应的附加地区数据的方法
  *                  地区导入功能采用了快速导入方法，需要最新的XCode支持
  * 
