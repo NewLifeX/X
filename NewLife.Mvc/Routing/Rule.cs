@@ -368,7 +368,7 @@ namespace NewLife.Mvc
                 IController r = null;
                 try
                 {
-                    r = ctx.RouteTo(Config);
+                    r = ctx.RouteTo(Config, false);
                 }
                 finally
                 {

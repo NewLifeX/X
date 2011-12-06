@@ -471,7 +471,7 @@ namespace NewLife.Mvc
         public override string ToString()
         {
             RouteFrag[] ary = Frags;
-            return "{RouteContext " + string.Join("\r\n  => ", Array.ConvertAll<RouteFrag, string>(ary, i => i.ToString())) + "}";
+            return "{RouteContext " + string.Join("\r\n  => ", Array.ConvertAll<RouteFrag, string>(ary, i => i.ToString())) + "\r\n}";
         }
 
         #region 私有成员

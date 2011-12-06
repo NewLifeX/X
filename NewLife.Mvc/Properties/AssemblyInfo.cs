@@ -31,10 +31,17 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.2.*")]
-[assembly: AssemblyFileVersion("1.2.2011.1109")]
+[assembly: AssemblyVersion("1.4.*")]
+[assembly: AssemblyFileVersion("1.4.2011.1206")]
 
 /*
+ * v1.4.2011.1206   修改内部结构,是支持在控制器工厂中进一步路由到模块或路由配置
+ *                  和上一版本API兼容,并且开放了很多API,可以在外部实现路由探测(路由,但是不执行最终的控制器,同时获得路由的上下文信息)
+ *                  路由配置中长度相同的规则将按照配置的先后顺序匹配
+ *                  路由上下文以及路由片段的ToString()将输出有用的路由信息
+ *                  增加忽略路由NewLife.Mvc.IgnoreRoute
+ * 
+ * 
  * v1.2.2011.1109   实现Http请求路由到控制器
  *                  提供路由配置接口和模块路由配置接口
  *                  提供路由上下文对象以方便的访问当前路由的状态,以及从Url中获取信息
