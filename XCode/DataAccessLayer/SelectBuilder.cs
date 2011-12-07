@@ -82,6 +82,20 @@ namespace XCode.DataAccessLayer
                 return Join(_Keys, isdescs);
             }
         }
+
+        /// <summary>排序字段是否唯一且就是主键</summary>
+        public Boolean KeyIsOrderBy
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(Key)) return false;
+
+                Boolean[] isdescs = null;
+                String[] keys = Split(OrderBy, out isdescs);
+
+                return keys != null && keys.Length == 1 && keys[0].EqualIgnoreCase(Key);
+            }
+        }
         #endregion
 
         #region SQL查询语句基本部分

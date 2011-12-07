@@ -1,5 +1,6 @@
 ﻿using System;
 using XCode.Exceptions;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -17,8 +18,9 @@ namespace XCode.DataAccessLayer
         /// <param name="startRowIndex"></param>
         /// <param name="maximumRows"></param>
         /// <param name="isSql2005"></param>
+        /// <param name="queryCountCallback">查询总记录数的委托，近供DoubleTop使用</param>
         /// <returns></returns>
-        public static SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, Boolean isSql2005)
+        public static SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows, Boolean isSql2005, Func<SelectBuilder, Int64> queryCountCallback = null)
         {
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
@@ -44,13 +46,10 @@ namespace XCode.DataAccessLayer
 
             if (isSql2005) return RowNumber(builder, startRowIndex, maximumRows);
 
-            Boolean[] isdescs = null;
-            String[] keys = SelectBuilder.Split(builder.OrderBy, out isdescs);
-
             // 必须有排序，且排序字段必须就是数字主键
-            if (builder.IsInt && keys != null && keys.Length == 1 && keys[0].EqualIgnoreCase(builder.Key)) return MaxMin(builder, startRowIndex, maximumRows);
+            if (builder.IsInt && builder.KeyIsOrderBy) return MaxMin(builder, startRowIndex, maximumRows);
 
-            if (maximumRows > 0) return DoubleTop(builder, startRowIndex, maximumRows);
+            if (maximumRows > 0) return DoubleTop(builder, startRowIndex, maximumRows, queryCountCallback);
 
             return TopNotIn(builder, startRowIndex, maximumRows);
         }
@@ -60,7 +59,7 @@ namespace XCode.DataAccessLayer
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
-        static SelectBuilder TopNotIn(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+        static SelectBuilder TopNotIn(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
             if (builder.Keys == null || builder.Keys.Length != 1) throw new ArgumentNullException("Key", "TopNotIn分页算法要求指定单一主键列！" + builder.ToString());
 
@@ -87,10 +86,20 @@ namespace XCode.DataAccessLayer
         /// <param name="builder"></param>
         /// <param name="startRowIndex"></param>
         /// <param name="maximumRows"></param>
+        /// <param name="queryCountCallback">查询总记录数的委托，近供DoubleTop使用</param>
         /// <returns></returns>
-        static SelectBuilder DoubleTop(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+        static SelectBuilder DoubleTop(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows, Func<SelectBuilder, Int64> queryCountCallback)
         {
             if (builder.Keys == null) throw new ArgumentNullException("Key", "DoubleTop分页算法要求指定排序列！" + builder.ToString());
+
+            // 采用DoubleTop分页，最后一页可能有问题，需要特殊处理
+            if (queryCountCallback != null)
+            {
+                // 查询总记录数，计算是否最后一页
+                var count = queryCountCallback(builder);
+                // 刚好相等的就不必处理了
+                if (startRowIndex + maximumRows > count) maximumRows = count - startRowIndex;
+            }
 
             // 分页标准 Select (20,10,ID Desc)
             // 1，按原始排序取20+10行，此时目标页位于底部
@@ -138,7 +147,7 @@ namespace XCode.DataAccessLayer
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
-        static SelectBuilder MaxMin(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+        static SelectBuilder MaxMin(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
             if (builder.Keys == null || builder.Keys.Length != 1) throw new ArgumentNullException("Key", "TopNotIn分页算法要求指定单一主键列！" + builder.ToString());
 
@@ -166,7 +175,7 @@ namespace XCode.DataAccessLayer
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns></returns>
-        static SelectBuilder RowNumber(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+        static SelectBuilder RowNumber(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
             //if (maximumRows < 1)
             //    sql = String.Format("Select * From (Select *, row_number() over({2}) as rowNumber From {1}) XCode_Temp_b Where rowNumber>={0}", startRowIndex + 1, sql, orderBy);
@@ -190,7 +199,7 @@ namespace XCode.DataAccessLayer
             return builder2;
         }
 
-        static SelectBuilder Top(this SelectBuilder builder, Int32 top, String keyColumn = null)
+        static SelectBuilder Top(this SelectBuilder builder, Int64 top, String keyColumn = null)
         {
             if (!String.IsNullOrEmpty(keyColumn)) builder.Column = keyColumn;
             if (String.IsNullOrEmpty(builder.Column)) builder.Column = "*";

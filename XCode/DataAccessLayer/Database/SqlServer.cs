@@ -193,7 +193,7 @@ namespace XCode.DataAccessLayer
 
         public override string PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows)
         {
-            return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, IsSQL2005).ToString();
+            return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, IsSQL2005, b => CreateSession().QueryCount(b)).ToString();
         }
         #endregion
 
