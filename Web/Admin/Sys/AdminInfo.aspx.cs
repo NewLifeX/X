@@ -14,37 +14,19 @@ public partial class Pages_AdminInfo : MyEntityForm
     {
         base.OnInit(e);
 
-        EntityForm.OnSetForm += new EventHandler<EventArgs<IEntity>>(EntityForm_OnSetForm);
-        EntityForm.OnGetForm += new EventHandler<EventArgs<IEntity>>(EntityForm_OnGetForm);
+        EntityForm.OnSetForm += EntityForm_OnSetForm;
+        EntityForm.OnGetForm += EntityForm_OnGetForm;
     }
 
-    void EntityForm_OnSetForm(object sender, EventArgs<IEntity> e)
+    void EntityForm_OnSetForm(object sender, EntityFormEventArgs e)
     {
         frmPassword.Text = null;
     }
 
-    void EntityForm_OnGetForm(object sender, EventArgs<IEntity> e)
+    void EntityForm_OnGetForm(object sender, EntityFormEventArgs e)
     {
         if (!String.IsNullOrEmpty(frmPassword.Text)) EntityForm.Entity.SetItem("Password", DataHelper.Hash(frmPassword.Text));
     }
-
-    //protected override void OnInitComplete(EventArgs e)
-    //{
-    //    base.OnInitComplete(e);
-
-    //    EntityForm.Accessor.OnReadItem += new EventHandler<EntityAccessorEventArgs>(Accessor_OnRead);
-    //    EntityForm.Accessor.OnWriteItem += new EventHandler<EntityAccessorEventArgs>(Accessor_OnWrite);
-    //}
-
-    //void Accessor_OnRead(object sender, EntityAccessorEventArgs e)
-    //{
-    //    if (e.Field.Name == "Password" && !String.IsNullOrEmpty(frmPassword.Text)) EntityForm.Entity.SetItem("Password", DataHelper.Hash(frmPassword.Text));
-    //}
-
-    //void Accessor_OnWrite(object sender, EntityAccessorEventArgs e)
-    //{
-    //    if (e.Field.Name == "Password") frmPassword.Text = null;
-    //}
 
     protected void Page_Load(object sender, EventArgs e)
     {
