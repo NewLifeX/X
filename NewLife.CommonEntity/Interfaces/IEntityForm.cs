@@ -2,6 +2,7 @@
 using System.Web.UI;
 using XCode;
 using XCode.Accessors;
+using System.ComponentModel;
 
 namespace NewLife.CommonEntity
 {
@@ -29,31 +30,35 @@ namespace NewLife.CommonEntity
 
         #region 事件
         /// <summary>获取数据实体，允许页面重载改变实体</summary>
-        event EventHandler<EventArgs<Object, IEntity>> OnGetEntity;
+        event EventHandler<EntityFormEventArgs> OnGetEntity;
 
         /// <summary>把实体数据设置到表单后触发</summary>
-        event EventHandler<EventArgs<IEntity>> OnSetForm;
+        event EventHandler<EntityFormEventArgs> OnSetForm;
 
         /// <summary>从表单上读取实体数据后触发</summary>
-        event EventHandler<EventArgs<IEntity>> OnGetForm;
+        event EventHandler<EntityFormEventArgs> OnGetForm;
 
-        /// <summary>验证时触发</summary>
-        event EventHandler<EventArgs<IEntity>> OnValid;
+        /// <summary>验证时触发。可通过设置Cancel=true使得验证失败</summary>
+        event EventHandler<EntityFormEventArgs> OnValid;
 
-        /// <summary>保存前触发，位于事务保护内</summary>
-        event EventHandler<EventArgs<IEntity>> OnSaving;
+        /// <summary>保存前触发，位于事务保护内。可通过设置Cancel=true使得后续不调用SaveForm</summary>
+        event EventHandler<EntityFormEventArgs> OnSaving;
 
-        /// <summary>保存成功后触发，位于事务保护外</summary>
-        event EventHandler<EventArgs<IEntity>> OnSaveSuccess;
+        /// <summary>保存成功后触发，位于事务保护外。可通过设置Cancel=true使得不显示默认提示</summary>
+        event EventHandler<EntityFormEventArgs> OnSaveSuccess;
 
-        /// <summary>保存失败后触发，位于事务保护外</summary>
-        event EventHandler<EventArgs<IEntity, Exception>> OnSaveFailure;
+        /// <summary>保存失败后触发，位于事务保护外。可通过设置Cancel=true使得不显示默认提示</summary>
+        event EventHandler<EntityFormEventArgs> OnSaveFailure;
+        #endregion
+    }
 
-        /// <summary>从实体对象读取指定实体字段的信息后触发</summary>
-        event EventHandler<EntityAccessorEventArgs> OnReadItem;
-
-        /// <summary>把指定实体字段的信息写入到实体对象后触发</summary>
-        event EventHandler<EntityAccessorEventArgs> OnWriteItem;
+    /// <summary>实体表单事件参数</summary>
+    public class EntityFormEventArgs : CancelEventArgs
+    {
+        #region 属性
+        private Exception _Error;
+        /// <summary>异常</summary>
+        public Exception Error { get { return _Error; } set { _Error = value; } }
         #endregion
     }
 }

@@ -3,7 +3,6 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Log;
-using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
 using XCode.Accessors;
@@ -142,23 +141,26 @@ namespace NewLife.CommonEntity.Web
         #endregion
 
         #region 事件
+        /// <summary>获取数据实体，允许页面重载改变实体</summary>
+        public event EventHandler<EntityFormEventArgs> OnGetEntity;
+
         /// <summary>把实体数据设置到表单后触发</summary>
-        public event EventHandler<EventArgs<IEntity>> OnSetForm;
+        public event EventHandler<EntityFormEventArgs> OnSetForm;
 
         /// <summary>从表单上读取实体数据后触发</summary>
-        public event EventHandler<EventArgs<IEntity>> OnGetForm;
+        public event EventHandler<EntityFormEventArgs> OnGetForm;
 
         /// <summary>验证时触发</summary>
-        public event EventHandler<EventArgs<IEntity>> OnValid;
+        public event EventHandler<EntityFormEventArgs> OnValid;
 
         /// <summary>保存前触发，位于事务保护内</summary>
-        public event EventHandler<EventArgs<IEntity>> OnSaving;
+        public event EventHandler<EntityFormEventArgs> OnSaving;
 
         /// <summary>保存成功后触发，位于事务保护外</summary>
-        public event EventHandler<EventArgs<IEntity>> OnSaveSuccess;
+        public event EventHandler<EntityFormEventArgs> OnSaveSuccess;
 
         /// <summary>保存失败后触发，位于事务保护外</summary>
-        public event EventHandler<EventArgs<IEntity, Exception>> OnSaveFailure;
+        public event EventHandler<EntityFormEventArgs> OnSaveFailure;
         #endregion
 
         #region 实体相关
@@ -232,12 +234,8 @@ namespace NewLife.CommonEntity.Web
                     // 使用者可以通过给KeyName置空来避免内部自动根据Request[KeyName]取值
                     if (!String.IsNullOrEmpty(KeyName)) _Entity = Factory.FindByKeyForEdit(eid);
 
-                    if (OnGetEntity != null)
-                    {
-                        EventArgs<Object, IEntity> e = new EventArgs<object, IEntity>(eid, _Entity);
-                        OnGetEntity(this, e);
-                        _Entity = e.Arg2;
-                    }
+                    // 外部可以通过OnGetEntity时间直接修改Entity
+                    if (OnGetEntity != null) OnGetEntity(this, new EntityFormEventArgs());
 
                     if (_Entity == null && !String.IsNullOrEmpty(KeyName)) _Entity = Factory.FindByKeyForEdit(eid);
 
@@ -249,9 +247,6 @@ namespace NewLife.CommonEntity.Web
             set { _Entity = value; }
         }
 
-        /// <summary>获取数据实体，允许页面重载改变实体</summary>
-        public event EventHandler<EventArgs<Object, IEntity>> OnGetEntity;
-
         /// <summary>
         /// 使用Request参数填充entity
         /// </summary>
@@ -262,7 +257,12 @@ namespace NewLife.CommonEntity.Web
 
             // 借助Http实体访问器，直接把Request参数读入到实体里面
             IEntityAccessor accessor = EntityAccessorFactory.Create(EntityAccessorTypes.Http);
-            accessor.Read(entity);
+            // 这里的异常不需要暴露到外部
+            try
+            {
+                accessor.Read(entity);
+            }
+            catch { }
         }
         #endregion
 
@@ -365,12 +365,12 @@ namespace NewLife.CommonEntity.Web
             Accessor.OnWriteItem += new EventHandler<EntityAccessorEventArgs>(Accessor_OnWrite);
             Accessor.Write(Entity);
 
-            if (OnSetForm != null) OnSetForm(this, new EventArgs<IEntity>(Entity));
+            if (OnSetForm != null) OnSetForm(this, new EntityFormEventArgs());
         }
 
         void Accessor_OnWrite(object sender, EntityAccessorEventArgs e)
         {
-            WebControl wc = ControlHelper.FindControlInPage<WebControl>("frm" + e.Field.Name);
+            WebControl wc = ControlHelper.FindControlInPage<WebControl>(ItemPrefix + e.Field.Name);
             if (wc == null) return;
 
             if (!CanSave)
@@ -387,7 +387,7 @@ namespace NewLife.CommonEntity.Web
         {
             Accessor.Read(Entity);
 
-            if (OnGetForm != null) OnGetForm(this, new EventArgs<IEntity>(Entity));
+            if (OnGetForm != null) OnGetForm(this, new EntityFormEventArgs());
         }
 
         /// <summary>
@@ -404,7 +404,12 @@ namespace NewLife.CommonEntity.Web
                 if (!ValidFormItem(item, control)) return false;
             }
 
-            if (OnValid != null) OnValid(this, new EventArgs<IEntity>(Entity));
+            if (OnValid != null)
+            {
+                var e = new EntityFormEventArgs() { Cancel = false };
+                OnValid(this, e);
+                if (e.Cancel) return false;
+            }
 
             return true;
         }
@@ -449,9 +454,15 @@ namespace NewLife.CommonEntity.Web
             Factory.BeginTransaction();
             try
             {
-                if (OnSaving != null) OnSaving(this, new EventArgs<IEntity>(Entity));
+                Boolean cancel = false;
+                if (OnSaving != null)
+                {
+                    var e = new EntityFormEventArgs() { Cancel = false };
+                    OnSaving(this, e);
+                    if (e.Cancel) cancel = true;
+                }
 
-                SaveForm();
+                if (!cancel) SaveForm();
 
                 Factory.Commit();
 
@@ -476,12 +487,15 @@ namespace NewLife.CommonEntity.Web
         protected virtual void SaveFormSuccess()
         {
             if (OnSaveSuccess != null)
-                OnSaveSuccess(this, new EventArgs<IEntity>(Entity));
-            else
             {
-                // 这个地方需要考虑一个问题，就是列表页查询之后再打开某记录进行编辑，编辑成功后，如果强行的reload列表页，浏览器会循环是否重新提交
-                // 经测试，可以找到列表页的那个查询按钮，模拟点击一次它，实际上就是让ASP.Net列表页回发一次，可以解决这个问题
-                Page.ClientScript.RegisterStartupScript(this.GetType(), "alert", @"alert('成功！');
+                var e = new EntityFormEventArgs() { Cancel = false };
+                OnSaveSuccess(this, e);
+                if (e.Cancel) return;
+            }
+
+            // 这个地方需要考虑一个问题，就是列表页查询之后再打开某记录进行编辑，编辑成功后，如果强行的reload列表页，浏览器会循环是否重新提交
+            // 经测试，可以找到列表页的那个查询按钮，模拟点击一次它，实际上就是让ASP.Net列表页回发一次，可以解决这个问题
+            Page.ClientScript.RegisterStartupScript(this.GetType(), "alert", @"alert('成功！');
 (function(){
     var load=window.onload;
     window.onload=function(){
@@ -492,7 +506,6 @@ namespace NewLife.CommonEntity.Web
     };
 })();
 ", true);
-            }
         }
 
         /// <summary>
@@ -502,28 +515,22 @@ namespace NewLife.CommonEntity.Web
         protected virtual void SaveFormFailure(Exception ex)
         {
             if (OnSaveFailure != null)
-                OnSaveFailure(this, new EventArgs<IEntity, Exception>(Entity, ex));
-            else
             {
-                // 如果是参数异常，参数名可能就是字段名，可以定位到具体控件
-                ArgumentException ae = ex as ArgumentException;
-                if (ae != null && !String.IsNullOrEmpty(ae.ParamName))
-                {
-                    Control control = FindControl(ItemPrefix + ae.ParamName);
-                    if (control != null && !(control is HiddenField)) control.Focus();
-                }
-
-                WebHelper.Alert("失败！" + ex.Message);
+                var e = new EntityFormEventArgs() { Cancel = false, Error = ex };
+                OnSaveFailure(this, e);
+                if (e.Cancel) return;
             }
+
+            // 如果是参数异常，参数名可能就是字段名，可以定位到具体控件
+            ArgumentException ae = ex as ArgumentException;
+            if (ae != null && !String.IsNullOrEmpty(ae.ParamName))
+            {
+                Control control = FindControl(ItemPrefix + ae.ParamName);
+                if (control != null && !(control is HiddenField)) control.Focus();
+            }
+
+            WebHelper.Alert("失败！" + ex.Message);
         }
-        #endregion
-
-        #region 事件
-        /// <summary>从实体对象读取指定实体字段的信息后触发</summary>
-        public virtual event EventHandler<EntityAccessorEventArgs> OnReadItem { add { Accessor.OnReadItem += value; } remove { Accessor.OnReadItem -= value; } }
-
-        /// <summary>把指定实体字段的信息写入到实体对象后触发</summary>
-        public virtual event EventHandler<EntityAccessorEventArgs> OnWriteItem { add { Accessor.OnWriteItem += value; } remove { Accessor.OnWriteItem -= value; } }
         #endregion
 
         #region 辅助
