@@ -340,28 +340,8 @@ namespace XCode.DataAccessLayer
 
         //public override string DropColumnSQL(IDataColumn field)
         //{
-        //    IDataTable table = field.Table;
-        //    //List<IDataColumn> list = new List<IDataColumn>(table.Columns);
-        //    //if (list.Contains(field)) list.Remove(field);
-
-        //    // 重新拿字段，得到最新的
-        //    List<IDataColumn> list = GetFields(table);
-        //    Int32 n = -1;
-        //    for (int i = 0; i < list.Count; i++)
-        //    {
-        //        if (list[i].Name == field.Name)
-        //        {
-        //            n = i;
-        //            break;
-        //        }
-        //    }
-        //    if (n < 0) return null;
-
-        //    IDataColumn[] oldColumns = list.ToArray();
-        //    list.RemoveAt(n);
-        //    IDataColumn[] newColumns = list.ToArray();
-
-        //    return ReBuildTable(table, newColumns, oldColumns);
+        //    // 返回Empty，告诉反向工程，该数据库类型不支持该功能，请不要输出日志
+        //    return String.Empty;
         //}
 
         /// <summary>
@@ -390,10 +370,15 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            String sql = base.CheckColumnsChange(entitytable, dbtable, onlySql);
+            //String sql = base.CheckColumnsChange(entitytable, dbtable, onlySql);
+            // 把onlySql设为true，让基类只产生语句而不执行
+            String sql = base.CheckColumnsChange(entitytable, dbtable, true);
             if (String.IsNullOrEmpty(sql)) return sql;
 
-            return ReBuildTable(entitytable, dbtable);
+            sql = ReBuildTable(entitytable, dbtable);
+            if (!String.IsNullOrEmpty(sql)) Database.CreateSession().Execute(sql);
+
+            return sql;
         }
 
         //protected override bool IsColumnChanged(IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)

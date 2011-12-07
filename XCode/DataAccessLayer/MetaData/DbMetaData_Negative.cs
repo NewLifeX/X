@@ -451,14 +451,14 @@ namespace XCode.DataAccessLayer
         {
             // 通过重建表的方式修改字段
             String tableName = dbtable.Name;
-            String tempTableName = "Temp_" + tableName + "_" + new Random((Int32)DateTime.Now.Ticks).Next(0, 10000).ToString("0000");
+            String tempTableName = "Temp_" + tableName + "_" + new Random((Int32)DateTime.Now.Ticks).Next(1000, 10000);
             tableName = FormatName(tableName);
             tempTableName = FormatName(tempTableName);
 
             // 每个分号后面故意加上空格，是为了让DbMetaData执行SQL时，不要按照分号加换行来拆分这个SQL语句
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("BEGIN TRANSACTION; ");
-            sb.AppendFormat("Alter Table {0} Rename To {1};", tableName, tempTableName);
+            sb.AppendFormat("Alter Table {0} Rename To {1}", tableName, tempTableName);
             sb.AppendLine("; ");
             sb.Append(CreateTableSQL(entitytable));
             sb.AppendLine("; ");
