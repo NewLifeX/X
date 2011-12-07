@@ -111,6 +111,25 @@ namespace NewLife.Log
             }
             set { _Debug = value; }
         }
+
+        private static String _TempPath;
+        /// <summary>ÁÙÊ±Ä¿Â¼</summary>
+        public static String TempPath
+        {
+            get
+            {
+                if (_TempPath != null) return _TempPath;
+
+                TempPath = Config.GetConfig<String>("NewLife.TempPath", "XTemp");
+                return _TempPath;
+            }
+            set
+            {
+                _TempPath = value;
+                if (String.IsNullOrEmpty(_TempPath)) _TempPath = "XTemp";
+                if (!Path.IsPathRooted(_TempPath)) _TempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _TempPath);
+            }
+        }
         #endregion
 
         #region Dump

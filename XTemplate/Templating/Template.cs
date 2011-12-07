@@ -8,6 +8,7 @@ using System.Text;
 using Microsoft.CSharp;
 using NewLife;
 using NewLife.Collections;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace XTemplate.Templating
@@ -833,8 +834,7 @@ namespace XTemplate.Templating
             if (Debug)
             {
                 #region 调试状态，把生成的类文件和最终dll输出到XTemp目录下
-                String tempPath = "XTemp";
-                tempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, tempPath);
+                String tempPath = XTrace.TempPath;
                 if (!String.IsNullOrEmpty(outputAssembly)) tempPath = Path.Combine(tempPath, Path.GetFileNameWithoutExtension(outputAssembly));
 
                 if (!Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);

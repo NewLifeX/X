@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using NewLife.Collections;
+using NewLife.Log;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
 
@@ -219,7 +220,7 @@ namespace XCode.Code
                     options.GenerateInMemory = false;
                     options.OutputAssembly = String.Format("XCode.{0}.dll", Dal.ConnName);
 
-                    String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XTemp");
+                    String path = XTrace.TempPath;
                     if (!Directory.Exists(path)) Directory.CreateDirectory(path);
                     options.TempFiles = new TempFileCollection(path, true);
                 }

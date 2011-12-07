@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.4.*")]
-[assembly: AssemblyFileVersion("3.4.2011.1123")]
+[assembly: AssemblyFileVersion("3.4.2011.1207")]
 
 /*
+ * v3.4.2011.1207   修改XTrace，增加临时目录TempPath
+ * 
  * v3.4.2011.1123   修正Config.GetMutilConfig中没有正确返回默认值的错误
  *                  修改XTrace，输出日志时，是否线程池除了Y和N外，增加W表示是否Web线程
  * 
