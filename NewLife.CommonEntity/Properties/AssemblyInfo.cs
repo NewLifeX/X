@@ -39,7 +39,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("2.8.2011.1207")]
 
 /*
- * v2.8.2011.1207   IEntityForm全新设置事件模型，更贴近实际使用
+ * v2.8.2011.1207   IEntityForm全新设计事件模型，更贴近实际使用
  * 
  * v2.7.2011.1206   EntityForm2在找不到保存按钮时，不保存表单
  * 
