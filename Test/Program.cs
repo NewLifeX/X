@@ -15,6 +15,7 @@ using System.Threading;
 using NewLife.Threading;
 using NewLife.Reflection;
 using XCode.Configuration;
+using System.Collections;
 
 namespace Test
 {
@@ -31,7 +32,7 @@ namespace Test
                 try
                 {
 #endif
-                Test6();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -344,6 +345,70 @@ namespace Test
                     n.Save();
                 }
             }
+        }
+
+        static void Test7()
+        {
+            // 产生字符串
+            Int32 max = 1000000;
+            String[] ss = new String[max];
+            Random rnd = new Random((Int32)DateTime.Now.Ticks);
+            for (int i = 0; i < max; i++)
+            {
+                Int32 len = rnd.Next(0, 20);
+                Char[] cs = new Char[len];
+                for (int j = 0; j < len; j++)
+                {
+                    cs[j] = (Char)rnd.Next(0x4e00, 0x9fa5);
+                }
+                ss[i] = new String(cs);
+            }
+
+            List<String> list = new List<string>();
+            Hashtable ht = new Hashtable();
+
+            Stopwatch sw = new Stopwatch();
+
+            sw.Start();
+            String str = null;
+            for (int i = 0; i < max; i++)
+            {
+                str = ss[i];
+                if (!ht.ContainsKey(str))
+                {
+                    ht.Add(str, str);
+
+                    list.Add(str);
+                }
+            }
+            sw.Stop();
+            Console.WriteLine("双列表：{0}", sw.Elapsed);
+
+            list = new List<string>();
+            ht = new Hashtable();
+            sw.Start();
+            for (int i = 0; i < max; i++)
+            {
+                str = ss[i];
+                if (!ht.ContainsKey(str))
+                {
+                    ht.Add(str, "");
+
+                    list.Add(str);
+                }
+            }
+            sw.Stop();
+            Console.WriteLine("双列表：{0}", sw.Elapsed);
+
+            list = new List<string>();
+            sw.Start();
+            for (int i = 0; i < max; i++)
+            {
+                str = ss[i];
+                if (!list.Contains(str)) list.Add(str);
+            }
+            sw.Stop();
+            Console.WriteLine("单列表：{1}", sw.Elapsed);
         }
     }
 }

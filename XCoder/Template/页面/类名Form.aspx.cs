@@ -3,16 +3,13 @@ using System.Collections.Generic;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using NewLife.CommonEntity;
+using NewLife.Log;
 using NewLife.Web;
-using XControl;
-using System.Xml.Serialization;
 using <#=Config.NameSpace#>;
 
-public partial class Pages_<#=Table.Alias#>Form : EntityForm<Int32, <#=Table.Alias#>>
+public partial class <#=Config.EntityConnName+"_"+Table.Alias#>Form : MyEntityForm<<#=Table.Alias#>>
 {
     protected void Page_Load(object sender, EventArgs e)
     {
-        
     }
 }

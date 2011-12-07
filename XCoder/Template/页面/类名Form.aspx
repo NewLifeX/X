@@ -1,9 +1,9 @@
-﻿<%@ Page Language="C#" MasterPageFile="~/Admin/MasterPage.master" AutoEventWireup="true" CodeFile="<#=Table.Alias#>Form.aspx.cs" Inherits="Pages_<#=Table.Alias#>Form"  Title="<#=Table.Description#>管理"%>
+<%@ Page Title="<#=Table.DisplayName#>管理" Language="C#" MasterPageFile="~/Admin/ManagerPage.master" AutoEventWireup="true" CodeFile="<#=Table.Alias#>Form.aspx.cs" Inherits="<#=Config.EntityConnName+"_"+Table.Alias#>Form"%>
 
-<asp:Content ID="Content1" runat="server" ContentPlaceHolderID="ContentPlaceHolder1">
+<asp:Content ID="Content1" runat="server" ContentPlaceHolderID="C">
     <table border="0" class="m_table" cellspacing="1" cellpadding="0" align="Center">
         <tr>
-            <th colspan="2"><#=Table.Description#></th>
+            <th colspan="2"><#=Table.DisplayName#></th>
         </tr>
         <# 
         foreach(IDataColumn Field in Table.Columns) { 
@@ -12,7 +12,7 @@
             String frmName = "frm" + pname;
             TypeCode code = Type.GetTypeCode(Field.DataType);
         #><tr>
-            <td align="right"><#=Field.Description#>：</td>
+            <td align="right"><#=Field.DisplayName#>：</td>
             <td><#
                 if(code == TypeCode.String){
                     if(pname.Equals("Password", StringComparison.OrdinalIgnoreCase) || pname.Equals("Pass", StringComparison.OrdinalIgnoreCase)){
@@ -31,7 +31,7 @@
                 }else if(code == TypeCode.Decimal){
                 #><XCL:DecimalBox ID="<#=frmName#>" runat="server" Width="80px"></XCL:DecimalBox><#
                 }else if(code == TypeCode.Boolean){
-                #><asp:CheckBox ID="<#=frmName#>" runat="server" Text="<#=Field.Description#>" /><#}
+                #><asp:CheckBox ID="<#=frmName#>" runat="server" Text="<#=Field.DisplayName#>" /><#}
             #></td>
         </tr>
 <#}#>    </table>

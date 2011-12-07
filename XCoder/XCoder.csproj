@@ -165,32 +165,26 @@
     <EmbeddedResource Include="FrmText.resx">
       <DependentUpon>FrmText.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Template\实体\扩展查询.xt" />
-    <EmbeddedResource Include="Template\实体\扩展属性.xt" />
-    <EmbeddedResource Include="Template\页面2\类名.aspx.cs">
-      <DependentUpon>类名.aspx</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Template\页面2\类名Form.aspx.cs">
-      <DependentUpon>类名Form.aspx</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Template\页面基类2\MyEntityForm.cs">
-      <SubType>ASPXCodeBehind</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Template\页面基类2\MyEntityList.cs">
-      <SubType>ASPXCodeBehind</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Template\页面基类2\MyEntityUserControl.cs">
-      <SubType>ASPXCodeBehind</SubType>
-    </EmbeddedResource>
-    <Compile Include="TranslateResult.cs" />
-    <EmbeddedResource Include="Template\实体\类名.Biz.cs" />
-    <EmbeddedResource Include="Template\实体\类名.cs" />
+    <EmbeddedResource Include="Template\实体业务\扩展查询.xt" />
+    <EmbeddedResource Include="Template\实体业务\扩展属性.xt" />
     <EmbeddedResource Include="Template\页面\类名.aspx.cs">
       <DependentUpon>类名.aspx</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Template\页面\类名Form.aspx.cs">
       <DependentUpon>类名Form.aspx</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Template\页面基类\MyEntityForm.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Template\页面基类\MyEntityList.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Template\页面基类\MyEntityUserControl.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </EmbeddedResource>
+    <Compile Include="TranslateResult.cs" />
+    <EmbeddedResource Include="Template\实体业务\类名.Biz.cs" />
+    <EmbeddedResource Include="Template\实体数据\类名.cs" />
     <EmbeddedResource Include="Template\纯属性\I类名.cs" />
     <EmbeddedResource Include="Template\纯属性\类名.cs" />
     <EmbeddedResource Include="FrmMain.resx">
@@ -201,15 +195,9 @@
   <ItemGroup>
     <EmbeddedResource Include="leaf.ico" />
     <EmbeddedResource Include="NewLife.ProcessHelper.exe" />
-    <EmbeddedResource Include="Template\页面2\类名.aspx" />
-    <EmbeddedResource Include="Template\页面2\类名Form.aspx" />
+    <EmbeddedResource Include="Template\页面\类名.aspx" />
+    <EmbeddedResource Include="Template\页面\类名Form.aspx" />
     <Content Include="UpdateInfo.txt" />
-    <EmbeddedResource Include="Template\页面\类名.aspx">
-      <SubType>ASPXCodeBehind</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Template\页面\类名Form.aspx">
-      <SubType>ASPXCodeBehind</SubType>
-    </EmbeddedResource>
     <EmbeddedResource Include="Template\数据字典\连接名数据字典.htm" />
   </ItemGroup>
   <ItemGroup>
@@ -220,7 +208,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <EmbeddedResource Include="Template\实体\对象操作.xt" />
+    <EmbeddedResource Include="Template\实体业务\对象操作.xt" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
@@ -248,6 +236,7 @@
       <Name>NewLife.Core</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
