@@ -492,7 +492,7 @@ namespace XCoder
                 String remark = table.Description;
                 if (String.IsNullOrEmpty(remark)) remark = ENameToCName(className);
                 if (Config.UseCNFileName && !String.IsNullOrEmpty(remark)) className = remark;
-                fileName = fileName.Replace("类名", className).Replace("类说明", remark).Replace("连接名", Config.EntityConnName);
+                fileName = fileName.Replace("类名", className).Replace("中文名", remark).Replace("连接名", Config.EntityConnName);
 
                 fileName = Path.Combine(OuputPath, fileName);
 
