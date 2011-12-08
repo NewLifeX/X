@@ -77,7 +77,7 @@ namespace System
         public static Dictionary<Int32, String> GetDescriptions(Type enumType)
         {
             var dic = new Dictionary<Int32, String>();
-            foreach (FieldInfo item in enumType.BaseType.GetFields(BindingFlags.Public | BindingFlags.Static))
+            foreach (FieldInfo item in enumType.GetFields(BindingFlags.Public | BindingFlags.Static))
             {
                 if (!item.IsStatic) continue;
 

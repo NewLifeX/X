@@ -349,6 +349,9 @@ namespace Test
 
         static void Test7()
         {
+            Type type = typeof(DatabaseType);
+            var dic=EnumHelper.GetDescriptions(type);
+
             // 产生字符串
             Int32 max = 1000000;
             String[] ss = new String[max];
