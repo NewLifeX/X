@@ -657,6 +657,24 @@ namespace XCode.DataAccessLayer
 
             return false;
         }
+
+        /// <summary>
+        /// 获取显示名，如果描述不存在，则使用名称，否则使用描述前面部分，句号（中英文皆可）分隔
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="description"></param>
+        /// <returns></returns>
+        public static String GetDisplayName(String name, String description)
+        {
+            if (String.IsNullOrEmpty(description)) return name;
+
+            String str = description;
+            Int32 p = str.IndexOfAny(new Char[] { '.', '。' });
+            // p=0表示符号在第一位，不考虑
+            if (p > 0) str = str.Substring(0, p);
+
+            return str;
+        }
         #endregion
     }
 }

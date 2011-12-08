@@ -173,7 +173,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
         [XmlIgnore]
-        public String DisplayName { get { return String.IsNullOrEmpty(Description) ? Name : Description; } }
+        public String DisplayName { get { return ModelHelper.GetDisplayName(Name, Description); } }
         #endregion
 
         #region 构造
