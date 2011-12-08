@@ -55,20 +55,6 @@ namespace XCode
         /// <param name="value"></param>
         /// <returns></returns>
         Boolean Exists(String name, Object value);
-
-        /// <summary>
-        /// 按指定字段排序
-        /// </summary>
-        /// <param name="name">字段</param>
-        /// <param name="isDesc">是否降序</param>
-        void Sort(String name, Boolean isDesc);
-
-        /// <summary>
-        /// 按指定字段数组排序
-        /// </summary>
-        /// <param name="names">字段</param>
-        /// <param name="isDescs">是否降序</param>
-        void Sort(String[] names, Boolean[] isDescs);
         #endregion
 
         #region 对象操作
@@ -129,6 +115,34 @@ namespace XCode
         /// <param name="separator"></param>
         /// <returns></returns>
         String Join(String separator);
+        #endregion
+
+        #region 排序
+        /// <summary>
+        /// 按指定字段排序
+        /// </summary>
+        /// <param name="name">字段</param>
+        /// <param name="isDesc">是否降序</param>
+        IEntityList Sort(String name, Boolean isDesc);
+
+        /// <summary>
+        /// 按指定字段数组排序
+        /// </summary>
+        /// <param name="names">字段</param>
+        /// <param name="isDescs">是否降序</param>
+        IEntityList Sort(String[] names, Boolean[] isDescs);
+
+        /// <summary>提升指定实体在当前列表中的位置，加大排序键的值</summary>
+        /// <param name="entity"></param>
+        /// <param name="sortKey"></param>
+        /// <returns></returns>
+        IEntityList Up(IEntity entity, String sortKey);
+
+        /// <summary>降低指定实体在当前列表中的位置，减少排序键的值</summary>
+        /// <param name="entity"></param>
+        /// <param name="sortKey"></param>
+        /// <returns></returns>
+        IEntityList Down(IEntity entity, String sortKey);
         #endregion
 
         #region 导入导出

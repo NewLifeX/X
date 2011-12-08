@@ -427,5 +427,29 @@ namespace XCode
             }
         }
         #endregion
+
+        #region 实体相等
+        /// <summary>判断两个实体是否相等。有可能是同一条数据的两个实体对象</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        Boolean IEntity.EqualTo(IEntity entity)
+        {
+            if (entity == null || this.GetType() != entity.GetType()) return false;
+            if (this == entity) return true;
+
+            // 判断是否所有主键相等
+            var op = EntityFactory.CreateOperate(this.GetType());
+            foreach (var item in op.Table.PrimaryKeys)
+            {
+                Object v1 = this[item.Name];
+                Object v2 = entity[item.Name];
+                if (item.Type == typeof(String)) { v1 += ""; v2 += ""; }
+
+                if (!Object.Equals(v1, v2)) return false;
+            }
+
+            return true;
+        }
+        #endregion
     }
 }

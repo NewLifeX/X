@@ -330,9 +330,14 @@ namespace XCode.Configuration
                     if (!exists) table.Relations.Add(dr);
                 }
             }
-            if (allfields != null && allfields.Count > 0) _AllFields = allfields.ToArray();
-            if (fields != null && fields.Count > 0) _Fields = fields.ToArray();
-            if (pkeys != null && pkeys.Count > 0) _PrimaryKeys = pkeys.ToArray();
+            //if (allfields != null && allfields.Count > 0) _AllFields = allfields.ToArray();
+            //if (fields != null && fields.Count > 0) _Fields = fields.ToArray();
+            //if (pkeys != null && pkeys.Count > 0) _PrimaryKeys = pkeys.ToArray();
+
+            // 不允许为null
+            _AllFields = allfields.ToArray();
+            _Fields = fields.ToArray();
+            _PrimaryKeys = pkeys.ToArray();
         }
         #endregion
 

@@ -83,5 +83,12 @@ namespace XCode
         [Obsolete("该成员在后续版本中讲不再被支持！")]
         String ToXml();
         #endregion
+
+        #region 实体相等
+        /// <summary>判断两个实体是否相等。有可能是同一条数据的两个实体对象</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        Boolean EqualTo(IEntity entity);
+        #endregion
     }
 }

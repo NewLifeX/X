@@ -321,82 +321,6 @@ namespace XCode
             }
             return false;
         }
-
-        /// <summary>
-        /// 按指定字段排序
-        /// </summary>
-        /// <param name="name">字段</param>
-        /// <param name="isDesc">是否降序</param>
-        public void Sort(String name, Boolean isDesc)
-        {
-            if (Count < 1) return;
-
-            Type type = GetItemType(name);
-            if (!typeof(IComparable).IsAssignableFrom(type)) throw new NotSupportedException("不支持比较！");
-
-            Int32 n = 1;
-            if (isDesc) n = -1;
-
-            Sort(delegate(T item1, T item2)
-            {
-                // Object.Equals可以有效的处理两个元素都为空的问题
-                if (Object.Equals(item1[name], item2[name])) return 0;
-                return (item1[name] as IComparable).CompareTo(item2[name]) * n;
-            });
-        }
-
-        /// <summary>
-        /// 按指定字段数组排序
-        /// </summary>
-        /// <param name="names">字段</param>
-        /// <param name="isDescs">是否降序</param>
-        public void Sort(String[] names, Boolean[] isDescs)
-        {
-            if (Count < 1) return;
-
-            for (int i = 0; i < names.Length; i++)
-            {
-                String name = names[i];
-                Boolean isDesc = isDescs[i];
-
-                Type type = GetItemType(name);
-                if (!typeof(IComparable).IsAssignableFrom(type)) throw new NotSupportedException("不支持比较！");
-            }
-
-            Sort(delegate(T item1, T item2)
-            {
-                // 逐层对比
-                for (int i = 0; i < names.Length; i++)
-                {
-                    String name = names[i];
-                    Boolean isDesc = isDescs[i];
-
-                    Int32 n = 1;
-                    if (isDesc) n = -1;
-
-                    // Object.Equals可以有效的处理两个元素都为空的问题
-                    if (Object.Equals(item1[name], item2[name]))
-                        n = 0;
-                    else
-                        n = (item1[name] as IComparable).CompareTo(item2[name]) * n;
-                    if (n != 0) return n;
-                }
-                return 0;
-            });
-        }
-
-        Type GetItemType(String name)
-        {
-            if (String.IsNullOrEmpty(name) || EntityType == null) return null;
-
-            PropertyInfoX pi = PropertyInfoX.Create(EntityType, name);
-            if (pi != null) return pi.Type;
-
-            FieldInfoX fi = FieldInfoX.Create(EntityType, name);
-            if (fi != null) return fi.Type;
-
-            return null;
-        }
         #endregion
 
         #region 对象操作
@@ -685,6 +609,174 @@ namespace XCode
             }
             return sb.ToString();
         }
+        #endregion
+
+        #region 排序
+        /// <summary>
+        /// 按指定字段排序
+        /// </summary>
+        /// <param name="name">字段</param>
+        /// <param name="isDesc">是否降序</param>
+        public EntityList<T> Sort(String name, Boolean isDesc)
+        {
+            if (Count < 1) return this;
+
+            Type type = GetItemType(name);
+            if (!typeof(IComparable).IsAssignableFrom(type)) throw new NotSupportedException("不支持比较！");
+
+            Int32 n = 1;
+            if (isDesc) n = -1;
+
+            Sort(delegate(T item1, T item2)
+            {
+                // Object.Equals可以有效的处理两个元素都为空的问题
+                if (Object.Equals(item1[name], item2[name])) return 0;
+                return (item1[name] as IComparable).CompareTo(item2[name]) * n;
+            });
+
+            return this;
+        }
+
+        /// <summary>
+        /// 按指定字段数组排序
+        /// </summary>
+        /// <param name="names">字段</param>
+        /// <param name="isDescs">是否降序</param>
+        public EntityList<T> Sort(String[] names, Boolean[] isDescs)
+        {
+            if (Count < 1) return this;
+
+            for (int i = 0; i < names.Length; i++)
+            {
+                String name = names[i];
+                Boolean isDesc = isDescs[i];
+
+                Type type = GetItemType(name);
+                if (!typeof(IComparable).IsAssignableFrom(type)) throw new NotSupportedException("不支持比较！");
+            }
+
+            Sort(delegate(T item1, T item2)
+            {
+                // 逐层对比
+                for (int i = 0; i < names.Length; i++)
+                {
+                    String name = names[i];
+                    Boolean isDesc = isDescs[i];
+
+                    Int32 n = 1;
+                    if (isDesc) n = -1;
+
+                    // Object.Equals可以有效的处理两个元素都为空的问题
+                    if (Object.Equals(item1[name], item2[name]))
+                        n = 0;
+                    else
+                        n = (item1[name] as IComparable).CompareTo(item2[name]) * n;
+                    if (n != 0) return n;
+                }
+                return 0;
+            });
+
+            return this;
+        }
+
+        Type GetItemType(String name)
+        {
+            if (String.IsNullOrEmpty(name) || EntityType == null) return null;
+
+            PropertyInfoX pi = PropertyInfoX.Create(EntityType, name);
+            if (pi != null) return pi.Type;
+
+            FieldInfoX fi = FieldInfoX.Create(EntityType, name);
+            if (fi != null) return fi.Type;
+
+            return null;
+        }
+
+        /// <summary>
+        /// 按指定字段排序
+        /// </summary>
+        /// <param name="name">字段</param>
+        /// <param name="isDesc">是否降序</param>
+        IEntityList IEntityList.Sort(String name, Boolean isDesc) { return Sort(name, isDesc); }
+
+        /// <summary>
+        /// 按指定字段数组排序
+        /// </summary>
+        /// <param name="names">字段</param>
+        /// <param name="isDescs">是否降序</param>
+        IEntityList IEntityList.Sort(String[] names, Boolean[] isDescs) { return Sort(names, isDescs); }
+
+        /// <summary>提升指定实体在当前列表中的位置，加大排序键的值</summary>
+        /// <param name="entity"></param>
+        /// <param name="sortKey"></param>
+        /// <returns></returns>
+        EntityList<T> Up(T entity, String sortKey)
+        {
+            if (Count < 1) return this;
+            if (entity == null) throw new ArgumentNullException("entity");
+
+            if (String.IsNullOrEmpty(sortKey) && Factory.FieldNames.Contains("Sort")) sortKey = "Sort";
+            if (String.IsNullOrEmpty(sortKey)) throw new ArgumentNullException("sortKey");
+
+            // 要先排序
+            Sort(sortKey, true);
+
+            for (int i = 0; i < Count; i++)
+            {
+                Int32 s = Count - i;
+                // 当前项，排序增加。原来比较实体相等有问题，也许新旧实体类不对应，现在改为比较主键值
+                if (i > 0 && entity.EqualTo(this[i])) s++;
+                // 下一项是当前项，排序减少
+                if (i < Count - 1 && entity.EqualTo(this[i + 1])) s--;
+                if (s > Count) s = Count;
+                this[i].SetItem(sortKey, s);
+            }
+            Save(true);
+
+            return this;
+        }
+
+        /// <summary>降低指定实体在当前列表中的位置，减少排序键的值</summary>
+        /// <param name="entity"></param>
+        /// <param name="sortKey"></param>
+        /// <returns></returns>
+        EntityList<T> Down(T entity, String sortKey)
+        {
+            if (Count < 1) return this;
+            if (entity == null) throw new ArgumentNullException("entity");
+
+            if (String.IsNullOrEmpty(sortKey) && Factory.FieldNames.Contains("Sort")) sortKey = "Sort";
+            if (String.IsNullOrEmpty(sortKey)) throw new ArgumentNullException("sortKey");
+
+            // 要先排序
+            Sort(sortKey, true);
+
+            for (int i = 0; i < Count; i++)
+            {
+                Int32 s = Count - i;
+                // 当前项，排序减少
+                if (entity.EqualTo(this[i])) s--;
+                // 上一项是当前项，排序增加
+                if (i >= 1 && entity.EqualTo(this[i - 1])) s++;
+                if (s < 1) s = 1;
+                this[i].SetItem(sortKey, s);
+            }
+            Save(true);
+
+            return this;
+        }
+
+        /// <summary>提升指定实体在当前列表中的位置，加大排序键的值</summary>
+        /// <param name="entity"></param>
+        /// <param name="sortKey"></param>
+        /// <returns></returns>
+        IEntityList IEntityList.Up(IEntity entity, String sortKey) { return Up((T)entity, sortKey); }
+
+        /// <summary>降低指定实体在当前列表中的位置，减少排序键的值</summary>
+        /// <param name="entity"></param>
+        /// <param name="sortKey"></param>
+        /// <returns></returns>
+        IEntityList IEntityList.Down(IEntity entity, String sortKey) { return Down((T)entity, sortKey); }
         #endregion
 
         #region 导入导出
