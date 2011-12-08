@@ -770,5 +770,10 @@ namespace XCoder
 
             FrmItems.Create(XConfig.Current).Show();
         }
+
+        private void btnShowCriterion_Click(object sender, EventArgs e)
+        {
+            FrmCriterion.Create().Show();
+        }
     }
 }

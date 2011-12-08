@@ -84,6 +84,7 @@
             this.label9 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
+            this.btnShowCriterion = new System.Windows.Forms.Button();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -278,6 +279,7 @@
             // 
             // gbConfig
             // 
+            this.gbConfig.Controls.Add(this.btnShowCriterion);
             this.gbConfig.Controls.Add(this.frmItems);
             this.gbConfig.Controls.Add(this.cbRenderGenEntity);
             this.gbConfig.Controls.Add(this.btnRelease);
@@ -346,7 +348,7 @@
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(19, 228);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(149, 12);
+            this.label3.Size = new System.Drawing.Size(143, 12);
             this.label3.TabIndex = 29;
             this.label3.Text = ".Net技术交流群：1600800";
             this.label3.Click += new System.EventHandler(this.label3_Click);
@@ -605,6 +607,16 @@
             this.label12.TabIndex = 34;
             this.label12.Text = "1，连接数据库，得到数据表信息";
             // 
+            // btnShowCriterion
+            // 
+            this.btnShowCriterion.Location = new System.Drawing.Point(249, 222);
+            this.btnShowCriterion.Name = "btnShowCriterion";
+            this.btnShowCriterion.Size = new System.Drawing.Size(124, 23);
+            this.btnShowCriterion.TabIndex = 35;
+            this.btnShowCriterion.Text = "表名字段名命名规范";
+            this.btnShowCriterion.UseVisualStyleBackColor = true;
+            this.btnShowCriterion.Click += new System.EventHandler(this.btnShowCriterion_Click);
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -697,6 +709,7 @@
         private System.Windows.Forms.CheckBox cbRenderGenEntity;
         private System.Windows.Forms.Button frmItems;
         private System.Windows.Forms.Button btnQuery;
+        private System.Windows.Forms.Button btnShowCriterion;
 	}
 }
 

@@ -99,50 +99,56 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AutoUpdate.cs" />
-    <Compile Include="BingTranslate.cs" />
+    <Compile Include="Network\AutoUpdate.cs" />
+    <Compile Include="Network\BingTranslate.cs" />
     <Compile Include="Engine\FileSource.cs" />
     <Compile Include="Engine\XConfig.cs" />
     <Compile Include="Engine\XCoderBase.cs" />
-    <Compile Include="FrmItems.cs">
+    <Compile Include="Windows\FrmCriterion.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FrmItems.Designer.cs">
+    <Compile Include="Windows\FrmCriterion.Designer.cs">
+      <DependentUpon>FrmCriterion.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\FrmItems.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Windows\FrmItems.Designer.cs">
       <DependentUpon>FrmItems.cs</DependentUpon>
     </Compile>
-    <Compile Include="FrmMain.cs">
+    <Compile Include="Windows\FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FrmMain.designer.cs">
+    <Compile Include="Windows\FrmMain.designer.cs">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
     <Compile Include="Engine\Engine.cs" />
-    <Compile Include="FrmModel.cs">
+    <Compile Include="Windows\FrmModel.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FrmModel.Designer.cs">
+    <Compile Include="Windows\FrmModel.Designer.cs">
       <DependentUpon>FrmModel.cs</DependentUpon>
     </Compile>
-    <Compile Include="FrmQuery.cs">
+    <Compile Include="Windows\FrmQuery.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FrmQuery.Designer.cs">
+    <Compile Include="Windows\FrmQuery.Designer.cs">
       <DependentUpon>FrmQuery.cs</DependentUpon>
     </Compile>
-    <Compile Include="FrmSchema.cs">
+    <Compile Include="Windows\FrmSchema.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FrmSchema.Designer.cs">
+    <Compile Include="Windows\FrmSchema.Designer.cs">
       <DependentUpon>FrmSchema.cs</DependentUpon>
     </Compile>
-    <Compile Include="FrmText.cs">
+    <Compile Include="Windows\FrmText.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FrmText.Designer.cs">
+    <Compile Include="Windows\FrmText.Designer.cs">
       <DependentUpon>FrmText.cs</DependentUpon>
     </Compile>
-    <Compile Include="ITranslate.cs" />
-    <Compile Include="NnhyServiceTranslate.cs" />
+    <Compile Include="Network\ITranslate.cs" />
+    <Compile Include="Network\NnhyServiceTranslate.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
@@ -150,19 +156,22 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="FrmItems.resx">
+    <EmbeddedResource Include="Windows\FrmCriterion.resx">
+      <DependentUpon>FrmCriterion.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Windows\FrmItems.resx">
       <DependentUpon>FrmItems.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FrmModel.resx">
+    <EmbeddedResource Include="Windows\FrmModel.resx">
       <DependentUpon>FrmModel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FrmQuery.resx">
+    <EmbeddedResource Include="Windows\FrmQuery.resx">
       <DependentUpon>FrmQuery.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FrmSchema.resx">
+    <EmbeddedResource Include="Windows\FrmSchema.resx">
       <DependentUpon>FrmSchema.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FrmText.resx">
+    <EmbeddedResource Include="Windows\FrmText.resx">
       <DependentUpon>FrmText.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Template\实体业务\对象操作.xt" />
@@ -187,8 +196,8 @@
     <EmbeddedResource Include="Template\实体数据\中文名.cs" />
     <EmbeddedResource Include="Template\纯属性\I中文名.cs" />
     <EmbeddedResource Include="Template\纯属性\中文名.cs" />
-    <Compile Include="TranslateResult.cs" />
-    <EmbeddedResource Include="FrmMain.resx">
+    <Compile Include="Network\TranslateResult.cs" />
+    <EmbeddedResource Include="Windows\FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
