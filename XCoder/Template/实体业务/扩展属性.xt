@@ -32,7 +32,7 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 #>
         [NonSerialized]
         private <#=className#> _<#=keyName#>;
-        /// <summary>该<#=Table.Description#>所对应的<#=rtable.Description#></summary>
+        /// <summary>该<#=Table.DisplayName#>所对应的<#=rtable.DisplayName#></summary>
         [XmlIgnore]
         public <#=className#> <#=keyName#>
         {
@@ -56,7 +56,7 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 			IDataColumn rname=rtable.GetColumn("Name");
 			if(rname!=null&&rname.DataType==typeof(String)){
 #>
-        /// <summary>该<#=Table.Description#>所对应的<#=rtable.Description#><#=rname.Description#></summary>
+        /// <summary>该<#=Table.DisplayName#>所对应的<#=rtable.DisplayName#><#=rname.DisplayName#></summary>
         [XmlIgnore]
         public String <#=keyName#>Name { get { return <#=keyName#> != null ? <#=keyName#>.Name : null; } }
 <#
@@ -67,7 +67,7 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 #>
         [NonSerialized]
 		private EntityList<<#=className#>> _<#=keyName#>;
-		/// <summary>该<#=Table.Description#>所拥有的<#=rtable.Description#>集合</summary>
+		/// <summary>该<#=Table.DisplayName#>所拥有的<#=rtable.DisplayName#>集合</summary>
 		[XmlIgnore]
 		public EntityList<<#=className#>> <#=keyName#>
 		{

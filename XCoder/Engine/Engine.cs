@@ -16,9 +16,7 @@ using XTemplate.Templating;
 
 namespace XCoder
 {
-    /// <summary>
-    /// 代码生成器类
-    /// </summary>
+    /// <summary>代码生成器类</summary>
     public class Engine
     {
         #region 属性
@@ -487,12 +485,7 @@ namespace XCoder
 
                 // 计算输出文件名
                 String fileName = Path.GetFileName(item.Name);
-                String className = CutPrefix(table.Name);
-                className = FixWord(className);
-                String remark = table.Description;
-                if (String.IsNullOrEmpty(remark)) remark = ENameToCName(className);
-                if (Config.UseCNFileName && !String.IsNullOrEmpty(remark)) className = remark;
-                fileName = fileName.Replace("类名", className).Replace("中文名", remark).Replace("连接名", Config.EntityConnName);
+                fileName = fileName.Replace("类名", table.Alias).Replace("中文名", table.DisplayName).Replace("连接名", Config.EntityConnName);
 
                 fileName = Path.Combine(OuputPath, fileName);
 

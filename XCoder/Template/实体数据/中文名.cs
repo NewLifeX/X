@@ -21,10 +21,10 @@ foreach(IDataRelation dr in Table.Relations){#>
     [BindRelation("<#=dr.Column#>", <#=dr.Unique.ToString().ToLower()#>, "<#=dr.RelationTable#>", "<#=dr.RelationColumn#>")]<#}#>
     [BindTable("<#=Table.Name#>", Description = "<#=Table.Description#>", ConnName = "<#=Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#>)]<#
 if(!Config.RenderGenEntity){#>
-    public partial class <#=Table.Alias#> : I<#=Table.Alias#>
-    <#}else{#>
+    public partial class <#=Table.Alias#> : I<#=Table.Alias#><#
+}else{#>
     public partial class <#=Table.Alias#><TEntity> : I<#=Table.Alias#><#
-    }#>
+}#>
     {
         #region 属性<#
         foreach(IDataColumn Field in Table.Columns)
@@ -32,7 +32,7 @@ if(!Config.RenderGenEntity){#>
 #>
         private <#=Field.DataType.Name#> _<#=Field.Alias#>;
         /// <summary><#=Field.Description#></summary>
-        [DisplayName("<#=Field.Description#>")]
+        [DisplayName("<#=Field.DisplayName#>")]
         [Description("<#=Field.Description#>")]
         [DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
         [BindColumn(<#=Field.ID#>, "<#=Field.Name#>", "<#=Field.Description#>", <#=Field.Default==null?"null":"\""+Field.Default+"\""#>, "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#>)]
@@ -98,10 +98,12 @@ if(!Config.RenderGenEntity){#>
       {
 #>
             ///<summary><#=Field.Description#></summary>
-            public static readonly Field <#=Field.Alias#> = Meta.Table.FindByName("<#=Field.Alias#>");
+            public static readonly Field <#=Field.Alias#> = FindByName("<#=Field.Alias#>");
 <#
       }
-#>        }
+#>
+            static Field FindByName(String name) { return Meta.Table.FindByName(name); }
+        }
         #endregion
     }
 

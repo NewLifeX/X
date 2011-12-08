@@ -16,14 +16,10 @@ namespace <#=Config.NameSpace#>
 #>
         private <#=Field.DataType.Name#> _<#=Field.Alias#>;
         /// <summary><#=Field.Description#></summary>
-        [DisplayName("<#=Field.Description#>")]
+        [DisplayName("<#=Field.DisplayName#>")]
         [Description("<#=Field.Description#>")]
         [DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
-        public <#=Field.DataType.Name#> <#=Field.Alias#>
-        {
-            get { return _<#=Field.Alias#>; }
-            set { _<#=Field.Alias#> = value; }
-        }
+        public <#=Field.DataType.Name#> <#=Field.Alias#> { get { return _<#=Field.Alias#>; } set { _<#=Field.Alias#> = value; } }
 <#
         }
 #>		#endregion
