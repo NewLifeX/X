@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using NewLife.Linq;
+using System.ComponentModel;
 using System.Reflection;
 using System.Web;
 using System.Web.UI;
+using NewLife.Linq;
 using NewLife.Reflection;
 
 namespace NewLife.Web
@@ -159,6 +160,25 @@ namespace NewLife.Web
             if (fix == null) return null;
 
             return fix.GetValue(control) as T;
+        }
+
+        /// <summary>查找控件的事件</summary>
+        /// <param name="control"></param>
+        /// <param name="eventName"></param>
+        /// <returns></returns>
+        public static Delegate FindEventHandler(Control control, String eventName)
+        {
+            if (control == null) return null;
+            if (String.IsNullOrEmpty(eventName)) return null;
+
+            EventHandlerList list = control.GetPropertyValue("Events") as EventHandlerList;
+            if (list == null) return null;
+
+            Object eventObject = control.GetFieldValue(eventName);
+            if (eventObject == null && !eventName.StartsWith("Event", StringComparison.Ordinal)) eventObject = control.GetFieldValue("Event" + eventName);
+            if (eventObject == null) return null;
+
+            return list[eventObject];
         }
     }
 }

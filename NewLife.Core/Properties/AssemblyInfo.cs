@@ -34,9 +34,12 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.4.*")]
-[assembly: AssemblyFileVersion("3.4.2011.1207")]
+[assembly: AssemblyFileVersion("3.4.2011.1209")]
 
 /*
+ * v3.4.2011.1209   ControlHelper增加FindEventHandler方法，用于查找Web控件的事件
+ *                  EnumHelper增加GetDescriptions方法，用于构建枚举的可绑定字典
+ * 
  * v3.4.2011.1207   修改XTrace，增加临时目录TempPath
  * 
  * v3.4.2011.1123   修正Config.GetMutilConfig中没有正确返回默认值的错误
