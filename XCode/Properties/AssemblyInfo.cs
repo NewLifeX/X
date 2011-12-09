@@ -55,6 +55,8 @@ using System.Runtime.InteropServices;
  * v8.3.2011.1208   EntityList增加排序方法Up/Down，支持调整某个实体对象在列表中的排序
  *                  IEntity增加EqualTo，用于判断两个实体对象在主键上是否相等
  *                  IEntity增加SetNullKey，用于把实体对象的主键数据设置为空
+ *                  IDatabase增加StringConcat方法，表示数据库中连接两个字符串
+ *                  修正反向工程中ReBuildTable的BUG，SQLite中字符串连接使用||而不是+
  * 
  * v8.3.2011.1207   修正MSPageSplit.DoubleTop分页最后一页可能有错误的问题，每次计算分页都查询总记录数判断处理
  *                  修正反向工程中SQLite无法删除字段的BUG

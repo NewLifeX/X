@@ -171,6 +171,12 @@ namespace XCode.DataAccessLayer
 
         /// <summary>系统数据库名</summary>
         public override String SystemDatabaseName { get { return "PostgreSQL"; } }
+
+        /// <summary>字符串相加</summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        public override String StringConcat(String left, String right) { return left + "||" + right; }
         #endregion
     }
 

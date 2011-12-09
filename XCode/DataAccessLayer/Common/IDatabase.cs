@@ -103,6 +103,12 @@ namespace XCode.DataAccessLayer
         /// <param name="value"></param>
         /// <returns></returns>
         String FormatIdentity(IDataColumn field, Object value);
+
+        /// <summary>字符串相加</summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        String StringConcat(String left, String right);
         #endregion
     }
 }

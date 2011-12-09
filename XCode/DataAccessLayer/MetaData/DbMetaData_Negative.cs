@@ -506,10 +506,13 @@ namespace XCode.DataAccessLayer
                         if (sbName.Length > 0) sbName.Append(", ");
                         if (sbValue.Length > 0) sbValue.Append(", ");
                         sbName.Append(FormatName(name));
-                        sbValue.Append(FormatName(name));
+                        //sbValue.Append(FormatName(name));
 
                         // 处理字符串不允许空
-                        if (item.DataType == typeof(String) && !item.Nullable) sbValue.Append("+''");
+                        if (item.DataType == typeof(String) && !item.Nullable)
+                            sbValue.Append(Database.StringConcat(FormatName(name), ""));
+                        else
+                            sbValue.Append(FormatName(name));
                     }
                 }
                 sb.AppendFormat("Insert Into {0}({2}) Select {3} From {1}", tableName, tempTableName, sbName.ToString(), sbValue.ToString());

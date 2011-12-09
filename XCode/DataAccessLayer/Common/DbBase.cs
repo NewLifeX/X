@@ -685,6 +685,12 @@ namespace XCode.DataAccessLayer
 
             return false;
         }
+
+        /// <summary>字符串相加</summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        public virtual String StringConcat(String left, String right) { return left + "+" + right; }
         #endregion
 
         #region 辅助函数
