@@ -39,6 +39,7 @@
         <tr>
             <td align="center">
                 <asp:Button ID="btnSave" runat="server" CausesValidation="True" Text='保存' />
+                &nbsp;<asp:Button ID="btnCopy" runat="server" CausesValidation="True" Text='另存为新<#=Table.DisplayName#>' />
                 &nbsp;<asp:Button ID="btnReturn" runat="server" OnClientClick="parent.Dialog.CloseSelfDialog(frameElement);return false;" Text="返回" />
             </td>
         </tr>
