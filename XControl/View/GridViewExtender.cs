@@ -682,10 +682,14 @@ e.ClickElement('a',function(i){{
 
         void ods_Selecting(object sender, ObjectDataSourceSelectingEventArgs e)
         {
+            if (sender == null) return;
             // 查询总记录数的就不要插手了
             if (e.ExecutingSelectCount) return;
 
-            ObjectDataSource ods = sender.GetFieldValue("_owner") as ObjectDataSource;
+            var fix = FieldInfoX.Create(sender.GetType(), "_owner");
+            if (fix == null) return;
+
+            ObjectDataSource ods = fix.GetValue(sender) as ObjectDataSource;
             if (ods == null) return;
 
             // 如果有排序参数，并且排序参数有默认值，并且传过来的为空，则处理

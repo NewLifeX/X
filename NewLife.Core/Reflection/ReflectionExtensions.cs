@@ -93,6 +93,7 @@ namespace System
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <param name="excludeGlobalTypes">指示是否应检查来自所有引用程序集的类型。如果为 false，则检查来自所有引用程序集的类型。 否则，只检查来自非全局程序集缓存 (GAC) 引用的程序集的类型。</param>
         /// <returns></returns>
+        [Obsolete("该扩展方法将来可能不再被支持！")]
         public static IEnumerable<Type> FindAllPlugins(this Type baseType, Boolean isLoadAssembly = false, Boolean excludeGlobalTypes = true)
         {
             return AssemblyX.FindAllPlugins(baseType, isLoadAssembly, excludeGlobalTypes);
@@ -102,6 +103,7 @@ namespace System
         /// <param name="type"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
+        [Obsolete("该扩展方法将来可能不再被支持！")]
         public static Object CreateInstance(this Type type, params Object[] parameters)
         {
             if (type == null) throw new ArgumentNullException("type");
@@ -113,6 +115,7 @@ namespace System
         /// <param name="value"></param>
         /// <param name="conversionType"></param>
         /// <returns></returns>
+        [Obsolete("该扩展方法将来可能不再被支持！")]
         public static Object ChangeType(this Object value, Type conversionType)
         {
             return TypeX.ChangeType(value, conversionType);
@@ -122,6 +125,7 @@ namespace System
         /// <typeparam name="TResult"></typeparam>
         /// <param name="value"></param>
         /// <returns></returns>
+        [Obsolete("该扩展方法将来可能不再被支持！")]
         public static TResult ChangeType<TResult>(this Object value)
         {
             return TypeX.ChangeType<TResult>(value);
@@ -134,6 +138,7 @@ namespace System
         /// <param name="name"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
+        [Obsolete("该扩展方法将来可能不再被支持！")]
         public static Object Invoke(this Object target, String name, params Object[] parameters)
         {
             if (target == null) throw new ArgumentNullException("target");
@@ -150,6 +155,7 @@ namespace System
         /// <param name="name"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
+        [Obsolete("该扩展方法将来可能不再被支持！")]
         public static Object Invoke(this Type type, String name, params Object[] parameters)
         {
             if (type == null) throw new ArgumentNullException("type");
@@ -167,24 +173,28 @@ namespace System
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <returns></returns>
+        [Obsolete("该扩展方法将来可能不再被支持！")]
         public static Object GetPropertyValue(this Type type, String name) { return PropertyInfoX.GetValue(type, null, name); }
 
         /// <summary>静态属性快速赋值</summary>
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
+        [Obsolete("该扩展方法将来可能不再被支持！")]
         public static void SetPropertyValue(this Type type, String name, Object value) { PropertyInfoX.SetValue(type, null, name, value); }
 
         /// <summary>快速获取成员属性</summary>
         /// <param name="target"></param>
         /// <param name="name"></param>
         /// <returns></returns>
+        [Obsolete("该扩展方法将来可能不再被支持！")]
         public static Object GetPropertyValue(this Object target, String name) { return PropertyInfoX.GetValue(null, target, name); }
 
         /// <summary>成员属性快速赋值</summary>
         /// <param name="target"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
+        [Obsolete("该扩展方法将来可能不再被支持！")]
         public static void SetPropertyValue(this Object target, String name, Object value) { PropertyInfoX.SetValue(null, target, name, value); }
         #endregion
 
@@ -193,24 +203,28 @@ namespace System
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <returns></returns>
+        [Obsolete("该扩展方法将来可能不再被支持！")]
         public static Object GetFieldValue(this Type type, String name) { return FieldInfoX.GetValue(type, null, name); }
 
         /// <summary>静态字段快速赋值</summary>
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
+        [Obsolete("该扩展方法将来可能不再被支持！")]
         public static void SetFieldValue(this Type type, String name, Object value) { FieldInfoX.SetValue(type, null, name, value); }
 
         /// <summary>快速获取成员字段</summary>
         /// <param name="target"></param>
         /// <param name="name"></param>
         /// <returns></returns>
+        [Obsolete("该扩展方法将来可能不再被支持！")]
         public static Object GetFieldValue(this Object target, String name) { return FieldInfoX.GetValue(null, target, name); }
 
         /// <summary>成员字段快速赋值</summary>
         /// <param name="target"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
+        [Obsolete("该扩展方法将来可能不再被支持！")]
         public static void SetFieldValue(this Object target, String name, Object value) { FieldInfoX.SetValue(null, target, name, value); }
         #endregion
     }

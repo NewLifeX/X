@@ -250,35 +250,27 @@ namespace NewLife.Reflection
             fix.SetValue(target, value);
         }
 
-        /// <summary>
-        /// 静态快速取值
-        /// </summary>
+        /// <summary>静态快速取值。若字段不存在，会抛出异常。不确定字段是否存在时，建议使用Create方法</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="target"></param>
         /// <param name="name"></param>
         /// <returns></returns>
         public static TResult GetValue<TResult>(Object target, String name) { return (TResult)GetValue(target.GetType(), target, name); }
 
-        /// <summary>
-        /// 快速获取静态字段
-        /// </summary>
+        /// <summary>快速获取静态字段。若字段不存在，会抛出异常。不确定字段是否存在时，建议使用Create方法</summary>
         /// <typeparam name="TTarget"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="name"></param>
         /// <returns></returns>
         public static TResult GetValue<TTarget, TResult>(String name) { return (TResult)GetValue(typeof(TTarget), null, name); }
 
-        /// <summary>
-        /// 静态快速赋值
-        /// </summary>
+        /// <summary>静态快速赋值。若字段不存在，会抛出异常。不确定字段是否存在时，建议使用Create方法</summary>
         /// <param name="target"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
         public static void SetValue(Object target, String name, Object value) { SetValue(target.GetType(), target, name, value); }
 
-        /// <summary>
-        /// 快速设置静态字段
-        /// </summary>
+        /// <summary>快速设置静态字段。若字段不存在，会抛出异常。不确定字段是否存在时，建议使用Create方法</summary>
         /// <typeparam name="TTarget"></typeparam>
         /// <param name="name"></param>
         /// <param name="value"></param>

@@ -235,9 +235,7 @@ namespace NewLife.Reflection
             SetHandler.Invoke(obj, value);
         }
 
-        /// <summary>
-        /// 快速获取静态属性
-        /// </summary>
+        /// <summary>快速获取静态属性。若属性不存在，会抛出异常。不确定属性是否存在时，建议使用Create方法</summary>
         /// <param name="type"></param>
         /// <param name="target"></param>
         /// <param name="name"></param>
@@ -254,9 +252,7 @@ namespace NewLife.Reflection
             return pix.GetValue(target);
         }
 
-        /// <summary>
-        /// 静态快速赋值
-        /// </summary>
+        /// <summary>静态快速赋值。若属性不存在，会抛出异常。不确定属性是否存在时，建议使用Create方法</summary>
         /// <param name="type"></param>
         /// <param name="target"></param>
         /// <param name="name"></param>
@@ -273,21 +269,19 @@ namespace NewLife.Reflection
             pix.SetValue(target, value);
         }
 
-        /// <summary>快速获取静态属性</summary>
+        /// <summary>快速获取静态属性。若属性不存在，会抛出异常。不确定属性是否存在时，建议使用Create方法</summary>
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <returns></returns>
         public static Object GetValue(Type type, String name) { return GetValue(type, null, name); }
 
-        /// <summary>静态属性快速赋值</summary>
+        /// <summary>静态属性快速赋值。若属性不存在，会抛出异常。不确定属性是否存在时，建议使用Create方法</summary>
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
         public static void SetValue(Type type, String name, Object value) { SetValue(type, null, name, value); }
 
-        /// <summary>
-        /// 静态快速取值
-        /// </summary>
+        /// <summary>静态快速取值。若属性不存在，会抛出异常。不确定属性是否存在时，建议使用Create方法</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="target"></param>
         /// <param name="name"></param>
@@ -301,24 +295,20 @@ namespace NewLife.Reflection
             return (TResult)GetValue(target.GetType(), target, name);
         }
 
-        /// <summary>
-        /// 快速获取静态属性
-        /// </summary>
+        /// <summary>快速获取静态属性。若属性不存在，会抛出异常。不确定属性是否存在时，建议使用Create方法</summary>
         /// <typeparam name="TTarget"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="name"></param>
         /// <returns></returns>
         public static TResult GetValue<TTarget, TResult>(String name) { return (TResult)GetValue(typeof(TTarget), null, name); }
 
-        /// <summary>成员属性快速赋值</summary>
+        /// <summary>成员属性快速赋值。若属性不存在，会抛出异常。不确定属性是否存在时，建议使用Create方法</summary>
         /// <param name="target"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
         public static void SetValue(Object target, String name, Object value) { SetValue(target.GetType(), target, name, value); }
 
-        /// <summary>
-        /// 快速设置静态属性
-        /// </summary>
+        /// <summary>快速设置静态属性。若属性不存在，会抛出异常。不确定属性是否存在时，建议使用Create方法</summary>
         /// <typeparam name="TTarget"></typeparam>
         /// <param name="name"></param>
         /// <param name="value"></param>

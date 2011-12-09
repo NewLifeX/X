@@ -130,7 +130,7 @@ namespace NewLife.CommonEntity.Web
 
                 _CopyButton = FindControl("btnCopy");
 
-                return _SaveButton;
+                return _CopyButton;
             }
             set { _CopyButton = value; }
         }
@@ -353,7 +353,7 @@ namespace NewLife.CommonEntity.Web
             else
             {
                 // 如果外部设置了按钮事件，则这里不再设置
-                if (btn != null && btn is IButtonControl && FindEventHandler(btn, "Click") == null)
+                if (btn != null && btn is IButtonControl && ControlHelper.FindEventHandler(btn, "Click") == null)
                     (btn as IButtonControl).Click += delegate
                     {
                         GetForm();
@@ -365,7 +365,7 @@ namespace NewLife.CommonEntity.Web
                 //    GetForm();
                 //    if (ValidForm()) SaveFormWithTrans();
                 //}
-                if (btncopy != null && btncopy is IButtonControl && FindEventHandler(btncopy, "Click") == null)
+                if (btncopy != null && btncopy is IButtonControl && ControlHelper.FindEventHandler(btncopy, "Click") == null)
                     (btncopy as IButtonControl).Click += delegate
                     {
                         GetForm();
@@ -595,21 +595,6 @@ namespace NewLife.CommonEntity.Web
         protected virtual Control FindControlByField(FieldItem field)
         {
             return FindControl(ItemPrefix + field.Name);
-        }
-
-        static Delegate FindEventHandler(Control control, String eventName)
-        {
-            if (control == null) return null;
-            if (String.IsNullOrEmpty(eventName)) return null;
-
-            EventHandlerList list = control.GetPropertyValue("Events") as EventHandlerList;
-            if (list == null) return null;
-
-            Object eventObject = control.GetFieldValue(eventName);
-            if (eventObject == null && !eventName.StartsWith("Event", StringComparison.Ordinal)) eventObject = control.GetFieldValue("Event" + eventName);
-            if (eventObject == null) return null;
-
-            return list[eventObject];
         }
         #endregion
 
