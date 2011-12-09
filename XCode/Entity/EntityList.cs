@@ -710,7 +710,7 @@ namespace XCode
         /// <param name="entity"></param>
         /// <param name="sortKey"></param>
         /// <returns></returns>
-        EntityList<T> Up(T entity, String sortKey)
+        public EntityList<T> Up(T entity, String sortKey)
         {
             if (Count < 1) return this;
             if (entity == null) throw new ArgumentNullException("entity");
@@ -740,7 +740,7 @@ namespace XCode
         /// <param name="entity"></param>
         /// <param name="sortKey"></param>
         /// <returns></returns>
-        EntityList<T> Down(T entity, String sortKey)
+        public EntityList<T> Down(T entity, String sortKey)
         {
             if (Count < 1) return this;
             if (entity == null) throw new ArgumentNullException("entity");
