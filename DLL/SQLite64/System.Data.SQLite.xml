@@ -30,6 +30,11 @@
             The value for the Unix epoch (e.g. January 1, 1970 at midnight, in UTC).
             </summary>
         </member>
+        <member name="F:System.Data.SQLite.SQLiteConvert.OleAutomationEpochAsJulianDay">
+            <summary>
+            The value of the OLE Automation epoch represented as a Julian day.
+            </summary>
+        </member>
         <member name="F:System.Data.SQLite.SQLiteConvert._datetimeFormats">
             <summary>
             An array of ISO8601 datetime formats we support conversion from
@@ -45,11 +50,17 @@
             The default DateTime format for this instance
             </summary>
         </member>
-        <member name="M:System.Data.SQLite.SQLiteConvert.#ctor(System.Data.SQLite.SQLiteDateFormats)">
+        <member name="F:System.Data.SQLite.SQLiteConvert._datetimeKind">
+            <summary>
+            The default DateTimeKind for this instance.
+            </summary>
+        </member>
+        <member name="M:System.Data.SQLite.SQLiteConvert.#ctor(System.Data.SQLite.SQLiteDateFormats,System.DateTimeKind)">
             <summary>
             Initializes the conversion class
             </summary>
             <param name="fmt">The default date/time format to use for this instance</param>
+            <param name="kind">The DateTimeKind to use.</param>
         </member>
         <member name="M:System.Data.SQLite.SQLiteConvert.ToUTF8(System.String)">
             <summary>
@@ -91,14 +102,40 @@
             </summary>
             <remarks>
             Acceptable ISO8601 DateTime formats are:
-              yyyy-MM-dd HH:mm:ss
-              yyyyMMddHHmmss
-              yyyyMMddTHHmmssfffffff
-              yyyy-MM-dd
-              yy-MM-dd
-              yyyyMMdd
-              HH:mm:ss
-              THHmmss
+            <list type="bullet">
+            <item><description>THHmmssK</description></item>
+            <item><description>THHmmK</description></item>
+            <item><description>HH:mm:ss.FFFFFFFK</description></item>
+            <item><description>HH:mm:ssK</description></item>
+            <item><description>HH:mmK</description></item>
+            <item><description>yyyy-MM-dd HH:mm:ss.FFFFFFFK</description></item>
+            <item><description>yyyy-MM-dd HH:mm:ssK</description></item>
+            <item><description>yyyy-MM-dd HH:mmK</description></item>
+            <item><description>yyyy-MM-ddTHH:mm:ss.FFFFFFFK</description></item>
+            <item><description>yyyy-MM-ddTHH:mmK</description></item>
+            <item><description>yyyy-MM-ddTHH:mm:ssK</description></item>
+            <item><description>yyyyMMddHHmmssK</description></item>
+            <item><description>yyyyMMddHHmmK</description></item>
+            <item><description>yyyyMMddTHHmmssFFFFFFFK</description></item>
+            <item><description>THHmmss</description></item>
+            <item><description>THHmm</description></item>
+            <item><description>HH:mm:ss.FFFFFFF</description></item>
+            <item><description>HH:mm:ss</description></item>
+            <item><description>HH:mm</description></item>
+            <item><description>yyyy-MM-dd HH:mm:ss.FFFFFFF</description></item>
+            <item><description>yyyy-MM-dd HH:mm:ss</description></item>
+            <item><description>yyyy-MM-dd HH:mm</description></item>
+            <item><description>yyyy-MM-ddTHH:mm:ss.FFFFFFF</description></item>
+            <item><description>yyyy-MM-ddTHH:mm</description></item>
+            <item><description>yyyy-MM-ddTHH:mm:ss</description></item>
+            <item><description>yyyyMMddHHmmss</description></item>
+            <item><description>yyyyMMddHHmm</description></item>
+            <item><description>yyyyMMddTHHmmssFFFFFFF</description></item>
+            <item><description>yyyy-MM-dd</description></item>
+            <item><description>yyyyMMdd</description></item>
+            <item><description>yy-MM-dd</description></item>
+            </list>
+            If the string cannot be matched to one of the above formats, an exception will be thrown.
             </remarks>
             <param name="dateText">The string containing either a long integer number of 100-nanosecond units since
             System.DateTime.MinValue, a Julian day double, an integer number of seconds since the Unix epoch, a
@@ -106,11 +143,68 @@
             culture, or an ISO8601-format string.</param>
             <returns>A DateTime value</returns>
         </member>
+        <member name="M:System.Data.SQLite.SQLiteConvert.ToDateTime(System.String,System.Data.SQLite.SQLiteDateFormats,System.DateTimeKind)">
+            <summary>
+            Converts a string into a DateTime, using the specified DateTimeFormat and DateTimeKind.
+            </summary>
+            <remarks>
+            Acceptable ISO8601 DateTime formats are:
+            <list type="bullet">
+            <item><description>THHmmssK</description></item>
+            <item><description>THHmmK</description></item>
+            <item><description>HH:mm:ss.FFFFFFFK</description></item>
+            <item><description>HH:mm:ssK</description></item>
+            <item><description>HH:mmK</description></item>
+            <item><description>yyyy-MM-dd HH:mm:ss.FFFFFFFK</description></item>
+            <item><description>yyyy-MM-dd HH:mm:ssK</description></item>
+            <item><description>yyyy-MM-dd HH:mmK</description></item>
+            <item><description>yyyy-MM-ddTHH:mm:ss.FFFFFFFK</description></item>
+            <item><description>yyyy-MM-ddTHH:mmK</description></item>
+            <item><description>yyyy-MM-ddTHH:mm:ssK</description></item>
+            <item><description>yyyyMMddHHmmssK</description></item>
+            <item><description>yyyyMMddHHmmK</description></item>
+            <item><description>yyyyMMddTHHmmssFFFFFFFK</description></item>
+            <item><description>THHmmss</description></item>
+            <item><description>THHmm</description></item>
+            <item><description>HH:mm:ss.FFFFFFF</description></item>
+            <item><description>HH:mm:ss</description></item>
+            <item><description>HH:mm</description></item>
+            <item><description>yyyy-MM-dd HH:mm:ss.FFFFFFF</description></item>
+            <item><description>yyyy-MM-dd HH:mm:ss</description></item>
+            <item><description>yyyy-MM-dd HH:mm</description></item>
+            <item><description>yyyy-MM-ddTHH:mm:ss.FFFFFFF</description></item>
+            <item><description>yyyy-MM-ddTHH:mm</description></item>
+            <item><description>yyyy-MM-ddTHH:mm:ss</description></item>
+            <item><description>yyyyMMddHHmmss</description></item>
+            <item><description>yyyyMMddHHmm</description></item>
+            <item><description>yyyyMMddTHHmmssFFFFFFF</description></item>
+            <item><description>yyyy-MM-dd</description></item>
+            <item><description>yyyyMMdd</description></item>
+            <item><description>yy-MM-dd</description></item>
+            </list>
+            If the string cannot be matched to one of the above formats, an exception will be thrown.
+            </remarks>
+            <param name="dateText">The string containing either a long integer number of 100-nanosecond units since
+            System.DateTime.MinValue, a Julian day double, an integer number of seconds since the Unix epoch, a
+            culture-independent formatted date and time string, a formatted date and time string in the current
+            culture, or an ISO8601-format string.</param>
+            <param name="format">The SQLiteDateFormats to use.</param>
+            <param name="kind">The DateTimeKind to use.</param>
+            <returns>A DateTime value</returns>
+        </member>
         <member name="M:System.Data.SQLite.SQLiteConvert.ToDateTime(System.Double)">
             <summary>
             Converts a julianday value into a DateTime
             </summary>
             <param name="julianDay">The value to convert</param>
+            <returns>A .NET DateTime</returns>
+        </member>
+        <member name="M:System.Data.SQLite.SQLiteConvert.ToDateTime(System.Double,System.DateTimeKind)">
+            <summary>
+            Converts a julianday value into a DateTime
+            </summary>
+            <param name="julianDay">The value to convert</param>
+            <param name="kind">The DateTimeKind to use.</param>
             <returns>A .NET DateTime</returns>
         </member>
         <member name="M:System.Data.SQLite.SQLiteConvert.ToJulianDay(System.DateTime)">
@@ -360,6 +454,16 @@
             Returns the number of changes the last executing insert/update caused.
             </summary>
         </member>
+        <member name="P:System.Data.SQLite.SQLiteBase.MemoryUsed">
+            <summary>
+            Returns the amount of memory (in bytes) currently in use by the SQLite core library.
+            </summary>
+        </member>
+        <member name="P:System.Data.SQLite.SQLiteBase.MemoryHighwater">
+            <summary>
+            Returns the maximum amount of memory (in bytes) used by the SQLite core library since the high-water mark was last reset.
+            </summary>
+        </member>
         <member name="F:System.Data.SQLite.SQLite3._sql">
             <summary>
             The opaque pointer returned to us by the sqlite provider
@@ -397,6 +501,26 @@
             </summary>
             <param name="func">The callback function to invoke.</param>
             <returns>Returns a result code</returns>
+        </member>
+        <member name="M:System.Data.SQLite.SQLite3.IsInitialized">
+            <summary>
+            Determines if the SQLite core library has been initialized for the
+            current process.
+            </summary>
+            <returns>
+            A boolean indicating whether or not the SQLite core library has been
+            initialized for the current process.
+            </returns>
+        </member>
+        <member name="M:System.Data.SQLite.SQLite3.StaticIsInitialized">
+            <summary>
+            Determines if the SQLite core library has been initialized for the
+            current process.
+            </summary>
+            <returns>
+            A boolean indicating whether or not the SQLite core library has been
+            initialized for the current process.
+            </returns>
         </member>
         <member name="M:System.Data.SQLite.SQLite3.GetValue(System.Data.SQLite.SQLiteStatement,System.Int32,System.Data.SQLite.SQLiteType)">
             <summary>
@@ -842,6 +966,21 @@
             <description>ISO8601</description>
             </item>
             <item>
+            <description>DateTimeKind</description>
+            <description><b>Unspecified</b> - Not specified as either UTC or local time.<br/><b>Utc</b> - The time represented is UTC.<br/><b>Local</b> - The time represented is local time.</description>
+            <description>N</description>
+            <description>Unspecified</description>
+            </item>
+            <item>
+            <description>BaseSchemaName</description>
+            <description>Some base data classes in the framework (e.g. those that build SQL queries dynamically)
+            assume that an ADO.NET provider cannot support an alternate catalog (i.e. database) without supporting
+            alternate schemas as well; however, SQLite does not fit into this model.  Therefore, this value is used
+            as a placeholder and removed prior to preparing any SQL statements that may contain it.</description>
+            <description>N</description>
+            <description>sqlite_default_schema</description>
+            </item>
+            <item>
             <description>BinaryGUID</description>
             <description><b>True</b> - Store GUID columns in binary form<br/><b>False</b> - Store GUID columns as text</description>
             <description>N</description>
@@ -940,6 +1079,15 @@
             </list>
             </remarks>
         </member>
+        <member name="F:System.Data.SQLite.SQLiteConnection.DefaultBaseSchemaName">
+            <summary>
+            The default "stub" (i.e. placeholder) base schema name to use when
+            returning column schema information.  Used as the initial value of
+            the BaseSchemaName property.  This should start with "sqlite_*"
+            because those names are reserved for use by SQLite (i.e. they cannot
+            be confused with the names of user objects).
+            </summary>
+        </member>
         <member name="F:System.Data.SQLite.SQLiteConnection._connectionState">
             <summary>
             State of the current connection
@@ -978,6 +1126,12 @@
         <member name="F:System.Data.SQLite.SQLiteConnection._password">
             <summary>
             Temporary password storage, emptied after the database has been opened
+            </summary>
+        </member>
+        <member name="F:System.Data.SQLite.SQLiteConnection._baseSchemaName">
+            <summary>
+            The "stub" (i.e. placeholder) base schema name to use when returning
+            column schema information.
             </summary>
         </member>
         <member name="F:System.Data.SQLite.SQLiteConnection._defaultTimeout">
@@ -1517,9 +1671,26 @@
             this connection.
             </summary>
         </member>
+        <member name="P:System.Data.SQLite.SQLiteConnection.MemoryUsed">
+            <summary>
+            Returns the amount of memory (in bytes) currently in use by the SQLite core library.
+            </summary>
+        </member>
+        <member name="P:System.Data.SQLite.SQLiteConnection.MemoryHighwater">
+            <summary>
+            Returns the maximum amount of memory (in bytes) used by the SQLite core library since the high-water mark was last reset.
+            </summary>
+        </member>
         <member name="P:System.Data.SQLite.SQLiteConnection.SQLiteVersion">
             <summary>
             Returns the version of the underlying SQLite database engine
+            </summary>
+        </member>
+        <member name="P:System.Data.SQLite.SQLiteConnection.SQLiteSourceId">
+            <summary>
+            This method returns the string whose value is the same as the
+            SQLITE_SOURCE_ID C preprocessor macro used when compiling the
+            SQLite core library.
             </summary>
         </member>
         <member name="P:System.Data.SQLite.SQLiteConnection.State">
@@ -2179,6 +2350,18 @@
         <member name="F:System.Data.SQLite.SQLiteDataReader._keyInfo">
             <summary>
             An array of rowid's for the active statement if CommandBehavior.KeyInfo is specified
+            </summary>
+        </member>
+        <member name="F:System.Data.SQLite.SQLiteDataReader._version">
+            <summary>
+            Matches the version of the connection.
+            </summary>
+        </member>
+        <member name="F:System.Data.SQLite.SQLiteDataReader._baseSchemaName">
+            <summary>
+            The "stub" (i.e. placeholder) base schema name to use when returning
+            column schema information.  Matches the base schema name used by the
+            associated connection.
             </summary>
         </member>
         <member name="M:System.Data.SQLite.SQLiteDataReader.#ctor(System.Data.SQLite.SQLiteCommand,System.Data.CommandBehavior)">
@@ -3252,6 +3435,14 @@
             </summary>
             <param name="sender"></param>
             <param name="e"></param>
+        </member>
+        <member name="M:System.Data.SQLite.SQLiteLog.LogMessage(System.Int32,System.String)">
+            <summary>
+            Log a message to all the registered log event handlers without going
+            through the SQLite library.
+            </summary>
+            <param name="errorCode">The error code or zero for success.</param>
+            <param name="message">The message to be logged.</param>
         </member>
         <member name="M:System.Data.SQLite.SQLiteLog.InitializeDefaultHandler">
             <summary>
