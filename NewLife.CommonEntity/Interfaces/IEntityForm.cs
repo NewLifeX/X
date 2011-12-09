@@ -9,13 +9,16 @@ namespace NewLife.CommonEntity
     /// <summary>实体表单接口</summary>
     public interface IEntityForm
     {
+        #region 初始化
         /// <summary>
         /// 使用控件容器和实体类初始化接口
         /// </summary>
         /// <param name="container"></param>
         /// <param name="entityType"></param>
         IEntityForm Init(Control container, Type entityType);
+        #endregion
 
+        #region 属性
         /// <summary>访问器</summary>
         IEntityAccessor Accessor { get; set; }
 
@@ -27,6 +30,22 @@ namespace NewLife.CommonEntity
 
         /// <summary>是否新增</summary>
         Boolean IsNew { get; }
+        #endregion
+
+        #region 方法
+        /// <summary>把实体的属性设置到控件上</summary>
+        void SetForm();
+
+        /// <summary>从表单上读取实体数据</summary>
+        void GetForm();
+
+        /// <summary>验证表单，返回是否有效数据，决定是否保存表单数据</summary>
+        /// <returns></returns>
+        Boolean ValidForm();
+
+        /// <summary>保存表单，把实体保存到数据库</summary>
+        void SaveForm();
+        #endregion
 
         #region 事件
         /// <summary>获取数据实体，允许页面重载改变实体</summary>

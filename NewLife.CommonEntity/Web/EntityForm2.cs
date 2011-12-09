@@ -8,6 +8,7 @@ using XCode;
 using XCode.Accessors;
 using XCode.Configuration;
 using XCode.Exceptions;
+using System.ComponentModel;
 
 namespace NewLife.CommonEntity.Web
 {
@@ -100,7 +101,7 @@ namespace NewLife.CommonEntity.Web
         protected HttpResponse Response { get { return HttpContext.Current.Response; } }
 
         private Control _SaveButton;
-        /// <summary>保存按钮，查找名为btnSave或UpdateButton（兼容旧版本）的按钮，如果没找到，将使用第一个使用了提交行为的按钮</summary>
+        /// <summary>保存按钮，查找名为btnSave或UpdateButton（兼容旧版本）的按钮</summary>
         protected virtual Control SaveButton
         {
             get
@@ -117,6 +118,21 @@ namespace NewLife.CommonEntity.Web
                 return _SaveButton;
             }
             set { _SaveButton = value; }
+        }
+
+        private Control _CopyButton;
+        /// <summary>保存按钮，查找名为btnCopy的按钮</summary>
+        protected virtual Control CopyButton
+        {
+            get
+            {
+                if (_CopyButton != null) return _CopyButton;
+
+                _CopyButton = FindControl("btnCopy");
+
+                return _SaveButton;
+            }
+            set { _CopyButton = value; }
         }
 
         /// <summary>是否空主键</summary>
@@ -312,24 +328,32 @@ namespace NewLife.CommonEntity.Web
             }
 
             Control btn = SaveButton;
+            Control btncopy = CopyButton;
             if (!Page.IsPostBack)
             {
                 // 尝试获取页面控制器，如果取得，则可以控制权限
                 IManagePage manager = ManageProvider.Provider.GetService<IManagePage>();
-                if (manager != null && manager.Container != null) CanSave = Entity.IsNullKey && manager.Acquire(PermissionFlags.Insert) || manager.Acquire(PermissionFlags.Update);
+                if (manager != null && manager.Container != null)
+                {
+                    CanSave = entity.IsNullKey && manager.Acquire(PermissionFlags.Insert) || manager.Acquire(PermissionFlags.Update);
+
+                    // 复制只需要新增权限
+                    if (btncopy != null) btncopy.Visible = manager.Acquire(PermissionFlags.Insert);
+                }
 
                 if (btn != null)
                 {
                     btn.Visible = CanSave;
 
-                    if (btn is IButtonControl) (btn as IButtonControl).Text = IsNew ? "新增" : "更新";
+                    if (btn is IButtonControl) (btn as IButtonControl).Text = entity.IsNullKey ? "新增" : "更新";
                 }
 
                 SetForm();
             }
             else
             {
-                if (btn != null && btn is IButtonControl)
+                // 如果外部设置了按钮事件，则这里不再设置
+                if (btn != null && btn is IButtonControl && FindEventHandler(btn, "Click") == null)
                     (btn as IButtonControl).Click += delegate
                     {
                         GetForm();
@@ -341,6 +365,20 @@ namespace NewLife.CommonEntity.Web
                 //    GetForm();
                 //    if (ValidForm()) SaveFormWithTrans();
                 //}
+                if (btncopy != null && btncopy is IButtonControl && FindEventHandler(btncopy, "Click") == null)
+                    (btncopy as IButtonControl).Click += delegate
+                    {
+                        GetForm();
+
+                        // 清空主键，变成新增
+                        IEntityOperate eop = EntityFactory.CreateOperate(Entity.GetType());
+                        foreach (var item in eop.Fields)
+                        {
+                            if (item.PrimaryKey || item.IsIdentity) Entity[item.Name] = null;
+                        }
+
+                        if (ValidForm()) SaveFormWithTrans();
+                    };
             }
         }
 
@@ -360,7 +398,7 @@ namespace NewLife.CommonEntity.Web
 
         #region 方法
         /// <summary>把实体的属性设置到控件上</summary>
-        protected virtual void SetForm()
+        public virtual void SetForm()
         {
             Accessor.OnWriteItem += new EventHandler<EntityAccessorEventArgs>(Accessor_OnWrite);
             Accessor.Write(Entity);
@@ -383,18 +421,16 @@ namespace NewLife.CommonEntity.Web
         }
 
         /// <summary>从表单上读取实体数据</summary>
-        protected virtual void GetForm()
+        public virtual void GetForm()
         {
             Accessor.Read(Entity);
 
             if (OnGetForm != null) OnGetForm(this, new EntityFormEventArgs());
         }
 
-        /// <summary>
-        /// 验证表单，返回是否有效数据
-        /// </summary>
+        /// <summary>验证表单，返回是否有效数据，决定是否保存表单数据</summary>
         /// <returns></returns>
-        protected virtual Boolean ValidForm()
+        public virtual Boolean ValidForm()
         {
             foreach (FieldItem item in Factory.Fields)
             {
@@ -476,9 +512,10 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
-        /// <summary>
-        /// 保存表单，把实体保存到数据库，当前方法处于事务保护之中
-        /// </summary>
+        /// <summary>保存表单，把实体保存到数据库</summary>
+        void IEntityForm.SaveForm() { SaveFormWithTrans(); }
+
+        /// <summary>保存表单，把实体保存到数据库，当前方法处于事务保护之中</summary>
         protected virtual void SaveForm() { Entity.Save(); }
 
         /// <summary>
@@ -558,6 +595,21 @@ namespace NewLife.CommonEntity.Web
         protected virtual Control FindControlByField(FieldItem field)
         {
             return FindControl(ItemPrefix + field.Name);
+        }
+
+        static Delegate FindEventHandler(Control control, String eventName)
+        {
+            if (control == null) return null;
+            if (String.IsNullOrEmpty(eventName)) return null;
+
+            EventHandlerList list = control.GetPropertyValue("Events") as EventHandlerList;
+            if (list == null) return null;
+
+            Object eventObject = control.GetFieldValue(eventName);
+            if (eventObject == null && !eventName.StartsWith("Event", StringComparison.Ordinal)) eventObject = control.GetFieldValue("Event" + eventName);
+            if (eventObject == null) return null;
+
+            return list[eventObject];
         }
         #endregion
 

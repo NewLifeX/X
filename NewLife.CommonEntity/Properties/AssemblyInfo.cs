@@ -36,9 +36,12 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("2.8.*")]
-[assembly: AssemblyFileVersion("2.8.2011.1207")]
+[assembly: AssemblyFileVersion("2.8.2011.1209")]
 
 /*
+ * v2.8.2011.1209   IEntityForm接口开放更多成员
+ *                  IEntityForm增加对另存为的支持，需要表单页增加btnCopy按钮
+ * 
  * v2.8.2011.1207   IEntityForm全新设计事件模型，更贴近实际使用
  * 
  * v2.7.2011.1206   EntityForm2在找不到保存按钮时，不保存表单
