@@ -15,9 +15,14 @@ namespace XCode
 
         /// <summary>扩展属性</summary>
         IDictionary<String, Object> Extends { get; }
+        #endregion
 
+        #region 空主键
         /// <summary>主键是否为空</summary>
         Boolean IsNullKey { get; }
+
+        /// <summary>设置主键为空。Save将调用Insert</summary>
+        void SetNullKey();
         #endregion
 
         #region 填充数据

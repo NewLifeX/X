@@ -426,6 +426,16 @@ namespace XCode
                 return Helper.IsEntityNullKey(this);
             }
         }
+
+        /// <summary>设置主键为空。Save将调用Insert</summary>
+        void IEntity.SetNullKey()
+        {
+            IEntityOperate eop = EntityFactory.CreateOperate(GetType());
+            foreach (var item in eop.Fields)
+            {
+                if (item.PrimaryKey || item.IsIdentity) this[item.Name] = null;
+            }
+        }
         #endregion
 
         #region 实体相等

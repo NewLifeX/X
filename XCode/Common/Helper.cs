@@ -72,23 +72,27 @@ namespace XCode.Common
         public static Boolean IsEntityNullKey(IEntity entity)
         {
             IEntityOperate eop = EntityFactory.CreateOperate(entity.GetType());
-
-            List<FieldItem> pks = eop.Fields.Where(e => e.PrimaryKey).ToList();
-            if (pks != null && pks.Count > 0)
+            foreach (var item in eop.Fields)
             {
-                foreach (FieldItem item in pks)
-                {
-                    // 任何一个不为空，则表明整体不为空
-                    if (!IsNullKey(entity[item.Name])) return false;
-                }
-                return true;
+                if ((item.PrimaryKey || item.IsIdentity) && !IsNullKey(entity[item.Name])) return false;
             }
 
-            FieldItem field = eop.Fields.FirstOrDefault(e => e.IsIdentity);
-            if (field.IsIdentity)
-            {
-                return IsNullKey(entity[field.Name]);
-            }
+            //List<FieldItem> pks = eop.Fields.Where(e => e.PrimaryKey).ToList();
+            //if (pks != null && pks.Count > 0)
+            //{
+            //    foreach (FieldItem item in pks)
+            //    {
+            //        // 任何一个不为空，则表明整体不为空
+            //        if (!IsNullKey(entity[item.Name])) return false;
+            //    }
+            //    return true;
+            //}
+
+            //FieldItem field = eop.Fields.FirstOrDefault(e => e.IsIdentity);
+            //if (field.IsIdentity)
+            //{
+            //    return IsNullKey(entity[field.Name]);
+            //}
 
             return false;
         }
