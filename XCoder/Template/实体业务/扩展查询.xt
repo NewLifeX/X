@@ -50,9 +50,7 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
                 sb5.Append(Field.Alias);
         }
 #>
-        /// <summary>
-        /// 根据<#=sb5#>查找
-        /// </summary><#
+        /// <summary>根据<#=sb5#>查找</summary><#
         for(int i=0;i<columns.Length;i++)
         {
 #>

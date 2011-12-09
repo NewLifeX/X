@@ -6,27 +6,21 @@
         }<#
 }#>
 
-        ///// <summary>
-        ///// 已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert
-        ///// </summary>
+        ///// <summary>已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert</summary>
         ///// <returns></returns>
         //public override Int32 Insert()
         //{
         //    return base.Insert();
         //}
 
-        ///// <summary>
-        ///// 已重载。在事务保护范围内处理业务，位于Valid之后
-        ///// </summary>
+        ///// <summary>已重载。在事务保护范围内处理业务，位于Valid之后</summary>
         ///// <returns></returns>
         //protected override Int32 OnInsert()
         //{
         //    return base.OnInsert();
         //}
 
-        ///// <summary>
-        ///// 验证数据，通过抛出异常的方式提示验证失败。
-        ///// </summary>
+        ///// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
         ///// <param name="isNew"></param>
         //public override void Valid(Boolean isNew)
         //{
@@ -60,9 +54,7 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 	if(hasMutil)
 	{
 #>
-        /// <summary>
-        /// 已重载。删除关联数据
-        /// </summary>
+        /// <summary>已重载。删除关联数据</summary>
         /// <returns></returns>
         protected override int OnDelete()
         {<#	
@@ -97,9 +89,7 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 	}
 }#>
 
-        ///// <summary>
-        ///// 首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法
-        ///// </summary>
+        ///// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
         //[EditorBrowsable(EditorBrowsableState.Never)]
         //protected override void InitData()
         //{
