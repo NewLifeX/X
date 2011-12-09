@@ -194,7 +194,7 @@ namespace XCode.DataAccessLayer
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        public override String StringConcat(String left, String right) { return String.Format("concat({0},{1})", (!String.IsNullOrEmpty(left) ? left : "\"\""), (!String.IsNullOrEmpty(right) ? right : "\"\"")); }
+        public override String StringConcat(String left, String right) { return String.Format("concat({0},{1})", (!String.IsNullOrEmpty(left) ? left : "\'\'"), (!String.IsNullOrEmpty(right) ? right : "\'\'")); }
         #endregion
     }
 
