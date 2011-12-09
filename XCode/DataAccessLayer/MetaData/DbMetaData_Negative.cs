@@ -510,7 +510,7 @@ namespace XCode.DataAccessLayer
 
                         // 处理字符串不允许空
                         if (item.DataType == typeof(String) && !item.Nullable)
-                            sbValue.Append(Database.StringConcat(FormatName(name), ""));
+                            sbValue.Append(Database.StringConcat(FormatName(name), "\"\""));
                         else
                             sbValue.Append(FormatName(name));
                     }
