@@ -1,29 +1,28 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
-using NewLife.CommonEntity;
-using NewLife.Log;
-using XCode;
-using XCode.DataAccessLayer;
-using XCode.Test;
-using System.Data;
-using System.Collections.Generic;
+using System.Threading;
 using System.Web;
 using System.Web.Caching;
-using System.Threading;
-using NewLife.Threading;
-using NewLife.Reflection;
-using XCode.Configuration;
-using System.Collections;
-using NewLife.IO;
+using NewLife.CommonEntity;
 using NewLife.Compression;
+using NewLife.IO;
+using NewLife.Log;
+using NewLife.Threading;
+using XCode;
+using XCode.Configuration;
+using XCode.DataAccessLayer;
+using XCode.Test;
 
 namespace Test
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             XTrace.OnWriteLog += new EventHandler<WriteLogEventArgs>(XTrace_OnWriteLog);
             while (true)
@@ -50,12 +49,12 @@ namespace Test
             }
         }
 
-        static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
+        private static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
         {
             Console.WriteLine(e.ToString());
         }
 
-        static void Test1()
+        private static void Test1()
         {
             Administrator admin = Administrator.Login("admin", "admin");
             Int32 id = admin.ID;
@@ -71,7 +70,7 @@ namespace Test
             Console.WriteLine(admin2);
         }
 
-        static void Test2()
+        private static void Test2()
         {
             DAL dal = DAL.Create("Common1");
             IDataTable table = Log.Meta.Table.DataTable;
@@ -116,7 +115,7 @@ namespace Test
             TestPageSplit("降序", builder, op, selects, order2, t);
         }
 
-        static void TestPageSplit(String title, SelectBuilder builder, IEntityOperate op, String selects, String order, Int32 t)
+        private static void TestPageSplit(String title, SelectBuilder builder, IEntityOperate op, String selects, String order, Int32 t)
         {
             Int32 pagesize = 10;
             Int32 p = 0;
@@ -148,7 +147,7 @@ namespace Test
             CodeTimer.TimeLine("倒数第三页", t, n => op.FindAll(null, order, selects, p - pagesize * 2, pagesize), needTimeOne);
         }
 
-        static void Test3()
+        private static void Test3()
         {
             Int32 n = EntityTest.Meta.Count;
             Console.WriteLine(n);
@@ -160,7 +159,7 @@ namespace Test
             dt = Administrator.FindAll().ToDataTable();
         }
 
-        static void Test4()
+        private static void Test4()
         {
             IDataTable table = Log.Meta.Table.DataTable;
 
@@ -182,7 +181,7 @@ namespace Test
             TestPageSplit("降序", builder, selects, order2);
         }
 
-        static void TestPageSplit(String title, SelectBuilder builder, String selects, String order)
+        private static void TestPageSplit(String title, SelectBuilder builder, String selects, String order)
         {
             Int32 pagesize = 10;
             Int32 p = 0;
@@ -207,7 +206,7 @@ namespace Test
             Console.WriteLine("--50页SQL2005：\n{0}", sql);
         }
 
-        static void Test5()
+        private static void Test5()
         {
             ThreadPoolX.QueueUserWorkItem(Test5_0);
 
@@ -234,7 +233,7 @@ namespace Test
             Console.WriteLine(admin);
         }
 
-        static void Test5_0()
+        private static void Test5_0()
         {
             String k = "asdf";
             String value = "vvv";
@@ -247,7 +246,7 @@ namespace Test
             }
         }
 
-        static void Test6()
+        private static void Test6()
         {
             // 添加一个连接
             //DAL.AddConnStr("test", "Provider=Microsoft.Jet.OLEDB.4.0;" + "Data Source=netbar.xls;" + "Extended Properties=Excel 8.0;", null, null);
@@ -337,7 +336,6 @@ namespace Test
                                     n.SetItem("AreaCode", ss[0].Code);
                                 else
                                 {
-
                                 }
                             }
                         }
@@ -349,7 +347,7 @@ namespace Test
             }
         }
 
-        static void Test7()
+        private static void Test7()
         {
             Type type = typeof(DatabaseType);
             var dic = EnumHelper.GetDescriptions(type);
@@ -416,9 +414,9 @@ namespace Test
             Console.WriteLine("单列表：{1}", sw.Elapsed);
         }
 
-        static void Test8()
+        private static void Test8()
         {
-            String file = @"E:\Net\SharpZipLib\SharpZipLib_0860_Bin.zip";
+            String file = @"E:\Net\SharpZipLib\SharpZipLib_0855_Bin.zip";
             Stream stream = File.OpenRead(file);
 
             Random rnd = new Random((Int32)DateTime.Now.Ticks);

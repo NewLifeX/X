@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using NewLife.Linq;
-using NewLife.IO;
 
 namespace NewLife.Compression
 {
@@ -24,9 +23,11 @@ namespace NewLife.Compression
         private Encoding _Encoding = Encoding.Default;
         /// <summary>字符串编码</summary>
         public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
+
         #endregion
 
         #region 构造
+
         public ZipFile() : this(String.Empty, null) { }
 
         public ZipFile(String fileName) : this(fileName, null) { }
@@ -147,7 +148,6 @@ namespace NewLife.Compression
 
         private void Read(Stream stream)
         {
-            BinaryReader reader = new BinaryReader(stream);
             try
             {
                 if (!stream.CanSeek)
@@ -156,73 +156,60 @@ namespace NewLife.Compression
                     return;
                 }
 
+                BinaryReader reader = new BinaryReader(stream);
                 if (reader.ReadInt32() == ZipConstants.EndOfCentralDirectorySignature) return;
 
-                // start at the end of the file...
-                // seek backwards a bit, then look for the EoCD signature.
-                Int32 nTries = 0;
-                bool success = false;
-
                 // EndOfCentralDirectory的大小加上两个字节就是18，查找EndOfCentralDirectorySignature签名
-                // The size of the end-of-central-directory-footer plus 2 bytes is 18.
-                // This implies an archive comment length of 0.  We'll add a margin of
-                // safety and start "in front" of that, when looking for the
-                // EndOfCentralDirectorySignature
-                long posn = stream.Length - 64;
-                long maxSeekback = Math.Max(stream.Length - 0x4000, 10);
-                do
-                {
-                    if (posn < 0) posn = 0;  // BOF
-                    stream.Seek(posn, SeekOrigin.Begin);
+                stream.Seek(-64, SeekOrigin.End);
 
-                    //long bytesRead = stream.IndexOf(BitConverter.GetBytes((Int32)ZipConstants.EndOfCentralDirectorySignature));
-                    Int64 bytesRead = CentralDirectory.FindSignature(stream);
-                    if (bytesRead != -1)
-                        success = true;
-                    else
-                    {
-                        if (posn == 0) break; // started at the BOF and found nothing
-                        nTries++;
-                        // Weird: with NETCF, negative offsets from SeekOrigin.End DO
-                        // NOT WORK. So rather than seek a negative offset, we seek
-                        // from SeekOrigin.Begin using a smaller number.
-                        posn -= (32 * (nTries + 1) * nTries);
-                    }
-                }
-                while (!success && posn > maxSeekback);
-
-                if (success)
+                if (EndOfCentralDirectory.FindSignature(stream) != -1)
                 {
                     stream.Seek(-4, SeekOrigin.Current);
-                    var cd = new CentralDirectory();
+                    var cd = new EndOfCentralDirectory();
                     cd.Read(stream);
 
-                    _locEndOfCDS = stream.Position - 4;
+                    //_locEndOfCDS = stream.Position - 4;
 
-                    byte[] block = new byte[16];
-                    stream.Read(block, 0, block.Length);
+                    //byte[] block = new byte[16];
+                    //stream.Read(block, 0, block.Length);
 
-                    _diskNumberWithCd = BitConverter.ToUInt16(block, 2);
+                    //_diskNumberWithCd = BitConverter.ToUInt16(block, 2);
 
-                    if (_diskNumberWithCd == 0xFFFF) throw new ZipException("Spanned archives with more than 65534 segments are not supported at this time.");
+                    if (cd.DiskNumberWithStart == 0xFFFF) throw new ZipException("Spanned archives with more than 65534 segments are not supported at this time.");
 
-                    _diskNumberWithCd++; // I think the number in the file differs from reality by 1
+                    cd.DiskNumberWithStart++; // I think the number in the file differs from reality by 1
 
                     Int32 i = 12;
 
-                    uint offset32 = (uint)BitConverter.ToUInt32(block, i);
-                    if (offset32 == 0xFFFFFFFF)
+                    //uint offset32 = (uint)BitConverter.ToUInt32(block, i);
+                    if (cd.Offset == 0xFFFFFFFF)
                     {
                         Zip64SeekToCentralDirectory(stream);
                     }
                     else
                     {
-                        _OffsetOfCentralDirectory = offset32;
+                        //_OffsetOfCentralDirectory = offset32;
                         // change for workitem 8098
-                        stream.Seek(offset32, SeekOrigin.Begin);
+                        stream.Seek(cd.Offset, SeekOrigin.Begin);
                     }
 
-                    ReadCentralDirectory(stream);
+                    //ReadCentralDirectory(stream);
+                    ZipEntry de;
+                    var previouslySeen = new Dictionary<String, object>();
+                    while ((de = ZipEntry.ReadDirEntry(this, stream, previouslySeen)) != null)
+                    {
+                        Entries.Add(de.FileName, de);
+
+                        //if (de._InputUsesZip64) inputUsesZip64 = true;
+                        previouslySeen.Add(de.FileName, null); // to prevent dupes
+                    }
+
+                    //if (inputUsesZip64) UseZip64WhenSaving = Zip64Option.Always;
+
+                    // workitem 8299
+                    if (_locEndOfCDS > 0) stream.Seek(_locEndOfCDS, SeekOrigin.Begin);
+
+                    ReadCentralDirectoryFooter(stream);
                 }
                 else
                 {
@@ -313,33 +300,33 @@ namespace NewLife.Compression
             //zf.SeekFromOrigin(Offset64);
         }
 
-        private void ReadCentralDirectory(Stream stream)
-        {
-            // We must have the central directory footer record, in order to properly
-            // read zip dir entries from the central directory.  This because the logic
-            // knows when to open a spanned file when the volume number for the central
-            // directory differs from the volume number for the zip entry.  The
-            // _diskNumberWithCd was set when originally finding the offset for the
-            // start of the Central Directory.
+        //private void ReadCentralDirectory(Stream stream)
+        //{
+        //    // We must have the central directory footer record, in order to properly
+        //    // read zip dir entries from the central directory.  This because the logic
+        //    // knows when to open a spanned file when the volume number for the central
+        //    // directory differs from the volume number for the zip entry.  The
+        //    // _diskNumberWithCd was set when originally finding the offset for the
+        //    // start of the Central Directory.
 
-            bool inputUsesZip64 = false;
-            ZipEntry de;
-            var previouslySeen = new Dictionary<String, object>();
-            while ((de = ZipEntry.ReadDirEntry(this, stream, previouslySeen)) != null)
-            {
-                Entries.Add(de.FileName, de);
+        //    bool inputUsesZip64 = false;
+        //    ZipEntry de;
+        //    var previouslySeen = new Dictionary<String, object>();
+        //    while ((de = ZipEntry.ReadDirEntry(this, stream, previouslySeen)) != null)
+        //    {
+        //        Entries.Add(de.FileName, de);
 
-                //if (de._InputUsesZip64) inputUsesZip64 = true;
-                previouslySeen.Add(de.FileName, null); // to prevent dupes
-            }
+        //        //if (de._InputUsesZip64) inputUsesZip64 = true;
+        //        previouslySeen.Add(de.FileName, null); // to prevent dupes
+        //    }
 
-            //if (inputUsesZip64) UseZip64WhenSaving = Zip64Option.Always;
+        //    //if (inputUsesZip64) UseZip64WhenSaving = Zip64Option.Always;
 
-            // workitem 8299
-            if (_locEndOfCDS > 0) stream.Seek(_locEndOfCDS, SeekOrigin.Begin);
+        //    // workitem 8299
+        //    if (_locEndOfCDS > 0) stream.Seek(_locEndOfCDS, SeekOrigin.Begin);
 
-            ReadCentralDirectoryFooter(stream);
-        }
+        //    ReadCentralDirectoryFooter(stream);
+        //}
 
         UInt16 _versionMadeBy;
         UInt16 _versionNeededToExtract;
@@ -349,9 +336,9 @@ namespace NewLife.Compression
             BinaryReader reader = new BinaryReader(stream);
             Int32 signature = reader.ReadInt32();
 
-            byte[] block = null;
-            Int32 j = 0;
-            if (signature == ZipConstants.Zip64EndOfCentralDirectoryRecordSignature)
+            //byte[] block = null;
+            //Int32 j = 0;
+            if (signature == Zip64EndOfCentralDirectory.DefaultSignature)
             {
                 // We have a ZIP64 EOCD
                 // This data block is 4 bytes sig, 8 bytes size, 44 bytes fixed data,
@@ -368,32 +355,37 @@ namespace NewLife.Compression
                 // -----------------------
                 // 52 bytes
 
-                block = new byte[8 + 44];
-                stream.Read(block, 0, block.Length);
+                stream.Seek(-4, SeekOrigin.Current);
 
-                Int64 DataSize = BitConverter.ToInt64(block, 0);  // == 44 + the variable length
+                var zcd = new Zip64EndOfCentralDirectory();
+                zcd.Read(stream);
 
-                if (DataSize < 44)
-                    throw new ZipException("Bad size in the ZIP64 Central Directory.");
+                //block = new byte[8 + 44];
+                //stream.Read(block, 0, block.Length);
 
-                _versionMadeBy = BitConverter.ToUInt16(block, j);
-                j += 2;
-                _versionNeededToExtract = BitConverter.ToUInt16(block, j);
-                j += 2;
-                _diskNumberWithCd = BitConverter.ToUInt32(block, j);
-                j += 2;
+                //Int64 DataSize = BitConverter.ToInt64(block, 0);  // == 44 + the variable length
+
+                if (zcd.DataSize < 44) throw new ZipException("Bad size in the ZIP64 Central Directory.");
+
+                //_versionMadeBy = BitConverter.ToUInt16(block, j);
+                //j += 2;
+                //_versionNeededToExtract = BitConverter.ToUInt16(block, j);
+                //j += 2;
+                //_diskNumberWithCd = BitConverter.ToUInt32(block, j);
+                //j += 2;
 
                 //zf._diskNumberWithCd++; // hack!!
 
-                // read the extended block
-                block = new byte[DataSize - 44];
-                stream.Read(block, 0, block.Length);
-                // discard the result
+                //// read the extended block
+                //block = new byte[DataSize - 44];
+                //stream.Read(block, 0, block.Length);
+                //// discard the result
 
+                // 跳过Zip64EndOfCentralDirectoryLocator
                 signature = reader.ReadInt32();
                 if (signature != ZipConstants.Zip64EndOfCentralDirectoryLocatorSignature) throw new ZipException("Inconsistent metadata in the ZIP64 Central Directory.");
 
-                block = new byte[16];
+                var block = new byte[16];
                 stream.Read(block, 0, block.Length);
                 // discard the result
 
@@ -402,49 +394,52 @@ namespace NewLife.Compression
 
             // Throw if this is not a signature for "end of central directory record"
             // This is a sanity check.
-            if (signature != ZipConstants.EndOfCentralDirectorySignature)
+            if (signature != EndOfCentralDirectory.DefaultSignature)
             {
                 stream.Seek(-4, SeekOrigin.Current);
                 throw new ZipException(String.Format("Bad signature ({0:X8}) at position 0x{1:X8}", signature, stream.Position));
             }
 
             // read the End-of-Central-Directory-Record
-            block = new byte[16];
-            stream.Read(block, 0, block.Length);
 
-            // off sz  data
-            // -------------------------------------------------------
-            //  0   4  end of central dir signature (0x06054b50)
-            //  4   2  number of this disk
-            //  6   2  number of the disk with start of the central directory
-            //  8   2  total number of entries in the  central directory on this disk
-            // 10   2  total number of entries in  the central directory
-            // 12   4  size of the central directory
-            // 16   4  offset of start of central directory with respect to the starting disk number
-            // 20   2  ZIP file comment length
-            // 22  ??  ZIP file comment
 
-            if (_diskNumberWithCd == 0) _diskNumberWithCd = BitConverter.ToUInt16(block, 2);
+            //block = new byte[16];
+            //stream.Read(block, 0, block.Length);
 
-            //byte[] block = new byte[2];
-            //zf.ReadStream.Read(block, 0, block.Length);
+            //// off sz  data
+            //// -------------------------------------------------------
+            ////  0   4  end of central dir signature (0x06054b50)
+            ////  4   2  number of this disk
+            ////  6   2  number of the disk with start of the central directory
+            ////  8   2  total number of entries in the  central directory on this disk
+            //// 10   2  total number of entries in  the central directory
+            //// 12   4  size of the central directory
+            //// 16   4  offset of start of central directory with respect to the starting disk number
+            //// 20   2  ZIP file comment length
+            //// 22  ??  ZIP file comment
 
-            //Int16 commentLength = (short)(block[0] + block[1] * 256);
-            Int16 commentLength = reader.ReadInt16();
-            if (commentLength > 0)
-            {
-                block = reader.ReadBytes(commentLength);
+            //if (_diskNumberWithCd == 0) _diskNumberWithCd = BitConverter.ToUInt16(block, 2);
 
-                // workitem 10392 - prefer ProvisionalAlternateEncoding,
-                // first.  The fix for workitem 6513 tried to use UTF8
-                // only as necessary, but that is impossible to test
-                // for, in this direction. There's no way to know what
-                // characters the already-encoded bytes refer
-                // to. Therefore, must do what the user tells us.
+            ////byte[] block = new byte[2];
+            ////zf.ReadStream.Read(block, 0, block.Length);
 
-                Comment = Encoding.GetString(block, 0, block.Length);
-            }
+            ////Int16 commentLength = (short)(block[0] + block[1] * 256);
+            //Int16 commentLength = reader.ReadInt16();
+            //if (commentLength > 0)
+            //{
+            //    block = reader.ReadBytes(commentLength);
+
+            //    // workitem 10392 - prefer ProvisionalAlternateEncoding,
+            //    // first.  The fix for workitem 6513 tried to use UTF8
+            //    // only as necessary, but that is impossible to test
+            //    // for, in this direction. There's no way to know what
+            //    // characters the already-encoded bytes refer
+            //    // to. Therefore, must do what the user tells us.
+
+            //    Comment = Encoding.GetString(block, 0, block.Length);
+            //}
         }
+
         #endregion
 
         #region 索引集合
@@ -479,10 +474,12 @@ namespace NewLife.Compression
         }
 
         public Int32 Count { get { return Entries.Count; } }
+
         #endregion
 
         #region 辅助
-        static string NormalizePathForUseInZipFile(string pathName)
+
+        private static string NormalizePathForUseInZipFile(string pathName)
         {
             if (String.IsNullOrEmpty(pathName)) return pathName;
 
@@ -494,6 +491,7 @@ namespace NewLife.Compression
 
             return Path.GetFullPath(pathName);
         }
+
         #endregion
 
         #region IEnumerable<ZipEntry> 成员
