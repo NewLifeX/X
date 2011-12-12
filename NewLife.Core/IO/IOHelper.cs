@@ -413,28 +413,28 @@ namespace NewLife.IO
         #endregion
 
         #region 复制数据流
-        /// <summary>
-        /// 复制数据流
-        /// </summary>
-        /// <param name="src">源数据流</param>
-        /// <param name="des">目的数据流</param>
-        /// <returns>返回复制的总字节数</returns>
-        public static Int32 CopyTo(this Stream src, Stream des)
-        {
-            return CopyTo(src, des, 0, 0);
-        }
+        ///// <summary>
+        ///// 复制数据流
+        ///// </summary>
+        ///// <param name="src">源数据流</param>
+        ///// <param name="des">目的数据流</param>
+        ///// <returns>返回复制的总字节数</returns>
+        //public static Int32 CopyTo(this Stream src, Stream des)
+        //{
+        //    return CopyTo(src, des, 0, 0);
+        //}
 
-        /// <summary>
-        /// 复制数据流
-        /// </summary>
-        /// <param name="src">源数据流</param>
-        /// <param name="des">目的数据流</param>
-        /// <param name="bufferSize">缓冲区大小，也就是每次复制的大小</param>
-        /// <returns>返回复制的总字节数</returns>
-        public static Int32 CopyTo(this Stream src, Stream des, Int32 bufferSize)
-        {
-            return CopyTo(src, des, bufferSize, 0);
-        }
+        ///// <summary>
+        ///// 复制数据流
+        ///// </summary>
+        ///// <param name="src">源数据流</param>
+        ///// <param name="des">目的数据流</param>
+        ///// <param name="bufferSize">缓冲区大小，也就是每次复制的大小</param>
+        ///// <returns>返回复制的总字节数</returns>
+        //public static Int32 CopyTo(this Stream src, Stream des, Int32 bufferSize)
+        //{
+        //    return CopyTo(src, des, bufferSize, 0);
+        //}
 
         /// <summary>
         /// 复制数据流
@@ -444,7 +444,7 @@ namespace NewLife.IO
         /// <param name="bufferSize">缓冲区大小，也就是每次复制的大小</param>
         /// <param name="max">最大复制字节数</param>
         /// <returns>返回复制的总字节数</returns>
-        public static Int32 CopyTo(this Stream src, Stream des, Int32 bufferSize, Int32 max)
+        public static Int32 CopyTo(this Stream src, Stream des, Int32 bufferSize = 0, Int32 max = 0)
         {
             if (bufferSize <= 0) bufferSize = 1024;
 
@@ -471,19 +471,21 @@ namespace NewLife.IO
         }
         #endregion
 
+        #region 数据流转换
+        #endregion
         /// <summary>
         /// 流转为字节数组
         /// </summary>
         /// <param name="stream">数据流</param>
         /// <param name="offset">流的初始位置</param>
         /// <returns></returns>
-        public static Byte[] ToArray(this Stream stream,Int32 offset=0)
+        public static Byte[] ToArray(this Stream stream, Int32 offset = 0)
         {
             if (stream == null) return null;
 
             byte[] bytes = new byte[stream.Length];
             stream.Read(bytes, offset, bytes.Length);
-            return bytes; 
+            return bytes;
         }
 
         /// <summary>
@@ -502,5 +504,159 @@ namespace NewLife.IO
                 return sr.ReadToEnd();
             }
         }
+
+        #region 数据流查找
+        /// <summary>在数据流中查找字节数组的位置</summary>
+        /// <param name="stream">数据流</param>
+        /// <param name="buffer">字节数组</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="length">查找长度</param>
+        /// <returns></returns>
+        public static Int64 IndexOf(this Stream stream, Byte[] buffer, Int64 offset = 0, Int64 length = 0)
+        {
+            if (length <= 0) length = buffer.Length - offset;
+
+            // 位置
+            Int64 p = -1;
+
+            for (Int64 i = 0; i < length; )
+            {
+                Int32 c = stream.ReadByte();
+                if (c == -1) return -1;
+
+                p++;
+                if (c == buffer[offset + i])
+                {
+                    i++;
+
+                    // 全部匹配，退出
+                    if (i >= length) return p - length + 1;
+                }
+                else
+                {
+                    //i = 0; // 只要有一个不匹配，马上清零
+                    // 不能直接清零，那样会导致数据丢失，需要逐位探测，窗口一个个字节滑动
+                    // 上一次匹配的其实就是j=0那个，所以这里从j=1开始
+                    Int64 n = i;
+                    i = 0;
+                    for (int j = 1; j < n; j++)
+                    {
+                        // 在字节数组前(j,n)里面找自己(0,n-j)
+                        if (CompareTo(buffer, j, n, buffer, 0, n - j) == 0)
+                        {
+                            // 前面(0,n-j)相等，窗口退回到这里
+                            i = n - j;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            //// 已匹配字节数
+            //Int64 len = 0;      //// 预分配缓冲区
+            //Byte[] bts = new Byte[length];
+            //while (true)
+            //{
+            //    Int32 count = stream.Read(bts, 0, bts.Length);
+            //    if (len + count < bts.Length) break;
+
+            //    for (int i = 0; i < bts.Length; i++)
+            //    {
+            //        p++;
+            //        if (bts[i] == buffer[offset + len])
+            //        {
+            //            len++;
+
+            //            // 全部匹配，退出
+            //            if (len >= length) return p - length + 1;
+            //        }
+            //        else
+            //            len = 0; // 只要有一个不匹配，马上清零
+            //    }
+            //}
+
+            return -1;
+        }
+
+        /// <summary>在字节数组中查找另一个字节数组的位置</summary>
+        /// <param name="source">字节数组</param>
+        /// <param name="buffer">另一个字节数组</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="length">查找长度</param>
+        /// <returns></returns>
+        public static Int64 IndexOf(this Byte[] source, Byte[] buffer, Int64 offset = 0, Int64 length = 0) { return IndexOf(source, 0, 0, buffer, offset, length); }
+
+        /// <summary>在字节数组中查找另一个字节数组的位置</summary>
+        /// <param name="source">字节数组</param>
+        /// <param name="start">源数组起始位置</param>
+        /// <param name="count">查找长度</param>
+        /// <param name="buffer">另一个字节数组</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="length">查找长度</param>
+        /// <returns></returns>
+        public static Int64 IndexOf(this Byte[] source, Int64 start, Int64 count, Byte[] buffer, Int64 offset = 0, Int64 length = 0)
+        {
+            if (start < 0) start = 0;
+            if (count <= 0 || count > source.Length - start) count = source.Length - start;
+            if (length <= 0 || length > buffer.Length - offset) length = buffer.Length - offset;
+
+            // 已匹配字节数
+            Int64 win = 0;
+            for (Int64 i = start; i + length <= count; i++)
+            {
+                if (source[i] == buffer[offset + win])
+                {
+                    win++;
+
+                    // 全部匹配，退出
+                    if (win >= length) return i - length + 1 - start;
+                }
+                else
+                {
+                    //win = 0; // 只要有一个不匹配，马上清零
+                    // 不能直接清零，那样会导致数据丢失，需要逐位探测，窗口一个个字节滑动
+                    i = i - win;
+                    win = 0;
+                }
+            }
+
+            return -1;
+        }
+
+        /// <summary>比较两个字节数组大小</summary>
+        /// <param name="source"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static Int32 CompareTo(this Byte[] source, Byte[] buffer) { return CompareTo(source, 0, 0, buffer, 0, 0); }
+
+        /// <summary>比较两个字节数组大小</summary>
+        /// <param name="source"></param>
+        /// <param name="start"></param>
+        /// <param name="count"></param>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public static Int32 CompareTo(this Byte[] source, Int64 start, Int64 count, Byte[] buffer, Int64 offset = 0, Int64 length = 0)
+        {
+            if (source == buffer) return 0;
+
+            if (start < 0) start = 0;
+            if (count <= 0 || count > source.Length - start) count = source.Length - start;
+            if (length <= 0 || length > buffer.Length - offset) length = buffer.Length - offset;
+
+            // 逐字节比较
+            for (int i = 0; i < count && i < length; i++)
+            {
+                Int32 rs = source[start + i].CompareTo(buffer[offset + i]);
+                if (rs != null) return rs;
+            }
+
+            // 比较完成。如果长度不想等，则较长者较大
+            if (count != length) return count > length ? 1 : -1;
+
+            return 0;
+        }
+        #endregion
     }
 }

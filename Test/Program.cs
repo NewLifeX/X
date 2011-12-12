@@ -16,6 +16,8 @@ using NewLife.Threading;
 using NewLife.Reflection;
 using XCode.Configuration;
 using System.Collections;
+using NewLife.IO;
+using NewLife.Compression;
 
 namespace Test
 {
@@ -32,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                    Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -350,7 +352,7 @@ namespace Test
         static void Test7()
         {
             Type type = typeof(DatabaseType);
-            var dic=EnumHelper.GetDescriptions(type);
+            var dic = EnumHelper.GetDescriptions(type);
 
             // 产生字符串
             Int32 max = 1000000;
@@ -412,6 +414,39 @@ namespace Test
             }
             sw.Stop();
             Console.WriteLine("单列表：{1}", sw.Elapsed);
+        }
+
+        static void Test8()
+        {
+            String file = @"E:\Net\SharpZipLib\SharpZipLib_0860_Bin.zip";
+            Stream stream = File.OpenRead(file);
+
+            Random rnd = new Random((Int32)DateTime.Now.Ticks);
+            Int32 p = rnd.Next(0, (Int32)stream.Length);
+            Int32 len = rnd.Next(4, 12);
+            Byte[] buffer = new Byte[len];
+            stream.Seek(p, SeekOrigin.Begin);
+            stream.Read(buffer, 0, buffer.Length);
+
+            stream.Seek(0, SeekOrigin.Begin);
+            Int64 p2 = stream.IndexOf(buffer);
+            //Int64 p2 = File.ReadAllBytes(file).IndexOf(0, 0, buffer);
+            Console.WriteLine(p == p2);
+
+            //stream.Seek(0, SeekOrigin.Begin);
+            //Int32 SignatureToFind = 101010256;
+            //byte[] targetBytes = BitConverter.GetBytes(SignatureToFind);
+
+            //p2 = stream.IndexOf(targetBytes);
+            //Console.WriteLine(p2);
+
+            using (ZipFile zf = new ZipFile(file))
+            {
+                foreach (var item in zf)
+                {
+                    Console.WriteLine(item);
+                }
+            }
         }
     }
 }

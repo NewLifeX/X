@@ -70,7 +70,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SerialTest.cs" />
-    <Compile Include="SQLPage.cs" />
     <Compile Include="ThreadPoolTest.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -90,9 +89,6 @@
   <ItemGroup>
     <None Include="App.config">
       <SubType>Designer</SubType>
-    </None>
-    <None Include="netbar.xls">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
