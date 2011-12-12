@@ -16,6 +16,7 @@ namespace XUrlRewrite.Configuration
         private static Dictionary<String, Manager> _Managers = new Dictionary<String, Manager>();
         static readonly String DEFAULT_CONFIG_PATH = "~/UrlRewrite.config";
         static readonly String DEFAULT_CONFIG_TAG = "urlRewriteConfig";
+
         /// <summary>
         /// 获得模板配置信息
         /// </summary>
@@ -27,6 +28,7 @@ namespace XUrlRewrite.Configuration
             Manager ret = GetConfigManager(app);
             return ret != null ? ret.GetTemplateConfig() : null;
         }
+
         /// <summary>
         /// 获得模板配置管理器,可以修改配置文件路径,重新加载配置文件,获取配置文件最后修改时间
         /// </summary>
@@ -46,8 +48,7 @@ namespace XUrlRewrite.Configuration
                 {
                     if (_Managers.ContainsKey(appPath))
                     {
-
-                        ret = _Managers[appPath]; 
+                        ret = _Managers[appPath];
                     }
                     else
                     {
@@ -61,12 +62,15 @@ namespace XUrlRewrite.Configuration
 
         private HttpApplication app;
         private UrlRewriteConfig cfg;
+
         internal Manager(HttpApplication app)
         {
             this.app = app;
         }
+
         private ExeConfigurationFileMap ConfigFileMap = new ExeConfigurationFileMap();
         private System.Configuration.Configuration _Configuration;
+
         /// <summary>
         /// 获得模板配置信息
         /// </summary>
@@ -76,10 +80,10 @@ namespace XUrlRewrite.Configuration
             if (cfg == null || NeedForReload)
             {
                 ConfigFileMap.ExeConfigFilename = AbsoluteConfigFilePath;
-                _Configuration=ConfigurationManager.OpenMappedExeConfiguration(ConfigFileMap, ConfigurationUserLevel.None);
+                _Configuration = ConfigurationManager.OpenMappedExeConfiguration(ConfigFileMap, ConfigurationUserLevel.None);
                 if (!_Configuration.HasFile)
                 {
-                    throw new Exception(String.Format("配置文件{0}不存在", ConfigFileMap.ExeConfigFilename));
+                    throw new Exception(String.Format("Url重写配置文件{0}不存在", ConfigFileMap.ExeConfigFilename));
                 }
                 try
                 {
@@ -95,9 +99,8 @@ namespace XUrlRewrite.Configuration
             return cfg;
         }
 
-        
-
         private String _ConfigFilePath;
+
         /// <summary>
         /// 配置文件路径
         /// </summary>
@@ -105,21 +108,21 @@ namespace XUrlRewrite.Configuration
         {
             get
             {
-                if(_ConfigFilePath==null){
+                if (_ConfigFilePath == null)
+                {
                     try
                     {
-                        _ConfigFilePath = ConfigurationManager.AppSettings["XTemplateConfigFile"];
+                        _ConfigFilePath = ConfigurationManager.AppSettings["XUrlRewrite.ConfigFile"];
                         if (_ConfigFilePath == null)
                         {
-                            _ConfigFilePath = WebConfigurationManager.AppSettings["XTemplateConfigFile"];
+                            _ConfigFilePath = WebConfigurationManager.AppSettings["XUrlRewrite.ConfigFile"];
                         }
                         if (_ConfigFilePath == null)
                         {
                             _ConfigFilePath = DEFAULT_CONFIG_PATH;
                         }
-                        _AbsoluteConfigFilePath = _ConfigFilePath.Substring(0, 2) == "~/" ? app.Server.MapPath(_ConfigFilePath) : _ConfigFilePath;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         XTrace.WriteLine("读取XUrlRewrite配置文件失败!\r\n{0}", ex.Message);
                     }
@@ -127,19 +130,21 @@ namespace XUrlRewrite.Configuration
                 return _ConfigFilePath;
             }
         }
+
         private String _AbsoluteConfigFilePath = null;
+
         internal String AbsoluteConfigFilePath
         {
             get
             {
                 if (_AbsoluteConfigFilePath == null)
                 {
-                    String foo = ConfigFilePath;
-                    foo.ToString();
+                    _AbsoluteConfigFilePath = ConfigFilePath.StartsWith("~/") ? app.Server.MapPath(ConfigFilePath) : ConfigFilePath;
                 }
                 return _AbsoluteConfigFilePath;
             }
         }
+
         /// <summary>
         /// 配置标签名称
         /// </summary>
@@ -152,6 +157,7 @@ namespace XUrlRewrite.Configuration
         }
 
         private DateTime LastConfigFileWriteTime = DateTime.MinValue;
+
         /// <summary>
         /// 获取配置文件最后的修改时间
         /// </summary>
@@ -162,7 +168,9 @@ namespace XUrlRewrite.Configuration
                 return LastConfigFileWriteTime;
             }
         }
+
         private DateTime LastNeedForReloadCheckTime = DateTime.MinValue;
+
         private TimeSpan LastNeedForReloadInterval = TimeSpan.FromSeconds(10); //需要重新读取配置文件的间隔时间
         /// <summary>
         /// 获取或设置是否需要重新读取配置文件
@@ -185,9 +193,10 @@ namespace XUrlRewrite.Configuration
             }
             set
             {
-                LastConfigFileWriteTime=LastNeedForReloadCheckTime = value ? DateTime.MinValue : DateTime.Now;
+                LastConfigFileWriteTime = LastNeedForReloadCheckTime = value ? DateTime.MinValue : DateTime.Now;
             }
         }
+
         /// <summary>
         /// 保存对模板配置节点的修改
         /// </summary>
@@ -198,6 +207,7 @@ namespace XUrlRewrite.Configuration
                 _Configuration.Save(ConfigurationSaveMode.Modified, true);
             }
         }
+
         /// <summary>
         /// 令存对模板配置节点的修改
         /// </summary>
@@ -209,7 +219,9 @@ namespace XUrlRewrite.Configuration
                 _Configuration.SaveAs(filename);
             }
         }
+
         private static bool? _Debug;
+
         /// <summary>
         /// 是否调试状态的开关
         /// </summary>
