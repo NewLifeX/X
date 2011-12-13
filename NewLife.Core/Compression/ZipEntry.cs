@@ -140,218 +140,130 @@ namespace NewLife.Compression
                 stream.Seek(-4, SeekOrigin.Current); // unread the signature
                 if (signature != ZipConstants.ZipDirEntrySignature && signature != ZipConstants.EndOfCentralDirectorySignature)
                     throw new ZipException(String.Format("  Bad signature (0x{0:X8}) at position  0x{1:X8}", signature, stream.Position));
-                
+
                 return false;
             }
 
-            //            byte[] block = new byte[26];
-            //            int n = ArchiveStream.Read(block, 0, block.Length);
-            //            if (n != block.Length) return false;
-            //            bytesRead += n;
+            //// workitem 6607 - don't read for directories
+            //// actually get the compressed size and CRC if necessary
+            //if (!_FileNameInArchive.EndsWith("/") && (_BitField & 0x0008) == 0x0008)
+            //{
+            //    // This descriptor exists only if bit 3 of the general
+            //    // purpose bit flag is set (see below).  It is byte aligned
+            //    // and immediately follows the last byte of compressed data,
+            //    // as well as any encryption trailer, as with AES.
+            //    // This descriptor is used only when it was not possible to
+            //    // seek in the output .ZIP file, e.g., when the output .ZIP file
+            //    // was standard output or a non-seekable device.  For ZIP64(tm) format
+            //    // archives, the compressed and uncompressed sizes are 8 bytes each.
 
-            //            int i = 0;
-            //            _VersionNeeded = (Int16)(block[i++] + block[i++] * 256);
-            //            _BitField = (Int16)(block[i++] + block[i++] * 256);
-            //            _CompressionMethod_FromZipFile = _CompressionMethod = (Int16)(block[i++] + block[i++] * 256);
-            //            _TimeBlob = block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256;
-            //            // transform the time data into something usable (a DateTime)
-            //            _LastModified = Ionic.Zip.SharedUtilities.PackedToDateTime(_TimeBlob);
-            //            _timestamp |= ZipEntryTimestamp.DOS;
+            //    // workitem 8098: ok (restore)
+            //    long posn = ArchiveStream.Position;
 
-            //            if ((_BitField & 0x01) == 0x01)
-            //            {
-            //                _Encryption_FromZipFile = _Encryption = EncryptionAlgorithm.PkzipWeak; // this *may* change after processing the Extra field
-            //                _sourceIsEncrypted = true;
-            //            }
+            //    // Here, we're going to loop until we find a ZipEntryDataDescriptorSignature and
+            //    // a consistent data record after that.   To be consistent, the data record must
+            //    // indicate the length of the entry data.
+            //    bool wantMore = true;
+            //    long SizeOfDataRead = 0;
+            //    int tries = 0;
+            //    while (wantMore)
+            //    {
+            //        tries++;
+            //        // We call the FindSignature shared routine to find the specified signature
+            //        // in the already-opened zip archive, starting from the current cursor
+            //        // position in that filestream.  If we cannot find the signature, then the
+            //        // routine returns -1, and the ReadHeader() method returns false,
+            //        // indicating we cannot read a legal entry header.  If we have found it,
+            //        // then the FindSignature() method returns the number of bytes in the
+            //        // stream we had to seek forward, to find the sig.  We need this to
+            //        // determine if the zip entry is valid, later.
 
-            //            // NB: if ((_BitField & 0x0008) != 0x0008), then the Compressed, uncompressed and
-            //            // CRC values are not true values; the true values will follow the entry data.
-            //            // But, regardless of the status of bit 3 in the bitfield, the slots for
-            //            // the three amigos may contain marker values for ZIP64.  So we must read them.
-            //            {
-            //                _Crc32 = (Int32)(block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256);
-            //                _CompressedSize = (uint)(block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256);
-            //                _UncompressedSize = (uint)(block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256);
+            //        if (_container.ZipFile != null)
+            //            _container.ZipFile.OnReadBytes(ze);
 
-            //                if ((uint)_CompressedSize == 0xFFFFFFFF ||
-            //                    (uint)_UncompressedSize == 0xFFFFFFFF)
+            //        long d = Ionic.Zip.SharedUtilities.FindSignature(ArchiveStream, ZipConstants.ZipEntryDataDescriptorSignature);
+            //        if (d == -1) return false;
 
-            //                    _InputUsesZip64 = true;
-            //            }
+            //        // total size of data read (through all loops of this).
+            //        SizeOfDataRead += d;
 
-            //            Int16 filenameLength = (short)(block[i++] + block[i++] * 256);
-            //            Int16 extraFieldLength = (short)(block[i++] + block[i++] * 256);
-
-            //            block = new byte[filenameLength];
+            //        if (_InputUsesZip64)
+            //        {
+            //            // read 1x 4-byte (CRC) and 2x 8-bytes (Compressed Size, Uncompressed Size)
+            //            block = new byte[20];
             //            n = ArchiveStream.Read(block, 0, block.Length);
-            //            bytesRead += n;
+            //            if (n != 20) return false;
 
-            //            // if the UTF8 bit is set for this entry, override the
-            //            // encoding the application requested.
+            //            // do not increment bytesRead - it is for entry header only.
+            //            // the data we have just read is a footer (falls after the file data)
+            //            //bytesRead += n;
 
-            //            if ((_BitField & 0x0800) == 0x0800)
-            //            {
-            //                // workitem 12744
-            //                AlternateEncoding = System.Text.Encoding.UTF8;
-            //                AlternateEncodingUsage = ZipOption.Always;
-            //            }
+            //            i = 0;
+            //            _Crc32 = (Int32)(block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256);
+            //            _CompressedSize = BitConverter.ToInt64(block, i);
+            //            i += 8;
+            //            _UncompressedSize = BitConverter.ToInt64(block, i);
+            //            i += 8;
 
-            //            // need to use this form of GetString() for .NET CF
-            //            _FileNameInArchive = AlternateEncoding.GetString(block, 0, block.Length);
+            //            _LengthOfTrailer += 24;  // bytes including sig, CRC, Comp and Uncomp sizes
+            //        }
+            //        else
+            //        {
+            //            // read 3x 4-byte fields (CRC, Compressed Size, Uncompressed Size)
+            //            block = new byte[12];
+            //            n = ArchiveStream.Read(block, 0, block.Length);
+            //            if (n != 12) return false;
 
-            //            // workitem 6898
-            //            if (_FileNameInArchive.EndsWith("/")) MarkAsDirectory();
+            //            // do not increment bytesRead - it is for entry header only.
+            //            // the data we have just read is a footer (falls after the file data)
+            //            //bytesRead += n;
 
-            //            bytesRead += ProcessExtraField(ArchiveStream, extraFieldLength);
+            //            i = 0;
+            //            _Crc32 = (Int32)(block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256);
+            //            _CompressedSize = (uint)(block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256);
+            //            _UncompressedSize = (uint)(block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256);
 
-            //            _LengthOfTrailer = 0;
+            //            _LengthOfTrailer += 16;  // bytes including sig, CRC, Comp and Uncomp sizes
+            //        }
 
-            //            // workitem 6607 - don't read for directories
-            //            // actually get the compressed size and CRC if necessary
-            //            if (!_FileNameInArchive.EndsWith("/") && (_BitField & 0x0008) == 0x0008)
-            //            {
-            //                // This descriptor exists only if bit 3 of the general
-            //                // purpose bit flag is set (see below).  It is byte aligned
-            //                // and immediately follows the last byte of compressed data,
-            //                // as well as any encryption trailer, as with AES.
-            //                // This descriptor is used only when it was not possible to
-            //                // seek in the output .ZIP file, e.g., when the output .ZIP file
-            //                // was standard output or a non-seekable device.  For ZIP64(tm) format
-            //                // archives, the compressed and uncompressed sizes are 8 bytes each.
+            //        wantMore = (SizeOfDataRead != _CompressedSize);
 
-            //                // workitem 8098: ok (restore)
-            //                long posn = ArchiveStream.Position;
+            //        if (wantMore)
+            //        {
+            //            // Seek back to un-read the last 12 bytes  - maybe THEY contain
+            //            // the ZipEntryDataDescriptorSignature.
+            //            // (12 bytes for the CRC, Comp and Uncomp size.)
+            //            ArchiveStream.Seek(-12, SeekOrigin.Current);
+            //            // workitem 10178
+            //            Ionic.Zip.SharedUtilities.Workaround_Ladybug318918(ArchiveStream);
 
-            //                // Here, we're going to loop until we find a ZipEntryDataDescriptorSignature and
-            //                // a consistent data record after that.   To be consistent, the data record must
-            //                // indicate the length of the entry data.
-            //                bool wantMore = true;
-            //                long SizeOfDataRead = 0;
-            //                int tries = 0;
-            //                while (wantMore)
-            //                {
-            //                    tries++;
-            //                    // We call the FindSignature shared routine to find the specified signature
-            //                    // in the already-opened zip archive, starting from the current cursor
-            //                    // position in that filestream.  If we cannot find the signature, then the
-            //                    // routine returns -1, and the ReadHeader() method returns false,
-            //                    // indicating we cannot read a legal entry header.  If we have found it,
-            //                    // then the FindSignature() method returns the number of bytes in the
-            //                    // stream we had to seek forward, to find the sig.  We need this to
-            //                    // determine if the zip entry is valid, later.
+            //            // Adjust the size to account for the false signature read in
+            //            // FindSignature().
+            //            SizeOfDataRead += 4;
+            //        }
+            //    }
 
-            //                    if (_container.ZipFile != null)
-            //                        _container.ZipFile.OnReadBytes(ze);
+            //    // seek back to previous position, to prepare to read file data
+            //    // workitem 8098: ok (restore)
+            //    ArchiveStream.Seek(posn, SeekOrigin.Begin);
+            //    // workitem 10178
+            //    Ionic.Zip.SharedUtilities.Workaround_Ladybug318918(ArchiveStream);
+            //}
 
-            //                    long d = Ionic.Zip.SharedUtilities.FindSignature(ArchiveStream, ZipConstants.ZipEntryDataDescriptorSignature);
-            //                    if (d == -1) return false;
+            //_CompressedFileDataSize = _CompressedSize;
 
-            //                    // total size of data read (through all loops of this).
-            //                    SizeOfDataRead += d;
+            //// Remember the size of the blob for this entry.
+            //// We also have the starting position in the stream for this entry.
+            //_LengthOfHeader = bytesRead;
+            //_TotalEntrySize = _LengthOfHeader + _CompressedFileDataSize + _LengthOfTrailer;
 
-            //                    if (_InputUsesZip64)
-            //                    {
-            //                        // read 1x 4-byte (CRC) and 2x 8-bytes (Compressed Size, Uncompressed Size)
-            //                        block = new byte[20];
-            //                        n = ArchiveStream.Read(block, 0, block.Length);
-            //                        if (n != 20) return false;
-
-            //                        // do not increment bytesRead - it is for entry header only.
-            //                        // the data we have just read is a footer (falls after the file data)
-            //                        //bytesRead += n;
-
-            //                        i = 0;
-            //                        _Crc32 = (Int32)(block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256);
-            //                        _CompressedSize = BitConverter.ToInt64(block, i);
-            //                        i += 8;
-            //                        _UncompressedSize = BitConverter.ToInt64(block, i);
-            //                        i += 8;
-
-            //                        _LengthOfTrailer += 24;  // bytes including sig, CRC, Comp and Uncomp sizes
-            //                    }
-            //                    else
-            //                    {
-            //                        // read 3x 4-byte fields (CRC, Compressed Size, Uncompressed Size)
-            //                        block = new byte[12];
-            //                        n = ArchiveStream.Read(block, 0, block.Length);
-            //                        if (n != 12) return false;
-
-            //                        // do not increment bytesRead - it is for entry header only.
-            //                        // the data we have just read is a footer (falls after the file data)
-            //                        //bytesRead += n;
-
-            //                        i = 0;
-            //                        _Crc32 = (Int32)(block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256);
-            //                        _CompressedSize = (uint)(block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256);
-            //                        _UncompressedSize = (uint)(block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256);
-
-            //                        _LengthOfTrailer += 16;  // bytes including sig, CRC, Comp and Uncomp sizes
-            //                    }
-
-            //                    wantMore = (SizeOfDataRead != _CompressedSize);
-
-            //                    if (wantMore)
-            //                    {
-            //                        // Seek back to un-read the last 12 bytes  - maybe THEY contain
-            //                        // the ZipEntryDataDescriptorSignature.
-            //                        // (12 bytes for the CRC, Comp and Uncomp size.)
-            //                        ArchiveStream.Seek(-12, SeekOrigin.Current);
-            //                        // workitem 10178
-            //                        Ionic.Zip.SharedUtilities.Workaround_Ladybug318918(ArchiveStream);
-
-            //                        // Adjust the size to account for the false signature read in
-            //                        // FindSignature().
-            //                        SizeOfDataRead += 4;
-            //                    }
-            //                }
-
-            //                // seek back to previous position, to prepare to read file data
-            //                // workitem 8098: ok (restore)
-            //                ArchiveStream.Seek(posn, SeekOrigin.Begin);
-            //                // workitem 10178
-            //                Ionic.Zip.SharedUtilities.Workaround_Ladybug318918(ArchiveStream);
-            //            }
-
-            //            _CompressedFileDataSize = _CompressedSize;
-
-            //            // bit 0 set indicates that some kind of encryption is in use
-            //            if ((_BitField & 0x01) == 0x01)
-            //            {
-            //#if AESCRYPTO
-            //                if (Encryption == EncryptionAlgorithm.WinZipAes128 ||
-            //                    Encryption == EncryptionAlgorithm.WinZipAes256)
-            //                {
-            //                    int bits = ZipEntry.GetKeyStrengthInBits(_Encryption_FromZipFile);
-            //                    // read in the WinZip AES metadata: salt + PV. 18 bytes for AES256. 10 bytes for AES128.
-            //                    _aesCrypto_forExtract = WinZipAesCrypto.ReadFromStream(null, bits, ArchiveStream);
-            //                    bytesRead += _aesCrypto_forExtract.SizeOfEncryptionMetadata - 10; // MAC (follows crypto bytes)
-            //                    // according to WinZip, the CompressedSize includes the AES Crypto framing data.
-            //                    _CompressedFileDataSize -= _aesCrypto_forExtract.SizeOfEncryptionMetadata;
-            //                    _LengthOfTrailer += 10;  // MAC
-            //                }
-            //                else
-            //#endif
-            //                {
-            //                    // read in the header data for "weak" encryption
-            //                    _WeakEncryptionHeader = new byte[12];
-            //                    bytesRead += ZipEntry.ReadWeakEncryptionHeader(_archiveStream, _WeakEncryptionHeader);
-            //                    // decrease the filedata size by 12 bytes
-            //                    _CompressedFileDataSize -= 12;
-            //                }
-            //            }
-
-            //            // Remember the size of the blob for this entry.
-            //            // We also have the starting position in the stream for this entry.
-            //            _LengthOfHeader = bytesRead;
-            //            _TotalEntrySize = _LengthOfHeader + _CompressedFileDataSize + _LengthOfTrailer;
-
-            //            // We've read in the regular entry header, the extra field, and any
-            //            // encryption header.  The pointer in the file is now at the start of the
-            //            // filedata, which is potentially compressed and encrypted.  Just ahead in
-            //            // the file, there are _CompressedFileDataSize bytes of data, followed by
-            //            // potentially a non-zero length trailer, consisting of optionally, some
-            //            // encryption stuff (10 byte MAC for AES), and the bit-3 trailer (16 or 24
-            //            // bytes).
+            //// We've read in the regular entry header, the extra field, and any
+            //// encryption header.  The pointer in the file is now at the start of the
+            //// filedata, which is potentially compressed and encrypted.  Just ahead in
+            //// the file, there are _CompressedFileDataSize bytes of data, followed by
+            //// potentially a non-zero length trailer, consisting of optionally, some
+            //// encryption stuff (10 byte MAC for AES), and the bit-3 trailer (16 or 24
+            //// bytes).
 
             return true;
         }
@@ -389,134 +301,81 @@ namespace NewLife.Compression
             int i = 0;
             ZipEntry zde = new ZipEntry();
 
-            unchecked
-            {
-                zde._VersionMadeBy = (short)(block[i++] + block[i++] * 256);
-                zde._VersionNeeded = (short)(block[i++] + block[i++] * 256);
-                zde._BitField = (short)(block[i++] + block[i++] * 256);
-                zde._CompressionMethod = (Int16)(block[i++] + block[i++] * 256);
-                zde._TimeBlob = block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256;
-                zde._LastModified = Ionic.Zip.SharedUtilities.PackedToDateTime(zde._TimeBlob);
-                zde._timestamp |= ZipEntryTimestamp.DOS;
+            //// workitem 10330
+            //// insure unique entry names
+            //while (previouslySeen.ContainsKey(zde._FileNameInArchive))
+            //{
+            //    zde._FileNameInArchive = CopyHelper.AppendCopyToFileName(zde._FileNameInArchive);
+            //    zde._metadataChanged = true;
+            //}
 
-                zde._Crc32 = block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256;
-                zde._CompressedSize = (uint)(block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256);
-                zde._UncompressedSize = (uint)(block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256);
-            }
+            //if (zde.AttributesIndicateDirectory)
+            //    zde.MarkAsDirectory();  // may append a slash to filename if nec.
+            //// workitem 6898
+            //else if (zde._FileNameInArchive.EndsWith("/")) zde.MarkAsDirectory();
 
-            //            // preserve
-            //            zde._CompressionMethod_FromZipFile = zde._CompressionMethod;
+            //zde._CompressedFileDataSize = zde._CompressedSize;
+            //if ((zde._BitField & 0x01) == 0x01)
+            //{
+            //    // this may change after processing the Extra field
+            //    zde._Encryption_FromZipFile = zde._Encryption =
+            //        EncryptionAlgorithm.PkzipWeak;
+            //    zde._sourceIsEncrypted = true;
+            //}
 
-            //            zde._filenameLength = (short)(block[i++] + block[i++] * 256);
-            //            zde._extraFieldLength = (short)(block[i++] + block[i++] * 256);
-            //            zde._commentLength = (short)(block[i++] + block[i++] * 256);
-            //            zde._diskNumber = (UInt32)(block[i++] + block[i++] * 256);
+            //if (zde._extraFieldLength > 0)
+            //{
+            //    zde._InputUsesZip64 = (zde._CompressedSize == 0xFFFFFFFF ||
+            //          zde._UncompressedSize == 0xFFFFFFFF ||
+            //          zde._RelativeOffsetOfLocalHeader == 0xFFFFFFFF);
 
-            //            zde._InternalFileAttrs = (short)(block[i++] + block[i++] * 256);
-            //            zde._ExternalFileAttrs = block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256;
+            //    // Console.WriteLine("  Input uses Z64?:      {0}", zde._InputUsesZip64);
 
-            //            zde._RelativeOffsetOfLocalHeader = (uint)(block[i++] + block[i++] * 256 + block[i++] * 256 * 256 + block[i++] * 256 * 256 * 256);
+            //    bytesRead += zde.ProcessExtraField(s, zde._extraFieldLength);
+            //    zde._CompressedFileDataSize = zde._CompressedSize;
+            //}
 
-            //            // workitem 7801
-            //            zde.IsText = ((zde._InternalFileAttrs & 0x01) == 0x01);
+            //// we've processed the extra field, so we know the encryption method is set now.
+            //if (zde._Encryption == EncryptionAlgorithm.PkzipWeak)
+            //{
+            //    // the "encryption header" of 12 bytes precedes the file data
+            //    zde._CompressedFileDataSize -= 12;
+            //}
 
-            //            block = new byte[zde._filenameLength];
-            //            n = s.Read(block, 0, block.Length);
-            //            bytesRead += n;
-            //            if ((zde._BitField & 0x0800) == 0x0800)
-            //            {
-            //                // UTF-8 is in use
-            //                zde._FileNameInArchive = Ionic.Zip.SharedUtilities.Utf8StringFromBuffer(block);
-            //            }
-            //            else
-            //            {
-            //                zde._FileNameInArchive = Ionic.Zip.SharedUtilities.StringFromBuffer(block, expectedEncoding);
-            //            }
+            //// tally the trailing descriptor
+            //if ((zde._BitField & 0x0008) == 0x0008)
+            //{
+            //    // sig, CRC, Comp and Uncomp sizes
+            //    if (zde._InputUsesZip64)
+            //        zde._LengthOfTrailer += 24;
+            //    else
+            //        zde._LengthOfTrailer += 16;
+            //}
 
-            //            // workitem 10330
-            //            // insure unique entry names
-            //            while (previouslySeen.ContainsKey(zde._FileNameInArchive))
-            //            {
-            //                zde._FileNameInArchive = CopyHelper.AppendCopyToFileName(zde._FileNameInArchive);
-            //                zde._metadataChanged = true;
-            //            }
+            //// workitem 12744
+            //zde.AlternateEncoding = ((zde._BitField & 0x0800) == 0x0800)
+            //    ? Encoding.UTF8
+            //    : expectedEncoding;
 
-            //            if (zde.AttributesIndicateDirectory)
-            //                zde.MarkAsDirectory();  // may append a slash to filename if nec.
-            //            // workitem 6898
-            //            else if (zde._FileNameInArchive.EndsWith("/")) zde.MarkAsDirectory();
+            //zde.AlternateEncodingUsage = ZipOption.Always;
 
-            //            zde._CompressedFileDataSize = zde._CompressedSize;
-            //            if ((zde._BitField & 0x01) == 0x01)
-            //            {
-            //                // this may change after processing the Extra field
-            //                zde._Encryption_FromZipFile = zde._Encryption =
-            //                    EncryptionAlgorithm.PkzipWeak;
-            //                zde._sourceIsEncrypted = true;
-            //            }
-
-            //            if (zde._extraFieldLength > 0)
-            //            {
-            //                zde._InputUsesZip64 = (zde._CompressedSize == 0xFFFFFFFF ||
-            //                      zde._UncompressedSize == 0xFFFFFFFF ||
-            //                      zde._RelativeOffsetOfLocalHeader == 0xFFFFFFFF);
-
-            //                // Console.WriteLine("  Input uses Z64?:      {0}", zde._InputUsesZip64);
-
-            //                bytesRead += zde.ProcessExtraField(s, zde._extraFieldLength);
-            //                zde._CompressedFileDataSize = zde._CompressedSize;
-            //            }
-
-            //            // we've processed the extra field, so we know the encryption method is set now.
-            //            if (zde._Encryption == EncryptionAlgorithm.PkzipWeak)
-            //            {
-            //                // the "encryption header" of 12 bytes precedes the file data
-            //                zde._CompressedFileDataSize -= 12;
-            //            }
-            //#if AESCRYPTO
-            //            else if (zde.Encryption == EncryptionAlgorithm.WinZipAes128 ||
-            //                        zde.Encryption == EncryptionAlgorithm.WinZipAes256)
-            //            {
-            //                zde._CompressedFileDataSize = zde.CompressedSize -
-            //                    (ZipEntry.GetLengthOfCryptoHeaderBytes(zde.Encryption) + 10);
-            //                zde._LengthOfTrailer = 10;
-            //            }
-            //#endif
-
-            //            // tally the trailing descriptor
-            //            if ((zde._BitField & 0x0008) == 0x0008)
-            //            {
-            //                // sig, CRC, Comp and Uncomp sizes
-            //                if (zde._InputUsesZip64)
-            //                    zde._LengthOfTrailer += 24;
-            //                else
-            //                    zde._LengthOfTrailer += 16;
-            //            }
-
-            //            // workitem 12744
-            //            zde.AlternateEncoding = ((zde._BitField & 0x0800) == 0x0800)
-            //                ? Encoding.UTF8
-            //                : expectedEncoding;
-
-            //            zde.AlternateEncodingUsage = ZipOption.Always;
-
-            //            if (zde._commentLength > 0)
-            //            {
-            //                block = new byte[zde._commentLength];
-            //                n = s.Read(block, 0, block.Length);
-            //                bytesRead += n;
-            //                if ((zde._BitField & 0x0800) == 0x0800)
-            //                {
-            //                    // UTF-8 is in use
-            //                    zde._Comment = Ionic.Zip.SharedUtilities.Utf8StringFromBuffer(block);
-            //                }
-            //                else
-            //                {
-            //                    zde._Comment = Ionic.Zip.SharedUtilities.StringFromBuffer(block, expectedEncoding);
-            //                }
-            //            }
-            //            //zde._LengthOfDirEntry = bytesRead;
-            //            return zde;
+            //if (zde._commentLength > 0)
+            //{
+            //    block = new byte[zde._commentLength];
+            //    n = s.Read(block, 0, block.Length);
+            //    bytesRead += n;
+            //    if ((zde._BitField & 0x0800) == 0x0800)
+            //    {
+            //        // UTF-8 is in use
+            //        zde._Comment = Ionic.Zip.SharedUtilities.Utf8StringFromBuffer(block);
+            //    }
+            //    else
+            //    {
+            //        zde._Comment = Ionic.Zip.SharedUtilities.StringFromBuffer(block, expectedEncoding);
+            //    }
+            //}
+            //zde._LengthOfDirEntry = bytesRead;
+            return zde;
             return null;
         }
         #endregion

@@ -649,7 +649,7 @@ namespace NewLife.IO
             for (int i = 0; i < count && i < length; i++)
             {
                 Int32 rs = source[start + i].CompareTo(buffer[offset + i]);
-                if (rs != null) return rs;
+                if (rs != 0) return rs;
             }
 
             // 比较完成。如果长度不想等，则较长者较大

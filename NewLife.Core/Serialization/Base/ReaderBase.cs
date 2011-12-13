@@ -52,7 +52,7 @@ namespace NewLife.Serialization
         /// 从此流中读取一个有符号字节，并使流的当前位置提升 1 个字节。
         /// </summary>
         /// <returns></returns>
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public virtual sbyte ReadSByte() { return (SByte)ReadByte(); }
         #endregion
 
@@ -91,21 +91,21 @@ namespace NewLife.Serialization
         /// 使用 Little-Endian 编码从当前流中读取 2 字节无符号整数，并将流的位置提升 2 个字节。
         /// </summary>
         /// <returns></returns>
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public virtual ushort ReadUInt16() { return (UInt16)ReadInt16(); }
 
         /// <summary>
         /// 从当前流中读取 4 字节无符号整数并使流的当前位置提升 4 个字节。
         /// </summary>
         /// <returns></returns>
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public virtual uint ReadUInt32() { return (UInt32)ReadInt32(); }
 
         /// <summary>
         /// 从当前流中读取 8 字节无符号整数并使流的当前位置提升 8 个字节。
         /// </summary>
         /// <returns></returns>
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public virtual ulong ReadUInt64() { return (UInt64)ReadInt64(); }
         #endregion
 
