@@ -10,7 +10,7 @@ namespace NewLife.Compression
     partial class ZipFile
     {
         #region 二进制序列化
-        class BinaryEntity//<TEntity> where TEntity : BinaryEntity<TEntity>
+        class BinaryEntry//<TEntity> where TEntity : BinaryEntity<TEntity>
         {
             #region 方法
             public virtual void Read(Stream stream)
@@ -88,7 +88,7 @@ namespace NewLife.Compression
         #endregion
 
         #region CentralDirectory
-        class EndOfCentralDirectory : BinaryEntity
+        class EndOfCentralDirectory : BinaryEntry
         {
             #region 属性
             private UInt32 _Signature;
@@ -138,7 +138,7 @@ namespace NewLife.Compression
         #endregion
 
         #region Zip64CentralDirectory
-        class Zip64EndOfCentralDirectory : BinaryEntity
+        class Zip64EndOfCentralDirectory : BinaryEntry
         {
             #region 属性
             private UInt32 _Signature;

@@ -141,10 +141,10 @@ namespace NewLife.Compression
         #endregion
 
         #region 读取核心
-        Int64 _locEndOfCDS;
-        UInt32 _diskNumberWithCd;
-        UInt32 _OffsetOfCentralDirectory;
-        Int64 _OffsetOfCentralDirectory64;
+        //Int64 _locEndOfCDS;
+        //UInt32 _diskNumberWithCd;
+        //UInt32 _OffsetOfCentralDirectory;
+        //Int64 _OffsetOfCentralDirectory64;
 
         private void Read(Stream stream)
         {
@@ -207,7 +207,7 @@ namespace NewLife.Compression
                     //if (inputUsesZip64) UseZip64WhenSaving = Zip64Option.Always;
 
                     // workitem 8299
-                    if (_locEndOfCDS > 0) stream.Seek(_locEndOfCDS, SeekOrigin.Begin);
+                    if (cd.NumberOfEntriesOnThisDisk > 0) stream.Seek(cd.NumberOfEntriesOnThisDisk, SeekOrigin.Begin);
 
                     ReadCentralDirectoryFooter(stream);
                 }
@@ -258,7 +258,7 @@ namespace NewLife.Compression
                     previouslySeen.Add(de.FileName, null);
                 }
 
-                if (_locEndOfCDS > 0) stream.Seek(_locEndOfCDS, SeekOrigin.Begin);
+                //if (cd.NumberOfEntriesOnThisDisk > 0) stream.Seek(cd.NumberOfEntriesOnThisDisk, SeekOrigin.Begin);
 
                 ReadCentralDirectoryFooter(stream);
             }
@@ -278,8 +278,8 @@ namespace NewLife.Compression
             stream.Read(block, 0, 16);
 
             Int64 offset64 = BitConverter.ToInt64(block, 8);
-            _OffsetOfCentralDirectory = 0xFFFFFFFF;
-            _OffsetOfCentralDirectory64 = offset64;
+            //_OffsetOfCentralDirectory = 0xFFFFFFFF;
+            //_OffsetOfCentralDirectory64 = offset64;
             // change for workitem 8098
             stream.Seek(offset64, SeekOrigin.Begin);
             //zf.SeekFromOrigin(Offset64);
@@ -299,37 +299,6 @@ namespace NewLife.Compression
             stream.Seek(offset64, SeekOrigin.Begin);
             //zf.SeekFromOrigin(Offset64);
         }
-
-        //private void ReadCentralDirectory(Stream stream)
-        //{
-        //    // We must have the central directory footer record, in order to properly
-        //    // read zip dir entries from the central directory.  This because the logic
-        //    // knows when to open a spanned file when the volume number for the central
-        //    // directory differs from the volume number for the zip entry.  The
-        //    // _diskNumberWithCd was set when originally finding the offset for the
-        //    // start of the Central Directory.
-
-        //    bool inputUsesZip64 = false;
-        //    ZipEntry de;
-        //    var previouslySeen = new Dictionary<String, object>();
-        //    while ((de = ZipEntry.ReadDirEntry(this, stream, previouslySeen)) != null)
-        //    {
-        //        Entries.Add(de.FileName, de);
-
-        //        //if (de._InputUsesZip64) inputUsesZip64 = true;
-        //        previouslySeen.Add(de.FileName, null); // to prevent dupes
-        //    }
-
-        //    //if (inputUsesZip64) UseZip64WhenSaving = Zip64Option.Always;
-
-        //    // workitem 8299
-        //    if (_locEndOfCDS > 0) stream.Seek(_locEndOfCDS, SeekOrigin.Begin);
-
-        //    ReadCentralDirectoryFooter(stream);
-        //}
-
-        UInt16 _versionMadeBy;
-        UInt16 _versionNeededToExtract;
 
         private void ReadCentralDirectoryFooter(Stream stream)
         {
