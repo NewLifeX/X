@@ -8,9 +8,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 写入器基类
-    /// </summary>
+    /// <summary>写入器基类</summary>
     /// <remarks>序列化框架的处理顺序为：IAccessor接口 => OnObjectWriting事件 => 扩展类型 => 基础类型 => 字典 => 枚举 => 序列化接口 => 自定义对象 => 未知类型 => OnObjectWrited事件</remarks>
     /// <typeparam name="TSettings">设置类</typeparam>
     public abstract class WriterBase<TSettings> : ReaderWriterBase<TSettings>, IWriter where TSettings : ReaderWriterSetting, new()
@@ -82,10 +80,7 @@ namespace NewLife.Serialization
         /// 写入整数的字节数组，某些写入器（如二进制写入器）可能需要改变字节顺序
         /// </summary>
         /// <param name="buffer"></param>
-        protected virtual void WriteIntBytes(Byte[] buffer)
-        {
-            Write(buffer, -1);
-        }
+        protected virtual void WriteIntBytes(Byte[] buffer) { Write(buffer, -1); }
 
         /// <summary>
         /// 将 2 字节有符号整数写入当前流，并将流的位置提升 2 个字节。
@@ -242,7 +237,6 @@ namespace NewLife.Serialization
                     Write((Byte)0);
                     return true;
                 case TypeCode.DateTime:
-                    //return WriteValue(Convert.ToDateTime(value, CultureInfo.InvariantCulture).Ticks, null);
                     Write((DateTime)value);
                     return true;
                 case TypeCode.Decimal:
@@ -453,7 +447,7 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public virtual Boolean WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
         {
-            if (value == null) return true;           
+            if (value == null) return true;
 
             type = CheckAndWriteType("WriteEnumerableType", value, type);
 
@@ -612,7 +606,7 @@ namespace NewLife.Serialization
                 return true;
             }
 
-            //! 所有扩展类型的写入，分为Write和OnWrite两部分，Write供外部独立调用，单独提供对象应用，而OnWrite不写对象引用
+            //! 所有扩展类型的写入，分为Write和OnWrite两部分，Write供外部独立调用，单独提供对象引用，而OnWrite不写对象引用
             if (type == typeof(Guid))
             {
                 OnWrite((Guid)value);
@@ -641,63 +635,31 @@ namespace NewLife.Serialization
         /// 写入Guid
         /// </summary>
         /// <param name="value"></param>
-        public virtual void Write(Guid value)
-        {
-            if (WriteObjRef(value)) return;
-
-            OnWrite(value);
-
-            //Write(((Guid)value).ToByteArray(), -1);
-        }
+        public virtual void Write(Guid value) { if (!WriteObjRef(value))  OnWrite(value); }
 
         /// <summary>
         /// 写入Guid
         /// </summary>
         /// <param name="value"></param>
-        protected virtual void OnWrite(Guid value)
-        {
-            Write(((Guid)value).ToByteArray(), -1);
-        }
+        protected virtual void OnWrite(Guid value) { Write(((Guid)value).ToByteArray(), -1); }
 
         /// <summary>
         /// 写入IPAddress
         /// </summary>
         /// <param name="value"></param>
-        public virtual void Write(IPAddress value)
-        {
-            if (WriteObjRef(value)) return;
-
-            OnWrite(value);
-
-            //Byte[] buffer = (value as IPAddress).GetAddressBytes();
-            //Write(buffer);
-            ////Write(buffer, -1);
-        }
+        public virtual void Write(IPAddress value) { if (!WriteObjRef(value)) OnWrite(value); }
 
         /// <summary>
         /// 写入IPAddress
         /// </summary>
         /// <param name="value"></param>
-        protected virtual void OnWrite(IPAddress value)
-        {
-            Write((value as IPAddress).GetAddressBytes());
-        }
+        protected virtual void OnWrite(IPAddress value) { Write((value as IPAddress).GetAddressBytes()); }
 
         /// <summary>
         /// 写入IPEndPoint
         /// </summary>
         /// <param name="value"></param>
-        public virtual void Write(IPEndPoint value)
-        {
-            if (WriteObjRef(value)) return;
-
-            OnWrite(value);
-
-            //Write(value.Address);
-            ////// 端口实际只占2字节
-            ////Write((UInt16)value.Port);
-            //Write(value.Port);
-        }
+        public virtual void Write(IPEndPoint value) { if (!WriteObjRef(value)) OnWrite(value); }
 
         /// <summary>
         /// 写入IPEndPoint
@@ -716,19 +678,7 @@ namespace NewLife.Serialization
         /// 写入Type
         /// </summary>
         /// <param name="value"></param>
-        public void Write(Type value)
-        {
-            if (WriteObjRef(value)) return;
-
-            OnWrite(value);
-
-            //Depth++;
-            //WriteLog("WriteType", value.FullName);
-
-            //// 分离出去，便于重载，而又能有效利用对象引用
-            //OnWriteType(value);
-            //Depth--;
-        }
+        public void Write(Type value) { if (!WriteObjRef(value))  OnWrite(value); }
 
         /// <summary>
         /// 写入Type
@@ -781,7 +731,7 @@ namespace NewLife.Serialization
         {
             if (type == null && value == null) return null;
 
-            if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
+            if (!IsExactType(type))
             {
                 type = value.GetType();
                 WriteLog(action, type.Name);
@@ -791,20 +741,13 @@ namespace NewLife.Serialization
             return type;
         }
 
-        /// <summary>
-        /// 写对象类型
-        /// </summary>
+        /// <summary>写对象类型</summary>
         /// <param name="type"></param>
-        protected virtual void WriteObjectType(Type type)
-        {
-            Write(type);
-        }
+        protected virtual void WriteObjectType(Type type) { Write(type); }
         #endregion
 
         #region 复杂对象
-        /// <summary>
-        /// 把对象写入数据流
-        /// </summary>
+        /// <summary>把对象写入数据流</summary>
         /// <param name="value">对象</param>
         /// <returns>是否写入成功</returns>
         public Boolean WriteObject(Object value)
@@ -1173,11 +1116,9 @@ namespace NewLife.Serialization
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 写入大小
-        /// </summary>
+        /// <summary>写入大小</summary>
         /// <param name="size"></param>
-        protected virtual void WriteSize(Int32 size)
+        public virtual void WriteSize(Int32 size)
         {
             if (!UseSize) return;
 
@@ -1186,9 +1127,7 @@ namespace NewLife.Serialization
             Write(size);
         }
 
-        /// <summary>
-        /// 写入长度
-        /// </summary>
+        /// <summary>写入长度。多维数组用</summary>
         /// <param name="lengths"></param>
         protected virtual void WriteLengths(string lengths)
         {

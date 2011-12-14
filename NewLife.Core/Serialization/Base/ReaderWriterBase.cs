@@ -66,10 +66,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>是否使用大小，如果使用，将在写入数组、集合和字符串前预先写入大小</summary>
-        protected virtual Boolean UseSize
-        {
-            get { return true; }
-        }
+        protected virtual Boolean UseSize { get { return true; } }
         #endregion
 
         #region 方法
@@ -135,10 +132,6 @@ namespace NewLife.Serialization
 
             Object def = ObjectInfo.GetDefaultObject(value.GetType());
             return Object.Equals(member[value], member[def]);
-
-            //Object def = ObjectInfo.GetDefaultObject(member.Type);
-
-            //return Object.Equals(member[value], def);
         }
         #endregion
 
@@ -168,7 +161,12 @@ namespace NewLife.Serialization
         static ConsoleColor[][] colors = new ConsoleColor[][] { 
             new ConsoleColor[] { ConsoleColor.Green,ConsoleColor.Magenta, ConsoleColor.White, ConsoleColor.Yellow },
             new ConsoleColor[] { ConsoleColor.Yellow, ConsoleColor.White, ConsoleColor.Magenta,ConsoleColor.Green }
-      };
+        };
+
+        static Boolean? _IsConsole;
+        /// <summary>是否控制台</summary>
+        static Boolean IsConsole { get { return (_IsConsole ?? (_IsConsole = Runtime.IsConsole)).Value; } }
+
         /// <summary>
         /// 调试输出
         /// </summary>
@@ -178,7 +176,7 @@ namespace NewLife.Serialization
         [Conditional("DEBUG")]
         public void WriteLog(Int32 colorIndex, String action, params Object[] args)
         {
-            if (!Runtime.IsConsole) return;
+            if (!IsConsole) return;
 
             ConsoleColor color = Console.ForegroundColor;
 
@@ -213,7 +211,7 @@ namespace NewLife.Serialization
         [Conditional("DEBUG")]
         public static void SetDebugIndent(Int32 indent)
         {
-            if (!Runtime.IsConsole) return;
+            if (!IsConsole) return;
 
             try
             {
@@ -228,7 +226,7 @@ namespace NewLife.Serialization
         [Conditional("DEBUG")]
         public void SetDebugIndent()
         {
-            if (!Runtime.IsConsole) return;
+            if (!IsConsole) return;
 
             SetDebugIndent(Depth - 1);
         }

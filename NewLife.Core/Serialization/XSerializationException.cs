@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
 using NewLife.Exceptions;
-using System.Runtime.Serialization;
 
 namespace NewLife.Serialization
 {

@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
-using NewLife.Reflection;
 using System.Xml.Serialization;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
@@ -23,10 +21,7 @@ namespace NewLife.Serialization
 
         private MemberInfoX _Mix;
         /// <summary>快速反射</summary>
-        private MemberInfoX Mix
-        {
-            get { return _Mix ?? (_Mix = Member); }
-        }
+        private MemberInfoX Mix { get { return _Mix ?? (_Mix = Member); } }
         #endregion
 
         #region 构造
@@ -56,17 +51,7 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="target"></param>
         /// <returns></returns>
-        public object this[object target]
-        {
-            get
-            {
-                return Mix.GetValue(target);
-            }
-            set
-            {
-                Mix.SetValue(target, value);
-            }
-        }
+        public object this[object target] { get { return Mix.GetValue(target); } set { Mix.SetValue(target, value); } }
 
         /// <summary>
         /// 是否可读
@@ -127,10 +112,7 @@ namespace NewLife.Serialization
         /// 已重载。
         /// </summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return Name;
-        }
+        public override string ToString() { return Name; }
         #endregion
     }
 }

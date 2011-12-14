@@ -66,10 +66,7 @@ namespace NewLife.Serialization
         /// 已重载。
         /// </summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return Name;
-        }
+        public override string ToString() { return Name; }
         #endregion
     }
 }

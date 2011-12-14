@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
 using System.Runtime.Serialization;
-using NewLife.Reflection;
-using NewLife.Collections;
 using System.Xml.Serialization;
+using NewLife.Collections;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 对象信息
-    /// </summary>
+    /// <summary>对象信息</summary>
     public class ObjectInfo
     {
         #region 属性
@@ -46,7 +43,7 @@ namespace NewLife.Serialization
         #region 获取成员信息
         /// <summary>
         /// 获取指定对象的成员信息。优先考虑ISerializable接口。
-        /// 对于Write，该方法没有任何，问题；对于Read，如果是ISerializable接口，并且value是空，则可能无法取得成员信息。
+        /// 对于Write，该方法没有任何问题；对于Read，如果是ISerializable接口，并且value是空，则可能无法取得成员信息。
         /// </summary>
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
@@ -270,7 +267,12 @@ namespace NewLife.Serialization
                 if (t == typeof(String)) return null;
                 //return FormatterServices.GetSafeUninitializedObject(t);
 
-                return TypeX.CreateInstance(t);
+                // 如果类型没有无参数构造函数，则可能异常
+                try
+                {
+                    return TypeX.CreateInstance(t);
+                }
+                catch { return FormatterServices.GetSafeUninitializedObject(t); }
             });
         }
         #endregion

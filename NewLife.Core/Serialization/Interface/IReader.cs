@@ -3,9 +3,7 @@ using System.Net;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 读取器接口
-    /// </summary>
+    /// <summary>读取器接口</summary>
     /// <remarks>序列化框架的处理顺序为：IAccessor接口 => OnObjectReading事件 => 扩展类型 => 基础类型 => 字典 => 枚举 => 序列化接口 => 自定义对象 => 未知类型 => OnObjectReaded事件</remarks>
     public interface IReader : IReaderWriter
     {
@@ -24,11 +22,11 @@ namespace NewLife.Serialization
         /// <returns></returns>
         byte[] ReadBytes(int count);
 
-        ///// <summary>
-        ///// 从此流中读取一个有符号字节，并使流的当前位置提升 1 个字节。
-        ///// </summary>
-        ///// <returns></returns>
-        //sbyte ReadSByte();
+        /// <summary>
+        /// 从此流中读取一个有符号字节，并使流的当前位置提升 1 个字节。
+        /// </summary>
+        /// <returns></returns>
+        sbyte ReadSByte();
         #endregion
 
         #region 有符号整数
@@ -52,23 +50,23 @@ namespace NewLife.Serialization
         #endregion
 
         #region 无符号整数
-        ///// <summary>
-        ///// 使用 Little-Endian 编码从当前流中读取 2 字节无符号整数，并将流的位置提升 2 个字节。
-        ///// </summary>
-        ///// <returns></returns>
-        //ushort ReadUInt16();
+        /// <summary>
+        /// 使用 Little-Endian 编码从当前流中读取 2 字节无符号整数，并将流的位置提升 2 个字节。
+        /// </summary>
+        /// <returns></returns>
+        ushort ReadUInt16();
 
-        ///// <summary>
-        ///// 从当前流中读取 4 字节无符号整数并使流的当前位置提升 4 个字节。
-        ///// </summary>
-        ///// <returns></returns>
-        //uint ReadUInt32();
+        /// <summary>
+        /// 从当前流中读取 4 字节无符号整数并使流的当前位置提升 4 个字节。
+        /// </summary>
+        /// <returns></returns>
+        uint ReadUInt32();
 
-        ///// <summary>
-        ///// 从当前流中读取 8 字节无符号整数并使流的当前位置提升 8 个字节。
-        ///// </summary>
-        ///// <returns></returns>
-        //ulong ReadUInt64();
+        /// <summary>
+        /// 从当前流中读取 8 字节无符号整数并使流的当前位置提升 8 个字节。
+        /// </summary>
+        /// <returns></returns>
+        ulong ReadUInt64();
         #endregion
 
         #region 浮点数
@@ -260,9 +258,7 @@ namespace NewLife.Serialization
         #endregion
     }
 
-    /// <summary>
-    /// 数据读取方法
-    /// </summary>
+    /// <summary>数据读取方法</summary>
     /// <param name="reader">读取器</param>
     /// <param name="type">要读取的对象类型</param>
     /// <param name="value">要读取的对象</param>

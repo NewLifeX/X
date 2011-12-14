@@ -10,9 +10,7 @@ using NewLife.Serialization;
 
 namespace NewLife.Xml
 {
-    /// <summary>
-    /// Xml写入器
-    /// </summary>
+    /// <summary>Xml写入器</summary>
     public class XmlWriterX : TextWriterBase<XmlReaderWriterSettings>
     {
         #region 属性

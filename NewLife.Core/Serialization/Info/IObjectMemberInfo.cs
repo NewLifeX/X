@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 对象成员信息
-    /// </summary>
+    /// <summary>对象成员信息</summary>
     public interface IObjectMemberInfo
     {
         /// <summary>

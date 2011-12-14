@@ -4,9 +4,7 @@ using System.Net;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 写入器接口
-    /// </summary>
+    /// <summary>写入器接口</summary>
     /// <remarks>序列化框架的处理顺序为：IAccessor接口 => OnObjectWriting事件 => 扩展类型 => 基础类型 => 字典 => 枚举 => 序列化接口 => 自定义对象 => 未知类型 => OnObjectWrited事件</remarks>
     public interface IWriter : IReaderWriter
     {
@@ -24,11 +22,11 @@ namespace NewLife.Serialization
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
         void Write(byte[] buffer);
 
-        ///// <summary>
-        ///// 将一个有符号字节写入当前流，并将流的位置提升 1 个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的有符号字节。</param>
-        //void Write(sbyte value);
+        /// <summary>
+        /// 将一个有符号字节写入当前流，并将流的位置提升 1 个字节。
+        /// </summary>
+        /// <param name="value">要写入的有符号字节。</param>
+        void Write(sbyte value);
 
         /// <summary>
         /// 将字节数组部分写入当前流，不写入数组长度。
@@ -60,23 +58,23 @@ namespace NewLife.Serialization
         #endregion
 
         #region 无符号整数
-        ///// <summary>
-        ///// 将 2 字节无符号整数写入当前流，并将流的位置提升 2 个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的 2 字节无符号整数。</param>
-        //void Write(ushort value);
+        /// <summary>
+        /// 将 2 字节无符号整数写入当前流，并将流的位置提升 2 个字节。
+        /// </summary>
+        /// <param name="value">要写入的 2 字节无符号整数。</param>
+        void Write(ushort value);
 
-        ///// <summary>
-        ///// 将 4 字节无符号整数写入当前流，并将流的位置提升 4 个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的 4 字节无符号整数。</param>
-        //void Write(uint value);
+        /// <summary>
+        /// 将 4 字节无符号整数写入当前流，并将流的位置提升 4 个字节。
+        /// </summary>
+        /// <param name="value">要写入的 4 字节无符号整数。</param>
+        void Write(uint value);
 
-        ///// <summary>
-        ///// 将 8 字节无符号整数写入当前流，并将流的位置提升 8 个字节。
-        ///// </summary>
-        ///// <param name="value">要写入的 8 字节无符号整数。</param>
-        //void Write(ulong value);
+        /// <summary>
+        /// 将 8 字节无符号整数写入当前流，并将流的位置提升 8 个字节。
+        /// </summary>
+        /// <param name="value">要写入的 8 字节无符号整数。</param>
+        void Write(ulong value);
         #endregion
 
         #region 浮点数
@@ -154,7 +152,7 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="value"></param>
         void Write(IPAddress value);
-        
+
         /// <summary>
         /// 写入IPEndPoint
         /// </summary>
@@ -169,6 +167,11 @@ namespace NewLife.Serialization
         #endregion
 
         #region 复杂对象
+        /// <summary>把对象写入数据流</summary>
+        /// <param name="value">对象</param>
+        /// <returns>是否写入成功</returns>
+        Boolean WriteObject(Object value);
+
         /// <summary>
         /// 写入对象。具体读写器可以重载该方法以修改写入对象前后的行为。
         /// </summary>
@@ -177,6 +180,12 @@ namespace NewLife.Serialization
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
         Boolean WriteObject(Object value, Type type, WriteObjectCallback callback);
+
+        //Boolean WriteStart(Object value, Type type);
+
+        //Boolean WriteBody();
+
+        //Boolean WriteEnd(Object value, Type type);
 
         /// <summary>
         /// 写入对象引用。
@@ -273,6 +282,10 @@ namespace NewLife.Serialization
         #endregion
 
         #region 方法
+        /// <summary>写入大小</summary>
+        /// <param name="size"></param>
+        void WriteSize(Int32 size);
+
         /// <summary>
         /// 刷新缓存中的数据
         /// </summary>
@@ -286,9 +299,7 @@ namespace NewLife.Serialization
         #endregion
     }
 
-    /// <summary>
-    /// 数据写入方法
-    /// </summary>
+    /// <summary>数据写入方法</summary>
     /// <param name="writer">写入器</param>
     /// <param name="value">要写入的对象</param>
     /// <param name="type">要写入的对象类型</param>

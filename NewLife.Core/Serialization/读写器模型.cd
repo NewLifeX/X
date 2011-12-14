@@ -4,27 +4,27 @@
     <Position X="14.75" Y="8.75" Width="2" />
     <TypeIdentifier>
       <HashCode>CAAAAAAAEAABAkCoSAAQAAAEAAAIEACEAAAAAIGIIAA=</HashCode>
-      <FileName>Serialization\JsonWriter.cs</FileName>
+      <FileName>Serialization\Json\JsonWriter.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="NewLife.Serialization.JsonReader" Collapsed="true">
     <Position X="5.75" Y="8.75" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>BAEAAHRDAAQBBEACIAIQgBMAQSEK1UAWAJEEEAgQAQE=</HashCode>
-      <FileName>Serialization\JsonReader.cs</FileName>
+      <HashCode>BAEAAHRDAAQBBEACIAIQgBMAQWEK1UAXAJEEEAgQCQE=</HashCode>
+      <FileName>Serialization\Json\JsonReader.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="NewLife.Xml.XmlReaderX" Collapsed="true">
     <Position X="2.25" Y="8.75" Width="2.75" />
     <TypeIdentifier>
-      <HashCode>QCAAABAAAAEAAAAAAAAAAAKAAWkIAQAAABIEAAAQAQA=</HashCode>
+      <HashCode>QCAAIBAAAAEAAAAAAAAAAAKACekIAQAAABAEAAAQCQA=</HashCode>
       <FileName>Xml\XmlReaderX.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="NewLife.Xml.XmlWriterX" Collapsed="true">
     <Position X="17.5" Y="8.75" Width="2.75" />
     <TypeIdentifier>
-      <HashCode>QCAAAAAQEAAAAECgQAAIABAEAAAIAAAAAAAAAAEIIAA=</HashCode>
+      <HashCode>QCAACAAQEAAAAECgYAAIABAEAAAIAAAAAAAAAAEIJAA=</HashCode>
       <FileName>Xml\XmlWriterX.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -45,14 +45,14 @@
   <Class Name="NewLife.Serialization.TextReaderBase&lt;TSettings&gt;" Collapsed="true">
     <Position X="5.75" Y="7.5" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AgAAAAQCAgAABEACABAAgAAAACACA0QIAAAAEAAAAAA=</HashCode>
+      <HashCode>AgAAAAQCAgQABEACAAAAgAAAACACAUQBAAAAEAAAAAA=</HashCode>
       <FileName>Serialization\Base\TextReaderBase.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="NewLife.Serialization.ReaderBase&lt;TSettings&gt;" Collapsed="true">
     <Position X="7.25" Y="6" Width="2" />
     <TypeIdentifier>
-      <HashCode>AAAhIFYCQAEARmgCAFAogBIChegCA2QLEEAVEAAQhQE=</HashCode>
+      <HashCode>AAAhIFYCQAUARmgCgFAogBIChegCA2QLEEIVEAAQjSE=</HashCode>
       <FileName>Serialization\Base\ReaderBase.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -64,7 +64,7 @@
       <Compartment Name="Methods" Collapsed="true" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>AgAAAQAAACAihAAAAEAAIAQgABAMAACggIAAAAAAAAA=</HashCode>
+      <HashCode>AgAAAQAAAAAihAAAAEAAIAQgABAMAACggIAAAAAAAAA=</HashCode>
       <FileName>Serialization\Base\ReaderWriterBase.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -72,7 +72,7 @@
   <Class Name="NewLife.Serialization.WriterBase&lt;TSettings&gt;" Collapsed="true">
     <Position X="19.5" Y="6" Width="2" />
     <TypeIdentifier>
-      <HashCode>CAAgAABUEABARsEk8FAIBBAWQAIIAKAiAAgAAQFIIAA=</HashCode>
+      <HashCode>CAAgCABUEABARsEk8FAIBBAWQAIIAKAiAAgAAQFIIAA=</HashCode>
       <FileName>Serialization\Base\WriterBase.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -80,14 +80,14 @@
   <Class Name="NewLife.Serialization.TextWriterBase&lt;TSettings&gt;" Collapsed="true">
     <Position X="18" Y="7.5" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEAAAA=</HashCode>
+      <HashCode>AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAQEAAAA=</HashCode>
       <FileName>Serialization\Base\TextWriterBase.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="NewLife.Serialization.TextReaderWriterSetting" Collapsed="true">
     <Position X="4.25" Y="1.75" Width="2" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAQAAAAAAAQAAAgAAAQAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAQAAAAAAAQAAAgAAAQAAAAAAAgAACAAAAAAAA=</HashCode>
       <FileName>Serialization\Base\TextReaderWriterSetting.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -95,7 +95,7 @@
     <Position X="1.5" Y="3.25" Width="1.75" />
     <TypeIdentifier>
       <HashCode>DAMCAAAARAAFRAAICAAAAAAAgAAEAACAAAAAAAAAAAg=</HashCode>
-      <FileName>Serialization\JsonSettings.cs</FileName>
+      <FileName>Serialization\Json\JsonSettings.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
