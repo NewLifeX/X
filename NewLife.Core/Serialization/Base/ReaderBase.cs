@@ -241,8 +241,6 @@ namespace NewLife.Serialization
                     value = ReadByte();
                     return true;
                 case TypeCode.DateTime:
-                    //if (!ReadValue(typeof(Int64), ref value)) return false;
-                    //value = new DateTime((Int64)value);
                     value = ReadDateTime();
                     return true;
                 case TypeCode.Decimal:

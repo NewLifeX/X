@@ -39,15 +39,10 @@ namespace NewLife.Xml
             }
         }
 
-        /// <summary>
-        /// 数据流。更改数据流后，重置Writer为空，以使用新的数据流
-        /// </summary>
+        /// <summary>数据流。更改数据流后，重置Writer为空，以使用新的数据流</summary>
         public override Stream Stream
         {
-            get
-            {
-                return base.Stream;
-            }
+            get { return base.Stream; }
             set
             {
                 if (base.Stream != value) _Writer = null;
@@ -57,11 +52,7 @@ namespace NewLife.Xml
 
         private String _RootName;
         /// <summary>根元素名</summary>
-        public String RootName
-        {
-            get { return _RootName; }
-            set { _RootName = value; }
-        }
+        public String RootName { get { return _RootName; } set { _RootName = value; } }
         #endregion
 
         #region 基础元数据
@@ -80,21 +71,13 @@ namespace NewLife.Xml
         #endregion
 
         #region 扩展类型
-        /// <summary>
-        /// 写对象类型
-        /// </summary>
+        /// <summary>写对象类型</summary>
         /// <param name="type"></param>
-        protected override void WriteObjectType(Type type)
-        {
-            //base.WriteObjectType(type);
-            if (Settings.WriteType) Writer.WriteAttributeString("Type", type.FullName);
-        }
+        protected override void WriteObjectType(Type type) { if (Settings.WriteType) Writer.WriteAttributeString("Type", type.FullName); }
         #endregion
 
         #region 字典
-        /// <summary>
-        /// 写入字典项
-        /// </summary>
+        /// <summary>写入字典项 </summary>
         /// <param name="value">对象</param>
         /// <param name="keyType">键类型</param>
         /// <param name="valueType">值类型</param>
@@ -108,14 +91,12 @@ namespace NewLife.Xml
 
             {
                 Writer.WriteStartElement("Key");
-                //keyType = CheckAndWriteType("WriteKeyType", value.Key, keyType);
                 if (!WriteObject(value.Key, keyType, callback)) return false;
                 Writer.WriteEndElement();
             }
 
             {
                 Writer.WriteStartElement("Value");
-                //valueType = CheckAndWriteType("WriteValueType", value.Value, valueType);
                 if (!WriteObject(value.Value, valueType, callback)) return false;
                 Writer.WriteEndElement();
             }
@@ -127,9 +108,7 @@ namespace NewLife.Xml
         #endregion
 
         #region 枚举
-        /// <summary>
-        /// 写入枚举项
-        /// </summary>
+        /// <summary>写入枚举项</summary>
         /// <param name="value">对象</param>
         /// <param name="type">类型</param>
         /// <param name="index">成员索引</param>
@@ -138,14 +117,11 @@ namespace NewLife.Xml
         protected override bool OnWriteItem(Object value, Type type, Int32 index, WriteObjectCallback callback)
         {
             Type t = type;
-            //if (t == null && value != null) t = value.GetType();
             if (value != null) t = value.GetType();
             String name = AttributeX.GetCustomAttributeValue<XmlRootAttribute, String>(t, true);
             if (String.IsNullOrEmpty(name) && t != null) name = t.Name;
 
             Writer.WriteStartElement(name);
-
-            // type = CheckAndWriteType("WriteItemType", value, type);
 
             AutoFlush();
 
@@ -160,9 +136,7 @@ namespace NewLife.Xml
             return rs;
         }
 
-        /// <summary>
-        /// 写入枚举数据，复杂类型使用委托方法进行处理
-        /// </summary>
+        /// <summary>写入枚举数据，复杂类型使用委托方法进行处理</summary>
         /// <param name="value">对象</param>
         /// <param name="type">类型</param>
         /// <param name="callback">使用指定委托方法处理复杂数据</param>
@@ -202,46 +176,13 @@ namespace NewLife.Xml
                 }
                 WriteLengths(String.Join(",", lengths.ToArray()));
             }
-            //if (t.IsArray && t.GetArrayRank() > 1)
-            //{
-            //    Array array = value as Array;
-            //    List<String> lengths = new List<String>();
-            //    for (int i = 0; i < array.Rank; i++)
-            //    {
-            //        lengths.Add(array.GetLength(i).ToString());
-            //    }
-            //    String[] list = lengths.ToArray();
-
-            //    Int32 length = array.GetLength(array.Rank - 1);
-            //    Array objs = Array.CreateInstance(elementType, length);
-            //    Int32 j = 0;
-            //    foreach (object item in value)
-            //    {
-            //        objs.SetValue(item, j);
-            //        j++;
-            //        if (j == length)
-            //        {
-            //            j = 0;
-            //            WriteLog("WriteEnumerable", type.Name);
-
-            //            Writer.WriteStartElement("Item");
-            //            Writer.WriteAttributeString("Lengths", String.Join(",", list));
-            //            result = base.WriteEnumerable(objs as IEnumerable, type, callback);
-            //            Writer.WriteEndElement();
-            //            objs = TypeX.CreateInstance(type, length) as Array;
-            //        }
-            //    }
-            //    return result;
-            //}
 
             return base.WriteEnumerable(value, type, callback);
         }
         #endregion
 
         #region 写入对象
-        /// <summary>
-        /// 已重载。写入文档的开头和结尾
-        /// </summary>
+        /// <summary>已重载。写入文档的开头和结尾</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
@@ -286,9 +227,7 @@ namespace NewLife.Xml
             return rs;
         }
 
-        /// <summary>
-        /// 写入成员
-        /// </summary>
+        /// <summary>写入对象成员</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="member">成员</param>
@@ -318,16 +257,9 @@ namespace NewLife.Xml
             return rs;
         }
 
-        /// <summary>
-        /// 写对象引用计数
-        /// </summary>
+        /// <summary>写对象引用计数</summary>
         /// <param name="index"></param>
-        protected override void OnWriteObjRefIndex(int index)
-        {
-            //base.OnWriteObjRefIndex(index);
-
-            if (index > 0) Writer.WriteAttributeString("ObjRef", index.ToString());
-        }
+        protected override void OnWriteObjRefIndex(int index) { if (index > 0) Writer.WriteAttributeString("ObjRef", index.ToString()); }
         #endregion
 
         #region 未知对象
@@ -344,9 +276,7 @@ namespace NewLife.Xml
             {
                 WriteLog("WriteUnKnown", type.Name);
                 XmlSerializer serial = new XmlSerializer(type);
-                //Stream = new TraceStream();
                 MemoryStream ms = new MemoryStream();
-                //AutoFlush();
                 serial.Serialize(ms, value);
 
                 String xml = Encoding.UTF8.GetString(ms.ToArray());
@@ -363,9 +293,7 @@ namespace NewLife.Xml
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 刷新缓存中的数据
-        /// </summary>
+        /// <summary>刷新缓存中的数据</summary>
         public override void Flush()
         {
             Writer.Flush();
@@ -373,28 +301,21 @@ namespace NewLife.Xml
             base.Flush();
         }
 
-        /// <summary>
-        /// 写入长度
-        /// </summary>
+        /// <summary>写入长度。多维数组用</summary>
         /// <param name="lengths"></param>
-        protected override void WriteLengths(string lengths)
-        {
-            Writer.WriteAttributeString("Lengths", lengths);
-        }
+        protected override void WriteLengths(string lengths) { Writer.WriteAttributeString("Lengths", lengths); }
         #endregion
 
         #region 序列化接口
-        /// <summary>
-        /// 写入实现了可序列化接口的对象
-        /// </summary>
+        /// <summary>写入实现了可序列化接口的对象</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型，如果type等于DataTable，需设置DataTable的名称</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
         public override bool WriteSerializable(object value, Type type, WriteObjectCallback callback)
         {
-            if (!typeof(IXmlSerializable).IsAssignableFrom(type))
-                return base.WriteSerializable(value, type, callback);
+            if (!typeof(IXmlSerializable).IsAssignableFrom(type)) return base.WriteSerializable(value, type, callback);
+
             try
             {
                 IXmlSerializable xml = value as IXmlSerializable;
@@ -425,9 +346,7 @@ namespace NewLife.Xml
             return name;
         }
 
-        /// <summary>
-        /// 是否可以作为属性写入Xml的类型
-        /// </summary>
+        /// <summary>是否可以作为属性写入Xml的类型</summary>
         /// <param name="type"></param>
         /// <returns></returns>
         internal static Boolean IsAttributeType(Type type)

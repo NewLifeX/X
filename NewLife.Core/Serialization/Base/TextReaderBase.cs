@@ -3,18 +3,13 @@ using System.Net;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 字符串类型读取器基类
-    /// </summary>
+    /// <summary>文本读取器基类</summary>
     /// <typeparam name="TSettings">设置类</typeparam>
-    public class TextReaderBase<TSettings> : ReaderBase<TSettings> where TSettings : TextReaderWriterSetting, new()
+    public abstract class TextReaderBase<TSettings> : ReaderBase<TSettings> where TSettings : TextReaderWriterSetting, new()
     {
         #region 属性
         /// <summary>是否使用大小，如果使用，将在写入数组、集合和字符串前预先写入大小。字符串类型读写器一般带有边界，不需要使用大小</summary>
-        protected override Boolean UseSize
-        {
-            get { return false; }
-        }
+        protected override Boolean UseSize { get { return false; } }
         #endregion
 
         #region 基础元数据
@@ -32,10 +27,6 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override byte[] ReadBytes(int count)
         {
-            //if (count <= 0) return null;
-
-            //Byte[] buffer = new Byte[count];
-            //Int32 n = Reader.ReadContentAsBase64(buffer, 0, count);
             String str = ReadString();
             if (str == null) return null;
             if (str.Length == 0) return new Byte[] { };
@@ -44,13 +35,6 @@ namespace NewLife.Serialization
                 return Convert.FromBase64String(str);
             else
                 return FromHex(str);
-
-            //if (n == count) return buffer;
-
-            //Byte[] data = new Byte[n];
-            //Buffer.BlockCopy(buffer, 0, data, 0, n);
-
-            //return data;
         }
 
         /// <summary>
@@ -148,37 +132,24 @@ namespace NewLife.Serialization
         #endregion
 
         #region 扩展类型
-        /// <summary>
-        /// 读取Guid
-        /// </summary>
+        /// <summary>读取Guid</summary>
         /// <returns></returns>
-        protected override Guid OnReadGuid()
-        {
-            return new Guid(ReadString());
-        }
+        protected override Guid OnReadGuid() { return new Guid(ReadString()); }
 
-        /// <summary>
-        /// 读取IPAddress
-        /// </summary>
+        /// <summary>读取IPAddress</summary>
         /// <returns></returns>
         protected override IPAddress OnReadIPAddress()
         {
-            //return base.ReadIPAddress();
-
             String str = ReadString();
             if (String.IsNullOrEmpty(str)) return null;
 
             return IPAddress.Parse(str);
         }
 
-        /// <summary>
-        /// 读取IPEndPoint
-        /// </summary>
+        /// <summary>读取IPEndPoint</summary>
         /// <returns></returns>
         protected override IPEndPoint OnReadIPEndPoint()
         {
-            //return base.ReadIPEndPoint();
-
             String str = ReadString();
             if (String.IsNullOrEmpty(str)) return null;
 
@@ -191,9 +162,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 读取值
-        /// <summary>
-        /// 尝试读取值类型数据，返回是否读取成功
-        /// </summary>
+        /// <summary>尝试读取值类型数据，返回是否读取成功</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns></returns>

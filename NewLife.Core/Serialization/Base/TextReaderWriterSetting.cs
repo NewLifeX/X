@@ -4,11 +4,10 @@ using System.Text;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 字符串读写器设置
-    /// </summary>
+    /// <summary>文本读写器设置</summary>
     public class TextReaderWriterSetting : ReaderWriterSetting
     {
+        #region 属性
         private Boolean _UseBase64;
         /// <summary>使用Base64编码字符串，否则使用十六进制字符串</summary>
         public Boolean UseBase64
@@ -32,5 +31,14 @@ namespace NewLife.Serialization
             get { return _WriteType; }
             set { _WriteType = value; }
         }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化一个文本读写器设置</summary>
+        public TextReaderWriterSetting()
+        {
+            UseObjRef = false;
+        }
+        #endregion
     }
 }

@@ -12,15 +12,6 @@
     <AssemblyName>NewLife.Core</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <SccProjectName>
-    </SccProjectName>
-    <SccLocalPath>
-    </SccLocalPath>
-    <SccAuxPath>
-    </SccAuxPath>
-    <SccProvider>
-    </SccProvider>
-    <CodeContractsAssemblyMode>0</CodeContractsAssemblyMode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -41,31 +32,6 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\..\生成\NewLife.Core.XML</DocumentationFile>
-    <CodeContractsEnableRuntimeChecking>False</CodeContractsEnableRuntimeChecking>
-    <CodeContractsRuntimeOnlyPublicSurface>False</CodeContractsRuntimeOnlyPublicSurface>
-    <CodeContractsRuntimeThrowOnFailure>True</CodeContractsRuntimeThrowOnFailure>
-    <CodeContractsRuntimeCallSiteRequires>False</CodeContractsRuntimeCallSiteRequires>
-    <CodeContractsRuntimeSkipQuantifiers>False</CodeContractsRuntimeSkipQuantifiers>
-    <CodeContractsRunCodeAnalysis>False</CodeContractsRunCodeAnalysis>
-    <CodeContractsNonNullObligations>False</CodeContractsNonNullObligations>
-    <CodeContractsBoundsObligations>False</CodeContractsBoundsObligations>
-    <CodeContractsArithmeticObligations>False</CodeContractsArithmeticObligations>
-    <CodeContractsEnumObligations>True</CodeContractsEnumObligations>
-    <CodeContractsRedundantAssumptions>False</CodeContractsRedundantAssumptions>
-    <CodeContractsRunInBackground>True</CodeContractsRunInBackground>
-    <CodeContractsShowSquigglies>False</CodeContractsShowSquigglies>
-    <CodeContractsUseBaseLine>False</CodeContractsUseBaseLine>
-    <CodeContractsEmitXMLDocs>False</CodeContractsEmitXMLDocs>
-    <CodeContractsCustomRewriterAssembly />
-    <CodeContractsCustomRewriterClass />
-    <CodeContractsLibPaths />
-    <CodeContractsExtraRewriteOptions />
-    <CodeContractsExtraAnalysisOptions />
-    <CodeContractsBaseLineFile />
-    <CodeContractsCacheAnalysisResults>True</CodeContractsCacheAnalysisResults>
-    <CodeContractsRuntimeCheckingLevel>Full</CodeContractsRuntimeCheckingLevel>
-    <CodeContractsReferenceAssembly>%28none%29</CodeContractsReferenceAssembly>
-    <CodeContractsAnalysisWarningLevel>0</CodeContractsAnalysisWarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '.Net 2.0|AnyCPU'">
@@ -75,16 +41,7 @@
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <CodeAnalysisLogFile>..\..\生成\NewLife.Core.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
-    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
-    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
     <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSetDirectories>;D:\MS\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
-    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
-    <CodeAnalysisRuleDirectories>;D:\MS\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
-    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
-    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
@@ -166,7 +123,6 @@
     <Compile Include="Reflection\TypeResolverProvider.cs" />
     <Compile Include="Scripting\ScriptEngine.cs" />
     <Compile Include="Security\Certificate.cs" />
-    <Compile Include="Serialization\Base\ReaderWriterState.cs" />
     <Compile Include="Serialization\Base\TextReaderBase.cs" />
     <Compile Include="Serialization\Binary\BinaryReaderX.cs" />
     <Compile Include="Serialization\Binary\BinarySettings.cs" />
@@ -197,7 +153,6 @@
     <Compile Include="Serialization\Event\ReadObjectEventArgs.cs" />
     <Compile Include="Serialization\NameValue\NameValueSetting.cs" />
     <Compile Include="Serialization\NameValue\NameValueWriter.cs" />
-    <Compile Include="Serialization\RWServices.cs" />
     <Compile Include="Serialization\Base\WriterBase.cs" />
     <Compile Include="Log\CodeTimer.cs" />
     <Compile Include="Messaging\ExceptionMessage.cs" />
@@ -251,32 +206,8 @@
     <Compile Include="Common\HardInfo.cs" />
     <Compile Include="Common\IdentityCard.cs" />
     <None Include="Serialization\Event\事件参数.cd" />
-    <None Include="Serialization\Protocol\Attributes\OnProtocol.cs" />
-    <None Include="Serialization\Protocol\Attributes\ProtocolArrayAttribute.cs" />
-    <None Include="Serialization\Protocol\Attributes\ProtocolAttribute.cs" />
-    <None Include="Serialization\Protocol\Attributes\ProtocolElementAttribute.cs" />
-    <None Include="Serialization\Protocol\Attributes\ProtocolEncodeIntAttribute.cs" />
-    <None Include="Serialization\Protocol\Attributes\ProtocolNonSerializedAttribute.cs" />
-    <None Include="Serialization\Protocol\Attributes\ProtocolNotNullAttribute.cs" />
-    <None Include="Serialization\Protocol\Attributes\ProtocolSerialPropertyAttribute.cs" />
-    <None Include="Serialization\Protocol\Attributes\ProtocolUseRefObject.cs" />
-    <None Include="Serialization\Protocol\ConfigFlags.cs" />
-    <None Include="Serialization\Protocol\Context\ReadContext.cs" />
-    <None Include="Serialization\Protocol\Context\ReadWriteContext.cs" />
-    <None Include="Serialization\Protocol\Context\WriteContext.cs" />
-    <None Include="Serialization\Protocol\Event\ProtocolCreateInstanceEventArgs.cs" />
-    <None Include="Serialization\Protocol\Event\ProtocolDeserializedEventArgs.cs" />
-    <None Include="Serialization\Protocol\Event\ProtocolDeserializingEventArgs.cs" />
-    <None Include="Serialization\Protocol\Event\ProtocolSerializedEventArgs.cs" />
-    <None Include="Serialization\Protocol\Event\ProtocolSerializingEventArgs.cs" />
-    <None Include="Serialization\Protocol\FormatterConfig.cs" />
     <Compile Include="IO\BinaryReaderX.cs" />
     <Compile Include="IO\BinaryWriterX.cs" />
-    <None Include="Serialization\Protocol\IProtocolSerializable.cs" />
-    <None Include="Serialization\Protocol\ProtocolFormatter.cs" />
-    <None Include="Serialization\Protocol\ProtocolFormatterHead.cs" />
-    <None Include="Serialization\Protocol\ProtocolTest.cs" />
-    <None Include="Serialization\Protocol\ProtocolTreeNode.cs" />
     <Compile Include="Threading\TaskState.cs" />
     <Compile Include="Threading\ThreadPoolX.cs" />
     <Compile Include="Threading\ThreadTask.cs" />
@@ -298,13 +229,12 @@
     <Compile Include="Web\WebDownload.cs" />
     <Compile Include="Web\WebHelper.cs" />
     <Compile Include="Xml\ExtendData.cs" />
-    <Compile Include="Xml\XMLEntity.cs" />
+    <Compile Include="Xml\XmlEntity.cs" />
     <Compile Include="Xml\XmlReaderX.cs" />
     <Compile Include="Xml\XmlReaderWriterSettings.cs" />
     <Compile Include="Xml\XmlWriterX.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Serialization\Protocol\说明.txt" />
     <EmbeddedResource Include="X组件.txt" />
     <EmbeddedResource Include="Web\Modules\SystemStart.htm" />
     <Content Include="说明.txt" />

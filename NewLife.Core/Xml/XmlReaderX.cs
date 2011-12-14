@@ -9,9 +9,7 @@ using NewLife.Serialization;
 
 namespace NewLife.Xml
 {
-    /// <summary>
-    /// Xml读取器
-    /// </summary>
+    /// <summary>Xml读取器</summary>
     public class XmlReaderX : TextReaderBase<XmlReaderWriterSettings>
     {
         #region 属性
@@ -39,15 +37,10 @@ namespace NewLife.Xml
             }
         }
 
-        /// <summary>
-        /// 数据流。更改数据流后，重置Reader为空，以使用新的数据流
-        /// </summary>
+        /// <summary>数据流。更改数据流后，重置Reader为空，以使用新的数据流</summary>
         public override Stream Stream
         {
-            get
-            {
-                return base.Stream;
-            }
+            get { return base.Stream; }
             set
             {
                 if (base.Stream != value) _Reader = null;
@@ -55,14 +48,10 @@ namespace NewLife.Xml
             }
         }
 
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化</summary>
         public XmlReaderX() { }
 
-        /// <summary>
-        /// 使用xml字符串初始化
-        /// </summary>
+        /// <summary>使用xml字符串初始化</summary>
         /// <param name="xml"></param>
         public XmlReaderX(String xml)
         {
@@ -71,19 +60,11 @@ namespace NewLife.Xml
 
         private String _RootName;
         /// <summary>根元素名</summary>
-        public String RootName
-        {
-            get { return _RootName; }
-            set { _RootName = value; }
-        }
+        public String RootName { get { return _RootName; } set { _RootName = value; } }
 
         private String _Lengths;
         /// <summary>多维数组长度</summary>
-        public String Lengths
-        {
-            get { return _Lengths; }
-            set { _Lengths = value; }
-        }
+        public String Lengths { get { return _Lengths; } set { _Lengths = value; } }
         #endregion
 
         #region 基础元数据
@@ -93,8 +74,6 @@ namespace NewLife.Xml
         /// <returns></returns>
         public override string ReadString()
         {
-            //if (Reader.NodeType == XmlNodeType.Attribute) Reader.MoveToElement();
-
             Boolean isElement = Reader.NodeType == XmlNodeType.Element;
             if (isElement)
             {
@@ -111,9 +90,7 @@ namespace NewLife.Xml
         #endregion
 
         #region 扩展类型
-        /// <summary>
-        /// 读对象类型
-        /// </summary>
+        /// <summary>读对象类型</summary>
         /// <returns></returns>
         protected override Type OnReadType()
         {
@@ -129,9 +106,7 @@ namespace NewLife.Xml
         #endregion
 
         #region 字典
-        /// <summary>
-        /// 尝试读取字典类型对象
-        /// </summary>
+        /// <summary>尝试读取字典类型对象</summary>
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
         /// <param name="callback">处理成员的方法</param>
@@ -143,9 +118,7 @@ namespace NewLife.Xml
             return base.ReadDictionary(type, ref value, callback);
         }
 
-        /// <summary>
-        /// 读取字典项
-        /// </summary>
+        /// <summary>读取字典项</summary>
         /// <param name="keyType">键类型</param>
         /// <param name="valueType">值类型</param>
         /// <param name="value">字典项</param>
@@ -159,25 +132,18 @@ namespace NewLife.Xml
             Object key = null;
             Object val = null;
 
-            //Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
             // <Item>
             Reader.ReadStartElement();
 
-            //Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
             // <Key>
-            //   keyType = CheckAndReadType("ReadKeyType", keyType, value.Key);
             Reader.ReadStartElement();
             if (!ReadObject(keyType, ref key)) return false;
             // </Key>
             if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
-            //Debug.Assert(Reader.IsStartElement(), "这里应该是起始节点呀！");
             // <Value>
-            //valueType = CheckAndReadType("ReadValueType", valueType, value.Value);
-            // Reader.ReadStartElement();
             if (!ReadObject(valueType, ref val)) return false;
             // </Value>
-            //  if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
 
             value.Key = key;
             value.Value = val;
@@ -190,9 +156,7 @@ namespace NewLife.Xml
         #endregion
 
         #region 枚举
-        /// <summary>
-        /// 尝试读取枚举
-        /// </summary>
+        /// <summary>尝试读取枚举</summary>
         /// <remarks>重点和难点在于如果得知枚举元素类型，这里假设所有元素类型一致，否则实在无法处理</remarks>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
@@ -200,8 +164,6 @@ namespace NewLife.Xml
         /// <returns>是否读取成功</returns>
         public override bool ReadEnumerable(Type type, ref object value, ReadObjectCallback callback)
         {
-            //if (SkipEmpty()) return true;
-
             Type t = type.GetElementType();
 
             #region 锯齿二维数组处理
@@ -235,54 +197,10 @@ namespace NewLife.Xml
             }
             #endregion
 
-            //if (type.IsArray && type.GetArrayRank() > 1)
-            //{
-            //    if (Reader.MoveToAttribute("Lengths"))
-            //    {
-            //        WriteLog("ReadLengths");
-
-            //        String str = ReadString();
-            //        if (String.IsNullOrEmpty(str)) return false;
-            //        String[] strs = str.Split(',');
-
-            //        Int32[] lengths = new Int32[strs.Length];
-            //        for (int i = 0; i < strs.Length; i++)
-            //        {
-            //            lengths[i] = Convert.ToInt32(strs[i]);
-            //        }
-
-            //        Array array = Array.CreateInstance(type.GetElementType(), lengths);
-            //        if (array == null) return false;
-
-            //        for (int i = 0; i < array.Length; i++)
-            //        {
-            //            if (base.ReadEnumerable(type, ref value, callback) && value != null)
-            //            {
-            //                Array sub = value as Array;
-
-            //                //数据读取完毕
-            //                if (sub.Length == 0) break;
-
-            //                foreach (Object item in sub)
-            //                {
-            //                    ArrEnum(array, ix => array.SetValue(item, ix), item);
-            //                }
-            //                value = null;
-            //            }
-            //            else break;
-            //        }
-            //        if (array.Length > 0) value = array;
-            //        WriteLog("ReadLengths", str);
-            //        return true;
-            //    }
-            //}
-
             return base.ReadEnumerable(type, ref value, callback);
         }
 
-        /// <summary>
-        /// 读取项
-        /// </summary>
+        /// <summary>读取枚举项</summary>
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <param name="index">元素序号</param>
@@ -290,28 +208,15 @@ namespace NewLife.Xml
         /// <returns></returns>
         protected override bool OnReadItem(Type type, ref object value, Int32 index, ReadObjectCallback callback)
         {
-            //if (Reader.IsStartElement() && Reader.Name == "Item")
-            //    Reader.ReadStartElement();
-
-            //if (Reader.NodeType == XmlNodeType.EndElement && Reader.Name == "Item")
-            //{
-            //    Reader.ReadEndElement();
-            //    return false;
-            //}
-
             String name = AttributeX.GetCustomAttributeValue<XmlRootAttribute, String>(type, true);
             if (String.IsNullOrEmpty(name) && type != null) name = type.Name;
 
-            if (Reader.NodeType == XmlNodeType.EndElement || Reader.Name != name)
-                return false;
-            //if (SkipEmpty()) return true;
-
-            //type = CheckAndReadType("ReadItemType", type, value);
-            //Reader.ReadStartElement();
+            if (Reader.NodeType == XmlNodeType.EndElement || Reader.Name != name) return false;
 
             Boolean rs = base.OnReadItem(type, ref value, index, callback);
 
             if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
+
             return rs;
         }
         #endregion
@@ -330,8 +235,6 @@ namespace NewLife.Xml
 
             while (Reader.NodeType != XmlNodeType.Element) { if (!Reader.Read())return false; }
             if (String.IsNullOrEmpty(RootName)) RootName = Reader.Name;
-
-            //type = CheckAndReadType("ReadObjectType", type, value);
 
             return base.OnReadObject(type, ref value, callback);
         }
@@ -376,8 +279,6 @@ namespace NewLife.Xml
         /// <returns></returns>
         protected override IObjectMemberInfo GetMemberBeforeRead(Type type, object value, IObjectMemberInfo[] members, int index)
         {
-            //return base.GetMemberBeforeRead(type, value, members, index);
-
             String name = String.Empty;
 
             while (Reader.NodeType != XmlNodeType.None && Reader.IsStartElement())
@@ -391,10 +292,7 @@ namespace NewLife.Xml
 
                 Reader.ReadStartElement();
 
-                if (!SkipEmpty())
-                {
-                    Reader.Read();
-                }
+                if (!SkipEmpty()) Reader.Read();
 
                 if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
             }
@@ -402,9 +300,7 @@ namespace NewLife.Xml
             return null;
         }
 
-        /// <summary>
-        /// 读取成员
-        /// </summary>
+        /// <summary>读取对象成员</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="member">成员</param>
@@ -414,54 +310,15 @@ namespace NewLife.Xml
         protected override bool OnReadMember(Type type, ref object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
             Boolean isAtt = Settings.MemberAsAttribute && XmlWriterX.IsAttributeType(member.Type);
-            if (isAtt)
-            {
-                Reader.MoveToAttribute(member.Name);
-            }
+            if (isAtt) Reader.MoveToAttribute(member.Name);
 
-            //// 读取对象引用
-            //Int32 idx = 0;
-            //if (ReadObjRef(type, ref value, out idx))
-            //{
-            //    // 移到下一个元素
-            //    Reader.Read();
-            //    return true;
-            //}
-
-            //if (type == typeof(Object))
-            //{
-            //    if (Reader.MoveToAttribute("Type"))
-            //    {
-            //        WriteLog("ReadMemberType");
-            //        type = ReadType();
-            //        WriteLog("ReadMemberType", type.Name);
-            //    }
-            //}
-            //type = CheckAndReadType("ReadObjectType", type, value);
-
-            //Debug.Assert(Reader.NodeType != XmlNodeType.Element || Reader.IsStartElement(), "这里应该是起始节点呀！");
-
-            //// 空元素直接返回
-            //if (SkipEmpty()) return true;
-
-            //Reader.ReadStartElement();
-
-            Boolean rs = base.OnReadMember(type, ref value, member, index, callback);
-
-            //if (Reader.NodeType == XmlNodeType.EndElement) Reader.ReadEndElement();
-
-            //if (value != null && idx > 0) AddObjRef(idx, value);
-
-            return rs;
+            return base.OnReadMember(type, ref value, member, index, callback);
         }
 
-        /// <summary>
-        /// 读取对象引用计数
-        /// </summary>
+        /// <summary>读取对象引用计数</summary>
         /// <returns></returns>
         protected override int OnReadObjRefIndex()
         {
-            //return base.OnReadObjRefIndex();
             if (Reader.MoveToAttribute("ObjRef"))
             {
                 Int32 rs = ReadInt32();
@@ -510,9 +367,7 @@ namespace NewLife.Xml
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 当前节点是否空。如果是空节点，则读一次，让指针移到下一个元素
-        /// </summary>
+        /// <summary>当前节点是否空。如果是空节点，则读一次，让指针移到下一个元素</summary>
         Boolean SkipEmpty()
         {
             // 空元素直接返回
@@ -526,14 +381,9 @@ namespace NewLife.Xml
             return false;
         }
 
-        /// <summary>
-        /// 读取多维数组相关参数
-        /// </summary>
+        /// <summary>读取多维数组相关参数</summary>
         /// <returns></returns>
-        protected override string ReadLengths()
-        {
-            return Lengths;
-        }
+        protected override string ReadLengths() { return Lengths; }
         #endregion
 
         #region 序列化接口

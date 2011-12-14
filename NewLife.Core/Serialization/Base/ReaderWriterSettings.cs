@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 序列化设置
-    /// </summary>
+    /// <summary>序列化设置</summary>
     public class ReaderWriterSetting
     {
         #region 属性

@@ -7,64 +7,38 @@ using NewLife.Log;
 
 namespace NewLife.Xml
 {
-    /// <summary>
-    /// 扩展数据
-    /// </summary>
+    /// <summary>使用Xml来存储字典扩展数据，不怕序列化和混淆</summary>
     public class ExtendData
     {
         #region 属性
         private Dictionary<String, String> _Data;
         /// <summary>数据</summary>
-        public Dictionary<String, String> Data
-        {
-            get { return _Data; }
-            set { _Data = value; }
-        }
+        public Dictionary<String, String> Data { get { return _Data ?? (_Data = new Dictionary<String, String>()); } set { _Data = value; } }
 
         private List<String> _XmlKeys;
         /// <summary>Xml数据键值</summary>
-        public List<String> XmlKeys
-        {
-            get { return _XmlKeys; }
-            set { _XmlKeys = value; }
-        }
+        public List<String> XmlKeys { get { return _XmlKeys; } set { _XmlKeys = value; } }
 
         private String _Root;
         /// <summary>根名称</summary>
-        public String Root
-        {
-            get { return _Root; }
-            set { _Root = value; }
-        }
+        public String Root { get { return _Root; } set { _Root = value; } }
         #endregion
 
         #region 集合管理
-        /// <summary>
-        /// 读取设置数据
-        /// </summary>
+        /// <summary>读取设置数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
         public String this[String key]
         {
             get
             {
-                if (Data == null || Data.Count < 1 || !Data.ContainsKey(key)) return null;
-                return Data[key];
+                String str = null;
+                return Data.TryGetValue(key, out str) ? str : null;
             }
-            set
-            {
-                if (Data == null) Data = new Dictionary<String, String>();
-
-                //if (Data.ContainsKey(key))
-                Data[key] = value;
-                //else
-                //    Data.Add(key, value);
-            }
+            set { Data[key] = value; }
         }
 
-        /// <summary>
-        /// 取得指定键的强类型值
-        /// </summary>
+        /// <summary>取得指定键的强类型值</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -94,23 +68,13 @@ namespace NewLife.Xml
                     list.Add(data["Item" + i.ToString()]);
                 }
 
-                //XmlDocument doc = new XmlDocument();
-                //doc.LoadXml(this[key]);
-                //List<String> list = new List<String>();
-                //foreach (XmlNode node in doc.ChildNodes)
-                //{
-                //    list.Add(node.InnerXml);
-                //}
-
                 return (T)Convert.ChangeType(list.ToArray(), t);
             }
 
             throw new XException("不支持的类型{0}，键{1}", typeof(T), key);
         }
 
-        /// <summary>
-        /// 设置类型
-        /// </summary>
+        /// <summary>设置类型</summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
         public void SetItem(String key, Object value)
@@ -128,38 +92,6 @@ namespace NewLife.Xml
                 this[key] = value.ToString();
                 return;
             }
-            //else if (t.IsArray)
-            //{
-            //    ExtendData data = new ExtendData();
-            //    data.Root = key;
-            //    Array list = value as Array;
-            //    Int32 i = 1;
-            //    foreach (Object item in list)
-            //    {
-            //        data["Item" + i++.ToString()] = item.ToString();
-            //    }
-            //    this[key] = data.ToXml();
-            //    if (XmlKeys == null) XmlKeys = new List<String>();
-            //    if (!XmlKeys.Contains(key)) XmlKeys.Add(key);
-
-            //    //Type elmtype = t.GetElementType();
-
-            //    //XmlDocument doc = new XmlDocument();
-            //    //XmlElement root = doc.CreateElement("ArrayOf" + elmtype.Name);
-            //    //doc.AppendChild(root);
-            //    //Array list = value as Array;
-            //    //foreach (Object item in list)
-            //    //{
-            //    //    XmlNode node = doc.CreateElement(elmtype.Name);
-            //    //    node.InnerText = item.ToString();
-            //    //    root.AppendChild(node);
-            //    //}
-            //    //if (XmlKeys == null) XmlKeys = new List<String>();
-            //    //if (!XmlKeys.Contains(key)) XmlKeys.Add(key);
-            //    //this[key] = doc.InnerXml;
-
-            //    return;
-            //}
             else if (value is IEnumerable)
             {
                 ExtendData data = new ExtendData();
@@ -180,46 +112,21 @@ namespace NewLife.Xml
             throw new XException(String.Format("不支持的类型{0}，键{1}，数据{2}", t, key, value));
         }
 
-        /// <summary>
-        /// 包含指定键
-        /// </summary>
+        /// <summary>包含指定键</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public Boolean Contain(String key)
-        {
-            return Data != null && Data.ContainsKey(key);
-        }
+        public Boolean Contain(String key) { return Data.ContainsKey(key); }
 
-        /// <summary>
-        /// 移除指定项
-        /// </summary>
+        /// <summary>移除指定项</summary>
         /// <param name="key"></param>
-        public void Remove(String key)
-        {
-            if (Data == null || Data.Count < 1 || !Data.ContainsKey(key)) return;
+        public void Remove(String key) { if (Data.ContainsKey(key))   Data.Remove(key); }
 
-            Data.Remove(key);
-        }
-
-        /// <summary>
-        /// 是否为空
-        /// </summary>
-        public Boolean IsEmpty
-        {
-            get
-            {
-                if (Data == null || Data.Count < 1)
-                    return true;
-                else
-                    return false;
-            }
-        }
+        /// <summary>是否为空</summary>
+        public Boolean IsEmpty { get { return Data.Count < 1; } }
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 从Xml转为具体数据
-        /// </summary>
+        /// <summary>从Xml转为具体数据</summary>
         /// <param name="xml"></param>
         /// <returns></returns>
         public static ExtendData FromXml(String xml)
@@ -262,9 +169,7 @@ namespace NewLife.Xml
             return extend;
         }
 
-        /// <summary>
-        /// 转为Xml
-        /// </summary>
+        /// <summary>转为Xml</summary>
         /// <returns></returns>
         public String ToXml()
         {

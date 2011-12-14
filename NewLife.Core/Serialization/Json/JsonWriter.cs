@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using System.Diagnostics;
-using System.Collections.Generic;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// Json写入器
-    /// </summary>
+    /// <summary>Json写入器</summary>
     public class JsonWriter : TextWriterBase<JsonSettings>
     {
         #region 属性
@@ -18,14 +15,7 @@ namespace NewLife.Serialization
         /// <summary>写入器</summary>
         public TextWriter Writer
         {
-            get
-            {
-                if (_Writer == null)
-                {
-                    _Writer = new StreamWriter(Stream, Settings.Encoding);
-                }
-                return _Writer;
-            }
+            get { return _Writer ?? (_Writer = new StreamWriter(Stream, Settings.Encoding)); }
             set
             {
                 _Writer = value;
@@ -36,22 +26,16 @@ namespace NewLife.Serialization
             }
         }
 
-        /// <summary>
-        /// 数据流。更改数据流后，重置Writer为空，以使用新的数据流
-        /// </summary>
+        /// <summary>数据流。更改数据流后，重置Writer为空，以使用新的数据流</summary>
         public override Stream Stream
         {
-            get
-            {
-                return base.Stream;
-            }
+            get { return base.Stream; }
             set
             {
                 if (base.Stream != value) _Writer = null;
                 base.Stream = value;
             }
         }
-
         #endregion
 
         #region 构造方法
@@ -70,51 +54,12 @@ namespace NewLife.Serialization
 
         #region 字节/字节数组
         /// <summary>
-        /// 以数字的格式写入字节
-        /// </summary>
-        /// <param name="value"></param>
-        public override void Write(byte value)
-        {
-            WriteLiteral(string.Format("{0}", value)); //json数字不包括16进制和8进制表示
-        }
-        /// <summary>
-        /// 将字节数组以[0xff,0xff,0xff]的格式写入
-        /// </summary>
-        /// <param name="buffer"></param>
-        public override void Write(byte[] buffer)
-        {
-            if (buffer == null)
-            {
-                WriteLiteral("null");
-            }
-            else
-            {
-                Write(buffer, 0, buffer.Length);
-            }
-        }
-        /// <summary>
         /// 将字节数组部分写入当前流。
         /// </summary>
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
         /// <param name="index">buffer 中开始写入的起始点。</param>
         /// <param name="count">要写入的字节数。</param>
-        public override void Write(byte[] buffer, int index, int count)
-        {
-            WriteEnumerable(Slice(buffer, index, count), typeof(Byte[]), BaseWriteMember);
-        }
-        #endregion
-
-        #region 布尔
-        /// <summary>
-        /// 将单字节 Boolean 值写入
-        /// </summary>
-        /// <param name="value">要写入的 Boolean 值</param>
-        public override void Write(bool value)
-        {
-            Depth++;
-            WriteLiteral(value ? "true" : "false");
-            Depth--;
-        }
+        public override void Write(byte[] buffer, int index, int count) { WriteEnumerable(Slice(buffer, index, count), typeof(Byte[]), null); }
         #endregion
 
         #region 时间
@@ -130,13 +75,9 @@ namespace NewLife.Serialization
             if (Settings.JsonDateTimeKind != DateTimeKind.Unspecified && value.Kind != Settings.JsonDateTimeKind)
             {
                 if (Settings.JsonDateTimeKind == DateTimeKind.Local)
-                {
                     value = value.ToLocalTime();
-                }
                 else
-                {
                     value = value.ToUniversalTime();
-                }
             }
 
             switch (Settings.JsonDateTimeFormat)
@@ -155,81 +96,15 @@ namespace NewLife.Serialization
         }
         #endregion
 
-        #region 数字
-        /// <summary>
-        /// 将 2 字节有符号整数写入当前流
-        /// </summary>
-        /// <param name="value">要写入的 2 字节有符号整数。</param>
-        public override void Write(short value)
-        {
-            WriteLiteral(value.ToString());
-        }
-
-        /// <summary>
-        /// 将 4 字节有符号整数写入当前流
-        /// </summary>
-        /// <param name="value">要写入的 4 字节有符号整数。</param>
-        public override void Write(int value)
-        {
-            WriteLiteral(value.ToString());
-        }
-
-        /// <summary>
-        /// 将 8 字节有符号整数写入当前流
-        /// </summary>
-        /// <param name="value">要写入的 8 字节有符号整数。</param>
-        public override void Write(long value)
-        {
-            WriteLiteral(value.ToString());
-        }
-
-        /// <summary>
-        /// 将 4 字节浮点值写入当前流
-        /// </summary>
-        /// <param name="value">要写入的 4 字节浮点值。</param>
-        public override void Write(float value)
-        {
-            WriteLiteral(value.ToString());
-        }
-
-        /// <summary>
-        /// 将 8 字节浮点值写入当前流
-        /// </summary>
-        /// <param name="value">要写入的 8 字节浮点值。</param>
-        public override void Write(double value)
-        {
-            WriteLiteral(value.ToString());
-        }
-
-        /// <summary>
-        /// 将一个十进制值写入当前流，并将流位置提升十六个字节。
-        /// </summary>
-        /// <param name="value">要写入的十进制值。</param>
-        public override void Write(decimal value)
-        {
-            WriteLiteral(value.ToString());
-        }
-        #endregion
-
         #region 字符串
-        /// <summary>
-        /// 输出字符串字面值,不做编码处理
-        /// </summary>
-        /// <param name="value"></param>
-        void WriteLiteral(string value)
-        {
-            Depth++;
-            WriteLog("WriteValue", "Literal", value);
-            Writer.Write(value);
-            Depth--;
-        }
-        void WriteLine()
-        {
-            if (Settings.AllowMultiline)
-            {
-                Writer.WriteLine();
-            }
-        }
+        /// <summary>输出字符串字面值,不做编码处理</summary>
+        protected override void OnWriteLiteral(string value) { Writer.Write(value); }
+
+        /// <summary>输出空</summary>
+        protected override void WriteNull() { WriteLiteral("null"); }
+
+        void WriteLine() { if (Settings.AllowMultiline) Writer.WriteLine(); }
+
         /// <summary>
         /// 将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。
         /// </summary>
@@ -237,14 +112,11 @@ namespace NewLife.Serialization
         public override void Write(char ch)
         {
             if (ch == '\0')
-            {
-                WriteLiteral("null");
-            }
+                WriteNull();
             else
-            {
                 Write(ch.ToString());
-            }
         }
+
         /// <summary>
         /// 将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。
         /// </summary>
@@ -252,14 +124,11 @@ namespace NewLife.Serialization
         public override void Write(char[] chars)
         {
             if (chars == null)
-            {
-                WriteLiteral("null");
-            }
+                WriteNull();
             else
-            {
                 Write(chars, 0, chars.Length);
-            }
         }
+
         /// <summary>
         /// 将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。
         /// </summary>
@@ -269,13 +138,9 @@ namespace NewLife.Serialization
         public override void Write(char[] chars, int index, int count)
         {
             if (Settings.UseCharsWriteToString)
-            {
                 Write(new String(chars));
-            }
             else
-            {
-                WriteEnumerable(Slice(chars, index, count), typeof(char[]), BaseWriteMember);
-            }
+                WriteEnumerable(Slice(chars, index, count), typeof(char[]), null);
         }
 
         /// <summary>
@@ -290,15 +155,14 @@ namespace NewLife.Serialization
             Writer.Write("\"" + value + "\"");
             Depth--;
         }
+
         /// <summary>
         /// 将指定字符串编码成json中表示的字符串,将编码Unicode字符为\uXXXX
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static string JavascriptStringEncode(string value)
-        {
-            return JavascriptStringEncode(value, true);
-        }
+        public static string JavascriptStringEncode(string value) { return JavascriptStringEncode(value, true); }
+
         /// <summary>
         /// 将指定字符串编码成javascript的字面字符串(即写入到js代码中的和value内容相同的代码),开始和结尾不包含双引号
         /// </summary>
@@ -416,11 +280,9 @@ namespace NewLife.Serialization
         protected override bool OnWriteItem(object value, Type type, int index, WriteObjectCallback callback)
         {
             WriteLog("WriteEnumerableItem", index, type != null ? type.FullName : "Unknown type");
-            if (index > 0)
-            {
-                Writer.Write(",");
-            }
-            if (value != null && !IsCanCreateInstance(type))
+            if (index > 0) Writer.Write(",");
+
+            if (value != null && !IsExactType(type))
             {
                 type = value.GetType(); //避免base.OnWriteItem中写入value.GetType()
                 writeValueType = value;
@@ -428,7 +290,7 @@ namespace NewLife.Serialization
             bool ret;
             if (value == null)
             {
-                WriteLiteral("null");
+                WriteNull();
                 ret = true;
             }
             else
@@ -438,6 +300,7 @@ namespace NewLife.Serialization
             writeValueType = null;
             return ret;
         }
+
         /// <summary>
         /// 返回指定数组的一个片段,始终返回的是array参数的一个副本
         /// </summary>
@@ -449,10 +312,8 @@ namespace NewLife.Serialization
         public static T[] Slice<T>(T[] array, int index, int count)
         {
             T[] ret = new T[count];
-            if (count > 0)
-            {
-                Array.Copy(array, index, ret, 0, count);
-            }
+            if (count > 0) Array.Copy(array, index, ret, 0, count);
+
             return ret;
         }
         #endregion
@@ -469,7 +330,7 @@ namespace NewLife.Serialization
         {
             if (value == null)
             {
-                WriteLiteral("null");
+                WriteNull();
                 return true;
             }
             bool ret;
@@ -493,6 +354,7 @@ namespace NewLife.Serialization
             Writer.Write("}");
             return ret;
         }
+
         /// <summary>
         /// 写入字典键和值
         /// </summary>
@@ -513,7 +375,7 @@ namespace NewLife.Serialization
             Write(value.Key.ToString());//json标准要求key必须是字符串
             Writer.Write(":");
             WriteLog("WriteDictionaryEntry", "Value");
-            if (value.Value != null && !IsCanCreateInstance(valueType)) //无法取得字典项的值类型
+            if (value.Value != null && !IsExactType(valueType)) //无法取得字典项的值类型
             {
                 writeValueType = value.Value; //valueType会在WriteObject内部被重新赋值,所以不做额外处理
             }
@@ -536,13 +398,13 @@ namespace NewLife.Serialization
         /// 是否写入成员的计数器,用于控制换行输出
         /// </summary>
         int WriteMemberCount = 0;
+
         /// <summary>
         /// JsonWriter的对象类型由writeValueType写入,作为第一个成员,所以不需要
         /// </summary>
         /// <param name="type"></param>
-        protected override void WriteObjectType(Type type)
-        {
-        }
+        protected override void WriteObjectType(Type type) { }
+
         /// <summary>
         /// 写入对象。具体读写器可以重载该方法以修改写入对象前后的行为。
         /// </summary>
@@ -554,24 +416,19 @@ namespace NewLife.Serialization
         {
             if (value == null)
             {
-                WriteLiteral("null");
+                WriteNull();
                 return true;
             }
-            else if (!IsCanCreateInstance(type))
+            else if (!IsExactType(type))
             {
                 type = value.GetType();
-                if (Depth == 1)
-                {
-                    writeValueType = value;
-                }
+                if (Depth == 1) writeValueType = value;
             }
             if (Type.GetTypeCode(type) == TypeCode.Int16) // 在基类WriteValue时 Int16将会被转换成Int32处理,所以这里需要针对Int16特殊处理
             {
                 Int32 v = 0;
-                if (value != null)
-                {
-                    v = Convert.ToInt32(value.ToString());
-                }
+                if (value != null) v = Convert.ToInt32(value.ToString());
+
                 value = v;
                 type = typeof(Int32);
             }
@@ -626,6 +483,7 @@ namespace NewLife.Serialization
 
             return rs;
         }
+
         /// <summary>
         /// 写入成员
         /// </summary>
@@ -649,7 +507,7 @@ namespace NewLife.Serialization
             Writer.Write("\"" + JavascriptStringEncode(member.Name) + "\":");
 
             object obj = member[value];
-            if (obj != null && !IsCanCreateInstance(memberType))
+            if (obj != null && !IsExactType(memberType))
             {
                 memberType = obj.GetType(); //避免base.OnWriteMember中写入obj.GetType()
                 writeValueType = obj;
@@ -658,6 +516,7 @@ namespace NewLife.Serialization
             writeValueType = null;
             return ret;
         }
+
         /// <summary>
         /// 当前解析复合对象深度是否超出,用于避免循环引用可能引起的堆栈溢出,仅在Settings.RepeatedActionType是RepeatedAction.DepthLimit时才可能返回true
         /// </summary>
@@ -665,27 +524,6 @@ namespace NewLife.Serialization
         public bool ComplexObjectDepthIsOverflow()
         {
             return Settings.DuplicatedObjectWriteMode == DuplicatedObjectWriteMode.DepthLimit && ComplexObjectDepth > Settings.DepthLimit;
-        }
-        /// <summary>
-        /// 返回指定类型是否是可以实例化的,即反序列化时是否是可以实例化的类型,一般用于处理未知类型前
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static bool IsCanCreateInstance(Type type)
-        {
-            return type != null && type != typeof(object) && !type.IsInterface && !type.IsAbstract;
-        }
-        /// <summary>
-        /// 模仿父类的WriteMember实现
-        /// </summary>
-        /// <param name="writer"></param>
-        /// <param name="value"></param>
-        /// <param name="type"></param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        protected static bool BaseWriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback)
-        {
-            return writer.WriteObject(value, type, callback); //模仿基类中的Boolean WriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback)
         }
         #endregion
 

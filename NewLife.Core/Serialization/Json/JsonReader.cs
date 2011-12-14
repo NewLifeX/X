@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using System.Globalization;
-using NewLife.Reflection;
 using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Net;
 using System.Runtime.Serialization;
+using System.Text;
+using NewLife.Exceptions;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// Json读取器
-    /// </summary>
+    /// <summary>Json读取器</summary>
     public class JsonReader : TextReaderBase<JsonSettings>
     {
         #region 属性
@@ -22,14 +21,7 @@ namespace NewLife.Serialization
         /// <summary>读取器</summary>
         public TextReader Reader
         {
-            get
-            {
-                if (_Reader == null)
-                {
-                    _Reader = new StreamReader(Stream, Settings.Encoding);
-                }
-                return _Reader;
-            }
+            get { return _Reader ?? (_Reader = new StreamReader(Stream, Settings.Encoding)); }
             set
             {
                 _Reader = value;
@@ -43,15 +35,10 @@ namespace NewLife.Serialization
             }
         }
 
-        /// <summary>
-        /// 数据流。更改数据流后，重置Reader为空，以使用新的数据流
-        /// </summary>
+        /// <summary>数据流。更改数据流后，重置Reader为空，以使用新的数据流</summary>
         public override Stream Stream
         {
-            get
-            {
-                return base.Stream;
-            }
+            get { return base.Stream; }
             set
             {
                 if (base.Stream != value) _Reader = null;
@@ -100,10 +87,8 @@ namespace NewLife.Serialization
         public override byte[] ReadBytes(int count)
         {
             byte[] ret = null;
-            if (!ReadEnumerable<byte>(ref ret))
-            {
-                return new byte[] { };
-            }
+            if (!ReadEnumerable<byte>(ref ret)) return new byte[] { };
+
             return ret;
         }
         #endregion
@@ -120,9 +105,8 @@ namespace NewLife.Serialization
                 case AtomElementType.TRUE:
                     return true;
                 case AtomElementType.FALSE:
-                    return false;
                 default:
-                    return false; //实际执行不到,只是因为代码编译不通过
+                    return false;
             }
         }
         #endregion
@@ -143,6 +127,7 @@ namespace NewLife.Serialization
             }
             return dt;
         }
+
         static string[] DateTimeParseFormats = { "yyyy-MM-ddTHH:mm:ss.fffZ", //包含毫秒部分的ISO8601格式
                                                    "yyyy-MM-ddTHH:mm:ssZ", //不包含毫秒部分的ISO8601格式,和json2.js的toJSON()格式相同(ff3.5 ie8已原生实现Date.toJSON())
                                                    "ddd, dd MMM yyyy HH:mm:ss GMT", //js中toGMTString()返回的格式
@@ -196,6 +181,7 @@ namespace NewLife.Serialization
         /// 整型类型
         /// </summary>
         public static readonly AtomElementType[] INTEGER_TYPES = { AtomElementType.NUMBER, AtomElementType.NUMBER_EXP };
+
         /// <summary>
         /// 从当前流位置读取一个指定T类型的数字,T应该是int long float double及相关类型
         /// </summary>
@@ -216,6 +202,7 @@ namespace NewLife.Serialization
             }
             throw new JsonReaderAssertException(line, column, expected, actual, string.Format("字符串{0} 不是有效的数字类型:{1}", str, typeof(T).FullName));
         }
+
         /// <summary>
         /// 从指定字符串中尝试读取指定T类型的数字,T应该是int long float double及相关类型
         /// </summary>
@@ -289,6 +276,7 @@ namespace NewLife.Serialization
                     return false;
             }
         }
+
         /// <summary>
         /// 从给定的实际原子节点类型中返回对应的数字格式
         /// </summary>
@@ -303,61 +291,47 @@ namespace NewLife.Serialization
                 (actual == AtomElementType.NUMBER_EXP || actual == AtomElementType.FLOAT_EXP ? NumberStyles.AllowExponent : NumberStyles.None);
         }
 
-
         static readonly string Int16AssertMsg = string.Format("期望是在{0}和{1}之间的数字", Int16.MinValue, Int16.MaxValue);
         /// <summary>
         /// 从当前流位置读取一个16位长度的整型数字
         /// </summary>
         /// <returns></returns>
-        public override short ReadInt16()
-        {
-            return ReadNumber<short>(Int16AssertMsg, INTEGER_TYPES);
-        }
+        public override short ReadInt16() { return ReadNumber<short>(Int16AssertMsg, INTEGER_TYPES); }
+
         static readonly string Int32AssertMsg = string.Format("期望是在{0}和{1}之间的数字", Int32.MinValue, Int32.MaxValue);
         /// <summary>
         /// 从当前流位置读取一个32位长度的整型数字
         /// </summary>
         /// <returns></returns>
-        public override int ReadInt32()
-        {
-            return ReadNumber<int>(Int32AssertMsg, INTEGER_TYPES);
-        }
-        static readonly string Int64AssertMsg = string.Format("期望是在{0}和{1}之间的数字", Int32.MinValue, Int32.MaxValue);
+        public override int ReadInt32() { return ReadNumber<int>(Int32AssertMsg, INTEGER_TYPES); }
+
+        static readonly string Int64AssertMsg = string.Format("期望是在{0}和{1}之间的数字", Int64.MinValue, Int64.MaxValue);
         /// <summary>
         /// 从当前流位置读取一个64位长度的整型数字
         /// </summary>
         /// <returns></returns>
-        public override long ReadInt64()
-        {
-            return ReadNumber<long>(Int64AssertMsg, INTEGER_TYPES);
-        }
+        public override long ReadInt64() { return ReadNumber<long>(Int64AssertMsg, INTEGER_TYPES); }
+
         static readonly string SingleAssertMsg = string.Format("期望是在{0}和{1}之间的单精度浮点数", Single.MinValue, Single.MaxValue);
         /// <summary>
         /// 从当前流位置读取一个单精度浮点数
         /// </summary>
         /// <returns></returns>
-        public override float ReadSingle()
-        {
-            return ReadNumber<float>(SingleAssertMsg, NUMBER_TYPES);
-        }
+        public override float ReadSingle() { return ReadNumber<float>(SingleAssertMsg, NUMBER_TYPES); }
+
         static readonly string DoubleAssertMsg = string.Format("期望是在{0}和{1}之间的双精度浮点数", Double.MinValue, Double.MaxValue);
         /// <summary>
         /// 从当前流位置读取一个双精度浮点数
         /// </summary>
         /// <returns></returns>
-        public override double ReadDouble()
-        {
-            return ReadNumber<double>(DoubleAssertMsg, NUMBER_TYPES);
-        }
+        public override double ReadDouble() { return ReadNumber<double>(DoubleAssertMsg, NUMBER_TYPES); }
+
         static readonly string DecimalAssertMsg = string.Format("期望是在{0}的{1}之间的十进制数", Decimal.MinValue, Decimal.MaxValue);
         /// <summary>
         /// 从当前流位置读取一个十进制数
         /// </summary>
         /// <returns></returns>
-        public override decimal ReadDecimal()
-        {
-            return ReadNumber<decimal>(DecimalAssertMsg, NUMBER_TYPES);
-        }
+        public override decimal ReadDecimal() { return ReadNumber<decimal>(DecimalAssertMsg, NUMBER_TYPES); }
         #endregion
 
         #region 字符串
@@ -374,6 +348,7 @@ namespace NewLife.Serialization
             }
             return ret;
         }
+
         /// <summary>
         /// 从当前流位置读取一个字符,如果读到的是字符串,将取第一个字符;如果读到的是数字,将作为Unicode字符处理;或者读到null
         /// </summary>
@@ -395,6 +370,7 @@ namespace NewLife.Serialization
                         return '\0';
                     }
                 case AtomElementType.NUMBER:
+                default:
                     int n;
                     if (Int32.TryParse(str, out n))
                     {
@@ -405,10 +381,9 @@ namespace NewLife.Serialization
                         throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.STRING, AtomElementType.NUMBER }, t, "期望的字符Unicode代码超出预期,实际是:" + str);
                     }
 
-                default:
-                    goto case AtomElementType.NUMBER; //实际执行不到
             }
         }
+
         /// <summary>
         /// 从当前流位置读取字符数组
         /// </summary>
@@ -457,6 +432,7 @@ namespace NewLife.Serialization
                 throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.STRING }, AtomElementType.STRING, "不是有效的Guid格式" + ex.Message);
             }
         }
+
         /// <summary>
         /// 读取IP地址
         /// </summary>
@@ -472,6 +448,7 @@ namespace NewLife.Serialization
                 throw new JsonReaderAssertException(line, column, new AtomElementType[] { AtomElementType.STRING }, AtomElementType.STRING, "不是有效的IP地址" + ex.Message);
             }
         }
+
         /// <summary>
         /// 读取IP端口地址
         /// </summary>
@@ -505,6 +482,7 @@ namespace NewLife.Serialization
             value = (T[])lst;
             return true;
         }
+
         /// <summary>
         /// 从当前流位置读取一个枚举类型
         /// </summary>
@@ -533,6 +511,7 @@ namespace NewLife.Serialization
             }
             return ret;
         }
+
         /// <summary>
         /// 从当前流位置读取枚举项目
         /// </summary>
@@ -561,7 +540,7 @@ namespace NewLife.Serialization
             }
 
             WriteLog("ReadEnumerableItem", type != null ? type.Name : "Not found item type", index);
-            //if (!IsCanCreateInstance(type)) //注释是因为ReadObject方法中已经没有ReadType的调用,最终将由OnReadObject方法处理
+            //if (!IsExactType(type)) //注释是因为ReadObject方法中已经没有ReadType的调用,最终将由OnReadObject方法处理
             //{
             //    type = typeof(ReservedTypeClass);
             //}
@@ -645,10 +624,7 @@ namespace NewLife.Serialization
             }
             return ret;
         }
-        //protected override IEnumerable<System.Collections.DictionaryEntry> ReadDictionary(Type keyType, Type valueType, int count, ReadObjectCallback callback)
-        //{
-        //    return base.ReadDictionary(keyType, valueType, count, callback);
-        //}
+
         /// <summary>
         /// 从当前流位置读取一个字典项
         /// </summary>
@@ -677,7 +653,7 @@ namespace NewLife.Serialization
 
             WriteLog("ReadDictionaryEntry", str, valueType != null ? valueType.Name : "Not found value type", index);
 
-            //if (!IsCanCreateInstance(valueType)) //注释是因为ReadObject方法中已经没有ReadType的调用,将最终由OnReadObject方法处理
+            //if (!IsExactType(valueType)) //注释是因为ReadObject方法中已经没有ReadType的调用,将最终由OnReadObject方法处理
             //{
             //    valueType = typeof(ReservedTypeClass);
             //}
@@ -705,6 +681,7 @@ namespace NewLife.Serialization
             string s;
             return AssertReadNextAtomElement(msg, out s, expected);
         }
+
         /// <summary>
         /// 断言读取下一个原子元素,返回实际读到的原子元素类型
         /// 
@@ -718,6 +695,7 @@ namespace NewLife.Serialization
         {
             return AssertReadNextAtomElement(false, msg, out str, expected);
         }
+
         /// <summary>
         /// 断言读取下一个原子元素,返回实际读到的原子元素类型
         /// 
@@ -748,10 +726,8 @@ namespace NewLife.Serialization
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        AtomElementType ReadNextAtomElement(out string str)
-        {
-            return ReadNextAtomElement(false, out str);
-        }
+        AtomElementType ReadNextAtomElement(out string str) { return ReadNextAtomElement(false, out str); }
+
         /// <summary>
         /// 读取下一个原子元素,非{} []这类复合元素
         /// </summary>
@@ -816,6 +792,7 @@ namespace NewLife.Serialization
                 }
             }
         }
+
         /// <summary>
         /// 将当前输入流位置向后移动一个字符,并返回读取到的字符
         /// </summary>
@@ -825,6 +802,7 @@ namespace NewLife.Serialization
             column++;
             return Reader.Read();
         }
+
         /// <summary>
         /// 读取下一个字符串,当前reader流已经在"之后,读取到的字符串应该是不包含结尾的双引号
         /// </summary>
@@ -875,6 +853,7 @@ namespace NewLife.Serialization
             str = sb.ToString();
             return AtomElementType.STRING;
         }
+
         /// <summary>
         /// 读取下一个转义字符,流已处于转义符\后
         /// </summary>
@@ -914,6 +893,7 @@ namespace NewLife.Serialization
                     return "" + (char)c;
             }
         }
+
         /// <summary>
         /// 读取下一个字面值,可能是true false null 数字 无法识别,调用时第一个字符一定是一个字面值
         /// </summary>
@@ -1037,13 +1017,12 @@ namespace NewLife.Serialization
                 }
             }
         }
+
         /// <summary>
         /// 跳过下一个值,可以是跳过对象声明(以及对象成员名称 成员值声明),数组声明,以及基础类型
         /// </summary>
-        void SkipNext()
-        {
-            SkipNext(0);
-        }
+        void SkipNext() { SkipNext(0); }
+
         /// <summary>
         /// 跳过下面的值,并指定初始复合对象深度,通过提供大于0的初始深度可以跳过一直到 偏移指定深度 的复合对象位置,一般是读取到]或者}符号之后
         /// </summary>
@@ -1108,7 +1087,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected override bool OnReadObject(Type type, ref object value, ReadObjectCallback callback)
         {
-            if (type == typeof(ReservedTypeClass) || !IsCanCreateInstance(type))
+            if (type == typeof(ReservedTypeClass) || !IsExactType(type))
             {
                 //探测类型 true,false,null,number,float这些返回类型不是可靠的
                 string str;
@@ -1193,6 +1172,7 @@ namespace NewLife.Serialization
             }
             return base.OnReadObject(type, ref value, callback);
         }
+
         /// <summary>
         /// 从当前流位置读取一个自定义对象,即{}包括的数据
         /// </summary>
@@ -1208,7 +1188,7 @@ namespace NewLife.Serialization
                 value = null;
                 return true;
             }
-            if (type == typeof(ReservedTypeClass) || !IsCanCreateInstance(type))
+            if (type == typeof(ReservedTypeClass) || !IsExactType(type))
             {
                 string str;
                 bool hasType = false;
@@ -1278,6 +1258,7 @@ namespace NewLife.Serialization
             }
             return ret;
         }
+
         /// <summary>
         /// 当前解析复合对象深度是否超出,用于避免循环引用可能引起的堆栈溢出,仅在Settings.RepeatedActionType是RepeatedAction.DepthLimit时才可能返回true
         /// </summary>
@@ -1286,6 +1267,7 @@ namespace NewLife.Serialization
         {
             return Settings.DuplicatedObjectWriteMode == DuplicatedObjectWriteMode.DepthLimit && ComplexObjectDepth > Settings.DepthLimit;
         }
+
         /// <summary>
         /// 读取当前成员名称
         /// </summary>
@@ -1322,6 +1304,7 @@ namespace NewLife.Serialization
             }
             return ret;
         }
+
         /// <summary>
         /// 从当前流位置读取成员值
         /// </summary>
@@ -1333,7 +1316,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected override bool OnReadMember(Type type, ref object value, IObjectMemberInfo member, int index, ReadObjectCallback callback)
         {
-            if (!IsCanCreateInstance(type)) //避免父类进入ReadType的调用
+            if (!IsExactType(type)) //避免父类进入ReadType的调用
             {
                 if (typeof(IDictionary).IsAssignableFrom(type)) //声明为无法实例化的类型,并且实现了IDictionary接口
                 {
@@ -1376,10 +1359,6 @@ namespace NewLife.Serialization
             }
             return base.OnReadMember(type, ref value, member, index, callback);
         }
-        /// <summary>
-        /// 返回指定类型是否是可以实例化的,即反序列化时是否是可以实例化的类型,一般用于处理未知类型前
-        /// </summary>
-        public readonly static Func<Type, bool> IsCanCreateInstance = JsonWriter.IsCanCreateInstance;
 
         /// <summary>
         /// 表示类型是无法实例化的类型,用于避免父类CheckAndReadType中的ReadType被执行,因为json的类型标识是另外的格式
@@ -1387,9 +1366,25 @@ namespace NewLife.Serialization
         private class ReservedTypeClass { }
         #endregion
 
+        #region 方法
         /// <summary>
-        /// 原子元素类型
+        /// 读取多维数组的维度
         /// </summary>
+        /// <returns></returns>
+        protected override string ReadLengths()
+        {
+            String lengths = base.ReadLengths();
+            //if (lengths.StartsWith("\"") || lengths.EndsWith("\""))
+            //{
+            // lengths = lengths.Substring(1, lengths.Length - 1);
+            //}
+            //lengths.Replace("\"", "");
+            return lengths;
+        }
+        #endregion
+
+        #region 内部类
+        /// <summary>原子元素类型</summary>
         public enum AtomElementType
         {
             /// <summary>
@@ -1459,14 +1454,11 @@ namespace NewLife.Serialization
             FLOAT_EXP
             #endregion
         }
-        /// <summary>
-        /// json reader解析异常,主要是信息格式不正确
-        /// </summary>
-        public class JsonReaderParseException : Exception
+
+        /// <summary>json reader解析异常,主要是信息格式不正确</summary>
+        public class JsonReaderParseException : XException
         {
-            /// <summary>
-            /// 构造一个解析异常
-            /// </summary>
+            /// <summary>构造一个解析异常</summary>
             /// <param name="line">行</param>
             /// <param name="column">列</param>
             /// <param name="message">额外的异常信息</param>
@@ -1476,25 +1468,23 @@ namespace NewLife.Serialization
                 this.Line = line;
                 this.Column = column;
             }
+
             /// <summary>
             /// 解析异常的行
             /// </summary>
             public long Line { get; protected set; }
+
             /// <summary>
             /// 解析异常的列
             /// </summary>
             public long Column { get; protected set; }
+
             /// <summary>
             /// 解析异常的详细信息
             /// </summary>
-            public override string Message
-            {
-                get
-                {
-                    return string.Format("在解析行{0}:字符{1}时发生了异常:{2}", Line, Column, base.Message);
-                }
-            }
+            public override string Message { get { return string.Format("在解析行{0}:字符{1}时发生了异常:{2}", Line, Column, base.Message); } }
         }
+
         /// <summary>
         /// json reader断言异常,属于解析异常的一部分,主要是提供的数据不符合约定
         /// </summary>
@@ -1504,17 +1494,18 @@ namespace NewLife.Serialization
             /// 断言异常的额外异常信息
             /// </summary>
             public string MessageInfo { get; protected set; }
+
             /// <summary>
             /// 断言期望的元素类型
             /// </summary>
             public AtomElementType[] Expected { get; protected set; }
+
             /// <summary>
             /// 断言实际得到的类型,如果期望类型中包含这个类型,即表示错误是非元素基础类型错误,而是由于元素格式不符合理想,比如期望是日期时间格式的字符串
             /// </summary>
             public AtomElementType Actual { get; protected set; }
-            /// <summary>
-            /// 构造一个断言异常
-            /// </summary>
+
+            /// <summary>构造一个断言异常</summary>
             /// <param name="line"></param>
             /// <param name="column"></param>
             /// <param name="expected">期望的节点类型</param>
@@ -1527,16 +1518,12 @@ namespace NewLife.Serialization
                 this.Actual = actual;
                 this.MessageInfo = messageInfo;
             }
+
             /// <summary>
             /// 异常信息,包含额外信息
             /// </summary>
-            public override string Message
-            {
-                get
-                {
-                    return FormatMessage(Line, Column, Expected, Actual, MessageInfo);
-                }
-            }
+            public override string Message { get { return FormatMessage(Line, Column, Expected, Actual, MessageInfo); } }
+
             /// <summary>
             /// 获取相似参数下JsonReaderAssertException类的异常信息,在不需要JsonReaderAssertException异常,但需要异常信息时使用
             /// </summary>
@@ -1554,6 +1541,7 @@ namespace NewLife.Serialization
                         messageInfo
                         );
             }
+
             static string GetAtomElementTypeMessageString(AtomElementType t)
             {
                 switch (t)
@@ -1596,20 +1584,6 @@ namespace NewLife.Serialization
 
             }
         }
-        /// <summary>
-        /// 读取多维数组的维度
-        /// </summary>
-        /// <returns></returns>
-        protected override string ReadLengths()
-        {
-            String lengths = base.ReadLengths();
-            //if (lengths.StartsWith("\"") || lengths.EndsWith("\""))
-            //{
-            // lengths = lengths.Substring(1, lengths.Length - 1);
-            //}
-            //lengths.Replace("\"", "");
-            return lengths;
-        }
-
+        #endregion
     }
-};
+}

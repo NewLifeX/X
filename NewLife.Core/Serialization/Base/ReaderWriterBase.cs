@@ -5,7 +5,7 @@ using System.IO;
 namespace NewLife.Serialization
 {
     /// <summary>读写器基类</summary>
-    public abstract class ReaderWriterBase<TSettings> : NewLife.DisposeBase, IReaderWriter where TSettings : ReaderWriterSetting, new()
+    public abstract class ReaderWriterBase<TSettings> : /*NewLife.DisposeBase,*/ IReaderWriter where TSettings : ReaderWriterSetting, new()
     {
         #region 属性
         private String _Name;
@@ -71,10 +71,7 @@ namespace NewLife.Serialization
 
         #region 方法
         /// <summary>重置</summary>
-        public virtual void Reset()
-        {
-            Depth = 1;
-        }
+        public virtual void Reset() { Depth = 1; }
 
         /// <summary>是否精确类型</summary>
         /// <param name="type"></param>
