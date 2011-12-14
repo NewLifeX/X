@@ -942,9 +942,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 扩展处理类型
-        /// <summary>
-        /// 扩展读取，反射查找合适的读取方法
-        /// </summary>
+        /// <summary>扩展读取，反射查找合适的读取方法</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns></returns>
@@ -952,23 +950,11 @@ namespace NewLife.Serialization
         {
             if (type == typeof(Byte[]))
             {
-                //Int32 len = ReadInt32();
-                //if (len < 0) throw new Exception("非法数据！字节数组长度不能为负数！");
-                //value = null;
-                //if (len > 0) value = ReadBytes(len);
-                //return true;
-
                 value = ReadBytes(-1);
                 return true;
             }
             if (type == typeof(Char[]))
             {
-                //Int32 len = ReadInt32();
-                //if (len < 0) throw new Exception("非法数据！字符数组长度不能为负数！");
-                //value = null;
-                //if (len > 0) value = ReadChars(len);
-                //return true;
-
                 value = ReadChars(-1);
                 return true;
             }
@@ -997,73 +983,27 @@ namespace NewLife.Serialization
             return false;
         }
 
-        /// <summary>
-        /// 读取Guid
-        /// </summary>
+        /// <summary>读取Guid</summary>
         /// <returns></returns>
-        public virtual Guid ReadGuid()
-        {
-            //return new Guid(ReadBytes(16));
+        public virtual Guid ReadGuid() { return ReadObjRef<Guid>(OnReadGuid); }
 
-            return ReadObjRef<Guid>(OnReadGuid);
-        }
-
-        /// <summary>
-        /// 读取Guid
-        /// </summary>
+        /// <summary>读取Guid</summary>
         /// <returns></returns>
-        protected virtual Guid OnReadGuid()
-        {
-            return new Guid(ReadBytes(16));
-        }
+        protected virtual Guid OnReadGuid() { return new Guid(ReadBytes(16)); }
 
-        /// <summary>
-        /// 读取IPAddress
-        /// </summary>
+        /// <summary>读取IPAddress</summary>
         /// <returns></returns>
-        public virtual IPAddress ReadIPAddress()
-        {
-            //Byte[] buffer = ReadBytes(-1);
+        public virtual IPAddress ReadIPAddress() { return ReadObjRef<IPAddress>(OnReadIPAddress); }
 
-            //IPAddress address = new IPAddress(buffer);
-            ////AddObjRef(index, address);
-            //return address;
-
-            return ReadObjRef<IPAddress>(OnReadIPAddress);
-        }
-
-        /// <summary>
-        /// 读取IPAddress
-        /// </summary>
+        /// <summary>读取IPAddress</summary>
         /// <returns></returns>
-        protected virtual IPAddress OnReadIPAddress()
-        {
-            Byte[] buffer = ReadBytes(-1);
+        protected virtual IPAddress OnReadIPAddress() { return new IPAddress(ReadBytes(-1)); }
 
-            IPAddress address = new IPAddress(buffer);
-            //AddObjRef(index, address);
-            return address;
-        }
-
-        /// <summary>
-        /// 读取IPEndPoint
-        /// </summary>
+        /// <summary>读取IPEndPoint</summary>
         /// <returns></returns>
-        public virtual IPEndPoint ReadIPEndPoint()
-        {
-            //IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
-            //ep.Address = ReadIPAddress();
-            ////// 端口实际只占2字节
-            ////ep.Port = ReadUInt16();
-            //ep.Port = ReadInt32();
-            //return ep;
+        public virtual IPEndPoint ReadIPEndPoint() { return ReadObjRef<IPEndPoint>(OnReadIPEndPoint); }
 
-            return ReadObjRef<IPEndPoint>(OnReadIPEndPoint);
-        }
-
-        /// <summary>
-        /// 读取IPEndPoint
-        /// </summary>
+        /// <summary>读取IPEndPoint</summary>
         /// <returns></returns>
         protected virtual IPEndPoint OnReadIPEndPoint()
         {
@@ -1074,9 +1014,7 @@ namespace NewLife.Serialization
             return ep;
         }
 
-        /// <summary>
-        /// 读取Type
-        /// </summary>
+        /// <summary>读取Type</summary>
         /// <returns></returns>
         public Type ReadType()
         {
@@ -1090,9 +1028,7 @@ namespace NewLife.Serialization
             return type;
         }
 
-        /// <summary>
-        /// 读取Type
-        /// </summary>
+        /// <summary>读取Type</summary>
         /// <returns></returns>
         protected virtual Type OnReadType()
         {
@@ -1105,29 +1041,14 @@ namespace NewLife.Serialization
             throw new XException("无法找到名为{0}的类型！", typeName);
         }
 
-        /// <summary>
-        /// 获取精确类型
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        protected static Boolean IsExactType(Type type)
-        {
-            if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
-                return false;
-            else
-                return true;
-        }
-
-        /// <summary>
-        /// 检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。同时返回对象实际类型。
-        /// </summary>
+        /// <summary>检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。同时返回对象实际类型。</summary>
         /// <param name="action"></param>
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <returns></returns>
         protected Type CheckAndReadType(String action, Type type, Object value)
         {
-            if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
+            if (IsExactType(type))
             {
                 WriteLog(action);
                 Type t = ReadObjectType();
@@ -1140,9 +1061,7 @@ namespace NewLife.Serialization
             return type;
         }
 
-        /// <summary>
-        /// 猜测类型。对于无法读取到对象类型的类型，并且是接口之类的，可以猜测
-        /// </summary>
+        /// <summary>猜测类型。对于无法读取到对象类型的类型，并且是接口之类的，可以猜测</summary>
         /// <param name="type"></param>
         /// <returns></returns>
         static Type GuessType(Type type)
@@ -1206,14 +1125,9 @@ namespace NewLife.Serialization
             return AssemblyX.FindAllPlugins(type).FirstOrDefault(t => IsExactType(t));
         }
 
-        /// <summary>
-        /// 读对象类型
-        /// </summary>
+        /// <summary>读对象类型</summary>
         /// <returns></returns>
-        protected virtual Type ReadObjectType()
-        {
-            return ReadType();
-        }
+        protected virtual Type ReadObjectType() { return ReadType(); }
         #endregion
 
         #region 复杂对象
@@ -1317,12 +1231,12 @@ namespace NewLife.Serialization
                 Int32 index = 0;
                 if (ReadObjRef(type, ref value, out index)) return true;
 
-                // 读取引用对象
                 objRefIndex = index;
 
                 // 特殊类型
                 if (ReadX(type, ref value)) return true;
 
+                // 读取引用对象
                 if (!ReadRefObject(type, ref value, callback)) return false;
 
                 if (value != null) AddObjRef(index, value);
@@ -1354,17 +1268,13 @@ namespace NewLife.Serialization
             return true;
         }
 
-        /// <summary>
-        /// 尝试读取引用对象
-        /// </summary>
+        /// <summary>尝试读取引用对象</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
         protected virtual Boolean ReadRefObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-            //type = CheckAndReadType("ReadRefObjectType", type, value);
-
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
             {
@@ -1418,9 +1328,7 @@ namespace NewLife.Serialization
         List<Object> objRefs = new List<Object>();
         Int32 objRefIndex = 0;
 
-        /// <summary>
-        /// 读取对象引用。
-        /// </summary>
+        /// <summary>读取对象引用。</summary>
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
         /// <param name="index">引用计数</param>
@@ -1469,18 +1377,11 @@ namespace NewLife.Serialization
             return true;
         }
 
-        /// <summary>
-        /// 读取对象引用计数
-        /// </summary>
+        /// <summary>读取对象引用计数</summary>
         /// <returns></returns>
-        protected virtual Int32 OnReadObjRefIndex()
-        {
-            return ReadInt32();
-        }
+        protected virtual Int32 OnReadObjRefIndex() { return ReadInt32(); }
 
-        /// <summary>
-        /// 添加对象引用
-        /// </summary>
+        /// <summary>添加对象引用</summary>
         /// <param name="index">引用计数</param>
         /// <param name="value">对象</param>
         protected virtual void AddObjRef(Int32 index, Object value)
@@ -1496,19 +1397,16 @@ namespace NewLife.Serialization
         #endregion
 
         #region 自定义对象
-        /// <summary>
-        /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
-        /// </summary>
+        /// <summary>尝试读取自定义对象</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
         public virtual Boolean ReadCustomObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-            //   type = CheckAndReadType("ReadCustomObjectType", type, value);
-
             IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
+            if (callback == null) callback = ReadMember;
 
             // 如果为空，实例化并赋值。
             if (value == null)
@@ -1543,14 +1441,9 @@ namespace NewLife.Serialization
         /// <param name="members">可匹配成员数组</param>
         /// <param name="index">索引</param>
         /// <returns></returns>
-        protected virtual IObjectMemberInfo GetMemberBeforeRead(Type type, Object value, IObjectMemberInfo[] members, Int32 index)
-        {
-            return members[index];
-        }
+        protected virtual IObjectMemberInfo GetMemberBeforeRead(Type type, Object value, IObjectMemberInfo[] members, Int32 index) { return members[index]; }
 
-        /// <summary>
-        /// 根据名称，从成员数组中查找成员
-        /// </summary>
+        /// <summary>根据名称，从成员数组中查找成员</summary>
         /// <param name="members">可匹配成员数组</param>
         /// <param name="name">名称</param>
         /// <returns></returns>
@@ -1564,19 +1457,16 @@ namespace NewLife.Serialization
             return null;
         }
 
-        /// <summary>
-        /// 读取成员
-        /// </summary>
+        /// <summary>读取对象成员</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        protected Boolean ReadMember(Type type, ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
+        public Boolean ReadMember(Type type, ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
-            //type = CheckAndReadType(type, value);
-
+            if (callback == null) callback = ReadMember;
 #if !DEBUG
             try
 #endif
@@ -1652,10 +1542,7 @@ namespace NewLife.Serialization
             return callback(this, type, ref value, callback);
         }
 
-        private static Boolean ReadMember(IReader reader, Type type, ref Object value, ReadObjectCallback callback)
-        {
-            return reader.ReadObject(type, ref value, callback);
-        }
+        static Boolean ReadMember(IReader reader, Type type, ref Object value, ReadObjectCallback callback) { return reader.ReadObject(type, ref value, callback); }
         #endregion
 
         #region 事件

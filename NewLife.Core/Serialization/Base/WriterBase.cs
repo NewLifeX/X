@@ -718,19 +718,6 @@ namespace NewLife.Serialization
         }
 
         /// <summary>
-        /// 获取精确类型
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        protected Boolean IsExactType(Type type)
-        {
-            if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
-                return false;
-            else
-                return true;
-        }
-
-        /// <summary>
         /// 检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。同时返回对象实际类型。
         /// </summary>
         /// <param name="action"></param>
@@ -880,8 +867,6 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected virtual Boolean WriteRefObject(Object value, Type type, WriteObjectCallback callback)
         {
-            //  type = CheckAndWriteType("WriteRefObjectType", value, type);
-
             // 字典
             if (typeof(IDictionary).IsAssignableFrom(type))
             {
@@ -909,9 +894,7 @@ namespace NewLife.Serialization
 
         List<Object> objRefs = new List<Object>();
 
-        /// <summary>
-        /// 写入对象引用。
-        /// </summary>
+        /// <summary>写入对象引用。</summary>
         /// <param name="value">对象</param>
         /// <returns>是否写入成功</returns>
         public Boolean WriteObjRef(Object value)
@@ -951,20 +934,13 @@ namespace NewLife.Serialization
             return true;
         }
 
-        /// <summary>
-        /// 写对象引用计数
-        /// </summary>
+        /// <summary>写对象引用计数</summary>
         /// <param name="index"></param>
-        protected virtual void OnWriteObjRefIndex(Int32 index)
-        {
-            Write(index);
-        }
+        protected virtual void OnWriteObjRefIndex(Int32 index) { Write(index); }
         #endregion
 
         #region 自定义对象
-        /// <summary>
-        /// 写对象成员
-        /// </summary>
+        /// <summary>写自定义对象</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
@@ -972,8 +948,7 @@ namespace NewLife.Serialization
         public virtual Boolean WriteCustomObject(Object value, Type type, WriteObjectCallback callback)
         {
             if (value == null) return true;
-            //if (type == null) type = value.GetType();
-            //  type = CheckAndWriteType("WriteCustomObjectType", value, type);
+            if (callback == null) callback = WriteMember;
 
             IObjectMemberInfo[] mis = GetMembers(type, value);
             if (mis == null || mis.Length < 1) return true;
@@ -990,19 +965,16 @@ namespace NewLife.Serialization
             return true;
         }
 
-        /// <summary>
-        /// 写入成员
-        /// </summary>
+        /// <summary>写入对象成员</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected Boolean WriteMember(Object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
+        public Boolean WriteMember(Object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
         {
-            //type = CheckAndWriteType(value, type);
-
+            if (callback == null) callback = WriteMember;
 #if !DEBUG
             try
 #endif
@@ -1050,34 +1022,16 @@ namespace NewLife.Serialization
 #endif
         }
 
-        /// <summary>
-        /// 写入成员
-        /// </summary>
+        /// <summary>写入对象成员</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="member">成员</param>
         /// <param name="index">成员索引</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
-        protected virtual Boolean OnWriteMember(Object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
-        {
-            Object obj = member[value];
+        protected virtual Boolean OnWriteMember(Object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback) { return callback(this, member[value], type, callback); }
 
-            //type = CheckAndWriteType("WriteMemberType", obj, type);
-
-            //if (type == typeof(Object) && obj != null)
-            //{
-            //    type = obj.GetType();
-            //    WriteLog("WriteMemberType", type.Name);
-            //    Write(type);
-            //}
-            return callback(this, obj, type, callback);
-        }
-
-        private static Boolean WriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback)
-        {
-            return writer.WriteObject(value, type, callback);
-        }
+        private static Boolean WriteMember(IWriter writer, Object value, Type type, WriteObjectCallback callback) { return writer.WriteObject(value, type, callback); }
         #endregion
 
         #region 事件
@@ -1145,25 +1099,13 @@ namespace NewLife.Serialization
             Write(lengths);
         }
 
-        /// <summary>
-        /// 刷新缓存中的数据
-        /// </summary>
-        public virtual void Flush()
-        {
-            Stream.Flush();
-        }
+        /// <summary>刷新缓存中的数据</summary>
+        public virtual void Flush() { Stream.Flush(); }
 
-        /// <summary>
-        /// 如果设置了自动刷新缓存，该方面将会调用Flush
-        /// </summary>
-        protected void AutoFlush()
-        {
-            if (Settings.AutoFlush) Flush();
-        }
+        /// <summary>如果设置了自动刷新缓存，该方面将会调用Flush</summary>
+        protected void AutoFlush() { if (Settings.AutoFlush) Flush(); }
 
-        /// <summary>
-        /// 重置
-        /// </summary>
+        /// <summary>重置</summary>
         public override void Reset()
         {
             objRefs.Clear();
@@ -1171,9 +1113,7 @@ namespace NewLife.Serialization
             base.Reset();
         }
 
-        /// <summary>
-        /// 输出数据转为字节数组
-        /// </summary>
+        /// <summary>输出数据转为字节数组</summary>
         /// <returns></returns>
         public virtual Byte[] ToArray()
         {
@@ -1204,9 +1144,7 @@ namespace NewLife.Serialization
             return ms.ToArray();
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {

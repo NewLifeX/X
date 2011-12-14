@@ -75,6 +75,17 @@ namespace NewLife.Serialization
         {
             Depth = 1;
         }
+
+        /// <summary>是否精确类型</summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected static Boolean IsExactType(Type type)
+        {
+            if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
+                return false;
+            else
+                return true;
+        }
         #endregion
 
         #region 获取成员

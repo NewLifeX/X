@@ -186,24 +186,32 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         Boolean WriteObject(Object value, Type type, WriteObjectCallback callback);
 
-        //Boolean WriteStart(Object value, Type type);
-
-        //Boolean WriteBody();
-
-        //Boolean WriteEnd(Object value, Type type);
-
-        /// <summary>
-        /// 写入对象引用。
-        /// </summary>
+        /// <summary>写入对象引用。</summary>
         /// <param name="value">对象</param>
         /// <returns>是否写入成功</returns>
         Boolean WriteObjRef(Object value);
         #endregion
 
+        #region 自定义对象
+        /// <summary>写自定义对象</summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        Boolean WriteCustomObject(Object value, Type type, WriteObjectCallback callback);
+
+        /// <summary>写入对象成员</summary>
+        /// <param name="value">要写入的对象</param>
+        /// <param name="type">要写入的对象类型</param>
+        /// <param name="member">成员</param>
+        /// <param name="index">成员索引</param>
+        /// <param name="callback">处理成员的方法</param>
+        /// <returns>是否写入成功</returns>
+        Boolean WriteMember(Object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback);
+        #endregion
+
         #region 字典
-        /// <summary>
-        /// 写入字典类型数据
-        /// </summary>
+        /// <summary>写入字典类型数据</summary>
         /// <param name="value">字典数据</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
@@ -212,9 +220,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 枚举
-        /// <summary>
-        /// 写入枚举类型数据
-        /// </summary>
+        /// <summary>写入枚举类型数据</summary>
         /// <param name="value">枚举数据</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
@@ -223,9 +229,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 序列化接口
-        /// <summary>
-        /// 写入实现了可序列化接口的对象
-        /// </summary>
+        /// <summary>写入实现了可序列化接口的对象</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
@@ -234,9 +238,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 未知对象
-        /// <summary>
-        /// 写入未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization
-        /// </summary>
+        /// <summary>写入未知对象（其它所有方法都无法识别的对象），采用BinaryFormatter或者XmlSerialization</summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
@@ -291,14 +293,10 @@ namespace NewLife.Serialization
         /// <param name="size"></param>
         void WriteSize(Int32 size);
 
-        /// <summary>
-        /// 刷新缓存中的数据
-        /// </summary>
+        /// <summary>刷新缓存中的数据</summary>
         void Flush();
 
-        /// <summary>
-        /// 输出数据转为字节数组
-        /// </summary>
+        /// <summary>输出数据转为字节数组</summary>
         /// <returns></returns>
         Byte[] ToArray();
         #endregion
