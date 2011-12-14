@@ -197,7 +197,7 @@ namespace NewLife.Serialization
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns></returns>
-        protected override bool ReadValue(Type type, ref object value)
+        public override bool ReadValue(Type type, ref object value)
         {
             if (type != null && type.IsEnum && Settings.UseEnumName)
             {

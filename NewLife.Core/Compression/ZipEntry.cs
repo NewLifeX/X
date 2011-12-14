@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 namespace NewLife.Compression
 {
+    /// <summary>Zip实体</summary>
     public class ZipEntry
     {
         #region 数据属性
@@ -293,12 +294,12 @@ namespace NewLife.Compression
                 return null;
             }
 
-            int bytesRead = 42 + 4;
+            //int bytesRead = 42 + 4;
             byte[] block = new byte[42];
             int n = s.Read(block, 0, block.Length);
             if (n != block.Length) return null;
 
-            int i = 0;
+            //int i = 0;
             ZipEntry zde = new ZipEntry();
 
             //// workitem 10330
@@ -376,7 +377,7 @@ namespace NewLife.Compression
             //}
             //zde._LengthOfDirEntry = bytesRead;
             return zde;
-            return null;
+            //return null;
         }
         #endregion
 

@@ -125,6 +125,19 @@ namespace NewLife.Serialization
         #endregion
         #endregion
 
+        #region 值类型
+        /// <summary>读取值类型数据</summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        Object ReadValue(Type type);
+
+        /// <summary>尝试读取值类型数据，返回是否读取成功</summary>
+        /// <param name="type">要读取的对象类型</param>
+        /// <param name="value">要读取的对象</param>
+        /// <returns></returns>
+        Boolean ReadValue(Type type, ref Object value);
+        #endregion
+
         #region 扩展类型
         /// <summary>
         /// 读取Guid
@@ -152,18 +165,19 @@ namespace NewLife.Serialization
         #endregion
 
         #region 复杂对象
-        /// <summary>
-        /// 尝试按照指定类型读取目标对象
-        /// </summary>
+        /// <summary>主要入口方法。从数据流中读取指定类型的对象</summary>
+        /// <param name="type">类型</param>
+        /// <returns>对象</returns>
+        Object ReadObject(Type type);
+
+        /// <summary>主要入口方法。尝试按照指定类型读取目标对象</summary>
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
         Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback);
 
-        /// <summary>
-        /// 读取对象引用。
-        /// </summary>
+        /// <summary>读取对象引用。</summary>
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>
         /// <param name="index">引用计数</param>
@@ -255,6 +269,12 @@ namespace NewLife.Serialization
         /// 读枚举项后触发。
         /// </summary>
         event EventHandler<ReadItemEventArgs> OnItemReaded;
+        #endregion
+
+        #region 方法
+        /// <summary>读取大小</summary>
+        /// <returns></returns>
+        Int32 ReadSize();
         #endregion
     }
 

@@ -8,7 +8,7 @@ using NewLife.Linq;
 namespace NewLife.Compression
 {
     /// <summary>Zip文件</summary>
-    /// <remarks>Zip定义位于 <see cref="http://www.pkware.com/documents/casestudies/APPNOTE.TXT"/></remarks>
+    /// <remarks>Zip定义位于 <see href="http://www.pkware.com/documents/casestudies/APPNOTE.TXT"/></remarks>
     public partial class ZipFile : IEnumerable, IEnumerable<ZipEntry>, IDisposable
     {
         #region 属性
@@ -27,13 +27,20 @@ namespace NewLife.Compression
         #endregion
 
         #region 构造
-
+        /// <summary>实例化一个Zip文件对象</summary>
         public ZipFile() : this(String.Empty, null) { }
 
+        /// <summary>实例化一个Zip文件对象</summary>
+        /// <param name="fileName"></param>
         public ZipFile(String fileName) : this(fileName, null) { }
 
+        /// <summary>实例化一个Zip文件对象</summary>
+        /// <param name="encoding"></param>
         public ZipFile(Encoding encoding) : this(String.Empty, encoding) { }
 
+        /// <summary>实例化一个Zip文件对象</summary>
+        /// <param name="fileName"></param>
+        /// <param name="encoding"></param>
         public ZipFile(String fileName, Encoding encoding)
         {
             try
@@ -63,6 +70,9 @@ namespace NewLife.Compression
             }
         }
 
+        /// <summary>实例化一个Zip文件对象</summary>
+        /// <param name="stream"></param>
+        /// <param name="encoding"></param>
         public ZipFile(Stream stream, Encoding encoding)
         {
             try
@@ -75,6 +85,7 @@ namespace NewLife.Compression
             }
         }
 
+        /// <summary>释放资源</summary>
         public void Dispose()
         {
             Dispose(true);
@@ -82,6 +93,8 @@ namespace NewLife.Compression
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>释放资源</summary>
+        /// <param name="disposeManagedResources"></param>
         protected virtual void Dispose(bool disposeManagedResources)
         {
             //if (!this._disposed)
@@ -179,7 +192,7 @@ namespace NewLife.Compression
 
                     cd.DiskNumberWithStart++; // I think the number in the file differs from reality by 1
 
-                    Int32 i = 12;
+                    //Int32 i = 12;
 
                     //uint offset32 = (uint)BitConverter.ToUInt32(block, i);
                     if (cd.Offset == 0xFFFFFFFF)
@@ -424,8 +437,14 @@ namespace NewLife.Compression
             }
         }
 
+        /// <summary>返回指定索引处的实体</summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         public ZipEntry this[Int32 index] { get { return Entries.Values.ElementAtOrDefault(index); } }
 
+        /// <summary>返回指定名称的实体</summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
         public ZipEntry this[String fileName]
         {
             get
@@ -442,6 +461,7 @@ namespace NewLife.Compression
             }
         }
 
+        /// <summary>实体个数</summary>
         public Int32 Count { get { return Entries.Count; } }
 
         #endregion

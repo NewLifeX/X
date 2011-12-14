@@ -212,6 +212,11 @@ namespace NewLife.Serialization
         #endregion
 
         #region 值类型
+        /// <summary>写入值类型</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Boolean WriteValue(Object value) { return WriteValue(value, null); }
+
         /// <summary>
         /// 写入值类型，只能识别基础类型，对于不能识别的类型，方法返回false
         /// </summary>
@@ -220,7 +225,12 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         protected virtual Boolean WriteValue(Object value, Type type)
         {
-            // 不用担心，外部保证type正确。同时，禁止外部直接调用WriteValue，因为那样就越过了对未知类型的处理
+            if (type == null)
+            {
+                if (value == null) return false;
+                type = value.GetType();
+            }
+
             TypeCode code = Type.GetTypeCode(type);
             switch (code)
             {
@@ -747,16 +757,13 @@ namespace NewLife.Serialization
         #endregion
 
         #region 复杂对象
-        /// <summary>把对象写入数据流</summary>
+        /// <summary>主要入口方法。把对象写入数据流</summary>
         /// <param name="value">对象</param>
         /// <returns>是否写入成功</returns>
-        public Boolean WriteObject(Object value)
-        {
-            return WriteObject(value, null, WriteMember);
-        }
+        public Boolean WriteObject(Object value) { return WriteObject(value, null, WriteMember); }
 
         /// <summary>
-        /// 把目标对象指定成员写入数据流，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
+        /// 主要入口方法。把目标对象指定成员写入数据流，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
         /// </summary>
         /// <param name="value">要写入的对象</param>
         /// <param name="type">要写入的对象类型</param>

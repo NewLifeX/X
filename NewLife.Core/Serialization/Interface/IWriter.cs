@@ -140,6 +140,13 @@ namespace NewLife.Serialization
         #endregion
         #endregion
 
+        #region 值类型
+        /// <summary>写入值类型</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        Boolean WriteValue(Object value);
+        #endregion
+
         #region 扩展类型
         /// <summary>
         /// 写入Guid
@@ -167,14 +174,12 @@ namespace NewLife.Serialization
         #endregion
 
         #region 复杂对象
-        /// <summary>把对象写入数据流</summary>
+        /// <summary>主要入口方法。把对象写入数据流</summary>
         /// <param name="value">对象</param>
         /// <returns>是否写入成功</returns>
         Boolean WriteObject(Object value);
 
-        /// <summary>
-        /// 写入对象。具体读写器可以重载该方法以修改写入对象前后的行为。
-        /// </summary>
+        /// <summary>主要入口方法。写入对象。具体读写器可以重载该方法以修改写入对象前后的行为。</summary>
         /// <param name="value">对象</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>

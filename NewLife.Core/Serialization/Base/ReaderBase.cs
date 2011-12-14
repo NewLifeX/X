@@ -5,17 +5,13 @@ using System.IO;
 using System.Net;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using NewLife.Exceptions;
-using NewLife.Reflection;
-using NewLife.Log;
 using NewLife.Linq;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
-    /// <summary>
-    /// 读取器基类
-    /// </summary>
+    /// <summary>读取器基类</summary>
     /// <remarks>序列化框架的处理顺序为：IAccessor接口 => OnObjectReading事件 => 扩展类型 => 基础类型 => 字典 => 枚举 => 序列化接口 => 自定义对象 => 未知类型 => OnObjectReaded事件</remarks>
     /// <typeparam name="TSettings">设置类</typeparam>
     public abstract class ReaderBase<TSettings> : ReaderWriterBase<TSettings>, IReader where TSettings : ReaderWriterSetting, new()
@@ -57,15 +53,10 @@ namespace NewLife.Serialization
         #endregion
 
         #region 有符号整数
-        /// <summary>
-        /// 读取整数的字节数组，某些写入器（如二进制写入器）可能需要改变字节顺序
-        /// </summary>
+        /// <summary>读取整数的字节数组，某些写入器（如二进制写入器）可能需要改变字节顺序</summary>
         /// <param name="count"></param>
         /// <returns></returns>
-        protected virtual Byte[] ReadIntBytes(Int32 count)
-        {
-            return ReadBytes(count);
-        }
+        protected virtual Byte[] ReadIntBytes(Int32 count) { return ReadBytes(count); }
 
         /// <summary>
         /// 从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。
@@ -208,17 +199,12 @@ namespace NewLife.Serialization
         /// 读取一个时间日期
         /// </summary>
         /// <returns></returns>
-        public virtual DateTime ReadDateTime()
-        {
-            return Settings.ConvertInt64ToDateTime(ReadInt64());
-        }
+        public virtual DateTime ReadDateTime() { return Settings.ConvertInt64ToDateTime(ReadInt64()); }
         #endregion
         #endregion
 
         #region 值类型
-        /// <summary>
-        /// 读取值类型数据
-        /// </summary>
+        /// <summary>读取值类型数据</summary>
         /// <param name="type"></param>
         /// <returns></returns>
         public Object ReadValue(Type type)
@@ -227,15 +213,18 @@ namespace NewLife.Serialization
             return ReadValue(type, ref value) ? value : null;
         }
 
-        /// <summary>
-        /// 尝试读取值类型数据，返回是否读取成功
-        /// </summary>
+        /// <summary>尝试读取值类型数据，返回是否读取成功</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns></returns>
-        protected virtual Boolean ReadValue(Type type, ref Object value)
+        public virtual Boolean ReadValue(Type type, ref Object value)
         {
-            // 不用担心，外部保证type正确。同时，禁止外部直接调用ReadValue，因为那样就越过了对未知类型的处理
+            if (type == null)
+            {
+                if (value == null) return false;
+                type = value.GetType();
+            }
+
             TypeCode code = Type.GetTypeCode(type);
             switch (code)
             {
@@ -297,31 +286,6 @@ namespace NewLife.Serialization
                 default:
                     break;
             }
-
-            //if (type == typeof(Byte[]))
-            //{
-            //    //Int32 len = ReadInt32();
-            //    //if (len < 0) throw new Exception("非法数据！字节数组长度不能为负数！");
-            //    //value = null;
-            //    //if (len > 0) value = ReadBytes(len);
-            //    //return true;
-
-            //    value = ReadBytes(-1);
-            //    return true;
-            //}
-            //if (type == typeof(Char[]))
-            //{
-            //    //Int32 len = ReadInt32();
-            //    //if (len < 0) throw new Exception("非法数据！字符数组长度不能为负数！");
-            //    //value = null;
-            //    //if (len > 0) value = ReadChars(len);
-            //    //return true;
-
-            //    value = ReadChars(-1);
-            //    return true;
-            //}
-
-            //value = null;
             return false;
         }
         #endregion
@@ -1253,9 +1217,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 复杂对象
-        /// <summary>
-        /// 从数据流中读取指定类型的对象
-        /// </summary>
+        /// <summary>主要入口方法。从数据流中读取指定类型的对象</summary>
         /// <param name="type">类型</param>
         /// <returns>对象</returns>
         public Object ReadObject(Type type)
@@ -1264,16 +1226,11 @@ namespace NewLife.Serialization
             return ReadObject(type, ref value, null) ? value : null;
         }
 
-        /// <summary>
-        /// 尝试读取目标对象指定成员的值，通过委托方法递归处理成员
-        /// </summary>
+        /// <summary>主要入口方法。尝试读取目标对象指定成员的值，通过委托方法递归处理成员</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns>是否读取成功</returns>
-        public Boolean ReadObject(Type type, ref Object value)
-        {
-            return ReadObject(type, ref value, ReadMember);
-        }
+        public Boolean ReadObject(Type type, ref Object value) { return ReadObject(type, ref value, ReadMember); }
 
         /// <summary>
         /// 尝试读取目标对象指定成员的值，处理基础类型、特殊类型、基础类型数组、特殊类型数组，通过委托方法处理成员
@@ -1744,11 +1701,9 @@ namespace NewLife.Serialization
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 读取大小
-        /// </summary>
+        /// <summary>读取大小</summary>
         /// <returns></returns>
-        protected virtual Int32 ReadSize()
+        public virtual Int32 ReadSize()
         {
             if (!UseSize) return -1;
 
