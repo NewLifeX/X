@@ -17,6 +17,8 @@ using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Test;
+using NewLife.Reflection;
+using System.Reflection;
 
 namespace Test
 {
@@ -416,6 +418,9 @@ namespace Test
 
         private static void Test8()
         {
+            var reader = new MethodBodyReader(typeof(Program).GetMethod("Test3", BindingFlags.Static | BindingFlags.NonPublic));
+            Console.WriteLine(reader.GetBodyCode());
+
             String file = @"E:\Net\SharpZipLib\SharpZipLib_0855_Bin.zip";
             Stream stream = File.OpenRead(file);
 

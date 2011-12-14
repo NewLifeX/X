@@ -40,12 +40,12 @@ namespace NewLife.Reflection
         /// <summary>
         /// 为方法信息创建方法体读取器
         /// </summary>
-        /// <param name="mi"></param>
-        public MethodBodyReader(MethodInfo mi)
+        /// <param name="method"></param>
+        public MethodBodyReader(MethodInfo method)
         {
-            if (mi == null) throw new ArgumentNullException("mi");
+            if (method == null) throw new ArgumentNullException("method");
 
-            _Method = mi;
+            _Method = method;
 
             //if (mi.GetMethodBody() != null)
             //{
