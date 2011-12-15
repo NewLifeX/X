@@ -155,11 +155,6 @@ namespace NewLife.Compression
         #endregion
 
         #region 读取核心
-        //Int64 _locEndOfCDS;
-        //UInt32 _diskNumberWithCd;
-        //UInt32 _OffsetOfCentralDirectory;
-        //Int64 _OffsetOfCentralDirectory64;
-
         private void Read(Stream stream)
         {
             try
@@ -173,15 +168,16 @@ namespace NewLife.Compression
                 BinaryReader reader = new BinaryReader(stream);
                 if (reader.ReadInt32() == ZipConstants.EndOfCentralDirectorySignature) return;
 
-                // EndOfCentralDirectory的大小加上两个字节就是18，查找EndOfCentralDirectorySignature签名
+                // EndOfCentralDirectory的大小加上两个字节就是18，在最后64字节里面查找EndOfCentralDirectorySignature签名
+                // 64个字节一般够用了，除非注释很大。如果这里找不到，可以把64加大
                 stream.Seek(-64, SeekOrigin.End);
 
                 if (EndOfCentralDirectory.FindSignature(stream) != -1)
                 {
+                    // 退回到签名之前
                     stream.Seek(-4, SeekOrigin.Current);
-                    var rx = new BinaryReaderX() { Stream = stream };
-                    rx.Settings.EncodeInt = false;
-                    rx.Settings.SizeFormat = TypeCode.Int16;
+
+                    var rx = CreateReader(stream);
                     var cd = rx.ReadObject<EndOfCentralDirectory>();
 
                     //_locEndOfCDS = stream.Position - 4;
@@ -342,7 +338,7 @@ namespace NewLife.Compression
 
                 stream.Seek(-4, SeekOrigin.Current);
 
-                var zcd = new BinaryReaderX() { Stream = stream }.ReadObject<Zip64EndOfCentralDirectory>();
+                var zcd = CreateReader(stream).ReadObject<Zip64EndOfCentralDirectory>();
 
                 //block = new byte[8 + 44];
                 //stream.Read(block, 0, block.Length);
@@ -469,6 +465,13 @@ namespace NewLife.Compression
         #endregion
 
         #region 辅助
+        internal static BinaryReaderX CreateReader(Stream stream)
+        {
+            var reader = new BinaryReaderX() { Stream = stream };
+            reader.Settings.EncodeInt = false;
+            reader.Settings.SizeFormat = TypeCode.Int16;
+            return reader;
+        }
 
         private static string NormalizePathForUseInZipFile(string pathName)
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using NewLife.Exceptions;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
@@ -323,6 +324,47 @@ namespace NewLife.Serialization
                 case TypeCode.UInt64:
                     return ReadEncodedInt32();
             }
+        }
+
+        /// <summary>探测下一个可用的字节是否预期字节，并且不提升字节的位置。</summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public Boolean Expect(params Byte[] values) { return Expect(ReadByte, values); }
+
+        /// <summary>探测下一个可用的数字是否预期数字，并且不提升字节的位置。</summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public Boolean Expect(params Int16[] values) { return Expect(ReadInt16, values); }
+
+        /// <summary>探测下一个可用的数字是否预期数字，并且不提升字节的位置。</summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public Boolean Expect(params UInt16[] values) { return Expect(ReadUInt16, values); }
+
+        /// <summary>探测下一个可用的数字是否预期数字，并且不提升字节的位置。</summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public Boolean Expect(params Int32[] values) { return Expect(ReadInt32, values); }
+
+        /// <summary>探测下一个可用的数字是否预期数字，并且不提升字节的位置。</summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public Boolean Expect(params UInt32[] values) { return Expect(ReadUInt32, values); }
+
+        /// <summary>探测下一个可用的数值是否预期数值，并且不提升字节的位置。</summary>
+        /// <param name="func">读取数值的方法，比如ReadInt32等</param>
+        /// <param name="values">预期数值列表</param>
+        /// <returns></returns>
+        public Boolean Expect<T>(Func<T> func, params T[] values)
+        {
+            var stream = Reader.BaseStream;
+            if (!stream.CanSeek) return false;
+
+            Int64 p = stream.Position;
+            T rs = func();
+            stream.Position = p;
+
+            return Array.IndexOf<T>(values, rs) >= 0;
         }
         #endregion
     }

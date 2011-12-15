@@ -506,7 +506,7 @@ namespace NewLife.IO
         }
 
         #region 数据流查找
-        /// <summary>在数据流中查找字节数组的位置</summary>
+        /// <summary>在数据流中查找字节数组的位置，流指针会移动到结尾</summary>
         /// <param name="stream">数据流</param>
         /// <param name="buffer">字节数组</param>
         /// <param name="offset">偏移</param>
