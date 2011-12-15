@@ -364,6 +364,12 @@ namespace XControl
                 {
                     currentMenu.Template.InstantiateIn(cell);
                 }
+                else
+                {
+                    //没有到符合条件的，取第一项
+                    currentMenu = MenuTemplate[0];
+                    currentMenu.Template.InstantiateIn(cell);
+                }
             }
         }
 
