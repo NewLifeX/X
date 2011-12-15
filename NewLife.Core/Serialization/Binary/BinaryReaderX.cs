@@ -66,7 +66,8 @@ namespace NewLife.Serialization
         {
             SetDebugIndent();
 
-            if (count < 0) count = ReadInt32();
+            //if (count < 0) count = ReadInt32();
+            if (count < 0) count = ReadSize();
 
             return Reader.ReadBytes(count);
         }

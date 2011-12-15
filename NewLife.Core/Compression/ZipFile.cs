@@ -159,7 +159,7 @@ namespace NewLife.Compression
         {
             try
             {
-                if (!stream.CanSeek)
+                //if (!stream.CanSeek)
                 {
                     Read_Orig(stream);
                     return;
@@ -486,6 +486,29 @@ namespace NewLife.Compression
             return Path.GetFullPath(pathName);
         }
 
+        internal static DateTime DosDateTimeToFileTime(Int32 value)
+        {
+            Int16 time = (Int16)(value & 0x0000FFFF);
+            Int16 date = (Int16)((value & 0xFFFF0000) >> 16);
+
+            int year = 1980 + ((date & 0xFE00) >> 9);
+            int month = (date & 0x01E0) >> 5;
+            int day = date & 0x001F;
+
+            int hour = (time & 0xF800) >> 11;
+            int minute = (time & 0x07E0) >> 5;
+            int second = (time & 0x001F) * 2;
+
+            return new DateTime(year, month, day, hour, minute, second);
+        }
+
+        internal static Int32 FileTimeToDosDateTime(DateTime value)
+        {
+            Int32 date = (value.Year - 1980) << 9 & value.Month << 5 & value.Day;
+            Int32 time = value.Hour << 11 & value.Minute << 5 & value.Second / 2;
+
+            return date << 16 | time;
+        }
         #endregion
 
         #region IEnumerable<ZipEntry> 成员

@@ -757,9 +757,6 @@ namespace NewLife.Serialization
             if (type == null && value != null) type = value.GetType();
             if (callback == null) callback = WriteMember;
 
-            Object old = CurrentObject;
-            CurrentObject = old;
-
             // 检查IAcessor接口
             IAccessor accessor = value as IAccessor;
             if (accessor != null && accessor.Write(this)) return true;
@@ -768,8 +765,6 @@ namespace NewLife.Serialization
 
             // 检查IAcessor接口
             if (accessor != null) rs = accessor.WriteComplete(this, rs);
-
-            CurrentObject = old;
 
             return rs;
         }
@@ -952,19 +947,26 @@ namespace NewLife.Serialization
             if (value == null) return true;
             if (callback == null) callback = WriteMember;
 
-            IObjectMemberInfo[] mis = GetMembers(type, value);
-            if (mis == null || mis.Length < 1) return true;
+            Object old = CurrentObject;
+            CurrentObject = old;
 
-            for (int i = 0; i < mis.Length; i++)
+            try
             {
-                Depth++;
-                WriteLog("WriteMember", mis[i].Name, mis[i].Type.Name);
+                IObjectMemberInfo[] mis = GetMembers(type, value);
+                if (mis == null || mis.Length < 1) return true;
 
-                if (!WriteMember(value, mis[i].Type, mis[i], i, callback)) return false;
-                Depth--;
+                for (int i = 0; i < mis.Length; i++)
+                {
+                    Depth++;
+                    WriteLog("WriteMember", mis[i].Name, mis[i].Type.Name);
+
+                    if (!WriteMember(value, mis[i].Type, mis[i], i, callback)) return false;
+                    Depth--;
+                }
+
+                return true;
             }
-
-            return true;
+            finally { CurrentObject = old; }
         }
 
         /// <summary>写入对象成员</summary>

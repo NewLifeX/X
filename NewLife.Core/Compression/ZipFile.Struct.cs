@@ -198,10 +198,12 @@ namespace NewLife.Compression
             /// <summary>offset of start of central directory with respect to the starting disk number</summary>
             public UInt64 Offset { get { return _Offset; } set { _Offset = value; } }
 
-            [NonSerialized]
+            /// <summary>扩展数据大小</summary>
+            private UInt64 ExtendSize { get { return DataSize + 44; } set { DataSize = value + 44; } }
+
+            [FieldSize("ExtendSize")]
             private Byte[] _Extend;
-            /// <summary>扩展</summary>
-            [XmlIgnore]
+            /// <summary>扩展数据</summary>
             public Byte[] Extend { get { return _Extend; } set { _Extend = value; } }
             #endregion
 

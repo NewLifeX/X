@@ -1160,9 +1160,6 @@ namespace NewLife.Serialization
             if (type == null && value != null) type = value.GetType();
             if (callback == null) callback = ReadMember;
 
-            Object old = CurrentObject;
-            CurrentObject = value;
-
             // 检查IAcessor接口
             IAccessor accessor = value as IAccessor;
             if (accessor != null && accessor.Read(this)) return true;
@@ -1171,8 +1168,6 @@ namespace NewLife.Serialization
 
             // 检查IAcessor接口
             if (accessor != null) rs = accessor.ReadComplete(this, rs);
-
-            CurrentObject = old;
 
             return rs;
         }
@@ -1412,33 +1407,40 @@ namespace NewLife.Serialization
         /// <returns>是否读取成功</returns>
         public virtual Boolean ReadCustomObject(Type type, ref Object value, ReadObjectCallback callback)
         {
-            IObjectMemberInfo[] mis = GetMembers(type, value);
-            if (mis == null || mis.Length < 1) return true;
-            if (callback == null) callback = ReadMember;
+            Object old = CurrentObject;
+            CurrentObject = value;
 
-            // 如果为空，实例化并赋值。
-            if (value == null)
+            try
             {
-                CurrentObject = value = TypeX.CreateInstance(type);
+                IObjectMemberInfo[] mis = GetMembers(type, value);
+                if (mis == null || mis.Length < 1) return true;
+                if (callback == null) callback = ReadMember;
 
-                if (value != null) AddObjRef(objRefIndex, value);
+                // 如果为空，实例化并赋值。
+                if (value == null)
+                {
+                    CurrentObject = value = TypeX.CreateInstance(type);
+
+                    if (value != null) AddObjRef(objRefIndex, value);
+                }
+
+                for (int i = 0; i < mis.Length; i++)
+                {
+                    Depth++;
+
+                    IObjectMemberInfo member = GetMemberBeforeRead(type, value, mis, i);
+                    // 没有可读成员
+                    if (member == null) continue;
+
+                    WriteLog("ReadMember", member.Name, member.Type.Name);
+
+                    if (!ReadMember(member.Type, ref value, member, i, callback)) return false;
+                    Depth--;
+                }
+
+                return true;
             }
-
-            for (int i = 0; i < mis.Length; i++)
-            {
-                Depth++;
-
-                IObjectMemberInfo member = GetMemberBeforeRead(type, value, mis, i);
-                // 没有可读成员
-                if (member == null) continue;
-
-                WriteLog("ReadMember", member.Name, member.Type.Name);
-
-                if (!ReadMember(member.Type, ref value, member, i, callback)) return false;
-                Depth--;
-            }
-
-            return true;
+            finally { CurrentObject = old; }
         }
 
         /// <summary>

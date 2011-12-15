@@ -92,7 +92,7 @@ namespace NewLife.Serialization
             var mx = FindReference(member);
             if (mx == null) return -1;
 
-            return (Int32)mx.GetValue(target);
+            return Convert.ToInt32(mx.GetValue(target));
         }
         #endregion
     }

@@ -26,9 +26,14 @@ namespace NewLife.Compression
         /// <summary>压缩方法</summary>
         public CompressionMethod CompressionMethod { get { return _CompressionMethod; } set { _CompressionMethod = value; } }
 
-        private DateTime _LastModified;
-        /// <summary>属性说明</summary>
-        public DateTime LastModified { get { return _LastModified; } set { _LastModified = value; } }
+        private Int32 _LastModifiedData;
+        ///// <summary>最后修改时间</summary>
+        //private Int32 LastModifiedData { get { return _LastModifiedData; } set { _LastModifiedData = value; } }
+
+        //[NonSerialized]
+        //private DateTime _LastModified;
+        /// <summary>最后修改时间</summary>
+        public DateTime LastModified { get { return ZipFile.DosDateTimeToFileTime(_LastModifiedData); } set { _LastModifiedData = ZipFile.FileTimeToDosDateTime(value); } }
 
         private UInt32 _Crc;
         /// <summary>CRC校验</summary>
@@ -42,15 +47,20 @@ namespace NewLife.Compression
         /// <summary>原始大小</summary>
         public UInt32 UncompressedSize { get { return _UncompressedSize; } set { _UncompressedSize = value; } }
 
-        private UInt16 _FileNameLen = 0;
-        private UInt16 _ExtraFieldLen = 0;
+        private UInt16 _FileNameLength;
+        /// <summary>文件名长度</summary>
+        private UInt16 FileNameLength { get { return _FileNameLength; } set { _FileNameLength = value; } }
 
-        [NonSerialized]
+        private UInt16 _ExtraFieldLength;
+        /// <summary>扩展数据长度</summary>
+        private UInt16 ExtraFieldLength { get { return _ExtraFieldLength; } set { _ExtraFieldLength = value; } }
+
+        [FieldSize("FileNameLength")]
         private String _FileName;
         /// <summary>文件名</summary>
         public String FileName { get { return _FileName; } set { _FileName = value; } }
 
-        [NonSerialized]
+        [FieldSize("ExtraFieldLength")]
         private Byte[] _ExtraField;
         /// <summary>扩展字段</summary>
         public Byte[] ExtraField { get { return _ExtraField; } set { _ExtraField = value; } }
@@ -149,6 +159,9 @@ namespace NewLife.Compression
 
                 return null;
             }
+
+            var ze = reader.ReadObject<ZipEntry>();
+            return ze;
 
             //// Store the position in the stream for this entry
             //// change for workitem 8098
@@ -275,7 +288,5 @@ namespace NewLife.Compression
             return null;
         }
         #endregion
-
-
     }
 }
