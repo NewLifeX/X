@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
@@ -30,6 +31,17 @@ namespace NewLife.Serialization
                 if (base.Stream != value) _Writer = null;
                 base.Stream = value;
             }
+        }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化一个二进制写入器</summary>
+        public BinaryWriterX()
+        {
+            // 默认的大小格式为32位压缩编码整数
+            Settings.SizeFormat = TypeCode.UInt32;
+            // 默认使用字段作为序列化成员
+            Settings.UseField = true;
         }
         #endregion
 
@@ -348,24 +360,47 @@ namespace NewLife.Serialization
         }
         #endregion
 
-        #region 获取成员
-        /// <summary>获取需要序列化的成员</summary>
-        /// <param name="type">类型</param>
+        #region 方法
+        /// <summary>获取需要序列化的成员（属性或字段）</summary>
+        /// <param name="type">指定类型</param>
         /// <param name="value">对象</param>
         /// <returns>需要序列化的成员</returns>
-        protected override IObjectMemberInfo[] OnGetMembers(Type type, Object value)
+        protected override IObjectMemberInfo[] OnGetMembers(Type type, object value)
         {
-            if (type == null) throw new ArgumentNullException("type");
-
-            return ObjectInfo.GetMembers(type, value, true, true);
+            var ms = base.OnGetMembers(type, value);
+            if (ms != null && CurrentObject != null)
+            {
+                // 遍历成员，寻找FieldSizeAttribute特性，重新设定大小字段的值
+                foreach (var item in ms)
+                {
+                    var member = item as ReflectMemberInfo;
+                    if (member != null)
+                    {
+                        // 获取FieldSizeAttribute特性
+                        var att = AttributeX.GetCustomAttribute<FieldSizeAttribute>(member.Member, true);
+                        if (att != null) att.SetReferenceSize(CurrentObject, member.Member, Settings.Encoding);
+                    }
+                }
+            }
+            return ms;
         }
-        #endregion
 
-        #region 方法
         /// <summary>写入大小</summary>
         /// <param name="size"></param>
         protected override void OnWriteSize(Int32 size)
         {
+            var member = CurrentMember as ReflectMemberInfo;
+            if (member != null)
+            {
+                // 获取FieldSizeAttribute特性
+                var att = AttributeX.GetCustomAttribute<FieldSizeAttribute>(member.Member, true);
+                if (att != null)
+                {
+                    // 如果指定了固定大小或者引用字段，直接返回
+                    if (att.Size > 0 || !String.IsNullOrEmpty(att.ReferenceName)) return;
+                }
+            }
+
             switch (Settings.SizeFormat)
             {
                 case TypeCode.Int16:

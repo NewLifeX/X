@@ -296,9 +296,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 字典
-        /// <summary>
-        /// 写入枚举类型数据
-        /// </summary>
+        /// <summary>写入枚举类型数据</summary>
         /// <param name="value">枚举数据</param>
         /// <returns>是否写入成功</returns>
         public Boolean Write(IDictionary value)
@@ -306,9 +304,7 @@ namespace NewLife.Serialization
             return WriteDictionary(value, null, WriteMember);
         }
 
-        /// <summary>
-        /// 写入字典类型数据
-        /// </summary>
+        /// <summary>写入字典类型数据</summary>
         /// <param name="value">字典数据</param>
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
@@ -761,6 +757,9 @@ namespace NewLife.Serialization
             if (type == null && value != null) type = value.GetType();
             if (callback == null) callback = WriteMember;
 
+            Object old = CurrentObject;
+            CurrentObject = old;
+
             // 检查IAcessor接口
             IAccessor accessor = value as IAccessor;
             if (accessor != null && accessor.Write(this)) return true;
@@ -769,6 +768,8 @@ namespace NewLife.Serialization
 
             // 检查IAcessor接口
             if (accessor != null) rs = accessor.WriteComplete(this, rs);
+
+            CurrentObject = old;
 
             return rs;
         }
@@ -976,6 +977,10 @@ namespace NewLife.Serialization
         public Boolean WriteMember(Object value, Type type, IObjectMemberInfo member, Int32 index, WriteObjectCallback callback)
         {
             if (callback == null) callback = WriteMember;
+
+            IObjectMemberInfo old = CurrentMember;
+            CurrentMember = member;
+
 #if !DEBUG
             try
 #endif
@@ -1012,6 +1017,8 @@ namespace NewLife.Serialization
                     // 事件处理器可以影响结果
                     rs = e.Success;
                 }
+
+                CurrentMember = old;
 
                 return rs;
             }

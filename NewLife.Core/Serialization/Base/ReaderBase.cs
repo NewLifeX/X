@@ -1160,6 +1160,9 @@ namespace NewLife.Serialization
             if (type == null && value != null) type = value.GetType();
             if (callback == null) callback = ReadMember;
 
+            Object old = CurrentObject;
+            CurrentObject = value;
+
             // 检查IAcessor接口
             IAccessor accessor = value as IAccessor;
             if (accessor != null && accessor.Read(this)) return true;
@@ -1168,6 +1171,8 @@ namespace NewLife.Serialization
 
             // 检查IAcessor接口
             if (accessor != null) rs = accessor.ReadComplete(this, rs);
+
+            CurrentObject = old;
 
             return rs;
         }
@@ -1414,7 +1419,7 @@ namespace NewLife.Serialization
             // 如果为空，实例化并赋值。
             if (value == null)
             {
-                value = TypeX.CreateInstance(type);
+                CurrentObject = value = TypeX.CreateInstance(type);
 
                 if (value != null) AddObjRef(objRefIndex, value);
             }
@@ -1470,6 +1475,10 @@ namespace NewLife.Serialization
         public Boolean ReadMember(Type type, ref Object value, IObjectMemberInfo member, Int32 index, ReadObjectCallback callback)
         {
             if (callback == null) callback = ReadMember;
+
+            IObjectMemberInfo old = CurrentMember;
+            CurrentMember = member;
+
 #if !DEBUG
             try
 #endif
@@ -1513,6 +1522,8 @@ namespace NewLife.Serialization
                 // 设置成员的值
                 member[value] = obj;
 
+                CurrentMember = old;
+
                 return rs;
             }
 #if !DEBUG
@@ -1523,9 +1534,7 @@ namespace NewLife.Serialization
 #endif
         }
 
-        /// <summary>
-        /// 读取成员
-        /// </summary>
+        /// <summary>读取对象成员</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <param name="member">成员</param>

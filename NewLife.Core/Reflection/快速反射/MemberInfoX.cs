@@ -91,15 +91,11 @@ namespace NewLife.Reflection
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 初始化
-        /// </summary>
+        /// <summary>初始化快速访问成员</summary>
         /// <param name="member"></param>
         protected MemberInfoX(MemberInfo member) { Member = member; }
 
-        /// <summary>
-        /// 创建
-        /// </summary>
+        /// <summary>创建快速访问成员</summary>
         /// <param name="member"></param>
         /// <returns></returns>
         public static MemberInfoX Create(MemberInfo member)
@@ -129,6 +125,30 @@ namespace NewLife.Reflection
                     break;
             }
             return null;
+        }
+
+        /// <summary>通过指定类型和成员名称，创建快速访问成员。按照属性、字段、构造、方法、事件的顺序</summary>
+        /// <param name="type"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static MemberInfoX Create(Type type, String name)
+        {
+            if (type == null || String.IsNullOrEmpty(name)) return null;
+
+            var mis = type.GetMember(name, DefaultBinding | BindingFlags.IgnoreCase);
+            if (mis == null || mis.Length < 1) return null;
+            if (mis.Length == 1) return Create(mis[0]);
+
+            var ts = new MemberTypes[] { MemberTypes.Property, MemberTypes.Field, MemberTypes.Constructor, MemberTypes.Method, MemberTypes.Event };
+            foreach (var item in ts)
+            {
+                foreach (var mi in mis)
+                {
+                    if (mi.MemberType == item) return Create(mi);
+                }
+            }
+
+            return Create(mis[0]);
         }
         #endregion
 

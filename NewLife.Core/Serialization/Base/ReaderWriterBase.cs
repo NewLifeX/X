@@ -67,6 +67,14 @@ namespace NewLife.Serialization
 
         /// <summary>是否使用大小，如果使用，将在写入数组、集合和字符串前预先写入大小</summary>
         protected virtual Boolean UseSize { get { return true; } }
+
+        private Object _CurrentObject;
+        /// <summary>当前对象</summary>
+        internal protected Object CurrentObject { get { return _CurrentObject; } set { _CurrentObject = value; } }
+
+        private IObjectMemberInfo _CurrentMember;
+        /// <summary>当前成员</summary>
+        internal protected IObjectMemberInfo CurrentMember { get { return _CurrentMember; } set { _CurrentMember = value; } }
         #endregion
 
         #region 方法
@@ -108,9 +116,7 @@ namespace NewLife.Serialization
             return mis;
         }
 
-        /// <summary>
-        /// 获取需要序列化的成员（属性或字段）
-        /// </summary>
+        /// <summary>获取需要序列化的成员（属性或字段）</summary>
         /// <param name="type">指定类型</param>
         /// <param name="value">对象</param>
         /// <returns>需要序列化的成员</returns>
@@ -118,7 +124,7 @@ namespace NewLife.Serialization
         {
             if (type == null) throw new ArgumentNullException("type");
 
-            return ObjectInfo.GetMembers(type, value, false, true);
+            return ObjectInfo.GetMembers(type, value, Settings.UseField, Settings.IsBaseFirst);
         }
 
         /// <summary>

@@ -62,7 +62,7 @@ namespace NewLife.Reflection
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static MethodInfoX Create(Type type, String name)
+        public new static MethodInfoX Create(Type type, String name)
         {
             MethodInfo method = type.GetMethod(name);
             if (method == null) method = type.GetMethod(name, DefaultBinding);

@@ -90,7 +90,7 @@ namespace NewLife.Reflection
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static FieldInfoX Create(Type type, String name)
+        public new static FieldInfoX Create(Type type, String name)
         {
             FieldInfo field = type.GetField(name);
             if (field == null) field = type.GetField(name, DefaultBinding);

@@ -38,6 +38,14 @@ namespace NewLife.Serialization
             get { return _AutoFlush; }
             set { _AutoFlush = value; }
         }
+
+        private Boolean _UseField;
+        /// <summary>是否使用字段作为处理成员。</summary>
+        public Boolean UseField { get { return _UseField; } set { _UseField = value; } }
+
+        private Boolean _IsBaseFirst = true;
+        /// <summary>是否优先处理基类的成员</summary>
+        public Boolean IsBaseFirst { get { return _IsBaseFirst; } set { _IsBaseFirst = value; } }
         #endregion
 
         #region 时间日期

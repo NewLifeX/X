@@ -142,7 +142,7 @@ namespace NewLife.Reflection
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static PropertyInfoX Create(Type type, String name)
+        public new static PropertyInfoX Create(Type type, String name)
         {
             PropertyInfo property = type.GetProperty(name);
             if (property == null) property = type.GetProperty(name, DefaultBinding);
