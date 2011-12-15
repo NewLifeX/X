@@ -342,6 +342,7 @@ namespace NewLife.Xml
             String name = TypeX.Create(type).Name;
             name = name.Replace("<", "_");
             //name = name.Replace(">", "_");
+            name = name.Replace(",", "_");
             name = name.Replace(">", "");
             return name;
         }
