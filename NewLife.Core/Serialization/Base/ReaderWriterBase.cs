@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using NewLife.Linq;
 
 namespace NewLife.Serialization
 {
@@ -111,6 +112,13 @@ namespace NewLife.Serialization
                 EventArgs<Type, Object, IObjectMemberInfo[]> e = new EventArgs<Type, Object, IObjectMemberInfo[]>(type, value, mis);
                 OnGotMembers(this, e);
                 mis = e.Arg3;
+            }
+
+            // 过滤掉被忽略的成员
+            var members = Settings.IgnoreMembers;
+            if (members.Count > 0)
+            {
+                mis = mis.Where(m => !members.Contains(m.Name)).ToArray();
             }
 
             return mis;

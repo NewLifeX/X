@@ -422,6 +422,7 @@ namespace Test
             //Console.WriteLine(reader.GetBodyCode());
 
             String file = @"E:\Net\SharpZipLib\SharpZipLib_0860_Bin.zip";
+            file = @"E:\X\Src\Src_20111215194303.zip";
             Stream stream = File.OpenRead(file);
 
             Random rnd = new Random((Int32)DateTime.Now.Ticks);
@@ -447,7 +448,7 @@ namespace Test
             {
                 foreach (var item in zf)
                 {
-                    Console.WriteLine(item);
+                    Console.WriteLine(item.FileName);
                 }
             }
         }

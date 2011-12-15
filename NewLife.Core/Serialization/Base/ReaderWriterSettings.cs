@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Collections.Generic;
 
 namespace NewLife.Serialization
 {
@@ -46,6 +47,10 @@ namespace NewLife.Serialization
         private Boolean _IsBaseFirst = true;
         /// <summary>是否优先处理基类的成员</summary>
         public Boolean IsBaseFirst { get { return _IsBaseFirst; } set { _IsBaseFirst = value; } }
+
+        private ICollection<String> _IgnoreMembers;
+        /// <summary>要忽略的成员</summary>
+        public ICollection<String> IgnoreMembers { get { return _IgnoreMembers ?? (_IgnoreMembers = new List<String>()); } set { _IgnoreMembers = value; } }
         #endregion
 
         #region 时间日期

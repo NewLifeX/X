@@ -59,73 +59,101 @@ namespace NewLife.Compression
     }
 
     /// <summary>
-    /// Identifies the encryption algorithm used for an entry
+    /// Defines known values for the <see cref="HostSystemID"/> property.
     /// </summary>
-    public enum EncryptionAlgorithm
+    public enum HostSystemID : ushort
     {
         /// <summary>
-        /// No encryption has been used.
+        /// Host system = MSDOS
         /// </summary>
-        None = 0,
+        Msdos = 0,
         /// <summary>
-        /// Encrypted using PKZIP 2.0 or 'classic' encryption.
+        /// Host system = Amiga
         /// </summary>
-        PkzipClassic = 1,
+        Amiga = 1,
         /// <summary>
-        /// DES encryption has been used.
+        /// Host system = Open VMS
         /// </summary>
-        Des = 0x6601,
+        OpenVms = 2,
         /// <summary>
-        /// RCS encryption has been used for encryption.
+        /// Host system = Unix
         /// </summary>
-        RC2 = 0x6602,
+        Unix = 3,
         /// <summary>
-        /// Triple DES encryption with 168 bit keys has been used for this entry.
+        /// Host system = VMCms
         /// </summary>
-        TripleDes168 = 0x6603,
+        VMCms = 4,
         /// <summary>
-        /// Triple DES with 112 bit keys has been used for this entry.
+        /// Host system = Atari ST
         /// </summary>
-        TripleDes112 = 0x6609,
+        AtariST = 5,
         /// <summary>
-        /// AES 128 has been used for encryption.
+        /// Host system = OS2
         /// </summary>
-        Aes128 = 0x660e,
+        OS2 = 6,
         /// <summary>
-        /// AES 192 has been used for encryption.
+        /// Host system = Macintosh
         /// </summary>
-        Aes192 = 0x660f,
+        Macintosh = 7,
         /// <summary>
-        /// AES 256 has been used for encryption.
+        /// Host system = ZSystem
         /// </summary>
-        Aes256 = 0x6610,
+        ZSystem = 8,
         /// <summary>
-        /// RC2 corrected has been used for encryption.
+        /// Host system = Cpm
         /// </summary>
-        RC2Corrected = 0x6702,
+        Cpm = 9,
         /// <summary>
-        /// Blowfish has been used for encryption.
+        /// Host system = Windows NT
         /// </summary>
-        Blowfish = 0x6720,
+        WindowsNT = 10,
         /// <summary>
-        /// Twofish has been used for encryption.
+        /// Host system = MVS
         /// </summary>
-        Twofish = 0x6721,
+        MVS = 11,
         /// <summary>
-        /// RC4 has been used for encryption.
+        /// Host system = VSE
         /// </summary>
-        RC4 = 0x6801,
+        Vse = 12,
         /// <summary>
-        /// An unknown algorithm has been used for encryption.
+        /// Host system = Acorn RISC
         /// </summary>
-        Unknown = 0xffff
+        AcornRisc = 13,
+        /// <summary>
+        /// Host system = VFAT
+        /// </summary>
+        Vfat = 14,
+        /// <summary>
+        /// Host system = Alternate MVS
+        /// </summary>
+        AlternateMvs = 15,
+        /// <summary>
+        /// Host system = BEOS
+        /// </summary>
+        BeOS = 16,
+        /// <summary>
+        /// Host system = Tandem
+        /// </summary>
+        Tandem = 17,
+        /// <summary>
+        /// Host system = OS400
+        /// </summary>
+        OS400 = 18,
+        /// <summary>
+        /// Host system = OSX
+        /// </summary>
+        OSX = 19,
+        /// <summary>
+        /// Host system = WinZIP AES
+        /// </summary>
+        WinZipAES = 99,
     }
 
     /// <summary>
     /// Defines the contents of the general bit flags field for an archive entry.
     /// </summary>
     [Flags]
-    public enum GeneralBitFlags : int
+    public enum GeneralBitFlags : ushort
     {
         /// <summary>
         /// Bit 0 if set indicates that the file is encrypted
