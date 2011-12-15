@@ -150,6 +150,40 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
+        /// 重定向指定路径的请求到指定目标
+        /// </summary>
+        /// <param name="path">指定路径,当请求匹配当前模块的这个路径时重定向生效</param>
+        /// <param name="to">重定向目标,相对于当前模块</param>
+        /// <returns></returns>
+        public RouteConfigManager Redirect(string path, string to)
+        {
+            return Redirect(path, to, false);
+        }
+
+        /// <summary>
+        /// 重定向指定路径的请求到指定目标
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="to">一般是相对于当前模块,以/开始,以~/开始的表示相对于当前web应用程序根路径</param>
+        /// <param name="relativeRoot">指定to参数是否是相对于当前服务器根路径,to参数以~/开始时这个参数会被忽略</param>
+        /// <returns></returns>
+        public RouteConfigManager Redirect(string path, string to, bool relativeRoot)
+        {
+            return RouteToFactory(path, () => new RedirectFactory(to, relativeRoot));
+        }
+
+        /// <summary>
+        /// 重定向指定路径的请求到指定目标
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="toFunc">根据条件重定向,需要返回重定向的目标地址,委托的第2个参数是当前路由上下文路由所有路由片段的地址</param>
+        /// <returns></returns>
+        public RouteConfigManager Redirect(string path, Func<RouteContext, string, string> toFunc)
+        {
+            return RouteToFactory(path, () => new RedirectFactory(toFunc));
+        }
+
+        /// <summary>
         /// 加载指定模块类型的路由配置,不同于RouteToModule(string path),这个相当于IRouteConfigModule.Config(this)
         /// </summary>
         /// <returns></returns>

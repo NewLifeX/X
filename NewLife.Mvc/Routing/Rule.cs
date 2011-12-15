@@ -276,7 +276,8 @@ namespace NewLife.Mvc
                         if (f == null)
                         {
                             // 控制器工厂内部有可能通过RouteContext.RouteTo已经调用了进入控制器 所以退出时需要检查是否有需要进入控制器工厂
-                            ctx.EnterController(match, path, this, c);
+                            // 由于控制器工厂已经匹配了路径,所以控制器工厂返回的控制器不应该匹配任何路径
+                            ctx.EnterController("", path, this, c);
                         }
                     }
                     else
@@ -374,7 +375,7 @@ namespace NewLife.Mvc
                 {
                     if (r != null)
                     {
-                        // 模块是需要负责调用进出上下文 内部会有Rule或者FactoryRule负责
+                        // 模块不需要负责调用进出上下文 内部会有Rule或者FactoryRule负责
                     }
                     else
                     {

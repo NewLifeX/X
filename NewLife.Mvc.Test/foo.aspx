@@ -45,6 +45,13 @@
             <a href="static/TextFile.txt">文本文件</a>
         </p>
         <p>
+            <h4>重定向测试</h4>
+            <a href="Module/redirect1">至模块/foo</a>
+            <a href="Module/redirect2">至网站/static.bmp</a>
+            <a href="Module/redirect3">至服务器/</a>
+            <a href="Module/redirect4">至绝对地址www.google.com</a>
+        </p>
+        <p>
             <h4>外链请求测试</h4>
             <img src="static.bmp" />
         </p>
