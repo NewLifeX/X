@@ -5,9 +5,7 @@ using System.Threading;
 
 namespace NewLife.IO
 {
-    /// <summary>
-    /// 读写流，继承自内存流，读写指针分开
-    /// </summary>
+    /// <summary>读写流，继承自内存流，读写指针分开</summary>
     /// <remarks>
     /// 注意资源锁，读写不可同时进行，会出现抢锁的情况。
     /// </remarks>
@@ -16,11 +14,7 @@ namespace NewLife.IO
         #region 属性
         private Int32 _ReadTimeout = Timeout.Infinite;
         /// <summary>获取或设置一个值（以毫秒为单位），该值确定流在超时前尝试读取多长时间。</summary>
-        public override Int32 ReadTimeout
-        {
-            get { return _ReadTimeout; }
-            set { _ReadTimeout = value; }
-        }
+        public override Int32 ReadTimeout { get { return _ReadTimeout; } set { _ReadTimeout = value; } }
 
         //private Int32 _WriteTimeout;
         ///// <summary>获取或设置一个值（以毫秒为单位），该值确定流在超时前尝试写入多长时间。</summary>
@@ -32,29 +26,18 @@ namespace NewLife.IO
 
         private Int64 _PositionForWrite;
         /// <summary>写位置</summary>
-        public Int64 PositionForWrite
-        {
-            get { return _PositionForWrite; }
-            set { _PositionForWrite = value; }
-        }
+        public Int64 PositionForWrite { get { return _PositionForWrite; } set { _PositionForWrite = value; } }
 
         private Int64 _MaxLength = 1024 * 1024;
         /// <summary>最大长度，超过次长度时清空缓冲区</summary>
-        public Int64 MaxLength
-        {
-            get { return _MaxLength; }
-            set { _MaxLength = value; }
-        }
+        public Int64 MaxLength { get { return _MaxLength; } set { _MaxLength = value; } }
 
         private AutoResetEvent dataArrived = new AutoResetEvent(false);
         #endregion
 
-        #region 扩展方法
+        #region 扩展属性
         /// <summary>可用数据</summary>
-        public Int64 AvailableData
-        {
-            get { return PositionForWrite - Position; }
-        }
+        public Int64 AvailableData { get { return PositionForWrite - Position; } }
         #endregion
 
         #region 方法

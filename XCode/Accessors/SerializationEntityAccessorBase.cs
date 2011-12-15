@@ -12,19 +12,11 @@ namespace XCode.Accessors
         #region 属性
         private Stream _Stream;
         /// <summary>数据流</summary>
-        public Stream Stream
-        {
-            get { return _Stream; }
-            set { _Stream = value; }
-        }
+        public Stream Stream { get { return _Stream; } set { _Stream = value; } }
 
         private Encoding _Encoding = Encoding.UTF8;
         /// <summary>编码</summary>
-        public Encoding Encoding
-        {
-            get { return _Encoding; }
-            set { _Encoding = value; }
-        }
+        public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
         #endregion
 
         #region IEntityAccessor 成员
@@ -119,22 +111,15 @@ namespace XCode.Accessors
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="item">实体字段</param>
-        protected override void WriteItem(IEntity entity, FieldItem item)
-        {
-            writer.WriteObject(entity[item.Name], item.Type, null);
-        }
+        protected override void WriteItem(IEntity entity, FieldItem item) { writer.WriteObject(entity[item.Name], item.Type, null); }
         #endregion
 
         #region 辅助
-        /// <summary>
-        /// 获取写入器
-        /// </summary>
+        /// <summary>获取写入器</summary>
         /// <returns></returns>
         protected abstract IWriter GetWriter();
 
-        /// <summary>
-        /// 获取读取器
-        /// </summary>
+        /// <summary>获取读取器</summary>
         /// <returns></returns>
         protected abstract IReader GetReader();
         #endregion

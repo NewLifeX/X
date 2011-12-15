@@ -6,6 +6,7 @@ namespace NewLife.IO
     /// <summary>
     /// 二进制数据访问器
     /// </summary>
+    [Obsolete("该类在后续版本中将不再被支持！")]
     [Serializable]
     public class BinaryAccessor : FastIndexAccessor, IBinaryAccessor
     {

@@ -4,10 +4,8 @@ using NewLife.Exceptions;
 
 namespace NewLife.Reflection
 {
-    /// <summary>
-    /// 类型解析器
-    /// </summary>
-    [Obsolete("该成员在后续版本中讲不再被支持！")]
+    /// <summary>类型解析器</summary>
+    [Obsolete("该类在后续版本中将不再被支持！")]
     public static class TypeResolver
     {
         #region 提供者

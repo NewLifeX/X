@@ -96,7 +96,7 @@ namespace XCode
         /// 建立Xml序列化器
         /// </summary>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中讲不再被支持！")]
+        [Obsolete("该成员在后续版本中将不再被支持！")]
         protected virtual XmlSerializer CreateXmlSerializer()
         {
             return new XmlSerializer(this.GetType());
@@ -106,7 +106,7 @@ namespace XCode
         /// 导出XML
         /// </summary>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中讲不再被支持！请使用实体访问器IEntityAccessor替代！")]
+        [Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
         public virtual String ToXml()
         {
             XmlSerializer serial = CreateXmlSerializer();
@@ -128,7 +128,7 @@ namespace XCode
         /// 导出Json
         /// </summary>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中讲不再被支持！")]
+        [Obsolete("该成员在后续版本中将不再被支持！")]
         public virtual String ToJson()
         {
             Json json = new Json();

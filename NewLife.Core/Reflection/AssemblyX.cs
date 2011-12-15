@@ -524,7 +524,7 @@ namespace NewLife.Reflection
         /// </summary>
         /// <param name="domain"></param>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中讲不再被支持！")]
+        [Obsolete("该成员在后续版本中将不再被支持！")]
         public static IEnumerable<AssemblyX> ReflectionOnlyGetAssemblies(AppDomain domain)
         {
             if (domain == null) domain = AppDomain.CurrentDomain;
@@ -603,7 +603,7 @@ namespace NewLife.Reflection
         /// 只反射加载有效路径（应用程序是当前路径，Web是Bin目录）的所有程序集
         /// </summary>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中讲不再被支持！")]
+        [Obsolete("该成员在后续版本中将不再被支持！")]
         public static IEnumerable<AssemblyX> ReflectionOnlyLoad()
         {
             if (HttpRuntime.AppDomainId == null)

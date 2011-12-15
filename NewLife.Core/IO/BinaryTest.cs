@@ -9,6 +9,7 @@ namespace NewLife.IO
     /// <summary>
     /// 二进制操作测试
     /// </summary>
+    [Obsolete("该类在后续版本中将不再被支持！")]
     public class BinaryTest : BinaryAccessor
     {
         /// <summary>

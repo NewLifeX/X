@@ -234,7 +234,7 @@ namespace XCode
         /// </summary>
         /// <param name="xml"></param>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中讲不再被支持！请使用实体访问器IEntityAccessor替代！")]
+        [Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
         IEntity FromXml(String xml);
         #endregion
 
@@ -244,7 +244,7 @@ namespace XCode
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中讲不再被支持！请使用实体访问器IEntityAccessor替代！")]
+        [Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
         IEntity FromJson(String json);
         #endregion
 

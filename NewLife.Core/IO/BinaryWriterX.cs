@@ -13,10 +13,9 @@ using NewLife.Reflection;
 
 namespace NewLife.IO
 {
-    /// <summary>
-    /// 二进制协议写入器
-    /// </summary>
+    /// <summary>二进制协议写入器</summary>
     /// <remarks>在二进制协议里面，需要定义每一种类型的序列化方式，本写入器仅处理通用的基本类型</remarks>
+    [Obsolete("该类在后续版本中将不再被支持！")]
     public class BinaryWriterX : BinaryWriter
     {
         #region 编码

@@ -156,5 +156,22 @@ namespace NewLife.Serialization
         //    FullNameExtend
         //}
         #endregion
+
+        #region 大小格式
+        private TypeCode _SizeFormat = TypeCode.Int32;
+        /// <summary>大小格式。只能是数字，无符号整数表示使用相应的压缩编码，压缩编码仅二进制序列化有效</summary>
+        public TypeCode SizeFormat
+        {
+            get { return _SizeFormat; }
+            set
+            {
+                _SizeFormat = value;
+                if (_SizeFormat < TypeCode.Int16)
+                    _SizeFormat = TypeCode.Int16;
+                else if (_SizeFormat > TypeCode.UInt64)
+                    _SizeFormat = TypeCode.UInt64;
+            }
+        }
+        #endregion
     }
 }

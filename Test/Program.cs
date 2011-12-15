@@ -418,10 +418,10 @@ namespace Test
 
         private static void Test8()
         {
-            var reader = new MethodBodyReader(typeof(Program).GetMethod("Test3", BindingFlags.Static | BindingFlags.NonPublic));
-            Console.WriteLine(reader.GetBodyCode());
+            //var reader = new MethodBodyReader(typeof(Program).GetMethod("Test3", BindingFlags.Static | BindingFlags.NonPublic));
+            //Console.WriteLine(reader.GetBodyCode());
 
-            String file = @"E:\Net\SharpZipLib\SharpZipLib_0855_Bin.zip";
+            String file = @"E:\Net\SharpZipLib\SharpZipLib_0860_Bin.zip";
             Stream stream = File.OpenRead(file);
 
             Random rnd = new Random((Int32)DateTime.Now.Ticks);

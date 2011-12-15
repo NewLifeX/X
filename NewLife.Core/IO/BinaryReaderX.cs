@@ -10,9 +10,8 @@ using NewLife.Reflection;
 
 namespace NewLife.IO
 {
-    /// <summary>
-    /// 二进制协议读取器
-    /// </summary>
+    /// <summary>二进制协议读取器</summary>
+    [Obsolete("该类在后续版本中将不再被支持！")]
     public class BinaryReaderX : BinaryReader
     {
         #region 属性
@@ -754,12 +753,6 @@ namespace NewLife.IO
             }
 
             return false;
-
-            //MethodInfo method = this.GetType().GetMethod("Read" + type.Name, new Type[0]);
-            //if (method == null) return false;
-
-            //value = MethodInfoX.Create(method).Invoke(this, new Object[0]);
-            //return true;
         }
 
         /// <summary>

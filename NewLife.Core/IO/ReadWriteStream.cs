@@ -3,27 +3,17 @@ using System.IO;
 
 namespace NewLife.IO
 {
-    /// <summary>
-    /// 读写流。内部包含输入流和输出流两个流，实际读取从输入流读取，写入则写入到输出流
-    /// </summary>
+    /// <summary>读写流。内部包含输入流和输出流两个流，实际读取从输入流读取，写入则写入到输出流</summary>
     public abstract class ReadWriteStream : Stream
     {
         #region 属性
         private Stream _InputStream;
         /// <summary>输入流</summary>
-        public Stream InputStream
-        {
-            get { return _InputStream; }
-            set { _InputStream = value; }
-        }
+        public Stream InputStream { get { return _InputStream; } set { _InputStream = value; } }
 
         private Stream _OutputStream;
         /// <summary>输出流</summary>
-        public Stream OutputStream
-        {
-            get { return _OutputStream; }
-            set { _OutputStream = value; }
-        }
+        public Stream OutputStream { get { return _OutputStream; } set { _OutputStream = value; } }
         #endregion
 
         #region 构造
@@ -43,51 +33,32 @@ namespace NewLife.IO
         /// <summary>
         /// 输入流是否可读
         /// </summary>
-        public override bool CanRead
-        {
-            get { return InputStream.CanRead; }
-        }
+        public override bool CanRead { get { return InputStream.CanRead; } }
 
         /// <summary>
         /// 输入流是否可移动
         /// </summary>
-        public override bool CanSeek
-        {
-            get { return InputStream.CanRead; }
-        }
+        public override bool CanSeek { get { return InputStream.CanRead; } }
 
         /// <summary>
         /// 输出流是否可写
         /// </summary>
-        public override bool CanWrite
-        {
-            get { return OutputStream.CanWrite; }
-        }
+        public override bool CanWrite { get { return OutputStream.CanWrite; } }
 
         /// <summary>
         /// 刷新输出流写入的数据
         /// </summary>
-        public override void Flush()
-        {
-            OutputStream.Flush();
-        }
+        public override void Flush() { OutputStream.Flush(); }
 
         /// <summary>
         /// 输入流总长度
         /// </summary>
-        public override long Length
-        {
-            get { return InputStream.Length; }
-        }
+        public override long Length { get { return InputStream.Length; } }
 
         /// <summary>
         /// 输入流位置
         /// </summary>
-        public override long Position
-        {
-            get { return InputStream.Position; }
-            set { InputStream.Position = value; }
-        }
+        public override long Position { get { return InputStream.Position; } set { InputStream.Position = value; } }
 
         /// <summary>
         /// 从输入流中读取数据
@@ -109,19 +80,13 @@ namespace NewLife.IO
         /// <param name="offset"></param>
         /// <param name="origin"></param>
         /// <returns></returns>
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            return InputStream.Seek(offset, origin);
-        }
+        public override long Seek(long offset, SeekOrigin origin) { return InputStream.Seek(offset, origin); }
 
         /// <summary>
         /// 设置输出流的长度
         /// </summary>
         /// <param name="value"></param>
-        public override void SetLength(long value)
-        {
-            OutputStream.SetLength(value);
-        }
+        public override void SetLength(long value) { OutputStream.SetLength(value); }
 
         /// <summary>
         /// 把数据写入到输出流中
@@ -159,10 +124,7 @@ namespace NewLife.IO
         /// </summary>
         /// <param name="asyncResult"></param>
         /// <returns></returns>
-        public override int EndRead(IAsyncResult asyncResult)
-        {
-            return InputStream.EndRead(asyncResult);
-        }
+        public override int EndRead(IAsyncResult asyncResult) { return InputStream.EndRead(asyncResult); }
 
         /// <summary>
         /// 开始异步写操作
@@ -184,10 +146,7 @@ namespace NewLife.IO
         /// 等待挂起的异步写完成
         /// </summary>
         /// <param name="asyncResult"></param>
-        public override void EndWrite(IAsyncResult asyncResult)
-        {
-            OutputStream.EndWrite(asyncResult);
-        }
+        public override void EndWrite(IAsyncResult asyncResult) { OutputStream.EndWrite(asyncResult); }
         #endregion
 
         #region 方法

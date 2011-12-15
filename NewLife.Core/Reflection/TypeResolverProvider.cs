@@ -8,7 +8,7 @@ namespace NewLife.Reflection
     /// <summary>
     /// 类型解析器提供者接口
     /// </summary>
-    [Obsolete("该成员在后续版本中讲不再被支持！")]
+    [Obsolete("该成员在后续版本中将不再被支持！")]
     public interface ITypeResolverProvider
     {
         /// <summary>
@@ -38,7 +38,7 @@ namespace NewLife.Reflection
     /// <summary>
     /// 类型解析器提供者
     /// </summary>
-    [Obsolete("该成员在后续版本中讲不再被支持！")]
+    [Obsolete("该成员在后续版本中将不再被支持！")]
     public class TypeResolverProvider : ITypeResolverProvider
     {
         #region 业务

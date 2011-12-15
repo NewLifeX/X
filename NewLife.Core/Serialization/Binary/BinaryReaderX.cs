@@ -34,6 +34,17 @@ namespace NewLife.Serialization
         }
         #endregion
 
+        #region 构造
+        /// <summary>
+        /// 实例化一个二进制读取器
+        /// </summary>
+        public BinaryReaderX()
+        {
+            // 默认的大小格式为32位压缩编码整数
+            Settings.SizeFormat = TypeCode.UInt32;
+        }
+        #endregion
+
         #region 基本元数据
         /// <summary>
         /// 读取字节
@@ -290,6 +301,28 @@ namespace NewLife.Serialization
             if (type == null) throw new ArgumentNullException("type");
 
             return ObjectInfo.GetMembers(type, value, true, true);
+        }
+        #endregion
+
+        #region 方法
+        /// <summary>读取大小</summary>
+        /// <returns></returns>
+        protected override Int32 OnReadSize()
+        {
+            switch (Settings.SizeFormat)
+            {
+                case TypeCode.Int16:
+                    return ReadInt16();
+                case TypeCode.UInt16:
+                    return ReadEncodedInt16();
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                default:
+                    return ReadInt32();
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                    return ReadEncodedInt32();
+            }
         }
         #endregion
     }

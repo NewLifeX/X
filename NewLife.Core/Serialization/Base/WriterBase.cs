@@ -1079,13 +1079,33 @@ namespace NewLife.Serialization
         #region 方法
         /// <summary>写入大小</summary>
         /// <param name="size"></param>
-        public virtual void WriteSize(Int32 size)
+        public void WriteSize(Int32 size)
         {
             if (!UseSize) return;
 
             WriteLog("WriteSize", size);
 
-            Write(size);
+            OnWriteSize(size);
+        }
+
+        /// <summary>写入大小</summary>
+        /// <param name="size"></param>
+        protected virtual void OnWriteSize(Int32 size)
+        {
+            switch (Settings.SizeFormat)
+            {
+                case TypeCode.Int16:
+                case TypeCode.UInt16:
+                    Write((Int16)size);
+                    break;
+                case TypeCode.Int32:
+                case TypeCode.UInt32:
+                case TypeCode.Int64:
+                case TypeCode.UInt64:
+                default:
+                    Write(size);
+                    break;
+            }
         }
 
         /// <summary>写入长度。多维数组用</summary>

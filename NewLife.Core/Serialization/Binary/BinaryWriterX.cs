@@ -362,6 +362,30 @@ namespace NewLife.Serialization
         #endregion
 
         #region 方法
+        /// <summary>写入大小</summary>
+        /// <param name="size"></param>
+        protected override void OnWriteSize(Int32 size)
+        {
+            switch (Settings.SizeFormat)
+            {
+                case TypeCode.Int16:
+                    Write((Int16)size);
+                    break;
+                case TypeCode.UInt16:
+                    WriteEncoded((Int16)size);
+                    break;
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                default:
+                    Write(size);
+                    break;
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                    WriteEncoded(size);
+                    break;
+            }
+        }
+
         /// <summary>刷新缓存中的数据</summary>
         public override void Flush()
         {

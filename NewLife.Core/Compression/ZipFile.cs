@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using NewLife.Linq;
+using NewLife.Serialization;
 
 namespace NewLife.Compression
 {
@@ -178,8 +179,10 @@ namespace NewLife.Compression
                 if (EndOfCentralDirectory.FindSignature(stream) != -1)
                 {
                     stream.Seek(-4, SeekOrigin.Current);
-                    var cd = new EndOfCentralDirectory();
-                    cd.Read(stream);
+                    var rx = new BinaryReaderX() { Stream = stream };
+                    rx.Settings.EncodeInt = false;
+                    rx.Settings.SizeFormat = TypeCode.Int16;
+                    var cd = rx.ReadObject<EndOfCentralDirectory>();
 
                     //_locEndOfCDS = stream.Position - 4;
 
@@ -339,8 +342,7 @@ namespace NewLife.Compression
 
                 stream.Seek(-4, SeekOrigin.Current);
 
-                var zcd = new Zip64EndOfCentralDirectory();
-                zcd.Read(stream);
+                var zcd = new BinaryReaderX() { Stream = stream }.ReadObject<Zip64EndOfCentralDirectory>();
 
                 //block = new byte[8 + 44];
                 //stream.Read(block, 0, block.Length);

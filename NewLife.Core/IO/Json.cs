@@ -12,9 +12,7 @@ using NewLife.Reflection;
 
 namespace NewLife.IO
 {
-    /// <summary>
-    /// Json
-    /// </summary>
+    /// <summary>Json</summary>
     public class Json
     {
         #region 属性

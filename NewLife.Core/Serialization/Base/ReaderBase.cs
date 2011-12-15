@@ -1138,6 +1138,10 @@ namespace NewLife.Serialization
             return ReadObject(type, ref value, null) ? value : null;
         }
 
+        /// <summary>主要入口方法。从数据流中读取指定类型的对象</summary>
+        /// <returns>对象</returns>
+        public T ReadObject<T>() { return (T)ReadObject(typeof(T)); }
+
         /// <summary>主要入口方法。尝试读取目标对象指定成员的值，通过委托方法递归处理成员</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
@@ -1588,15 +1592,33 @@ namespace NewLife.Serialization
         #region 方法
         /// <summary>读取大小</summary>
         /// <returns></returns>
-        public virtual Int32 ReadSize()
+        public Int32 ReadSize()
         {
             if (!UseSize) return -1;
 
-            Int32 size = ReadInt32();
+            Int32 size = OnReadSize();
 
             WriteLog("ReadSize", size);
 
             return size;
+        }
+
+        /// <summary>读取大小</summary>
+        /// <returns></returns>
+        protected virtual Int32 OnReadSize()
+        {
+            switch (Settings.SizeFormat)
+            {
+                case TypeCode.Int16:
+                case TypeCode.UInt16:
+                    return ReadInt16();
+                case TypeCode.Int32:
+                case TypeCode.UInt32:
+                case TypeCode.Int64:
+                case TypeCode.UInt64:
+                default:
+                    return ReadInt32();
+            }
         }
 
         /// <summary>

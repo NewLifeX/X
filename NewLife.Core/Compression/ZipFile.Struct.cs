@@ -4,91 +4,93 @@ using System.Reflection;
 using System.Text;
 using NewLife.IO;
 using NewLife.Reflection;
+using NewLife.Serialization;
+using System.Xml.Serialization;
 
 namespace NewLife.Compression
 {
     partial class ZipFile
     {
         #region 二进制序列化
-        class BinaryEntry//<TEntity> where TEntity : BinaryEntity<TEntity>
-        {
-            #region 方法
-            public virtual void Read(Stream stream)
-            {
-                BinaryReader reader = new BinaryReader(stream);
-                foreach (var item in GetMembers())
-                {
-                    Object obj = null;
-                    switch (Type.GetTypeCode(item.PropertyType))
-                    {
-                        case TypeCode.UInt16:
-                            obj = reader.ReadUInt16();
-                            break;
-                        case TypeCode.UInt32:
-                            obj = reader.ReadUInt32();
-                            break;
-                        case TypeCode.UInt64:
-                            obj = reader.ReadUInt64();
-                            break;
-                        case TypeCode.String:
-                            Int32 n = reader.ReadUInt16();
-                            if (n > 0) obj = Encoding.Default.GetString(reader.ReadBytes(n));
-                            break;
-                        default:
-                            continue;
-                    }
-                    PropertyInfoX.Create(item).SetValue(this, obj);
-                }
-            }
+        //class BinaryEntry//<TEntity> where TEntity : BinaryEntity<TEntity>
+        //{
+        //    #region 方法
+        //    public virtual void Read(Stream stream)
+        //    {
+        //        BinaryReader reader = new BinaryReader(stream);
+        //        foreach (var item in GetMembers())
+        //        {
+        //            Object obj = null;
+        //            switch (Type.GetTypeCode(item.PropertyType))
+        //            {
+        //                case TypeCode.UInt16:
+        //                    obj = reader.ReadUInt16();
+        //                    break;
+        //                case TypeCode.UInt32:
+        //                    obj = reader.ReadUInt32();
+        //                    break;
+        //                case TypeCode.UInt64:
+        //                    obj = reader.ReadUInt64();
+        //                    break;
+        //                case TypeCode.String:
+        //                    Int32 n = reader.ReadUInt16();
+        //                    if (n > 0) obj = Encoding.Default.GetString(reader.ReadBytes(n));
+        //                    break;
+        //                default:
+        //                    continue;
+        //            }
+        //            PropertyInfoX.Create(item).SetValue(this, obj);
+        //        }
+        //    }
 
-            public virtual void Write(Stream stream)
-            {
-                BinaryWriter writer = new BinaryWriter(stream);
-                foreach (var item in GetMembers())
-                {
-                    Object obj = PropertyInfoX.Create(item).GetValue(this);
-                    switch (Type.GetTypeCode(item.PropertyType))
-                    {
-                        case TypeCode.UInt16:
-                            writer.Write((UInt16)obj);
-                            break;
-                        case TypeCode.UInt32:
-                            writer.Write((UInt32)obj);
-                            break;
-                        case TypeCode.UInt64:
-                            writer.Write((UInt64)obj);
-                            break;
-                        case TypeCode.String:
-                            if ("" + obj != "")
-                            {
-                                Byte[] bts = Encoding.Default.GetBytes("" + obj);
-                                if (bts.Length > 0)
-                                {
-                                    writer.Write((UInt16)bts.Length);
-                                    writer.Write(bts, 0, bts.Length);
-                                }
-                            }
-                            break;
-                        default:
-                            continue;
-                    }
-                }
-            }
-            #endregion
+        //    public virtual void Write(Stream stream)
+        //    {
+        //        BinaryWriter writer = new BinaryWriter(stream);
+        //        foreach (var item in GetMembers())
+        //        {
+        //            Object obj = PropertyInfoX.Create(item).GetValue(this);
+        //            switch (Type.GetTypeCode(item.PropertyType))
+        //            {
+        //                case TypeCode.UInt16:
+        //                    writer.Write((UInt16)obj);
+        //                    break;
+        //                case TypeCode.UInt32:
+        //                    writer.Write((UInt32)obj);
+        //                    break;
+        //                case TypeCode.UInt64:
+        //                    writer.Write((UInt64)obj);
+        //                    break;
+        //                case TypeCode.String:
+        //                    if ("" + obj != "")
+        //                    {
+        //                        Byte[] bts = Encoding.Default.GetBytes("" + obj);
+        //                        if (bts.Length > 0)
+        //                        {
+        //                            writer.Write((UInt16)bts.Length);
+        //                            writer.Write(bts, 0, bts.Length);
+        //                        }
+        //                    }
+        //                    break;
+        //                default:
+        //                    continue;
+        //            }
+        //        }
+        //    }
+        //    #endregion
 
-            #region 辅助
+        //    #region 辅助
 
-            private PropertyInfo[] GetMembers()
-            {
-                return this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty | BindingFlags.SetProperty);
-            }
+        //    private PropertyInfo[] GetMembers()
+        //    {
+        //        return this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty | BindingFlags.SetProperty);
+        //    }
 
-            #endregion
-        }
+        //    #endregion
+        //}
         #endregion
 
         #region CentralDirectory
-        class EndOfCentralDirectory : BinaryEntry
+        class EndOfCentralDirectory //: BinaryEntry
         {
             #region 属性
             private UInt32 _Signature;
@@ -122,7 +124,6 @@ namespace NewLife.Compression
             private String _Comment;
             /// <summary>属性说明</summary>
             public String Comment { get { return _Comment; } set { _Comment = value; } }
-
             #endregion
 
             #region 定位
@@ -138,7 +139,7 @@ namespace NewLife.Compression
         #endregion
 
         #region Zip64CentralDirectory
-        class Zip64EndOfCentralDirectory : BinaryEntry
+        class Zip64EndOfCentralDirectory : IAccessor
         {
             #region 属性
             private UInt32 _Signature;
@@ -197,38 +198,67 @@ namespace NewLife.Compression
             /// <summary>offset of start of central directory with respect to the starting disk number</summary>
             public UInt64 Offset { get { return _Offset; } set { _Offset = value; } }
 
+            [NonSerialized]
             private Byte[] _Extend;
             /// <summary>扩展</summary>
-            public Byte[] Extend
-            {
-                get { return _Extend; }
-                set { _Extend = value; }
-            }
+            [XmlIgnore]
+            public Byte[] Extend { get { return _Extend; } set { _Extend = value; } }
             #endregion
 
             #region 方法
-            public override void Read(Stream stream)
-            {
-                base.Read(stream);
+            //public override void Read(Stream stream)
+            //{
+            //    base.Read(stream);
 
-                UInt64 n = DataSize - 44;
-                if (n > 0)
-                {
-                    Extend = new Byte[n];
-                    stream.Read(Extend, 0, (Int32)n);
-                }
-            }
+            //    UInt64 n = DataSize - 44;
+            //    if (n > 0)
+            //    {
+            //        Extend = new Byte[n];
+            //        stream.Read(Extend, 0, (Int32)n);
+            //    }
+            //}
 
-            public override void Write(Stream stream)
-            {
-                if (Extend != null && Extend.Length > 0) DataSize = 44 + (UInt64)Extend.Length;
-                base.Write(stream);
-                stream.Write(Extend, 0, Extend.Length);
-            }
+            //public override void Write(Stream stream)
+            //{
+            //    if (Extend != null && Extend.Length > 0) DataSize = 44 + (UInt64)Extend.Length;
+            //    base.Write(stream);
+            //    stream.Write(Extend, 0, Extend.Length);
+            //}
             #endregion
 
             #region 定位
             public const UInt32 DefaultSignature = 0x06064b50;
+            #endregion
+
+            #region IAccessor 成员
+
+            bool IAccessor.Read(IReader reader) { return false; }
+
+            bool IAccessor.ReadComplete(IReader reader, bool success)
+            {
+                // 读取完成，开始读取扩展数据
+                UInt64 n = DataSize - 44;
+                if (n > 0) Extend = reader.ReadBytes((Int32)n);
+
+                return false;
+            }
+
+            bool IAccessor.Write(IWriter writer)
+            {
+                // 重新计算数据大小
+                if (Extend != null && Extend.Length > 0) DataSize = 44 + (UInt64)Extend.Length;
+
+                return false;
+            }
+
+            bool IAccessor.WriteComplete(IWriter writer, bool success)
+            {
+                // 写入完成，开始写入扩展数据
+                if (Extend != null && Extend.Length > 0) writer.Write(Extend, 0, Extend.Length);
+
+                return false;
+            }
+
             #endregion
         }
         #endregion
