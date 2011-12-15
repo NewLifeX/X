@@ -758,6 +758,7 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public Boolean WriteObject(Object value, Type type, WriteObjectCallback callback)
         {
+            if (type == null && value != null) type = value.GetType();
             if (callback == null) callback = WriteMember;
 
             // 检查IAcessor接口
