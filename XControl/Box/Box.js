@@ -300,7 +300,7 @@ Dialog.prototype.show = function() {
         return;
     }
     var arr = [];
-    arr.push("<table style='-moz-user-select:none;' oncontextmenu='stopEvent(event);' onselectstart='stopEvent(event);' border='0' cellpadding='0' cellspacing='0' width='" + (this.Width + 26) + "'>");
+    arr.push("<table id='_DialogTable_" + this.ID + "' style='-moz-user-select:none;' oncontextmenu='stopEvent(event);' onselectstart='stopEvent(event);' border='0' cellpadding='0' cellspacing='0' width='" + (this.Width + 26) + "'>");
     arr.push("  <tr style='cursor:move;' id='_draghandle_" + this.ID + "'>");
     arr.push("    <td width='13' height='33' style=\"background-image:url(<%=WebResource("XControl.Box.Dialog.dialog_lt.png") %>) !important;background-image: none;filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='<%=WebResource("XControl.Box.Dialog.dialog_lt.png")%>', sizingMethod='crop');\"><div style='width:13px;'></div></td>");
     arr.push("    <td height='33' style=\"background-image:url(<%=WebResource("XControl.Box.Dialog.dialog_ct.png") %>) !important;background-image: none;filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='<%=WebResource("XControl.Box.Dialog.dialog_ct.png")%>', sizingMethod='crop');\"><div style=\"float:left;font-weight:bold; color:#FFFFFF; padding:9px 0 0 4px;overflow:hidden;\"><img src=\"<%=WebResource("XControl.Box.Dialog.icon_dialog.gif")%>\" align=\"absmiddle\">&nbsp;" + this.Title + "</div>");
@@ -317,7 +317,7 @@ Dialog.prototype.show = function() {
     arr.push("                <span class='fb' style='font-size:14px;font-weight:bolder;' id='_MessageTitle_" + this.ID + "'>&nbsp;</span>");
     arr.push("                <div style='font-size:12px;' id='_Message_" + this.ID + "'>&nbsp;</div></td>");
     arr.push("              </tr></table></td></tr>");
-    arr.push("        <tr><td align='center' valign='top'><div style='position:relative;width:" + this.Width + "px;height:" + this.Height + "px;'>");
+    arr.push("        <tr><td align='center' valign='top'><div id='_DialogLayout_" + this.ID + "' style='position:relative;width:" + this.Width + "px;height:" + this.Height + "px;'>");
     arr.push("         <div  id='_Covering_" + this.ID + "' style='position:absolute; height:100%; width:100%;display:none;'>&nbsp;</div>");
     if (this.innerHTML) {
         arr.push(this.innerHTML);
@@ -537,6 +537,29 @@ Dialog.prototype.addParam = function(paramName, paramValue)
     this.DialogArguments[paramName] = paramValue;
 }
 
+//添加可调整窗体大小
+Dialog.prototype.resize = function(width, height)
+{
+    this.Width = width;
+    this.Height = height;
+
+    try
+    {
+        var table = GetObjID("_DialogTable_"+this.ID);
+        var layout = GetObjID("_DialogLayout_"+this.ID);
+
+        table.width = width+26;
+        layout.style.width = width+"px";
+        layout.style.height = height+"px";
+
+        this.setPosition();
+
+    }catch(e)
+    {
+       //alert(e);
+    }
+}
+
 Dialog.prototype.close = function()
 {
     try{
@@ -630,11 +653,10 @@ Dialog.close = function(evt)
     window.Args._DialogInstance.close();
 }
 
-Dialog.CloseSelfDialog = function (frameElement) {
+Dialog.GetDialogForFrame = function(frameElement)
+{
+    var r = null;
     try {
-//        var $ = parent.jQuery;
-//        parent.Dialog.getInstance(/_DialogDiv_(.+)/.exec($(frameElement).parents('div.dialog-div:first').attr('id'))[1]).close();
-        //var $ = parent.jQuery;
 
         var ele=frameElement;
         while(true){
@@ -647,8 +669,27 @@ Dialog.CloseSelfDialog = function (frameElement) {
             }
         }
         if(ele){
-            Dialog.getInstance(/_DialogDiv_(.+)/.exec(ele.id)[1]).close();
+            r= Dialog.getInstance(/_DialogDiv_(.+)/.exec(ele.id)[1]);
         }
+    } catch (e) {
+    
+    }
+    return r;
+}
+
+Dialog.Resize = function(frameElement,width,height)
+{
+    try
+    {
+       Dialog.GetDialogForFrame(frameElement).resize(width,height);
+    }catch(e)
+    {
+    }
+}
+
+Dialog.CloseSelfDialog = function (frameElement) {
+    try {
+      Dialog.GetDialogForFrame(frameElement).close();
     } catch (e) {
     //    alert(e);
     }
