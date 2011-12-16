@@ -243,5 +243,11 @@ namespace NewLife.Compression
             catch (Exception ex) { throw new ZipException(String.Format("解压缩{0}时出错！", FileName), ex); }
         }
         #endregion
+
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString() { return FileName; }
+        #endregion
     }
 }

@@ -145,6 +145,12 @@ namespace NewLife.Compression
                 writer.WriteObject(item);
                 //TODO 写文件数据
             }
+
+            var ecd = new EndOfCentralDirectory();
+            ecd.Comment = Comment;
+            writer.WriteObject(ecd);
+
+            writer.Flush();
         }
         #endregion
 
@@ -162,6 +168,60 @@ namespace NewLife.Compression
             foreach (var item in Entries.Values)
             {
                 item.Extract(path, overrideExisting);
+            }
+        }
+        #endregion
+
+        #region 压缩
+        /// <summary>添加文件。必须指定文件路径<see cref="fileName"/>，如果不指定实体名<see cref="entryName"/>，则使用文件名，并加到顶级目录。</summary>
+        /// <param name="fileName">文件路径</param>
+        /// <param name="entryName">实体名</param>
+        /// <param name="stored">是否仅存储，不压缩</param>
+        /// <returns></returns>
+        public ZipEntry AddFile(String fileName, String entryName = null, Boolean stored = false)
+        {
+            if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
+
+            if (String.IsNullOrEmpty(entryName)) entryName = Path.GetFileName(fileName);
+            entryName = entryName.Replace(@"\", "/");
+
+            // 判断并添加目录
+            String dir = Path.GetDirectoryName(entryName);
+            if (!String.IsNullOrEmpty(dir))
+            {
+                if (!dir.EndsWith("/")) dir += "/";
+                if (!Entries.ContainsKey(dir))
+                {
+                    var zde = new ZipEntry();
+                    zde.FileName = dir;
+                    Entries.Add(dir, zde);
+                }
+            }
+
+            var entry = new ZipEntry();
+            entry.FileName = entryName;
+            Entries.Add(entry.FileName, entry);
+
+            return entry;
+        }
+
+        /// <summary>添加目录。必须指定目录<see cref="dir"/>，如果不指定实体名<see cref="entryName"/>，则加到顶级目录。</summary>
+        /// <param name="dir">目录</param>
+        /// <param name="entryName">实体名</param>
+        /// <param name="stored">是否仅存储，不压缩</param>
+        public void AddDirectory(String dir, String entryName = null, Boolean stored = false)
+        {
+            if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("fileName");
+            //if (!Path.IsPathRooted(dir)) dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dir);
+            dir = Path.GetFullPath(dir);
+
+            foreach (var item in Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories))
+            {
+                String name = item;
+                if (name.StartsWith(dir)) name = name.Substring(dir.Length);
+                if (name[0] == Path.DirectorySeparatorChar) name = name.Substring(1);
+
+                AddFile(item, name, stored);
             }
         }
         #endregion

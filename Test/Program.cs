@@ -444,14 +444,25 @@ namespace Test
             //p2 = stream.IndexOf(targetBytes);
             //Console.WriteLine(p2);
 
-            using (ZipFile zf = new ZipFile(file))
-            {
-                foreach (var item in zf)
-                {
-                    Console.WriteLine(item.FileName);
-                }
+            //using (ZipFile zf = new ZipFile(file))
+            //{
+            //    foreach (var item in zf)
+            //    {
+            //        Console.WriteLine(item.FileName);
+            //    }
 
-                zf.Extract("ExtractTest");
+            //    zf.Extract("ExtractTest");
+            //}
+
+
+            using (ZipFile zf = new ZipFile())
+            {
+                //zf.AddDirectory(@"E:\X\Src\Test");
+                zf.AddDirectory(@"..\Src\Test");
+
+                Console.WriteLine(zf.Count);
+
+                zf.Write(File.Create("aa.zip"));
             }
         }
     }
