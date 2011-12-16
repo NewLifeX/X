@@ -278,7 +278,7 @@ namespace XControl
             for (int i = 0; i < gv.Columns.Count; i++)
             {
                 DataControlField item = gv.Columns[i];
-                if (item.HeaderText == editLinkBoxText && item is LinkBoxField)
+                if (item.HeaderText == editLinkBoxText /*&& item is LinkBoxField*/)
                 {
                     editColumIndex = i;
                     break;
