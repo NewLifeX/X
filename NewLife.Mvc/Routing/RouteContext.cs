@@ -274,7 +274,7 @@ namespace NewLife.Mvc
         ///
         /// 一般在控制器工厂中使用,用于运行时路由,相对应的是实现IRouteConfigModule接口配置路由
         ///
-        /// 建议使用RouteTo(IRouteConfigModule module, RouteConfigManager cfg)  RouteTo(Type type)  RouteTo<T>() 这3个方法
+        /// 建议使用RouteTo(IRouteConfigModule module, RouteConfigManager cfg)  RouteTo(Type type)  RouteTo&lt;T&gt;() 这3个方法
         /// 可以在上下文中留下模块路由信息,这个只能留下路由配置信息
         /// </summary>
         /// <param name="cfg"></param>
@@ -442,7 +442,10 @@ namespace NewLife.Mvc
         #endregion 上下文状态进出
 
         #region 实现IEnumerable接口
-
+        /// <summary>
+        /// 实现IEnumerable接口
+        /// </summary>
+        /// <returns></returns>
         public IEnumerator<RouteFrag> GetEnumerator()
         {
             RouteFrag[] ary = Frags;

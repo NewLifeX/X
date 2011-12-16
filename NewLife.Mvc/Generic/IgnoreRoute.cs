@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Reflection;
 
 namespace NewLife.Mvc
 {
@@ -95,5 +96,7 @@ namespace NewLife.Mvc
                 get { return true; }
             }
         }
+
+        internal Func<IRouteContext, bool> Filter { get; set; }
     }
 }

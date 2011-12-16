@@ -47,6 +47,8 @@ namespace NewLife.Mvc
 
         /// <summary>
         /// 当前路由的片段,Url从左向右,分别表示数组下标从0开始的路由片段
+        /// 
+        /// 实现IEnumerable接口 遍历时也是如此的顺序
         /// </summary>
         RouteFrag[] Frags { get; }
 

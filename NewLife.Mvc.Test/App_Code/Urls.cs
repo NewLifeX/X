@@ -12,6 +12,12 @@ public class Urls : IRouteConfig
     public void Config(RouteConfigManager cfg)
     {
         cfg
+            .Static("/static.bmp")
+            .Static("", delegate(IRouteContext ctx)
+            {
+                return ctx.Path.EndsWith(".txt");
+            })
+            .Redirect("/rootredirect", "/")
             .RouteToFactory<RouteFactory>("/specFactory")
             .Route<TestController>("/Test")
             .Route(
@@ -21,7 +27,6 @@ public class Urls : IRouteConfig
                 "/Factory1", typeof(TestFactory),
                 "/Error", typeof(TestError),
                 "/Module", typeof(TestModuleRoute),
-                "/Static", typeof(IgnoreRoute),
                 ""
             )
             ;

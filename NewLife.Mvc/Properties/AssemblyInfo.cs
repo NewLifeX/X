@@ -31,10 +31,13 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.4.*")]
-[assembly: AssemblyFileVersion("1.4.2011.1212")]
+[assembly: AssemblyVersion("1.5.*")]
+[assembly: AssemblyFileVersion("1.5.2011.1216")]
 
 /*
+ * v1.5.2011.1216   增加重定向和静态资源路由的API,静态重定向和静态资源会发送缓存的Http Header,调试时重定向始终不会缓存,但是会增加额外的标识在Http Header中表示重定向生效
+ *                  增加自定义忽略路由的API,类似的还有重定向和静态资源路由API
+ * 
  * v1.4.2011.1212   修正GenericController的ProcessRequest和IsReusable修饰为可重载
  * 
  * v1.4.2011.1206   修改内部结构,是支持在控制器工厂中进一步路由到模块或路由配置

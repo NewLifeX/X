@@ -133,7 +133,7 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
-        /// 忽略指定路径的路由请求 后续的路由规则将不会尝试匹配
+        /// 忽略指定路径的路由请求 后续的路由规则将不会尝试匹配 如果忽略的请求是静态资源请使用Static
         ///
         /// 在Route(params object[] args) 中可以使用IgnoreRoute类来忽略路由请求
         /// </summary>
@@ -150,6 +150,42 @@ namespace NewLife.Mvc
         }
 
         /// <summary>
+        /// 将指定过滤器返回true的请求忽略 如果忽略的请求是静态资源请使用Static
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        public RouteConfigManager Ignore(string path, Func<IRouteContext, bool> filter)
+        {
+            return RouteToFactory(path, () => new IgnoreRoute() { Filter = filter });
+        }
+
+        /// <summary>
+        /// 将指定路径作为静态资源路由 静态资源会在Http Header中增加相关的缓存标识 根据HttpCacheConfig
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public RouteConfigManager Static(params string[] path)
+        {
+            foreach (var p in path)
+            {
+                RouteToFactory(p, StaticRoute.InstanceFunc);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// 将指定过滤器返回true的请求作为静态资源路由
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        public RouteConfigManager Static(string path, Func<IRouteContext, bool> filter)
+        {
+            return RouteToFactory(path, () => new StaticRoute() { Filter = filter });
+        }
+
+        /// <summary>
         /// 重定向指定路径的请求到指定目标
         /// </summary>
         /// <param name="path">指定路径,当请求匹配当前模块的这个路径时重定向生效</param>
@@ -162,6 +198,8 @@ namespace NewLife.Mvc
 
         /// <summary>
         /// 重定向指定路径的请求到指定目标
+        ///
+        /// 默认为301 Moved Permanently的重定向,并指定浏览器缓存
         /// </summary>
         /// <param name="path"></param>
         /// <param name="to">一般是相对于当前模块,以/开始,以~/开始的表示相对于当前web应用程序根路径</param>
@@ -169,18 +207,20 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public RouteConfigManager Redirect(string path, string to, bool relativeRoot)
         {
-            return RouteToFactory(path, () => new RedirectFactory(to, relativeRoot));
+            return RouteToFactory(path, () => new RedirectRoute(to, relativeRoot));
         }
 
         /// <summary>
         /// 重定向指定路径的请求到指定目标
+        ///
+        /// 默认为302 Found的重定向,并指定浏览器不缓存
         /// </summary>
         /// <param name="path"></param>
         /// <param name="toFunc">根据条件重定向,需要返回重定向的目标地址,委托的第2个参数是当前路由上下文路由所有路由片段的地址</param>
         /// <returns></returns>
         public RouteConfigManager Redirect(string path, Func<RouteContext, string, string> toFunc)
         {
-            return RouteToFactory(path, () => new RedirectFactory(toFunc));
+            return RouteToFactory(path, () => new RedirectRoute(toFunc));
         }
 
         /// <summary>
