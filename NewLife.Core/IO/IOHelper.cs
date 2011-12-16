@@ -19,10 +19,12 @@ namespace NewLife.IO
         /// <param name="outStream">输出流</param>
         public static void Compress(this Stream inStream, Stream outStream)
         {
-            Stream stream = new DeflateStream(outStream, CompressionMode.Compress, true);
-            CopyTo(inStream, stream);
-            stream.Flush();
-            stream.Close();
+            using (Stream stream = new DeflateStream(outStream, CompressionMode.Compress, true))
+            {
+                inStream.CopyTo(stream);
+                stream.Flush();
+                stream.Close();
+            }
         }
 
         /// <summary>
@@ -32,9 +34,11 @@ namespace NewLife.IO
         /// <param name="outStream">输出流</param>
         public static void Decompress(this Stream inStream, Stream outStream)
         {
-            Stream stream = new DeflateStream(inStream, CompressionMode.Decompress, true);
-            CopyTo(stream, outStream, 0);
-            stream.Close();
+            using (Stream stream = new DeflateStream(inStream, CompressionMode.Decompress, true))
+            {
+                stream.CopyTo(outStream);
+                stream.Close();
+            }
         }
 
         /// <summary>

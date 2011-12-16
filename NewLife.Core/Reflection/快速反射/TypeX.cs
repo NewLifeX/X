@@ -81,9 +81,7 @@ namespace NewLife.Reflection
         }
 
         private String _FullName;
-        /// <summary>
-        /// 完整类型名称。包含命名空间，但是不包含程序集信息
-        /// </summary>
+        /// <summary>完整类型名称。包含命名空间，但是不包含程序集信息</summary>
         public String FullName
         {
             get

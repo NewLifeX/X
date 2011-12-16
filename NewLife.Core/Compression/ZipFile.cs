@@ -9,8 +9,10 @@ using NewLife.Serialization;
 namespace NewLife.Compression
 {
     /// <summary>Zip文件</summary>
-    /// <remarks>Zip定义位于 <see href="http://www.pkware.com/documents/casestudies/APPNOTE.TXT"/></remarks>
-    public partial class ZipFile : IEnumerable, IEnumerable<ZipEntry>, IDisposable
+    /// <remarks>
+    /// Zip定义位于 <a target="_blank" href="http://www.pkware.com/documents/casestudies/APPNOTE.TXT">http://www.pkware.com/documents/casestudies/APPNOTE.TXT</a>
+    /// </remarks>
+    public partial class ZipFile : DisposeBase, IEnumerable, IEnumerable<ZipEntry>
     {
         #region 属性
         private String _Name;
@@ -24,35 +26,35 @@ namespace NewLife.Compression
         private Encoding _Encoding = Encoding.Default;
         /// <summary>字符串编码</summary>
         public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
+
+        private String _DefaultExtractPath;
+        /// <summary>默认解压目录</summary>
+        private String DefaultExtractPath
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_DefaultExtractPath)) _DefaultExtractPath = AppDomain.CurrentDomain.BaseDirectory;
+                return _DefaultExtractPath;
+            }
+            set { _DefaultExtractPath = value; }
+        }
         #endregion
 
         #region 构造
         /// <summary>实例化一个Zip文件对象</summary>
-        public ZipFile() : this(String.Empty, null) { }
+        public ZipFile() { }
 
         /// <summary>实例化一个Zip文件对象</summary>
         /// <param name="fileName"></param>
         public ZipFile(String fileName) : this(fileName, null) { }
 
         /// <summary>实例化一个Zip文件对象</summary>
-        /// <param name="encoding"></param>
-        public ZipFile(Encoding encoding) : this(String.Empty, encoding) { }
-
-        /// <summary>实例化一个Zip文件对象</summary>
         /// <param name="fileName"></param>
         /// <param name="encoding"></param>
         public ZipFile(String fileName, Encoding encoding)
+            : this(File.OpenRead(fileName), encoding)
         {
-            try
-            {
-                Name = fileName;
-
-                if (!String.IsNullOrEmpty(fileName) && File.Exists(fileName)) Read(File.OpenRead(fileName));
-            }
-            catch (Exception e1)
-            {
-                throw new ZipException(String.Format("{0} is not a valid zip file", fileName), e1);
-            }
+            if (!String.IsNullOrEmpty(fileName)) DefaultExtractPath = Path.GetDirectoryName(fileName);
         }
 
         /// <summary>实例化一个Zip文件对象</summary>
@@ -66,87 +68,37 @@ namespace NewLife.Compression
             }
             catch (Exception ex)
             {
-                throw new ZipException("stream is not a valid zip file", ex);
+                throw new ZipException("不是有效的Zip格式！", ex);
             }
         }
 
         /// <summary>释放资源</summary>
-        public void Dispose()
+        /// <param name="disposing"></param>
+        protected override void OnDispose(bool disposing)
         {
-            Dispose(true);
+            base.OnDispose(disposing);
 
-            GC.SuppressFinalize(this);
+            if (_readStream != null) _readStream.Dispose();
         }
-
-        /// <summary>释放资源</summary>
-        /// <param name="disposeManagedResources"></param>
-        protected virtual void Dispose(bool disposeManagedResources)
-        {
-            //if (!this._disposed)
-            //{
-            //    if (disposeManagedResources)
-            //    {
-            //        // dispose managed resources
-            //        if (_ReadStreamIsOurs)
-            //        {
-            //            if (_readstream != null)
-            //            {
-            //                _readstream.Dispose();
-            //                _readstream = null;
-            //            }
-            //        }
-            //        // only dispose the writestream if there is a backing file
-            //        if (_temporaryFileName != null && !String.IsNullOrEmpty(_name))
-            //            if (_writestream != null)
-            //            {
-            //                _writestream.Dispose();
-            //                _writestream = null;
-            //            }
-
-            //        if (this.ParallelDeflater != null)
-            //        {
-            //            this.ParallelDeflater.Dispose();
-            //            this.ParallelDeflater = null;
-            //        }
-            //    }
-            //    this._disposed = true;
-            //}
-        }
-
-        //public static ZipFile Create(String fileName)
-        //{
-        //    if (fileName == null) throw new ArgumentNullException("fileName");
-
-        //    FileStream fs = File.Create(fileName);
-
-        //    ZipFile result = new ZipFile();
-        //    result.name_ = fileName;
-        //    result.baseStream_ = fs;
-        //    result.isStreamOwner = true;
-        //    return result;
-        //}
-
-        //public static ZipFile Create(Stream outStream)
-        //{
-        //    if (outStream == null) throw new ArgumentNullException("outStream");
-        //    if (!outStream.CanWrite) throw new ArgumentException("Stream is not writeable", "outStream");
-        //    if (!outStream.CanSeek) throw new ArgumentException("Stream is not seekable", "outStream");
-
-        //    ZipFile result = new ZipFile();
-        //    result.baseStream_ = outStream;
-        //    return result;
-        //}
         #endregion
 
-        #region 读取核心
-        private void Read(Stream stream)
+        #region 读取
+        Stream _readStream;
+
+        /// <summary>从数据流中读取Zip格式数据</summary>
+        /// <param name="stream"></param>
+        public void Read(Stream stream)
         {
+            _readStream = stream;
+
             ZipEntry e;
             bool firstEntry = true;
             while ((e = ZipEntry.ReadEntry(this, stream, firstEntry)) != null)
             {
-                if (Entries.ContainsKey(e.FileName)) Console.WriteLine("");
-                Entries.Add(e.FileName, e);
+                String name = e.FileName;
+                Int32 n = 2;
+                while (Entries.ContainsKey(name)) { name = e.FileName + "" + n++; }
+                Entries.Add(name, e);
                 firstEntry = false;
             }
 
@@ -164,8 +116,6 @@ namespace NewLife.Compression
                     }
                 }
 
-                //if (cd.NumberOfEntriesOnThisDisk > 0) stream.Seek(cd.NumberOfEntriesOnThisDisk, SeekOrigin.Begin);
-
                 // 读取目录结构尾记录
                 var reader = CreateReader(stream);
                 if (reader.Expect(ZipConstants.EndOfCentralDirectorySignature))
@@ -176,6 +126,43 @@ namespace NewLife.Compression
             }
             catch (ZipException) { }
             catch (IOException) { }
+        }
+        #endregion
+
+        #region 写入
+        /// <summary>把Zip格式数据写入到数据流中</summary>
+        /// <param name="stream"></param>
+        public void Write(Stream stream)
+        {
+            if (stream == null) throw new ArgumentNullException("stream");
+            if (Entries.Count < 1) throw new ZipException("没有添加任何文件！");
+
+            var writer = CreateWriter(stream);
+
+            foreach (var item in Entries.Values)
+            {
+                // 写头部
+                writer.WriteObject(item);
+                //TODO 写文件数据
+            }
+        }
+        #endregion
+
+        #region 解压缩
+        /// <summary>解压缩</summary>
+        /// <param name="path">目标路径</param>
+        /// <param name="overrideExisting">是否覆盖已有文件</param>
+        public void Extract(String path, Boolean overrideExisting = true)
+        {
+            if (String.IsNullOrEmpty(path)) throw new ArgumentNullException("path");
+            if (_readStream == null || !_readStream.CanSeek || !_readStream.CanRead) throw new ZipException("数据流异常！");
+
+            if (!Path.IsPathRooted(path)) path = Path.Combine(DefaultExtractPath, path);
+
+            foreach (var item in Entries.Values)
+            {
+                item.Extract(path, overrideExisting);
+            }
         }
         #endregion
 
@@ -218,7 +205,6 @@ namespace NewLife.Compression
 
         /// <summary>实体个数</summary>
         public Int32 Count { get { return Entries.Count; } }
-
         #endregion
 
         #region 辅助
@@ -230,6 +216,16 @@ namespace NewLife.Compression
             reader.Settings.SizeFormat = TypeCode.Int16;
             reader.Settings.Encoding = Encoding;
             return reader;
+        }
+
+        internal BinaryWriterX CreateWriter(Stream stream)
+        {
+            var writer = new BinaryWriterX() { Stream = stream };
+            writer.Settings.EncodeInt = false;
+            writer.Settings.UseObjRef = false;
+            writer.Settings.SizeFormat = TypeCode.Int16;
+            writer.Settings.Encoding = Encoding;
+            return writer;
         }
 
         private static string NormalizePathForUseInZipFile(string pathName)
@@ -271,18 +267,52 @@ namespace NewLife.Compression
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return String.Format("{0} [{1}]", Name, Entries.Count);
-        }
+        public override string ToString() { return String.Format("{0} [{1}]", Name, Entries.Count); }
         #endregion
 
         #region IEnumerable<ZipEntry> 成员
-
         IEnumerator<ZipEntry> IEnumerable<ZipEntry>.GetEnumerator() { return Entries.Values.GetEnumerator(); }
 
         IEnumerator IEnumerable.GetEnumerator() { return Entries.Values.GetEnumerator(); }
+        #endregion
 
+        #region CentralDirectory
+        class EndOfCentralDirectory
+        {
+            #region 属性
+            private UInt32 _Signature;
+            /// <summary>签名。end of central dir signature</summary>
+            public UInt32 Signature { get { return _Signature; } set { _Signature = value; } }
+
+            private UInt16 _DiskNumber;
+            /// <summary>卷号。number of this disk</summary>
+            public UInt16 DiskNumber { get { return _DiskNumber; } set { _DiskNumber = value; } }
+
+            private UInt16 _DiskNumberWithStart;
+            /// <summary>number of the disk with the start of the central directory</summary>
+            public UInt16 DiskNumberWithStart { get { return _DiskNumberWithStart; } set { _DiskNumberWithStart = value; } }
+
+            private UInt16 _NumberOfEntriesOnThisDisk;
+            /// <summary>total number of entries in the central directory on this disk</summary>
+            public UInt16 NumberOfEntriesOnThisDisk { get { return _NumberOfEntriesOnThisDisk; } set { _NumberOfEntriesOnThisDisk = value; } }
+
+            private UInt16 _NumberOfEntries;
+            /// <summary>total number of entries in the central directory</summary>
+            public UInt16 NumberOfEntries { get { return _NumberOfEntries; } set { _NumberOfEntries = value; } }
+
+            private UInt32 _Size;
+            /// <summary>size of the central directory</summary>
+            public UInt32 Size { get { return _Size; } set { _Size = value; } }
+
+            private UInt32 _Offset;
+            /// <summary>offset of start of central directory with respect to the starting disk number</summary>
+            public UInt32 Offset { get { return _Offset; } set { _Offset = value; } }
+
+            private String _Comment;
+            /// <summary>注释</summary>
+            public String Comment { get { return _Comment; } set { _Comment = value; } }
+            #endregion
+        }
         #endregion
     }
 }

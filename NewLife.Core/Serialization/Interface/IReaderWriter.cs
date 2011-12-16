@@ -4,6 +4,14 @@ using System.IO;
 namespace NewLife.Serialization
 {
     /// <summary>读写器接口</summary>
+    /// <remarks>
+    /// 序列化框架的核心思想：基本类型直接写入，自定义类型反射得到成员，逐层递归写入！
+    /// 
+    /// <see cref="Stream"/>作为序列化操作的根本，读写都是对数据流进行操作；
+    /// <see cref="Settings"/>是序列化时的一些设置；
+    /// <see cref="Depth"/>表示当前序列化的层次；
+    /// <see cref="GetMembers"/>方法和<see cref="OnGotMembers"/>事件用于获取/修改自定义类型需要序列化的成员，默认反射实现。
+    /// </remarks>
     public interface IReaderWriter
     {
         #region 属性
@@ -32,9 +40,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 事件
-        /// <summary>
-        /// 获取指定类型中需要序列化的成员时触发。使用者可以修改、排序要序列化的成员。
-        /// </summary>
+        /// <summary>获取指定类型中需要序列化的成员时触发。使用者可以修改、排序要序列化的成员。</summary>
         event EventHandler<EventArgs<Type, Object, IObjectMemberInfo[]>> OnGotMembers;
         #endregion
     }

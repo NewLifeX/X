@@ -4,7 +4,13 @@ using System.Net;
 namespace NewLife.Serialization
 {
     /// <summary>读取器接口</summary>
-    /// <remarks>序列化框架的处理顺序为：IAccessor接口 => OnObjectReading事件 => 扩展类型 => 基础类型 => 字典 => 枚举 => 序列化接口 => 自定义对象 => 未知类型 => OnObjectReaded事件</remarks>
+    /// <remarks>
+    /// 序列化框架的核心思想：基本类型直接读取，自定义类型反射得到成员，逐层递归读取！详见<see cref="IReaderWriter"/>
+    /// 
+    /// 序列化框架的处理顺序为：<see cref="IAccessor" />接口 => <see cref="OnObjectReading" />事件 => 扩展类型 => <see cref="ReadValue(Type,ref Object)" />基础类型 => <see cref="ReadDictionary" />字典 => <see cref="ReadEnumerable" />枚举 => <see cref="ReadSerializable" />序列化接口 => <see cref="ReadCustomObject" />自定义对象 => <see cref="ReadUnKnown" />未知类型 => <see cref="OnObjectReaded" />事件
+    /// 
+    /// 反序列化对象时只能调用<see cref="ReadObject(Type)" />方法，其它所有方法（包括所有Read重载）仅用于内部读取或者自定义序列化时使用。
+    /// </remarks>
     public interface IReader : IReaderWriter
     {
         #region 基元类型

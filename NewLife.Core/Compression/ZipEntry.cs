@@ -3,10 +3,13 @@ using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using NewLife.Serialization;
+using System.IO.Compression;
+using NewLife.IO;
+using NewLife.Exceptions;
 
 namespace NewLife.Compression
 {
-    /// <summary>Zip实体</summary>
+    /// <summary>Zip实体。包含文件头信息和文件位置</summary>
     public class ZipEntry
     {
         #region 数据属性
@@ -15,9 +18,9 @@ namespace NewLife.Compression
         public UInt32 Signature { get { return _Signature; } private set { _Signature = value; } }
 
         // ZipDirEntry成员
-        private HostSystemID _VersionMadeBy;
+        private HostSystem _VersionMadeBy;
         /// <summary>属性说明</summary>
-        public HostSystemID VersionMadeBy { get { return _VersionMadeBy; } set { _VersionMadeBy = value; } }
+        HostSystem VersionMadeBy { get { return _VersionMadeBy; } set { _VersionMadeBy = value; } }
 
         private UInt16 _VersionNeeded;
         /// <summary>解压缩所需要的版本</summary>
@@ -25,16 +28,11 @@ namespace NewLife.Compression
 
         private GeneralBitFlags _BitField;
         /// <summary>标识位</summary>
-        public GeneralBitFlags BitField { get { return _BitField; } set { _BitField = value; } }
+        GeneralBitFlags BitField { get { return _BitField; } set { _BitField = value; } }
 
         private CompressionMethod _CompressionMethod;
         /// <summary>压缩方法</summary>
-        public CompressionMethod CompressionMethod { get { return _CompressionMethod; } set { _CompressionMethod = value; } }
-
-        //// ZipDirEntry成员
-        //private UInt16 _TimeBlob;
-        ///// <summary>属性说明</summary>
-        //public UInt16 TimeBlob { get { return _TimeBlob; } set { _TimeBlob = value; } }
+        CompressionMethod CompressionMethod { get { return _CompressionMethod; } set { _CompressionMethod = value; } }
 
         private Int32 _LastModified;
         /// <summary>最后修改时间</summary>
@@ -108,13 +106,26 @@ namespace NewLife.Compression
         /// <summary>文件数据位置</summary>
         public Int64 FileDataPosition { get { return _FileDataPosition; } set { _FileDataPosition = value; } }
 
-        //[NonSerialized]
-        //private Boolean _IsDirectory;
         /// <summary>是否目录</summary>
-        public Boolean IsDirectory { get { return ("" + FileName).EndsWith("/"); } /*set { _IsDirectory = value; }*/ }
+        public Boolean IsDirectory { get { return ("" + FileName).EndsWith("/"); } }
+        #endregion
+
+        #region 构造
+        //public ZipEntry() { }
+
+        //public ZipEntry(String fileName):this(File.OpenRead(fileName) { }
+
+        //public ZipEntry(Stream stream)
+        //{
+
+        //}
         #endregion
 
         #region 读取核心
+        /// <summary>内部保存的读取流。用于解压文件</summary>
+        [NonSerialized]
+        Stream _readStream;
+
         internal static ZipEntry ReadEntry(ZipFile zipfile, Stream stream, bool first)
         {
             var reader = zipfile.CreateReader(stream);
@@ -137,6 +148,7 @@ namespace NewLife.Compression
             }
 
             var entry = reader.ReadObject<ZipEntry>();
+            entry._readStream = stream;
             entry.FileDataPosition = stream.Position;
             // 如果有扩展，则跳过，20字节
             if (entry.BitField.Has(GeneralBitFlags.Descriptor)) stream.Seek(20, SeekOrigin.Current);
@@ -165,6 +177,70 @@ namespace NewLife.Compression
 
             var entry = reader.ReadObject<ZipEntry>();
             return entry;
+        }
+        #endregion
+
+        #region 解压缩
+        /// <summary>解压缩</summary>
+        /// <param name="path">目标路径</param>
+        /// <param name="overrideExisting">是否覆盖已有文件</param>
+        public void Extract(String path, Boolean overrideExisting = true)
+        {
+            if (String.IsNullOrEmpty(path)) throw new ArgumentNullException("path");
+
+            if (!IsDirectory)
+            {
+                String file = Path.Combine(path, FileName);
+                if (!overrideExisting && File.Exists(file)) return;
+
+                path = Path.GetDirectoryName(file);
+                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+
+                using (var stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.Write))
+                {
+                    Extract(stream);
+                }
+            }
+            else
+            {
+                path = Path.Combine(path, FileName);
+                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            }
+        }
+
+        /// <summary>解压缩</summary>
+        /// <param name="outStream">目标数据流</param>
+        public void Extract(Stream outStream)
+        {
+            if (outStream == null || !outStream.CanWrite) throw new ArgumentNullException("outStream");
+            if (FileDataPosition <= 0) throw new ZipException("文件数据位置不正确！");
+            if (CompressedSize <= 0) throw new ZipException("文件大小不正确！");
+            if (_readStream == null || !_readStream.CanSeek || !_readStream.CanRead) throw new ZipException("数据流异常！");
+
+            // 移到目标位置
+            _readStream.Seek(FileDataPosition, SeekOrigin.Begin);
+
+            try
+            {
+                if (CompressionMethod == CompressionMethod.Deflated)
+                {
+                    using (var stream = new DeflateStream(_readStream, CompressionMode.Decompress, true))
+                    {
+                        stream.CopyTo(outStream);
+                        stream.Close();
+                    }
+                }
+                else if (CompressionMethod == CompressionMethod.Stored)
+                {
+                    // 如果同样大小，可能是没有压缩，直接复制
+                    _readStream.CopyTo(outStream);
+                }
+                else
+                {
+                    throw new XException("无法处理的压缩算法{0}！", CompressionMethod);
+                }
+            }
+            catch (Exception ex) { throw new ZipException(String.Format("解压缩{0}时出错！", FileName), ex); }
         }
         #endregion
     }

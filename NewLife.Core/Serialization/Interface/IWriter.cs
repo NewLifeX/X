@@ -5,7 +5,13 @@ using System.Net;
 namespace NewLife.Serialization
 {
     /// <summary>写入器接口</summary>
-    /// <remarks>序列化框架的处理顺序为：IAccessor接口 => OnObjectWriting事件 => 扩展类型 => 基础类型 => 字典 => 枚举 => 序列化接口 => 自定义对象 => 未知类型 => OnObjectWrited事件</remarks>
+    /// <remarks>
+    /// 序列化框架的核心思想：基本类型直接写入，自定义类型反射得到成员，逐层递归写入！详见<see cref="IReaderWriter" />
+    /// 
+    /// 序列化框架的处理顺序为：<see cref="IAccessor" />接口 => <see cref="OnObjectWriting" />事件 => 扩展类型 => <see cref="WriteValue" />基础类型 => <see cref="WriteDictionary" />字典 => <see cref="WriteEnumerable" />枚举 => <see cref="WriteSerializable" />序列化接口 => <see cref="WriteCustomObject" />自定义对象 => <see cref="WriteUnKnown" />未知类型 => <see cref="OnObjectWrited" />事件
+    /// 
+    /// 序列化对象时只能调用<see cref="WriteObject(Object)" />方法，其它所有方法（包括所有Write重载）仅用于内部写入或者自定义序列化时使用。
+    /// </remarks>
     public interface IWriter : IReaderWriter
     {
         #region 基元类型

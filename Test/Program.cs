@@ -450,6 +450,8 @@ namespace Test
                 {
                     Console.WriteLine(item.FileName);
                 }
+
+                zf.Extract("ExtractTest");
             }
         }
     }
