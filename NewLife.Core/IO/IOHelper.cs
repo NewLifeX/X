@@ -460,8 +460,8 @@ namespace NewLife.IO
         /// <summary>在数据流中查找字节数组的位置，流指针会移动到结尾</summary>
         /// <param name="stream">数据流</param>
         /// <param name="buffer">字节数组</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="length">查找长度</param>
+        /// <param name="offset">字节数组中的偏移</param>
+        /// <param name="length">字节数组中的查找长度</param>
         /// <returns></returns>
         public static Int64 IndexOf(this Stream stream, Byte[] buffer, Int64 offset = 0, Int64 length = 0)
         {

@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using NewLife.Linq;
+using NewLife.Log;
 
 namespace NewLife.Serialization
 {
@@ -168,13 +169,23 @@ namespace NewLife.Serialization
         //}
         #endregion
 
-        #region 写日志
-        /// <summary>
-        /// 调试输出
-        /// </summary>
+        #region 跟踪日志
+        private Boolean _Debug;
+        /// <summary>是否调试</summary>
+        public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
+
+        /// <summary>使用跟踪流</summary>
+        public void EnableTraceStream()
+        {
+            var stream = Stream;
+            if (stream == null || stream is TraceStream) return;
+
+            Stream = new TraceStream(stream);
+        }
+
+        /// <summary>调试输出</summary>
         /// <param name="action">操作</param>
         /// <param name="args">参数</param>
-        [Conditional("DEBUG")]
         public void WriteLog(String action, params Object[] args)
         {
             WriteLog(0, action, args);
@@ -189,16 +200,13 @@ namespace NewLife.Serialization
         /// <summary>是否控制台</summary>
         static Boolean IsConsole { get { return (_IsConsole ?? (_IsConsole = Runtime.IsConsole)).Value; } }
 
-        /// <summary>
-        /// 调试输出
-        /// </summary>
+        /// <summary>调试输出</summary>
         /// <param name="colorIndex">颜色方案</param>
         /// <param name="action">操作</param>
         /// <param name="args">参数</param>
-        [Conditional("DEBUG")]
         public void WriteLog(Int32 colorIndex, String action, params Object[] args)
         {
-            if (!IsConsole) return;
+            if (!Debug || !IsConsole) return;
 
             ConsoleColor color = Console.ForegroundColor;
 
@@ -226,14 +234,11 @@ namespace NewLife.Serialization
             Console.WriteLine();
         }
 
-        /// <summary>
-        /// 设置调试缩进
-        /// </summary>
+        /// <summary>设置调试缩进</summary>
         /// <param name="indent">缩进</param>
-        [Conditional("DEBUG")]
-        public static void SetDebugIndent(Int32 indent)
+        public void SetDebugIndent(Int32 indent)
         {
-            if (!IsConsole) return;
+            if (!Debug || !IsConsole) return;
 
             try
             {
@@ -242,13 +247,10 @@ namespace NewLife.Serialization
             catch { }
         }
 
-        /// <summary>
-        /// 设置调试缩进
-        /// </summary>
-        [Conditional("DEBUG")]
+        /// <summary>设置调试缩进</summary>
         public void SetDebugIndent()
         {
-            if (!IsConsole) return;
+            if (!Debug || !IsConsole) return;
 
             SetDebugIndent(Depth - 1);
         }
