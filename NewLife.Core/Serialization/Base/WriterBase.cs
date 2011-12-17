@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.IO;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -1149,46 +1150,39 @@ namespace NewLife.Serialization
             base.Reset();
         }
 
-        /// <summary>输出数据转为字节数组</summary>
-        /// <returns></returns>
-        public virtual Byte[] ToArray()
-        {
-            Flush();
+        // 耗时且影响数据流，慎用！
+        ///// <summary>输出数据转为字节数组。耗时且影响数据流，慎用！</summary>
+        ///// <returns></returns>
+        //public virtual Byte[] ToArray()
+        //{
+        //    Flush();
 
-            Stream stream = Stream;
-            if (stream is MemoryStream) return (stream as MemoryStream).ToArray();
+        //    Stream stream = Stream;
+        //    if (stream is MemoryStream) return (stream as MemoryStream).ToArray();
 
-            if (!stream.CanRead) return null;
+        //    if (!stream.CanRead) return null;
 
-            // 移动指针到开头
-            if (stream.CanSeek) stream.Seek(0, SeekOrigin.Begin);
+        //    // 移动指针到开头
+        //    Int64 p = stream.Length;
+        //    if (stream.CanSeek) stream.Seek(0, SeekOrigin.Begin);
 
-            // 把数据复制出来
-            MemoryStream ms = new MemoryStream();
-            Byte[] buffer = new Byte[64];
-            Int32 index = 0;
-            while (true)
-            {
-                Int32 count = stream.Read(buffer, index, buffer.Length);
-                if (count <= 0) break;
+        //    // 把数据复制出来
+        //    var buffer = stream.ReadBytes();
+        //    if (stream.CanSeek) stream.Seek(p, SeekOrigin.Begin);
 
-                ms.Write(buffer, 0, count);
+        //    return buffer;
+        //}
 
-                index += count;
-            }
+        // 耗时且影响数据流，慎用！
+        ///// <summary>已重载。</summary>
+        ///// <returns></returns>
+        //public override string ToString()
+        //{
+        //    Byte[] buffer = ToArray();
+        //    if (buffer == null || buffer.Length < 1) return base.ToString();
 
-            return ms.ToArray();
-        }
-
-        /// <summary>已重载。</summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            Byte[] buffer = ToArray();
-            if (buffer == null || buffer.Length < 1) return base.ToString();
-
-            return Settings.Encoding.GetString(buffer);
-        }
+        //    return Settings.Encoding.GetString(buffer);
+        //}
         #endregion
     }
 }

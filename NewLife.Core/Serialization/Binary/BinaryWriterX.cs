@@ -429,15 +429,15 @@ namespace NewLife.Serialization
             base.Flush();
         }
 
-        /// <summary>已重载。</summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            Byte[] buffer = ToArray();
-            if (buffer == null || buffer.Length < 1) return base.ToString();
+        ///// <summary>已重载。</summary>
+        ///// <returns></returns>
+        //public override string ToString()
+        //{
+        //    Byte[] buffer = ToArray();
+        //    if (buffer == null || buffer.Length < 1) return base.ToString();
 
-            return BitConverter.ToString(buffer);
-        }
+        //    return BitConverter.ToString(buffer);
+        //}
         #endregion
     }
 }

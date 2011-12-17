@@ -302,9 +302,10 @@ namespace NewLife.Serialization
         /// <summary>刷新缓存中的数据</summary>
         void Flush();
 
-        /// <summary>输出数据转为字节数组</summary>
-        /// <returns></returns>
-        Byte[] ToArray();
+        // 耗时且影响数据流，慎用！
+        ///// <summary>输出数据转为字节数组</summary>
+        ///// <returns></returns>
+        //Byte[] ToArray();
         #endregion
     }
 
