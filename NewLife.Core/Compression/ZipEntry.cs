@@ -1,16 +1,15 @@
 ﻿using System;
 using System.IO;
-using System.Text;
-using System.Collections.Generic;
-using NewLife.Serialization;
 using System.IO.Compression;
-using NewLife.IO;
 using NewLife.Exceptions;
+using NewLife.IO;
+using NewLife.Security;
+using NewLife.Serialization;
 
 namespace NewLife.Compression
 {
     /// <summary>Zip实体。包含文件头信息和文件位置</summary>
-    public class ZipEntry
+    public class ZipEntry : DisposeBase
     {
         #region 数据属性
         private UInt32 _Signature = ZipConstants.ZipEntrySignature;
@@ -19,7 +18,7 @@ namespace NewLife.Compression
 
         // ZipDirEntry成员
         private HostSystem _VersionMadeBy;
-        /// <summary>属性说明</summary>
+        /// <summary>系统类型</summary>
         HostSystem VersionMadeBy { get { return _VersionMadeBy; } set { _VersionMadeBy = value; } }
 
         private UInt16 _VersionNeeded;
@@ -65,7 +64,7 @@ namespace NewLife.Compression
 
         // ZipDirEntry成员
         private UInt16 _DiskNumber;
-        /// <summary>属性说明</summary>
+        /// <summary>分卷号。</summary>
         public UInt16 DiskNumber { get { return _DiskNumber; } set { _DiskNumber = value; } }
 
         // ZipDirEntry成员
@@ -80,12 +79,12 @@ namespace NewLife.Compression
 
         // ZipDirEntry成员
         private UInt32 _RelativeOffsetOfLocalHeader;
-        /// <summary>属性说明</summary>
+        /// <summary>文件头相对位移</summary>
         public UInt32 RelativeOffsetOfLocalHeader { get { return _RelativeOffsetOfLocalHeader; } set { _RelativeOffsetOfLocalHeader = value; } }
 
         [FieldSize("FileNameLength")]
         private String _FileName;
-        /// <summary>文件名</summary>
+        /// <summary>文件名，如果是目录，则以/结束</summary>
         public String FileName { get { return _FileName; } set { _FileName = value; } }
 
         [FieldSize("ExtraFieldLength")]
@@ -101,34 +100,61 @@ namespace NewLife.Compression
         #endregion
 
         #region 属性
-        [NonSerialized]
-        private Int64 _FileDataPosition;
-        /// <summary>文件数据位置</summary>
-        public Int64 FileDataPosition { get { return _FileDataPosition; } set { _FileDataPosition = value; } }
+        //[NonSerialized]
+        //private Int64 _FileDataPosition;
+        ///// <summary>文件数据位置</summary>
+        //private Int64 FileDataPosition { get { return _FileDataPosition; } set { _FileDataPosition = value; } }
 
         /// <summary>是否目录</summary>
-        public Boolean IsDirectory { get { return ("" + FileName).EndsWith("/"); } }
+        public Boolean IsDirectory { get { return ("" + FileName).EndsWith(ZipFile.DirSeparator.ToString()); } }
+
+        [NonSerialized]
+        private IDataSource _DataSource;
+        /// <summary>数据源</summary>
+        private IDataSource DataSource
+        {
+            get { return _DataSource; }
+            set { _DataSource = value; }
+        }
         #endregion
 
         #region 构造
-        //public ZipEntry() { }
+        internal ZipEntry() { }
 
-        //public ZipEntry(String fileName):this(File.OpenRead(fileName) { }
+        //internal ZipEntry(String fileName):this(File.OpenRead(fileName) { }
 
-        //public ZipEntry(Stream stream)
+        //internal ZipEntry(Stream stream)
         //{
 
         //}
+
+        /// <summary>释放资源</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            if (DataSource != null)
+            {
+                try
+                {
+                    DataSource.Dispose();
+                    DataSource = null;
+                }
+                catch { }
+            }
+        }
         #endregion
 
         #region 读取核心
-        /// <summary>内部保存的读取流。用于解压文件</summary>
-        [NonSerialized]
-        Stream _readStream;
+        ///// <summary>内部保存的读取流。用于解压文件</summary>
+        //[NonSerialized]
+        //Stream _readStream;
 
-        internal static ZipEntry ReadEntry(ZipFile zipfile, Stream stream, bool first)
+        internal static ZipEntry ReadEntry(ZipFile zipfile, Stream stream, Boolean first, Boolean embedFileData)
         {
             var reader = zipfile.CreateReader(stream);
+            // 读取文件头时忽略掉这些字段，这些都是DirEntry的字段
             var names = new String[] { "_VersionMadeBy", "_CommentLength", "_DiskNumber", "_InternalFileAttrs", "_ExternalFileAttrs", "_RelativeOffsetOfLocalHeader", "_Comment" };
             foreach (var item in names)
             {
@@ -148,13 +174,17 @@ namespace NewLife.Compression
             }
 
             var entry = reader.ReadObject<ZipEntry>();
-            entry._readStream = stream;
-            entry.FileDataPosition = stream.Position;
+            //entry._readStream = stream;
+            //entry.FileDataPosition = stream.Position;
+
+            // 是否内嵌文件数据
+            entry.DataSource = embedFileData ? new ArrayDataSource(stream, (Int32)entry.CompressedSize) : new StreamDataSource(stream, stream.Position, 0);
+
             // 如果有扩展，则跳过，20字节
             if (entry.BitField.Has(GeneralBitFlags.Descriptor)) stream.Seek(20, SeekOrigin.Current);
 
             // 移到文件数据之后，可能是文件头
-            stream.Seek(entry.CompressedSize, SeekOrigin.Current);
+            if (!embedFileData) stream.Seek(entry.CompressedSize, SeekOrigin.Current);
 
             return entry;
         }
@@ -167,7 +197,7 @@ namespace NewLife.Compression
             {
                 if (!reader.Expect(
                     ZipConstants.EndOfCentralDirectorySignature,
-                    ZipConstants.Zip64EndOfCentralDirectoryRecordSignature,
+                    //ZipConstants.Zip64EndOfCentralDirectoryRecordSignature,
                     ZipConstants.ZipEntrySignature))
                 {
                     throw new ZipException("0x{0:X8}处签名错误！", stream.Position);
@@ -180,6 +210,65 @@ namespace NewLife.Compression
         }
         #endregion
 
+        #region 写入核心
+        internal void Write(IWriter writer)
+        {
+            Signature = ZipConstants.ZipEntrySignature;
+
+            // 计算签名和大小
+            if (Crc == 0) Crc = DataSource.GetCRC();
+            if (UncompressedSize == 0) UncompressedSize = (UInt32)DataSource.Length;
+            if (CompressionMethod == CompressionMethod.Stored) CompressedSize = UncompressedSize;
+
+            // 取得数据流位置
+            RelativeOffsetOfLocalHeader = (UInt32)writer.Stream.Position;
+
+            // 数据源
+            Stream source = DataSource.GetData();
+
+            // 写入头部
+            writer.WriteObject(this);
+
+            #region 写入文件数据
+            switch (CompressionMethod)
+            {
+                case CompressionMethod.Stored:
+                    // 原始数据流直接拷贝到目标。必须指定大小，否则可能读过界
+                    source.CopyTo(writer.Stream, 0, (Int32)DataSource.Length);
+                    break;
+                case CompressionMethod.Deflated:
+                    // 记录数据流位置，待会用来计算已压缩大小
+                    Int64 p = writer.Stream.Position;
+                    using (var stream = new DeflateStream(writer.Stream, CompressionMode.Compress, true))
+                    {
+                        source.CopyTo(stream);
+                        stream.Close();
+                    }
+                    CompressedSize = (UInt32)(writer.Stream.Position - p);
+
+                    // 回头重新修正压缩后大小CompressedSize
+                    p = writer.Stream.Position;
+                    // 计算好压缩大小字段所在位置
+                    writer.Stream.Seek(RelativeOffsetOfLocalHeader + 10, SeekOrigin.Begin);
+                    writer.Write(CompressedSize);
+                    writer.Stream.Seek(p, SeekOrigin.Begin);
+
+                    break;
+                default:
+                    throw new XException("无法处理的压缩算法{0}！", CompressionMethod);
+            }
+            #endregion
+        }
+
+        internal void WriteDir(IWriter writer)
+        {
+            Signature = ZipConstants.ZipDirEntrySignature;
+
+            // 写入头部
+            writer.WriteObject(this);
+        }
+        #endregion
+
         #region 解压缩
         /// <summary>解压缩</summary>
         /// <param name="path">目标路径</param>
@@ -187,6 +276,8 @@ namespace NewLife.Compression
         public void Extract(String path, Boolean overrideExisting = true)
         {
             if (String.IsNullOrEmpty(path)) throw new ArgumentNullException("path");
+            if (DataSource == null) throw new ZipException("文件数据不正确！");
+            if (CompressedSize <= 0) throw new ZipException("文件大小不正确！");
 
             if (!IsDirectory)
             {
@@ -213,34 +304,95 @@ namespace NewLife.Compression
         public void Extract(Stream outStream)
         {
             if (outStream == null || !outStream.CanWrite) throw new ArgumentNullException("outStream");
-            if (FileDataPosition <= 0) throw new ZipException("文件数据位置不正确！");
+            if (DataSource == null) throw new ZipException("文件数据不正确！");
             if (CompressedSize <= 0) throw new ZipException("文件大小不正确！");
-            if (_readStream == null || !_readStream.CanSeek || !_readStream.CanRead) throw new ZipException("数据流异常！");
+            //if (_readStream == null || !_readStream.CanSeek || !_readStream.CanRead) throw new ZipException("数据流异常！");
 
-            // 移到目标位置
-            _readStream.Seek(FileDataPosition, SeekOrigin.Begin);
+            //// 移到目标位置
+            //_readStream.Seek(FileDataPosition, SeekOrigin.Begin);
 
             try
             {
-                if (CompressionMethod == CompressionMethod.Deflated)
+                switch (CompressionMethod)
                 {
-                    using (var stream = new DeflateStream(_readStream, CompressionMode.Decompress, true))
-                    {
-                        stream.CopyTo(outStream);
-                        stream.Close();
-                    }
-                }
-                else if (CompressionMethod == CompressionMethod.Stored)
-                {
-                    // 如果同样大小，可能是没有压缩，直接复制
-                    _readStream.CopyTo(outStream);
-                }
-                else
-                {
-                    throw new XException("无法处理的压缩算法{0}！", CompressionMethod);
+                    case CompressionMethod.Stored:
+                        DataSource.GetData().CopyTo(outStream);
+                        break;
+                    case CompressionMethod.Deflated:
+                        using (var stream = new DeflateStream(DataSource.GetData(), CompressionMode.Decompress, true))
+                        {
+                            stream.CopyTo(outStream);
+                            stream.Close();
+                        }
+                        break;
+                    default:
+                        throw new XException("无法处理的压缩算法{0}！", CompressionMethod);
                 }
             }
             catch (Exception ex) { throw new ZipException(String.Format("解压缩{0}时出错！", FileName), ex); }
+        }
+        #endregion
+
+        #region 压缩
+        /// <summary>从文件创建实体</summary>
+        /// <param name="fileName"></param>
+        /// <param name="entryName"></param>
+        /// <param name="stored"></param>
+        /// <returns></returns>
+        public static ZipEntry Create(String fileName, String entryName = null, Boolean? stored = false)
+        {
+            if (String.IsNullOrEmpty(entryName))
+            {
+                if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
+
+                entryName = Path.GetFileName(fileName);
+            }
+
+            IDataSource ds = null;
+            if (entryName[entryName.Length - 1] != ZipFile.DirSeparator)
+            {
+                if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
+
+                ds = new FileDataSource(fileName);
+            }
+
+            return Create(entryName, ds, stored);
+        }
+
+        /// <summary>从数据流创建实体</summary>
+        /// <param name="stream"></param>
+        /// <param name="entryName"></param>
+        /// <param name="stored"></param>
+        /// <param name="embedFileData"></param>
+        /// <returns></returns>
+        public static ZipEntry Create(Stream stream, String entryName, Boolean stored = false, Boolean embedFileData = false)
+        {
+            //if (stream == null) throw new ArgumentNullException("stream");
+
+            // 有可能从文件流中获取文件名
+            if (String.IsNullOrEmpty(entryName) && stream != null && stream is FileStream)
+                entryName = Path.GetFileName((stream as FileStream).Name);
+
+            if (String.IsNullOrEmpty(entryName)) throw new ArgumentNullException("entryName");
+
+            // 是否内嵌文件数据
+            IDataSource ds = null;
+            if (stream != null) ds = embedFileData ? new ArrayDataSource(stream, 0) : new StreamDataSource(stream, stream.Position, 0);
+
+            return Create(entryName, ds, stored);
+        }
+
+        private static ZipEntry Create(String entryName, IDataSource datasource, Boolean? stored)
+        {
+            if (String.IsNullOrEmpty(entryName)) throw new ArgumentNullException("entryName");
+            entryName = entryName.Replace(Path.DirectorySeparatorChar, ZipFile.DirSeparator);
+
+            var entry = new ZipEntry();
+            entry.FileName = entryName;
+            entry.CompressionMethod = stored ?? IsZip(entryName) ? CompressionMethod.Stored : CompressionMethod.Deflated;
+            entry.DataSource = datasource;
+
+            return entry;
         }
         #endregion
 
@@ -248,6 +400,133 @@ namespace NewLife.Compression
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString() { return FileName; }
+
+        static String[] zips = new String[] { ".zip", ".rar", ".iso" };
+        static Boolean IsZip(String name)
+        {
+            String ext = Path.GetExtension(name);
+            if (String.IsNullOrEmpty(ext)) return false;
+
+            ext = ext.ToLower();
+            return Array.IndexOf(zips, ext) >= 0;
+        }
+        #endregion
+
+        #region 数据源
+        interface IDataSource : IDisposable
+        {
+            Stream GetData();
+
+            UInt32 GetCRC();
+
+            Int64 Length { get; }
+        }
+
+        #region 数据流
+        class StreamDataSource : DisposeBase, IDataSource
+        {
+            private Stream _Stream;
+            /// <summary>数据流</summary>
+            public virtual Stream Stream
+            {
+                get { return _Stream; }
+                set { _Stream = value; }
+            }
+
+            private Int64 _Offset = -1;
+            /// <summary>位移</summary>
+            public Int64 Offset
+            {
+                get { return _Offset; }
+                set { _Offset = value; }
+            }
+
+            private Int64 _Length;
+            /// <summary>长度</summary>
+            public Int64 Length
+            {
+                get { return _Length > 0 ? _Length : Stream.Length; }
+                set { _Length = value; }
+            }
+
+            public StreamDataSource() { }
+
+            public StreamDataSource(Stream stream, Int64 offset, Int64 length)
+            {
+                Stream = stream;
+                Offset = offset;
+                Length = length;
+            }
+
+            protected override void OnDispose(bool disposing)
+            {
+                base.OnDispose(disposing);
+
+                if (_Stream != null)
+                {
+                    try
+                    {
+                        _Stream.Dispose();
+                        _Stream = null;
+                    }
+                    catch { }
+                }
+            }
+
+            #region IDataSource 成员
+
+            public Stream GetData()
+            {
+                if (Offset >= 0) Stream.Seek(Offset, SeekOrigin.Begin);
+                return Stream;
+            }
+
+            public uint GetCRC()
+            {
+                if (Offset >= 0) Stream.Seek(Offset, SeekOrigin.Begin);
+                return new Crc32().Update(Stream, Length).Value;
+            }
+            #endregion
+        }
+        #endregion
+
+        #region 字节数组
+        class ArrayDataSource : StreamDataSource
+        {
+            private Byte[] _Buffer;
+            /// <summary>字节数组</summary>
+            public Byte[] Buffer
+            {
+                get { return _Buffer; }
+                set { _Buffer = value; }
+            }
+
+            /// <summary>数据流</summary>
+            public override Stream Stream { get { return base.Stream ?? (base.Stream = new MemoryStream(_Buffer)); } set { base.Stream = value; } }
+
+            public ArrayDataSource(Byte[] buffer) { Buffer = buffer; }
+
+            public ArrayDataSource(Stream stream, Int32 length) : this(stream.ReadBytes(length)) { }
+        }
+        #endregion
+
+        #region 文件
+        class FileDataSource : StreamDataSource
+        {
+            private String _FileName;
+            /// <summary>文件名</summary>
+            public String FileName
+            {
+                get { return _FileName; }
+                set { _FileName = value; }
+            }
+
+            /// <summary>数据流</summary>
+            public override Stream Stream { get { return base.Stream ?? (base.Stream = new FileStream(FileName, FileMode.Open, FileAccess.Read)); } set { base.Stream = value; } }
+
+            public FileDataSource(String fileName) { FileName = fileName; }
+        }
+        #endregion
         #endregion
     }
 }

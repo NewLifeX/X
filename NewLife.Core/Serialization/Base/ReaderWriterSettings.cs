@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Text;
 using System.Collections.Generic;
+using System.Text;
+using NewLife.Collections;
 
 namespace NewLife.Serialization
 {
@@ -50,7 +51,7 @@ namespace NewLife.Serialization
 
         private ICollection<String> _IgnoreMembers;
         /// <summary>要忽略的成员</summary>
-        public ICollection<String> IgnoreMembers { get { return _IgnoreMembers ?? (_IgnoreMembers = new List<String>()); } set { _IgnoreMembers = value; } }
+        public ICollection<String> IgnoreMembers { get { return _IgnoreMembers ?? (_IgnoreMembers = new HashSet<String>(StringComparer.OrdinalIgnoreCase)); } set { _IgnoreMembers = value; } }
         #endregion
 
         #region 时间日期

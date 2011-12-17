@@ -3,6 +3,7 @@ using System.Runtime.ConstrainedExecution;
 using System.Threading;
 using NewLife.Exceptions;
 using NewLife.Log;
+using System.Xml.Serialization;
 
 namespace NewLife
 {
@@ -20,13 +21,12 @@ namespace NewLife
             Dispose(true);
         }
 
-        /// <summary>是否已经释放</summary>
-        public Boolean Disposed
-        {
-            get { return disposed > 0; }
-        }
-
+        [NonSerialized]
         private Int32 disposed = 0;
+        /// <summary>是否已经释放</summary>
+        [XmlIgnore]
+        public Boolean Disposed { get { return disposed > 0; } }
+
         /// <summary>
         /// 释放资源，参数表示是否由Dispose调用。该方法保证OnDispose只被调用一次！
         /// </summary>

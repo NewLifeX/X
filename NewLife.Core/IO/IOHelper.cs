@@ -12,13 +12,12 @@ namespace NewLife.IO
     public static class IOHelper
     {
         #region 压缩/解压缩 数据
-        /// <summary>
-        /// 压缩
-        /// </summary>
+        /// <summary>压缩数据流</summary>
         /// <param name="inStream">输入流</param>
         /// <param name="outStream">输出流</param>
         public static void Compress(this Stream inStream, Stream outStream)
         {
+            // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
             using (Stream stream = new DeflateStream(outStream, CompressionMode.Compress, true))
             {
                 inStream.CopyTo(stream);
@@ -27,13 +26,12 @@ namespace NewLife.IO
             }
         }
 
-        /// <summary>
-        /// 解压缩
-        /// </summary>
+        /// <summary>解压缩数据流</summary>
         /// <param name="inStream">输入流</param>
         /// <param name="outStream">输出流</param>
         public static void Decompress(this Stream inStream, Stream outStream)
         {
+            // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
             using (Stream stream = new DeflateStream(inStream, CompressionMode.Decompress, true))
             {
                 stream.CopyTo(outStream);
@@ -41,9 +39,7 @@ namespace NewLife.IO
             }
         }
 
-        /// <summary>
-        /// 压缩
-        /// </summary>
+        /// <summary>压缩字节数组</summary>
         /// <param name="data"></param>
         /// <returns></returns>
         public static Byte[] Compress(this Byte[] data)
@@ -51,22 +47,9 @@ namespace NewLife.IO
             MemoryStream ms = new MemoryStream();
             Compress(new MemoryStream(data), ms);
             return ms.ToArray();
-
-            //MemoryStream ms = new MemoryStream();
-            //Stream stream = new DeflateStream(ms, CompressionMode.Compress, true);
-            //stream.Write(data, 0, data.Length);
-            //stream.Flush();
-            //stream.Close();
-
-            //data = ms.ToArray();
-            //ms.Close();
-
-            //return data;
         }
 
-        /// <summary>
-        /// 解压缩
-        /// </summary>
+        /// <summary>解压缩字节数组</summary>
         /// <param name="data"></param>
         /// <returns></returns>
         public static Byte[] Decompress(this Byte[] data)
@@ -74,20 +57,6 @@ namespace NewLife.IO
             MemoryStream ms = new MemoryStream();
             Decompress(new MemoryStream(data), ms);
             return ms.ToArray();
-
-            //MemoryStream ms = new MemoryStream(data);
-            //Stream stream = new DeflateStream(ms, CompressionMode.Decompress, true);
-
-            //MemoryStream ms2 = new MemoryStream();
-            //CopyTo(stream, ms2, 0);
-
-            //data = ms2.ToArray();
-
-            //stream.Close();
-            //ms.Close();
-            //ms2.Close();
-
-            //return data;
         }
         #endregion
 
@@ -417,29 +386,6 @@ namespace NewLife.IO
         #endregion
 
         #region 复制数据流
-        ///// <summary>
-        ///// 复制数据流
-        ///// </summary>
-        ///// <param name="src">源数据流</param>
-        ///// <param name="des">目的数据流</param>
-        ///// <returns>返回复制的总字节数</returns>
-        //public static Int32 CopyTo(this Stream src, Stream des)
-        //{
-        //    return CopyTo(src, des, 0, 0);
-        //}
-
-        ///// <summary>
-        ///// 复制数据流
-        ///// </summary>
-        ///// <param name="src">源数据流</param>
-        ///// <param name="des">目的数据流</param>
-        ///// <param name="bufferSize">缓冲区大小，也就是每次复制的大小</param>
-        ///// <returns>返回复制的总字节数</returns>
-        //public static Int32 CopyTo(this Stream src, Stream des, Int32 bufferSize)
-        //{
-        //    return CopyTo(src, des, bufferSize, 0);
-        //}
-
         /// <summary>
         /// 复制数据流
         /// </summary>
@@ -460,7 +406,7 @@ namespace NewLife.IO
                     if (total >= max) break;
 
                     // 最后一次读取大小不同
-                    if (total + bufferSize > max) bufferSize = max - total;
+                    if (bufferSize > max - total) bufferSize = max - total;
                 }
 
                 Byte[] buffer = new Byte[bufferSize];
@@ -481,14 +427,16 @@ namespace NewLife.IO
         /// 流转为字节数组
         /// </summary>
         /// <param name="stream">数据流</param>
-        /// <param name="offset">流的初始位置</param>
+        /// <param name="length">长度</param>
         /// <returns></returns>
-        public static Byte[] ToArray(this Stream stream, Int32 offset = 0)
+        public static Byte[] ReadBytes(this Stream stream, Int32 length = 0)
         {
             if (stream == null) return null;
+            if (length == 0) length = (Int32)(stream.Length - stream.Position);
 
-            byte[] bytes = new byte[stream.Length];
-            stream.Read(bytes, offset, bytes.Length);
+            // 如果流长度没有length那么长，则任由其抛出异常
+            byte[] bytes = new byte[length];
+            stream.Read(bytes, 0, bytes.Length);
             return bytes;
         }
 

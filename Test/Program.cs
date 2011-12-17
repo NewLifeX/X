@@ -421,21 +421,21 @@ namespace Test
             //var reader = new MethodBodyReader(typeof(Program).GetMethod("Test3", BindingFlags.Static | BindingFlags.NonPublic));
             //Console.WriteLine(reader.GetBodyCode());
 
-            String file = @"E:\Net\SharpZipLib\SharpZipLib_0860_Bin.zip";
-            file = @"E:\X\Src\Src_20111215194303.zip";
-            Stream stream = File.OpenRead(file);
+            String file = @"E:\Net\SharpZipLib\SharpZipLib_0855_Bin.zip";
+            //file = @"E:\X\Src\Src_20111215194303.zip";
+            //Stream stream = File.OpenRead(file);
 
-            Random rnd = new Random((Int32)DateTime.Now.Ticks);
-            Int32 p = rnd.Next(0, (Int32)stream.Length);
-            Int32 len = rnd.Next(4, 12);
-            Byte[] buffer = new Byte[len];
-            stream.Seek(p, SeekOrigin.Begin);
-            stream.Read(buffer, 0, buffer.Length);
+            //Random rnd = new Random((Int32)DateTime.Now.Ticks);
+            //Int32 p = rnd.Next(0, (Int32)stream.Length);
+            //Int32 len = rnd.Next(4, 12);
+            //Byte[] buffer = new Byte[len];
+            //stream.Seek(p, SeekOrigin.Begin);
+            //stream.Read(buffer, 0, buffer.Length);
 
-            stream.Seek(0, SeekOrigin.Begin);
-            Int64 p2 = stream.IndexOf(buffer);
-            //Int64 p2 = File.ReadAllBytes(file).IndexOf(0, 0, buffer);
-            Console.WriteLine(p == p2);
+            //stream.Seek(0, SeekOrigin.Begin);
+            //Int64 p2 = stream.IndexOf(buffer);
+            ////Int64 p2 = File.ReadAllBytes(file).IndexOf(0, 0, buffer);
+            //Console.WriteLine(p == p2);
 
             //stream.Seek(0, SeekOrigin.Begin);
             //Int32 SignatureToFind = 101010256;
@@ -444,15 +444,15 @@ namespace Test
             //p2 = stream.IndexOf(targetBytes);
             //Console.WriteLine(p2);
 
-            //using (ZipFile zf = new ZipFile(file))
-            //{
-            //    foreach (var item in zf)
-            //    {
-            //        Console.WriteLine(item.FileName);
-            //    }
+            using (ZipFile zf = new ZipFile(file))
+            {
+                foreach (var item in zf)
+                {
+                    Console.WriteLine(item.FileName);
+                }
 
-            //    zf.Extract("ExtractTest");
-            //}
+                zf.Extract("ExtractTest");
+            }
 
 
             using (ZipFile zf = new ZipFile())
@@ -462,7 +462,10 @@ namespace Test
 
                 Console.WriteLine(zf.Count);
 
-                zf.Write(File.Create("aa.zip"));
+                using (var fs = File.Create("aa.zip"))
+                {
+                    zf.Write(fs);
+                }
             }
         }
     }

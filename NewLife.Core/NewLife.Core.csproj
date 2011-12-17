@@ -72,8 +72,6 @@
     <Compile Include="Compression\ZipConstants.cs" />
     <Compile Include="Compression\ZipEntry.cs" />
     <Compile Include="Compression\ZipFile.cs" />
-    <Compile Include="Compression\ZipInputStream.cs" />
-    <Compile Include="Compression\ZipOutputStream.cs" />
     <Compile Include="Reflection\Action.cs" />
     <Compile Include="Extension\EnumHelper.cs" />
     <Compile Include="Extension\Linq\Buffer.cs" />

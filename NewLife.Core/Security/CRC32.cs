@@ -1,9 +1,11 @@
 using System;
+using System.IO;
 
 namespace NewLife.Security
 {
 
-    /// <summary>
+    /// <summary>CRC32校验</summary>
+    /// <remarks>
     /// Generate a table for a byte-wise 32-bit CRC calculation on the polynomial:
     /// x^32+x^26+x^23+x^22+x^16+x^12+x^11+x^10+x^8+x^7+x^5+x^4+x^2+x+1.
     ///
@@ -26,9 +28,10 @@ namespace NewLife.Security
     /// The table is simply the CRC of all possible eight bit values.  This is all
     /// the information needed to generate CRC's on data a byte at a time for all
     /// combinations of CRC register values and incoming bytes.
-    /// </summary>
+    /// </remarks>
     public sealed class Crc32
     {
+        #region 数据表
         const uint CrcSeed = 0xFFFFFFFF;
 
         readonly static uint[] CrcTable = new uint[] {
@@ -85,72 +88,35 @@ namespace NewLife.Security
 			0x5D681B02, 0x2A6F2B94, 0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B,
 			0x2D02EF8D
 		};
+        #endregion
 
         internal static uint ComputeCrc32(uint oldCrc, byte value)
         {
             return (uint)(Crc32.CrcTable[(oldCrc ^ value) & 0xFF] ^ (oldCrc >> 8));
         }
 
-        /// <summary>
-        /// The crc data checksum so far.
-        /// </summary>
+        /// <summary>校验值</summary>
         uint crc;
+        /// <summary>校验值</summary>
+        public uint Value { get { return crc; } set { crc = value; } }
 
-        /// <summary>
-        /// Returns the CRC32 data checksum computed so far.
-        /// </summary>
-        public long Value
-        {
-            get
-            {
-                return (long)crc;
-            }
-            set
-            {
-                crc = (uint)value;
-            }
-        }
+        /// <summary>重置清零</summary>
+        public Crc32 Reset() { crc = 0; return this; }
 
-        /// <summary>
-        /// Resets the CRC32 data checksum as if no update was ever called.
-        /// </summary>
-        public void Reset()
-        {
-            crc = 0;
-        }
-
-        /// <summary>
-        /// Updates the checksum with the int bval.
-        /// </summary>
+        /// <summary>添加整数进行校验</summary>
         /// <param name = "value">
         /// the byte is taken as the lower 8 bits of value
         /// </param>
-        public void Update(int value)
+        public Crc32 Update(int value)
         {
             crc ^= CrcSeed;
             crc = CrcTable[(crc ^ value) & 0xFF] ^ (crc >> 8);
             crc ^= CrcSeed;
+
+            return this;
         }
 
-        /// <summary>
-        /// Updates the checksum with the bytes taken from the array.
-        /// </summary>
-        /// <param name="buffer">
-        /// buffer an array of bytes
-        /// </param>
-        public void Update(byte[] buffer)
-        {
-            if (buffer == null)
-            {
-                throw new ArgumentNullException("buffer");
-            }
-
-            Update(buffer, 0, buffer.Length);
-        }
-
-        /// <summary>
-        /// Adds the byte array to the data checksum.
-        /// </summary>
+        /// <summary>添加字节数组进行校验</summary>
         /// <param name = "buffer">
         /// The buffer which contains the data
         /// </param>
@@ -160,26 +126,12 @@ namespace NewLife.Security
         /// <param name = "count">
         /// The number of data bytes to update the CRC with.
         /// </param>
-        public void Update(byte[] buffer, int offset, int count)
+        public Crc32 Update(byte[] buffer, int offset = 0, int count = 0)
         {
-            if (buffer == null)
-            {
-                throw new ArgumentNullException("buffer");
-            }
-
-            if (count < 0)
-            {
-#if NETCF_1_0
-				throw new ArgumentOutOfRangeException("count");
-#else
-                throw new ArgumentOutOfRangeException("count", "Count cannot be less than zero");
-#endif
-            }
-
-            if (offset < 0 || offset + count > buffer.Length)
-            {
-                throw new ArgumentOutOfRangeException("offset");
-            }
+            if (buffer == null) throw new ArgumentNullException("buffer");
+            if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
+            if (count == 0) count = buffer.Length;
+            if (offset < 0 || offset + count > buffer.Length) throw new ArgumentOutOfRangeException("offset");
 
             crc ^= CrcSeed;
 
@@ -189,6 +141,32 @@ namespace NewLife.Security
             }
 
             crc ^= CrcSeed;
+
+            return this;
+        }
+
+        /// <summary>添加数据流进行校验</summary>
+        /// <param name="stream"></param>
+        /// <param name="count"></param>
+        public Crc32 Update(Stream stream, Int64 count = 0)
+        {
+            if (stream == null) throw new ArgumentNullException("stream");
+            if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
+            if (count == 0) count = Int64.MaxValue;
+
+            crc ^= CrcSeed;
+
+            while (--count >= 0)
+            {
+                var b = stream.ReadByte();
+                if (b == -1) break;
+
+                crc = CrcTable[(crc ^ b) & 0xFF] ^ (crc >> 8);
+            }
+
+            crc ^= CrcSeed;
+
+            return this;
         }
     }
 }
