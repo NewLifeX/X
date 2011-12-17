@@ -194,6 +194,8 @@ namespace NewLife.Compression
             }
 
             ecd.Comment = Comment;
+            // 加上\0结尾，否则会有一点乱码
+            if (!String.IsNullOrEmpty(ecd.Comment) && !ecd.Comment.EndsWith("\0")) ecd.Comment += "\0";
             ecd.NumberOfEntries = (UInt16)num;
             ecd.NumberOfEntriesOnThisDisk = (UInt16)num;
             ecd.Size = (UInt32)writer.Stream.Position - ecd.Offset;
@@ -260,7 +262,7 @@ namespace NewLife.Compression
         /// <param name="dir">目录</param>
         /// <param name="entryName">实体名</param>
         /// <param name="stored">是否仅存储，不压缩</param>
-        public void AddDirectory(String dir, String entryName = null, Boolean? stored = false)
+        public void AddDirectory(String dir, String entryName = null, Boolean? stored = null)
         {
             if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("fileName");
             dir = Path.GetFullPath(dir);

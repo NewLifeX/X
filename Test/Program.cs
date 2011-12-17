@@ -438,6 +438,7 @@ namespace Test
             ms.Position = 2;
             ms.WriteByte(4);
 
+            String comment = null;
             using (ZipFile zf = new ZipFile(file))
             {
                 foreach (var item in zf)
@@ -446,6 +447,7 @@ namespace Test
                 }
 
                 Console.WriteLine(zf.Count);
+                comment = zf.Comment;
 
                 zf.Extract("TestZip");
 
@@ -462,6 +464,8 @@ namespace Test
                 //zf.AddDirectory(@"E:\X\Src\Test");
                 zf.AddDirectory(@"TestZip");
 
+                zf.Comment = comment;
+
                 Console.WriteLine(zf.Count);
                 foreach (var item in zf)
                 {
@@ -476,17 +480,17 @@ namespace Test
                 Console.WriteLine(zf.Count);
             }
 
-            using (ZipFile zf = new ZipFile("ab.zip"))
-            {
-                foreach (var item in zf)
-                {
-                    Console.WriteLine(item);
-                }
+            //using (ZipFile zf = new ZipFile("ab.zip"))
+            //{
+            //    foreach (var item in zf)
+            //    {
+            //        Console.WriteLine(item);
+            //    }
 
-                Console.WriteLine(zf.Count);
+            //    Console.WriteLine(zf.Count);
 
-                zf.Extract("TestZip2");
-            }
+            //    zf.Extract("TestZip2");
+            //}
         }
     }
 }
