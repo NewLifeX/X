@@ -236,6 +236,7 @@ namespace NewLife.Log
             set
             {
                 if (value && !Runtime.IsConsole) throw new InvalidOperationException("非控制台程序无法使用该功能！");
+                if (value == _UseConsole) return;
 
                 if (value)
                     OnAction += new EventHandler<EventArgs<string, object[]>>(TraceStream_OnAction);
@@ -267,7 +268,7 @@ namespace NewLife.Log
             Int32 count = 0;
             if (e.Arg2.Length > 1)
             {
-                buffer = (Byte[])e.Arg2[0];
+                if (e.Arg2[0] is Byte[]) buffer = (Byte[])e.Arg2[0];
                 offset = (Int32)e.Arg2[1];
                 count = (Int32)e.Arg2[e.Arg2.Length - 1];
             }
@@ -281,7 +282,7 @@ namespace NewLife.Log
                 else
                     Console.Write("{0:X2}", n);
             }
-            else
+            else if (buffer != null)
             {
                 if (count == 1)
                 {
@@ -294,7 +295,7 @@ namespace NewLife.Log
                         Console.Write("{0:X2}", n);
                 }
                 else
-                    Console.Write(BitConverter.ToString(buffer, offset, count));
+                    Console.Write(BitConverter.ToString(buffer, offset, count <= 50 ? count : 50) + (count <= 50 ? "" : "...（共" + count + "）"));
             }
 
             // 黄色内容
@@ -317,19 +318,19 @@ namespace NewLife.Log
                     }
                 }
             }
-            else
+            else if (buffer != null)
             {
                 if (count == 1)
                 {
                     //Console.Write("{0} ({1})", Convert.ToChar(buffer[0]), Convert.ToInt32(buffer[0]));
                     // 只显示可见字符
-                    if (buffer[0] >= '0' && buffer[0] < 256) Console.Write("{0} ({1})", Convert.ToChar(buffer[0]), Convert.ToInt32(buffer[0]));
+                    if (buffer[0] >= '0') Console.Write("{0} ({1})", Convert.ToChar(buffer[0]), Convert.ToInt32(buffer[0]));
                 }
                 else if (count == 2)
                     Console.Write(BitConverter.ToInt16(buffer, offset));
                 else if (count == 4)
                     Console.Write(BitConverter.ToInt32(buffer, offset));
-                else
+                else if (count < 50)
                     Console.Write(Encoding.GetString(buffer, offset, count));
             }
 

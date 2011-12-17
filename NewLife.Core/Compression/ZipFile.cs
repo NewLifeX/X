@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using NewLife.IO;
 using NewLife.Linq;
-using NewLife.Serialization;
+using BinaryReaderX = NewLife.Serialization.BinaryReaderX;
+using BinaryWriterX = NewLife.Serialization.BinaryWriterX;
 
 namespace NewLife.Compression
 {
@@ -27,17 +29,13 @@ namespace NewLife.Compression
         /// <summary>字符串编码</summary>
         public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
 
-        //private String _DefaultExtractPath;
-        ///// <summary>默认解压目录</summary>
-        //private String DefaultExtractPath
-        //{
-        //    get
-        //    {
-        //        if (String.IsNullOrEmpty(_DefaultExtractPath)) _DefaultExtractPath = AppDomain.CurrentDomain.BaseDirectory;
-        //        return _DefaultExtractPath;
-        //    }
-        //    set { _DefaultExtractPath = value; }
-        //}
+        private Boolean _UseDirectory;
+        /// <summary>是否使用目录。不使用目录可以减少一点点文件大小，网络上的压缩包也这么做，但是Rar压缩的使用了目录</summary>
+        public Boolean UseDirectory
+        {
+            get { return _UseDirectory; }
+            set { _UseDirectory = value; }
+        }
         #endregion
 
         #region 构造
@@ -98,8 +96,6 @@ namespace NewLife.Compression
         #endregion
 
         #region 读取
-        //Stream _readStream;
-
         /// <summary>从数据流中读取Zip格式数据</summary>
         /// <param name="stream">数据流</param>
         /// <param name="embedFileData">
@@ -108,8 +104,6 @@ namespace NewLife.Compression
         /// </param>
         public void Read(Stream stream, Boolean? embedFileData = null)
         {
-            //_readStream = stream;
-
             // 如果外部未指定是否内嵌文件数据，则根据数据流是否小于10M来决定是否内嵌
             Boolean embedfile = embedFileData ?? stream.Length < 10 * 1024 * 1024;
 
@@ -119,31 +113,46 @@ namespace NewLife.Compression
             {
                 String name = e.FileName;
                 Int32 n = 2;
-                while (Entries.ContainsKey(name)) { name = e.FileName + "" + n++; }
+                while (this[name] != null) { name = e.FileName + "" + n++; }
                 Entries.Add(name, e);
                 firstEntry = false;
+
+                if (!UseDirectory && e.IsDirectory) UseDirectory = true;
             }
 
             // 读取目录结构，但是可能有错误，需要屏蔽
             try
             {
-                ZipEntry de;
-                while ((de = ZipEntry.ReadDirEntry(this, stream)) != null)
+                var reader = CreateReader(stream);
+
+                // 根据签名寻找CentralDirectory，因为文件头数据之后可能有加密相关信息
+                //if (stream.IndexOf(BitConverter.GetBytes(ZipConstants.ZipDirEntrySignature)) >= 0)
                 {
-                    e = Entries[de.FileName];
-                    if (e != null)
+                    ZipEntry de;
+                    while ((de = ZipEntry.ReadDirEntry(this, stream)) != null)
                     {
-                        e.Comment = de.Comment;
-                        //e.IsDirectory = de.IsDirectory;
+                        e = Entries[de.FileName];
+                        if (e != null)
+                        {
+                            //e.Comment = de.Comment;
+                            //e.IsDirectory = de.IsDirectory;
+                            e.CopyFromDirEntry(de);
+                        }
+                    }
+
+                    // 这里应该是数字签名
+                    if (reader.Expect(ZipConstants.DigitalSignature))
+                    {
+                        UInt16 n = reader.ReadUInt16();
+                        if (n > 0) reader.ReadBytes(n);
                     }
                 }
 
                 // 读取目录结构尾记录
-                var reader = CreateReader(stream);
                 if (reader.Expect(ZipConstants.EndOfCentralDirectorySignature))
                 {
-                    var entry = reader.ReadObject<EndOfCentralDirectory>();
-                    Comment = entry.Comment;
+                    var ecd = reader.ReadObject<EndOfCentralDirectory>();
+                    if (!String.IsNullOrEmpty(ecd.Comment)) Comment = ecd.Comment.TrimEnd('\0');
                 }
             }
             catch (ZipException) { }
@@ -161,33 +170,32 @@ namespace NewLife.Compression
 
             var writer = CreateWriter(stream);
             writer.Settings.IgnoreMembers = null;
-            var newIgnores = writer.Settings.IgnoreMembers;
             // 写入文件头时忽略掉这些字段，这些都是DirEntry的字段
-            var names = new String[] { "_VersionMadeBy", "_CommentLength", "_DiskNumber", "_InternalFileAttrs", "_ExternalFileAttrs", "_RelativeOffsetOfLocalHeader", "_Comment" };
-            foreach (var item in names)
-            {
-                newIgnores.Add(item);
-            }
+            writer.Settings.IgnoreMembers = ZipEntry.dirMembers;
 
-            writer.Settings.IgnoreMembers.Clear();
             foreach (var item in Entries.Values)
             {
-                // 这里只写文件
-                if (!item.IsDirectory) item.Write(writer);
+                if (UseDirectory || !item.IsDirectory) item.Write(writer);
             }
 
             var ecd = new EndOfCentralDirectory();
             ecd.Offset = (UInt32)writer.Stream.Position;
 
+            writer.Settings.IgnoreMembers = null;
+            Int32 num = 0;
             foreach (var item in Entries.Values)
             {
                 // 每一个都需要写目录项
-                item.WriteDir(writer);
+                if (UseDirectory || !item.IsDirectory)
+                {
+                    item.WriteDir(writer);
+                    num++;
+                }
             }
 
             ecd.Comment = Comment;
-            ecd.NumberOfEntries = (UInt16)Count;
-            ecd.NumberOfEntriesOnThisDisk = (UInt16)Count;
+            ecd.NumberOfEntries = (UInt16)num;
+            ecd.NumberOfEntriesOnThisDisk = (UInt16)num;
             ecd.Size = (UInt32)writer.Stream.Position - ecd.Offset;
 
             writer.WriteObject(ecd);
@@ -226,14 +234,14 @@ namespace NewLife.Compression
             if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
 
             if (String.IsNullOrEmpty(entryName)) entryName = Path.GetFileName(fileName);
-            entryName = entryName.Replace(@"\", "/");
+            entryName = entryName.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
             // 判断并添加目录
             String dir = Path.GetDirectoryName(entryName);
             if (!String.IsNullOrEmpty(dir))
             {
-                if (!dir.EndsWith("/")) dir += "/";
-                if (!Entries.ContainsKey(dir))
+                if (!dir.EndsWith(DirSeparator)) dir += DirSeparator;
+                if (this[dir] == null)
                 {
                     var zde = new ZipEntry();
                     zde.FileName = dir;
@@ -276,6 +284,8 @@ namespace NewLife.Compression
             {
                 var entry = ZipEntry.Create(null, entryName, true);
                 Entries.Add(entry.FileName, entry);
+
+                if (!entryName.EndsWith(DirSeparator)) entryName += DirSeparator;
             }
 
             // 所有文件
@@ -285,7 +295,7 @@ namespace NewLife.Compression
                 if (name.StartsWith(dir)) name = name.Substring(dir.Length);
                 if (name[0] == Path.DirectorySeparatorChar) name = name.Substring(1);
 
-                if (!String.IsNullOrEmpty(entryName)) name = entryName + DirSeparator + name;
+                if (!String.IsNullOrEmpty(entryName)) name = entryName + name;
 
                 AddFile(item, name, stored);
             }
@@ -296,9 +306,9 @@ namespace NewLife.Compression
                 if (name.StartsWith(dir)) name = name.Substring(dir.Length);
                 if (name[0] == Path.DirectorySeparatorChar) name = name.Substring(1);
                 // 加上分隔符，表示目录
-                if (name[name.Length - 1] != DirSeparator) name += DirSeparator;
+                if (!name.EndsWith(DirSeparator)) name += DirSeparator;
 
-                if (!String.IsNullOrEmpty(entryName)) name = entryName + DirSeparator + name;
+                if (!String.IsNullOrEmpty(entryName)) name = entryName + name;
 
                 AddDirectory(item, name, stored);
             }
@@ -330,7 +340,9 @@ namespace NewLife.Compression
         {
             get
             {
-                var key = NormalizePathForUseInZipFile(fileName);
+                var key = fileName;
+                key = key.Replace('\\', '/');
+                key = key.TrimStart('/');
                 var entries = Entries;
                 ZipEntry e = null;
                 if (entries.TryGetValue(key, out e)) return e;
@@ -354,6 +366,10 @@ namespace NewLife.Compression
             reader.Settings.UseObjRef = false;
             reader.Settings.SizeFormat = TypeCode.Int16;
             reader.Settings.Encoding = Encoding;
+#if DEBUG
+            reader.Debug = true;
+            reader.EnableTraceStream();
+#endif
             return reader;
         }
 
@@ -364,23 +380,14 @@ namespace NewLife.Compression
             writer.Settings.UseObjRef = false;
             writer.Settings.SizeFormat = TypeCode.Int16;
             writer.Settings.Encoding = Encoding;
+#if DEBUG
+            writer.Debug = true;
+            writer.EnableTraceStream();
+#endif
             return writer;
         }
 
-        private static string NormalizePathForUseInZipFile(string pathName)
-        {
-            if (String.IsNullOrEmpty(pathName)) return pathName;
-
-            if (pathName.Length >= 2 && pathName[1] == ':' && pathName[2] == '\\') pathName = pathName.Substring(3);
-
-            pathName = pathName.Replace('\\', '/');
-
-            pathName = pathName.TrimStart('/');
-
-            return Path.GetFullPath(pathName);
-        }
-
-        static readonly DateTime MinDateTime = new DateTime(1980, 1, 1);
+        internal static readonly DateTime MinDateTime = new DateTime(1980, 1, 1);
         internal static DateTime DosDateTimeToFileTime(Int32 value)
         {
             if (value <= 0) return MinDateTime;
@@ -403,13 +410,13 @@ namespace NewLife.Compression
         {
             if (value <= MinDateTime) value = MinDateTime;
 
-            Int32 date = (value.Year - 1980) << 9 & value.Month << 5 & value.Day;
-            Int32 time = value.Hour << 11 & value.Minute << 5 & value.Second / 2;
+            Int32 date = (value.Year - 1980) << 9 | value.Month << 5 | value.Day;
+            Int32 time = value.Hour << 11 | value.Minute << 5 | value.Second / 2;
 
             return date << 16 | time;
         }
 
-        internal readonly static Char DirSeparator = Path.AltDirectorySeparatorChar;
+        internal readonly static String DirSeparator = Path.AltDirectorySeparatorChar.ToString();
 
         /// <summary>已重载。</summary>
         /// <returns></returns>

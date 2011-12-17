@@ -118,6 +118,10 @@ namespace NewLife.Compression
         /// </summary>
         OSX = 19,
         /// <summary>
+        /// WinRar
+        /// </summary>
+        WinRar = 45,
+        /// <summary>
         /// Host system = WinZIP AES
         /// </summary>
         WinZipAES = 99,
@@ -200,6 +204,7 @@ namespace NewLife.Compression
         public const UInt32 PackedToRemovableMedia = 0x30304b50;
         //public const UInt32 Zip64EndOfCentralDirectoryRecordSignature = 0x06064b50;
         //public const UInt32 Zip64EndOfCentralDirectoryLocatorSignature = 0x07064b50;
+        public const UInt32 DigitalSignature = 0x05054b50;
         public const UInt32 EndOfCentralDirectorySignature = 0x06054b50;
         public const UInt32 ZipEntrySignature = 0x04034b50;
         //public const UInt32 ZipEntryDataDescriptorSignature = 0x08074b50;

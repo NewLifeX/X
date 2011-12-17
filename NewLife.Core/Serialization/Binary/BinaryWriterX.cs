@@ -368,7 +368,7 @@ namespace NewLife.Serialization
         protected override IObjectMemberInfo[] OnGetMembers(Type type, object value)
         {
             var ms = base.OnGetMembers(type, value);
-            if (ms != null && CurrentObject != null)
+            if (ms != null && value != null)
             {
                 // 遍历成员，寻找FieldSizeAttribute特性，重新设定大小字段的值
                 foreach (var item in ms)
@@ -378,7 +378,7 @@ namespace NewLife.Serialization
                     {
                         // 获取FieldSizeAttribute特性
                         var att = AttributeX.GetCustomAttribute<FieldSizeAttribute>(member.Member, true);
-                        if (att != null) att.SetReferenceSize(CurrentObject, member.Member, Settings.Encoding);
+                        if (att != null) att.SetReferenceSize(value, member.Member, Settings.Encoding);
                     }
                 }
             }

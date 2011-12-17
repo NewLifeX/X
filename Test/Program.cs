@@ -421,39 +421,35 @@ namespace Test
             //var reader = new MethodBodyReader(typeof(Program).GetMethod("Test3", BindingFlags.Static | BindingFlags.NonPublic));
             //Console.WriteLine(reader.GetBodyCode());
 
-            String file = @"Test.zip";
-            //file = @"E:\X\Src\Src_20111215194303.zip";
-            //Stream stream = File.OpenRead(file);
+            String file = @"Test2.zip";
+            String file2 = "ab.zip";
 
-            //Random rnd = new Random((Int32)DateTime.Now.Ticks);
-            //Int32 p = rnd.Next(0, (Int32)stream.Length);
-            //Int32 len = rnd.Next(4, 12);
-            //Byte[] buffer = new Byte[len];
-            //stream.Seek(p, SeekOrigin.Begin);
-            //stream.Read(buffer, 0, buffer.Length);
+            //Byte[] buffer1 = File.ReadAllBytes(file);
+            //Byte[] buffer2 = File.ReadAllBytes(file2);
+            //for (int i = 0; i < buffer1.Length && i < buffer2.Length; i++)
+            //{
+            //    if (buffer1[i] != buffer2[i]) Console.WriteLine(i);
+            //}
 
-            //stream.Seek(0, SeekOrigin.Begin);
-            //Int64 p2 = stream.IndexOf(buffer);
-            ////Int64 p2 = File.ReadAllBytes(file).IndexOf(0, 0, buffer);
-            //Console.WriteLine(p == p2);
-
-            //stream.Seek(0, SeekOrigin.Begin);
-            //Int32 SignatureToFind = 101010256;
-            //byte[] targetBytes = BitConverter.GetBytes(SignatureToFind);
-
-            //p2 = stream.IndexOf(targetBytes);
-            //Console.WriteLine(p2);
+            MemoryStream ms = new MemoryStream();
+            ms.WriteByte(1);
+            ms.WriteByte(2);
+            ms.WriteByte(3);
+            ms.Position = 2;
+            ms.WriteByte(4);
 
             using (ZipFile zf = new ZipFile(file))
             {
                 foreach (var item in zf)
                 {
-                    Console.WriteLine(item.FileName);
+                    Console.WriteLine(item);
                 }
+
+                Console.WriteLine(zf.Count);
 
                 zf.Extract("TestZip");
 
-                zf.Comment = "测试用的注释啦！";
+                //zf.Comment = "测试用的注释啦！";
                 using (var fs = File.Create("aa.zip"))
                 {
                     zf.Write(fs);
@@ -467,6 +463,10 @@ namespace Test
                 zf.AddDirectory(@"TestZip");
 
                 Console.WriteLine(zf.Count);
+                foreach (var item in zf)
+                {
+                    Console.WriteLine(item);
+                }
 
                 using (var fs = File.Create("ab.zip"))
                 {
@@ -474,6 +474,18 @@ namespace Test
                 }
 
                 Console.WriteLine(zf.Count);
+            }
+
+            using (ZipFile zf = new ZipFile("ab.zip"))
+            {
+                foreach (var item in zf)
+                {
+                    Console.WriteLine(item);
+                }
+
+                Console.WriteLine(zf.Count);
+
+                zf.Extract("TestZip2");
             }
         }
     }
