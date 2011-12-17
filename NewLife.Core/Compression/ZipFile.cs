@@ -27,17 +27,17 @@ namespace NewLife.Compression
         /// <summary>字符串编码</summary>
         public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
 
-        private String _DefaultExtractPath;
-        /// <summary>默认解压目录</summary>
-        private String DefaultExtractPath
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_DefaultExtractPath)) _DefaultExtractPath = AppDomain.CurrentDomain.BaseDirectory;
-                return _DefaultExtractPath;
-            }
-            set { _DefaultExtractPath = value; }
-        }
+        //private String _DefaultExtractPath;
+        ///// <summary>默认解压目录</summary>
+        //private String DefaultExtractPath
+        //{
+        //    get
+        //    {
+        //        if (String.IsNullOrEmpty(_DefaultExtractPath)) _DefaultExtractPath = AppDomain.CurrentDomain.BaseDirectory;
+        //        return _DefaultExtractPath;
+        //    }
+        //    set { _DefaultExtractPath = value; }
+        //}
         #endregion
 
         #region 构造
@@ -54,7 +54,8 @@ namespace NewLife.Compression
         public ZipFile(String fileName, Encoding encoding)
             : this(File.OpenRead(fileName), encoding)
         {
-            if (!String.IsNullOrEmpty(fileName)) DefaultExtractPath = Path.GetDirectoryName(fileName);
+            //if (!String.IsNullOrEmpty(fileName)) DefaultExtractPath = Path.GetDirectoryName(fileName);
+            Name = fileName;
         }
 
         /// <summary>实例化一个Zip文件对象</summary>
@@ -188,6 +189,7 @@ namespace NewLife.Compression
             ecd.NumberOfEntries = (UInt16)Count;
             ecd.NumberOfEntriesOnThisDisk = (UInt16)Count;
             ecd.Size = (UInt32)writer.Stream.Position - ecd.Offset;
+
             writer.WriteObject(ecd);
 
             writer.Flush();
@@ -203,7 +205,7 @@ namespace NewLife.Compression
             if (String.IsNullOrEmpty(path)) throw new ArgumentNullException("path");
             //if (_readStream == null || !_readStream.CanSeek || !_readStream.CanRead) throw new ZipException("数据流异常！");
 
-            if (!Path.IsPathRooted(path)) path = Path.Combine(DefaultExtractPath, path);
+            //if (!Path.IsPathRooted(path)) path = Path.Combine(DefaultExtractPath, path);
 
             foreach (var item in Entries.Values)
             {
@@ -378,8 +380,11 @@ namespace NewLife.Compression
             return Path.GetFullPath(pathName);
         }
 
+        static readonly DateTime MinDateTime = new DateTime(1980, 1, 1);
         internal static DateTime DosDateTimeToFileTime(Int32 value)
         {
+            if (value <= 0) return MinDateTime;
+
             Int16 time = (Int16)(value & 0x0000FFFF);
             Int16 date = (Int16)((value & 0xFFFF0000) >> 16);
 
@@ -396,6 +401,8 @@ namespace NewLife.Compression
 
         internal static Int32 FileTimeToDosDateTime(DateTime value)
         {
+            if (value <= MinDateTime) value = MinDateTime;
+
             Int32 date = (value.Year - 1980) << 9 & value.Month << 5 & value.Day;
             Int32 time = value.Hour << 11 & value.Minute << 5 & value.Second / 2;
 

@@ -421,7 +421,7 @@ namespace Test
             //var reader = new MethodBodyReader(typeof(Program).GetMethod("Test3", BindingFlags.Static | BindingFlags.NonPublic));
             //Console.WriteLine(reader.GetBodyCode());
 
-            String file = @"E:\Net\SharpZipLib\SharpZipLib_0855_Bin.zip";
+            String file = @"Test.zip";
             //file = @"E:\X\Src\Src_20111215194303.zip";
             //Stream stream = File.OpenRead(file);
 
@@ -451,21 +451,29 @@ namespace Test
                     Console.WriteLine(item.FileName);
                 }
 
-                zf.Extract("ExtractTest");
+                zf.Extract("TestZip");
+
+                zf.Comment = "测试用的注释啦！";
+                using (var fs = File.Create("aa.zip"))
+                {
+                    zf.Write(fs);
+                }
             }
 
 
             using (ZipFile zf = new ZipFile())
             {
                 //zf.AddDirectory(@"E:\X\Src\Test");
-                zf.AddDirectory(@"..\Src\Test");
+                zf.AddDirectory(@"TestZip");
 
                 Console.WriteLine(zf.Count);
 
-                using (var fs = File.Create("aa.zip"))
+                using (var fs = File.Create("ab.zip"))
                 {
                     zf.Write(fs);
                 }
+
+                Console.WriteLine(zf.Count);
             }
         }
     }

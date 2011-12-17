@@ -21,7 +21,7 @@ namespace NewLife.Compression
         /// <summary>系统类型</summary>
         HostSystem VersionMadeBy { get { return _VersionMadeBy; } set { _VersionMadeBy = value; } }
 
-        private UInt16 _VersionNeeded;
+        private UInt16 _VersionNeeded = 20;
         /// <summary>解压缩所需要的版本</summary>
         public UInt16 VersionNeeded { get { return _VersionNeeded; } set { _VersionNeeded = value; } }
 
@@ -433,7 +433,7 @@ namespace NewLife.Compression
                 set { _Stream = value; }
             }
 
-            private Int64 _Offset = -1;
+            private Int64 _Offset;
             /// <summary>位移</summary>
             public Int64 Offset
             {
@@ -477,13 +477,13 @@ namespace NewLife.Compression
 
             public Stream GetData()
             {
-                if (Offset >= 0) Stream.Seek(Offset, SeekOrigin.Begin);
+                Stream.Seek(Offset, SeekOrigin.Begin);
                 return Stream;
             }
 
             public uint GetCRC()
             {
-                if (Offset >= 0) Stream.Seek(Offset, SeekOrigin.Begin);
+                Stream.Seek(Offset, SeekOrigin.Begin);
                 return new Crc32().Update(Stream, Length).Value;
             }
             #endregion

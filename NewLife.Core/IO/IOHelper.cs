@@ -422,10 +422,7 @@ namespace NewLife.IO
         #endregion
 
         #region 数据流转换
-        #endregion
-        /// <summary>
-        /// 流转为字节数组
-        /// </summary>
+        /// <summary>流转为字节数组</summary>
         /// <param name="stream">数据流</param>
         /// <param name="length">长度</param>
         /// <returns></returns>
@@ -434,15 +431,16 @@ namespace NewLife.IO
             if (stream == null) return null;
             if (length == 0) length = (Int32)(stream.Length - stream.Position);
 
+            // 也许外部会修改字节数组，因此这里不能直接返回内部数组
+            //if (stream.Position == 0 && length == stream.Length && stream is MemoryStream) return (stream as MemoryStream).ToArray();
+
             // 如果流长度没有length那么长，则任由其抛出异常
             byte[] bytes = new byte[length];
             stream.Read(bytes, 0, bytes.Length);
             return bytes;
         }
 
-        /// <summary>
-        /// 流转换为字符串
-        /// </summary>
+        /// <summary>流转换为字符串</summary>
         /// <param name="stream">目标流</param>
         /// <param name="encoding">编码格式</param>
         /// <returns></returns>
@@ -456,6 +454,7 @@ namespace NewLife.IO
                 return sr.ReadToEnd();
             }
         }
+        #endregion
 
         #region 数据流查找
         /// <summary>在数据流中查找字节数组的位置，流指针会移动到结尾</summary>
