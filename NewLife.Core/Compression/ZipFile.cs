@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using NewLife.IO;
 using NewLife.Linq;
 using BinaryReaderX = NewLife.Serialization.BinaryReaderX;
 using BinaryWriterX = NewLife.Serialization.BinaryWriterX;
@@ -13,7 +12,48 @@ namespace NewLife.Compression
     /// <summary>Zip文件</summary>
     /// <remarks>
     /// Zip定义位于 <a target="_blank" href="http://www.pkware.com/documents/casestudies/APPNOTE.TXT">http://www.pkware.com/documents/casestudies/APPNOTE.TXT</a>
+    /// 
+    /// 本程序只支持Zip基本功能，不支持加密和Zip64（用于超过2G的文件压缩）。
+    /// 
+    /// 基本常识：GZip/Deflate仅仅是数据压缩算法，只负责压缩一组数据；而Zip仅仅是一种打包用的文件格式，指示多个被压缩后的文件如何组合在一起形成一个压缩包，当然，这些被压缩的文件除了Deflate算法还可能有其它算法。
+    /// 
+    /// 核心原理：通过二进制序列化框架，实现Zip格式的解析，数据的压缩和解压缩由系统的DeflateStream完成！
+    /// 
+    /// 关于压缩算法：系统的DeflateStream实现了Deflate压缩算法，但是硬编码了四级压缩（共十级，第四级在快速压缩中压缩率最高）。相关硬编码位于内嵌的FastEncoderWindow类中。
     /// </remarks>
+    /// <example>
+    /// 标准压缩：
+    /// <code>
+    /// using (ZipFile zf = new ZipFile())
+    /// {
+    ///     zf.AddDirectory("TestZip");
+    /// 
+    ///     using (var fs = File.Create("ab.zip"))
+    ///     {
+    ///         zf.Write(fs);
+    ///     }
+    /// }
+    /// </code>
+    /// 
+    /// 标准解压缩：
+    /// <code>
+    /// using (ZipFile zf = new ZipFile(file))
+    /// {
+    ///     zf.Extract("TestZip");
+    /// }
+    /// </code>
+    /// 
+    /// 快速压缩：
+    /// <code>
+    /// ZipFile.CompressFile("aa.doc");
+    /// ZipFile.CompressDirectory("TestZip");
+    /// </code>
+    /// 
+    /// 快速解压缩：
+    /// <code>
+    /// ZipFile.Extract("aa.zip", "Test");
+    /// </code>
+    /// </example>
     public partial class ZipFile : DisposeBase, IEnumerable, IEnumerable<ZipEntry>
     {
         #region 属性
@@ -204,22 +244,46 @@ namespace NewLife.Compression
 
             writer.Flush();
         }
+
+        /// <summary>把Zip格式数据写入到文件中</summary>
+        /// <param name="fileName"></param>
+        public void Write(String fileName)
+        {
+            if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
+
+            using (var fs = File.Create(fileName))
+            {
+                Write(fs);
+            }
+        }
         #endregion
 
         #region 解压缩
         /// <summary>解压缩</summary>
-        /// <param name="path">目标路径</param>
+        /// <param name="outputPath">目标路径</param>
         /// <param name="overrideExisting">是否覆盖已有文件</param>
-        public void Extract(String path, Boolean overrideExisting = true)
+        public void Extract(String outputPath, Boolean overrideExisting = true)
         {
-            if (String.IsNullOrEmpty(path)) throw new ArgumentNullException("path");
-            //if (_readStream == null || !_readStream.CanSeek || !_readStream.CanRead) throw new ZipException("数据流异常！");
-
-            //if (!Path.IsPathRooted(path)) path = Path.Combine(DefaultExtractPath, path);
+            if (String.IsNullOrEmpty(outputPath)) throw new ArgumentNullException("outputPath");
 
             foreach (var item in Entries.Values)
             {
-                item.Extract(path, overrideExisting);
+                item.Extract(outputPath, overrideExisting);
+            }
+        }
+
+        /// <summary>快速解压缩</summary>
+        /// <param name="fileName"></param>
+        /// <param name="outputPath"></param>
+        /// <param name="overrideExisting"></param>
+        public static void Extract(String fileName, String outputPath, Boolean overrideExisting = true)
+        {
+            if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
+            if (String.IsNullOrEmpty(outputPath)) throw new ArgumentNullException("outputPath");
+
+            using (ZipFile zf = new ZipFile(fileName))
+            {
+                zf.Extract(outputPath, overrideExisting);
             }
         }
         #endregion
@@ -258,29 +322,14 @@ namespace NewLife.Compression
         }
 
         /// <summary>添加目录。
-        /// 必须指定目录<paramref name="dir"/>，如果不指定实体名<paramref name="entryName"/>，则加到顶级目录。</summary>
-        /// <param name="dir">目录</param>
+        /// 必须指定目录<paramref name="dirName"/>，如果不指定实体名<paramref name="entryName"/>，则加到顶级目录。</summary>
+        /// <param name="dirName">目录</param>
         /// <param name="entryName">实体名</param>
         /// <param name="stored">是否仅存储，不压缩</param>
-        public void AddDirectory(String dir, String entryName = null, Boolean? stored = null)
+        public void AddDirectory(String dirName, String entryName = null, Boolean? stored = null)
         {
-            if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("fileName");
-            dir = Path.GetFullPath(dir);
-
-            //// 所有子目录。虽然添加文件的时候也会判断目录，但是那些空目录就没有机会了
-            //foreach (var item in Directory.GetDirectories(dir, "*", SearchOption.AllDirectories))
-            //{
-            //    String name = item;
-            //    if (name.StartsWith(dir)) name = name.Substring(dir.Length);
-            //    if (name[0] == Path.DirectorySeparatorChar) name = name.Substring(1);
-            //    // 加上分隔符，表示目录
-            //    if (name[name.Length - 1] != DirSeparator) name += DirSeparator;
-
-            //    if (!String.IsNullOrEmpty(entryName)) name = entryName + DirSeparator + name;
-
-            //    var entry = ZipEntry.Create(null, name, true);
-            //    Entries.Add(entry.FileName, entry);
-            //}
+            if (String.IsNullOrEmpty(dirName)) throw new ArgumentNullException("fileName");
+            dirName = Path.GetFullPath(dirName);
 
             if (!String.IsNullOrEmpty(entryName))
             {
@@ -291,10 +340,10 @@ namespace NewLife.Compression
             }
 
             // 所有文件
-            foreach (var item in Directory.GetFiles(dir, "*.*", SearchOption.TopDirectoryOnly))
+            foreach (var item in Directory.GetFiles(dirName, "*.*", SearchOption.TopDirectoryOnly))
             {
                 String name = item;
-                if (name.StartsWith(dir)) name = name.Substring(dir.Length);
+                if (name.StartsWith(dirName)) name = name.Substring(dirName.Length);
                 if (name[0] == Path.DirectorySeparatorChar) name = name.Substring(1);
 
                 if (!String.IsNullOrEmpty(entryName)) name = entryName + name;
@@ -302,10 +351,10 @@ namespace NewLife.Compression
                 AddFile(item, name, stored);
             }
 
-            foreach (var item in Directory.GetDirectories(dir, "*", SearchOption.TopDirectoryOnly))
+            foreach (var item in Directory.GetDirectories(dirName, "*", SearchOption.TopDirectoryOnly))
             {
                 String name = item;
-                if (name.StartsWith(dir)) name = name.Substring(dir.Length);
+                if (name.StartsWith(dirName)) name = name.Substring(dirName.Length);
                 if (name[0] == Path.DirectorySeparatorChar) name = name.Substring(1);
                 // 加上分隔符，表示目录
                 if (!name.EndsWith(DirSeparator)) name += DirSeparator;
@@ -313,6 +362,36 @@ namespace NewLife.Compression
                 if (!String.IsNullOrEmpty(entryName)) name = entryName + name;
 
                 AddDirectory(item, name, stored);
+            }
+        }
+
+        /// <summary>快速压缩文件。</summary>
+        /// <param name="fileName"></param>
+        /// <param name="outputName"></param>
+        public static void CompressFile(String fileName, String outputName = null)
+        {
+            if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
+            if (String.IsNullOrEmpty(outputName)) outputName = Path.ChangeExtension(Path.GetFileName(fileName), ".zip");
+
+            using (ZipFile zf = new ZipFile())
+            {
+                zf.AddFile(fileName);
+                zf.Write(outputName);
+            }
+        }
+
+        /// <summary>快速压缩目录。</summary>
+        /// <param name="dirName"></param>
+        /// <param name="outputName"></param>
+        public static void CompressDirectory(String dirName, String outputName = null)
+        {
+            if (String.IsNullOrEmpty(dirName)) throw new ArgumentNullException("dirName");
+            if (String.IsNullOrEmpty(outputName)) outputName = Path.ChangeExtension(Path.GetFileName(dirName), ".zip");
+
+            using (ZipFile zf = new ZipFile())
+            {
+                zf.AddDirectory(dirName);
+                zf.Write(outputName);
             }
         }
         #endregion

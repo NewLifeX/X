@@ -1,13 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using NewLife.Collections;
 using NewLife.Exceptions;
 using NewLife.IO;
+using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Serialization;
-using System.Collections.Generic;
-using NewLife.Collections;
-using NewLife.Reflection;
 
 namespace NewLife.Compression
 {

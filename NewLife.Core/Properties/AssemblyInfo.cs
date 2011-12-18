@@ -33,10 +33,14 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.4.*")]
-[assembly: AssemblyFileVersion("3.4.2011.1209")]
+[assembly: AssemblyVersion("3.5.*")]
+[assembly: AssemblyFileVersion("3.5.2011.1218")]
 
 /*
+ * v3.5.2011.1218   增加压缩命名空间Compression，支持Zip格式
+ *                  调整序列化框架（特别是二进制序列化）的多项功能，更方便使用
+ *                  改进TraceStream，重载所有方法，方便拦截大部分操作
+ * 
  * v3.4.2011.1209   ControlHelper增加FindEventHandler方法，用于查找Web控件的事件
  *                  EnumHelper增加GetDescriptions方法，用于构建枚举的可绑定字典
  * 

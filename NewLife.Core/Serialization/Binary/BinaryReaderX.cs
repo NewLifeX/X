@@ -7,6 +7,22 @@ using NewLife.Reflection;
 namespace NewLife.Serialization
 {
     /// <summary>二进制读取器</summary>
+    /// <remarks>
+    /// 序列化框架的核心思想：基本类型直接读取，自定义类型反射得到成员，逐层递归读取！详见<see cref="IReaderWriter"/>
+    /// 
+    /// 二进制序列化，并不仅仅是为了序列化一个对象那么简单，它最初的目标是实现一个高度可自定义的序列化组件，后来提升为以序列化各种协议为重点。
+    /// 理论上，只要用实体类实现了各种协议（文件格式），那么它就能只用一个Read/Write实现协议实体对象与二进制数据流之间的映射。
+    /// </remarks>
+    /// <example>
+    /// 标准用法：
+    /// <code>
+    /// var reader = new BinaryReaderX();
+    /// reader.Stream = stream;
+    /// entity = reader.ReadObject&lt;TEntity&gt;();
+    /// // 使用数据流填充已有对象，这是几乎所有其它序列化框架所不具有的功能
+    /// // reader.ReadObject(null, ref entity);
+    /// </code>
+    /// </example>
     public class BinaryReaderX : ReaderBase<BinarySettings>
     {
         #region 属性

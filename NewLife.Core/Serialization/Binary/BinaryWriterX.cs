@@ -7,6 +7,20 @@ using NewLife.Reflection;
 namespace NewLife.Serialization
 {
     /// <summary>二进制写入器</summary>
+    /// <remarks>
+    /// 序列化框架的核心思想：基本类型直接写入，自定义类型反射得到成员，逐层递归写入！详见<see cref="IReaderWriter" />
+    /// 
+    /// 二进制序列化，并不仅仅是为了序列化一个对象那么简单，它最初的目标是实现一个高度可自定义的序列化组件，后来提升为以序列化各种协议为重点。
+    /// 理论上，只要用实体类实现了各种协议（文件格式），那么它就能只用一个Read/Write实现协议实体对象与二进制数据流之间的映射。
+    /// </remarks>
+    /// <example>
+    /// 标准用法：
+    /// <code>
+    /// var writer = new BinaryWriterX();
+    /// writer.Stream = stream;
+    /// writer.WriteObject(entity);
+    /// </code>
+    /// </example>
     public class BinaryWriterX : WriterBase<BinarySettings>
     {
         #region 属性

@@ -441,43 +441,18 @@ namespace Test
             String comment = null;
             using (ZipFile zf = new ZipFile(file))
             {
-                foreach (var item in zf)
-                {
-                    Console.WriteLine(item);
-                }
-
-                Console.WriteLine(zf.Count);
-                comment = zf.Comment;
-
                 zf.Extract("TestZip");
-
-                //zf.Comment = "测试用的注释啦！";
-                using (var fs = File.Create("aa.zip"))
-                {
-                    zf.Write(fs);
-                }
             }
 
 
             using (ZipFile zf = new ZipFile())
             {
-                //zf.AddDirectory(@"E:\X\Src\Test");
                 zf.AddDirectory(@"TestZip");
-
-                zf.Comment = comment;
-
-                Console.WriteLine(zf.Count);
-                foreach (var item in zf)
-                {
-                    Console.WriteLine(item);
-                }
 
                 using (var fs = File.Create("ab.zip"))
                 {
                     zf.Write(fs);
                 }
-
-                Console.WriteLine(zf.Count);
             }
 
             //using (ZipFile zf = new ZipFile("ab.zip"))
