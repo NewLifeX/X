@@ -15,7 +15,6 @@ using XCode.Configuration;
 namespace XCode.Test
 {
     /// <summary>实体测试</summary>
-    [CLSCompliant(false)]
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class EntityTest : EntityTest<EntityTest> { }
 

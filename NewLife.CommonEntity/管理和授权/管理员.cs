@@ -208,7 +208,6 @@ namespace NewLife.CommonEntity
         /// <summary>
         /// 取得管理员字段名的快捷方式
         /// </summary>
-        [CLSCompliant(false)]
         public class _
         {
             ///<summary>编号</summary>

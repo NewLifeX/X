@@ -69,13 +69,8 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ThreadPoolTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NewLife.CommonEntity\NewLife.CommonEntity.csproj">
-      <Project>{50D7FAE5-2304-4395-A6FA-7D35279D9D84}</Project>
-      <Name>NewLife.CommonEntity</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
       <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
       <Name>NewLife.Core</Name>
@@ -89,18 +84,6 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Test2.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Test.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="XMLFile.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

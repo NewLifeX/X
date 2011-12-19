@@ -127,7 +127,6 @@ namespace NewLife.CommonEntity
 
 		#region 字段名
         /// <summary>取得序列字段信息的快捷方式</summary>
-        [CLSCompliant(false)]
 		public class _
 		{
             ///<summary>编号</summary>

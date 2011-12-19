@@ -1,21 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using XCode.DataAccessLayer;
 using System.Diagnostics;
-using NewLife.Log;
 using System.Threading;
-using System.Diagnostics.CodeAnalysis;
+using NewLife.Log;
+using XCode.DataAccessLayer;
 
 namespace XCode.Test
 {
     /// <summary>我的基类</summary>
     public class MyEntity<TEntity> : Entity<TEntity> where TEntity : MyEntity<TEntity>, new() { }
 
-    [CLSCompliant(false)]
     partial interface IEntityTest { }
 
-    [CLSCompliant(false)]
     partial class EntityTest<TEntity>
     {
         static EntityTest()

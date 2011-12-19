@@ -88,7 +88,6 @@ namespace NewLife.CommonEntity
         /// <summary>
         /// 取得角色字段名的快捷方式
         /// </summary>
-        [CLSCompliant(false)]
         public class _
         {
             ///<summary>编号</summary>

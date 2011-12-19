@@ -217,7 +217,6 @@ namespace NewLife.CommonEntity
 
         #region 字段名
         /// <summary>取得附件字段信息的快捷方式</summary>
-        [CLSCompliant(false)]
         public class _
         {
             ///<summary>编号</summary>
