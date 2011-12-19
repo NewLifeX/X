@@ -248,8 +248,23 @@ namespace XCode.Code
             CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
 
             var rs = provider.CompileAssemblyFromDom(options, Unit);
-            // 既然编译正常，这里就删除临时文件
-            options.TempFiles.Delete();
+
+            #region 既然编译正常，这里就删除临时文件
+            var tp = options.TempFiles.BasePath;
+            var ss = Directory.GetFiles(Path.GetDirectoryName(tp), Path.GetFileName(tp) + ".*", SearchOption.TopDirectoryOnly);
+            if (ss != null)
+            {
+                foreach (var item in ss)
+                {
+                    try
+                    {
+                        File.Delete(item);
+                    }
+                    catch { }
+                }
+            }
+            #endregion
+            
             return rs;
         }
 
