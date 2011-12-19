@@ -41,6 +41,16 @@ namespace XTemplate.Templating
             name = name.Replace(Path.PathSeparator, '_');
             return name;
         }
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return String.Format("{0} [{1}]", AssemblyName ?? NameSpace, Templates.Count);
+            //return base.ToString();
+        }
         #endregion
 
         #region 调试
