@@ -53,6 +53,9 @@
     <Compile Include="Application\DaytimeServer.cs" />
     <Compile Include="Application\DiscardServer.cs" />
     <Compile Include="Application\EchoServer.cs" />
+    <Compile Include="Protocols\DNS\DNSHeader.cs" />
+    <Compile Include="Protocols\DNS\DNSQuestion.cs" />
+    <Compile Include="Protocols\DNS\DNSResource.cs" />
     <Compile Include="Protocols\NTP\NTPClient.cs" />
     <Compile Include="Application\StreamServer.cs" />
     <Compile Include="Application\TcpEchoServer.cs" />

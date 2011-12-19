@@ -315,7 +315,7 @@ namespace NewLife.Log
                     //if (tc >= TypeCode.Int16 && tc <= TypeCode.UInt64)
                     if (tc != TypeCode.Object)
                     {
-                        Console.WriteLine(e.Arg2[0]);
+                        Console.Write(e.Arg2[0]);
                     }
                 }
             }

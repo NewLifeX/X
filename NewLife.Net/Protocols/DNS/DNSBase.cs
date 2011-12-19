@@ -6,9 +6,7 @@ using NewLife.Serialization;
 
 namespace NewLife.Net.Protocols.DNS
 {
-    /// <summary>
-    /// DNS实体类基类
-    /// </summary>
+    /// <summary>DNS实体类基类</summary>
     /// <typeparam name="TEntity"></typeparam>
     public abstract class DNSBase<TEntity> : DNSBase where TEntity : DNSBase<TEntity>
     {
@@ -27,9 +25,7 @@ namespace NewLife.Net.Protocols.DNS
         #endregion
     }
 
-    /// <summary>
-    /// DNS实体类基类
-    /// </summary>
+    /// <summary>DNS实体类基类</summary>
     public abstract class DNSBase
     {
         #region 属性

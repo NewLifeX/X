@@ -18,10 +18,34 @@ namespace System
         /// <returns></returns>
         public static Boolean Has(this Enum value, Enum flag)
         {
-            if (value.GetType() != flag.GetType()) throw new ArgumentException("item", "枚举标识判断必须是相同的类型！");
+            if (value.GetType() != flag.GetType()) throw new ArgumentException("flag", "枚举标识判断必须是相同的类型！");
 
             UInt64 num = Convert.ToUInt64(flag);
             return (Convert.ToUInt64(value) & num) == num;
+        }
+
+        /// <summary>设置标识位</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="flag"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static T Set<T>(this Enum source, T flag, Boolean value)
+        {
+            if (source is T) throw new ArgumentException("source", "枚举标识判断必须是相同的类型！");
+
+            UInt64 s = Convert.ToUInt64(source);
+            UInt64 f = Convert.ToUInt64(flag);
+
+            if (value)
+            {
+                // 必须先检查是否包含这个标识位，因为异或的操作仅仅是取反
+                if ((s & f) == f) s ^= f;
+            }
+            else
+                s = s | f;
+
+            return (T)(Object)s;
         }
 
         /// <summary>

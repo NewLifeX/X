@@ -3,6 +3,9 @@ using System.Diagnostics;
 using NewLife.Log;
 using NewLife.Compression;
 using XCode.DataAccessLayer;
+using NewLife.Serialization;
+using System.IO;
+using NewLife.Net.Protocols.DNS;
 
 namespace Test
 {
@@ -45,7 +48,16 @@ namespace Test
             //ZipFile.CompressDirectory("db", "db.zip");
             //ZipFile.Extract("db_20111219162114.zip", null);
 
-            var eop = DAL.Create("Common").CreateOperate("Log");
+            //var eop = DAL.Create("Common").CreateOperate("Log");
+
+            String file = "qq.bin";
+            BinaryReaderX reader = new BinaryReaderX();
+            reader.Settings.IsLittleEndian = false;
+            reader.Debug = true;
+            reader.Stream = File.OpenRead(file);
+            reader.EnableTraceStream();
+            DNSHeader header = reader.ReadObject<DNSHeader>();
+            Console.WriteLine(header);
         }
     }
 }

@@ -68,19 +68,19 @@ namespace NewLife.Serialization
         /// 从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。
         /// </summary>
         /// <returns></returns>
-        public virtual short ReadInt16() { return BitConverter.ToInt16(ReadBytes(2), 0); }
+        public virtual short ReadInt16() { return BitConverter.ToInt16(ReadIntBytes(2), 0); }
 
         /// <summary>
         /// 从当前流中读取 4 字节有符号整数，并使流的当前位置提升 4 个字节。
         /// </summary>
         /// <returns></returns>
-        public virtual int ReadInt32() { return BitConverter.ToInt32(ReadBytes(4), 0); }
+        public virtual int ReadInt32() { return BitConverter.ToInt32(ReadIntBytes(4), 0); }
 
         /// <summary>
         /// 从当前流中读取 8 字节有符号整数，并使流的当前位置向前移动 8 个字节。
         /// </summary>
         /// <returns></returns>
-        public virtual long ReadInt64() { return BitConverter.ToInt64(ReadBytes(8), 0); }
+        public virtual long ReadInt64() { return BitConverter.ToInt64(ReadIntBytes(8), 0); }
         #endregion
 
         #region 无符号整数
