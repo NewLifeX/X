@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using NewLife.IO;
 
 namespace NewLife.Serialization
 {
@@ -100,15 +101,15 @@ namespace NewLife.Serialization
         /// 写入字符串
         /// </summary>
         /// <param name="value">要写入的值。</param>
-        public override void Write(string value) { throw new NotImplementedException(); }
+        public override void Write(String value) { WriteLiteral(value); }
 
         /// <summary>输出字符串字面值,不做编码处理</summary>
         /// <param name="value"></param>
-        protected void WriteLiteral(string value)
+        protected void WriteLiteral(String value)
         {
             Depth++;
             WriteLog("WriteLiteral", value);
-            //Writer.Write(value);
+            OnWriteLiteral(value);
             Depth--;
         }
 
@@ -174,6 +175,24 @@ namespace NewLife.Serialization
                 }
             }
             return base.WriteValue(value, type);
+        }
+        #endregion
+
+        #region 扩展
+        /// <summary>把数据流转为字符串</summary>
+        /// <returns></returns>
+        public virtual String ToStr()
+        {
+            if (!Stream.CanSeek) throw new XSerializationException(null, "数据流不支持移动，无法转字符串！");
+
+            Flush();
+
+            // 保持位置，读取后恢复
+            Int64 p = Stream.Position;
+            Stream.Position = 0;
+            String txt = Stream.ToStr(Settings.Encoding);
+            Stream.Position = p;
+            return txt;
         }
         #endregion
     }

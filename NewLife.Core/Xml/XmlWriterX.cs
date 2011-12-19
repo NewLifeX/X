@@ -57,16 +57,24 @@ namespace NewLife.Xml
 
         #region 基础元数据
         #region 字符串
-        /// <summary>
-        /// 写入字符串
-        /// </summary>
-        /// <param name="value">要写入的值。</param>
-        public override void Write(string value)
+        /// <summary>输出字符串字面值,不做编码处理</summary>
+        protected override void OnWriteLiteral(string value)
         {
             Writer.WriteString(value);
 
             AutoFlush();
         }
+
+        ///// <summary>
+        ///// 写入字符串
+        ///// </summary>
+        ///// <param name="value">要写入的值。</param>
+        //public override void Write(string value)
+        //{
+        //    Writer.WriteString(value);
+
+        //    AutoFlush();
+        //}
         #endregion
         #endregion
 

@@ -128,6 +128,7 @@ namespace NewLife.Log
                 _TempPath = value;
                 if (String.IsNullOrEmpty(_TempPath)) _TempPath = "XTemp";
                 if (!Path.IsPathRooted(_TempPath)) _TempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _TempPath);
+                _TempPath = Path.GetFullPath(_TempPath);
             }
         }
         #endregion
