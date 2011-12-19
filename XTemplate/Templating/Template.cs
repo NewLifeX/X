@@ -10,6 +10,7 @@ using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Linq;
 
 namespace XTemplate.Templating
 {
@@ -116,12 +117,20 @@ namespace XTemplate.Templating
         {
             get
             {
-                if (String.IsNullOrEmpty(_NameSpace))
+                if (_NameSpace == null)
                 {
-                    String namespaceName = this.GetType().Namespace;
-                    //namespaceName = namespaceName.Substring(0, namespaceName.LastIndexOf("."));
-                    namespaceName += "s";
-                    return namespaceName;
+                    if (!String.IsNullOrEmpty(AssemblyName))
+                    {
+                        String name = Path.GetFileNameWithoutExtension(AssemblyName);
+                        _NameSpace = name;
+                    }
+                    else
+                    {
+                        String namespaceName = this.GetType().Namespace;
+                        namespaceName += "s";
+
+                        _NameSpace = namespaceName;
+                    }
                 }
                 return _NameSpace;
             }
@@ -322,6 +331,25 @@ namespace XTemplate.Templating
             }
             item.Name = name;
             item.Content = content;
+
+            // 设置类名
+            var cname = Path.GetFileNameWithoutExtension(name);
+            if (cname != name)
+            {
+                // 如果没有别的模版项用这个类名，这里使用
+                if (!Templates.Any(t => t.ClassName == cname)) item.ClassName = cname;
+            }
+
+            // 设置程序集名，采用最后一级目录名
+            if (String.IsNullOrEmpty(AssemblyName))
+            {
+                var dname = Path.GetDirectoryName(name);
+                if (!String.IsNullOrEmpty(dname))
+                {
+                    dname = Path.GetFileName(dname);
+                    if (!String.IsNullOrEmpty(dname)) AssemblyName = dname;
+                }
+            }
         }
 
         /// <summary>查找指定名称的模版</summary>
@@ -1057,7 +1085,13 @@ namespace XTemplate.Templating
                 }
             }
             else
-                className = GetClassName(className);
+            {
+                var ti = FindTemplateItem(className);
+                if (ti != null)
+                    className = ti.ClassName;
+                else
+                    className = GetClassName(className);
+            }
 
             if (!className.Contains(".")) className = NameSpace + "." + className;
             // 可能存在大小写不匹配等问题，这里需要修正
