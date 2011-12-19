@@ -223,7 +223,7 @@ namespace XCode.Code
 
                     String path = XTrace.TempPath;
                     if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-                    options.TempFiles = new TempFileCollection(path, true);
+                    options.TempFiles = new TempFileCollection(path, false);
                 }
             }
 
@@ -247,24 +247,49 @@ namespace XCode.Code
 
             CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
 
-            var rs = provider.CompileAssemblyFromDom(options, Unit);
-
-            #region 既然编译正常，这里就删除临时文件
-            var tp = options.TempFiles.BasePath;
-            var ss = Directory.GetFiles(Path.GetDirectoryName(tp), Path.GetFileName(tp) + ".*", SearchOption.TopDirectoryOnly);
-            if (ss != null)
+            CompilerResults rs = null;
+            if (!DAL.Debug)
+                rs = provider.CompileAssemblyFromDom(options, Unit);
+            else
             {
-                foreach (var item in ss)
+                // 先生成代码文件，方便调试
+                String fileName = Path.Combine(XTrace.TempPath, Dal.ConnName + ".cs");
+                using (StreamWriter writer = new StreamWriter(fileName))
                 {
-                    try
-                    {
-                        File.Delete(item);
-                    }
-                    catch { }
+                    var op = new CodeGeneratorOptions();
+                    op.BracingStyle = "C";
+                    op.VerbatimOrder = true;
+
+                    provider.GenerateCodeFromCompileUnit(Unit, writer, op);
                 }
+
+                // 编译
+                rs = provider.CompileAssemblyFromFile(options, fileName);
+
+                // 既然编译正常，这里就删除临时文件
+                try
+                {
+                    File.Delete(fileName);
+                }
+                catch { }
+
+                //#region 既然编译正常，这里就删除临时文件
+                //var tp = options.TempFiles.BasePath;
+                //var ss = Directory.GetFiles(Path.GetDirectoryName(tp), Path.GetFileName(tp) + ".*", SearchOption.TopDirectoryOnly);
+                //if (ss != null)
+                //{
+                //    foreach (var item in ss)
+                //    {
+                //        try
+                //        {
+                //            File.Delete(item);
+                //        }
+                //        catch { }
+                //    }
+                //}
+                //#endregion
             }
-            #endregion
-            
+
             return rs;
         }
 
