@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using NewLife.Log;
 using NewLife.Compression;
+using XCode.DataAccessLayer;
 
 namespace Test
 {
@@ -18,7 +19,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -42,7 +43,9 @@ namespace Test
         private static void Test1()
         {
             //ZipFile.CompressDirectory("db", "db.zip");
-            ZipFile.Extract("db_20111219162114.zip", null);
+            //ZipFile.Extract("db_20111219162114.zip", null);
+
+            var eop = DAL.Create("Common").CreateOperate("Log");
         }
     }
 }

@@ -246,7 +246,11 @@ namespace XCode.Code
             }
 
             CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
-            return provider.CompileAssemblyFromDom(options, Unit);
+
+            var rs = provider.CompileAssemblyFromDom(options, Unit);
+            // 既然编译正常，这里就删除临时文件
+            options.TempFiles.Delete();
+            return rs;
         }
 
         /// <summary>

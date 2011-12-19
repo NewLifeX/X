@@ -449,10 +449,14 @@ namespace NewLife.IO
             if (stream == null) return null;
             if (encoding == null) encoding = Encoding.UTF8;
 
-            using (StreamReader sr = new StreamReader(stream, encoding))
-            {
-                return sr.ReadToEnd();
-            }
+            //using (StreamReader sr = new StreamReader(stream, encoding))
+            //{
+            //    return sr.ReadToEnd();
+            //}
+
+            // StreamReader读完数据后，会同时把数据流给关闭了
+
+            return encoding.GetString(stream.ReadBytes());
         }
         #endregion
 
