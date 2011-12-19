@@ -235,7 +235,8 @@ namespace NewLife.Log
             get { return _UseConsole; }
             set
             {
-                if (value && !Runtime.IsConsole) throw new InvalidOperationException("非控制台程序无法使用该功能！");
+                //if (value && !Runtime.IsConsole) throw new InvalidOperationException("非控制台程序无法使用该功能！");
+                if (value && !Runtime.IsConsole) return;
                 if (value == _UseConsole) return;
 
                 if (value)

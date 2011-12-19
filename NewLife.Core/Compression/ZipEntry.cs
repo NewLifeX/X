@@ -171,12 +171,16 @@ namespace NewLife.Compression
             var entry = reader.ReadObject<ZipEntry>();
             if (entry.IsDirectory) return entry;
 
-            // 是否内嵌文件数据
-            entry.DataSource = embedFileData ? new ArrayDataSource(stream, (Int32)entry.CompressedSize) : new StreamDataSource(stream, stream.Position, 0);
-            entry.DataSource.IsCompressed = entry.CompressionMethod != CompressionMethod.Stored;
+            // 0长度的实体不要设置数据源
+            if (entry.CompressedSize > 0)
+            {
+                // 是否内嵌文件数据
+                entry.DataSource = embedFileData ? new ArrayDataSource(stream, (Int32)entry.CompressedSize) : new StreamDataSource(stream, stream.Position, 0);
+                entry.DataSource.IsCompressed = entry.CompressionMethod != CompressionMethod.Stored;
 
-            // 移到文件数据之后，可能是文件头
-            if (!embedFileData) stream.Seek(entry.CompressedSize, SeekOrigin.Current);
+                // 移到文件数据之后，可能是文件头
+                if (!embedFileData) stream.Seek(entry.CompressedSize, SeekOrigin.Current);
+            }
 
             // 如果有扩展，则跳过
             if (entry.BitField.Has(GeneralBitFlags.Descriptor))
@@ -229,17 +233,20 @@ namespace NewLife.Compression
                 return;
             }
 
+            Int32 dsLen = (Int32)DataSource.Length;
+            //if (dsLen <= 0) CompressionMethod = CompressionMethod.Stored;
+
             // 计算签名和大小
             if (Crc == 0) Crc = DataSource.GetCRC();
-            if (UncompressedSize == 0) UncompressedSize = (UInt32)DataSource.Length;
+            if (UncompressedSize == 0) UncompressedSize = (UInt32)dsLen;
             if (CompressionMethod == CompressionMethod.Stored) CompressedSize = UncompressedSize;
-            if (DataSource.IsCompressed) CompressedSize = (UInt32)DataSource.Length;
-
-            // 数据源
-            Stream source = DataSource.GetData();
+            if (DataSource.IsCompressed) CompressedSize = (UInt32)dsLen;
 
             // 写入头部
             writer.WriteObject(this);
+
+            // 没有数据，直接跳过
+            if (dsLen <= 0) return;
 
             #region 写入文件数据
 #if DEBUG
@@ -247,17 +254,19 @@ namespace NewLife.Compression
             if (ts != null) ts.UseConsole = false;
 #endif
 
+            // 数据源。只能用一次，因为GetData的时候把数据流移到了合适位置
+            Stream source = DataSource.GetData();
             switch (CompressionMethod)
             {
                 case CompressionMethod.Stored:
                     // 原始数据流直接拷贝到目标。必须指定大小，否则可能读过界
-                    source.CopyTo(writer.Stream, 0, (Int32)DataSource.Length);
+                    source.CopyTo(writer.Stream, 0, dsLen);
                     break;
                 case CompressionMethod.Deflated:
                     if (DataSource.IsCompressed)
                     {
                         // 可能数据源是曾经被压缩过了的，比如刚解压的实体
-                        source.CopyTo(writer.Stream, 0, (Int32)DataSource.Length);
+                        source.CopyTo(writer.Stream, 0, dsLen);
                     }
                     else
                     {
@@ -310,8 +319,8 @@ namespace NewLife.Compression
 
             if (!IsDirectory)
             {
-                if (DataSource == null) throw new ZipException("文件数据不正确！");
-                if (CompressedSize <= 0) throw new ZipException("文件大小不正确！");
+                //if (DataSource == null) throw new ZipException("文件数据不正确！");
+                //if (CompressedSize <= 0) throw new ZipException("文件大小不正确！");
 
                 String file = Path.Combine(path, FileName);
                 if (!overrideExisting && File.Exists(file)) return;
@@ -319,9 +328,10 @@ namespace NewLife.Compression
                 path = Path.GetDirectoryName(file);
                 if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
-                using (var stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.Write))
+                using (var stream = File.Create(file))
                 {
-                    Extract(stream);
+                    // 没有数据直接跳过。放到这里，保证已经创建文件
+                    if (DataSource != null && DataSource.Length > 0 && CompressedSize > 0) Extract(stream);
                 }
 
                 // 修正时间
@@ -343,12 +353,12 @@ namespace NewLife.Compression
         public void Extract(Stream outStream)
         {
             if (outStream == null || !outStream.CanWrite) throw new ArgumentNullException("outStream");
-            if (DataSource == null) throw new ZipException("文件数据不正确！");
-            if (CompressedSize <= 0) throw new ZipException("文件大小不正确！");
-            //if (_readStream == null || !_readStream.CanSeek || !_readStream.CanRead) throw new ZipException("数据流异常！");
+            //if (DataSource == null) throw new ZipException("文件数据不正确！");
 
-            //// 移到目标位置
-            //_readStream.Seek(FileDataPosition, SeekOrigin.Begin);
+            // 没有数据直接跳过
+            if (DataSource == null || DataSource.Length <= 0) return;
+
+            if (CompressedSize <= 0) throw new ZipException("文件大小不正确！");
 
             try
             {

@@ -8,6 +8,7 @@ using NewLife.Collections;
 using NewLife.Log;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
+using NewLife.Linq;
 
 namespace XCode.Code
 {
@@ -227,10 +228,6 @@ namespace XCode.Code
             }
 
             String[] refs = new String[] { "System.dll", "XCode.dll", "NewLife.Core.dll" };
-            //foreach (String item in refs)
-            //{
-            //    if (!options.ReferencedAssemblies.Contains(item)) options.ReferencedAssemblies.Add(item);
-            //}
             Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
             foreach (Assembly item in asms)
             {
@@ -243,16 +240,7 @@ namespace XCode.Code
                 if (String.IsNullOrEmpty(name)) continue;
 
                 String fileName = Path.GetFileName(name);
-                Boolean b = false;
-                foreach (String elm in refs)
-                {
-                    if (String.Equals(fileName, elm, StringComparison.OrdinalIgnoreCase))
-                    {
-                        b = true;
-                        break;
-                    }
-                }
-                if (!b) continue;
+                if (!refs.Contains(fileName, StringComparer.OrdinalIgnoreCase)) continue;
 
                 if (!options.ReferencedAssemblies.Contains(name)) options.ReferencedAssemblies.Add(name);
             }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using NewLife.Log;
+using NewLife.Compression;
 
 namespace Test
 {
@@ -40,6 +41,8 @@ namespace Test
 
         private static void Test1()
         {
+            //ZipFile.CompressDirectory("db", "db.zip");
+            ZipFile.Extract("db_20111219162114.zip", null);
         }
     }
 }
