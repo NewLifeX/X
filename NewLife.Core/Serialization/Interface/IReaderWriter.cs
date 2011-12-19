@@ -26,6 +26,12 @@ namespace NewLife.Serialization
 
         /// <summary>层次深度。</summary>
         Int32 Depth { get; set; }
+
+        /// <summary>当前对象</summary>
+        Object CurrentObject { get; set; }
+
+        /// <summary>当前成员</summary>
+        IObjectMemberInfo CurrentMember { get; set; }
         #endregion
 
         #region 方法

@@ -1051,7 +1051,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected Type CheckAndReadType(String action, Type type, Object value)
         {
-            if (IsExactType(type))
+            if (!IsExactType(type))
             {
                 WriteLog(action);
                 Type t = ReadObjectType();
@@ -1165,16 +1165,32 @@ namespace NewLife.Serialization
             if (type == null && value != null) type = value.GetType();
             if (callback == null) callback = ReadMember;
 
-            // 检查IAcessor接口
-            IAccessor accessor = value as IAccessor;
-            if (accessor != null && accessor.Read(this)) return true;
+            Object old = CurrentObject;
+            try
+            {
+                // 检查IAcessor接口
+                IAccessor accessor = null;
+                if (typeof(IAccessor).IsAssignableFrom(type))
+                {
+                    // 如果为空，实例化并赋值。
+                    if (value == null)
+                    {
+                        CurrentObject = value = TypeX.CreateInstance(type);
 
-            Boolean rs = ReadObjectWithEvent(type, ref value, callback);
+                        if (value != null) AddObjRef(objRefIndex, value);
+                    }
+                    accessor = value as IAccessor;
+                    if (accessor != null && accessor.Read(this)) return true;
+                }
 
-            // 检查IAcessor接口
-            if (accessor != null) rs = accessor.ReadComplete(this, rs);
+                Boolean rs = ReadObjectWithEvent(type, ref value, callback);
 
-            return rs;
+                // 检查IAcessor接口
+                if (accessor != null) rs = accessor.ReadComplete(this, rs);
+
+                return rs;
+            }
+            finally { CurrentObject = old; }
         }
 
         Boolean ReadObjectWithEvent(Type type, ref Object value, ReadObjectCallback callback)

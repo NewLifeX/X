@@ -1,13 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
-using NewLife.Reflection;
 using System.Collections;
+using System.Reflection;
+using System.Text;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
-    /// <summary>字段大小特性。可以通过Size指定字符串或数组的固有大小，为0表示自动计算；也可以通过指定参考字段ReferenceName，然后从其中获取大小</summary>
+    /// <summary>字段大小特性。</summary>
+    /// <remarks>
+    /// 可以通过Size指定字符串或数组的固有大小，为0表示自动计算；也可以通过指定参考字段ReferenceName，然后从其中获取大小。
+    /// 支持_Header._Questions形式的多层次引用字段
+    /// </remarks>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
     public class FieldSizeAttribute : Attribute
     {
@@ -29,15 +32,37 @@ namespace NewLife.Serialization
 
         #region 方法
         /// <summary>找到所引用的参考字段</summary>
+        /// <param name="target"></param>
         /// <param name="member"></param>
+        /// <param name="value"></param>
         /// <returns></returns>
-        MemberInfoX FindReference(MemberInfo member)
+        MemberInfoX FindReference(Object target, MemberInfo member, out Object value)
         {
+            value = null;
+
             if (member == null) return null;
             if (Size > 0 || String.IsNullOrEmpty(ReferenceName)) return null;
 
-            var mx = MemberInfoX.Create(member.DeclaringType, ReferenceName);
-            if (mx == null) return null;
+            // 考虑ReferenceName可能是圆点分隔的多重结构
+            MemberInfoX mx = null;
+            Type type = member.DeclaringType;
+            value = target;
+            var ss = ReferenceName.Split(".");
+            for (int i = 0; i < ss.Length; i++)
+            {
+                mx = MemberInfoX.Create(type, ss[i]);
+                if (mx == null) return null;
+
+                // 最后一个不需要计算
+                if (i < ss.Length - 1)
+                {
+                    type = mx.Type;
+                    value = mx.GetValue(value);
+                }
+            }
+
+            //var mx = MemberInfoX.Create(member.DeclaringType, ReferenceName);
+            //if (mx == null) return null;
 
             // 目标字段必须是整型
             TypeCode tc = Type.GetTypeCode(mx.Type);
@@ -52,7 +77,8 @@ namespace NewLife.Serialization
         /// <param name="encoding"></param>
         internal void SetReferenceSize(Object target, MemberInfo member, Encoding encoding)
         {
-            var mx = FindReference(member);
+            Object v = null;
+            var mx = FindReference(target, member, out v);
             if (mx == null) return;
 
             // 获取当前成员（加了特性）的值
@@ -80,7 +106,7 @@ namespace NewLife.Serialization
             }
 
             // 给参考字段赋值
-            mx.SetValue(target, size);
+            mx.SetValue(v, size);
         }
 
         /// <summary>获取目标对象的引用大小值</summary>
@@ -89,10 +115,11 @@ namespace NewLife.Serialization
         /// <returns></returns>
         internal Int32 GetReferenceSize(Object target, MemberInfo member)
         {
-            var mx = FindReference(member);
+            Object v = null;
+            var mx = FindReference(target, member, out v);
             if (mx == null) return -1;
 
-            return Convert.ToInt32(mx.GetValue(target));
+            return Convert.ToInt32(mx.GetValue(v));
         }
         #endregion
     }

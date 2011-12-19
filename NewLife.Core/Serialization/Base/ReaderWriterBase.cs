@@ -72,11 +72,11 @@ namespace NewLife.Serialization
 
         private Object _CurrentObject;
         /// <summary>当前对象</summary>
-        internal protected Object CurrentObject { get { return _CurrentObject; } set { _CurrentObject = value; } }
+        public Object CurrentObject { get { return _CurrentObject; } set { _CurrentObject = value; } }
 
         private IObjectMemberInfo _CurrentMember;
         /// <summary>当前成员</summary>
-        internal protected IObjectMemberInfo CurrentMember { get { return _CurrentMember; } set { _CurrentMember = value; } }
+        public IObjectMemberInfo CurrentMember { get { return _CurrentMember; } set { _CurrentMember = value; } }
         #endregion
 
         #region 方法

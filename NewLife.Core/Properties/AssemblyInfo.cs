@@ -34,9 +34,13 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.5.*")]
-[assembly: AssemblyFileVersion("3.5.2011.1218")]
+[assembly: AssemblyFileVersion("3.5.2011.1220")]
 
 /*
+ * v3.5.2011.1220   序列化框架，FieldSizeAttribute支持样式的多层次引用字段
+ *                  CurrentObject、CurrentMember移到接口中公开
+ *                  读取对象时，如果目标实现了IAccessor接口而对象为空，则提前实例化对象
+ * 
  * v3.5.2011.1218   增加压缩命名空间Compression，支持Zip格式
  *                  调整序列化框架（特别是二进制序列化）的多项功能，更方便使用
  *                  改进TraceStream，重载所有方法，方便拦截大部分操作
