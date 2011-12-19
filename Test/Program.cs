@@ -53,10 +53,12 @@ namespace Test
             String file = "qq.bin";
             BinaryReaderX reader = new BinaryReaderX();
             reader.Settings.IsLittleEndian = false;
+            reader.Settings.UseObjRef = false;
             reader.Debug = true;
             reader.Stream = File.OpenRead(file);
             reader.EnableTraceStream();
-            DNSHeader header = reader.ReadObject<DNSHeader>();
+
+            DNS_A header = reader.ReadObject<DNS_A>();
             Console.WriteLine(header);
         }
     }

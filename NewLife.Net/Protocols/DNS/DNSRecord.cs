@@ -5,7 +5,8 @@ using NewLife.Serialization;
 
 namespace NewLife.Net.Protocols.DNS
 {
-    class DNSQuestion : IAccessor
+    /// <summary>资源结构</summary>
+    public class DNSRecord : IAccessor
     {
         #region 属性
         [NonSerialized]
@@ -20,6 +21,17 @@ namespace NewLife.Net.Protocols.DNS
         private QueryClass _Class;
         /// <summary>属性说明</summary>
         public QueryClass Class { get { return _Class; } set { _Class = value; } }
+
+        private Int32 _TTL;
+        /// <summary>属性说明</summary>
+        public Int32 TTL { get { return _TTL; } set { _TTL = value; } }
+
+        private Int32 _Length;
+
+        [FieldSize("_Length")]
+        private Byte[] _Data;
+        /// <summary>资源数据</summary>
+        public Byte[] Data { get { return _Data; } set { _Data = value; } }
         #endregion
 
         #region IAccessor 成员
@@ -28,6 +40,15 @@ namespace NewLife.Net.Protocols.DNS
         {
             // 提前读取名称
             Name = ReadName(reader);
+
+            // 如果当前成员是_Questions，忽略三个字段
+            if (reader.CurrentMember != null && reader.CurrentMember.Name == "_Questions")
+            {
+                var ims = reader.Settings.IgnoreMembers;
+                if (!ims.Contains("_TTL")) ims.Add("_TTL");
+                if (!ims.Contains("_Length")) ims.Add("_Length");
+                if (!ims.Contains("_Data")) ims.Add("_Data");
+            }
 
             return false;
         }
@@ -38,6 +59,15 @@ namespace NewLife.Net.Protocols.DNS
         {
             // 提前写入名称
             WriteName(writer, Name);
+
+            // 如果当前成员是_Questions，忽略三个字段
+            if (writer.CurrentMember != null && writer.CurrentMember.Name == "_Questions")
+            {
+                var ims = writer.Settings.IgnoreMembers;
+                if (!ims.Contains("_TTL")) ims.Add("_TTL");
+                if (!ims.Contains("_Length")) ims.Add("_Length");
+                if (!ims.Contains("_Data")) ims.Add("_Data");
+            }
 
             return false;
         }
@@ -73,6 +103,12 @@ namespace NewLife.Net.Protocols.DNS
             }
             writer.Write((Byte)0);
         }
+        #endregion
+
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString() { return String.Format("{0} {1} {2}", Type, Class, Name); }
         #endregion
     }
 }

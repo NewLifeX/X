@@ -26,32 +26,32 @@ namespace NewLife.Net.Protocols.DNS
     }
 
     /// <summary>DNS实体类基类</summary>
-    public abstract class DNSBase
+    public abstract class DNSBase //: IAccessor
     {
         #region 属性
-        private String _Name;
-        /// <summary>名称</summary>
-        public String Name
-        {
-            get { return _Name; }
-            set { _Name = value; }
-        }
+        private DNSHeader _Header;
+        /// <summary>头部</summary>
+        public DNSHeader Header { get { return _Header; } set { _Header = value; } }
 
-        private DNSQueryType _Type;
-        /// <summary>查询类型</summary>
-        public DNSQueryType Type
-        {
-            get { return _Type; }
-            set { _Type = value; }
-        }
+        [FieldSize("_Header._Questions")]
+        private DNSRecord[] _Questions;
+        /// <summary>请求段</summary>
+        public DNSRecord[] Questions { get { return _Questions; } set { _Questions = value; } }
 
-        private Int32 _TTL;
-        /// <summary>生存时间</summary>
-        public Int32 TTL
-        {
-            get { return _TTL; }
-            set { _TTL = value; }
-        }
+        [FieldSize("_Header._Answers")]
+        private DNSRecord[] _Answers;
+        /// <summary>回答段</summary>
+        public DNSRecord[] Answers { get { return _Answers; } set { _Answers = value; } }
+
+        [FieldSize("_Header._Authorities")]
+        private DNSRecord[] _Authoritis;
+        /// <summary>授权段</summary>
+        public DNSRecord[] Authoritis { get { return _Authoritis; } set { _Authoritis = value; } }
+
+        [FieldSize("_Header._Additionals")]
+        private DNSRecord[] _Additionals;
+        /// <summary>附加段</summary>
+        public DNSRecord[] Additionals { get { return _Additionals; } set { _Additionals = value; } }
         #endregion
 
         #region 构造
@@ -80,6 +80,22 @@ namespace NewLife.Net.Protocols.DNS
             writer.Stream = stream;
             writer.WriteObject(this);
         }
+        #endregion
+
+        #region IAccessor 成员
+        //bool IAccessor.Read(IReader reader)
+        //{
+        //    return false;
+        //}
+
+        //bool IAccessor.ReadComplete(IReader reader, bool success) { return success; }
+
+        //bool IAccessor.Write(IWriter writer)
+        //{
+        //    return false;
+        //}
+
+        //bool IAccessor.WriteComplete(IWriter writer, bool success) { return success; }
         #endregion
     }
 }

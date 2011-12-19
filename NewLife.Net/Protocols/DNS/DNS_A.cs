@@ -11,6 +11,7 @@ namespace NewLife.Net.Protocols.DNS
     public class DNS_A : DNSBase<DNS_A>
     {
         #region 属性
+        [NonSerialized]
         private IPAddress _IP;
         /// <summary>IP地址</summary>
         public IPAddress IP
@@ -21,10 +22,10 @@ namespace NewLife.Net.Protocols.DNS
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 构造
-        /// </summary>
-        public DNS_A() { Type = DNSQueryType.A; }
+        ///// <summary>
+        ///// 构造
+        ///// </summary>
+        //public DNS_A() { Type = DNSQueryType.A; }
         #endregion
     }
 }
