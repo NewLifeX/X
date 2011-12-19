@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using NewLife.Linq;
 using NewLife.Log;
+using System.Collections;
 
 namespace NewLife.Serialization
 {
@@ -77,6 +78,10 @@ namespace NewLife.Serialization
         private IObjectMemberInfo _CurrentMember;
         /// <summary>当前成员</summary>
         public IObjectMemberInfo CurrentMember { get { return _CurrentMember; } set { _CurrentMember = value; } }
+
+        private IDictionary _Items;
+        /// <summary>用于存放使用者的上下文数据</summary>
+        public IDictionary Items { get { return _Items ?? (_Items = new Hashtable()); } set { _Items = value; } }
         #endregion
 
         #region 方法

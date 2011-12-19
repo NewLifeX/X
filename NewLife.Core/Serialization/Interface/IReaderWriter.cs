@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Collections;
 
 namespace NewLife.Serialization
 {
@@ -32,6 +33,9 @@ namespace NewLife.Serialization
 
         /// <summary>当前成员</summary>
         IObjectMemberInfo CurrentMember { get; set; }
+
+        /// <summary>用于存放使用者的上下文数据</summary>
+        IDictionary Items { get; set; }
         #endregion
 
         #region 方法

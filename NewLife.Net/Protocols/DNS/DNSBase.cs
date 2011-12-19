@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using NewLife.Serialization;
+using NewLife.Net.Sockets;
+using NewLife.Net.Common;
 
 namespace NewLife.Net.Protocols.DNS
 {
@@ -19,7 +21,16 @@ namespace NewLife.Net.Protocols.DNS
         public static TEntity Read(Stream stream)
         {
             BinaryReaderX reader = new BinaryReaderX();
+            reader.Settings.IsLittleEndian = false;
+            reader.Settings.UseObjRef = false;
             reader.Stream = stream;
+#if DEBUG
+            if (NetHelper.Debug)
+            {
+                reader.Debug = true;
+                reader.EnableTraceStream();
+            }
+#endif
             return reader.ReadObject(typeof(TEntity)) as TEntity;
         }
         #endregion
@@ -70,14 +81,21 @@ namespace NewLife.Net.Protocols.DNS
         #endregion
 
         #region 读写
-        /// <summary>
-        /// 把当前对象写入到数据流中去
-        /// </summary>
+        /// <summary>把当前对象写入到数据流中去</summary>
         /// <param name="stream"></param>
         public void Write(Stream stream)
         {
             BinaryWriterX writer = new BinaryWriterX();
+            writer.Settings.IsLittleEndian = false;
+            writer.Settings.UseObjRef = false;
             writer.Stream = stream;
+#if DEBUG
+            if (NetHelper.Debug)
+            {
+                writer.Debug = true;
+                writer.EnableTraceStream();
+            }
+#endif
             writer.WriteObject(this);
         }
         #endregion

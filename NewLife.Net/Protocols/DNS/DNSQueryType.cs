@@ -23,6 +23,13 @@ namespace NewLife.Net.Protocols.DNS
         MINFO = 0x0E, //指定邮箱或邮件列表信息。
         MX = 0x0F, //指定邮件交换器。
         TXT = 0x10, //指定文本信息。
+
+        /// <summary>IPv6地址</summary>
+        IPv6 = 0x1C,
+
+        /// <summary>根</summary>
+        Root = 0x1D,
+
         UINFO = 0x64, //指定用户信息。
         UID = 0x65, //指定用户标识符。
         GID = 0x66, //指定组名的组标识符。

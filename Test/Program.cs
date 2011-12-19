@@ -51,15 +51,9 @@ namespace Test
             //var eop = DAL.Create("Common").CreateOperate("Log");
 
             String file = "qq.bin";
-            BinaryReaderX reader = new BinaryReaderX();
-            reader.Settings.IsLittleEndian = false;
-            reader.Settings.UseObjRef = false;
-            reader.Debug = true;
-            reader.Stream = File.OpenRead(file);
-            reader.EnableTraceStream();
 
-            DNS_A header = reader.ReadObject<DNS_A>();
-            Console.WriteLine(header);
+            DNS_A dns = DNS_A.Read(File.OpenRead("qqrs2.bin"));
+            Console.WriteLine(dns);
         }
     }
 }
