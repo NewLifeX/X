@@ -6,6 +6,9 @@ using XCode.DataAccessLayer;
 using NewLife.Serialization;
 using System.IO;
 using NewLife.Net.Protocols.DNS;
+using NewLife.Net.Udp;
+using System.Net;
+using NewLife.Net.Sockets;
 
 namespace Test
 {
@@ -22,7 +25,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -52,7 +55,7 @@ namespace Test
 
             String file = "qq.bin";
 
-            DNS_A dns = DNS_A.Read(File.OpenRead("qqrs.bin"));
+            DNS_A dns = DNS_A.Read(File.OpenRead("bd.bin"));
             Console.WriteLine(dns);
             Console.ReadKey(true);
 
@@ -60,6 +63,55 @@ namespace Test
             {
                 dns.Write(fs);
             }
+        }
+
+        static void Test2()
+        {
+            DNS_A dns = new DNS_A();
+            dns.Header.ID = 1;
+            dns.Header.Questions = 1;
+            dns.Header.RecursionDesired = true;
+
+            DNSRecord record = new DNSRecord();
+            record.Name = "www.baidu.com";
+            record.Type = DNSQueryType.A;
+            record.Class = DNSQueryClass.IN;
+
+            dns.Questions = new DNSRecord[] { record };
+
+            var ms = new MemoryStream();
+            dns.Write(ms);
+            ms.Position = 0;
+
+            UdpClientX client = new UdpClientX();
+            client.Connect("192.168.1.1", 53);
+            client.Error += new EventHandler<NetEventArgs>(client_Error);
+            client.Received += new EventHandler<NetEventArgs>(client_Received);
+            client.ReceiveAsync();
+
+            Console.WriteLine("正在发送……");
+            client.Send(ms);
+
+            Console.WriteLine("正在接收……");
+        }
+
+        static void client_Error(object sender, NetEventArgs e)
+        {
+            Console.WriteLine(e.LastOperation + "错误！" + e.UserToken);
+        }
+
+        static void client_Received(object sender, NetEventArgs e)
+        {
+            var client = sender as UdpClientX;
+            Console.WriteLine("收到{0}的数据，共{1}字节", e.RemoteEndPoint, e.BytesTransferred);
+
+            var result = DNS_A.Read(e.GetStream());
+            Console.WriteLine(result.Answers[0].DataString);
+        }
+
+        static void Test3()
+        {
+            UdpServer server = new UdpServer();
         }
     }
 }

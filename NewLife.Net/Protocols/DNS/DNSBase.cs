@@ -42,7 +42,7 @@ namespace NewLife.Net.Protocols.DNS
         #region 属性
         private DNSHeader _Header;
         /// <summary>头部</summary>
-        public DNSHeader Header { get { return _Header; } set { _Header = value; } }
+        public DNSHeader Header { get { return _Header ?? (_Header = new DNSHeader()); } set { _Header = value; } }
 
         [FieldSize("_Header._Questions")]
         private DNSRecord[] _Questions;
