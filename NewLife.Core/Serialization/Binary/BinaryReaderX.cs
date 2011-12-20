@@ -86,6 +86,8 @@ namespace NewLife.Serialization
             //if (count < 0) count = ReadInt32();
             if (count < 0) count = ReadSize();
 
+            if (count <= 0) return new Byte[0];
+
             return Reader.ReadBytes(count);
         }
 

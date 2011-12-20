@@ -68,15 +68,8 @@ namespace Test
         static void Test2()
         {
             DNS_A dns = new DNS_A();
-            dns.Header.ID = 1;
-            dns.Header.Questions = 1;
-            dns.Header.RecursionDesired = true;
-
             DNSRecord record = new DNSRecord();
             record.Name = "www.baidu.com";
-            record.Type = DNSQueryType.A;
-            record.Class = DNSQueryClass.IN;
-
             dns.Questions = new DNSRecord[] { record };
 
             var ms = new MemoryStream();

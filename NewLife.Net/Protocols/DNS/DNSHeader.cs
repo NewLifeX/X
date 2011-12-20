@@ -9,11 +9,15 @@ namespace NewLife.Net.Protocols.DNS
     public class DNSHeader
     {
         #region 属性
+        /// <summary>全局编号，不断累加</summary>
+        static Int16 gid = 1;
+
         private Int16 _ID;
         /// <summary>长度为16位，是一个用户发送查询的时候定义的随机数，当服务器返回结果的时候，返回包的ID与用户发送的一致。</summary>
-        public Int16 ID { get { return _ID; } set { _ID = value; } }
+        public Int16 ID { get { return _ID > 0 ? _ID : (_ID = gid++); } set { _ID = value; } }
 
-        private D1 _D1;
+        /// <summary>默认RecursionDesired</summary>
+        private D1 _D1 = D1.RecursionDesired;
 
         /// <summary>是否响应</summary>
         public Boolean Response { get { return _D1.Has(D1.Response); } set { _D1 = _D1.Set<D1>(D1.Response, value); } }

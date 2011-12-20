@@ -171,7 +171,7 @@ namespace NewLife.IO
         /// <param name="count"></param>
         protected static void CheckArgument(byte[] buffer, int offset, int count)
         {
-            if (buffer == null || buffer.Length < 1) throw new ArgumentNullException("buffer");
+            if (buffer == null || buffer.Length < 0) throw new ArgumentNullException("buffer");
             if (offset < 0 || offset >= buffer.Length) throw new ArgumentOutOfRangeException("offset");
             if (count < 0 || offset + count > buffer.Length) throw new ArgumentOutOfRangeException("count");
         }
