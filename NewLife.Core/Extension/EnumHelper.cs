@@ -32,7 +32,7 @@ namespace System
         /// <returns></returns>
         public static T Set<T>(this Enum source, T flag, Boolean value)
         {
-            if (source is T) throw new ArgumentException("source", "枚举标识判断必须是相同的类型！");
+            if (!(source is T)) throw new ArgumentException("source", "枚举标识判断必须是相同的类型！");
 
             UInt64 s = Convert.ToUInt64(source);
             UInt64 f = Convert.ToUInt64(flag);
@@ -45,7 +45,7 @@ namespace System
             else
                 s = s | f;
 
-            return (T)(Object)s;
+            return (T)Enum.ToObject(typeof(T), s);
         }
 
         /// <summary>

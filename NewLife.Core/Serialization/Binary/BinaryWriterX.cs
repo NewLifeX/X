@@ -331,7 +331,7 @@ namespace NewLife.Serialization
         /// <returns>是否写入成功</returns>
         public override bool WriteEnumerable(IEnumerable value, Type type, WriteObjectCallback callback)
         {
-            if (value.GetType().IsArray && value.GetType().GetArrayRank() > 1)
+            if (value != null && value.GetType().IsArray && value.GetType().GetArrayRank() > 1)
             {
                 Array arr = value as Array;
                 List<String> lengths = new List<String>();
@@ -343,22 +343,24 @@ namespace NewLife.Serialization
             }
 
             Int32 count = 0;
-
-            if (type.IsArray)
+            if (value != null)
             {
-                Array arr = value as Array;
-                count = arr.Length;
-            }
-            else
-            {
-                List<Object> list = new List<Object>();
-                foreach (Object item in value)
+                if (type.IsArray)
                 {
-                    // 加入集合，防止value进行第二次遍历
-                    list.Add(item);
+                    Array arr = value as Array;
+                    count = arr.Length;
                 }
-                count = list.Count;
-                value = list;
+                else
+                {
+                    List<Object> list = new List<Object>();
+                    foreach (Object item in value)
+                    {
+                        // 加入集合，防止value进行第二次遍历
+                        list.Add(item);
+                    }
+                    count = list.Count;
+                    value = list;
+                }
             }
 
             if (count == 0)
