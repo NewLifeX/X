@@ -52,6 +52,7 @@ namespace NewLife.Net.Protocols.DNS
             var refs = reader.Items["Names"] as Dictionary<Int32, String>;
             if (refs == null) reader.Items.Add("Names", refs = new Dictionary<Int32, String>());
             Name = ReadName(reader.Stream, 0, refs);
+            reader.WriteLog("ReadMember", "_Name", "String", Name);
 
             // 如果当前成员是_Questions，忽略三个字段
             AddFilter(reader);
@@ -72,12 +73,11 @@ namespace NewLife.Net.Protocols.DNS
         bool IAccessor.Write(IWriter writer)
         {
             // 提前写入名称
-            var refs = writer.Items["Names"] as Dictionary<Int32, String>;
-            if (refs == null) writer.Items.Add("Names", refs = new Dictionary<Int32, String>());
-            WriteName(writer.Stream, Name, refs);
+            writer.WriteLog("WriteMember", "_Name", "String", Name);
 
-            // 扩展数据里面可能有字符串引用
-            if (!String.IsNullOrEmpty(DataString)) WriteAdditionalData(writer, refs);
+            var refs = writer.Items["Names"] as Dictionary<String, Int32>;
+            if (refs == null) writer.Items.Add("Names", refs = new Dictionary<String, Int32>());
+            WriteName(writer.Stream, Name, 0, refs);
 
             // 如果当前成员是_Questions，忽略三个字段
             AddFilter(writer);
@@ -88,31 +88,53 @@ namespace NewLife.Net.Protocols.DNS
         bool IAccessor.WriteComplete(IWriter writer, bool success)
         {
             RemoveFilter(writer);
+
+            // 扩展数据里面可能有字符串引用
+            var refs = writer.Items["Names"] as Dictionary<String, Int32>;
+            if (refs == null) writer.Items.Add("Names", refs = new Dictionary<String, Int32>());
+            if (!String.IsNullOrEmpty(DataString)) WriteAdditionalData(writer, refs);
+
             return success;
         }
 
-        static void AddFilter(IReaderWriter rw)
+        void AddFilter(IReaderWriter rw)
         {
+            var ims = rw.Settings.IgnoreMembers;
             if (rw.CurrentMember != null && rw.CurrentMember.Name == "_Questions")
             {
-                var ims = rw.Settings.IgnoreMembers;
                 if (!ims.Contains("_TTL")) ims.Add("_TTL");
+                if (!ims.Contains("_Length")) ims.Add("_Length");
+                if (!ims.Contains("_Data")) ims.Add("_Data");
+            }
+
+            // 扩展数据自己写入
+            if (rw is IWriter && !String.IsNullOrEmpty(DataString))
+            {
                 if (!ims.Contains("_Length")) ims.Add("_Length");
                 if (!ims.Contains("_Data")) ims.Add("_Data");
             }
         }
 
-        static void RemoveFilter(IReaderWriter rw)
+        void RemoveFilter(IReaderWriter rw)
         {
+            var ims = rw.Settings.IgnoreMembers;
             if (rw.CurrentMember != null && rw.CurrentMember.Name == "_Questions")
             {
-                var ims = rw.Settings.IgnoreMembers;
                 if (ims.Contains("_TTL")) ims.Remove("_TTL");
+                if (ims.Contains("_Length")) ims.Remove("_Length");
+                if (ims.Contains("_Data")) ims.Remove("_Data");
+            }
+
+            // 扩展数据自己写入
+            if (rw is IWriter && !String.IsNullOrEmpty(DataString))
+            {
                 if (ims.Contains("_Length")) ims.Remove("_Length");
                 if (ims.Contains("_Data")) ims.Remove("_Data");
             }
         }
 
+        /// <summary>读取完成后，处理扩展数据</summary>
+        /// <param name="reader"></param>
         protected virtual void ReadAdditionalData(IReader reader)
         {
             if (Type == DNSQueryType.NS)
@@ -125,19 +147,38 @@ namespace NewLife.Net.Protocols.DNS
             {
                 DataString = new IPAddress(Data).ToString();
             }
+
+            reader.WriteLog("ReadMember", "_Data", "String", DataString);
         }
 
-        protected virtual void WriteAdditionalData(IWriter writer, Dictionary<Int32, String> refs)
+        /// <summary>写入的最后，处理扩展数据</summary>
+        /// <param name="writer"></param>
+        /// <param name="refs"></param>
+        protected virtual void WriteAdditionalData(IWriter writer, Dictionary<String, Int32> refs)
         {
+            writer.WriteLog("WriteMember", "_Data", "String", DataString);
+
             if (Type == DNSQueryType.NS)
             {
                 var ms = new MemoryStream();
-                WriteName(ms, DataString, refs);
+                // 传入当前流偏移，加2是因为待会要先写2个字节的长度
+                WriteName(ms, DataString, writer.Stream.Position + 2, refs);
                 Data = ms.ToArray();
             }
             else if (Type == DNSQueryType.A)
             {
                 Data = IPAddress.Parse(DataString).GetAddressBytes();
+            }
+
+            // 写入数据
+            _Length = 0;
+            if (Data == null)
+                writer.Write(_Length);
+            else
+            {
+                _Length = (Int16)Data.Length;
+                writer.Write(_Length);
+                writer.Write(Data, 0, Data.Length);
             }
         }
         #endregion
@@ -164,8 +205,6 @@ namespace NewLife.Net.Protocols.DNS
                 }
                 else
                 {
-                    //if (stream.Position + n > stream.Length) return sb.ToString();
-
                     Byte[] buffer = stream.ReadBytes(n);
                     str = Encoding.UTF8.GetString(buffer);
                 }
@@ -194,16 +233,63 @@ namespace NewLife.Net.Protocols.DNS
             return sb.ToString();
         }
 
-        internal static void WriteName(Stream stream, String value, Dictionary<Int32, String> refs)
+        internal static void WriteName(Stream stream, String value, Int64 offset, Dictionary<String, Int32> refs)
         {
+            // 有可能整个匹配
+            Int32 p = 0;
+            if (refs.TryGetValue("" + value, out p))
+            {
+                stream.WriteByte(0xC0);
+                stream.WriteByte((Byte)p);
+                return;
+            }
+
             String[] ss = ("" + value).Split(".");
+            var keys = new List<Int32>();
+            var values = new List<String>();
             for (int i = 0; i < ss.Length; i++)
             {
-                Byte[] buffer = Encoding.UTF8.GetBytes(ss[i]);
-                stream.WriteByte((Byte)buffer.Length);
-                stream.Write(buffer, 0, buffer.Length);
+                // 如果已存在，则写引用
+                String name = String.Join(".", ss, i, ss.Length - i);
+                if (refs.TryGetValue(name, out p))
+                {
+                    stream.WriteByte(0xC0);
+                    stream.WriteByte((Byte)p);
+
+                    for (int j = 0; j < keys.Count; j++)
+                    {
+                        refs.Add(values[j] + "." + name, keys[j]);
+                    }
+
+                    // 使用引用的必然是最后一个
+                    return;
+                }
+
+                {
+                    // 否则，先写长度，后存入引用
+                    p = (Int32)stream.Position;
+
+                    Byte[] buffer = Encoding.UTF8.GetBytes(ss[i]);
+                    stream.WriteByte((Byte)buffer.Length);
+                    stream.Write(buffer, 0, buffer.Length);
+
+                    // 之前的每个加上str
+                    for (int j = 0; j < values.Count; j++)
+                    {
+                        values[j] += "." + ss[i];
+                    }
+
+                    // 加入当前项
+                    keys.Add((Int32)(offset + p));
+                    values.Add(ss[i]);
+                }
             }
             stream.WriteByte((Byte)0);
+
+            for (int i = 0; i < keys.Count; i++)
+            {
+                refs.Add(values[i], keys[i]);
+            }
         }
         #endregion
 

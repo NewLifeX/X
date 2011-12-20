@@ -52,8 +52,14 @@ namespace Test
 
             String file = "qq.bin";
 
-            DNS_A dns = DNS_A.Read(File.OpenRead("qqrs2.bin"));
+            DNS_A dns = DNS_A.Read(File.OpenRead("qqrs.bin"));
             Console.WriteLine(dns);
+            Console.ReadKey(true);
+
+            using (FileStream fs = File.Create("qq_.bin"))
+            {
+                dns.Write(fs);
+            }
         }
     }
 }

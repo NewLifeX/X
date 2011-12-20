@@ -34,7 +34,7 @@ namespace NewLife.Net.Protocols.DNS
         private Byte _D2;
 
         /// <summary>长度1位，支持递归(Recursion Available) - 这个比特位在应答中设置或取消，用来代表服务器是否支持递归查询。</summary>
-        public Boolean RA { get { return (_D2 & 0x80) == 0x80; } set { _D2 = (Byte)(value ? _D2 | 0x80 : _D2 & 0x7F); } }
+        public Boolean RecursionAvailable { get { return (_D2 & 0x80) == 0x80; } set { _D2 = (Byte)(value ? _D2 | 0x80 : _D2 & 0x7F); } }
 
         //private Byte[] _Z;
         ///// <summary>长度3位，保留值，值为0.</summary>
@@ -62,6 +62,7 @@ namespace NewLife.Net.Protocols.DNS
         #endregion
 
         #region 枚举
+        [Flags]
         enum D1 : byte
         {
             RecursionDesired = 1,
@@ -71,6 +72,10 @@ namespace NewLife.Net.Protocols.DNS
             AuthoritativeAnswer = 4,
 
             //Opcode = 8 + 16,
+            Opcode1 = 8,
+            Opcode2 = 16,
+            Opcode3 = 32,
+            Opcode4 = 64,
 
             Response = 128,
         }

@@ -335,8 +335,15 @@ namespace XCode.Accessors
         {
             Type type = field.Type;
             Object value = entity[field.Name];
-
-            control.Text = value.ToString();
+            if (value != null)
+                control.Text = "" + value;
+            else
+            {
+                if (field.IsNullable == true)
+                    control.Text = "";
+                else
+                    control.Text = field.DefaultValue;
+            }
         }
 
         /// <summary>
