@@ -49,7 +49,7 @@ namespace NewLife.Net.Application
         static void OnReceived(object sender, NetEventArgs e)
         {
             Type type = sender == null ? null : sender.GetType();
-            XTrace.WriteLine("客户端收到 {3}://{0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString(), type.Name.Substring(0, 3));
+            XTrace.WriteLine("客户端 收到 {3}://{0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString(), type.Name.Substring(0, 3));
         }
 
         static void OnError(object sender, NetEventArgs e)
@@ -59,9 +59,9 @@ namespace NewLife.Net.Application
             //Type type = sender == null ? null : sender.GetType();
             //XTrace.WriteLine("Error {0}", type);
             if (e.SocketError != SocketError.Success || e.Error != null)
-                XTrace.WriteLine("{2}错误 {0} {1}", e.SocketError, e.Error, e.LastOperation);
+                XTrace.WriteLine("客户端 {2}错误 {0} {1}", e.SocketError, e.Error, e.LastOperation);
             else
-                XTrace.WriteLine("{0}断开！", e.LastOperation);
+                XTrace.WriteLine("客户端 {0}断开！", e.LastOperation);
         }
 
         static void Invoke(String name, Object param)
@@ -95,7 +95,7 @@ namespace NewLife.Net.Application
             if (isReceiveData)
             {
                 if (!isAsync)
-                    XTrace.WriteLine(client.ReceiveString());
+                    XTrace.WriteLine("客户端 " + client.ReceiveString());
                 else
                     Thread.Sleep(1000);
             }
@@ -153,7 +153,7 @@ namespace NewLife.Net.Application
 
             ep = new IPEndPoint(IPAddress.IPv6Loopback, port);
 
-            TestSends("Discard IPv6", ep, true);
+            TestSends("Discard IPv6", ep, true, false);
         }
 
         static void StartChargenServer(Int32 port)
