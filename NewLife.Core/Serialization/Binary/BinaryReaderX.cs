@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using NewLife.Exceptions;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -382,6 +383,17 @@ namespace NewLife.Serialization
             stream.Position = p;
 
             return Array.IndexOf<T>(values, rs) >= 0;
+        }
+
+        /// <summary>使用跟踪流</summary>
+        public override void EnableTraceStream()
+        {
+            var stream = Stream;
+            if (stream == null || stream is TraceStream) return;
+
+            var ts = new TraceStream(stream);
+            ts.IsLittleEndian = Settings.IsLittleEndian;
+            Stream = ts;
         }
         #endregion
     }

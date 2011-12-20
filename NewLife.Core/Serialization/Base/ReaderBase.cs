@@ -1453,9 +1453,16 @@ namespace NewLife.Serialization
                     // 没有可读成员
                     if (member == null) continue;
 
-                    WriteLog("ReadMember", member.Name, member.Type.Name);
+                    // 基础类型输出日志时，同时输出值，更直观
+                    if (Type.GetTypeCode(mis[i].Type) == TypeCode.Object)
+                        WriteLog("ReadMember", member.Name, member.Type.Name);
 
                     if (!ReadMember(member.Type, ref value, member, i, callback)) return false;
+
+                    // 基础类型输出日志时，同时输出值，更直观
+                    if (Type.GetTypeCode(mis[i].Type) != TypeCode.Object)
+                        WriteLog("ReadMember", member.Name, member.Type.Name, mis[i][value]);
+
                     Depth--;
                 }
 

@@ -965,7 +965,11 @@ namespace NewLife.Serialization
                 for (int i = 0; i < mis.Length; i++)
                 {
                     Depth++;
-                    WriteLog("WriteMember", mis[i].Name, mis[i].Type.Name);
+                    // 基础类型输出日志时，同时输出值，更直观
+                    if (Type.GetTypeCode(mis[i].Type) == TypeCode.Object)
+                        WriteLog("WriteMember", mis[i].Name, mis[i].Type.Name);
+                    else
+                        WriteLog("WriteMember", mis[i].Name, mis[i].Type.Name, mis[i][value]);
 
                     if (!WriteMember(value, mis[i].Type, mis[i], i, callback)) return false;
                     Depth--;

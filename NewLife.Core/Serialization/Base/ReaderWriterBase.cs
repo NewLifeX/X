@@ -179,8 +179,8 @@ namespace NewLife.Serialization
         /// <summary>是否调试</summary>
         public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
 
-        /// <summary>使用跟踪流</summary>
-        public void EnableTraceStream()
+        /// <summary>使用跟踪流。实际上是重新包装一次Stream，必须在设置Stream，使用之前</summary>
+        public virtual void EnableTraceStream()
         {
             var stream = Stream;
             if (stream == null || stream is TraceStream) return;

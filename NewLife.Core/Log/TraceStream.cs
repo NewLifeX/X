@@ -9,6 +9,7 @@ namespace NewLife.Log
     /// <summary>跟踪流。包装一个基础数据流，主要用于重写Read/Write等行为，跟踪程序操作数据流的过程</summary>
     public class TraceStream : Stream
     {
+        #region 属性
         private Stream _BaseStream;
         /// <summary>基础流</summary>
         public Stream BaseStream
@@ -25,7 +26,19 @@ namespace NewLife.Log
             set { _TraceMembers = value; }
         }
 
+        private Boolean _IsLittleEndian = true;
+        /// <summary>是否小端字节序。x86系列则采用Little-Endian方式存储数据；网络协议都是Big-Endian；</summary>
+        /// <remarks>
+        /// 网络协议都是Big-Endian；
+        /// Java编译的都是Big-Endian；
+        /// Motorola的PowerPC是Big-Endian；
+        /// x86系列则采用Little-Endian方式存储数据；
+        /// ARM同时支持 big和little，实际应用中通常使用Little-Endian。
+        /// </remarks>
+        public Boolean IsLittleEndian { get { return _IsLittleEndian; } set { _IsLittleEndian = value; } }
+
         static readonly String[] DefaultTraceMembers = new String[] { "Write", "WriteByte", "Read", "ReadByte", "BeginRead", "BeginWrite", "EndRead", "EndWrite", "Seek", "Close", "Flush", "SetLength", "SetPosition" };
+        #endregion
 
         #region 基本读写方法
         /// <summary>写入</summary>
@@ -328,15 +341,30 @@ namespace NewLife.Log
                     if (buffer[0] >= '0') Console.Write("{0} ({1})", Convert.ToChar(buffer[0]), Convert.ToInt32(buffer[0]));
                 }
                 else if (count == 2)
-                    Console.Write(BitConverter.ToInt16(buffer, offset));
+                    Console.Write(BitConverter.ToInt16(Format(buffer), offset));
                 else if (count == 4)
-                    Console.Write(BitConverter.ToInt32(buffer, offset));
+                    Console.Write(BitConverter.ToInt32(Format(buffer), offset));
                 else if (count < 50)
                     Console.Write(Encoding.GetString(buffer, offset, count));
             }
 
             Console.ForegroundColor = color;
             Console.WriteLine();
+        }
+
+        Byte[] Format(Byte[] buffer)
+        {
+            if (buffer == null || buffer.Length < 1) return buffer;
+
+            if (IsLittleEndian) return buffer;
+
+            // 不要改变原来的数组
+            //Array.Reverse(buffer);
+            var bts = new Byte[buffer.Length];
+            Buffer.BlockCopy(buffer, 0, bts, 0, bts.Length);
+            Array.Reverse(bts);
+
+            return bts;
         }
         #endregion
     }

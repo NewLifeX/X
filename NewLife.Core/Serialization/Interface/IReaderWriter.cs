@@ -53,5 +53,18 @@ namespace NewLife.Serialization
         /// <summary>获取指定类型中需要序列化的成员时触发。使用者可以修改、排序要序列化的成员。</summary>
         event EventHandler<EventArgs<Type, Object, IObjectMemberInfo[]>> OnGotMembers;
         #endregion
+
+        #region 跟踪日志
+        /// <summary>是否调试</summary>
+        Boolean Debug { get; set; }
+
+        /// <summary>使用跟踪流。实际上是重新包装一次Stream，必须在设置Stream，使用之前</summary>
+        void EnableTraceStream();
+
+        /// <summary>调试输出</summary>
+        /// <param name="action">操作</param>
+        /// <param name="args">参数</param>
+        void WriteLog(String action, params Object[] args);
+        #endregion
     }
 }
