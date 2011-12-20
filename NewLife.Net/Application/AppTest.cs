@@ -78,8 +78,8 @@ namespace NewLife.Net.Application
 
             //Type type = sender == null ? null : sender.GetType();
             //XTrace.WriteLine("Error {0}", type);
-            if (e.SocketError != SocketError.Success || e.UserToken is Exception)
-                XTrace.WriteLine("{2}错误 {0} {1}", e.SocketError, e.UserToken as Exception, e.LastOperation);
+            if (e.SocketError != SocketError.Success || e.Error != null)
+                XTrace.WriteLine("{2}错误 {0} {1}", e.SocketError, e.Error, e.LastOperation);
             else
                 XTrace.WriteLine("{0}断开！", e.LastOperation);
         }

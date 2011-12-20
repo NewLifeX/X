@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using NewLife.Net.Common;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
 
@@ -45,7 +46,7 @@ namespace NewLife.Net.Application
 
             // 兼容IPV6
             IPEndPoint remote = e.RemoteEndPoint as IPEndPoint;
-            if (remote != null && remote.Address != IPAddress.Any && remote.Address != IPAddress.IPv6Any)
+            if (remote != null && remote.Address.IsAny())
             {
                 UdpServer us = sender as UdpServer;
                 us.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);

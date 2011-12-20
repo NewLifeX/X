@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -9,55 +8,30 @@ using NewLife.Net.Common;
 
 namespace NewLife.Net.Sockets
 {
-    /// <summary>
-    /// Socket基类
-    /// </summary>
+    /// <summary>Socket基类</summary>
     public class SocketBase : Netbase
     {
         #region 属性
         private Socket _Socket;
         /// <summary>套接字</summary>
-        internal protected Socket Socket
-        {
-            get { return _Socket; }
-            set { _Socket = value; }
-        }
+        internal protected Socket Socket { get { return _Socket; } set { _Socket = value; } }
 
         private ProtocolType _ProtocolType = ProtocolType.Tcp;
         /// <summary>协议类型</summary>
-        public virtual ProtocolType ProtocolType
-        {
-            get { return _ProtocolType; }
-        }
+        public virtual ProtocolType ProtocolType { get { return _ProtocolType; } }
 
         //private Int32 _BufferSize = 10240;
         private Int32 _BufferSize = 1500;
         /// <summary>缓冲区大小</summary>
-        public Int32 BufferSize
-        {
-            get { return _BufferSize; }
-            set { _BufferSize = value; }
-        }
+        public Int32 BufferSize { get { return _BufferSize; } set { _BufferSize = value; } }
 
         private IPAddress _Address = IPAddress.Any;
         /// <summary>监听本地地址</summary>
-        public IPAddress Address
-        {
-            get { return _Address; }
-            set
-            {
-                _Address = value;
-                if (value != null) AddressFamily = value.AddressFamily;
-            }
-        }
+        public IPAddress Address { get { return _Address; } set { _Address = value; if (value != null) AddressFamily = value.AddressFamily; } }
 
         private Int32 _Port;
         /// <summary>监听端口</summary>
-        public Int32 Port
-        {
-            get { return _Port; }
-            set { _Port = value; }
-        }
+        public Int32 Port { get { return _Port; } set { _Port = value; } }
 
         private AddressFamily _AddressFamily = AddressFamily.InterNetwork;
         /// <summary>地址族</summary>
@@ -69,28 +43,17 @@ namespace NewLife.Net.Sockets
                 _AddressFamily = value;
 
                 // 根据地址族选择合适的本地地址
-                if (value == AddressFamily.InterNetworkV6 && _Address == IPAddress.Any)
-                    _Address = IPAddress.IPv6Any;
-                else if (value != AddressFamily.InterNetworkV6 && _Address == IPAddress.IPv6Any)
-                    _Address = IPAddress.Any;
+                _Address = _Address.GetRightAny(value);
             }
         }
 
         private Boolean _NoDelay = true;
         /// <summary>禁用接收延迟，收到数据后马上建立异步读取再处理本次数据</summary>
-        public Boolean NoDelay
-        {
-            get { return _NoDelay; }
-            set { _NoDelay = value; }
-        }
+        public Boolean NoDelay { get { return _NoDelay; } set { _NoDelay = value; } }
 
         private Boolean _UseThreadPool = true;
         /// <summary>是否使用线程池处理事件。建议仅在事件处理非常耗时时使用线程池来处理。</summary>
-        public Boolean UseThreadPool
-        {
-            get { return _UseThreadPool; }
-            set { _UseThreadPool = value; }
-        }
+        public Boolean UseThreadPool { get { return _UseThreadPool; } set { _UseThreadPool = value; } }
         #endregion
 
         #region 扩展属性
@@ -111,17 +74,11 @@ namespace NewLife.Net.Sockets
 
         private IDictionary _Items;
         /// <summary>数据字典</summary>
-        public IDictionary Items
-        {
-            get { return _Items ?? (_Items = new Dictionary<Object, Object>()); }
-            //set { _Data = value; }
-        }
+        public IDictionary Items { get { return _Items ?? (_Items = new Hashtable(StringComparer.OrdinalIgnoreCase)); } }
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 确保创建基础Socket对象
-        /// </summary>
+        /// <summary>确保创建基础Socket对象</summary>
         protected virtual void EnsureCreate()
         {
             if (Socket != null) return;
@@ -142,43 +99,25 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 绑定本地终结点
-        /// </summary>
+        /// <summary>绑定本地终结点</summary>
         public void Bind()
         {
-            if (Socket != null && !Socket.IsBound)
-            {
-                //if (Socket.AddressFamily != Address.AddressFamily)
-                //{
-                //    Socket = null;
-                //    EnsureCreate();
-                //}
-                Socket.Bind(new IPEndPoint(Address, Port));
-            }
+            if (Socket != null && !Socket.IsBound) Socket.Bind(new IPEndPoint(Address, Port));
         }
         #endregion
 
         #region 套接字事件参数池
         private static ObjectPool<NetEventArgs> _Pool;
         /// <summary>套接字事件参数池</summary>
-        public static ObjectPool<NetEventArgs> Pool
-        {
-            get
-            {
-                if (_Pool == null) _Pool = new ObjectPool<NetEventArgs>();
-                return _Pool;
-            }
-        }
+        public static ObjectPool<NetEventArgs> Pool { get { return _Pool ?? (_Pool = new ObjectPool<NetEventArgs>()); } }
 
-        /// <summary>
-        /// 从池里拿一个对象
-        /// </summary>
+        /// <summary>从池里拿一个对象</summary>
         /// <returns></returns>
         public NetEventArgs Pop()
         {
             NetEventArgs e = Pool.Pop();
             if (e.Used) throw new Exception("才刚出炉，怎么可能使用中呢？");
+
             e.AcceptSocket = Socket;
             e.UserToken = this;
             e.Completed += OnCompleted;
@@ -194,9 +133,7 @@ namespace NewLife.Net.Sockets
             return e;
         }
 
-        /// <summary>
-        /// 把对象归还到池里
-        /// </summary>
+        /// <summary>把对象归还到池里</summary>
         /// <remarks>
         /// 网络事件参数使用原则：
         /// 1，得到者负责回收（通过方法参数得到）
@@ -209,6 +146,7 @@ namespace NewLife.Net.Sockets
             if (e == null) return;
             if (!e.Used) throw new Exception("准备回炉，怎么可能已经不再使用呢？");
 
+            e.Error = null;
             e.UserToken = null;
             e.AcceptSocket = null;
             e.Completed -= OnCompleted;
@@ -220,70 +158,54 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 释放资源
-        /// <summary>
-        /// 关闭网络操作
-        /// </summary>
-        public void Close()
-        {
-            Dispose();
-        }
+        /// <summary>关闭网络操作</summary>
+        public void Close() { Dispose(); }
 
-        /// <summary>
-        /// 子类重载实现资源释放逻辑
-        /// </summary>
+        /// <summary>子类重载实现资源释放逻辑</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
         protected override void OnDispose(bool disposing)
         {
             base.OnDispose(disposing);
 
-            if (Socket != null)
-            {
-                //#if DEBUG
-                //                WriteLog("{0}关闭套接字！{1}", GetType().Name, disposing ? "Dispose" : "Finalize");
-                //#endif
+            if (Socket == null) return;
 
-                if (Socket != null)
+            // 先用Shutdown禁用Socket（发送未完成发送的数据），再用Close关闭，这是一种比较优雅的关闭Socket的方法
+            if (NetHelper.Debug)
+            {
+                try
                 {
-                    // 先用Shutdown禁用Socket（发送未完成发送的数据），再用Close关闭，这是一种比较优雅的关闭Socket的方法
-                    if (NetHelper.Debug)
-                    {
-                        try
-                        {
-                            Socket.Shutdown(SocketShutdown.Both);
-                        }
-                        catch (SocketException ex2)
-                        {
-                            if (ex2.ErrorCode != 10057) WriteLog(ex2.ToString());
-                        }
-                        catch (ObjectDisposedException) { }
-                        catch (Exception ex3)
-                        {
-                            WriteLog(ex3.ToString());
-                        }
-                    }
-                    else
-                    {
-                        try
-                        {
-                            Socket.Shutdown(SocketShutdown.Both);
-                        }
-                        catch (SocketException ex2)
-                        {
-                            if (ex2.ErrorCode != 10057) WriteLog(ex2.ToString());
-                        }
-                        catch { }
-                    }
-                    Socket.Close();
-                    Socket = null;
+                    Socket.Shutdown(SocketShutdown.Both);
+                }
+                catch (SocketException ex2)
+                {
+                    if (ex2.ErrorCode != 10057) WriteLog(ex2.ToString());
+                }
+                catch (ObjectDisposedException) { }
+                catch (Exception ex3)
+                {
+                    WriteLog(ex3.ToString());
                 }
             }
+            else
+            {
+                try
+                {
+                    Socket.Shutdown(SocketShutdown.Both);
+                }
+                catch (SocketException ex2)
+                {
+                    if (ex2.ErrorCode != 10057) WriteLog(ex2.ToString());
+                }
+                catch { }
+            }
+
+            Socket.Close();
+            Socket = null;
         }
         #endregion
 
         #region 事件
-        /// <summary>
-        /// 完成事件，将在工作线程中被调用，不要占用太多时间。
-        /// </summary>
+        /// <summary>完成事件，将在工作线程中被调用，不要占用太多时间。</summary>
         public event EventHandler<NetEventArgs> Completed;
 
         private void OnCompleted(Object sender, SocketAsyncEventArgs e)
@@ -294,8 +216,7 @@ namespace NewLife.Net.Sockets
                 throw new InvalidOperationException("所有套接字事件参数必须来自于事件参数池Pool！");
         }
 
-        /// <summary>
-        /// 触发完成事件。
+        /// <summary>触发完成事件。
         /// 可能由工作线程（事件触发）调用，也可能由用户线程通过线程池线程调用。
         /// 作为顶级，将会处理所有异常并调用OnError，其中OnError有能力回收参数e。
         /// </summary>
@@ -318,9 +239,7 @@ namespace NewLife.Net.Sockets
             }
         }
 
-        /// <summary>
-        /// 异步触发完成事件处理程序
-        /// </summary>
+        /// <summary>异步触发完成事件处理程序</summary>
         /// <param name="e"></param>
         protected void RaiseCompleteAsync(NetEventArgs e)
         {
@@ -337,8 +256,7 @@ namespace NewLife.Net.Sockets
             }
         }
 
-        /// <summary>
-        /// 完成事件分发中心。
+        /// <summary>完成事件分发中心。
         /// 正常执行时OnComplete必须保证回收参数e，异常时RaiseComplete将能够代为回收
         /// </summary>
         /// <param name="e"></param>
@@ -361,7 +279,7 @@ namespace NewLife.Net.Sockets
                 if (ex != null)
                 {
                     if (e == null) e = Pop();
-                    e.UserToken = ex;
+                    e.Error = ex;
                 }
 
                 try
@@ -378,9 +296,7 @@ namespace NewLife.Net.Sockets
             if (e != null) Push(e);
         }
 
-        /// <summary>
-        /// 错误发生时。负责调用Error事件以及回收网络事件参数
-        /// </summary>
+        /// <summary>错误发生时。负责调用Error事件以及回收网络事件参数</summary>
         /// <remarks>OnError除了会调用ProcessError外，还会关闭Socket</remarks>
         /// <param name="e"></param>
         /// <param name="ex"></param>
@@ -398,9 +314,7 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 辅助
-        /// <summary>
-        /// 在线程池里面执行指定委托。内部会处理异常并调用OnError
-        /// </summary>
+        /// <summary>在线程池里面执行指定委托。内部会处理异常并调用OnError</summary>
         /// <param name="callback"></param>
         /// <param name="e"></param>
         protected void ThreadPoolCallback(Action<NetEventArgs> callback, NetEventArgs e)
@@ -431,39 +345,12 @@ namespace NewLife.Net.Sockets
             }
         }
 
-        ///// <summary>
-        ///// 在线程池里调用事件处理并负责回收事件参数对象
-        ///// </summary>
-        ///// <param name="handler"></param>
-        ///// <param name="e"></param>
-        //protected void ThreadPoolInvoke(EventHandler<NetEventArgs> handler, NetEventArgs e)
-        //{
-        //    if (handler == null) return;
-
-        //    ThreadPool.QueueUserWorkItem(delegate(Object state)
-        //    {
-        //        Object[] objs = (Object[])state;
-        //        EventHandler<NetEventArgs> handler2 = objs[0] as EventHandler<NetEventArgs>;
-        //        NetEventArgs e2 = objs[1] as NetEventArgs;
-        //        try
-        //        {
-        //            handler2(this, e2);
-        //        }
-        //        finally
-        //        {
-        //            // 回收
-        //            Push(e2);
-        //        }
-        //    }, new Object[] { handler, e });
-        //}
-
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("{0}://{1}:{2}", ProtocolType, Address.ToString(), Port);
+            var ip = Socket != null ? Socket.LocalEndPoint : new IPEndPoint(Address, Port);
+            return String.Format("{0}://{1}", ProtocolType, ip);
         }
         #endregion
     }

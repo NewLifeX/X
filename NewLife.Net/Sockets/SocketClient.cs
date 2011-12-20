@@ -6,9 +6,7 @@ using System.Text;
 
 namespace NewLife.Net.Sockets
 {
-    /// <summary>
-    /// Socket客户端
-    /// </summary>
+    /// <summary>Socket客户端</summary>
     public abstract class SocketClient : SocketBase
     {
         #region 属性
@@ -25,9 +23,7 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 连接
-        /// <summary>
-        /// 连接
-        /// </summary>
+        /// <summary>建立与远程主机的连接</summary>
         /// <param name="hostname"></param>
         /// <param name="port"></param>
         public virtual void Connect(String hostname, Int32 port)
@@ -36,9 +32,7 @@ namespace NewLife.Net.Sockets
             Connect(addresses[0], port);
         }
 
-        /// <summary>
-        /// 连接
-        /// </summary>
+        /// <summary>建立与远程主机的连接</summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
         public virtual void Connect(IPAddress address, Int32 port)
@@ -47,9 +41,7 @@ namespace NewLife.Net.Sockets
             Client.Connect(address, port);
         }
 
-        /// <summary>
-        /// 建立与远程主机的连接
-        /// </summary>
+        /// <summary>建立与远程主机的连接</summary>
         /// <param name="remoteEP">表示远程设备。</param>
         public void Connect(EndPoint remoteEP)
         {
@@ -59,9 +51,7 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 接收
-        /// <summary>
-        /// 开始异步接收数据
-        /// </summary>
+        /// <summary>开始异步接收数据</summary>
         /// <param name="e"></param>
         protected virtual void ReceiveAsync(NetEventArgs e)
         {
@@ -73,9 +63,7 @@ namespace NewLife.Net.Sockets
             if (!Client.ReceiveAsync(e)) RaiseCompleteAsync(e);
         }
 
-        /// <summary>
-        /// 开始异步接收数据
-        /// </summary>
+        /// <summary>开始异步接收数据</summary>
         public void ReceiveAsync()
         {
             NetEventArgs e = Pop();
@@ -94,14 +82,10 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 事件
-        /// <summary>
-        /// 数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。
-        /// </summary>
+        /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
         public event EventHandler<NetEventArgs> Received;
 
-        /// <summary>
-        /// 接收到数据时
-        /// </summary>
+        /// <summary>接收到数据时</summary>
         /// <remarks>
         /// 网络事件参数使用原则：
         /// 1，得到者负责回收（通过方法参数得到）
@@ -133,9 +117,7 @@ namespace NewLife.Net.Sockets
             ThreadPoolCallback(ProcessReceive, e);
         }
 
-        /// <summary>
-        /// 处理接收
-        /// </summary>
+        /// <summary>处理接收</summary>
         /// <param name="e"></param>
         private void ProcessReceive(NetEventArgs e)
         {
@@ -157,9 +139,7 @@ namespace NewLife.Net.Sockets
                 ReceiveAsync(e);
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <param name="e"></param>
         protected override void OnComplete(NetEventArgs e)
         {
@@ -193,9 +173,7 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 发送
-        /// <summary>
-        /// 发送数据流
-        /// </summary>
+        /// <summary>发送数据流</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
         public virtual Int64 Send(Stream stream)
@@ -223,75 +201,51 @@ namespace NewLife.Net.Sockets
             return total;
         }
 
-        /// <summary>
-        /// 发送数据
-        /// </summary>
+        /// <summary>发送数据</summary>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
-        public virtual void Send(Byte[] buffer, Int32 offset, Int32 size)
-        {
-            //try
-            {
-                Client.Send(buffer, offset, size, SocketFlags.None);
-            }
-            //catch (Exception ex)
-            //{
-            //    OnError(null, ex);
-            //    throw;
-            //}
-        }
+        public virtual void Send(Byte[] buffer, Int32 offset, Int32 size) { Client.Send(buffer, offset, size, SocketFlags.None); }
 
-        /// <summary>
-        /// 发送字符串
-        /// </summary>
+        /// <summary>发送字符串</summary>
         /// <param name="msg"></param>
-        public void Send(String msg)
+        /// <param name="encoding"></param>
+        public void Send(String msg, Encoding encoding = null)
         {
             if (String.IsNullOrEmpty(msg)) return;
 
-            Byte[] data = Encoding.UTF8.GetBytes(msg);
+            if (encoding == null) encoding = Encoding.UTF8;
+            Byte[] data = encoding.GetBytes(msg);
             Send(data, 0, data.Length);
         }
         #endregion
 
         #region 接收
-        /// <summary>
-        /// 接收数据
-        /// </summary>
+        /// <summary>接收数据</summary>
         /// <returns></returns>
         public Byte[] Receive()
         {
             Byte[] buffer = new Byte[BufferSize];
             if (!Client.IsBound) Bind();
 
-            //try
-            {
-                Int32 size = Client.Receive(buffer);
-                if (size <= 0) return null;
+            Int32 size = Client.Receive(buffer);
+            if (size <= 0) return null;
 
-                Byte[] data = new Byte[size];
-                Buffer.BlockCopy(buffer, 0, data, 0, size);
-                return data;
-            }
-            //catch (Exception ex)
-            //{
-            //    OnError(null, ex);
-            //    throw;
-            //    //return null;
-            //}
+            Byte[] data = new Byte[size];
+            Buffer.BlockCopy(buffer, 0, data, 0, size);
+            return data;
         }
 
-        /// <summary>
-        /// 接收字符串
-        /// </summary>
+        /// <summary>接收字符串</summary>
+        /// <param name="encoding"></param>
         /// <returns></returns>
-        public String ReceiveString()
+        public String ReceiveString(Encoding encoding = null)
         {
             Byte[] buffer = Receive();
             if (buffer == null || buffer.Length < 1) return null;
 
-            return Encoding.UTF8.GetString(buffer);
+            if (encoding == null) encoding = Encoding.UTF8;
+            return encoding.GetString(buffer);
         }
         #endregion
     }

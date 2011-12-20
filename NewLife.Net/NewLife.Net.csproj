@@ -70,8 +70,12 @@
     <Compile Include="IO\FileServer.cs" />
     <Compile Include="Protocols\DNS\DNSQueryType.cs" />
     <Compile Include="Protocols\DNS\DNS_A.cs" />
-    <Compile Include="Protocols\NTPEnum.cs" />
+    <Compile Include="Protocols\NTP\NTPEnum.cs" />
     <Compile Include="Protocols\NTP\NTP.cs" />
+    <Compile Include="Proxy\IProxy.cs" />
+    <Compile Include="Proxy\IProxyFilter.cs" />
+    <Compile Include="Proxy\IProxySession.cs" />
+    <Compile Include="Proxy\ProxyBase.cs" />
     <Compile Include="Sockets\Netbase.cs" />
     <Compile Include="Sockets\NetServer.cs" />
     <Compile Include="Sockets\SocketBase.cs" />

@@ -5,35 +5,27 @@ using System.Text;
 
 namespace NewLife.Net.Sockets
 {
-    /// <summary>
-    /// 网络事件参数
-    /// </summary>
+    /// <summary>网络事件参数</summary>
     public class NetEventArgs : SocketAsyncEventArgs
     {
         #region 属性
         private Int32 _Times;
         /// <summary>使用次数</summary>
-        public Int32 Times
-        {
-            get { return _Times; }
-            set { _Times = value; }
-        }
+        public Int32 Times { get { return _Times; } set { _Times = value; } }
 
         private Boolean _Used;
         /// <summary>使用中</summary>
-        public Boolean Used
-        {
-            get { return _Used; }
-            set { _Used = value; }
-        }
+        public Boolean Used { get { return _Used; } set { _Used = value; } }
+
+        private Exception _Error;
+        /// <summary>异常信息</summary>
+        public Exception Error { get { return _Error; } set { _Error = value; } }
         #endregion
 
         #region 事件
         private Boolean hasEvent;
         private Delegate _Completed;
-        /// <summary>
-        /// 完成事件。该事件只能设置一个。
-        /// </summary>
+        /// <summary>完成事件。该事件只能设置一个。</summary>
         public new event EventHandler<NetEventArgs> Completed
         {
             add
@@ -47,16 +39,8 @@ namespace NewLife.Net.Sockets
                     base.Completed += OnCompleted;
                 }
             }
-            remove
-            {
-                _Completed = null;
-            }
+            remove { _Completed = null; }
         }
-
-        //protected override void OnCompleted(SocketAsyncEventArgs e)
-        //{
-        //    if (_Completed != null) (_Completed as EventHandler<NetEventArgs>)(sender, e as NetEventArgs);
-        //}
 
         private void OnCompleted(Object sender, SocketAsyncEventArgs e)
         {
@@ -65,25 +49,20 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 辅助
-        /// <summary>
-        /// 从接收缓冲区拿字符串，UTF-8编码
-        /// </summary>
+        /// <summary>从接收缓冲区拿字符串，UTF-8编码</summary>
         /// <returns></returns>
-        public String GetString()
+        public String GetString(Encoding encoding = null)
         {
             if (Buffer == null || Buffer.Length < 1 || BytesTransferred < 1) return null;
 
-            return Encoding.UTF8.GetString(Buffer, Offset, BytesTransferred);
+            if (encoding == null) encoding = Encoding.UTF8;
+            return encoding.GetString(Buffer, Offset, BytesTransferred);
         }
 
-        /// <summary>
-        /// Socket数据流。每个网络事件参数带有一个，防止多次声明流对象
-        /// </summary>
+        /// <summary>Socket数据流。每个网络事件参数带有一个，防止多次声明流对象</summary>
         private SocketStream socketStream;
 
-        /// <summary>
-        /// 从接收缓冲区获取一个流，该流可用于读取已接收数据，写入数据时向远端发送数据
-        /// </summary>
+        /// <summary>从接收缓冲区获取一个流，该流可用于读取已接收数据，写入数据时向远端发送数据</summary>
         /// <returns></returns>
         public Stream GetStream()
         {
@@ -102,9 +81,7 @@ namespace NewLife.Net.Sockets
             return socketStream;
         }
 
-        /// <summary>
-        /// 将接收缓冲区中的数据写入流
-        /// </summary>
+        /// <summary>将接收缓冲区中的数据写入流</summary>
         /// <param name="stream"></param>
         public void WriteTo(Stream stream)
         {
@@ -113,13 +90,19 @@ namespace NewLife.Net.Sockets
             stream.Write(Buffer, Offset, BytesTransferred);
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("[{0}]{1}", LastOperation, GetString());
+            // 不要取字符串，那样影响效率
+            //return String.Format("[{0}]{1}", LastOperation, GetString());
+
+            if (Error != null)
+                return String.Format("[{0}]{1}", LastOperation, Error.Message);
+            else if (SocketError != SocketError.Success)
+                return String.Format("[{0}]{1}", LastOperation, SocketError);
+            else
+                return String.Format("[{0}]BytesTransferred={1}", LastOperation, BytesTransferred);
         }
         #endregion
     }

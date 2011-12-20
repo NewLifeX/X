@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
-using NewLife.Log;
 using NewLife.Configuration;
+using NewLife.Log;
 
 namespace NewLife.Net.Common
 {
@@ -84,6 +84,60 @@ namespace NewLife.Net.Common
             }
 
             return list;
+        }
+
+        /// <summary>针对IPv4和IPv6获取合适的Any地址</summary>
+        /// <param name="address"></param>
+        /// <param name="family"></param>
+        /// <returns></returns>
+        public static IPAddress GetRightAny(this IPAddress address, AddressFamily family)
+        {
+            switch (family)
+            {
+                case AddressFamily.InterNetwork:
+                    if (address == IPAddress.IPv6Any) return IPAddress.Any;
+                    return address;
+                case AddressFamily.InterNetworkV6:
+                    if (address == IPAddress.Any) return IPAddress.IPv6Any;
+                    return address;
+                default:
+                    return address;
+            }
+        }
+
+        /// <summary>是否Any地址，同时处理IPv4和IPv6</summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public static Boolean IsAny(this IPAddress address) { return address == IPAddress.Any || address == IPAddress.IPv6Any; }
+        #endregion
+
+        #region 远程开机
+        /// <summary>唤醒指定MAC地址的计算机</summary>
+        /// <param name="mac"></param>
+        public static void Wake(String mac)
+        {
+            mac = mac.Replace("-", null);
+            Byte[] buffer = new Byte[mac.Length / 2];
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                buffer[i] = Byte.Parse(mac.Substring(i * 2, 2), NumberStyles.HexNumber);
+            }
+
+            Byte[] bts = new Byte[6 + 16 * buffer.Length];
+            for (int i = 0; i < 6; i++)
+            {
+                bts[i] = 0xFF;
+            }
+            for (int i = 6, k = 0; i < bts.Length; i++, k++)
+            {
+                if (k >= buffer.Length) k = 0;
+
+                bts[i] = buffer[k];
+            }
+
+            UdpClient client = new UdpClient();
+            client.EnableBroadcast = true;
+            client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
         }
         #endregion
     }

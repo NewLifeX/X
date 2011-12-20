@@ -152,7 +152,6 @@ namespace NewLife.Net.Protocols.DNS
 
         /// <summary>写入的最后，处理扩展数据</summary>
         /// <param name="writer"></param>
-        /// <param name="refs"></param>
         protected virtual void WriteAdditionalData(IWriter writer)
         {
             writer.WriteLog("WriteMember", "_Data", "String", DataString);
