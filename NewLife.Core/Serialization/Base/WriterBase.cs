@@ -266,7 +266,7 @@ namespace NewLife.Serialization
                     Write((Byte)0);
                     return true;
                 case TypeCode.Int16:
-                    Write((Int32)value);
+                    Write((Int16)value);
                     return true;
                 case TypeCode.Int32:
                     Write((Int32)value);

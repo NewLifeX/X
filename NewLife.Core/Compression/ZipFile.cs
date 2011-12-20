@@ -20,6 +20,8 @@ namespace NewLife.Compression
     /// 核心原理：通过二进制序列化框架，实现Zip格式的解析，数据的压缩和解压缩由系统的DeflateStream完成！
     /// 
     /// 关于压缩算法：系统的DeflateStream实现了Deflate压缩算法，但是硬编码了四级压缩（共十级，第四级在快速压缩中压缩率最高）。相关硬编码位于内嵌的FastEncoderWindow类中。
+    /// 
+    /// 感谢@小董（1287263703）、@Johnses（285732917）的热心帮忙，发现了0字节文件压缩和解压缩的BUG！
     /// </remarks>
     /// <example>
     /// 标准压缩：
