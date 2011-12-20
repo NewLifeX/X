@@ -4,9 +4,7 @@ using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Application
 {
-    /// <summary>
-    /// Discard服务器
-    /// </summary>
+    /// <summary>Discard服务器。抛弃所有收到的数据包，不做任何响应</summary>
     public class DiscardServer : NetServer
     {
         /// <summary>
@@ -14,26 +12,26 @@ namespace NewLife.Net.Application
         /// </summary>
         public DiscardServer()
         {
-            // 默认Tcp协议
-            ProtocolType = ProtocolType.Tcp;
+            //// 默认Tcp协议
+            //ProtocolType = ProtocolType.Tcp;
             // 默认9端口
             Port = 9;
+
+            Name = "Discard服务";
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
-        protected override void EnsureCreateServer()
-        {
-            base.EnsureCreateServer();
+        ///// <summary>已重载。</summary>
+        //protected override void EnsureCreateServer()
+        //{
+        //    base.EnsureCreateServer();
 
-            Name = String.Format("Discard服务（{0}）", ProtocolType);
+        //    Name = String.Format("Discard服务（{0}）", ProtocolType);
 
-            // 允许同时处理多个数据包
-            Server.NoDelay = ProtocolType == ProtocolType.Udp;
-            // 使用线程池来处理事件
-            Server.UseThreadPool = true;
-        }
+        //    //// 允许同时处理多个数据包
+        //    //Server.NoDelay = ProtocolType == ProtocolType.Udp;
+        //    //// 使用线程池来处理事件
+        //    //Server.UseThreadPool = true;
+        //}
 
         /// <summary>
         /// 已重载。

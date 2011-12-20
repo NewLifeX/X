@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Net.Sockets;
 using NewLife.IO;
 using NewLife.Net.Sockets;
-using System.Net.Sockets;
 
 namespace NewLife.Net.Application
 {
@@ -15,23 +15,18 @@ namespace NewLife.Net.Application
         /// </summary>
         public StreamServer()
         {
-            // 默认Udp协议
-            ProtocolType = ProtocolType.Udp;
+            //// 默认Udp协议
+            //ProtocolType = ProtocolType.Udp;
+            // 默认支持所有协议
             // 默认8000端口
             Port = 8000;
         }
 
         private String _StreamHandlerName;
         /// <summary>数据流处理器名称</summary>
-        public String StreamHandlerName
-        {
-            get { return _StreamHandlerName; }
-            set { _StreamHandlerName = value; }
-        }
+        public String StreamHandlerName { get { return _StreamHandlerName; } set { _StreamHandlerName = value; } }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         protected override void EnsureCreateServer()
         {
             if (String.IsNullOrEmpty(StreamHandlerName)) throw new Exception("未指定数据流处理器名称！");
@@ -44,9 +39,7 @@ namespace NewLife.Net.Application
             base.EnsureCreateServer();
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         protected override void OnReceived(object sender, NetEventArgs e)

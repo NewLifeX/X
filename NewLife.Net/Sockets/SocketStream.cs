@@ -71,7 +71,7 @@ namespace NewLife.Net.Sockets
         public override void Write(byte[] buffer, int offset, int count)
         {
             // 兼容IPV6
-            if (RemoteEndPoint.Address.IsAny() && RemoteEndPoint.Port != 0)
+            if (!RemoteEndPoint.Address.IsAny() && RemoteEndPoint.Port != 0)
                 Socket.SendTo(buffer, offset, count, SocketFlags.None, RemoteEndPoint);
             else
                 Socket.Send(buffer, offset, count, SocketFlags.None);

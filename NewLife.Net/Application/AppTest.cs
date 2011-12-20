@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using NewLife.Net.Sockets;
+using System.Net;
 using System.Net.Sockets;
+using System.Threading;
+using NewLife.Log;
+using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
-using System.Net;
-using System.Threading;
 using NewLife.Reflection;
-using NewLife.Log;
 
 namespace NewLife.Net.Application
 {
@@ -29,25 +28,6 @@ namespace NewLife.Net.Application
                 NetServer server = Activator.CreateInstance(item) as NetServer;
                 server.Start();
                 list.Add(server);
-
-                server = Activator.CreateInstance(item) as NetServer;
-                server.AddressFamily = AddressFamily.InterNetworkV6;
-                server.Start();
-                list.Add(server);
-
-                ProtocolType pt = server.ProtocolType == ProtocolType.Tcp ? ProtocolType.Udp : ProtocolType.Tcp;
-                server = Activator.CreateInstance(item) as NetServer;
-                server.ProtocolType = pt;
-                server.Start();
-                list.Add(server);
-
-                server = Activator.CreateInstance(item) as NetServer;
-                server.ProtocolType = pt;
-                server.AddressFamily = AddressFamily.InterNetworkV6;
-                server.Start();
-                list.Add(server);
-
-                //Invoke(item.Name, server.Port);
             }
 
             StartEchoServer(7);

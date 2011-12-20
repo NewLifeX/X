@@ -9,88 +9,11 @@ using NewLife.Net.Udp;
 
 namespace NewLife.Net.Sockets
 {
-    ///// <summary>
-    ///// 封装为TcpIPV4服务
-    ///// </summary>
-    ///// <typeparam name="T"></typeparam>
-    //public class TcpV4Server<T> : NetServer<T> where T : NetServer, new()
-    //{
-    //    /// <summary>网络服务</summary>
-    //    public TcpV4Server() : base(ProtocolType.Tcp, AddressFamily.InterNetwork) { }
-    //}
-
-    ///// <summary>
-    ///// 封装为TcpIPV6服务
-    ///// </summary>
-    ///// <typeparam name="T"></typeparam>
-    //public class TcpV6Server<T> : NetServer<T> where T : NetServer, new()
-    //{
-    //    /// <summary>网络服务</summary>
-    //    public TcpV6Server() : base(ProtocolType.Tcp, AddressFamily.InterNetworkV6) { }
-    //}
-
-    ///// <summary>
-    ///// 封装为UdpIPV4服务
-    ///// </summary>
-    ///// <typeparam name="T"></typeparam>
-    //public class UdpV4Server<T> : NetServer<T> where T : NetServer, new()
-    //{
-    //    /// <summary>网络服务</summary>
-    //    public UdpV4Server() : base(ProtocolType.Udp, AddressFamily.InterNetwork) { }
-    //}
-
-    ///// <summary>
-    ///// 封装为UdpIPV6服务
-    ///// </summary>
-    ///// <typeparam name="T"></typeparam>
-    //public class UdpV6Server<T> : NetServer<T> where T : NetServer, new()
-    //{
-    //    /// <summary>网络服务</summary>
-    //    public UdpV6Server() : base(ProtocolType.Udp, AddressFamily.InterNetworkV6) { }
-    //}
-
-    ///// <summary>指定协议类型和地址类型的网络服务</summary>
-    ///// <typeparam name="T"></typeparam>
-    //public class NetServer<T> : IServer where T : NetServer, new()
-    //{
-    //    private T _Server;
-    //    /// <summary>网络服务</summary>
-    //    public T Server
-    //    {
-    //        get { return _Server ?? (_Server = new T()); }
-    //        set { _Server = value; }
-    //    }
-
-    //    /// <summary>
-    //    /// 通过指定协议类型和地址类型来构造网络服务
-    //    /// </summary>
-    //    /// <param name="protocol"></param>
-    //    /// <param name="family"></param>
-    //    public NetServer(ProtocolType protocol, AddressFamily family)
-    //    {
-    //        Server.ProtocolType = protocol;
-    //        Server.AddressFamily = family;
-    //    }
-
-    //    #region IServer 成员
-    //    /// <summary>
-    //    /// 开始
-    //    /// </summary>
-    //    public void Start() { Server.Start(); }
-
-    //    /// <summary>
-    //    /// 停止
-    //    /// </summary>
-    //    public void Stop() { Server.Stop(); }
-    //    #endregion
-    //}
-
     /// <summary>网络服务器。可同时支持多个Socket服务器，同时支持IPv4和IPv6，同时支持Tcp和Udp</summary>
     /// <remarks>
     /// 网络服务器模型，所有网络应用服务器可以通过继承该类实现。
     /// 该类仅实现了业务应用对网络流的操作，与具体网络协议无关。
-    /// </remarks>
-    /// <remarks>
+    /// 
     /// 使用方法：重载方法EnsureCreateServer来创建一个SocketServer并赋值给Server属性，EnsureCreateServer将会在OnStart时首先被调用
     /// </remarks>
     public class NetServer : Netbase, IServer
@@ -189,6 +112,7 @@ namespace NewLife.Net.Sockets
                 throw new Exception("不支持的协议类型" + server.ProtocolType + "！");
             }
 
+            server.Error += new EventHandler<NetEventArgs>(OnError);
             Servers.Add(server);
         }
 
@@ -202,7 +126,12 @@ namespace NewLife.Net.Sockets
                     svr.Address = Address.GetRightAny(family);
                     svr.Port = Port;
                     svr.AddressFamily = family;
-                    AddServer(svr);
+
+                    // 允许同时处理多个数据包
+                    svr.NoDelay = svr.ProtocolType == ProtocolType.Udp;
+                    svr.UseThreadPool = true;
+
+                    if (!NetHelper.IsUsed(svr.ProtocolType, svr.Address, svr.Port)) AddServer(svr);
                     break;
                 default:
                     // 其它情况表示同时支持IPv4和IPv6
@@ -247,10 +176,12 @@ namespace NewLife.Net.Sockets
         {
             EnsureCreateServer();
 
-            Server.Error += new EventHandler<NetEventArgs>(OnError);
-            Server.Start();
+            foreach (var item in Servers)
+            {
+                item.Start();
 
-            WriteLog("{0} 开始监听{1}", Name, Server);
+                WriteLog("{0} 开始监听 {1}", Name, item);
+            }
         }
 
         /// <summary>断开连接/发生错误</summary>
@@ -269,7 +200,10 @@ namespace NewLife.Net.Sockets
         {
             if (!Active) throw new InvalidOperationException("服务没有开始！");
 
-            WriteLog("{0} 停止监听{1}", this.GetType().Name, Server);
+            foreach (var item in Servers)
+            {
+                WriteLog("{0} 停止监听 {1}", Name, item);
+            }
 
             OnStop();
         }
@@ -286,7 +220,11 @@ namespace NewLife.Net.Sockets
             // 释放托管资源
             //if (disposing)
             {
-                if (Server != null) Server.Stop();
+                //if (Server != null) Server.Stop();
+                foreach (var item in Servers)
+                {
+                    item.Stop();
+                }
             }
         }
         #endregion
@@ -318,17 +256,17 @@ namespace NewLife.Net.Sockets
         /// <param name="remoteEP"></param>
         protected virtual void Send(SocketBase sender, Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP)
         {
-            if (ProtocolType == ProtocolType.Tcp)
+            if (sender is TcpClientX)
             {
                 TcpClientX tc = sender as TcpClientX;
                 if (tc != null && tc.Client.Connected) tc.Send(buffer, offset, size);
             }
-            else if (ProtocolType == ProtocolType.Udp)
+            else if (sender is UdpServer)
             {
                 //if ((remoteEP as IPEndPoint).Address != IPAddress.Any)
                 // 兼容IPV6
                 IPEndPoint remote = remoteEP as IPEndPoint;
-                if (remote != null && remote.Address.IsAny())
+                if (remote != null && !remote.Address.IsAny())
                 {
                     UdpServer us = sender as UdpServer;
                     us.Send(buffer, offset, size, remoteEP);
@@ -340,13 +278,10 @@ namespace NewLife.Net.Sockets
         /// <param name="client"></param>
         protected virtual void Disconnect(SocketBase client)
         {
-            if (ProtocolType == ProtocolType.Tcp)
+            if (client is TcpClientX)
             {
                 TcpClientX tc = client as TcpClientX;
                 if (tc != null && tc.Client.Connected) tc.Close();
-            }
-            else if (ProtocolType == ProtocolType.Udp)
-            {
             }
         }
         #endregion

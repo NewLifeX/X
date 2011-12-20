@@ -1,74 +1,57 @@
 ﻿using System;
-using System.Net.Sockets;
-using NewLife.Net.Sockets;
 using System.Net;
-using System.Text;
+using System.Net.Sockets;
 using System.Threading;
-using NewLife.Net.Tcp;
+using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Application
 {
-    /// <summary>
-    /// Chargen服务器
-    /// </summary>
+    /// <summary>Chargen服务器。不停的向连接者发送数据</summary>
     public class ChargenServer : NetServer
     {
-        /// <summary>
-        /// 实例化一个Chargen服务
-        /// </summary>
+        /// <summary>实例化一个Chargen服务</summary>
         public ChargenServer()
         {
-            // 默认Tcp协议
-            ProtocolType = ProtocolType.Tcp;
+            //// 默认Tcp协议
+            //ProtocolType = ProtocolType.Tcp;
             // 默认19端口
             Port = 19;
+
+            Name = "Chargen服务";
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
-        protected override void EnsureCreateServer()
-        {
-            base.EnsureCreateServer();
+        ///// <summary>已重载。</summary>
+        //protected override void EnsureCreateServer()
+        //{
+        //    base.EnsureCreateServer();
 
-            Name = String.Format("Chargen服务（{0}）", ProtocolType);
+        //    Name = "Chargen服务";
 
-            // 允许同时处理多个数据包
-            Server.NoDelay = ProtocolType == ProtocolType.Udp;
-            // 使用线程池来处理事件
-            Server.UseThreadPool = true;
-        }
+        //    //// 允许同时处理多个数据包
+        //    //Server.NoDelay = ProtocolType == ProtocolType.Udp;
+        //    //// 使用线程池来处理事件
+        //    //Server.UseThreadPool = true;
+        //}
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         protected override void OnAccepted(object sender, NetEventArgs e)
         {
             WriteLog("Chargen {0}", e.RemoteEndPoint);
 
-            //if (ProtocolType == ProtocolType.Tcp)
-            //{
             // 使用多线程
             Thread thread = new Thread(LoopSend);
             thread.Name = "Chargen.LoopSend";
             thread.IsBackground = true;
             thread.Priority = ThreadPriority.Lowest;
             thread.Start(new Object[] { e.UserToken, e.RemoteEndPoint });
-            //}
-            //else if (ProtocolType == ProtocolType.Udp)
-            //{
-            //    Send(e.UserToken as SocketBase, e.RemoteEndPoint as IPEndPoint);
-            //}
 
             // 调用基类，为接收数据准备，避免占用过大内存
             base.OnAccepted(sender, e);
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         protected override void OnReceived(object sender, NetEventArgs e)
@@ -79,9 +62,7 @@ namespace NewLife.Net.Application
                 WriteLog("Chargen {0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString());
         }
 
-        /// <summary>
-        /// 出错时
-        /// </summary>
+        /// <summary>出错时</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         protected override void OnError(object sender, NetEventArgs e)
@@ -96,7 +77,6 @@ namespace NewLife.Net.Application
 
         void LoopSend(Object state)
         {
-            //TcpClientX client = state as TcpClientX;
             SocketBase client = ((Object[])state)[0] as SocketBase;
             if (client == null) return;
 
@@ -115,15 +95,11 @@ namespace NewLife.Net.Application
                         // 暂停100ms
                         Thread.Sleep(100);
                     }
-                    catch
-                    {
-                        break;
-                    }
+                    catch { break; }
                 }
             }
             finally
             {
-                //client.Close();
                 Disconnect(client);
             }
         }

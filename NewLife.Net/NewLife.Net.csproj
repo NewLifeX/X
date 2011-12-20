@@ -59,11 +59,7 @@
     <Compile Include="Protocols\DNS\DNSRecord.cs" />
     <Compile Include="Protocols\NTP\NTPClient.cs" />
     <Compile Include="Application\StreamServer.cs" />
-    <Compile Include="Application\TcpEchoServer.cs" />
-    <Compile Include="Application\TcpStreamServer.cs" />
     <Compile Include="Application\TimeServer.cs" />
-    <Compile Include="Application\UdpEchoServer.cs" />
-    <Compile Include="Application\UdpStreamServer.cs" />
     <Compile Include="Common\NetHelper.cs" />
     <Compile Include="IO\FileClient.cs" />
     <Compile Include="IO\FileFormat.cs" />

@@ -11,6 +11,7 @@ using System.Net;
 using NewLife.Net.Sockets;
 using System.Globalization;
 using NewLife.Net.Common;
+using NewLife.Net.Application;
 
 namespace Test
 {
@@ -111,27 +112,7 @@ namespace Test
 
         static void Test4()
         {
-            String mac = "00-24-8C-04-C0-2A";
-            //mac = "00-24-8C-04-C0-9B";
-            //mac = "00-24-8C-04-BF-9F";
-
-            NetHelper.Wake(mac);
-
-            //using (StreamReader reader = new StreamReader("macs.txt"))
-            //{
-            //    while (!reader.EndOfStream)
-            //    {
-            //        String line = reader.ReadLine();
-            //        line = ("" + line).Trim();
-            //        if (String.IsNullOrEmpty(line)) continue;
-
-            //        String[] ss = line.Split(" ", "\t");
-            //        if (ss == null || ss.Length < 4) continue;
-
-            //        Console.WriteLine("正在唤醒 {0} {1} {2}", ss[4], ss[2], ss[1]);
-            //        Wake(ss[1]);
-            //    }
-            //}
+            AppTest.Start();
         }
     }
 }

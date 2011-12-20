@@ -5,9 +5,7 @@ using System.Threading;
 
 namespace NewLife.Net.Application
 {
-    /// <summary>
-    /// Echo服务
-    /// </summary>
+    /// <summary>Echo服务。把客户端发来的数据原样返回。</summary>
     public class EchoServer : NetServer
     {
         /// <summary>
@@ -15,26 +13,28 @@ namespace NewLife.Net.Application
         /// </summary>
         public EchoServer()
         {
-            // 默认Tcp协议
-            ProtocolType = ProtocolType.Tcp;
+            //// 默认Tcp协议
+            //ProtocolType = ProtocolType.Tcp;
             // 默认7端口
             Port = 7;
+
+            Name = "Echo服务";
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
-        protected override void EnsureCreateServer()
-        {
-            base.EnsureCreateServer();
+        ///// <summary>
+        ///// 已重载。
+        ///// </summary>
+        //protected override void EnsureCreateServer()
+        //{
+        //    base.EnsureCreateServer();
 
-            Name = String.Format("Echo服务（{0}）", ProtocolType);
+        //    Name = String.Format("Echo服务（{0}）", ProtocolType);
 
-            // 允许同时处理多个数据包
-            Server.NoDelay = ProtocolType == ProtocolType.Udp;
-            // 使用线程池来处理事件
-            Server.UseThreadPool = true;
-        }
+        //    //// 允许同时处理多个数据包
+        //    //Server.NoDelay = ProtocolType == ProtocolType.Udp;
+        //    //// 使用线程池来处理事件
+        //    //Server.UseThreadPool = true;
+        //}
 
         /// <summary>
         /// 已重载。

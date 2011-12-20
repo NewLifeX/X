@@ -95,6 +95,10 @@ namespace NewLife.Net.Sockets
                     Socket = new Socket(AddressFamily, SocketType.Unknown, ProtocolType);
                     break;
             }
+
+            // 设置超时时间
+            Socket.SendTimeout = 10000;
+            Socket.ReceiveTimeout = 10000;
         }
         #endregion
 
@@ -349,8 +353,14 @@ namespace NewLife.Net.Sockets
         /// <returns></returns>
         public override string ToString()
         {
-            var ip = Socket != null ? Socket.LocalEndPoint : new IPEndPoint(Address, Port);
-            return String.Format("{0}://{1}", ProtocolType, ip);
+            var socket = Socket;
+            if (socket != null)
+                return String.Format("{0}://{1}", socket.ProtocolType, socket.LocalEndPoint);
+            else
+                return String.Format("{0}://{1}", ProtocolType, new IPEndPoint(Address, Port));
+
+            //var ip = Socket != null ? Socket.LocalEndPoint : new IPEndPoint(Address, Port);
+            //return String.Format("{0}://{1}", ProtocolType, ip);
         }
         #endregion
     }

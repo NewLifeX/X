@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using NewLife.Configuration;
 using NewLife.Log;
+using System.Net.NetworkInformation;
 
 namespace NewLife.Net.Common
 {
@@ -109,12 +110,49 @@ namespace NewLife.Net.Common
         /// <param name="address"></param>
         /// <returns></returns>
         public static Boolean IsAny(this IPAddress address) { return address == IPAddress.Any || address == IPAddress.IPv6Any; }
+
+        /// <summary>
+        /// 指定地址的指定端口是否已被使用，似乎没办法判断IPv6地址
+        /// </summary>
+        /// <param name="protocol"></param>
+        /// <param name="address"></param>
+        /// <param name="port"></param>
+        /// <returns></returns>
+        internal static Boolean IsUsed(ProtocolType protocol, IPAddress address, Int32 port)
+        {
+            var gp = IPGlobalProperties.GetIPGlobalProperties();
+
+            IPEndPoint[] eps = null;
+            if (protocol == ProtocolType.Tcp)
+                eps = gp.GetActiveTcpListeners();
+            else if (protocol == ProtocolType.Udp)
+                eps = gp.GetActiveUdpListeners();
+            else
+                return false;
+
+            foreach (var item in eps)
+            {
+                if (item.Address.Equals(address) && item.Port == port) return true;
+            }
+
+            return false;
+        }
         #endregion
 
         #region 远程开机
         /// <summary>唤醒指定MAC地址的计算机</summary>
-        /// <param name="mac"></param>
-        public static void Wake(String mac)
+        /// <param name="macs"></param>
+        public static void Wake(params String[] macs)
+        {
+            if (macs == null || macs.Length < 1) return;
+
+            foreach (var item in macs)
+            {
+                Wake(item);
+            }
+        }
+
+        static void Wake(String mac)
         {
             mac = mac.Replace("-", null);
             Byte[] buffer = new Byte[mac.Length / 2];
