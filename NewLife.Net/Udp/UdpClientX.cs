@@ -6,25 +6,16 @@ using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Udp
 {
-    /// <summary>
-    /// 增强的UDP客户端
-    /// </summary>
+    /// <summary>增强的UDP客户端</summary>
     public class UdpClientX : SocketClient
     {
         #region 属性
-        /// <summary>
-        /// 已重载。
-        /// </summary>
-        public override ProtocolType ProtocolType
-        {
-            get { return ProtocolType.Udp; }
-        }
+        /// <summary>已重载。</summary>
+        public override ProtocolType ProtocolType { get { return ProtocolType.Udp; } }
         #endregion
 
         #region 接收
-        /// <summary>
-        /// 异步接收
-        /// </summary>
+        /// <summary>异步接收</summary>
         /// <param name="e"></param>
         protected override void ReceiveAsync(NetEventArgs e)
         {
@@ -42,9 +33,7 @@ namespace NewLife.Net.Udp
         #endregion
 
         #region 发送
-        /// <summary>
-        /// 发送数据
-        /// </summary>
+        /// <summary>发送数据</summary>
         /// <param name="buffer"></param>
         /// <param name="endPoint"></param>
         public void Send(Byte[] buffer, IPEndPoint endPoint)
@@ -53,9 +42,7 @@ namespace NewLife.Net.Udp
             Client.SendTo(buffer, buffer.Length, SocketFlags.None, endPoint);
         }
 
-        /// <summary>
-        /// 发送数据
-        /// </summary>
+        /// <summary>发送数据</summary>
         /// <param name="msg"></param>
         /// <param name="endPoint"></param>
         public void Send(String msg, IPEndPoint endPoint)
@@ -67,9 +54,7 @@ namespace NewLife.Net.Udp
             Client.SendTo(buffer, buffer.Length, SocketFlags.None, endPoint);
         }
 
-        /// <summary>
-        /// 广播数据包
-        /// </summary>
+        /// <summary>广播数据包</summary>
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
         /// <param name="size"></param>
@@ -81,9 +66,7 @@ namespace NewLife.Net.Udp
             Client.SendTo(buffer, offset, size, SocketFlags.None, new IPEndPoint(IPAddress.Broadcast, port));
         }
 
-        /// <summary>
-        /// 广播字符串
-        /// </summary>
+        /// <summary>广播字符串</summary>
         /// <param name="message"></param>
         /// <param name="port"></param>
         public void Broadcast(String message, Int32 port)

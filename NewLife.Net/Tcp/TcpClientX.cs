@@ -6,19 +6,14 @@ using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Tcp
 {
-    /// <summary>
-    /// 增强TCP客户端
-    /// </summary>
+    /// <summary>增强TCP客户端</summary>
     public class TcpClientX : SocketClient
     {
         #region 属性
         /// <summary>
         /// 已重载。
         /// </summary>
-        public override ProtocolType ProtocolType
-        {
-            get { return ProtocolType.Tcp; }
-        }
+        public override ProtocolType ProtocolType { get { return ProtocolType.Tcp; } }
 
         private IPEndPoint _RemoteEndPoint;
         /// <summary>远程终结点</summary>
@@ -41,9 +36,7 @@ namespace NewLife.Net.Tcp
         #endregion
 
         #region 重载
-        /// <summary>
-        /// 已重载。设置RemoteEndPoint
-        /// </summary>
+        /// <summary>已重载。设置RemoteEndPoint</summary>
         /// <param name="e"></param>
         protected override void OnComplete(NetEventArgs e)
         {
@@ -55,9 +48,7 @@ namespace NewLife.Net.Tcp
         #endregion
 
         #region 接收
-        /// <summary>
-        /// 接收数据。已重载。接收到0字节表示连接断开！
-        /// </summary>
+        /// <summary>接收数据。已重载。接收到0字节表示连接断开！</summary>
         /// <param name="e"></param>
         protected override void OnReceive(NetEventArgs e)
         {

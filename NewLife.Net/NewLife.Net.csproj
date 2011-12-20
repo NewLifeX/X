@@ -85,16 +85,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sockets\SocketStream.cs" />
     <Compile Include="Tcp\TcpClientX.cs" />
-    <Compile Include="Tcp\TcpNetServer.cs" />
     <Compile Include="Tcp\TcpServer.cs" />
     <Compile Include="Tcp\TcpSession.cs" />
     <Compile Include="Tcp\TcpSessionCollection.cs" />
-    <Compile Include="Tcp\TcpTest.cs" />
     <Compile Include="Udp\UdpClientX.cs" />
-    <Compile Include="Udp\UdpNetServer.cs" />
     <Compile Include="Udp\UdpServer.cs" />
-    <Compile Include="Udp\UdpStream.cs" />
-    <Compile Include="Udp\UdpTest.cs" />
     <Compile Include="UPnP\Entities\Device.cs" />
     <Compile Include="UPnP\Entities\Envelope.cs" />
     <Compile Include="UPnP\Entities\InternetGatewayDevice.cs" />

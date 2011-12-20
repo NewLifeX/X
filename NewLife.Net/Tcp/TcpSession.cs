@@ -5,19 +5,13 @@ using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Tcp
 {
-    /// <summary>
-    /// Tcp会话。用于TcpServer接受新连接后创建会话
-    /// </summary>
+    /// <summary>Tcp会话。用于TcpServer接受新连接后创建会话</summary>
     public class TcpSession : TcpClientX
     {
         #region 属性
         private Int32 _ID;
         /// <summary>标识</summary>
-        public Int32 ID
-        {
-            get { return _ID; }
-            internal set { _ID = value; }
-        }
+        public Int32 ID { get { return _ID; } internal set { _ID = value; } }
         #endregion
 
         #region 接收

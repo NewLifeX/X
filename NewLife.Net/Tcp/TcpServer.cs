@@ -5,19 +5,12 @@ using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Tcp
 {
-    /// <summary>
-    /// TCP服务器
-    /// </summary>
+    /// <summary>TCP服务器</summary>
     public class TcpServer : SocketServer
     {
         #region 属性
-        /// <summary>
-        /// 已重载。
-        /// </summary>
-        public override ProtocolType ProtocolType
-        {
-            get { return ProtocolType.Tcp; }
-        }
+        /// <summary>已重载。</summary>
+        public override ProtocolType ProtocolType { get { return ProtocolType.Tcp; } }
         #endregion
 
         #region 构造
@@ -48,14 +41,9 @@ namespace NewLife.Net.Tcp
         #endregion
 
         #region 开始停止
-        /// <summary>
-        /// 开始
-        /// </summary>
+        /// <summary>开始</summary>
         protected override void OnStart()
         {
-            //EnsureCreate();
-            //// 地址重用，允许该Socket收发同时进行
-            //ReuseAddress = true;
             // 开始监听
             base.OnStart();
 
@@ -66,7 +54,7 @@ namespace NewLife.Net.Tcp
 
             // 设定委托
             // 指定10名工人待命，等待处理新连接
-            // 一方面避免因没有及时安排工人而造成堵塞，另一方面避免工人中途死亡或逃跑而导致无人迎宾
+            // 一方面避免因没有及时安排工人而造成堵塞，另一方面避免工人中途死亡或逃跑而导致无人迎接客人
             // 该安排在一定程度上分担了Listen队列的压力，工人越多，就能及时把任务接过来，尽管处理不了那么快
             // 需要注意的是，该设计会导致触发多次（每个工人一次）Error事件
             for (int i = 0; i < 10 * Environment.ProcessorCount; i++)
@@ -93,14 +81,10 @@ namespace NewLife.Net.Tcp
         #endregion
 
         #region 事件
-        /// <summary>
-        /// 连接完成。在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。
-        /// </summary>
+        /// <summary>连接完成。在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
         public event EventHandler<NetEventArgs> Accepted;
 
-        /// <summary>
-        /// 新客户端到达
-        /// </summary>
+        /// <summary>新客户端到达</summary>
         /// <param name="e"></param>
         protected virtual void OnAccept(NetEventArgs e)
         {
@@ -123,9 +107,7 @@ namespace NewLife.Net.Tcp
             if (session.Socket != null && session.Socket.Connected) session.ReceiveAsync(e);
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <param name="e"></param>
         protected override void OnComplete(NetEventArgs e)
         {
@@ -165,7 +147,6 @@ namespace NewLife.Net.Tcp
         /// <summary>会话集合</summary>
         public TcpSessionCollection Sessions
         {
-            //get { return _Sessions ?? (_Sessions = new TcpSessionCollection()); }
             get
             {
                 if (_Sessions != null) return _Sessions;
@@ -173,16 +154,12 @@ namespace NewLife.Net.Tcp
                 {
                     if (_Sessions != null) return _Sessions;
 
-                    _Sessions = new TcpSessionCollection();
-                    //_Sessions.Server = this;
-                    return _Sessions;
+                    return _Sessions = new TcpSessionCollection();
                 }
             }
         }
 
-        /// <summary>
-        /// 创建会话
-        /// </summary>
+        /// <summary>创建会话</summary>
         /// <param name="e"></param>
         /// <returns></returns>
         protected virtual TcpSession CreateSession(NetEventArgs e)
@@ -197,9 +174,7 @@ namespace NewLife.Net.Tcp
         #endregion
 
         #region 释放资源
-        /// <summary>
-        /// 已重载。释放会话集合等资源
-        /// </summary>
+        /// <summary>已重载。释放会话集合等资源</summary>
         /// <param name="disposing"></param>
         protected override void OnDispose(bool disposing)
         {

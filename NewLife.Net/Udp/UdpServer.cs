@@ -6,20 +6,13 @@ using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Udp
 {
-    /// <summary>
-    /// UDP服务器
-    /// </summary>
+    /// <summary>UDP服务器</summary>
     /// <remarks>主要针对APM模型进行简单封装</remarks>
     public class UdpServer : SocketServer
     {
         #region 属性
-        /// <summary>
-        /// 已重载。
-        /// </summary>
-        public override ProtocolType ProtocolType
-        {
-            get { return ProtocolType.Udp; }
-        }
+        /// <summary>已重载。</summary>
+        public override ProtocolType ProtocolType { get { return ProtocolType.Udp; } }
         #endregion
 
         #region 构造
@@ -50,9 +43,7 @@ namespace NewLife.Net.Udp
         #endregion
 
         #region 开始停止
-        /// <summary>
-        /// 开始
-        /// </summary>
+        /// <summary>开始</summary>
         protected override void OnStart()
         {
             Server.EnableBroadcast = true;
@@ -69,9 +60,7 @@ namespace NewLife.Net.Udp
             }
         }
 
-        /// <summary>
-        /// 开始异步接收数据
-        /// </summary>
+        /// <summary>开始异步接收数据</summary>
         /// <param name="e"></param>
         protected virtual void ReceiveAsync(NetEventArgs e)
         {
@@ -94,9 +83,7 @@ namespace NewLife.Net.Udp
             }
         }
 
-        /// <summary>
-        /// 开始异步接收数据
-        /// </summary>
+        /// <summary>开始异步接收数据</summary>
         public void ReceiveAsync()
         {
             NetEventArgs e = Pop();
@@ -115,14 +102,10 @@ namespace NewLife.Net.Udp
         #endregion
 
         #region 事件
-        /// <summary>
-        /// 数据到达。在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。
-        /// </summary>
+        /// <summary>数据到达。在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
         public event EventHandler<NetEventArgs> Received;
 
-        /// <summary>
-        /// 接收到数据时
-        /// </summary>
+        /// <summary>接收到数据时</summary>
         /// <param name="e"></param>
         protected virtual void OnReceive(NetEventArgs e)
         {
@@ -146,9 +129,7 @@ namespace NewLife.Net.Udp
             ThreadPoolCallback(ProcessReceive, e);
         }
 
-        /// <summary>
-        /// 处理接收
-        /// </summary>
+        /// <summary>处理接收</summary>
         /// <param name="e"></param>
         private void ProcessReceive(NetEventArgs e)
         {
@@ -184,9 +165,7 @@ namespace NewLife.Net.Udp
             }
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <param name="e"></param>
         protected override void OnComplete(NetEventArgs e)
         {
@@ -220,36 +199,23 @@ namespace NewLife.Net.Udp
         #endregion
 
         #region 发送
-        /// <summary>
-        /// 向指定目的地发送信息
-        /// </summary>
+        /// <summary>向指定目的地发送信息</summary>
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
         /// <param name="size"></param>
         /// <param name="remoteEP"></param>
-        public void Send(Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP)
-        {
-            Server.SendTo(buffer, offset, size, SocketFlags.None, remoteEP);
-        }
+        public void Send(Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP) { Server.SendTo(buffer, offset, size, SocketFlags.None, remoteEP); }
 
-        /// <summary>
-        /// 向指定目的地发送信息
-        /// </summary>
+        /// <summary>向指定目的地发送信息</summary>
         /// <param name="buffer"></param>
         /// <param name="remoteEP"></param>
-        public void Send(Byte[] buffer, EndPoint remoteEP)
-        {
-            Send(buffer, 0, buffer.Length, remoteEP);
-        }
+        public void Send(Byte[] buffer, EndPoint remoteEP) { Send(buffer, 0, buffer.Length, remoteEP); }
 
-        /// <summary>
-        /// 向指定目的地发送信息
-        /// </summary>
+        /// <summary>向指定目的地发送信息</summary>
         /// <param name="message"></param>
         /// <param name="remoteEP"></param>
         public void Send(String message, EndPoint remoteEP)
         {
-            //Server.SendTo(Encoding.UTF8.GetBytes(message), remoteEP);
             Byte[] buffer = Encoding.UTF8.GetBytes(message);
             Send(buffer, 0, buffer.Length, remoteEP);
         }
