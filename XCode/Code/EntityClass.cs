@@ -107,7 +107,7 @@ namespace XCode.Code
             Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindTableAttribute)),
                 new CodeAttributeArgument(new CodePrimitiveExpression(Table.Name)),
                 new CodeAttributeArgument("Description", new CodePrimitiveExpression(Table.Description)),
-                new CodeAttributeArgument("ConnName", new CodePrimitiveExpression(Assembly.Dal.ConnName)),
+                new CodeAttributeArgument("ConnName", new CodePrimitiveExpression(Assembly.Name)),
                 new CodeAttributeArgument("DbType", new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(typeof(DatabaseType)), Table.DbType.ToString()))
                 ));
 
@@ -182,7 +182,7 @@ namespace XCode.Code
                 new CodeAttributeArgument(new CodePrimitiveExpression(field.ID)),
                 new CodeAttributeArgument(new CodePrimitiveExpression(field.Name)),
                 new CodeAttributeArgument(new CodePrimitiveExpression(field.Description)),
-                new CodeAttributeArgument(new CodePrimitiveExpression(field.Default == null ? "null" : field.Default)),
+                new CodeAttributeArgument(new CodePrimitiveExpression(field.Default == null ? null : field.Default)),
                 new CodeAttributeArgument(new CodePrimitiveExpression(field.RawType)),
                 new CodeAttributeArgument(new CodePrimitiveExpression(field.Precision)),
                 new CodeAttributeArgument(new CodePrimitiveExpression(field.Scale)),

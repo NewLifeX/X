@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Diagnostics;
-using NewLife.Log;
-using NewLife.Compression;
-using XCode.DataAccessLayer;
-using NewLife.Serialization;
 using System.IO;
-using NewLife.Net.Protocols.DNS;
-using NewLife.Net.Udp;
-using System.Net;
-using NewLife.Net.Sockets;
-using System.Globalization;
-using NewLife.Net;
+using NewLife.Log;
 using NewLife.Net.Application;
+using NewLife.Net.Protocols.DNS;
+using NewLife.Net.Sockets;
+using NewLife.Net.Udp;
+using XCode.DataAccessLayer;
+using NewLife.Threading;
+using System.Collections.Generic;
+using XCode;
+using XCode.Code;
+using NewLife.Reflection;
 
 namespace Test
 {
@@ -28,7 +28,7 @@ namespace Test
                 try
                 {
 #endif
-                Test4();
+                    Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -114,6 +114,53 @@ namespace Test
         {
             AppTest.Start();
             //NetHelper.Wake("00-24-8C-04-C0-9B", "00-24-8C-04-C0-91");
+        }
+
+        static void Test5()
+        {
+            DAL.ShowSQL = false;
+
+            var asm = EntityAssembly.Create("User", DAL.Import(File.ReadAllText("user.xml")));
+            var eop = EntityFactory.CreateOperate(AssemblyX.Create(asm).GetType("User"));
+            if (DAL.Create(eop.ConnName).DbType == DatabaseType.SqlServer)
+                eop.Execute("truncate table " + eop.FormatName(eop.TableName));
+            else
+                eop.Execute("delete from " + eop.FormatName(eop.TableName));
+
+            String file = "User.sql";
+            var fi = new FileInfo(file);
+            while (!fi.Exists && fi.Directory != fi.Directory.Root) fi = new FileInfo(Path.Combine(fi.Directory.Parent.FullName, fi.Name));
+            Console.WriteLine("分析文件：{0}", fi.FullName);
+
+            Int32 total = 0;
+            using (StreamReader reader = new StreamReader(fi.FullName))
+            {
+                eop.BeginTransaction();
+                CodeTimer.TimeLine("导入", 6430000, s =>
+                {
+                    if (reader.EndOfStream) return;
+                    String line = reader.ReadLine();
+                    if (line.IsNullOrWhiteSpace()) return;
+
+                    Int32 p1 = line.IndexOf('#');
+                    Int32 p2 = line.LastIndexOf('#');
+
+                    String user = line.Substring(0, p1).Trim();
+                    String pass = line.Substring(p1 + 1, p2 - p1 - 1).Trim();
+                    String mail = line.Substring(p2 + 1).Trim();
+
+                    // 入库
+                    var entity = eop.Create();
+                    entity.SetItem("Name", user);
+                    entity.SetItem("Pass", pass);
+                    entity.SetItem("Mail", mail);
+                    entity.Insert();
+
+                    total++;
+                }, false);
+                eop.Commit();
+            }
+            Console.WriteLine(total);
         }
     }
 }

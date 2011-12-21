@@ -248,34 +248,6 @@ namespace XCode.DataAccessLayer
             return GetTables(rows);
         }
 
-        //protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
-        //{
-        //    if (!String.IsNullOrEmpty(typeName))
-        //    {
-        //        Type type = Type.GetType(typeName);
-        //        if (type != null)
-        //        {
-        //            switch (Type.GetTypeCode(type))
-        //            {
-        //                case TypeCode.UInt16:
-        //                    type = typeof(Int16);
-        //                    break;
-        //                case TypeCode.UInt32:
-        //                    type = typeof(Int32);
-        //                    break;
-        //                case TypeCode.UInt64:
-        //                    type = typeof(Int64);
-        //                    break;
-        //                default:
-        //                    break;
-        //            }
-        //            typeName = type.FullName;
-        //        }
-        //    }
-
-        //    return base.FindDataType(field, typeName, isLong);
-        //}
-
         protected override string GetFieldType(IDataColumn field)
         {
             String typeName = base.GetFieldType(field);
@@ -316,38 +288,15 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据定义
-        //public override string AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
-        //{
-        //    // SQLite的自增将会被识别为64位，而实际应用一般使用32位，不需要修改
-        //    if (field.DataType == typeof(Int32) && field.Identity &&
-        //        oldfield.DataType == typeof(Int64) && oldfield.Identity)
-        //        return String.Empty;
+        protected override void CreateDatabase()
+        {
+            if (!(Database as SQLite).IsMemoryDatabase) base.CreateDatabase();
+        }
 
-        //    // 重新拿字段，得到最新的
-        //    List<IDataColumn> list = GetFields(field.Table);
-        //    Int32 n = -1;
-        //    for (int i = 0; i < list.Count; i++)
-        //    {
-        //        if (list[i].Name == oldfield.Name)
-        //        {
-        //            n = i;
-        //            break;
-        //        }
-        //    }
-        //    if (n < 0) return null;
-
-        //    IDataColumn[] oldColumns = list.ToArray();
-        //    list[n] = field;
-        //    IDataColumn[] newColumns = list.ToArray();
-
-        //    return ReBuildTable(field.Table, newColumns, oldColumns);
-        //}
-
-        //public override string DropColumnSQL(IDataColumn field)
-        //{
-        //    // 返回Empty，告诉反向工程，该数据库类型不支持该功能，请不要输出日志
-        //    return String.Empty;
-        //}
+        protected override void DropDatabase()
+        {
+            if (!(Database as SQLite).IsMemoryDatabase) base.DropDatabase();
+        }
 
         /// <summary>
         /// 删除索引方法

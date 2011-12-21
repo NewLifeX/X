@@ -145,7 +145,7 @@ namespace XCode.DataAccessLayer
             if (!File.Exists(FileName)) File.Create(FileName).Dispose();
         }
 
-        protected void DropDatabase()
+        protected virtual void DropDatabase()
         {
             //首先关闭数据库
             DbBase db = Database as DbBase;

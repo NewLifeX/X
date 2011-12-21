@@ -439,7 +439,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IEntityOperate CreateOperate(String tableName)
         {
-            Assembly asm = EntityAssembly.Create(this);
+            Assembly asm = EntityAssembly.Create(ConnName, Tables);
             Type type = TypeX.GetType(asm, tableName);
             if (type == null) return null;
 

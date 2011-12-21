@@ -16,13 +16,20 @@ namespace XCode.Code
     public class EntityAssembly
     {
         #region 属性
-        private DAL _Dal;
-        /// <summary>数据访问层</summary>
-        public DAL Dal
-        {
-            get { return _Dal; }
-            set { _Dal = value; }
-        }
+        //private DAL _Dal;
+        ///// <summary>数据访问层</summary>
+        //public DAL Dal
+        //{
+        //    get { return _Dal; }
+        //    set { _Dal = value; }
+        //}
+        private String _Name;
+        /// <summary>名称</summary>
+        public String Name { get { return _Name; } set { _Name = value; } }
+
+        private List<IDataTable> _Tables;
+        /// <summary>表集合</summary>
+        public List<IDataTable> Tables { get { return _Tables; } set { _Tables = value; } }
 
         private List<EntityClass> _Classes;
         /// <summary>实体类集合</summary>
@@ -54,7 +61,7 @@ namespace XCode.Code
             {
                 if (_NameSpace == null)
                 {
-                    _NameSpace = new CodeNamespace(String.Format("XCode.{0}.Entities", Dal.ConnName));
+                    _NameSpace = new CodeNamespace(String.Format("XCode.{0}.Entities", Name));
                     _NameSpace.Imports.Add(new CodeNamespaceImport("System"));
                     _NameSpace.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
                     _NameSpace.Imports.Add(new CodeNamespaceImport("System.ComponentModel"));
@@ -77,25 +84,19 @@ namespace XCode.Code
         /// <summary>
         ///为数据访问层创建实体程序集
         /// </summary>
-        /// <param name="dal"></param>
+        /// <param name="name"></param>
+        /// <param name="tables"></param>
         /// <returns></returns>
-        public static Assembly Create(DAL dal)
+        public static Assembly Create(String name, List<IDataTable> tables)
         {
-            //String key = dal.ConnName;
-            //if (cache.ContainsKey(key)) return cache[key];
-            //lock (cache)
-            //{
-            //    if (cache.ContainsKey(key)) return cache[key];
-
-            return cache.GetItem(dal.ConnName, delegate(String key)
+            return cache.GetItem(name, k =>
             {
                 EntityAssembly asm = new EntityAssembly();
-                asm.Dal = dal;
+                asm.Name = name;
+                asm.Tables = tables;
                 asm.CreateAll();
 
-                Assembly am = asm.Compile();
-                //cache.Add(key, am);
-                return am;
+                return asm.Compile();
             });
         }
         #endregion
@@ -152,7 +153,7 @@ namespace XCode.Code
         /// <returns></returns>
         public EntityClass Create(String name)
         {
-            foreach (IDataTable item in Dal.Tables)
+            foreach (IDataTable item in Tables)
             {
                 if (item.Name == name) return Create(item);
             }
@@ -164,7 +165,7 @@ namespace XCode.Code
         /// </summary>
         public void CreateAll()
         {
-            foreach (IDataTable item in Dal.Tables)
+            foreach (IDataTable item in Tables)
             {
                 EntityClass entity = Create(item);
                 //entity.Create();
@@ -219,7 +220,7 @@ namespace XCode.Code
                 if (DAL.Debug)
                 {
                     options.GenerateInMemory = false;
-                    options.OutputAssembly = String.Format("XCode.{0}.dll", Dal.ConnName);
+                    options.OutputAssembly = String.Format("XCode.{0}.dll", Name);
 
                     String path = XTrace.TempPath;
                     if (!Directory.Exists(path)) Directory.CreateDirectory(path);
@@ -253,7 +254,7 @@ namespace XCode.Code
             else
             {
                 // 先生成代码文件，方便调试
-                String fileName = Path.Combine(XTrace.TempPath, Dal.ConnName + ".cs");
+                String fileName = Path.Combine(XTrace.TempPath, Name + ".cs");
                 using (StreamWriter writer = new StreamWriter(fileName))
                 {
                     var op = new CodeGeneratorOptions();
@@ -315,10 +316,7 @@ namespace XCode.Code
         /// 已重载。
         /// </summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return Dal.ToString();
-        }
+        public override string ToString() { return Name; }
         #endregion
     }
 }
