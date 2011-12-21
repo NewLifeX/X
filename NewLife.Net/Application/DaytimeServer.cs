@@ -48,11 +48,11 @@ namespace NewLife.Net.Application
                 base.OnAccepted(sender, e);
 
                 Byte[] buffer = Encoding.ASCII.GetBytes(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff"));
-                Send(e.UserToken as SocketBase, buffer, 0, buffer.Length, e.RemoteEndPoint);
+                Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
             }
             finally
             {
-                Disconnect(e.UserToken as SocketBase);
+                Disconnect(e.Socket);
             }
         }
     }

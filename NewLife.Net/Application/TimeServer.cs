@@ -56,11 +56,11 @@ namespace NewLife.Net.Application
                 // 因为要发往网络，这里调整网络字节序
                 s = IPAddress.HostToNetworkOrder(s);
                 Byte[] buffer = BitConverter.GetBytes(s);
-                Send(e.UserToken as SocketBase, buffer, 0, buffer.Length, e.RemoteEndPoint);
+                Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
             }
             finally
             {
-                Disconnect(e.UserToken as SocketBase);
+                Disconnect(e.Socket);
             }
         }
     }

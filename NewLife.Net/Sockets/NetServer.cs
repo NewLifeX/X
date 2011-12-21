@@ -235,7 +235,7 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         protected virtual void OnAccepted(Object sender, NetEventArgs e)
         {
-            TcpClientX session = e.UserToken as TcpClientX;
+            TcpClientX session = e.Socket as TcpClientX;
             if (session != null)
             {
                 session.Received += OnReceived;

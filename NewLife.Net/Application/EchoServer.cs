@@ -50,14 +50,14 @@ namespace NewLife.Net.Application
                 else
                     WriteLog("Echo {0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString());
 
-                Send(e.UserToken as SocketBase, e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
+                Send(e.Socket, e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
 
                 // 等一秒，等客户端接收数据
                 Thread.Sleep(1000);
             }
             finally
             {
-                Disconnect(e.UserToken as SocketBase);
+                Disconnect(e.Socket);
             }
         }
     }

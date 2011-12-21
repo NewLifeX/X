@@ -41,7 +41,7 @@ namespace NewLife.Net.IO
         #region 事件
         void server_Accepted(object sender, NetEventArgs e)
         {
-            TcpClientX session = e.UserToken as TcpClientX;
+            TcpClientX session = e.Socket as TcpClientX;
             if (session == null) return;
 
             //session.NoDelay = false;

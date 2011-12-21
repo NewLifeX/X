@@ -17,6 +17,10 @@ namespace NewLife.Net.Sockets
         /// <summary>使用中</summary>
         public Boolean Used { get { return _Used; } set { _Used = value; } }
 
+        private SocketBase _Socket;
+        /// <summary>经过封装的Socket对象，默认就是从对象池<seealso cref="SocketBase.Pool"/>中借出当前网络事件参数的那个SocketBase</summary>
+        public SocketBase Socket { get { return _Socket; } set { _Socket = value; } }
+
         private Exception _Error;
         /// <summary>异常信息</summary>
         public Exception Error { get { return _Error; } set { _Error = value; } }

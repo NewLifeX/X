@@ -101,7 +101,7 @@ namespace NewLife.Net.Tcp
             // 建立会话
             TcpSession session = CreateSession(e);
             session.NoDelay = this.NoDelay;
-            e.UserToken = session;
+            e.Socket = session;
             if (Accepted != null) Accepted(this, e);
 
             if (session.Socket != null && session.Socket.Connected) session.ReceiveAsync(e);

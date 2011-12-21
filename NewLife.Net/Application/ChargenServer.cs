@@ -45,7 +45,7 @@ namespace NewLife.Net.Application
             thread.Name = "Chargen.LoopSend";
             thread.IsBackground = true;
             thread.Priority = ThreadPriority.Lowest;
-            thread.Start(new Object[] { e.UserToken, e.RemoteEndPoint });
+            thread.Start(new Object[] { e.Socket, e.RemoteEndPoint });
 
             // 调用基类，为接收数据准备，避免占用过大内存
             base.OnAccepted(sender, e);

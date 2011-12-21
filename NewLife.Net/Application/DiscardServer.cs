@@ -49,7 +49,7 @@ namespace NewLife.Net.Application
             }
             finally
             {
-                Disconnect(e.UserToken as SocketBase);
+                Disconnect(e.Socket);
             }
         }
     }

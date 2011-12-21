@@ -123,7 +123,8 @@ namespace NewLife.Net.Sockets
             if (e.Used) throw new Exception("才刚出炉，怎么可能使用中呢？");
 
             e.AcceptSocket = Socket;
-            e.UserToken = this;
+            //e.UserToken = this;
+            e.Socket = this;
             e.Completed += OnCompleted;
             if (e.Buffer == null)
             {
@@ -152,6 +153,7 @@ namespace NewLife.Net.Sockets
 
             e.Error = null;
             e.UserToken = null;
+            e.Socket = null;
             e.AcceptSocket = null;
             e.Completed -= OnCompleted;
 
@@ -266,14 +268,10 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         protected virtual void OnComplete(NetEventArgs e) { }
 
-        /// <summary>
-        /// 错误发生/断开连接时
-        /// </summary>
+        /// <summary>错误发生/断开连接时</summary>
         public event EventHandler<NetEventArgs> Error;
 
-        /// <summary>
-        /// 错误发生/断开连接时。拦截Error事件中的所有异常，不外抛，防止因为Error异常导致多次调用OnError
-        /// </summary>
+        /// <summary>错误发生/断开连接时。拦截Error事件中的所有异常，不外抛，防止因为Error异常导致多次调用OnError</summary>
         /// <param name="e"></param>
         /// <param name="ex"></param>
         protected void ProcessError(NetEventArgs e, Exception ex)
