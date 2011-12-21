@@ -135,12 +135,18 @@ namespace Test
             Int32 total = 0;
             using (StreamReader reader = new StreamReader(fi.FullName))
             {
-                eop.BeginTransaction();
-                CodeTimer.TimeLine("导入", 6430000, s =>
+                //eop.BeginTransaction();
+                CodeTimer.TimeLine("导入", 6430000, index =>
                 {
-                    if (reader.EndOfStream) return;
+                    if (reader.EndOfStream)
+                    {
+                        eop.Commit();
+                        return;
+                    }
                     String line = reader.ReadLine();
                     if (line.IsNullOrWhiteSpace()) return;
+
+                    if (index == 0) eop.BeginTransaction();
 
                     Int32 p1 = line.IndexOf('#');
                     Int32 p2 = line.LastIndexOf('#');
@@ -156,9 +162,15 @@ namespace Test
                     entity.SetItem("Mail", mail);
                     entity.Insert();
 
+                    if (index % 1000 == 0)
+                    {
+                        eop.Commit();
+                        eop.BeginTransaction();
+                    }
+
                     total++;
                 }, false);
-                eop.Commit();
+                //eop.Commit();
             }
             Console.WriteLine(total);
         }
