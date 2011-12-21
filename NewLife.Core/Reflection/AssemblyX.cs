@@ -329,6 +329,38 @@ namespace NewLife.Reflection
         }
         #endregion
 
+        #region 方法
+        /// <summary>在程序集中查找类型</summary>
+        /// <param name="typeName"></param>
+        /// <returns></returns>
+        public Type GetType(String typeName)
+        {
+            Type type = Asm.GetType(typeName);
+            if (type != null) return type;
+
+            // 如果没有包含圆点，说明其不是FullName
+            if (!typeName.Contains("."))
+            {
+                Type[] types = Asm.GetTypes();
+                if (types != null && types.Length > 0)
+                {
+                    foreach (Type item in types)
+                    {
+                        if (item.Name == typeName) return item;
+                    }
+                }
+
+                // 遍历所有类型，包括内嵌类型
+                foreach (var item in TypeXs)
+                {
+                    if (item.Name == typeName) return item;
+                }
+            }
+
+            return null;
+        }
+        #endregion
+
         #region 插件
         /// <summary>
         /// 查找插件

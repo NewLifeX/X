@@ -364,7 +364,9 @@ namespace NewLife.Log
                     if (i > 0 && sw.Elapsed.TotalMilliseconds > 10)
                     {
                         Double d = (Double)i / Times;
-                        Console.Write("{0,7:n0}ms {1:p}", sw.Elapsed.TotalMilliseconds, d);
+                        Double ms = sw.Elapsed.TotalMilliseconds;
+                        TimeSpan ts = new TimeSpan(0, 0, 0, 0, (Int32)(ms * Times / i));
+                        Console.Write("{0,7:n0}ms {1:p} Total=>{2}", ms, d, ts);
                         Console.CursorLeft = left;
                     }
                 }

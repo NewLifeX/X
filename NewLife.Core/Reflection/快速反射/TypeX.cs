@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using NewLife.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Exceptions;
+using NewLife.Linq;
 
 namespace NewLife.Reflection
 {
@@ -454,48 +454,37 @@ namespace NewLife.Reflection
                 Assembly.GetExecutingAssembly(),
                 Assembly.GetCallingAssembly(), 
                 Assembly.GetEntryAssembly() };
+            var loads = new List<Assembly>();
 
-            foreach (Assembly asm in asms)
+            foreach (var asm in asms)
             {
-                if (asm != null) type = asm.GetType(typeName);
+                if (asm == null || loads.Contains(asm)) continue;
+                loads.Add(asm);
+
+                type = asm.GetType(typeName);
                 if (type != null) return type;
             }
 
             // 尝试所有程序集
-            //List<AssemblyX> list = AssemblyX.GetAssemblies();
-            //if (list != null && list.Count > 0)
+            foreach (var asm in AssemblyX.GetAssemblies())
             {
-                foreach (AssemblyX asm in AssemblyX.GetAssemblies())
-                {
-                    type = FindByNameInAssembly(asm.Asm, typeName);
-                    if (type != null) return type;
-                }
+                if (loads.Contains(asm.Asm)) continue;
+                loads.Add(asm.Asm);
+
+                type = asm.GetType(typeName);
+                if (type != null) return type;
             }
 
             if (isLoadAssembly)
             {
-                //// 尝试加载程序集
-                //AssemblyX.ReflectionOnlyLoad();
-
-                //// 再试一次
-                ////list = AssemblyX.GetAssemblies();
-                ////if (list != null && list.Count > 0)
-                //{
-                //    foreach (AssemblyX asm in AssemblyX.GetAssemblies())
-                //    {
-                //        type = FindByNameInAssembly(asm.Asm, typeName);
-                //        if (type != null) return type;
-                //    }
-                //}
-
                 foreach (AssemblyX asm in AssemblyX.ReflectionOnlyGetAssemblies())
                 {
-                    type = FindByNameInAssembly(asm.Asm, typeName);
+                    type = asm.GetType(typeName);
                     if (type != null)
                     {
                         // 真实加载
                         Assembly asm2 = Assembly.LoadFile(asm.Asm.Location);
-                        Type type2 = FindByNameInAssembly(asm2, typeName);
+                        Type type2 = AssemblyX.Create(asm2).GetType(typeName);
                         if (type2 != null) type = type2;
 
                         return type;
@@ -503,35 +492,14 @@ namespace NewLife.Reflection
                 }
             }
 
-            // 尝试系统的
-            if (!typeName.Contains("."))
-            {
-                type = Type.GetType("System." + typeName);
-                if (type != null) return type;
-                type = Type.GetType("NewLife." + typeName);
-                if (type != null) return type;
-            }
-
-            return null;
-        }
-
-        static Type FindByNameInAssembly(Assembly asm, String typeName)
-        {
-            Type type = asm.GetType(typeName);
-            if (type != null) return type;
-
-            // 如果没有包含圆点，说明其不是FullName
-            if (!typeName.Contains("."))
-            {
-                Type[] types = asm.GetTypes();
-                if (types != null && types.Length > 0)
-                {
-                    foreach (Type item in types)
-                    {
-                        if (item.Name == typeName) return item;
-                    }
-                }
-            }
+            //// 尝试系统的
+            //if (!typeName.Contains("."))
+            //{
+            //    type = Type.GetType("System." + typeName);
+            //    if (type != null) return type;
+            //    type = Type.GetType("NewLife." + typeName);
+            //    if (type != null) return type;
+            //}
 
             return null;
         }
