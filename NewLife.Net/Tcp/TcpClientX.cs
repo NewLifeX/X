@@ -10,9 +10,7 @@ namespace NewLife.Net.Tcp
     public class TcpClientX : SocketClient
     {
         #region 属性
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         public override ProtocolType ProtocolType { get { return ProtocolType.Tcp; } }
 
         private IPEndPoint _RemoteEndPoint;
@@ -62,6 +60,16 @@ namespace NewLife.Net.Tcp
 
                 OnError(e, null);
             }
+        }
+
+        /// <summary>开始异步接收，同时处理传入的事件参数，里面可能有接收到的数据</summary>
+        /// <param name="e"></param>
+        internal new void ReceiveAsync(NetEventArgs e)
+        {
+            if (e.BytesTransferred > 0)
+                OnReceive(e);
+            else
+                base.ReceiveAsync(e);
         }
         #endregion
     }

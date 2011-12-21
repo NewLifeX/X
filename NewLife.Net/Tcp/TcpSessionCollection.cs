@@ -1,43 +1,25 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
-using NewLife.Net.Common;
-using NewLife.Net.Sockets;
 using NewLife.Threading;
 
 namespace NewLife.Net.Tcp
 {
     /// <summary>Tcp会话集合。其中Tcp会话使用弱引用，允许GC及时回收不再使用的会话。</summary>
-    public class TcpSessionCollection : Dictionary<Int32, WeakReference<TcpSession>>
+    class TcpSessionCollection : DisposeBase, ICollection<TcpClientX>
     {
+        List<TcpClientX> _list = new List<TcpClientX>();
+
         private Int32 sessionID = 0;
         /// <summary>添加新会话，并设置会话编号</summary>
-        /// <param name="session"></param>
-        public void Add(TcpSession session)
+        /// <param name="client"></param>
+        public void Add(TcpClientX client)
         {
-            lock (this)
+            lock (_list)
             {
-                session.ID = ++sessionID;
+                client.OnDisposed += (s, e) => Remove(client);
 
-                Int32 index = Count + 1;
-                if (!ContainsKey(index)) base.Add(index, session);
-
-                TcpSessionCollection collection = this;
-                session.Error += delegate(Object sender, NetEventArgs e)
-                {
-                    if (!collection.ContainsKey(index)) return;
-                    lock (collection)
-                    {
-                        if (!collection.ContainsKey(index)) return;
-                        collection.Remove(index);
-                    }
-                };
-
-                if (clearTimer == null)
-                {
-                    //clearTimer = new Timer(new TimerCallback(RemoveNotAlive), null, ClearPeriod, ClearPeriod);
-                    clearTimer = new TimerX(RemoveNotAlive, null, ClearPeriod, ClearPeriod);
-                }
+                if (clearTimer == null) clearTimer = new TimerX(e => RemoveNotAlive(), null, ClearPeriod, ClearPeriod);
             }
         }
 
@@ -50,60 +32,71 @@ namespace NewLife.Net.Tcp
         {
             if (clearTimer != null) clearTimer.Dispose();
 
-            if (Count < 1) return;
-
-            WeakReference<TcpSession>[] sessions = null;
-
-            lock (this)
+            if (_list.Count < 1) return;
+            lock (_list)
             {
-                if (Count < 1) return;
-                sessions = new WeakReference<TcpSession>[Count];
-                Values.CopyTo(sessions, 0);
-            }
+                if (_list.Count < 1) return;
 
-            foreach (WeakReference<TcpSession> item in sessions)
-            {
-                if (item == null || !item.IsAlive) continue;
-                TcpSession session = item.Target;
-                if (session == null || session.Disposed || session.Socket == null) continue;
+                foreach (var item in _list)
+                {
+                    if (item == null || item.Disposed || item.Socket == null) continue;
 
-                item.Target.Close();
+                    item.Close();
+                }
+
+                _list.Clear();
             }
         }
 
         /// <summary>清理会话计时器</summary>
         private TimerX clearTimer;
 
-        void RemoveNotAlive(Object state)
-        {
-            RemoveNotAliveInternal();
-            //Console.WriteLine("{0} {1}", DateTime.Now, Server.ToString());
-        }
-
         /// <summary>移除不活动的会话</summary>
-        void RemoveNotAliveInternal()
+        void RemoveNotAlive()
         {
-            if (Count < 1) return;
+            if (_list.Count < 1) return;
 
-            lock (this)
+            lock (_list)
             {
-                if (Count < 1) return;
+                if (_list.Count < 1) return;
 
-                List<Int32> list = new List<Int32>();
-                foreach (Int32 index in Keys)
+                for (int i = _list.Count - 1; i >= 0; i--)
                 {
-                    WeakReference<TcpSession> item = this[index];
-                    if (item == null || !item.IsAlive) list.Add(index);
-                    TcpSession session = item.Target;
-                    if (session == null || session.Disposed || session.Socket == null) list.Add(index);
-                }
-                if (list.Count < 1) return;
-
-                foreach (Int32 item in list)
-                {
-                    if (ContainsKey(item)) Remove(item);
+                    var item = _list[i];
+                    if (item == null || item.Disposed || item.Socket == null) _list.RemoveAt(i);
                 }
             }
         }
+
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            CloseAll();
+        }
+
+        #region 成员
+        /// <summary>从集合中移除项</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public Boolean Remove(TcpClientX item)
+        {
+            lock (_list) { return _list.Remove(item); }
+        }
+
+        public void Clear() { _list.Clear(); }
+
+        public bool Contains(TcpClientX item) { return _list.Contains(item); }
+
+        public void CopyTo(TcpClientX[] array, int arrayIndex) { _list.CopyTo(array, arrayIndex); }
+
+        public int Count { get { return _list.Count; } }
+
+        public bool IsReadOnly { get { return (_list as ICollection<TcpClientX>).IsReadOnly; } }
+
+        public IEnumerator<TcpClientX> GetEnumerator() { return _list.GetEnumerator(); }
+
+        IEnumerator IEnumerable.GetEnumerator() { return _list.GetEnumerator(); }
+        #endregion
     }
 }

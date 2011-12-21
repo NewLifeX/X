@@ -93,7 +93,7 @@ namespace Test
 
         static void client_Error(object sender, NetEventArgs e)
         {
-            Console.WriteLine(e.LastOperation + "错误！" + e.UserToken);
+            Console.WriteLine(e.LastOperation + "错误！" + e.Error);
         }
 
         static void client_Received(object sender, NetEventArgs e)
@@ -113,6 +113,7 @@ namespace Test
         static void Test4()
         {
             AppTest.Start();
+            //NetHelper.Wake("00-24-8C-04-C0-9B", "00-24-8C-04-C0-91");
         }
     }
 }

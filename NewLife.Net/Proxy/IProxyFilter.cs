@@ -5,7 +5,7 @@ using System.Text;
 namespace NewLife.Net.Proxy
 {
     /// <summary>代理过滤器结构。</summary>
-    public interface IProxyFilter
+    public interface IProxyFilter : IDisposable
     {
     }
 }

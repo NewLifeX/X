@@ -53,6 +53,7 @@
     <Compile Include="Application\DaytimeServer.cs" />
     <Compile Include="Application\DiscardServer.cs" />
     <Compile Include="Application\EchoServer.cs" />
+    <Compile Include="NetService.cs" />
     <Compile Include="Protocols\DNS\DNSBase.cs" />
     <Compile Include="Protocols\DNS\DNSHeader.cs" />
     <Compile Include="Protocols\DNS\DNSNameAccessor.cs" />
@@ -68,9 +69,9 @@
     <Compile Include="Protocols\DNS\DNS_A.cs" />
     <Compile Include="Protocols\NTP\NTPEnum.cs" />
     <Compile Include="Protocols\NTP\NTP.cs" />
-    <Compile Include="Proxy\IProxy.cs" />
     <Compile Include="Proxy\IProxyFilter.cs" />
     <Compile Include="Proxy\IProxySession.cs" />
+    <Compile Include="Proxy\ProxySession.cs" />
     <Compile Include="Proxy\ProxyBase.cs" />
     <Compile Include="Sockets\Netbase.cs" />
     <Compile Include="Sockets\NetServer.cs" />
@@ -82,7 +83,6 @@
     <Compile Include="Sockets\SocketStream.cs" />
     <Compile Include="Tcp\TcpClientX.cs" />
     <Compile Include="Tcp\TcpServer.cs" />
-    <Compile Include="Tcp\TcpSession.cs" />
     <Compile Include="Tcp\TcpSessionCollection.cs" />
     <Compile Include="Udp\UdpClientX.cs" />
     <Compile Include="Udp\UdpServer.cs" />

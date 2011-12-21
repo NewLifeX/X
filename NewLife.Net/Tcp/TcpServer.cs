@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Net.Sockets;
+using System.Collections.Generic;
 
 namespace NewLife.Net.Tcp
 {
@@ -86,7 +87,7 @@ namespace NewLife.Net.Tcp
 
         /// <summary>新客户端到达</summary>
         /// <param name="e"></param>
-        protected virtual void OnAccept(NetEventArgs e)
+        protected virtual TcpClientX OnAccept(NetEventArgs e)
         {
             // 再次开始
             if (e.SocketError != SocketError.OperationAborted) StartAccept();
@@ -95,16 +96,18 @@ namespace NewLife.Net.Tcp
             if (e.SocketError != SocketError.Success)
             {
                 OnError(e, null);
-                return;
+                return null;
             }
 
             // 建立会话
-            TcpSession session = CreateSession(e);
+            var session = CreateSession(e);
             session.NoDelay = this.NoDelay;
             e.Socket = session;
             if (Accepted != null) Accepted(this, e);
 
             if (session.Socket != null && session.Socket.Connected) session.ReceiveAsync(e);
+
+            return session;
         }
 
         /// <summary>已重载。</summary>
@@ -143,9 +146,9 @@ namespace NewLife.Net.Tcp
 
         #region 会话
         private Object _Sessions_lock = new object();
-        private TcpSessionCollection _Sessions;
+        private ICollection<TcpClientX> _Sessions;
         /// <summary>会话集合</summary>
-        public TcpSessionCollection Sessions
+        public ICollection<TcpClientX> Sessions
         {
             get
             {
@@ -162,13 +165,15 @@ namespace NewLife.Net.Tcp
         /// <summary>创建会话</summary>
         /// <param name="e"></param>
         /// <returns></returns>
-        protected virtual TcpSession CreateSession(NetEventArgs e)
+        protected virtual TcpClientX CreateSession(NetEventArgs e)
         {
-            TcpSession session = new TcpSession();
+            var session = new TcpClientX();
             session.Socket = e.AcceptSocket;
             session.RemoteEndPoint = e.AcceptSocket.RemoteEndPoint as IPEndPoint;
             if (e.RemoteEndPoint == null) e.RemoteEndPoint = session.RemoteEndPoint;
+
             Sessions.Add(session);
+
             return session;
         }
         #endregion
@@ -188,8 +193,10 @@ namespace NewLife.Net.Tcp
                     //try
                     {
                         WriteLog("准备释放会话{0}个！", _Sessions.Count);
-                        _Sessions.CloseAll();
-                        _Sessions.Clear();
+                        if (_Sessions is IDisposable)
+                            (_Sessions as IDisposable).Dispose();
+                        else
+                            _Sessions.Clear();
                         _Sessions = null;
                     }
                     //catch { }

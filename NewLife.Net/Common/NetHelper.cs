@@ -2,23 +2,19 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using NewLife.Configuration;
 using NewLife.Log;
-using System.Net.NetworkInformation;
 
 namespace NewLife.Net.Common
 {
-    /// <summary>
-    /// 网络工具类
-    /// </summary>
+    /// <summary>网络工具类</summary>
     public static class NetHelper
     {
         #region 日志输出
         private static Boolean? _Debug;
-        /// <summary>
-        /// 是否调试
-        /// </summary>
+        /// <summary>是否调试</summary>
         public static Boolean Debug
         {
             get
@@ -32,18 +28,14 @@ namespace NewLife.Net.Common
             set { _Debug = value; }
         }
 
-        /// <summary>
-        /// 输出日志
-        /// </summary>
+        /// <summary>输出日志</summary>
         /// <param name="msg"></param>
         public static void WriteLog(String msg)
         {
             XTrace.WriteLine(msg);
         }
 
-        /// <summary>
-        /// 输出日志
-        /// </summary>
+        /// <summary>输出日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public static void WriteLog(String format, params Object[] args)
