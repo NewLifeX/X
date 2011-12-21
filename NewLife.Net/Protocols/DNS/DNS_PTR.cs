@@ -6,23 +6,20 @@ using NewLife.Serialization;
 
 namespace NewLife.Net.Protocols.DNS
 {
-    /// <summary>A记录</summary>
-    public class DNS_A : DNSBase<DNS_A>
+    /// <summary>PTR记录</summary>
+    public class DNS_PTR : DNSBase<DNS_PTR>
     {
         #region 属性
-        /// <summary>IP地址</summary>
-        public IPAddress Address
-        {
-            get { return !String.IsNullOrEmpty(DataString) ? IPAddress.Parse(DataString) : null; ; }
-            set { DataString = value.ToString(); }
-        }
+        private String _DomainName;
+        /// <summary>域名</summary>
+        public String DomainName { get { return DataString; } set { DataString = value; } }
         #endregion
 
         #region 构造
         /// <summary>构造一个A记录实例</summary>
-        public DNS_A()
+        public DNS_PTR()
         {
-            Type = DNSQueryType.A;
+            Type = DNSQueryType.PTR;
             Class = DNSQueryClass.IN;
         }
         #endregion

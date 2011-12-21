@@ -14,15 +14,15 @@ namespace NewLife.Net.Protocols.DNS
         #region 属性
         [NonSerialized]
         private String _Name;
-        /// <summary>属性说明</summary>
+        /// <summary>名称</summary>
         public String Name { get { return _Name; } set { _Name = value; } }
 
         private DNSQueryType _Type = DNSQueryType.A;
-        /// <summary>属性说明</summary>
+        /// <summary>查询类型</summary>
         public DNSQueryType Type { get { return _Type; } set { _Type = value; } }
 
         private DNSQueryClass _Class = DNSQueryClass.IN;
-        /// <summary>属性说明</summary>
+        /// <summary>协议组</summary>
         public DNSQueryClass Class { get { return _Class; } set { _Class = value; } }
 
         private Int32 _TTL;

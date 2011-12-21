@@ -14,7 +14,7 @@ namespace NewLife.Net.Protocols.DNS
 
         private Int16 _ID;
         /// <summary>长度为16位，是一个用户发送查询的时候定义的随机数，当服务器返回结果的时候，返回包的ID与用户发送的一致。</summary>
-        public Int16 ID { get { return _ID > 0 ? _ID : (_ID = gid++); } set { _ID = value; } }
+        public Int16 ID { get { return _ID; } set { _ID = value; } }
 
         /// <summary>默认RecursionDesired</summary>
         private D1 _D1 = D1.RecursionDesired;
@@ -63,6 +63,11 @@ namespace NewLife.Net.Protocols.DNS
         private Int16 _Additionals;
         /// <summary>报文附加段中的附加记录数</summary>
         public Int16 Additionals { get { return _Additionals; } set { _Additionals = value; } }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化一个DNS头部</summary>
+        public DNSHeader() { ID = gid++; }
         #endregion
 
         #region 枚举

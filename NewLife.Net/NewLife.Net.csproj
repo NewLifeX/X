@@ -54,10 +54,11 @@
     <Compile Include="Application\DiscardServer.cs" />
     <Compile Include="Application\EchoServer.cs" />
     <Compile Include="NetService.cs" />
-    <Compile Include="Protocols\DNS\DNSBase.cs" />
+    <Compile Include="Protocols\DNS\DNSEntity.cs" />
     <Compile Include="Protocols\DNS\DNSHeader.cs" />
     <Compile Include="Protocols\DNS\DNSNameAccessor.cs" />
     <Compile Include="Protocols\DNS\DNSRecord.cs" />
+    <Compile Include="Protocols\DNS\DNS_PTR.cs" />
     <Compile Include="Protocols\NTP\NTPClient.cs" />
     <Compile Include="Application\StreamServer.cs" />
     <Compile Include="Application\TimeServer.cs" />

@@ -28,7 +28,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test5();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -58,7 +58,7 @@ namespace Test
 
             String file = "qq.bin";
 
-            DNS_A dns = DNS_A.Read(File.OpenRead("bd.bin"));
+            DNS_A dns = DNS_A.Read(File.OpenRead("qqrs.bin"));
             Console.WriteLine(dns);
             Console.ReadKey(true);
 
@@ -70,25 +70,29 @@ namespace Test
 
         static void Test2()
         {
-            DNS_A dns = new DNS_A();
-            DNSRecord record = new DNSRecord();
-            record.Name = "www.baidu.com";
-            dns.Questions = new DNSRecord[] { record };
-
-            var ms = new MemoryStream();
-            dns.Write(ms);
-            ms.Position = 0;
-
             UdpClientX client = new UdpClientX();
-            client.Connect("192.168.1.1", 53);
+            client.Connect("218.2.135.1", 53);
             client.Error += new EventHandler<NetEventArgs>(client_Error);
             client.Received += new EventHandler<NetEventArgs>(client_Received);
             client.ReceiveAsync();
 
-            Console.WriteLine("正在发送……");
-            client.Send(ms);
+            //Console.WriteLine("正在发送……");
+            //client.Send(ms);
 
             Console.WriteLine("正在接收……");
+
+            String name = null;
+            while (true)
+            {
+                Console.Write("要查询的域名：");
+                name = Console.ReadLine();
+                Console.WriteLine(name);
+                if (name.EqualIgnoreCase("exit")) break;
+
+                DNS_A dns = new DNS_A();
+                dns.Name = name;
+                client.Send(dns.GetStream());
+            }
         }
 
         static void client_Error(object sender, NetEventArgs e)
@@ -99,10 +103,16 @@ namespace Test
         static void client_Received(object sender, NetEventArgs e)
         {
             var client = sender as UdpClientX;
-            Console.WriteLine("收到{0}的数据，共{1}字节", e.RemoteEndPoint, e.BytesTransferred);
+            //Console.WriteLine("收到{0}的数据，共{1}字节", e.RemoteEndPoint, e.BytesTransferred);
 
             var result = DNS_A.Read(e.GetStream());
-            Console.WriteLine(result.Answers[0].DataString);
+            Console.WriteLine("查询：{0}", result.Name);
+            Console.WriteLine("选用地址：{0}", result.Address);
+            Console.WriteLine("全部地址：");
+            foreach (var item in result.Answers)
+            {
+                Console.WriteLine("{0,2} {1} {2}", item.Type, item.DataString, item.TTL);
+            }
         }
 
         static void Test3()
