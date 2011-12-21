@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 namespace NewLife.Threading
@@ -44,14 +43,6 @@ namespace NewLife.Threading
             set { _Timers = value; }
         }
 
-        //private Int32 _DueTime;
-        ///// <summary>开始间隔时间</summary>
-        //public Int32 DueTime
-        //{
-        //    get { return _DueTime; }
-        //    set { _DueTime = value; }
-        //}
-
         private Int32 _Period;
         /// <summary>间隔周期</summary>
         public Int32 Period
@@ -70,14 +61,7 @@ namespace NewLife.Threading
         #endregion
 
         #region 构造
-        ///// <summary>
-        ///// 实例化一个不可重入的定时器
-        ///// </summary>
-        //public TimerX() { }
-
-        /// <summary>
-        /// 实例化一个不可重入的定时器
-        /// </summary>
+        /// <summary>实例化一个不可重入的定时器</summary>
         /// <param name="callback">委托</param>
         /// <param name="state">用户数据</param>
         /// <param name="dueTime">多久之后开始</param>
@@ -97,18 +81,6 @@ namespace NewLife.Threading
 
             TimerXHelper.Add(this);
         }
-
-        private event EventHandler OnClose;
-        /// <summary>
-        /// 销毁时触发
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
-        {
-            base.OnDispose(disposing);
-
-            if (OnClose != null) OnClose(this, EventArgs.Empty);
-        }
         #endregion
 
         #region 内部助手
@@ -124,15 +96,13 @@ namespace NewLife.Threading
                 {
                     timers.Add(timer);
 
-                    timer.OnClose += new EventHandler(delegate(Object sender, EventArgs e)
+                    timer.OnDisposed += new EventHandler(delegate(Object sender, EventArgs e)
                     {
                         TimerX tx = sender as TimerX;
                         if (tx == null) return;
                         lock (timers)
                         {
-                            if (!timers.Contains(tx)) return;
-
-                            timers.Remove(sender as TimerX);
+                            if (timers.Contains(tx)) timers.Remove(tx);
                         }
                     });
 
@@ -157,83 +127,87 @@ namespace NewLife.Threading
                 {
                     try
                     {
-                        #region 准备
-                        if (timers == null || timers.Count < 1)
-                        {
-                            // 没有计时器，设置一个较大的休眠时间
-                            //period = 60000;
+                        var list = Prepare();
 
-                            // 使用事件量来控制线程
-                            if (waitForTimer != null) waitForTimer.Close();
-
-                            waitForTimer = new AutoResetEvent(false);
-                            waitForTimer.WaitOne(Timeout.Infinite, false);
-                        }
-
-                        List<TimerX> list = null;
-                        lock (timers)
-                        {
-                            list = new List<TimerX>(timers);
-                        }
-                        #endregion
-
-                        #region 调度
                         // 记录本次循环有几个任务被处理
                         //Int32 count = 0;
                         // 设置一个较大的间隔，内部会根据处理情况调整该值为最合理值
                         period = 60000;
                         foreach (TimerX timer in list)
                         {
-                            // 删除过期的
-                            if (!timer.Callback.IsAlive)
-                            {
-                                lock (timers)
-                                {
-                                    //if (timers.Contains(timer)) timers.Remove(timer);
-                                    Int32 index = timers.IndexOf(timer);
-                                    if (index >= 0) timers.RemoveAt(index);
-                                }
-                                continue;
-                            }
-
-                            TimeSpan ts = timer.NextTime - DateTime.Now;
-                            Int32 d = (Int32)ts.TotalMilliseconds;
-                            if (d > 0)
-                            {
-                                // 缩小间隔，便于快速调用
-                                if (d < period) period = d;
-
-                                continue;
-                            }
-
-                            try
-                            {
-                                timer.Calling = true;
-
-                                //timer.Callback(timer.State);
-                                // 线程池调用
-                                Action<Object> callback = timer.Callback;
-                                ThreadPoolX.QueueUserWorkItem(delegate() { callback(timer.State); });
-                            }
-                            catch (ThreadAbortException) { throw; }
-                            catch (ThreadInterruptedException) { throw; }
-                            catch { }
-                            finally
-                            {
-                                timer.Timers++;
-                                timer.Calling = false;
-                                timer.NextTime = DateTime.Now.AddMilliseconds(timer.Period);
-                                if (timer.Period < period) period = timer.Period;
-                            }
-                            //count++;
+                            ProcessItem(timer);
                         }
-                        #endregion
                     }
                     catch (ThreadAbortException) { break; }
                     catch (ThreadInterruptedException) { break; }
                     catch { }
 
                     Thread.Sleep(period);
+                }
+            }
+
+            static List<TimerX> Prepare()
+            {
+                if (timers == null || timers.Count < 1)
+                {
+                    // 没有计时器，设置一个较大的休眠时间
+                    //period = 60000;
+
+                    // 使用事件量来控制线程
+                    if (waitForTimer != null) waitForTimer.Close();
+
+                    waitForTimer = new AutoResetEvent(false);
+                    waitForTimer.WaitOne(Timeout.Infinite, false);
+                }
+
+                List<TimerX> list = null;
+                lock (timers)
+                {
+                    list = new List<TimerX>(timers);
+                }
+
+                return list;
+            }
+
+            static void ProcessItem(TimerX timer)
+            {
+                // 删除过期的
+                if (!timer.Callback.IsAlive)
+                {
+                    lock (timers)
+                    {
+                        timers.Remove(timer);
+                    }
+                    return;
+                }
+
+                TimeSpan ts = timer.NextTime - DateTime.Now;
+                Int32 d = (Int32)ts.TotalMilliseconds;
+                if (d > 0)
+                {
+                    // 缩小间隔，便于快速调用
+                    if (d < period) period = d;
+
+                    return;
+                }
+
+                try
+                {
+                    timer.Calling = true;
+
+                    // 线程池调用
+                    Action<Object> callback = timer.Callback;
+                    ThreadPoolX.QueueUserWorkItem(delegate() { callback(timer.State); });
+                }
+                catch (ThreadAbortException) { throw; }
+                catch (ThreadInterruptedException) { throw; }
+                catch { }
+                finally
+                {
+                    timer.Timers++;
+                    timer.Calling = false;
+                    timer.NextTime = DateTime.Now.AddMilliseconds(timer.Period);
+                    if (timer.Period < period) period = timer.Period;
                 }
             }
         }

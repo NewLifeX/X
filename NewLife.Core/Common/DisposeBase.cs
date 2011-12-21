@@ -1,25 +1,18 @@
 ﻿using System;
 using System.Runtime.ConstrainedExecution;
 using System.Threading;
+using System.Xml.Serialization;
 using NewLife.Exceptions;
 using NewLife.Log;
-using System.Xml.Serialization;
 
 namespace NewLife
 {
-    /// <summary>
-    /// 具有销毁资源处理的抽象基类
-    /// </summary>
+    /// <summary>具有销毁资源处理的抽象基类</summary>
     public abstract class DisposeBase : CriticalFinalizerObject, IDisposable
     {
         #region 释放资源
-        /// <summary>
-        /// 释放资源
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-        }
+        /// <summary>释放资源</summary>
+        public void Dispose() { Dispose(true); }
 
         [NonSerialized]
         private Int32 disposed = 0;
@@ -27,9 +20,10 @@ namespace NewLife
         [XmlIgnore]
         public Boolean Disposed { get { return disposed > 0; } }
 
-        /// <summary>
-        /// 释放资源，参数表示是否由Dispose调用。该方法保证OnDispose只被调用一次！
-        /// </summary>
+        /// <summary>被销毁时触发事件</summary>
+        public event EventHandler OnDisposed;
+
+        /// <summary>释放资源，参数表示是否由Dispose调用。该方法保证OnDispose只被调用一次！</summary>
         /// <param name="disposing"></param>
         private void Dispose(Boolean disposing)
         {
@@ -57,9 +51,7 @@ namespace NewLife
             if (Interlocked.CompareExchange(ref disposed, 3, 2) != 2) throw new XException("设计错误，OnDispose应该只被调用一次！代码不应该直接调用OnDispose，而应该调用Dispose。子类重载OnDispose时必须首先调用基类方法！");
         }
 
-        /// <summary>
-        /// 子类重载实现资源释放逻辑时必须首先调用基类方法
-        /// </summary>
+        /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
         protected virtual void OnDispose(Boolean disposing)
         {
@@ -75,17 +67,16 @@ namespace NewLife
             }
 
             // 释放非托管资源
+
+            if (OnDisposed != null) OnDisposed(this, EventArgs.Empty);
         }
 
-        /// <summary>
-        /// 析构函数
-        /// </summary>
-        ~DisposeBase()
-        {
-            // 如果忘记调用Dispose，这里会释放非托管资源
-            // 如果曾经调用过Dispose，因为GC.SuppressFinalize(this)，不会再调用该析构函数
-            Dispose(false);
-        }
+        /// <summary>析构函数</summary>
+        /// <remarks>
+        /// 如果忘记调用Dispose，这里会释放非托管资源
+        /// 如果曾经调用过Dispose，因为GC.SuppressFinalize(this)，不会再调用该析构函数
+        /// </remarks>
+        ~DisposeBase() { Dispose(false); }
         #endregion
     }
 }

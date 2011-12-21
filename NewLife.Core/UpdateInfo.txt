@@ -1,6 +1,7 @@
 ﻿v3.5.2011.1220   序列化框架，FieldSizeAttribute支持样式的多层次引用字段
                  CurrentObject、CurrentMember移到接口中公开
                  读取对象时，如果目标实现了IAccessor接口而对象为空，则提前实例化对象
+				 DisposeBase增加OnDisposed事件，在基类OnDispose之后触发
 
 v3.5.2011.1218   增加压缩命名空间Compression，支持Zip格式
                  调整序列化框架（特别是二进制序列化）的多项功能，更方便使用
