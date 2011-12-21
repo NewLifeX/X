@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using NewLife.Net.Common;
+using NewLife.Net;
 using NewLife.Model;
 
 namespace NewLife.Net.Sockets
 {
     /// <summary>针对异步模型进行封装的Socket服务器</summary>
-    public class SocketServer : SocketBase, IServer
+    public class SocketServer : SocketBase, ISocketServer, IServer
     {
         #region 属性
         #endregion

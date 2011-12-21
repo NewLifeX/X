@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using NewLife.Configuration;
 using NewLife.Log;
 
-namespace NewLife.Net.Common
+namespace NewLife.Net
 {
     /// <summary>网络工具类</summary>
     public static class NetHelper

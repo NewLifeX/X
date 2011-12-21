@@ -7,7 +7,7 @@ using NewLife.Net.Sockets;
 namespace NewLife.Net.Application
 {
     /// <summary>Chargen服务器。不停的向连接者发送数据</summary>
-    public class ChargenServer : NetServer
+    public class ChargenServer : NetAppServer
     {
         /// <summary>实例化一个Chargen服务</summary>
         public ChargenServer()
@@ -19,19 +19,6 @@ namespace NewLife.Net.Application
 
             Name = "Chargen服务";
         }
-
-        ///// <summary>已重载。</summary>
-        //protected override void EnsureCreateServer()
-        //{
-        //    base.EnsureCreateServer();
-
-        //    Name = "Chargen服务";
-
-        //    //// 允许同时处理多个数据包
-        //    //Server.NoDelay = ProtocolType == ProtocolType.Udp;
-        //    //// 使用线程池来处理事件
-        //    //Server.UseThreadPool = true;
-        //}
 
         /// <summary>已重载。</summary>
         /// <param name="sender"></param>

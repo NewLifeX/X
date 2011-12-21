@@ -4,7 +4,7 @@ using System.Text;
 using System.IO;
 using NewLife.Serialization;
 using NewLife.Net.Sockets;
-using NewLife.Net.Common;
+using NewLife.Net;
 
 namespace NewLife.Net.Protocols.DNS
 {

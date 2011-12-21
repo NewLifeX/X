@@ -8,33 +8,16 @@ namespace NewLife.Net.Application
     /// <summary>
     /// Time服务器
     /// </summary>
-    public class TimeServer : NetServer
+    public class TimeServer : NetAppServer
     {
         /// <summary>实例化一个Time服务。向请求者返回1970年1月1日以来的所有秒数</summary>
         public TimeServer()
         {
-            //// 默认Tcp协议
-            //ProtocolType = ProtocolType.Tcp;
             // 默认37端口
             Port = 37;
 
             Name = "Time服务";
         }
-
-        ///// <summary>
-        ///// 已重载。
-        ///// </summary>
-        //protected override void EnsureCreateServer()
-        //{
-        //    base.EnsureCreateServer();
-
-        //    Name = String.Format("Time服务（{0}）", ProtocolType);
-
-        //    //// 允许同时处理多个数据包
-        //    //Server.NoDelay = ProtocolType == ProtocolType.Udp;
-        //    //// 使用线程池来处理事件
-        //    //Server.UseThreadPool = true;
-        //}
 
         static readonly DateTime StartTime = new DateTime(1970, 1, 1);
 

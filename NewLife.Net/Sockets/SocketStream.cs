@@ -2,7 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using NewLife.IO;
-using NewLife.Net.Common;
+using NewLife.Net;
 
 namespace NewLife.Net.Sockets
 {

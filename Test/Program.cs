@@ -10,7 +10,7 @@ using NewLife.Net.Udp;
 using System.Net;
 using NewLife.Net.Sockets;
 using System.Globalization;
-using NewLife.Net.Common;
+using NewLife.Net;
 using NewLife.Net.Application;
 
 namespace Test

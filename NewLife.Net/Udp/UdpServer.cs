@@ -3,12 +3,13 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife.Net.Sockets;
+using System.IO;
 
 namespace NewLife.Net.Udp
 {
     /// <summary>UDP服务器</summary>
     /// <remarks>主要针对APM模型进行简单封装</remarks>
-    public class UdpServer : SocketServer
+    public class UdpServer : SocketServer, ISocketSession
     {
         #region 属性
         /// <summary>已重载。</summary>
@@ -199,25 +200,84 @@ namespace NewLife.Net.Udp
         #endregion
 
         #region 发送
+        /// <summary>发送数据流</summary>
+        /// <param name="stream"></param>
+        /// <param name="remoteEP"></param>
+        /// <returns></returns>
+        public virtual Int64 Send(Stream stream, EndPoint remoteEP = null)
+        {
+            Int64 total = 0;
+
+            Byte[] buffer = new Byte[BufferSize];
+            while (true)
+            {
+                Int32 n = stream.Read(buffer, 0, buffer.Length);
+                if (n <= 0) break;
+
+#if DEBUG
+                if (n >= buffer.Length || ProtocolType == ProtocolType.Tcp && n >= 1452 || ProtocolType == ProtocolType.Udp && n >= 1464)
+                {
+                    WriteLog("接收的实际数据大小{0}超过了缓冲区大小，需要根据真实MTU调整缓冲区大小以提高效率！", n);
+                }
+#endif
+
+                Send(buffer, 0, n);
+                total += n;
+
+                if (n < buffer.Length) break;
+            }
+            return total;
+        }
+
         /// <summary>向指定目的地发送信息</summary>
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
         /// <param name="size"></param>
         /// <param name="remoteEP"></param>
-        public void Send(Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP) { Server.SendTo(buffer, offset, size, SocketFlags.None, remoteEP); }
+        public void Send(Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP = null) { Server.SendTo(buffer, offset, size, SocketFlags.None, remoteEP); }
 
         /// <summary>向指定目的地发送信息</summary>
         /// <param name="buffer"></param>
         /// <param name="remoteEP"></param>
-        public void Send(Byte[] buffer, EndPoint remoteEP) { Send(buffer, 0, buffer.Length, remoteEP); }
+        public void Send(Byte[] buffer, EndPoint remoteEP = null) { Send(buffer, 0, buffer.Length, remoteEP); }
 
         /// <summary>向指定目的地发送信息</summary>
         /// <param name="message"></param>
+        /// <param name="encoding"></param>
         /// <param name="remoteEP"></param>
-        public void Send(String message, EndPoint remoteEP)
+        public void Send(String message, Encoding encoding = null, EndPoint remoteEP = null)
         {
             Byte[] buffer = Encoding.UTF8.GetBytes(message);
             Send(buffer, 0, buffer.Length, remoteEP);
+        }
+        #endregion
+
+        #region 接收
+        /// <summary>接收数据</summary>
+        /// <returns></returns>
+        public Byte[] Receive()
+        {
+            Byte[] buffer = new Byte[BufferSize];
+            if (!Server.IsBound) Bind();
+
+            Int32 size = Server.Receive(buffer);
+            if (size <= 0) return null;
+
+            Byte[] data = new Byte[size];
+            Buffer.BlockCopy(buffer, 0, data, 0, size);
+            return data;
+        }
+
+        /// <summary>接收字符串</summary>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        public String ReceiveString(Encoding encoding = null)
+        {
+            Byte[] buffer = Receive();
+            if (buffer == null || buffer.Length < 1) return null;
+
+            if (encoding == null) encoding = Encoding.UTF8;
+            return encoding.GetString(buffer);
         }
         #endregion
     }

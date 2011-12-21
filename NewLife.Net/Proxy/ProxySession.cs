@@ -12,13 +12,21 @@ namespace NewLife.Net.Proxy
     public class ProxySession : Netbase, IProxySession
     {
         #region 属性
-        private SocketBase _Client;
-        /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
-        public SocketBase Client { get { return _Client; } set { _Client = value; } }
+        private IProxy _Proxy;
+        /// <summary>代理对象</summary>
+        public IProxy Proxy { get { return _Proxy; } set { _Proxy = value; } }
 
-        private SocketBase _Server;
+        private ISocketSession _Client;
+        /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
+        public ISocketSession Client { get { return _Client; } set { _Client = value; } }
+
+        private ISocketServer _Server;
         /// <summary>服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
-        public SocketBase Server { get { return _Server; } set { _Server = value; } }
+        public ISocketServer Server { get { return _Server; } set { _Server = value; } }
+
+        private ISocketClient _Remote;
+        /// <summary>远程服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
+        public ISocketClient Remote { get { return _Remote; } set { _Remote = value; } }
         #endregion
 
         #region 构造
@@ -27,7 +35,15 @@ namespace NewLife.Net.Proxy
 
         /// <summary>通过指定的Socket对象实例化一个代理会话</summary>
         /// <param name="client"></param>
-        public ProxySession(SocketBase client) { Client = client; }
+        public ProxySession(ISocketSession client) { Client = client; }
+        #endregion
+
+        #region 方法
+        /// <summary>开始会话处理</summary>
+        public void Start()
+        {
+            
+        }
         #endregion
     }
 }

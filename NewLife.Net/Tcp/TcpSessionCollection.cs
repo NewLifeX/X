@@ -10,7 +10,7 @@ namespace NewLife.Net.Tcp
     {
         List<TcpClientX> _list = new List<TcpClientX>();
 
-        private Int32 sessionID = 0;
+        //private Int32 sessionID = 0;
         /// <summary>添加新会话，并设置会话编号</summary>
         /// <param name="client"></param>
         public void Add(TcpClientX client)
@@ -77,7 +77,7 @@ namespace NewLife.Net.Tcp
 
         #region 成员
         /// <summary>从集合中移除项</summary>
-        /// <param name="key"></param>
+        /// <param name="item"></param>
         /// <returns></returns>
         public Boolean Remove(TcpClientX item)
         {

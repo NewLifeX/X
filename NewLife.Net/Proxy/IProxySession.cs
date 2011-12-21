@@ -12,11 +12,22 @@ namespace NewLife.Net.Proxy
     public interface IProxySession : IDisposable
     {
         #region 属性
-        /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
-        SocketBase Client { get; set; }
+        /// <summary>代理对象</summary>
+        IProxy Proxy { get; set; }
 
-        /// <summary>服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
-        SocketBase Server { get; set; }
+        /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
+        ISocketServer Server { get; set; }
+
+        /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpClientX/UdpServer</summary>
+        ISocketSession Client { get; set; }
+
+        /// <summary>远程服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
+        ISocketClient Remote { get; set; }
+        #endregion
+
+        #region 方法
+        /// <summary>开始会话处理</summary>
+        void Start();
         #endregion
     }
 }

@@ -7,7 +7,7 @@ using System.Text;
 namespace NewLife.Net.Sockets
 {
     /// <summary>Socket客户端</summary>
-    public abstract class SocketClient : SocketBase
+    public abstract class SocketClient : SocketBase, ISocketClient
     {
         #region 属性
         /// <summary>基础Socket对象</summary>
@@ -173,6 +173,35 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 发送
+        /// <summary>发送数据流</summary>
+        /// <param name="stream"></param>
+        /// <param name="remoteEP"></param>
+        /// <returns></returns>
+        public virtual Int64 Send(Stream stream, EndPoint remoteEP = null)
+        {
+            Int64 total = 0;
+
+            Byte[] buffer = new Byte[BufferSize];
+            while (true)
+            {
+                Int32 n = stream.Read(buffer, 0, buffer.Length);
+                if (n <= 0) break;
+
+#if DEBUG
+                if (n >= buffer.Length || ProtocolType == ProtocolType.Tcp && n >= 1452 || ProtocolType == ProtocolType.Udp && n >= 1464)
+                {
+                    WriteLog("接收的实际数据大小{0}超过了缓冲区大小，需要根据真实MTU调整缓冲区大小以提高效率！", n);
+                }
+#endif
+
+                Send(buffer, 0, n);
+                total += n;
+
+                if (n < buffer.Length) break;
+            }
+            return total;
+        }
+
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>
         /// <returns></returns>

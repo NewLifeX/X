@@ -8,7 +8,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using NewLife.Configuration;
 using NewLife.Log;
-using NewLife.Net.Common;
+using NewLife.Net;
 using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;

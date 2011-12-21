@@ -9,7 +9,7 @@ namespace NewLife.Net.IO
     /// <summary>
     /// 文件服务端
     /// </summary>
-    public class FileServer : NetServer
+    public class FileServer : NetAppServer
     {
         #region 属性
         private String _SavedPath;
@@ -64,7 +64,7 @@ namespace NewLife.Net.IO
                 {
                     stream = tc.Items["Stream"] as Stream;
                 }
-                
+
                 // 把数据写入流
                 e.WriteTo(stream);
 

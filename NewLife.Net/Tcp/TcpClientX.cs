@@ -3,11 +3,12 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Net.Sockets;
+using System.Text;
 
 namespace NewLife.Net.Tcp
 {
     /// <summary>增强TCP客户端</summary>
-    public class TcpClientX : SocketClient
+    public class TcpClientX : SocketClient, ISocketSession
     {
         #region 属性
         /// <summary>已重载。</summary>
@@ -70,6 +71,30 @@ namespace NewLife.Net.Tcp
                 OnReceive(e);
             else
                 base.ReceiveAsync(e);
+        }
+        #endregion
+
+        #region 发送
+        /// <summary>向指定目的地发送信息</summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="size"></param>
+        /// <param name="remoteEP"></param>
+        public void Send(Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP = null) { Client.Send(buffer, offset, size, SocketFlags.None); }
+
+        /// <summary>向指定目的地发送信息</summary>
+        /// <param name="buffer"></param>
+        /// <param name="remoteEP"></param>
+        public void Send(Byte[] buffer, EndPoint remoteEP = null) { Send(buffer, 0, buffer.Length, remoteEP); }
+
+        /// <summary>向指定目的地发送信息</summary>
+        /// <param name="message"></param>
+        /// <param name="encoding"></param>
+        /// <param name="remoteEP"></param>
+        public void Send(String message, Encoding encoding = null, EndPoint remoteEP = null)
+        {
+            Byte[] buffer = Encoding.UTF8.GetBytes(message);
+            Send(buffer, 0, buffer.Length, remoteEP);
         }
         #endregion
     }

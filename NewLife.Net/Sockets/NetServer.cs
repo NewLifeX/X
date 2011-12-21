@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Model;
-using NewLife.Net.Common;
+using NewLife.Net;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
 
@@ -21,7 +21,7 @@ namespace NewLife.Net.Sockets
     /// 重载方法<see cref="EnsureCreateServer"/>来创建一个SocketServer并赋值给<see cref="Server"/>属性，<see cref="EnsureCreateServer"/>将会在<see cref="OnStart"/>时首先被调用。
     /// 
     /// 标准用法：
-    /// 使用<see cref="AddServer"/>方法向网络服务器添加Socket服务，其中第一个将作为默认Socket服务<see cref="Server"/>。
+    /// 使用<see cref="AttachServer"/>方法向网络服务器添加Socket服务，其中第一个将作为默认Socket服务<see cref="Server"/>。
     /// 如果Socket服务集合<see cref="Servers"/>为空，将依据地址<see cref="Address"/>、端口<see cref="Port"/>、地址族<see cref="AddressFamily"/>、协议<see cref="ProtocolType"/>创建默认Socket服务。
     /// 如果地址族<see cref="AddressFamily"/>指定为IPv4和IPv6以外的值，将同时创建IPv4和IPv6两个Socket服务；
     /// 如果协议<see cref="ProtocolType"/>指定为Tcp和Udp以外的值，将同时创建Tcp和Udp两个Socket服务；
@@ -66,7 +66,7 @@ namespace NewLife.Net.Sockets
 
         private List<SocketServer> _Servers;
         /// <summary>服务器集合。</summary>
-        public IList<SocketServer> Servers { get { return _Servers ?? (_Servers = new List<SocketServer>()); } }
+        protected IList<SocketServer> Servers { get { return _Servers ?? (_Servers = new List<SocketServer>()); } }
 
         //private SocketServer _Server;
         /// <summary>服务器。返回服务器集合中的第一个服务器</summary>
@@ -103,53 +103,16 @@ namespace NewLife.Net.Sockets
         #region 创建
         /// <summary>添加Socket服务器</summary>
         /// <param name="server"></param>
-        public void AddServer(SocketServer server)
+        /// <returns>添加是否成功</returns>
+        public virtual Boolean AttachServer(SocketServer server)
         {
-            if (Servers.Contains(server)) return;
-
-            if (server.ProtocolType == ProtocolType.Tcp)
+            if (!Servers.Contains(server))
             {
-                var svr = server as TcpServer;
-                svr.Accepted += new EventHandler<NetEventArgs>(OnAccepted);
-            }
-            else if (server.ProtocolType == ProtocolType.Udp)
-            {
-                var svr = server as UdpServer;
-                svr.Received += new EventHandler<NetEventArgs>(OnAccepted);
-                svr.Received += new EventHandler<NetEventArgs>(OnReceived);
+                Servers.Add(server);
+                return true;
             }
             else
-            {
-                throw new Exception("不支持的协议类型" + server.ProtocolType + "！");
-            }
-
-            server.Error += new EventHandler<NetEventArgs>(OnError);
-            Servers.Add(server);
-        }
-
-        void CreateServer<T>(AddressFamily family) where T : SocketServer, new()
-        {
-            switch (family)
-            {
-                case AddressFamily.InterNetwork:
-                case AddressFamily.InterNetworkV6:
-                    T svr = new T();
-                    svr.Address = Address.GetRightAny(family);
-                    svr.Port = Port;
-                    svr.AddressFamily = family;
-
-                    // 允许同时处理多个数据包
-                    svr.NoDelay = svr.ProtocolType == ProtocolType.Udp;
-                    svr.UseThreadPool = true;
-
-                    if (!NetHelper.IsUsed(svr.ProtocolType, svr.Address, svr.Port)) AddServer(svr);
-                    break;
-                default:
-                    // 其它情况表示同时支持IPv4和IPv6
-                    if (Socket.SupportsIPv4) CreateServer<T>(AddressFamily.InterNetwork);
-                    if (Socket.OSSupportsIPv6) CreateServer<T>(AddressFamily.InterNetworkV6);
-                    break;
-            }
+                return false;
         }
 
         /// <summary>确保建立服务器</summary>
@@ -157,16 +120,10 @@ namespace NewLife.Net.Sockets
         {
             if (Server == null)
             {
-                var family = AddressFamily;
-                if (ProtocolType == ProtocolType.Tcp)
-                    CreateServer<TcpServer>(family);
-                else if (ProtocolType == ProtocolType.Udp)
-                    CreateServer<UdpServer>(family);
-                else
+                var list = CreateServer(Address, Port, ProtocolType, AddressFamily);
+                foreach (var item in list)
                 {
-                    // 其它未知协议，同时用Tcp和Udp
-                    CreateServer<TcpServer>(family);
-                    CreateServer<UdpServer>(family);
+                    AttachServer(item);
                 }
             }
         }
@@ -194,17 +151,6 @@ namespace NewLife.Net.Sockets
 
                 WriteLog("{0} 开始监听 {1}", Name, item);
             }
-        }
-
-        /// <summary>断开连接/发生错误</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        protected virtual void OnError(object sender, NetEventArgs e)
-        {
-            if (e.SocketError != SocketError.Success || e.Error != null)
-                WriteLog("{2}错误 {0} {1}", e.SocketError, e.Error, e.LastOperation);
-            else
-                WriteLog("{0}断开！", e.LastOperation);
         }
 
         /// <summary>停止服务</summary>
@@ -241,60 +187,57 @@ namespace NewLife.Net.Sockets
         }
         #endregion
 
-        #region 业务
-        /// <summary>接受连接时，对于Udp是受到数据时（同时触发OnReceived）</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        protected virtual void OnAccepted(Object sender, NetEventArgs e)
+        #region 创建Tcp/Udp、IPv4/IPv6服务
+        /// <summary>创建Tcp/Udp、IPv4/IPv6服务</summary>
+        /// <param name="address"></param>
+        /// <param name="port"></param>
+        /// <param name="protocol"></param>
+        /// <param name="family"></param>
+        /// <returns></returns>
+        protected static SocketServer[] CreateServer(IPAddress address, Int32 port, ProtocolType protocol, AddressFamily family)
         {
-            TcpClientX session = e.Socket as TcpClientX;
-            if (session != null)
+            if (protocol == ProtocolType.Tcp)
+                return CreateServer<TcpServer>(address, port, family);
+            else if (protocol == ProtocolType.Udp)
+                return CreateServer<UdpServer>(address, port, family);
+            else
             {
-                session.Received += OnReceived;
-                session.Error += new EventHandler<NetEventArgs>(OnError);
+                var list = new List<SocketServer>();
+
+                // 其它未知协议，同时用Tcp和Udp
+                list.AddRange(CreateServer<TcpServer>(address, port, family));
+                list.AddRange(CreateServer<UdpServer>(address, port, family));
+
+                return list.ToArray();
             }
         }
 
-        /// <summary>收到数据时</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        protected virtual void OnReceived(Object sender, NetEventArgs e) { }
-
-        /// <summary>把数据发送给客户端</summary>
-        /// <param name="sender"></param>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="size"></param>
-        /// <param name="remoteEP"></param>
-        protected virtual void Send(SocketBase sender, Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP)
+        static SocketServer[] CreateServer<T>(IPAddress address, Int32 port, AddressFamily family) where T : SocketServer, new()
         {
-            if (sender is TcpClientX)
+            var list = new List<SocketServer>();
+            switch (family)
             {
-                TcpClientX tc = sender as TcpClientX;
-                if (tc != null && tc.Client.Connected) tc.Send(buffer, offset, size);
-            }
-            else if (sender is UdpServer)
-            {
-                //if ((remoteEP as IPEndPoint).Address != IPAddress.Any)
-                // 兼容IPV6
-                IPEndPoint remote = remoteEP as IPEndPoint;
-                if (remote != null && !remote.Address.IsAny())
-                {
-                    UdpServer us = sender as UdpServer;
-                    us.Send(buffer, offset, size, remoteEP);
-                }
-            }
-        }
+                case AddressFamily.InterNetwork:
+                case AddressFamily.InterNetworkV6:
+                    T svr = new T();
+                    svr.Address = address.GetRightAny(family);
+                    svr.Port = port;
+                    svr.AddressFamily = family;
 
-        /// <summary>断开客户端连接</summary>
-        /// <param name="client"></param>
-        protected virtual void Disconnect(SocketBase client)
-        {
-            if (client is TcpClientX)
-            {
-                TcpClientX tc = client as TcpClientX;
-                if (tc != null && tc.Client.Connected) tc.Close();
+                    // 允许同时处理多个数据包
+                    svr.NoDelay = svr.ProtocolType == ProtocolType.Udp;
+                    svr.UseThreadPool = true;
+
+                    if (!NetHelper.IsUsed(svr.ProtocolType, svr.Address, svr.Port)) list.Add(svr);
+                    break;
+                default:
+                    // 其它情况表示同时支持IPv4和IPv6
+                    if (Socket.SupportsIPv4) list.AddRange(CreateServer<T>(address, port, AddressFamily.InterNetwork));
+                    if (Socket.OSSupportsIPv6) list.AddRange(CreateServer<T>(address, port, AddressFamily.InterNetworkV6));
+                    break;
             }
+
+            return list.ToArray();
         }
         #endregion
     }

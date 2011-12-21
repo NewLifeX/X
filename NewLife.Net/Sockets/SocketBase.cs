@@ -4,12 +4,12 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using NewLife.Collections;
-using NewLife.Net.Common;
+using NewLife.Net;
 
 namespace NewLife.Net.Sockets
 {
     /// <summary>Socket基类</summary>
-    public class SocketBase : Netbase
+    public class SocketBase : Netbase, ISocket
     {
         #region 属性
         private Socket _Socket;
