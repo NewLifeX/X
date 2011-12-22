@@ -237,14 +237,17 @@ namespace NewLife.CommonEntity.Web
             }
         }
 
+        private Boolean _isGettingEntity;
         private IEntity _Entity;
         /// <summary>数据实体。使用者可以通过给KeyName置空来避免内部自动根据Request[KeyName]取值</summary>
         public virtual IEntity Entity
         {
             get
             {
-                if (_Entity == null)
+                if (_Entity == null && !_isGettingEntity)
                 {
+                    _isGettingEntity = true;
+
                     Object eid = EntityID;
 
                     // 使用者可以通过给KeyName置空来避免内部自动根据Request[KeyName]取值
@@ -257,6 +260,8 @@ namespace NewLife.CommonEntity.Web
 
                     // 把Request参数读入到实体里面
                     FillEntityWithRequest(_Entity);
+
+                    _isGettingEntity = false;
                 }
                 return _Entity;
             }
