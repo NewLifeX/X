@@ -32,6 +32,10 @@ namespace NewLife.Net.Tcp
             }
             set { _RemoteEndPoint = value; }
         }
+
+        private Boolean _DisconnectWhenEmptyData;
+        /// <summary>收到空数据时抛出异常并断开连接。</summary>
+        public Boolean DisconnectWhenEmptyData { get { return _DisconnectWhenEmptyData; } set { _DisconnectWhenEmptyData = value; } }
         #endregion
 
         #region 重载
@@ -51,7 +55,7 @@ namespace NewLife.Net.Tcp
         /// <param name="e"></param>
         protected override void OnReceive(NetEventArgs e)
         {
-            if (e.BytesTransferred > 0)
+            if (e.BytesTransferred > 0 || !DisconnectWhenEmptyData)
                 base.OnReceive(e);
             else
             {
@@ -68,7 +72,7 @@ namespace NewLife.Net.Tcp
         internal new void ReceiveAsync(NetEventArgs e)
         {
             if (e.BytesTransferred > 0)
-                OnReceive(e);
+                base.OnReceive(e);
             else
                 base.ReceiveAsync(e);
         }

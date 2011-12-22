@@ -78,15 +78,15 @@ namespace NewLife.Net.Protocols.DNS
         }
 
         /// <summary>名称</summary>
-        public String Name { get { return Question.Name; } set { Question.Name = value; } }
+        public virtual String Name { get { return Question.Name; } set { Question.Name = value; } }
 
         /// <summary>查询类型</summary>
-        public DNSQueryType Type { get { return Question.Type; } set { Question.Type = value; } }
+        public virtual DNSQueryType Type { get { return Question.Type; } set { Question.Type = value; } }
 
         /// <summary>协议组</summary>
-        public DNSQueryClass Class { get { return Question.Class; } set { Question.Class = value; } }
+        public virtual DNSQueryClass Class { get { return Question.Class; } set { Question.Class = value; } }
 
-        protected DNSRecord GetAnswer(Boolean create = false)
+        DNSRecord GetAnswer(Boolean create = false)
         {
             if (Answers == null || Answers.Length < 1)
             {
@@ -106,7 +106,7 @@ namespace NewLife.Net.Protocols.DNS
         }
 
         /// <summary>生存时间。指示RDATA中的资源记录在缓存的生存时间。</summary>
-        public TimeSpan TTL
+        public virtual TimeSpan TTL
         {
             get
             {
@@ -117,7 +117,7 @@ namespace NewLife.Net.Protocols.DNS
         }
 
         /// <summary>数据字符串</summary>
-        public String DataString
+        public virtual String DataString
         {
             get
             {
@@ -224,8 +224,18 @@ namespace NewLife.Net.Protocols.DNS
             }
             else
             {
-                var aw = GetAnswer();
-                if (aw != null) return aw.ToString();
+                StringBuilder sb = new StringBuilder();
+
+                if (Answers != null)
+                {
+                    foreach (var item in Answers)
+                    {
+                        if (sb.Length > 0) sb.Append(" ");
+                        sb.Append(item);
+                    }
+                }
+
+                return String.Format("Response {0}", sb);
             }
 
             return base.ToString();

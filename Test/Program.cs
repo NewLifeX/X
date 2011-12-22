@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.IO;
 using System.Diagnostics;
 using System.IO;
 using NewLife.Log;
@@ -12,6 +13,9 @@ using System.Collections.Generic;
 using XCode;
 using XCode.Code;
 using NewLife.Reflection;
+using System.Net;
+using System.Threading;
+using NewLife.Net.Tcp;
 
 namespace Test
 {
@@ -70,23 +74,30 @@ namespace Test
 
         static void Test2()
         {
-            UdpClientX client = new UdpClientX();
-            client.Connect("218.2.135.1", 53);
+            var client = new UdpClientX();
+            //var client = new TcpClientX();
+            //client.Connect("218.2.135.1", 53);
+            client.Connect("8.8.8.8", 53);
             client.Error += new EventHandler<NetEventArgs>(client_Error);
             client.Received += new EventHandler<NetEventArgs>(client_Received);
             client.ReceiveAsync();
 
-            //Console.WriteLine("正在发送……");
-            //client.Send(ms);
+            var ptr = new DNS_PTR();
+            ptr.Address = (client.Client.RemoteEndPoint as IPEndPoint).Address;
+            //client.Send(ptr.GetStream());
+            var s = ptr.GetStream();
+            File.WriteAllBytes("udp.bin", s.ReadBytes());
+            client.Send(s);
 
             Console.WriteLine("正在接收……");
 
             String name = null;
             while (true)
             {
+                Thread.Sleep(1000);
+                Console.WriteLine();
                 Console.Write("要查询的域名：");
                 name = Console.ReadLine();
-                Console.WriteLine(name);
                 if (name.EqualIgnoreCase("exit")) break;
 
                 DNS_A dns = new DNS_A();
@@ -97,17 +108,20 @@ namespace Test
 
         static void client_Error(object sender, NetEventArgs e)
         {
-            Console.WriteLine(e.LastOperation + "错误！" + e.Error);
+            Console.WriteLine(e.LastOperation + "错误！" + e.SocketError + " " + e.Error);
         }
 
         static void client_Received(object sender, NetEventArgs e)
         {
+            if (e.BytesTransferred <= 0) return;
+
             var client = sender as UdpClientX;
             //Console.WriteLine("收到{0}的数据，共{1}字节", e.RemoteEndPoint, e.BytesTransferred);
 
-            var result = DNS_A.Read(e.GetStream());
+            var result = DNSEntity.Read(e.GetStream());
+            Console.WriteLine();
             Console.WriteLine("查询：{0}", result.Name);
-            Console.WriteLine("选用地址：{0}", result.Address);
+            Console.WriteLine("结果：{0}", result.DataString);
             Console.WriteLine("全部地址：");
             foreach (var item in result.Answers)
             {

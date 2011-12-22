@@ -30,7 +30,8 @@ namespace NewLife.Net.Protocols.DNS
             var keys = new List<Int32>();
             var values = new List<String>();
 
-            Int64 p = stream.Position;
+            Int64 start = stream.Position;
+            Int64 p = start;
             Int32 n = 0;
             StringBuilder sb = new StringBuilder();
             while ((n = stream.ReadByte()) != 0)
@@ -45,10 +46,17 @@ namespace NewLife.Net.Protocols.DNS
                     var n2 = stream.ReadByte();
                     str = this[n2];
 
-                    sb.Append(str);
-
                     // 之前的每个加上str
                     for (int i = 0; i < values.Count; i++) values[i] += "." + str;
+
+                    // 局部引用，前面还有一段本地读出来的，这样子，整个就形成了一个新的字符串
+                    if (sb.Length > 0)
+                    {
+                        keys.Add((Int32)(offset + start));
+                        values.Add(sb + str);
+                    }
+
+                    sb.Append(str);
 
                     break;
                 }

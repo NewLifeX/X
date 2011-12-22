@@ -137,14 +137,14 @@ namespace NewLife.Net.Protocols.DNS
         /// <param name="reader"></param>
         protected virtual void ReadAdditionalData(IReader reader)
         {
-            if (Type == DNSQueryType.NS || Type == DNSQueryType.CNAME)
+            if (Type == DNSQueryType.A)
+            {
+                DataString = new IPAddress(Data).ToString();
+            }
+            else
             {
                 // 当前指针在数据流后面
                 DataString = GetNameAccessor(reader).Read(new MemoryStream(Data), reader.Stream.Position - _Length);
-            }
-            else if (Type == DNSQueryType.A)
-            {
-                DataString = new IPAddress(Data).ToString();
             }
 
             reader.WriteLog("ReadMember", "_Data", "String", DataString);
@@ -156,17 +156,16 @@ namespace NewLife.Net.Protocols.DNS
         {
             writer.WriteLog("WriteMember", "_Data", "String", DataString);
 
-            if (Type == DNSQueryType.NS || Type == DNSQueryType.CNAME)
+            if (Type == DNSQueryType.A)
+            {
+                Data = IPAddress.Parse(DataString).GetAddressBytes();
+            }
+            else
             {
                 var ms = new MemoryStream();
                 // 传入当前流偏移，加2是因为待会要先写2个字节的长度
-                //WriteName(ms, DataString, writer.Stream.Position + 2, refs);
                 GetNameAccessor(writer).Write(ms, DataString, writer.Stream.Position + 2);
                 Data = ms.ToArray();
-            }
-            else if (Type == DNSQueryType.A)
-            {
-                Data = IPAddress.Parse(DataString).GetAddressBytes();
             }
 
             // 写入数据
@@ -193,7 +192,7 @@ namespace NewLife.Net.Protocols.DNS
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return String.Format("{0} {1} {2} {3} {4}", Type, Class, Name, DataString, TTL); }
+        public override string ToString() { return String.Format("{0} {1}", Type, String.IsNullOrEmpty(DataString) ? Name : DataString); }
         #endregion
     }
 }

@@ -323,23 +323,21 @@ namespace NewLife.Net.Sockets
         {
             if (UseThreadPool)
             {
-                ThreadPool.QueueUserWorkItem(delegate(Object state)
+                ThreadPool.QueueUserWorkItem(s =>
                 {
                     try
                     {
-                        callback(state as NetEventArgs);
+                        callback(e);
                     }
                     catch (Exception ex)
                     {
                         try
                         {
-                            OnError(state as NetEventArgs, ex);
+                            OnError(e, ex);
                         }
                         catch { }
-                        // 都是在线程池线程里面了，不要往外抛出异常
-                        //throw;
                     }
-                }, e);
+                });
             }
             else
             {

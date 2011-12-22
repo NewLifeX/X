@@ -1,16 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Log;
-using NewLife.Net.Tcp;
-using System.Net;
-using NewLife.Net.Sockets;
-using XCode;
-using XCode.DataAccessLayer;
 using System.IO;
-using NewLife.Xml;
-using System.Data.Common;
-using System.Data;
+using System.Diagnostics;
+using System.Text;
 
 namespace Test2
 {
@@ -18,14 +9,14 @@ namespace Test2
     {
         static void Main(string[] args)
         {
-            XTrace.OnWriteLog += new EventHandler<WriteLogEventArgs>(XTrace_OnWriteLog);
+            //XTrace.OnWriteLog += new EventHandler<WriteLogEventArgs>(XTrace_OnWriteLog);
             while (true)
             {
 #if !DEBUG
                 try
                 {
 #endif
-                    Test3();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -40,91 +31,69 @@ namespace Test2
             }
         }
 
-        static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
-        {
-            Console.WriteLine(e.ToString());
-        }
+        //static void XTrace_OnWriteLog(object sender, WriteLogEventArgs e)
+        //{
+        //    Console.WriteLine(e.ToString());
+        //}
 
         static void Test1()
         {
-            IPAddress address = IPAddress.Loopback;
-            for (int i = 0; i < 10000; i++)
+            String file = null;
+            String[] ss = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.txt", SearchOption.TopDirectoryOnly);
+            while (true)
             {
-                TcpClientX tc = new TcpClientX();
-                tc.Connect(address, 7);
-                tc.Received += new EventHandler<NewLife.Net.Sockets.NetEventArgs>(tc_Received);
-                tc.ReceiveAsync();
-
-                tc.Send("我是大石头" + i + "号！");
+                if (ss != null && ss.Length > 0)
+                {
+                    Console.Write("文件名（默认为{0}，若使用默认请直接回车）：", ss[0]);
+                    file = Console.ReadLine();
+                    if (String.IsNullOrEmpty(file)) file = ss[0];
+                }
+                else
+                {
+                    Console.Write("文件名：");
+                    file = Console.ReadLine();
+                }
+                if (!String.IsNullOrEmpty(file) && File.Exists(file)) break;
             }
-        }
+            Console.WriteLine("搜索文件名：{0}", file);
 
-        static void tc_Received(object sender, NetEventArgs e)
-        {
-            Console.WriteLine("[{0}] {1}", e.RemoteEndPoint, e.GetString());
-        }
-
-        static void Test2()
-        {
-            DAL dal = DAL.Create("Common1");
-            IList<IDataTable> list = dal.Tables;
-            //foreach (IDataTable item in list)
-            //{
-
-            //}
-
-            XmlWriterX writer = new XmlWriterX();
-            writer.WriteObject(list);
-
-            Console.WriteLine(writer.ToString());
-        }
-
-        static void Test3()
-        {
-            DAL dal = DAL.Create("Common4");
-            IDatabase db = dal.Db;
-
-            DbCommand cmd = db.CreateSession().CreateCommand();
-            cmd.CommandText = "select 123,'456',code+id as code2,* from area";
-
-            DataTable dt = null;
-            using (DbDataReader reader = cmd.ExecuteReader(CommandBehavior.KeyInfo | CommandBehavior.SchemaOnly))
+            String key = null;
+            while (true)
             {
-                dt = reader.GetSchemaTable();
+                Console.WriteLine();
+                Console.Write("搜索关键字：");
+                key = Console.ReadLine();
+                if (String.IsNullOrEmpty(key)) continue;
+
+                Console.WriteLine();
+                Console.WriteLine("正在搜索 {0} ...", key);
+
+                using (StreamReader reader = new StreamReader(file, Encoding.Default))
+                {
+                    Int32 total = 0;
+                    Int32 count = 0;
+                    Stopwatch sw = new Stopwatch();
+                    sw.Start();
+                    while (!reader.EndOfStream)
+                    {
+                        total++;
+                        String line = reader.ReadLine();
+                        if (String.IsNullOrEmpty(line)) continue;
+
+                        if (line.IndexOf(key, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            count++;
+                            line = line.Trim();
+                            line = line.Replace("\t", " ");
+                            while (line.Contains("  ")) line = line.Replace("  ", " ");
+                            Console.WriteLine("{0,8} 行找到：{1}", count, line);
+                        }
+                    }
+
+                    sw.Stop();
+                    Console.WriteLine("搜索完成，在 {0} 行中共找到 {1} 项，耗时{2}！", total, count, sw.Elapsed);
+                }
             }
-            Console.WriteLine(dt);
-
-            DbCommandBuilder builder = db.Factory.CreateCommandBuilder();
-            builder.DataAdapter = db.Factory.CreateDataAdapter();
-            builder.DataAdapter.SelectCommand = cmd;
-
-            cmd = builder.GetInsertCommand();
-            Console.WriteLine(cmd.CommandText);
-            cmd = builder.GetInsertCommand(true);
-            Console.WriteLine(cmd.CommandText);
-
-            //String xml = dal.Export();
-            //Console.WriteLine(xml);
-
-            //File.WriteAllText(dal.ConnName + ".xml", xml);
-
-            //List<IDataTable> tables = DAL.Import(xml);
-            //Console.WriteLine(tables);
-
-            //String xml2 = DAL.Export(tables);
-            //Console.WriteLine(xml == xml2);
-        }
-    }
-
-    public class NewLifeDb
-    {
-        public IDatabase _obj = DAL.Create("Common1").Db;
-
-        public IDbSession CreateSession()
-        {
-            IDbSession session = _obj.CreateSession();
-            Console.WriteLine("为{0}创建会话", session.DatabaseName);
-            return session;
         }
     }
 }
