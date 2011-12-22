@@ -28,6 +28,7 @@ namespace NewLife.Net.Application
         /// <param name="e"></param>
         protected override void OnAccepted(object sender, NetEventArgs e)
         {
+            var session = e.Socket as ISocketSession;
             try
             {
                 WriteLog("Daytime {0}", e.RemoteEndPoint);
@@ -39,11 +40,12 @@ namespace NewLife.Net.Application
                 // 因为要发往网络，这里调整网络字节序
                 s = IPAddress.HostToNetworkOrder(s);
                 Byte[] buffer = BitConverter.GetBytes(s);
-                Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
+                //Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
+                session.Send(buffer, 0, buffer.Length, e.RemoteEndPoint);
             }
             finally
             {
-                Disconnect(e.Socket);
+                session.Disconnect();
             }
         }
     }

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Sockets;
 using NewLife.Linq;
-using NewLife.Net;
 using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
@@ -87,8 +85,12 @@ namespace NewLife.Net.Proxy
 
             var session = NetService.Resolve<IProxySession>();
             session.Proxy = this;
-            session.Client = e.Socket as ISocketSession;
-            session.Start();
+            session.Session = e.Socket as ISocketSession;
+
+            Sessions.Add(session);
+            session.OnDisposed += (s, ev) => Sessions.Remove(session);
+
+            session.Start(e);
         }
 
         /// <summary>断开连接/发生错误</summary>
@@ -103,14 +105,21 @@ namespace NewLife.Net.Proxy
         }
         #endregion
 
-
-        #region 方法
+        #region 创建会话的远程连接
         /// <summary>为会话创建与远程服务器通讯的Socket</summary>
         /// <param name="session"></param>
         /// <returns></returns>
-        public ISocketClient CreateRemote(IProxySession session)
+        public virtual ISocketClient CreateRemote(IProxySession session)
         {
-            return null;
+            // 转发给过滤器，由过滤器负责创建
+            foreach (var item in Filters)
+            {
+                var client = item.CreateRemote(session);
+                if (client != null) return client;
+            }
+
+            // return null;
+            throw new NetException("没有任何过滤器为会话创建远程Socket！");
         }
         #endregion
     }

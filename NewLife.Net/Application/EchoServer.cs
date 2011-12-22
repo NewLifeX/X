@@ -26,6 +26,7 @@ namespace NewLife.Net.Application
         /// <param name="e"></param>
         protected override void OnReceived(object sender, NetEventArgs e)
         {
+            var session = e.Socket as ISocketSession;
             try
             {
                 if (e.BytesTransferred > 100)
@@ -33,14 +34,15 @@ namespace NewLife.Net.Application
                 else
                     WriteLog("Echo {0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString());
 
-                Send(e.Socket, e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
+                //Send(e.Socket, e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
+                session.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
 
                 // 等一秒，等客户端接收数据
                 Thread.Sleep(1000);
             }
             finally
             {
-                Disconnect(e.Socket);
+                session.Disconnect();
             }
         }
     }

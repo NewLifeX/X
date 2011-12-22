@@ -58,42 +58,42 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         protected virtual void OnReceived(Object sender, NetEventArgs e) { }
 
-        /// <summary>把数据发送给客户端</summary>
-        /// <param name="sender"></param>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="size"></param>
-        /// <param name="remoteEP"></param>
-        protected virtual void Send(ISocket sender, Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP)
-        {
-            if (sender is TcpClientX)
-            {
-                TcpClientX tc = sender as TcpClientX;
-                if (tc != null && tc.Client.Connected) tc.Send(buffer, offset, size);
-            }
-            else if (sender is UdpServer)
-            {
-                //if ((remoteEP as IPEndPoint).Address != IPAddress.Any)
-                // 兼容IPV6
-                IPEndPoint remote = remoteEP as IPEndPoint;
-                if (remote != null && !remote.Address.IsAny())
-                {
-                    UdpServer us = sender as UdpServer;
-                    us.Send(buffer, offset, size, remoteEP);
-                }
-            }
-        }
+        ///// <summary>把数据发送给客户端</summary>
+        ///// <param name="sender"></param>
+        ///// <param name="buffer"></param>
+        ///// <param name="offset"></param>
+        ///// <param name="size"></param>
+        ///// <param name="remoteEP"></param>
+        //protected virtual void Send(ISocketSession sender, Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP)
+        //{
+        //    if (sender is TcpClientX)
+        //    {
+        //        TcpClientX tc = sender as TcpClientX;
+        //        if (tc != null && tc.Client.Connected) tc.Send(buffer, offset, size);
+        //    }
+        //    else if (sender is UdpServer)
+        //    {
+        //        //if ((remoteEP as IPEndPoint).Address != IPAddress.Any)
+        //        // 兼容IPV6
+        //        IPEndPoint remote = remoteEP as IPEndPoint;
+        //        if (remote != null && !remote.Address.IsAny())
+        //        {
+        //            UdpServer us = sender as UdpServer;
+        //            us.Send(buffer, offset, size, remoteEP);
+        //        }
+        //    }
+        //}
 
-        /// <summary>断开客户端连接</summary>
-        /// <param name="client"></param>
-        protected virtual void Disconnect(ISocket client)
-        {
-            if (client is TcpClientX)
-            {
-                TcpClientX tc = client as TcpClientX;
-                if (tc != null && tc.Client.Connected) tc.Close();
-            }
-        }
+        ///// <summary>断开客户端连接</summary>
+        ///// <param name="client"></param>
+        //protected virtual void Disconnect(ISocketSession client)
+        //{
+        //    if (client is TcpClientX)
+        //    {
+        //        TcpClientX tc = client as TcpClientX;
+        //        if (tc != null && tc.Client.Connected) tc.Close();
+        //    }
+        //}
 
         /// <summary>断开连接/发生错误</summary>
         /// <param name="sender"></param>

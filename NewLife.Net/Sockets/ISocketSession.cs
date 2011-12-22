@@ -28,6 +28,9 @@ namespace NewLife.Net.Sockets
         /// <summary>开始会话处理。参数e里面可能含有数据</summary>
         /// <param name="e"></param>
         void Start(NetEventArgs e);
+
+        /// <summary>断开客户端连接。Tcp端口，UdpClient不处理</summary>
+        void Disconnect();
         #endregion
 
         #region 发送

@@ -107,6 +107,9 @@ namespace NewLife.Net.Udp
         /// <summary>开始异步接收，同时处理传入的事件参数，里面可能有接收到的数据</summary>
         /// <param name="e"></param>
         void ISocketSession.Start(NetEventArgs e) { }
+
+        /// <summary>断开客户端连接。Tcp端口，UdpClient不处理</summary>
+        void ISocketSession.Disconnect() { }
         #endregion
 
         #region 事件

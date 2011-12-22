@@ -27,6 +27,11 @@ namespace NewLife.Net.Application
         {
             WriteLog("Chargen {0}", e.RemoteEndPoint);
 
+            // 如果没有远程地址，或者远程地址是广播地址，则跳过。否则会攻击广播者。
+            // Tcp的该属性可能没值，可以忽略
+            var remote = e.RemoteIPEndPoint;
+            if (remote != null && remote.Address.IsAny()) return;
+
             // 使用多线程
             Thread thread = new Thread(LoopSend);
             thread.Name = "Chargen.LoopSend";
@@ -64,8 +69,8 @@ namespace NewLife.Net.Application
 
         void LoopSend(Object state)
         {
-            var client = ((Object[])state)[0] as ISocket;
-            if (client == null) return;
+            var session = ((Object[])state)[0] as ISocketSession;
+            if (session == null) return;
 
             var remote = ((Object[])state)[1] as IPEndPoint;
             hasError = false;
@@ -77,7 +82,7 @@ namespace NewLife.Net.Application
                 {
                     try
                     {
-                        Send(client, remote);
+                        Send(session, remote);
 
                         // 暂停100ms
                         Thread.Sleep(100);
@@ -87,14 +92,14 @@ namespace NewLife.Net.Application
             }
             finally
             {
-                Disconnect(client);
+                session.Disconnect();
             }
         }
 
         Int32 Length = 72;
         Int32 Index = 0;
 
-        void Send(ISocket sender, IPEndPoint remoteEP)
+        void Send(ISocketSession session, IPEndPoint remoteEP)
         {
             Int32 startIndex = Index++;
             if (Index >= Length) Index = 0;
@@ -109,7 +114,8 @@ namespace NewLife.Net.Application
                 buffer[p] = (Byte)(i + 32);
             }
 
-            Send(sender, buffer, 0, buffer.Length, remoteEP);
+            //Send(sender, buffer, 0, buffer.Length, remoteEP);
+            session.Send(buffer, 0, buffer.Length, remoteEP);
         }
     }
 }

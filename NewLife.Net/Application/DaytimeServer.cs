@@ -26,6 +26,7 @@ namespace NewLife.Net.Application
         /// <param name="e"></param>
         protected override void OnAccepted(object sender, NetEventArgs e)
         {
+            var session = e.Socket as ISocketSession;
             try
             {
                 WriteLog("Daytime {0}", e.RemoteEndPoint);
@@ -33,11 +34,12 @@ namespace NewLife.Net.Application
                 base.OnAccepted(sender, e);
 
                 Byte[] buffer = Encoding.ASCII.GetBytes(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff"));
-                Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
+                //Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
+                session.Send(buffer, 0, buffer.Length, e.RemoteEndPoint);
             }
             finally
             {
-                Disconnect(e.Socket);
+                session.Disconnect();
             }
         }
     }

@@ -9,7 +9,7 @@ namespace NewLife.Net.Proxy
     /// <remarks>
     /// 一个会话应该包含两端，两个Socket，服务端和客户端
     /// </remarks>
-    public class ProxySession : Netbase, IProxySession
+    class ProxySession : Netbase, IProxySession
     {
         #region 属性
         private IProxy _Proxy;
@@ -18,7 +18,7 @@ namespace NewLife.Net.Proxy
 
         private ISocketSession _Client;
         /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
-        public ISocketSession Client { get { return _Client; } set { _Client = value; } }
+        public ISocketSession Session { get { return _Client; } set { _Client = value; } }
 
         private ISocketServer _Server;
         /// <summary>服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
@@ -35,14 +35,31 @@ namespace NewLife.Net.Proxy
 
         /// <summary>通过指定的Socket对象实例化一个代理会话</summary>
         /// <param name="client"></param>
-        public ProxySession(ISocketSession client) { Client = client; }
+        public ProxySession(ISocketSession client) { Session = client; }
         #endregion
 
         #region 方法
-        /// <summary>开始会话处理</summary>
-        public void Start()
+        /// <summary>开始会话处理。参数e里面可能含有数据</summary>
+        /// <param name="e"></param>
+        public void Start(NetEventArgs e)
+        {
+            Session.Received += new EventHandler<NetEventArgs>(Session_Received);
+
+            Session.Start(e);
+        }
+
+        void Session_Received(object sender, NetEventArgs e)
         {
             
+        }
+
+        /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
+        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            Session.Received -= new EventHandler<NetEventArgs>(Session_Received);
         }
         #endregion
     }

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
+using System.Net;
 
 namespace NewLife.Net.Sockets
 {
@@ -27,6 +28,9 @@ namespace NewLife.Net.Sockets
         private Exception _Error;
         /// <summary>异常信息</summary>
         public Exception Error { get { return _Error; } set { _Error = value; } }
+
+        /// <summary>远程IP终结点</summary>
+        public IPEndPoint RemoteIPEndPoint { get { return base.RemoteEndPoint as IPEndPoint; } set { base.RemoteEndPoint = value; } }
         #endregion
 
         #region 事件

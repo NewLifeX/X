@@ -53,6 +53,21 @@ namespace NewLife.Net.Tcp
         }
         #endregion
 
+        #region 方法
+        /// <summary>开始异步接收，同时处理传入的事件参数，里面可能有接收到的数据</summary>
+        /// <param name="e"></param>
+        void ISocketSession.Start(NetEventArgs e)
+        {
+            if (e.BytesTransferred > 0)
+                base.OnReceive(e);
+            else
+                base.ReceiveAsync(e);
+        }
+
+        /// <summary>断开客户端连接。Tcp端口，UdpClient不处理</summary>
+        public void Disconnect() { Client.Disconnect(ReuseAddress); }
+        #endregion
+
         #region 接收
         /// <summary>接收数据。已重载。接收到0字节表示连接断开！</summary>
         /// <param name="e"></param>
@@ -68,16 +83,6 @@ namespace NewLife.Net.Tcp
 
                 OnError(e, null);
             }
-        }
-
-        /// <summary>开始异步接收，同时处理传入的事件参数，里面可能有接收到的数据</summary>
-        /// <param name="e"></param>
-        void ISocketSession.Start(NetEventArgs e)
-        {
-            if (e.BytesTransferred > 0)
-                base.OnReceive(e);
-            else
-                base.ReceiveAsync(e);
         }
         #endregion
 
