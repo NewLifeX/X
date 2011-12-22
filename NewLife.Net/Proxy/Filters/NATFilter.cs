@@ -11,9 +11,9 @@ namespace NewLife.Net.Proxy
     class NATFilter : ProxyFilterBase
     {
         #region 属性
-        private IPAddress _Address;
+        private String _Address;
         /// <summary>地址</summary>
-        public IPAddress Address { get { return _Address; } set { _Address = value; } }
+        public String Address { get { return _Address; } set { _Address = value; } }
 
         private Int32 _Port;
         /// <summary>端口</summary>
@@ -28,8 +28,11 @@ namespace NewLife.Net.Proxy
         /// <summary>为会话创建与远程服务器通讯的Socket。可以使用Socket池达到重用的目的。</summary>
         /// <param name="session"></param>
         /// <returns></returns>
-        public override ISocketClient CreateRemote(IProxySession session)
+        public override ISocketClient CreateRemote(IProxySession session, NetEventArgs e)
         {
+            IPAddress[] addresses = Dns.GetHostAddresses(Address);
+            session.RemoteEndPoint = new IPEndPoint(addresses[0], Port);
+
             var client = NetService.Resolve<ISocketClient>(ProtocolType);
             client.Connect(Address, Port);
 

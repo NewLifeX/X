@@ -33,6 +33,14 @@ namespace NewLife.Net.Udp
         #endregion
 
         #region 发送
+        public override void Send(byte[] buffer, int offset, int size, EndPoint remoteEP = null)
+        {
+            if (remoteEP != null)
+                Client.SendTo(buffer, offset, size, SocketFlags.None, remoteEP);
+            else
+                base.Send(buffer, offset, size, remoteEP);
+        }
+
         /// <summary>发送数据</summary>
         /// <param name="buffer"></param>
         /// <param name="endPoint"></param>

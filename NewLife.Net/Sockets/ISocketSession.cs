@@ -20,8 +20,8 @@ namespace NewLife.Net.Sockets
         /// <summary>套接字</summary>
         Socket Socket { get; set; }
 
-        ///// <summary>远程地址。</summary>
-        //IPEndPoint Remote { get; set; }
+        ///// <summary>远程IP终结点</summary>
+        //IPEndPoint RemoteEndPoint { get; set; }
         #endregion
 
         #region 方法

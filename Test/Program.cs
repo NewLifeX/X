@@ -16,6 +16,8 @@ using NewLife.Reflection;
 using System.Net;
 using System.Threading;
 using NewLife.Net.Tcp;
+using NewLife.Net.Proxy;
+using System.Net.Sockets;
 
 namespace Test
 {
@@ -32,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -136,8 +138,35 @@ namespace Test
 
         static void Test4()
         {
-            AppTest.Start();
+            //AppTest.Start();
             //NetHelper.Wake("00-24-8C-04-C0-9B", "00-24-8C-04-C0-91");
+
+            //var proxy = new XProxy();
+            //proxy.Port = 888;
+            //proxy.ProtocolType = ProtocolType.Tcp;
+            //proxy.ServerAddress = "www.baidu.com";
+            //proxy.ServerPort = 80;
+            ////var filter = new HttpFilter();
+            ////filter.Proxy = proxy;
+            ////proxy.Filters.Add(filter);
+            //proxy.Start();
+
+            var proxy = new XProxy();
+            proxy.Port = 53;
+            proxy.ProtocolType = ProtocolType.Udp;
+            proxy.ServerAddress = "192.168.1.1";
+            proxy.ServerPort = 53;
+            proxy.Start();
+
+            var client = new UdpClientX();
+            client.Connect("127.0.0.1", 53);
+            client.Error += new EventHandler<NetEventArgs>(client_Error);
+            client.Received += new EventHandler<NetEventArgs>(client_Received);
+            client.ReceiveAsync();
+
+            var ptr = new DNS_PTR();
+            ptr.Address = (client.Client.RemoteEndPoint as IPEndPoint).Address;
+            client.Send(ptr.GetStream());
         }
 
         static void Test5()

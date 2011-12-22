@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using NewLife.Net.Sockets;
+using System.Net;
 
 namespace NewLife.Net.Proxy
 {
@@ -25,6 +26,12 @@ namespace NewLife.Net.Proxy
 
         /// <summary>远程客户端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
         ISocketClient Remote { get; set; }
+
+        /// <summary>客户端远程IP终结点</summary>
+        EndPoint ClientEndPoint { get; set; }
+
+        /// <summary>远程客户端IP终结点</summary>
+        EndPoint RemoteEndPoint { get; set; }
         #endregion
 
         #region 方法

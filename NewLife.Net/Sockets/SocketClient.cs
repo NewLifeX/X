@@ -194,35 +194,7 @@ namespace NewLife.Net.Sockets
                 }
 #endif
 
-                Send(buffer, 0, n);
-                total += n;
-
-                if (n < buffer.Length) break;
-            }
-            return total;
-        }
-
-        /// <summary>发送数据流</summary>
-        /// <param name="stream"></param>
-        /// <returns></returns>
-        public virtual Int64 Send(Stream stream)
-        {
-            Int64 total = 0;
-
-            Byte[] buffer = new Byte[BufferSize];
-            while (true)
-            {
-                Int32 n = stream.Read(buffer, 0, buffer.Length);
-                if (n <= 0) break;
-
-#if DEBUG
-                if (n >= buffer.Length || ProtocolType == ProtocolType.Tcp && n >= 1452 || ProtocolType == ProtocolType.Udp && n >= 1464)
-                {
-                    WriteLog("接收的实际数据大小{0}超过了缓冲区大小，需要根据真实MTU调整缓冲区大小以提高效率！", n);
-                }
-#endif
-
-                Send(buffer, 0, n);
+                Send(buffer, 0, n, remoteEP);
                 total += n;
 
                 if (n < buffer.Length) break;
@@ -234,18 +206,18 @@ namespace NewLife.Net.Sockets
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
-        public virtual void Send(Byte[] buffer, Int32 offset, Int32 size) { Client.Send(buffer, offset, size, SocketFlags.None); }
+        public virtual void Send(Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP = null) { Client.Send(buffer, offset, size, SocketFlags.None); }
 
         /// <summary>发送字符串</summary>
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
-        public void Send(String msg, Encoding encoding = null)
+        public void Send(String msg, Encoding encoding = null, EndPoint remoteEP = null)
         {
             if (String.IsNullOrEmpty(msg)) return;
 
             if (encoding == null) encoding = Encoding.UTF8;
             Byte[] data = encoding.GetBytes(msg);
-            Send(data, 0, data.Length);
+            Send(data, 0, data.Length, remoteEP);
         }
         #endregion
 
@@ -275,6 +247,20 @@ namespace NewLife.Net.Sockets
 
             if (encoding == null) encoding = Encoding.UTF8;
             return encoding.GetString(buffer);
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            var socket = base.Socket;
+            if (socket != null && socket.RemoteEndPoint != null) return base.ToString() + " => " + socket.RemoteEndPoint;
+
+            return base.ToString();
         }
         #endregion
     }

@@ -6,6 +6,7 @@ using NewLife.Model;
 using NewLife.Net;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
+using System.Text;
 
 namespace NewLife.Net.Sockets
 {
@@ -238,6 +239,28 @@ namespace NewLife.Net.Sockets
             }
 
             return list.ToArray();
+        }
+        #endregion
+
+        #region 方法
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            var servers = Servers;
+            if (servers == null || servers.Count < 1) return base.ToString();
+
+            if (servers.Count == 1) return servers[0].ToString();
+
+            StringBuilder sb = new StringBuilder();
+            foreach (var item in servers)
+            {
+                if (sb.Length > 0) sb.Append(" ");
+                sb.Append(item);
+            }
+            return sb.ToString();
         }
         #endregion
     }
