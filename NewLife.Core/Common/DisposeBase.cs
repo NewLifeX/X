@@ -7,8 +7,19 @@ using NewLife.Log;
 
 namespace NewLife
 {
+    /// <summary>具有是否已释放和释放后事件的接口</summary>
+    public interface IDisposable2 : IDisposable
+    {
+        /// <summary>是否已经释放</summary>
+        [XmlIgnore]
+        Boolean Disposed { get; }
+
+        /// <summary>被销毁时触发事件</summary>
+        event EventHandler OnDisposed;
+    }
+
     /// <summary>具有销毁资源处理的抽象基类</summary>
-    public abstract class DisposeBase : CriticalFinalizerObject, IDisposable
+    public abstract class DisposeBase : CriticalFinalizerObject, IDisposable2
     {
         #region 释放资源
         /// <summary>释放资源</summary>
