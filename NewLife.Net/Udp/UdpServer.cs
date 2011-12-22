@@ -14,6 +14,9 @@ namespace NewLife.Net.Udp
         #region 属性
         /// <summary>已重载。</summary>
         public override ProtocolType ProtocolType { get { return ProtocolType.Udp; } }
+
+        /// <summary>套接字</summary>
+        Socket ISocketSession.Socket { get { return base.Server; } set { base.Server = value; } }
         #endregion
 
         #region 构造
@@ -100,6 +103,10 @@ namespace NewLife.Net.Udp
                 throw;
             }
         }
+
+        /// <summary>开始异步接收，同时处理传入的事件参数，里面可能有接收到的数据</summary>
+        /// <param name="e"></param>
+        void ISocketSession.Start(NetEventArgs e) { }
         #endregion
 
         #region 事件

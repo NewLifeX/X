@@ -11,9 +11,9 @@ namespace NewLife.Net.IO
     public class FileClient
     {
         #region 属性
-        private SocketClient _Client;
+        private ISocketClient _Client;
         /// <summary>客户端连接</summary>
-        public SocketClient Client
+        public ISocketClient Client
         {
             get { return _Client; }
             set { _Client = value; }

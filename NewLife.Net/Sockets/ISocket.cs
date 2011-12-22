@@ -5,7 +5,7 @@ using System.Net.Sockets;
 namespace NewLife.Net.Sockets
 {
     /// <summary>基础Socket接口</summary>
-    public interface ISocket
+    public interface ISocket : IDisposable2
     {
         #region 属性
         /// <summary>协议类型</summary>
@@ -34,6 +34,9 @@ namespace NewLife.Net.Sockets
 
         ///// <summary>数据字典</summary>
         //IDictionary Items { get; }
+
+        ///// <summary>是否已经释放</summary>
+        //Boolean Disposed { get; }
         #endregion
 
         #region 方法

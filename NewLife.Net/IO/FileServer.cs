@@ -29,12 +29,12 @@ namespace NewLife.Net.IO
         {
             Name = "文件服务";
 
-            TcpServer svr = new TcpServer(Address, Port);
-            svr.Accepted += new EventHandler<NetEventArgs>(server_Accepted);
-            // 允许同时处理多个数据包
-            svr.NoDelay = false;
-            // 使用线程池来处理事件
-            svr.UseThreadPool = true;
+            //TcpServer svr = new TcpServer(Address, Port);
+            //svr.Accepted += new EventHandler<NetEventArgs>(server_Accepted);
+            //// 允许同时处理多个数据包
+            //svr.NoDelay = false;
+            //// 使用线程池来处理事件
+            //svr.UseThreadPool = true;
         }
         #endregion
 

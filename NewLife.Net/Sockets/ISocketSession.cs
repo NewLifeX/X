@@ -3,21 +3,31 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 
 namespace NewLife.Net.Sockets
 {
     /// <summary>服务端接受客户端请求后，用于与客户端进行通讯的Socket会话</summary>
     /// <remarks>
-    /// 对于Tcp来说，它就是<see cref="TcpClientX"/>;
-    /// 对于Udp来说，它就是<see cref="UdpServer"/>。
+    /// 对于Tcp来说，它就是<see cref="Tcp.TcpClientX"/>;
+    /// 对于Udp来说，它就是<see cref="Udp.UdpServer"/>。
     /// 
     /// 所以，它必须具有收发数据的能力。
     /// </remarks>
     public interface ISocketSession : ISocket
     {
         #region 属性
+        /// <summary>套接字</summary>
+        Socket Socket { get; set; }
+
         ///// <summary>远程地址。</summary>
         //IPEndPoint Remote { get; set; }
+        #endregion
+
+        #region 方法
+        /// <summary>开始会话处理。参数e里面可能含有数据</summary>
+        /// <param name="e"></param>
+        void Start(NetEventArgs e);
         #endregion
 
         #region 发送

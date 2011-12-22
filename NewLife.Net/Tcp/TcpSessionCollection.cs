@@ -2,18 +2,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using NewLife.Threading;
+using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Tcp
 {
-    /// <summary>Tcp会话集合。其中Tcp会话使用弱引用，允许GC及时回收不再使用的会话。</summary>
-    class TcpSessionCollection : DisposeBase, ICollection<TcpClientX>
+    /// <summary>会话集合。带有自动清理不活动会话的功能</summary>
+    class TcpSessionCollection : DisposeBase, ICollection<ISocketSession>
     {
-        List<TcpClientX> _list = new List<TcpClientX>();
+        List<ISocketSession> _list = new List<ISocketSession>();
 
         //private Int32 sessionID = 0;
         /// <summary>添加新会话，并设置会话编号</summary>
         /// <param name="client"></param>
-        public void Add(TcpClientX client)
+        public void Add(ISocketSession client)
         {
             lock (_list)
             {
@@ -79,22 +80,19 @@ namespace NewLife.Net.Tcp
         /// <summary>从集合中移除项</summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public Boolean Remove(TcpClientX item)
-        {
-            lock (_list) { return _list.Remove(item); }
-        }
+        public Boolean Remove(ISocketSession item) { lock (_list) { return _list.Remove(item); } }
 
         public void Clear() { _list.Clear(); }
 
-        public bool Contains(TcpClientX item) { return _list.Contains(item); }
+        public bool Contains(ISocketSession item) { return _list.Contains(item); }
 
-        public void CopyTo(TcpClientX[] array, int arrayIndex) { _list.CopyTo(array, arrayIndex); }
+        public void CopyTo(ISocketSession[] array, int arrayIndex) { _list.CopyTo(array, arrayIndex); }
 
         public int Count { get { return _list.Count; } }
 
-        public bool IsReadOnly { get { return (_list as ICollection<TcpClientX>).IsReadOnly; } }
+        public bool IsReadOnly { get { return (_list as ICollection<ISocketSession>).IsReadOnly; } }
 
-        public IEnumerator<TcpClientX> GetEnumerator() { return _list.GetEnumerator(); }
+        public IEnumerator<ISocketSession> GetEnumerator() { return _list.GetEnumerator(); }
 
         IEnumerator IEnumerable.GetEnumerator() { return _list.GetEnumerator(); }
         #endregion

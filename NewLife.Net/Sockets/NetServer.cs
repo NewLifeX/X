@@ -64,13 +64,13 @@ namespace NewLife.Net.Sockets
             }
         }
 
-        private List<SocketServer> _Servers;
+        private List<ISocketServer> _Servers;
         /// <summary>服务器集合。</summary>
-        protected IList<SocketServer> Servers { get { return _Servers ?? (_Servers = new List<SocketServer>()); } }
+        protected IList<ISocketServer> Servers { get { return _Servers ?? (_Servers = new List<ISocketServer>()); } }
 
         //private SocketServer _Server;
         /// <summary>服务器。返回服务器集合中的第一个服务器</summary>
-        public SocketServer Server { get { return Servers.Count > 0 ? Servers[0] : null; } set { if (!Servers.Contains(value))_Servers.Insert(0, value); } }
+        public ISocketServer Server { get { return Servers.Count > 0 ? Servers[0] : null; } set { if (!Servers.Contains(value))_Servers.Insert(0, value); } }
 
         /// <summary>是否活动</summary>
         public Boolean Active { get { return Server != null && Server.Active; } }
@@ -104,7 +104,7 @@ namespace NewLife.Net.Sockets
         /// <summary>添加Socket服务器</summary>
         /// <param name="server"></param>
         /// <returns>添加是否成功</returns>
-        public virtual Boolean AttachServer(SocketServer server)
+        public virtual Boolean AttachServer(ISocketServer server)
         {
             if (!Servers.Contains(server))
             {
@@ -194,7 +194,7 @@ namespace NewLife.Net.Sockets
         /// <param name="protocol"></param>
         /// <param name="family"></param>
         /// <returns></returns>
-        protected static SocketServer[] CreateServer(IPAddress address, Int32 port, ProtocolType protocol, AddressFamily family)
+        protected static ISocketServer[] CreateServer(IPAddress address, Int32 port, ProtocolType protocol, AddressFamily family)
         {
             if (protocol == ProtocolType.Tcp)
                 return CreateServer<TcpServer>(address, port, family);
@@ -202,7 +202,7 @@ namespace NewLife.Net.Sockets
                 return CreateServer<UdpServer>(address, port, family);
             else
             {
-                var list = new List<SocketServer>();
+                var list = new List<ISocketServer>();
 
                 // 其它未知协议，同时用Tcp和Udp
                 list.AddRange(CreateServer<TcpServer>(address, port, family));
@@ -212,9 +212,9 @@ namespace NewLife.Net.Sockets
             }
         }
 
-        static SocketServer[] CreateServer<T>(IPAddress address, Int32 port, AddressFamily family) where T : SocketServer, new()
+        static ISocketServer[] CreateServer<T>(IPAddress address, Int32 port, AddressFamily family) where T : ISocketServer, new()
         {
-            var list = new List<SocketServer>();
+            var list = new List<ISocketServer>();
             switch (family)
             {
                 case AddressFamily.InterNetwork:

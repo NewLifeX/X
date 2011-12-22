@@ -46,7 +46,7 @@ namespace NewLife.Net.Proxy
         /// <summary>添加Socket服务器</summary>
         /// <param name="server"></param>
         /// <returns>添加是否成功</returns>
-        public override Boolean AttachServer(SocketServer server)
+        public override Boolean AttachServer(ISocketServer server)
         {
             if (!base.AttachServer(server)) return false;
 

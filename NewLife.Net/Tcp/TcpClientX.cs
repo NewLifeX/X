@@ -36,6 +36,9 @@ namespace NewLife.Net.Tcp
         private Boolean _DisconnectWhenEmptyData;
         /// <summary>收到空数据时抛出异常并断开连接。</summary>
         public Boolean DisconnectWhenEmptyData { get { return _DisconnectWhenEmptyData; } set { _DisconnectWhenEmptyData = value; } }
+
+        /// <summary>套接字</summary>
+        Socket ISocketSession.Socket { get { return base.Client; } set { base.Client = value; } }
         #endregion
 
         #region 重载
@@ -69,7 +72,7 @@ namespace NewLife.Net.Tcp
 
         /// <summary>开始异步接收，同时处理传入的事件参数，里面可能有接收到的数据</summary>
         /// <param name="e"></param>
-        internal new void ReceiveAsync(NetEventArgs e)
+        void ISocketSession.Start(NetEventArgs e)
         {
             if (e.BytesTransferred > 0)
                 base.OnReceive(e);

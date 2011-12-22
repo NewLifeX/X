@@ -87,7 +87,7 @@ namespace NewLife.Net.Tcp
 
         /// <summary>新客户端到达</summary>
         /// <param name="e"></param>
-        protected virtual TcpClientX OnAccept(NetEventArgs e)
+        protected virtual ISocketSession OnAccept(NetEventArgs e)
         {
             // 再次开始
             if (e.SocketError != SocketError.OperationAborted) StartAccept();
@@ -105,7 +105,9 @@ namespace NewLife.Net.Tcp
             e.Socket = session;
             if (Accepted != null) Accepted(this, e);
 
-            if (session.Socket != null && session.Socket.Connected) session.ReceiveAsync(e);
+            var socket = session.Socket;
+            if (socket != null && socket.Connected) session.Start(e);
+            //if (session?.Socket?.Connected) session.Start(e);
 
             return session;
         }
@@ -146,9 +148,9 @@ namespace NewLife.Net.Tcp
 
         #region 会话
         private Object _Sessions_lock = new object();
-        private ICollection<TcpClientX> _Sessions;
+        private ICollection<ISocketSession> _Sessions;
         /// <summary>会话集合</summary>
-        public ICollection<TcpClientX> Sessions
+        public ICollection<ISocketSession> Sessions
         {
             get
             {
@@ -165,7 +167,7 @@ namespace NewLife.Net.Tcp
         /// <summary>创建会话</summary>
         /// <param name="e"></param>
         /// <returns></returns>
-        protected virtual TcpClientX CreateSession(NetEventArgs e)
+        protected virtual ISocketSession CreateSession(NetEventArgs e)
         {
             var session = new TcpClientX();
             session.Socket = e.AcceptSocket;

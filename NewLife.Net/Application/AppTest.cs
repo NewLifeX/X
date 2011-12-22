@@ -37,9 +37,9 @@ namespace NewLife.Net.Application
             StartChargenServer(19);
         }
 
-        static T CreateClient<T>() where T : SocketClient
+        static T CreateClient<T>() where T : ISocketClient
         {
-            SocketClient client = Activator.CreateInstance(typeof(T)) as SocketClient;
+            var client = Activator.CreateInstance(typeof(T)) as ISocketClient;
             client.Error += new EventHandler<NetEventArgs>(OnError);
             client.Received += new EventHandler<NetEventArgs>(OnReceived);
 
@@ -74,7 +74,7 @@ namespace NewLife.Net.Application
         static void TestSend(String name, ProtocolType protocol, IPEndPoint ep, Boolean isAsync, Boolean isSendData, Boolean isReceiveData)
         {
             String msg = String.Format("{0}Test_{1}_{2}!", name, protocol, isAsync ? "异步" : "同步");
-            SocketClient client = null;
+            ISocketClient client = null;
             if (protocol == ProtocolType.Tcp)
             {
                 TcpClientX tc = CreateClient<TcpClientX>();

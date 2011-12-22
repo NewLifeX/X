@@ -7,7 +7,7 @@ using NewLife.Net;
 namespace NewLife.Net.Sockets
 {
     /// <summary>Socket数据流</summary>
-    public class SocketStream : ReadWriteStream
+    class SocketStream : ReadWriteStream
     {
         #region 属性
         private Socket _Socket;

@@ -13,7 +13,7 @@ namespace NewLife.Net.Sockets
         /// <summary>添加Socket服务器</summary>
         /// <param name="server"></param>
         /// <returns>添加是否成功</returns>
-        public override Boolean AttachServer(SocketServer server)
+        public override Boolean AttachServer(ISocketServer server)
         {
             if (!base.AttachServer(server)) return false;
 
@@ -64,7 +64,7 @@ namespace NewLife.Net.Sockets
         /// <param name="offset"></param>
         /// <param name="size"></param>
         /// <param name="remoteEP"></param>
-        protected virtual void Send(SocketBase sender, Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP)
+        protected virtual void Send(ISocket sender, Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP)
         {
             if (sender is TcpClientX)
             {
@@ -86,7 +86,7 @@ namespace NewLife.Net.Sockets
 
         /// <summary>断开客户端连接</summary>
         /// <param name="client"></param>
-        protected virtual void Disconnect(SocketBase client)
+        protected virtual void Disconnect(ISocket client)
         {
             if (client is TcpClientX)
             {

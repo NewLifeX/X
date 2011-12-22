@@ -17,12 +17,12 @@ namespace NewLife.Net.Sockets
         /// <summary>使用中</summary>
         public Boolean Used { get { return _Used; } set { _Used = value; } }
 
-        private SocketBase _Socket;
+        private ISocket _Socket;
         /// <summary>当前对象的使用者，默认就是从对象池<see cref="SocketBase.Pool"/>中借出当前网络事件参数的那个SocketBase。
         /// 比如，如果是Server程序，那么它往往就是与客户端通讯的那个Socket(TcpSession)。
         /// 在TcpServer中，它就是TcpSession。
         /// </summary>
-        public SocketBase Socket { get { return _Socket; } set { _Socket = value; } }
+        public ISocket Socket { get { return _Socket; } set { _Socket = value; } }
 
         private Exception _Error;
         /// <summary>异常信息</summary>

@@ -64,10 +64,10 @@ namespace NewLife.Net.Application
 
         void LoopSend(Object state)
         {
-            SocketBase client = ((Object[])state)[0] as SocketBase;
+            var client = ((Object[])state)[0] as ISocket;
             if (client == null) return;
 
-            IPEndPoint remote = ((Object[])state)[1] as IPEndPoint;
+            var remote = ((Object[])state)[1] as IPEndPoint;
             hasError = false;
 
             try
@@ -94,7 +94,7 @@ namespace NewLife.Net.Application
         Int32 Length = 72;
         Int32 Index = 0;
 
-        void Send(SocketBase sender, IPEndPoint remoteEP)
+        void Send(ISocket sender, IPEndPoint remoteEP)
         {
             Int32 startIndex = Index++;
             if (Index >= Length) Index = 0;
