@@ -1,24 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="NewLife.Net.Sockets.SocketClient" Collapsed="true">
-    <Position X="7.5" Y="5" Width="2" />
+    <Position X="18" Y="6.25" Width="1.5" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>AAAAACABAAAQAAAAAEAAAIAAAIAAAAAQABABAAAAAAQ=</HashCode>
+      <HashCode>AAAAACABAAAQAAAEAEAAAIAAAIAAAAAQABABAAAAAAQ=</HashCode>
       <FileName>Sockets\SocketClient.cs</FileName>
     </TypeIdentifier>
-  </Class>
-  <Class Name="NewLife.Net.Tcp.TcpSession" Collapsed="true">
-    <Position X="6.5" Y="7.75" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAABAAAAAEAAA=</HashCode>
-      <FileName>Tcp\TcpSession.cs</FileName>
-    </TypeIdentifier>
+    <Lollipop Position="0.2" />
   </Class>
   <Class Name="NewLife.Net.Sockets.SocketServer" Collapsed="true">
-    <Position X="2.5" Y="5" Width="2" />
+    <Position X="13.5" Y="6.25" Width="1.5" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
@@ -26,106 +20,200 @@
       <HashCode>AAAAAAAAACCAAAAAEAAQAAAAAAAAAAAgIEAAAgAAAAA=</HashCode>
       <FileName>Sockets\SocketServer.cs</FileName>
     </TypeIdentifier>
-  </Class>
-  <Class Name="NewLife.Net.Tcp.TcpServer" Collapsed="true">
-    <Position X="1.25" Y="6.5" Width="1.75" />
-    <Compartments>
-      <Compartment Name="Fields" Collapsed="true" />
-    </Compartments>
-    <TypeIdentifier>
-      <HashCode>AAAAQCAAACAAABAAECAAAACAAAAIAAAAIAAgAAAAAAA=</HashCode>
-      <FileName>Tcp\TcpServer.cs</FileName>
-    </TypeIdentifier>
-    <ShowAsAssociation>
-      <Property Name="Sessions" />
-    </ShowAsAssociation>
-  </Class>
-  <Class Name="NewLife.Net.Udp.UdpServer" Collapsed="true">
-    <Position X="3.75" Y="6.5" Width="2" />
-    <Compartments>
-      <Compartment Name="Fields" Collapsed="true" />
-    </Compartments>
-    <TypeIdentifier>
-      <HashCode>AAAAACABAAAQAAAAEEAAAAAAAAAAAAAAABAhAAAAAAA=</HashCode>
-      <FileName>Udp\UdpServer.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="NewLife.Net.Sockets.NetEventArgs" Collapsed="true">
-    <Position X="0.75" Y="2.25" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAIEAAAAJAAAAAAQAAIgCAAAACEAAEA=</HashCode>
-      <FileName>Sockets\NetEventArgs.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="NewLife.Net.Sockets.SocketBase" Collapsed="true">
-    <Position X="5" Y="3.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AEAAgCAAA2CAIQIAiAAAAEAADACACRACAACkgACACgA=</HashCode>
-      <FileName>Sockets\SocketBase.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="NewLife.Net.Sockets.Netbase" Collapsed="true">
-    <Position X="7.25" Y="2" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Sockets\Netbase.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="NewLife.DisposeBase" Collapsed="true">
-    <Position X="7.25" Y="0.75" Width="1.5" />
-    <TypeIdentifier />
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="System.Net.Sockets.SocketAsyncEventArgs" Collapsed="true">
-    <Position X="0.75" Y="0.75" Width="1.5" />
-    <TypeIdentifier />
+  <Class Name="NewLife.Net.Tcp.TcpServer" Collapsed="true">
+    <Position X="12.5" Y="7.75" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AABAQCAAACAAABAAECAAAACAAAAIAAAAIAAgAAAAAAA=</HashCode>
+      <FileName>Tcp\TcpServer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Net.Udp.UdpServer" Collapsed="true">
+    <Position X="14.75" Y="7.75" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAACABAAAQAAAAEEAAAAAAAIAgAAAQABAhAAAAQBA=</HashCode>
+      <FileName>Udp\UdpServer.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="NewLife.Net.Sockets.SocketBase" Collapsed="true">
+    <Position X="15.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAgCAAA3CAKQIEiAAgAEAADACACQACAACggACACgE=</HashCode>
+      <FileName>Sockets\SocketBase.cs</FileName>
+    </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="NewLife.Net.Tcp.TcpClientX" Collapsed="true">
-    <Position X="6.5" Y="6.5" Width="1.5" />
+    <Position X="17" Y="7.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAEgAAAABAA=</HashCode>
+      <HashCode>AAQAACAAAAAQAAAAAAAIAAAAAAAgAAAAAAEiAAAABBA=</HashCode>
       <FileName>Tcp\TcpClientX.cs</FileName>
     </TypeIdentifier>
+    <Lollipop Position="0.2" />
   </Class>
   <Class Name="NewLife.Net.Udp.UdpClientX" Collapsed="true">
-    <Position X="8.75" Y="6.5" Width="1.5" />
+    <Position X="19.25" Y="7.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAACAAAAAAEAAAAAAAAAAAAAAABAgAAAAAAA=</HashCode>
       <FileName>Udp\UdpClientX.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="NewLife.Net.Tcp.TcpSessionCollection" Collapsed="true">
-    <Position X="1.5" Y="8.5" Width="1.5" />
-    <Compartments>
-      <Compartment Name="Fields" Collapsed="true" />
-      <Compartment Name="Methods" Collapsed="true" />
-    </Compartments>
-    <TypeIdentifier>
-      <HashCode>AAIAIAAAAAAAAAAAAAgCAAAAAAAAAAAAAIAAAAAAAgI=</HashCode>
-      <FileName>Tcp\TcpSessionCollection.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="NewLife.Net.Application.TcpEchoServer" Collapsed="true">
-    <Position X="11" Y="5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>gAAIAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Application\TcpEchoServer.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="NewLife.Net.Application.UdpEchoServer" Collapsed="true">
-    <Position X="13.25" Y="5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAIAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Application\UdpEchoServer.cs</FileName>
-    </TypeIdentifier>
-  </Class>
   <Class Name="NewLife.Net.Sockets.NetServer" Collapsed="true">
-    <Position X="12.25" Y="3.5" Width="1.5" />
+    <Position X="12.75" Y="0.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>QAAIAAAAACCAAAAAEAAAIEQACAAAAAAiIEAAAgAACAA=</HashCode>
+      <HashCode>AAAKAIAAACAAAAAEEAAgIEQACAAAAAAiYFAgAgAACBE=</HashCode>
       <FileName>Sockets\NetServer.cs</FileName>
     </TypeIdentifier>
+    <Lollipop Position="0.2" />
   </Class>
+  <Class Name="NewLife.Net.Proxy.ProxyBase" Collapsed="true">
+    <Position X="5" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAABCCAAAAAAKAAAAAAAAAIBAAAQAAAAQAAgAA=</HashCode>
+      <FileName>Proxy\ProxyBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="NewLife.Net.Sockets.NetAppServer" Collapsed="true">
+    <Position X="14" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAQAAAAQAAgAA=</HashCode>
+      <FileName>Sockets\NetAppServer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Net.Application.ChargenServer" Collapsed="true">
+    <Position X="7.25" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAAAIAEAAAABAAAEAAAAAAAEAAQAAgAA=</HashCode>
+      <FileName>Application\ChargenServer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Net.Application.DaytimeServer" Collapsed="true">
+    <Position X="9.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAA=</HashCode>
+      <FileName>Application\DaytimeServer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Net.Application.DiscardServer" Collapsed="true">
+    <Position X="11.75" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAA=</HashCode>
+      <FileName>Application\DiscardServer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Net.Application.EchoServer" Collapsed="true">
+    <Position X="14" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAA=</HashCode>
+      <FileName>Application\EchoServer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Net.Application.StreamServer" Collapsed="true">
+    <Position X="16.25" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAAAAAAQAAAAAAAAAAAAAAAgAAAAAAAAQAAAAA=</HashCode>
+      <FileName>Application\StreamServer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Net.Application.TimeServer" Collapsed="true">
+    <Position X="18.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAgAA=</HashCode>
+      <FileName>Application\TimeServer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Net.IO.FileServer" Collapsed="true">
+    <Position X="20.75" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAIAAAABAAAAAAAAAAAEAAEAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IO\FileServer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Net.Proxy.XProxy" Collapsed="true">
+    <Position X="5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAEABAAAAQAAgAAAAAAAAAAAAAAAQ=</HashCode>
+      <FileName>Proxy\XProxy.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="System.Net.Sockets.Socket">
+    <Position X="1" Y="2.75" Width="2.25" />
+    <TypeIdentifier />
+    <Lollipop Position="0.2" />
+  </Class>
+  <Interface Name="NewLife.Net.Proxy.IProxySession">
+    <Position X="5.75" Y="12.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACCAQAQAAAAAAAAAAAAAAQAAAAAEAAgAAAAA=</HashCode>
+      <FileName>Proxy\IProxySession.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Proxy" />
+      <Property Name="Remote" />
+      <Property Name="Server" />
+      <Property Name="Session" />
+    </ShowAsAssociation>
+  </Interface>
+  <Interface Name="NewLife.Net.Proxy.IProxy">
+    <Position X="8.75" Y="12.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAAAAAAAAAAAKAAAIAAAAAAAAAAAAAABAAAAAA=</HashCode>
+      <FileName>Proxy\IProxy.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Filters" />
+      <Property Name="Sessions" />
+    </ShowAsCollectionAssociation>
+  </Interface>
+  <Interface Name="NewLife.Net.Proxy.IProxyFilter">
+    <Position X="11.75" Y="12.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAACAAAAAAAAAAAAIAAAAAAAAAAAAAABAAAAAA=</HashCode>
+      <FileName>Proxy\IProxyFilter.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Proxy" />
+    </ShowAsAssociation>
+  </Interface>
+  <Interface Name="NewLife.Net.Sockets.ISocketClient">
+    <Position X="9" Y="9" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABAAAAAAAAAEAAAIAAAIAAAAAQABAAAAAAAAQ=</HashCode>
+      <FileName>Sockets\ISocketClient.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="NewLife.Net.Sockets.ISocketServer">
+    <Position X="6.75" Y="9" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAgAAAAA=</HashCode>
+      <FileName>Sockets\ISocketServer.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="NewLife.Net.Sockets.ISocketSession">
+    <Position X="4.5" Y="9" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAABACAAAAAAAEAAAAAAAIAAAQAQABAAAAAAAAA=</HashCode>
+      <FileName>Sockets\ISocketSession.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Socket" />
+    </ShowAsAssociation>
+  </Interface>
+  <Interface Name="NewLife.Net.Sockets.ISocket">
+    <Position X="6.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAAAAAIQIAAAAAAAAACAAAAAACAAAgAACAAAE=</HashCode>
+      <FileName>Sockets\ISocket.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
   <Font Name="微软雅黑" Size="9" />
 </ClassDiagram>
