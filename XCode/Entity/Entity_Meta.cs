@@ -134,11 +134,22 @@ namespace XCode
             /// </summary>
             public static DatabaseType DbType { get { return DBO.DbType; } }
 
-            /// <summary>
-            /// 查询
-            /// </summary>
+            /// <summary>执行SQL查询，返回记录集</summary>
+            /// <param name="builder">SQL语句</param>
+            /// <param name="startRowIndex">开始行，0表示第一行</param>
+            /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+            /// <returns></returns>
+            public static DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+            {
+                WaitForInitData();
+
+                return DBO.Select(builder, startRowIndex, maximumRows, Meta.TableName);
+            }
+
+            /// <summary>查询</summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>结果记录集</returns>
+            //[Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
             public static DataSet Query(String sql)
             {
                 WaitForInitData();
@@ -151,6 +162,7 @@ namespace XCode
             /// </summary>
             /// <param name="sql">SQL语句</param>
             /// <returns>记录数</returns>
+            [Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
             public static Int32 QueryCount(String sql)
             {
                 WaitForInitData();
@@ -198,31 +210,6 @@ namespace XCode
                 executeCount++;
                 DataChange();
                 return rs;
-            }
-
-            /// <summary>
-            /// 根据条件把普通查询SQL格式化为分页SQL。
-            /// </summary>
-            /// <param name="sql">SQL语句</param>
-            /// <param name="startRowIndex">开始行，0表示第一行</param>
-            /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-            /// <param name="keyColumn">唯一键。用于not in分页</param>
-            /// <returns>分页SQL</returns>
-            public static String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
-            {
-                return DBO.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
-            }
-
-            /// <summary>
-            /// 根据条件把普通查询SQL格式化为分页SQL。
-            /// </summary>
-            /// <param name="builder">查询生成器</param>
-            /// <param name="startRowIndex">开始行，0表示第一行</param>
-            /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-            /// <returns>分页SQL</returns>
-            public static String PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
-            {
-                return DBO.PageSplit(builder, startRowIndex, maximumRows);
             }
 
             static void DataChange()

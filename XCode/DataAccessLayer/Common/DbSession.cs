@@ -352,48 +352,16 @@ namespace XCode.DataAccessLayer
         }
 
         ///// <summary>
-        ///// 执行SQL查询，返回附加了主键等架构信息的记录集。性能稍差于普通查询
+        ///// 执行SQL查询，返回记录集
         ///// </summary>
-        ///// <param name="sql">SQL语句</param>
-        ///// <returns></returns>
-        //public virtual DataSet QueryWithKey(String sql)
+        ///// <param name="builder">查询生成器</param>
+        ///// <param name="startRowIndex">开始行，0表示第一行</param>
+        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        ///// <returns>记录集</returns>
+        //public virtual DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         //{
-        //    QueryTimes++;
-        //    WriteSQL(sql);
-        //    try
-        //    {
-        //        DbCommand cmd = CreateCommand();
-        //        cmd.CommandText = sql;
-        //        using (DbDataAdapter da = Factory.CreateDataAdapter())
-        //        {
-        //            da.MissingSchemaAction = MissingSchemaAction.AddWithKey;
-        //            da.SelectCommand = cmd;
-        //            DataSet ds = new DataSet();
-        //            da.Fill(ds);
-        //            return ds;
-        //        }
-        //    }
-        //    catch (DbException ex)
-        //    {
-        //        throw OnException(ex, sql);
-        //    }
-        //    finally
-        //    {
-        //        AutoClose();
-        //    }
+        //    return Query(Database.PageSplit(builder, startRowIndex, maximumRows).ToString(), CommandType.Text, builder.Parameters.ToArray());
         //}
-
-        /// <summary>
-        /// 执行SQL查询，返回记录集
-        /// </summary>
-        /// <param name="builder">查询生成器</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>记录集</returns>
-        public virtual DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return Query(Database.PageSplit(builder, startRowIndex, maximumRows).ToString(), CommandType.Text, builder.Parameters.ToArray());
-        }
 
         /// <summary>
         /// 执行DbCommand，返回记录集

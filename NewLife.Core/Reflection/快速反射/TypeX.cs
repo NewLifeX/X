@@ -504,51 +504,51 @@ namespace NewLife.Reflection
             return null;
         }
 
-        static DictionaryCache<String, Type> typeCache2 = new DictionaryCache<String, Type>();
-        /// <summary>
-        /// 从指定程序集查找指定名称的类型，如果查找不到，则进行忽略大小写的查找
-        /// </summary>
-        /// <param name="asm"></param>
-        /// <param name="typeName"></param>
-        /// <returns></returns>
-        public static Type GetType(Assembly asm, String typeName)
-        {
-            if (asm == null) throw new ArgumentNullException("asm");
-            if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
+        //static DictionaryCache<String, Type> typeCache2 = new DictionaryCache<String, Type>();
+        ///// <summary>
+        ///// 从指定程序集查找指定名称的类型，如果查找不到，则进行忽略大小写的查找
+        ///// </summary>
+        ///// <param name="asm"></param>
+        ///// <param name="typeName"></param>
+        ///// <returns></returns>
+        //public static Type GetType(Assembly asm, String typeName)
+        //{
+        //    if (asm == null) throw new ArgumentNullException("asm");
+        //    if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
 
-            return typeCache2.GetItem<Assembly>(typeName, asm, GetTypeInternal);
-        }
+        //    return typeCache2.GetItem<Assembly>(typeName, asm, GetTypeInternal);
+        //}
 
-        private static Type GetTypeInternal(String typeName, Assembly asm)
-        {
-            Type type = asm.GetType(typeName);
-            if (type == null) type = asm.GetType(typeName, false, true);
-            if (type == null)
-            {
-                Type[] ts = asm.GetTypes();
-                foreach (Type item in ts)
-                {
-                    if (item.Name == typeName)
-                    {
-                        type = item;
-                        break;
-                    }
-                }
-                if (type == null)
-                {
-                    foreach (Type item in ts)
-                    {
-                        if (String.Equals(item.Name, typeName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            type = item;
-                            break;
-                        }
-                    }
-                }
-            }
+        //private static Type GetTypeInternal(String typeName, Assembly asm)
+        //{
+        //    Type type = asm.GetType(typeName);
+        //    if (type == null) type = asm.GetType(typeName, false, true);
+        //    if (type == null)
+        //    {
+        //        Type[] ts = asm.GetTypes();
+        //        foreach (Type item in ts)
+        //        {
+        //            if (item.Name == typeName)
+        //            {
+        //                type = item;
+        //                break;
+        //            }
+        //        }
+        //        if (type == null)
+        //        {
+        //            foreach (Type item in ts)
+        //            {
+        //                if (String.Equals(item.Name, typeName, StringComparison.OrdinalIgnoreCase))
+        //                {
+        //                    type = item;
+        //                    break;
+        //                }
+        //            }
+        //        }
+        //    }
 
-            return type;
-        }
+        //    return type;
+        //}
         #endregion
 
         #region 辅助方法

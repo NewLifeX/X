@@ -128,22 +128,13 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
 
-            // ConnStrs对象不可能为null，但可能没有元素
-            //if (ConnStrs.ContainsKey(connName)) return;
-            //lock (ConnStrs)
-            //{
-            //    if (ConnStrs.ContainsKey(connName)) return;
-
             if (type == null) type = DbFactory.GetProviderType(connStr, provider);
             if (type == null) throw new XCodeException("无法识别的提供者" + provider + "！");
 
             // 允许后来者覆盖前面设置过了的
             ConnectionStringSettings set = new ConnectionStringSettings(connName, connStr, provider);
-            //ConnStrs.Add(connName, set);
-            //_connTypes.Add(connName, type);
             ConnStrs[connName] = set;
             _connTypes[connName] = type;
-            //}
         }
 
         /// <summary>获取所有已注册的连接名</summary>
@@ -175,7 +166,7 @@ namespace XCode.DataAccessLayer
         public String ConnStr { get { return _ConnStr; } private set { _ConnStr = value; } }
 
         private IDatabase _Db;
-        /// <summary>数据库。所有数据库操作在此统一管理，强烈建议不要直接使用该数据，在不同版本中IDatabase可能有较大改变</summary>
+        /// <summary>数据库。所有数据库操作在此统一管理，强烈建议不要直接使用该属性，在不同版本中IDatabase可能有较大改变</summary>
         public IDatabase Db
         {
             get
@@ -439,8 +430,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IEntityOperate CreateOperate(String tableName)
         {
-            Assembly asm = EntityAssembly.Create(ConnName, Tables);
-            Type type = TypeX.GetType(asm, tableName);
+            var asm = EntityAssembly.Create(ConnName, Tables);
+            //Type type = TypeX.GetType(asm, tableName);
+            var type = AssemblyX.Create(asm).GetType(tableName);
             if (type == null) return null;
 
             return EntityFactory.CreateOperate(type);

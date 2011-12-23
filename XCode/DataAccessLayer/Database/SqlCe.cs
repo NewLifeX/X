@@ -101,9 +101,9 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 分页
-        public override string PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows)
+        public override SelectBuilder PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows)
         {
-            return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, false, b => CreateSession().QueryCount(b)).ToString();
+            return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, false, b => CreateSession().QueryCount(b));
         }
         #endregion
     }

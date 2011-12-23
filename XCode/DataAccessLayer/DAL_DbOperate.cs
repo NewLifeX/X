@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Threading;
+using NewLife.Collections;
 using XCode.Cache;
 
 namespace XCode.DataAccessLayer
@@ -60,10 +60,8 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 使用缓存后的数据操作方法
-        private static Dictionary<String, String> _PageSplitCache = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-        /// <summary>
-        /// 根据条件把普通查询SQL格式化为分页SQL。
-        /// </summary>
+        private static DictionaryCache<String, String> _PageSplitCache = new DictionaryCache<String, String>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>根据条件把普通查询SQL格式化为分页SQL。</summary>
         /// <remarks>
         /// 因为需要继承重写的原因，在数据类中并不方便缓存分页SQL。
         /// 所以在这里做缓存。
@@ -73,26 +71,19 @@ namespace XCode.DataAccessLayer
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="keyColumn">唯一键。用于not in分页</param>
         /// <returns>分页SQL</returns>
+        [Obsolete("请优先考虑使用SelectBuilder参数做分页！")]
         public String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
-            String cacheKey = String.Format("{0}_{1}_{2}_{3}_", sql, startRowIndex, maximumRows, ConnName);
-            if (!String.IsNullOrEmpty(keyColumn)) cacheKey += keyColumn;
+            String cacheKey = String.Format("{0}_{1}_{2}_{3}_{4}", sql, startRowIndex, maximumRows, ConnName, keyColumn);
 
-            String rs = String.Empty;
-            if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
-            lock (_PageSplitCache)
+            return _PageSplitCache.GetItem<String, Int32, Int32, String>(cacheKey, sql, startRowIndex, maximumRows, keyColumn, (k, b, s, m, kc) =>
             {
-                if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
-
-                String s = Db.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
-                _PageSplitCache.Add(cacheKey, s);
-                return s;
-            }
+                return Db.PageSplit(b, s, m, kc);
+            });
         }
 
-        /// <summary>
-        /// 根据条件把普通查询SQL格式化为分页SQL。
-        /// </summary>
+        private static DictionaryCache<String, SelectBuilder> _PageSplitCache2 = new DictionaryCache<String, SelectBuilder>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>根据条件把普通查询SQL格式化为分页SQL。</summary>
         /// <remarks>
         /// 因为需要继承重写的原因，在数据类中并不方便缓存分页SQL。
         /// 所以在这里做缓存。
@@ -101,29 +92,21 @@ namespace XCode.DataAccessLayer
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
-        public String PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+        public SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
-            String cacheKey = String.Format("{0}_{1}_{2}_{3}_", builder.ToString(), startRowIndex, maximumRows, ConnName);
+            String cacheKey = String.Format("{0}_{1}_{2}_{3}_", builder, startRowIndex, maximumRows, ConnName);
 
-            String rs = String.Empty;
-            if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
-            lock (_PageSplitCache)
+            return _PageSplitCache2.GetItem<SelectBuilder, Int32, Int32>(cacheKey, builder, startRowIndex, maximumRows, (k, b, s, m) =>
             {
-                if (_PageSplitCache.TryGetValue(cacheKey, out rs)) return rs;
-
-                String s = Db.PageSplit(builder, startRowIndex, maximumRows);
-                _PageSplitCache.Add(cacheKey, s);
-                return s;
-            }
+                return Db.PageSplit(b, s, m);
+            });
         }
 
-        /// <summary>
-        /// 执行SQL查询，返回记录集
-        /// </summary>
+        /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="tableNames">所依赖的表的表名</param>
         /// <returns></returns>
-        public DataSet Select(String sql, String[] tableNames)
+        public DataSet Select(String sql, params String[] tableNames)
         {
             String cacheKey = sql + "_" + ConnName;
             DataSet ds = null;
@@ -137,52 +120,36 @@ namespace XCode.DataAccessLayer
             return ds;
         }
 
-        /// <summary>
-        /// 执行SQL查询，返回记录集
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="tableName">所依赖的表的表名</param>
-        /// <returns></returns>
-        public DataSet Select(String sql, String tableName)
-        {
-            return Select(sql, new String[] { tableName });
-        }
-
-        /// <summary>
-        /// 执行SQL查询，返回分页记录集
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="builder">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <param name="keyColumn">唯一键。用于not in分页</param>
         /// <param name="tableNames">所依赖的表的表名</param>
         /// <returns></returns>
-        public DataSet Select(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn, String[] tableNames)
+        public DataSet Select(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, params String[] tableNames)
         {
-            return Select(PageSplit(sql, startRowIndex, maximumRows, keyColumn), tableNames);
+            builder = PageSplit(builder, startRowIndex, maximumRows);
+            return Select(builder.ToString(), tableNames);
         }
 
-        /// <summary>
-        /// 执行SQL查询，返回分页记录集
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <param name="keyColumn">唯一键。用于not in分页</param>
-        /// <param name="tableName">所依赖的表的表名</param>
-        /// <returns></returns>
-        public DataSet Select(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn, String tableName)
-        {
-            return Select(sql, startRowIndex, maximumRows, keyColumn, new String[] { tableName });
-        }
+        ///// <summary>执行SQL查询，返回分页记录集</summary>
+        ///// <param name="sql">SQL语句</param>
+        ///// <param name="startRowIndex">开始行，0表示第一行</param>
+        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        ///// <param name="keyColumn">唯一键。用于not in分页</param>
+        ///// <param name="tableNames">所依赖的表的表名</param>
+        ///// <returns></returns>
+        //public DataSet Select(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn, params String[] tableNames)
+        //{
+        //    return Select(PageSplit(sql, startRowIndex, maximumRows, keyColumn), tableNames);
+        //}
 
-        /// <summary>
-        /// 执行SQL查询，返回总记录数
-        /// </summary>
+        /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="tableNames">所依赖的表的表名</param>
         /// <returns></returns>
-        public Int32 SelectCount(String sql, String[] tableNames)
+        [Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
+        public Int32 SelectCount(String sql, params String[] tableNames)
         {
             String cacheKey = sql + "_SelectCount" + "_" + ConnName;
             Int32 rs = 0;
@@ -197,24 +164,11 @@ namespace XCode.DataAccessLayer
             return rs;
         }
 
-        /// <summary>
-        /// 执行SQL查询，返回总记录数
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="tableName">所依赖的表的表名</param>
-        /// <returns></returns>
-        public Int32 SelectCount(String sql, String tableName)
-        {
-            return SelectCount(sql, new String[] { tableName });
-        }
-
-        /// <summary>
-        /// 执行SQL查询，返回总记录数
-        /// </summary>
+        /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sb">查询生成器</param>
         /// <param name="tableNames">所依赖的表的表名</param>
         /// <returns></returns>
-        public Int32 SelectCount(SelectBuilder sb, String[] tableNames)
+        public Int32 SelectCount(SelectBuilder sb, params String[] tableNames)
         {
             String sql = sb.ToString();
             String cacheKey = sql + "_SelectCount" + "_" + ConnName;
@@ -229,13 +183,11 @@ namespace XCode.DataAccessLayer
             return rs;
         }
 
-        /// <summary>
-        /// 执行SQL语句，返回受影响的行数
-        /// </summary>
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="tableNames">受影响的表的表名</param>
         /// <returns></returns>
-        public Int32 Execute(String sql, String[] tableNames)
+        public Int32 Execute(String sql, params String[] tableNames)
         {
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
@@ -243,24 +195,11 @@ namespace XCode.DataAccessLayer
             return Session.Execute(sql);
         }
 
-        /// <summary>
-        /// 执行SQL语句，返回受影响的行数
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="tableName">受影响的表的表名</param>
-        /// <returns></returns>
-        public Int32 Execute(String sql, String tableName)
-        {
-            return Execute(sql, new String[] { tableName });
-        }
-
-        /// <summary>
-        /// 执行插入语句并返回新增行的自动编号
-        /// </summary>
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql"></param>
         /// <param name="tableNames">受影响的表的表名</param>
         /// <returns>新增行的自动编号</returns>
-        public Int64 InsertAndGetIdentity(String sql, String[] tableNames)
+        public Int64 InsertAndGetIdentity(String sql, params String[] tableNames)
         {
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
@@ -268,20 +207,7 @@ namespace XCode.DataAccessLayer
             return Session.InsertAndGetIdentity(sql);
         }
 
-        /// <summary>
-        /// 执行插入语句并返回新增行的自动编号
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="tableName">受影响的表的表名</param>
-        /// <returns>新增行的自动编号</returns>
-        public Int64 InsertAndGetIdentity(String sql, String tableName)
-        {
-            return InsertAndGetIdentity(sql, new String[] { tableName });
-        }
-
-        /// <summary>
-        /// 执行CMD，返回记录集
-        /// </summary>
+        /// <summary>执行CMD，返回记录集</summary>
         /// <param name="cmd">CMD</param>
         /// <param name="tableNames">所依赖的表的表名</param>
         /// <returns></returns>
@@ -300,9 +226,7 @@ namespace XCode.DataAccessLayer
             return ds;
         }
 
-        /// <summary>
-        /// 执行CMD，返回受影响的行数
-        /// </summary>
+        /// <summary>执行CMD，返回受影响的行数</summary>
         /// <param name="cmd"></param>
         /// <param name="tableNames"></param>
         /// <returns></returns>
@@ -310,6 +234,7 @@ namespace XCode.DataAccessLayer
         {
             // 移除所有和受影响表有关的缓存
             if (EnableCache) XCache.Remove(tableNames);
+
             Interlocked.Increment(ref _ExecuteTimes);
             Int32 ret = Session.Execute(cmd);
             Session.AutoClose();

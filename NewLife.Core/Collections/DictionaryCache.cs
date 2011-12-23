@@ -5,14 +5,19 @@ using NewLife.Reflection;
 
 namespace NewLife.Collections
 {
-    /// <summary>
-    /// 字典缓存。当指定键的缓存项不存在时，调用委托获取值，并写入缓存。
-    /// </summary>
+    /// <summary>字典缓存。当指定键的缓存项不存在时，调用委托获取值，并写入缓存。</summary>
     /// <remarks>常用匿名函数或者Lambda表达式作为委托。</remarks>
     /// <typeparam name="TKey">键类型</typeparam>
     /// <typeparam name="TValue">值类型</typeparam>
     public class DictionaryCache<TKey, TValue> : Dictionary<TKey, TValue>
     {
+        /// <summary>实例化一个字典缓存</summary>
+        public DictionaryCache() { }
+
+        /// <summary>实例化一个字典缓存</summary>
+        /// <param name="comparer"></param>
+        public DictionaryCache(IEqualityComparer<TKey> comparer) { }
+
         /// <summary>
         /// 重写索引器。取值时如果没有该项则返回默认值；赋值时如果已存在该项则覆盖，否则添加。
         /// </summary>
@@ -197,6 +202,38 @@ namespace NewLife.Collections
                 if (TryGetValue(key, out value)) return value;
 
                 value = func(key, arg, arg2, arg3);
+                //Add(key, value);
+                if (cacheDefault || Object.Equals(value, default(TValue))) this[key] = value;
+
+                return value;
+            }
+        }
+
+        /// <summary>
+        /// 扩展获取数据项，当数据项不存在时，通过调用委托获取数据项。线程安全。
+        /// </summary>
+        /// <typeparam name="TArg">参数类型</typeparam>
+        /// <typeparam name="TArg2">参数类型2</typeparam>
+        /// <typeparam name="TArg3">参数类型3</typeparam>
+        /// <typeparam name="TArg4">参数类型4</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="arg">参数</param>
+        /// <param name="arg2">参数2</param>
+        /// <param name="arg3">参数3</param>
+        /// <param name="arg4">参数4</param>
+        /// <param name="func">获取值的委托，该委托除了键参数外，还有三个泛型参数</param>
+        /// <param name="cacheDefault">是否缓存默认值，可选参数，默认缓存</param>
+        /// <returns></returns>
+        [DebuggerHidden]
+        public virtual TValue GetItem<TArg, TArg2, TArg3, TArg4>(TKey key, TArg arg, TArg2 arg2, TArg3 arg3, TArg4 arg4, Func<TKey, TArg, TArg2, TArg3, TArg4, TValue> func, Boolean cacheDefault = true)
+        {
+            TValue value;
+            if (TryGetValue(key, out value)) return value;
+            lock (this)
+            {
+                if (TryGetValue(key, out value)) return value;
+
+                value = func(key, arg, arg2, arg3, arg4);
                 //Add(key, value);
                 if (cacheDefault || Object.Equals(value, default(TValue))) this[key] = value;
 

@@ -1,23 +1,20 @@
 ﻿using System;
-using NewLife.IO;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading;
+using NewLife.IO;
 using NewLife.Log;
-using NewLife.Net.Application;
 using NewLife.Net.Protocols.DNS;
+using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
-using XCode.DataAccessLayer;
-using NewLife.Threading;
-using System.Collections.Generic;
+using NewLife.Reflection;
 using XCode;
 using XCode.Code;
-using NewLife.Reflection;
-using System.Net;
-using System.Threading;
-using NewLife.Net.Tcp;
-using NewLife.Net.Proxy;
-using System.Net.Sockets;
+using XCode.DataAccessLayer;
+using System.Data;
 
 namespace Test
 {
@@ -34,7 +31,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -133,7 +130,14 @@ namespace Test
 
         static void Test3()
         {
-            UdpServer server = new UdpServer();
+            //UdpServer server = new UdpServer();
+            var dal = DAL.Create("Common");
+            var p = dal.Db.Factory.CreateParameter();
+            p.ParameterName = "table_name";
+            p.Value = "admin";
+            //var ds = dal.Session.Query("sp_columns", CommandType.StoredProcedure, p);
+            var ds = dal.Session.Query("select @table_name;", CommandType.Text, p);
+            Console.Write(ds);
         }
 
         static void Test4()

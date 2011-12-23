@@ -370,7 +370,7 @@ namespace XCode
             builder.Table = Meta.FormatName(Meta.TableName);
             // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
             builder.Where = whereClause;
-            IList<TEntity> list = LoadData(Meta.Query(builder.ToString()));
+            IList<TEntity> list = LoadData(Meta.Query(builder, 0, 0));
             if (list == null || list.Count < 1) return null;
 
             if (list.Count > 1 && DAL.Debug)
@@ -554,8 +554,8 @@ namespace XCode
                         if (max <= 0) return new EntityList<TEntity>();
                         Int32 start = (Int32)(count - (startRowIndex + maximumRows));
 
-                        String sql2 = PageSplitSQL(whereClause, order, selects, start, max);
-                        EntityList<TEntity> list = LoadData(Meta.Query(sql2));
+                        var builder2 = CreateBuilder(whereClause, order, selects, start, max);
+                        EntityList<TEntity> list = LoadData(Meta.Query(builder2, start, max));
                         if (list == null || list.Count < 1) return list;
                         // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
                         list.Reverse();
@@ -565,8 +565,8 @@ namespace XCode
             }
             #endregion
 
-            String sql = PageSplitSQL(whereClause, orderClause, selects, startRowIndex, maximumRows);
-            return LoadData(Meta.Query(sql));
+            var builder = CreateBuilder(whereClause, orderClause, selects, startRowIndex, maximumRows);
+            return LoadData(Meta.Query(builder, startRowIndex, maximumRows));
         }
 
         /// <summary>
@@ -797,7 +797,7 @@ namespace XCode
         /// <returns>总行数</returns>
         public static Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
-            SelectBuilder sb = new SelectBuilder();
+            var sb = new SelectBuilder();
             sb.Table = Meta.FormatName(Meta.TableName);
             sb.Where = whereClause;
 
@@ -1022,18 +1022,9 @@ namespace XCode
         [Obsolete("该成员在后续版本中将不再被支持！请使用XCodeService.Resolve<IEntityPersistence>().GetPrimaryCondition()！")]
         protected static String DefaultCondition(Entity<TEntity> obj) { return persistence.GetPrimaryCondition(obj); }
 
-        /// <summary>
-        /// 取得指定实体类型的分页SQL
-        /// </summary>
-        /// <param name="whereClause">条件，不带Where</param>
-        /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="selects">查询列</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>分页SQL</returns>
-        protected static String PageSplitSQL(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
+        static SelectBuilder CreateBuilder(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
-            SelectBuilder builder = new SelectBuilder();
+            var builder = new SelectBuilder();
             builder.Column = selects;
             builder.Table = Meta.FormatName(Meta.TableName);
             builder.OrderBy = orderClause;
@@ -1041,35 +1032,14 @@ namespace XCode
             builder.Where = whereClause;
 
             // 返回所有记录
-            if (startRowIndex <= 0 && maximumRows <= 0) return builder.ToString();
+            if (startRowIndex <= 0 && maximumRows <= 0) return builder;
 
-            return PageSplitSQL(builder, startRowIndex, maximumRows);
-        }
-
-        /// <summary>
-        /// 取得指定实体类型的分页SQL
-        /// </summary>
-        /// <param name="builder">查询生成器</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>分页SQL</returns>
-        protected static String PageSplitSQL(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
-        {
             FieldItem fi = Meta.Unique;
             if (fi != null)
             {
                 builder.Key = fi.Name;
-                //if (fi.IsIdentity && Helper.IsIntType(fi.Type))
-                //{
-                //    // 默认获取数据时，还是需要指定安装自增字段降序，符合使用习惯
-                //    // 有GroupBy也不能加排序
-                //    if (String.IsNullOrEmpty(builder.OrderBy) && String.IsNullOrEmpty(builder.GroupBy))
-                //    {
-                //        builder.IsDesc = true;
-                //    }
-                //}
 
-                // 默认获取数据时，还是需要指定安装自增字段降序，符合使用习惯
+                // 默认获取数据时，还是需要指定按照自增字段降序，符合使用习惯
                 // 有GroupBy也不能加排序
                 if (String.IsNullOrEmpty(builder.OrderBy) && String.IsNullOrEmpty(builder.GroupBy))
                 {
@@ -1084,7 +1054,7 @@ namespace XCode
                 // 如果找不到唯一键，并且排序又为空，则采用全部字段一起，确保能够分页
                 if (String.IsNullOrEmpty(builder.OrderBy)) builder.Keys = Meta.FieldNames.ToArray();
             }
-            return Meta.PageSplit(builder, startRowIndex, maximumRows);
+            return builder;
         }
         #endregion
 

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using NewLife.Linq;
 using System.Reflection;
 using System.Web;
 using NewLife.Collections;
+using NewLife.Linq;
 
 namespace NewLife.Reflection
 {
@@ -330,10 +330,21 @@ namespace NewLife.Reflection
         #endregion
 
         #region 方法
-        /// <summary>在程序集中查找类型</summary>
+        static DictionaryCache<String, Type> typeCache2 = new DictionaryCache<String, Type>();
+        /// <summary>从程序集中查找指定名称的类型</summary>
         /// <param name="typeName"></param>
         /// <returns></returns>
         public Type GetType(String typeName)
+        {
+            if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
+
+            return typeCache2.GetItem(typeName, GetTypeInternal);
+        }
+
+        /// <summary>在程序集中查找类型</summary>
+        /// <param name="typeName"></param>
+        /// <returns></returns>
+        Type GetTypeInternal(String typeName)
         {
             Type type = Asm.GetType(typeName);
             if (type != null) return type;

@@ -512,12 +512,15 @@ namespace XCode.DataAccessLayer
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
-        public virtual String PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+        public virtual SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
             // 从第一行开始，不需要分页
-            if (startRowIndex <= 0 && maximumRows < 1) return builder.ToString();
+            if (startRowIndex <= 0 && maximumRows < 1) return builder;
 
-            return PageSplit(builder.ToString(), startRowIndex, maximumRows, builder.Key);
+            var sql = PageSplit(builder.ToString(), startRowIndex, maximumRows, builder.Key);
+            var sb = new SelectBuilder();
+            sb.Parse(sql);
+            return sb;
         }
         #endregion
 
