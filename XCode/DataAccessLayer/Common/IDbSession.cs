@@ -88,13 +88,12 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 基本方法 查询/执行
-        /// <summary>
-        /// 执行SQL查询，返回记录集
-        /// </summary>
+        /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
-        /// <param name="ps">参数</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
         /// <returns>记录集</returns>
-        DataSet Query(String sql, params DbParameter[] ps);
+        DataSet Query(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
 
         /// <summary>
         /// 执行SQL查询，返回记录集
@@ -116,8 +115,10 @@ namespace XCode.DataAccessLayer
         /// 执行SQL查询，返回总记录数
         /// </summary>
         /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
         /// <returns>总记录数</returns>
-        Int64 QueryCount(String sql);
+        Int64 QueryCount(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
 
         /// <summary>
         /// 执行SQL查询，返回总记录数
@@ -133,12 +134,12 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         Int64 QueryCountFast(String tableName);
 
-        /// <summary>
-        /// 执行SQL语句，返回受影响的行数
-        /// </summary>
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
         /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        Int32 Execute(String sql);
+        Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
 
         /// <summary>
         /// 执行DbCommand，返回受影响的行数
@@ -152,7 +153,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
-        Int64 InsertAndGetIdentity(String sql);
+        Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
 
         /// <summary>
         /// 执行SQL语句，返回结果中的第一行第一列
@@ -160,7 +161,7 @@ namespace XCode.DataAccessLayer
         /// <typeparam name="T">返回类型</typeparam>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
-        T ExecuteScalar<T>(String sql);
+        T ExecuteScalar<T>(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
 
         /// <summary>
         /// 获取一个DbCommand。
@@ -170,6 +171,18 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <returns></returns>
         DbCommand CreateCommand();
+
+        /// <summary>
+        /// 获取一个DbCommand。
+        /// 配置了连接，并关联了事务。
+        /// 连接已打开。
+        /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        DbCommand CreateCommand(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
         #endregion
 
         #region 构架

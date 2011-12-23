@@ -34,8 +34,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("8.3.*")]
-[assembly: AssemblyFileVersion("8.3.2011.1222")]
+[assembly: AssemblyVersion("8.4.*")]
+[assembly: AssemblyFileVersion("8.4.2011.1223")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.4.2011.1223   数据层支持存储过程及参数化查询
+ * 
  * v8.3.2011.1222   修正SQLite会对内存数据库调用创建数据库的BUG
  *                  修改EntityAssembly所需要的参数，支持传入IDataTable集合来生成实体
  * 

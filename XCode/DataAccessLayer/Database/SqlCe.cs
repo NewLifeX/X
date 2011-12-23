@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.Common;
 using System.Data.SqlTypes;
+using System.Data;
 
 namespace XCode.DataAccessLayer
 {
@@ -117,12 +118,12 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>新增行的自动编号</returns>
-        public override Int64 InsertAndGetIdentity(string sql)
+        public override Int64 InsertAndGetIdentity(string sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             //SQLServer写法
             sql = "SET NOCOUNT ON;" + sql + ";Select SCOPE_IDENTITY()";
 
-            return ExecuteScalar<Int64>(sql);
+            return ExecuteScalar<Int64>(sql, type, ps);
         }
     }
 

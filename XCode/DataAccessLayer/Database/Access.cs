@@ -201,7 +201,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>新增行的自动编号</returns>
-        public override Int64 InsertAndGetIdentity(String sql)
+        public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             Boolean b = IsAutoClose;
             // 禁用自动关闭，保证两次在同一会话
@@ -210,7 +210,7 @@ namespace XCode.DataAccessLayer
             BeginTransaction();
             try
             {
-                Int64 rs = Execute(sql);
+                Int64 rs = Execute(sql, type, ps);
                 if (rs > 0) rs = ExecuteScalar<Int64>("Select @@Identity");
                 Commit();
                 return rs;

@@ -371,20 +371,6 @@ namespace XCode.DataAccessLayer
         {
             String sql = String.Format("select NUM_ROWS from sys.all_indexes where TABLE_OWNER='{0}' and TABLE_NAME='{1}'", (Database as Oracle).Owner.ToUpper(), tableName);
             return ExecuteScalar<Int64>(sql);
-
-            //QueryTimes++;
-            //DbCommand cmd = CreateCommand();
-            //cmd.CommandText = sql;
-            //WriteSQL(cmd.CommandText);
-            //try
-            //{
-            //    return Convert.ToInt64(cmd.ExecuteScalar());
-            //}
-            //catch (DbException ex)
-            //{
-            //    throw OnException(ex, cmd.CommandText);
-            //}
-            //finally { AutoClose(); }
         }
 
         static Regex reg_SEQ = new Regex(@"\b(\w+)\.nextval\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -393,7 +379,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>新增行的自动编号</returns>
-        public override Int64 InsertAndGetIdentity(String sql)
+        public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             Boolean b = IsAutoClose;
             // 禁用自动关闭，保证两次在同一会话
@@ -402,7 +388,7 @@ namespace XCode.DataAccessLayer
             BeginTransaction();
             try
             {
-                Int64 rs = base.InsertAndGetIdentity(sql);
+                Int64 rs = base.InsertAndGetIdentity(sql, type, ps);
                 if (rs > 0)
                 {
                     Match m = reg_SEQ.Match(sql);

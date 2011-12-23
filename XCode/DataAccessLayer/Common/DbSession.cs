@@ -319,70 +319,69 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 基本方法 查询/执行
-        /// <summary>
-        /// 执行SQL查询，返回记录集
-        /// </summary>
+        /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
-        /// <param name="ps">参数</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public virtual DataSet Query(String sql, params DbParameter[] ps)
+        public virtual DataSet Query(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            QueryTimes++;
-            WriteSQL(sql);
-            try
-            {
-                DbCommand cmd = CreateCommand(); Factory.CreateParameter();
-                cmd.CommandText = sql;
-                if (ps != null && ps.Length > 0) cmd.Parameters.AddRange(ps);
-                using (DbDataAdapter da = Factory.CreateDataAdapter())
-                {
-                    da.SelectCommand = cmd;
-                    DataSet ds = new DataSet();
-                    da.Fill(ds);
-                    return ds;
-                }
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, sql);
-            }
-            finally
-            {
-                AutoClose();
-            }
+            return Query(CreateCommand(sql, type, ps));
+
+            //QueryTimes++;
+            //WriteSQL(sql, ps);
+            //try
+            //{
+            //    DbCommand cmd = CreateCommand(sql, type, ps);
+            //    using (DbDataAdapter da = Factory.CreateDataAdapter())
+            //    {
+            //        da.SelectCommand = cmd;
+            //        DataSet ds = new DataSet();
+            //        da.Fill(ds);
+            //        return ds;
+            //    }
+            //}
+            //catch (DbException ex)
+            //{
+            //    throw OnException(ex, sql);
+            //}
+            //finally
+            //{
+            //    AutoClose();
+            //}
         }
 
-        /// <summary>
-        /// 执行SQL查询，返回附加了主键等架构信息的记录集。性能稍差于普通查询
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns></returns>
-        public virtual DataSet QueryWithKey(String sql)
-        {
-            QueryTimes++;
-            WriteSQL(sql);
-            try
-            {
-                DbCommand cmd = CreateCommand();
-                cmd.CommandText = sql;
-                using (DbDataAdapter da = Factory.CreateDataAdapter())
-                {
-                    da.MissingSchemaAction = MissingSchemaAction.AddWithKey;
-                    da.SelectCommand = cmd;
-                    DataSet ds = new DataSet();
-                    da.Fill(ds);
-                    return ds;
-                }
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, sql);
-            }
-            finally
-            {
-                AutoClose();
-            }
-        }
+        ///// <summary>
+        ///// 执行SQL查询，返回附加了主键等架构信息的记录集。性能稍差于普通查询
+        ///// </summary>
+        ///// <param name="sql">SQL语句</param>
+        ///// <returns></returns>
+        //public virtual DataSet QueryWithKey(String sql)
+        //{
+        //    QueryTimes++;
+        //    WriteSQL(sql);
+        //    try
+        //    {
+        //        DbCommand cmd = CreateCommand();
+        //        cmd.CommandText = sql;
+        //        using (DbDataAdapter da = Factory.CreateDataAdapter())
+        //        {
+        //            da.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+        //            da.SelectCommand = cmd;
+        //            DataSet ds = new DataSet();
+        //            da.Fill(ds);
+        //            return ds;
+        //        }
+        //    }
+        //    catch (DbException ex)
+        //    {
+        //        throw OnException(ex, sql);
+        //    }
+        //    finally
+        //    {
+        //        AutoClose();
+        //    }
+        //}
 
         /// <summary>
         /// 执行SQL查询，返回记录集
@@ -393,7 +392,7 @@ namespace XCode.DataAccessLayer
         /// <returns>记录集</returns>
         public virtual DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
-            return Query(Database.PageSplit(builder, startRowIndex, maximumRows).ToString());
+            return Query(Database.PageSplit(builder, startRowIndex, maximumRows).ToString(), CommandType.Text, builder.Parameters.ToArray());
         }
 
         /// <summary>
@@ -434,7 +433,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
-        public virtual Int64 QueryCount(String sql)
+        public virtual Int64 QueryCount(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             if (sql.Contains(" "))
             {
@@ -455,7 +454,7 @@ namespace XCode.DataAccessLayer
                 sql = String.Format("Select Count(*) From {0}", Database.FormatName(sql));
 
             //return QueryCountInternal(sql);
-            return ExecuteScalar<Int64>(sql);
+            return ExecuteScalar<Int64>(sql, type, ps);
         }
 
         /// <summary>
@@ -465,8 +464,7 @@ namespace XCode.DataAccessLayer
         /// <returns>总记录数</returns>
         public virtual Int64 QueryCount(SelectBuilder builder)
         {
-            //return QueryCountInternal(builder.SelectCount().ToString());
-            return ExecuteScalar<Int64>(builder.SelectCount().ToString());
+            return ExecuteScalar<Int64>(builder.SelectCount().ToString(), CommandType.Text, builder.Parameters.ToArray());
         }
 
         /// <summary>
@@ -474,31 +472,32 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public virtual Int64 QueryCountFast(String tableName)
-        {
-            return QueryCount(tableName);
-        }
+        public virtual Int64 QueryCountFast(String tableName) { return QueryCount(tableName); }
 
-        /// <summary>
-        /// 执行SQL语句，返回受影响的行数
-        /// </summary>
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
         /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public virtual Int32 Execute(String sql)
+        public virtual Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            ExecuteTimes++;
-            WriteSQL(sql);
-            try
-            {
-                DbCommand cmd = CreateCommand();
-                cmd.CommandText = sql;
-                return cmd.ExecuteNonQuery();
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, sql);
-            }
-            finally { AutoClose(); }
+            return Execute(CreateCommand(sql, type, ps));
+
+            //ExecuteTimes++;
+            //WriteSQL(sql, ps);
+            //try
+            //{
+            //    DbCommand cmd = CreateCommand();
+            //    cmd.CommandType = type;
+            //    cmd.CommandText = sql;
+            //    if (ps != null && ps.Length > 0) cmd.Parameters.AddRange(ps);
+            //    return cmd.ExecuteNonQuery();
+            //}
+            //catch (DbException ex)
+            //{
+            //    throw OnException(ex, sql);
+            //}
+            //finally { AutoClose(); }
         }
 
         /// <summary>
@@ -529,9 +528,9 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>新增行的自动编号</returns>
-        public virtual Int64 InsertAndGetIdentity(String sql)
+        public virtual Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            Execute(sql);
+            Execute(sql, type, ps);
 
             return 0;
         }
@@ -542,24 +541,26 @@ namespace XCode.DataAccessLayer
         /// <typeparam name="T">返回类型</typeparam>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
-        public virtual T ExecuteScalar<T>(String sql)
+        public virtual T ExecuteScalar<T>(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        {
+            return ExecuteScalar<T>(CreateCommand(sql, type, ps));
+        }
+
+        protected virtual T ExecuteScalar<T>(DbCommand cmd)
         {
             QueryTimes++;
 
-            WriteSQL(sql);
+            WriteSQL(cmd);
             try
             {
-                DbCommand cmd = CreateCommand();
-                cmd.CommandText = sql;
                 Object rs = cmd.ExecuteScalar();
-                //return rs == DBNull.Value ? null : rs;
                 if (rs == null || rs == DBNull.Value) return default(T);
                 if (rs is T) return (T)rs;
                 return (T)Convert.ChangeType(rs, typeof(T));
             }
             catch (DbException ex)
             {
-                throw OnException(ex, sql);
+                throw OnException(ex, cmd.CommandText);
             }
             finally
             {
@@ -576,10 +577,32 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual DbCommand CreateCommand()
         {
-            DbCommand cmd = Factory.CreateCommand();
+            var cmd = Factory.CreateCommand();
             if (!Opened) Open();
             cmd.Connection = Conn;
             if (Trans != null) cmd.Transaction = Trans;
+
+            return cmd;
+        }
+
+        /// <summary>
+        /// 获取一个DbCommand。
+        /// 配置了连接，并关联了事务。
+        /// 连接已打开。
+        /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public virtual DbCommand CreateCommand(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        {
+            var cmd = CreateCommand();
+
+            cmd.CommandType = type;
+            cmd.CommandText = sql;
+            if (ps != null && ps.Length > 0) cmd.Parameters.AddRange(ps);
+
             return cmd;
         }
         #endregion

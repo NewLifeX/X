@@ -1,8 +1,9 @@
 using System;
-using NewLife.Linq;
+using System.Collections.Generic;
+using System.Data.Common;
 using System.Text;
 using System.Text.RegularExpressions;
-using NewLife;
+using NewLife.Linq;
 
 namespace XCode.DataAccessLayer
 {
@@ -184,6 +185,10 @@ namespace XCode.DataAccessLayer
         #region 扩展属性
         /// <summary>选择列，为空时为*</summary>
         public String ColumnOrDefault { get { return String.IsNullOrEmpty(Column) ? "*" : Column; } }
+
+        private List<DbParameter> _Parameters;
+        /// <summary>参数集合</summary>
+        internal List<DbParameter> Parameters { get { return _Parameters ?? (_Parameters = new List<DbParameter>()); } set { _Parameters = value; } }
         #endregion
 
         #region 导入SQL

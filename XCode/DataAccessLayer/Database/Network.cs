@@ -82,15 +82,15 @@ namespace XCode.DataAccessLayer
         //    return base.Query(sql);
         //}
 
-        /// <summary>
-        /// 带主键信息查询记录集
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <returns></returns>
-        public override DataSet QueryWithKey(string sql)
-        {
-            return base.QueryWithKey(sql);
-        }
+        ///// <summary>
+        ///// 带主键信息查询记录集
+        ///// </summary>
+        ///// <param name="sql"></param>
+        ///// <returns></returns>
+        //public override DataSet QueryWithKey(string sql)
+        //{
+        //    return base.QueryWithKey(sql);
+        //}
 
         /// <summary>
         /// 不支持
@@ -122,15 +122,17 @@ namespace XCode.DataAccessLayer
             return base.QueryCountFast(tableName);
         }
 
-        /// <summary>
-        /// 执行SQL语句，返回受影响的行数
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns></returns>
-        public override int Execute(string sql)
-        {
-            return base.Execute(sql);
-        }
+        ///// <summary>
+        ///// 执行SQL语句，返回受影响的行数
+        ///// </summary>
+        ///// <param name="sql">SQL语句</param>
+        ///// <param name="type">命令类型，默认SQL文本</param>
+        ///// <param name="ps">命令参数</param>
+        ///// <returns></returns>
+        //public override int Execute(string sql)
+        //{
+        //    return base.Execute(sql);
+        //}
 
         /// <summary>
         /// 执行DbCommand，返回受影响的行数
@@ -142,15 +144,15 @@ namespace XCode.DataAccessLayer
             throw new NotSupportedException();
         }
 
-        /// <summary>
-        /// 执行插入语句并返回新增行的自动编号
-        /// </summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns>新增行的自动编号</returns>
-        public override long InsertAndGetIdentity(string sql)
-        {
-            return base.InsertAndGetIdentity(sql);
-        }
+        ///// <summary>
+        ///// 执行插入语句并返回新增行的自动编号
+        ///// </summary>
+        ///// <param name="sql">SQL语句</param>
+        ///// <returns>新增行的自动编号</returns>
+        //public override long InsertAndGetIdentity(string sql)
+        //{
+        //    return base.InsertAndGetIdentity(sql);
+        //}
 
         /// <summary>
         /// 不支持
