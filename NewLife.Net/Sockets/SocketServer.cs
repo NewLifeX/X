@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using NewLife.Net;
 using NewLife.Model;
 
 namespace NewLife.Net.Sockets
@@ -10,9 +9,6 @@ namespace NewLife.Net.Sockets
     public class SocketServer : SocketBase, ISocketServer, IServer
     {
         #region 属性
-        #endregion
-
-        #region 构造
         /// <summary>基础Socket对象</summary>
         public Socket Server
         {
@@ -23,7 +19,9 @@ namespace NewLife.Net.Sockets
             }
             set { Socket = value; }
         }
+        #endregion
 
+        #region 构造
         /// <summary>构造一个Socket服务器对象</summary>
         /// <param name="address"></param>
         /// <param name="port"></param>

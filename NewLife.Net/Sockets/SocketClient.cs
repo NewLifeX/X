@@ -7,6 +7,10 @@ using System.Text;
 namespace NewLife.Net.Sockets
 {
     /// <summary>Socket客户端</summary>
+    /// <remarks>
+    /// 处理的过程中，即使使用异步，也允许事件订阅者阻塞<see cref="SocketBase.NoDelay"/>下一次接收的开始<see cref="ReceiveAsync()"/>，
+    /// 因为事件订阅者可能需要处理完手头的数据才开始下一次接收。
+    /// </remarks>
     public abstract class SocketClient : SocketBase, ISocketClient
     {
         #region 属性
@@ -60,6 +64,7 @@ namespace NewLife.Net.Sockets
             // 如果没有传入网络事件参数，从对象池借用
             if (e == null) e = Pop();
 
+            // 如果立即返回，则异步处理完成事件
             if (!Client.ReceiveAsync(e)) RaiseCompleteAsync(e);
         }
 
@@ -206,11 +211,13 @@ namespace NewLife.Net.Sockets
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
+        /// <param name="remoteEP">远程终结点</param>
         public virtual void Send(Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP = null) { Client.Send(buffer, offset, size, SocketFlags.None); }
 
         /// <summary>发送字符串</summary>
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
+        /// <param name="remoteEP">远程终结点</param>
         public void Send(String msg, Encoding encoding = null, EndPoint remoteEP = null)
         {
             if (String.IsNullOrEmpty(msg)) return;

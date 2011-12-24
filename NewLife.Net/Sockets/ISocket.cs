@@ -5,6 +5,9 @@ using System.Net.Sockets;
 namespace NewLife.Net.Sockets
 {
     /// <summary>基础Socket接口</summary>
+    /// <remarks>
+    /// 主要是对Socket封装一层，把所有异步操作结果转移到事件中<see cref="Completed"/>去。
+    /// </remarks>
     public interface ISocket : IDisposable2
     {
         #region 属性

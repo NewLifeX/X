@@ -1,14 +1,19 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife.Net.Sockets;
-using System.IO;
 
 namespace NewLife.Net.Udp
 {
     /// <summary>UDP服务器</summary>
-    /// <remarks>主要针对APM模型进行简单封装</remarks>
+    /// <remarks>
+    /// 核心工作：启动服务<see cref="OnStart"/>时，监听端口，并启用多个（逻辑处理器数的10倍）异步接收操作<see cref="ReceiveAsync()"/>。
+    /// 接收到的数据全部转接到<see cref="Received"/>事件中。
+    /// 
+    /// 服务器完全处于异步工作状态，任何操作都不可能被阻塞。
+    /// </remarks>
     public class UdpServer : SocketServer, ISocketSession
     {
         #region 属性
@@ -78,6 +83,7 @@ namespace NewLife.Net.Udp
             IPAddress address = AddressFamily == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
             e.RemoteEndPoint = new IPEndPoint(address, 0);
 
+            // 如果立即返回，则异步处理完成事件
             if (!Server.ReceiveFromAsync(e))
             {
                 if (e.BytesTransferred > 0)
@@ -108,7 +114,7 @@ namespace NewLife.Net.Udp
         /// <param name="e"></param>
         void ISocketSession.Start(NetEventArgs e) { }
 
-        /// <summary>断开客户端连接。Tcp端口，UdpClient不处理</summary>
+        /// <summary>断开客户端连接。Tcp断开，UdpClient不处理</summary>
         void ISocketSession.Disconnect() { }
         #endregion
 

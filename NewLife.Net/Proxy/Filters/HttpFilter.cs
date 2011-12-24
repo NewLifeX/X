@@ -1,14 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Net.Sockets;
 using System.IO;
+using System.Text;
 using NewLife.IO;
+using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Proxy
 {
+    /// <summary>Http过滤器</summary>
     public class HttpFilter : ProxyFilterBase
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="stream"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
         public override Stream OnClientToServer(IProxySession session, Stream stream, NetEventArgs e)
         {
             // 解析请求头

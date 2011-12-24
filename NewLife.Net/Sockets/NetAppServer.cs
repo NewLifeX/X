@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using System.Net.Sockets;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;

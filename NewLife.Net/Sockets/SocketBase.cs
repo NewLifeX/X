@@ -4,11 +4,15 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using NewLife.Collections;
-using NewLife.Net;
 
 namespace NewLife.Net.Sockets
 {
     /// <summary>Socket基类</summary>
+    /// <remarks>
+    /// 主要是对Socket封装一层，把所有异步操作结果转移到事件中<see cref="Completed"/>去。
+    /// 参数池<see cref="Pool"/>维护这所有事件参数，借出<see cref="Pop"/>时挂接<see cref="Completed"/>事件，
+    /// 归还<see cref="Push"/>时，取消<see cref="Completed"/>事件。
+    /// </remarks>
     public class SocketBase : Netbase, ISocket
     {
         #region 属性
@@ -112,8 +116,8 @@ namespace NewLife.Net.Sockets
 
         #region 套接字事件参数池
         private static ObjectPool<NetEventArgs> _Pool;
-        /// <summary>套接字事件参数池</summary>
-        public static ObjectPool<NetEventArgs> Pool { get { return _Pool ?? (_Pool = new ObjectPool<NetEventArgs>()); } }
+        /// <summary>套接字事件参数池。静态，所有实例共享使用</summary>
+        static ObjectPool<NetEventArgs> Pool { get { return _Pool ?? (_Pool = new ObjectPool<NetEventArgs>()); } }
 
         /// <summary>从池里拿一个对象</summary>
         /// <returns></returns>
@@ -249,17 +253,10 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         protected void RaiseCompleteAsync(NetEventArgs e)
         {
-            if (UseThreadPool)
+            ThreadPool.QueueUserWorkItem(delegate(Object state)
             {
-                ThreadPool.QueueUserWorkItem(delegate(Object state)
-                {
-                    RaiseComplete(state as NetEventArgs);
-                }, e);
-            }
-            else
-            {
-                RaiseComplete(e);
-            }
+                RaiseComplete(state as NetEventArgs);
+            }, e);
         }
 
         /// <summary>完成事件分发中心。

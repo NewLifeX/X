@@ -28,11 +28,17 @@ namespace NewLife.Net.Udp
             IPAddress address = AddressFamily == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
             e.RemoteEndPoint = new IPEndPoint(address, 0);
 
+            // 如果立即返回，则异步处理完成事件
             if (!Client.ReceiveFromAsync(e)) RaiseCompleteAsync(e);
         }
         #endregion
 
         #region 发送
+        /// <summary></summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="size"></param>
+        /// <param name="remoteEP">远程终结点</param>
         public override void Send(byte[] buffer, int offset, int size, EndPoint remoteEP = null)
         {
             if (remoteEP != null)

@@ -21,6 +21,7 @@ namespace NewLife.Net.Proxy
         #region 方法
         /// <summary>为会话创建与远程服务器通讯的Socket</summary>
         /// <param name="session"></param>
+        /// <param name="e"></param>
         /// <returns></returns>
         public ISocketClient CreateRemote(IProxySession session, NetEventArgs e)
         {
@@ -37,6 +38,7 @@ namespace NewLife.Net.Proxy
 
         /// <summary>客户端发数据往服务端时</summary>
         /// <param name="session"></param>
+        /// <param name="stream"></param>
         /// <param name="e"></param>
         /// <returns></returns>
         public Stream OnClientToServer(IProxySession session, Stream stream, NetEventArgs e)
@@ -50,6 +52,7 @@ namespace NewLife.Net.Proxy
 
         /// <summary>服务端发数据往客户端时</summary>
         /// <param name="session"></param>
+        /// <param name="stream"></param>
         /// <param name="e"></param>
         /// <returns></returns>
         public Stream OnServerToClient(IProxySession session, Stream stream, NetEventArgs e)

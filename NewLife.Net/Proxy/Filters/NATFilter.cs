@@ -27,6 +27,7 @@ namespace NewLife.Net.Proxy
         #region 方法
         /// <summary>为会话创建与远程服务器通讯的Socket。可以使用Socket池达到重用的目的。</summary>
         /// <param name="session"></param>
+        /// <param name="e"></param>
         /// <returns></returns>
         public override ISocketClient CreateRemote(IProxySession session, NetEventArgs e)
         {

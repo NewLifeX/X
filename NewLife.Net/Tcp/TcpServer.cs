@@ -7,6 +7,15 @@ using System.Collections.Generic;
 namespace NewLife.Net.Tcp
 {
     /// <summary>TCP服务器</summary>
+    /// <remarks>
+    /// 核心工作：启动服务<see cref="OnStart"/>时，监听端口，并启用多个（逻辑处理器数的10倍）异步接受操作<see cref="StartAccept"/>。
+    /// 服务器只处理<see cref="SocketAsyncOperation.Accept"/>操作，并创建<see cref="ISocketSession"/>后，
+    /// 将其赋值在事件参数的<see cref="NetEventArgs.Socket"/>中，传递给<see cref="Accepted"/>。
+    /// 
+    /// 服务器完全处于异步工作状态，任何操作都不可能被阻塞。
+    /// 
+    /// 注意：服务器接受连接请求后，不会开始处理数据，而是由<see cref="Accepted"/>事件订阅者决定何时开始处理数据<see cref="ISocketSession.Start"/>。
+    /// </remarks>
     public class TcpServer : SocketServer
     {
         #region 属性
@@ -71,6 +80,7 @@ namespace NewLife.Net.Tcp
 
             try
             {
+                // 如果立即返回，则异步处理完成事件
                 if (!Server.AcceptAsync(e)) RaiseCompleteAsync(e);
             }
             catch
@@ -105,9 +115,9 @@ namespace NewLife.Net.Tcp
             e.Socket = session;
             if (Accepted != null) Accepted(this, e);
 
-            var socket = session.Socket;
-            if (socket != null && socket.Connected) session.Start(e);
-            //if (session?.Socket?.Connected) session.Start(e);
+            //var socket = session.Socket;
+            //if (socket != null && socket.Connected) session.Start(e);
+            ////if (session?.Socket?.Connected) session.Start(e);
 
             return session;
         }

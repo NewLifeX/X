@@ -26,12 +26,14 @@ namespace NewLife.Net.Proxy
 
         /// <summary>客户端发数据往服务端时</summary>
         /// <param name="session"></param>
+        /// <param name="stream"></param>
         /// <param name="e"></param>
         /// <returns></returns>
         Stream OnClientToServer(IProxySession session, Stream stream, NetEventArgs e);
 
         /// <summary>服务端发数据往客户端时</summary>
         /// <param name="session"></param>
+        /// <param name="stream"></param>
         /// <param name="e"></param>
         /// <returns></returns>
         Stream OnServerToClient(IProxySession session, Stream stream, NetEventArgs e);

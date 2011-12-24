@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using NewLife.Model;
-using NewLife.Net;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
-using System.Text;
 
 namespace NewLife.Net.Sockets
 {

@@ -35,6 +35,9 @@ namespace NewLife.Net.Proxy
         #endregion
 
         #region 方法
+        /// <summary>
+        /// 开始
+        /// </summary>
         protected override void OnStart()
         {
             if (ServerProtocolType == 0) ServerProtocolType = ProtocolType;

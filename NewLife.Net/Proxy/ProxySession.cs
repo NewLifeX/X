@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using NewLife.Net.Sockets;
 using System.Net;
+using System.Net.Sockets;
 
 namespace NewLife.Net.Proxy
 {
@@ -52,7 +53,7 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         public void Start(NetEventArgs e)
         {
-            Session.Received += new EventHandler<NetEventArgs>(Session_Received);
+            if (Session.ProtocolType == ProtocolType.Tcp) Session.Received += new EventHandler<NetEventArgs>(Session_Received);
             //if (e.BytesTransferred > 0) OnReceive(e);
             Session.Start(e);
         }
@@ -68,7 +69,7 @@ namespace NewLife.Net.Proxy
         {
             base.OnDispose(disposing);
 
-            Session.Received -= new EventHandler<NetEventArgs>(Session_Received);
+            if (Session.ProtocolType == ProtocolType.Tcp) Session.Received -= new EventHandler<NetEventArgs>(Session_Received);
         }
         #endregion
 
