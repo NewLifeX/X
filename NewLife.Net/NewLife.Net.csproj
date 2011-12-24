@@ -77,6 +77,7 @@
     <Compile Include="Proxy\IProxySession.cs" />
     <Compile Include="Proxy\Filters\ProxyFilterBase.cs" />
     <Compile Include="Proxy\Filters\NATFilter.cs" />
+    <Compile Include="Proxy\Filters\ProxyFilterCollection.cs" />
     <Compile Include="Proxy\ProxySession.cs" />
     <Compile Include="Proxy\ProxyBase.cs" />
     <Compile Include="Proxy\XProxy.cs" />

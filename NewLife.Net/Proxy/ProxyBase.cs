@@ -17,9 +17,14 @@ namespace NewLife.Net.Proxy
         /// <summary>会话集合。</summary>
         public ICollection<IProxySession> Sessions { get { return _Sessions ?? (_Sessions = new List<IProxySession>()); } }
 
-        private ICollection<IProxyFilter> _Filters;
+        private ProxyFilterCollection _Filters;
+        private ProxyFilterCollection filters { get { return _Filters ?? (_Filters = new ProxyFilterCollection(this)); } }
+
         /// <summary>过滤器集合。</summary>
-        public ICollection<IProxyFilter> Filters { get { return _Filters ?? (_Filters = new List<IProxyFilter>()); } }
+        public ICollection<IProxyFilter> Filters { get { return filters; } }
+
+        /// <summary>主过滤器，同时也是集合，会话主要针对这个操作</summary>
+        public IProxyFilter MainFilter { get { return filters; } }
         #endregion
 
         #region 构造
@@ -100,50 +105,6 @@ namespace NewLife.Net.Proxy
                 WriteLog("{2}错误 {0} {1}", e.SocketError, e.Error, e.LastOperation);
             else
                 WriteLog("{0}断开！", e.LastOperation);
-        }
-        #endregion
-
-        #region 接口方法
-        /// <summary>为会话创建与远程服务器通讯的Socket</summary>
-        /// <param name="session"></param>
-        /// <returns></returns>
-        public virtual ISocketClient CreateRemote(IProxySession session, NetEventArgs e)
-        {
-            // 转发给过滤器，由过滤器负责创建
-            foreach (var item in Filters)
-            {
-                var client = item.CreateRemote(session, e);
-                if (client != null) return client;
-            }
-
-            // return null;
-            throw new NetException("没有任何过滤器为会话创建远程Socket！");
-        }
-
-        /// <summary>客户端发数据往服务端时</summary>
-        /// <param name="session"></param>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        Stream IProxy.OnClientToServer(IProxySession session, Stream stream, NetEventArgs e)
-        {
-            foreach (var item in Filters)
-            {
-                if ((stream = item.OnClientToServer(session, stream, e)) == null) return null;
-            }
-            return stream;
-        }
-
-        /// <summary>服务端发数据往客户端时</summary>
-        /// <param name="session"></param>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        Stream IProxy.OnServerToClient(IProxySession session, Stream stream, NetEventArgs e)
-        {
-            foreach (var item in Filters)
-            {
-                if ((stream = item.OnServerToClient(session, stream, e)) == null) return null;
-            }
-            return stream;
         }
         #endregion
     }

@@ -77,7 +77,7 @@
   <Class Name="NewLife.Net.Proxy.ProxyBase" Collapsed="true">
     <Position X="5" Y="2.25" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>ABAAAAAABCCAAAAAAKAAAAAAAAAIBAAAQAAAAQAAgAA=</HashCode>
+      <HashCode>AAAAAAAAACCAAAAAAKAAAACAAAQIAAAAQAAAAQAAgAA=</HashCode>
       <FileName>Proxy\ProxyBase.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -164,15 +164,11 @@
     </ShowAsAssociation>
   </Interface>
   <Interface Name="NewLife.Net.Proxy.IProxy">
-    <Position X="8.75" Y="12.75" Width="1.75" />
+    <Position X="8.75" Y="12.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>ABAAAAAAAAAAAAAAAKAAAIAAAAAAAAAAAAAABAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAKAAAAAAAAQAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Proxy\IProxy.cs</FileName>
     </TypeIdentifier>
-    <ShowAsCollectionAssociation>
-      <Property Name="Filters" />
-      <Property Name="Sessions" />
-    </ShowAsCollectionAssociation>
   </Interface>
   <Interface Name="NewLife.Net.Proxy.IProxyFilter">
     <Position X="11.75" Y="12.75" Width="1.75" />

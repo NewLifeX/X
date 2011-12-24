@@ -79,14 +79,14 @@ namespace NewLife.Net.Proxy
 
             if (Remote == null)
             {
-                Remote = Proxy.CreateRemote(this, e);
+                Remote = Proxy.MainFilter.CreateRemote(this, e);
                 Remote.Received += new EventHandler<NetEventArgs>(Remote_Received);
                 Remote.ReceiveAsync();
             }
 
             var stream = e.GetStream();
             Console.WriteLine("{0} => {1} {2}字节", ClientEndPoint, Session.Socket.LocalEndPoint, stream.Length);
-            stream = Proxy.OnClientToServer(this, stream, e);
+            stream = Proxy.MainFilter.OnClientToServer(this, stream, e);
             if (stream != null) Remote.Send(stream, RemoteEndPoint);
         }
 
@@ -96,7 +96,7 @@ namespace NewLife.Net.Proxy
 
             var stream = e.GetStream();
             Console.WriteLine("{0} => {1} {2}字节", RemoteEndPoint, Remote.Client.LocalEndPoint, stream.Length);
-            stream = Proxy.OnServerToClient(this, stream, e);
+            stream = Proxy.MainFilter.OnServerToClient(this, stream, e);
             if (stream != null) Session.Send(stream, ClientEndPoint);
         }
         #endregion
