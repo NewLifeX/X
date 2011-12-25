@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Net;
-using System.Net.Sockets;
+using System.Threading;
 using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Application
@@ -42,6 +42,9 @@ namespace NewLife.Net.Application
                 Byte[] buffer = BitConverter.GetBytes(s);
                 //Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
                 session.Send(buffer, 0, buffer.Length, e.RemoteEndPoint);
+
+                // 等一秒，等客户端接收数据
+                Thread.Sleep(1000);
             }
             finally
             {
