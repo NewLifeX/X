@@ -32,7 +32,7 @@ namespace NewLife.Net.Application
             }
 
             StartEchoServer(7);
-            //StartDaytimeServer(13);
+            StartDaytimeServer(13);
             //StartTimeServer(37);
             //StartDiscardServer(9);
             //StartChargenServer(19);
@@ -49,19 +49,17 @@ namespace NewLife.Net.Application
 
         static void OnReceived(object sender, NetEventArgs e)
         {
-            XTrace.WriteLine("客户端{3} 收到 {0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString(), sender);
+            Console.WriteLine("客户端{3} 收到 {0} [{1}] {2}", (sender as ISocket).RemoteEndPoint, e.BytesTransferred, e.GetString(), sender);
         }
 
         static void OnError(object sender, NetEventArgs e)
         {
-            //if (e.SocketError == SocketError.OperationAborted) return;
+            if (e.SocketError == SocketError.OperationAborted) return;
 
-            //Type type = sender == null ? null : sender.GetType();
-            //XTrace.WriteLine("Error {0}", type);
             if (e.SocketError != SocketError.Success || e.Error != null)
-                XTrace.WriteLine("客户端{0} {3}错误 {1} {2}", sender, e.SocketError, e.Error, e.LastOperation);
+                Console.WriteLine("客户端{0} {3}错误 {1} {2}", sender, e.SocketError, e.Error, e.LastOperation);
             else
-                XTrace.WriteLine("客户端{0} {1}断开！", sender, e.LastOperation);
+                Console.WriteLine("客户端{0} {1}断开！", sender, e.LastOperation);
         }
 
         static void TestSend(String name, ProtocolType protocol, IPEndPoint ep, Boolean isAsync, Boolean isSendData, Boolean isReceiveData)
@@ -86,13 +84,13 @@ namespace NewLife.Net.Application
             if (isReceiveData)
             {
                 if (!isAsync)
-                    XTrace.WriteLine("客户端" + client + " " + client.ReceiveString());
+                    Console.WriteLine("客户端" + client + " " + client.ReceiveString());
                 else
                     Thread.Sleep(1000);
             }
             client.Close();
             Thread.Sleep(100);
-            XTrace.WriteLine("结束！");
+            Console.WriteLine("结束！");
         }
 
         static void TestSends(String name, IPEndPoint ep, Boolean isSendData, Boolean isReceiveData = true)

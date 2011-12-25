@@ -25,10 +25,14 @@ namespace NewLife.Net.Tcp
         /// <param name="e"></param>
         protected override void OnComplete(NetEventArgs e)
         {
+            SetRemote(e);
+            base.OnComplete(e);
+        }
+
+        internal void SetRemote(NetEventArgs e)
+        {
             IPEndPoint ep = e.RemoteEndPoint as IPEndPoint;
             if (ep == null || ((ep.Address == IPAddress.Any || ep.Address == IPAddress.IPv6Any) && ep.Port == 0)) e.RemoteEndPoint = RemoteEndPoint;
-
-            base.OnComplete(e);
         }
         #endregion
 

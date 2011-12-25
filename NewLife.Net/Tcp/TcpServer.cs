@@ -121,6 +121,7 @@ namespace NewLife.Net.Tcp
             e.Socket = session;
             if (Accepted != null) Accepted(this, e);
 
+            // 来自这里的事件参数没有远程地址
             (session as TcpClientX).Start(e);
         }
 
@@ -184,7 +185,8 @@ namespace NewLife.Net.Tcp
             var session = new TcpClientX();
             session.Socket = e.AcceptSocket;
             //session.RemoteEndPoint = e.AcceptSocket.RemoteEndPoint as IPEndPoint;
-            if (e.RemoteEndPoint == null) e.RemoteEndPoint = session.RemoteEndPoint;
+            //if (e.RemoteEndPoint == null) e.RemoteEndPoint = session.RemoteEndPoint;
+            session.SetRemote(e);
             // 对于服务器中的会话来说，收到空数据表示断开连接
             session.DisconnectWhenEmptyData = true;
 
