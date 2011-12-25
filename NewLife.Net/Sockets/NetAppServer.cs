@@ -44,11 +44,12 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         protected virtual void OnAccepted(Object sender, NetEventArgs e)
         {
-            TcpClientX session = e.Socket as TcpClientX;
+            ISocketSession session = e.Socket as TcpClientX;
             if (session != null)
             {
                 session.Received += OnReceived;
                 session.Error += new EventHandler<NetEventArgs>(OnError);
+                //session.Start(e);
             }
         }
 

@@ -66,7 +66,7 @@ namespace NewLife.Net.Sockets
 
         private List<ISocketServer> _Servers;
         /// <summary>服务器集合。</summary>
-        protected IList<ISocketServer> Servers { get { return _Servers ?? (_Servers = new List<ISocketServer>()); } }
+        public IList<ISocketServer> Servers { get { return _Servers ?? (_Servers = new List<ISocketServer>()); } }
 
         //private SocketServer _Server;
         /// <summary>服务器。返回服务器集合中的第一个服务器</summary>
@@ -225,7 +225,7 @@ namespace NewLife.Net.Sockets
                     svr.AddressFamily = family;
 
                     // 允许同时处理多个数据包
-                    svr.NoDelay = svr.ProtocolType == ProtocolType.Udp;
+                    //svr.NoDelay = svr.ProtocolType == ProtocolType.Udp;
                     svr.UseThreadPool = true;
 
                     if (!NetHelper.IsUsed(svr.ProtocolType, svr.Address, svr.Port)) list.Add(svr);

@@ -8,7 +8,7 @@ namespace NewLife.Net.Sockets
 {
     /// <summary>Socket客户端</summary>
     /// <remarks>
-    /// 处理的过程中，即使使用异步，也允许事件订阅者阻塞<see cref="SocketBase.NoDelay"/>下一次接收的开始<see cref="ReceiveAsync()"/>，
+    /// 处理的过程中，即使使用异步，也允许事件订阅者阻塞<see cref="ISocket.NoDelay"/>下一次接收的开始<see cref="ReceiveAsync"/>，
     /// 因为事件订阅者可能需要处理完手头的数据才开始下一次接收。
     /// </remarks>
     public abstract class SocketClient : SocketBase, ISocketClient
@@ -41,8 +41,7 @@ namespace NewLife.Net.Sockets
         /// <param name="port"></param>
         public virtual void Connect(IPAddress address, Int32 port)
         {
-            AddressFamily = address.AddressFamily;
-            Client.Connect(address, port);
+            Connect(new IPEndPoint(address, Port));
         }
 
         /// <summary>建立与远程主机的连接</summary>
@@ -51,38 +50,18 @@ namespace NewLife.Net.Sockets
         {
             AddressFamily = remoteEP.AddressFamily;
             Client.Connect(remoteEP);
+
+            // 引发基类重设个地址参数
+            Socket = Client;
         }
         #endregion
 
         #region 接收
         /// <summary>开始异步接收数据</summary>
         /// <param name="e"></param>
-        protected virtual void ReceiveAsync(NetEventArgs e)
+        public virtual void ReceiveAsync(NetEventArgs e = null)
         {
-            if (!Client.IsBound) Bind();
-
-            // 如果没有传入网络事件参数，从对象池借用
-            if (e == null) e = Pop();
-
-            // 如果立即返回，则异步处理完成事件
-            if (!Client.ReceiveAsync(e)) RaiseCompleteAsync(e);
-        }
-
-        /// <summary>开始异步接收数据</summary>
-        public void ReceiveAsync()
-        {
-            NetEventArgs e = Pop();
-            try
-            {
-                ReceiveAsync(e);
-            }
-            catch
-            {
-                // 拿到参数e后，就应该对它负责
-                // 如果当前的ReceiveAsync出错，应该归还
-                Push(e);
-                throw;
-            }
+            StartAsync(Client.ReceiveAsync, e);
         }
         #endregion
 
@@ -110,38 +89,17 @@ namespace NewLife.Net.Sockets
             // 没有接收事件时，马上开始处理重建委托
             if (Received == null)
             {
-                // 3，把回收责任交给别的方法
                 ReceiveAsync(e);
                 return;
             }
 
-            //ProcessReceive(e);
-            // 这里可以改造为使用多线程处理事件
-
-            // 3，把回收责任交给别的方法
-            ThreadPoolCallback(ProcessReceive, e);
+            Process(e, ReceiveAsync, ProcessReceive);
         }
 
-        /// <summary>处理接收</summary>
-        /// <param name="e"></param>
-        private void ProcessReceive(NetEventArgs e)
+        void ProcessReceive(NetEventArgs e)
         {
-            if (NoDelay) ReceiveAsync();
-
-#if DEBUG
-            Int32 n = e.BytesTransferred;
-            if (n >= e.Buffer.Length || ProtocolType == ProtocolType.Tcp && n >= 1452 || ProtocolType == ProtocolType.Udp && n >= 1464)
-            {
-                WriteLog("接收的实际数据大小{0}超过了缓冲区大小，需要根据真实MTU调整缓冲区大小以提高效率！", n);
-            }
-#endif
-
+            CheckBufferSize(e);
             if (Received != null) Received(this, e);
-
-            if (NoDelay)
-                Push(e);
-            else
-                ReceiveAsync(e);
         }
 
         /// <summary>已重载。</summary>
@@ -265,7 +223,7 @@ namespace NewLife.Net.Sockets
         public override string ToString()
         {
             var socket = base.Socket;
-            if (socket != null && socket.RemoteEndPoint != null) return base.ToString() + " => " + socket.RemoteEndPoint;
+            if (socket != null && socket.Connected && socket.RemoteEndPoint != null) return base.ToString() + " => " + socket.RemoteEndPoint;
 
             return base.ToString();
         }

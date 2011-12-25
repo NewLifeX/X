@@ -19,15 +19,12 @@ namespace NewLife.Net.Sockets
         #region 属性
         /// <summary>套接字</summary>
         Socket Socket { get; set; }
-
-        ///// <summary>远程IP终结点</summary>
-        //IPEndPoint RemoteEndPoint { get; set; }
         #endregion
 
         #region 方法
-        /// <summary>开始会话处理。参数e里面可能含有数据</summary>
-        /// <param name="e"></param>
-        void Start(NetEventArgs e);
+        ///// <summary>开始会话处理。参数e里面可能含有数据</summary>
+        ///// <param name="e"></param>
+        //void Start(NetEventArgs e);
 
         /// <summary>断开客户端连接。Tcp端口，UdpClient不处理</summary>
         void Disconnect();
@@ -56,7 +53,8 @@ namespace NewLife.Net.Sockets
 
         #region 接收
         /// <summary>开始异步接收数据</summary>
-        void ReceiveAsync();
+        /// <param name="e"></param>
+        void ReceiveAsync(NetEventArgs e = null);
 
         /// <summary>接收数据</summary>
         /// <returns></returns>

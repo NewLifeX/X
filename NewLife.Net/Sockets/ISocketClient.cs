@@ -27,7 +27,8 @@ namespace NewLife.Net.Sockets
         void Connect(string hostname, int port);
 
         /// <summary>开始异步接收数据</summary>
-        void ReceiveAsync();
+        /// <param name="e"></param>
+        void ReceiveAsync(NetEventArgs e = null);
 
         /// <summary>接收数据</summary>
         /// <returns></returns>

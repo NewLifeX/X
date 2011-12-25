@@ -1,13 +1,12 @@
 ﻿using System;
+using NewLife.Linq;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Net.Sockets;
-using NewLife.Net.Tcp;
-using NewLife.Net.Udp;
-using NewLife.Reflection;
 
 namespace NewLife.Net.Application
 {
@@ -22,11 +21,13 @@ namespace NewLife.Net.Application
         public static void Start()
         {
             Type[] ts = new Type[] { typeof(ChargenServer), typeof(DaytimeServer), typeof(DiscardServer), typeof(EchoServer), typeof(TimeServer) };
+            //Type[] ts = new Type[] { typeof(EchoServer) };
             List<NetServer> list = new List<NetServer>();
             foreach (Type item in ts)
             {
                 NetServer server = Activator.CreateInstance(item) as NetServer;
                 server.Start();
+                server.Servers.ForEach(s => s.UseThreadPool = false);
                 list.Add(server);
             }
 
@@ -48,58 +49,50 @@ namespace NewLife.Net.Application
 
         static void OnReceived(object sender, NetEventArgs e)
         {
-            Type type = sender == null ? null : sender.GetType();
-            XTrace.WriteLine("客户端 收到 {3}://{0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString(), type.Name.Substring(0, 3));
+            XTrace.WriteLine("客户端{3} 收到 {0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString(), sender);
         }
 
         static void OnError(object sender, NetEventArgs e)
         {
-            if (e.SocketError == SocketError.OperationAborted) return;
+            //if (e.SocketError == SocketError.OperationAborted) return;
 
             //Type type = sender == null ? null : sender.GetType();
             //XTrace.WriteLine("Error {0}", type);
             if (e.SocketError != SocketError.Success || e.Error != null)
-                XTrace.WriteLine("客户端 {2}错误 {0} {1}", e.SocketError, e.Error, e.LastOperation);
+                XTrace.WriteLine("客户端{0} {3}错误 {1} {2}", sender, e.SocketError, e.Error, e.LastOperation);
             else
-                XTrace.WriteLine("客户端 {0}断开！", e.LastOperation);
-        }
-
-        static void Invoke(String name, Object param)
-        {
-            MethodInfoX mi = MethodInfoX.Create(typeof(AppTest), "Start" + name);
-            if (mi == null) return;
-            ThreadPool.QueueUserWorkItem(delegate { Thread.Sleep(3000); mi.Invoke(null, param); });
+                XTrace.WriteLine("客户端{0} {1}断开！", sender, e.LastOperation);
         }
 
         static void TestSend(String name, ProtocolType protocol, IPEndPoint ep, Boolean isAsync, Boolean isSendData, Boolean isReceiveData)
         {
+            Console.WriteLine();
+
             String msg = String.Format("{0}Test_{1}_{2}!", name, protocol, isAsync ? "异步" : "同步");
-            ISocketClient client = null;
-            if (protocol == ProtocolType.Tcp)
-            {
-                TcpClientX tc = CreateClient<TcpClientX>();
-                tc.AddressFamily = ep.AddressFamily;
-                tc.Connect(ep);
-                if (isAsync && isReceiveData) tc.ReceiveAsync();
-                if (isSendData) tc.Send(msg);
-                client = tc;
-            }
-            else if (protocol == ProtocolType.Udp)
-            {
-                UdpClientX uc = CreateClient<UdpClientX>();
-                uc.AddressFamily = ep.AddressFamily;
-                if (isAsync && isReceiveData) uc.ReceiveAsync();
-                if (isSendData) uc.Send(msg, ep);
-                client = uc;
-            }
+            ISocketClient client = ObjectContainer.Current.Resolve<ISocketClient>(protocol.ToString());
+            client.Error += new EventHandler<NetEventArgs>(OnError);
+            client.Received += new EventHandler<NetEventArgs>(OnReceived);
+            client.AddressFamily = ep.AddressFamily;
+            if (protocol == ProtocolType.Tcp) client.Connect(ep);
+            client.Client.ReceiveTimeout = 60000;
+            if (isAsync && isReceiveData) client.ReceiveAsync();
+            if (isSendData) client.Send(msg, null, ep);
+            // 异步的多发一个
+            //if (isAsync)
+            //{
+            //    Thread.Sleep(300);
+            //    if (isSendData) client.Send(msg, null, ep);
+            //}
             if (isReceiveData)
             {
                 if (!isAsync)
-                    XTrace.WriteLine("客户端 " + client.ReceiveString());
+                    XTrace.WriteLine("客户端" + client + " " + client.ReceiveString());
                 else
                     Thread.Sleep(1000);
             }
             client.Close();
+            Thread.Sleep(100);
+            XTrace.WriteLine("结束！");
         }
 
         static void TestSends(String name, IPEndPoint ep, Boolean isSendData, Boolean isReceiveData = true)

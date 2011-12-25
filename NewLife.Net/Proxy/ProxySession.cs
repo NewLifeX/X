@@ -55,7 +55,7 @@ namespace NewLife.Net.Proxy
         {
             if (Session.ProtocolType == ProtocolType.Tcp) Session.Received += new EventHandler<NetEventArgs>(Session_Received);
             //if (e.BytesTransferred > 0) OnReceive(e);
-            Session.Start(e);
+            //Session.Start(e);
         }
 
         void Session_Received(object sender, NetEventArgs e)

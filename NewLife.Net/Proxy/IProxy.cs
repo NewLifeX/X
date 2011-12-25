@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Net.Sockets;
-using System.IO;
+﻿using System.Collections.Generic;
 
 namespace NewLife.Net.Proxy
 {

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Net;
 
 namespace NewLife.Net.Sockets
 {
@@ -10,12 +10,32 @@ namespace NewLife.Net.Sockets
     public class NetEventArgs : SocketAsyncEventArgs
     {
         #region 属性
+#if DEBUG
+        static Int32 _gid;
+
+        private Int32 _ID;
+        /// <summary>编号</summary>
+        public Int32 ID { get { return _ID; } set { _ID = value; } }
+
+        /// <summary>
+        /// 实例化
+        /// </summary>
+        public NetEventArgs()
+        {
+            ID = ++_gid;
+        }
+#endif
         private Int32 _Times;
         /// <summary>使用次数</summary>
         public Int32 Times { get { return _Times; } set { _Times = value; } }
 
         private Boolean _Used;
         /// <summary>使用中</summary>
+        /// <remarks>
+        /// 尽管能够通过该属性判断参数是否在使用中，然后避免线程池操作失误，但是并没有那么做。
+        /// 一个正确的架构，是不会出现事件参数丢失或者被重用的情况。
+        /// 所以，该属性主要作为对设计人员的限制，提醒设计人员架构上可能出现了问题。
+        /// </remarks>
         public Boolean Used { get { return _Used; } set { _Used = value; } }
 
         private ISocket _Socket;
@@ -31,6 +51,10 @@ namespace NewLife.Net.Sockets
 
         /// <summary>远程IP终结点</summary>
         public IPEndPoint RemoteIPEndPoint { get { return base.RemoteEndPoint as IPEndPoint; } set { base.RemoteEndPoint = value; } }
+
+        private Boolean _Cancel;
+        /// <summary>是否取消后续操作</summary>
+        public Boolean Cancel { get { return _Cancel; } set { _Cancel = value; } }
         #endregion
 
         #region 事件

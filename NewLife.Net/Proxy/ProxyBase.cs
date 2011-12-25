@@ -5,7 +5,6 @@ using NewLife.Linq;
 using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
-using System.IO;
 
 namespace NewLife.Net.Proxy
 {

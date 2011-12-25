@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using NewLife.Collections;
+using NewLife.Reflection;
 
 namespace NewLife.Net.Sockets
 {
@@ -18,24 +19,60 @@ namespace NewLife.Net.Sockets
         #region 属性
         private Socket _Socket;
         /// <summary>套接字</summary>
-        internal protected Socket Socket { get { return _Socket; } set { _Socket = value; } }
+        internal protected Socket Socket
+        {
+            get { return _Socket; }
+            set
+            {
+                _Socket = value;
+
+                if (value != null) OnSocketChange(value);
+            }
+        }
 
         private ProtocolType _ProtocolType = ProtocolType.Tcp;
         /// <summary>协议类型</summary>
         public virtual ProtocolType ProtocolType { get { return _ProtocolType; } }
 
-        //private Int32 _BufferSize = 10240;
-        private Int32 _BufferSize = 1500;
-        /// <summary>缓冲区大小</summary>
-        public Int32 BufferSize { get { return _BufferSize; } set { _BufferSize = value; } }
-
         private IPAddress _Address = IPAddress.Any;
         /// <summary>监听本地地址</summary>
-        public IPAddress Address { get { return _Address; } set { _Address = value; if (value != null) AddressFamily = value.AddressFamily; } }
+        public IPAddress Address
+        {
+            get
+            {
+                var socket = Socket;
+                try
+                {
+                    if (socket != null && socket.LocalEndPoint is IPEndPoint) _Address = (socket.LocalEndPoint as IPEndPoint).Address;
+                }
+                catch (ObjectDisposedException) { }
+
+                return _Address;
+            }
+            set
+            {
+                _Address = value;
+                if (value != null) AddressFamily = value.AddressFamily;
+            }
+        }
 
         private Int32 _Port;
         /// <summary>监听端口</summary>
-        public Int32 Port { get { return _Port; } set { _Port = value; } }
+        public Int32 Port
+        {
+            get
+            {
+                var socket = Socket;
+                try
+                {
+                    if (socket != null && socket.LocalEndPoint is IPEndPoint) _Port = (socket.LocalEndPoint as IPEndPoint).Port;
+                }
+                catch (ObjectDisposedException) { }
+
+                return _Port;
+            }
+            set { _Port = value; }
+        }
 
         private AddressFamily _AddressFamily = AddressFamily.InterNetwork;
         /// <summary>地址族</summary>
@@ -51,11 +88,49 @@ namespace NewLife.Net.Sockets
             }
         }
 
+        private IPEndPoint _LocalEndPoint;
+        /// <summary>本地终结点</summary>
+        public IPEndPoint LocalEndPoint
+        {
+            get
+            {
+                var socket = Socket;
+                try
+                {
+                    if (socket != null) _LocalEndPoint = socket.LocalEndPoint as IPEndPoint;
+                }
+                catch (ObjectDisposedException) { }
+
+                return _LocalEndPoint ?? new IPEndPoint(Address, Port);
+            }
+        }
+
+        private IPEndPoint _RemoteEndPoint;
+        /// <summary>远程终结点</summary>
+        public IPEndPoint RemoteEndPoint
+        {
+            get
+            {
+                var socket = Socket;
+                if (socket != null && socket.Connected)
+                {
+                    _RemoteEndPoint = socket.RemoteEndPoint as IPEndPoint;
+                }
+
+                return _RemoteEndPoint;
+            }
+        }
+
+        //private Int32 _BufferSize = 10240;
+        private Int32 _BufferSize = 1500;
+        /// <summary>缓冲区大小</summary>
+        public Int32 BufferSize { get { return _BufferSize; } set { _BufferSize = value; } }
+
         private Boolean _NoDelay = true;
         /// <summary>禁用接收延迟，收到数据后马上建立异步读取再处理本次数据</summary>
         public Boolean NoDelay { get { return _NoDelay; } set { _NoDelay = value; } }
 
-        private Boolean _UseThreadPool = true;
+        private Boolean _UseThreadPool;
         /// <summary>是否使用线程池处理事件。建议仅在事件处理非常耗时时使用线程池来处理。</summary>
         public Boolean UseThreadPool { get { return _UseThreadPool; } set { _UseThreadPool = value; } }
         #endregion
@@ -68,7 +143,8 @@ namespace NewLife.Net.Sockets
             {
                 if (Socket == null) return false;
 
-                return (Boolean)Socket.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress);
+                Object value = Socket.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress);
+                return Convert.ToBoolean(value);
             }
             set
             {
@@ -82,6 +158,8 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 构造
+        static SocketBase() { NetService.Install(); }
+
         /// <summary>确保创建基础Socket对象</summary>
         protected virtual void EnsureCreate()
         {
@@ -110,7 +188,53 @@ namespace NewLife.Net.Sockets
         /// <summary>绑定本地终结点</summary>
         public void Bind()
         {
-            if (Socket != null && !Socket.IsBound) Socket.Bind(new IPEndPoint(Address, Port));
+            var socket = Socket;
+            if (socket != null && !socket.IsBound)
+            {
+                socket.Bind(new IPEndPoint(Address, Port));
+
+                OnSocketChange(socket);
+            }
+        }
+
+        void OnSocketChange(Socket socket)
+        {
+            if (socket == null) return;
+
+            _ProtocolType = socket.ProtocolType;
+            _AddressFamily = socket.AddressFamily;
+
+            var ep = socket.LocalEndPoint as IPEndPoint;
+            if (ep != null)
+            {
+                _Address = ep.Address;
+                _Port = ep.Port;
+            }
+            _LocalEndPoint = ep;
+
+            if (socket.Connected) _RemoteEndPoint = socket.RemoteEndPoint as IPEndPoint;
+        }
+
+        /// <summary>开始异步操作</summary>
+        /// <param name="callback"></param>
+        /// <param name="e"></param>
+        internal protected void StartAsync(Func<NetEventArgs, Boolean> callback, NetEventArgs e = null)
+        {
+            if (!Socket.IsBound) Bind();
+
+            // 如果没有传入网络事件参数，从对象池借用
+            if (e == null) e = Pop();
+
+            try
+            {
+                // 如果立即返回，则异步处理完成事件
+                if (!callback(e)) RaiseCompleteAsync(e);
+            }
+            catch
+            {
+                Push(e);
+                throw;
+            }
         }
         #endregion
 
@@ -119,7 +243,7 @@ namespace NewLife.Net.Sockets
         /// <summary>套接字事件参数池。静态，所有实例共享使用</summary>
         static ObjectPool<NetEventArgs> Pool { get { return _Pool ?? (_Pool = new ObjectPool<NetEventArgs>()); } }
 
-        /// <summary>从池里拿一个对象</summary>
+        /// <summary>从池里拿一个对象。回收原则参考<see cref="Push"/></summary>
         /// <returns></returns>
         public NetEventArgs Pop()
         {
@@ -146,8 +270,9 @@ namespace NewLife.Net.Sockets
         /// <remarks>
         /// 网络事件参数使用原则：
         /// 1，得到者负责回收（通过方法参数得到）
-        /// 2，正常执行时自己负责回收，异常时顶级负责回收
+        /// 2，正常执行时自己负责回收，异常时顶级或OnError负责回收
         /// 3，把回收责任交给别的方法
+        /// 4，事件订阅者不允许回收，不允许另作他用
         /// </remarks>
         /// <param name="e"></param>
         public void Push(NetEventArgs e)
@@ -214,7 +339,7 @@ namespace NewLife.Net.Sockets
         }
         #endregion
 
-        #region 事件
+        #region 完成事件
         /// <summary>完成事件，将在工作线程中被调用，不要占用太多时间。</summary>
         public event EventHandler<NetEventArgs> Completed;
 
@@ -233,9 +358,17 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         protected void RaiseComplete(NetEventArgs e)
         {
+#if DEBUG
+            WriteLog("Completed[{4}] {0} {1} {2} [{3}]", this, e.LastOperation, e.SocketError, e.BytesTransferred, e.ID);
+#endif
             try
             {
-                if (Completed != null) Completed(this, e);
+                if (Completed != null)
+                {
+                    e.Cancel = false;
+                    Completed(this, e);
+                    if (e.Cancel) return;
+                }
 
                 OnComplete(e);
                 // 这里可以改造为使用多线程处理事件
@@ -264,7 +397,100 @@ namespace NewLife.Net.Sockets
         /// </summary>
         /// <param name="e"></param>
         protected virtual void OnComplete(NetEventArgs e) { }
+        #endregion
 
+        #region 异步结果处理
+        /// <summary>处理异步结果。重点涉及<see cref="NoDelay"/></summary>
+        /// <param name="e">事件参数</param>
+        /// <param name="start">开始新异步操作的委托</param>
+        /// <param name="process">处理结果的委托</param>
+        /// <param name="nopush">是否不回收事件参数</param>
+        protected virtual void Process(NetEventArgs e, Action<NetEventArgs> start, Action<NetEventArgs> process, Boolean nopush = false)
+        {
+            if (UseThreadPool)
+            {
+                ThreadPool.QueueUserWorkItem(s =>
+                {
+                    OnProcess(e, start, process, nopush);
+                });
+            }
+            else
+            {
+                OnProcess(e, start, process, nopush);
+            }
+        }
+
+        void OnProcess(NetEventArgs e, Action<NetEventArgs> start, Action<NetEventArgs> process, Boolean nopush)
+        {
+            // 再次开始
+            if (NoDelay && e.SocketError != SocketError.OperationAborted) start(null);
+
+            // Socket错误由各个处理器来处理
+            if (e.SocketError != SocketError.Success)
+            {
+                OnError(e, null);
+                return;
+            }
+
+            try
+            {
+                // 业务处理
+                process(e);
+
+                // 不回收
+                if (nopush)
+                {
+                    if (!NoDelay) start(null);
+                }
+                else
+                {
+                    if (NoDelay)
+                        Push(e);
+                    else
+                        start(e);
+                }
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    OnError(e, ex);
+                }
+                catch { }
+            }
+        }
+
+        ///// <summary>在线程池里面执行指定委托。内部会处理异常并调用OnError</summary>
+        ///// <param name="callback"></param>
+        ///// <param name="e"></param>
+        //void ThreadPoolCallback(Action<NetEventArgs> callback, NetEventArgs e)
+        //{
+        //    if (UseThreadPool)
+        //    {
+        //        ThreadPool.QueueUserWorkItem(s =>
+        //        {
+        //            try
+        //            {
+        //                callback(e);
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                try
+        //                {
+        //                    OnError(e, ex);
+        //                }
+        //                catch { }
+        //            }
+        //        });
+        //    }
+        //    else
+        //    {
+        //        callback(e);
+        //    }
+        //}
+        #endregion
+
+        #region 错误处理
         /// <summary>错误发生/断开连接时</summary>
         public event EventHandler<NetEventArgs> Error;
 
@@ -313,47 +539,24 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 辅助
-        /// <summary>在线程池里面执行指定委托。内部会处理异常并调用OnError</summary>
-        /// <param name="callback"></param>
+        /// <summary>检查缓冲区大小</summary>
         /// <param name="e"></param>
-        protected void ThreadPoolCallback(Action<NetEventArgs> callback, NetEventArgs e)
+        internal protected void CheckBufferSize(NetEventArgs e)
         {
-            if (UseThreadPool)
+#if DEBUG
+            Int32 n = e.BytesTransferred;
+            if (n >= e.Buffer.Length || ProtocolType == ProtocolType.Tcp && n >= 1452 || ProtocolType == ProtocolType.Udp && n >= 1464)
             {
-                ThreadPool.QueueUserWorkItem(s =>
-                {
-                    try
-                    {
-                        callback(e);
-                    }
-                    catch (Exception ex)
-                    {
-                        try
-                        {
-                            OnError(e, ex);
-                        }
-                        catch { }
-                    }
-                });
+                WriteLog("接收的实际数据大小{0}超过了缓冲区大小，需要根据真实MTU调整缓冲区大小以提高效率！", n);
             }
-            else
-            {
-                callback(e);
-            }
+#endif
         }
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {
-            var socket = Socket;
-            if (socket != null)
-                return String.Format("{0}://{1}", socket.ProtocolType, socket.LocalEndPoint);
-            else
-                return String.Format("{0}://{1}", ProtocolType, new IPEndPoint(Address, Port));
-
-            //var ip = Socket != null ? Socket.LocalEndPoint : new IPEndPoint(Address, Port);
-            //return String.Format("{0}://{1}", ProtocolType, ip);
+            return String.Format("{0}://{1}", ProtocolType, LocalEndPoint);
         }
         #endregion
     }

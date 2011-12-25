@@ -26,6 +26,9 @@ namespace NewLife.Net
                 .Register<ISocketSession, UdpServer>(ProtocolType.Udp.ToString());
         }
 
+        /// <summary>安装，引发静态构造函数</summary>
+        public static void Install() { }
+
         #region 方法
         public static Type ResolveType<TInterface>(Func<IObjectMap, Boolean> func)
         {

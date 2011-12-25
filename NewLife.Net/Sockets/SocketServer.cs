@@ -74,6 +74,9 @@ namespace NewLife.Net.Sockets
         protected virtual void OnStop() { Close(); }
         #endregion
 
+        #region 方法
+        #endregion
+
         #region 事件
         /// <summary>已重载。服务器不会因为普通错误而关闭Socket停止服务</summary>
         /// <param name="e"></param>

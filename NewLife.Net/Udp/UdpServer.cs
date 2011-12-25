@@ -9,10 +9,12 @@ namespace NewLife.Net.Udp
 {
     /// <summary>UDP服务器</summary>
     /// <remarks>
-    /// 核心工作：启动服务<see cref="OnStart"/>时，监听端口，并启用多个（逻辑处理器数的10倍）异步接收操作<see cref="ReceiveAsync()"/>。
+    /// 核心工作：启动服务<see cref="OnStart"/>时，监听端口，并启用多个（逻辑处理器数的10倍）异步接收操作<see cref="ReceiveAsync"/>。
     /// 接收到的数据全部转接到<see cref="Received"/>事件中。
     /// 
     /// 服务器完全处于异步工作状态，任何操作都不可能被阻塞。
+    /// 
+    /// <see cref="ISocket.NoDelay"/>的设置会影响异步操作数，不启用时，只有一个异步操作。
     /// </remarks>
     public class UdpServer : SocketServer, ISocketSession
     {
@@ -63,7 +65,9 @@ namespace NewLife.Net.Udp
             // 设定委托
             // 指定10名工人待命，等待处理新连接
             // 一方面避免因没有及时安排工人而造成堵塞，另一方面避免工人中途死亡或逃跑而导致无人迎宾
-            for (int i = 0; i < 10 * Environment.ProcessorCount; i++)
+
+            Int32 count = NoDelay ? 10 * Environment.ProcessorCount : 1;
+            for (int i = 0; i < count; i++)
             {
                 ReceiveAsync();
             }
@@ -71,48 +75,21 @@ namespace NewLife.Net.Udp
 
         /// <summary>开始异步接收数据</summary>
         /// <param name="e"></param>
-        protected virtual void ReceiveAsync(NetEventArgs e)
+        public virtual void ReceiveAsync(NetEventArgs e = null)
         {
-            if (!Server.IsBound) Bind();
-
-            // 如果没有传入网络事件参数，从对象池借用
-            if (e == null) e = Pop();
-
-            //e.RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
-            // 兼容IPV6
-            IPAddress address = AddressFamily == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
-            e.RemoteEndPoint = new IPEndPoint(address, 0);
-
-            // 如果立即返回，则异步处理完成事件
-            if (!Server.ReceiveFromAsync(e))
+            StartAsync(ev =>
             {
-                if (e.BytesTransferred > 0)
-                    RaiseCompleteAsync(e);
-                else
-                    Push(e);
-            }
+                // 兼容IPV6
+                IPAddress address = AddressFamily == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
+                ev.RemoteEndPoint = new IPEndPoint(address, 0);
+                // 不能用ReceiveAsync，否则得不到远程地址
+                return Server.ReceiveFromAsync(ev);
+            }, e);
         }
 
-        /// <summary>开始异步接收数据</summary>
-        public void ReceiveAsync()
-        {
-            NetEventArgs e = Pop();
-            try
-            {
-                ReceiveAsync(e);
-            }
-            catch
-            {
-                // 拿到参数e后，就应该对它负责
-                // 如果当前的ReceiveAsync出错，应该归还
-                Push(e);
-                throw;
-            }
-        }
-
-        /// <summary>开始异步接收，同时处理传入的事件参数，里面可能有接收到的数据</summary>
-        /// <param name="e"></param>
-        void ISocketSession.Start(NetEventArgs e) { }
+        ///// <summary>开始异步接收，同时处理传入的事件参数，里面可能有接收到的数据</summary>
+        ///// <param name="e"></param>
+        //void ISocketSession.Start(NetEventArgs e) { }
 
         /// <summary>断开客户端连接。Tcp断开，UdpClient不处理</summary>
         void ISocketSession.Disconnect() { }
@@ -140,46 +117,13 @@ namespace NewLife.Net.Udp
                 return;
             }
 
-            //ProcessReceive(e);
-            // 这里可以改造为使用多线程处理事件
-
-            ThreadPoolCallback(ProcessReceive, e);
+            Process(e, ReceiveAsync, ProcessReceive);
         }
 
-        /// <summary>处理接收</summary>
-        /// <param name="e"></param>
-        private void ProcessReceive(NetEventArgs e)
+        void ProcessReceive(NetEventArgs e)
         {
-            if (NoDelay && e.SocketError != SocketError.OperationAborted) ReceiveAsync();
-
-            try
-            {
-                // Socket错误由各个处理器来处理
-                if (e.SocketError != SocketError.Success)
-                {
-                    OnError(e, null);
-                    // OnError里面已经被回收，赋值为null，否则后面finally里面的Push会出错
-                    e = null;
-                    return;
-                }
-
-#if DEBUG
-                Int32 n = e.BytesTransferred;
-                if (n >= e.Buffer.Length || ProtocolType == ProtocolType.Tcp && n >= 1452 || ProtocolType == ProtocolType.Udp && n >= 1464)
-                {
-                    WriteLog("接收的实际数据大小{0}超过了缓冲区大小，需要根据真实MTU调整缓冲区大小以提高效率！", n);
-                }
-#endif
-
-                if (Received != null) Received(this, e);
-            }
-            finally
-            {
-                if (NoDelay)
-                    Push(e);
-                else
-                    ReceiveAsync(e);
-            }
+            CheckBufferSize(e);
+            if (Received != null) Received(this, e);
         }
 
         /// <summary>已重载。</summary>

@@ -8,13 +8,15 @@ namespace NewLife.Net.Tcp
 {
     /// <summary>TCP服务器</summary>
     /// <remarks>
-    /// 核心工作：启动服务<see cref="OnStart"/>时，监听端口，并启用多个（逻辑处理器数的10倍）异步接受操作<see cref="StartAccept"/>。
+    /// 核心工作：启动服务<see cref="OnStart"/>时，监听端口，并启用多个（逻辑处理器数的10倍）异步接受操作<see cref="AcceptAsync"/>。
     /// 服务器只处理<see cref="SocketAsyncOperation.Accept"/>操作，并创建<see cref="ISocketSession"/>后，
     /// 将其赋值在事件参数的<see cref="NetEventArgs.Socket"/>中，传递给<see cref="Accepted"/>。
     /// 
     /// 服务器完全处于异步工作状态，任何操作都不可能被阻塞。
     /// 
     /// 注意：服务器接受连接请求后，不会开始处理数据，而是由<see cref="Accepted"/>事件订阅者决定何时开始处理数据<see cref="ISocketSession.Start"/>。
+    /// 
+    /// <see cref="ISocket.NoDelay"/>的设置会影响异步操作数，不启用时，只有一个异步操作。
     /// </remarks>
     public class TcpServer : SocketServer
     {
@@ -67,27 +69,21 @@ namespace NewLife.Net.Tcp
             // 一方面避免因没有及时安排工人而造成堵塞，另一方面避免工人中途死亡或逃跑而导致无人迎接客人
             // 该安排在一定程度上分担了Listen队列的压力，工人越多，就能及时把任务接过来，尽管处理不了那么快
             // 需要注意的是，该设计会导致触发多次（每个工人一次）Error事件
-            for (int i = 0; i < 10 * Environment.ProcessorCount; i++)
+
+            Int32 count = NoDelay ? 10 * Environment.ProcessorCount : 1;
+            for (int i = 0; i < count; i++)
             {
-                StartAccept();
+                AcceptAsync();
             }
         }
 
-        void StartAccept()
+        void AcceptAsync(NetEventArgs e = null)
         {
-            NetEventArgs e = Pop();
-            e.AcceptSocket = null;
-
-            try
-            {
-                // 如果立即返回，则异步处理完成事件
-                if (!Server.AcceptAsync(e)) RaiseCompleteAsync(e);
-            }
-            catch
-            {
-                Push(e);
-                throw;
-            }
+            StartAsync(ev =>
+            {            // 兼容IPV6
+                ev.AcceptSocket = null;
+                return Server.AcceptAsync(ev);
+            }, e);
         }
         #endregion
 
@@ -97,29 +93,35 @@ namespace NewLife.Net.Tcp
 
         /// <summary>新客户端到达</summary>
         /// <param name="e"></param>
-        protected virtual ISocketSession OnAccept(NetEventArgs e)
+        protected virtual void OnAccept(NetEventArgs e)
         {
-            // 再次开始
-            if (e.SocketError != SocketError.OperationAborted) StartAccept();
-
             // Socket错误由各个处理器来处理
-            if (e.SocketError != SocketError.Success)
+            if (e.SocketError == SocketError.OperationAborted)
             {
                 OnError(e, null);
-                return null;
+                return;
             }
 
+            // 没有接收事件时，马上开始处理重建委托
+            if (Accepted == null)
+            {
+                AcceptAsync(e);
+                return;
+            }
+
+            // 指定处理方法不要回收事件参数，这里要留着自己用（Session的Start）
+            Process(e, AcceptAsync, ProcessAccept, true);
+        }
+
+        void ProcessAccept(NetEventArgs e)
+        {
             // 建立会话
             var session = CreateSession(e);
-            session.NoDelay = this.NoDelay;
+            //session.NoDelay = this.NoDelay;
             e.Socket = session;
             if (Accepted != null) Accepted(this, e);
 
-            //var socket = session.Socket;
-            //if (socket != null && socket.Connected) session.Start(e);
-            ////if (session?.Socket?.Connected) session.Start(e);
-
-            return session;
+            (session as TcpClientX).Start(e);
         }
 
         /// <summary>已重载。</summary>
@@ -181,8 +183,10 @@ namespace NewLife.Net.Tcp
         {
             var session = new TcpClientX();
             session.Socket = e.AcceptSocket;
-            session.RemoteEndPoint = e.AcceptSocket.RemoteEndPoint as IPEndPoint;
+            //session.RemoteEndPoint = e.AcceptSocket.RemoteEndPoint as IPEndPoint;
             if (e.RemoteEndPoint == null) e.RemoteEndPoint = session.RemoteEndPoint;
+            // 对于服务器中的会话来说，收到空数据表示断开连接
+            session.DisconnectWhenEmptyData = true;
 
             Sessions.Add(session);
 

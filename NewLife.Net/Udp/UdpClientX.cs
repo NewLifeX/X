@@ -17,10 +17,8 @@ namespace NewLife.Net.Udp
         #region 接收
         /// <summary>异步接收</summary>
         /// <param name="e"></param>
-        protected override void ReceiveAsync(NetEventArgs e)
+        public override void ReceiveAsync(NetEventArgs e = null)
         {
-            if (!Client.IsBound) Bind();
-
             // 如果没有传入网络事件参数，从对象池借用
             if (e == null) e = Pop();
             //e.RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
@@ -28,8 +26,7 @@ namespace NewLife.Net.Udp
             IPAddress address = AddressFamily == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
             e.RemoteEndPoint = new IPEndPoint(address, 0);
 
-            // 如果立即返回，则异步处理完成事件
-            if (!Client.ReceiveFromAsync(e)) RaiseCompleteAsync(e);
+            base.ReceiveAsync(e);
         }
         #endregion
 
