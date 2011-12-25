@@ -26,7 +26,8 @@ namespace NewLife.Net.Udp
             IPAddress address = AddressFamily == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
             e.RemoteEndPoint = new IPEndPoint(address, 0);
 
-            base.ReceiveAsync(e);
+            // 不能用ReceiveAsync，否则得不到远程地址
+            StartAsync(Client.ReceiveFromAsync, e);
         }
         #endregion
 

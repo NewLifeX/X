@@ -32,10 +32,10 @@ namespace NewLife.Net.Application
             }
 
             StartEchoServer(7);
-            StartDaytimeServer(13);
-            StartTimeServer(37);
-            StartDiscardServer(9);
-            StartChargenServer(19);
+            //StartDaytimeServer(13);
+            //StartTimeServer(37);
+            //StartDiscardServer(9);
+            //StartChargenServer(19);
         }
 
         static T CreateClient<T>() where T : ISocketClient
