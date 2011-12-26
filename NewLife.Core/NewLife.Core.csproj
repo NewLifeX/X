@@ -34,16 +34,6 @@
     <DocumentationFile>..\..\生成\NewLife.Core.XML</DocumentationFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '.Net 2.0|AnyCPU'">
-    <OutputPath>..\..\生成\Net20Sp0\</OutputPath>
-    <DefineConstants>TRACE;NET20SP0</DefineConstants>
-    <DocumentationFile>..\..\生成\Net20Sp0\NewLife.Core.XML</DocumentationFile>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
   <PropertyGroup>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
