@@ -83,6 +83,34 @@ namespace NewLife.Net.Sockets
         }
         #endregion
 
+        #region 缓冲区
+        private Byte[] _buffer;
+        /// <summary>设置缓冲区。
+        /// 为了避免频繁分配内存，可以为每一个事件参数固定挂载一个缓冲区，达到重用的效果。
+        /// 但是对于TcpServer的Accept来说，不能设置缓冲区，否则客户端连接的时候不会触发Accept事件，
+        /// 而必须等到第一个数据包的到来才触发，那时缓冲区里面同时带有第一个数据包的数据。
+        /// 
+        /// 所以，考虑把缓冲内置一份到外部，进行控制。
+        /// </summary>
+        /// <param name="size"></param>
+        internal void SetBuffer(Int32 size)
+        {
+            if (size > 0)
+            {
+                // 没有缓冲区，或者大小不够时，重新分配
+                if (_buffer == null || _buffer.Length < size) _buffer = new Byte[size];
+
+                // 没有缓冲区，或者大小不相同时，重新设置
+                if (Buffer == null || Count != size) SetBuffer(_buffer, 0, size);
+            }
+            else
+            {
+                // 事件内有缓冲区时才清空，不过它多长，必须清空
+                if (Buffer != null) SetBuffer(null, 0, 0);
+            }
+        }
+        #endregion
+
         #region 辅助
         /// <summary>从接收缓冲区拿字符串，UTF-8编码</summary>
         /// <returns></returns>

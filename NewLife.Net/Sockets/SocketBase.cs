@@ -219,12 +219,14 @@ namespace NewLife.Net.Sockets
         /// <summary>开始异步操作</summary>
         /// <param name="callback"></param>
         /// <param name="e"></param>
-        internal protected void StartAsync(Func<NetEventArgs, Boolean> callback, NetEventArgs e = null)
+        internal protected void StartAsync(Func<NetEventArgs, Boolean> callback, NetEventArgs e, Boolean needBuffer = true)
         {
             if (!Socket.IsBound) Bind();
 
             // 如果没有传入网络事件参数，从对象池借用
             if (e == null) e = Pop();
+
+            e.SetBuffer(needBuffer ? BufferSize : 0);
 
             try
             {
@@ -255,11 +257,7 @@ namespace NewLife.Net.Sockets
             //e.UserToken = this;
             e.Socket = this;
             e.Completed += OnCompleted;
-            if (e.Buffer == null)
-            {
-                Byte[] buffer = new Byte[BufferSize];
-                e.SetBuffer(buffer, 0, buffer.Length);
-            }
+            //if (e.Buffer == null) e.SetBuffer(BufferSize);
 
             e.Times++;
             e.Used = true;
@@ -580,10 +578,10 @@ namespace NewLife.Net.Sockets
         /// <summary>增加操作</summary>
         protected void IncAction()
         {
+            if (computeTimer == null) computeTimer = new TimerX(Compute, null, 0, 3000);
+
             _TotalPerMinute++;
             _TotalPerHour++;
-
-            if (computeTimer == null) computeTimer = new TimerX(Compute, null, 3000, 3000);
         }
 
         /// <summary>统计操作计时器</summary>
@@ -596,14 +594,14 @@ namespace NewLife.Net.Sockets
 
             if (_NextPerMinute < now)
             {
+                if (_NextPerMinute != DateTime.MinValue) _TotalPerMinute = 0;
                 _NextPerMinute = now.AddMinutes(1);
-                _TotalPerMinute = 0;
             }
 
             if (_NextPerHour < now)
             {
+                if (_NextPerHour != DateTime.MinValue) _TotalPerHour = 0;
                 _NextPerHour = now.AddHours(1);
-                _TotalPerHour = 0;
             }
 
             if (_TotalPerMinute > _MaxPerMinute) _MaxPerMinute = _TotalPerMinute;

@@ -33,9 +33,12 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.6.*")]
-[assembly: AssemblyFileVersion("1.6.2011.0624")]
+[assembly: AssemblyFileVersion("1.6.2011.0626")]
 
 /*
+ * v1.6.2011.0626   修正一个严重错误，TcpSerer开始异步Accept时，不需要设置缓冲区，否则客户端连接后不会马上得到Accept事件，
+ *                  而必须等到第一个数据包的到来才触发，那时缓冲区里面同时带有第一个数据包的数据。
+ * 
  * v1.6.2011.0624   全面支持IPV6，并实现了隐式探测支持，只要用到IPV6的地址（本地和远程），就自动采用IPV6通信
  * 
  * v1.5.2011.0413   改善NetServer，不再作为抽象基类，通过指定协议类型可直接创建Tcp/Udp服务器

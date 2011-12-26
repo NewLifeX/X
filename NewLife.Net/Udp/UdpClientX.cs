@@ -19,15 +19,14 @@ namespace NewLife.Net.Udp
         /// <param name="e"></param>
         public override void ReceiveAsync(NetEventArgs e = null)
         {
-            // 如果没有传入网络事件参数，从对象池借用
-            if (e == null) e = Pop();
-            //e.RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
-            // 兼容IPV6
-            IPAddress address = AddressFamily == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
-            e.RemoteEndPoint = new IPEndPoint(address, 0);
-
-            // 不能用ReceiveAsync，否则得不到远程地址
-            StartAsync(Client.ReceiveFromAsync, e);
+            StartAsync(ev =>
+            {
+                // 兼容IPV6
+                IPAddress address = AddressFamily == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
+                ev.RemoteEndPoint = new IPEndPoint(address, 0);
+                // 不能用ReceiveAsync，否则得不到远程地址
+                return Client.ReceiveFromAsync(ev);
+            }, e);
         }
         #endregion
 

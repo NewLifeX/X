@@ -58,8 +58,8 @@ namespace Test2
 
         static void TestServer()
         {
-            Type[] ts = new Type[] { typeof(ChargenServer), typeof(DaytimeServer), typeof(DiscardServer), typeof(EchoServer), typeof(TimeServer) };
-            //Type[] ts = new Type[] { typeof(EchoServer) };
+            //Type[] ts = new Type[] { typeof(ChargenServer), typeof(DaytimeServer), typeof(DiscardServer), typeof(EchoServer), typeof(TimeServer) };
+            Type[] ts = new Type[] { typeof(EchoServer) };
             List<NetServer> list = new List<NetServer>();
             foreach (Type item in ts)
             {
@@ -70,7 +70,7 @@ namespace Test2
                 list.Add(server);
             }
 
-            NetHelper.Debug = false;
+            //NetHelper.Debug = false;
 
             while (true)
             {

@@ -80,10 +80,10 @@ namespace NewLife.Net.Tcp
         void AcceptAsync(NetEventArgs e = null)
         {
             StartAsync(ev =>
-            {            // 兼容IPV6
+            {
                 ev.AcceptSocket = null;
                 return Server.AcceptAsync(ev);
-            }, e);
+            }, e, false);
         }
         #endregion
 
