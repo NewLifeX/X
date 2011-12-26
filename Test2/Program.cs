@@ -1,13 +1,13 @@
 ﻿using System;
-using NewLife.Linq;
-using NewLife.Log;
-using NewLife.Net.Application;
-using NewLife.Net.Sockets;
 using System.Collections.Generic;
 using System.Threading;
-using NewLife.Net.Tcp;
-using System.Net;
+using NewLife.Linq;
+using NewLife.Log;
 using NewLife.Net;
+using NewLife.Net.Application;
+using NewLife.Net.Sockets;
+using NewLife.Net.Tcp;
+using System.Diagnostics;
 
 namespace Test2
 {
@@ -53,7 +53,7 @@ namespace Test2
             else if (cmd == '2')
             {
                 //TestClient();
-                for (int i = 0; i < 10000; i++)
+                //for (int i = 0; i < 10000; i++)
                 {
                     TestClient();
                 }
@@ -101,13 +101,15 @@ namespace Test2
 
         static void TestClient()
         {
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
+
             Random rnd = new Random((Int32)DateTime.Now.Ticks);
 
-            String host = "192.168.1.10";
+            String host = "127.0.0.1";
             //Int32[] ports = new Int32[] { 19, 13, 9, 7, 37 };
             Int32[] ports = new Int32[] { 7 };
 
-            Thread[] ths = new Thread[100];
+            Thread[] ths = new Thread[10];
             for (int i = 0; i < ths.Length; i++)
             {
                 String name = String.Format("Test_{0}", (i + 1).ToString("00000"));
@@ -115,6 +117,7 @@ namespace Test2
 
                 ths[i] = new Thread(TestClient_One);
                 ths[i].Name = name;
+                ths[i].Priority = ThreadPriority.BelowNormal;
                 ths[i].Start(new Object[] { i + 1, host, ports[rnd.Next(0, ports.Length)] });
                 Thread.Sleep(100);
             }
@@ -128,7 +131,7 @@ namespace Test2
             Int32 port = (Int32)objs[2];
 
             // 开10个Tcp连接
-            TcpClientX[] ts = new TcpClientX[100];
+            TcpClientX[] ts = new TcpClientX[1000];
             try
             {
                 for (int i = 0; i < ts.Length; i++)
