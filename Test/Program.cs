@@ -1,21 +1,19 @@
 ﻿using System;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
 using System.Threading;
 using NewLife.IO;
 using NewLife.Log;
+using NewLife.Net.Application;
 using NewLife.Net.Protocols.DNS;
-using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
 using NewLife.Reflection;
 using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
-using System.Data;
-using NewLife.Net.Application;
 
 namespace Test
 {

@@ -115,6 +115,9 @@ namespace NewLife.Net.Tcp
 
         void ProcessAccept(NetEventArgs e)
         {
+            // 统计连接数
+            IncAction();
+
             // 建立会话
             var session = CreateSession(e);
             //session.NoDelay = this.NoDelay;

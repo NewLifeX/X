@@ -41,7 +41,7 @@ namespace NewLife.Net.Sockets
         /// <param name="port"></param>
         public virtual void Connect(IPAddress address, Int32 port)
         {
-            Connect(new IPEndPoint(address, Port));
+            Connect(new IPEndPoint(address, port));
         }
 
         /// <summary>建立与远程主机的连接</summary>
@@ -98,6 +98,9 @@ namespace NewLife.Net.Sockets
 
         void ProcessReceive(NetEventArgs e)
         {
+            // 统计接收数
+            IncAction();
+
             CheckBufferSize(e);
             if (Received != null) Received(this, e);
         }

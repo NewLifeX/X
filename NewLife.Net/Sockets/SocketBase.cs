@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Reflection;
+using NewLife.Threading;
 
 namespace NewLife.Net.Sockets
 {
@@ -557,6 +558,55 @@ namespace NewLife.Net.Sockets
         public override string ToString()
         {
             return String.Format("{0}://{1}", ProtocolType, LocalEndPoint);
+        }
+        #endregion
+
+        #region 统计
+        private Int32 _TotalPerMinute;
+        /// <summary>每分钟总操作</summary>
+        public Int32 TotalPerMinute { get { return _TotalPerMinute; } }
+
+        private Int32 _TotalPerHour;
+        /// <summary>每小时总操作</summary>
+        public Int32 TotalPerHour { get { return _TotalPerHour; } }
+
+        private Int32 _MaxPerMinute;
+        /// <summary>每分钟最大值</summary>
+        public Int32 MaxPerMinute { get { return _MaxPerMinute; } set { _MaxPerMinute = value; } }
+
+        private DateTime _NextPerMinute;
+        private DateTime _NextPerHour;
+
+        /// <summary>增加操作</summary>
+        protected void IncAction()
+        {
+            _TotalPerMinute++;
+            _TotalPerHour++;
+
+            if (computeTimer == null) computeTimer = new TimerX(Compute, null, 3000, 3000);
+        }
+
+        /// <summary>统计操作计时器</summary>
+        private TimerX computeTimer;
+
+        /// <summary>统计操作</summary>
+        void Compute(Object state)
+        {
+            DateTime now = DateTime.Now;
+
+            if (_NextPerMinute < now)
+            {
+                _NextPerMinute = now.AddMinutes(1);
+                _TotalPerMinute = 0;
+            }
+
+            if (_NextPerHour < now)
+            {
+                _NextPerHour = now.AddHours(1);
+                _TotalPerHour = 0;
+            }
+
+            if (_TotalPerMinute > _MaxPerMinute) _MaxPerMinute = _TotalPerMinute;
         }
         #endregion
     }

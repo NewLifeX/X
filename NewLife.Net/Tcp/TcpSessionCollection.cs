@@ -19,6 +19,7 @@ namespace NewLife.Net.Tcp
             lock (_list)
             {
                 client.OnDisposed += (s, e) => Remove(client);
+                _list.Add(client);
 
                 if (clearTimer == null) clearTimer = new TimerX(e => RemoveNotAlive(), null, ClearPeriod, ClearPeriod);
             }
