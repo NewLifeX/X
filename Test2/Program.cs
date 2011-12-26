@@ -51,7 +51,13 @@ namespace Test2
             if (cmd == '1')
                 TestServer();
             else if (cmd == '2')
-                TestClient();
+            {
+                //TestClient();
+                for (int i = 0; i < 10000; i++)
+                {
+                    TestClient();
+                }
+            }
         }
 
         //static List<Int32> Ports = new List<int>();
@@ -70,7 +76,7 @@ namespace Test2
                 list.Add(server);
             }
 
-            //NetHelper.Debug = false;
+            NetHelper.Debug = false;
 
             while (true)
             {
@@ -97,7 +103,7 @@ namespace Test2
         {
             Random rnd = new Random((Int32)DateTime.Now.Ticks);
 
-            String host = "192.168.1.9";
+            String host = "192.168.1.10";
             //Int32[] ports = new Int32[] { 19, 13, 9, 7, 37 };
             Int32[] ports = new Int32[] { 7 };
 

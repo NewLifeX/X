@@ -219,8 +219,10 @@ namespace NewLife.Net.Sockets
         /// <summary>开始异步操作</summary>
         /// <param name="callback"></param>
         /// <param name="e"></param>
+        /// <param name="needBuffer">是否需要缓冲区，默认需要，只有Accept不需要</param>
         internal protected void StartAsync(Func<NetEventArgs, Boolean> callback, NetEventArgs e, Boolean needBuffer = true)
         {
+            if (Socket == null) return;
             if (!Socket.IsBound) Bind();
 
             // 如果没有传入网络事件参数，从对象池借用

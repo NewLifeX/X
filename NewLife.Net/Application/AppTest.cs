@@ -86,7 +86,7 @@ namespace NewLife.Net.Application
                 if (!isAsync)
                     Console.WriteLine("客户端" + client + " " + client.ReceiveString());
                 else
-                    Thread.Sleep(1000);
+                    Thread.Sleep(100);
             }
             client.Close();
             Thread.Sleep(100);
