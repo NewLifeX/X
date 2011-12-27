@@ -270,6 +270,7 @@ namespace XControl
                 //_BtnControl.Width = Unit.Pixel(128);
                 //_BtnControl.Style.Add(HtmlTextWriterStyle.MarginTop, "5px");
                 _BtnControl.ID = "ChooseText";
+                _BtnControl.ToolTip = ToolTip;
                 Controls.Add(_BtnControl);
             }
 
