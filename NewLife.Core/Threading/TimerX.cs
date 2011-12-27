@@ -51,6 +51,10 @@ namespace NewLife.Threading
             set { _Period = value; }
         }
 
+        private Boolean _UseThreadPool;
+        /// <summary>是否使用线程池。对于耗时短小且比较频繁的操作，不好使用线程池，减少线程切换。</summary>
+        public Boolean UseThreadPool { get { return _UseThreadPool; } set { _UseThreadPool = value; } }
+
         private Boolean _Calling;
         /// <summary>调用中</summary>
         public Boolean Calling
@@ -66,7 +70,15 @@ namespace NewLife.Threading
         /// <param name="state">用户数据</param>
         /// <param name="dueTime">多久之后开始</param>
         /// <param name="period">间隔周期</param>
-        public TimerX(WaitCallback callback, object state, int dueTime, int period)
+        public TimerX(WaitCallback callback, object state, int dueTime, int period) : this(callback, state, dueTime, period, period > 10000) { }
+
+        /// <summary>实例化一个不可重入的定时器</summary>
+        /// <param name="callback">委托</param>
+        /// <param name="state">用户数据</param>
+        /// <param name="dueTime">多久之后开始</param>
+        /// <param name="period">间隔周期</param>
+        /// <param name="usethreadpool">是否使用线程池。对于耗时短小且比较频繁的操作，不好使用线程池，减少线程切换。</param>
+        public TimerX(WaitCallback callback, object state, int dueTime, int period, Boolean usethreadpool)
         {
             if (callback == null) throw new ArgumentNullException("callback");
             if (dueTime < Timeout.Infinite) throw new ArgumentOutOfRangeException("dueTime");
@@ -74,8 +86,8 @@ namespace NewLife.Threading
 
             Callback = new WeakAction<object>(callback);
             State = state;
-            //DueTime = dueTime;
             Period = period;
+            UseThreadPool = usethreadpool;
 
             NextTime = DateTime.Now.AddMilliseconds(dueTime);
 
@@ -195,9 +207,12 @@ namespace NewLife.Threading
                 {
                     timer.Calling = true;
 
-                    // 线程池调用
                     Action<Object> callback = timer.Callback;
-                    ThreadPoolX.QueueUserWorkItem(delegate() { callback(timer.State); });
+                    // 线程池调用
+                    if (timer.UseThreadPool)
+                        ThreadPoolX.QueueUserWorkItem(delegate() { callback(timer.State); });
+                    else
+                        callback(timer.State);
                 }
                 catch (ThreadAbortException) { throw; }
                 catch (ThreadInterruptedException) { throw; }

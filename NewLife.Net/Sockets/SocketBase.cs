@@ -433,23 +433,22 @@ namespace NewLife.Net.Sockets
         /// <param name="e">事件参数</param>
         /// <param name="start">开始新异步操作的委托</param>
         /// <param name="process">处理结果的委托</param>
-        /// <param name="nopush">是否不回收事件参数</param>
-        protected virtual void Process(NetEventArgs e, Action<NetEventArgs> start, Action<NetEventArgs> process, Boolean nopush = false)
+        protected virtual void Process(NetEventArgs e, Action<NetEventArgs> start, Action<NetEventArgs> process)
         {
             if (UseThreadPool)
             {
                 ThreadPool.QueueUserWorkItem(s =>
                 {
-                    OnProcess(e, start, process, nopush);
+                    OnProcess(e, start, process);
                 });
             }
             else
             {
-                OnProcess(e, start, process, nopush);
+                OnProcess(e, start, process);
             }
         }
 
-        void OnProcess(NetEventArgs e, Action<NetEventArgs> start, Action<NetEventArgs> process, Boolean nopush)
+        void OnProcess(NetEventArgs e, Action<NetEventArgs> start, Action<NetEventArgs> process)
         {
             // 再次开始
             if (NoDelay && e.SocketError != SocketError.OperationAborted) start(null);
@@ -466,18 +465,10 @@ namespace NewLife.Net.Sockets
                 // 业务处理
                 process(e);
 
-                // 不回收
-                if (nopush)
-                {
-                    if (!NoDelay) start(null);
-                }
+                if (NoDelay)
+                    Push(e);
                 else
-                {
-                    if (NoDelay)
-                        Push(e);
-                    else
-                        start(e);
-                }
+                    start(e);
             }
             catch (Exception ex)
             {
@@ -488,35 +479,6 @@ namespace NewLife.Net.Sockets
                 catch { }
             }
         }
-
-        ///// <summary>在线程池里面执行指定委托。内部会处理异常并调用OnError</summary>
-        ///// <param name="callback"></param>
-        ///// <param name="e"></param>
-        //void ThreadPoolCallback(Action<NetEventArgs> callback, NetEventArgs e)
-        //{
-        //    if (UseThreadPool)
-        //    {
-        //        ThreadPool.QueueUserWorkItem(s =>
-        //        {
-        //            try
-        //            {
-        //                callback(e);
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                try
-        //                {
-        //                    OnError(e, ex);
-        //                }
-        //                catch { }
-        //            }
-        //        });
-        //    }
-        //    else
-        //    {
-        //        callback(e);
-        //    }
-        //}
         #endregion
 
         #region 错误处理
@@ -608,7 +570,7 @@ namespace NewLife.Net.Sockets
         /// <summary>增加操作</summary>
         protected void IncAction()
         {
-            if (computeTimer == null) computeTimer = new TimerX(Compute, null, 0, 3000);
+            if (computeTimer == null) computeTimer = new TimerX(Compute, null, 0, 3000, false);
 
             _TotalPerMinute++;
             _TotalPerHour++;

@@ -109,7 +109,7 @@ namespace NewLife.Net.Tcp
                 return;
             }
 
-            // 指定处理方法不要回收事件参数，这里要留着自己用（Session的Start）
+            // Session的Start也就可能处理一下参数里面的数据，而不可能使用参数，因为参数的完成事件是挂载在TcpServer上的。
             Process(e, AcceptAsync, ProcessAccept);
         }
 
