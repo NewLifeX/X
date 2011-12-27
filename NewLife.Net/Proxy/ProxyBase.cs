@@ -88,6 +88,7 @@ namespace NewLife.Net.Proxy
             session.Proxy = this;
             session.Server = sender as ISocketServer;
             session.Session = e.Socket as ISocketSession;
+            session.ClientEndPoint = e.RemoteEndPoint;
 
             Sessions.Add(session);
             session.OnDisposed += (s, ev) => Sessions.Remove(session);

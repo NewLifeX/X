@@ -4,6 +4,7 @@ using System.Text;
 using NewLife.Net.Sockets;
 using System.Net;
 using System.Net.Sockets;
+using NewLife;
 
 namespace NewLife.Net.Proxy
 {
@@ -53,9 +54,11 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         public void Start(NetEventArgs e)
         {
-            if (Session.ProtocolType == ProtocolType.Tcp) Session.Received += new EventHandler<NetEventArgs>(Session_Received);
-            //if (e.BytesTransferred > 0) OnReceive(e);
-            //Session.Start(e);
+            // Tcp挂接事件，Udp直接处理数据
+            if (Session.ProtocolType == ProtocolType.Tcp)
+                Session.Received += new EventHandler<NetEventArgs>(Session_Received);
+            else
+                OnReceive(e);
         }
 
         void Session_Received(object sender, NetEventArgs e)
@@ -69,15 +72,22 @@ namespace NewLife.Net.Proxy
         {
             base.OnDispose(disposing);
 
-            if (Session.ProtocolType == ProtocolType.Tcp) Session.Received -= new EventHandler<NetEventArgs>(Session_Received);
+            if (Session.ProtocolType == ProtocolType.Tcp)
+            {
+                Session.Received -= new EventHandler<NetEventArgs>(Session_Received);
+                Session.Disconnect();
+                Session.Dispose();
+            }
+
+            Server = null;
+            Session = null;
+            Remote.Dispose();
         }
         #endregion
 
         #region 数据交换
         void OnReceive(NetEventArgs e)
         {
-            //Console.WriteLine(e.GetString());
-
             if (Remote == null)
             {
                 Remote = Proxy.MainFilter.CreateRemote(this, e);
@@ -86,28 +96,24 @@ namespace NewLife.Net.Proxy
             }
 
             var stream = e.GetStream();
-            Console.WriteLine("{0} => {1} {2}字节", ClientEndPoint, Session.Socket.LocalEndPoint, stream.Length);
+            Console.WriteLine("{0} => {1} {2}字节", ClientEndPoint, Session.LocalEndPoint, stream.Length);
             stream = Proxy.MainFilter.OnClientToServer(this, stream, e);
             if (stream != null) Remote.Send(stream, RemoteEndPoint);
         }
 
         void Remote_Received(object sender, NetEventArgs e)
         {
-            //Console.WriteLine(e.GetString());
-
             var stream = e.GetStream();
-            Console.WriteLine("{0} => {1} {2}字节", RemoteEndPoint, Remote.Client.LocalEndPoint, stream.Length);
+            Console.WriteLine("{0} {1}字节", Remote, stream.Length);
             stream = Proxy.MainFilter.OnServerToClient(this, stream, e);
             if (stream != null) Session.Send(stream, ClientEndPoint);
         }
         #endregion
 
         #region 辅助
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return Session + ""; }
+        public override string ToString() { return Session + "," + Remote; }
         #endregion
     }
 }

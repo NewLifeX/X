@@ -184,7 +184,7 @@ namespace NewLife.Net.Udp
                 }
 #endif
 
-                Send(buffer, 0, n);
+                Send(buffer, 0, n, remoteEP);
                 total += n;
 
                 if (n < buffer.Length) break;

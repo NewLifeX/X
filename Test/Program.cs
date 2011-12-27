@@ -14,6 +14,8 @@ using NewLife.Reflection;
 using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
+using NewLife.Net.Proxy;
+using System.Net.Sockets;
 
 namespace Test
 {
@@ -141,7 +143,7 @@ namespace Test
 
         static void Test4()
         {
-            AppTest.Start();
+            //AppTest.Start();
             //NetHelper.Wake("00-24-8C-04-C0-9B", "00-24-8C-04-C0-91");
 
             //var proxy = new XProxy();
@@ -154,12 +156,12 @@ namespace Test
             ////proxy.Filters.Add(filter);
             //proxy.Start();
 
-            //var proxy = new XProxy();
-            //proxy.Port = 53;
-            //proxy.ProtocolType = ProtocolType.Udp;
-            //proxy.ServerAddress = "192.168.1.1";
-            //proxy.ServerPort = 53;
-            //proxy.Start();
+            var proxy = new XProxy();
+            proxy.Port = 53;
+            proxy.ProtocolType = ProtocolType.Udp;
+            proxy.ServerAddress = "192.168.0.1";
+            proxy.ServerPort = 53;
+            proxy.Start();
 
             //var client = new UdpClientX();
             //client.Connect("127.0.0.1", 53);
