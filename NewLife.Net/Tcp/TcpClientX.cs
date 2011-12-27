@@ -41,10 +41,9 @@ namespace NewLife.Net.Tcp
         /// <param name="e"></param>
         internal void Start(NetEventArgs e)
         {
-            if (e.BytesTransferred > 0)
-                base.OnReceive(e);
-            else
-                base.ReceiveAsync();
+            if (e.BytesTransferred > 0) ProcessReceive(e);
+
+            ReceiveAsync();
         }
 
         /// <summary>断开客户端连接。Tcp端口，UdpClient不处理</summary>

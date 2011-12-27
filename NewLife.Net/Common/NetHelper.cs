@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
@@ -6,6 +7,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using NewLife.Configuration;
 using NewLife.Log;
+using System.Runtime.InteropServices;
 
 namespace NewLife.Net
 {
@@ -45,27 +47,33 @@ namespace NewLife.Net
         #endregion
 
         #region 辅助函数
-        /// <summary>
-        /// 分析地址
-        /// </summary>
+        /// <summary>设置超时检测时间和检测间隔</summary>
+        /// <param name="socket">要设置的Socket对象</param>
+        /// <param name="iskeepalive">是否启用Keep-Alive</param>
+        /// <param name="starttime">多长时间后开始第一次探测（单位：毫秒）</param>
+        /// <param name="interval">探测时间间隔（单位：毫秒）</param>
+        public static void SetKeepAlive(this Socket socket, Boolean iskeepalive, Int32 starttime = 10000, Int32 interval = 10000)
+        {
+            uint dummy = 0;
+            byte[] inOptionValues = new byte[Marshal.SizeOf(dummy) * 3];
+            BitConverter.GetBytes((uint)(iskeepalive ? 1 : 0)).CopyTo(inOptionValues, 0);
+            BitConverter.GetBytes((uint)starttime).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
+            BitConverter.GetBytes((uint)interval).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
+            socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+        }
+
+        /// <summary>分析地址</summary>
         /// <param name="hostname"></param>
         /// <returns></returns>
         public static IPAddress ParseAddress(String hostname)
         {
             IPAddress[] hostAddresses = Dns.GetHostAddresses(hostname);
-            int index = 0;
-            while ((index < hostAddresses.Length) && (hostAddresses[index].AddressFamily != AddressFamily.InterNetwork))
-            {
-                index++;
-            }
-            if (hostAddresses.Length > 0 && index < hostAddresses.Length) return hostAddresses[index];
+            if (hostAddresses == null || hostAddresses.Length < 1) return null;
 
-            return null;
+            return hostAddresses.FirstOrDefault(d => d.AddressFamily == AddressFamily.InterNetwork || d.AddressFamily == AddressFamily.InterNetworkV6);
         }
 
-        /// <summary>
-        /// 获取本地IPV4列表
-        /// </summary>
+        /// <summary>获取本地IPV4列表</summary>
         /// <returns></returns>
         public static List<IPAddress> GetIPV4()
         {

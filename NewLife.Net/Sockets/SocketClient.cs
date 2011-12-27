@@ -26,6 +26,15 @@ namespace NewLife.Net.Sockets
         }
         #endregion
 
+        #region 构造
+        /// <summary>实例化</summary>
+        public SocketClient()
+        {
+            // 客户端可能需要阻塞，默认打开延迟
+            NoDelay = false;
+        }
+        #endregion
+
         #region 连接
         /// <summary>建立与远程主机的连接</summary>
         /// <param name="hostname"></param>
@@ -96,7 +105,9 @@ namespace NewLife.Net.Sockets
             Process(e, ReceiveAsync, ProcessReceive);
         }
 
-        void ProcessReceive(NetEventArgs e)
+        /// <summary>处理接收到的数据</summary>
+        /// <param name="e"></param>
+        internal protected void ProcessReceive(NetEventArgs e)
         {
             // 统计接收数
             IncAction();

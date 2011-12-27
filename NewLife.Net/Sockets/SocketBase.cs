@@ -25,9 +25,17 @@ namespace NewLife.Net.Sockets
             get { return _Socket; }
             set
             {
-                _Socket = value;
+                if (value != null)
+                {
+                    if (_Socket != value)
+                    {
+                        _LocalEndPoint = null;
+                        _RemoteEndPoint = null;
+                    }
+                    OnSocketChange(value);
+                }
 
-                if (value != null) OnSocketChange(value);
+                _Socket = value;
             }
         }
 
@@ -95,6 +103,8 @@ namespace NewLife.Net.Sockets
         {
             get
             {
+                if (_LocalEndPoint != null) return _LocalEndPoint;
+
                 var socket = Socket;
                 try
                 {
@@ -112,6 +122,8 @@ namespace NewLife.Net.Sockets
         {
             get
             {
+                if (_RemoteEndPoint != null) return _RemoteEndPoint;
+
                 var socket = Socket;
                 if (socket != null && socket.Connected)
                 {
@@ -170,6 +182,7 @@ namespace NewLife.Net.Sockets
             {
                 case ProtocolType.Tcp:
                     Socket = new Socket(AddressFamily, SocketType.Stream, ProtocolType);
+                    Socket.SetKeepAlive(true);
                     break;
                 case ProtocolType.Udp:
                     Socket = new Socket(AddressFamily, SocketType.Dgram, ProtocolType);
@@ -205,15 +218,25 @@ namespace NewLife.Net.Sockets
             _ProtocolType = socket.ProtocolType;
             _AddressFamily = socket.AddressFamily;
 
-            var ep = socket.LocalEndPoint as IPEndPoint;
-            if (ep != null)
+            if (_LocalEndPoint == null)
             {
-                _Address = ep.Address;
-                _Port = ep.Port;
+                try
+                {
+                    var ep = socket.LocalEndPoint as IPEndPoint;
+                    if (ep != null)
+                    {
+                        _Address = ep.Address;
+                        _Port = ep.Port;
+                    }
+                    _LocalEndPoint = ep;
+                }
+                catch (ObjectDisposedException) { }
             }
-            _LocalEndPoint = ep;
 
-            if (socket.Connected) _RemoteEndPoint = socket.RemoteEndPoint as IPEndPoint;
+            if (_RemoteEndPoint == null)
+            {
+                if (socket.Connected) _RemoteEndPoint = socket.RemoteEndPoint as IPEndPoint;
+            }
         }
 
         /// <summary>开始异步操作</summary>
@@ -237,6 +260,8 @@ namespace NewLife.Net.Sockets
             }
             catch
             {
+                // 如果callback或RaiseCompleteAsync成功，都将由里面的方法负责回收参数；
+                // 否则，这里需要自己回收参数。
                 Push(e);
                 throw;
             }
@@ -286,6 +311,9 @@ namespace NewLife.Net.Sockets
             e.Socket = null;
             e.AcceptSocket = null;
             e.Completed -= OnCompleted;
+
+            // 清空缓冲区，避免事件池里面的对象占用内存
+            e.SetBuffer(0);
 
             e.Used = false;
 
@@ -401,7 +429,7 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 异步结果处理
-        /// <summary>处理异步结果。重点涉及<see cref="NoDelay"/></summary>
+        /// <summary>处理异步结果。重点涉及<see cref="NoDelay"/>。除非指定<paramref name="nopush"/>，否则内部负责回收参数</summary>
         /// <param name="e">事件参数</param>
         /// <param name="start">开始新异步操作的委托</param>
         /// <param name="process">处理结果的委托</param>

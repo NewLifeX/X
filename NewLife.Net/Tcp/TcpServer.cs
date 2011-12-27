@@ -110,7 +110,7 @@ namespace NewLife.Net.Tcp
             }
 
             // 指定处理方法不要回收事件参数，这里要留着自己用（Session的Start）
-            Process(e, AcceptAsync, ProcessAccept, true);
+            Process(e, AcceptAsync, ProcessAccept);
         }
 
         void ProcessAccept(NetEventArgs e)
@@ -122,7 +122,17 @@ namespace NewLife.Net.Tcp
             var session = CreateSession(e);
             //session.NoDelay = this.NoDelay;
             e.Socket = session;
-            if (Accepted != null) Accepted(this, e);
+            if (Accepted != null)
+            {
+                e.Cancel = false;
+                Accepted(this, e);
+                if (e.Cancel) return;
+            }
+
+            Sessions.Add(session);
+
+            // 设置心跳时间
+            e.AcceptSocket.SetKeepAlive(true);
 
             // 来自这里的事件参数没有远程地址
             (session as TcpClientX).Start(e);
@@ -192,8 +202,6 @@ namespace NewLife.Net.Tcp
             session.SetRemote(e);
             // 对于服务器中的会话来说，收到空数据表示断开连接
             session.DisconnectWhenEmptyData = true;
-
-            Sessions.Add(session);
 
             return session;
         }

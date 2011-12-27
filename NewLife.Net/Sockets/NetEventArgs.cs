@@ -84,7 +84,9 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 缓冲区
-        private Byte[] _buffer;
+        /// <summary>采用弱引用，及时清理不再使用的内存，避免内存泄漏。</summary>
+        private WeakReference<Byte[]> _buffer;
+
         /// <summary>设置缓冲区。
         /// 为了避免频繁分配内存，可以为每一个事件参数固定挂载一个缓冲区，达到重用的效果。
         /// 但是对于TcpServer的Accept来说，不能设置缓冲区，否则客户端连接的时候不会触发Accept事件，
@@ -97,11 +99,15 @@ namespace NewLife.Net.Sockets
         {
             if (size > 0)
             {
-                // 没有缓冲区，或者大小不够时，重新分配
-                if (_buffer == null || _buffer.Length < size) _buffer = new Byte[size];
-
                 // 没有缓冲区，或者大小不相同时，重新设置
-                if (Buffer == null || Count != size) SetBuffer(_buffer, 0, size);
+                if (Buffer == null || Count != size)
+                {
+                    // 没有缓冲区，或者大小不够时，重新分配
+                    Byte[] _buf = _buffer == null ? null : _buffer.Target;
+                    if (_buf == null || _buf.Length < size) _buffer = _buf = new Byte[size];
+
+                    SetBuffer(_buf, 0, size);
+                }
             }
             else
             {

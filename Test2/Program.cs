@@ -8,6 +8,8 @@ using NewLife.Net.Application;
 using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
 using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
 
 namespace Test2
 {
@@ -52,15 +54,9 @@ namespace Test2
                 TestServer();
             else if (cmd == '2')
             {
-                //TestClient();
-                //for (int i = 0; i < 10000; i++)
-                {
-                    TestClient();
-                }
+                TestClient();
             }
         }
-
-        //static List<Int32> Ports = new List<int>();
 
         static void TestServer()
         {
@@ -76,15 +72,13 @@ namespace Test2
                 list.Add(server);
             }
 
+#if !DEBUG
             NetHelper.Debug = false;
+#endif
 
             while (true)
             {
                 Thread.Sleep(3000);
-
-                //String cmd = Console.ReadLine();
-                //if (String.IsNullOrEmpty(cmd)) continue;
-                //if (cmd.EqualIgnoreCase("exit")) break;
 
                 Console.WriteLine();
                 Console.WriteLine(DateTime.Now);
@@ -101,15 +95,24 @@ namespace Test2
 
         static void TestClient()
         {
+            Console.Write("目标地址（默认127.0.0.1，回车表示默认）：");
+            String cmd = Console.ReadLine();
+            String host = String.IsNullOrEmpty(cmd) ? "127.0.0.1" : cmd;
+
+            Console.Write("任务数（默认1000，回车表示默认）：");
+            cmd = Console.ReadLine();
+            if (String.IsNullOrEmpty(cmd) || !Int32.TryParse(cmd, out total)) total = 1000;
+
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
 
             Random rnd = new Random((Int32)DateTime.Now.Ticks);
 
-            String host = "127.0.0.1";
             //Int32[] ports = new Int32[] { 19, 13, 9, 7, 37 };
             Int32[] ports = new Int32[] { 7 };
 
-            Thread[] ths = new Thread[10];
+            Thread[] ths = new Thread[10 * Environment.ProcessorCount];
+            success = 0;
+            unsuccess = 0;
             for (int i = 0; i < ths.Length; i++)
             {
                 String name = String.Format("Test_{0}", (i + 1).ToString("00000"));
@@ -121,7 +124,25 @@ namespace Test2
                 ths[i].Start(new Object[] { i + 1, host, ports[rnd.Next(0, ports.Length)] });
                 Thread.Sleep(100);
             }
+
+            Int32 t = ths.Length * total;
+            while (true)
+            {
+                Thread.Sleep(3000);
+
+                var err = Error;
+                Error = null;
+                Console.WriteLine("成功：{0,5:n0} 失败：{1,5:n0} {2}", success, unsuccess, err != null ? err.Message : null);
+
+                if (success + unsuccess >= t) break;
+            }
+            Console.WriteLine("全部完成，成功率：{0:p}", (Double)success / t);
         }
+
+        static Int32 total;
+        static Int32 success;
+        static Int32 unsuccess;
+        static Exception Error;
 
         static void TestClient_One(Object state)
         {
@@ -129,52 +150,54 @@ namespace Test2
             Int32 id = (Int32)objs[0];
             String host = (String)objs[1];
             Int32 port = (Int32)objs[2];
+            IPEndPoint ep = new IPEndPoint(NetHelper.ParseAddress(host), port);
 
-            // 开10个Tcp连接
-            TcpClientX[] ts = new TcpClientX[1000];
-            try
+            for (int i = 0; i < total; i++)
             {
-                for (int i = 0; i < ts.Length; i++)
-                {
-                    ts[i] = new TcpClientX();
-                    //ts[i].rec
-                    //while (true)
-                    {
-                        //try
-                        {
-                            ts[i].Connect(host, port);
-                            //break;
-                        }
-                        //catch { continue; }
-                    }
-                    Thread.Sleep(100);
-                }
+                var client = new TcpClientX();
+                client.Completed += new EventHandler<NetEventArgs>(client_Completed);
+                //client.Connect(host, port);
+                var e = client.Pop();
+                e.RemoteEndPoint = ep;
 
-                Random rnd = new Random((Int32)DateTime.Now.Ticks);
+                e.UserToken = id * 1000000 + i + 1;
 
-                // 发送
-                Int32 count = rnd.Next(2, 10);
-                for (int i = 0; i < count; i++)
-                {
-                    if (i > 0) Thread.Sleep(500);
-
-                    String msg = String.Format("Test_{0}_{1}", id, i);
-                    foreach (var item in ts)
-                    {
-                        if (item != null) item.Send(msg);
-                    }
-                }
-
-                // 销毁
-                Thread.Sleep(5000);
+                client.Client.ConnectAsync(e);
+                Thread.Sleep(100);
             }
-            catch (Exception ex) { Console.WriteLine(ex.ToString()); }
-            //finally
-            //{
-            //    ts.ForEach(t => t.Dispose());
-            //}
+        }
 
-            Console.WriteLine("Test_{0} 完成！", id);
+        static void client_Completed(object sender, NetEventArgs e)
+        {
+            if (e.SocketError != SocketError.Success)
+            {
+                unsuccess++;
+                return;
+            }
+            if (e.LastOperation == SocketAsyncOperation.Connect)
+            {
+                var client = sender as TcpClientX;
+                Int32 num = (Int32)e.UserToken;
+                Int32 i = num % 1000000;
+                Int32 id = num / 1000000;
+                String msg = String.Format("Test_{0}_{1}", id, i);
+
+                try
+                {
+                    client.Send(msg);
+                    if (msg == client.ReceiveString())
+                        success++;
+                    else
+                        unsuccess++;
+                }
+                catch (Exception ex)
+                {
+                    Error = ex;
+                    unsuccess++;
+                }
+
+                e.Cancel = true;
+            }
         }
     }
 }

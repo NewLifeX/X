@@ -4,9 +4,7 @@ using NewLife.Reflection;
 
 namespace NewLife
 {
-    /// <summary>
-    /// 弱引用Action
-    /// </summary>
+    /// <summary>弱引用Action</summary>
     /// <remarks>
     /// 常见的事件和委托，都包括两部分：对象和方法，当然如果委托到静态方法上，对象是为空的。
     /// 如果把事件委托到某个对象的方法上，同时就间接的引用了这个对象，导致其一直无法被回收，从而造成内存泄漏。
@@ -50,9 +48,10 @@ namespace NewLife
         {
             get
             {
-                if (Target == null && Method.Method.IsStatic) return true;
+                var target = Target;
+                if (target == null && Method.Method.IsStatic) return true;
 
-                return Target != null && Target.IsAlive;
+                return target != null && target.IsAlive;
             }
         }
         #endregion
