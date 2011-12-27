@@ -128,8 +128,8 @@ namespace NewLife.Net.Sockets
             return encoding.GetString(Buffer, Offset, BytesTransferred);
         }
 
-        /// <summary>Socket数据流。每个网络事件参数带有一个，防止多次声明流对象</summary>
-        private SocketStream socketStream;
+        ///// <summary>Socket数据流。每个网络事件参数带有一个，防止多次声明流对象</summary>
+        //private SocketStream socketStream;
 
         /// <summary>从接收缓冲区获取一个流，该流可用于读取已接收数据，写入数据时向远端发送数据</summary>
         /// <returns></returns>
@@ -138,16 +138,18 @@ namespace NewLife.Net.Sockets
             if (Buffer == null || Buffer.Length < 1 || BytesTransferred < 1) return null;
 
             Stream ms = new MemoryStream(Buffer, Offset, BytesTransferred);
-            if (socketStream == null)
-            {
-                socketStream = new SocketStream(AcceptSocket, ms, RemoteEndPoint);
-            }
-            else
-            {
-                socketStream.Reset(AcceptSocket, ms, RemoteEndPoint);
-            }
+            return new SocketStream(AcceptSocket, ms, RemoteEndPoint);
 
-            return socketStream;
+            //if (socketStream == null)
+            //{
+            //    socketStream = new SocketStream(AcceptSocket, ms, RemoteEndPoint);
+            //}
+            //else
+            //{
+            //    socketStream.Reset(AcceptSocket, ms, RemoteEndPoint);
+            //}
+
+            //return socketStream;
         }
 
         /// <summary>将接收缓冲区中的数据写入流</summary>
