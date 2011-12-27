@@ -231,15 +231,14 @@ namespace NewLife.Log
             }
         }
 
-        /// <summary>
-        /// 真正的计时
-        /// </summary>
+        /// <summary>真正的计时</summary>
         protected virtual void TimeTrue()
         {
             if (Times <= 0) throw new XException("非法迭代次数！");
 
             // 统计GC代数
-            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
+            GC.Collect(GC.MaxGeneration);
+
             gen = new Int32[GC.MaxGeneration + 1];
             for (Int32 i = 0; i <= GC.MaxGeneration; i++)
             {
