@@ -171,7 +171,15 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 构造
-        static SocketBase() { NetService.Install(); }
+        static SocketBase()
+        {
+            // 注册接口实现
+            NetService.Install();
+
+            // 自动收缩内存，调试状态1分钟一次，非调试状态10分钟一次
+            Int32 time = NetHelper.Debug ? 60000 : 600000;
+            new TimerX(s => Runtime.ReleaseMemory(), null, time, time, false);
+        }
 
         /// <summary>确保创建基础Socket对象</summary>
         protected virtual void EnsureCreate()
@@ -429,7 +437,7 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 异步结果处理
-        /// <summary>处理异步结果。重点涉及<see cref="NoDelay"/>。除非指定<paramref name="nopush"/>，否则内部负责回收参数</summary>
+        /// <summary>处理异步结果。重点涉及<see cref="NoDelay"/>。内部负责回收参数</summary>
         /// <param name="e">事件参数</param>
         /// <param name="start">开始新异步操作的委托</param>
         /// <param name="process">处理结果的委托</param>
@@ -552,6 +560,22 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 统计
+        private Boolean _EnableCounter;
+        /// <summary>是否启用计数器</summary>
+        public Boolean EnableCounter
+        {
+            get { return _EnableCounter; }
+            set
+            {
+                _EnableCounter = value;
+                if (value && computeTimer != null)
+                {
+                    computeTimer.Dispose();
+                    computeTimer = null;
+                }
+            }
+        }
+
         private Int32 _TotalPerMinute;
         /// <summary>每分钟总操作</summary>
         public Int32 TotalPerMinute { get { return _TotalPerMinute; } }
@@ -567,10 +591,16 @@ namespace NewLife.Net.Sockets
         private DateTime _NextPerMinute;
         private DateTime _NextPerHour;
 
-        /// <summary>增加操作</summary>
-        protected void IncAction()
+        /// <summary>增加计数</summary>
+        protected void IncCounter()
         {
-            if (computeTimer == null) computeTimer = new TimerX(Compute, null, 0, 3000, false);
+            if (!EnableCounter) return;
+
+            if (computeTimer == null)
+            {
+                Int32 time = NetHelper.Debug ? 10000 : 20000;
+                computeTimer = new TimerX(Compute, null, 0, time, false);
+            }
 
             _TotalPerMinute++;
             _TotalPerHour++;

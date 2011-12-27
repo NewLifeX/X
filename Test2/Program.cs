@@ -68,6 +68,7 @@ namespace Test2
                 NetServer server = Activator.CreateInstance(item) as NetServer;
                 server.Start();
                 server.Servers.ForEach(s => s.UseThreadPool = false);
+                server.Servers.ForEach(s => (s as SocketBase).EnableCounter = true);
                 //Ports.Add(server.Port);
                 list.Add(server);
             }
@@ -132,9 +133,9 @@ namespace Test2
 
                 var err = Error;
                 Error = null;
-                Console.WriteLine("成功：{0,5:n0} 失败：{1,5:n0} {2}", success, unsuccess, err != null ? err.Message : null);
+                Console.WriteLine("成功：{0,5:n0} 失败：{1:n0} 发送失败：{2:n0} {3}", success, unsuccess, unsuccess2, err != null ? err.Message : null);
 
-                if (success + unsuccess >= t) break;
+                if (success + unsuccess + unsuccess2 >= t - 5) break;
             }
             Console.WriteLine("全部完成，成功率：{0:p}", (Double)success / t);
         }
@@ -142,6 +143,7 @@ namespace Test2
         static Int32 total;
         static Int32 success;
         static Int32 unsuccess;
+        static Int32 unsuccess2;
         static Exception Error;
 
         static void TestClient_One(Object state)
@@ -182,18 +184,24 @@ namespace Test2
                 Int32 id = num / 1000000;
                 String msg = String.Format("Test_{0}_{1}", id, i);
 
+                // 输出一号线程的端口
+                if (id == 1 && i % 10 == 0)
+                {
+                    Console.WriteLine("{0}_{1} 端口：{2}", id, i, client.Port);
+                }
+
                 try
                 {
                     client.Send(msg);
                     if (msg == client.ReceiveString())
                         success++;
                     else
-                        unsuccess++;
+                        unsuccess2++;
                 }
                 catch (Exception ex)
                 {
                     Error = ex;
-                    unsuccess++;
+                    unsuccess2++;
                 }
 
                 e.Cancel = true;

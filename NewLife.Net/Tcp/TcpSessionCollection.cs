@@ -9,17 +9,20 @@ namespace NewLife.Net.Tcp
     /// <summary>会话集合。带有自动清理不活动会话的功能</summary>
     class TcpSessionCollection : DisposeBase, ICollection<ISocketSession>
     {
-        List<ISocketSession> _list = new List<ISocketSession>();
+        //List<ISocketSession> _list = new List<ISocketSession>();
+        Dictionary<Int32, ISocketSession> _list = new Dictionary<Int32, ISocketSession>();
 
-        //private Int32 sessionID = 0;
+        private Int32 sessionID = 0;
+
         /// <summary>添加新会话，并设置会话编号</summary>
         /// <param name="client"></param>
         public void Add(ISocketSession client)
         {
             lock (_list)
             {
-                client.OnDisposed += (s, e) => Remove(client);
-                _list.Add(client);
+                Int32 id = ++sessionID;
+                client.OnDisposed += (s, e) => _list.Remove(id);
+                _list.Add(id, client);
 
                 if (clearTimer == null) clearTimer = new TimerX(e => RemoveNotAlive(), null, ClearPeriod, ClearPeriod);
             }
@@ -39,7 +42,7 @@ namespace NewLife.Net.Tcp
             {
                 if (_list.Count < 1) return;
 
-                foreach (var item in _list)
+                foreach (var item in _list.Values)
                 {
                     if (item == null || item.Disposed || item.Socket == null) continue;
 
@@ -62,10 +65,21 @@ namespace NewLife.Net.Tcp
             {
                 if (_list.Count < 1) return;
 
-                for (int i = _list.Count - 1; i >= 0; i--)
+                //for (int i = _list.Count - 1; i >= 0; i--)
+                //{
+                //    var item = _list[i];
+                //    if (item == null || item.Disposed || item.Socket == null) _list.RemoveAt(i);
+                //}
+                var list = new List<Int32>();
+                // 这里可能有问题，曾经见到，_list有元素，但是value为null，这里居然没有进行遍历而直接跳过
+                foreach (var elm in _list)
                 {
-                    var item = _list[i];
-                    if (item == null || item.Disposed || item.Socket == null) _list.RemoveAt(i);
+                    var item = elm.Value;
+                    if (item == null || item.Disposed || item.Socket == null) list.Add(elm.Key);
+                }
+                foreach (var item in list)
+                {
+                    _list.Remove(item);
                 }
             }
         }
@@ -81,19 +95,19 @@ namespace NewLife.Net.Tcp
         /// <summary>从集合中移除项</summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public Boolean Remove(ISocketSession item) { lock (_list) { return _list.Remove(item); } }
+        public Boolean Remove(ISocketSession item) { throw new NetException("不支持！请直接销毁会话对象！"); }
 
         public void Clear() { _list.Clear(); }
 
-        public bool Contains(ISocketSession item) { return _list.Contains(item); }
+        public bool Contains(ISocketSession item) { return _list.ContainsValue(item); }
 
-        public void CopyTo(ISocketSession[] array, int arrayIndex) { _list.CopyTo(array, arrayIndex); }
+        public void CopyTo(ISocketSession[] array, int arrayIndex) { _list.Values.CopyTo(array, arrayIndex); }
 
         public int Count { get { return _list.Count; } }
 
         public bool IsReadOnly { get { return (_list as ICollection<ISocketSession>).IsReadOnly; } }
 
-        public IEnumerator<ISocketSession> GetEnumerator() { return _list.GetEnumerator(); }
+        public IEnumerator<ISocketSession> GetEnumerator() { return _list.Values.GetEnumerator() as IEnumerator<ISocketSession>; }
 
         IEnumerator IEnumerable.GetEnumerator() { return _list.GetEnumerator(); }
         #endregion

@@ -14,7 +14,7 @@ namespace NewLife.Net.Tcp
     /// 
     /// 服务器完全处于异步工作状态，任何操作都不可能被阻塞。
     /// 
-    /// 注意：服务器接受连接请求后，不会开始处理数据，而是由<see cref="Accepted"/>事件订阅者决定何时开始处理数据<see cref="ISocketSession.Start"/>。
+    /// 注意：服务器接受连接请求后，不会开始处理数据，而是由<see cref="Accepted"/>事件订阅者决定何时开始处理数据<see cref="TcpClientX.Start"/>。
     /// 
     /// <see cref="ISocket.NoDelay"/>的设置会影响异步操作数，不启用时，只有一个异步操作。
     /// </remarks>
@@ -116,7 +116,7 @@ namespace NewLife.Net.Tcp
         void ProcessAccept(NetEventArgs e)
         {
             // 统计连接数
-            IncAction();
+            IncCounter();
 
             // 建立会话
             var session = CreateSession(e);

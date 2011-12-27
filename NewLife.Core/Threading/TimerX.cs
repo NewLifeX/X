@@ -7,6 +7,10 @@ namespace NewLife.Threading
     /// <summary>不可重入的定时器。</summary>
     /// <remarks>
     /// 为了避免系统的Timer可重入的问题，差别在于本地调用完成后才开始计算时间间隔。这实际上也是经常用到的。
+    /// 
+    /// 因为挂载在静态列表上，必须从外部主动调用<see cref="IDisposable.Dispose"/>才能销毁定时器。
+    /// 
+    /// 该定时器不能放入太多任务，否则适得其反！
     /// </remarks>
     public class TimerX : DisposeBase
     {

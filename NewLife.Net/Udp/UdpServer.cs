@@ -123,7 +123,7 @@ namespace NewLife.Net.Udp
         void ProcessReceive(NetEventArgs e)
         {
             // 统计接收数
-            IncAction();
+            IncCounter();
 
             CheckBufferSize(e);
             if (Received != null) Received(this, e);
