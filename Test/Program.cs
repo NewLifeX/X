@@ -16,6 +16,7 @@ using XCode.Code;
 using XCode.DataAccessLayer;
 using NewLife.Net.Proxy;
 using System.Net.Sockets;
+using NewLife.Net;
 
 namespace Test
 {
@@ -143,6 +144,15 @@ namespace Test
 
         static void Test4()
         {
+            //var entity = DNSEntity.Read(File.OpenRead("v6.bin"));
+            //Console.WriteLine(entity);
+
+            var server = new DNSServer();
+            server.Port = 53;
+            server.Parents.Add(new IPEndPoint(NetHelper.ParseAddress("8.8.8.8"), 53));
+            server.Parents.Add(new IPEndPoint(NetHelper.ParseAddress("192.168.1.1"), 53));
+            server.Start();
+
             //AppTest.Start();
             //NetHelper.Wake("00-24-8C-04-C0-9B", "00-24-8C-04-C0-91");
 
@@ -156,12 +166,12 @@ namespace Test
             ////proxy.Filters.Add(filter);
             //proxy.Start();
 
-            var proxy = new XProxy();
-            proxy.Port = 53;
-            proxy.ProtocolType = ProtocolType.Udp;
-            proxy.ServerAddress = "192.168.0.1";
-            proxy.ServerPort = 53;
-            proxy.Start();
+            //var proxy = new XProxy();
+            //proxy.Port = 53;
+            //proxy.ProtocolType = ProtocolType.Udp;
+            //proxy.ServerAddress = "192.168.0.1";
+            //proxy.ServerPort = 53;
+            //proxy.Start();
 
             //var client = new UdpClientX();
             //client.Connect("127.0.0.1", 53);

@@ -34,8 +34,13 @@ namespace NewLife.Net.Protocols.DNS
             Int64 p = start;
             Int32 n = 0;
             StringBuilder sb = new StringBuilder();
-            while ((n = stream.ReadByte()) != 0)
+            while (true)
             {
+                n = stream.ReadByte();
+                if (n == 0) break;
+                //if (n == -1) n = (Int32)(Byte)n;
+                if (n == -1) break;
+
                 if (sb.Length > 0) sb.Append(".");
 
                 String str = null;

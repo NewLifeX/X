@@ -56,7 +56,7 @@ namespace NewLife.Net.Protocols.DNS
         TXT = 0x10,
 
         /// <summary>IPv6地址</summary>
-        IPv6 = 0x1C,
+        AAAA = 0x1C,
 
         /// <summary>根</summary>
         Root = 0x1D,

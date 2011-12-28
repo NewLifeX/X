@@ -137,7 +137,7 @@ namespace NewLife.Net.Protocols.DNS
         /// <param name="reader"></param>
         protected virtual void ReadAdditionalData(IReader reader)
         {
-            if (Type == DNSQueryType.A)
+            if (Type == DNSQueryType.A || Type == DNSQueryType.AAAA)
             {
                 DataString = new IPAddress(Data).ToString();
             }
@@ -156,7 +156,7 @@ namespace NewLife.Net.Protocols.DNS
         {
             writer.WriteLog("WriteMember", "_Data", "String", DataString);
 
-            if (Type == DNSQueryType.A)
+            if (Type == DNSQueryType.A || Type == DNSQueryType.AAAA)
             {
                 Data = IPAddress.Parse(DataString).GetAddressBytes();
             }
