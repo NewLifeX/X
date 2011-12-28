@@ -174,9 +174,9 @@ namespace NewLife.Net.Tcp
 
         #region 会话
         private Object _Sessions_lock = new object();
-        private ICollection<ISocketSession> _Sessions;
-        /// <summary>会话集合</summary>
-        public ICollection<ISocketSession> Sessions
+        private IDictionary<Int32, ISocketSession> _Sessions;
+        /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
+        public IDictionary<Int32, ISocketSession> Sessions
         {
             get
             {
