@@ -6,10 +6,10 @@ using System.Threading;
 
 namespace NewLife.Collections
 {
-    /// <summary>
-    /// 先进先出LIFO的原子栈结构，采用CAS保证线程安全。利用单链表实现。
-    /// </summary>
+    /// <summary>先进先出LIFO的原子栈结构，采用CAS保证线程安全。利用单链表实现。</summary>
     /// <remarks>
+    /// 注意：<see cref="Push"/>、<see cref="TryPop"/>、<see cref="Pop"/>、<see cref="TryPeek"/>、<see cref="Peek"/>是重量级线程安全代码，不要随意更改。
+    /// 
     /// 经过测试，对象数量在万级以上时，性能急剧下降！
     /// </remarks>
     /// <typeparam name="T"></typeparam>
@@ -18,32 +18,22 @@ namespace NewLife.Collections
     public class InterlockedStack<T> : IEnumerable<T>, ICollection, IEnumerable
     {
         #region 字段
-        /// <summary>
-        /// 栈顶
-        /// </summary>
+        /// <summary>栈顶</summary>
         private SingleListNode<T> Top;
 
-        /// <summary>
-        /// 版本
-        /// </summary>
-        private Int32 _version;
+        ///// <summary>版本</summary>
+        //private Int32 _version;
         #endregion
 
         #region 属性
         private Int32 _Count;
         /// <summary>元素个数</summary>
-        public Int32 Count
-        {
-            get { return _Count; }
-            //set { _Count = value; }
-        }
+        public Int32 Count { get { return _Count; } }
         #endregion
 
         #region 核心方法
         //private Int32 maxTimes = 0;
-        /// <summary>
-        /// 向栈压入一个对象
-        /// </summary>
+        /// <summary>向栈压入一个对象</summary>
         /// <remarks>重点解决多线程环境下资源争夺以及使用lock造成性能损失的问题</remarks>
         /// <param name="item"></param>
         public void Push(T item)
@@ -72,12 +62,10 @@ namespace NewLife.Collections
             //    XTrace.WriteLine("新命中次数：{0}", times);
             //}
             Interlocked.Increment(ref _Count);
-            Interlocked.Increment(ref _version);
+            //Interlocked.Increment(ref _version);
         }
 
-        /// <summary>
-        /// 从栈中弹出一个对象
-        /// </summary>
+        /// <summary>从栈中弹出一个对象</summary>
         /// <returns></returns>
         public T Pop()
         {
@@ -87,9 +75,7 @@ namespace NewLife.Collections
             return item;
         }
 
-        /// <summary>
-        /// 尝试从栈中弹出一个对象
-        /// </summary>
+        /// <summary>尝试从栈中弹出一个对象</summary>
         /// <param name="item"></param>
         /// <returns></returns>
         public Boolean TryPop(out T item)
@@ -123,15 +109,17 @@ namespace NewLife.Collections
             //    XTrace.WriteLine("新命中次数：{0}", times);
             //}
             Interlocked.Decrement(ref _Count);
-            Interlocked.Increment(ref _version);
+            //Interlocked.Increment(ref _version);
 
             item = oldTop.Item;
+            // 断开关系链，避免内存泄漏
+            oldTop.Next = null;
+            oldTop.Item = default(T);
+
             return true;
         }
 
-        /// <summary>
-        /// 获取栈顶对象，不弹栈
-        /// </summary>
+        /// <summary>获取栈顶对象，不弹栈</summary>
         /// <returns></returns>
         public T Peek()
         {
@@ -141,14 +129,12 @@ namespace NewLife.Collections
             return item;
         }
 
-        /// <summary>
-        /// 尝试获取栈顶对象，不弹栈
-        /// </summary>
+        /// <summary>尝试获取栈顶对象，不弹栈</summary>
         /// <param name="item"></param>
         /// <returns></returns>
         public Boolean TryPeek(out T item)
         {
-            SingleListNode<T> top = Top;
+            var top = Top;
             if (top == null)
             {
                 item = default(T);
@@ -160,19 +146,27 @@ namespace NewLife.Collections
         #endregion
 
         #region 集合方法
-        /// <summary>
-        /// 清空
-        /// </summary>
+        /// <summary>清空</summary>
         public void Clear()
         {
+            var top = Top;
             _Count = 0;
             Top = null;
-            Interlocked.Increment(ref _version);
+
+            for (var node = top; node != null; )
+            {
+                top = node;
+                node = node.Next;
+
+                // 断开关系链，避免内存泄漏
+                top.Next = null;
+                top.Item = default(T);
+            }
+
+            //Interlocked.Increment(ref _version);
         }
 
-        /// <summary>
-        /// 转为数组
-        /// </summary>
+        /// <summary>转为数组</summary>
         /// <returns></returns>
         public T[] ToArray()
         {
@@ -189,135 +183,34 @@ namespace NewLife.Collections
         {
             if (Top == null || array == null || index >= array.Length) return;
 
-            SingleListNode<T> node = Top;
-            while (Top != null && index < array.Length)
-            {
-                array.SetValue(node.Item, index++);
-                node = node.Next;
-            }
+            for (var node = Top; node != null && index < array.Length; node = node.Next) array.SetValue(node.Item, index++);
         }
 
-        bool ICollection.IsSynchronized
-        {
-            get { return true; }
-        }
+        bool ICollection.IsSynchronized { get { return true; } }
 
         private Object _syncRoot;
         object ICollection.SyncRoot
         {
             get
             {
-                if (this._syncRoot == null)
+                if (_syncRoot == null)
                 {
                     Interlocked.CompareExchange(ref this._syncRoot, new object(), null);
                 }
-                return this._syncRoot;
+                return _syncRoot;
             }
         }
         #endregion
 
         #region IEnumerable 成员
-        /// <summary>
-        /// 获取枚举器
-        /// </summary>
+        /// <summary>获取枚举器</summary>
         /// <returns></returns>
         public IEnumerator<T> GetEnumerator()
         {
-            //return new Enumerator((InterlockedStack<T>)this);
-
-            for (SingleListNode<T> node = Top; node != null; node = node.Next)
-            {
-                yield return node.Item;
-            }
+            for (var node = Top; node != null; node = node.Next) yield return node.Item;
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            //return new Enumerator((InterlockedStack<T>)this);
-
-            return GetEnumerator();
-        }
-
-        ///// <summary>
-        ///// 原子栈枚举器
-        ///// </summary>
-        //[Serializable, StructLayout(LayoutKind.Sequential)]
-        //public struct Enumerator : IEnumerator<T>, IDisposable, IEnumerator
-        //{
-        //    private InterlockedStack<T> _stack;
-        //    private int _version;
-        //    private Int32 _index;
-        //    private SingleListNode<T> current;
-
-        //    internal Enumerator(InterlockedStack<T> stack)
-        //    {
-        //        _stack = stack;
-        //        _version = _stack._version;
-        //        _index = -1;
-        //        current = null;
-        //    }
-
-        //    /// <summary>
-        //    /// 释放
-        //    /// </summary>
-        //    public void Dispose()
-        //    {
-        //        current = null;
-        //    }
-
-        //    /// <summary>
-        //    /// 移到下一个
-        //    /// </summary>
-        //    /// <returns></returns>
-        //    public bool MoveNext()
-        //    {
-        //        if (_version != _stack._version) throw new InvalidOperationException("集合已经被修改！");
-
-        //        if (_index == -1)
-        //        {
-        //            current = _stack.Top;
-        //            _index++;
-        //            return true;
-        //        }
-
-        //        if (current == null) return false;
-
-        //        current = current.Next;
-        //        _index++;
-        //        return true;
-        //    }
-
-        //    /// <summary>
-        //    /// 当前对象
-        //    /// </summary>
-        //    public T Current
-        //    {
-        //        get
-        //        {
-        //            if (current == null) throw new InvalidOperationException("没有开始遍历或遍历已结束！");
-
-        //            return current.Item;
-        //        }
-        //    }
-
-        //    object IEnumerator.Current
-        //    {
-        //        get
-        //        {
-        //            if (current == null) throw new InvalidOperationException("没有开始遍历或遍历已结束！");
-
-        //            return current.Item;
-        //        }
-        //    }
-
-        //    void IEnumerator.Reset()
-        //    {
-        //        if (_version != _stack._version) throw new InvalidOperationException("集合已经被修改！");
-
-        //        current = null;
-        //        _index = -1;
-        //    }
-        //}
+        IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
         #endregion
     }
 }

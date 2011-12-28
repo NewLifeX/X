@@ -234,9 +234,7 @@ namespace NewLife
         #endregion
 
         #region 内存设置
-        /// <summary>
-        /// 设置进程的程序集大小，将部分物理内存占用转移到虚拟内存
-        /// </summary>
+        /// <summary>设置进程的程序集大小，将部分物理内存占用转移到虚拟内存</summary>
         /// <param name="pid">要设置的进程ID</param>
         /// <param name="min">最小值</param>
         /// <param name="max">最大值</param>
@@ -247,12 +245,12 @@ namespace NewLife
             return Win32Native.SetProcessWorkingSetSize(p.Handle, min, max);
         }
 
-        /// <summary>
-        /// 释放当前进程所占用的内存
-        /// </summary>
+        /// <summary>释放当前进程所占用的内存</summary>
         /// <returns></returns>
         public static Boolean ReleaseMemory()
         {
+            GC.Collect();
+
             return SetProcessWorkingSetSize(0, -1, -1);
         }
         #endregion

@@ -7,7 +7,7 @@ using System.Text;
 namespace NewLife.Net.Sockets
 {
     /// <summary>网络事件参数</summary>
-    public class NetEventArgs : SocketAsyncEventArgs
+    public class NetEventArgs : SocketAsyncEventArgs, IDisposable
     {
         #region 属性
 #if DEBUG
@@ -111,9 +111,16 @@ namespace NewLife.Net.Sockets
             }
             else
             {
-                // 事件内有缓冲区时才清空，不过它多长，必须清空
+                // 事件内有缓冲区时才清空，不管它多长，必须清空
                 if (Buffer != null) SetBuffer(null, 0, 0);
             }
+        }
+
+        void IDisposable.Dispose()
+        {
+            _buffer = null;
+
+            base.Dispose();
         }
         #endregion
 

@@ -21,7 +21,7 @@ namespace NewLife.Net.Tcp
             lock (_list)
             {
                 Int32 id = ++sessionID;
-                client.OnDisposed += (s, e) => _list.Remove(id);
+                client.OnDisposed += (s, e) => { lock (_list) { _list.Remove(id); } };
                 _list.Add(id, client);
 
                 if (clearTimer == null) clearTimer = new TimerX(e => RemoveNotAlive(), null, ClearPeriod, ClearPeriod);
@@ -72,10 +72,10 @@ namespace NewLife.Net.Tcp
                 //}
                 var list = new List<Int32>();
                 // 这里可能有问题，曾经见到，_list有元素，但是value为null，这里居然没有进行遍历而直接跳过
-                foreach (var elm in _list)
+                foreach (var elm in _list.Keys)
                 {
-                    var item = elm.Value;
-                    if (item == null || item.Disposed || item.Socket == null) list.Add(elm.Key);
+                    var item = _list[elm];
+                    if (item == null || item.Disposed || item.Socket == null) list.Add(elm);
                 }
                 foreach (var item in list)
                 {

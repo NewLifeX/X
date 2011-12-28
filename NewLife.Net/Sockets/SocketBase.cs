@@ -279,7 +279,7 @@ namespace NewLife.Net.Sockets
         #region 套接字事件参数池
         private static ObjectPool<NetEventArgs> _Pool;
         /// <summary>套接字事件参数池。静态，所有实例共享使用</summary>
-        static ObjectPool<NetEventArgs> Pool { get { return _Pool ?? (_Pool = new ObjectPool<NetEventArgs>()); } }
+        static ObjectPool<NetEventArgs> Pool { get { return _Pool ?? (_Pool = new ObjectPool<NetEventArgs>() { Max = 100 }); } }
 
         /// <summary>从池里拿一个对象。回收原则参考<see cref="Push"/></summary>
         /// <returns></returns>
@@ -318,6 +318,7 @@ namespace NewLife.Net.Sockets
             e.UserToken = null;
             e.Socket = null;
             e.AcceptSocket = null;
+            e.RemoteEndPoint = null;
             e.Completed -= OnCompleted;
 
             // 清空缓冲区，避免事件池里面的对象占用内存
