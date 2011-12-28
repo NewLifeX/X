@@ -28,8 +28,8 @@ namespace NewLife.Net.Tcp
             }
         }
 
-        private Int32 _ClearPeriod = 5000;
-        /// <summary>清理周期。单位毫秒，默认5000毫秒。</summary>
+        private Int32 _ClearPeriod = 15000;
+        /// <summary>清理周期。单位毫秒，默认15000毫秒。</summary>
         public Int32 ClearPeriod { get { return _ClearPeriod; } set { _ClearPeriod = value; } }
 
         /// <summary>关闭所有</summary>
