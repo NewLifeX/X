@@ -91,7 +91,7 @@
 
             opts.UrlProcessed = randomUrl(opts.UrlProcessed);
 
-            var result = showModalDialog(opts.UrlProcessed, null, showModalDialogParams(opts.ModalDialogOptions));
+            var result = showModalDialog(opts.UrlProcessed, {opener:window}, showModalDialogParams(opts.ModalDialogOptions));
 
             var resultArray;
             if (result != undefined) {
