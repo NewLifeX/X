@@ -160,9 +160,9 @@ namespace Test
             proxy.ProtocolType = ProtocolType.Tcp;
             proxy.ServerAddress = "www.baidu.com";
             proxy.ServerPort = 80;
-            //var filter = new HttpFilter();
-            //filter.Proxy = proxy;
-            //proxy.Filters.Add(filter);
+            var filter = new HttpFilter();
+            filter.Proxy = proxy;
+            proxy.Filters.Add(filter);
             proxy.Start();
 
             //var proxy = new XProxy();

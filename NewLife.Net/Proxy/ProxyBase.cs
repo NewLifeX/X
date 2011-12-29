@@ -17,16 +17,21 @@ namespace NewLife.Net.Proxy
         public ICollection<IProxySession> Sessions { get { return _Sessions ?? (_Sessions = new List<IProxySession>()); } }
 
         private ProxyFilterCollection _Filters;
-        private ProxyFilterCollection filters { get { return _Filters ?? (_Filters = new ProxyFilterCollection(this)); } }
 
         /// <summary>过滤器集合。</summary>
-        public ICollection<IProxyFilter> Filters { get { return filters; } }
+        public ICollection<IProxyFilter> Filters { get { return _Filters; } }
 
         /// <summary>主过滤器，同时也是集合，会话主要针对这个操作</summary>
-        public IProxyFilter MainFilter { get { return filters; } }
+        public IProxyFilter MainFilter { get { return _Filters; } }
         #endregion
 
         #region 构造
+        /// <summary>实例化</summary>
+        public ProxyBase()
+        {
+            _Filters = new ProxyFilterCollection(this);
+        }
+
         /// <summary>子类重载实现资源释放逻辑</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
         protected override void OnDispose(bool disposing)
@@ -46,34 +51,18 @@ namespace NewLife.Net.Proxy
         #endregion
 
         #region 创建
-        /// <summary>添加Socket服务器</summary>
-        /// <param name="server"></param>
-        /// <returns>添加是否成功</returns>
-        public override Boolean AttachServer(ISocketServer server)
-        {
-            if (!base.AttachServer(server)) return false;
+        ///// <summary>添加Socket服务器</summary>
+        ///// <param name="server"></param>
+        ///// <returns>添加是否成功</returns>
+        //public override Boolean AttachServer(ISocketServer server)
+        //{
+        //    if (!base.AttachServer(server)) return false;
 
-            if (server.ProtocolType == ProtocolType.Tcp)
-            {
-                var svr = server as TcpServer;
-                svr.Accepted += new EventHandler<NetEventArgs>(OnAccepted);
-            }
-            else if (server.ProtocolType == ProtocolType.Udp)
-            {
-                var svr = server as UdpServer;
-                svr.Received += new EventHandler<NetEventArgs>(OnAccepted);
-            }
-            else
-            {
-                throw new Exception("不支持的协议类型" + server.ProtocolType + "！");
-            }
+        //    // 使用线程池处理事件，因为代理会话可能直接在事件中进行数据转发
+        //    server.UseThreadPool = true;
 
-            // 使用线程池处理事件，因为代理会话可能直接在事件中进行数据转发
-            server.UseThreadPool = true;
-            server.Error += new EventHandler<NetEventArgs>(OnError);
-
-            return true;
-        }
+        //    return true;
+        //}
         #endregion
 
         #region 业务

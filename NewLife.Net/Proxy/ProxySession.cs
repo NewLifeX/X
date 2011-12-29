@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Net.Sockets;
+using System.Threading;
 
 namespace NewLife.Net.Proxy
 {
@@ -35,6 +36,8 @@ namespace NewLife.Net.Proxy
         private EndPoint _RemoteEndPoint;
         /// <summary>客户端远程IP终结点</summary>
         public EndPoint RemoteEndPoint { get { return _RemoteEndPoint; } set { _RemoteEndPoint = value; } }
+
+        IProxyFilter Filter { get { return Proxy.MainFilter; } }
         #endregion
 
         #region 构造
@@ -53,7 +56,10 @@ namespace NewLife.Net.Proxy
         {
             // Tcp挂接事件，Udp直接处理数据
             if (Session.ProtocolType == ProtocolType.Tcp)
+            {
                 Session.Received += new EventHandler<NetEventArgs>(Session_Received);
+                Session.OnDisposed += (s, e2) => this.Dispose();
+            }
             else
                 OnReceive(e);
         }
@@ -87,14 +93,14 @@ namespace NewLife.Net.Proxy
         {
             if (Remote == null)
             {
-                Remote = Proxy.MainFilter.CreateRemote(this, e);
+                Remote = Filter.CreateRemote(this, e);
                 Remote.Received += new EventHandler<NetEventArgs>(Remote_Received);
                 Remote.ReceiveAsync();
             }
 
             var stream = e.GetStream();
             Console.WriteLine("{0} => {1} {2}字节", ClientEndPoint, Session.LocalEndPoint, stream.Length);
-            stream = Proxy.MainFilter.OnClientToServer(this, stream, e);
+            stream = Filter.OnClientToServer(this, stream, e);
             if (stream != null) Remote.Send(stream, RemoteEndPoint);
         }
 
@@ -102,8 +108,16 @@ namespace NewLife.Net.Proxy
         {
             var stream = e.GetStream();
             Console.WriteLine("{0} {1}字节", Remote, stream.Length);
-            stream = Proxy.MainFilter.OnServerToClient(this, stream, e);
+            stream = Filter.OnServerToClient(this, stream, e);
             if (stream != null) Session.Send(stream, ClientEndPoint);
+
+            // UDP准备关闭
+            if (Session.ProtocolType == ProtocolType.Udp)
+            {
+                // 等待未发送完成的数据
+                Thread.Sleep(1000);
+                Dispose();
+            }
         }
         #endregion
 

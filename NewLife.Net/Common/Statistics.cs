@@ -68,7 +68,7 @@ namespace NewLife.Net.Common
 
             DateTime now = DateTime.Now;
             _Last = now;
-            if (_Total <= 1 && _First <= DateTime.MinValue) _First = now;
+            if (_Total <= 100 && _First <= DateTime.MinValue) _First = now;
 
             if (!Enable) return;
 

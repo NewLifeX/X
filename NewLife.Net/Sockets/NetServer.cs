@@ -116,7 +116,7 @@ namespace NewLife.Net.Sockets
             else if (server.ProtocolType == ProtocolType.Udp)
             {
                 var svr = server as UdpServer;
-                //svr.Received += new EventHandler<NetEventArgs>(OnAccepted);
+                svr.Received += new EventHandler<NetEventArgs>(OnAccepted);
                 svr.Received += new EventHandler<NetEventArgs>(OnReceived);
             }
             else
