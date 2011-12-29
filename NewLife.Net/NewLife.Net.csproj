@@ -56,6 +56,8 @@
     <Compile Include="Protocols\DNS\DNSRecord.cs" />
     <Compile Include="Protocols\DNS\DNSServer.cs" />
     <Compile Include="Protocols\DNS\DNS_PTR.cs" />
+    <Compile Include="Protocols\Http\HttpHeader.cs" />
+    <Compile Include="Protocols\LineParser.cs" />
     <Compile Include="Protocols\NTP\NTPClient.cs" />
     <Compile Include="Application\StreamServer.cs" />
     <Compile Include="Application\TimeServer.cs" />
