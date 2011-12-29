@@ -81,7 +81,6 @@
     <Compile Include="Sockets\ISocketClient.cs" />
     <Compile Include="Sockets\ISocketServer.cs" />
     <Compile Include="Sockets\ISocketSession.cs" />
-    <Compile Include="Sockets\NetAppServer.cs" />
     <Compile Include="Sockets\Netbase.cs" />
     <Compile Include="Sockets\NetServer.cs" />
     <Compile Include="Sockets\SocketBase.cs" />

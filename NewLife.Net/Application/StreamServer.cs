@@ -8,7 +8,7 @@ namespace NewLife.Net.Application
     /// <summary>
     /// 数据流服务器
     /// </summary>
-    public class StreamServer : NetAppServer
+    public class StreamServer : NetServer
     {
         /// <summary>
         /// 实例化一个数据流服务器

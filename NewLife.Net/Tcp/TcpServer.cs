@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using NewLife.Net.Sockets;
-using System.Collections.Generic;
 using NewLife.Net.Common;
+using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Tcp
 {
@@ -24,6 +24,12 @@ namespace NewLife.Net.Tcp
         #region 属性
         /// <summary>已重载。</summary>
         public override ProtocolType ProtocolType { get { return ProtocolType.Tcp; } }
+
+        private Int32 _MaxNotActive = 30;
+        /// <summary>最大不活动时间。
+        /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
+        /// 单位秒，默认30秒。时间不是太准确，建议15秒的倍数。为0表示不检查。</summary>
+        public Int32 MaxNotActive { get { return _MaxNotActive; } set { _MaxNotActive = value; } }
         #endregion
 
         #region 构造
@@ -193,7 +199,7 @@ namespace NewLife.Net.Tcp
                 {
                     if (_Sessions != null) return _Sessions;
 
-                    return _Sessions = new TcpSessionCollection();
+                    return _Sessions = new TcpSessionCollection() { Server = this };
                 }
             }
         }

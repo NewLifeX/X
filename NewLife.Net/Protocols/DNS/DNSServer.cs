@@ -8,7 +8,7 @@ using NewLife.Net.Udp;
 namespace NewLife.Net.Protocols.DNS
 {
     /// <summary>DNS服务器</summary>
-    public class DNSServer : NetAppServer
+    public class DNSServer : NetServer
     {
         #region 属性
         private List<IPEndPoint> _Parents;

@@ -4,7 +4,7 @@ using NewLife.Net.Sockets;
 namespace NewLife.Net.Application
 {
     /// <summary>Echo服务。把客户端发来的数据原样返回。</summary>
-    public class EchoServer : NetAppServer
+    public class EchoServer : NetServer
     {
         /// <summary>
         /// 实例化一个Echo服务

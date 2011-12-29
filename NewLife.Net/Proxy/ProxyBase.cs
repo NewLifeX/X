@@ -80,7 +80,7 @@ namespace NewLife.Net.Proxy
         /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void OnAccepted(Object sender, NetEventArgs e)
+        protected override void OnAccepted(Object sender, NetEventArgs e)
         {
             WriteLog("新客户：{0}", e.RemoteEndPoint);
 
@@ -94,17 +94,6 @@ namespace NewLife.Net.Proxy
             session.OnDisposed += (s, ev) => Sessions.Remove(session);
 
             session.Start(e);
-        }
-
-        /// <summary>断开连接/发生错误</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        protected virtual void OnError(object sender, NetEventArgs e)
-        {
-            if (e.SocketError != SocketError.Success || e.Error != null)
-                WriteLog("{2}错误 {0} {1}", e.SocketError, e.Error, e.LastOperation);
-            else
-                WriteLog("{0}断开！", e.LastOperation);
         }
         #endregion
     }

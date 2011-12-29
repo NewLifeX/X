@@ -9,7 +9,7 @@ namespace NewLife.Net.IO
     /// <summary>
     /// 文件服务端
     /// </summary>
-    public class FileServer : NetAppServer
+    public class FileServer : NetServer
     {
         #region 属性
         private String _SavedPath;

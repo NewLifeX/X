@@ -7,7 +7,7 @@ using NewLife.Net.Sockets;
 namespace NewLife.Net.Application
 {
     /// <summary>Chargen服务器。不停的向连接者发送数据</summary>
-    public class ChargenServer : NetAppServer
+    public class ChargenServer : NetServer
     {
         /// <summary>实例化一个Chargen服务</summary>
         public ChargenServer()

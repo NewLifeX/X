@@ -27,6 +27,10 @@ namespace NewLife.Net.Tcp
             }
         }
 
+        private TcpServer _Server;
+        /// <summary>服务端</summary>
+        public TcpServer Server { get { return _Server; } set { _Server = value; } }
+
         private Int32 _ClearPeriod = 15000;
         /// <summary>清理周期。单位毫秒，默认15000毫秒。</summary>
         public Int32 ClearPeriod { get { return _ClearPeriod; } set { _ClearPeriod = value; } }
@@ -65,11 +69,7 @@ namespace NewLife.Net.Tcp
             {
                 if (_dic.Count < 1) return;
 
-                //for (int i = _list.Count - 1; i >= 0; i--)
-                //{
-                //    var item = _list[i];
-                //    if (item == null || item.Disposed || item.Socket == null) _list.RemoveAt(i);
-                //}
+                Int32 notactive = Server != null ? Server.MaxNotActive : 0;
                 var list = new List<Int32>();
                 // 这里可能有问题，曾经见到，_list有元素，但是value为null，这里居然没有进行遍历而直接跳过
                 // 操作这个字典的时候，必须加锁，否则就会数据错乱，成了这个样子，无法枚举
@@ -77,7 +77,7 @@ namespace NewLife.Net.Tcp
                 {
                     var item = elm.Value;
                     //if (item == null || item.Disposed || item.Socket == null) list.Add(elm.Key);
-                    if (item == null || item.Disposed) list.Add(elm.Key);
+                    if (item == null || item.Disposed || notactive > 0 && item.Statistics.Last.AddSeconds(notactive) < DateTime.Now) list.Add(elm.Key);
                 }
                 foreach (var item in list)
                 {

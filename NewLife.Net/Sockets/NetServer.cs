@@ -106,13 +106,28 @@ namespace NewLife.Net.Sockets
         /// <returns>添加是否成功</returns>
         public virtual Boolean AttachServer(ISocketServer server)
         {
-            if (!Servers.Contains(server))
+            if (Servers.Contains(server)) return false;
+
+            if (server.ProtocolType == ProtocolType.Tcp)
             {
-                Servers.Add(server);
-                return true;
+                var svr = server as TcpServer;
+                svr.Accepted += new EventHandler<NetEventArgs>(OnAccepted);
+            }
+            else if (server.ProtocolType == ProtocolType.Udp)
+            {
+                var svr = server as UdpServer;
+                //svr.Received += new EventHandler<NetEventArgs>(OnAccepted);
+                svr.Received += new EventHandler<NetEventArgs>(OnReceived);
             }
             else
-                return false;
+            {
+                throw new Exception("不支持的协议类型" + server.ProtocolType + "！");
+            }
+
+            server.Error += new EventHandler<NetEventArgs>(OnError);
+
+            Servers.Add(server);
+            return true;
         }
 
         /// <summary>确保建立服务器</summary>
@@ -187,6 +202,37 @@ namespace NewLife.Net.Sockets
         }
         #endregion
 
+        #region 业务
+        /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected virtual void OnAccepted(Object sender, NetEventArgs e)
+        {
+            ISocketSession session = e.Socket as TcpClientX;
+            if (session != null)
+            {
+                session.Received += OnReceived;
+                session.Error += new EventHandler<NetEventArgs>(OnError);
+            }
+        }
+
+        /// <summary>收到数据时</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected virtual void OnReceived(Object sender, NetEventArgs e) { }
+
+        /// <summary>断开连接/发生错误</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected virtual void OnError(object sender, NetEventArgs e)
+        {
+            if (e.SocketError != SocketError.Success || e.Error != null)
+                WriteLog("{2}错误 {0} {1}", e.SocketError, e.Error, e.LastOperation);
+            else
+                WriteLog("{0}断开！", e.LastOperation);
+        }
+        #endregion
+
         #region 创建Tcp/Udp、IPv4/IPv6服务
         /// <summary>创建Tcp/Udp、IPv4/IPv6服务</summary>
         /// <param name="address"></param>
@@ -241,7 +287,7 @@ namespace NewLife.Net.Sockets
         }
         #endregion
 
-        #region 方法
+        #region 辅助
         /// <summary>
         /// 已重载。
         /// </summary>

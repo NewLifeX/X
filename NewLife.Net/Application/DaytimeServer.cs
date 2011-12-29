@@ -6,7 +6,7 @@ using NewLife.Net.Sockets;
 namespace NewLife.Net.Application
 {
     /// <summary>Daytime服务器。返回服务端的时间日期</summary>
-    public class DaytimeServer : NetAppServer
+    public class DaytimeServer : NetServer
     {
         /// <summary>
         /// 实例化一个Daytime服务
