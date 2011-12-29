@@ -6,6 +6,7 @@ using System.Threading;
 using NewLife.Collections;
 using NewLife.Reflection;
 using NewLife.Threading;
+using NewLife.Net.Common;
 
 namespace NewLife.Net.Sockets
 {
@@ -374,6 +375,13 @@ namespace NewLife.Net.Sockets
 
             Socket.Close();
             Socket = null;
+
+            if (_Statistics != null)
+            {
+                IDisposable dp = _Statistics as IDisposable;
+                if (dp != null) dp.Dispose();
+                _Statistics = null;
+            }
         }
         #endregion
 
@@ -561,73 +569,15 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 统计
-        private Boolean _EnableCounter;
-        /// <summary>是否启用计数器</summary>
-        public Boolean EnableCounter
-        {
-            get { return _EnableCounter; }
-            set
-            {
-                _EnableCounter = value;
-                if (value && computeTimer != null)
-                {
-                    computeTimer.Dispose();
-                    computeTimer = null;
-                }
-            }
-        }
-
-        private Int32 _TotalPerMinute;
-        /// <summary>每分钟总操作</summary>
-        public Int32 TotalPerMinute { get { return _TotalPerMinute; } }
-
-        private Int32 _TotalPerHour;
-        /// <summary>每小时总操作</summary>
-        public Int32 TotalPerHour { get { return _TotalPerHour; } }
-
-        private Int32 _MaxPerMinute;
-        /// <summary>每分钟最大值</summary>
-        public Int32 MaxPerMinute { get { return _MaxPerMinute; } set { _MaxPerMinute = value; } }
-
-        private DateTime _NextPerMinute;
-        private DateTime _NextPerHour;
+        private IStatistics _Statistics;
+        /// <summary>统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。对于<see cref="Tcp.TcpServer"/>是Accept，对于其它是Receive</summary>
+        public IStatistics Statistics { get { return _Statistics ?? (_Statistics = NetService.Resolve<IStatistics>()); } }
 
         /// <summary>增加计数</summary>
         protected void IncCounter()
         {
-            if (!EnableCounter) return;
-
-            if (computeTimer == null)
-            {
-                Int32 time = NetHelper.Debug ? 10000 : 20000;
-                computeTimer = new TimerX(Compute, null, 0, time, false);
-            }
-
-            _TotalPerMinute++;
-            _TotalPerHour++;
-        }
-
-        /// <summary>统计操作计时器</summary>
-        private TimerX computeTimer;
-
-        /// <summary>统计操作</summary>
-        void Compute(Object state)
-        {
-            DateTime now = DateTime.Now;
-
-            if (_NextPerMinute < now)
-            {
-                if (_NextPerMinute != DateTime.MinValue) _TotalPerMinute = 0;
-                _NextPerMinute = now.AddMinutes(1);
-            }
-
-            if (_NextPerHour < now)
-            {
-                if (_NextPerHour != DateTime.MinValue) _TotalPerHour = 0;
-                _NextPerHour = now.AddHours(1);
-            }
-
-            if (_TotalPerMinute > _MaxPerMinute) _MaxPerMinute = _TotalPerMinute;
+            // 之所以使用字段，是因为不想触发创建操作
+            if (_Statistics != null) _Statistics.Increment();
         }
         #endregion
     }

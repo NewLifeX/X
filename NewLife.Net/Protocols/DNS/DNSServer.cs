@@ -26,7 +26,7 @@ namespace NewLife.Net.Protocols.DNS
         /// <param name="e"></param>
         protected override void OnReceived(object sender, NetEventArgs e)
         {
-            var session = sender as ISocketSession;
+            var session = e.Socket as ISocketSession;
 
             // 解析
             var entity = DNSEntity.Read(e.GetStream());

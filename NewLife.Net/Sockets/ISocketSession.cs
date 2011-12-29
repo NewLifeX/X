@@ -17,8 +17,11 @@ namespace NewLife.Net.Sockets
     public interface ISocketSession : ISocket
     {
         #region 属性
-        /// <summary>套接字</summary>
-        Socket Socket { get; set; }
+        ///// <summary>套接字</summary>
+        //Socket Socket { get; set; }
+
+        /// <summary>编号</summary>
+        Int32 ID { get; set; }
         #endregion
 
         #region 方法

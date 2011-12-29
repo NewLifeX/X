@@ -22,8 +22,12 @@ namespace NewLife.Net.Udp
         /// <summary>已重载。</summary>
         public override ProtocolType ProtocolType { get { return ProtocolType.Udp; } }
 
-        /// <summary>套接字</summary>
-        Socket ISocketSession.Socket { get { return base.Server; } set { base.Server = value; } }
+        ///// <summary>套接字</summary>
+        //Socket ISocketSession.Socket { get { return base.Server; } set { base.Server = value; } }
+
+        private Int32 _ID;
+        /// <summary>编号</summary>
+        Int32 ISocketSession.ID { get { return _ID; } set { _ID = value; } }
         #endregion
 
         #region 构造

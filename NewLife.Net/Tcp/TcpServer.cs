@@ -129,7 +129,7 @@ namespace NewLife.Net.Tcp
                 if (e.Cancel) return;
             }
 
-            Sessions.Add(session);
+            Sessions.Add(0, session);
 
             // 设置心跳时间
             e.AcceptSocket.SetKeepAlive(true);

@@ -45,7 +45,9 @@
     <Compile Include="Application\DaytimeServer.cs" />
     <Compile Include="Application\DiscardServer.cs" />
     <Compile Include="Application\EchoServer.cs" />
+    <Compile Include="Common\IStatistics.cs" />
     <Compile Include="Common\NetException.cs" />
+    <Compile Include="Common\Statistics.cs" />
     <Compile Include="NetService.cs" />
     <Compile Include="Protocols\DNS\DNSClient.cs" />
     <Compile Include="Protocols\DNS\DNSEntity.cs" />

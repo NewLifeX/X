@@ -7,24 +7,23 @@ using NewLife.Net.Sockets;
 namespace NewLife.Net.Tcp
 {
     /// <summary>会话集合。带有自动清理不活动会话的功能</summary>
-    class TcpSessionCollection : DisposeBase, ICollection<ISocketSession>
+    class TcpSessionCollection : DisposeBase, IDictionary<Int32, ISocketSession>
     {
-        //List<ISocketSession> _list = new List<ISocketSession>();
-        Dictionary<Int32, ISocketSession> _list = new Dictionary<Int32, ISocketSession>();
+        Dictionary<Int32, ISocketSession> _dic = new Dictionary<Int32, ISocketSession>();
 
         private Int32 sessionID = 0;
 
         /// <summary>添加新会话，并设置会话编号</summary>
-        /// <param name="client"></param>
-        public void Add(ISocketSession client)
+        /// <param name="session"></param>
+        public void Add(ISocketSession session)
         {
-            lock (_list)
+            lock (_dic)
             {
-                Int32 id = ++sessionID;
-                client.OnDisposed += (s, e) => { lock (_list) { _list.Remove(id); } };
-                _list.Add(id, client);
+                session.ID = ++sessionID;
+                session.OnDisposed += (s, e) => { lock (_dic) { _dic.Remove((s as ISocketSession).ID); } };
+                _dic.Add(session.ID, session);
 
-                if (clearTimer == null) clearTimer = new TimerX(e => RemoveNotAlive(), null, ClearPeriod, ClearPeriod);
+                if (clearTimer == null) clearTimer = new TimerX(RemoveNotAlive, null, ClearPeriod, ClearPeriod);
             }
         }
 
@@ -37,19 +36,20 @@ namespace NewLife.Net.Tcp
         {
             if (clearTimer != null) clearTimer.Dispose();
 
-            if (_list.Count < 1) return;
-            lock (_list)
+            if (_dic.Count < 1) return;
+            lock (_dic)
             {
-                if (_list.Count < 1) return;
+                if (_dic.Count < 1) return;
 
-                foreach (var item in _list.Values)
+                foreach (var item in _dic.Values)
                 {
-                    if (item == null || item.Disposed || item.Socket == null) continue;
+                    //if (item == null || item.Disposed || item.Socket == null) continue;
+                    if (item == null || item.Disposed) continue;
 
                     item.Close();
                 }
 
-                _list.Clear();
+                _dic.Clear();
             }
         }
 
@@ -57,13 +57,13 @@ namespace NewLife.Net.Tcp
         private TimerX clearTimer;
 
         /// <summary>移除不活动的会话</summary>
-        void RemoveNotAlive()
+        void RemoveNotAlive(Object state)
         {
-            if (_list.Count < 1) return;
+            if (_dic.Count < 1) return;
 
-            lock (_list)
+            lock (_dic)
             {
-                if (_list.Count < 1) return;
+                if (_dic.Count < 1) return;
 
                 //for (int i = _list.Count - 1; i >= 0; i--)
                 //{
@@ -72,14 +72,16 @@ namespace NewLife.Net.Tcp
                 //}
                 var list = new List<Int32>();
                 // 这里可能有问题，曾经见到，_list有元素，但是value为null，这里居然没有进行遍历而直接跳过
-                foreach (var elm in _list.Keys)
+                // 操作这个字典的时候，必须加锁，否则就会数据错乱，成了这个样子，无法枚举
+                foreach (var elm in _dic)
                 {
-                    var item = _list[elm];
-                    if (item == null || item.Disposed || item.Socket == null) list.Add(elm);
+                    var item = elm.Value;
+                    //if (item == null || item.Disposed || item.Socket == null) list.Add(elm.Key);
+                    if (item == null || item.Disposed) list.Add(elm.Key);
                 }
                 foreach (var item in list)
                 {
-                    _list.Remove(item);
+                    _dic.Remove(item);
                 }
             }
         }
@@ -92,24 +94,63 @@ namespace NewLife.Net.Tcp
         }
 
         #region 成员
-        /// <summary>从集合中移除项</summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        public Boolean Remove(ISocketSession item) { throw new NetException("不支持！请直接销毁会话对象！"); }
+        public void Clear() { _dic.Clear(); }
 
-        public void Clear() { _list.Clear(); }
+        public int Count { get { return _dic.Count; } }
 
-        public bool Contains(ISocketSession item) { return _list.ContainsValue(item); }
+        public bool IsReadOnly { get { return (_dic as IDictionary<Int32, ISocketSession>).IsReadOnly; } }
 
-        public void CopyTo(ISocketSession[] array, int arrayIndex) { _list.Values.CopyTo(array, arrayIndex); }
+        public IEnumerator<ISocketSession> GetEnumerator() { return _dic.Values.GetEnumerator() as IEnumerator<ISocketSession>; }
 
-        public int Count { get { return _list.Count; } }
+        IEnumerator IEnumerable.GetEnumerator() { return _dic.GetEnumerator(); }
+        #endregion
 
-        public bool IsReadOnly { get { return (_list as ICollection<ISocketSession>).IsReadOnly; } }
+        #region IDictionary<int,ISocketSession> 成员
 
-        public IEnumerator<ISocketSession> GetEnumerator() { return _list.Values.GetEnumerator() as IEnumerator<ISocketSession>; }
+        void IDictionary<int, ISocketSession>.Add(int key, ISocketSession value) { Add(value); }
 
-        IEnumerator IEnumerable.GetEnumerator() { return _list.GetEnumerator(); }
+        bool IDictionary<int, ISocketSession>.ContainsKey(int key) { return _dic.ContainsKey(key); }
+
+        ICollection<int> IDictionary<int, ISocketSession>.Keys { get { return _dic.Keys; } }
+
+        bool IDictionary<int, ISocketSession>.Remove(int key)
+        {
+            ISocketSession session;
+            if (!_dic.TryGetValue(key, out session)) return false;
+
+            session.Close();
+
+            return _dic.Remove(key);
+        }
+
+        bool IDictionary<int, ISocketSession>.TryGetValue(int key, out ISocketSession value) { return _dic.TryGetValue(key, out value); }
+
+        ICollection<ISocketSession> IDictionary<int, ISocketSession>.Values { get { return _dic.Values; } }
+
+        ISocketSession IDictionary<int, ISocketSession>.this[int key] { get { return _dic[key]; } set { _dic[key] = value; } }
+
+        #endregion
+
+        #region ICollection<KeyValuePair<int,ISocketSession>> 成员
+
+        void ICollection<KeyValuePair<int, ISocketSession>>.Add(KeyValuePair<int, ISocketSession> item)
+        {
+            throw new NetException("不支持！请使用Add(ISocketSession session)方法！");
+        }
+
+        bool ICollection<KeyValuePair<int, ISocketSession>>.Contains(KeyValuePair<int, ISocketSession> item) { throw new NotImplementedException(); }
+
+        void ICollection<KeyValuePair<int, ISocketSession>>.CopyTo(KeyValuePair<int, ISocketSession>[] array, int arrayIndex) { throw new NotImplementedException(); }
+
+        bool ICollection<KeyValuePair<int, ISocketSession>>.Remove(KeyValuePair<int, ISocketSession> item) { throw new NetException("不支持！请直接销毁会话对象！"); }
+
+        #endregion
+
+        #region IEnumerable<KeyValuePair<int,ISocketSession>> 成员
+        IEnumerator<KeyValuePair<int, ISocketSession>> IEnumerable<KeyValuePair<int, ISocketSession>>.GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }

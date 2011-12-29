@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Model;
-using NewLife.Net.Proxy;
-using NewLife.Reflection;
-using NewLife.Net.Sockets;
 using System.Net.Sockets;
+using NewLife.Model;
+using NewLife.Net.Common;
+using NewLife.Net.Proxy;
+using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
+using NewLife.Reflection;
 
 namespace NewLife.Net
 {
@@ -23,7 +22,8 @@ namespace NewLife.Net
                 .Register<ISocketClient, TcpClientX>(ProtocolType.Tcp.ToString())
                 .Register<ISocketClient, UdpClientX>(ProtocolType.Udp.ToString())
                 .Register<ISocketSession, TcpClientX>(ProtocolType.Tcp.ToString())
-                .Register<ISocketSession, UdpServer>(ProtocolType.Udp.ToString());
+                .Register<ISocketSession, UdpServer>(ProtocolType.Udp.ToString())
+                .Register<IStatistics, Statistics>();
         }
 
         /// <summary>安装，引发静态构造函数</summary>
