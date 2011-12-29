@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using NewLife.Net.Common;
 
 namespace NewLife.Net.Sockets
 {
@@ -46,6 +47,9 @@ namespace NewLife.Net.Sockets
 
         ///// <summary>是否已经释放</summary>
         //Boolean Disposed { get; }
+
+        /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
+        IStatistics Statistics { get; }
         #endregion
 
         #region 方法

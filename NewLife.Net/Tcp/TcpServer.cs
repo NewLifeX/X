@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using NewLife.Net.Sockets;
 using System.Collections.Generic;
+using NewLife.Net.Common;
 
 namespace NewLife.Net.Tcp
 {
@@ -113,10 +114,14 @@ namespace NewLife.Net.Tcp
             Process(e, AcceptAsync, ProcessAccept);
         }
 
+        private IStatistics _AcceptStatistics;
+        /// <summary>连接数统计信息。</summary>
+        public IStatistics AcceptStatistics { get { return _AcceptStatistics ?? (_AcceptStatistics = NetService.Resolve<IStatistics>()); } }
+
         void ProcessAccept(NetEventArgs e)
         {
             // 统计连接数
-            IncCounter();
+            AcceptStatistics.Increment();
 
             // 建立会话
             var session = CreateSession(e);
@@ -130,6 +135,9 @@ namespace NewLife.Net.Tcp
             }
 
             Sessions.Add(0, session);
+
+            // 设置接收事件，统计异步接收的数据包，不包括同步接收
+            session.Received += (s, e2) => Statistics.Increment();
 
             // 设置心跳时间
             e.AcceptSocket.SetKeepAlive(true);

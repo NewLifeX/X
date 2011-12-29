@@ -68,7 +68,8 @@ namespace Test2
                 NetServer server = Activator.CreateInstance(item) as NetServer;
                 server.Start();
                 server.Servers.ForEach(s => s.UseThreadPool = false);
-                server.Servers.ForEach(s => (s as SocketBase).EnableCounter = true);
+                server.Servers.ForEach(s => s.Statistics.Enable = true);
+                server.Servers.ForEach(s => { if (s is TcpServer) (s as TcpServer).AcceptStatistics.Enable = true; });
                 //Ports.Add(server.Port);
                 list.Add(server);
             }
@@ -83,11 +84,14 @@ namespace Test2
 
                 Console.WriteLine();
                 Console.WriteLine(DateTime.Now);
-                Console.WriteLine("{0,10} {1,4} {2,4} {3,4} {4,4}", "名称", "会话", "每分", "最大", "每小时");
+                Console.WriteLine("{0,10} {1,4} {2,4} {3,4} {4,4} {5,4}", "名称", "会话", "每分", "最大", "每小时", "每秒");
                 foreach (var item in list)
                 {
                     var server = item.Server as TcpServer;
-                    Console.WriteLine("{0,10}:{1,6:n0} {2,6:n0} {3,6:n0} {4,6:n0}", item.Name, server.Sessions.Count, server.TotalPerMinute, server.MaxPerMinute, server.TotalPerHour);
+                    var stat = server.Statistics;
+                    Console.WriteLine("{0,10}:{1,6:n0} {2,6:n0} {3,6:n0} {4,6:n0} {5,6:n0}", item.Name, server.Sessions.Count, stat.TotalPerMinute, stat.MaxPerMinute, stat.TotalPerHour, stat.AveragePerSecond);
+                    stat = server.AcceptStatistics;
+                    Console.WriteLine("{0,10} {1,6} {2,6:n0} {3,6:n0} {4,6:n0} {5,6:n0}", null, "连接", stat.TotalPerMinute, stat.MaxPerMinute, stat.TotalPerHour, stat.AveragePerSecond);
                 }
             }
 
@@ -192,7 +196,10 @@ namespace Test2
 
                 try
                 {
-                    client.Send(msg);
+                    for (int j = 0; j < 100; j++)
+                    {
+                        client.Send(msg);
+                    }
                     if (msg == client.ReceiveString())
                         success++;
                     else

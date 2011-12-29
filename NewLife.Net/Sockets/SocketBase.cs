@@ -570,15 +570,11 @@ namespace NewLife.Net.Sockets
 
         #region 统计
         private IStatistics _Statistics;
-        /// <summary>统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。对于<see cref="Tcp.TcpServer"/>是Accept，对于其它是Receive</summary>
+        /// <summary>统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
         public IStatistics Statistics { get { return _Statistics ?? (_Statistics = NetService.Resolve<IStatistics>()); } }
 
         /// <summary>增加计数</summary>
-        protected void IncCounter()
-        {
-            // 之所以使用字段，是因为不想触发创建操作
-            if (_Statistics != null) _Statistics.Increment();
-        }
+        protected void IncCounter() { Statistics.Increment(); }
         #endregion
     }
 }
