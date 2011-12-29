@@ -115,7 +115,7 @@ namespace Test2
             //Int32[] ports = new Int32[] { 19, 13, 9, 7, 37 };
             Int32[] ports = new Int32[] { 7 };
 
-            Thread[] ths = new Thread[10 * Environment.ProcessorCount];
+            Thread[] ths = new Thread[100 * Environment.ProcessorCount];
             success = 0;
             unsuccess = 0;
             for (int i = 0; i < ths.Length; i++)
@@ -196,7 +196,7 @@ namespace Test2
 
                 try
                 {
-                    for (int j = 0; j < 100; j++)
+                    for (int j = 0; j < 10; j++)
                     {
                         client.Send(msg);
                     }

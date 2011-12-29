@@ -55,15 +55,24 @@ namespace NewLife.Net.Protocols.DNS
                 catch { }
             }
 
-            // 解析父级代理返回的数据
-            var entity2 = DNSEntity.Read(new MemoryStream(data));
+            try
+            {
+                // 解析父级代理返回的数据
+                var entity2 = DNSEntity.Read(new MemoryStream(data));
 
-            // 处理，修改
-            WriteLog("上级返回 {0}", entity2);
+                // 处理，修改
+                WriteLog("上级返回 {0}", entity2);
 
-            // 重新封装为二进制
-            ms = new MemoryStream();
-            entity2.Write(ms);
+                // 重新封装为二进制
+                ms = new MemoryStream();
+                entity2.Write(ms);
+            }
+            catch (Exception ex)
+            {
+                String file = String.Format("dns_{0:MMddHHmmss}.bin", DateTime.Now);
+                WriteLog("解析父级代理返回数据出错！数据保存着" + file + "。" + ex.Message);
+                File.WriteAllBytes(file, data);
+            }
 
             // 返回给客户端
             ms.Position = 0;
