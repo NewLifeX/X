@@ -203,6 +203,12 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 业务
+        /// <summary>连接完成。在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
+        public event EventHandler<NetEventArgs> Accepted;
+
+        /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
+        public event EventHandler<NetEventArgs> Received;
+
         /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -214,12 +220,17 @@ namespace NewLife.Net.Sockets
                 session.Received += OnReceived;
                 session.Error += new EventHandler<NetEventArgs>(OnError);
             }
+
+            if (Accepted != null) Accepted(sender, e);
         }
 
         /// <summary>收到数据时</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void OnReceived(Object sender, NetEventArgs e) { }
+        protected virtual void OnReceived(Object sender, NetEventArgs e)
+        {
+            if (Received != null) Received(sender, e);
+        }
 
         /// <summary>断开连接/发生错误</summary>
         /// <param name="sender"></param>

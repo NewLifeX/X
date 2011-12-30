@@ -33,7 +33,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -167,15 +167,15 @@ namespace Test
             //AppTest.Start();
             //NetHelper.Wake("00-24-8C-04-C0-9B", "00-24-8C-04-C0-91");
 
-            var proxy = new XProxy();
-            proxy.Port = 888;
-            proxy.ProtocolType = ProtocolType.Tcp;
-            proxy.ServerAddress = "www.baidu.com";
-            proxy.ServerPort = 80;
-            var filter = new HttpFilter();
-            filter.Proxy = proxy;
-            proxy.Filters.Add(filter);
-            proxy.Start();
+            //var proxy = new XProxy();
+            //proxy.Port = 888;
+            //proxy.ProtocolType = ProtocolType.Tcp;
+            //proxy.ServerAddress = "www.baidu.com";
+            //proxy.ServerPort = 80;
+            //var filter = new HttpFilter();
+            //filter.Proxy = proxy;
+            //proxy.Filters.Add(filter);
+            //proxy.Start();
 
             //var proxy = new XProxy();
             //proxy.Port = 53;
@@ -184,15 +184,51 @@ namespace Test
             //proxy.ServerPort = 53;
             //proxy.Start();
 
-            //var client = new UdpClientX();
-            //client.Connect("127.0.0.1", 53);
-            //client.Error += new EventHandler<NetEventArgs>(client_Error);
-            //client.Received += new EventHandler<NetEventArgs>(client_Received);
-            //client.ReceiveAsync();
+            var client = new TcpClientX();
+            client.Connect("jslswb.com", 12);
+            var ep = client.LocalEndPoint;
+            client.Close();
+            Console.WriteLine("本地监听：{0}", ep);
 
-            //var ptr = new DNS_PTR();
-            //ptr.Address = (client.Client.RemoteEndPoint as IPEndPoint).Address;
-            //client.Send(ptr.GetStream());
+            var server = new TcpServer();
+            server.Address = ep.Address;
+            server.Port = ep.Port;
+            server.Accepted += new EventHandler<NetEventArgs>(server_Accepted2);
+            server.Start();
+
+            //var server = new TcpServer();
+            //server.Port = 12;
+            //server.Accepted += new EventHandler<NetEventArgs>(server_Accepted);
+            //server.Start();
+            //Console.WriteLine("打洞服务器等待连接……");
+        }
+
+        static void server_Accepted(object sender, NetEventArgs e)
+        {
+            Console.WriteLine("新连接：{0}", e.RemoteEndPoint);
+
+            // 连回去
+            Console.WriteLine("连回去");
+            var client = new TcpClientX();
+            client.Connect(e.RemoteEndPoint);
+            Console.WriteLine("连接成功，发送信息");
+            client.Send("Hello nnhy!");
+            Console.WriteLine("发送完毕，接收信息");
+            var msg = client.ReceiveString();
+            Console.WriteLine("收到：{0}", msg);
+        }
+
+        static void server_Accepted2(object sender, NetEventArgs e)
+        {
+            Console.WriteLine("反向连接：{0}", e.RemoteEndPoint);
+
+            ISocketSession session = e.Socket as ISocketSession;
+            Console.WriteLine("接收信息");
+            var msg = session.ReceiveString();
+            Console.WriteLine("收到：{0}", msg);
+
+            Console.WriteLine("发送信息");
+            session.Send("完成!");
         }
 
         static void Test5()

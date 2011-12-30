@@ -58,7 +58,7 @@
     <Compile Include="Protocols\DNS\DNS_AAAA.cs" />
     <Compile Include="Protocols\DNS\DNS_CNAME.cs" />
     <Compile Include="Protocols\DNS\DNS_PTR.cs" />
-    <Compile Include="Protocols\Http\HttpHeader.cs" />
+    <Compile Include="Protocols\HTTP\HttpHeader.cs" />
     <Compile Include="Protocols\LineParser.cs" />
     <Compile Include="Protocols\NTP\NTPClient.cs" />
     <Compile Include="Application\StreamServer.cs" />
@@ -127,7 +127,12 @@
     <Content Include="架构设计\NewLife_TCP状态变迁.jpg" />
     <Content Include="架构设计\NewLife_UdpServer.jpg" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Protocols\FTP\" />
+    <Folder Include="Protocols\POP3\" />
+    <Folder Include="Protocols\SMTP\" />
+    <Folder Include="Protocols\TELNET\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
