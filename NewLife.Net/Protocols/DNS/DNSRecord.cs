@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Serialization;
 using System.IO;
-using NewLife.IO;
 using System.Net;
+using NewLife.Serialization;
 
 namespace NewLife.Net.Protocols.DNS
 {

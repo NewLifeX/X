@@ -5,6 +5,7 @@ using System.IO;
 using NewLife.Serialization;
 using NewLife.Net.Sockets;
 using NewLife.Net;
+using NewLife.Reflection;
 
 namespace NewLife.Net.Protocols.DNS
 {
@@ -35,7 +36,10 @@ namespace NewLife.Net.Protocols.DNS
     }
 
     /// <summary>DNS实体类基类</summary>
-    public class DNSEntity : IAccessor
+    /// <remarks>
+    /// 参考博客园 @看那边的人 <a href="http://www.cnblogs.com/topdog/archive/2011/11/15/2250185.html">DIY一个DNS查询器：了解DNS协议</a> <a href="http://www.cnblogs.com/topdog/archive/2011/11/21/2257597.html">DIY一个DNS查询器：程序实现</a>
+    /// </remarks>
+    public class DNSEntity //: IAccessor
     {
         #region 属性
         private DNSHeader _Header = new DNSHeader();
@@ -131,7 +135,25 @@ namespace NewLife.Net.Protocols.DNS
         #region 读写
         /// <summary>把当前对象写入到数据流中去</summary>
         /// <param name="stream"></param>
-        public void Write(Stream stream)
+        /// <param name="forTcp">是否是Tcp，Tcp需要增加整个流长度</param>
+        public void Write(Stream stream, Boolean forTcp = false)
+        {
+            if (forTcp)
+            {
+                var ms = new MemoryStream();
+                WriteRaw(ms);
+
+                Byte[] data = BitConverter.GetBytes((Int16)ms.Length);
+                stream.Write(data, 0, data.Length);
+                ms.WriteTo(stream);
+            }
+            else
+                WriteRaw(stream);
+        }
+
+        /// <summary>把当前对象写入到数据流中去</summary>
+        /// <param name="stream"></param>
+        public void WriteRaw(Stream stream)
         {
             BinaryWriterX writer = new BinaryWriterX();
             writer.Settings.IsLittleEndian = false;
@@ -148,20 +170,51 @@ namespace NewLife.Net.Protocols.DNS
         }
 
         /// <summary>获取当前对象的数据流</summary>
+        /// <param name="forTcp">是否是Tcp，Tcp需要增加整个流长度</param>
         /// <returns></returns>
-        public Stream GetStream()
+        public Stream GetStream(Boolean forTcp = false)
         {
             var ms = new MemoryStream();
-            Write(ms);
+            Write(ms, forTcp);
             ms.Position = 0;
 
             return ms;
         }
 
-        /// <summary>从数据流中读取对象</summary>
+        /// <summary>从数据中读取对象</summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static DNSEntity Read(Byte[] data) { return Read(new MemoryStream(data)); }
+
+        /// <summary>从数据流中读取对象，返回<see cref="DNS_A"/>、<see cref="DNS_PTR"/>等真实对象</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
         public static DNSEntity Read(Stream stream)
+        {
+            // 先读取
+            var entity = ReadRaw(stream);
+            if (entity != null && entity.Question != null)
+            {
+                Type type = null;
+                if (entitytypes.TryGetValue(entity.Type, out type) && type != null)
+                {
+                    var de = TypeX.CreateInstance(type) as DNSEntity;
+                    de.Header = entity.Header;
+                    de.Questions = entity.Questions;
+                    de.Answers = entity.Answers;
+                    de.Authoritis = entity.Authoritis;
+                    de.Additionals = entity.Additionals;
+                    return de;
+                }
+            }
+
+            return entity;
+        }
+
+        /// <summary>从数据流中读取对象，返回DNSEntity对象</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static DNSEntity ReadRaw(Stream stream)
         {
             BinaryReaderX reader = new BinaryReaderX();
             reader.Settings.IsLittleEndian = false;
@@ -178,36 +231,46 @@ namespace NewLife.Net.Protocols.DNS
         }
         #endregion
 
+        #region 注册子类型
+        static Dictionary<DNSQueryType, Type> entitytypes = new Dictionary<DNSQueryType, Type>();
+        static DNSEntity()
+        {
+            entitytypes.Add(DNSQueryType.A, typeof(DNS_A));
+            entitytypes.Add(DNSQueryType.AAAA, typeof(DNS_A));
+            entitytypes.Add(DNSQueryType.PTR, typeof(DNS_PTR));
+        }
+        #endregion
+
         #region IAccessor 成员
-        /// <summary>
-        /// 从读取器中读取数据到对象。接口实现者可以在这里完全自定义行为（返回true），也可以通过设置事件来影响行为（返回false）
-        /// </summary>
-        /// <param name="reader">读取器</param>
-        /// <returns>是否读取成功，若返回成功读取器将不再读取该对象</returns>
-        public virtual bool Read(IReader reader) { return false; }
+        ///// <summary>
+        ///// 从读取器中读取数据到对象。接口实现者可以在这里完全自定义行为（返回true），也可以通过设置事件来影响行为（返回false）
+        ///// </summary>
+        ///// <param name="reader">读取器</param>
+        ///// <returns>是否读取成功，若返回成功读取器将不再读取该对象</returns>
+        //public virtual bool Read(IReader reader) { return false; }
 
-        /// <summary>
-        /// 从读取器中读取数据到对象后执行。接口实现者可以在这里取消Read阶段设置的事件
-        /// </summary>
-        /// <param name="reader">读取器</param>
-        /// <param name="success">是否读取成功</param>
-        /// <returns>是否读取成功</returns>
-        public virtual bool ReadComplete(IReader reader, bool success) { return success; }
+        ///// <summary>
+        ///// 从读取器中读取数据到对象后执行。接口实现者可以在这里取消Read阶段设置的事件
+        ///// </summary>
+        ///// <param name="reader">读取器</param>
+        ///// <param name="success">是否读取成功</param>
+        ///// <returns>是否读取成功</returns>
+        //public virtual bool ReadComplete(IReader reader, bool success) { return success; }
 
-        /// <summary>
-        /// 把对象数据写入到写入器。接口实现者可以在这里完全自定义行为（返回true），也可以通过设置事件来影响行为（返回false）
-        /// </summary>
-        /// <param name="writer">写入器</param>
-        /// <returns>是否写入成功，若返回成功写入器将不再读写入对象</returns>
-        public virtual bool Write(IWriter writer) { return false; }
+        ///// <summary>
+        ///// 把对象数据写入到写入器。接口实现者可以在这里完全自定义行为（返回true），也可以通过设置事件来影响行为（返回false）
+        ///// </summary>
+        ///// <param name="writer">写入器</param>
+        ///// <returns>是否写入成功，若返回成功写入器将不再读写入对象</returns>
+        //public virtual bool Write(IWriter writer) { return false; }
 
-        /// <summary>
-        /// 把对象数据写入到写入器后执行。接口实现者可以在这里取消Write阶段设置的事件
-        /// </summary>
-        /// <param name="writer">写入器</param>
-        /// <param name="success">是否写入成功</param>
-        /// <returns>是否写入成功</returns>
-        public virtual bool WriteComplete(IWriter writer, bool success) { return success; }
+        ///// <summary>
+        ///// 把对象数据写入到写入器后执行。接口实现者可以在这里取消Write阶段设置的事件
+        ///// </summary>
+        ///// <param name="writer">写入器</param>
+        ///// <param name="success">是否写入成功</param>
+        ///// <returns>是否写入成功</returns>
+        //public virtual bool WriteComplete(IWriter writer, bool success) { return success; }
         #endregion
 
         #region 辅助

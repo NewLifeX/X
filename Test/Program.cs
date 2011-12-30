@@ -143,8 +143,8 @@ namespace Test
 
         static void Test4()
         {
-            var entity = DNSEntity.Read(File.OpenRead("dns_1230093904.bin"));
-            Console.WriteLine(entity);
+            //var entity = DNSEntity.Read(File.OpenRead("dns_1230093904.bin"));
+            //Console.WriteLine(entity);
 
             var server = new DNSServer();
             server.Port = 53;

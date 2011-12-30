@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
+using NewLife.Collections;
 
 namespace NewLife.Net.Protocols.DNS
 {
@@ -21,6 +22,8 @@ namespace NewLife.Net.Protocols.DNS
         #endregion
 
         #region 方法
+        DictionaryCache<String, DNSEntity> cache = new DictionaryCache<string, DNSEntity>();
+
         /// <summary>接收处理</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -34,38 +37,48 @@ namespace NewLife.Net.Protocols.DNS
             // 处理，修改
             WriteLog("{0} 请求 {1}", e.RemoteEndPoint, entity);
 
-            // 重新封装为二进制
-            var ms = new MemoryStream();
-            entity.Write(ms);
-            Byte[] data = null;
+            // 读取缓存
+            entity = cache.GetItem<DNSEntity>(entity.ToString(), entity, GetDNS);
 
+            // 返回给客户端
+            session.Send(entity.GetStream(), e.RemoteEndPoint);
+            session.Disconnect();
+        }
+
+        DNSEntity GetDNS(String key, DNSEntity entity)
+        {
             // 请求父级代理
+            IPEndPoint ep = null;
+            Byte[] data = null;
             foreach (var item in Parents)
             {
                 var client = new UdpClientX();
-                ms.Position = 0;
+                // 如果是PTR请求
+                if (entity is DNS_PTR)
+                {
+                    var ptr = entity as DNS_PTR;
+                    ptr.Address = item.Address;
+                }
 
                 try
                 {
-                    client.Send(ms, item);
+                    client.Send(entity.GetStream(), item);
                     data = client.Receive();
+                    ep = item;
 
                     if (data != null && data.Length > 0) break;
                 }
                 catch { }
             }
 
+            DNSEntity entity2 = null;
             try
             {
                 // 解析父级代理返回的数据
-                var entity2 = DNSEntity.Read(new MemoryStream(data));
+                entity2 = DNSEntity.Read(data);
 
                 // 处理，修改
-                WriteLog("上级返回 {0}", entity2);
-
-                // 重新封装为二进制
-                ms = new MemoryStream();
-                entity2.Write(ms);
+                WriteLog("{0} 返回 {1}", ep, entity2);
             }
             catch (Exception ex)
             {
@@ -74,10 +87,7 @@ namespace NewLife.Net.Protocols.DNS
                 File.WriteAllBytes(file, data);
             }
 
-            // 返回给客户端
-            ms.Position = 0;
-            session.Send(ms, e.RemoteEndPoint);
-            session.Disconnect();
+            return entity2;
         }
         #endregion
     }
