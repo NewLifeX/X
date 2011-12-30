@@ -1579,6 +1579,7 @@ namespace NewLife.Serialization
                 return rs;
             }
 #if !DEBUG
+            catch (XException) { throw; }
             catch (Exception ex)
             {
                 throw new XSerializationException(member, ex);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using NewLife.Serialization;
@@ -177,6 +178,7 @@ namespace NewLife.Net.Protocols.DNS
             }
         }
 
+        [DebuggerHidden]
         static DNSNameAccessor GetNameAccessor(IReaderWriter rw)
         {
             var accessor = rw.Items["Names"] as DNSNameAccessor;

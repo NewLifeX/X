@@ -5,6 +5,7 @@ using System.Net;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
 using NewLife.Collections;
+using System.Net.Sockets;
 
 namespace NewLife.Net.Protocols.DNS
 {
@@ -12,9 +13,9 @@ namespace NewLife.Net.Protocols.DNS
     public class DNSServer : NetServer
     {
         #region 属性
-        private List<IPEndPoint> _Parents;
+        private Dictionary<ProtocolType, IPEndPoint> _Parents;
         /// <summary>上级DNS地址</summary>
-        public List<IPEndPoint> Parents { get { return _Parents ?? (_Parents = new List<IPEndPoint>()); } set { _Parents = value; } }
+        public Dictionary<ProtocolType, IPEndPoint> Parents { get { return _Parents ?? (_Parents = new Dictionary<ProtocolType, IPEndPoint>()); } set { _Parents = value; } }
         #endregion
 
         #region 构造
@@ -30,9 +31,10 @@ namespace NewLife.Net.Protocols.DNS
         protected override void OnReceived(object sender, NetEventArgs e)
         {
             var session = e.Socket as ISocketSession;
+            Boolean isTcp = session.ProtocolType == ProtocolType.Tcp;
 
             // 解析
-            var entity = DNSEntity.Read(e.GetStream());
+            var entity = DNSEntity.Read(e.GetStream(), isTcp);
 
             // 处理，修改
             WriteLog("{0} 请求 {1}", e.RemoteEndPoint, entity);
@@ -41,7 +43,7 @@ namespace NewLife.Net.Protocols.DNS
             entity = cache.GetItem<DNSEntity>(entity.ToString(), entity, GetDNS);
 
             // 返回给客户端
-            session.Send(entity.GetStream(), e.RemoteEndPoint);
+            session.Send(entity.GetStream(isTcp), e.RemoteEndPoint);
             session.Disconnect();
         }
 
@@ -49,22 +51,25 @@ namespace NewLife.Net.Protocols.DNS
         {
             // 请求父级代理
             IPEndPoint ep = null;
+            Boolean isTcp = false;
             Byte[] data = null;
             foreach (var item in Parents)
             {
-                var client = new UdpClientX();
+                isTcp = item.Key == ProtocolType.Tcp;
+                var client = NetService.Resolve<ISocketClient>(item.Key);
                 // 如果是PTR请求
                 if (entity is DNS_PTR)
                 {
                     var ptr = entity as DNS_PTR;
-                    ptr.Address = item.Address;
+                    ptr.Address = item.Value.Address;
                 }
 
                 try
                 {
-                    client.Send(entity.GetStream(), item);
+                    client.Connect(item.Value);
+                    client.Send(entity.GetStream(isTcp), item.Value);
                     data = client.Receive();
-                    ep = item;
+                    ep = item.Value;
 
                     if (data != null && data.Length > 0) break;
                 }
@@ -75,7 +80,7 @@ namespace NewLife.Net.Protocols.DNS
             try
             {
                 // 解析父级代理返回的数据
-                entity2 = DNSEntity.Read(data);
+                entity2 = DNSEntity.Read(data, isTcp);
 
                 // 处理，修改
                 WriteLog("{0} 返回 {1}", ep, entity2);

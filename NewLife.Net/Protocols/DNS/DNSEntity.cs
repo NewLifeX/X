@@ -144,6 +144,7 @@ namespace NewLife.Net.Protocols.DNS
                 WriteRaw(ms);
 
                 Byte[] data = BitConverter.GetBytes((Int16)ms.Length);
+                Array.Reverse(data);
                 stream.Write(data, 0, data.Length);
                 ms.WriteTo(stream);
             }
@@ -183,14 +184,37 @@ namespace NewLife.Net.Protocols.DNS
 
         /// <summary>从数据中读取对象</summary>
         /// <param name="data"></param>
+        /// <param name="forTcp">是否是Tcp，Tcp需要增加整个流长度</param>
         /// <returns></returns>
-        public static DNSEntity Read(Byte[] data) { return Read(new MemoryStream(data)); }
+        public static DNSEntity Read(Byte[] data, Boolean forTcp = false)
+        {
+            if (data == null || data.Length < 1) return null;
+
+            return Read(new MemoryStream(data), forTcp);
+        }
 
         /// <summary>从数据流中读取对象，返回<see cref="DNS_A"/>、<see cref="DNS_PTR"/>等真实对象</summary>
         /// <param name="stream"></param>
+        /// <param name="forTcp">是否是Tcp，Tcp需要增加整个流长度</param>
         /// <returns></returns>
-        public static DNSEntity Read(Stream stream)
+        public static DNSEntity Read(Stream stream, Boolean forTcp = false)
         {
+            // 跳过2个字节的长度
+            if (forTcp)
+            {
+                //stream.Seek(2, SeekOrigin.Current);
+                // 必须全部先读出来，否则内部的字符串映射位移不正确
+                Byte[] data = new Byte[2];
+                stream.Read(data, 0, data.Length);
+                // 网络序变为主机序
+                Array.Reverse(data);
+                var len = BitConverter.ToInt16(data, 0);
+                data = new Byte[len];
+                stream.Read(data, 0, data.Length);
+
+                stream = new MemoryStream(data);
+            }
+
             // 先读取
             var entity = ReadRaw(stream);
             if (entity != null && entity.Question != null)

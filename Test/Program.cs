@@ -16,6 +16,7 @@ using XCode.Code;
 using XCode.DataAccessLayer;
 using System.Net.Sockets;
 using NewLife.Net.Proxy;
+using NewLife.Net.Tcp;
 
 namespace Test
 {
@@ -146,10 +147,20 @@ namespace Test
             //var entity = DNSEntity.Read(File.OpenRead("dns_1230093904.bin"));
             //Console.WriteLine(entity);
 
+            //var entity = new DNS_A();
+            //entity.Name = "ipv6.g.cn";
+            //var client = new TcpClientX();
+            //client.Connect("8.8.8.8", 53);
+            //client.Send(entity.GetStream(true));
+
+            //var data = client.Receive();
+            //var entity2 = DNSEntity.Read(data, true);
+            //Console.WriteLine(entity2);
+
             var server = new DNSServer();
             server.Port = 53;
-            server.Parents.Add(new IPEndPoint(NetHelper.ParseAddress("8.8.8.8"), 53));
-            server.Parents.Add(new IPEndPoint(NetHelper.ParseAddress("192.168.1.1"), 53));
+            server.Parents.Add(ProtocolType.Tcp, new IPEndPoint(NetHelper.ParseAddress("8.8.8.8"), 53));
+            server.Parents.Add(ProtocolType.Udp, new IPEndPoint(NetHelper.ParseAddress("192.168.1.1"), 53));
             server.Start();
 
             //AppTest.Start();

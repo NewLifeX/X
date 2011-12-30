@@ -3,6 +3,7 @@ using NewLife.IO;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using NewLife.Exceptions;
 
 namespace NewLife.Net.Protocols.DNS
 {
@@ -20,9 +21,25 @@ namespace NewLife.Net.Protocols.DNS
         #endregion
 
         #region 方法
-        String this[Int32 key] { get { return Values[Keys.IndexOf(key)]; } }
+        String this[Int32 key]
+        {
+            get
+            {
+                var p = Keys.IndexOf(key);
+                if (p < 0) throw new XException("DNS名称解析未找到序号为{0}的字符串！", key);
+                return Values[p];
+            }
+        }
 
-        Int32 this[String value] { get { return Keys[Values.IndexOf(value)]; } }
+        Int32 this[String value]
+        {
+            get
+            {
+                var p = Values.IndexOf(value);
+                if (p < 0) throw new XException("DNS名称解析未找到字符串为{0}的序号！", value);
+                return Keys[p];
+            }
+        }
 
         public String Read(Stream stream, Int64 offset)
         {
