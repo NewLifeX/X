@@ -29,6 +29,11 @@ namespace NewLife.Net.Protocols.Http
         const String VersionPrefix = "HTTP/";
         #endregion
 
+        #region 扩展属性
+        /// <summary>原始地址。直接代理会包括全路径</summary>
+        public String RawUrl { get { return Url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ? Url : String.Format("http://{0}{1}", Headers["Host"], Url); } }
+        #endregion
+
         #region 方法
         /// <summary>从流中读取Http头部对象</summary>
         /// <param name="stream"></param>
@@ -60,17 +65,20 @@ namespace NewLife.Net.Protocols.Http
         public void Write(Stream stream)
         {
             // StreamWriter太恶心了，自动把流给关闭了，还没有地方设置
-            using (StreamWriter writer = new StreamWriter(stream))
-            {
-                var ver = Version;
-                if (!ver.StartsWith(VersionPrefix, StringComparison.OrdinalIgnoreCase)) ver = VersionPrefix + ver;
-                writer.WriteLine("{0} {1} {2}", Verb, Url, ver);
-                foreach (var item in Headers)
-                {
-                    writer.WriteLine("{0}: {1}", item.Key, item.Value);
-                }
-                writer.WriteLine();
-            }
+            //using (StreamWriter writer = new StreamWriter(stream))
+            //{
+            //    var ver = Version;
+            //    if (!ver.StartsWith(VersionPrefix, StringComparison.OrdinalIgnoreCase)) ver = VersionPrefix + ver;
+            //    writer.WriteLine("{0} {1} {2}", Verb, Url, ver);
+            //    foreach (var item in Headers)
+            //    {
+            //        writer.WriteLine("{0}: {1}", item.Key, item.Value);
+            //    }
+            //    writer.WriteLine();
+            //}
+
+            Byte[] buffer = Encoding.ASCII.GetBytes(this.ToString());
+            stream.Write(buffer, 0, buffer.Length);
         }
 
         /// <summary>已重载。以文本形式呈现整个头部</summary>

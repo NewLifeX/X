@@ -157,25 +157,25 @@ namespace Test
             //var entity2 = DNSEntity.Read(data, true);
             //Console.WriteLine(entity2);
 
-            var server = new DNSServer();
-            server.Port = 53;
-            //server.Parents.Add(new IPEndPoint(NetHelper.ParseAddress("192.168.1.10"), 53), ProtocolType.Tcp);
-            server.Parents.Add(new IPEndPoint(NetHelper.ParseAddress("8.8.8.8"), 53), ProtocolType.Tcp);
-            server.Parents.Add(new IPEndPoint(NetHelper.ParseAddress("192.168.1.1"), 53), ProtocolType.Udp);
-            server.Start();
+            //var server = new DNSServer();
+            //server.Port = 53;
+            ////server.Parents.Add(new IPEndPoint(NetHelper.ParseAddress("192.168.1.10"), 53), ProtocolType.Tcp);
+            //server.Parents.Add(new IPEndPoint(NetHelper.ParseAddress("8.8.8.8"), 53), ProtocolType.Tcp);
+            //server.Parents.Add(new IPEndPoint(NetHelper.ParseAddress("192.168.1.1"), 53), ProtocolType.Udp);
+            //server.Start();
 
             //AppTest.Start();
             //NetHelper.Wake("00-24-8C-04-C0-9B", "00-24-8C-04-C0-91");
 
-            //var proxy = new XProxy();
-            //proxy.Port = 888;
-            //proxy.ProtocolType = ProtocolType.Tcp;
-            //proxy.ServerAddress = "www.baidu.com";
-            //proxy.ServerPort = 80;
-            //var filter = new HttpFilter();
-            //filter.Proxy = proxy;
-            //proxy.Filters.Add(filter);
-            //proxy.Start();
+            var proxy = new XProxy();
+            proxy.Port = 888;
+            proxy.ProtocolType = ProtocolType.Tcp;
+            proxy.ServerAddress = "www.baidu.com";
+            proxy.ServerPort = 80;
+            var filter = new HttpFilter();
+            filter.Proxy = proxy;
+            proxy.Filters.Add(filter);
+            proxy.Start();
 
             //var proxy = new XProxy();
             //proxy.Port = 53;
