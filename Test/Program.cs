@@ -159,8 +159,9 @@ namespace Test
 
             var server = new DNSServer();
             server.Port = 53;
-            server.Parents.Add(ProtocolType.Tcp, new IPEndPoint(NetHelper.ParseAddress("8.8.8.8"), 53));
-            server.Parents.Add(ProtocolType.Udp, new IPEndPoint(NetHelper.ParseAddress("192.168.1.1"), 53));
+            //server.Parents.Add(new IPEndPoint(NetHelper.ParseAddress("192.168.1.10"), 53), ProtocolType.Tcp);
+            server.Parents.Add(new IPEndPoint(NetHelper.ParseAddress("8.8.8.8"), 53), ProtocolType.Tcp);
+            server.Parents.Add(new IPEndPoint(NetHelper.ParseAddress("192.168.1.1"), 53), ProtocolType.Udp);
             server.Start();
 
             //AppTest.Start();

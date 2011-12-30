@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Net;
-using NewLife.Serialization;
 
 namespace NewLife.Net.Protocols.DNS
 {
@@ -16,7 +13,7 @@ namespace NewLife.Net.Protocols.DNS
         /// <summary>IP地址</summary>
         public IPAddress Address
         {
-            get { return !String.IsNullOrEmpty(DataString) ? IPAddress.Parse(DataString) : null; ; }
+            get { return !String.IsNullOrEmpty(DataString) ? IPAddress.Parse(DataString) : null; }
             set { DataString = value.ToString(); }
         }
         #endregion

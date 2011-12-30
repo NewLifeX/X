@@ -6,6 +6,7 @@ using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
 using NewLife.Collections;
 using System.Net.Sockets;
+using NewLife.Linq;
 
 namespace NewLife.Net.Protocols.DNS
 {
@@ -13,9 +14,13 @@ namespace NewLife.Net.Protocols.DNS
     public class DNSServer : NetServer
     {
         #region 属性
-        private Dictionary<ProtocolType, IPEndPoint> _Parents;
+        private String _DomainName;
+        /// <summary>域名</summary>
+        public String DomainName { get { return _DomainName ?? this.GetType().FullName; } set { _DomainName = value; } }
+
+        private Dictionary<IPEndPoint, ProtocolType> _Parents;
         /// <summary>上级DNS地址</summary>
-        public Dictionary<ProtocolType, IPEndPoint> Parents { get { return _Parents ?? (_Parents = new Dictionary<ProtocolType, IPEndPoint>()); } set { _Parents = value; } }
+        public Dictionary<IPEndPoint, ProtocolType> Parents { get { return _Parents ?? (_Parents = new Dictionary<IPEndPoint, ProtocolType>()); } set { _Parents = value; } }
         #endregion
 
         #region 构造
@@ -37,13 +42,33 @@ namespace NewLife.Net.Protocols.DNS
             var entity = DNSEntity.Read(e.GetStream(), isTcp);
 
             // 处理，修改
-            WriteLog("{0} 请求 {1}", e.RemoteEndPoint, entity);
+            WriteLog("{0}://{1} 请求 {2}", session.ProtocolType, e.RemoteEndPoint, entity);
 
             // 读取缓存
-            entity = cache.GetItem<DNSEntity>(entity.ToString(), entity, GetDNS, false);
+            var entity2 = cache.GetItem<DNSEntity>(entity.ToString(), entity, GetDNS, false);
+            //var entity2 = GetDNS(null, entity);
 
             // 返回给客户端
-            if (entity != null) session.Send(entity.GetStream(isTcp), e.RemoteEndPoint);
+            if (entity2 != null)
+            {
+                // 如果是PTR请求
+                if (entity is DNS_PTR && entity2 is DNS_PTR)
+                {
+                    var ptr = entity as DNS_PTR;
+                    var ptr2 = entity2 as DNS_PTR;
+                    ptr2.Name = ptr.Name;
+                    ptr2.DomainName = DomainName;
+                    if (ptr2.Answers != null && ptr2.Answers.Length > 0)
+                    {
+                        foreach (var item in ptr2.Answers)
+                        {
+                            if (item.Type == DNSQueryType.PTR) item.Name = ptr.Name;
+                        }
+                    }
+                }
+                entity2.Header.ID = entity.Header.ID;
+                session.Send(entity2.GetStream(isTcp), e.RemoteEndPoint);
+            }
             session.Disconnect();
         }
 
@@ -51,25 +76,30 @@ namespace NewLife.Net.Protocols.DNS
         {
             // 请求父级代理
             IPEndPoint ep = null;
+            ProtocolType pt = ProtocolType.Tcp;
             Boolean isTcp = false;
             Byte[] data = null;
             foreach (var item in Parents)
             {
-                isTcp = item.Key == ProtocolType.Tcp;
-                var client = NetService.Resolve<ISocketClient>(item.Key);
+                isTcp = item.Value == ProtocolType.Tcp;
+                var client = NetService.Resolve<ISocketClient>(item.Value);
+                ep = item.Key;
+                pt = item.Value;
                 // 如果是PTR请求
                 if (entity is DNS_PTR)
                 {
+                    // 复制一份，防止修改外部
+                    entity = new DNS_PTR().CloneFrom(entity);
+
                     var ptr = entity as DNS_PTR;
-                    ptr.Address = item.Value.Address;
+                    ptr.Address = ep.Address;
                 }
 
                 try
                 {
-                    client.Connect(item.Value);
-                    client.Send(entity.GetStream(isTcp), item.Value);
+                    client.Connect(ep);
+                    client.Send(entity.GetStream(isTcp), ep);
                     data = client.Receive();
-                    ep = item.Value;
 
                     if (data != null && data.Length > 0) break;
                 }
@@ -84,7 +114,7 @@ namespace NewLife.Net.Protocols.DNS
                 entity2 = DNSEntity.Read(data, isTcp);
 
                 // 处理，修改
-                WriteLog("{0} 返回 {1}", ep, entity2);
+                WriteLog("{0}://{1} 返回 {2}", pt, ep, entity2);
             }
             catch (Exception ex)
             {

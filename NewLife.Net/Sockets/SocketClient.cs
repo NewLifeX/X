@@ -158,7 +158,8 @@ namespace NewLife.Net.Sockets
         {
             Int64 total = 0;
 
-            Byte[] buffer = new Byte[BufferSize];
+            var size = stream.CanSeek ? stream.Length - stream.Position : BufferSize;
+            Byte[] buffer = new Byte[size];
             while (true)
             {
                 Int32 n = stream.Read(buffer, 0, buffer.Length);

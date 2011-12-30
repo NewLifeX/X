@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics;
 using System.IO;
-using NewLife.Serialization;
-using NewLife.Net.Sockets;
-using NewLife.Net;
+using System.Text;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Net.Protocols.DNS
 {
@@ -14,24 +13,24 @@ namespace NewLife.Net.Protocols.DNS
     public abstract class DNSBase<TEntity> : DNSEntity where TEntity : DNSBase<TEntity>
     {
         #region 读写
-//        /// <summary>从数据流中读取对象</summary>
-//        /// <param name="stream"></param>
-//        /// <returns></returns>
-//        public new static TEntity Read(Stream stream)
-//        {
-//            BinaryReaderX reader = new BinaryReaderX();
-//            reader.Settings.IsLittleEndian = false;
-//            reader.Settings.UseObjRef = false;
-//            reader.Stream = stream;
-//#if DEBUG
-//            if (NetHelper.Debug)
-//            {
-//                reader.Debug = true;
-//                reader.EnableTraceStream();
-//            }
-//#endif
-//            return reader.ReadObject<TEntity>();
-//        }
+        //        /// <summary>从数据流中读取对象</summary>
+        //        /// <param name="stream"></param>
+        //        /// <returns></returns>
+        //        public new static TEntity Read(Stream stream)
+        //        {
+        //            BinaryReaderX reader = new BinaryReaderX();
+        //            reader.Settings.IsLittleEndian = false;
+        //            reader.Settings.UseObjRef = false;
+        //            reader.Stream = stream;
+        //#if DEBUG
+        //            if (NetHelper.Debug)
+        //            {
+        //                reader.Debug = true;
+        //                reader.EnableTraceStream();
+        //            }
+        //#endif
+        //            return reader.ReadObject<TEntity>();
+        //        }
         #endregion
     }
 
@@ -223,12 +222,7 @@ namespace NewLife.Net.Protocols.DNS
                 if (entitytypes.TryGetValue(entity.Type, out type) && type != null)
                 {
                     var de = TypeX.CreateInstance(type) as DNSEntity;
-                    de.Header = entity.Header;
-                    de.Questions = entity.Questions;
-                    de.Answers = entity.Answers;
-                    de.Authoritis = entity.Authoritis;
-                    de.Additionals = entity.Additionals;
-                    return de;
+                    return de.CloneFrom(entity);
                 }
             }
 
@@ -260,7 +254,8 @@ namespace NewLife.Net.Protocols.DNS
         static DNSEntity()
         {
             entitytypes.Add(DNSQueryType.A, typeof(DNS_A));
-            entitytypes.Add(DNSQueryType.AAAA, typeof(DNS_A));
+            entitytypes.Add(DNSQueryType.AAAA, typeof(DNS_AAAA));
+            entitytypes.Add(DNSQueryType.CNAME, typeof(DNS_CNAME));
             entitytypes.Add(DNSQueryType.PTR, typeof(DNS_PTR));
         }
         #endregion
@@ -298,10 +293,24 @@ namespace NewLife.Net.Protocols.DNS
         #endregion
 
         #region 辅助
+        /// <summary>复制</summary>
+        /// <param name="entity"></param>
+        public virtual DNSEntity CloneFrom(DNSEntity entity)
+        {
+            var de = this;
+            de.Header = entity.Header;
+            de.Questions = entity.Questions;
+            de.Answers = entity.Answers;
+            de.Authoritis = entity.Authoritis;
+            de.Additionals = entity.Additionals;
+            return de;
+        }
+
         /// <summary>
         /// 已重载。
         /// </summary>
         /// <returns></returns>
+        [DebuggerHidden]
         public override string ToString()
         {
             if (!Response)
@@ -313,7 +322,7 @@ namespace NewLife.Net.Protocols.DNS
             {
                 StringBuilder sb = new StringBuilder();
 
-                if (Answers != null)
+                if (Answers != null && Answers.Length > 0)
                 {
                     foreach (var item in Answers)
                     {
@@ -321,6 +330,16 @@ namespace NewLife.Net.Protocols.DNS
                         sb.Append(item);
                     }
                 }
+                else if (Authoritis != null && Authoritis.Length > 0)
+                {
+                    foreach (var item in Authoritis)
+                    {
+                        if (sb.Length > 0) sb.Append(" ");
+                        sb.Append(item);
+                    }
+                }
+                else if (Header.ResponseCode == 3)
+                    sb.Append("No such name");
 
                 return String.Format("Response {0}", sb);
             }

@@ -55,6 +55,8 @@
     <Compile Include="Protocols\DNS\DNSNameAccessor.cs" />
     <Compile Include="Protocols\DNS\DNSRecord.cs" />
     <Compile Include="Protocols\DNS\DNSServer.cs" />
+    <Compile Include="Protocols\DNS\DNS_AAAA.cs" />
+    <Compile Include="Protocols\DNS\DNS_CNAME.cs" />
     <Compile Include="Protocols\DNS\DNS_PTR.cs" />
     <Compile Include="Protocols\Http\HttpHeader.cs" />
     <Compile Include="Protocols\LineParser.cs" />
