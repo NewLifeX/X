@@ -55,6 +55,8 @@ namespace NewLife.Net.Protocols.Http
             return entity;
         }
 
+        /// <summary>往流中写入Http头</summary>
+        /// <param name="stream"></param>
         public void Write(Stream stream)
         {
             // StreamWriter太恶心了，自动把流给关闭了，还没有地方设置
@@ -71,6 +73,8 @@ namespace NewLife.Net.Protocols.Http
             }
         }
 
+        /// <summary>已重载。以文本形式呈现整个头部</summary>
+        /// <returns></returns>
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();

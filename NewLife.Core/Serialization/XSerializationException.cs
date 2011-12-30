@@ -17,6 +17,10 @@ namespace NewLife.Serialization
             //set { _Member = value; }
         }
 
+        private Object _Value;
+        /// <summary>对象值</summary>
+        public Object Value { get { return _Value; } set { _Value = value; } }
+
         #region 构造
         /// <summary>
         /// 初始化

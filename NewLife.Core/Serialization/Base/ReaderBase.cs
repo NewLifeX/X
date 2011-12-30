@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization;
@@ -1137,20 +1138,40 @@ namespace NewLife.Serialization
         /// <summary>主要入口方法。从数据流中读取指定类型的对象</summary>
         /// <param name="type">类型</param>
         /// <returns>对象</returns>
+        [DebuggerHidden]
         public Object ReadObject(Type type)
         {
             Object value = null;
-            return ReadObject(type, ref value, null) ? value : null;
+            try
+            {
+                return ReadObject(type, ref value, null) ? value : null;
+            }
+            catch (XSerializationException ex)
+            {
+                // 如果本身就是序列化异常，砍断内部的异常链，太长没有意义
+                var se = new XSerializationException(ex.Member, "读取对象出错，可能已读取部分，请查看Value属性！" + ex.Message);
+                se.Value = value;
+                throw se;
+            }
+            catch (Exception ex)
+            {
+                // 如果不是序列化异常，则包括内部异常链
+                var se = new XSerializationException(null, "读取对象出错，可能已读取部分，请查看Value属性！", ex);
+                se.Value = value;
+                throw se;
+            }
         }
 
         /// <summary>主要入口方法。从数据流中读取指定类型的对象</summary>
         /// <returns>对象</returns>
+        [DebuggerHidden]
         public T ReadObject<T>() { return (T)ReadObject(typeof(T)); }
 
         /// <summary>主要入口方法。尝试读取目标对象指定成员的值，通过委托方法递归处理成员</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns>是否读取成功</returns>
+        [DebuggerHidden]
         public Boolean ReadObject(Type type, ref Object value) { return ReadObject(type, ref value, ReadMember); }
 
         /// <summary>
@@ -1160,6 +1181,7 @@ namespace NewLife.Serialization
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
+        [DebuggerHidden]
         public Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback)
         {
             if (type == null && value != null) type = value.GetType();

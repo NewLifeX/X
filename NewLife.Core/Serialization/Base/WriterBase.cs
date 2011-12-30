@@ -1,7 +1,7 @@
 ﻿using System;
-using NewLife.IO;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization;
@@ -750,6 +750,7 @@ namespace NewLife.Serialization
         /// <summary>主要入口方法。把对象写入数据流</summary>
         /// <param name="value">对象</param>
         /// <returns>是否写入成功</returns>
+        [DebuggerHidden]
         public Boolean WriteObject(Object value) { return WriteObject(value, null, WriteMember); }
 
         /// <summary>
@@ -759,6 +760,7 @@ namespace NewLife.Serialization
         /// <param name="type">要写入的对象类型</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否写入成功</returns>
+        [DebuggerHidden]
         public Boolean WriteObject(Object value, Type type, WriteObjectCallback callback)
         {
             if (type == null && value != null) type = value.GetType();

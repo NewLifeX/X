@@ -46,10 +46,12 @@ namespace NewLife.Net.Protocols.DNS
                 String str = null;
 
                 // 0xC0表示是引用，下一个地址指示偏移量
-                if (n == 0xC0)
+                //if (n == 0xC0)
+                if (n >= 0xC0)
                 {
                     var n2 = stream.ReadByte();
-                    str = this[n2];
+                    // 偏移量的标准公式是：(Cn-C0)*256+偏移
+                    str = this[(n - 0xC0) * 256 + n2];
 
                     // 之前的每个加上str
                     for (int i = 0; i < values.Count; i++) values[i] += "." + str;
