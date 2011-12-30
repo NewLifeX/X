@@ -71,7 +71,7 @@ namespace NewLife.Collections
 
                 value = func(key);
                 //Add(key, value);
-                if (cacheDefault || Object.Equals(value, default(TValue))) this[key] = value;
+                if (cacheDefault || !Object.Equals(value, default(TValue))) this[key] = value;
 
                 return value;
             }
@@ -111,7 +111,7 @@ namespace NewLife.Collections
 
                 value = func(key, arg);
                 //Add(key, value);
-                if (cacheDefault || Object.Equals(value, default(TValue))) this[key] = value;
+                if (cacheDefault || !Object.Equals(value, default(TValue))) this[key] = value;
 
                 return value;
             }
@@ -155,7 +155,7 @@ namespace NewLife.Collections
 
                 value = func(key, arg, arg2);
                 //Add(key, value);
-                if (cacheDefault || Object.Equals(value, default(TValue))) this[key] = value;
+                if (cacheDefault || !Object.Equals(value, default(TValue))) this[key] = value;
 
                 return value;
             }
@@ -203,7 +203,7 @@ namespace NewLife.Collections
 
                 value = func(key, arg, arg2, arg3);
                 //Add(key, value);
-                if (cacheDefault || Object.Equals(value, default(TValue))) this[key] = value;
+                if (cacheDefault || !Object.Equals(value, default(TValue))) this[key] = value;
 
                 return value;
             }
@@ -235,7 +235,7 @@ namespace NewLife.Collections
 
                 value = func(key, arg, arg2, arg3, arg4);
                 //Add(key, value);
-                if (cacheDefault || Object.Equals(value, default(TValue))) this[key] = value;
+                if (cacheDefault || !Object.Equals(value, default(TValue))) this[key] = value;
 
                 return value;
             }

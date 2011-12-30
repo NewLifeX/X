@@ -1,4 +1,6 @@
-﻿v3.5.2011.1220   序列化框架，FieldSizeAttribute支持样式的多层次引用字段
+﻿v3.5.2011.1230   修正DictionaryCache中GetItem方法cacheDefault参数的严重错误
+
+v3.5.2011.1220   序列化框架，FieldSizeAttribute支持样式的多层次引用字段
                  CurrentObject、CurrentMember移到接口中公开
                  读取对象时，如果目标实现了IAccessor接口而对象为空，则提前实例化对象
 				 DisposeBase增加OnDisposed事件，在基类OnDispose之后触发
