@@ -14,24 +14,24 @@ namespace NewLife.Net.Protocols.DNS
     public abstract class DNSBase<TEntity> : DNSEntity where TEntity : DNSBase<TEntity>
     {
         #region 读写
-        /// <summary>从数据流中读取对象</summary>
-        /// <param name="stream"></param>
-        /// <returns></returns>
-        public new static TEntity Read(Stream stream)
-        {
-            BinaryReaderX reader = new BinaryReaderX();
-            reader.Settings.IsLittleEndian = false;
-            reader.Settings.UseObjRef = false;
-            reader.Stream = stream;
-#if DEBUG
-            if (NetHelper.Debug)
-            {
-                reader.Debug = true;
-                reader.EnableTraceStream();
-            }
-#endif
-            return reader.ReadObject<TEntity>();
-        }
+//        /// <summary>从数据流中读取对象</summary>
+//        /// <param name="stream"></param>
+//        /// <returns></returns>
+//        public new static TEntity Read(Stream stream)
+//        {
+//            BinaryReaderX reader = new BinaryReaderX();
+//            reader.Settings.IsLittleEndian = false;
+//            reader.Settings.UseObjRef = false;
+//            reader.Stream = stream;
+//#if DEBUG
+//            if (NetHelper.Debug)
+//            {
+//                reader.Debug = true;
+//                reader.EnableTraceStream();
+//            }
+//#endif
+//            return reader.ReadObject<TEntity>();
+//        }
         #endregion
     }
 

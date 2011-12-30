@@ -40,10 +40,10 @@ namespace NewLife.Net.Protocols.DNS
             WriteLog("{0} 请求 {1}", e.RemoteEndPoint, entity);
 
             // 读取缓存
-            entity = cache.GetItem<DNSEntity>(entity.ToString(), entity, GetDNS);
+            entity = cache.GetItem<DNSEntity>(entity.ToString(), entity, GetDNS, false);
 
             // 返回给客户端
-            session.Send(entity.GetStream(isTcp), e.RemoteEndPoint);
+            if (entity != null) session.Send(entity.GetStream(isTcp), e.RemoteEndPoint);
             session.Disconnect();
         }
 
@@ -75,6 +75,7 @@ namespace NewLife.Net.Protocols.DNS
                 }
                 catch { }
             }
+            if (data == null || data.Length < 1) return null;
 
             DNSEntity entity2 = null;
             try

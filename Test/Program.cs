@@ -61,16 +61,16 @@ namespace Test
 
             //var eop = DAL.Create("Common").CreateOperate("Log");
 
-            String file = "qq.bin";
+            //String file = "qq.bin";
 
-            DNS_A dns = DNS_A.Read(File.OpenRead("qqrs.bin"));
-            Console.WriteLine(dns);
-            Console.ReadKey(true);
+            //DNS_A dns = DNS_A.Read(File.OpenRead("qqrs.bin"));
+            //Console.WriteLine(dns);
+            //Console.ReadKey(true);
 
-            using (FileStream fs = File.Create("qq_.bin"))
-            {
-                dns.Write(fs);
-            }
+            //using (FileStream fs = File.Create("qq_.bin"))
+            //{
+            //    dns.Write(fs);
+            //}
         }
 
         static void Test2()
