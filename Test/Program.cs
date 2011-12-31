@@ -6,18 +6,14 @@ using System.Net;
 using System.Threading;
 using NewLife.IO;
 using NewLife.Log;
-using NewLife.Net;
-using NewLife.Net.Protocols.DNS;
+using NewLife.Net.DNS;
 using NewLife.Net.Sockets;
+using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
 using NewLife.Reflection;
 using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
-using System.Net.Sockets;
-using NewLife.Net.Proxy;
-using NewLife.Net.Tcp;
-using System.Text;
 
 namespace Test
 {
@@ -34,7 +30,7 @@ namespace Test
                 try
                 {
 #endif
-                Test4();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)

@@ -91,6 +91,12 @@
     <Compile Include="Proxy\ProxyBase.cs" />
     <Compile Include="Proxy\XProxy.cs" />
     <None Include="SNTP\SNTPClient.cs" />
+    <Compile Include="Sdp\SdpAttribute.cs" />
+    <Compile Include="Sdp\SdpConnection.cs" />
+    <Compile Include="Sdp\SdpMediaDescription.cs" />
+    <Compile Include="Sdp\SdpMessage.cs" />
+    <Compile Include="Sdp\SdpOrigin.cs" />
+    <Compile Include="Sdp\SdpTime.cs" />
     <Compile Include="Sip\Message\SipACValue.cs" />
     <Compile Include="Sip\Message\SipNameAddress.cs" />
     <Compile Include="Sip\Message\SipValue.cs" />
