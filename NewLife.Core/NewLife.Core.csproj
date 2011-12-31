@@ -115,6 +115,7 @@
     <Compile Include="Serialization\Binary\BinarySettings.cs" />
     <Compile Include="Serialization\Binary\BinaryWriterX.cs" />
     <Compile Include="Serialization\Binary\FieldSizeAttribute.cs" />
+    <Compile Include="Serialization\Json\JsonAtomStringReader.cs" />
     <Compile Include="Serialization\NameValue\NameValueReader.cs" />
     <Compile Include="Serialization\Interface\IAccessor.cs" />
     <Compile Include="Serialization\Info\IObjectMemberInfo.cs" />

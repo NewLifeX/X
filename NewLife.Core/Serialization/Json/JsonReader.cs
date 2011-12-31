@@ -1455,36 +1455,6 @@ namespace NewLife.Serialization
             #endregion
         }
 
-        /// <summary>json reader解析异常,主要是信息格式不正确</summary>
-        public class JsonReaderParseException : XException
-        {
-            /// <summary>构造一个解析异常</summary>
-            /// <param name="line">行</param>
-            /// <param name="column">列</param>
-            /// <param name="message">额外的异常信息</param>
-            public JsonReaderParseException(long line, long column, string message)
-                : base(message)
-            {
-                this.Line = line;
-                this.Column = column;
-            }
-
-            /// <summary>
-            /// 解析异常的行
-            /// </summary>
-            public long Line { get; protected set; }
-
-            /// <summary>
-            /// 解析异常的列
-            /// </summary>
-            public long Column { get; protected set; }
-
-            /// <summary>
-            /// 解析异常的详细信息
-            /// </summary>
-            public override string Message { get { return string.Format("在解析行{0}:字符{1}时发生了异常:{2}", Line, Column, base.Message); } }
-        }
-
         /// <summary>
         /// json reader断言异常,属于解析异常的一部分,主要是提供的数据不符合约定
         /// </summary>
