@@ -49,28 +49,27 @@
     <Compile Include="Common\NetException.cs" />
     <Compile Include="Common\Statistics.cs" />
     <Compile Include="NetService.cs" />
-    <Compile Include="Protocols\DNS\DNSClient.cs" />
-    <Compile Include="Protocols\DNS\DNSEntity.cs" />
-    <Compile Include="Protocols\DNS\DNSHeader.cs" />
-    <Compile Include="Protocols\DNS\DNSNameAccessor.cs" />
-    <Compile Include="Protocols\DNS\DNSRecord.cs" />
-    <Compile Include="Protocols\DNS\DNSServer.cs" />
-    <Compile Include="Protocols\DNS\DNS_AAAA.cs" />
-    <Compile Include="Protocols\DNS\DNS_CNAME.cs" />
-    <Compile Include="Protocols\DNS\DNS_PTR.cs" />
-    <Compile Include="Protocols\HTTP\HttpHeader.cs" />
-    <Compile Include="Protocols\LineParser.cs" />
-    <Compile Include="Protocols\NTP\NTPClient.cs" />
+    <Compile Include="DNS\DNSClient.cs" />
+    <Compile Include="DNS\DNSEntity.cs" />
+    <Compile Include="DNS\DNSHeader.cs" />
+    <Compile Include="DNS\DNSNameAccessor.cs" />
+    <Compile Include="DNS\DNSRecord.cs" />
+    <Compile Include="DNS\DNSServer.cs" />
+    <Compile Include="DNS\DNS_AAAA.cs" />
+    <Compile Include="DNS\DNS_CNAME.cs" />
+    <Compile Include="DNS\DNS_PTR.cs" />
+    <Compile Include="HTTP\HttpHeader.cs" />
+    <Compile Include="NTP\NTPClient.cs" />
     <Compile Include="Application\StreamServer.cs" />
     <Compile Include="Application\TimeServer.cs" />
     <Compile Include="Common\NetHelper.cs" />
     <Compile Include="IO\FileClient.cs" />
     <Compile Include="IO\FileFormat.cs" />
     <Compile Include="IO\FileServer.cs" />
-    <Compile Include="Protocols\DNS\DNSQueryType.cs" />
-    <Compile Include="Protocols\DNS\DNS_A.cs" />
-    <Compile Include="Protocols\NTP\NTPEnum.cs" />
-    <Compile Include="Protocols\NTP\NTP.cs" />
+    <Compile Include="DNS\DNSQueryType.cs" />
+    <Compile Include="DNS\DNS_A.cs" />
+    <Compile Include="NTP\NTPEnum.cs" />
+    <Compile Include="NTP\NTP.cs" />
     <Compile Include="Proxy\Filters\HttpFilter.cs" />
     <Compile Include="Proxy\IProxy.cs" />
     <Compile Include="Proxy\IProxyFilter.cs" />
@@ -93,6 +92,11 @@
     <Compile Include="Sockets\NetEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sockets\SocketStream.cs" />
+    <Compile Include="Stun\StunClient.cs" />
+    <Compile Include="Stun\StunMessage.cs" />
+    <Compile Include="Stun\StunMessageType.cs" />
+    <Compile Include="Stun\StunNetType.cs" />
+    <Compile Include="Stun\StunResult.cs" />
     <Compile Include="Tcp\TcpClientX.cs" />
     <Compile Include="Tcp\TcpServer.cs" />
     <Compile Include="Tcp\TcpSessionCollection.cs" />
@@ -128,10 +132,10 @@
     <Content Include="架构设计\NewLife_UdpServer.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Protocols\FTP\" />
-    <Folder Include="Protocols\POP3\" />
-    <Folder Include="Protocols\SMTP\" />
-    <Folder Include="Protocols\TELNET\" />
+    <Folder Include="FTP\" />
+    <Folder Include="POP3\" />
+    <Folder Include="SMTP\" />
+    <Folder Include="TELNET\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

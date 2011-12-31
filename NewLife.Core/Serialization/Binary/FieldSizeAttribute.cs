@@ -30,6 +30,11 @@ namespace NewLife.Serialization
         /// <param name="referenceName"></param>
         public FieldSizeAttribute(String referenceName) { ReferenceName = referenceName; }
 
+        /// <summary>指定参考字段ReferenceName，然后从其中获取大小</summary>
+        /// <param name="referenceName"></param>
+        /// <param name="size">在参考字段值基础上的增量，可以是正数负数</param>
+        public FieldSizeAttribute(String referenceName, Int32 size) { ReferenceName = referenceName; Size = size; }
+
         #region 方法
         /// <summary>找到所引用的参考字段</summary>
         /// <param name="target"></param>
@@ -41,7 +46,7 @@ namespace NewLife.Serialization
             value = null;
 
             if (member == null) return null;
-            if (Size > 0 || String.IsNullOrEmpty(ReferenceName)) return null;
+            if (String.IsNullOrEmpty(ReferenceName)) return null;
 
             // 考虑ReferenceName可能是圆点分隔的多重结构
             MemberInfoX mx = null;
@@ -106,7 +111,7 @@ namespace NewLife.Serialization
             }
 
             // 给参考字段赋值
-            mx.SetValue(v, size);
+            mx.SetValue(v, size - Size);
         }
 
         /// <summary>获取目标对象的引用大小值</summary>
@@ -119,7 +124,7 @@ namespace NewLife.Serialization
             var mx = FindReference(target, member, out v);
             if (mx == null) return -1;
 
-            return Convert.ToInt32(mx.GetValue(v));
+            return Convert.ToInt32(mx.GetValue(v)) + Size;
         }
         #endregion
     }

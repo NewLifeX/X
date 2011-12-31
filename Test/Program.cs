@@ -17,6 +17,7 @@ using XCode.DataAccessLayer;
 using System.Net.Sockets;
 using NewLife.Net.Proxy;
 using NewLife.Net.Tcp;
+using System.Text;
 
 namespace Test
 {
@@ -186,8 +187,11 @@ namespace Test
 
             var client = new TcpClientX();
             client.Connect("jslswb.com", 12);
+            //client.Connect("192.168.1.9", 12);
             var ep = client.LocalEndPoint;
-            client.Close();
+            var msg = client.ReceiveString();
+            Console.WriteLine("收到：{0}", msg);
+            //client.Close();
             Console.WriteLine("本地监听：{0}", ep);
 
             var server = new TcpServer();
@@ -206,16 +210,29 @@ namespace Test
         static void server_Accepted(object sender, NetEventArgs e)
         {
             Console.WriteLine("新连接：{0}", e.RemoteEndPoint);
+            ISocketSession session = e.Socket as ISocketSession;
+            session.Send("连接收到，准备反向连接！");
 
             // 连回去
-            Console.WriteLine("连回去");
-            var client = new TcpClientX();
-            client.Connect(e.RemoteEndPoint);
-            Console.WriteLine("连接成功，发送信息");
-            client.Send("Hello nnhy!");
-            Console.WriteLine("发送完毕，接收信息");
-            var msg = client.ReceiveString();
-            Console.WriteLine("收到：{0}", msg);
+            try
+            {
+                Console.WriteLine("连回去");
+                var client = new TcpClientX();
+                client.Port = 12;
+                Console.WriteLine("绑定：{0} 准备连接：{1}", client.LocalEndPoint, e.RemoteEndPoint);
+                client.Connect(e.RemoteEndPoint);
+                Console.WriteLine("连接成功，发送信息");
+                client.Send("Hello nnhy!");
+                Console.WriteLine("发送完毕，接收信息");
+                var msg = client.ReceiveString();
+                Console.WriteLine("收到：{0}", msg);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            session.Send("已进行反向连接！");
         }
 
         static void server_Accepted2(object sender, NetEventArgs e)

@@ -326,7 +326,7 @@ namespace NewLife.Serialization
                 if (att != null)
                 {
                     // 如果指定了固定大小，直接返回
-                    if (att.Size > 0) return att.Size;
+                    if (att.Size > 0 && String.IsNullOrEmpty(att.ReferenceName)) return att.Size;
 
                     // 如果指定了引用字段，则找引用字段所表示的长度d
                     Int32 size = att.GetReferenceSize(CurrentObject, member.Member);
