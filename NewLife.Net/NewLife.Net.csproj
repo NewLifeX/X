@@ -77,6 +77,9 @@
     <Compile Include="DNS\DNS_A.cs" />
     <Compile Include="NTP\NTPEnum.cs" />
     <Compile Include="NTP\NTP.cs" />
+    <Compile Include="POP3\POP3Client.cs" />
+    <Compile Include="POP3\POP3Server.cs" />
+    <Compile Include="POP3\POP3Session.cs" />
     <Compile Include="Proxy\Filters\HttpFilter.cs" />
     <Compile Include="Proxy\IProxy.cs" />
     <Compile Include="Proxy\IProxyFilter.cs" />
@@ -88,6 +91,9 @@
     <Compile Include="Proxy\ProxyBase.cs" />
     <Compile Include="Proxy\XProxy.cs" />
     <None Include="SNTP\SNTPClient.cs" />
+    <Compile Include="SMTP\SMTPClient.cs" />
+    <Compile Include="SMTP\SMTPServer.cs" />
+    <Compile Include="SMTP\SMTPSession.cs" />
     <Compile Include="Sockets\ISocket.cs" />
     <Compile Include="Sockets\ISocketClient.cs" />
     <Compile Include="Sockets\ISocketServer.cs" />
@@ -140,9 +146,7 @@
     <Content Include="架构设计\NewLife_UdpServer.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="POP3\" />
     <Folder Include="SIP\" />
-    <Folder Include="SMTP\" />
     <Folder Include="TELNET\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Text;
 using NewLife.Net.Sockets;
 
-namespace NewLife.Net.FTP
+namespace NewLife.Net.POP3
 {
-    /// <summary>FTP会话</summary>
-    public class FTPSession : DisposeBase
+    /// <summary>POP3会话</summary>
+    public class POP3Session : DisposeBase
     {
-        //TODO 未实现FTP会话
+        //TODO 未实现POP3会话
 
         #region 属性
 
