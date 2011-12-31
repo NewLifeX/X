@@ -4,7 +4,7 @@ using System.IO;
 using System.Net;
 using NewLife.Serialization;
 
-namespace NewLife.Net.Protocols.DNS
+namespace NewLife.Net.DNS
 {
     /// <summary>资源结构</summary>
     public class DNSRecord : IAccessor

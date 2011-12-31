@@ -8,7 +8,7 @@ using NewLife.Collections;
 using System.Net.Sockets;
 using NewLife.Linq;
 
-namespace NewLife.Net.Protocols.DNS
+namespace NewLife.Net.DNS
 {
     /// <summary>DNS服务器</summary>
     public class DNSServer : NetServer

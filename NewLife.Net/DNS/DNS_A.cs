@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 
-namespace NewLife.Net.Protocols.DNS
+namespace NewLife.Net.DNS
 {
     /// <summary>A记录</summary>
     /// <remarks>

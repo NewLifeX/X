@@ -99,7 +99,7 @@ namespace NewLife.Net.Stun
             // Test I
             StunMessage test1 = new StunMessage();
             test1.Type = StunMessageType.BindingRequest;
-            StunMessage test1response = DoTransaction(test1, client, remoteEndPoint, 1600);
+            StunMessage test1response = Query(test1, client, remoteEndPoint, 1600);
 
             // UDP blocked.
             if (test1response == null) return new StunResult(StunNetType.UdpBlocked, null);
@@ -112,7 +112,7 @@ namespace NewLife.Net.Stun
             // No NAT.
             if (client.LocalEndPoint.Equals(test1response.MappedAddress))
             {
-                StunMessage test2Response = DoTransaction(test2, client, remoteEndPoint, 1600);
+                StunMessage test2Response = Query(test2, client, remoteEndPoint, 1600);
                 // Open Internet.
                 if (test2Response != null)
                 {
@@ -127,7 +127,7 @@ namespace NewLife.Net.Stun
             // NAT
             else
             {
-                StunMessage test2Response = DoTransaction(test2, client, remoteEndPoint, 1600);
+                StunMessage test2Response = Query(test2, client, remoteEndPoint, 1600);
 
                 // Full cone NAT.
                 if (test2Response != null) return new StunResult(StunNetType.FullCone, test1response.MappedAddress);
@@ -141,7 +141,7 @@ namespace NewLife.Net.Stun
                 StunMessage test12 = new StunMessage();
                 test12.Type = StunMessageType.BindingRequest;
 
-                StunMessage test12Response = DoTransaction(test12, client, test1response.ChangedAddress, 1600);
+                StunMessage test12Response = Query(test12, client, test1response.ChangedAddress, 1600);
                 if (test12Response == null) throw new Exception("STUN Test I(II) dind't get resonse !");
 
                 // Symmetric NAT
@@ -152,7 +152,7 @@ namespace NewLife.Net.Stun
                 test3.Type = StunMessageType.BindingRequest;
                 test3.Change = new StunMessage.ChangeRequest(false, true);
 
-                StunMessage test3Response = DoTransaction(test3, client, test1response.ChangedAddress, 1600);
+                StunMessage test3Response = Query(test3, client, test1response.ChangedAddress, 1600);
                 // Restricted
                 if (test3Response != null)
                 {
@@ -168,7 +168,17 @@ namespace NewLife.Net.Stun
         #endregion
 
         #region 业务
-        static StunMessage DoTransaction(StunMessage request, ISocketClient client, IPEndPoint remoteEndPoint, int timeout)
+        /// <summary>查询</summary>
+        /// <param name="request"></param>
+        /// <param name="remoteEndPoint"></param>
+        /// <returns></returns>
+        public static StunMessage Query(StunMessage request, IPEndPoint remoteEndPoint)
+        {
+            var client = new UdpClientX();
+            return Query(request, client, remoteEndPoint, 16000);
+        }
+
+        static StunMessage Query(StunMessage request, ISocketClient client, IPEndPoint remoteEndPoint, int timeout)
         {
             var ms = new MemoryStream();
             request.Write(ms);

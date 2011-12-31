@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NewLife.Net.Protocols.DNS
+namespace NewLife.Net.DNS
 {
     /// <summary>CNAME记录</summary>
     public class DNS_CNAME : DNSBase<DNS_CNAME>

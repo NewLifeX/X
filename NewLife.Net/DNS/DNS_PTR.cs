@@ -4,7 +4,7 @@ using System.Text;
 using System.Net;
 using NewLife.Serialization;
 
-namespace NewLife.Net.Protocols.DNS
+namespace NewLife.Net.DNS
 {
     /// <summary>PTR记录</summary>
     /// <remarks>

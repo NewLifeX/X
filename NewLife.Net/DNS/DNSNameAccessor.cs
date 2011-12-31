@@ -5,7 +5,7 @@ using System.Text;
 using System.IO;
 using NewLife.Exceptions;
 
-namespace NewLife.Net.Protocols.DNS
+namespace NewLife.Net.DNS
 {
     /// <summary>DNS名称访问器</summary>
     class DNSNameAccessor

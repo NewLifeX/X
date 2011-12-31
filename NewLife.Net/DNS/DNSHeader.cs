@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using NewLife.Serialization;
 
-namespace NewLife.Net.Protocols.DNS
+namespace NewLife.Net.DNS
 {
     /// <summary>DNS头部</summary>
     public class DNSHeader

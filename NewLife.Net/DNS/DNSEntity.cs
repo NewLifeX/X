@@ -6,7 +6,7 @@ using System.Text;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
-namespace NewLife.Net.Protocols.DNS
+namespace NewLife.Net.DNS
 {
     /// <summary>DNS实体类基类</summary>
     /// <typeparam name="TEntity"></typeparam>
@@ -89,7 +89,10 @@ namespace NewLife.Net.Protocols.DNS
         /// <summary>协议组</summary>
         public virtual DNSQueryClass Class { get { return Question.Class; } set { Question.Class = value; } }
 
-        DNSRecord GetAnswer(Boolean create = false)
+        /// <summary>获取响应</summary>
+        /// <param name="create"></param>
+        /// <returns></returns>
+        internal protected DNSRecord GetAnswer(Boolean create = false)
         {
             if (Answers == null || Answers.Length < 1)
             {

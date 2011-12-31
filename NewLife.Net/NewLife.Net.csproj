@@ -48,6 +48,13 @@
     <Compile Include="Common\IStatistics.cs" />
     <Compile Include="Common\NetException.cs" />
     <Compile Include="Common\Statistics.cs" />
+    <Compile Include="DNS\DNS_NS.cs" />
+    <Compile Include="DNS\DNS_MX.cs" />
+    <Compile Include="FTP\FTPClient.cs" />
+    <Compile Include="FTP\FTPItem.cs" />
+    <Compile Include="FTP\FTPServer.cs" />
+    <Compile Include="FTP\FTPSession.cs" />
+    <Compile Include="FTP\FTPTransferMode.cs" />
     <Compile Include="NetService.cs" />
     <Compile Include="DNS\DNSClient.cs" />
     <Compile Include="DNS\DNSEntity.cs" />
@@ -80,6 +87,7 @@
     <Compile Include="Proxy\ProxySession.cs" />
     <Compile Include="Proxy\ProxyBase.cs" />
     <Compile Include="Proxy\XProxy.cs" />
+    <None Include="SNTP\SNTPClient.cs" />
     <Compile Include="Sockets\ISocket.cs" />
     <Compile Include="Sockets\ISocketClient.cs" />
     <Compile Include="Sockets\ISocketServer.cs" />
@@ -132,8 +140,8 @@
     <Content Include="架构设计\NewLife_UdpServer.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="FTP\" />
     <Folder Include="POP3\" />
+    <Folder Include="SIP\" />
     <Folder Include="SMTP\" />
     <Folder Include="TELNET\" />
   </ItemGroup>
