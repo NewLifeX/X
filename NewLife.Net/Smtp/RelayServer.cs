@@ -4,7 +4,7 @@ using System.Text;
 using NewLife.Net.Sockets;
 using System.Net.Sockets;
 
-namespace NewLife.Net.SMTP
+namespace NewLife.Net.Smtp
 {
     /// <summary>Relay服务器</summary>
     public class RelayServer : NetServer

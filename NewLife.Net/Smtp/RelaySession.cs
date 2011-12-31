@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Text;
 using NewLife.Net.Sockets;
 
-namespace NewLife.Net.SMTP
+namespace NewLife.Net.Smtp
 {
-    /// <summary>SMTP会话</summary>
-    public class SMTPSession : DisposeBase
+    /// <summary>Relay会话</summary>
+    public class RelaySession : DisposeBase
     {
-        //TODO 未实现SMTP会话
+        //TODO 未实现Relay会话
 
         #region 属性
 

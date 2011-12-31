@@ -5,7 +5,7 @@ using System.Text;
 namespace NewLife.Net.Sip.Message
 {
     /// <summary></summary>
-    public class Sip : SipValueWithParams
+    public class SipEncoding : SipValueWithParams
     {
         #region 属性
         private String _ContentEncoding;

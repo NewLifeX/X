@@ -77,9 +77,9 @@
     <Compile Include="DNS\DNS_A.cs" />
     <Compile Include="NTP\NTPEnum.cs" />
     <Compile Include="NTP\NTP.cs" />
-    <Compile Include="POP3\POP3Client.cs" />
-    <Compile Include="POP3\POP3Server.cs" />
-    <Compile Include="POP3\POP3Session.cs" />
+    <Compile Include="Pop3\Pop3Client.cs" />
+    <Compile Include="Pop3\Pop3Server.cs" />
+    <Compile Include="Pop3\Pop3Session.cs" />
     <Compile Include="Proxy\Filters\HttpFilter.cs" />
     <Compile Include="Proxy\IProxy.cs" />
     <Compile Include="Proxy\IProxyFilter.cs" />
@@ -108,11 +108,11 @@
     <Compile Include="Sip\Message\SipIdentityInfo.cs" />
     <Compile Include="Sip\Message\SipInfo.cs" />
     <Compile Include="Sip\Message\SipJoin.cs" />
-    <Compile Include="SMTP\SMTPClient.cs" />
-    <Compile Include="SMTP\SMTPServer.cs" />
-    <Compile Include="SMTP\SMTPSession.cs" />
-    <Compile Include="SMTP\RelayServer.cs" />
-    <Compile Include="SMTP\RelaySession.cs" />
+    <Compile Include="Smtp\SmtpClient.cs" />
+    <Compile Include="Smtp\SmtpServer.cs" />
+    <Compile Include="Smtp\SmtpSession.cs" />
+    <Compile Include="Smtp\RelayServer.cs" />
+    <Compile Include="Smtp\RelaySession.cs" />
     <Compile Include="Sockets\ISocket.cs" />
     <Compile Include="Sockets\ISocketClient.cs" />
     <Compile Include="Sockets\ISocketServer.cs" />
@@ -165,7 +165,7 @@
     <Content Include="架构设计\NewLife_UdpServer.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="TELNET\" />
+    <Folder Include="Telnet\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
