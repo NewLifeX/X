@@ -91,9 +91,28 @@
     <Compile Include="Proxy\ProxyBase.cs" />
     <Compile Include="Proxy\XProxy.cs" />
     <None Include="SNTP\SNTPClient.cs" />
+    <Compile Include="Sip\Message\SipACValue.cs" />
+    <Compile Include="Sip\Message\SipNameAddress.cs" />
+    <Compile Include="Sip\Message\SipValue.cs" />
+    <Compile Include="Sip\Message\SipValueWithParams.cs" />
+    <Compile Include="Sip\Message\SipAddressParam.cs" />
+    <Compile Include="Sip\Message\Sip.cs" />
+    <Compile Include="Sip\Message\SipAlertParam.cs" />
+    <Compile Include="Sip\Message\SipContactParam.cs" />
+    <Compile Include="Sip\Message\SipContentDisposition.cs" />
+    <Compile Include="Sip\Message\SipEncoding.cs" />
+    <Compile Include="Sip\Message\SipErrorUri.cs" />
+    <Compile Include="Sip\Message\SipEvent.cs" />
+    <Compile Include="Sip\Message\SipFrom.cs" />
+    <Compile Include="Sip\Message\SipHiEntry.cs" />
+    <Compile Include="Sip\Message\SipIdentityInfo.cs" />
+    <Compile Include="Sip\Message\SipInfo.cs" />
+    <Compile Include="Sip\Message\SipJoin.cs" />
     <Compile Include="SMTP\SMTPClient.cs" />
     <Compile Include="SMTP\SMTPServer.cs" />
     <Compile Include="SMTP\SMTPSession.cs" />
+    <Compile Include="SMTP\RelayServer.cs" />
+    <Compile Include="SMTP\RelaySession.cs" />
     <Compile Include="Sockets\ISocket.cs" />
     <Compile Include="Sockets\ISocketClient.cs" />
     <Compile Include="Sockets\ISocketServer.cs" />
@@ -146,7 +165,6 @@
     <Content Include="架构设计\NewLife_UdpServer.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="SIP\" />
     <Folder Include="TELNET\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
