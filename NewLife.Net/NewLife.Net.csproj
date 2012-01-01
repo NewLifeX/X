@@ -171,6 +171,8 @@
     <Content Include="架构设计\NewLife_UdpServer.jpg" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="CMPP\" />
+    <Folder Include="SGIP\" />
     <Folder Include="Telnet\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
