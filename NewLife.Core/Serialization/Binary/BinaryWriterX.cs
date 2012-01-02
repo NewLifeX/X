@@ -58,6 +58,10 @@ namespace NewLife.Serialization
             // 默认使用字段作为序列化成员
             Settings.UseField = true;
         }
+
+        /// <summary>实例化一个二进制写入器</summary>
+        /// <param name="stream"></param>
+        public BinaryWriterX(Stream stream) : this() { Stream = stream; }
         #endregion
 
         #region 字节

@@ -60,6 +60,10 @@ namespace NewLife.Serialization
             // 默认使用字段作为序列化成员
             Settings.UseField = true;
         }
+
+        /// <summary>实例化一个二进制读取器</summary>
+        /// <param name="stream"></param>
+        public BinaryReaderX(Stream stream) : this() { Stream = stream; }
         #endregion
 
         #region 字节

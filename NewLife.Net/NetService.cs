@@ -17,12 +17,12 @@ namespace NewLife.Net
         {
             IObjectContainer container = Container;
             container.Register<IProxySession, ProxySession>()
-                .Register<ISocketServer, TcpServer>(ProtocolType.Tcp.ToString())
-                .Register<ISocketServer, UdpServer>(ProtocolType.Udp.ToString())
-                .Register<ISocketClient, TcpClientX>(ProtocolType.Tcp.ToString())
-                .Register<ISocketClient, UdpClientX>(ProtocolType.Udp.ToString())
-                .Register<ISocketSession, TcpClientX>(ProtocolType.Tcp.ToString())
-                .Register<ISocketSession, UdpServer>(ProtocolType.Udp.ToString())
+                .Register<ISocketServer, TcpServer>(ProtocolType.Tcp)
+                .Register<ISocketServer, UdpServer>(ProtocolType.Udp)
+                .Register<ISocketClient, TcpClientX>(ProtocolType.Tcp)
+                .Register<ISocketClient, UdpClientX>(ProtocolType.Udp)
+                .Register<ISocketSession, TcpClientX>(ProtocolType.Tcp)
+                .Register<ISocketSession, UdpServer>(ProtocolType.Udp)
                 .Register<IStatistics, Statistics>();
         }
 
@@ -40,10 +40,10 @@ namespace NewLife.Net
             return null;
         }
 
-        public static T Resolve<T>(ProtocolType protocol) where T : ISocket
-        {
-            return Resolve<T>(protocol.ToString());
-        }
+        //public static T Resolve<T>(ProtocolType protocol) where T : ISocket
+        //{
+        //    return Resolve<T>(protocol);
+        //}
         #endregion
     }
 }

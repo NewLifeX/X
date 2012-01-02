@@ -98,8 +98,8 @@ namespace NewLife.Net.SGIP
         public Byte MessageType { get { return _MessageType; } set { _MessageType = value; } }
 
         private UInt32 _MessageLength;
-        ///// <summary>短消息的长度</summary>
-        //public UInt32 MessageLength { get { return _MessageLength; } set { _MessageLength = value; } }
+        /// <summary>短消息的长度</summary>
+        public UInt32 MessageLength { get { return _MessageLength; } set { _MessageLength = value; } }
 
         [FieldSize("_MessageLength")]
         private String _MessageContent;
@@ -111,7 +111,12 @@ namespace NewLife.Net.SGIP
         /// <summary>保留，扩展用</summary>
         public String Reserve { get { return _Reserve; } set { _Reserve = value; } }
         #endregion
-    }
+   
+        #region 构造
+        /// <summary>实例化</summary>
+        public SGIPSubmit() : base(SGIPCommands.Submit) { }
+        #endregion
+ }
 
     /// <summary>
     /// 代收费标志，0：应收；1：实收

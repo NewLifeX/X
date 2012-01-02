@@ -98,10 +98,13 @@
     <Compile Include="Sdp\SdpOrigin.cs" />
     <Compile Include="Sdp\SdpTime.cs" />
     <Compile Include="SGIP\SGIPBind.cs" />
+    <Compile Include="SGIP\SGIPClient.cs" />
     <Compile Include="SGIP\SGIPDeliver.cs" />
     <Compile Include="SGIP\SGIPEntity.cs" />
     <Compile Include="SGIP\SGIPReport.cs" />
+    <Compile Include="SGIP\SGIPServer.cs" />
     <Compile Include="SGIP\SGIPSubmit.cs" />
+    <Compile Include="SGIP\SGIPUnbind.cs" />
     <Compile Include="Sip\Message\SipACValue.cs" />
     <Compile Include="Sip\Message\SipNameAddress.cs" />
     <Compile Include="Sip\Message\SipValue.cs" />

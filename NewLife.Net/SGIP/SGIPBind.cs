@@ -5,6 +5,7 @@ using NewLife.Serialization;
 
 namespace NewLife.Net.SGIP
 {
+    /// <summary>Bind操作由Bind命令和Bind_Resp应答组成。客户端首先发送Bind命令，服务器端收到Bind命令后，对命令发送方进行验证，然后返回Bind_Resp应答。</summary>
     public class SGIPBind : SGIPEntity
     {
         #region 属性
@@ -26,6 +27,11 @@ namespace NewLife.Net.SGIP
         private String _Reserve;
         /// <summary>保留</summary>
         public String Reserve { get { return _Reserve; } set { _Reserve = value; } }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化</summary>
+        public SGIPBind() : base(SGIPCommands.Bind) { }
         #endregion
     }
 

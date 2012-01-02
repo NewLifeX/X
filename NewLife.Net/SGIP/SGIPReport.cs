@@ -43,6 +43,11 @@ namespace NewLife.Net.SGIP
         /// <summary>保留，扩展用</summary>
         public String Reserve { get { return _Reserve; } set { _Reserve = value; } }
         #endregion
+
+        #region 构造
+        /// <summary>实例化</summary>
+        public SGIPReport() : base(SGIPCommands.Report) { }
+        #endregion
     }
 
     /// <summary>

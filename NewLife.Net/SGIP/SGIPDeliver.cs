@@ -5,6 +5,7 @@ using NewLife.Serialization;
 
 namespace NewLife.Net.SGIP
 {
+    /// <summary>MO指令</summary>
     public class SGIPDeliver : SGIPEntity
     {
         #region 属性
@@ -42,7 +43,12 @@ namespace NewLife.Net.SGIP
         /// <summary>保留，扩展用</summary>
         public String Reserve { get { return _Reserve; } set { _Reserve = value; } }
         #endregion
-    }
+    
+        #region 构造
+        /// <summary>实例化</summary>
+        public SGIPDeliver() : base(SGIPCommands.Deliver) { }
+        #endregion
+}
 
     /// <summary>
     /// 短消息的编码格式。
