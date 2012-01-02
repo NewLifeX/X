@@ -11,12 +11,12 @@ namespace XCode.Accessors
         {
             // 注册内置访问器
             container
-                .Register<IEntityAccessor, HttpEntityAccessor>(EntityAccessorTypes.Http.ToString())
-                .Register<IEntityAccessor, WebFormEntityAccessor>(EntityAccessorTypes.WebForm.ToString())
-                .Register<IEntityAccessor, WinFormEntityAccessor>(EntityAccessorTypes.WinForm.ToString())
-                .Register<IEntityAccessor, BinaryEntityAccessor>(EntityAccessorTypes.Binary.ToString())
-                .Register<IEntityAccessor, XmlEntityAccessor>(EntityAccessorTypes.Xml.ToString())
-                .Register<IEntityAccessor, JsonEntityAccessor>(EntityAccessorTypes.Json.ToString());
+                .Register<IEntityAccessor, HttpEntityAccessor>(EntityAccessorTypes.Http)
+                .Register<IEntityAccessor, WebFormEntityAccessor>(EntityAccessorTypes.WebForm)
+                .Register<IEntityAccessor, WinFormEntityAccessor>(EntityAccessorTypes.WinForm)
+                .Register<IEntityAccessor, BinaryEntityAccessor>(EntityAccessorTypes.Binary)
+                .Register<IEntityAccessor, XmlEntityAccessor>(EntityAccessorTypes.Xml)
+                .Register<IEntityAccessor, JsonEntityAccessor>(EntityAccessorTypes.Json);
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace XCode.Accessors
         /// <returns></returns>
         public static IEntityAccessor Create(String name)
         {
-            return XCodeService.Resolve<IEntityAccessor>(name);
+            return XCodeService.Resolve<IEntityAccessor>(Enum.Parse(typeof(EntityAccessorTypes), name));
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace XCode.Accessors
         /// <returns></returns>
         public static IEntityAccessor Create(EntityAccessorTypes kind)
         {
-            return Create(kind.ToString());
+            return Create(kind);
         }
 
         internal static Boolean EqualIgnoreCase(this String str, EntityAccessorOptions option)

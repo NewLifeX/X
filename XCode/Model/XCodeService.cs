@@ -15,7 +15,7 @@ namespace XCode.Model
         {
             IObjectContainer container = Container;
             container.Register<IDataTable, XTable>()
-                .Register<IDataRowEntityAccessorProvider, DataRowEntityAccessorProvider>()
+                .Register<IDataRowEntityAccessorProvider>(new DataRowEntityAccessorProvider())
                 .Register<IEntityPersistence, EntityPersistence>();
 
             DbFactory.Reg(container);
@@ -24,30 +24,9 @@ namespace XCode.Model
         }
 
         #region 方法
-        //public static void Register<T>(Type impl, String name)
-        //{
-        //    Container.Register(typeof(T), impl, name);
-        //}
-
-        ///// <summary>
-        ///// 解析类型指定名称的实例
-        ///// </summary>
-        ///// <typeparam name="TInterface">接口类型</typeparam>
-        ///// <param name="name">名称</param>
-        ///// <returns></returns>
-        //public static TInterface Resolve<TInterface>(String name)
-        //{
-        //    return Container.Resolve<TInterface>(name);
-        //}
-
-        //public static Type ResolveType<TInterface>(String name)
-        //{
-        //    return Container.ResolveType(typeof(TInterface), name);
-        //}
-
         public static Type ResolveType<TInterface>(Func<IObjectMap, Boolean> func)
         {
-            foreach (IObjectMap item in Container.ResolveAllMaps(typeof(TInterface)))
+            foreach (var item in Container.ResolveAllMaps(typeof(TInterface)))
             {
                 if (func(item)) return item.ImplementType;
             }
@@ -57,9 +36,7 @@ namespace XCode.Model
         #endregion
 
         #region 使用
-        /// <summary>
-        /// 创建模型数据表
-        /// </summary>
+        /// <summary>创建模型数据表</summary>
         /// <returns></returns>
         public static IDataTable CreateTable()
         {
