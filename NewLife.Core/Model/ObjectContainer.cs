@@ -31,77 +31,18 @@ namespace NewLife.Model
         }
         #endregion
 
-        #region 父容器
-        //private IObjectContainer _Parent;
-        ///// <summary>父容器</summary>
-        //public virtual IObjectContainer Parent
-        //{
-        //    get { return _Parent; }
-        //    protected set { _Parent = value; }
-        //}
-
-        //private List<IObjectContainer> _Childs;
-        ///// <summary>子容器</summary>
-        //protected virtual IList<IObjectContainer> Childs
-        //{
-        //    get { return _Childs ?? (_Childs = new List<IObjectContainer>()); }
-        //}
-
-        ///// <summary>
-        ///// 移除所有子容器
-        ///// </summary>
-        ///// <returns></returns>
-        //public virtual IObjectContainer RemoveAllChildContainers()
-        //{
-        //    if (_Childs != null) _Childs.Clear();
-
-        //    return this;
-        //}
-
-        ///// <summary>
-        ///// 创建子容器
-        ///// </summary>
-        ///// <returns></returns>
-        //public virtual IObjectContainer CreateChildContainer()
-        //{
-        //    IObjectContainer container = TypeX.CreateInstance(this.GetType()) as IObjectContainer;
-        //    if (container is ObjectContaner)
-        //        (container as ObjectContaner).Parent = this;
-        //    else
-        //    {
-        //        PropertyInfo pi = this.GetType().GetProperty("Parent", BindingFlags.CreateInstance | BindingFlags.Public | BindingFlags.NonPublic);
-        //        if (pi != null && pi.CanWrite) pi.SetValue(container, this, null);
-
-        //    }
-        //    Childs.Add(container);
-
-        //    return container;
-        //}
-        #endregion
-
         #region 构造函数
-        /// <summary>
-        /// 初始化一个对象容器实例，自动从配置文件中加载注册
-        /// </summary>
-        public ObjectContainer()
-        {
-            LoadConfig();
-        }
+        /// <summary>初始化一个对象容器实例，自动从配置文件中加载注册</summary>
+        public ObjectContainer() { LoadConfig(); }
         #endregion
 
         #region 对象字典
-        private IDictionary<Type, IDictionary<String, IObjectMap>> _stores = null;
-        private IDictionary<Type, IDictionary<String, IObjectMap>> Stores
-        {
-            get
-            {
-                return _stores ?? (_stores = new Dictionary<Type, IDictionary<String, IObjectMap>>());
-            }
-        }
+        private IDictionary<Type, IDictionary<Object, IObjectMap>> _stores = null;
+        private IDictionary<Type, IDictionary<Object, IObjectMap>> Stores { get { return _stores ?? (_stores = new Dictionary<Type, IDictionary<Object, IObjectMap>>()); } }
 
-        private IDictionary<String, IObjectMap> Find(Type type, Boolean add)
+        private IDictionary<Object, IObjectMap> Find(Type type, Boolean add)
         {
-            IDictionary<String, IObjectMap> dic = null;
+            IDictionary<Object, IObjectMap> dic = null;
             if (Stores.TryGetValue(type, out dic)) return dic;
 
             if (add)
@@ -111,7 +52,8 @@ namespace NewLife.Model
                     if (Stores.TryGetValue(type, out dic)) return dic;
 
                     // 名称不区分大小写
-                    dic = new Dictionary<String, IObjectMap>(StringComparer.OrdinalIgnoreCase);
+                    //dic = new Dictionary<Object, IObjectMap>(StringComparer.OrdinalIgnoreCase);
+                    dic = new Dictionary<Object, IObjectMap>();
                     Stores.Add(type, dic);
                     return dic;
                 }
@@ -120,13 +62,14 @@ namespace NewLife.Model
             return null;
         }
 
-        private IObjectMap FindMap(IDictionary<String, IObjectMap> dic, String name, Boolean extend = false)
+        private IObjectMap FindMap(IDictionary<Object, IObjectMap> dic, Object id, Boolean extend = false)
         {
             IObjectMap map = null;
             // 如果找到，直接返回
-            if (dic.TryGetValue(name, out map)) return map;
+            if (dic.TryGetValue(id, out map)) return map;
 
-            if (!String.IsNullOrEmpty(name))
+            //if (!String.IsNullOrEmpty(id))
+            if (id == null || "" + id == String.Empty)
             {
                 // 如果名称不为空，则试一试找空的
                 if (dic.TryGetValue(String.Empty, out map)) return map;
@@ -134,7 +77,7 @@ namespace NewLife.Model
             else
             {
                 // 如果名称为空，找第一个
-                foreach (IObjectMap item in dic.Values)
+                foreach (var item in dic.Values)
                 {
                     return item;
                 }
@@ -145,21 +88,13 @@ namespace NewLife.Model
         class Map : IObjectMap
         {
             #region 属性
-            private String _Name;
+            private Object _Identity;
             /// <summary>名称</summary>
-            public String Name
-            {
-                get { return _Name; }
-                set { _Name = value; }
-            }
+            public Object Identity { get { return _Identity; } set { _Identity = value; } }
 
             private String _TypeName;
             /// <summary>类型名</summary>
-            public String TypeName
-            {
-                get { return _TypeName; }
-                set { _TypeName = value; }
-            }
+            public String TypeName { get { return _TypeName; } set { _TypeName = value; } }
 
             private Type _ImplementType;
             /// <summary>实现类型</summary>
@@ -183,11 +118,7 @@ namespace NewLife.Model
 
             private Int32 _Priority;
             /// <summary>优先级</summary>
-            public Int32 Priority
-            {
-                get { return _Priority; }
-                set { _Priority = value; }
-            }
+            public Int32 Priority { get { return _Priority; } set { _Priority = value; } }
 
             private Boolean hasCheck = false;
 
@@ -221,24 +152,18 @@ namespace NewLife.Model
 
             private ModeFlags _Mode;
             /// <summary>模式</summary>
-            public ModeFlags Mode
-            {
-                get { return _Mode; }
-                set { _Mode = value; }
-            }
+            public ModeFlags Mode { get { return _Mode; } set { _Mode = value; } }
             #endregion
 
             #region 方法
             public override string ToString()
             {
-                return String.Format("[{0},{1}]", Name, ImplementType != null ? ImplementType.Name : null);
+                return String.Format("[{0},{1}]", Identity, ImplementType != null ? ImplementType.Name : null);
             }
             #endregion
         }
 
-        /// <summary>
-        /// 模式标记
-        /// </summary>
+        /// <summary>模式标记</summary>
         [Flags]
         enum ModeFlags
         {
@@ -262,32 +187,30 @@ namespace NewLife.Model
         #endregion
 
         #region 注册核心
-        /// <summary>
-        /// 注册
-        /// </summary>
+        /// <summary>注册</summary>
         /// <param name="from">接口类型</param>
         /// <param name="to">实现类型</param>
         /// <param name="instance">实例</param>
-        /// <param name="name">名称</param>
+        /// <param name="id">标识</param>
         /// <param name="priority">优先级</param>
         /// <returns></returns>
-        public virtual IObjectContainer Register(Type from, Type to, Object instance, String name = null, Int32 priority = 0)
+        public virtual IObjectContainer Register(Type from, Type to, Object instance, Object id = null, Int32 priority = 0)
         {
-            return Register(from, to, instance, null, ModeFlags.None, name, priority);
+            return Register(from, to, instance, null, ModeFlags.None, id, priority);
         }
 
-        private IObjectContainer Register(Type from, Type to, Object instance, String typeName, ModeFlags mode, String name, Int32 priority, Boolean singleton = false)
+        private IObjectContainer Register(Type from, Type to, Object instance, String typeName, ModeFlags mode, Object id, Int32 priority, Boolean singleton = false)
         {
             if (from == null) throw new ArgumentNullException("from");
             // 名称不能是null，否则字典里面会报错
-            if (name == null) name = String.Empty;
+            if (id == null) id = String.Empty;
 
-            IDictionary<String, IObjectMap> dic = Find(from, true);
+            var dic = Find(from, true);
             // 删除已有的
             //if (dic.ContainsKey(name)) dic.Remove(name);
             IObjectMap old = null;
             Map map = null;
-            if (dic.TryGetValue(name, out old))
+            if (dic.TryGetValue(id, out old))
             {
                 if (old is Map)
                 {
@@ -306,21 +229,21 @@ namespace NewLife.Model
                     return this;
                 }
                 else
-                    dic.Remove(name);
+                    dic.Remove(id);
             }
 
             map = new Map();
-            map.Name = name;
+            map.Identity = id;
             map.TypeName = typeName;
             map.Mode = mode;
             if (to != null) map.ImplementType = to;
             if (instance != null) map.Instance = instance;
             map.Singleton = instance != null || singleton;
 
-            if (!dic.ContainsKey(name))
+            if (!dic.ContainsKey(id))
             {
                 if (OnRegistering != null) OnRegistering(this, new EventArgs<Type, IObjectMap>(from, map));
-                dic.Add(name, map);
+                dic.Add(id, map);
                 if (OnRegistered != null) OnRegistered(this, new EventArgs<Type, IObjectMap>(from, map));
             }
 
@@ -340,20 +263,20 @@ namespace NewLife.Model
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <typeparam name="TImplement">实现类型</typeparam>
-        /// <param name="name">名称</param>
+        /// <param name="id">标识</param>
         /// <param name="priority">优先级</param>
         /// <returns></returns>
-        public virtual IObjectContainer Register<TInterface, TImplement>(String name = null, Int32 priority = 0) { return Register(typeof(TInterface), typeof(TImplement), null, name, priority); }
+        public virtual IObjectContainer Register<TInterface, TImplement>(Object id = null, Int32 priority = 0) { return Register(typeof(TInterface), typeof(TImplement), null, id, priority); }
 
         /// <summary>
         /// 注册类型指定名称的实例
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="instance">实例</param>
-        /// <param name="name">名称</param>
+        /// <param name="id">标识</param>
         /// <param name="priority">优先级</param>
         /// <returns></returns>
-        public virtual IObjectContainer Register<TInterface>(Object instance, String name = null, Int32 priority = 0) { return Register(typeof(TInterface), null, instance, name, priority); }
+        public virtual IObjectContainer Register<TInterface>(Object instance, Object id = null, Int32 priority = 0) { return Register(typeof(TInterface), null, instance, id, priority); }
         #endregion
 
         #region 解析
@@ -361,16 +284,16 @@ namespace NewLife.Model
         /// 解析类型指定名称的实例
         /// </summary>
         /// <param name="from">接口类型</param>
-        /// <param name="name">名称</param>
+        /// <param name="id">标识</param>
         /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        public virtual Object Resolve(Type from, String name = null, Boolean extend = false)
+        public virtual Object Resolve(Type from, Object id = null, Boolean extend = false)
         {
             if (from == null) throw new ArgumentNullException("from");
             // 名称不能是null，否则字典里面会报错
-            if (name == null) name = String.Empty;
+            if (id == null) id = String.Empty;
 
-            IDictionary<String, IObjectMap> dic = Find(from, false);
+            var dic = Find(from, false);
             // 1，如果容器里面没有这个类型，则返回空
             // 这个type可能是接口类型
             if (dic == null) return null;
@@ -378,23 +301,23 @@ namespace NewLife.Model
             // 2，如果容器里面包含这个类型，并且指向的实例不为空，则返回
             // 根据名称去找，找不到返回空
             //if (!dic.TryGetValue(name, out map) || map == null) return null;
-            IObjectMap map = FindMap(dic, name, extend);
+            var map = FindMap(dic, id, extend);
             if (map == null) return null;
             if (map.Instance != null) return map.Instance;
 
             // 检查是否指定实现类型
-            if (map.ImplementType == null) throw new XException("设计错误，名为{0}的{1}实现未找到！", name, from);
+            if (map.ImplementType == null) throw new XException("设计错误，名为{0}的{1}实现未找到！", id, from);
 
             Object obj = null;
             // 3，如果容器里面包含这个类型，并且指向的实例为空，则创建对象返回
             // 4，如果有带参数构造函数，则从容器内获取各个参数的实例，最后创建对象返回
-            ConstructorInfo[] cis = map.ImplementType.GetConstructors();
+            var cis = map.ImplementType.GetConstructors();
             if (cis.Length <= 0)
                 obj = TypeX.CreateInstance(map.ImplementType);
             else
             {
                 // 找到无参数构造函数
-                ConstructorInfo ci = map.ImplementType.GetConstructor(Type.EmptyTypes);
+                var ci = map.ImplementType.GetConstructor(Type.EmptyTypes);
                 if (ci != null)
                 {
                     obj = ConstructorInfoX.Create(ci).CreateInstance(null);
@@ -403,11 +326,11 @@ namespace NewLife.Model
                 {
                     #region 构造函数注入
                     // 参数值缓存，避免相同类型参数，出现在不同构造函数中，造成重复Resolve的问题
-                    Dictionary<Type, Object> pscache = new Dictionary<Type, Object>();
-                    foreach (ConstructorInfo item in cis)
+                    var pscache = new Dictionary<Type, Object>();
+                    foreach (var item in cis)
                     {
-                        List<Object> ps = new List<Object>();
-                        foreach (ParameterInfo pi in item.GetParameters())
+                        var ps = new List<Object>();
+                        foreach (var pi in item.GetParameters())
                         {
                             Object pv = null;
                             // 处理值类型
@@ -468,10 +391,10 @@ namespace NewLife.Model
         /// 解析类型指定名称的实例
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="name">名称</param>
+        /// <param name="id">标识</param>
         /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        public virtual TInterface Resolve<TInterface>(String name = null, Boolean extend = false) { return (TInterface)Resolve(typeof(TInterface), name, extend); }
+        public virtual TInterface Resolve<TInterface>(Object id = null, Boolean extend = false) { return (TInterface)Resolve(typeof(TInterface), id, extend); }
 
         /// <summary>
         /// 解析类型所有已注册的实例
@@ -482,10 +405,10 @@ namespace NewLife.Model
         {
             if (from == null) throw new ArgumentNullException("from");
 
-            IDictionary<String, IObjectMap> dic = Find(from, false);
+            var dic = Find(from, false);
             if (dic == null) yield break;
 
-            foreach (IObjectMap item in dic.Values)
+            foreach (var item in dic.Values)
             {
                 if (item.Instance != null) yield return item.Instance;
             }
@@ -498,10 +421,10 @@ namespace NewLife.Model
         /// <returns></returns>
         public virtual IEnumerable<TInterface> ResolveAll<TInterface>()
         {
-            IDictionary<String, IObjectMap> dic = Find(typeof(TInterface), false);
+            var dic = Find(typeof(TInterface), false);
             if (dic == null) yield break;
 
-            foreach (IObjectMap item in dic.Values)
+            foreach (var item in dic.Values)
             {
                 if (item.Instance != null) yield return (TInterface)item.Instance;
             }
@@ -513,19 +436,19 @@ namespace NewLife.Model
         /// 解析接口指定名称的实现类型
         /// </summary>
         /// <param name="from">接口类型</param>
-        /// <param name="name">名称</param>
+        /// <param name="id">标识</param>
         /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        public virtual Type ResolveType(Type from, String name = null, Boolean extend = false)
+        public virtual Type ResolveType(Type from, Object id = null, Boolean extend = false)
         {
             if (from == null) throw new ArgumentNullException("from");
             // 名称不能是null，否则字典里面会报错
-            if (name == null) name = String.Empty;
+            if (id == null) id = String.Empty;
 
-            IDictionary<String, IObjectMap> dic = Find(from, false);
+            var dic = Find(from, false);
             if (dic == null) return null;
 
-            IObjectMap map = FindMap(dic, name, extend);
+            var map = FindMap(dic, id, extend);
             if (map == null) return null;
 
             return map.ImplementType;
@@ -535,10 +458,10 @@ namespace NewLife.Model
         /// 解析接口指定名称的实现类型
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="name">名称</param>
+        /// <param name="id">标识</param>
         /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        public virtual Type ResolveType<TInterface>(String name = null, Boolean extend = false) { return ResolveType(typeof(TInterface), name, extend); }
+        public virtual Type ResolveType<TInterface>(Object id = null, Boolean extend = false) { return ResolveType(typeof(TInterface), id, extend); }
 
         /// <summary>
         /// 解析类型所有已注册的实例
@@ -549,10 +472,10 @@ namespace NewLife.Model
         {
             if (from == null) throw new ArgumentNullException("from");
 
-            IDictionary<String, IObjectMap> dic = Find(from, false);
+            var dic = Find(from, false);
             if (dic == null) yield break;
 
-            foreach (IObjectMap item in dic.Values)
+            foreach (var item in dic.Values)
             {
                 yield return item.ImplementType;
             }
@@ -567,10 +490,10 @@ namespace NewLife.Model
         {
             if (from == null) throw new ArgumentNullException("from");
 
-            IDictionary<String, IObjectMap> dic = Find(from, false);
+            var dic = Find(from, false);
             if (dic == null) yield break;
 
-            foreach (IObjectMap item in dic.Values)
+            foreach (var item in dic.Values)
             {
                 yield return item;
             }
@@ -579,29 +502,27 @@ namespace NewLife.Model
 
         #region Xml配置文件注册
         const String CONFIG_PREFIX = "NewLife.ObjectContainer_";
-        /// <summary>
-        /// 加载配置
-        /// </summary>
+        /// <summary>加载配置</summary>
         protected virtual void LoadConfig()
         {
-            NameValueCollection nvs = Config.GetConfigByPrefix(CONFIG_PREFIX);
+            var nvs = Config.GetConfigByPrefix(CONFIG_PREFIX);
             if (nvs == null || nvs.Count < 1) return;
 
-            foreach (String item in nvs.Keys)
+            foreach (var item in nvs)
             {
-                String key = item;
-                String value = nvs[key];
+                //String key = item;
+                //String value = nvs[key];
 
-                if (value.IsNullOrWhiteSpace()) continue;
+                if (item.Value.IsNullOrWhiteSpace()) continue;
 
                 // 砍掉前缀，得到接口名
-                String name = key.Substring(CONFIG_PREFIX.Length);
+                var name = item.Key.Substring(CONFIG_PREFIX.Length);
                 if (name.IsNullOrWhiteSpace()) continue;
 
-                Type type = TypeX.GetType(name, true);
-                if (type == null) throw new XException("未找到对象容器配置{0}中的类型{1}！", key, name);
+                var type = TypeX.GetType(name, true);
+                if (type == null) throw new XException("未找到对象容器配置{0}中的类型{1}！", item.Key, name);
 
-                Map map = GetConfig(value);
+                var map = GetConfig(item.Value);
                 if (map == null) continue;
 
                 //// 扩展。马上实例化目标类型，目标类型要借助这个机会请求系统
@@ -614,26 +535,26 @@ namespace NewLife.Model
                 //    catch { }
                 //}
 
-                Register(type, null, null, map.TypeName, map.Mode, map.Name, map.Priority, map.Singleton);
+                Register(type, null, null, map.TypeName, map.Mode, map.Identity, map.Priority, map.Singleton);
             }
         }
 
         static Map GetConfig(String str)
         {
-            IDictionary<String, String> dic = str.SplitAsDictionary();
+            var dic = str.SplitAsDictionary();
             if (dic == null || dic.Count < 1)
             {
                 if (!str.IsNullOrWhiteSpace()) return new Map { TypeName = str };
                 return null;
             }
 
-            Map map = new Map();
-            foreach (KeyValuePair<String, String> item in dic)
+            var map = new Map();
+            foreach (var item in dic)
             {
                 switch (item.Key.ToLower())
                 {
                     case "name":
-                        map.Name = item.Value;
+                        map.Identity = item.Value;
                         break;
                     case "type":
                         map.TypeName = item.Value;
@@ -669,14 +590,9 @@ namespace NewLife.Model
         #endregion
 
         #region 辅助
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return String.Format("[Count={0}]", Stores.Count);
-        }
+        public override string ToString() { return String.Format("[Count={0}]", Stores.Count); }
         #endregion
     }
 }

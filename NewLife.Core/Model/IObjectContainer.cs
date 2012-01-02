@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 namespace NewLife.Model
 {
+    //TODO 考虑把标识对象的String name改为Object id，这样子方便使用任何类型作为标识，比如很多时候使用的就是枚举。
+
     /// <summary>对象容器接口</summary>
     /// <remarks>
     /// 1，如果容器里面没有这个类型，则返回空；
@@ -12,23 +14,6 @@ namespace NewLife.Model
     /// </remarks>
     public interface IObjectContainer
     {
-        #region 父容器
-        ///// <summary>父容器</summary>
-        //IObjectContainer Parent { get; }
-
-        ///// <summary>
-        ///// 移除所有子容器
-        ///// </summary>
-        ///// <returns></returns>
-        //IObjectContainer RemoveAllChildContainers();
-
-        ///// <summary>
-        ///// 创建子容器
-        ///// </summary>
-        ///// <returns></returns>
-        //IObjectContainer CreateChildContainer();
-        #endregion
-
         #region 注册
         /// <summary>
         /// 注册类型和名称
@@ -36,30 +21,30 @@ namespace NewLife.Model
         /// <param name="from">接口类型</param>
         /// <param name="to">实现类型</param>
         /// <param name="instance">实例</param>
-        /// <param name="name">名称</param>
+        /// <param name="id">标识</param>
         /// <param name="priority">优先级</param>
         /// <returns></returns>
-        IObjectContainer Register(Type from, Type to, Object instance, String name = null, Int32 priority = 0);
+        IObjectContainer Register(Type from, Type to, Object instance, Object id = null, Int32 priority = 0);
 
         /// <summary>
         /// 注册类型和名称
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <typeparam name="TImplement">实现类型</typeparam>
-        /// <param name="name">名称</param>
+        /// <param name="id">标识</param>
         /// <param name="priority">优先级</param>
         /// <returns></returns>
-        IObjectContainer Register<TInterface, TImplement>(String name = null, Int32 priority = 0);
+        IObjectContainer Register<TInterface, TImplement>(Object id = null, Int32 priority = 0);
 
         /// <summary>
         /// 注册类型指定名称的实例
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="instance">实例</param>
-        /// <param name="name">名称</param>
+        /// <param name="id">标识</param>
         /// <param name="priority">优先级</param>
         /// <returns></returns>
-        IObjectContainer Register<TInterface>(Object instance, String name = null, Int32 priority = 0);
+        IObjectContainer Register<TInterface>(Object instance, Object id = null, Int32 priority = 0);
 
         /// <summary>注册前事件</summary>
         event EventHandler<EventArgs<Type, IObjectMap>> OnRegistering;
@@ -73,19 +58,19 @@ namespace NewLife.Model
         /// 解析类型指定名称的实例
         /// </summary>
         /// <param name="from">接口类型</param>
-        /// <param name="name">名称</param>
+        /// <param name="id">标识</param>
         /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        Object Resolve(Type from, String name = null, Boolean extend = false);
+        Object Resolve(Type from, Object id = null, Boolean extend = false);
 
         /// <summary>
         /// 解析类型指定名称的实例
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="name">名称</param>
+        /// <param name="id">标识</param>
         /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        TInterface Resolve<TInterface>(String name = null, Boolean extend = false);
+        TInterface Resolve<TInterface>(Object id = null, Boolean extend = false);
 
         /// <summary>
         /// 解析类型所有已注册的实例
@@ -107,19 +92,19 @@ namespace NewLife.Model
         /// 解析接口指定名称的实现类型
         /// </summary>
         /// <param name="from">接口类型</param>
-        /// <param name="name">名称</param>
+        /// <param name="id">标识</param>
         /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        Type ResolveType(Type from, String name = null, Boolean extend = false);
+        Type ResolveType(Type from, Object id = null, Boolean extend = false);
 
         /// <summary>
         /// 解析接口指定名称的实现类型
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="name">名称</param>
+        /// <param name="id">标识</param>
         /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        Type ResolveType<TInterface>(String name = null, Boolean extend = false);
+        Type ResolveType<TInterface>(Object id = null, Boolean extend = false);
 
         /// <summary>
         /// 解析接口所有已注册的实现类型
@@ -141,7 +126,7 @@ namespace NewLife.Model
     public interface IObjectMap
     {
         /// <summary>名称</summary>
-        String Name { get; }
+        Object Identity { get; }
 
         /// <summary>实现类型</summary>
         Type ImplementType { get; }

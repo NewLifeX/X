@@ -172,7 +172,7 @@ namespace NewLife.Model
 
         void LoadConfig()
         {
-            NameValueCollection ps = Config.GetConfigByPrefix("NewLife.ServiceProvider_");
+            var ps = Config.GetConfigByPrefix("NewLife.ServiceProvider_");
             if (ps == null || ps.Count < 1) return;
 
             foreach (String item in ps.Keys)

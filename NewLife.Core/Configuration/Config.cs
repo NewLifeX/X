@@ -192,14 +192,14 @@ namespace NewLife.Configuration
         /// </summary>
         /// <param name="prefix"></param>
         /// <returns></returns>
-        public static NameValueCollection GetConfigByPrefix(String prefix)
+        public static IDictionary<String, String> GetConfigByPrefix(String prefix)
         {
             try
             {
-                NameValueCollection nvs = AppSettings;
+                var nvs = AppSettings;
                 if (nvs == null || nvs.Count < 1) return null;
 
-                NameValueCollection nv = new NameValueCollection();
+                var nv = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
                 foreach (String item in nvs)
                 {
                     if (item.Length > prefix.Length && item.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) nv.Add(item, nvs[item]);
