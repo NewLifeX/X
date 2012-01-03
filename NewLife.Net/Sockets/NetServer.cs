@@ -326,7 +326,7 @@ namespace NewLife.Net.Sockets
                 if (sb.Length > 0) sb.Append(" ");
                 sb.Append(item);
             }
-            return sb.ToString();
+            return Name + " " + sb.ToString();
         }
         #endregion
     }

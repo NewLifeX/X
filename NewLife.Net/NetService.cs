@@ -23,7 +23,8 @@ namespace NewLife.Net
                 .Register<ISocketClient, UdpClientX>(ProtocolType.Udp)
                 .Register<ISocketSession, TcpClientX>(ProtocolType.Tcp)
                 .Register<ISocketSession, UdpServer>(ProtocolType.Udp)
-                .Register<IStatistics, Statistics>();
+                .Register<IStatistics, Statistics>()
+                .Register<INetSession, NetSession>();
         }
 
         /// <summary>安装，引发静态构造函数</summary>
