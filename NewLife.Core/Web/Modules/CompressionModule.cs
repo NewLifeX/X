@@ -33,7 +33,10 @@ namespace NewLife.Web
             if (!(app.Context.CurrentHandler is System.Web.UI.Page) || app.Request["HTTP_X_MICROSOFTAJAX"] != null) return;
 
             // 如果已经写入头部，这里就不能压缩了
-            if (PropertyInfoX.GetValue<Boolean>(app.Response, "HeadersWritten")) return;
+            var pix = PropertyInfoX.Create(app.Response.GetType(), "HeadersWritten");
+            if (pix != null && (Boolean)pix.GetValue(app.Response)) return;
+            // .net 2.0没有HeadersWritten
+            //if (PropertyInfoX.GetValue<Boolean>(app.Response, "HeadersWritten")) return;
 
             //压缩
             String url = app.Request.Url.OriginalString.ToLower();

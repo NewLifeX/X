@@ -78,6 +78,7 @@
     <Compile Include="NTP\NTPEnum.cs" />
     <Compile Include="NTP\NTP.cs" />
     <Compile Include="P2P\HoleServer.cs" />
+    <Compile Include="P2P\P2PClient.cs" />
     <Compile Include="P2P\P2PTest.cs" />
     <Compile Include="Pop3\Pop3Client.cs" />
     <Compile Include="Pop3\Pop3Server.cs" />
