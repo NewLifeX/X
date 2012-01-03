@@ -47,6 +47,7 @@ namespace NewLife.Net.Common
         Int32 AveragePerMinute { get; }
 
         /// <summary>增加计数</summary>
-        void Increment();
+        /// <param name="n"></param>
+        void Increment(Int32 n = 1);
     }
 }

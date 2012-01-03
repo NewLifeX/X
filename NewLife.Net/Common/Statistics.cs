@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Threading;
+using System.Threading;
 
 namespace NewLife.Net.Common
 {
@@ -62,9 +60,14 @@ namespace NewLife.Net.Common
         private DateTime _NextPerHour;
 
         /// <summary>增加计数</summary>
-        public void Increment()
+        /// <param name="n"></param>
+        public void Increment(Int32 n = 1)
         {
-            _Total++;
+            //_Total++;
+            if (n == 1)
+                Interlocked.Increment(ref _Total);
+            else
+                Interlocked.Add(ref _Total, n);
 
             DateTime now = DateTime.Now;
             _Last = now;
@@ -72,8 +75,18 @@ namespace NewLife.Net.Common
 
             if (!Enable) return;
 
-            _TotalPerMinute++;
-            _TotalPerHour++;
+            //_TotalPerMinute++;
+            //_TotalPerHour++;
+            if (n == 1)
+            {
+                Interlocked.Increment(ref _TotalPerMinute);
+                Interlocked.Increment(ref _TotalPerHour);
+            }
+            else
+            {
+                Interlocked.Add(ref _TotalPerMinute, n);
+                Interlocked.Add(ref _TotalPerHour, n);
+            }
 
             if (_NextPerMinute < now)
             {
