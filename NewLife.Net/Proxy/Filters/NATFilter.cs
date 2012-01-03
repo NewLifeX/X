@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Net;
-using NewLife.Net.Sockets;
 using System.Net.Sockets;
+using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Proxy
 {
@@ -11,9 +9,9 @@ namespace NewLife.Net.Proxy
     class NATFilter : ProxyFilterBase
     {
         #region 属性
-        private String _Address;
+        private IPAddress _Address;
         /// <summary>地址</summary>
-        public String Address { get { return _Address; } set { _Address = value; } }
+        public IPAddress Address { get { return _Address; } set { _Address = value; } }
 
         private Int32 _Port;
         /// <summary>端口</summary>
@@ -31,8 +29,7 @@ namespace NewLife.Net.Proxy
         /// <returns></returns>
         public override ISocketClient CreateRemote(IProxySession session, NetEventArgs e)
         {
-            IPAddress[] addresses = Dns.GetHostAddresses(Address);
-            session.RemoteEndPoint = new IPEndPoint(addresses[0], Port);
+            session.RemoteEndPoint = new IPEndPoint(Address, Port);
 
             var client = NetService.Resolve<ISocketClient>(ProtocolType);
             client.Connect(Address, Port);

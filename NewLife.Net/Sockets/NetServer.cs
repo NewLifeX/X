@@ -70,7 +70,17 @@ namespace NewLife.Net.Sockets
 
         //private SocketServer _Server;
         /// <summary>服务器。返回服务器集合中的第一个服务器</summary>
-        public ISocketServer Server { get { return Servers.Count > 0 ? Servers[0] : null; } set { if (!Servers.Contains(value))_Servers.Insert(0, value); } }
+        public ISocketServer Server
+        {
+            get
+            {
+                var ss = Servers;
+                if (ss.Count <= 0) EnsureCreateServer();
+
+                return ss.Count > 0 ? ss[0] : null;
+            }
+            set { if (!Servers.Contains(value)) _Servers.Insert(0, value); }
+        }
 
         /// <summary>是否活动</summary>
         public Boolean Active { get { return Server != null && Server.Active; } }
@@ -133,7 +143,7 @@ namespace NewLife.Net.Sockets
         /// <summary>确保建立服务器</summary>
         protected virtual void EnsureCreateServer()
         {
-            if (Server == null)
+            if (Servers.Count <= 0)
             {
                 var list = CreateServer(Address, Port, ProtocolType, AddressFamily);
                 foreach (var item in list)

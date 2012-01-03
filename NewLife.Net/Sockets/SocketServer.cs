@@ -66,7 +66,8 @@ namespace NewLife.Net.Sockets
         /// <summary>停止监听</summary>
         public void Stop()
         {
-            if (!Active) throw new InvalidOperationException("服务没有开始！");
+            //if (!Active) throw new InvalidOperationException("服务没有开始！");
+            if (!Active) return;
 
             OnStop();
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
+using System.Net;
 
 namespace NewLife.Net.Proxy
 {
@@ -10,7 +11,7 @@ namespace NewLife.Net.Proxy
         private NATFilter _nat;
 
         /// <summary>服务器地址</summary>
-        public String ServerAddress { get { return _nat.Address; } set { _nat.Address = value; } }
+        public IPAddress ServerAddress { get { return _nat.Address; } set { _nat.Address = value; } }
 
         /// <summary>服务器端口</summary>
         public Int32 ServerPort { get { return _nat.Port; } set { _nat.Port = value; } }
@@ -20,21 +21,34 @@ namespace NewLife.Net.Proxy
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>
         public XProxy()
         {
             _nat = new NATFilter();
             _nat.Proxy = this;
             Filters.Add(_nat);
         }
+
+        /// <summary>实例化</summary>
+        /// <param name="server">目标服务器地址</param>
+        /// <param name="port">目标服务器端口</param>
+        public XProxy(String server, Int32 port) : this(server, port, ProtocolType.Tcp) { }
+
+        /// <summary>实例化</summary>
+        /// <param name="server">目标服务器地址</param>
+        /// <param name="port">目标服务器端口</param>
+        /// <param name="protocol">协议</param>
+        public XProxy(String server, Int32 port, ProtocolType protocol)
+            : this()
+        {
+            if (!String.IsNullOrEmpty(server)) ServerAddress = NetHelper.ParseAddress(server);
+            ServerPort = port;
+            ServerProtocolType = protocol;
+        }
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 开始
-        /// </summary>
+        /// <summary>开始</summary>
         protected override void OnStart()
         {
             if (ServerProtocolType == 0) ServerProtocolType = ProtocolType;

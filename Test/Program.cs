@@ -14,6 +14,7 @@ using NewLife.Reflection;
 using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
+using NewLife.Net.Proxy;
 
 namespace Test
 {
@@ -174,27 +175,24 @@ namespace Test
             //proxy.Filters.Add(filter);
             //proxy.Start();
 
-            //var proxy = new XProxy();
-            //proxy.Port = 53;
-            //proxy.ProtocolType = ProtocolType.Udp;
-            //proxy.ServerAddress = "192.168.0.1";
-            //proxy.ServerPort = 53;
-            //proxy.Start();
+            var proxy = new XProxy("nnhy.org",3389);
+            proxy.Port = 89;
+            proxy.Start();
 
-            var client = new TcpClientX();
-            client.Connect("jslswb.com", 12);
-            //client.Connect("192.168.1.9", 12);
-            var ep = client.LocalEndPoint;
-            var msg = client.ReceiveString();
-            Console.WriteLine("收到：{0}", msg);
-            //client.Close();
-            Console.WriteLine("本地监听：{0}", ep);
+            //var client = new TcpClientX();
+            //client.Connect("jslswb.com", 12);
+            ////client.Connect("192.168.1.9", 12);
+            //var ep = client.LocalEndPoint;
+            //var msg = client.ReceiveString();
+            //Console.WriteLine("收到：{0}", msg);
+            ////client.Close();
+            //Console.WriteLine("本地监听：{0}", ep);
 
-            var server = new TcpServer();
-            server.Address = ep.Address;
-            server.Port = ep.Port;
-            server.Accepted += new EventHandler<NetEventArgs>(server_Accepted2);
-            server.Start();
+            //var server = new TcpServer();
+            //server.Address = ep.Address;
+            //server.Port = ep.Port;
+            //server.Accepted += new EventHandler<NetEventArgs>(server_Accepted2);
+            //server.Start();
 
             //var server = new TcpServer();
             //server.Port = 12;
