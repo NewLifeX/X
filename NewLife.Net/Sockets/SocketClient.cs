@@ -58,6 +58,7 @@ namespace NewLife.Net.Sockets
         public void Connect(EndPoint remoteEP)
         {
             AddressFamily = remoteEP.AddressFamily;
+            if (!Client.IsBound) Bind();
             Client.Connect(remoteEP);
 
             // 引发基类重设个地址参数
@@ -185,7 +186,11 @@ namespace NewLife.Net.Sockets
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
         /// <param name="remoteEP">远程终结点</param>
-        public virtual void Send(Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP = null) { Client.Send(buffer, offset, size, SocketFlags.None); }
+        public virtual void Send(Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP = null)
+        {
+            if (!Client.IsBound) Bind();
+            Client.Send(buffer, offset, size, SocketFlags.None);
+        }
 
         /// <summary>发送字符串</summary>
         /// <param name="msg"></param>

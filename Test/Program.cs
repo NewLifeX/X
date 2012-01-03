@@ -142,7 +142,7 @@ namespace Test
 
         static void Test4()
         {
-            NewLife.Net.P2P.P2PTest.Start();
+            NewLife.Net.P2P.P2PTest.StartHole();
 
             //AppTest.Start();
             //NetHelper.Wake("00-24-8C-04-C0-9B", "00-24-8C-04-C0-91");

@@ -64,10 +64,10 @@ namespace NewLife.Net.P2P
                 INetSession ns = null;
                 if (Clients.TryGetValue(ss[1], out ns))
                 {
-                    session.Send(ns.ClientEndPoint.ToString(), null, client);
+                    session.Send("invite:" + ns.ClientEndPoint.ToString(), null, client);
 
                     // 同时还要通知对方
-                    ns.Session.Send(client.ToString(), null, ns.ClientEndPoint);
+                    ns.Session.Send("invite:" + client.ToString(), null, ns.ClientEndPoint);
                 }
                 else
                     session.Send("Not Found!", null, client);
