@@ -4,10 +4,22 @@ using System.Collections.Generic;
 using System.Text;
 using NewLife.Net.Sockets;
 using System.Net;
+using System.Threading;
 
 namespace NewLife.Net.P2P
 {
     /// <summary>打洞服务器</summary>
+    /// <remarks>
+    /// Tcp打洞流程（A想连接B）：
+    /// 1，客户端A通过路由器NAT-A连接打洞服务器S
+    /// 2，A向S发送标识<see cref="Identity"/>，异步等待响应
+    /// 3，S记录A的标识<see cref="Identity"/>和会话<see cref="ISocketSession"/>
+    /// 3，客户端B，从业务通道拿到标识<see cref="Indentity"/>
+    /// 4，B通过路由器NAT-B连接打洞服务器S，异步等待响应
+    /// 5，B向S发送标识<see cref="Identity"/>
+    /// 6，S找到匹配标识，同时向AB会话响应对方的外网地址，会话结束
+    /// 7，AB收到响应，B先连接A，A暂停一会后连接B
+    /// </remarks>
     public class HoleServer : NetServer
     {
         #region 属性
@@ -17,14 +29,6 @@ namespace NewLife.Net.P2P
         #endregion
 
         #region 方法
-        ///// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）</summary>
-        ///// <param name="sender"></param>
-        ///// <param name="e"></param>
-        //protected override void OnAccepted(object sender, NetEventArgs e)
-        //{
-        //    base.OnAccepted(sender, e);
-        //}
-
         /// <summary>收到数据时</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -42,21 +46,42 @@ namespace NewLife.Net.P2P
             ss[0] = ss[0].ToLower();
             if (ss[0] == "reg")
             {
-                // 如果连续注册两次可能会有问题，这里要处理一下
-                if (Clients.ContainsKey(ss[1]))
+                var name = ss[1];
+                INetSession ns = null;
+                if (!Clients.TryGetValue(name, out ns))
                 {
-                    session.Send("Has Register!", null, client);
-                }
-                else
-                {
-                    var ns = NetService.Resolve<INetSession>();
+                    // 集合里面没有，认为是发起邀请方，做好记录
+                    ns = NetService.Resolve<INetSession>();
                     ns.Server = sender as ISocketServer;
                     ns.Session = session;
                     ns.ClientEndPoint = client;
-                    Clients[ss[1]] = ns;
-                    ns.OnDisposed += (s, e2) => Clients.Remove(ss[1]);
+                    Clients[name] = ns;
+                    session.OnDisposed += (s, e2) => ns.Dispose();
+                    ns.OnDisposed += (s, e2) => Clients.Remove(name);
 
-                    session.Send("Success!", null, client);
+                    session.Send("Register Success!", null, client);
+
+                    WriteLog("邀请已建立：{0}", name);
+                }
+                else
+                {
+                    // 如果连续注册两次可能会有问题，这里要处理一下
+                    if (ns.ClientEndPoint == client)
+                        session.Send("Has Register!", null, client);
+                    else
+                    {
+                        // 到这里，应该是被邀请方到来，同时响应双方
+                        session.Send(ns.ClientEndPoint.ToString(), null, client);
+
+                        // 同时还要通知对方
+                        ns.Session.Send(client.ToString(), null, ns.ClientEndPoint);
+
+                        WriteLog("邀请已接受：{0} {1} {2}", name, client, ns.ClientEndPoint);
+
+                        Thread.Sleep(1000);
+                        session.Disconnect();
+                        if (ns.Session != null) ns.Session.Disconnect();
+                    }
                 }
             }
             else if (ss[0] == "invite")

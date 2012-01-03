@@ -150,12 +150,13 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 扩展属性
+        private Boolean _ReuseAddress;
         /// <summary>允许将套接字绑定到已在使用中的地址。</summary>
         public Boolean ReuseAddress
         {
             get
             {
-                if (Socket == null) return false;
+                if (Socket == null) return _ReuseAddress;
 
                 Object value = Socket.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress);
                 return Convert.ToBoolean(value);
@@ -163,6 +164,7 @@ namespace NewLife.Net.Sockets
             set
             {
                 if (Socket != null) Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, value);
+                _ReuseAddress = value;
             }
         }
 
@@ -204,6 +206,8 @@ namespace NewLife.Net.Sockets
             // 设置超时时间
             Socket.SendTimeout = 10000;
             Socket.ReceiveTimeout = 10000;
+
+            if (_ReuseAddress) ReuseAddress = true;
         }
         #endregion
 
