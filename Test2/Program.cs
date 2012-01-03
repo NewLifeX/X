@@ -53,8 +53,8 @@ namespace Test2
             //Console.Write("端口：");
             //Int32 port = Convert.ToInt32(Console.ReadLine().Trim());
 
-            //P2PTest.StartClient(name, "jslswb.com", 15);
-            P2PTest.StartClient(name);
+            P2PTest.StartClient(name, "jslswb.com", 15);
+            //P2PTest.StartClient(name);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Net;
 using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
+using System.Threading;
 
 namespace NewLife.Net.P2P
 {
@@ -109,6 +110,9 @@ namespace NewLife.Net.P2P
 
             Client.Dispose();
             var server = Server;
+
+            Random rnd = new Random((Int32)DateTime.Now.Ticks);
+            Thread.Sleep(rnd.Next(0, 2000));
 
             var client = new TcpClientX();
             Client = client;
