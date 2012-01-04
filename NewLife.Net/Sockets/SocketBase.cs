@@ -4,9 +4,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using NewLife.Collections;
+using NewLife.Net.Common;
 using NewLife.Reflection;
 using NewLife.Threading;
-using NewLife.Net.Common;
+using System.Text;
 
 namespace NewLife.Net.Sockets
 {
@@ -213,7 +214,7 @@ namespace NewLife.Net.Sockets
 
         #region 方法
         /// <summary>绑定本地终结点</summary>
-        public void Bind()
+        public virtual void Bind()
         {
             var socket = Socket;
             if (socket != null && !socket.IsBound)
@@ -409,7 +410,16 @@ namespace NewLife.Net.Sockets
         protected void RaiseComplete(NetEventArgs e)
         {
 #if DEBUG
-            WriteLog("Completed[{4}] {0} {1} {2} [{3}]", this, e.LastOperation, e.SocketError, e.BytesTransferred, e.ID);
+            //WriteLog("Completed[{4}] {0} {1} {2} [{3}]", this, e.LastOperation, e.SocketError, e.BytesTransferred, e.ID);
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("[{0,3}] {1}://{2}", e.ID, ProtocolType, LocalEndPoint);
+            var ep = e.RemoteIPEndPoint;
+            if (ep == null || ep.Address.IsAny()) ep = RemoteEndPoint;
+            if (ep != null && !ep.Address.IsAny()) sb.AppendFormat("=>{0}", ep);
+            sb.AppendFormat(" {0}", e.LastOperation);
+            if (e.SocketError != SocketError.Success) sb.AppendFormat(" {0}", e.SocketError);
+            sb.AppendFormat(" [{0}]", e.BytesTransferred);
+            WriteLog(sb.ToString());
 #endif
             try
             {

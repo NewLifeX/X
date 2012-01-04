@@ -62,7 +62,7 @@ namespace NewLife.Net.Udp
         protected override void OnStart()
         {
             Server.EnableBroadcast = true;
-            Server.ExclusiveAddressUse = true;
+            //Server.ExclusiveAddressUse = true;
 
             base.OnStart();
 

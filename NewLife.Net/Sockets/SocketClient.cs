@@ -35,6 +35,15 @@ namespace NewLife.Net.Sockets
         }
         #endregion
 
+        #region 方法
+        /// <summary>绑定本地终结点</summary>
+        public override void Bind()
+        {
+            // 调用Client，引发Socket的建立
+            if (Client != null) base.Bind();
+        }
+        #endregion
+
         #region 连接
         /// <summary>建立与远程主机的连接</summary>
         /// <param name="hostname"></param>
@@ -165,13 +174,6 @@ namespace NewLife.Net.Sockets
             {
                 Int32 n = stream.Read(buffer, 0, buffer.Length);
                 if (n <= 0) break;
-
-#if DEBUG
-                if (n >= buffer.Length || ProtocolType == ProtocolType.Tcp && n >= 1452 || ProtocolType == ProtocolType.Udp && n >= 1464)
-                {
-                    WriteLog("接收的实际数据大小{0}超过了缓冲区大小，需要根据真实MTU调整缓冲区大小以提高效率！", n);
-                }
-#endif
 
                 Send(buffer, 0, n, remoteEP);
                 total += n;

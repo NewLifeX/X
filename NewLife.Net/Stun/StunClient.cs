@@ -182,6 +182,7 @@ namespace NewLife.Net.Stun
         {
             var ms = new MemoryStream();
             request.Write(ms);
+            ms.Position = 0;
             client.Send(ms, remoteEndPoint);
             var buffer = client.Receive();
 

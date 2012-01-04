@@ -79,6 +79,12 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 方法
+        /// <summary>绑定本地终结点</summary>
+        public override void Bind()
+        {
+            // 调用Server，引发Socket的建立
+            if (Server != null) base.Bind();
+        }
         #endregion
 
         #region 事件

@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Net.Sockets;
-using NewLife.Net.Tcp;
-using System.Threading;
 using System.Net;
+using NewLife.Net.Udp;
+using System.Net.Sockets;
 
 namespace NewLife.Net.P2P
 {
@@ -16,7 +13,8 @@ namespace NewLife.Net.P2P
         public static void StartHole(Int32 port = 15)
         {
             var server = new HoleServer();
-            server.Port = port;
+            server.CreateServer(IPAddress.Any, port);
+            server.CreateServer(IPAddress.Any, port + 1);
             server.Start();
         }
 
@@ -27,7 +25,11 @@ namespace NewLife.Net.P2P
         public static void StartClient(String name, String server = "127.0.0.1", Int32 serverport = 15)
         {
             var client = new P2PClient();
+            //client.ProtocolType = ProtocolType.Tcp;
             client.HoleServer = new IPEndPoint(NetHelper.ParseAddress(server), serverport);
+            client.EnsureServer();
+            Console.WriteLine("任意键开始！");
+            Console.ReadKey(true);
             client.Start(name);
         }
     }

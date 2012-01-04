@@ -1,10 +1,7 @@
 ﻿using System;
-using NewLife.Linq;
 using System.Collections.Generic;
-using System.Text;
-using NewLife.Net.Sockets;
-using System.Net;
 using System.Threading;
+using NewLife.Net.Sockets;
 
 namespace NewLife.Net.P2P
 {
@@ -12,11 +9,11 @@ namespace NewLife.Net.P2P
     /// <remarks>
     /// Tcp打洞流程（A想连接B）：
     /// 1，客户端A通过路由器NAT-A连接打洞服务器S
-    /// 2，A向S发送标识<see cref="Identity"/>，异步等待响应
-    /// 3，S记录A的标识<see cref="Identity"/>和会话<see cref="ISocketSession"/>
-    /// 3，客户端B，从业务通道拿到标识<see cref="Indentity"/>
+    /// 2，A向S发送标识，异步等待响应
+    /// 3，S记录A的标识和会话<see cref="ISocketSession"/>
+    /// 3，客户端B，从业务通道拿到标识
     /// 4，B通过路由器NAT-B连接打洞服务器S，异步等待响应
-    /// 5，B向S发送标识<see cref="Identity"/>
+    /// 5，B向S发送标识
     /// 6，S找到匹配标识，同时向AB会话响应对方的外网地址，会话结束
     /// 7，AB收到响应，B先连接A，A暂停一会后连接B
     /// </remarks>
@@ -40,7 +37,7 @@ namespace NewLife.Net.P2P
             var client = e.RemoteIPEndPoint;
 
             var str = e.GetString();
-            WriteLog(client + " " + str);
+            WriteLog(client + "=>" + sender + " " + str);
 
             var ss = str.Split(":");
             ss[0] = ss[0].ToLower();
@@ -59,14 +56,14 @@ namespace NewLife.Net.P2P
                     session.OnDisposed += (s, e2) => ns.Dispose();
                     ns.OnDisposed += (s, e2) => Clients.Remove(name);
 
-                    session.Send("Register Success!", null, client);
+                    session.Send("注册成功！你的公网地址是：" + client, null, client);
 
                     WriteLog("邀请已建立：{0}", name);
                 }
                 else
                 {
                     // 如果连续注册两次可能会有问题，这里要处理一下
-                    if (ns.ClientEndPoint == client)
+                    if ("" + ns.ClientEndPoint == "" + client)
                         session.Send("Has Register!", null, client);
                     else
                     {
@@ -78,6 +75,7 @@ namespace NewLife.Net.P2P
 
                         WriteLog("邀请已接受：{0} {1} {2}", name, client, ns.ClientEndPoint);
 
+                        Clients.Remove(name);
                         Thread.Sleep(1000);
                         session.Disconnect();
                         if (ns.Session != null) ns.Session.Disconnect();
@@ -96,6 +94,10 @@ namespace NewLife.Net.P2P
                 }
                 else
                     session.Send("Not Found!", null, client);
+            }
+            else
+            {
+                session.Send("无法处理的信息：" + str, null, client);
             }
         }
         #endregion

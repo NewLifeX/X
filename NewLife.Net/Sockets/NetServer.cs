@@ -140,6 +140,24 @@ namespace NewLife.Net.Sockets
             return true;
         }
 
+        /// <summary>同时添加指定端口的IPv4和IPv6服务器，如果协议不是指定的Tcp或Udp，则同时添加Tcp和Udp服务器</summary>
+        /// <param name="address"></param>
+        /// <param name="port"></param>
+        /// <param name="protocol"></param>
+        /// <returns></returns>
+        public virtual Int32 CreateServer(IPAddress address, Int32 port, ProtocolType protocol = ProtocolType.Unknown)
+        {
+            var list = CreateServer(address, port, protocol, AddressFamily.Unknown);
+            Int32 count = 0;
+            foreach (var item in list)
+            {
+                AttachServer(item);
+
+                count++;
+            }
+            return count;
+        }
+
         /// <summary>确保建立服务器</summary>
         protected virtual void EnsureCreateServer()
         {

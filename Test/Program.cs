@@ -15,6 +15,7 @@ using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using NewLife.Net.Proxy;
+using NewLife.Net.Stun;
 
 namespace Test
 {
@@ -143,6 +144,16 @@ namespace Test
         static void Test4()
         {
             NewLife.Net.P2P.P2PTest.StartHole();
+
+            //var result = StunClient.Query("192.168.1.1", 3478);
+            //if (result.Type != StunNetType.UdpBlocked)
+            //{
+
+            //}
+            //else
+            //{
+            //    var publicEP = result.Public;
+            //}
 
             //AppTest.Start();
             //NetHelper.Wake("00-24-8C-04-C0-9B", "00-24-8C-04-C0-91");
