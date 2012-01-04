@@ -181,14 +181,18 @@ namespace NewLife.Net.P2P
             var ss = e.GetString().Split(":");
             if (ss == null || ss.Length < 2) return;
 
-            var ep = new IPEndPoint(IPAddress.Parse(ss[0]), Int32.Parse(ss[1]));
+            IPAddress address = null;
+            if (!IPAddress.TryParse(ss[0], out address)) return;
+            Int32 port = 0;
+            if (!Int32.TryParse(ss[1], out port)) return;
+            var ep = new IPEndPoint(address, port);
             ParterAddress = ep;
 
             Client.Dispose();
             var server = Server;
 
-            //Random rnd = new Random((Int32)DateTime.Now.Ticks);
-            //Thread.Sleep(rnd.Next(0, 2000));
+            Random rnd = new Random((Int32)DateTime.Now.Ticks);
+            Thread.Sleep(rnd.Next(0, 2000));
 
             var client = new TcpClientX();
             Client = client;
