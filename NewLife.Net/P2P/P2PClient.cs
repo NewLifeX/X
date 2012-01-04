@@ -49,9 +49,9 @@ namespace NewLife.Net.P2P
         /// <summary>目标伙伴地址</summary>
         public IPEndPoint ParterAddress { get { return _ParterAddress; } set { _ParterAddress = value; } }
 
-        private Boolean _Success;
+        private Int32 _Success;
         /// <summary>是否成功</summary>
-        public Boolean Success { get { return _Success; } set { _Success = value; } }
+        public Int32 Success { get { return _Success; } set { _Success = value; } }
         #endregion
 
         #region 方法
@@ -105,19 +105,20 @@ namespace NewLife.Net.P2P
                 //Thread.Sleep(1000);
 
                 Console.WriteLine("准备连接对方：{0}", ep);
-                while (!Success)
+                while (Success <= 0)
                 {
                     (Server as UdpServer).Send("Hello!", null, ep);
 
                     Thread.Sleep(100);
-                    if (Success) break;
+                    if (Success > 0) break;
                     Thread.Sleep(3000);
                 }
             }
             else if (remote == "" + ParterAddress)
             {
                 WriteLog("Parter数据到来：{0} {1}", e.RemoteIPEndPoint, e.GetString());
-                Success = true;
+                //Success = true;
+                if (Success > 0) Success++;
 
                 var session = e.Socket as ISocketSession;
                 if (session != null)
@@ -238,8 +239,8 @@ namespace NewLife.Net.P2P
             var server = Server as UdpServer;
             if (server != null)
             {
-                //server.Send(msg, null, HoleServer);
-                server.Send("test", null, HoleServer);
+                server.Send(msg, null, HoleServer);
+                //server.Send("test", null, HoleServer);
                 if (msg.StartsWith("reg"))
                 {
                     var ep = new IPEndPoint(HoleServer.Address, HoleServer.Port + 1);
