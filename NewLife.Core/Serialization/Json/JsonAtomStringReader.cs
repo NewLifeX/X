@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using NewLife.Exceptions;
@@ -48,13 +49,12 @@ namespace NewLife.Serialization
         }
 
         /// <summary>
-        /// 读取下一个原子元素
+        /// 读取下一个原子元素,返回原子元素的类型,输出参数str表示读到的字符串
         /// </summary>
         /// <remarks>
         /// 一般情况下isDetect可以为false,如果需要探测下一个可读元素,则需要给isDetect参数为true
-        ///
         /// </remarks>
-        /// <param name="isDetect">为true表示探测,探测将不会真正读取数据,str也最多只有当前流位置的下一个元素,并且流位置不会后移</param>
+        /// <param name="isDetect">为true表示探测,探测将只会读取一个字符,但不会移动流位置,直接重复探测将始终返回一样的结果</param>
         /// <param name="str">读取到的原始字符串</param>
         /// <returns></returns>
         public JsonAtomType Read(bool isDetect, out string str)
@@ -126,6 +126,12 @@ namespace NewLife.Serialization
             return Reader.Read();
         }
 
+        /// <summary>
+        /// 读取字符串,流位置以处于"之后,读到的字符串不包含结尾的",但流会被移动到"之后
+        /// </summary>
+        /// <param name="quotesChar"></param>
+        /// <param name="str"></param>
+        /// <returns></returns>
         private JsonAtomType ReadString(char quotesChar, out string str)
         {
             StringBuilder sb = new StringBuilder();
@@ -171,16 +177,215 @@ namespace NewLife.Serialization
             return JsonAtomType.STRING;
         }
 
+        /// <summary>
+        /// 读取下一个转义字符,流已处于转义符\之后
+        /// </summary>
+        /// <returns></returns>
         private string ReadEscapeChar()
         {
-            // TODO
-            throw new Exception();
+            int c = MoveNext();
+            switch (c)
+            {
+                case 'b':
+                    return "\b";
+                case 'f':
+                    return "\f";
+                case 'n':
+                    return "\n";
+                case 'r':
+                    return "\r";
+                case 't':
+                    return "\t";
+                case 'u':
+                    char[] uniChar = new char[4];
+                    int n = Reader.ReadBlock(uniChar, 0, 4);
+                    string str = new string(uniChar, 0, n);
+                    if (n == 4)
+                    {
+                        UInt16 charCode;
+                        if (UInt16.TryParse(str, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out charCode))
+                        {
+                            Column += 4;
+                            return "" + (char)charCode;
+                        }
+                    }
+                    throw new JsonReaderParseException(Line, Column, "无效的Unicode字符转义\\u" + str);
+                default:
+                    if (c > 2042) Column++; // 宽字符
+                    return "" + (char)c;
+            }
         }
 
+        /// <summary>
+        /// 读取下一个字面值,可能是true false null 数字 无法识别
+        ///
+        /// isDetect为true时将不确保实际结果是返回的类型,因为仅仅预读一个字符无法确定上述字面值
+        /// </summary>
+        /// <param name="isDetect">为true表示探测,探测将只会读取一个字符,但不会移动流位置</param>
+        /// <param name="str"></param>
+        /// <returns></returns>
         private JsonAtomType ReadLiteral(bool isDetect, out string str)
         {
-            // TODO
-            throw new Exception();
+            StringBuilder sb = new StringBuilder();
+            bool hasDigit = false, hasLiteral = false, hasDot = false, hasExp = false;
+            int c = 0, lastChar = -1;
+            while (true)
+            {
+                c = Reader.Peek();
+                switch (c)
+                {
+                    case '-':
+                    case '+':
+                        if (!isDetect) MoveNext();
+                        sb.Append((char)c);
+                        // json标准中允许负号出现在第一位和e符号后,正号只允许出现在e符号后,这里忽略这样的差异,正号或负号都可以出现在第一位
+                        if (sb.Length == 1 || // 第一个字符
+                            (sb.Length > 2 && hasDigit && !hasLiteral && hasExp && (lastChar == 'e' || lastChar == 'E')) // 科学计数法e符号后的正负符号
+                            )
+                        {
+                            hasDigit = true;
+                        }
+                        else
+                        {
+                            hasLiteral = true;
+                        }
+                        break;
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': // 数字
+                        if (!isDetect) MoveNext();
+                        sb.Append((char)c);
+                        hasDigit = true;
+                        break;
+                    case '.': // 浮点数
+                        if (!isDetect) MoveNext();
+                        sb.Append((char)c);
+                        if (!hasDot)
+                        {
+                            hasDot = true;
+                        }
+                        else
+                        {
+                            hasLiteral = true;
+                        }
+                        break;
+                    case 'e':
+                    case 'E':
+                        if (!isDetect) MoveNext();
+                        sb.Append((char)c);
+                        if (!hasExp)
+                        {
+                            hasExp = true;
+                        }
+                        else
+                        {
+                            hasLiteral = true;
+                        }
+                        break;
+                    default:
+                        if (c < 32 || " \t,{}[]:".IndexOf((char)c) != -1) // 结束符号
+                        {
+                            break;
+                        }
+                        else // 其它符号
+                        {
+                            if (!isDetect)
+                            {
+                                if (c > 2042) Column++; // 宽字符
+                                MoveNext();
+                            }
+                            sb.Append((char)c);
+                            hasLiteral = true;
+                        }
+                        break;
+                }
+                lastChar = c;
+                if (isDetect) break;
+            }
+            str = sb.ToString();
+            if (hasDigit && !hasDot && !hasLiteral || isDetect && hasDigit)
+            {
+                return hasExp ? JsonAtomType.NUMBER_EXP : JsonAtomType.NUMBER;
+            }
+            else if (hasDigit && hasDot && !hasLiteral || isDetect && hasDot)
+            {
+                return hasExp ? JsonAtomType.FLOAT_EXP : JsonAtomType.FLOAT;
+            }
+            else
+            {
+                string lit = str.ToLower();
+                if (!hasDigit && lit == "true" || isDetect && lit == "t")
+                {
+                    return JsonAtomType.TRUE;
+                }
+                else if (!hasDigit && lit == "false" || isDetect && lit == "f")
+                {
+                    return JsonAtomType.FALSE;
+                }
+                else if (!hasDigit && lit == "null" || isDetect && lit == "n")
+                {
+                    return JsonAtomType.NULL;
+                }
+                else
+                {
+                    return JsonAtomType.LITERAL;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 跳过下一个读到的值,包括复合格式{...} [...]
+        /// </summary>
+        /// <returns></returns>
+        public JsonAtomStringReader Skip()
+        {
+            return Skip(0);
+        }
+
+        /// <summary>
+        /// 跳过接下来读到的值,可指定要跳过的复合对象深度
+        /// </summary>
+        /// <remarks>
+        /// 复合对象深度值是指当流位置和目标处于以下位置时
+        ///
+        ///   [[1,2/*当前流位置*/,3]]/*跳到的目标*/
+        ///
+        /// 调用Skip(1)将会将当前流位置移动到目标位置
+        /// </remarks>
+        /// <param name="initDepth">复合对象深度值,为0时表示不跳过复合对象,小于0时不做任何操作</param>
+        /// <returns></returns>
+        public JsonAtomStringReader Skip(int initDepth)
+        {
+            if (initDepth < 0) return this;
+            int skipDepth = initDepth;
+            string str;
+            do
+            {
+                switch (Read(false, out str))
+                {
+                    case JsonAtomType.NONE:
+                        skipDepth = 0; // 立即跳出
+                        break;
+                    case JsonAtomType.BRACE_OPEN:
+                    case JsonAtomType.BRACKET_OPEN:
+                        skipDepth++;
+                        break;
+                    case JsonAtomType.BRACE_CLOSE:
+                    case JsonAtomType.BRACKET_CLOSE:
+                        skipDepth--;
+                        break;
+                    default:
+                        break;
+                }
+            } while (skipDepth > 0);
+            return this;
         }
     }
 
