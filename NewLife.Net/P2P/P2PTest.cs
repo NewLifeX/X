@@ -25,7 +25,8 @@ namespace NewLife.Net.P2P
         public static void StartClient(String name, String server = "127.0.0.1", Int32 serverport = 15)
         {
             var client = new P2PClient();
-            client.ProtocolType = ProtocolType.Tcp;
+            // 这里决定是Udp穿透还是Tcp穿透
+            //client.ProtocolType = ProtocolType.Tcp;
             client.HoleServer = new IPEndPoint(NetHelper.ParseAddress(server), serverport);
             client.EnsureServer();
             //var s = client.Server as UdpServer;
