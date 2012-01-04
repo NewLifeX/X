@@ -102,8 +102,6 @@ namespace NewLife.Net.P2P
                 var ep = new IPEndPoint(address, port);
                 ParterAddress = ep;
 
-                //Thread.Sleep(1000);
-
                 Console.WriteLine("准备连接对方：{0}", ep);
                 while (Success <= 0)
                 {
