@@ -26,7 +26,7 @@ namespace Test2
                 try
                 {
 #endif
-                Test1();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -55,14 +55,18 @@ namespace Test2
             //Int32 port = Convert.ToInt32(Console.ReadLine().Trim());
 
             P2PTest.StartClient(name, "jslswb.com", 15);
-            //P2PTest.StartClient(name);
+            ////P2PTest.StartClient(name);
 
             //var hole = new IPEndPoint(NetHelper.ParseAddress("jslswb.com"), 15);
             //var client = new UdpClientX();
+            ////var client = new UdpServer();
             //client.Bind();
             //client.Received += new EventHandler<NetEventArgs>(client_Received);
             //client.ReceiveAsync();
-            //client.Send("reg.gg", null, hole);
+            ////client.Send("reg.gg", null, hole);
+            //client.Send("test", null, hole);
+            //hole = new IPEndPoint(hole.Address, hole.Port + 1);
+            //client.Send("nnhy", null, hole);
             //Console.WriteLine("监听：{0}", client.LocalEndPoint);
 
             //Thread.Sleep(1000);

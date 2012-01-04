@@ -28,6 +28,9 @@ namespace NewLife.Net.P2P
             //client.ProtocolType = ProtocolType.Tcp;
             client.HoleServer = new IPEndPoint(NetHelper.ParseAddress(server), serverport);
             client.EnsureServer();
+            //var s = client.Server as UdpServer;
+            //s.Send("test", null, client.HoleServer);
+            //s.Send("nnhy", null, new IPEndPoint(client.HoleServer.Address, serverport + 1));
             Console.WriteLine("任意键开始！");
             Console.ReadKey(true);
             client.Start(name);

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
-using System.Net.Sockets;
 
 namespace NewLife.Net.P2P
 {
@@ -75,6 +75,8 @@ namespace NewLife.Net.P2P
                     Server = server;
                     //server.ReuseAddress = true;
                     server.Received += new EventHandler<NetEventArgs>(server_Received);
+                    server.Bind();
+                    //server.ReceiveAsync();
                 }
 
                 Server.Start();
@@ -236,7 +238,8 @@ namespace NewLife.Net.P2P
             var server = Server as UdpServer;
             if (server != null)
             {
-                server.Send(msg, null, HoleServer);
+                //server.Send(msg, null, HoleServer);
+                server.Send("test", null, HoleServer);
                 if (msg.StartsWith("reg"))
                 {
                     var ep = new IPEndPoint(HoleServer.Address, HoleServer.Port + 1);
