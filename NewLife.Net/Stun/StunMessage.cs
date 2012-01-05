@@ -4,6 +4,7 @@ using System.Net;
 using System.Text;
 using NewLife.Serialization;
 using System.Collections.Generic;
+using NewLife.Reflection;
 
 namespace NewLife.Net.Stun
 {
@@ -52,12 +53,12 @@ namespace NewLife.Net.Stun
         #endregion
 
         #region 特性集合
-        //[FieldSize("_Length")]
-        //private StunAttribute[] _Data;
-        ///// <summary>数据</summary>
-        //private StunAttribute[] Data { get { return _Data; } set { _Data = value; } }
-
         [FieldSize("_Length")]
+        private Byte[] _Data;
+        /// <summary>数据</summary>
+        private Byte[] Data { get { return _Data; } set { _Data = value; } }
+
+        [NonSerialized]
         private Dictionary<AttributeType, StunAttribute> _Atts;
         /// <summary>属性集合</summary>
         private Dictionary<AttributeType, StunAttribute> Atts { get { return _Atts ?? (_Atts = new Dictionary<AttributeType, StunAttribute>()); } }
@@ -113,10 +114,21 @@ namespace NewLife.Net.Stun
             {
                 case AttributeType.ChangeRequest:
                     Int32 d = att.Int;
+                    Boolean b = (Boolean)(Object)value;
                     if (position == 0)
-                        d |= 4;
+                    {
+                        if (b)
+                            d |= 4;
+                        else if ((d & 4) != 0)
+                            d ^= 4;
+                    }
                     else
-                        d |= 2;
+                    {
+                        if (b)
+                            d |= 2;
+                        else if ((d & 2) != 0)
+                            d ^= 2;
+                    }
                     att.Int = d;
                     break;
                 case AttributeType.ErrorCode:
@@ -212,6 +224,10 @@ namespace NewLife.Net.Stun
             TransactionID = new Byte[16];
             var rnd = new Random((Int32)DateTime.Now.Ticks);
             rnd.NextBytes(TransactionID);
+            TransactionID[0] = 0;
+
+            ChangeIP = false;
+            ChangePort = false;
         }
         #endregion
 
@@ -264,25 +280,38 @@ namespace NewLife.Net.Stun
 
         bool IAccessor.ReadComplete(IReader reader, bool success)
         {
-            //// 分析属性
-            //if (Data != null && Data.Length > 0)
-            //{
-            //    var ms = new MemoryStream(Data);
-            //    ParseAttribute(new BinaryReader(ms));
-            //}
+            // 分析属性
+            if (Data != null && Data.Length > 0)
+            {
+                reader.Stream = new MemoryStream(Data);
+                //_Atts = reader.ReadObject<Dictionary<AttributeType, StunAttribute>>();
+                while (reader.Stream.Position < reader.Stream.Length)
+                {
+                    var type = reader.ReadObject<AttributeType>();
+                    var att = reader.ReadObject<StunAttribute>();
+                    Atts[type] = att;
+                }
+            }
 
             return success;
         }
 
         bool IAccessor.Write(IWriter writer)
         {
-            //// 处理属性
-            ////if (Data != null && Data.Length > 0)
-            //{
-            //    var ms = new MemoryStream();
-            //    ProcessAttribute(new BinaryWriter(ms));
-            //    Data = ms.ToArray();
-            //}
+            // 处理属性
+            if (Atts != null && Atts.Count > 0)
+            {
+                var wr = TypeX.CreateInstance(writer.GetType()) as IWriter;
+                wr.Settings = writer.Settings;
+                //wr.WriteObject(Atts);
+                foreach (var item in Atts)
+                {
+                    wr.WriteObject(item.Key);
+                    wr.WriteObject(item.Value);
+                }
+                wr.Stream.Position = 0;
+                Data = NewLife.IO.IOHelper.ReadBytes(wr.Stream);
+            }
 
             return false;
         }

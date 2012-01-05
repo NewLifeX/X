@@ -1,4 +1,5 @@
 ﻿
+using System.ComponentModel;
 namespace NewLife.Net.Stun
 {
     /// <summary>UDP网络类型</summary>
@@ -7,13 +8,16 @@ namespace NewLife.Net.Stun
     /// </remarks>
     public enum StunNetType
     {
-        /// <summary>UDP被禁止</summary>
+        /// <summary>UDP被禁止，或无法连接STUN服务器</summary>
+        [Description("UDP被禁止，或无法连接STUN服务器")]
         UdpBlocked,
 
         /// <summary>公网地址，没有NAT和防火墙</summary>
+        [Description("公网地址，没有NAT和防火墙")]
         OpenInternet,
 
         /// <summary>公网地址，没有NAT，对称UDP防火墙</summary>
+        [Description("公网地址，没有NAT，对称UDP防火墙")]
         SymmetricUdpFirewall,
 
         /// <summary>
@@ -21,6 +25,7 @@ namespace NewLife.Net.Stun
         /// 一旦一个内部地址(iAddr:port1)映射到外部地址(eAddr:port2),所有发自iAddr:port1的包都经由eAddr:port2向外发送.
         /// 任意外部主机都能通过给eAddr:port2发包到达iAddr:port1
         /// </summary>
+        [Description("一对一完全圆锥NAT")]
         FullCone,
 
         /// <summary>
@@ -28,12 +33,14 @@ namespace NewLife.Net.Stun
         /// 一旦一个内部地址(iAddr:port1)映射到外部地址(eAddr:port2),所有发自iAddr:port1的包都经由eAddr:port2向外发送.
         /// 任意外部主机(hostAddr:any)都能通过给eAddr:port2发包到达iAddr:port1的前提是：iAddr:port1之前发送过包到hostAddr:any. "any"也就是说端口不受限制
         /// </summary>
+        [Description("受限圆锥NAT")]
         RestrictedCone,
 
         /// <summary>
         /// 端口受限圆锥NAT。
         /// 一旦一个内部地址(iAddr:port1)映射到外部地址(eAddr:port2),所有发自iAddr:port1的包都经由eAddr:port2向外发送.一个外部主机(hostAddr:port3)能够发包到达iAddr:port1的前提是：iAddr:port1之前发送过包到hostAddr:port3.
         /// </summary>
+        [Description("端口受限圆锥NAT")]
         PortRestrictedCone,
 
         /// <summary>
@@ -42,6 +49,7 @@ namespace NewLife.Net.Stun
         /// 同一个内部主机发出一个信息包到不同的目的端，不同的映射使用
         /// 只有曾经收到过内部主机封包的外部主机，才能够把封包发回来
         /// </summary>
+        [Description("对称NAT")]
         Symmetric
     }
 }

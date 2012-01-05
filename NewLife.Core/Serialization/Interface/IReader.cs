@@ -176,6 +176,11 @@ namespace NewLife.Serialization
         /// <returns>对象</returns>
         Object ReadObject(Type type);
 
+        /// <summary>主要入口方法。从数据流中读取指定类型的对象</summary>
+        /// <typeparam name="T">类型</typeparam>
+        /// <returns>对象</returns>
+        T ReadObject<T>();
+
         /// <summary>主要入口方法。尝试按照指定类型读取目标对象</summary>
         /// <param name="type">类型</param>
         /// <param name="value">对象</param>

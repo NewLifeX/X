@@ -149,7 +149,7 @@ namespace Test
 
             //var result = StunClient.Query("stunserver.org", 3478);
             var result = StunClient.Query("stun.xten.com", 3478);
-            Console.WriteLine(result.Type);
+            Console.WriteLine("{0} {1}", result.Type, result.Type.GetDescription());
 
             //AppTest.Start();
             //NetHelper.Wake("00-24-8C-04-C0-9B", "00-24-8C-04-C0-91");

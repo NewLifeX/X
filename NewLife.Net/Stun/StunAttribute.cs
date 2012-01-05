@@ -129,14 +129,15 @@ namespace NewLife.Net.Stun
             //Int32 p = 2;
 
             // Port
-            var arr = new Byte[4];
-            data.CopyTo(arr, 2);
+            var arr = new Byte[2];
+            Array.Copy(data, 2, arr, 0, arr.Length);
             Array.Reverse(arr);
-            int port = BitConverter.ToInt32(arr, 0);
+            var port = BitConverter.ToUInt16(arr, 0);
 
             // Address
             Byte[] ip = new Byte[4];
-            data.CopyTo(ip, 4);
+            //data.CopyTo(ip, 4);
+            Array.Copy(data, 4, ip, 0, ip.Length);
 
             return new IPEndPoint(new IPAddress(ip), port);
         }
@@ -169,7 +170,7 @@ namespace NewLife.Net.Stun
             var data = new Byte[8];
             data[1] = 1;
 
-            var d = BitConverter.GetBytes(endPoint.Port);
+            var d = BitConverter.GetBytes((UInt16)endPoint.Port);
             Array.Reverse(d);
             d.CopyTo(data, 2);
 

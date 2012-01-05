@@ -9,6 +9,8 @@ namespace NewLife.Net.Stun
     /// <summary>Stun客户端。Simple Traversal of UDP over NATs，NAT 的UDP简单穿越。RFC 3489</summary>
     /// <remarks>
     /// <a href="http://baike.baidu.com/view/884586.htm">STUN</a>
+    /// 
+    /// 国内STUN服务器：220.181.126.73、220.181.126.74，位于北京电信，但不清楚是哪家公司
     /// </remarks>
     /// <example>
     /// <code>
@@ -28,7 +30,7 @@ namespace NewLife.Net.Stun
         /// <param name="host"></param>
         /// <param name="port"></param>
         /// <returns></returns>
-        public static StunResult Query(String host, Int32 port) { return Query(NetHelper.ParseAddress(host), port); }
+        public static StunResult Query(String host = "220.181.126.73", Int32 port = 3478) { return Query(NetHelper.ParseAddress(host), port); }
 
         /// <summary>查询</summary>
         /// <param name="address"></param>
