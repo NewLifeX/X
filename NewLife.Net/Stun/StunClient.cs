@@ -4,6 +4,7 @@ using System.Net;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
 using NewLife.Linq;
+using System.Collections.Generic;
 
 namespace NewLife.Net.Stun
 {
@@ -82,7 +83,22 @@ namespace NewLife.Net.Stun
 
     */
 
-        static String[] servers = new String[] { "stunserver.org", "stun.xten.com", "stun.fwdnet.net", "stun.iptel.org" };
+        static String[] servers = new String[] { "stunserver.org", "stun.xten.com", "stun.fwdnet.net", "stun.iptel.org", "220.181.126.73" };
+        private static List<String> _Servers;
+        /// <summary>打洞服务器</summary>
+        public static List<String> Servers
+        {
+            get
+            {
+                if (_Servers == null)
+                {
+                    var list = new List<String>();
+                    list.AddRange(servers);
+                    _Servers = list;
+                }
+                return _Servers;
+            }
+        }
 
         /// <summary>查询</summary>
         /// <returns></returns>
@@ -90,9 +106,13 @@ namespace NewLife.Net.Stun
         {
             // 如果是Udp被屏蔽，很有可能是因为服务器没有响应，可以通过轮换服务器来测试
             StunResult result = null;
-            foreach (var item in servers)
+            foreach (var item in Servers)
             {
-                result = Query(NetHelper.ParseAddress(item), 3478);
+                Int32 p = item.IndexOf(":");
+                if (p > 0)
+                    result = Query(NetHelper.ParseAddress(item.Substring(0, p)), Int32.Parse(item.Substring(p + 1)));
+                else
+                    result = Query(NetHelper.ParseAddress(item), 3478);
                 if (result.Type != StunNetType.UdpBlocked) return result;
             }
             return result;
