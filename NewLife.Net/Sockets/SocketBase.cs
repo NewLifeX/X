@@ -245,6 +245,36 @@ namespace NewLife.Net.Sockets
             }
         }
 
+        /// <summary>获取相对于指定远程地址的本地地址</summary>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        public IPAddress GetRelativeAddress(IPAddress remote)
+        {
+            // 如果不是任意地址，直接返回
+            var addr = LocalEndPoint.Address;
+            if (!addr.IsAny()) return addr;
+
+            // 如果是本地环回地址，返回环回地址
+            if (IPAddress.IsLoopback(remote))
+                return addr.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Loopback : IPAddress.IPv6Loopback;
+
+            // 否则返回本地第一个IP地址
+            foreach (var item in NetHelper.GetIPs())
+            {
+                if (item.AddressFamily == addr.AddressFamily) return item;
+            }
+            return null;
+        }
+
+        /// <summary>获取相对于指定远程地址的本地地址</summary>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        public IPEndPoint GetRelativeEndPoint(IPAddress remote)
+        {
+            var addr = GetRelativeAddress(remote);
+            return addr == null ? LocalEndPoint : new IPEndPoint(addr, LocalEndPoint.Port);
+        }
+
         void OnSocketChange(Socket socket)
         {
             if (socket == null) return;
@@ -433,7 +463,7 @@ namespace NewLife.Net.Sockets
 #if DEBUG
             //WriteLog("Completed[{4}] {0} {1} {2} [{3}]", this, e.LastOperation, e.SocketError, e.BytesTransferred, e.ID);
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("[{0,3}] {1}://{2}", e.ID, ProtocolType, LocalEndPoint);
+            sb.AppendFormat("[{0}] {1}://{2}", e.ID, ProtocolType, LocalEndPoint);
             var ep = e.RemoteIPEndPoint;
             if (ep == null || ep.Address.IsAny()) ep = RemoteEndPoint;
             if ((ep == null || ep.Address.IsAny()) && e.LastOperation == SocketAsyncOperation.Accept && e.AcceptSocket != null) ep = e.AcceptSocket.RemoteEndPoint as IPEndPoint;

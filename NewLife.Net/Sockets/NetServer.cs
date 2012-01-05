@@ -144,10 +144,11 @@ namespace NewLife.Net.Sockets
         /// <param name="address"></param>
         /// <param name="port"></param>
         /// <param name="protocol"></param>
+        /// <param name="family"></param>
         /// <returns></returns>
-        public virtual Int32 CreateServer(IPAddress address, Int32 port, ProtocolType protocol = ProtocolType.Unknown)
+        public virtual Int32 AddServer(IPAddress address, Int32 port, ProtocolType protocol = ProtocolType.Unknown, AddressFamily family = AddressFamily.Unknown)
         {
-            var list = CreateServer(address, port, protocol, AddressFamily.Unknown);
+            var list = CreateServer(address, port, protocol, family);
             Int32 count = 0;
             foreach (var item in list)
             {
@@ -181,6 +182,8 @@ namespace NewLife.Net.Sockets
             OnStart();
 
             ProtocolType = Server.ProtocolType;
+
+            WriteLog("{0} 准备就绪！", Name);
         }
 
         /// <summary>开始时调用的方法</summary>
@@ -207,6 +210,8 @@ namespace NewLife.Net.Sockets
             }
 
             OnStop();
+
+            WriteLog("{0} 已停止！", Name);
         }
 
         /// <summary>停止时调用的方法</summary>

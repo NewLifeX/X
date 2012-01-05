@@ -64,6 +64,16 @@ namespace NewLife.Net.Sockets
 
         ///// <summary>把对象归还到池里</summary>
         //void Push(NetEventArgs e);
+
+        /// <summary>获取相对于指定远程地址的本地地址</summary>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        IPAddress GetRelativeAddress(IPAddress remote);
+
+        /// <summary>获取相对于指定远程地址的本地地址</summary>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        IPEndPoint GetRelativeEndPoint(IPAddress remote);
         #endregion
 
         #region 事件
