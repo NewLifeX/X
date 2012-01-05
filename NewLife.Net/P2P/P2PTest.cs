@@ -22,6 +22,7 @@ namespace NewLife.Net.P2P
         /// <param name="name"></param>
         /// <param name="server"></param>
         /// <param name="serverport"></param>
+        /// <param name="isTcp"></param>
         public static void StartClient(String name, String server = "127.0.0.1", Int32 serverport = 15, Boolean isTcp = false)
         {
             var client = new P2PClient();

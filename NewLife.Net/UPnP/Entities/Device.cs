@@ -5,11 +5,10 @@ using System.Xml.Serialization;
 
 namespace NewLife.Net.UPnP
 {
-    /// <summary>
-    /// 设备
-    /// </summary>
+    /// <summary>设备</summary>
     public class Device
     {
+        #region 属性
         private String _deviceType;
         /// <summary>设备类型</summary>
         public String deviceType
@@ -109,7 +108,9 @@ namespace NewLife.Net.UPnP
             get { return _deviceList; }
             set { _deviceList = value; }
         }
+        #endregion
 
+        #region 方法
         /// <summary>
         /// 已重载。
         /// </summary>
@@ -119,5 +120,40 @@ namespace NewLife.Net.UPnP
             //return String.Format("{0} {1}", friendlyName, manufacturer);
             return friendlyName;
         }
+        #endregion
+
+        #region 设备/服务
+        /// <summary>获取指定设备指定类型的服务</summary>
+        /// <param name="serviceType"></param>
+        /// <returns></returns>
+        public Service GetService(String serviceType) { return GetService(this, serviceType); }
+
+        static Service GetService(Device device, String serviceType)
+        {
+            if (device == null || device.serviceList == null || device.serviceList.Count < 1) return null;
+
+            foreach (var item in device.serviceList)
+            {
+                if (String.Equals(item.serviceType, serviceType, StringComparison.OrdinalIgnoreCase)) return item;
+            }
+
+            if (device.deviceList == null || device.deviceList.Count < 1) return null;
+
+            foreach (var item in device.deviceList)
+            {
+                Service service = GetService(item, serviceType);
+                if (service != null) return service;
+            }
+
+            return null;
+        }
+
+        /// <summary>取得广域网IP连接设备</summary>
+        /// <returns></returns>
+        public Service GetWANIPService()
+        {
+            return GetService("urn:schemas-upnp-org:service:WANIPConnection:1");
+        }
+        #endregion
     }
 }

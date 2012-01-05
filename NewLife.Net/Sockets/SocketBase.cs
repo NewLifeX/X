@@ -216,6 +216,7 @@ namespace NewLife.Net.Sockets
         /// <summary>绑定本地终结点</summary>
         public virtual void Bind()
         {
+            EnsureCreate();
             var socket = Socket;
             if (socket != null && !socket.IsBound)
             {
@@ -259,6 +260,7 @@ namespace NewLife.Net.Sockets
         /// <param name="needBuffer">是否需要缓冲区，默认需要，只有Accept不需要</param>
         internal protected void StartAsync(Func<NetEventArgs, Boolean> callback, NetEventArgs e, Boolean needBuffer = true)
         {
+            EnsureCreate();
             if (Socket == null) return;
             if (!Socket.IsBound) Bind();
 

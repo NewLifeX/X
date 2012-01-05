@@ -149,6 +149,7 @@
     <Compile Include="Stun\StunMessageType.cs" />
     <Compile Include="Stun\StunNetType.cs" />
     <Compile Include="Stun\StunResult.cs" />
+    <Compile Include="Stun\StunServer.cs" />
     <Compile Include="Tcp\TcpClientX.cs" />
     <Compile Include="Tcp\TcpServer.cs" />
     <Compile Include="Tcp\TcpSessionCollection.cs" />
@@ -162,8 +163,6 @@
     <Compile Include="UPnP\Entities\SpecVersion.cs" />
     <Compile Include="UPnP\UPnPAction.cs" />
     <Compile Include="UPnP\UPnPClient.cs" />
-    <Compile Include="UPnP\UPnPCommand.cs" />
-    <Compile Include="UPnP\XMLCommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="App.config" />
@@ -186,6 +185,7 @@
   <ItemGroup>
     <Folder Include="CMPP\" />
     <Folder Include="Telnet\" />
+    <Folder Include="Turn\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -36,12 +36,12 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 方法
-        /// <summary>绑定本地终结点</summary>
-        public override void Bind()
-        {
-            // 调用Client，引发Socket的建立
-            if (Client != null) base.Bind();
-        }
+        ///// <summary>绑定本地终结点</summary>
+        //public override void Bind()
+        //{
+        //    // 调用Client，引发Socket的建立
+        //    if (Client != null) base.Bind();
+        //}
         #endregion
 
         #region 连接

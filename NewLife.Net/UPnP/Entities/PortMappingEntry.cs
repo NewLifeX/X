@@ -24,6 +24,7 @@ namespace NewLife.Net.UPnP
     /// </summary>
     public class PortMappingEntry : UPnPAction<PortMappingEntry>
     {
+        #region 属性
         private String _RemoteHost;
         /// <summary>远程主机</summary>
         [XmlElement("NewRemoteHost")]
@@ -95,6 +96,7 @@ namespace NewLife.Net.UPnP
             get { return _LeaseDuration; }
             set { _LeaseDuration = value; }
         }
+        #endregion
 
         /// <summary>
         /// 已重载。
@@ -102,7 +104,7 @@ namespace NewLife.Net.UPnP
         /// <returns></returns>
         public override string ToString()
         {
-            return Description;
+            return String.Format("{0} {1}://{2}:{3} {4}", Description, Protocol, InternalClient, InternalPort, ExternalPort);
         }
     }
 }

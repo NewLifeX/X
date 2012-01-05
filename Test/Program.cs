@@ -16,6 +16,8 @@ using XCode.Code;
 using XCode.DataAccessLayer;
 using NewLife.Net.Proxy;
 using NewLife.Net.Stun;
+using NewLife.Net.UPnP;
+using NewLife;
 
 namespace Test
 {
@@ -32,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -143,7 +145,11 @@ namespace Test
 
         static void Test4()
         {
-            NewLife.Net.P2P.P2PTest.StartHole();
+            //NewLife.Net.P2P.P2PTest.StartHole();
+
+            UPnPClient client = new UPnPClient();
+            client.OnNewDevice += new EventHandler<NewLife.EventArgs<InternetGatewayDevice, bool>>(client_OnNewDevice);
+            client.StartDiscover();
 
             //var result = StunClient.Query("192.168.1.1", 3478);
             //if (result.Type != StunNetType.UdpBlocked)
@@ -192,6 +198,17 @@ namespace Test
             //server.Accepted += new EventHandler<NetEventArgs>(server_Accepted);
             //server.Start();
             //Console.WriteLine("打洞服务器等待连接……");
+        }
+
+        static void client_OnNewDevice(object sender, EventArgs<InternetGatewayDevice, bool> e)
+        {
+            Console.WriteLine("{0}{1}", e.Arg1, e.Arg2 ? " [缓存]" : "");
+            if (e.Arg2) return;
+
+            foreach (var item in e.Arg1.GetMapByIndexAll())
+            {
+                Console.WriteLine(item);
+            }
         }
 
         static void server_Accepted(object sender, NetEventArgs e)
