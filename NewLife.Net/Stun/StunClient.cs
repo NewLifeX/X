@@ -12,7 +12,7 @@ namespace NewLife.Net.Stun
     /// </remarks>
     /// <example>
     /// <code>
-    /// var result = StunClient.Query("nnhy.org", 3478);
+    /// var result = StunClient.Query("stunserver.org", 3478);
     /// if(result.Type != StunNetType.UdpBlocked){
     ///     
     /// }
@@ -107,7 +107,9 @@ namespace NewLife.Net.Stun
             // Test II
             var test2 = new StunMessage();
             test2.Type = StunMessageType.BindingRequest;
-            test2.Change = new StunMessage.ChangeRequest(true, true);
+            //test2.Change = new StunMessage.ChangeRequest(true, true);
+            test2.ChangeIP = true;
+            test2.ChangePort = true;
 
             // No NAT.
             if (client.LocalEndPoint.Equals(test1response.MappedAddress))
@@ -142,7 +144,7 @@ namespace NewLife.Net.Stun
                 test12.Type = StunMessageType.BindingRequest;
 
                 StunMessage test12Response = Query(test12, client, test1response.ChangedAddress, 1600);
-                if (test12Response == null) throw new Exception("STUN Test I(II) dind't get resonse !");
+                if (test12Response == null) throw new Exception("STUN Test I(II) 没有收到响应！");
 
                 // Symmetric NAT
                 if (!test12Response.MappedAddress.Equals(test1response.MappedAddress)) return new StunResult(StunNetType.Symmetric, test1response.MappedAddress);
@@ -150,7 +152,9 @@ namespace NewLife.Net.Stun
                 // Test III
                 var test3 = new StunMessage();
                 test3.Type = StunMessageType.BindingRequest;
-                test3.Change = new StunMessage.ChangeRequest(false, true);
+                //test3.Change = new StunMessage.ChangeRequest(false, true);
+                test3.ChangeIP = false;
+                test3.ChangePort = true;
 
                 StunMessage test3Response = Query(test3, client, test1response.ChangedAddress, 1600);
                 // Restricted
@@ -184,7 +188,13 @@ namespace NewLife.Net.Stun
             request.Write(ms);
             ms.Position = 0;
             client.Send(ms, remoteEndPoint);
-            var buffer = client.Receive();
+            client.Client.ReceiveTimeout = timeout;
+            Byte[] buffer = null;
+            try
+            {
+                buffer = client.Receive();
+            }
+            catch { return null; }
 
             return StunMessage.Read(new MemoryStream(buffer));
         }

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace NewLife.Net.Stun
 {
     /// <summary>STUN消息类型</summary>
-    public enum StunMessageType : short
+    public enum StunMessageType : ushort
     {
         /// <summary>
         /// STUN message is binding request.

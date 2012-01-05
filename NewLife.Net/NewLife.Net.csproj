@@ -144,6 +144,7 @@
     <Compile Include="Sockets\NetEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sockets\SocketStream.cs" />
+    <Compile Include="Stun\StunAttribute.cs" />
     <Compile Include="Stun\StunClient.cs" />
     <Compile Include="Stun\StunMessage.cs" />
     <Compile Include="Stun\StunMessageType.cs" />

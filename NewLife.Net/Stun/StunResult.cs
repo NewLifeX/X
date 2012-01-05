@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Net;
+﻿using System.Net;
 
 namespace NewLife.Net.Stun
 {
@@ -20,5 +17,14 @@ namespace NewLife.Net.Stun
         /// <param name="type"></param>
         /// <param name="ep"></param>
         public StunResult(StunNetType type, IPEndPoint ep) { Type = type; Public = ep; }
+
+        /// <summary>
+        /// 已重载。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return string.Format("{0} {1}", Type, Public);
+        }
     }
 }

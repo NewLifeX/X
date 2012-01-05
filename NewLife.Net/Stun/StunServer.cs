@@ -22,5 +22,22 @@ namespace NewLife.Net.Stun
             Port = 3478;
         }
         #endregion
+
+        #region 方法
+        /// <summary>接收到数据时</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected override void OnReceived(object sender, NetEventArgs e)
+        {
+            base.OnReceived(sender, e);
+
+            if (e.BytesTransferred > 0)
+            {
+                var request = StunMessage.Read(e.GetStream());
+
+                var response = new StunMessage();
+            }
+        }
+        #endregion
     }
 }

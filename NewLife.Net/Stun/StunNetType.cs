@@ -1,56 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace NewLife.Net.Stun
 {
     /// <summary>UDP网络类型</summary>
+    /// <remarks>
+    /// <a href="http://zh.wikipedia.org/wiki/%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2">网络地址转换【维基百科】</a>
+    /// </remarks>
     public enum StunNetType
     {
-        /// <summary>
-        /// UDP is always blocked.
-        /// </summary>
+        /// <summary>UDP被禁止</summary>
         UdpBlocked,
 
-        /// <summary>
-        /// No NAT, public IP, no firewall.
-        /// </summary>
+        /// <summary>公网地址，没有NAT和防火墙</summary>
         OpenInternet,
 
-        /// <summary>
-        /// No NAT, public IP, but symmetric UDP firewall.
-        /// </summary>
+        /// <summary>公网地址，没有NAT，对称UDP防火墙</summary>
         SymmetricUdpFirewall,
 
         /// <summary>
-        /// A full cone NAT is one where all requests from the same internal IP address and port are 
-        /// mapped to the same external IP address and port. Furthermore, any external host can send 
-        /// a packet to the internal host, by sending a packet to the mapped external address.
+        /// 一对一完全圆锥NAT。
+        /// 一旦一个内部地址(iAddr:port1)映射到外部地址(eAddr:port2),所有发自iAddr:port1的包都经由eAddr:port2向外发送.
+        /// 任意外部主机都能通过给eAddr:port2发包到达iAddr:port1
         /// </summary>
         FullCone,
 
         /// <summary>
-        /// A restricted cone NAT is one where all requests from the same internal IP address and 
-        /// port are mapped to the same external IP address and port. Unlike a full cone NAT, an external
-        /// host (with IP address X) can send a packet to the internal host only if the internal host 
-        /// had previously sent a packet to IP address X.
+        /// 受限圆锥NAT。
+        /// 一旦一个内部地址(iAddr:port1)映射到外部地址(eAddr:port2),所有发自iAddr:port1的包都经由eAddr:port2向外发送.
+        /// 任意外部主机(hostAddr:any)都能通过给eAddr:port2发包到达iAddr:port1的前提是：iAddr:port1之前发送过包到hostAddr:any. "any"也就是说端口不受限制
         /// </summary>
         RestrictedCone,
 
         /// <summary>
-        /// A port restricted cone NAT is like a restricted cone NAT, but the restriction 
-        /// includes port numbers. Specifically, an external host can send a packet, with source IP
-        /// address X and source port P, to the internal host only if the internal host had previously 
-        /// sent a packet to IP address X and port P.
+        /// 端口受限圆锥NAT。
+        /// 一旦一个内部地址(iAddr:port1)映射到外部地址(eAddr:port2),所有发自iAddr:port1的包都经由eAddr:port2向外发送.一个外部主机(hostAddr:port3)能够发包到达iAddr:port1的前提是：iAddr:port1之前发送过包到hostAddr:port3.
         /// </summary>
         PortRestrictedCone,
 
         /// <summary>
-        /// A symmetric NAT is one where all requests from the same internal IP address and port, 
-        /// to a specific destination IP address and port, are mapped to the same external IP address and
-        /// port.  If the same host sends a packet with the same source address and port, but to 
-        /// a different destination, a different mapping is used. Furthermore, only the external host that
-        /// receives a packet can send a UDP packet back to the internal host.
+        /// 对称NAT。
+        /// 每一个来自相同内部IP与port的请求到一个特定目的地的IP地址和端口，映射到一个独特的外部来源的IP地址和端口。
+        /// 同一个内部主机发出一个信息包到不同的目的端，不同的映射使用
+        /// 只有曾经收到过内部主机封包的外部主机，才能够把封包发回来
         /// </summary>
         Symmetric
     }
