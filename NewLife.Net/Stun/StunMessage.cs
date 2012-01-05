@@ -213,7 +213,7 @@ namespace NewLife.Net.Stun
         /// <summary>服务端从客户端拿到的地址</summary>
         public IPEndPoint ReflectedFrom { get { return GetAtt<IPEndPoint>(AttributeType.ReflectedFrom); } set { SetAtt<IPEndPoint>(AttributeType.ReflectedFrom, value); } }
 
-        /// <summary>属性说明</summary>
+        /// <summary>服务器名称</summary>
         public String ServerName { get { return GetAtt<String>(AttributeType.ServerName); } set { SetAtt<String>(AttributeType.ServerName, value); } }
         #endregion
 

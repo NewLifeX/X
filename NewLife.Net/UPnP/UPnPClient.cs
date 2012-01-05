@@ -8,8 +8,8 @@ using System.Xml.Serialization;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Net.Sockets;
-using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
+using System.Net.Sockets;
 
 namespace NewLife.Net.UPnP
 {
@@ -40,17 +40,19 @@ namespace NewLife.Net.UPnP
     public class UPnPClient : Netbase
     {
         #region 属性
-        private UdpClientX _Udp;
+        private NetServer _Udp;
         /// <summary>Udp客户端，用于发现网关设备</summary>
-        private UdpClientX Udp
+        private NetServer Udp
         {
             get
             {
                 if (_Udp == null)
                 {
-                    _Udp = new UdpClientX();
+                    _Udp = new NetServer();
+                    _Udp.ProtocolType = ProtocolType.Udp;
+                    //if (!NetHelper.IsUsed(ProtocolType.Udp, IPAddress.Any, 1900)) _Udp.Port = 1900;
                     _Udp.Received += new EventHandler<NetEventArgs>(Udp_Received);
-                    _Udp.ReceiveAsync();
+                    _Udp.Start();
                 }
                 return _Udp;
             }
@@ -75,7 +77,7 @@ namespace NewLife.Net.UPnP
 
             try
             {
-                if (Udp != null) Udp.Dispose();
+                if (_Udp != null) _Udp.Dispose();
             }
             catch { }
         }
@@ -95,30 +97,25 @@ namespace NewLife.Net.UPnP
         {
             if (CacheGateway) ThreadPool.QueueUserWorkItem(delegate(Object state) { CheckCacheGateway(); });
 
-            IPAddress address = NetHelper.ParseAddress("239.255.255.250");
-            IPEndPoint remoteEP = new IPEndPoint(address, 1900);
+            //IPAddress address = NetHelper.ParseAddress("239.255.255.250");
+            //IPEndPoint remoteEP = new IPEndPoint(address, 1900);
 
-            // 设置多播
-            //Socket socket = Udp.Client;
-            //socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, 4);
-            //socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastLoopback, 1);
-            //MulticastOption optionValue = new MulticastOption(remoteEP.Address);
-            //try
-            //{
-            //    socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, optionValue);
-            //    //socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastInterface, (int)this.boundto.Address.Address);
-            //}
-            //catch (Exception)
-            //{
-            //    return;
-            //}
-
-            Udp.Client.EnableBroadcast = true;
-            Udp.Send(UPNP_DISCOVER, Encoding.ASCII, remoteEP);
-
-            //socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DropMembership, optionValue);
+            //Udp.Client.EnableBroadcast = true;
+            //Udp.Send(UPNP_DISCOVER, Encoding.ASCII, remoteEP);
+            foreach (var item in NetHelper.GetMulticasts())
+            {
+                foreach (var s in Udp.Servers)
+                {
+                    if (s.AddressFamily == item.AddressFamily)
+                    {
+                        (s as UdpServer).Send(UPNP_DISCOVER, null, new IPEndPoint(item, 1900));
+                        break;
+                    }
+                }
+            }
         }
 
+        //List<String> process = new List<String>();
         void Udp_Received(object sender, NetEventArgs e)
         {
             String content = e.GetString();
@@ -126,6 +123,7 @@ namespace NewLife.Net.UPnP
 
             IPEndPoint remote = e.RemoteEndPoint as IPEndPoint;
             IPAddress address = remote.Address;
+            WriteLog("发现UPnP设备：{0}", remote);
 
             //分析数据并反序列化
             String sp = "LOCATION:";
@@ -178,8 +176,6 @@ namespace NewLife.Net.UPnP
             }
 
             if (OnNewDevice != null) OnNewDevice(this, new EventArgs<InternetGatewayDevice, bool>(device, isCache));
-
-            //if (NetHelper.Debug) XTrace.WriteLine("在{0}上发现UPnP设备{1}", address, device.device.friendlyName);
         }
 
         /// <summary>发现新设备时触发。参数（设备，是否来自缓存）</summary>

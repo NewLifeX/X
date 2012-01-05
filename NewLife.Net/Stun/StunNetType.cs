@@ -8,9 +8,9 @@ namespace NewLife.Net.Stun
     /// </remarks>
     public enum StunNetType
     {
-        /// <summary>UDP被禁止，或无法连接STUN服务器</summary>
-        [Description("UDP被禁止，或无法连接STUN服务器")]
-        UdpBlocked,
+        /// <summary>被禁止，或无法连接STUN服务器</summary>
+        [Description("被禁止，或无法连接STUN服务器")]
+        Blocked,
 
         /// <summary>公网地址，没有NAT和防火墙</summary>
         [Description("公网地址，没有NAT和防火墙")]

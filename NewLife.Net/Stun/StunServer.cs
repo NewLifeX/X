@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using NewLife.Net.Sockets;
 using NewLife.Reflection;
-using System.Collections.Generic;
 
 namespace NewLife.Net.Stun
 {
@@ -15,14 +15,6 @@ namespace NewLife.Net.Stun
     public class StunServer : NetServer
     {
         #region 属性
-        //private IPEndPoint _Public;
-        ///// <summary>我的公网地址。因为当前服务器可能在内网中，需要调用StunClient拿公网地址</summary>
-        //public IPEndPoint Public { get { return _Public; } private set { _Public = value; } }
-
-        //private IPEndPoint _Public2;
-        ///// <summary>我的公网地址。因为当前服务器可能在内网中，需要调用StunClient拿公网地址</summary>
-        //public IPEndPoint Public2 { get { return _Public2; } private set { _Public2 = value; } }
-
         private IDictionary<Int32, IPEndPoint> _Public;
         /// <summary>我的公网地址。因为当前服务器可能在内网中，需要调用StunClient拿公网地址</summary>
         public IDictionary<Int32, IPEndPoint> Public { get { return _Public; } private set { _Public = value; } }
@@ -55,20 +47,39 @@ namespace NewLife.Net.Stun
         {
             if (Servers.Count <= 0)
             {
+                // 同时两个端口
+                AddServer(IPAddress.Any, Port, ProtocolType.Unknown, AddressFamily.InterNetwork);
+                AddServer(IPAddress.Any, Port2, ProtocolType.Unknown, AddressFamily.InterNetwork);
+
                 var dic = new Dictionary<Int32, IPEndPoint>();
                 WriteLog("获取公网地址……");
-                var ep = StunClient.GetPublic(Port, 2000);
-                WriteLog("端口{0}的公网地址：{1}", Port, ep);
-                dic.Add(Port, ep);
-                ep = StunClient.GetPublic(Port2, 2000);
-                WriteLog("端口{0}的公网地址：{1}", Port2, ep);
-                dic.Add(Port2, ep);
+                IPAddress pub = null;
+                foreach (var item in Servers)
+                {
+                    if (item.ProtocolType == ProtocolType.Tcp) continue;
+
+                    var ep = StunClient.GetPublic(item.ProtocolType, item.Port, 2000);
+                    pub = ep.Address;
+                    WriteLog("{0}://{1}:{2}的公网地址：{3}", item.ProtocolType, item.Address, item.Port, ep);
+                    dic.Add(item.Port, ep);
+                }
+                // Tcp没办法获取公网地址，只能通过Udp获取到的公网地址加上端口形成，所以如果要使用Tcp，服务器必须拥有独立公网地址
+                foreach (var item in Servers)
+                {
+                    if (item.ProtocolType != ProtocolType.Tcp) continue;
+
+                    var ep = new IPEndPoint(pub, item.Port);
+                    WriteLog("{0}://{1}:{2}的公网地址：{3}", item.ProtocolType, item.Address, item.Port, ep);
+                    dic.Add(item.Port + 100000, ep);
+                }
+                //var ep = StunClient.GetPublic(Port, 2000);
+                //WriteLog("端口{0}的公网地址：{1}", Port, ep);
+                //dic.Add(Port, ep);
+                //ep = StunClient.GetPublic(Port2, 2000);
+                //WriteLog("端口{0}的公网地址：{1}", Port2, ep);
+                //dic.Add(Port2, ep);
                 WriteLog("成功获取公网地址！");
                 Public = dic;
-
-                // 同时两个端口
-                AddServer(IPAddress.Any, Port, ProtocolType.Udp, AddressFamily.InterNetwork);
-                AddServer(IPAddress.Any, Port2, ProtocolType.Udp, AddressFamily.InterNetwork);
             }
         }
         #endregion
@@ -87,7 +98,7 @@ namespace NewLife.Net.Stun
                 IPEndPoint remote = e.RemoteIPEndPoint;
 
                 var request = StunMessage.Read(e.GetStream());
-                WriteLog("{0} {1}{2}{3}", remote, request.Type, request.ChangeIP ? " ChangeIP" : "", request.ChangePort ? " ChangePort" : "");
+                WriteLog("{0}://{1} {2}{3}{4}", session.ProtocolType, remote, request.Type, request.ChangeIP ? " ChangeIP" : "", request.ChangePort ? " ChangePort" : "");
 
                 // 如果是响应，说明是兄弟服务器发过来的，需要重新修改为请求
                 switch (request.Type)
@@ -148,24 +159,40 @@ namespace NewLife.Net.Stun
             rs.TransactionID = request.TransactionID;
             rs.MappedAddress = remote;
             //rs.SourceAddress = session.GetRelativeEndPoint(remote.Address);
-            rs.SourceAddress = Public[session.Port];
+            if (session.ProtocolType == ProtocolType.Tcp)
+                rs.SourceAddress = Public[session.Port + 100000];
+            else
+                rs.SourceAddress = Public[session.Port];
 
             // 找另一个
             ISocketSession session2 = null;
+            Int32 anotherPort = 0;
             for (int i = 0; i < Servers.Count; i++)
             {
-                if (!Servers[i].LocalEndPoint.Equals(session.LocalEndPoint))
+                var server = Servers[i];
+                if (server.ProtocolType == session.ProtocolType && server.LocalEndPoint.Port != session.LocalEndPoint.Port)
                 {
-                    session2 = Servers[i] as ISocketSession;
-                    if (session2 != null) break;
+                    anotherPort = server.Port;
+                    if (server.ProtocolType == ProtocolType.Tcp)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        session2 = server as ISocketSession;
+                        if (session2 != null) break;
+                    }
                 }
             }
             //rs.ChangedAddress = Partner ?? session2.GetRelativeEndPoint(remote.Address);
-            rs.ChangedAddress = Partner ?? Public[session2.Port];
+            if (session.ProtocolType == ProtocolType.Tcp)
+                rs.ChangedAddress = Partner ?? Public[anotherPort + 100000];
+            else
+                rs.ChangedAddress = Partner ?? Public[anotherPort];
 
             String name = Name;
             if (name == this.GetType().Name) name = this.GetType().FullName;
-            rs.ServerName = String.Format("{0} v{1}", name, AssemblyX.Create(Assembly.GetExecutingAssembly()).Version);
+            rs.ServerName = String.Format("{0} v{1}", name, AssemblyX.Create(Assembly.GetExecutingAssembly()).CompileVersion);
 
             // 换成另一个
             if (request.ChangePort) session = session2;

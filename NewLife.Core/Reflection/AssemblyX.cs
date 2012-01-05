@@ -114,6 +114,26 @@ namespace NewLife.Reflection
             }
         }
 
+        private Version _CompileVersion;
+        /// <summary>编译版本</summary>
+        public Version CompileVersion
+        {
+            get
+            {
+                if (_CompileVersion == null)
+                {
+                    var ver = Asm.GetName().Version;
+                    if (ver == null) ver = new Version(1, 0);
+
+                    var dt = Compile;
+                    ver = new Version(ver.Major, ver.Minor, dt.Year, dt.Month * 100 + dt.Day);
+
+                    _CompileVersion = ver;
+                }
+                return _CompileVersion;
+            }
+        }
+
         private String _Company;
         /// <summary>公司名称</summary>
         public String Company

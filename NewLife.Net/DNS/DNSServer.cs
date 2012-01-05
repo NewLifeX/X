@@ -119,7 +119,7 @@ namespace NewLife.Net.DNS
             catch (Exception ex)
             {
                 String file = String.Format("dns_{0:MMddHHmmss}.bin", DateTime.Now);
-                WriteLog("解析父级代理返回数据出错！数据保存着" + file + "。" + ex.Message);
+                WriteLog("解析父级代理返回数据出错！数据保存于" + file + "。" + ex.Message);
                 File.WriteAllBytes(file, data);
             }
 

@@ -155,12 +155,16 @@ namespace NewLife.Net
         /// <returns></returns>
         public static IEnumerable<IPAddress> GetDhcps()
         {
+            var list = new List<IPAddress>();
             foreach (var item in GetActiveInterfaces())
             {
                 if (item != null && item.DhcpServerAddresses.Count > 0)
                 {
                     foreach (var elm in item.DhcpServerAddresses)
                     {
+                        if (list.Contains(elm)) continue;
+                        list.Add(elm);
+
                         yield return elm;
                     }
                 }
@@ -171,12 +175,16 @@ namespace NewLife.Net
         /// <returns></returns>
         public static IEnumerable<IPAddress> GetDns()
         {
+            var list = new List<IPAddress>();
             foreach (var item in GetActiveInterfaces())
             {
                 if (item != null && item.DnsAddresses.Count > 0)
                 {
                     foreach (var elm in item.DnsAddresses)
                     {
+                        if (list.Contains(elm)) continue;
+                        list.Add(elm);
+
                         yield return elm;
                     }
                 }
@@ -187,12 +195,16 @@ namespace NewLife.Net
         /// <returns></returns>
         public static IEnumerable<IPAddress> GetIPs()
         {
+            var list = new List<IPAddress>();
             foreach (var item in GetActiveInterfaces())
             {
                 if (item != null && item.UnicastAddresses.Count > 0)
                 {
                     foreach (var elm in item.UnicastAddresses)
                     {
+                        if (list.Contains(elm.Address)) continue;
+                        list.Add(elm.Address);
+
                         yield return elm.Address;
                     }
                 }
@@ -203,12 +215,16 @@ namespace NewLife.Net
         /// <returns></returns>
         public static IEnumerable<IPAddress> GetMulticasts()
         {
+            var list = new List<IPAddress>();
             foreach (var item in GetActiveInterfaces())
             {
                 if (item != null && item.MulticastAddresses.Count > 0)
                 {
                     foreach (var elm in item.MulticastAddresses)
                     {
+                        if (list.Contains(elm.Address)) continue;
+                        list.Add(elm.Address);
+
                         yield return elm.Address;
                     }
                 }
