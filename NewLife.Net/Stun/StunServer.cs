@@ -36,6 +36,7 @@ namespace NewLife.Net.Stun
                 var request = StunMessage.Read(e.GetStream());
 
                 var response = new StunMessage();
+                response.Type = (StunMessageType)((UInt16)request.Type | 0x0100);
             }
         }
         #endregion

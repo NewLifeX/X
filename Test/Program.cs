@@ -34,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                Test4();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -145,6 +145,12 @@ namespace Test
 
         static void Test4()
         {
+            var client = new UPnPClient();
+            client.OnNewDevice += new EventHandler<EventArgs<InternetGatewayDevice, bool>>(client_OnNewDevice);
+            client.StartDiscover();
+
+            Console.WriteLine("正在检测UPnP……");
+            
             //NewLife.Net.P2P.P2PTest.StartHole();
 
             //var result = StunClient.Query("stunserver.org", 3478);
@@ -188,13 +194,16 @@ namespace Test
             //server.Accepted += new EventHandler<NetEventArgs>(server_Accepted);
             //server.Start();
             //Console.WriteLine("打洞服务器等待连接……");
+
         }
 
         static void client_OnNewDevice(object sender, EventArgs<InternetGatewayDevice, bool> e)
         {
-            Console.WriteLine("{0}{1}", e.Arg1, e.Arg2 ? " [缓存]" : "");
+            Console.WriteLine("网关 {0}{1}", e.Arg1, e.Arg2 ? " [缓存]" : "");
             if (e.Arg2) return;
 
+            Console.WriteLine();
+            Console.WriteLine("{0}上的UPnP映射：", e.Arg1);
             foreach (var item in e.Arg1.GetMapByIndexAll())
             {
                 Console.WriteLine(item);

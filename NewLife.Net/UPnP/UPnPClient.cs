@@ -145,11 +145,12 @@ namespace NewLife.Net.UPnP
                 //下载IGD.XML
                 WebClient client = new WebClient();
                 String xml = client.DownloadString(url);
+                if (xml != null) xml = xml.Trim();
 
                 Uri uri = new Uri(url);
-                AddGateway(uri.Host, xml, false);
-
                 if (CacheGateway) File.WriteAllText(GetCacheFile(uri.Host), xml);
+
+                AddGateway(uri.Host, xml, false);
             }
             catch (Exception ex)
             {
@@ -172,10 +173,7 @@ namespace NewLife.Net.UPnP
 
                 lock (Gateways)
                 {
-                    if (Gateways.ContainsKey(address))
-                        Gateways[address] = device;
-                    else
-                        Gateways.Add(address, device);
+                    Gateways[address] = device;
                 }
             }
 
@@ -192,7 +190,8 @@ namespace NewLife.Net.UPnP
         /// <summary>检查缓存的网关</summary>
         void CheckCacheGateway()
         {
-            String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XCache");
+            String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, XTrace.TempPath);
+            p = Path.Combine(p, "UPnP");
             if (!Directory.Exists(p)) return;
 
             String[] ss = Directory.GetFiles(p, cacheKey + "*.xml", SearchOption.TopDirectoryOnly);
@@ -208,7 +207,7 @@ namespace NewLife.Net.UPnP
 
         static String GetCacheFile(String address)
         {
-            String fileName = Path.Combine(XTrace.TempPath, String.Format(@"{0}{1}.xml", cacheKey, address));
+            String fileName = Path.Combine(Path.Combine(XTrace.TempPath, "UPnP"), String.Format(@"{0}{1}.xml", cacheKey, address));
             fileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
 
             if (!Directory.Exists(Path.GetDirectoryName(fileName))) Directory.CreateDirectory(Path.GetDirectoryName(fileName));

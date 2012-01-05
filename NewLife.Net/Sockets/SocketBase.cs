@@ -8,6 +8,7 @@ using NewLife.Net.Common;
 using NewLife.Reflection;
 using NewLife.Threading;
 using System.Text;
+using NewLife.Exceptions;
 
 namespace NewLife.Net.Sockets
 {
@@ -183,6 +184,24 @@ namespace NewLife.Net.Sockets
             // 自动收缩内存，调试状态1分钟一次，非调试状态10分钟一次
             Int32 time = NetHelper.Debug ? 60000 : 600000;
             new TimerX(s => Runtime.ReleaseMemory(), null, time, time, false);
+
+            try
+            {
+                CheckNet21();
+            }
+            catch (TypeLoadException ex)
+            {
+                if (ex.TypeName.Contains("SocketAsyncEventArgs"))
+                    throw new XException("NewLife.Net网络库需要.Net 2.0 Sp1支持！", ex);
+                else
+                    throw ex;
+            }
+        }
+
+        static void CheckNet21()
+        {
+            var e = new SocketAsyncEventArgs();
+            e.Dispose();
         }
 
         /// <summary>确保创建基础Socket对象</summary>

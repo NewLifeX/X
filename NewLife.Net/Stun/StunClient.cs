@@ -82,7 +82,7 @@ namespace NewLife.Net.Stun
 
     */
 
-        static String[] servers = new String[] { "220.181.126.73", "stunserver.org" };
+        static String[] servers = new String[] { "220.181.126.73", "stunserver.org", "stun.xten.com", "stun.fwdnet.net", "stun.iptel.org" };
 
         /// <summary>查询</summary>
         /// <returns></returns>
@@ -167,7 +167,8 @@ namespace NewLife.Net.Stun
                 test12.Type = StunMessageType.BindingRequest;
 
                 var rs2 = Query(test12, client, rs.ChangedAddress, timeout);
-                if (rs2 == null) throw new Exception("STUN Test I(II) 没有收到响应！");
+                //if (rs2 == null) throw new Exception("STUN Test I(II) 没有收到响应！");
+                if (rs2 == null) return new StunResult(StunNetType.UdpBlocked, null);
 
                 // Symmetric NAT
                 // 两次映射地址不一样，对称网络
