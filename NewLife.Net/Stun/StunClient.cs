@@ -82,7 +82,7 @@ namespace NewLife.Net.Stun
 
     */
 
-        static String[] servers = new String[] { "220.181.126.73", "stunserver.org", "stun.xten.com", "stun.fwdnet.net", "stun.iptel.org" };
+        static String[] servers = new String[] { "stunserver.org", "stun.xten.com", "stun.fwdnet.net", "stun.iptel.org" };
 
         /// <summary>查询</summary>
         /// <returns></returns>
