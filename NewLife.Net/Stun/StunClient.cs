@@ -82,106 +82,111 @@ namespace NewLife.Net.Stun
 
     */
 
+        static String[] servers = new String[] { "220.181.126.73", "stunserver.org" };
+
+        /// <summary>查询</summary>
+        /// <returns></returns>
+        public static StunResult Query()
+        {
+            // 如果是Udp被屏蔽，很有可能是因为服务器没有响应，可以通过轮换服务器来测试
+            StunResult result = null;
+            foreach (var item in servers)
+            {
+                result = Query(NetHelper.ParseAddress(item), 3478);
+                if (result.Type != StunNetType.UdpBlocked) return result;
+            }
+            return result;
+        }
+
         /// <summary>查询</summary>
         /// <param name="host"></param>
         /// <param name="port"></param>
         /// <param name="timeout"></param>
         /// <returns></returns>
-        public static StunResult Query(String host = "220.181.126.73", Int32 port = 3478, Int32 timeout = 1000) { return Query(NetHelper.ParseAddress(host), port, timeout); }
+        public static StunResult Query(String host, Int32 port = 3478, Int32 timeout = 2000) { return Query(NetHelper.ParseAddress(host), port, timeout); }
 
         /// <summary>查询</summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
         /// <param name="timeout"></param>
         /// <returns></returns>
-        public static StunResult Query(IPAddress address, Int32 port, Int32 timeout = 1000)
+        public static StunResult Query(IPAddress address, Int32 port, Int32 timeout = 2000)
         {
-            IPEndPoint remoteEndPoint = new IPEndPoint(address, port);
+            var remoteEndPoint = new IPEndPoint(address, port);
 
             var client = new UdpClientX();
             client.Bind();
 
             // Test I
             // 测试网络是否畅通
-            StunMessage test1 = new StunMessage();
-            test1.Type = StunMessageType.BindingRequest;
-            StunMessage test1response = Query(test1, client, remoteEndPoint, timeout);
+            var msg = new StunMessage();
+            msg.Type = StunMessageType.BindingRequest;
+            var rs = Query(msg, client, remoteEndPoint, timeout);
 
             // UDP blocked.
-            if (test1response == null) return new StunResult(StunNetType.UdpBlocked, null);
-            WriteLog("服务器：{0}", test1response.ServerName);
-            WriteLog("映射地址：{0}", test1response.MappedAddress);
-            WriteLog("源地址：{0}", test1response.SourceAddress);
-            WriteLog("新地址：{0}", test1response.ChangedAddress);
+            if (rs == null) return new StunResult(StunNetType.UdpBlocked, null);
+            WriteLog("服务器：{0}", rs.ServerName);
+            WriteLog("映射地址：{0}", rs.MappedAddress);
+            WriteLog("源地址：{0}", rs.SourceAddress);
+            WriteLog("新地址：{0}", rs.ChangedAddress);
 
             // Test II
             // 要求改变IP和端口
-            var test2 = new StunMessage();
-            test2.Type = StunMessageType.BindingRequest;
-            //test2.Change = new StunMessage.ChangeRequest(true, true);
-            test2.ChangeIP = true;
-            test2.ChangePort = true;
+            msg.ChangeIP = true;
+            msg.ChangePort = true;
 
             // No NAT.
             // 如果本地地址就是映射地址，表示没有NAT。这里的本地地址应该有问题，永远都会是0.0.0.0
             //if (client.LocalEndPoint.Equals(test1response.MappedAddress))
-            var ep = test1response.MappedAddress;
+            var ep = rs.MappedAddress;
             if (ep != null && client.LocalEndPoint.Port == ep.Port && NetHelper.GetIPV4().Any(e => e.Equals(ep.Address)))
             {
                 // 要求STUN服务器从另一个地址和端口向当前映射端口发送消息。如果收到，表明是完全开放网络；如果没收到，可能是防火墙阻止了。
-                var test2Response = Query(test2, client, remoteEndPoint, timeout);
+                var rs2 = Query(msg, client, remoteEndPoint, timeout);
                 // Open Internet.
-                if (test2Response != null)
+                if (rs2 != null)
                 {
-                    return new StunResult(StunNetType.OpenInternet, test1response.MappedAddress);
+                    return new StunResult(StunNetType.OpenInternet, rs.MappedAddress);
                 }
                 // Symmetric UDP firewall.
                 else
                 {
-                    return new StunResult(StunNetType.SymmetricUdpFirewall, test1response.MappedAddress);
+                    return new StunResult(StunNetType.SymmetricUdpFirewall, rs.MappedAddress);
                 }
             }
             // NAT
             else
             {
-                var test2Response = Query(test2, client, remoteEndPoint, timeout);
+                var rs1 = Query(msg, client, remoteEndPoint, timeout);
 
                 // Full cone NAT.
-                if (test2Response != null) return new StunResult(StunNetType.FullCone, test1response.MappedAddress);
-
-                /*
-                    If no response is received, it performs test I again, but this time, does so to 
-                    the address and port from the CHANGED-ADDRESS attribute from the response to test I.
-                */
+                if (rs1 != null) return new StunResult(StunNetType.FullCone, rs.MappedAddress);
 
                 // Test I(II)
                 var test12 = new StunMessage();
                 test12.Type = StunMessageType.BindingRequest;
 
-                var test12Response = Query(test12, client, test1response.ChangedAddress, timeout);
-                if (test12Response == null) throw new Exception("STUN Test I(II) 没有收到响应！");
+                var rs2 = Query(test12, client, rs.ChangedAddress, timeout);
+                if (rs2 == null) throw new Exception("STUN Test I(II) 没有收到响应！");
 
                 // Symmetric NAT
                 // 两次映射地址不一样，对称网络
-                if (!test12Response.MappedAddress.Equals(test1response.MappedAddress)) return new StunResult(StunNetType.Symmetric, test1response.MappedAddress);
+                if (!rs2.MappedAddress.Equals(rs.MappedAddress)) return new StunResult(StunNetType.Symmetric, rs.MappedAddress);
 
                 // Test III
-                var test3 = new StunMessage();
-                test3.Type = StunMessageType.BindingRequest;
-                //test3.Change = new StunMessage.ChangeRequest(false, true);
-                test3.ChangeIP = false;
-                test3.ChangePort = true;
+                msg.ChangeIP = false;
+                msg.ChangePort = true;
 
-                StunMessage test3Response = Query(test3, client, test1response.ChangedAddress, timeout);
+                var rs3 = Query(msg, client, rs.ChangedAddress, timeout);
                 // Restricted
-                if (test3Response != null)
+                if (rs3 != null)
                 {
-                    return new StunResult(StunNetType.RestrictedCone, test1response.MappedAddress);
+                    return new StunResult(StunNetType.RestrictedCone, rs.MappedAddress);
                 }
                 // Port restricted
                 else
                 {
-                    return new StunResult(StunNetType.PortRestrictedCone, test1response.MappedAddress);
+                    return new StunResult(StunNetType.PortRestrictedCone, rs.MappedAddress);
                 }
             }
         }
@@ -193,7 +198,7 @@ namespace NewLife.Net.Stun
         /// <param name="remoteEndPoint"></param>
         /// <param name="timeout"></param>
         /// <returns></returns>
-        public static StunMessage Query(StunMessage request, IPEndPoint remoteEndPoint, Int32 timeout = 1000)
+        public static StunMessage Query(StunMessage request, IPEndPoint remoteEndPoint, Int32 timeout = 2000)
         {
             var client = new UdpClientX();
             return Query(request, client, remoteEndPoint, timeout);

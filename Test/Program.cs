@@ -148,7 +148,7 @@ namespace Test
             //NewLife.Net.P2P.P2PTest.StartHole();
 
             //var result = StunClient.Query("stunserver.org", 3478);
-            var result = StunClient.Query("stun.xten.com", 3478);
+            var result = StunClient.Query();
             Console.WriteLine("{0} {1}", result.Type, result.Type.GetDescription());
 
             //AppTest.Start();
