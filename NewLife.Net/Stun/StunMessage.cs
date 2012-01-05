@@ -185,7 +185,7 @@ namespace NewLife.Net.Stun
         public Boolean ChangeIP { get { return GetAtt<Boolean>(AttributeType.ChangeRequest, 0); } set { SetAtt<Boolean>(AttributeType.ChangeRequest, value, 0); } }
 
         /// <summary>请求改变</summary>
-        public Boolean ChangePort { get { return GetAtt<Boolean>(AttributeType.ChangeRequest, 0); } set { SetAtt<Boolean>(AttributeType.ChangeRequest, value, 1); } }
+        public Boolean ChangePort { get { return GetAtt<Boolean>(AttributeType.ChangeRequest, 1); } set { SetAtt<Boolean>(AttributeType.ChangeRequest, value, 1); } }
 
         /// <summary>源地址</summary>
         public IPEndPoint SourceAddress { get { return GetAtt<IPEndPoint>(AttributeType.SourceAddress); } set { SetAtt<IPEndPoint>(AttributeType.SourceAddress, value); } }
