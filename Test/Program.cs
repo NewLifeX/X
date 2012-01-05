@@ -149,13 +149,13 @@ namespace Test
             //var stunserver = new StunServer();
             //stunserver.Start();
             //StunClient.Servers.Insert(0, "127.0.0.1:3479");
-            StunClient.Servers.Insert(0, "nnhy.eicp.net:3479");
+            StunClient.Servers.Insert(0, "nnhy.eicp.net");
 
-            //var client = new UPnPClient();
-            //client.OnNewDevice += new EventHandler<EventArgs<InternetGatewayDevice, bool>>(client_OnNewDevice);
-            //client.StartDiscover();
+            var client = new UPnPClient();
+            client.OnNewDevice += new EventHandler<EventArgs<InternetGatewayDevice, bool>>(client_OnNewDevice);
+            client.StartDiscover();
 
-            //Console.WriteLine("正在检测UPnP……");
+            Console.WriteLine("正在检测UPnP……");
 
             //NewLife.Net.P2P.P2PTest.StartHole();
 

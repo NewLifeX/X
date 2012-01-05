@@ -138,13 +138,13 @@ namespace NewLife.Net.Stun
             var client = new UdpClientX();
             client.Client.ReceiveTimeout = timeout;
             client.Bind();
-            var socket = client.Client;
+            //var socket = client.Client;
 
             // Test I
             // 测试网络是否畅通
             var msg = new StunMessage();
             msg.Type = StunMessageType.BindingRequest;
-            var rs = Query(socket, msg, remoteEndPoint);
+            var rs = Query(client.Client, msg, remoteEndPoint);
 
             // UDP blocked.
             if (rs == null) return new StunResult(StunNetType.UdpBlocked, null);
@@ -165,7 +165,7 @@ namespace NewLife.Net.Stun
             if (ep != null && client.LocalEndPoint.Port == ep.Port && NetHelper.GetIPs().Any(e => e.Equals(ep.Address)))
             {
                 // 要求STUN服务器从另一个地址和端口向当前映射端口发送消息。如果收到，表明是完全开放网络；如果没收到，可能是防火墙阻止了。
-                var rs2 = Query(socket, msg, remoteEndPoint);
+                var rs2 = Query(client.Client, msg, remoteEndPoint);
                 // Open Internet.
                 if (rs2 != null)
                 {
@@ -180,7 +180,7 @@ namespace NewLife.Net.Stun
             // NAT
             else
             {
-                var rs1 = Query(socket, msg, remoteEndPoint);
+                var rs1 = Query(client.Client, msg, remoteEndPoint);
 
                 // Full cone NAT.
                 if (rs1 != null) return new StunResult(StunNetType.FullCone, rs.MappedAddress);
@@ -189,7 +189,7 @@ namespace NewLife.Net.Stun
                 var test12 = new StunMessage();
                 test12.Type = StunMessageType.BindingRequest;
 
-                var rs2 = Query(socket, test12, rs.ChangedAddress);
+                var rs2 = Query(client.Client, test12, rs.ChangedAddress);
                 //if (rs2 == null) throw new Exception("STUN Test I(II) 没有收到响应！");
                 if (rs2 == null) return new StunResult(StunNetType.UdpBlocked, null);
 
@@ -201,7 +201,7 @@ namespace NewLife.Net.Stun
                 msg.ChangeIP = false;
                 msg.ChangePort = true;
 
-                var rs3 = Query(socket, msg, rs.ChangedAddress);
+                var rs3 = Query(client.Client, msg, rs.ChangedAddress);
                 // Restricted
                 if (rs3 != null)
                 {
