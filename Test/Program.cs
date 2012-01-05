@@ -18,6 +18,7 @@ using NewLife.Net.Proxy;
 using NewLife.Net.Stun;
 using NewLife.Net.UPnP;
 using NewLife;
+using System.Net.NetworkInformation;
 
 namespace Test
 {
@@ -34,7 +35,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -145,12 +146,17 @@ namespace Test
 
         static void Test4()
         {
-            var client = new UPnPClient();
-            client.OnNewDevice += new EventHandler<EventArgs<InternetGatewayDevice, bool>>(client_OnNewDevice);
-            client.StartDiscover();
+            //var stunserver = new StunServer();
+            //stunserver.Start();
+            //StunClient.Servers.Insert(0, "127.0.0.1:3479");
+            StunClient.Servers.Insert(0, "nnhy.eicp.net:3479");
 
-            Console.WriteLine("正在检测UPnP……");
-            
+            //var client = new UPnPClient();
+            //client.OnNewDevice += new EventHandler<EventArgs<InternetGatewayDevice, bool>>(client_OnNewDevice);
+            //client.StartDiscover();
+
+            //Console.WriteLine("正在检测UPnP……");
+
             //NewLife.Net.P2P.P2PTest.StartHole();
 
             //var result = StunClient.Query("stunserver.org", 3478);

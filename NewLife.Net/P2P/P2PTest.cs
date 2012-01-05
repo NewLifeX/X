@@ -13,8 +13,8 @@ namespace NewLife.Net.P2P
         public static void StartHole(Int32 port = 15)
         {
             var server = new HoleServer();
-            server.CreateServer(IPAddress.Any, port);
-            server.CreateServer(IPAddress.Any, port + 1);
+            server.AddServer(IPAddress.Any, port);
+            server.AddServer(IPAddress.Any, port + 1);
             server.Start();
         }
 
