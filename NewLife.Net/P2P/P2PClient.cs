@@ -200,11 +200,18 @@ namespace NewLife.Net.P2P
             client.Port = server.LocalEndPoint.Port;
             client.ReuseAddress = true;
             Console.WriteLine("准备连接对方：{0}", ep);
-            client.Connect(ep);
-            client.Received += new EventHandler<NetEventArgs>(client_Received2);
-            client.ReceiveAsync();
+            try
+            {
+                client.Connect(ep);
+                client.Received += new EventHandler<NetEventArgs>(client_Received2);
+                client.ReceiveAsync();
 
-            client.Send("Hello!");
+                client.Send("Hello!");
+            }
+            catch (Exception ex)
+            {
+                WriteLog(ex.Message);
+            }
         }
 
         void client_Received2(object sender, NetEventArgs e)
@@ -220,7 +227,7 @@ namespace NewLife.Net.P2P
         {
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            if (ProtocolType == ProtocolType.Tcp) EnsureClient();
+            //if (ProtocolType == ProtocolType.Tcp) EnsureClient();
 
             SendToHole("reg:" + name);
 
@@ -238,6 +245,8 @@ namespace NewLife.Net.P2P
 
         void SendToHole(String msg)
         {
+            var ep = new IPEndPoint(HoleServer.Address, HoleServer.Port + 1);
+            EnsureServer();
             var server = Server as UdpServer;
             if (server != null)
             {
@@ -245,12 +254,21 @@ namespace NewLife.Net.P2P
                 //server.Send("test", null, HoleServer);
                 if (msg.StartsWith("reg"))
                 {
-                    var ep = new IPEndPoint(HoleServer.Address, HoleServer.Port + 1);
                     server.Send("checknat", null, ep);
                 }
             }
             else
             {
+                var client = new TcpClientX();
+                client.Address = Server.LocalEndPoint.Address;
+                client.Port = Server.LocalEndPoint.Port;
+                client.ReuseAddress = true;
+                client.Connect(ep);
+                client.Send("checknat");
+                WriteLog("HoleServer数据到来：", client.ReceiveString());
+                client.Dispose();
+
+                EnsureClient();
                 Client.Send(msg, null);
             }
         }

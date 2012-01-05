@@ -415,6 +415,7 @@ namespace NewLife.Net.Sockets
             sb.AppendFormat("[{0,3}] {1}://{2}", e.ID, ProtocolType, LocalEndPoint);
             var ep = e.RemoteIPEndPoint;
             if (ep == null || ep.Address.IsAny()) ep = RemoteEndPoint;
+            if ((ep == null || ep.Address.IsAny()) && e.LastOperation == SocketAsyncOperation.Accept && e.AcceptSocket != null) ep = e.AcceptSocket.RemoteEndPoint as IPEndPoint;
             if (ep != null && !ep.Address.IsAny()) sb.AppendFormat("=>{0}", ep);
             sb.AppendFormat(" {0}", e.LastOperation);
             if (e.SocketError != SocketError.Success) sb.AppendFormat(" {0}", e.SocketError);

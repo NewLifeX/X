@@ -26,7 +26,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test1();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -51,10 +51,10 @@ namespace Test2
             Console.Write("名称：");
             String name = Console.ReadLine();
 
-            //Console.Write("端口：");
-            //Int32 port = Convert.ToInt32(Console.ReadLine().Trim());
+            Console.Write("协议（1为Tcp，其它为Udp）：");
+            Int32 istcp = Convert.ToInt32(Console.ReadLine().Trim());
 
-            P2PTest.StartClient(name, "jslswb.com", 15);
+            P2PTest.StartClient(name, "jslswb.com", 15, istcp == 1);
             ////P2PTest.StartClient(name);
 
             //var hole = new IPEndPoint(NetHelper.ParseAddress("jslswb.com"), 15);

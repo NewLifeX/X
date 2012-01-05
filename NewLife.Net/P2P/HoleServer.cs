@@ -37,7 +37,8 @@ namespace NewLife.Net.P2P
             var client = e.RemoteIPEndPoint;
 
             var str = e.GetString();
-            WriteLog(client + "=>" + sender + " " + str);
+            WriteLog("");
+            WriteLog(client + "=>" + session.LocalEndPoint + " " + str);
 
             var ss = str.Split(":");
             ss[0] = ss[0].ToLower();
@@ -97,7 +98,7 @@ namespace NewLife.Net.P2P
             }
             else
             {
-                session.Send("无法处理的信息：" + str, null, client);
+                if (!str.Contains("P2P")) session.Send("无法处理的信息：" + str, null, client);
             }
         }
         #endregion
