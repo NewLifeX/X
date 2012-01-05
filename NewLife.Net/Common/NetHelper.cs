@@ -73,19 +73,19 @@ namespace NewLife.Net
             return hostAddresses.FirstOrDefault(d => d.AddressFamily == AddressFamily.InterNetwork || d.AddressFamily == AddressFamily.InterNetworkV6);
         }
 
-        /// <summary>获取本地IPV4列表</summary>
-        /// <returns></returns>
-        public static List<IPAddress> GetIPV4()
-        {
-            IPAddress[] IPList = Dns.GetHostAddresses(Dns.GetHostName());
-            List<IPAddress> list = new List<IPAddress>();
-            foreach (IPAddress item in IPList)
-            {
-                if (item.AddressFamily == AddressFamily.InterNetwork) list.Add(item);
-            }
+        ///// <summary>获取本地IPV4列表</summary>
+        ///// <returns></returns>
+        //public static List<IPAddress> GetIPV4()
+        //{
+        //    IPAddress[] IPList = Dns.GetHostAddresses(Dns.GetHostName());
+        //    List<IPAddress> list = new List<IPAddress>();
+        //    foreach (IPAddress item in IPList)
+        //    {
+        //        if (item.AddressFamily == AddressFamily.InterNetwork) list.Add(item);
+        //    }
 
-            return list;
-        }
+        //    return list;
+        //}
 
         /// <summary>针对IPv4和IPv6获取合适的Any地址</summary>
         /// <param name="address"></param>
@@ -109,11 +109,9 @@ namespace NewLife.Net
         /// <summary>是否Any地址，同时处理IPv4和IPv6</summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public static Boolean IsAny(this IPAddress address) { return address == IPAddress.Any || address == IPAddress.IPv6Any; }
+        public static Boolean IsAny(this IPAddress address) { return IPAddress.Any.Equals(address) || IPAddress.IPv6Any.Equals(address); }
 
-        /// <summary>
-        /// 指定地址的指定端口是否已被使用，似乎没办法判断IPv6地址
-        /// </summary>
+        /// <summary>指定地址的指定端口是否已被使用，似乎没办法判断IPv6地址</summary>
         /// <param name="protocol"></param>
         /// <param name="address"></param>
         /// <param name="port"></param>
@@ -136,6 +134,85 @@ namespace NewLife.Net
             }
 
             return false;
+        }
+        #endregion
+
+        #region 本机信息
+        /// <summary>获取活动的接口信息</summary>
+        /// <returns></returns>
+        public static IEnumerable<IPInterfaceProperties> GetActiveInterfaces()
+        {
+            foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (item.OperationalStatus != OperationalStatus.Up) continue;
+
+                var ip = item.GetIPProperties();
+                if (ip != null) yield return ip;
+            }
+        }
+
+        /// <summary>获取可用的DHCP地址</summary>
+        /// <returns></returns>
+        public static IEnumerable<IPAddress> GetDhcps()
+        {
+            foreach (var item in GetActiveInterfaces())
+            {
+                if (item != null && item.DhcpServerAddresses.Count > 0)
+                {
+                    foreach (var elm in item.DhcpServerAddresses)
+                    {
+                        yield return elm;
+                    }
+                }
+            }
+        }
+
+        /// <summary>获取可用的DNS地址</summary>
+        /// <returns></returns>
+        public static IEnumerable<IPAddress> GetDns()
+        {
+            foreach (var item in GetActiveInterfaces())
+            {
+                if (item != null && item.DnsAddresses.Count > 0)
+                {
+                    foreach (var elm in item.DnsAddresses)
+                    {
+                        yield return elm;
+                    }
+                }
+            }
+        }
+
+        /// <summary>获取可用的IP地址</summary>
+        /// <returns></returns>
+        public static IEnumerable<IPAddress> GetIPs()
+        {
+            foreach (var item in GetActiveInterfaces())
+            {
+                if (item != null && item.UnicastAddresses.Count > 0)
+                {
+                    foreach (var elm in item.UnicastAddresses)
+                    {
+                        yield return elm.Address;
+                    }
+                }
+            }
+        }
+
+        /// <summary>获取可用的多播地址</summary>
+        /// <returns></returns>
+        public static IEnumerable<IPAddress> GetMulticasts()
+        {
+            foreach (var item in GetActiveInterfaces())
+            {
+                if (item != null && item.MulticastAddresses.Count > 0)
+                {
+                    foreach (var elm in item.MulticastAddresses)
+                    {
+                        yield return elm.Address;
+                    }
+                }
+            }
         }
         #endregion
 
