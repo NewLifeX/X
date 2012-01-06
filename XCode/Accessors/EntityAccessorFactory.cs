@@ -36,7 +36,8 @@ namespace XCode.Accessors
         /// <returns></returns>
         public static IEntityAccessor Create(EntityAccessorTypes kind)
         {
-            return Create(kind);
+            //return Create(kind);
+            return XCodeService.Resolve<IEntityAccessor>(kind);
         }
 
         internal static Boolean EqualIgnoreCase(this String str, EntityAccessorOptions option)
