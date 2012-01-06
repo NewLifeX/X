@@ -21,6 +21,15 @@ namespace NewLife.Serialization
     /// </remarks>
     public class JsonAtomStringReader
     {
+        /// <summary>
+        /// 所有的数字类型,包括整数和浮点数
+        /// </summary>
+        public static readonly JsonAtomType[] NUMBER_TYPES = { JsonAtomType.NUMBER, JsonAtomType.NUMBER_EXP, JsonAtomType.FLOAT, JsonAtomType.FLOAT_EXP };
+        /// <summary>
+        /// 所有的整数类型
+        /// </summary>
+        public static readonly JsonAtomType[] INTEGER_TYPES = { JsonAtomType.NUMBER, JsonAtomType.NUMBER_EXP };
+
         TextReader Reader;
 
         /// <summary>
@@ -63,6 +72,7 @@ namespace NewLife.Serialization
             while (true)
             {
                 int c = Reader.Peek();
+                if (c != -1) str = "" + (char)c;
                 switch (c)
                 {
                     case -1:
@@ -106,7 +116,6 @@ namespace NewLife.Serialization
                         if (!isDetect) MoveNext();
                         else
                         {
-                            str = "" + (char)c;
                             return JsonAtomType.STRING;
                         }
                         return ReadString((char)c, out str);
@@ -227,7 +236,11 @@ namespace NewLife.Serialization
         private JsonAtomType ReadLiteral(bool isDetect, out string str)
         {
             StringBuilder sb = new StringBuilder();
-            bool hasDigit = false, hasLiteral = false, hasDot = false, hasExp = false;
+            bool hasDigit = false, // 是否有数字
+                hasLiteral = false, // 是否有字面值 即无法识别的
+                hasDot = false, // 是否有小数点
+                hasExp = false, // 是否有科学计数法的e E符号
+                hasMinusExp = false; // 科学计数法的e符号后跟随的是否是减号
             int c = 0, lastChar = -1;
             while (true)
             {
@@ -243,6 +256,7 @@ namespace NewLife.Serialization
                             (sb.Length > 2 && hasDigit && !hasLiteral && hasExp && (lastChar == 'e' || lastChar == 'E')) // 科学计数法e符号后的正负符号
                             )
                         {
+                            if (sb.Length > 2 && c == '-' && (lastChar == 'e' || lastChar == 'E')) hasMinusExp = true;
                             hasDigit = true;
                         }
                         else
@@ -310,11 +324,12 @@ namespace NewLife.Serialization
                 if (isDetect) break;
             }
             str = sb.ToString();
-            if (hasDigit && !hasDot && !hasLiteral || isDetect && hasDigit)
+
+            if (hasDigit && !hasDot && !hasLiteral && !hasMinusExp || isDetect && hasDigit)
             {
                 return hasExp ? JsonAtomType.NUMBER_EXP : JsonAtomType.NUMBER;
             }
-            else if (hasDigit && hasDot && !hasLiteral || isDetect && hasDot)
+            else if (hasDigit && (hasDot || hasMinusExp) && !hasLiteral || isDetect && hasDot)
             {
                 return hasExp ? JsonAtomType.FLOAT_EXP : JsonAtomType.FLOAT;
             }
