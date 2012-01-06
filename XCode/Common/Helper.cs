@@ -74,7 +74,7 @@ namespace XCode.Common
             IEntityOperate eop = EntityFactory.CreateOperate(entity.GetType());
             foreach (var item in eop.Fields)
             {
-                if ((item.PrimaryKey || item.IsIdentity) && !IsNullKey(entity[item.Name])) return false;
+                if ((item.PrimaryKey || item.IsIdentity) && IsNullKey(entity[item.Name])) return true;
             }
 
             //List<FieldItem> pks = eop.Fields.Where(e => e.PrimaryKey).ToList();
