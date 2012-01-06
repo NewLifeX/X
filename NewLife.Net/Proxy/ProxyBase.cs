@@ -5,6 +5,7 @@ using NewLife.Linq;
 using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
+using System.IO;
 
 namespace NewLife.Net.Proxy
 {
@@ -16,20 +17,20 @@ namespace NewLife.Net.Proxy
         /// <summary>会话集合。</summary>
         public ICollection<IProxySession> Sessions { get { return _Sessions ?? (_Sessions = new List<IProxySession>()); } }
 
-        private ProxyFilterCollection _Filters;
+        //private ProxyFilterCollection _Filters;
 
-        /// <summary>过滤器集合。</summary>
-        public ICollection<IProxyFilter> Filters { get { return _Filters; } }
+        ///// <summary>过滤器集合。</summary>
+        //public ICollection<IProxyFilter> Filters { get { return _Filters; } }
 
-        /// <summary>主过滤器，同时也是集合，会话主要针对这个操作</summary>
-        public IProxyFilter MainFilter { get { return _Filters; } }
+        ///// <summary>主过滤器，同时也是集合，会话主要针对这个操作</summary>
+        //public IProxyFilter MainFilter { get { return _Filters; } }
         #endregion
 
         #region 构造
         /// <summary>实例化</summary>
         public ProxyBase()
         {
-            _Filters = new ProxyFilterCollection(this);
+            //_Filters = new ProxyFilterCollection(this);
         }
 
         /// <summary>子类重载实现资源释放逻辑</summary>
@@ -43,10 +44,10 @@ namespace NewLife.Net.Proxy
                 Sessions.ForEach(e => e.Dispose());
             }
 
-            lock (Filters)
-            {
-                Filters.ForEach(e => e.Dispose());
-            }
+            //lock (Filters)
+            //{
+            //    Filters.ForEach(e => e.Dispose());
+            //}
         }
         #endregion
 
@@ -84,6 +85,33 @@ namespace NewLife.Net.Proxy
 
             session.Start(e);
         }
+
+        protected override INetSession CreateSession(NetEventArgs e)
+        {
+            return new ProxySession();
+        }
+        #endregion
+
+        #region 接口方法
+        /// <summary>为会话创建与远程服务器通讯的Socket。可以使用Socket池达到重用的目的。</summary>
+        /// <param name="session"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        public virtual ISocketClient CreateRemote(IProxySession session, NetEventArgs e) { return null; }
+
+        /// <summary>客户端发数据往服务端时</summary>
+        /// <param name="session"></param>
+        /// <param name="stream"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        public virtual Stream OnClientToServer(IProxySession session, Stream stream, NetEventArgs e) { return stream; }
+
+        /// <summary>服务端发数据往客户端时</summary>
+        /// <param name="session"></param>
+        /// <param name="stream"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        public virtual Stream OnServerToClient(IProxySession session, Stream stream, NetEventArgs e) { return stream; }
         #endregion
     }
 }

@@ -2,13 +2,13 @@
 using System.Collections;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Exceptions;
 using NewLife.Net.Common;
 using NewLife.Reflection;
 using NewLife.Threading;
-using System.Runtime.InteropServices;
 
 namespace NewLife.Net.Sockets
 {

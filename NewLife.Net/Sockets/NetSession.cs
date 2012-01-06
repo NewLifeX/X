@@ -10,6 +10,10 @@ namespace NewLife.Net.Sockets
     class NetSession : Netbase, INetSession
     {
         #region 属性
+        private Int32 _ID;
+        /// <summary>编号</summary>
+        Int32 INetSession.ID { get { return _ID; } set { if (_ID > 0)throw new NetException("禁止修改会话编号！"); _ID = value; } }
+        
         private ISocketSession _Client;
         /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
         public ISocketSession Session { get { return _Client; } set { _Client = value; } }

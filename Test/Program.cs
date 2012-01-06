@@ -20,6 +20,7 @@ using NewLife.Net.UPnP;
 using NewLife;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using NewLife.Net;
 
 namespace Test
 {
@@ -36,7 +37,7 @@ namespace Test
                 try
                 {
 #endif
-                Test4();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -171,16 +172,16 @@ namespace Test
 
             ////NewLife.Net.P2P.P2PTest.StartHole();
 
-            Console.WriteLine();
-            Console.WriteLine("正在检测网络类型……");
-            Console.WriteLine();
-            //var result = StunClient.Query("stunserver.org", 3478);
-            var result = StunClient.Query();
-            Console.WriteLine("UDP {0} {1}", result.Type, result.Type.GetDescription());
-            Console.WriteLine();
-            result = StunClient.Query(ProtocolType.Tcp);
-            Console.WriteLine("TCP {0} {1}", result.Type, result.Type.GetDescription());
-            Console.WriteLine();
+            //Console.WriteLine();
+            //Console.WriteLine("正在检测网络类型……");
+            //Console.WriteLine();
+            ////var result = StunClient.Query("stunserver.org", 3478);
+            //var result = StunClient.Query();
+            //Console.WriteLine("UDP {0} {1}", result.Type, result.Type.GetDescription());
+            //Console.WriteLine();
+            //result = StunClient.Query(ProtocolType.Tcp);
+            //Console.WriteLine("TCP {0} {1}", result.Type, result.Type.GetDescription());
+            //Console.WriteLine();
 
             //AppTest.Start();
             //while (true)
@@ -189,15 +190,15 @@ namespace Test
             //    Thread.Sleep(1000);
             //}
 
-            //var proxy = new XProxy();
-            //proxy.Port = 888;
-            //proxy.ProtocolType = ProtocolType.Tcp;
-            //proxy.ServerAddress = "www.baidu.com";
-            //proxy.ServerPort = 80;
-            //var filter = new HttpFilter();
-            //filter.Proxy = proxy;
-            //proxy.Filters.Add(filter);
-            //proxy.Start();
+            var proxy = new NATProxy();
+            proxy.Port = 888;
+            proxy.ProtocolType = ProtocolType.Tcp;
+            proxy.ServerAddress = NetHelper.ParseAddress("www.baidu.com");
+            proxy.ServerPort = 80;
+            var filter = new HttpFilter();
+            filter.Proxy = proxy;
+            proxy.Filters.Add(filter);
+            proxy.Start();
 
             //var proxy = new XProxy("nnhy.org",3389);
             //proxy.Port = 89;

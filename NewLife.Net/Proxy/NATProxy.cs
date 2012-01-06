@@ -4,8 +4,8 @@ using System.Net;
 
 namespace NewLife.Net.Proxy
 {
-    /// <summary>通用NAT代理</summary>
-    public class XProxy : ProxyBase
+    /// <summary>通用NAT代理。所有收到的数据，都转发到指定目标</summary>
+    public class NATProxy : ProxyBase
     {
         #region 属性
         private NATFilter _nat;
@@ -22,7 +22,7 @@ namespace NewLife.Net.Proxy
 
         #region 构造
         /// <summary>实例化</summary>
-        public XProxy()
+        public NATProxy()
         {
             _nat = new NATFilter();
             _nat.Proxy = this;
@@ -32,13 +32,13 @@ namespace NewLife.Net.Proxy
         /// <summary>实例化</summary>
         /// <param name="server">目标服务器地址</param>
         /// <param name="port">目标服务器端口</param>
-        public XProxy(String server, Int32 port) : this(server, port, ProtocolType.Tcp) { }
+        public NATProxy(String server, Int32 port) : this(server, port, ProtocolType.Tcp) { }
 
         /// <summary>实例化</summary>
         /// <param name="server">目标服务器地址</param>
         /// <param name="port">目标服务器端口</param>
         /// <param name="protocol">协议</param>
-        public XProxy(String server, Int32 port, ProtocolType protocol)
+        public NATProxy(String server, Int32 port, ProtocolType protocol)
             : this()
         {
             if (!String.IsNullOrEmpty(server)) ServerAddress = NetHelper.ParseAddress(server);

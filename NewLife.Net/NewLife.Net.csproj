@@ -36,7 +36,9 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Web.Services" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -65,7 +67,7 @@
     <Compile Include="DNS\DNS_AAAA.cs" />
     <Compile Include="DNS\DNS_CNAME.cs" />
     <Compile Include="DNS\DNS_PTR.cs" />
-    <Compile Include="HTTP\HttpHeader.cs" />
+    <Compile Include="Http\HttpHeader.cs" />
     <Compile Include="NTP\NTPClient.cs" />
     <Compile Include="Application\StreamServer.cs" />
     <Compile Include="Application\TimeServer.cs" />
@@ -84,6 +86,8 @@
     <Compile Include="Pop3\Pop3Server.cs" />
     <Compile Include="Pop3\Pop3Session.cs" />
     <Compile Include="Proxy\Filters\HttpFilter.cs" />
+    <Compile Include="Proxy\HttpProxy.cs" />
+    <Compile Include="Proxy\HttpReverseProxy.cs" />
     <Compile Include="Proxy\IProxy.cs" />
     <Compile Include="Proxy\IProxyFilter.cs" />
     <Compile Include="Proxy\IProxySession.cs" />
@@ -92,7 +96,7 @@
     <Compile Include="Proxy\Filters\ProxyFilterCollection.cs" />
     <Compile Include="Proxy\ProxySession.cs" />
     <Compile Include="Proxy\ProxyBase.cs" />
-    <Compile Include="Proxy\XProxy.cs" />
+    <Compile Include="Proxy\NATProxy.cs" />
     <None Include="SNTP\SNTPClient.cs" />
     <Compile Include="Sdp\SdpAttribute.cs" />
     <Compile Include="Sdp\SdpConnection.cs" />

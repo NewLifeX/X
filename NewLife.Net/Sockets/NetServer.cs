@@ -252,6 +252,14 @@ namespace NewLife.Net.Sockets
             {
                 session.Received += OnReceived;
                 session.Error += new EventHandler<NetEventArgs>(OnError);
+
+                // 只有Tcp使用会话集合
+                var ns = CreateSession(e);
+                ns.Server = sender as ISocketServer;
+                ns.Session = session;
+                ns.ClientEndPoint = e.RemoteIPEndPoint;
+                session.OnDisposed += (s, e2) => ns.Dispose();
+                AddSession(ns);
             }
 
             if (Accepted != null) Accepted(sender, e);
@@ -274,6 +282,34 @@ namespace NewLife.Net.Sockets
                 WriteLog("{2}错误 {0} {1}", e.SocketError, e.Error, e.LastOperation);
             else
                 WriteLog("{0}断开！", e.LastOperation);
+        }
+        #endregion
+
+        #region 会话
+        private IDictionary<Int32, INetSession> _Sessions;
+        /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
+        public IDictionary<Int32, INetSession> Sessions { get { return _Sessions ?? (_Sessions = new Dictionary<Int32, INetSession>()); } }
+
+        private Int32 sessionID = 0;
+        void AddSession(INetSession session)
+        {
+            var dic = Sessions;
+            lock (dic)
+            {
+                session.ID = ++sessionID;
+                session.OnDisposed += (s, e) => { lock (dic) { dic.Remove((s as INetSession).ID); } };
+                dic[session.ID] = session;
+            }
+        }
+
+        /// <summary>创建会话</summary>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        protected virtual INetSession CreateSession(NetEventArgs e)
+        {
+            var session = NetService.Resolve<INetSession>();
+
+            return session;
         }
         #endregion
 
