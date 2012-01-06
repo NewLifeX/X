@@ -8,6 +8,7 @@ using NewLife.Exceptions;
 using NewLife.Net.Common;
 using NewLife.Reflection;
 using NewLife.Threading;
+using System.Runtime.InteropServices;
 
 namespace NewLife.Net.Sockets
 {
@@ -166,6 +167,66 @@ namespace NewLife.Net.Sockets
             {
                 if (Socket != null) Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, value);
                 _ReuseAddress = value;
+            }
+        }
+
+        //private static MemberInfoX[] _mCleanedUp;
+        ///// <summary>CleanedUp字段</summary>
+        //private static MemberInfoX mCleanedUp
+        //{
+        //    get
+        //    {
+        //        if (_mCleanedUp != null && _mCleanedUp.Length > 0) return _mCleanedUp[0];
+
+        //        MemberInfoX pix = FieldInfoX.Create(typeof(Socket), "m_IntCleanedUp");
+        //        if (pix == null) pix = PropertyInfoX.Create(typeof(Socket), "CleanedUp");
+        //        _mCleanedUp = new MemberInfoX[] { pix };
+
+        //        return pix;
+        //    }
+        //}
+
+        ///// <summary>是否已经清理</summary>
+        //private Boolean CleanedUp
+        //{
+        //    get
+        //    {
+        //        if (Socket == null) return true;
+
+        //        var pix = mCleanedUp;
+        //        if (pix != null) return pix.Type == typeof(Boolean) ? (Boolean)pix.GetValue(Socket) : (Int32)pix.GetValue(Socket) == 1;
+
+        //        return false;
+        //    }
+        //}
+
+        private static MemberInfoX[] _mSafeHandle;
+        /// <summary>SafeHandle字段</summary>
+        private static MemberInfoX mSafeHandle
+        {
+            get
+            {
+                if (_mSafeHandle != null && _mSafeHandle.Length > 0) return _mSafeHandle[0];
+
+                MemberInfoX pix = FieldInfoX.Create(typeof(Socket), "m_Handle");
+                if (pix == null) pix = PropertyInfoX.Create(typeof(Socket), "SafeHandle");
+                _mSafeHandle = new MemberInfoX[] { pix };
+
+                return pix;
+            }
+        }
+
+        /// <summary>安全句柄</summary>
+        private SafeHandle SafeHandle
+        {
+            get
+            {
+                if (Socket == null) return null;
+
+                var pix = mSafeHandle;
+                if (pix != null) return pix.GetValue(Socket) as SafeHandle;
+
+                return null;
             }
         }
 
@@ -398,37 +459,41 @@ namespace NewLife.Net.Sockets
 
             if (Socket == null) return;
 
-            // 先用Shutdown禁用Socket（发送未完成发送的数据），再用Close关闭，这是一种比较优雅的关闭Socket的方法
-            if (NetHelper.Debug)
+            var hand = SafeHandle;
+            if (hand != null && !hand.IsClosed)
             {
-                try
+                // 先用Shutdown禁用Socket（发送未完成发送的数据），再用Close关闭，这是一种比较优雅的关闭Socket的方法
+                if (NetHelper.Debug)
                 {
-                    Socket.Shutdown(SocketShutdown.Both);
+                    try
+                    {
+                        Socket.Shutdown(SocketShutdown.Both);
+                    }
+                    catch (SocketException ex2)
+                    {
+                        if (ex2.ErrorCode != 10057) WriteLog(ex2.ToString());
+                    }
+                    catch (ObjectDisposedException) { }
+                    catch (Exception ex3)
+                    {
+                        WriteLog(ex3.ToString());
+                    }
                 }
-                catch (SocketException ex2)
+                else
                 {
-                    if (ex2.ErrorCode != 10057) WriteLog(ex2.ToString());
+                    try
+                    {
+                        Socket.Shutdown(SocketShutdown.Both);
+                    }
+                    catch (SocketException ex2)
+                    {
+                        if (ex2.ErrorCode != 10057) WriteLog(ex2.ToString());
+                    }
+                    catch { }
                 }
-                catch (ObjectDisposedException) { }
-                catch (Exception ex3)
-                {
-                    WriteLog(ex3.ToString());
-                }
-            }
-            else
-            {
-                try
-                {
-                    Socket.Shutdown(SocketShutdown.Both);
-                }
-                catch (SocketException ex2)
-                {
-                    if (ex2.ErrorCode != 10057) WriteLog(ex2.ToString());
-                }
-                catch { }
-            }
 
-            Socket.Close();
+                Socket.Close();
+            }
             Socket = null;
 
             if (_Statistics != null)

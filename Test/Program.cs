@@ -36,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -147,8 +147,8 @@ namespace Test
 
         static void Test4()
         {
-            var stunserver = new StunServer();
-            stunserver.Start();
+            //var stunserver = new StunServer();
+            //stunserver.Start();
             //StunClient.Servers.Insert(0, "127.0.0.1:3479");
             //StunClient.Servers.Insert(0, "nnhy.eicp.net");
 
@@ -169,16 +169,25 @@ namespace Test
             //    }
             //}
 
-            //NewLife.Net.P2P.P2PTest.StartHole();
+            ////NewLife.Net.P2P.P2PTest.StartHole();
 
+            Console.WriteLine();
+            Console.WriteLine("正在检测网络类型……");
+            Console.WriteLine();
             //var result = StunClient.Query("stunserver.org", 3478);
             var result = StunClient.Query();
-            Console.WriteLine("{0} {1}", result.Type, result.Type.GetDescription());
+            Console.WriteLine("UDP {0} {1}", result.Type, result.Type.GetDescription());
+            Console.WriteLine();
             result = StunClient.Query(ProtocolType.Tcp);
-            Console.WriteLine("{0} {1}", result.Type, result.Type.GetDescription());
+            Console.WriteLine("TCP {0} {1}", result.Type, result.Type.GetDescription());
+            Console.WriteLine();
 
             //AppTest.Start();
-            //NetHelper.Wake("00-24-8C-04-C0-9B", "00-24-8C-04-C0-91");
+            //while (true)
+            //{
+            //    NewLife.Net.NetHelper.Wake( "00-24-8C-04-C0-91");
+            //    Thread.Sleep(1000);
+            //}
 
             //var proxy = new XProxy();
             //proxy.Port = 888;

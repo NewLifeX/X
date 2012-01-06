@@ -358,7 +358,7 @@ namespace NewLife.Net.Stun
                 else
                     socket.SendTo(ms.ToArray(), remoteEndPoint);
 
-                var data = new Byte[1500];
+                var data = new Byte[150];
                 Int32 count = socket.Receive(data);
                 buffer = new Byte[count];
                 Buffer.BlockCopy(data, 0, buffer, 0, count);
