@@ -350,7 +350,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 方法
-        static DictionaryCache<String, Type> typeCache2 = new DictionaryCache<String, Type>();
+        DictionaryCache<String, Type> typeCache2 = new DictionaryCache<String, Type>();
         /// <summary>从程序集中查找指定名称的类型</summary>
         /// <param name="typeName"></param>
         /// <returns></returns>

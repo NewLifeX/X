@@ -297,23 +297,11 @@ namespace XAgent
         #region 服务控制
         private Thread[] _Threads;
         /// <summary>线程组</summary>
-        private Thread[] Threads
-        {
-            get
-            {
-                if (_Threads == null) _Threads = new Thread[ThreadCount];
-                return _Threads;
-            }
-            set { _Threads = value; }
-        }
+        private Thread[] Threads { get { return _Threads ?? (_Threads = new Thread[ThreadCount]); } set { _Threads = value; } }
 
         private IServer[] _AttachServers;
         /// <summary>附加服务</summary>
-        public IServer[] AttachServers
-        {
-            get { return _AttachServers; }
-            set { _AttachServers = value; }
-        }
+        public IServer[] AttachServers { get { return _AttachServers; } set { _AttachServers = value; } }
 
         /// <summary>服务启动事件</summary>
         /// <param name="args"></param>

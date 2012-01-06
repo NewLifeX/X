@@ -40,19 +40,20 @@ namespace NewLife.Net.UPnP
     public class UPnPClient : Netbase
     {
         #region 属性
-        private NetServer _Udp;
+        private UdpClientX _Udp;
         /// <summary>Udp客户端，用于发现网关设备</summary>
-        private NetServer Udp
+        private UdpClientX Udp
         {
             get
             {
                 if (_Udp == null)
                 {
-                    _Udp = new NetServer();
-                    _Udp.ProtocolType = ProtocolType.Udp;
-                    //if (!NetHelper.IsUsed(ProtocolType.Udp, IPAddress.Any, 1900)) _Udp.Port = 1900;
+                    _Udp = new UdpClientX();
+                    //_Udp.Name = "UPnPClient";
+                    //_Udp.ProtocolType = ProtocolType.Udp;
                     _Udp.Received += new EventHandler<NetEventArgs>(Udp_Received);
-                    _Udp.Start();
+                    //_Udp.Start();
+                    _Udp.ReceiveAsync();
                 }
                 return _Udp;
             }
@@ -97,22 +98,35 @@ namespace NewLife.Net.UPnP
         {
             if (CacheGateway) ThreadPool.QueueUserWorkItem(delegate(Object state) { CheckCacheGateway(); });
 
-            //IPAddress address = NetHelper.ParseAddress("239.255.255.250");
-            //IPEndPoint remoteEP = new IPEndPoint(address, 1900);
+            IPAddress address = NetHelper.ParseAddress("239.255.255.250");
 
-            //Udp.Client.EnableBroadcast = true;
-            //Udp.Send(UPNP_DISCOVER, Encoding.ASCII, remoteEP);
-            foreach (var item in NetHelper.GetMulticasts())
-            {
-                foreach (var s in Udp.Servers)
-                {
-                    if (s.AddressFamily == item.AddressFamily)
-                    {
-                        (s as UdpServer).Send(UPNP_DISCOVER, null, new IPEndPoint(item, 1900));
-                        break;
-                    }
-                }
-            }
+            Udp.Client.EnableBroadcast = true;
+            Udp.Send(UPNP_DISCOVER, Encoding.ASCII, new IPEndPoint(address, 1900));
+
+            //Boolean hasDefault = false;
+            //foreach (var item in NetHelper.GetMulticasts())
+            //{
+            //    foreach (var s in Udp.Servers)
+            //    {
+            //        if (s.AddressFamily == item.AddressFamily)
+            //        {
+            //            (s as UdpServer).Send(UPNP_DISCOVER, null, new IPEndPoint(item, 1900));
+            //            if (item.Equals(address)) hasDefault = true;
+            //            break;
+            //        }
+            //    }
+            //}
+            //if (!hasDefault)
+            //{
+            //    foreach (var s in Udp.Servers)
+            //    {
+            //        if (s.AddressFamily == address.AddressFamily)
+            //        {
+            //            (s as UdpServer).Send(UPNP_DISCOVER, null, new IPEndPoint(address, 1900));
+            //            break;
+            //        }
+            //    }
+            //}
         }
 
         //List<String> process = new List<String>();
@@ -162,7 +176,7 @@ namespace NewLife.Net.UPnP
             //反序列化
             XmlSerializer serial = new XmlSerializer(typeof(InternetGatewayDevice));
             InternetGatewayDevice device = null;
-            using (StringReader reader = new StringReader(content))
+            using (StringReader reader = new StringReader(content.Trim()))
             {
                 device = serial.Deserialize(reader) as InternetGatewayDevice;
                 if (device == null) return;
