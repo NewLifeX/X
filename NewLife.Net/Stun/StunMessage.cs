@@ -221,13 +221,21 @@ namespace NewLife.Net.Stun
         /// <summary>实例化一个Stun消息</summary>
         public StunMessage()
         {
-            TransactionID = new Byte[16];
-            var rnd = new Random((Int32)DateTime.Now.Ticks);
-            rnd.NextBytes(TransactionID);
-            TransactionID[0] = 0;
+            ResetTransactionID();
 
             ChangeIP = false;
             ChangePort = false;
+        }
+        #endregion
+
+        #region 方法
+        /// <summary>重置会话ID</summary>
+        public void ResetTransactionID()
+        {
+            if (TransactionID == null || TransactionID.Length != 16) TransactionID = new Byte[16];
+            var rnd = new Random((Int32)DateTime.Now.Ticks);
+            rnd.NextBytes(TransactionID);
+            TransactionID[0] = 0;
         }
         #endregion
 

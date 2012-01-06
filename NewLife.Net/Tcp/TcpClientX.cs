@@ -36,7 +36,7 @@ namespace NewLife.Net.Tcp
         internal void SetRemote(NetEventArgs e)
         {
             IPEndPoint ep = e.RemoteEndPoint as IPEndPoint;
-            if (ep == null || ep.Address.IsAny() && ep.Port == 0) e.RemoteEndPoint = RemoteEndPoint;
+            if ((ep == null || ep.Address.IsAny() && ep.Port == 0) && RemoteEndPoint != null) e.RemoteEndPoint = RemoteEndPoint;
         }
         #endregion
 

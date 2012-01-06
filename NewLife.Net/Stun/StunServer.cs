@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Linq;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -52,14 +53,28 @@ namespace NewLife.Net.Stun
                 AddServer(IPAddress.Any, Port2, ProtocolType.Unknown, AddressFamily.InterNetwork);
 
                 var dic = new Dictionary<Int32, IPEndPoint>();
+                IPEndPoint ep = null;
+                IPAddress pub = NetHelper.GetIPs().FirstOrDefault(e => e.AddressFamily == AddressFamily.InterNetwork);
+                StunResult rs = null;
                 WriteLog("获取公网地址……");
-                IPAddress pub = null;
+
                 foreach (var item in Servers)
                 {
                     if (item.ProtocolType == ProtocolType.Tcp) continue;
 
-                    var ep = StunClient.GetPublic(item.ProtocolType, item.Port, 2000);
-                    pub = ep.Address;
+                    // 查询公网地址和网络类型，如果是受限网络，或者对称网络，则采用本地端口，因此此时只能依赖端口映射，将来这里可以考虑操作UPnP
+                    if (rs == null)
+                    {
+                        item.Bind();
+                        rs = StunClient.Query(item.Server);
+                        if (rs != null && rs.Type == StunNetType.Blocked && rs.Public != null) rs.Type = StunNetType.Symmetric;
+                        WriteLog("网络类型：{0} {1}", rs.Type, rs.Type.GetDescription());
+                        ep = rs.Public;
+                        if (ep != null) pub = ep.Address;
+                    }
+                    else
+                        ep = StunClient.GetPublic(item.ProtocolType, item.Port, 2000);
+                    if (rs.Type > StunNetType.RestrictedCone) ep = new IPEndPoint(pub, item.Port);
                     WriteLog("{0}://{1}:{2}的公网地址：{3}", item.ProtocolType, item.Address, item.Port, ep);
                     dic.Add(item.Port, ep);
                 }
@@ -68,7 +83,7 @@ namespace NewLife.Net.Stun
                 {
                     if (item.ProtocolType != ProtocolType.Tcp) continue;
 
-                    var ep = new IPEndPoint(pub, item.Port);
+                    ep = new IPEndPoint(pub, item.Port);
                     WriteLog("{0}://{1}:{2}的公网地址：{3}", item.ProtocolType, item.Address, item.Port, ep);
                     dic.Add(item.Port + 100000, ep);
                 }
@@ -96,20 +111,23 @@ namespace NewLife.Net.Stun
             {
                 var session = e.Socket as ISocketSession;
                 IPEndPoint remote = e.RemoteIPEndPoint;
+                //if (remote == null && session != null) remote = session.RemoteEndPoint;
 
                 var request = StunMessage.Read(e.GetStream());
                 WriteLog("{0}://{1} {2}{3}{4}", session.ProtocolType, remote, request.Type, request.ChangeIP ? " ChangeIP" : "", request.ChangePort ? " ChangePort" : "");
 
-                // 如果是响应，说明是兄弟服务器发过来的，需要重新修改为请求
+                // 如果是兄弟服务器发过来的，修正响应地址
                 switch (request.Type)
                 {
-                    case StunMessageType.BindingResponse:
+                    case StunMessageType.BindingRequest:
+                        //case StunMessageType.BindingResponse:
                         request.Type = StunMessageType.BindingRequest;
-                        remote = request.ResponseAddress;
+                        if (request.ResponseAddress != null) remote = request.ResponseAddress;
                         break;
-                    case StunMessageType.SharedSecretResponse:
+                    case StunMessageType.SharedSecretRequest:
+                        //case StunMessageType.SharedSecretResponse:
                         request.Type = StunMessageType.SharedSecretRequest;
-                        remote = request.ResponseAddress;
+                        if (request.ResponseAddress != null) remote = request.ResponseAddress;
                         break;
                     default:
                         break;

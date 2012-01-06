@@ -4,11 +4,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using NewLife.Collections;
+using NewLife.Exceptions;
 using NewLife.Net.Common;
 using NewLife.Reflection;
 using NewLife.Threading;
-using System.Text;
-using NewLife.Exceptions;
 
 namespace NewLife.Net.Sockets
 {
@@ -462,7 +461,7 @@ namespace NewLife.Net.Sockets
         {
 #if DEBUG
             //WriteLog("Completed[{4}] {0} {1} {2} [{3}]", this, e.LastOperation, e.SocketError, e.BytesTransferred, e.ID);
-            StringBuilder sb = new StringBuilder();
+            var sb = new System.Text.StringBuilder();
             sb.AppendFormat("[{0}] {1}://{2}", e.ID, ProtocolType, LocalEndPoint);
             var ep = e.RemoteIPEndPoint;
             if (ep == null || ep.Address.IsAny()) ep = RemoteEndPoint;

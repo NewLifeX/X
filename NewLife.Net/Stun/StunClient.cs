@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using NewLife.Linq;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
-using System.Net.Sockets;
+using NewLife.IO;
 
 namespace NewLife.Net.Stun
 {
@@ -84,7 +85,7 @@ namespace NewLife.Net.Stun
 
     */
 
-        static String[] servers = new String[] { "stun.nnhy.org", "stunserver.org", "stun.xten.com", "stun.fwdnet.net", "stun.iptel.org", "220.181.126.73" };
+        static String[] servers = new String[] { "stun.nnhy.org", "stun.sipgate.net:10000", "stunserver.org", "stun.xten.com", "stun.fwdnet.net", "stun.iptel.org", "220.181.126.73" };
         private static List<String> _Servers;
         /// <summary>打洞服务器</summary>
         public static List<String> Servers
@@ -116,18 +117,28 @@ namespace NewLife.Net.Stun
         /// <summary>在指定套接字上执行查询，如果未指定，则内部创建</summary>
         /// <param name="socket"></param>
         /// <returns></returns>
-        public static StunResult Query(Socket socket = null)
+        public static StunResult Query(Socket socket = null) { return Query(socket, 0); }
+
+        /// <summary>在指定套接字上执行查询，如果未指定，则内部创建</summary>
+        /// <param name="socket"></param>
+        /// <param name="ignores">跳过第一个地址，因为第一个往往就是服务器自己</param>
+        /// <returns></returns>
+        internal static StunResult Query(Socket socket, Int32 ignores)
         {
             // 如果是Udp被屏蔽，很有可能是因为服务器没有响应，可以通过轮换服务器来测试
             StunResult result = null;
             foreach (var item in Servers)
             {
+                if (ignores-- > 0) continue;
+
+                WriteLog("使用服务器：{0}", item);
+
                 Int32 p = item.IndexOf(":");
                 if (p > 0)
                     result = Query(socket, item.Substring(0, p), Int32.Parse(item.Substring(p + 1)));
                 else
                     result = Query(socket, item, 3478);
-                if (result.Type != StunNetType.Blocked) return result;
+                if (result != null && result.Type != StunNetType.Blocked) return result;
             }
             return result;
         }
@@ -140,7 +151,11 @@ namespace NewLife.Net.Stun
         /// <returns></returns>
         public static StunResult Query(Socket socket, String host, Int32 port = 3478, Int32 timeout = 2000)
         {
-            return Query(socket, NetHelper.ParseAddress(host), port, timeout);
+            try
+            {
+                return Query(socket, NetHelper.ParseAddress(host), port, timeout);
+            }
+            catch { return null; }
         }
 
         /// <summary>在指定套接字上执行查询，如果未指定，则内部创建</summary>
@@ -184,6 +199,7 @@ namespace NewLife.Net.Stun
             // 要求改变IP和端口
             msg.ChangeIP = true;
             msg.ChangePort = true;
+            msg.ResetTransactionID();
 
             // 如果本地地址就是映射地址，表示没有NAT。这里的本地地址应该有问题，永远都会是0.0.0.0
             //if (client.LocalEndPoint.Equals(test1response.MappedAddress))
@@ -201,12 +217,14 @@ namespace NewLife.Net.Stun
             else
             {
                 rs = Query(socket, msg, remote);
+                if (rs != null && pub == null) pub = rs.MappedAddress;
                 // Full cone NAT.
                 if (rs != null) return new StunResult(StunNetType.FullCone, pub);
 
                 // Test II
                 msg.ChangeIP = false;
                 msg.ChangePort = false;
+                msg.ResetTransactionID();
 
                 // 如果是Tcp，这里需要准备第二个重用的Socket
                 if (socket.ProtocolType == ProtocolType.Tcp)
@@ -230,6 +248,9 @@ namespace NewLife.Net.Stun
                 }
 
                 rs = Query(socket, msg, remote2);
+                // 如果第二服务器没响应，重试
+                if (rs == null) rs = Query(socket, msg, remote2);
+                if (rs != null && pub == null) pub = rs.MappedAddress;
                 if (rs == null) return new StunResult(StunNetType.Blocked, pub);
 
                 // 两次映射地址不一样，对称网络
@@ -238,8 +259,10 @@ namespace NewLife.Net.Stun
                 // Test III
                 msg.ChangeIP = false;
                 msg.ChangePort = true;
+                msg.ResetTransactionID();
 
                 rs = Query(socket, msg, remote2);
+                if (rs != null && pub == null) pub = rs.MappedAddress;
                 // 受限
                 if (rs != null) return new StunResult(StunNetType.RestrictedCone, pub);
 
@@ -342,7 +365,15 @@ namespace NewLife.Net.Stun
             }
             catch { return null; }
 
-            return StunMessage.Read(new MemoryStream(buffer));
+            var rs = StunMessage.Read(new MemoryStream(buffer));
+            //if (rs != null && rs.Type != StunMessageType.BindingResponse) return null;
+            if (rs == null) return null;
+
+            // 不是同一个会话不要
+            if (rs.TransactionID.CompareTo(request.TransactionID) != 0) return null;
+            // 不是期望的响应不要
+            if (rs.Type != (StunMessageType)((UInt16)request.Type | 0x0100)) return null;
+            return rs;
         }
         #endregion
     }
