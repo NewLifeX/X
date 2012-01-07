@@ -53,6 +53,7 @@
     <Compile Include="Collections\ListBase.cs" />
     <Compile Include="Collections\ListX.cs" />
     <Compile Include="Collections\ObjectPool.cs" />
+    <Compile Include="Collections\SafeStack.cs" />
     <Compile Include="Collections\SingleListNode.cs" />
     <Compile Include="Collections\InterlockedStack.cs" />
     <Compile Include="Collections\Triplet.cs" />

@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Exceptions;
@@ -8,11 +7,9 @@ using NewLife.Log;
 
 namespace NewLife.Threading
 {
-    /// <summary>
-    /// 原子读写锁
-    /// </summary>
+    /// <summary>原子读写锁</summary>
     /// <remark>
-    /// 任意多个读操作，只有一个写操作；
+    /// 任意多个读操作，有限个<see cref="Max"/>写操作；
     /// 任意读操作阻塞写操作，同样任意写操作阻塞非本线程读操作和其它写操作；
     /// </remark>
     /// <remarks>
@@ -25,32 +22,18 @@ namespace NewLife.Threading
         #region 属性
         private Int32 _Max = 1;
         /// <summary>最大可独占资源数，默认1</summary>
-        public Int32 Max
-        {
-            get { return _Max; }
-            set { _Max = value; }
-        }
+        public Int32 Max { get { return _Max; } set { _Max = value; } }
 
-        /// <summary>
-        /// 锁计数
-        /// </summary>
+        /// <summary>锁计数</summary>
         private Int32 _lock = 0;
 
         private Int32 _ReadTimeout = 1000;
         /// <summary>读取锁等待超时时间，默认1秒</summary>
-        public Int32 ReadTimeout
-        {
-            get { return _ReadTimeout; }
-            set { _ReadTimeout = value; }
-        }
+        public Int32 ReadTimeout { get { return _ReadTimeout; } set { _ReadTimeout = value; } }
 
         private Int32 _WriteTimeout = 5000;
         /// <summary>写入锁等待超时时间，默认5秒</summary>
-        public Int32 WriteTimeout
-        {
-            get { return _WriteTimeout; }
-            set { _WriteTimeout = value; }
-        }
+        public Int32 WriteTimeout { get { return _WriteTimeout; } set { _WriteTimeout = value; } }
 
         ///// <summary>
         ///// 写入线程的ID。用于多次调用识别
@@ -76,9 +59,7 @@ namespace NewLife.Threading
         //public ReadWriteLock(Int32 max) { Max = max; }
 
         static DictionaryCache<Object, ReadWriteLock> _cache = new DictionaryCache<object, ReadWriteLock>();
-        /// <summary>
-        /// 根据指定键值创建读写锁，一般读写锁需要针对指定资源唯一
-        /// </summary>
+        /// <summary>根据指定键值创建读写锁，一般读写锁需要针对指定资源唯一</summary>
         /// <param name="key"></param>
         /// <returns></returns>
         public static ReadWriteLock Create(Object key)
@@ -90,18 +71,14 @@ namespace NewLife.Threading
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 请求读取锁
-        /// </summary>
+        /// <summary>请求读取锁</summary>
         public void AcquireRead()
         {
             // 1秒
             if (!AcquireRead(ReadTimeout)) throw new XException("原子读写锁实在太忙，无法取得读取锁！");
         }
 
-        /// <summary>
-        /// 请求读取锁，等待指定秒
-        /// </summary>
+        /// <summary>请求读取锁，等待指定时间</summary>
         /// <param name="millisecondsTimeout"></param>
         /// <returns>是否取得锁</returns>
         public Boolean AcquireRead(Int32 millisecondsTimeout)
@@ -139,9 +116,7 @@ namespace NewLife.Threading
             return true;
         }
 
-        /// <summary>
-        /// 释放读取锁
-        /// </summary>
+        /// <summary>释放读取锁</summary>
         public void ReleaseRead()
         {
             //Int32 currentThreadID = Thread.CurrentThread.ManagedThreadId;
@@ -157,18 +132,14 @@ namespace NewLife.Threading
             Write("ReleaseRead");
         }
 
-        /// <summary>
-        /// 请求写入锁
-        /// </summary>
+        /// <summary>请求写入锁</summary>
         public void AcquireWrite()
         {
             // 10秒
             if (!AcquireWrite(WriteTimeout)) throw new XException("原子读写锁实在太忙，无法取得写入锁！");
         }
 
-        /// <summary>
-        /// 请求写入锁，等待指定秒
-        /// </summary>
+        /// <summary>请求写入锁，等待指定时间</summary>
         /// <param name="millisecondsTimeout"></param>
         /// <returns>是否取得锁</returns>
         public Boolean AcquireWrite(Int32 millisecondsTimeout)
@@ -212,9 +183,7 @@ namespace NewLife.Threading
             return true;
         }
 
-        /// <summary>
-        /// 释放写入锁
-        /// </summary>
+        /// <summary>释放写入锁</summary>
         public void ReleaseWrite()
         {
             //Int32 currentThreadID = Thread.CurrentThread.ManagedThreadId;
@@ -231,6 +200,7 @@ namespace NewLife.Threading
         #endregion
 
         #region 辅助
+        [Conditional("DEBUG")]
         void Write(String msg)
         {
             if (XTrace.Debug) XTrace.WriteLine(msg);
