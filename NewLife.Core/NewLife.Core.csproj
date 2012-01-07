@@ -50,9 +50,10 @@
     <Compile Include="Cctor.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
     <Compile Include="Collections\HashSet.cs" />
+    <Compile Include="Collections\IStack.cs" />
     <Compile Include="Collections\ListBase.cs" />
-    <Compile Include="Collections\ListX.cs" />
     <Compile Include="Collections\ObjectPool.cs" />
+    <Compile Include="Collections\ObjectPoolTest.cs" />
     <Compile Include="Collections\SafeStack.cs" />
     <Compile Include="Collections\SingleListNode.cs" />
     <Compile Include="Collections\InterlockedStack.cs" />

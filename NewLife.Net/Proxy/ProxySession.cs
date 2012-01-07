@@ -10,7 +10,7 @@ namespace NewLife.Net.Proxy
     /// <remarks>
     /// 一个会话应该包含两端，两个Socket，服务端和客户端
     /// </remarks>
-    class ProxySession : Netbase, IProxySession
+    class ProxySession : NetSession, IProxySession
     {
         #region 属性
         private IProxy _Proxy;
@@ -37,7 +37,7 @@ namespace NewLife.Net.Proxy
         /// <summary>客户端远程IP终结点</summary>
         public EndPoint RemoteEndPoint { get { return _RemoteEndPoint; } set { _RemoteEndPoint = value; } }
 
-        IProxyFilter Filter { get { return Proxy.MainFilter; } }
+        //IProxyFilter Filter { get { return Proxy.MainFilter; } }
         #endregion
 
         #region 构造
@@ -93,14 +93,14 @@ namespace NewLife.Net.Proxy
         {
             if (Remote == null)
             {
-                Remote = Filter.CreateRemote(this, e);
+                //Remote = Filter.CreateRemote(this, e);
                 Remote.Received += new EventHandler<NetEventArgs>(Remote_Received);
                 Remote.ReceiveAsync();
             }
 
             var stream = e.GetStream();
             Console.WriteLine("{0} => {1} {2}字节", ClientEndPoint, Session.LocalEndPoint, stream.Length);
-            stream = Filter.OnClientToServer(this, stream, e);
+            //stream = Filter.OnClientToServer(this, stream, e);
             if (stream != null) Remote.Send(stream, RemoteEndPoint);
         }
 
@@ -108,7 +108,7 @@ namespace NewLife.Net.Proxy
         {
             var stream = e.GetStream();
             Console.WriteLine("{0} {1}字节", Remote, stream.Length);
-            stream = Filter.OnServerToClient(this, stream, e);
+            //stream = Filter.OnServerToClient(this, stream, e);
             if (stream != null) Session.Send(stream, ClientEndPoint);
 
             // UDP准备关闭

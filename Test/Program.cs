@@ -21,6 +21,8 @@ using NewLife;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using NewLife.Net;
+using NewLife.Collections;
+using System.Collections.Generic;
 
 namespace Test
 {
@@ -37,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -190,15 +192,15 @@ namespace Test
             //    Thread.Sleep(1000);
             //}
 
-            var proxy = new NATProxy();
-            proxy.Port = 888;
-            proxy.ProtocolType = ProtocolType.Tcp;
-            proxy.ServerAddress = NetHelper.ParseAddress("www.baidu.com");
-            proxy.ServerPort = 80;
-            var filter = new HttpFilter();
-            filter.Proxy = proxy;
-            proxy.Filters.Add(filter);
-            proxy.Start();
+            //var proxy = new NATProxy();
+            //proxy.Port = 888;
+            //proxy.ProtocolType = ProtocolType.Tcp;
+            //proxy.ServerAddress = NetHelper.ParseAddress("www.baidu.com");
+            //proxy.ServerPort = 80;
+            //var filter = new HttpFilter();
+            //filter.Proxy = proxy;
+            //proxy.Filters.Add(filter);
+            //proxy.Start();
 
             //var proxy = new XProxy("nnhy.org",3389);
             //proxy.Port = 89;
@@ -283,61 +285,7 @@ namespace Test
 
         static void Test5()
         {
-            DAL.ShowSQL = false;
-
-            var asm = EntityAssembly.Create("User", DAL.Import(File.ReadAllText("user.xml")));
-            var eop = EntityFactory.CreateOperate(AssemblyX.Create(asm).GetType("User"));
-            if (DAL.Create(eop.ConnName).DbType == DatabaseType.SqlServer)
-                eop.Execute("truncate table " + eop.FormatName(eop.TableName));
-            else
-                eop.Execute("delete from " + eop.FormatName(eop.TableName));
-
-            String file = "User.sql";
-            var fi = new FileInfo(file);
-            while (!fi.Exists && fi.Directory != fi.Directory.Root) fi = new FileInfo(Path.Combine(fi.Directory.Parent.FullName, fi.Name));
-            Console.WriteLine("分析文件：{0}", fi.FullName);
-
-            Int32 total = 0;
-            using (StreamReader reader = new StreamReader(fi.FullName))
-            {
-                //eop.BeginTransaction();
-                CodeTimer.TimeLine("导入", 6430000, index =>
-                {
-                    if (reader.EndOfStream)
-                    {
-                        eop.Commit();
-                        return;
-                    }
-                    String line = reader.ReadLine();
-                    if (line.IsNullOrWhiteSpace()) return;
-
-                    if (index == 0) eop.BeginTransaction();
-
-                    Int32 p1 = line.IndexOf('#');
-                    Int32 p2 = line.LastIndexOf('#');
-
-                    String user = line.Substring(0, p1).Trim();
-                    String pass = line.Substring(p1 + 1, p2 - p1 - 1).Trim();
-                    String mail = line.Substring(p2 + 1).Trim();
-
-                    // 入库
-                    var entity = eop.Create();
-                    entity.SetItem("Name", user);
-                    entity.SetItem("Pass", pass);
-                    entity.SetItem("Mail", mail);
-                    entity.Insert();
-
-                    if (index % 1000 == 0)
-                    {
-                        eop.Commit();
-                        eop.BeginTransaction();
-                    }
-
-                    total++;
-                }, false);
-                //eop.Commit();
-            }
-            Console.WriteLine(total);
+            ObjectPoolTest<NetEventArgs>.Start();
         }
     }
 }

@@ -14,7 +14,7 @@ namespace NewLife.Collections
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     [Serializable]
-    public class SafeStack<T> : DisposeBase, IEnumerable<T>, ICollection, IEnumerable
+    public class SafeStack<T> : DisposeBase, IStack<T>, IEnumerable<T>, ICollection, IEnumerable
     {
         #region 属性
         /// <summary>数据数组</summary>
@@ -87,13 +87,13 @@ namespace NewLife.Collections
             while (Interlocked.CompareExchange(ref _Count, p + 1, p) != p);
 
             // 是否容量超标
-            if (p > _array.Length)
+            if (p >= _array.Length)
             {
                 // 加锁，扩容
                 // 开始抢锁
                 while (Interlocked.CompareExchange(ref _lock, 1, 0) != 0) Thread.SpinWait(1);
                 // DoubleLock
-                if (p > _array.Length)
+                if (p >= _array.Length)
                 {
                     // 稍等一会，可能某些读取尚未完成
                     Thread.SpinWait(100);

@@ -44,7 +44,8 @@ namespace NewLife.Log
         /// <param name="needTimeOne">是否需要预热</param>
         public static void TimeLine(String title, Int32 times, Action<Int32> action, Boolean needTimeOne = true)
         {
-            Console.Write("{0}{1}：", new String(' ', 16 - Encoding.Default.GetByteCount(title)), title);
+            var n = Encoding.Default.GetByteCount(title);
+            Console.Write("{0}{1}：", n >= 16 ? "" : new String(' ', 16 - n), title);
 
             CodeTimer timer = new CodeTimer();
             timer.Times = times;

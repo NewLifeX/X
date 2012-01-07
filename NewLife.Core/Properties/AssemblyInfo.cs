@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.6.*")]
-[assembly: AssemblyFileVersion("3.6.2012.0102")]
+[assembly: AssemblyFileVersion("3.6.2012.0107")]
 
 /*
+ * v3.6.2012.0107   增加数组实现的安全栈SafeStack，改进对象池，性能有40%左右的提升，没有GC压力。
+ * 
  * v3.6.2012.0102   修改对象容器，把名称定位对象改为Object标识定位对象，方便使用各种类型（特别是枚举）来进行注册和解析
  * 
  * v3.5.2011.1230   修正DictionaryCache中GetItem方法cacheDefault参数的严重错误

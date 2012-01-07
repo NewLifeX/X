@@ -14,16 +14,9 @@ namespace NewLife.Collections
     public class ObjectPool<T> : DisposeBase //where T : new()
     {
         #region 属性
-        private InterlockedStack<T> _Stock;
+        private IStack<T> _Stock;
         /// <summary>在库</summary>
-        private InterlockedStack<T> Stock { get { return _Stock ?? (_Stock = new InterlockedStack<T>()); } }
-
-        //private List<T> _NotStock;
-        ///// <summary>不在库</summary>
-        //private List<T> NotStock
-        //{
-        //    get { return _NotStock ?? (_NotStock = new List<T>()); }
-        //}
+        public IStack<T> Stock { get { return _Stock ?? (_Stock = new SafeStack<T>(Max)); } internal set { _Stock = value; } }
 
         private Int32 _Max = 1000;
         /// <summary>最大缓存数。默认1000，超过后将启用定时器来清理</summary>
@@ -55,8 +48,6 @@ namespace NewLife.Collections
 
             var stack = Stock;
 
-            //// 不是我的，我不要
-            //if (!NotStock.Contains(obj)) throw new Exception("不是我的我不要！");
             // 超过最大值了，启动清理定时器
             if (stack.Count > Max)
             {
@@ -72,12 +63,7 @@ namespace NewLife.Collections
                 }
             }
 
-            //if (stack.Contains(obj)) throw new Exception("设计错误，该对象已经存在于池中！");
-
             stack.Push(obj);
-            //NotStock.Remove(obj);
-
-            //if (CreateCount != StockCount + NotStockCount) throw new Exception("设计错误！");
         }
 
         /// <summary>借出</summary>
@@ -91,9 +77,7 @@ namespace NewLife.Collections
 
             obj = Create();
             Interlocked.Increment(ref _CreateCount);
-            //NotStock.Add(obj);
 
-            //if (CreateCount != StockCount + NotStockCount) throw new Exception("设计错误！");
             return obj;
         }
 
@@ -101,18 +85,9 @@ namespace NewLife.Collections
         /// <returns></returns>
         protected virtual T Create()
         {
-            //return new T();
-
             if (OnCreate != null) return OnCreate();
 
             return (T)TypeX.CreateInstance(typeof(T));
-        }
-
-        /// <summary>清空</summary>
-        public void Clear()
-        {
-            if (_Stock != null) _Stock.Clear();
-            //if (_NotStock != null) _NotStock.Clear();
         }
         #endregion
 
@@ -151,7 +126,11 @@ namespace NewLife.Collections
             if (disposing)
             {
                 // 释放托管资源
-                Clear();
+                if (_Stock != null)
+                {
+                    _Stock.Dispose();
+                    _Stock = null;
+                }
             }
 
             if (_clearTimers != null)

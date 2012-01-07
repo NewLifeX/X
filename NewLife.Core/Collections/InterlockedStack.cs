@@ -15,7 +15,7 @@ namespace NewLife.Collections
     /// <typeparam name="T"></typeparam>
     [Serializable]
     [DebuggerDisplay("Count = {Count}")]
-    public class InterlockedStack<T> : IEnumerable<T>, ICollection, IEnumerable
+    public class InterlockedStack<T> : DisposeBase, IStack<T>, IEnumerable<T>, ICollection, IEnumerable
     {
         #region 字段
         /// <summary>栈顶</summary>
@@ -29,6 +29,18 @@ namespace NewLife.Collections
         private Int32 _Count;
         /// <summary>元素个数</summary>
         public Int32 Count { get { return _Count; } }
+        #endregion
+
+        #region 构造
+        /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
+        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            Clear();
+            Top = null;
+        }
         #endregion
 
         #region 核心方法
