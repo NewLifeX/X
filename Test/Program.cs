@@ -289,27 +289,38 @@ namespace Test
         {
             //ObjectPoolTest<NetEventArgs>.Start();
 
-            Console.WriteLine("飞信Wap协议测试，给自己发一条短信");
+            Console.WriteLine("飞信Wap协议测试：");
             Console.Write("手机号：");
             String user = Console.ReadLine();
             Console.Write("密码：");
             String pass = Console.ReadLine();
 
             var client = new WapFetion(user, pass);
-            client.ShowResponse = true;
-            //client.Send(user, "WapFetion测试");
+            //client.ShowResponse = true;
+            client.Send(user, String.Format("{0}于{1}已登录{2}！", user, DateTime.Now, client.GetType()));
             //Console.WriteLine("我的好友：");
             //foreach (var item in client.Friends)
             //{
             //    item.Refresh();
             //    Console.WriteLine(item);
             //}
+            while (true)
+            {
+                Console.Write("目标手机号码：");
+                var mobile = Console.ReadLine();
+                if (String.IsNullOrEmpty(mobile)) break;
+
+                Console.Write("内容：");
+                var msg = Console.ReadLine();
+
+                client.Send(mobile, msg);
+            }
             //client.AddFriend("15855167890", "阿黄", "大石头");
             //client.Send("15855167890", "WapFetion测试");
-            var mobile = client.GetMobile(185257960);
-            client.AddFriend("13585922759", "云飞扬-张", "大石头");
-            Thread.Sleep(10000);
-            client.Send("13585922759", "WapFetion测试");
+            //var mobile = client.GetMobile(185257960);
+            //client.AddFriend("13585922759", "云飞扬-张", "大石头");
+            //Thread.Sleep(10000);
+            //client.Send("13585922759", "WapFetion测试");
             //Console.WriteLine(mobile);
             //client.SendStranger(185257960, "WapFetion测试");
             client.Dispose();
