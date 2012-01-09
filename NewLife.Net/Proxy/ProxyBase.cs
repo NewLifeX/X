@@ -86,6 +86,9 @@ namespace NewLife.Net.Proxy
             session.Start(e);
         }
 
+        /// <summary>创建会话</summary>
+        /// <param name="e"></param>
+        /// <returns></returns>
         protected override INetSession CreateSession(NetEventArgs e)
         {
             return new ProxySession();

@@ -13,10 +13,10 @@ namespace NewLife.Net.Sockets
         private Int32 _ID;
         /// <summary>编号</summary>
         Int32 INetSession.ID { get { return _ID; } set { if (_ID > 0)throw new NetException("禁止修改会话编号！"); _ID = value; } }
-        
-        private ISocketSession _Client;
+
+        private ISocketSession _Session;
         /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
-        public ISocketSession Session { get { return _Client; } set { _Client = value; } }
+        public ISocketSession Session { get { return _Session; } set { _Session = value; } }
 
         private ISocketServer _Server;
         /// <summary>服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
@@ -75,10 +75,12 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 数据交换
-        void OnReceive(NetEventArgs e)
+        /// <summary>收到客户端发来的数据</summary>
+        /// <param name="e"></param>
+        protected virtual void OnReceive(NetEventArgs e)
         {
-            var stream = e.GetStream();
-            Console.WriteLine("{0} => {1} {2}字节", ClientEndPoint, Session.LocalEndPoint, stream.Length);
+            //var stream = e.GetStream();
+            //Console.WriteLine("{0} => {1} {2}字节", ClientEndPoint, Session.LocalEndPoint, stream.Length);
         }
         #endregion
 

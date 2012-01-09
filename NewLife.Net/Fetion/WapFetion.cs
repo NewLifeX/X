@@ -78,6 +78,8 @@ namespace NewLife.Net.Fetion
         {
             base.OnDispose(disposing);
 
+            if (_Client != null) _Client.Dispose();
+
             if (hasLogined) Logout();
         }
         #endregion

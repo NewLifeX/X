@@ -17,21 +17,21 @@ namespace NewLife.Net.Proxy
         /// <summary>代理对象</summary>
         public IProxy Proxy { get { return _Proxy; } set { _Proxy = value; } }
 
-        private ISocketSession _Client;
-        /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
-        public ISocketSession Session { get { return _Client; } set { _Client = value; } }
+        //private ISocketSession _Client;
+        ///// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
+        //public ISocketSession Session { get { return _Client; } set { _Client = value; } }
 
-        private ISocketServer _Server;
-        /// <summary>服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
-        public ISocketServer Server { get { return _Server; } set { _Server = value; } }
+        //private ISocketServer _Server;
+        ///// <summary>服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
+        //public ISocketServer Server { get { return _Server; } set { _Server = value; } }
 
         private ISocketClient _Remote;
         /// <summary>远程服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
         public ISocketClient Remote { get { return _Remote; } set { _Remote = value; } }
 
-        private EndPoint _ClientEndPoint;
-        /// <summary>客户端远程IP终结点</summary>
-        public EndPoint ClientEndPoint { get { return _ClientEndPoint; } set { _ClientEndPoint = value; } }
+        //private EndPoint _ClientEndPoint;
+        ///// <summary>客户端远程IP终结点</summary>
+        //public EndPoint ClientEndPoint { get { return _ClientEndPoint; } set { _ClientEndPoint = value; } }
 
         private EndPoint _RemoteEndPoint;
         /// <summary>客户端远程IP终结点</summary>
@@ -50,24 +50,24 @@ namespace NewLife.Net.Proxy
         #endregion
 
         #region 方法
-        /// <summary>开始会话处理。参数e里面可能含有数据</summary>
-        /// <param name="e"></param>
-        public void Start(NetEventArgs e)
-        {
-            // Tcp挂接事件，Udp直接处理数据
-            if (Session.ProtocolType == ProtocolType.Tcp)
-            {
-                Session.Received += new EventHandler<NetEventArgs>(Session_Received);
-                Session.OnDisposed += (s, e2) => this.Dispose();
-            }
-            else
-                OnReceive(e);
-        }
+        ///// <summary>开始会话处理。参数e里面可能含有数据</summary>
+        ///// <param name="e"></param>
+        //public void Start(NetEventArgs e)
+        //{
+        //    // Tcp挂接事件，Udp直接处理数据
+        //    if (Session.ProtocolType == ProtocolType.Tcp)
+        //    {
+        //        Session.Received += new EventHandler<NetEventArgs>(Session_Received);
+        //        Session.OnDisposed += (s, e2) => this.Dispose();
+        //    }
+        //    else
+        //        OnReceive(e);
+        //}
 
-        void Session_Received(object sender, NetEventArgs e)
-        {
-            OnReceive(e);
-        }
+        //void Session_Received(object sender, NetEventArgs e)
+        //{
+        //    OnReceive(e);
+        ////}
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
@@ -75,21 +75,27 @@ namespace NewLife.Net.Proxy
         {
             base.OnDispose(disposing);
 
-            if (Session.ProtocolType == ProtocolType.Tcp)
-            {
-                Session.Received -= new EventHandler<NetEventArgs>(Session_Received);
-                Session.Disconnect();
-                Session.Dispose();
-            }
+            //if (Session.ProtocolType == ProtocolType.Tcp)
+            //{
+            //    Session.Received -= new EventHandler<NetEventArgs>(Session_Received);
+            //    Session.Disconnect();
+            //    Session.Dispose();
+            //}
 
-            Server = null;
-            Session = null;
-            Remote.Dispose();
+            //Server = null;
+            //Session = null;
+            if (Remote == null)
+            {
+                Remote.Dispose();
+                Remote = null;
+            }
         }
         #endregion
 
         #region 数据交换
-        void OnReceive(NetEventArgs e)
+        /// <summary>收到客户端发来的数据</summary>
+        /// <param name="e"></param>
+        protected override void OnReceive(NetEventArgs e)
         {
             if (Remote == null)
             {
