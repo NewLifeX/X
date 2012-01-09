@@ -150,9 +150,14 @@ namespace NewLife.Serialization
                 c = Reader.Peek();
                 switch (c)
                 {
+                    case '\'':
                     case '"':
-                        MoveNext();
-                        goto EndOfString;
+                        if (c == quotesChar)
+                        {
+                            MoveNext();
+                            goto EndOfString;
+                        }
+                        goto default;
                     case '\\':
                         MoveNext();
                         sb.Append(ReadEscapeChar());
@@ -306,7 +311,7 @@ namespace NewLife.Serialization
                     default:
                         if (c < 32 || " \t,{}[]:".IndexOf((char)c) != -1) // 结束符号
                         {
-                            break;
+                            break; // TODO 跳出while
                         }
                         else // 其它符号
                         {
