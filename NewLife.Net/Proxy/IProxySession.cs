@@ -26,9 +26,9 @@ namespace NewLife.Net.Proxy
         #endregion
 
         #region 方法
-        /// <summary>开始会话处理。参数e里面可能含有数据</summary>
-        /// <param name="e"></param>
-        void Start(NetEventArgs e);
+        ///// <summary>开始会话处理。参数e里面可能含有数据</summary>
+        ///// <param name="e"></param>
+        //void Start(NetEventArgs e);
         #endregion
 
         #region 发送接收

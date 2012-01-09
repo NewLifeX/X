@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Net;
 using System.Net.Sockets;
+using NewLife.Net.Tcp;
 
 namespace NewLife.Net.Sockets
 {
@@ -12,7 +11,8 @@ namespace NewLife.Net.Sockets
         #region 属性
         private Int32 _ID;
         /// <summary>编号</summary>
-        Int32 INetSession.ID { get { return _ID; } set { if (_ID > 0)throw new NetException("禁止修改会话编号！"); _ID = value; } }
+        public virtual Int32 ID { get { return _ID; } set { if (_ID > 0)throw new NetException("禁止修改会话编号！"); _ID = value; } }
+        //Int32 INetSession.ID { get { return _ID; } set { if (_ID > 0)throw new NetException("禁止修改会话编号！"); _ID = value; } }
 
         private ISocketSession _Session;
         /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
@@ -39,13 +39,16 @@ namespace NewLife.Net.Sockets
         #region 方法
         /// <summary>开始会话处理。参数e里面可能含有数据</summary>
         /// <param name="e"></param>
-        public void Start(NetEventArgs e)
+        public virtual void Start(NetEventArgs e)
         {
             // Tcp挂接事件，Udp直接处理数据
             if (Session.ProtocolType == ProtocolType.Tcp)
             {
                 Session.Received += new EventHandler<NetEventArgs>(Session_Received);
                 Session.OnDisposed += (s, e2) => this.Dispose();
+
+                // 这里一定不需要再次Start，因为TcpServer在处理完成Accepted事件后，会调用Start
+                //(Session as TcpClientX).Start(e);
             }
             else
                 OnReceive(e);

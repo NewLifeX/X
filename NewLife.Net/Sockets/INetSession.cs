@@ -8,7 +8,7 @@ namespace NewLife.Net.Sockets
     {
         /// <summary>编号</summary>
         Int32 ID { get; set; }
-        
+
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
         ISocketServer Server { get; set; }
 
@@ -17,5 +17,9 @@ namespace NewLife.Net.Sockets
 
         /// <summary>客户端远程IP终结点</summary>
         EndPoint ClientEndPoint { get; set; }
+
+        /// <summary>开始会话处理。参数e里面可能含有数据</summary>
+        /// <param name="e"></param>
+        void Start(NetEventArgs e);
     }
 }

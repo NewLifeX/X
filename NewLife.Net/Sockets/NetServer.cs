@@ -270,6 +270,9 @@ namespace NewLife.Net.Sockets
                 ns.ClientEndPoint = e.RemoteIPEndPoint;
                 session.OnDisposed += (s, e2) => ns.Dispose();
                 AddSession(ns);
+
+                // 开始会话处理
+                ns.Start(e);
             }
 
             if (Accepted != null) Accepted(sender, e);

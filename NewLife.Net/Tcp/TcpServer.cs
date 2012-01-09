@@ -96,6 +96,7 @@ namespace NewLife.Net.Tcp
 
         #region 事件
         /// <summary>连接完成。在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
+        /// <remarks>这里一定不需要再次ReceiveAsync，因为TcpServer在处理完成Accepted事件后，会调用Start->ReceiveAsync</remarks>
         public event EventHandler<NetEventArgs> Accepted;
 
         /// <summary>新客户端到达</summary>
