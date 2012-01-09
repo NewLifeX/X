@@ -69,8 +69,10 @@ namespace NewLife.Net.Fetion
             //return Encoding.UTF8.GetString(Client.UploadData(server + uri, Encoding.UTF8.GetBytes(data)));
             var d = Encoding.UTF8.GetBytes(data);
             Client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+            if (NetHelper.Debug) NetHelper.WriteLog("{0} {1}", uri, data);
             d = Client.UploadData(server + uri, d);
             var result = Encoding.UTF8.GetString(d);
+            if (NetHelper.Debug) NetHelper.WriteLog(result);
             return result;
         }
 
@@ -83,7 +85,6 @@ namespace NewLife.Net.Fetion
 
             String uri = "/im/login/inputpasssubmit1.action";
             var result = Post(uri, String.Format("m={0}&pass={1}&loginstatus=1", Mobile, Password));
-            if (NetHelper.Debug) NetHelper.WriteLog(result);
             if (result.Contains("失败")) throw new NetException("登录失败！");
             return result;
         }
@@ -137,7 +138,6 @@ namespace NewLife.Net.Fetion
             String uri = "/im/chat/sendMsg.action?touserid=" + uid;
             String data = "msg=" + UrlEncode(message);
             String result = Post(uri, data);
-            if (NetHelper.Debug) NetHelper.WriteLog(result);
             if (!result.Contains("成功")) throw new XException("发送失败！");
         }
 
@@ -148,7 +148,6 @@ namespace NewLife.Net.Fetion
             String uri = "/im/user/sendMsgToMyselfs.action";
             String data = "msg=" + UrlEncode(message);
             String result = Post(uri, data);
-            if (NetHelper.Debug) NetHelper.WriteLog(result);
             if (!result.Contains("成功")) throw new XException("发送失败！");
         }
     }
