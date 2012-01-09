@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using NewLife.IO;
 using NewLife.Linq;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
-using NewLife.IO;
+using NewLife.Configuration;
 
 namespace NewLife.Net.Stun
 {
@@ -95,6 +96,8 @@ namespace NewLife.Net.Stun
                 if (_Servers == null)
                 {
                     var list = new List<String>();
+                    var ss = Config.GetConfigSplit<String>("NewLife.Net.StunServers", null);
+                    if (ss != null && ss.Length > 0) list.AddRange(ss);
                     list.AddRange(servers);
                     _Servers = list;
                 }

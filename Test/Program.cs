@@ -41,7 +41,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test5();
+                Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -289,9 +289,16 @@ namespace Test
         {
             //ObjectPoolTest<NetEventArgs>.Start();
 
-            var client = new WapFetion("15150588224", "NN#hY9");
+            Console.WriteLine("飞信Wap协议测试，给自己发一条短信");
+            Console.Write("手机号：");
+            String user = Console.ReadLine();
+            Console.Write("密码：");
+            String pass = Console.ReadLine();
+
+            var client = new WapFetion(user, pass);
             //client.Login();
-            client.Send("15062221331", "WapFetion测试");
+            client.Send(user, "WapFetion测试");
+            client.Dispose();
         }
     }
 }
