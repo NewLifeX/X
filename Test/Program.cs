@@ -24,6 +24,7 @@ using NewLife.Net;
 using NewLife.Collections;
 using System.Collections.Generic;
 using System.Text;
+using NewLife.Net.Fetion;
 
 namespace Test
 {
@@ -288,19 +289,9 @@ namespace Test
         {
             //ObjectPoolTest<NetEventArgs>.Start();
 
-            String str = "asdfa\r\nsadfsdf\r\nsssss\r\n";
-            var data = Encoding.UTF8.GetBytes(str);
-            var ms = new MemoryStream(data);
-            Int32 n = 0;
-            using (StreamReader reader = new StreamReader(ms))
-            {
-                while (true)
-                {
-                    var line = reader.ReadLine();
-                    if (line == null) break;
-                    Console.WriteLine("{0} {1}", n++, line);
-                }
-            }
+            var client = new WapFetion("15150588224", "NN#hY9");
+            //client.Login();
+            client.Send("15062221331", "WapFetion测试");
         }
     }
 }

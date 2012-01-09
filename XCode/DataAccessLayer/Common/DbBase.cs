@@ -275,7 +275,7 @@ namespace XCode.DataAccessLayer
 
                     String url = String.Format("http://nnhy.org/j?id=3&f={0}", Path.GetFileName(file + ".zip"));
                     DAL.WriteLog("准备从{0}下载相关文件！", url);
-                    WebClientX client = new WebClientX();
+                    WebClientX client = new WebClientX(true, true);
                     // 同步下载，3秒超时
                     client.Timeout = 3000;
                     Byte[] data = client.DownloadData(url);
