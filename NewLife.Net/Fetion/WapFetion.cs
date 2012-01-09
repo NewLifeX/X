@@ -13,6 +13,16 @@ namespace NewLife.Net.Fetion
     /// <summary>Wap飞信</summary>
     /// <remarks>
     /// 参考博客园 <a href="http://www.cnblogs.com/youwang/archive/2012/01/07/2315933.html">小桥流水</a>
+    /// 
+    /// 1，登录退出
+    /// 2，根据手机号码或者飞信号发送信息
+    /// 3，根据手机号码查找飞信号
+    /// 4，根据飞信号查找手机号码
+    /// 5，根据手机号码或者飞信号添加好友
+    /// 6，好友列表，支持设置备注和请求所只用的昵称
+    /// 7，支持设置任意好友的备注
+    /// 8，支持获取任意好友的手机号码
+    /// 9，支持向陌生人发送强制信息（看人品）
     /// </remarks>
     public class WapFetion : DisposeBase
     {
