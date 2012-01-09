@@ -12,6 +12,7 @@ namespace NewLife.Net.Protocols.Http
         #region 属性
         private HttpVerb _Verb;
         /// <summary>谓语</summary>
+        /// <remarks>这里将来还需要改，因为不能支持UPnP等扩展协议的谓语。</remarks>
         public HttpVerb Verb { get { return _Verb; } set { _Verb = value; } }
 
         private String _Url;

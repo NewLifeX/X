@@ -23,6 +23,7 @@ using System.Net.Sockets;
 using NewLife.Net;
 using NewLife.Collections;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Test
 {
@@ -39,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                Test5();
+                    Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -285,7 +286,21 @@ namespace Test
 
         static void Test5()
         {
-            ObjectPoolTest<NetEventArgs>.Start();
+            //ObjectPoolTest<NetEventArgs>.Start();
+
+            String str = "asdfa\r\nsadfsdf\r\nsssss\r\n";
+            var data = Encoding.UTF8.GetBytes(str);
+            var ms = new MemoryStream(data);
+            Int32 n = 0;
+            using (StreamReader reader = new StreamReader(ms))
+            {
+                while (true)
+                {
+                    var line = reader.ReadLine();
+                    if (line == null) break;
+                    Console.WriteLine("{0} {1}", n++, line);
+                }
+            }
         }
     }
 }
