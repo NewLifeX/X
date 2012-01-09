@@ -296,11 +296,22 @@ namespace Test
             String pass = Console.ReadLine();
 
             var client = new WapFetion(user, pass);
-            //client.Login();
-            client.Send(user, "WapFetion测试");
-            client.Send("15150588224", "WapFetion测试");
-            client.Send("15951878662", "WapFetion测试");
-            client.Send("15261411389", "WapFetion测试");
+            client.ShowResponse = true;
+            //client.Send(user, "WapFetion测试");
+            //Console.WriteLine("我的好友：");
+            //foreach (var item in client.Friends)
+            //{
+            //    item.Refresh();
+            //    Console.WriteLine(item);
+            //}
+            //client.AddFriend("15855167890", "阿黄", "大石头");
+            //client.Send("15855167890", "WapFetion测试");
+            var mobile = client.GetMobile(185257960);
+            client.AddFriend("13585922759", "云飞扬-张", "大石头");
+            Thread.Sleep(10000);
+            client.Send("13585922759", "WapFetion测试");
+            //Console.WriteLine(mobile);
+            //client.SendStranger(185257960, "WapFetion测试");
             client.Dispose();
         }
     }
