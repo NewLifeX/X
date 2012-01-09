@@ -76,10 +76,11 @@ namespace NewLife.Net.Fetion
         String UrlEncode(String text) { return HttpUtility.UrlEncode(text, Encoding.UTF8); }
 
         const String server = "http://f.10086.cn";
-        String Post(String uri, String data)
+        String Post(String uri, String data, params Object[] ps)
         {
             if (!hasLogined) Login();
 
+            if (ps != null && ps.Length > 0) data = String.Format(data, ps);
             var d = Encoding.UTF8.GetBytes(data);
             Client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
             if (ShowResponse) NetHelper.WriteLog("{0} {1}", uri, data);
@@ -90,10 +91,11 @@ namespace NewLife.Net.Fetion
             return result;
         }
 
-        String Get(String uri)
+        String Get(String uri, params Object[] ps)
         {
             if (!hasLogined) Login();
 
+            if (ps != null && ps.Length > 0) uri = String.Format(uri, ps);
             if (ShowResponse) NetHelper.WriteLog(uri);
             Client.Encoding = Encoding.UTF8;
             var result = Client.DownloadString(server + uri);
@@ -110,8 +112,7 @@ namespace NewLife.Net.Fetion
             if (hasLogined) return null;
             hasLogined = true;
 
-            String uri = "/im/login/inputpasssubmit1.action";
-            var result = Post(uri, String.Format("m={0}&pass={1}&loginstatus=1", Mobile, Password));
+            var result = Post("/im/login/inputpasssubmit1.action", "m={0}&pass={1}&loginstatus=1", Mobile, Password);
             if (result.Contains("失败")) throw new NetException("登录失败！");
             return result;
         }
@@ -120,8 +121,7 @@ namespace NewLife.Net.Fetion
         /// <returns></returns>
         public String Logout()
         {
-            String uri = "/im/index/logoutsubmit.action";
-            return Post(uri, "");
+            return Post("/im/index/logoutsubmit.action", "");
         }
         #endregion
 
@@ -236,7 +236,17 @@ namespace NewLife.Net.Fetion
         /// <param name="nickName">我的昵称，让对方知道我是谁</param>
         public void AddFriend(String mobile, String localName = null, String nickName = null)
         {
-            if (String.IsNullOrEmpty(mobile)) throw new ArgumentNullException("mobile");
+            AddFriend(Int32.Parse(mobile), 0, localName, nickName);
+        }
+
+        /// <summary>添加好友</summary>
+        /// <param name="number">手机号码或者飞信号码，由第二个参数决定</param>
+        /// <param name="type">0：手机号；1：飞信号</param>
+        /// <param name="localName">本地名</param>
+        /// <param name="nickName">我的昵称，让对方知道我是谁</param>
+        public void AddFriend(Int32 number, Int32 type = 0, String localName = null, String nickName = null)
+        {
+            if (number <= 0) throw new ArgumentNullException("number");
             if (String.IsNullOrEmpty(nickName)) nickName = Mobile.Substring(0, 5);
 
             if (!String.IsNullOrEmpty(localName) && localName.Length > 5) localName = localName.Substring(0, 5);
@@ -246,9 +256,9 @@ namespace NewLife.Net.Fetion
             if (!String.IsNullOrEmpty(nickName)) nickName = UrlEncode(nickName);
 
             Post("/im/user/insertfriend1.action", "");
-            Post("/im/user/insertfriend2.action", "type=0&number=" + mobile);
-            Post("/im/user/insertfriend3.action", "buddylist=0&nickname=&type=0&number=" + mobile);
-            Post("/im/user/insertfriendsubmit.action", String.Format("nickname={2}&buddylist=0&localName={1}&type=0&number={0}", mobile, localName, nickName));
+            Post("/im/user/insertfriend2.action", "type={0}&number={1}", type, number);
+            Post("/im/user/insertfriend3.action", "buddylist=0&nickname=&type={0}&number={1}", type, number);
+            Post("/im/user/insertfriendsubmit.action", "nickname={3}&buddylist=0&localName={2}&type={1}&number={0}", number, type, localName, nickName);
         }
         #endregion
 
