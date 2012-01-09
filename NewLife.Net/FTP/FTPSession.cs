@@ -6,7 +6,7 @@ using NewLife.Net.Sockets;
 namespace NewLife.Net.FTP
 {
     /// <summary>FTP会话</summary>
-    public class FTPSession : DisposeBase
+    public class FTPSession : NetSession
     {
         //TODO 未实现FTP会话
 

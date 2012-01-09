@@ -232,6 +232,16 @@ namespace NewLife.Net.Sockets
                     item.Stop();
                 }
             }
+
+            if (_Sessions != null)
+            {
+                foreach (var item in _Sessions.Values)
+                {
+                    item.Dispose();
+                }
+                _Sessions.Clear();
+                _Sessions = null;
+            }
         }
         #endregion
 
@@ -388,5 +398,28 @@ namespace NewLife.Net.Sockets
             return Name + " " + sb.ToString();
         }
         #endregion
+    }
+
+    /// <summary>网络服务器</summary>
+    /// <typeparam name="TSession"></typeparam>
+    public class NetServer<TSession> : NetServer where TSession : class, INetSession, new()
+    {
+        /// <summary>创建会话</summary>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        protected override INetSession CreateSession(NetEventArgs e) { return new TSession(); }
+
+        /// <summary>获取指定标识的会话</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public TSession GetSession(Int32 id)
+        {
+            if (id <= 0) return null;
+
+            INetSession ns = null;
+            if (!Sessions.TryGetValue(id, out ns)) return null;
+
+            return ns as TSession;
+        }
     }
 }

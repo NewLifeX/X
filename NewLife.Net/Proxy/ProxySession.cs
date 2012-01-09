@@ -9,8 +9,10 @@ namespace NewLife.Net.Proxy
     /// <summary>代理会话。客户端的一次转发请求（或者Tcp连接），就是一个会话。转发的全部操作都在会话中完成。</summary>
     /// <remarks>
     /// 一个会话应该包含两端，两个Socket，服务端和客户端
+    /// 客户端<see cref="INetSession.Session"/>发来的数据，在这里经过一系列过滤器后，转发给服务端<see cref="Remote"/>；
+    /// 服务端<see cref="Remote"/>返回的数据，在这里经过过滤器后，转发给客户端<see cref="INetSession.Session"/>。
     /// </remarks>
-    class ProxySession : NetSession, IProxySession
+    public class ProxySession : NetSession, IProxySession
     {
         #region 属性
         private IProxy _Proxy;

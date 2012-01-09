@@ -10,12 +10,12 @@ using System.IO;
 namespace NewLife.Net.Proxy
 {
     /// <summary>网络数据转发代理基类</summary>
-    public abstract class ProxyBase : NetServer, IProxy
+    public abstract class ProxyBase : NetServer<ProxySession>, IProxy
     {
         #region 属性
-        private ICollection<IProxySession> _Sessions;
-        /// <summary>会话集合。</summary>
-        public ICollection<IProxySession> Sessions { get { return _Sessions ?? (_Sessions = new List<IProxySession>()); } }
+        //private ICollection<IProxySession> _Sessions;
+        ///// <summary>会话集合。</summary>
+        //public ICollection<IProxySession> Sessions { get { return _Sessions ?? (_Sessions = new List<IProxySession>()); } }
 
         //private ProxyFilterCollection _Filters;
 
@@ -33,22 +33,22 @@ namespace NewLife.Net.Proxy
             //_Filters = new ProxyFilterCollection(this);
         }
 
-        /// <summary>子类重载实现资源释放逻辑</summary>
-        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
-        protected override void OnDispose(bool disposing)
-        {
-            base.OnDispose(disposing);
+        ///// <summary>子类重载实现资源释放逻辑</summary>
+        ///// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
+        //protected override void OnDispose(bool disposing)
+        //{
+        //    base.OnDispose(disposing);
 
-            lock (Sessions)
-            {
-                Sessions.ForEach(e => e.Dispose());
-            }
+        //    lock (Sessions)
+        //    {
+        //        Sessions.ForEach(e => e.Dispose());
+        //    }
 
-            //lock (Filters)
-            //{
-            //    Filters.ForEach(e => e.Dispose());
-            //}
-        }
+        //    //lock (Filters)
+        //    //{
+        //    //    Filters.ForEach(e => e.Dispose());
+        //    //}
+        //}
         #endregion
 
         #region 创建
@@ -67,31 +67,34 @@ namespace NewLife.Net.Proxy
         #endregion
 
         #region 业务
-        /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        protected override void OnAccepted(Object sender, NetEventArgs e)
-        {
-            WriteLog("新客户：{0}", e.RemoteEndPoint);
+        ///// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）</summary>
+        ///// <param name="sender"></param>
+        ///// <param name="e"></param>
+        //protected override void OnAccepted(Object sender, NetEventArgs e)
+        //{
+        //    WriteLog("新客户：{0}", e.RemoteEndPoint);
 
-            var session = NetService.Resolve<IProxySession>();
-            session.Proxy = this;
-            session.Server = sender as ISocketServer;
-            session.Session = e.Socket as ISocketSession;
-            session.ClientEndPoint = e.RemoteEndPoint;
+        //    var session = NetService.Resolve<IProxySession>();
+        //    session.Proxy = this;
+        //    session.Server = sender as ISocketServer;
+        //    session.Session = e.Socket as ISocketSession;
+        //    session.ClientEndPoint = e.RemoteEndPoint;
 
-            Sessions.Add(session);
-            session.OnDisposed += (s, ev) => Sessions.Remove(session);
+        //    Sessions.Add(session);
+        //    session.OnDisposed += (s, ev) => Sessions.Remove(session);
 
-            session.Start(e);
-        }
+        //    session.Start(e);
+        //}
 
         /// <summary>创建会话</summary>
         /// <param name="e"></param>
         /// <returns></returns>
         protected override INetSession CreateSession(NetEventArgs e)
         {
-            return new ProxySession();
+            var session = new ProxySession();
+            session.Proxy = this;
+
+            return session;
         }
         #endregion
 

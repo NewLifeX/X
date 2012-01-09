@@ -6,7 +6,7 @@ using NewLife.Net.Sockets;
 namespace NewLife.Net.Smtp
 {
     /// <summary>Smtp会话</summary>
-    public class SmtpSession : DisposeBase
+    public class SmtpSession : NetSession
     {
         //TODO 未实现Smtp会话
 

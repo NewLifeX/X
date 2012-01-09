@@ -7,7 +7,7 @@ using System.Net.Sockets;
 namespace NewLife.Net.Sockets
 {
     /// <summary>网络服务的会话</summary>
-    class NetSession : Netbase, INetSession
+    public class NetSession : Netbase, INetSession
     {
         #region 属性
         private Int32 _ID;
