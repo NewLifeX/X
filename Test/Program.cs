@@ -298,6 +298,9 @@ namespace Test
             var client = new WapFetion(user, pass);
             //client.Login();
             client.Send(user, "WapFetion测试");
+            client.Send("15150588224", "WapFetion测试");
+            client.Send("15951878662", "WapFetion测试");
+            client.Send("15261411389", "WapFetion测试");
             client.Dispose();
         }
     }

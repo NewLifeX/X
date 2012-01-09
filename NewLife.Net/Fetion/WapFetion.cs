@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using NewLife.Exceptions;
 using NewLife.Web;
-using System.Net;
 
 namespace NewLife.Net.Fetion
 {
@@ -33,7 +33,6 @@ namespace NewLife.Net.Fetion
                     var client = new WebClientX(false, true);
                     //client.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
                     var result = client.DownloadString(server + "/im/");
-                    client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
 
                     _Client = client;
                 }
@@ -49,8 +48,11 @@ namespace NewLife.Net.Fetion
         public WapFetion(String mobile, String password)
         {
             Mobile = mobile;
-            Password = HttpUtility.UrlEncode(password);
+            //Password = password;
+            Password = UrlEncode(password);
         }
+
+        String UrlEncode(String text) { return HttpUtility.UrlEncode(text, Encoding.UTF8); }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
@@ -66,6 +68,7 @@ namespace NewLife.Net.Fetion
         {
             //return Encoding.UTF8.GetString(Client.UploadData(server + uri, Encoding.UTF8.GetBytes(data)));
             var d = Encoding.UTF8.GetBytes(data);
+            Client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
             d = Client.UploadData(server + uri, d);
             var result = Encoding.UTF8.GetString(d);
             return result;
@@ -81,6 +84,7 @@ namespace NewLife.Net.Fetion
             String uri = "/im/login/inputpasssubmit1.action";
             var result = Post(uri, String.Format("m={0}&pass={1}&loginstatus=1", Mobile, Password));
             if (NetHelper.Debug) NetHelper.WriteLog(result);
+            if (result.Contains("失败")) throw new NetException("登录失败！");
             return result;
         }
 
@@ -131,9 +135,10 @@ namespace NewLife.Net.Fetion
         protected void ToUid(String uid, String message)
         {
             String uri = "/im/chat/sendMsg.action?touserid=" + uid;
-            String data = "msg=" + HttpUtility.UrlEncode(message);
+            String data = "msg=" + UrlEncode(message);
             String result = Post(uri, data);
-            if (!result.Contains("成功")) throw new XException(result);
+            if (NetHelper.Debug) NetHelper.WriteLog(result);
+            if (!result.Contains("成功")) throw new XException("发送失败！");
         }
 
         /// <summary>发送给自己</summary>
@@ -141,9 +146,10 @@ namespace NewLife.Net.Fetion
         protected void ToMyself(String message)
         {
             String uri = "/im/user/sendMsgToMyselfs.action";
-            String data = "msg=" + HttpUtility.UrlEncode(message);
+            String data = "msg=" + UrlEncode(message);
             String result = Post(uri, data);
-            if (!result.Contains("成功")) throw new XException(result);
+            if (NetHelper.Debug) NetHelper.WriteLog(result);
+            if (!result.Contains("成功")) throw new XException("发送失败！");
         }
     }
 }
