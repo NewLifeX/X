@@ -308,6 +308,8 @@ namespace XCode.DataAccessLayer
         /// 执行插入语句并返回新增行的自动编号
         /// </summary>
         /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
         public override Int64 InsertAndGetIdentity(string sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {

@@ -400,6 +400,8 @@ namespace XCode.DataAccessLayer
         /// 执行SQL查询，返回总记录数
         /// </summary>
         /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
         /// <returns></returns>
         public virtual Int64 QueryCount(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
@@ -495,6 +497,8 @@ namespace XCode.DataAccessLayer
         /// 执行插入语句并返回新增行的自动编号
         /// </summary>
         /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
         public virtual Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
@@ -508,6 +512,8 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <typeparam name="T">返回类型</typeparam>
         /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
         /// <returns></returns>
         public virtual T ExecuteScalar<T>(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {

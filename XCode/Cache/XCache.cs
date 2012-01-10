@@ -310,6 +310,7 @@ namespace XCode.Cache
         #region 查找缓存
         /// <summary>获取DataSet缓存</summary>
         /// <param name="sql">SQL语句</param>
+        /// <param name="ds">结果</param>
         /// <returns></returns>
         public static Boolean TryGetItem(String sql, out DataSet ds)
         {
@@ -344,6 +345,7 @@ namespace XCode.Cache
 
         /// <summary>获取Int32缓存</summary>
         /// <param name="sql">SQL语句</param>
+        /// <param name="count">结果</param>
         /// <returns></returns>
         public static Boolean TryGetItem(String sql, out Int32 count)
         {
