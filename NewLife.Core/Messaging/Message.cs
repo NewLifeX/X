@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Xml.Serialization;
 using NewLife.IO;
-using System.Threading;
+using NewLife.Serialization;
 
 namespace NewLife.Messaging
 {
-    /// <summary>
-    /// 消息基类
-    /// </summary>
-    public abstract class Message : BinaryAccessor, ICloneable
+    /// <summary>消息基类</summary>
+    public abstract class Message //: BinaryAccessor, ICloneable
     {
         #region 属性
         /// <summary>消息唯一编号</summary>
@@ -52,11 +50,11 @@ namespace NewLife.Messaging
         {
             if (ID <= 0) throw new ArgumentOutOfRangeException("ID", "消息唯一编码" + ID + "无效。");
 
-            BinaryWriterX writer = new BinaryWriterX(stream);
+            var writer = new BinaryWriterX(stream);
             // 基类写入编号，保证编号在最前面
             //writer.WriteEncoded(ID);
             writer.Write((Byte)ID);
-            Write(writer);
+            //Write(writer);
         }
 
         /// <summary>
@@ -94,7 +92,7 @@ namespace NewLife.Messaging
             if (id <= 0) throw new InvalidDataException("无效的消息唯一编码" + id);
 
             Message msg = MessageHandler.CreateMessage(id);
-            msg.Read(reader);
+            //msg.Read(reader);
             if (id != msg.ID) throw new InvalidDataException("反序列化后的消息唯一编码不匹配。");
 
             return msg;
@@ -114,10 +112,10 @@ namespace NewLife.Messaging
         #endregion
 
         #region 克隆
-        Object ICloneable.Clone()
-        {
-            return MemberwiseClone();
-        }
+        //Object ICloneable.Clone()
+        //{
+        //    return MemberwiseClone();
+        //}
         #endregion
 
         #region 重载

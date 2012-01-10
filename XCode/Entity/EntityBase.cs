@@ -16,7 +16,7 @@ namespace XCode
     /// <summary>数据实体基类的基类</summary>
     [Serializable]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public abstract partial class EntityBase : BinaryAccessor, IEntity, ICloneable
+    public abstract partial class EntityBase : /*BinaryAccessor,*/ IEntity, ICloneable
     {
         #region 初始化数据
         /// <summary>
@@ -72,6 +72,17 @@ namespace XCode
 
         #region 获取/设置 字段值
         /// <summary>
+        /// 获取/设置 字段值。
+        /// 一个索引，反射实现。
+        /// 派生实体类可重写该索引，以避免发射带来的性能损耗。
+        /// 基类已经实现了通用的快速访问，但是这里仍然重写，以增加控制，
+        /// 比如字段名是属性名前面加上_，并且要求是实体字段才允许这样访问，否则一律按属性处理。
+        /// </summary>
+        /// <param name="name">字段名</param>
+        /// <returns></returns>
+        public abstract Object this[String name] { get; set; }
+
+        /// <summary>
         /// 设置字段值，该方法影响脏数据。
         /// </summary>
         /// <param name="name">字段名</param>
@@ -96,7 +107,7 @@ namespace XCode
         /// 建立Xml序列化器
         /// </summary>
         /// <returns></returns>
-        [Obsolete("该成员在后续版本中将不再被支持！")]
+        //[Obsolete("该成员在后续版本中将不再被支持！")]
         protected virtual XmlSerializer CreateXmlSerializer()
         {
             return new XmlSerializer(this.GetType());

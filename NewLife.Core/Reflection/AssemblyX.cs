@@ -546,9 +546,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 静态方法
-        /// <summary>
-        /// 获取指定程序域所有程序集的辅助类
-        /// </summary>
+        /// <summary>获取指定程序域所有程序集</summary>
         /// <param name="domain"></param>
         /// <returns></returns>
         public static IEnumerable<AssemblyX> GetAssemblies(AppDomain domain)
@@ -558,57 +556,44 @@ namespace NewLife.Reflection
             Assembly[] asms = domain.GetAssemblies();
             if (asms == null || asms.Length < 1) return Enumerable.Empty<AssemblyX>();
 
-            //List<AssemblyX> list = new List<AssemblyX>();
-            //foreach (Assembly item in asms)
-            //{
-            //    list.Add(AssemblyX.Create(item));
-            //}
-
-            //return list;
-
             //return asms.Select(item => Create(item));
             return from e in asms select Create(e);
 
-            //if (asms == null || asms.Length < 1) yield break;
-            //foreach (Assembly item in asms)
+            //foreach (var item in asms)
             //{
             //    yield return Create(item);
             //}
         }
 
-        /// <summary>
-        /// 获取当前程序域所有程序集的辅助类
-        /// </summary>
+        /// <summary>获取当前程序域所有程序集</summary>
         /// <returns></returns>
         public static IEnumerable<AssemblyX> GetAssemblies() { return GetAssemblies(AppDomain.CurrentDomain); }
 
-        /// <summary>
-        /// 只反射加载有效路径（应用程序是当前路径，Web是Bin目录）的所有程序集
-        /// </summary>
-        /// <param name="domain"></param>
-        /// <returns></returns>
-        [Obsolete("该成员在后续版本中将不再被支持！")]
-        public static IEnumerable<AssemblyX> ReflectionOnlyGetAssemblies(AppDomain domain)
-        {
-            if (domain == null) domain = AppDomain.CurrentDomain;
+        ///// <summary>
+        ///// 只反射加载有效路径（应用程序是当前路径，Web是Bin目录）的所有程序集
+        ///// </summary>
+        ///// <param name="domain"></param>
+        ///// <returns></returns>
+        //[Obsolete("该成员在后续版本中将不再被支持！")]
+        //public static IEnumerable<AssemblyX> ReflectionOnlyGetAssemblies(AppDomain domain)
+        //{
+        //    if (domain == null) domain = AppDomain.CurrentDomain;
 
-            Assembly[] asms = domain.ReflectionOnlyGetAssemblies();
-            if (asms == null || asms.Length < 1) return Enumerable.Empty<AssemblyX>();
+        //    Assembly[] asms = domain.ReflectionOnlyGetAssemblies();
+        //    if (asms == null || asms.Length < 1) return Enumerable.Empty<AssemblyX>();
 
-            //List<AssemblyX> list = new List<AssemblyX>();
-            //foreach (Assembly item in asms)
-            //{
-            //    list.Add(AssemblyX.Create(item));
-            //}
+        //    //List<AssemblyX> list = new List<AssemblyX>();
+        //    //foreach (Assembly item in asms)
+        //    //{
+        //    //    list.Add(AssemblyX.Create(item));
+        //    //}
 
-            //return list;
+        //    //return list;
 
-            return asms.Select(item => Create(item));
-        }
+        //    return asms.Select(item => Create(item));
+        //}
 
-        /// <summary>
-        /// 获取当前程序域所有程序集的辅助类
-        /// </summary>
+        /// <summary>获取当前程序域所有程序集的辅助类</summary>
         /// <returns></returns>
         public static IEnumerable<AssemblyX> ReflectionOnlyGetAssemblies()
         {
@@ -619,9 +604,7 @@ namespace NewLife.Reflection
                 return ReflectionOnlyLoad(HttpRuntime.BinDirectory);
         }
 
-        /// <summary>
-        /// 只反射加载指定路径的所有程序集
-        /// </summary>
+        /// <summary>只反射加载指定路径的所有程序集</summary>
         /// <param name="path"></param>
         /// <returns></returns>
         static IEnumerable<AssemblyX> ReflectionOnlyLoad(String path)
@@ -662,18 +645,18 @@ namespace NewLife.Reflection
             }
         }
 
-        /// <summary>
-        /// 只反射加载有效路径（应用程序是当前路径，Web是Bin目录）的所有程序集
-        /// </summary>
-        /// <returns></returns>
-        [Obsolete("该成员在后续版本中将不再被支持！")]
-        public static IEnumerable<AssemblyX> ReflectionOnlyLoad()
-        {
-            if (HttpRuntime.AppDomainId == null)
-                return ReflectionOnlyLoad(AppDomain.CurrentDomain.BaseDirectory);
-            else
-                return ReflectionOnlyLoad(HttpRuntime.BinDirectory);
-        }
+        ///// <summary>
+        ///// 只反射加载有效路径（应用程序是当前路径，Web是Bin目录）的所有程序集
+        ///// </summary>
+        ///// <returns></returns>
+        //[Obsolete("该成员在后续版本中将不再被支持！")]
+        //public static IEnumerable<AssemblyX> ReflectionOnlyLoad()
+        //{
+        //    if (HttpRuntime.AppDomainId == null)
+        //        return ReflectionOnlyLoad(AppDomain.CurrentDomain.BaseDirectory);
+        //    else
+        //        return ReflectionOnlyLoad(HttpRuntime.BinDirectory);
+        //}
         #endregion
 
         #region 重载
