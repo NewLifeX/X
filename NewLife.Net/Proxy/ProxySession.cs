@@ -53,6 +53,8 @@ namespace NewLife.Net.Proxy
         #endregion
 
         #region 数据交换
+        //TODO: 这里应该如何设计，使得子类能够通过重载来改变数据流
+
         /// <summary>收到客户端发来的数据</summary>
         /// <param name="e"></param>
         protected override void OnReceive(NetEventArgs e)

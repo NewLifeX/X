@@ -7,23 +7,23 @@ namespace NewLife.Net.Sockets
     public abstract class Netbase : DisposeBase
     {
         #region 日志
-        /// <summary>
-        /// 写日志
-        /// </summary>
+        private Boolean? _EnableLog;
+        /// <summary>是否显示日志。默认是NetHelper.Debug</summary>
+        public Boolean EnableLog { get { return _EnableLog ?? NetHelper.Debug; } set { _EnableLog = value; } }
+
+        /// <summary>写日志</summary>
         /// <param name="msg"></param>
         public void WriteLog(String msg)
         {
-            if (NetHelper.Debug) NetHelper.WriteLog(msg);
+            if (EnableLog) NetHelper.WriteLog(msg);
         }
 
-        /// <summary>
-        /// 写日志
-        /// </summary>
+        /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
         {
-            if (NetHelper.Debug) NetHelper.WriteLog(format, args);
+            if (EnableLog) NetHelper.WriteLog(format, args);
         }
         #endregion
     }

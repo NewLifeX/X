@@ -4,7 +4,7 @@ using System.IO;
 namespace NewLife.IO
 {
     /// <summary>读写流。内部包含输入流和输出流两个流，实际读取从输入流读取，写入则写入到输出流</summary>
-    public abstract class ReadWriteStream : Stream
+    public class ReadWriteStream : Stream
     {
         #region 属性
         private Stream _InputStream;
@@ -150,16 +150,16 @@ namespace NewLife.IO
         #endregion
 
         #region 方法
-        /// <summary>
-        /// 读取一个字节，不移动指针
-        /// </summary>
-        /// <returns></returns>
-        public Byte Peek()
-        {
-            Byte b = (Byte)ReadByte();
-            Seek(-1, SeekOrigin.Current);
-            return b;
-        }
+        ///// <summary>
+        ///// 读取一个字节，不移动指针
+        ///// </summary>
+        ///// <returns></returns>
+        //public Byte Peek()
+        //{
+        //    Byte b = (Byte)ReadByte();
+        //    Seek(-1, SeekOrigin.Current);
+        //    return b;
+        //}
         #endregion
 
         #region 辅助函数
