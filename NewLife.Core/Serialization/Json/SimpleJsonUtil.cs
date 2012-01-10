@@ -110,7 +110,7 @@ namespace NewLife.Serialization.Json
                 if (k == null) break;
                 else if (k.IsUndefined || k.IsUnknown)
                 {
-                    if (k.Value.ToString() == ",") continue;
+                    if (k.Value != null && k.Value.ToString() == ",") continue;
                     else break;
                 }
 
@@ -118,12 +118,16 @@ namespace NewLife.Serialization.Json
                 if (split == null) break;
                 else if (split.IsUndefined || split.IsUnknown)
                 {
-                    if (split.Value.ToString() != ":") break; // TODO 避免value为null的情况
+                    if (split.Value != null && split.Value.ToString() == ":")
+                    {
+                        // 继续执行下面的
+                    }
+                    else break;
                 }
 
                 SimpleJson v = ReadJson(reader);
                 if (v == null) v = Undefined();
-                else if (v.IsUndefined || split.IsUnknown)
+                else if (v.IsUndefined || v.IsUnknown)
                 {
                     isContinue = false;
                 }
@@ -150,7 +154,7 @@ namespace NewLife.Serialization.Json
                 if (v == null) break;
                 else if (v.IsUndefined || v.IsUnknown)
                 {
-                    if (v.Value.ToString() == ",")// TODO 避免Value为null的情况
+                    if (v.Value != null && v.Value.ToString() == ",")
                     {
                         if (hasSplit)
                         {
@@ -159,17 +163,15 @@ namespace NewLife.Serialization.Json
                         else
                         {
                             hasSplit = true;
+                            continue;
                         }
-                        continue;
                     }
                     else break;
                 }
-                else if (!hasSplit)
+                else
                 {
-                    hasSplit = true;
-                    continue; // 如果发生[1 2 3,4]这样的情况时, 将跳过2
+                    hasSplit = false;
                 }
-                hasSplit = false;
                 d.Add(v);
             } while (true);
             return new SimpleJson()
@@ -197,7 +199,7 @@ namespace NewLife.Serialization.Json
             {
                 return Number(l);
             }
-            return Number(0); // TODO 无法识别的数字
+            return Number(0); // TODO 需要处理无法识别的数字
         }
 
         /// <summary>
@@ -447,8 +449,7 @@ namespace NewLife.Serialization.Json
             switch (t)
             {
                 case SimpleJsonType.Unknown:
-                    // TODO
-                    break;
+                    goto case SimpleJsonType.Undefined;
                 case SimpleJsonType.Dict:
                     return ToJsonDict(value);
                 case SimpleJsonType.List:
@@ -465,9 +466,6 @@ namespace NewLife.Serialization.Json
                     return "\"" + JsonWriter.JavascriptStringEncode((string)value.Value) + "\"";
                 case SimpleJsonType.Undefined:
                     return "";
-                default:
-                    // TODO
-                    break;
             }
             return "";
         }
@@ -484,9 +482,9 @@ namespace NewLife.Serialization.Json
             int i = 0;
             foreach (var kv in d)
             {
-                ret[i++] = kv.Key + ":" + ToJson(kv.Value);
+                ret[i++] = "\"" + JsonWriter.JavascriptStringEncode(kv.Key) + "\"" + ":" + ToJson(kv.Value); // TODO value为""时 在dict中格式不正确
             }
-            return string.Join(",", ret);
+            return "{" + string.Join(",", ret) + "}";
         }
 
         /// <summary>
@@ -503,7 +501,7 @@ namespace NewLife.Serialization.Json
             {
                 ret[i++] = ToJson(v);
             }
-            return string.Join(",", ret);
+            return "[" + string.Join(",", ret) + "]"; // TODO 过滤掉Undefined的值
         }
 
         #endregion
@@ -596,13 +594,48 @@ namespace NewLife.Serialization.Json
         /// <summary>
         /// 使用检索字符串检索当前Json值
         /// </summary>
+        /// <remarks>
+        /// 检索字符串很类似js,可以象在js中访问json对象一样访问SimpleJson对象树
+        /// </remarks>
         /// <param name="query"></param>
         /// <returns></returns>
         public SimpleJson Get(string query)
         {
-            if (string.IsNullOrEmpty(query)) return this;
+            if (string.IsNullOrEmpty((query + "").Trim())) return this;
+            if (!IsUndefined && !IsUnknown)
+            {
+                int offset1 = -1, offset2, offset2plus = 0;
+                if (query[0] == '[')
+                {
+                    offset2 = query.IndexOf(']', 1);
+                    if (offset2 >= 0)
+                    {
+                        offset2plus = offset1 = 1;
+                    }
 
-            return this; // TODO 待实现
+                }
+                else
+                {
+                    offset1 = query[0] == '.' ? 1 : 0;
+                    offset2 = query.IndexOfAny(new char[] { '.', '[' }, offset1);
+                    if (offset2 == -1) offset2 = query.Length;
+                }
+                if (offset1 >= 0)
+                {
+                    string key = query.Substring(offset1, offset2 - offset1);
+                    string nextQuery = query.Substring(offset2 + offset2plus);
+                    if (Type == SimpleJsonType.List)
+                    {
+                        int index;
+                        if (int.TryParse(key, out index))
+                        {
+                            return this[index].Get(nextQuery);
+                        }
+                    }
+                    return this[key].Get(nextQuery);
+                }
+            }
+            return new SimpleJson() { Type = SimpleJsonType.Undefined };
         }
 
         /// <summary>
@@ -657,6 +690,23 @@ namespace NewLife.Serialization.Json
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// 重载
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            if (Type == SimpleJsonType.Dict || Type == SimpleJsonType.List)
+            {
+                return string.Format("{0} Count:{1}", Type, Count);
+            }
+            else if (Type == SimpleJsonType.Null || Type == SimpleJsonType.Literal || Type == SimpleJsonType.Undefined || Type == SimpleJsonType.Unknown)
+            {
+                return string.Format("{0}[{1}]", Value, Type);
+            }
+            return string.Format("{0}", Value);
         }
     }
 

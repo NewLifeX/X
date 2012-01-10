@@ -145,7 +145,8 @@ namespace NewLife.Serialization
         {
             StringBuilder sb = new StringBuilder();
             int c = 0;
-            while (true)
+            bool isLoop = true;
+            while (isLoop)
             {
                 c = Reader.Peek();
                 switch (c)
@@ -155,7 +156,8 @@ namespace NewLife.Serialization
                         if (c == quotesChar)
                         {
                             MoveNext();
-                            goto EndOfString;
+                            isLoop = false;
+                            break;
                         }
                         goto default;
                     case '\\':
@@ -186,7 +188,6 @@ namespace NewLife.Serialization
                         break;
                 }
             }
-        EndOfString:
             str = sb.ToString();
             return JsonAtomType.STRING;
         }
@@ -247,7 +248,8 @@ namespace NewLife.Serialization
                 hasExp = false, // 是否有科学计数法的e E符号
                 hasMinusExp = false; // 科学计数法的e符号后跟随的是否是减号
             int c = 0, lastChar = -1;
-            while (true)
+            bool isLoop = true;
+            while (isLoop)
             {
                 c = Reader.Peek();
                 switch (c)
@@ -311,7 +313,8 @@ namespace NewLife.Serialization
                     default:
                         if (c < 32 || " \t,{}[]:".IndexOf((char)c) != -1) // 结束符号
                         {
-                            break; // TODO 跳出while
+                            isLoop = false;
+                            break;
                         }
                         else // 其它符号
                         {
