@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Proxy
 {
@@ -22,5 +23,28 @@ namespace NewLife.Net.Proxy
     /// </remarks>
     public class HttpReverseProxy : NATProxy
     {
+        /// <summary>创建会话</summary>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        protected override INetSession CreateSession(NetEventArgs e)
+        {
+            return new Session();
+        }
+
+        #region 会话
+        /// <summary>Http反向代理会话</summary>
+        public class Session : ProxySession
+        {
+            /// <summary>代理对象</summary>
+            public new HttpReverseProxy Proxy { get { return base.Proxy as HttpReverseProxy; } set { base.Proxy = value; } }
+
+            /// <summary>收到客户端发来的数据</summary>
+            /// <param name="e"></param>
+            protected override void OnReceive(NetEventArgs e)
+            {
+                base.OnReceive(e);
+            }
+        }
+        #endregion
     }
 }

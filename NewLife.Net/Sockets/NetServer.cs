@@ -14,6 +14,8 @@ namespace NewLife.Net.Sockets
     /// 网络服务器模型，所有网络应用服务器可以通过继承该类实现。
     /// 该类仅实现了业务应用对网络流的操作，与具体网络协议无关。
     /// 
+    /// 收到请求<see cref="OnAccepted"/>后，会建立<see cref="CreateSession"/>会话，并加入到会话集合<see cref="Sessions"/>中，然后启动<see cref="Start"/>会话处理；
+    /// 
     /// 快速用法：
     /// 指定端口后直接<see cref="Start"/>，NetServer将同时监听Tcp/Udp和IPv4/IPv6（会检查是否支持）四个端口。
     /// 
@@ -257,23 +259,24 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         protected virtual void OnAccepted(Object sender, NetEventArgs e)
         {
-            var session = e.Socket as TcpClientX;
-            if (session != null)
+            var session = e.Socket as ISocketSession;
+
+            var ns = CreateSession(e);
+            ns.Server = sender as ISocketServer;
+            ns.Session = session;
+            ns.ClientEndPoint = e.RemoteIPEndPoint;
+
+            session.OnDisposed += (s, e2) => ns.Dispose();
+            AddSession(ns);
+
+            if (session is TcpClientX)
             {
                 session.Received += OnReceived;
                 session.Error += new EventHandler<NetEventArgs>(OnError);
-
-                // 只有Tcp使用会话集合
-                var ns = CreateSession(e);
-                ns.Server = sender as ISocketServer;
-                ns.Session = session;
-                ns.ClientEndPoint = e.RemoteIPEndPoint;
-                session.OnDisposed += (s, e2) => ns.Dispose();
-                AddSession(ns);
-
-                // 开始会话处理
-                ns.Start(e);
             }
+
+            // 开始会话处理
+            ns.Start(e);
 
             if (Accepted != null) Accepted(sender, e);
         }

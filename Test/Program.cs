@@ -41,7 +41,7 @@ namespace Test
                 try
                 {
 #endif
-                Test5();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -152,83 +152,11 @@ namespace Test
 
         static void Test4()
         {
-            //var stunserver = new StunServer();
-            //stunserver.Start();
-            //StunClient.Servers.Insert(0, "127.0.0.1:3479");
-            //StunClient.Servers.Insert(0, "nnhy.eicp.net");
-
-            //var client = new UPnPClient();
-            ////client.OnNewDevice += new EventHandler<EventArgs<InternetGatewayDevice, bool>>(client_OnNewDevice);
-            //client.StartDiscover();
-
-            //Console.WriteLine("正在检测UPnP……");
-            //Thread.Sleep(2000);
-
-            //foreach (var item in client.Gateways.Values)
-            //{
-            //    Console.WriteLine();
-            //    Console.WriteLine("{0}上的UPnP映射：", item);
-            //    foreach (var elm in item.GetMapByIndexAll())
-            //    {
-            //        Console.WriteLine(elm);
-            //    }
-            //}
-
-            ////NewLife.Net.P2P.P2PTest.StartHole();
-
-            //Console.WriteLine();
-            //Console.WriteLine("正在检测网络类型……");
-            //Console.WriteLine();
-            ////var result = StunClient.Query("stunserver.org", 3478);
-            //var result = StunClient.Query();
-            //Console.WriteLine("UDP {0} {1}", result.Type, result.Type.GetDescription());
-            //Console.WriteLine();
-            //result = StunClient.Query(ProtocolType.Tcp);
-            //Console.WriteLine("TCP {0} {1}", result.Type, result.Type.GetDescription());
-            //Console.WriteLine();
-
-            //AppTest.Start();
-            //while (true)
-            //{
-            //    NewLife.Net.NetHelper.Wake( "00-24-8C-04-C0-91");
-            //    Thread.Sleep(1000);
-            //}
-
-            //var proxy = new NATProxy();
-            //proxy.Port = 888;
-            //proxy.ProtocolType = ProtocolType.Tcp;
-            //proxy.ServerAddress = NetHelper.ParseAddress("www.baidu.com");
-            //proxy.ServerPort = 80;
-            //var filter = new HttpFilter();
-            //filter.Proxy = proxy;
-            //proxy.Filters.Add(filter);
-            //proxy.Start();
-
-            //var proxy = new XProxy("nnhy.org",3389);
-            //proxy.Port = 89;
-            //proxy.Start();
-
-            //var client = new TcpClientX();
-            //client.Connect("jslswb.com", 12);
-            ////client.Connect("192.168.1.9", 12);
-            //var ep = client.LocalEndPoint;
-            //var msg = client.ReceiveString();
-            //Console.WriteLine("收到：{0}", msg);
-            ////client.Close();
-            //Console.WriteLine("本地监听：{0}", ep);
-
-            //var server = new TcpServer();
-            //server.Address = ep.Address;
-            //server.Port = ep.Port;
-            //server.Accepted += new EventHandler<NetEventArgs>(server_Accepted2);
-            //server.Start();
-
-            //var server = new TcpServer();
-            //server.Port = 12;
-            //server.Accepted += new EventHandler<NetEventArgs>(server_Accepted);
-            //server.Start();
-            //Console.WriteLine("打洞服务器等待连接……");
-
+            var server = new NATProxy();
+            server.Port = 89;
+            server.ServerAddress = "oa";
+            server.ServerPort = 3389;
+            server.Start();
         }
 
         static void client_OnNewDevice(object sender, EventArgs<InternetGatewayDevice, bool> e)

@@ -22,9 +22,6 @@ namespace NewLife.Net.Udp
         /// <summary>已重载。</summary>
         public override ProtocolType ProtocolType { get { return ProtocolType.Udp; } }
 
-        ///// <summary>套接字</summary>
-        //Socket ISocketSession.Socket { get { return base.Server; } set { base.Server = value; } }
-
         private Int32 _ID;
         /// <summary>编号</summary>
         Int32 ISocketSession.ID { get { return _ID; } set { _ID = value; } }
@@ -93,10 +90,6 @@ namespace NewLife.Net.Udp
                 return Server.ReceiveFromAsync(ev);
             }, e);
         }
-
-        ///// <summary>开始异步接收，同时处理传入的事件参数，里面可能有接收到的数据</summary>
-        ///// <param name="e"></param>
-        //void ISocketSession.Start(NetEventArgs e) { }
 
         /// <summary>断开客户端连接。Tcp断开，UdpClient不处理</summary>
         void ISocketSession.Disconnect() { }
@@ -198,7 +191,11 @@ namespace NewLife.Net.Udp
         /// <param name="offset"></param>
         /// <param name="size"></param>
         /// <param name="remoteEP"></param>
-        public void Send(Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP = null) { Server.SendTo(buffer, offset, size, SocketFlags.None, remoteEP); }
+        public void Send(Byte[] buffer, Int32 offset = 0, Int32 size = 0, EndPoint remoteEP = null)
+        {
+            if (size <= 0) size = buffer.Length - offset;
+            Server.SendTo(buffer, offset, size, SocketFlags.None, remoteEP);
+        }
 
         /// <summary>向指定目的地发送信息</summary>
         /// <param name="buffer"></param>

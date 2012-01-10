@@ -1,11 +1,15 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using NewLife.Net.Tcp;
+using System.Text;
 
 namespace NewLife.Net.Sockets
 {
     /// <summary>网络服务的会话</summary>
+    /// <remarks>
+    /// 实际应用可通过重载<see cref="OnReceive"/>实现收到数据时的业务逻辑。
+    /// </remarks>
     public class NetSession : Netbase, INetSession
     {
         #region 属性
@@ -27,15 +31,6 @@ namespace NewLife.Net.Sockets
         public EndPoint ClientEndPoint { get { return _ClientEndPoint; } set { _ClientEndPoint = value; } }
         #endregion
 
-        #region 构造
-        /// <summary>实例化一个网络服务会话</summary>
-        public NetSession() { }
-
-        /// <summary>通过指定的Socket对象实例化一个网络服务会话</summary>
-        /// <param name="client"></param>
-        public NetSession(ISocketSession client) { Session = client; }
-        #endregion
-
         #region 方法
         /// <summary>开始会话处理。参数e里面可能含有数据</summary>
         /// <param name="e"></param>
@@ -47,7 +42,7 @@ namespace NewLife.Net.Sockets
                 Session.Received += new EventHandler<NetEventArgs>(Session_Received);
                 Session.OnDisposed += (s, e2) => this.Dispose();
 
-                // 这里一定不需要再次Start，因为TcpServer在处理完成Accepted事件后，会调用Start
+                // 这里不需要再次Start，因为TcpServer在处理完成Accepted事件后，会调用Start
                 //(Session as TcpClientX).Start(e);
             }
             else
@@ -65,11 +60,12 @@ namespace NewLife.Net.Sockets
         {
             base.OnDispose(disposing);
 
-            if (Session.ProtocolType == ProtocolType.Tcp)
+            var session = Session;
+            if (session.ProtocolType == ProtocolType.Tcp)
             {
-                Session.Received -= new EventHandler<NetEventArgs>(Session_Received);
-                Session.Disconnect();
-                Session.Dispose();
+                session.Received -= new EventHandler<NetEventArgs>(Session_Received);
+                session.Disconnect();
+                session.Dispose();
             }
 
             Server = null;
@@ -77,20 +73,34 @@ namespace NewLife.Net.Sockets
         }
         #endregion
 
-        #region 数据交换
+        #region 业务核心
         /// <summary>收到客户端发来的数据</summary>
         /// <param name="e"></param>
-        protected virtual void OnReceive(NetEventArgs e)
-        {
-            //var stream = e.GetStream();
-            //Console.WriteLine("{0} => {1} {2}字节", ClientEndPoint, Session.LocalEndPoint, stream.Length);
-        }
+        protected virtual void OnReceive(NetEventArgs e) { }
+        #endregion
+
+        #region 发送
+        /// <summary>发送数据</summary>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">位移</param>
+        /// <param name="size">写入字节数</param>
+        public virtual void Send(byte[] buffer, int offset = 0, int size = 0) { Session.Send(buffer, offset, size, ClientEndPoint); }
+
+        /// <summary>发送数据流</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public virtual long Send(Stream stream) { return Session.Send(stream, ClientEndPoint); }
+
+        /// <summary>发送字符串</summary>
+        /// <param name="msg"></param>
+        /// <param name="encoding"></param>
+        public virtual void Send(string msg, Encoding encoding = null) { Session.Send(msg, encoding, ClientEndPoint); }
         #endregion
 
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return "" + Session; }
+        public override string ToString() { return Session == null ? base.ToString() : String.Format("{0}://{1}", Session.ProtocolType, ClientEndPoint); }
         #endregion
     }
 }

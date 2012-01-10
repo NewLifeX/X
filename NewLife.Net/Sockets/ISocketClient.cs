@@ -44,7 +44,7 @@ namespace NewLife.Net.Sockets
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
         /// <param name="remoteEP">远程终结点</param>
-        void Send(byte[] buffer, int offset, int size, EndPoint remoteEP = null);
+        void Send(byte[] buffer, int offset = 0, int size = 0, EndPoint remoteEP = null);
 
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>

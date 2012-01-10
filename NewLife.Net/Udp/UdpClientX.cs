@@ -31,40 +31,6 @@ namespace NewLife.Net.Udp
         #endregion
 
         #region 发送
-        /// <summary></summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="size"></param>
-        /// <param name="remoteEP">远程终结点</param>
-        public override void Send(byte[] buffer, int offset, int size, EndPoint remoteEP = null)
-        {
-            if (remoteEP != null)
-                Client.SendTo(buffer, offset, size, SocketFlags.None, remoteEP);
-            else
-                base.Send(buffer, offset, size, remoteEP);
-        }
-
-        /// <summary>发送数据</summary>
-        /// <param name="buffer"></param>
-        /// <param name="endPoint"></param>
-        public void Send(Byte[] buffer, IPEndPoint endPoint)
-        {
-            if (Socket == null) AddressFamily = endPoint.AddressFamily;
-            Client.SendTo(buffer, buffer.Length, SocketFlags.None, endPoint);
-        }
-
-        /// <summary>发送数据</summary>
-        /// <param name="msg"></param>
-        /// <param name="endPoint"></param>
-        public void Send(String msg, IPEndPoint endPoint)
-        {
-            if (String.IsNullOrEmpty(msg)) return;
-
-            Byte[] buffer = Encoding.UTF8.GetBytes(msg);
-            if (Socket == null) AddressFamily = endPoint.AddressFamily;
-            Client.SendTo(buffer, buffer.Length, SocketFlags.None, endPoint);
-        }
-
         /// <summary>广播数据包</summary>
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
@@ -74,6 +40,7 @@ namespace NewLife.Net.Udp
         {
             if (!Client.EnableBroadcast) Client.EnableBroadcast = true;
 
+            if (size <= 0) size = buffer.Length - offset;
             Client.SendTo(buffer, offset, size, SocketFlags.None, new IPEndPoint(IPAddress.Broadcast, port));
         }
 

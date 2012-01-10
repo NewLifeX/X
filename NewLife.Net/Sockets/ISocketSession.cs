@@ -17,18 +17,11 @@ namespace NewLife.Net.Sockets
     public interface ISocketSession : ISocket
     {
         #region 属性
-        ///// <summary>套接字</summary>
-        //Socket Socket { get; set; }
-
         /// <summary>编号</summary>
         Int32 ID { get; set; }
         #endregion
 
         #region 方法
-        ///// <summary>开始会话处理。参数e里面可能含有数据</summary>
-        ///// <param name="e"></param>
-        //void Start(NetEventArgs e);
-
         /// <summary>断开客户端连接。Tcp端口，UdpClient不处理</summary>
         void Disconnect();
         #endregion
@@ -39,7 +32,7 @@ namespace NewLife.Net.Sockets
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
         /// <param name="remoteEP">远程地址。仅对Udp有效</param>
-        void Send(byte[] buffer, int offset, int size, EndPoint remoteEP = null);
+        void Send(byte[] buffer, int offset = 0, int size = 0, EndPoint remoteEP = null);
 
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>

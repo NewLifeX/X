@@ -1,8 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using NewLife.Net.Sockets;
-using System.Threading;
 
 namespace NewLife.Net.Proxy
 {
@@ -19,73 +20,30 @@ namespace NewLife.Net.Proxy
         /// <summary>代理对象</summary>
         public IProxy Proxy { get { return _Proxy; } set { _Proxy = value; } }
 
-        //private ISocketSession _Client;
-        ///// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
-        //public ISocketSession Session { get { return _Client; } set { _Client = value; } }
-
-        //private ISocketServer _Server;
-        ///// <summary>服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
-        //public ISocketServer Server { get { return _Server; } set { _Server = value; } }
+        //private IProxy _BaseProxy;
+        ///// <summary>代理基类</summary>
+        //protected virtual IProxy BaseProxy { get { return _BaseProxy; } set { _BaseProxy = value; } }
 
         private ISocketClient _Remote;
         /// <summary>远程服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
         public ISocketClient Remote { get { return _Remote; } set { _Remote = value; } }
 
-        //private EndPoint _ClientEndPoint;
-        ///// <summary>客户端远程IP终结点</summary>
-        //public EndPoint ClientEndPoint { get { return _ClientEndPoint; } set { _ClientEndPoint = value; } }
-
         private EndPoint _RemoteEndPoint;
-        /// <summary>客户端远程IP终结点</summary>
+        /// <summary>服务端远程IP终结点</summary>
         public EndPoint RemoteEndPoint { get { return _RemoteEndPoint; } set { _RemoteEndPoint = value; } }
 
-        //IProxyFilter Filter { get { return Proxy.MainFilter; } }
-        #endregion
-
-        #region 构造
-        /// <summary>实例化一个代理会话</summary>
-        public ProxySession() { }
-
-        /// <summary>通过指定的Socket对象实例化一个代理会话</summary>
-        /// <param name="client"></param>
-        public ProxySession(ISocketSession client) { Session = client; }
+        private ProtocolType _RemoteProtocolType;
+        /// <summary>服务端协议。默认与客户端协议相同</summary>
+        public ProtocolType RemoteProtocolType { get { return _RemoteProtocolType; } set { _RemoteProtocolType = value; } }
         #endregion
 
         #region 方法
-        ///// <summary>开始会话处理。参数e里面可能含有数据</summary>
-        ///// <param name="e"></param>
-        //public void Start(NetEventArgs e)
-        //{
-        //    // Tcp挂接事件，Udp直接处理数据
-        //    if (Session.ProtocolType == ProtocolType.Tcp)
-        //    {
-        //        Session.Received += new EventHandler<NetEventArgs>(Session_Received);
-        //        Session.OnDisposed += (s, e2) => this.Dispose();
-        //    }
-        //    else
-        //        OnReceive(e);
-        //}
-
-        //void Session_Received(object sender, NetEventArgs e)
-        //{
-        //    OnReceive(e);
-        ////}
-
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
         protected override void OnDispose(bool disposing)
         {
             base.OnDispose(disposing);
 
-            //if (Session.ProtocolType == ProtocolType.Tcp)
-            //{
-            //    Session.Received -= new EventHandler<NetEventArgs>(Session_Received);
-            //    Session.Disconnect();
-            //    Session.Dispose();
-            //}
-
-            //Server = null;
-            //Session = null;
             if (Remote == null)
             {
                 Remote.Dispose();
@@ -101,38 +59,69 @@ namespace NewLife.Net.Proxy
         {
             if (Remote == null)
             {
-                //Remote = Filter.CreateRemote(this, e);
+                Remote = CreateRemote(e);
+                if (Remote.ProtocolType == ProtocolType.Tcp && !Remote.Client.Connected) Remote.Connect(RemoteEndPoint);
                 Remote.Received += new EventHandler<NetEventArgs>(Remote_Received);
                 Remote.ReceiveAsync();
             }
 
             var stream = e.GetStream();
-            Console.WriteLine("{0} => {1} {2}字节", ClientEndPoint, Session.LocalEndPoint, stream.Length);
-            //stream = Filter.OnClientToServer(this, stream, e);
             if (stream != null) Remote.Send(stream, RemoteEndPoint);
         }
 
-        void Remote_Received(object sender, NetEventArgs e)
+        /// <summary>为会话创建与远程服务器通讯的Socket。可以使用Socket池达到重用的目的。默认实现创建与服务器相同类型的客户端</summary>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        protected virtual ISocketClient CreateRemote(NetEventArgs e)
+        {
+            var client = NetService.Resolve<ISocketClient>(RemoteProtocolType);
+            //if (client.ProtocolType == ProtocolType.Tcp && !client.Client.Connected) client.Connect(RemoteEndPoint);
+            if (RemoteEndPoint != null) client.AddressFamily = RemoteEndPoint.AddressFamily;
+            client.OnDisposed += (s, e2) => this.Dispose();
+            return client;
+        }
+
+        void Remote_Received(object sender, NetEventArgs e) { OnReceiveRemote(e); }
+
+        /// <summary>收到远程服务器返回的数据</summary>
+        /// <param name="e"></param>
+        protected virtual void OnReceiveRemote(NetEventArgs e)
         {
             var stream = e.GetStream();
-            Console.WriteLine("{0} {1}字节", Remote, stream.Length);
-            //stream = Filter.OnServerToClient(this, stream, e);
             if (stream != null) Session.Send(stream, ClientEndPoint);
 
-            // UDP准备关闭
-            if (Session.ProtocolType == ProtocolType.Udp)
-            {
-                // 等待未发送完成的数据
-                Thread.Sleep(1000);
-                Dispose();
-            }
+            //// UDP准备关闭
+            //if (Session.ProtocolType == ProtocolType.Udp)
+            //{
+            //    // 等待未发送完成的数据
+            //    Thread.Sleep(1000);
+            //    Dispose();
+            //}
         }
+        #endregion
+
+        #region 发送
+        /// <summary>发送数据</summary>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">位移</param>
+        /// <param name="size">写入字节数</param>
+        public virtual void SendRemote(byte[] buffer, int offset = 0, int size = 0) { Remote.Send(buffer, offset, size, RemoteEndPoint); }
+
+        /// <summary>发送数据流</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public virtual long SendRemote(Stream stream) { return Remote.Send(stream, RemoteEndPoint); }
+
+        /// <summary>发送字符串</summary>
+        /// <param name="msg"></param>
+        /// <param name="encoding"></param>
+        public virtual void SendRemote(string msg, Encoding encoding = null) { Remote.Send(msg, encoding, RemoteEndPoint); }
         #endregion
 
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return Session + "," + Remote; }
+        public override string ToString() { return base.ToString() + "=>" + Remote; }
         #endregion
     }
 }

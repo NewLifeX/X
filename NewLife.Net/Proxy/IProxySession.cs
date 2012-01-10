@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.IO;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using NewLife.Net.Sockets;
-using System.Net;
 
 namespace NewLife.Net.Proxy
 {
@@ -11,6 +11,7 @@ namespace NewLife.Net.Proxy
     /// 一个会话应该包含两端，两个Socket，服务端和客户端。
     /// 客户端<see cref="INetSession.Session"/>发来的数据，在这里经过一系列过滤器后，转发给服务端<see cref="Remote"/>；
     /// 服务端<see cref="Remote"/>返回的数据，在这里经过过滤器后，转发给客户端<see cref="INetSession.Session"/>。
+    /// 会话进行业务处理的过程中，可以通过多个SendRemote方法向远程服务端发送数据。
     /// </remarks>
     public interface IProxySession : INetSession
     {
@@ -23,15 +24,27 @@ namespace NewLife.Net.Proxy
 
         /// <summary>远程客户端IP终结点</summary>
         EndPoint RemoteEndPoint { get; set; }
+
+        /// <summary>服务端协议。默认与客户端协议相同</summary>
+        ProtocolType RemoteProtocolType { get; set; }
         #endregion
 
-        #region 方法
-        ///// <summary>开始会话处理。参数e里面可能含有数据</summary>
-        ///// <param name="e"></param>
-        //void Start(NetEventArgs e);
-        #endregion
+        #region 发送
+        /// <summary>发送数据</summary>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">位移</param>
+        /// <param name="size">写入字节数</param>
+        void SendRemote(byte[] buffer, int offset = 0, int size = 0);
 
-        #region 发送接收
+        /// <summary>发送数据流</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        long SendRemote(Stream stream);
+
+        /// <summary>发送字符串</summary>
+        /// <param name="msg"></param>
+        /// <param name="encoding"></param>
+        void SendRemote(string msg, Encoding encoding = null);
         #endregion
     }
 }

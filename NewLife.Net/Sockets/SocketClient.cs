@@ -35,32 +35,16 @@ namespace NewLife.Net.Sockets
         }
         #endregion
 
-        #region 方法
-        ///// <summary>绑定本地终结点</summary>
-        //public override void Bind()
-        //{
-        //    // 调用Client，引发Socket的建立
-        //    if (Client != null) base.Bind();
-        //}
-        #endregion
-
         #region 连接
         /// <summary>建立与远程主机的连接</summary>
         /// <param name="hostname"></param>
         /// <param name="port"></param>
-        public virtual void Connect(String hostname, Int32 port)
-        {
-            IPAddress[] addresses = Dns.GetHostAddresses(hostname);
-            Connect(addresses[0], port);
-        }
+        public virtual void Connect(String hostname, Int32 port) { Connect(NetHelper.ParseAddress(hostname), port); }
 
         /// <summary>建立与远程主机的连接</summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
-        public virtual void Connect(IPAddress address, Int32 port)
-        {
-            Connect(new IPEndPoint(address, port));
-        }
+        public virtual void Connect(IPAddress address, Int32 port) { Connect(new IPEndPoint(address, port)); }
 
         /// <summary>建立与远程主机的连接</summary>
         /// <param name="remoteEP">表示远程设备。</param>
@@ -78,10 +62,7 @@ namespace NewLife.Net.Sockets
         #region 接收
         /// <summary>开始异步接收数据</summary>
         /// <param name="e"></param>
-        public virtual void ReceiveAsync(NetEventArgs e = null)
-        {
-            StartAsync(Client.ReceiveAsync, e);
-        }
+        public virtual void ReceiveAsync(NetEventArgs e = null) { StartAsync(Client.ReceiveAsync, e); }
         #endregion
 
         #region 事件
@@ -132,25 +113,11 @@ namespace NewLife.Net.Sockets
         {
             switch (e.LastOperation)
             {
-                case SocketAsyncOperation.Accept:
-                    break;
-                case SocketAsyncOperation.Connect:
-                    break;
-                case SocketAsyncOperation.Disconnect:
-                    break;
-                case SocketAsyncOperation.None:
-                    break;
                 case SocketAsyncOperation.Receive:
                 case SocketAsyncOperation.ReceiveFrom:
                 case SocketAsyncOperation.ReceiveMessageFrom:
                     OnReceive(e);
                     return;
-                case SocketAsyncOperation.Send:
-                    break;
-                case SocketAsyncOperation.SendPackets:
-                    break;
-                case SocketAsyncOperation.SendTo:
-                    break;
                 default:
                     break;
             }
@@ -188,10 +155,16 @@ namespace NewLife.Net.Sockets
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
         /// <param name="remoteEP">远程终结点</param>
-        public virtual void Send(Byte[] buffer, Int32 offset, Int32 size, EndPoint remoteEP = null)
+        public virtual void Send(Byte[] buffer, Int32 offset = 0, Int32 size = 0, EndPoint remoteEP = null)
         {
             if (!Client.IsBound) Bind();
-            Client.Send(buffer, offset, size, SocketFlags.None);
+
+            if (size <= 0) size = buffer.Length - offset;
+            if (remoteEP != null && Socket == null) AddressFamily = remoteEP.AddressFamily;
+            if (remoteEP != null && ProtocolType == ProtocolType.Udp)
+                Client.SendTo(buffer, offset, size, SocketFlags.None, remoteEP);
+            else
+                Client.Send(buffer, offset, size, SocketFlags.None);
         }
 
         /// <summary>发送字符串</summary>
@@ -203,8 +176,7 @@ namespace NewLife.Net.Sockets
             if (String.IsNullOrEmpty(msg)) return;
 
             if (encoding == null) encoding = Encoding.UTF8;
-            Byte[] data = encoding.GetBytes(msg);
-            Send(data, 0, data.Length, remoteEP);
+            Send(encoding.GetBytes(msg), 0, 0, remoteEP);
         }
         #endregion
 

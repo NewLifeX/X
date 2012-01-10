@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Net;
+using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Proxy
 {
@@ -8,42 +9,38 @@ namespace NewLife.Net.Proxy
     public class NATProxy : ProxyBase
     {
         #region 属性
-        //private NATFilter _nat;
+        private String _ServerAddress;
+        /// <summary>服务器地址</summary>
+        public String ServerAddress { get { return _ServerAddress; } set { _ServerAddress = value; } }
 
-        ///// <summary>服务器地址</summary>
-        //public IPAddress ServerAddress { get { return _nat.Address; } set { _nat.Address = value; } }
+        private Int32 _ServerPort;
+        /// <summary>服务器端口</summary>
+        public Int32 ServerPort { get { return _ServerPort; } set { _ServerPort = value; } }
 
-        ///// <summary>服务器端口</summary>
-        //public Int32 ServerPort { get { return _nat.Port; } set { _nat.Port = value; } }
-
-        ///// <summary>服务器协议</summary>
-        //public ProtocolType ServerProtocolType { get { return _nat.ProtocolType; } set { _nat.ProtocolType = value; } }
+        private ProtocolType _ServerProtocolType;
+        /// <summary>服务器协议。默认与客户端协议相同</summary>
+        public ProtocolType ServerProtocolType { get { return _ServerProtocolType; } set { _ServerProtocolType = value; } }
         #endregion
 
         #region 构造
         /// <summary>实例化</summary>
-        public NATProxy()
-        {
-            //_nat = new NATFilter();
-            //_nat.Proxy = this;
-            //Filters.Add(_nat);
-        }
+        public NATProxy() { }
 
         /// <summary>实例化</summary>
-        /// <param name="server">目标服务器地址</param>
+        /// <param name="hostname">目标服务器地址</param>
         /// <param name="port">目标服务器端口</param>
-        public NATProxy(String server, Int32 port) : this(server, port, ProtocolType.Tcp) { }
+        public NATProxy(String hostname, Int32 port) : this(hostname, port, ProtocolType.Tcp) { }
 
         /// <summary>实例化</summary>
-        /// <param name="server">目标服务器地址</param>
+        /// <param name="hostname">目标服务器地址</param>
         /// <param name="port">目标服务器端口</param>
         /// <param name="protocol">协议</param>
-        public NATProxy(String server, Int32 port, ProtocolType protocol)
+        public NATProxy(String hostname, Int32 port, ProtocolType protocol)
             : this()
         {
-            //if (!String.IsNullOrEmpty(server)) ServerAddress = NetHelper.ParseAddress(server);
-            //ServerPort = port;
-            //ServerProtocolType = protocol;
+            ServerAddress = hostname;
+            ServerPort = port;
+            ServerProtocolType = protocol;
         }
         #endregion
 
@@ -51,9 +48,24 @@ namespace NewLife.Net.Proxy
         /// <summary>开始</summary>
         protected override void OnStart()
         {
-            //if (ServerProtocolType == 0) ServerProtocolType = ProtocolType;
+            if (ServerProtocolType == 0) ServerProtocolType = ProtocolType;
 
             base.OnStart();
+        }
+
+        /// <summary>创建会话</summary>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        protected override INetSession CreateSession(NetEventArgs e)
+        {
+            var session = new NATSession();
+            session.RemoteEndPoint = new IPEndPoint(NetHelper.ParseAddress(ServerAddress), ServerPort);
+            if (ServerProtocolType == ProtocolType.Tcp || ServerProtocolType == ProtocolType.Udp)
+                session.RemoteProtocolType = ServerProtocolType;
+            else
+                session.RemoteProtocolType = e.Socket.ProtocolType;
+
+            return session;
         }
         #endregion
     }

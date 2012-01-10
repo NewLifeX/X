@@ -16,9 +16,6 @@ namespace NewLife.Net.Tcp
         /// <summary>收到空数据时抛出异常并断开连接。</summary>
         public Boolean DisconnectWhenEmptyData { get { return _DisconnectWhenEmptyData; } set { _DisconnectWhenEmptyData = value; } }
 
-        ///// <summary>套接字</summary>
-        //Socket ISocketSession.Socket { get { return base.Client; } set { base.Client = value; } }
-
         private Int32 _ID;
         /// <summary>编号</summary>
         Int32 ISocketSession.ID { get { return _ID; } set { if (_ID > 0)throw new NetException("禁止修改会话编号！"); _ID = value; } }
@@ -65,13 +62,7 @@ namespace NewLife.Net.Tcp
             if (e.BytesTransferred > 0 || !DisconnectWhenEmptyData)
                 base.OnReceive(e);
             else
-            {
-                //// 关闭前回收
-                //Push(e);
-                //Close();
-
                 OnError(e, null);
-            }
         }
         #endregion
     }
