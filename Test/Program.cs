@@ -154,7 +154,7 @@ namespace Test
         {
             var server = new NATProxy();
             server.Port = 89;
-            server.ServerAddress = "oa";
+            server.ServerAddress = "jslswb.com";
             server.ServerPort = 3389;
             server.Start();
         }

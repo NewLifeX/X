@@ -19,7 +19,7 @@ namespace NewLife.Net.Stun
     /// </remarks>
     /// <example>
     /// <code>
-    /// var result = StunClient.Query("stun.nnhy.org", 3478);
+    /// var result = new StunClient().Query();
     /// if(result.Type != StunNetType.UdpBlocked){
     ///     
     /// }
@@ -30,7 +30,7 @@ namespace NewLife.Net.Stun
     /// </example>
     public class StunClient : Netbase
     {
-        #region 静态
+        #region 工作原理
         /*
         In test I, the client sends a STUN Binding Request to a server, without any flags set in the
         CHANGE-REQUEST attribute, and without the RESPONSE-ADDRESS attribute. This causes the server 
@@ -85,11 +85,13 @@ namespace NewLife.Net.Stun
                                        +------>Restricted
 
     */
+        #endregion
 
+        #region 服务器
         static String[] servers = new String[] { "stun.nnhy.org", "stun.sipgate.net:10000", "stunserver.org", "stun.xten.com", "stun.fwdnet.net", "stun.iptel.org", "220.181.126.73" };
-        private static List<String> _Servers;
-        /// <summary>打洞服务器</summary>
-        public static List<String> Servers
+        private List<String> _Servers;
+        /// <summary>Stun服务器</summary>
+        public List<String> Servers
         {
             get
             {
@@ -104,84 +106,165 @@ namespace NewLife.Net.Stun
                 return _Servers;
             }
         }
+        #endregion
 
-        /// <summary>在指定协议上执行查询，如果未指定，则内部创建</summary>
+        #region 属性
+        private ISocket _Socket;
+        /// <summary>套接字</summary>
+        public ISocket Socket { get { return _Socket; } set { _Socket = value; } }
+
+        private ISocket _Socket2;
+        /// <summary>用于测试更换本地套接字的第二套接字</summary>
+        public ISocket Socket2 { get { return _Socket2; } set { _Socket2 = value; } }
+
+        private ProtocolType _ProtocolType = ProtocolType.Udp;
+        /// <summary>协议，默认Udp</summary>
+        public ProtocolType ProtocolType { get { return _ProtocolType; } set { _ProtocolType = value; } }
+
+        private Int32 _Port;
+        /// <summary>本地端口</summary>
+        public Int32 Port { get { return _Port; } set { _Port = value; } }
+
+        private Int32 _Timeout = 2000;
+        /// <summary>超时时间，默认2000ms</summary>
+        public Int32 Timeout { get { return _Timeout; } set { _Timeout = value; } }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化</summary>
+        public StunClient() { }
+
+        /// <summary>在指定协议上执行查询</summary>
         /// <param name="protocol"></param>
         /// <returns></returns>
-        public static StunResult Query(ProtocolType protocol)
+        public StunClient(ProtocolType protocol) : this(protocol, 0) { }
+
+        /// <summary>在指定协议和本地端口上执行查询</summary>
+        /// <param name="protocol"></param>
+        /// <param name="port"></param>
+        /// <returns></returns>
+        public StunClient(ProtocolType protocol, Int32 port)
         {
-            var client = NetService.Resolve<ISocketClient>(protocol);
-            client.Client.SendTimeout = 2000;
-            client.Client.ReceiveTimeout = 2000;
-            client.Bind();
-            return Query(client.Client);
+            ProtocolType = protocol;
+            Port = port;
         }
 
-        /// <summary>在指定套接字上执行查询，如果未指定，则内部创建</summary>
+        /// <summary>在指定套接字上执行查询</summary>
         /// <param name="socket"></param>
         /// <returns></returns>
-        public static StunResult Query(Socket socket = null) { return Query(socket, 0); }
+        public StunClient(ISocket socket) { Socket = socket; }
 
-        /// <summary>在指定套接字上执行查询，如果未指定，则内部创建</summary>
-        /// <param name="socket"></param>
-        /// <param name="ignores">跳过第一个地址，因为第一个往往就是服务器自己</param>
-        /// <returns></returns>
-        internal static StunResult Query(Socket socket, Int32 ignores)
+        // 如果是外部传进来的Socket，也销毁，就麻烦大了
+        ///// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
+        ///// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
+        //protected override void OnDispose(bool disposing)
+        //{
+        //    base.OnDispose(disposing);
+
+        //    if (_Socket != null)
+        //    {
+        //        _Socket.Dispose();
+        //        _Socket = null;
+        //    }
+        //    if (_Socket2 != null)
+        //    {
+        //        _Socket2.Dispose();
+        //        _Socket2 = null;
+        //    }
+        //}
+        #endregion
+
+        #region 方法
+        void EnsureSocket()
         {
-            // 如果是Udp被屏蔽，很有可能是因为服务器没有响应，可以通过轮换服务器来测试
+            if (_Socket == null)
+            {
+                var client = NetService.Resolve<ISocketClient>(ProtocolType);
+                client.Port = Port;
+                client.Client.SendTimeout = Timeout;
+                client.Client.ReceiveTimeout = Timeout;
+                client.Bind();
+                _Socket = client;
+            }
+        }
+
+        void EnsureSocket2()
+        {
+            if (_Socket2 == null)
+            {
+                var socket = Socket.Socket;
+                var ep = socket.LocalEndPoint as IPEndPoint;
+                var sto = socket.SendTimeout;
+                var rto = socket.ReceiveTimeout;
+
+                // 如果原端口没有启用地址重用，则关闭它
+                Object value = socket.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress);
+                if (!Convert.ToBoolean(value)) socket.Close();
+
+                var sk = NetService.Resolve<ISocketClient>(socket.ProtocolType);
+                sk.Address = ep.Address;
+                sk.Port = ep.Port;
+                sk.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                sk.Bind();
+                sk.Client.SendTimeout = sto;
+                sk.Client.ReceiveTimeout = rto;
+
+                _Socket2 = sk;
+            }
+        }
+        #endregion
+
+        #region 查询
+        /// <summary>按服务器列表执行查询</summary>
+        /// <returns></returns>
+        public StunResult Query()
+        {
+            foreach (var result in QueryByServers())
+            {
+                if (result != null && result.Type != StunNetType.Blocked) return result;
+            }
+            return null;
+        }
+
+        IEnumerable<StunResult> QueryByServers()
+        {
+            // 如果是被屏蔽，很有可能是因为服务器没有响应，可以通过轮换服务器来测试
             StunResult result = null;
             foreach (var item in Servers)
             {
-                if (ignores-- > 0) continue;
-
                 WriteLog("使用服务器：{0}", item);
 
                 Int32 p = item.IndexOf(":");
                 if (p > 0)
-                    result = Query(socket, item.Substring(0, p), Int32.Parse(item.Substring(p + 1)));
+                    result = QueryWithServer(item.Substring(0, p), Int32.Parse(item.Substring(p + 1)));
                 else
-                    result = Query(socket, item, 3478);
-                if (result != null && result.Type != StunNetType.Blocked) return result;
+                    result = QueryWithServer(item, 3478);
+
+                yield return result;
             }
-            return result;
         }
 
-        /// <summary>在指定套接字上执行查询，如果未指定，则内部创建</summary>
-        /// <param name="socket"></param>
+        /// <summary>在指定服务器上执行查询</summary>
         /// <param name="host"></param>
         /// <param name="port"></param>
-        /// <param name="timeout"></param>
         /// <returns></returns>
-        public static StunResult Query(Socket socket, String host, Int32 port = 3478, Int32 timeout = 2000)
+        public StunResult QueryWithServer(String host, Int32 port = 3478)
         {
             try
             {
-                return Query(socket, NetHelper.ParseAddress(host), port, timeout);
+                return QueryWithServer(NetHelper.ParseAddress(host), port);
             }
             catch { return null; }
         }
 
-        /// <summary>在指定套接字上执行查询，如果未指定，则内部创建</summary>
-        /// <param name="socket"></param>
+        /// <summary>在指定服务器上执行查询</summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
-        /// <param name="timeout"></param>
         /// <returns></returns>
-        public static StunResult Query(Socket socket, IPAddress address, Int32 port, Int32 timeout = 2000)
+        public StunResult QueryWithServer(IPAddress address, Int32 port)
         {
-            if (socket == null)
-            {
-                var client = new UdpClientX();
-                client.Client.ReceiveTimeout = timeout;
-                client.Bind();
-                socket = client.Client;
-            }
-
-            return Query(socket, address, port);
-        }
-
-        static StunResult Query(Socket socket, IPAddress address, Int32 port)
-        {
+            EnsureSocket();
+            Socket socket = Socket.Socket;
             var remote = new IPEndPoint(address, port);
 
             // Test I
@@ -232,22 +315,8 @@ namespace NewLife.Net.Stun
                 // 如果是Tcp，这里需要准备第二个重用的Socket
                 if (socket.ProtocolType == ProtocolType.Tcp)
                 {
-                    var ep = socket.LocalEndPoint as IPEndPoint;
-                    var sto = socket.SendTimeout;
-                    var rto = socket.ReceiveTimeout;
-
-                    // 如果原端口没有启用地址重用，则关闭它
-                    Object value = socket.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress);
-                    if (!Convert.ToBoolean(value)) socket.Close();
-
-                    var sk = NetService.Resolve<ISocketClient>(ProtocolType.Tcp);
-                    sk.Address = ep.Address;
-                    sk.Port = ep.Port;
-                    sk.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                    sk.Bind();
-                    socket = sk.Client;
-                    socket.SendTimeout = sto;
-                    socket.ReceiveTimeout = rto;
+                    EnsureSocket2();
+                    socket = Socket2.Socket;
                 }
 
                 rs = Query(socket, msg, remote2);
@@ -277,38 +346,11 @@ namespace NewLife.Net.Stun
 
         #region 获取公网地址
         /// <summary>获取公网地址</summary>
-        /// <param name="protocol"></param>
-        /// <param name="timeout"></param>
         /// <returns></returns>
-        public static IPAddress GetPublic(ProtocolType protocol, Int32 timeout = 2000)
+        public IPEndPoint GetPublic()
         {
-            var msg = GetPublic(protocol, 0, timeout);
-            return msg == null ? null : msg.Address;
-        }
-
-        /// <summary>获取指定端口的公网地址，只能是UDP Socket</summary>
-        /// <param name="protocol"></param>
-        /// <param name="port"></param>
-        /// <param name="timeout"></param>
-        /// <returns></returns>
-        public static IPEndPoint GetPublic(ProtocolType protocol, Int32 port, Int32 timeout)
-        {
-            var client = NetService.Resolve<ISocketClient>(protocol);
-            client.Port = port;
-            client.Client.SendTimeout = timeout;
-            client.Client.ReceiveTimeout = timeout;
-            client.Bind();
-
-            var rs = GetPublic(client.Client);
-            client.Dispose();
-            return rs;
-        }
-
-        /// <summary>获取指定Socket的公网地址，只能是UDP Socket</summary>
-        /// <param name="socket"></param>
-        /// <returns></returns>
-        public static IPEndPoint GetPublic(Socket socket)
-        {
+            EnsureSocket();
+            var socket = Socket.Socket;
             var msg = new StunMessage();
             msg.Type = StunMessageType.BindingRequest;
             IPEndPoint ep = null;
@@ -330,14 +372,11 @@ namespace NewLife.Net.Stun
         /// <summary>查询</summary>
         /// <param name="request"></param>
         /// <param name="remoteEndPoint"></param>
-        /// <param name="timeout"></param>
         /// <returns></returns>
-        public static StunMessage Query(StunMessage request, IPEndPoint remoteEndPoint, Int32 timeout = 2000)
+        public StunMessage Query(StunMessage request, IPEndPoint remoteEndPoint)
         {
-            var client = new UdpClientX();
-            client.Client.ReceiveTimeout = timeout;
-            client.Bind();
-            return Query(client.Client, request, remoteEndPoint);
+            EnsureSocket();
+            return Query(Socket.Socket, request, remoteEndPoint);
         }
 
         static StunMessage Query(Socket socket, StunMessage request, IPEndPoint remoteEndPoint)
@@ -345,8 +384,6 @@ namespace NewLife.Net.Stun
             var ms = new MemoryStream();
             request.Write(ms);
             ms.Position = 0;
-            //client.Send(ms, remoteEndPoint);
-            //client.Client.ReceiveTimeout = timeout;
             Byte[] buffer = null;
             try
             {

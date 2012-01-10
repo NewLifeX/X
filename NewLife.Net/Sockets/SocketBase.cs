@@ -42,6 +42,9 @@ namespace NewLife.Net.Sockets
             }
         }
 
+        /// <summary>基础Socket对象</summary>
+        Socket ISocket.Socket { get { return Socket; } set { Socket = value; } }
+
         private ProtocolType _ProtocolType = ProtocolType.Tcp;
         /// <summary>协议类型</summary>
         public virtual ProtocolType ProtocolType { get { return _ProtocolType; } }

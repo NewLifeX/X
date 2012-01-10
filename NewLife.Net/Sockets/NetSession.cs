@@ -36,6 +36,8 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         public virtual void Start(NetEventArgs e)
         {
+            WriteLog("新会话：{0}", this);
+
             // Tcp挂接事件，Udp直接处理数据
             if (Session.ProtocolType == ProtocolType.Tcp)
             {

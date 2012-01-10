@@ -12,6 +12,9 @@ namespace NewLife.Net.Sockets
     public interface ISocket : IDisposable2
     {
         #region 属性
+        /// <summary>基础Socket对象</summary>
+        Socket Socket { get; set; }
+
         /// <summary>协议类型</summary>
         ProtocolType ProtocolType { get; }
 

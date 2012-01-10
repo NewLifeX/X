@@ -11,7 +11,7 @@ namespace NewLife.Net.Sockets
         /// 写日志
         /// </summary>
         /// <param name="msg"></param>
-        public static void WriteLog(String msg)
+        public void WriteLog(String msg)
         {
             if (NetHelper.Debug) NetHelper.WriteLog(msg);
         }
@@ -21,7 +21,7 @@ namespace NewLife.Net.Sockets
         /// </summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public static void WriteLog(String format, params Object[] args)
+        public void WriteLog(String format, params Object[] args)
         {
             if (NetHelper.Debug) NetHelper.WriteLog(format, args);
         }

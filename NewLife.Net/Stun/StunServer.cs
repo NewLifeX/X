@@ -66,14 +66,14 @@ namespace NewLife.Net.Stun
                     if (rs == null)
                     {
                         item.Bind();
-                        rs = StunClient.Query(item.Server);
+                        rs = new StunClient(item).Query();
                         if (rs != null && rs.Type == StunNetType.Blocked && rs.Public != null) rs.Type = StunNetType.Symmetric;
                         WriteLog("网络类型：{0} {1}", rs.Type, rs.Type.GetDescription());
                         ep = rs.Public;
                         if (ep != null) pub = ep.Address;
                     }
                     else
-                        ep = StunClient.GetPublic(item.ProtocolType, item.Port, 2000);
+                        ep = new StunClient(item.ProtocolType, item.Port).GetPublic();
                     if (rs.Type > StunNetType.RestrictedCone) ep = new IPEndPoint(pub, item.Port);
                     WriteLog("{0}://{1}:{2}的公网地址：{3}", item.ProtocolType, item.Address, item.Port, ep);
                     dic.Add(item.Port, ep);
