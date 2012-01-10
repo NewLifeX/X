@@ -6,7 +6,7 @@ namespace NewLife.Net.Sdp
 {
     /// <summary>会话描述协议</summary>
     /// <remarks>
-    /// <a href="http://baike.baidu.com/view/875414.htm">会话描述协议</a>
+    /// <a target="_blank" href="http://baike.baidu.com/view/875414.htm">会话描述协议</a>
     /// 
     /// 为会话通知、会话邀请和其它形式的多媒体会话初始化等目的提供了多媒体会话描述。
     /// </remarks>

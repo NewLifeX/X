@@ -8,7 +8,7 @@ namespace NewLife.Net.SNTP
     /// <remarks>
     /// RFC 1305
     /// 
-    /// <a href="http://baike.baidu.com/view/262336.htm">SNTP</a>
+    /// <a target="_blank" href="http://baike.baidu.com/view/262336.htm">SNTP</a>
     /// 
     /// SNTPV4 由 NTP 改编而来，主要用来同步因特网中的计算机时钟。 SNTP 适用于无需完全使用 NTP 功能的情况。
     /// 比较以前的 NTP 和 SNTP 版本， SNTPV4 的引入没有改变 NTP 规范和原有实现过程，它是对 NTP 的进一步改进，

@@ -12,7 +12,7 @@ namespace NewLife.Net.Fetion
 {
     /// <summary>Wap飞信</summary>
     /// <remarks>
-    /// 参考博客园 <a href="http://www.cnblogs.com/youwang/archive/2012/01/07/2315933.html">小桥流水</a>
+    /// 参考博客园 <a target="_blank" href="http://www.cnblogs.com/youwang/archive/2012/01/07/2315933.html">小桥流水</a>
     /// 
     /// 1，登录退出
     /// 2，根据手机号码或者飞信号发送信息

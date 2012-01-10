@@ -11,7 +11,7 @@ namespace NewLife.Net.Stun
 {
     /// <summary>Stun服务端。Simple Traversal of UDP over NATs，NAT 的UDP简单穿越。RFC 3489</summary>
     /// <remarks>
-    /// <a href="http://baike.baidu.com/view/884586.htm">STUN</a>
+    /// <a target="_blank" href="http://baike.baidu.com/view/884586.htm">STUN</a>
     /// </remarks>
     public class StunServer : NetServer
     {

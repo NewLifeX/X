@@ -13,7 +13,7 @@ namespace NewLife.Net.Stun
 {
     /// <summary>Stun客户端。Simple Traversal of UDP over NATs，NAT 的UDP简单穿越。RFC 3489</summary>
     /// <remarks>
-    /// <a href="http://baike.baidu.com/view/884586.htm">STUN</a>
+    /// <a target="_blank" href="http://baike.baidu.com/view/884586.htm">STUN</a>
     /// 
     /// 国内STUN服务器：220.181.126.73、220.181.126.74，位于北京电信，但不清楚是哪家公司
     /// </remarks>

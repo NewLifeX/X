@@ -17,7 +17,7 @@ namespace NewLife.Net.UPnP
     /// <remarks>
     /// UPnP 是各种各样的智能设备、无线设备和个人电脑等实现遍布全球的对等网络连接（P2P）的结构。UPnP 是一种分布式的，开放的网络架构。UPnP 是独立的媒介。
     /// 
-    /// <a href="http://baike.baidu.com/view/27925.htm">UPnP</a>
+    /// <a target="_blank" href="http://baike.baidu.com/view/27925.htm">UPnP</a>
     /// </remarks>
     /// <example>
     /// <code>

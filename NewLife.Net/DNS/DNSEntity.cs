@@ -36,7 +36,7 @@ namespace NewLife.Net.DNS
 
     /// <summary>DNS实体类基类</summary>
     /// <remarks>
-    /// 参考博客园 @看那边的人 <a href="http://www.cnblogs.com/topdog/archive/2011/11/15/2250185.html">DIY一个DNS查询器：了解DNS协议</a> <a href="http://www.cnblogs.com/topdog/archive/2011/11/21/2257597.html">DIY一个DNS查询器：程序实现</a>
+    /// 参考博客园 @看那边的人 <a target="_blank" href="http://www.cnblogs.com/topdog/archive/2011/11/15/2250185.html">DIY一个DNS查询器：了解DNS协议</a> <a target="_blank" href="http://www.cnblogs.com/topdog/archive/2011/11/21/2257597.html">DIY一个DNS查询器：程序实现</a>
     /// </remarks>
     public class DNSEntity //: IAccessor
     {
