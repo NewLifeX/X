@@ -12,6 +12,9 @@ using System.Net;
 using System.Net.Sockets;
 using NewLife.Net.P2P;
 using NewLife.Net.Udp;
+using NewLife.IO;
+using NewLife.Security;
+using System.IO.Ports;
 
 namespace Test2
 {
@@ -26,7 +29,7 @@ namespace Test2
                 try
                 {
 #endif
-                Test1();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -36,8 +39,9 @@ namespace Test2
 #endif
 
                 Console.WriteLine("OK!");
-                ConsoleKeyInfo key = Console.ReadKey();
+                ConsoleKeyInfo key = Console.ReadKey(true);
                 if (key.Key != ConsoleKey.C) break;
+                Console.Clear();
             }
         }
 
@@ -89,5 +93,62 @@ namespace Test2
         {
             Console.WriteLine("HoleServer数据到来：{0} {1}", e.RemoteIPEndPoint, e.GetString());
         }
+
+        static NetServer server;
+        static NetServer server2;
+        static void Test2()
+        {
+            NetHelper.Debug = true;
+            //if (server == null)
+            //{
+            //    server = new NetServer();
+            //    server.Port = 23;
+            //    server.Received += new EventHandler<NetEventArgs>(server_Received);
+            //    server.Start();
+            //}
+            //if (server2 == null)
+            //{
+            //    server2 = new SerialServer() { PortName = "COM1" };
+            //    server2.Port = 24;
+            //    //server.Received += new EventHandler<NetEventArgs>(server_Received);
+            //    server2.Start();
+            //}
+
+            //Thread.Sleep(2000);
+
+            String[] ss = new String[] { 
+                "7E 2F 44 9D 10 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 22 01 0D", 
+                //"7E 2F 44 8C 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 0F 01 0D", 
+                //"7E 2F 44 F2 10 01 00 40 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 B6 01 0D", 
+                //"7E 2F 44 81 10 99 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 9F 01 0D", 
+                //"7E 2F 44 F1 10 1A 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 8E 01 0D", 
+                //"7E 2F 44 F1 10 12 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 86 01 0D"
+            };
+
+            using (var client = new UdpClientX())
+            {
+                client.Connect("192.168.1.10", 24);
+                for (int i = 0; i < ss.Length; i++)
+                {
+                    var data = DataHelper.FromHex(ss[i].Replace(" ", null));
+                    client.Send(data, 0, data.Length);
+                }
+            }
+        }
+
+        static void server_Received(object sender, NetEventArgs e)
+        {
+            Console.WriteLine("收到：{0}", DataHelper.ToHex(e.Buffer, e.Offset, e.BytesTransferred));
+        }
+
+        //struct Door
+        //{
+        //    Int16 Head = 0x7E2F;
+        //    Byte D3 = 0x44;
+        //    Byte D4 = 0;
+        //    Byte D5 = 0x10;
+
+        //    Int16 Foot = 0x010D;
+        //}
     }
 }

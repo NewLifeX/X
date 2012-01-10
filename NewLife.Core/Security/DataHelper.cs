@@ -5,10 +5,8 @@ using System.Text;
 
 namespace NewLife.Security
 {
-    /// <summary>
-    /// 数据助手
-    /// </summary>
-    public class DataHelper
+    /// <summary>数据助手</summary>
+    public static class DataHelper
     {
         #region 散列
         /// <summary>
@@ -475,27 +473,29 @@ namespace NewLife.Security
         #endregion
 
         #region 编码
-        /// <summary>
-        /// 加密
-        /// </summary>
+        /// <summary>把字节数组编码为十六进制字符串</summary>
         /// <param name="data"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
         /// <returns></returns>
-        public static String ToHex(Byte[] data)
+        public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = 0)
         {
             if (data == null || data.Length < 1) return null;
+            if (count <= 0) count = data.Length - offset;
 
             //return BitConverter.ToString(data).Replace("-", null);
             // 上面的方法要替换-，效率太低
-            Char[] cs = new Char[data.Length * 2];
+            Char[] cs = new Char[count * 2];
             // 两个索引一起用，避免乘除带来的性能损耗
-            for (int i = 0, j = 0; i < data.Length; i++, j += 2)
+            for (int i = 0, j = 0; i < count; i++, j += 2)
             {
-                Byte b = data[i];
+                Byte b = data[offset + i];
                 cs[j] = GetHexValue(b / 0x10);
                 cs[j + 1] = GetHexValue(b % 0x10);
             }
             return new String(cs);
         }
+
         private static char GetHexValue(int i)
         {
             if (i < 10) return (char)(i + 0x30);
