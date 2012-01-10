@@ -1,7 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.IO;
+using NewLife.IO;
+using NewLife.Net.Protocols.Http;
 using NewLife.Net.Sockets;
+using System.Text;
+using System.Net;
 
 namespace NewLife.Net.Proxy
 {
@@ -23,6 +26,12 @@ namespace NewLife.Net.Proxy
     /// </remarks>
     public class HttpReverseProxy : NATProxy
     {
+        /// <summary>实例化</summary>
+        public HttpReverseProxy()
+        {
+            Port = 80;
+        }
+
         /// <summary>创建会话</summary>
         /// <param name="e"></param>
         /// <returns></returns>
@@ -33,16 +42,75 @@ namespace NewLife.Net.Proxy
 
         #region 会话
         /// <summary>Http反向代理会话</summary>
-        public class Session : ProxySession
+        public class Session : NATSession
         {
-            /// <summary>代理对象</summary>
-            public new HttpReverseProxy Proxy { get { return base.Proxy as HttpReverseProxy; } set { base.Proxy = value; } }
+            ///// <summary>代理对象</summary>
+            //public new HttpReverseProxy Proxy { get { return base.Proxy as HttpReverseProxy; } set { base.Proxy = value; } }
 
-            /// <summary>收到客户端发来的数据</summary>
+            private String _Host;
+            /// <summary>属性说明</summary>
+            public String Host { get { return _Host; } set { _Host = value; } }
+
+            private String _RawHost;
+            /// <summary>属性说明</summary>
+            public String RawHost { get { return _RawHost; } set { _RawHost = value; } }
+
+            /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
             /// <param name="e"></param>
-            protected override void OnReceive(NetEventArgs e)
+            /// <param name="stream">数据</param>
+            /// <returns>修改后的数据</returns>
+            protected override Stream OnReceive(NetEventArgs e, Stream stream)
             {
-                base.OnReceive(e);
+                // 解析请求头
+                var entity = HttpHeader.Read(stream);
+                WriteLog("请求：{0}", entity.Url);
+
+                var host = Proxy.ServerAddress;
+                var uri = new Uri(entity.Url, UriKind.RelativeOrAbsolute);
+                if (uri.IsAbsoluteUri && String.IsNullOrEmpty(uri.Host)) host = uri.Host;
+                Host = host;
+
+                var rawhost = entity.Headers["Host"];
+                RawHost = rawhost;
+                entity.Headers["Host"] = host;
+
+                // 引用
+                var r = entity.Headers["Referer"];
+                if (!String.IsNullOrEmpty(r))
+                {
+                    Uri ri = new Uri(r, UriKind.RelativeOrAbsolute);
+                    if (ri.IsAbsoluteUri && ri.Authority == rawhost)
+                    {
+                        r = r.Replace(rawhost, host);
+                        entity.Headers["Referer"] = r;
+                    }
+                }
+
+                // 取消压缩
+                var key = "Accept-Encoding";
+                if (entity.Headers.ContainsKey(key)) entity.Headers.Remove(key);
+
+                var ms = new MemoryStream();
+                entity.Write(ms);
+                stream.CopyTo(ms);
+                ms.Position = 0;
+
+                return ms;
+            }
+
+            /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
+            /// <param name="e"></param>
+            /// <param name="stream">数据</param>
+            /// <returns>修改后的数据</returns>
+            protected override Stream OnReceiveRemote(NetEventArgs e, Stream stream)
+            {
+                //var entity = HttpHeader.Read(stream);
+
+                var html = e.GetString();
+                html = html.Replace(Host, RawHost);
+                stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
+
+                return base.OnReceiveRemote(e, stream);
             }
         }
         #endregion

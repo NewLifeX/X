@@ -307,7 +307,9 @@ namespace NewLife.Net.Sockets
         public IDictionary<Int32, INetSession> Sessions { get { return _Sessions ?? (_Sessions = new Dictionary<Int32, INetSession>()); } }
 
         private Int32 sessionID = 0;
-        void AddSession(INetSession session)
+        /// <summary>添加会话。子类可以在添加会话前对会话进行一些处理</summary>
+        /// <param name="session"></param>
+        protected virtual void AddSession(INetSession session)
         {
             var dic = Sessions;
             lock (dic)

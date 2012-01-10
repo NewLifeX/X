@@ -152,10 +152,10 @@ namespace Test
 
         static void Test4()
         {
-            var server = new NATProxy();
-            server.Port = 89;
-            server.ServerAddress = "jslswb.com";
-            server.ServerPort = 3389;
+            var server = new HttpReverseProxy();
+            server.Port = 888;
+            server.ServerAddress = "www.cnblogs.com";
+            server.ServerPort = 80;
             server.Start();
         }
 

@@ -88,15 +88,11 @@
     <Compile Include="Pop3\Pop3Client.cs" />
     <Compile Include="Pop3\Pop3Server.cs" />
     <Compile Include="Pop3\Pop3Session.cs" />
-    <Compile Include="Proxy\Filters\HttpFilter.cs" />
     <Compile Include="Proxy\HttpProxy.cs" />
     <Compile Include="Proxy\HttpReverseProxy.cs" />
     <Compile Include="Proxy\IProxy.cs" />
     <Compile Include="Proxy\IProxyFilter.cs" />
     <Compile Include="Proxy\IProxySession.cs" />
-    <Compile Include="Proxy\Filters\ProxyFilterBase.cs" />
-    <Compile Include="Proxy\Filters\NATFilter.cs" />
-    <Compile Include="Proxy\Filters\ProxyFilterCollection.cs" />
     <Compile Include="Proxy\NATSession.cs" />
     <Compile Include="Proxy\ProxySession.cs" />
     <Compile Include="Proxy\ProxyBase.cs" />

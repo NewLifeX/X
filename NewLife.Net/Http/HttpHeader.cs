@@ -25,7 +25,7 @@ namespace NewLife.Net.Protocols.Http
 
         private IDictionary<String, String> _Headers;
         /// <summary>头部</summary>
-        public IDictionary<String, String> Headers { get { return _Headers ?? (_Headers = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase)); } }
+        public IDictionary<String, String> Headers { get { return _Headers ?? (_Headers = new HeaderCollection()); } }
 
         const String VersionPrefix = "HTTP/";
         #endregion
@@ -99,6 +99,23 @@ namespace NewLife.Net.Protocols.Http
             sb.AppendLine();
 
             return sb.ToString();
+        }
+        #endregion
+
+        #region 辅助
+        class HeaderCollection : Dictionary<String, String>, IDictionary<String, String>
+        {
+            public HeaderCollection() : base(StringComparer.OrdinalIgnoreCase) { }
+
+            public new String this[String key]
+            {
+                get
+                {
+                    String v = null;
+                    return TryGetValue(key, out v) ? v : null;
+                }
+                set { base[key] = value; }
+            }
         }
         #endregion
     }

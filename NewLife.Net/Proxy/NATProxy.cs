@@ -53,19 +53,33 @@ namespace NewLife.Net.Proxy
             base.OnStart();
         }
 
-        /// <summary>创建会话</summary>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        protected override INetSession CreateSession(NetEventArgs e)
-        {
-            var session = new NATSession();
-            session.RemoteEndPoint = new IPEndPoint(NetHelper.ParseAddress(ServerAddress), ServerPort);
-            if (ServerProtocolType == ProtocolType.Tcp || ServerProtocolType == ProtocolType.Udp)
-                session.RemoteProtocolType = ServerProtocolType;
-            else
-                session.RemoteProtocolType = e.Socket.ProtocolType;
+        ///// <summary>创建会话</summary>
+        ///// <param name="e"></param>
+        ///// <returns></returns>
+        //protected override INetSession CreateSession(NetEventArgs e)
+        //{
+        //    var session = new NATSession();
+        //    session.RemoteEndPoint = new IPEndPoint(NetHelper.ParseAddress(ServerAddress), ServerPort);
+        //    if (ServerProtocolType == ProtocolType.Tcp || ServerProtocolType == ProtocolType.Udp)
+        //        session.RemoteProtocolType = ServerProtocolType;
+        //    else
+        //        session.RemoteProtocolType = e.Socket.ProtocolType;
 
-            return session;
+        //    return session;
+        //}
+
+        /// <summary>添加会话。子类可以在添加会话前对会话进行一些处理</summary>
+        /// <param name="session"></param>
+        protected override void AddSession(INetSession session)
+        {
+            var s = session as NATSession;
+            s.RemoteEndPoint = new IPEndPoint(NetHelper.ParseAddress(ServerAddress), ServerPort);
+            if (ServerProtocolType == ProtocolType.Tcp || ServerProtocolType == ProtocolType.Udp)
+                s.RemoteProtocolType = ServerProtocolType;
+            else
+                s.RemoteProtocolType = session.Server.ProtocolType;
+
+            base.AddSession(session);
         }
         #endregion
     }

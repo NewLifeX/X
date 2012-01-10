@@ -59,16 +59,29 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected override void OnReceive(NetEventArgs e)
         {
-            if (Remote == null)
-            {
-                Remote = CreateRemote(e);
-                if (Remote.ProtocolType == ProtocolType.Tcp && !Remote.Client.Connected) Remote.Connect(RemoteEndPoint);
-                Remote.Received += new EventHandler<NetEventArgs>(Remote_Received);
-                Remote.ReceiveAsync();
-            }
-
             var stream = e.GetStream();
-            if (stream != null) Remote.Send(stream, RemoteEndPoint);
+            stream = OnReceive(e, stream);
+            if (stream != null)
+            {
+                if (Remote == null)
+                {
+                    Remote = CreateRemote(e);
+                    if (Remote.ProtocolType == ProtocolType.Tcp && !Remote.Client.Connected) Remote.Connect(RemoteEndPoint);
+                    Remote.Received += new EventHandler<NetEventArgs>(Remote_Received);
+                    Remote.ReceiveAsync();
+                }
+
+                Remote.Send(stream, RemoteEndPoint);
+            }
+        }
+
+        /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
+        /// <param name="e"></param>
+        /// <param name="stream">数据</param>
+        /// <returns>修改后的数据</returns>
+        protected virtual Stream OnReceive(NetEventArgs e, Stream stream)
+        {
+            return stream;
         }
 
         /// <summary>为会话创建与远程服务器通讯的Socket。可以使用Socket池达到重用的目的。默认实现创建与服务器相同类型的客户端</summary>
@@ -90,6 +103,7 @@ namespace NewLife.Net.Proxy
         protected virtual void OnReceiveRemote(NetEventArgs e)
         {
             var stream = e.GetStream();
+            stream = OnReceiveRemote(e, stream);
             if (stream != null) Session.Send(stream, ClientEndPoint);
 
             //// UDP准备关闭
@@ -99,6 +113,15 @@ namespace NewLife.Net.Proxy
             //    Thread.Sleep(1000);
             //    Dispose();
             //}
+        }
+
+        /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
+        /// <param name="e"></param>
+        /// <param name="stream">数据</param>
+        /// <returns>修改后的数据</returns>
+        protected virtual Stream OnReceiveRemote(NetEventArgs e, Stream stream)
+        {
+            return stream;
         }
         #endregion
 
