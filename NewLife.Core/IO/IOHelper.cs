@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using NewLife.Exceptions;
 
 namespace NewLife.IO
 {
@@ -426,18 +427,53 @@ namespace NewLife.IO
         /// <param name="stream">数据流</param>
         /// <param name="length">长度</param>
         /// <returns></returns>
-        public static Byte[] ReadBytes(this Stream stream, Int32 length = 0)
+        public static Byte[] ReadBytes(this Stream stream, Int64 length = 0)
         {
             if (stream == null) return null;
-            if (length == 0) length = (Int32)(stream.Length - stream.Position);
 
-            // 也许外部会修改字节数组，因此这里不能直接返回内部数组
-            //if (stream.Position == 0 && length == stream.Length && stream is MemoryStream) return (stream as MemoryStream).ToArray();
+            if (!stream.CanSeek)
+            {
+                var bytes = new Byte[length];
+                stream.Read(bytes, 0, bytes.Length);
+                return bytes;
+            }
+            else
+            {
+                if (length == 0 || stream.Position + length > stream.Length) length = (Int32)(stream.Length - stream.Position);
 
-            // 如果流长度没有length那么长，则任由其抛出异常
-            byte[] bytes = new byte[length];
-            stream.Read(bytes, 0, bytes.Length);
-            return bytes;
+                var bytes = new Byte[length];
+                stream.Read(bytes, 0, bytes.Length);
+                return bytes;
+            }
+        }
+
+        /// <summary>从数据流中读取字节数组，直到遇到指定字节数组</summary>
+        /// <param name="stream">数据流</param>
+        /// <param name="buffer">字节数组</param>
+        /// <param name="offset">字节数组中的偏移</param>
+        /// <param name="length">字节数组中的查找长度</param>
+        /// <returns></returns>
+        public static Byte[] ReadBytesUntil(this Stream stream, Byte[] buffer, Int64 offset = 0, Int64 length = 0)
+        {
+            //if (!stream.CanSeek) throw new XException("流不支持查找！");
+
+            var ori = stream.Position;
+            var p = stream.IndexOf(buffer, offset, length);
+            stream.Position = ori;
+            if (p < 0) return new Byte[0];
+
+            return stream.ReadBytes(p);
+        }
+
+        /// <summary>从数据流中读取字节数组，直到遇到指定字节数组</summary>
+        /// <param name="stream">数据流</param>
+        /// <param name="str"></param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        public static Byte[] ReadBytesUntil(this Stream stream, String str, Encoding encoding = null)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            return stream.ReadBytesUntil(encoding.GetBytes(str));
         }
 
         /// <summary>流转换为字符串</summary>
@@ -448,13 +484,6 @@ namespace NewLife.IO
         {
             if (stream == null) return null;
             if (encoding == null) encoding = Encoding.UTF8;
-
-            //using (StreamReader sr = new StreamReader(stream, encoding))
-            //{
-            //    return sr.ReadToEnd();
-            //}
-
-            // StreamReader读完数据后，会同时把数据流给关闭了
 
             return encoding.GetString(stream.ReadBytes());
         }
@@ -506,29 +535,6 @@ namespace NewLife.IO
                     }
                 }
             }
-
-            //// 已匹配字节数
-            //Int64 len = 0;      //// 预分配缓冲区
-            //Byte[] bts = new Byte[length];
-            //while (true)
-            //{
-            //    Int32 count = stream.Read(bts, 0, bts.Length);
-            //    if (len + count < bts.Length) break;
-
-            //    for (int i = 0; i < bts.Length; i++)
-            //    {
-            //        p++;
-            //        if (bts[i] == buffer[offset + len])
-            //        {
-            //            len++;
-
-            //            // 全部匹配，退出
-            //            if (len >= length) return p - length + 1;
-            //        }
-            //        else
-            //            len = 0; // 只要有一个不匹配，马上清零
-            //    }
-            //}
 
             return -1;
         }
