@@ -154,7 +154,13 @@ namespace NewLife.Net.Protocols.Http
 
         /// <summary>已重载。以文本形式呈现整个头部</summary>
         /// <returns></returns>
-        public override string ToString() { return RawUrl; }
+        public override string ToString()
+        {
+            if (!IsResponse)
+                return String.Format("{0} {1} {2}", Method, RawUrl, Version);
+            else
+                return String.Format("{0} {1} {2}", Version, StatusCode, StatusDescription);
+        }
 
         /// <summary>文本形式</summary>
         /// <returns></returns>
