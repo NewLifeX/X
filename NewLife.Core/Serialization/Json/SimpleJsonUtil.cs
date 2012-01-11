@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization.Json
 {
@@ -11,6 +13,15 @@ namespace NewLife.Serialization.Json
     /// </summary>
     public class SimpleJsonUtil
     {
+        #region 属性
+
+        /// <summary>
+        /// 设置在产生Json字符串的时候是否编码Unicode字符为\uXXXX的格式
+        /// </summary>
+        public bool IsEncodeUnicode { get; set; }
+
+        #endregion
+
         #region 解析Json
 
         /// <summary>
@@ -20,7 +31,10 @@ namespace NewLife.Serialization.Json
         /// <returns></returns>
         public SimpleJson From(string str)
         {
-            return From(new StringReader(str));
+            using (var r = new StringReader(str))
+            {
+                return From(r);
+            }
         }
 
         /// <summary>
@@ -30,32 +44,44 @@ namespace NewLife.Serialization.Json
         /// <returns></returns>
         public SimpleJson From(TextReader r)
         {
-            JsonAtomStringReader reader = new JsonAtomStringReader(r);
+            var reader = new JsonAtomStringReader(r);
             reader.SingleQuotesString = true;
-            SimpleJson ret = ReadJson(reader);
+            if (BeginFromJson != null)
+            {
+                var e = new EventArgs<JsonAtomStringReader>(reader);
+                BeginFromJson(this, e);
+                reader = e.Arg;
+            }
+            var ret = Read(reader);
+            if (EndFromJson != null)
+            {
+                var e = new EventArgs<JsonAtomStringReader, SimpleJson>(reader, ret);
+                EndFromJson(this, e);
+                ret = e.Arg2;
+            }
             return ret;
         }
 
         /// <summary>
-        /// 从指定Json原子元素读取流读出一个Json值,包括字典和数组
+        /// 从指定Json原子元素读取流读出一个Json值,包括对象和数组
         /// </summary>
         /// <param name="reader"></param>
         /// <returns></returns>
-        private SimpleJson ReadJson(JsonAtomStringReader reader)
+        private SimpleJson Read(JsonAtomStringReader reader)
         {
             SimpleJson ret = null;
             string str;
-            JsonAtomType t = reader.Read(false, out str);
-            SimpleJsonType retType = SimpleJsonType.Unknown;
+            var t = reader.Read(false, out str);
+            var retType = SimpleJsonType.Unknown;
             switch (t)
             {
                 case JsonAtomType.NONE:
                     break;
                 case JsonAtomType.BRACE_OPEN:
-                    ret = ReadJsonDict(reader);
+                    ret = ReadObject(reader);
                     break;
                 case JsonAtomType.BRACKET_OPEN:
-                    ret = ReadJsonList(reader);
+                    ret = ReadArray(reader);
                     break;
                 case JsonAtomType.TRUE:
                 case JsonAtomType.FALSE:
@@ -92,21 +118,30 @@ namespace NewLife.Serialization.Json
                     };
                     break;
             }
+            if (ret != null)
+            {
+                if (FromJson != null)
+                {
+                    var e = new EventArgs<JsonAtomStringReader, SimpleJson, JsonAtomType>(reader, ret, t);
+                    FromJson(this, e);
+                    ret = e.Arg2;
+                }
+            }
             return ret;
         }
 
         /// <summary>
-        /// 读取一个字典值
+        /// 读取一个Json对象值
         /// </summary>
         /// <param name="reader"></param>
         /// <returns></returns>
-        private SimpleJson ReadJsonDict(JsonAtomStringReader reader)
+        private SimpleJson ReadObject(JsonAtomStringReader reader)
         {
-            Dictionary<string, SimpleJson> d = new Dictionary<string, SimpleJson>();
+            var d = new Dictionary<string, SimpleJson>();
             bool isContinue = true;
             do
             {
-                SimpleJson k = ReadJson(reader);
+                var k = Read(reader);
                 if (k == null) break;
                 else if (k.IsUndefined || k.IsUnknown)
                 {
@@ -114,7 +149,7 @@ namespace NewLife.Serialization.Json
                     else break;
                 }
 
-                SimpleJson split = ReadJson(reader);
+                var split = Read(reader);
                 if (split == null) break;
                 else if (split.IsUndefined || split.IsUnknown)
                 {
@@ -125,7 +160,7 @@ namespace NewLife.Serialization.Json
                     else break;
                 }
 
-                SimpleJson v = ReadJson(reader);
+                var v = Read(reader);
                 if (v == null) v = Undefined();
                 else if (v.IsUndefined || v.IsUnknown)
                 {
@@ -135,7 +170,7 @@ namespace NewLife.Serialization.Json
             } while (isContinue);
             return new SimpleJson()
             {
-                Type = SimpleJsonType.Dict,
+                Type = SimpleJsonType.Object,
                 Value = d
             };
         }
@@ -144,13 +179,13 @@ namespace NewLife.Serialization.Json
         /// 读取一个数组值
         /// </summary>
         /// <returns></returns>
-        private SimpleJson ReadJsonList(JsonAtomStringReader reader)
+        private SimpleJson ReadArray(JsonAtomStringReader reader)
         {
-            List<SimpleJson> d = new List<SimpleJson>();
+            var d = new List<SimpleJson>();
             bool hasSplit = true;
             do
             {
-                SimpleJson v = ReadJson(reader);
+                var v = Read(reader);
                 if (v == null) break;
                 else if (v.IsUndefined || v.IsUnknown)
                 {
@@ -176,7 +211,7 @@ namespace NewLife.Serialization.Json
             } while (true);
             return new SimpleJson()
             {
-                Type = SimpleJsonType.List,
+                Type = SimpleJsonType.Array,
                 Value = d
             };
         }
@@ -188,7 +223,7 @@ namespace NewLife.Serialization.Json
         /// <returns></returns>
         private SimpleJson ParseInteger(string str)
         {
-            NumberStyles numstyle = NumberStyles.AllowLeadingSign | NumberStyles.AllowExponent;
+            var numstyle = NumberStyles.AllowLeadingSign | NumberStyles.AllowExponent;
             int i;
             long l;
             if (int.TryParse(str, numstyle, CultureInfo.InvariantCulture, out i))
@@ -199,7 +234,7 @@ namespace NewLife.Serialization.Json
             {
                 return Number(l);
             }
-            return Number(0); // TODO 需要处理无法识别的数字
+            return Number(0); // 无法识别的数字将默认为0
         }
 
         /// <summary>
@@ -209,7 +244,7 @@ namespace NewLife.Serialization.Json
         /// <returns></returns>
         private SimpleJson ParseFloat(string str)
         {
-            NumberStyles numstyle = NumberStyles.AllowLeadingSign | NumberStyles.AllowExponent | NumberStyles.AllowDecimalPoint;
+            var numstyle = NumberStyles.AllowLeadingSign | NumberStyles.AllowExponent | NumberStyles.AllowDecimalPoint;
             float f;
             double d;
             if (float.TryParse(str, numstyle, CultureInfo.InvariantCulture, out f))
@@ -228,15 +263,15 @@ namespace NewLife.Serialization.Json
         #region 产生Json值
 
         /// <summary>
-        /// 根据传入的值选择合适的SimpleJson返回
+        /// 根据传入的值选择合适的SimpleJson返回,如果不是基础类型则返回Type为Unknown的Json值,生成Json字符串时,可以指定ToJson事件以实现比如DateTime类型的生成
         /// </summary>
         /// <param name="o"></param>
         /// <returns></returns>
         public SimpleJson Value(object o)
         {
             if (o == null) return Null();
-            TypeCode tc = System.Type.GetTypeCode(o.GetType());
-            SimpleJsonType t = SimpleJsonType.Unknown;
+            var tc = System.Type.GetTypeCode(o.GetType());
+            var t = SimpleJsonType.Unknown;
             object v = o;
             switch (tc)
             {
@@ -378,11 +413,11 @@ namespace NewLife.Serialization.Json
         }
 
         /// <summary>
-        /// 返回一个js 字典值
+        /// 返回一个js 对象值
         /// </summary>
         /// <param name="args">名值对,必须是成对出现,否则将会抛弃最后一个</param>
         /// <returns></returns>
-        public SimpleJson Dict(params object[] args)
+        public SimpleJson Object(params object[] args)
         {
             Dictionary<string, SimpleJson> v;
             int n = args.Length & ~1;
@@ -398,7 +433,7 @@ namespace NewLife.Serialization.Json
             {
                 v = new Dictionary<string, SimpleJson>();
             }
-            return new SimpleJson() { Type = SimpleJsonType.Dict, Value = v };
+            return new SimpleJson() { Type = SimpleJsonType.Object, Value = v };
         }
 
         /// <summary>
@@ -406,7 +441,7 @@ namespace NewLife.Serialization.Json
         /// </summary>
         /// <param name="args">值,可以直接指定基础类型如int string这些</param>
         /// <returns></returns>
-        public SimpleJson List(params object[] args)
+        public SimpleJson Array(params object[] args)
         {
             List<SimpleJson> v;
             if (args.Length > 0)
@@ -421,7 +456,7 @@ namespace NewLife.Serialization.Json
             {
                 v = new List<SimpleJson>();
             }
-            return new SimpleJson() { Type = SimpleJsonType.List, Value = v };
+            return new SimpleJson() { Type = SimpleJsonType.Array, Value = v };
         }
 
         #endregion
@@ -433,56 +468,101 @@ namespace NewLife.Serialization.Json
         /// </summary>
         /// <param name="value"></param>
         /// <param name="writer"></param>
-        public void ToJson(SimpleJson value, TextWriter writer)
+        public void To(SimpleJson value, TextWriter writer)
         {
-            writer.Write(ToJson(value));
+            writer.Write(To(value));
         }
 
         /// <summary>
         /// 返回指定Json值的Json字符串
         /// </summary>
+        /// <remarks>
+        /// 如果value是一个Unknown/Undefined类型的值,则返回空白字符串,但是如果value下的对象或数组的中有Unknown/Undefined类型的值,则会尽可能修正为null或忽略(在数组结尾的Unknown/Undefined类型值会忽略)以符合Json标准
+        /// </remarks>
         /// <param name="value"></param>
         /// <returns></returns>
-        public string ToJson(SimpleJson value)
+        public string To(SimpleJson value)
         {
-            SimpleJsonType t = value.Type;
+            if (BeginToJson != null)
+            {
+                var e = new EventArgs<SimpleJson>(value);
+                BeginToJson(this, e);
+                value = e.Arg;
+            }
+            string ret = _To(value);
+            if (EndToJson != null)
+            {
+                var e = new EventArgs<SimpleJson, string>(value, ret);
+                EndToJson(this, e);
+                ret = e.Arg2;
+            }
+            return ret;
+        }
+
+        /// <summary>
+        /// 返回指定Json值的Json字符串,私有方法
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private string _To(SimpleJson value)
+        {
+            if (value == null) return "null";
+            string ret = "";
+            var t = value.Type;
             switch (t)
             {
                 case SimpleJsonType.Unknown:
                     goto case SimpleJsonType.Undefined;
-                case SimpleJsonType.Dict:
-                    return ToJsonDict(value);
-                case SimpleJsonType.List:
-                    return ToJsonList(value);
+                case SimpleJsonType.Object:
+                    ret = ToObject(value);
+                    break;
+                case SimpleJsonType.Array:
+                    ret = ToArray(value);
+                    break;
                 case SimpleJsonType.Integer:
                 case SimpleJsonType.Float:
                 case SimpleJsonType.Literal:
-                    return value.Value.ToString();
+                    ret = value.Value.ToString();
+                    break;
                 case SimpleJsonType.Boolean:
-                    return ((bool)value.Value) ? "true" : "false";
+                    ret = ((bool)value.Value) ? "true" : "false";
+                    break;
                 case SimpleJsonType.Null:
-                    return "null";
+                    ret = "null";
+                    break;
                 case SimpleJsonType.String:
-                    return "\"" + JsonWriter.JavascriptStringEncode((string)value.Value) + "\"";
+                    ret = StringProcess((string)value.Value,
+                        JsStringInDoubleQuote,
+                        IsEncodeUnicode ? EncodeUnicode : null,
+                        DoubleQuote);
+                    break;
                 case SimpleJsonType.Undefined:
-                    return "";
+                    break;
             }
-            return "";
+            if (ToJson != null)
+            {
+                var e = new EventArgs<SimpleJson, string>(value, ret);
+                ToJson(this, e);
+                ret = e.Arg2;
+            }
+            return ret;
         }
 
         /// <summary>
-        /// 返回指定Json字典的Json字符串
+        /// 返回指定Json对象的Json字符串
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        private string ToJsonDict(SimpleJson value)
+        private string ToObject(SimpleJson value)
         {
-            Dictionary<string, SimpleJson> d = value.Value as Dictionary<string, SimpleJson>;
-            string[] ret = new string[d.Count];
-            int i = 0;
+            var d = value.Value as Dictionary<string, SimpleJson>;
+            var ret = new string[d.Count];
+            var i = 0;
             foreach (var kv in d)
             {
-                ret[i++] = "\"" + JsonWriter.JavascriptStringEncode(kv.Key) + "\"" + ":" + ToJson(kv.Value); // TODO value为""时 在dict中格式不正确
+                string str = To(kv.Value);
+                if (string.IsNullOrEmpty(str)) str = "null"; // 修正不符合Json标准的对象成员值
+                ret[i++] = JsStringDefine(kv.Key) + ":" + str;
             }
             return "{" + string.Join(",", ret) + "}";
         }
@@ -492,16 +572,219 @@ namespace NewLife.Serialization.Json
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        private string ToJsonList(SimpleJson value)
+        private string ToArray(SimpleJson value)
         {
-            List<SimpleJson> d = value.Value as List<SimpleJson>;
-            string[] ret = new string[d.Count];
-            int i = 0;
+            var d = value.Value as List<SimpleJson>;
+            var ret = new string[d.Count];
+            int i = 0, n = 0;
             foreach (var v in d)
             {
-                ret[i++] = ToJson(v);
+                string str = ret[i++] = To(v);
+                if (!string.IsNullOrEmpty(str)) n = i; // 记录最后一个值为空白的索引,用于修正不符合Json标准的数组项
             }
-            return "[" + string.Join(",", ret) + "]"; // TODO 过滤掉Undefined的值
+            for (int j = 0; j < n; j++)
+            {
+                if (string.IsNullOrEmpty(ret[j]))
+                {
+                    ret[j] = "null"; // 修正不符合Json标准的数组项
+                }
+            }
+            return "[" + string.Join(",", ret, 0, n) + "]";
+        }
+
+        #endregion
+
+        #region 扩展事件
+
+        /// <summary>
+        /// 当开始解析一段Json字符串时触发的事件
+        /// </summary>
+        public event EventHandler<EventArgs<JsonAtomStringReader>> BeginFromJson;
+
+        /// <summary>
+        /// 当解析到一段Json值时触发
+        /// </summary>
+        public event EventHandler<EventArgs<JsonAtomStringReader, SimpleJson, JsonAtomType>> FromJson;
+
+        /// <summary>
+        /// 当完成解析一段Json字符串时触发
+        /// </summary>
+        public event EventHandler<EventArgs<JsonAtomStringReader, SimpleJson>> EndFromJson;
+
+        /// <summary>
+        /// 当开始从Json值产生字符串时触发
+        /// </summary>
+        public event EventHandler<EventArgs<SimpleJson>> BeginToJson;
+
+        /// <summary>
+        /// 当产生了一个Json值对应的Json字符串时触发
+        /// </summary>
+        public event EventHandler<EventArgs<SimpleJson, string>> ToJson;
+
+        /// <summary>
+        /// 当完成从Json值产生字符串时触发
+        /// </summary>
+        public event EventHandler<EventArgs<SimpleJson, string>> EndToJson;
+
+        #endregion
+
+        #region 其它
+
+        /// <summary>
+        /// 使用指定的处理方式处理指定字符串
+        /// </summary>
+        /// <remarks>
+        /// 处理方式有2种类型
+        ///   Func&lt;char, string&gt;(用于按字符处理,其中一个返回非null即表示当前字符转换成功)
+        ///   Func&lt;string, string&gt;(用于在最后处理整个字符串,会按照顺序全部调用)
+        /// </remarks>
+        /// <param name="value"></param>
+        /// <param name="args">处理方式</param>
+        /// <returns></returns>
+        public static string StringProcess(string value, params object[] args)
+        {
+            string ret;
+            if (string.IsNullOrEmpty(value)) ret = string.Empty;
+            else
+            {
+                StringBuilder builder = new StringBuilder(value.Length * 2);
+                int startIndex = 0;
+                int count = 0;
+
+                for (int i = 0; i < value.Length; i++)
+                {
+                    char c = value[i];
+                    string str = null;
+
+                    foreach (var f in args)
+                    {
+                        if (f is Func<char, string>)
+                        {
+                            str = ((Func<char, string>)f)(c);
+                            if (str != null) break;
+                        }
+                    }
+
+                    if (str != null) // 只在发现已处理的字符时用StringBuilder拼接
+                    {
+                        if (count > 0) builder.Append(value, startIndex, count);
+                        startIndex = i + 1;
+                        count = 0;
+                        builder.Append(str);
+                    }
+                    else
+                    {
+                        count++;
+                    }
+                }
+                if (builder.Length == 0) ret = value;
+                if (count > 0) builder.Append(value, startIndex, count);
+                ret = builder.ToString();
+            }
+            foreach (var f in args)
+            {
+                if (f is Func<string, string>)
+                {
+                    string str = ((Func<string, string>)f)(ret);
+                    if (str != null) ret = str;
+                }
+            }
+            return ret;
+        }
+
+        /// <summary>
+        /// 在双引号中使用的js字符串的处理方式
+        /// </summary>
+        public static readonly Func<char, string> JsStringInDoubleQuote = JsString('"');
+
+        /// <summary>
+        /// 在双引号中间使用的js字符串处理方式
+        /// </summary>
+        public static readonly Func<char, string> JsStringInSingleQuote = JsString('"');
+
+        /// <summary>
+        /// 在指定字符串两边加上双引号的处理方式
+        /// </summary>
+        public static readonly Func<string, string> DoubleQuote = delegate(string value)
+        {
+            return '"' + value + '"';
+        };
+
+        /// <summary>
+        /// 转换Unicode字符为\uXXXX形式的处理方式
+        /// </summary>
+        /// <remarks>
+        /// 解码方法参见 JsonAtomStringReader.TryDecodeUnicode
+        /// </remarks>
+        public static readonly Func<char, string> EncodeUnicode = delegate(char c)
+        {
+            if (c > 0x7e)
+            {
+                return string.Format("\\u{0:x4}", ((UInt16)c));
+            }
+            return null;
+        };
+
+        /// <summary>
+        /// 返回在StringProcess方法中使用的处理方式,用于将输入的字符串转换为Js字符串字面值
+        /// </summary>
+        /// <remarks>
+        /// 可指定是在什么引号中使用的字符串,如果既不是单引号也不是双引号则所有"和'符号都会使用转义符号\
+        ///
+        /// 返回结果不包含字符串两边的引号
+        /// </remarks>
+        /// <param name="quoto">单引号或双引号,或未知0</param>
+        /// <returns></returns>
+        public static Func<char, string> JsString(char quoto)
+        {
+            bool IsEscapeAll = quoto != '"' && quoto != '\'';
+            return delegate(char c)
+            {
+                string str = null;
+                switch (c)
+                {
+                    case '\'':
+                    case '"':
+                        if (IsEscapeAll || c == quoto) str = "\\" + c;
+                        break;
+                    case '\\':
+                        str = "\\\\"; break;
+                    case '/':
+                        str = "/"; break;
+                    case '\b':
+                        str = "\\b"; break;
+                    case '\f':
+                        str = "\\f"; break;
+                    case '\n':
+                        str = "\\n"; break;
+                    case '\r':
+                        str = "\\r"; break;
+                    case '\t':
+                        str = "\\t"; break;
+                    default:
+                        if (c < ' ') // 避免直接输出了例外的控制字符
+                        {
+                            str = string.Format("\\u{0:x4}", ((UInt16)c));
+                        }
+                        break;
+                }
+                return str;
+            };
+        }
+
+        /// <summary>
+        /// 返回一个在Js代码中使用的Js字符串声明赋值的值部分
+        /// </summary>
+        /// <remarks>
+        /// <code>
+        ///   var a=&lt;%=JsStringDefine("foo bar") %&gt;;
+        /// </code>
+        /// </remarks>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static string JsStringDefine(string str)
+        {
+            return StringProcess(str, JsStringInDoubleQuote, DoubleQuote);
         }
 
         #endregion
@@ -515,25 +798,25 @@ namespace NewLife.Serialization.Json
         /// <summary>
         /// 值类型
         /// </summary>
-        public SimpleJsonType Type { get; set; }
+        public virtual SimpleJsonType Type { get; set; }
 
         /// <summary>
         /// 值,实际类型取决于Type属性
         /// </summary>
-        public object Value { get; set; }
+        public virtual object Value { get; set; }
 
         /// <summary>
         /// 易用的方法,返回当前值是否是未定义
         /// </summary>
-        public bool IsUndefined { get { return Type == SimpleJsonType.Undefined; } }
+        public virtual bool IsUndefined { get { return Type == SimpleJsonType.Undefined; } }
 
         /// <summary>
         /// 易用的方法,返回当前值是否是未知的值
         /// </summary>
-        public bool IsUnknown { get { return Type == SimpleJsonType.Unknown; } }
+        public virtual bool IsUnknown { get { return Type == SimpleJsonType.Unknown; } }
 
         /// <summary>
-        /// 返回字典或数字的元素总数,非字典或数组的情况下返回0
+        /// 返回对象或数组的元素总数,非对象和数组的情况下返回0
         /// </summary>
         public int Count
         {
@@ -542,6 +825,24 @@ namespace NewLife.Serialization.Json
                 ICollection col;
                 if (TryGet<ICollection>(out col)) return col.Count;
                 return 0;
+            }
+        }
+
+        /// <summary>
+        /// 返回对象的所有成员名称,非对象的情况下返回长度为0的数组
+        /// </summary>
+        public string[] Keys
+        {
+            get
+            {
+                Dictionary<string, SimpleJson> d;
+                if (TryGet<Dictionary<string, SimpleJson>>(out d))
+                {
+                    string[] ret = new string[d.Count];
+                    d.Keys.CopyTo(ret, 0);
+                    return ret;
+                }
+                return new string[] { };
             }
         }
 
@@ -569,7 +870,7 @@ namespace NewLife.Serialization.Json
         }
 
         /// <summary>
-        /// 按名称索引,只在Type为字典是生效,如果不是字典或不存在将返回Undefined
+        /// 按名称索引,只在Type为对象是生效,如果不是对象或不存在将返回Undefined
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -612,7 +913,6 @@ namespace NewLife.Serialization.Json
                     {
                         offset2plus = offset1 = 1;
                     }
-
                 }
                 else
                 {
@@ -624,7 +924,7 @@ namespace NewLife.Serialization.Json
                 {
                     string key = query.Substring(offset1, offset2 - offset1);
                     string nextQuery = query.Substring(offset2 + offset2plus);
-                    if (Type == SimpleJsonType.List)
+                    if (Type == SimpleJsonType.Array)
                     {
                         int index;
                         if (int.TryParse(key, out index))
@@ -643,7 +943,7 @@ namespace NewLife.Serialization.Json
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Get<T>()
+        public virtual T Get<T>()
         {
             T ret;
             if (TryGet<T>(out ret)) return ret;
@@ -656,7 +956,7 @@ namespace NewLife.Serialization.Json
         /// <typeparam name="T"></typeparam>
         /// <param name="query"></param>
         /// <returns></returns>
-        public T Get<T>(string query)
+        public virtual T Get<T>(string query)
         {
             return Get(query, default(T));
         }
@@ -668,7 +968,7 @@ namespace NewLife.Serialization.Json
         /// <param name="query"></param>
         /// <param name="_default"></param>
         /// <returns></returns>
-        public T Get<T>(string query, T _default)
+        public virtual T Get<T>(string query, T _default)
         {
             SimpleJson val = Get(query);
             T ret;
@@ -681,7 +981,7 @@ namespace NewLife.Serialization.Json
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public bool TryGet<T>(out T val)
+        public virtual bool TryGet<T>(out T val)
         {
             val = default(T);
             if (Value is T)
@@ -698,7 +998,7 @@ namespace NewLife.Serialization.Json
         /// <returns></returns>
         public override string ToString()
         {
-            if (Type == SimpleJsonType.Dict || Type == SimpleJsonType.List)
+            if (Type == SimpleJsonType.Object || Type == SimpleJsonType.Array)
             {
                 return string.Format("{0} Count:{1}", Type, Count);
             }
@@ -720,13 +1020,13 @@ namespace NewLife.Serialization.Json
         /// </summary>
         Unknown,
         /// <summary>
-        /// 字典类型,即{"key":"value"}
+        /// 对象类型,即{"key":"value"}
         /// </summary>
-        Dict,
+        Object,
         /// <summary>
         /// 数组类型,即["value",1,2,3]
         /// </summary>
-        List,
+        Array,
         /// <summary>
         /// 字符串
         /// </summary>

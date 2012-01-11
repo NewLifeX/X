@@ -215,14 +215,11 @@ namespace NewLife.Serialization
                     char[] uniChar = new char[4];
                     int n = Reader.ReadBlock(uniChar, 0, 4);
                     string str = new string(uniChar, 0, n);
-                    if (n == 4)
+                    char cc;
+                    if (TryDecodeUnicode(str, out cc))
                     {
-                        UInt16 charCode;
-                        if (UInt16.TryParse(str, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out charCode))
-                        {
-                            Column += 4;
-                            return "" + (char)charCode;
-                        }
+                        Column += 4;
+                        return "" + cc;
                     }
                     throw new JsonReaderParseException(Line, Column, "无效的Unicode字符转义\\u" + str);
                 default:
@@ -409,6 +406,27 @@ namespace NewLife.Serialization
                 }
             } while (skipDepth > 0);
             return this;
+        }
+
+        /// <summary>
+        /// 尝试解码指定4个16进制字符表示的Unicode字符
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="cc"></param>
+        /// <returns></returns>
+        public static bool TryDecodeUnicode(string str, out char cc)
+        {
+            if (str != null && str.Length == 4)
+            {
+                UInt16 i;
+                if (UInt16.TryParse(str, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out i))
+                {
+                    cc = (char)i;
+                    return true;
+                }
+            }
+            cc = (char)0;
+            return false;
         }
     }
 
