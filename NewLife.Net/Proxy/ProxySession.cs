@@ -44,7 +44,7 @@ namespace NewLife.Net.Proxy
         {
             base.OnDispose(disposing);
 
-            if (Remote == null)
+            if (Remote != null)
             {
                 Remote.Dispose();
                 Remote = null;

@@ -37,13 +37,10 @@ namespace NewLife.Net.Proxy
                 WriteLog("请求：{0}", entity.RawUrl);
 
                 //entity.Headers["Host"] = Proxy.ServerAddress;
-                if (entity.Url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                    entity.Url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                if (entity.Url.IsAbsoluteUri)
                 {
-                    var uri = new Uri(entity.Url);
-                    var host = uri.Host;
-                    var port = uri.Port;
-                    RemoteEndPoint = new IPEndPoint(NetHelper.ParseAddress(host), port);
+                    var uri = entity.Url;
+                    RemoteEndPoint = new IPEndPoint(NetHelper.ParseAddress(uri.Host), uri.Port);
                 }
 
                 var ms = new MemoryStream();

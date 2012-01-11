@@ -47,6 +47,10 @@ namespace NewLife.Net.Proxy
             ///// <summary>代理对象</summary>
             //public new HttpReverseProxy Proxy { get { return base.Proxy as HttpReverseProxy; } set { base.Proxy = value; } }
 
+            private HttpHeader _Request;
+            /// <summary>请求头部</summary>
+            public HttpHeader Request { get { return _Request; } set { _Request = value; } }
+
             private String _Host;
             /// <summary>属性说明</summary>
             public String Host { get { return _Host; } set { _Host = value; } }
@@ -62,33 +66,31 @@ namespace NewLife.Net.Proxy
             protected override Stream OnReceive(NetEventArgs e, Stream stream)
             {
                 // 解析请求头
-                var entity = HttpHeader.Read(stream);
-                WriteLog("请求：{0}", entity.Url);
+                var entity = HttpHeader.Read(stream, HttpHeaderReadMode.Request);
+                if (entity == null) return base.OnReceive(e, stream);
 
-                var host = Proxy.ServerAddress;
-                var uri = new Uri(entity.Url, UriKind.RelativeOrAbsolute);
-                if (uri.IsAbsoluteUri && String.IsNullOrEmpty(uri.Host)) host = uri.Host;
+                WriteLog("{3}请求：{0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength, ID);
+
+                var host = entity.Url.IsAbsoluteUri ? entity.Url.Host : Proxy.ServerAddress;
                 Host = host;
-
-                var rawhost = entity.Headers["Host"];
-                RawHost = rawhost;
-                entity.Headers["Host"] = host;
+                RawHost = entity.Host;
+                entity.Host = host;
 
                 // 引用
-                var r = entity.Headers["Referer"];
+                var r = entity.Referer;
                 if (!String.IsNullOrEmpty(r))
                 {
                     Uri ri = new Uri(r, UriKind.RelativeOrAbsolute);
-                    if (ri.IsAbsoluteUri && ri.Authority == rawhost)
+                    if (ri.IsAbsoluteUri && ri.Authority == RawHost)
                     {
-                        r = r.Replace(rawhost, host);
-                        entity.Headers["Referer"] = r;
+                        r = r.Replace(RawHost, host);
+                        entity.Referer = r;
                     }
                 }
 
-                // 取消压缩
-                var key = "Accept-Encoding";
-                if (entity.Headers.ContainsKey(key)) entity.Headers.Remove(key);
+                //// 取消压缩
+                //var key = "Accept-Encoding";
+                //if (entity.Headers.ContainsKey(key)) entity.Headers.Remove(key);
 
                 var ms = new MemoryStream();
                 entity.Write(ms);
@@ -98,20 +100,21 @@ namespace NewLife.Net.Proxy
                 return ms;
             }
 
-            /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
-            /// <param name="e"></param>
-            /// <param name="stream">数据</param>
-            /// <returns>修改后的数据</returns>
-            protected override Stream OnReceiveRemote(NetEventArgs e, Stream stream)
-            {
-                //var entity = HttpHeader.Read(stream);
+            ///// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
+            ///// <param name="e"></param>
+            ///// <param name="stream">数据</param>
+            ///// <returns>修改后的数据</returns>
+            //protected override Stream OnReceiveRemote(NetEventArgs e, Stream stream)
+            //{
+            //    //var entity = HttpHeader.Read(stream, HttpHeaderReadMode.Response);
+            //    //if (entity == null) return base.OnReceive(e, stream);
 
-                var html = e.GetString();
-                html = html.Replace(Host, RawHost);
-                stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
+            //    var html = e.GetString();
+            //    html = html.Replace(Host, RawHost);
+            //    stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
 
-                return base.OnReceiveRemote(e, stream);
-            }
+            //    return base.OnReceiveRemote(e, stream);
+            //}
         }
         #endregion
     }

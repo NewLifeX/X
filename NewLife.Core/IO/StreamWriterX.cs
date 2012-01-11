@@ -6,7 +6,7 @@ using NewLife.Reflection;
 
 namespace NewLife.IO
 {
-    /// <summary>增强的数据流读取器</summary>
+    /// <summary>增强的数据流写入器</summary>
     /// <remarks>
     /// StreamWriter太恶心了，自动把流给关闭了，还没有地方设置。
     /// </remarks>
@@ -47,13 +47,13 @@ namespace NewLife.IO
         /// <summary>用指定的编码及缓冲区大小，为指定的流初始化 <see cref="T:System.IO.StreamWriter" /> 类的新实例。</summary>
         /// <param name="stream">要写入的流。</param>
         /// <param name="encoding">要使用的字符编码。</param>
-        /// <param name="closeable">是否关闭数据流。</param>
+        /// <param name="closable">是否关闭数据流。</param>
         /// <exception cref="T:System.ArgumentNullException"><paramref name="stream" /> 或 <paramref name="encoding" /> 为 null。</exception>
         /// <exception cref="T:System.ArgumentException"><paramref name="stream" /> 不可写。</exception>
-        public StreamWriterX(Stream stream, Encoding encoding, bool closeable)
+        public StreamWriterX(Stream stream, Encoding encoding, bool closable)
             : base(stream, encoding)
         {
-            Closable = closeable;
+            Closable = closable;
         }
         #endregion
     }
