@@ -698,9 +698,9 @@ namespace NewLife.Serialization.Json
         public static readonly Func<char, string> JsStringInDoubleQuote = JsString('"');
 
         /// <summary>
-        /// 在双引号中间使用的js字符串处理方式
+        /// 在单引号中间使用的js字符串处理方式
         /// </summary>
-        public static readonly Func<char, string> JsStringInSingleQuote = JsString('"');
+        public static readonly Func<char, string> JsStringInSingleQuote = JsString('\'');
 
         /// <summary>
         /// 在指定字符串两边加上双引号的处理方式
@@ -708,6 +708,14 @@ namespace NewLife.Serialization.Json
         public static readonly Func<string, string> DoubleQuote = delegate(string value)
         {
             return '"' + value + '"';
+        };
+
+        /// <summary>
+        /// 在指定字符串两边加上单引号的处理方式
+        /// </summary>
+        public static readonly Func<string, string> SingleQuote = delegate(string value)
+        {
+            return "'" + value + "'";
         };
 
         /// <summary>
@@ -784,7 +792,18 @@ namespace NewLife.Serialization.Json
         /// <returns></returns>
         public static string JsStringDefine(string str)
         {
-            return StringProcess(str, JsStringInDoubleQuote, DoubleQuote);
+            return JsStringDefine(str, false);
+        }
+
+        /// <summary>
+        /// 返回一个在Js代码中使用的Js字符串声明复制的值部分,可指定字符串赋值使用单引号还是双引号
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="useSingleQuote">true表示使用单引号,否则使用双引号</param>
+        /// <returns></returns>
+        public static string JsStringDefine(string str, bool useSingleQuote)
+        {
+            return StringProcess(str, useSingleQuote ? JsStringInSingleQuote : JsStringInDoubleQuote, useSingleQuote ? SingleQuote : DoubleQuote);
         }
 
         #endregion
@@ -830,6 +849,8 @@ namespace NewLife.Serialization.Json
 
         /// <summary>
         /// 返回对象的所有成员名称,非对象的情况下返回长度为0的数组
+        ///
+        /// 并不保证成员名称顺序和声明时顺序一致
         /// </summary>
         public string[] Keys
         {
