@@ -22,6 +22,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\..\生成\NewLife.Net.XML</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,6 +32,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\..\生成\NewLife.Net.XML</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -62,6 +64,16 @@
     <Compile Include="FTP\FTPServer.cs" />
     <Compile Include="FTP\FTPSession.cs" />
     <Compile Include="FTP\FTPTransferMode.cs" />
+    <Compile Include="Http\ByteParser.cs" />
+    <Compile Include="Http\ByteString.cs" />
+    <Compile Include="Http\HttpServer.cs" />
+    <Compile Include="Http\HttpSession.cs" />
+    <Compile Include="Http\Messages.cs" />
+    <Compile Include="Http\NtlmAuth.cs" />
+    <Compile Include="Http\WebHost.cs" />
+    <Compile Include="Http\WebRequest.cs" />
+    <Compile Include="Http\WebServer.cs" />
+    <Compile Include="Http\WebSession.cs" />
     <Compile Include="NetService.cs" />
     <Compile Include="DNS\DNSClient.cs" />
     <Compile Include="DNS\DNSEntity.cs" />
@@ -160,6 +172,9 @@
     <Compile Include="Tcp\TcpClientX.cs" />
     <Compile Include="Tcp\TcpServer.cs" />
     <Compile Include="Tcp\TcpSessionCollection.cs" />
+    <Compile Include="Telnet\TelnetClient.cs" />
+    <Compile Include="Telnet\TelnetServer.cs" />
+    <Compile Include="Telnet\TelnetSession.cs" />
     <Compile Include="Udp\UdpClientX.cs" />
     <Compile Include="Udp\UdpServer.cs" />
     <Compile Include="UPnP\Entities\Device.cs" />
@@ -191,7 +206,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CMPP\" />
-    <Folder Include="Telnet\" />
     <Folder Include="Turn\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

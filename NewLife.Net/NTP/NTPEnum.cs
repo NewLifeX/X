@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace NewLife.Net.Protocols
+namespace NewLife.Net.NTP
 {
     /// <summary>
     /// Leap indicator

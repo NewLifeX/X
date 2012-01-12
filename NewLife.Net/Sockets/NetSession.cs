@@ -26,9 +26,9 @@ namespace NewLife.Net.Sockets
         /// <summary>服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
         public ISocketServer Server { get { return _Server; } set { _Server = value; } }
 
-        private EndPoint _ClientEndPoint;
+        private IPEndPoint _ClientEndPoint;
         /// <summary>客户端远程IP终结点</summary>
-        public EndPoint ClientEndPoint { get { return _ClientEndPoint; } set { _ClientEndPoint = value; } }
+        public IPEndPoint ClientEndPoint { get { return _ClientEndPoint; } set { _ClientEndPoint = value; } }
         #endregion
 
         #region 方法

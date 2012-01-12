@@ -24,7 +24,7 @@ namespace NewLife.Net.Sockets
         ISocketSession Session { get; set; }
 
         /// <summary>客户端远程IP终结点</summary>
-        EndPoint ClientEndPoint { get; set; }
+        IPEndPoint ClientEndPoint { get; set; }
         #endregion
 
         #region 方法

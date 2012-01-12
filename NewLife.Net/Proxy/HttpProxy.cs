@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using NewLife.IO;
-using NewLife.Net.Protocols.Http;
+using NewLife.Net.Http;
 using NewLife.Net.Sockets;
 using System.Net;
 

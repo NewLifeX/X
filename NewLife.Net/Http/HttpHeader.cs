@@ -5,7 +5,7 @@ using System.Collections.Specialized;
 using System.IO;
 using NewLife.IO;
 
-namespace NewLife.Net.Protocols.Http
+namespace NewLife.Net.Http
 {
     /// <summary>Http头部</summary>
     public class HttpHeader
@@ -48,8 +48,20 @@ namespace NewLife.Net.Protocols.Http
         /// <summary>引用页</summary>
         public String Referer { get { return Headers["Referer"]; } set { Headers["Referer"] = value; } }
 
+        /// <summary>重定向地址</summary>
+        public String Location { get { return Headers["Location"]; } set { Headers["Location"] = value; } }
+
         /// <summary>内容长度</summary>
         public Int32 ContentLength { get { return Headers["Content-Length"].IsNullOrWhiteSpace() ? 0 : Int32.Parse(Headers["Content-Length"]); } set { Headers["Content-Length"] = value.ToString(); } }
+
+        /// <summary>内容类型</summary>
+        public String ContentType { get { return Headers["Content-type"]; } set { Headers["Content-type"] = value; } }
+
+        /// <summary>是否保持连接</summary>
+        public String Connection { get { return Headers["Connection"]; } set { Headers["Connection"] = value; } }
+
+        /// <summary>是否保持连接</summary>
+        public Boolean KeepAlive { get { return !"Close".EqualIgnoreCase(Connection); } set { Connection = value ? "keep-alive" : "Close"; } }
 
         /// <summary>原始地址。直接代理会包括全路径</summary>
         public String RawUrl { get { return Url != null && Url.IsAbsoluteUri ? Url.ToString() : String.Format("http://{0}{1}", Host, Url); } }
@@ -195,7 +207,15 @@ namespace NewLife.Net.Protocols.Http
                     String v = null;
                     return TryGetValue(key, out v) ? v : null;
                 }
-                set { base[key] = value; }
+                set
+                {
+                    if (value == null)
+                    {
+                        if (ContainsKey(key)) Remove(key);
+                    }
+                    else
+                        base[key] = value;
+                }
             }
         }
         #endregion
