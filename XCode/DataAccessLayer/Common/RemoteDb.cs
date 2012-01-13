@@ -53,7 +53,7 @@ namespace XCode.DataAccessLayer
                 DbConnectionStringBuilder builder = Factory.CreateConnectionStringBuilder();
                 if (builder != null)
                 {
-                    builder["Data Source"] = "127.0.0.1";
+                    builder["Server"] = "127.0.0.1";
                     builder["Database"] = SystemDatabaseName;
                     return builder.ToString();
                 }

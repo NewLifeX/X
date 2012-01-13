@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;
+using System.Text;
 
 namespace XCoder
 {
@@ -170,33 +171,129 @@ namespace XCoder
         #region 建表语句
         void SetDbTypes()
         {
-            String[] ss = Enum.GetNames(typeof(DatabaseType));
-            List<String> list = new List<string>(ss);
-            for (int i = list.Count - 1; i >= 0; i--)
+            //String[] ss = Enum.GetNames(typeof(DatabaseType));
+            //List<String> list = new List<string>(ss);
+            //for (int i = list.Count - 1; i >= 0; i--)
+            //{
+            //    Int32 n = (Int32)Enum.Parse(typeof(DatabaseType), list[i]);
+            //    if (n >= 100) list.RemoveAt(i);
+            //}
+            //cbConn.DataSource = list;
+            var list = new List<String>();
+            foreach (String item in DAL.ConnStrs.Keys)
             {
-                Int32 n = (Int32)Enum.Parse(typeof(DatabaseType), list[i]);
-                if (n >= 100) list.RemoveAt(i);
+                list.Add(item);
             }
-            cbDbTypes.DataSource = list;
-            cbDbTypes.Update();
+            cbConn.DataSource = list;
+            cbConn.Update();
         }
 
         private void btnCreateTableSQL_Click(object sender, EventArgs e)
         {
-            if (cbDbTypes.SelectedItem == null) return;
+            if (cbConn.SelectedItem == null) return;
 
             IDataTable table = GetSelectedTable();
             if (table == null) return;
 
-            DatabaseType dbt = (DatabaseType)Enum.Parse(typeof(DatabaseType), (String)cbDbTypes.SelectedItem);
+            var dal = DAL.Create("" + cbConn.SelectedItem);
+            if (dal == null) return;
 
-            IDatabase db = DbFactory.Create(dbt);
-            if (db == null) return;
+            try
+            {
+                IMetaData md = dal.Db.CreateMetaData();
+                var sql = CreateTable(md, table);
 
-            IMetaData md = db.CreateMetaData();
+                FrmText.Create(table.Name + "表建表语句", sql).Show();
+            }
+            catch (Exception ex)
+            {
+                FrmText.Create(table.Name + "表建表语句", "生成建表语句错误！" + Environment.NewLine + ex.ToString()).Show();
+            }
+        }
+
+        static String CreateTable(IMetaData md, IDataTable table)
+        {
             String sql = md.GetSchemaSQL(DDLSchema.CreateTable, table);
 
-            FrmText.Create(table.Name + "表建表语句", sql).Show();
+            var sb = new StringBuilder();
+            if (!String.IsNullOrEmpty(sql)) sb.AppendLine(sql + "; ");
+
+            // 加上表注释
+            if (!String.IsNullOrEmpty(table.Description))
+            {
+                sql = md.GetSchemaSQL(DDLSchema.AddTableDescription, table);
+                if (!String.IsNullOrEmpty(sql)) sb.AppendLine(sql + "; ");
+            }
+
+            // 加上字段注释
+            foreach (IDataColumn item in table.Columns)
+            {
+                if (!String.IsNullOrEmpty(item.Description))
+                {
+                    sql = md.GetSchemaSQL(DDLSchema.AddColumnDescription, item);
+                    if (!String.IsNullOrEmpty(sql)) sb.AppendLine(sql + "; ");
+                }
+            }
+
+            // 加上索引
+            if (table.Indexes != null)
+            {
+                foreach (IDataIndex item in table.Indexes)
+                {
+                    if (!item.PrimaryKey)
+                    {
+                        sql = md.GetSchemaSQL(DDLSchema.CreateIndex, item);
+                        if (!String.IsNullOrEmpty(sql)) sb.AppendLine(sql + "; ");
+                    }
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        private void btnCreateDbSQL_Click(object sender, EventArgs e)
+        {
+            if (cbConn.SelectedItem == null) return;
+
+            var dal = DAL.Create("" + cbConn.SelectedItem);
+            if (dal == null) return;
+
+            try
+            {
+                IMetaData md = dal.Db.CreateMetaData();
+                var sb = new StringBuilder();
+                foreach (var table in Tables)
+                {
+                    var sql = CreateTable(md, table);
+                    if (!String.IsNullOrEmpty(sql)) sb.AppendLine(sql);
+                }
+
+                FrmText.Create("建表语句", sb.ToString()).Show();
+            }
+            catch (Exception ex)
+            {
+                FrmText.Create("建表语句", "生成建表语句错误！" + Environment.NewLine + ex.ToString()).Show();
+            }
+        }
+
+        private void btnCreateDb_Click(object sender, EventArgs e)
+        {
+            if (cbConn.SelectedItem == null) return;
+
+            var dal = DAL.Create("" + cbConn.SelectedItem);
+            if (dal == null) return;
+
+            try
+            {
+                IMetaData md = dal.Db.CreateMetaData();
+                md.SetTables(Tables.ToArray());
+
+                MessageBox.Show("成功建立" + Tables.Count + "张数据表！", this.Text);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("建表失败！" + Environment.NewLine + ex.Message, this.Text);
+            }
         }
         #endregion
     }

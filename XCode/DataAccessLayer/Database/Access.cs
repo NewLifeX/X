@@ -34,6 +34,25 @@ namespace XCode.DataAccessLayer
         {
             get { return OleDbFactory.Instance; }
         }
+
+        protected override string DefaultConnectionString
+        {
+            get
+            {
+                DbConnectionStringBuilder builder = Factory.CreateConnectionStringBuilder();
+                if (builder != null)
+                {
+                    String name = Path.GetTempFileName();
+                    FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "Database.mdb", name, true);
+
+                    builder[_.DataSource] = name;
+                    builder["Provider"] = "Microsoft.Jet.OLEDB.4.0";
+                    return builder.ToString();
+                }
+
+                return base.DefaultConnectionString;
+            }
+        }
         #endregion
 
         #region ·½·¨

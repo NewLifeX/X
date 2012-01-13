@@ -29,10 +29,12 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("4.5.*")]
-[assembly: AssemblyFileVersion("4.5.2011.1108")]
+[assembly: AssemblyVersion("4.6.*")]
+[assembly: AssemblyFileVersion("4.6.2012.0113")]
 
 /*
+ * v4.6.2012.0113   代码生成器提供生成建表语句，建库语句，还有直接建库的功能
+ * 
  * v4.5.2011.1108   配合实体访问器和CommonEntity，增加第三代管理页面模版
  * 
  * v4.4.2011.1031   增加查询分析器

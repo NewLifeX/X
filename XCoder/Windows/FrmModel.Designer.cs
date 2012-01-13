@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmModel));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.btnAddRelation = new System.Windows.Forms.Button();
             this.btnAddIndex = new System.Windows.Forms.Button();
@@ -43,8 +42,10 @@
             this.dgvRelation = new System.Windows.Forms.DataGridView();
             this.btnCreateTableSQL = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
-            this.cbDbTypes = new System.Windows.Forms.ComboBox();
+            this.cbConn = new System.Windows.Forms.ComboBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.btnCreateDbSQL = new System.Windows.Forms.Button();
+            this.btnCreateDb = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gv)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvIndex)).BeginInit();
@@ -64,13 +65,13 @@
             this.groupBox1.Controls.Add(this.cbTables);
             this.groupBox1.Location = new System.Drawing.Point(6, 2);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(609, 44);
+            this.groupBox1.Size = new System.Drawing.Size(536, 44);
             this.groupBox1.TabIndex = 2;
             this.groupBox1.TabStop = false;
             // 
             // btnAddRelation
             // 
-            this.btnAddRelation.Location = new System.Drawing.Point(530, 11);
+            this.btnAddRelation.Location = new System.Drawing.Point(461, 11);
             this.btnAddRelation.Name = "btnAddRelation";
             this.btnAddRelation.Size = new System.Drawing.Size(68, 27);
             this.btnAddRelation.TabIndex = 5;
@@ -80,7 +81,7 @@
             // 
             // btnAddIndex
             // 
-            this.btnAddIndex.Location = new System.Drawing.Point(439, 11);
+            this.btnAddIndex.Location = new System.Drawing.Point(387, 11);
             this.btnAddIndex.Name = "btnAddIndex";
             this.btnAddIndex.Size = new System.Drawing.Size(68, 27);
             this.btnAddIndex.TabIndex = 4;
@@ -90,7 +91,7 @@
             // 
             // btnAddColumn
             // 
-            this.btnAddColumn.Location = new System.Drawing.Point(348, 11);
+            this.btnAddColumn.Location = new System.Drawing.Point(313, 11);
             this.btnAddColumn.Name = "btnAddColumn";
             this.btnAddColumn.Size = new System.Drawing.Size(68, 27);
             this.btnAddColumn.TabIndex = 3;
@@ -100,7 +101,7 @@
             // 
             // btnAddTable
             // 
-            this.btnAddTable.Location = new System.Drawing.Point(257, 11);
+            this.btnAddTable.Location = new System.Drawing.Point(239, 11);
             this.btnAddTable.Name = "btnAddTable";
             this.btnAddTable.Size = new System.Drawing.Size(68, 27);
             this.btnAddTable.TabIndex = 2;
@@ -186,7 +187,7 @@
             // 
             // btnCreateTableSQL
             // 
-            this.btnCreateTableSQL.Location = new System.Drawing.Point(180, 11);
+            this.btnCreateTableSQL.Location = new System.Drawing.Point(207, 11);
             this.btnCreateTableSQL.Name = "btnCreateTableSQL";
             this.btnCreateTableSQL.Size = new System.Drawing.Size(68, 27);
             this.btnCreateTableSQL.TabIndex = 6;
@@ -199,29 +200,51 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(9, 18);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(77, 12);
+            this.label2.Size = new System.Drawing.Size(41, 12);
             this.label2.TabIndex = 8;
-            this.label2.Text = "数据库类型：";
+            this.label2.Text = "连接：";
             // 
-            // cbDbTypes
+            // cbConn
             // 
-            this.cbDbTypes.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbDbTypes.FormattingEnabled = true;
-            this.cbDbTypes.Location = new System.Drawing.Point(92, 14);
-            this.cbDbTypes.Name = "cbDbTypes";
-            this.cbDbTypes.Size = new System.Drawing.Size(82, 20);
-            this.cbDbTypes.TabIndex = 7;
+            this.cbConn.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbConn.FormattingEnabled = true;
+            this.cbConn.Location = new System.Drawing.Point(44, 14);
+            this.cbConn.Name = "cbConn";
+            this.cbConn.Size = new System.Drawing.Size(143, 20);
+            this.cbConn.TabIndex = 7;
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.cbConn);
+            this.groupBox2.Controls.Add(this.btnCreateDb);
+            this.groupBox2.Controls.Add(this.btnCreateDbSQL);
             this.groupBox2.Controls.Add(this.label2);
             this.groupBox2.Controls.Add(this.btnCreateTableSQL);
-            this.groupBox2.Controls.Add(this.cbDbTypes);
-            this.groupBox2.Location = new System.Drawing.Point(621, 2);
+            this.groupBox2.Location = new System.Drawing.Point(548, 2);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(391, 44);
+            this.groupBox2.Size = new System.Drawing.Size(464, 44);
             this.groupBox2.TabIndex = 8;
             this.groupBox2.TabStop = false;
+            // 
+            // btnCreateDbSQL
+            // 
+            this.btnCreateDbSQL.Location = new System.Drawing.Point(281, 11);
+            this.btnCreateDbSQL.Name = "btnCreateDbSQL";
+            this.btnCreateDbSQL.Size = new System.Drawing.Size(88, 27);
+            this.btnCreateDbSQL.TabIndex = 9;
+            this.btnCreateDbSQL.Text = "建所有表语句";
+            this.btnCreateDbSQL.UseVisualStyleBackColor = true;
+            this.btnCreateDbSQL.Click += new System.EventHandler(this.btnCreateDbSQL_Click);
+            // 
+            // btnCreateDb
+            // 
+            this.btnCreateDb.Location = new System.Drawing.Point(375, 11);
+            this.btnCreateDb.Name = "btnCreateDb";
+            this.btnCreateDb.Size = new System.Drawing.Size(68, 27);
+            this.btnCreateDb.TabIndex = 10;
+            this.btnCreateDb.Text = "建数据库";
+            this.btnCreateDb.UseVisualStyleBackColor = true;
+            this.btnCreateDb.Click += new System.EventHandler(this.btnCreateDb_Click);
             // 
             // FrmModel
             // 
@@ -235,7 +258,6 @@
             this.Controls.Add(this.pgTable);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.gv);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FrmModel";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "数据架构管理";
@@ -267,7 +289,9 @@
         private System.Windows.Forms.Button btnAddTable;
         private System.Windows.Forms.Button btnCreateTableSQL;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.ComboBox cbDbTypes;
+        private System.Windows.Forms.ComboBox cbConn;
         private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.Button btnCreateDb;
+        private System.Windows.Forms.Button btnCreateDbSQL;
     }
 }
