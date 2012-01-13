@@ -59,7 +59,7 @@ namespace NewLife.Net.Sockets
         }
         #endregion
 
-        #region 接收
+        #region 异步开始
         /// <summary>开始异步接收数据</summary>
         /// <param name="e"></param>
         public virtual void ReceiveAsync(NetEventArgs e = null) { StartAsync(Client.ReceiveAsync, e); }

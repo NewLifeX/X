@@ -72,7 +72,7 @@ namespace NewLife.Net.Sockets
         }
 
         private Int32 _Port;
-        /// <summary>监听端口</summary>
+        /// <summary>监听本地端口</summary>
         public Int32 Port
         {
             get
@@ -90,7 +90,7 @@ namespace NewLife.Net.Sockets
         }
 
         private AddressFamily _AddressFamily = AddressFamily.InterNetwork;
-        /// <summary>地址族</summary>
+        /// <summary>本地地址族</summary>
         public AddressFamily AddressFamily
         {
             get { return _AddressFamily; }
