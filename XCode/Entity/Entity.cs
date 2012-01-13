@@ -1044,10 +1044,10 @@ namespace XCode
                 if (String.IsNullOrEmpty(builder.OrderBy) && String.IsNullOrEmpty(builder.GroupBy))
                 {
                     // 数字降序，其它升序
-                    var b = Helper.IsIntType(fi.Type);
+                    var b = Helper.IsIntType(fi.Type) && fi.IsIdentity;
                     builder.IsDesc = b;
                     // 修正没有设置builder.IsInt导致分页没有选择最佳的MaxMin的BUG，感谢 @RICH(20371423)
-                    builder.IsInt = b && fi.IsIdentity;
+                    builder.IsInt = b;
 
                     builder.OrderBy = builder.KeyOrder;
                 }

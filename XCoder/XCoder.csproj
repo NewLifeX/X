@@ -42,10 +42,6 @@
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.XML" />
-    <Reference Include="XTemplate, Version=1.8.4345.38322, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\DLL\XTemplate.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Network\AutoUpdate.cs" />
@@ -179,6 +175,10 @@
     <ProjectReference Include="..\XCode\XCode.csproj">
       <Project>{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}</Project>
       <Name>XCode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\XTemplate\XTemplate.csproj">
+      <Project>{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}</Project>
+      <Name>XTemplate</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

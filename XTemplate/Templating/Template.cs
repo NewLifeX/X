@@ -92,7 +92,7 @@ namespace XTemplate.Templating
                     String file = AssemblyName;
                     if (!Path.IsPathRooted(file)) file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
                     if (!File.Exists(file)) file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path.Combine("Bin", AssemblyName));
-                    _Assembly = Assembly.LoadFile(file);
+                    if (File.Exists(file)) _Assembly = Assembly.LoadFile(file);
                 }
                 return _Assembly;
             }
@@ -334,7 +334,8 @@ namespace XTemplate.Templating
 
             // 设置类名
             var cname = Path.GetFileNameWithoutExtension(name);
-            if (cname != name)
+            // 如果无扩展的名称跟前面的名称不同，并且无扩展名称跟编码后的类名相同，则设置类型为无扩展名称
+            if (cname != name && cname == GetClassName(cname))
             {
                 // 如果没有别的模版项用这个类名，这里使用
                 if (!Templates.Any(t => t.ClassName == cname)) item.ClassName = cname;
@@ -873,16 +874,16 @@ namespace XTemplate.Templating
                 {
                     if (item.Included) continue;
 
-                    String name = item.ClassName;
+                    String name = item.Name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ? item.Name : item.ClassName;
                     // 猜测后缀
                     Int32 p = name.LastIndexOf("_");
                     if (p > 0 && name.Length - p <= 5)
                         name = name.Substring(0, p) + "." + name.Substring(p + 1, name.Length - p - 1);
-                    else
+                    else if (!name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
                         name += ".cs";
 
                     name = Path.Combine(tempPath, name);
-                    File.WriteAllText(name, item.Source);
+                    File.WriteAllText(name, item.Source, Encoding.UTF8);
 
                     files.Add(name);
                 }
@@ -911,6 +912,9 @@ namespace XTemplate.Templating
             if (results.Errors.Count > 0)
             {
                 Errors.AddRange(results.Errors);
+
+                var sb = new StringBuilder();
+                CompilerError err = null;
                 foreach (CompilerError error in results.Errors)
                 {
                     error.ErrorText = error.ErrorText;
@@ -918,24 +922,34 @@ namespace XTemplate.Templating
 
                     if (!error.IsWarning)
                     {
-                        //TemplateException ex = new TemplateException(error.ToString());
                         String msg = error.ToString();
-                        String code = null;
-                        // 屏蔽因为计算错误行而导致的二次错误
-                        try
+                        if (sb.Length < 1)
                         {
-                            code = tmp.FindBlockCode(error.FileName, error.Line);
+                            String code = null;
+                            // 屏蔽因为计算错误行而导致的二次错误
+                            try
+                            {
+                                code = tmp.FindBlockCode(error.FileName, error.Line);
+                            }
+                            catch { }
+                            if (code != null)
+                            {
+                                msg += Environment.NewLine;
+                                msg += code;
+                            }
+                            err = error;
                         }
-                        catch { }
-                        if (code != null)
-                        {
-                            msg += Environment.NewLine;
-                            msg += code;
-                        }
-                        TemplateException ex = new TemplateException(msg);
-                        ex.Error = error;
-                        throw ex;
+                        else
+                            sb.AppendLine();
+
+                        sb.Append(msg);
                     }
+                }
+                if (sb.Length > 0)
+                {
+                    TemplateException ex = new TemplateException(sb.ToString());
+                    ex.Error = err;
+                    throw ex;
                 }
             }
             else

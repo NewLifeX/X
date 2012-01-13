@@ -33,9 +33,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.8.*")]
-[assembly: AssemblyFileVersion("1.8.2011.1124")]
+[assembly: AssemblyFileVersion("1.8.2012.0113")]
 
 /*
+ * v1.8.2012.0113   修正类名处理的BUG
+ * 
  * v1.8.2011.1124   调整模版的编译，不再输出临时文件，改为输出模版生成的代码
  * 
  * v1.8.2011.1120   增加模版执行错误异常TemplateExecutionException，所有Render产生的异常都经过其包装
