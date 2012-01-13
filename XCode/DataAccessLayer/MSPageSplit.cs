@@ -156,7 +156,7 @@ namespace XCode.DataAccessLayer
 
             SelectBuilder builder1 = builder.Clone().Top(startRowIndex, builder.Key);
             SelectBuilder builder2 = builder1.AsChild("XCode_T0");
-            builder2.Column = builder.IsDesc ? "Min" : "Max";
+            builder2.Column = String.Format("{0}({1})", builder.IsDesc ? "Min" : "Max", builder.Key);
 
             SelectBuilder builder3 = null;
             if (maximumRows < 1)
