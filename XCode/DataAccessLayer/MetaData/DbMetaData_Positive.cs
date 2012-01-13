@@ -297,6 +297,9 @@ namespace XCode.DataAccessLayer
 
                 FixField(field, dr);
 
+                // 检查是否已正确识别类型
+                if (field.DataType == null) WriteLog("无法识别{0}.{1}的类型{2}！", table.Name, field.Name, field.RawType);
+
                 list.Add(field);
             }
 

@@ -252,6 +252,17 @@ namespace XCode.DataAccessLayer
             return GetTables(rows);
         }
 
+        protected override void FixField(IDataColumn field, DataRow dr)
+        {
+            base.FixField(field, dr);
+
+            // 如果数据库里面是integer或者autoincrement，识别类型是Int64，又是自增，则改为Int32，保持与大多数数据库的兼容
+            if (field.Identity && field.DataType == typeof(Int64) && (field.RawType.EqualIgnoreCase("integer") || field.RawType.EqualIgnoreCase("autoincrement")))
+            {
+                field.DataType = typeof(Int32);
+            }
+        }
+
         protected override string GetFieldType(IDataColumn field)
         {
             String typeName = base.GetFieldType(field);
@@ -262,6 +273,27 @@ namespace XCode.DataAccessLayer
             return typeName;
         }
 
+        protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
+        {
+            DataRow[] drs = base.FindDataType(field, typeName, isLong);
+            if (drs == null || drs.Length < 1)
+            {
+                // 字符串
+                if (typeName.IndexOf("int", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    var name = typeName.ToLower();
+                    if (name == "int16")
+                        name = "smallint";
+                    else if (name == "int32")
+                        name = "int";
+                    else if (name == "int64")
+                        name = "bigint";
+
+                    if (name != typeName.ToLower()) return base.FindDataType(field, name, isLong);
+                }
+            }
+            return drs;
+        }
         protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             String str = null;

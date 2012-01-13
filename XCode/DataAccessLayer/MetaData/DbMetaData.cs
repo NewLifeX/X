@@ -93,7 +93,7 @@ namespace XCode.DataAccessLayer
         protected static Boolean TryGetDataRowValue<T>(DataRow dr, String name, out T value)
         {
             value = default(T);
-            if (!dr.Table.Columns.Contains(name) || dr.IsNull(name)) return false;
+            if (dr == null || !dr.Table.Columns.Contains(name) || dr.IsNull(name)) return false;
 
             Object obj = dr[name];
 

@@ -32,15 +32,18 @@ namespace XCode.DataAccessLayer
                 .Reg<SQLite>()
                 .Reg<Firebird>()
                 .Reg<PostgreSQL>()
-                .Reg<SqlCe>();
+                .Reg<SqlCe>()
+                .Reg<Access>(String.Empty);
+            // Access作为默认实现
         }
 
-        private static IObjectContainer Reg<T>(this IObjectContainer container)
+        private static IObjectContainer Reg<T>(this IObjectContainer container, Object id = null)
         {
             IDatabase db = TypeX.CreateInstance(typeof(T)) as IDatabase;
+            if (id == null) id = db.DbType;
 
             // 把这个实例注册进去，作为默认实现
-            return container.Register(typeof(IDatabase), null, db, db.DbType);
+            return container.Register(typeof(IDatabase), null, db, id);
         }
         #endregion
 
@@ -75,6 +78,7 @@ namespace XCode.DataAccessLayer
             }
             else
             {
+                // 这里的默认值来自于上面Reg里面的最后那个
                 return XCodeService.ResolveType<IDatabase>(String.Empty);
             }
         }
