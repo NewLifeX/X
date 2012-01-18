@@ -9,6 +9,11 @@ namespace NewLife.Messaging
     /// <remarks>
     /// 根据方法名<see cref="Name"/>在类型<see cref="Type"/>中找到方法，如果有多个签名，还得根据参数数组<see cref="Parameters"/>来选择。
     /// 仅支持无返回或单一返回，不支持out/ref等参数。
+    /// 
+    /// 在服务端，通过调用消息的<see cref="Invoke"/>方法执行调用。
+    /// 如有异常，返回异常消息；
+    /// 如返回空，返回空消息；
+    /// 否则返回实体消息<see cref="EntityMessage"/>
     /// </remarks>
     public class MethodMessage : Message
     {
@@ -51,5 +56,45 @@ namespace NewLife.Messaging
                 }
             }
         }
+
+        #region 客户端
+        //public static Object Invoke(MethodInfo method, params Object[] ps)
+        //{
+        //    return new MethodMessage() { Method = method, Parameters = ps }.Invoke();
+        //}
+
+        //public static Object Invoke(Type type, String name, params Object[] ps)
+        //{
+        //    return new MethodMessage() { Type = type, Name = name, Parameters = ps }.Invoke();
+        //}
+
+        //public Object Invoke()
+        //{
+
+        //}
+        #endregion
+
+        #region 服务端
+        /// <summary>处理消息</summary>
+        /// <returns></returns>
+        public Message Invoke()
+        {
+            var method = Method;
+            try
+            {
+                if (method == null) throw new ArgumentNullException("Method", String.Format("无法找到目标方法{0}.{1}！", Type, Name));
+
+                var rs = method.Invoke(null, Parameters);
+                if (rs == null)
+                    return new NullMessage();
+                else
+                    return new EntityMessage() { Value = rs };
+            }
+            catch (Exception ex)
+            {
+                return new ExceptionMessage() { Value = ex };
+            }
+        }
+        #endregion
     }
 }
