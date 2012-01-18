@@ -1,4 +1,16 @@
-﻿2011-10-27
+﻿2012-01-18
+1，关于任务调度的思考：
+短信中间件的做法：
+trans{
+select
+update}
+这是安全的，因为事务保护，给全表加锁，但也是最悲剧的，性能很差！
+新的可能的做法：
+update set user=123 where status=0 and user=0
+select where status=0 and user=123
+希望单个update操作是原子操作，那么这样子就是安全的。先把记录标记为我来处理，然后再select拿出来。
+
+2011-10-27
 1，增加两个通用泛型实体：简单信息Simple，ID、Name；简单分类SimpleTree，只有ID、Name、ParentID、Sort；两者的Name都是唯一索引。
 
 2011-10-10
