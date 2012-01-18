@@ -59,7 +59,7 @@ namespace NewLife.Model
         /// </summary>
         /// <param name="from">接口类型</param>
         /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
+        /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
         Object Resolve(Type from, Object id = null, Boolean extend = false);
 
@@ -68,7 +68,7 @@ namespace NewLife.Model
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
+        /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
         TInterface Resolve<TInterface>(Object id = null, Boolean extend = false);
 
@@ -93,7 +93,7 @@ namespace NewLife.Model
         /// </summary>
         /// <param name="from">接口类型</param>
         /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
+        /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
         Type ResolveType(Type from, Object id = null, Boolean extend = false);
 
@@ -102,7 +102,7 @@ namespace NewLife.Model
         /// </summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
+        /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
         Type ResolveType<TInterface>(Object id = null, Boolean extend = false);
 

@@ -7,6 +7,18 @@ namespace NewLife.Serialization
     /// <summary>
     /// 序列化访问器。接口实现者可以在这里完全自定义行为（返回true），也可以通过设置事件来影响行为（返回false）
     /// </summary>
+    /// <example>
+    /// 显式实现接口默认代码：
+    /// <code>
+    /// Boolean IAccessor.Read(IReader reader) { return false; }
+    /// 
+    /// Boolean IAccessor.ReadComplete(IReader reader, Boolean success) { return success; }
+    /// 
+    /// Boolean IAccessor.Write(IWriter writer) { return false; }
+    /// 
+    /// Boolean IAccessor.WriteComplete(IWriter writer, Boolean success) { return success; }
+    /// </code>
+    /// </example>
     public interface IAccessor
     {
         /// <summary>

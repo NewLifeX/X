@@ -66,6 +66,11 @@
     <Compile Include="Compression\ZipFile.cs" />
     <Compile Include="IO\StreamReaderX.cs" />
     <Compile Include="IO\StreamWriterX.cs" />
+    <Compile Include="Messaging\CompressionMessage.cs" />
+    <Compile Include="Messaging\DataMessage.cs" />
+    <Compile Include="Messaging\EntitiesMessage.cs" />
+    <Compile Include="Messaging\MessageKind.cs" />
+    <Compile Include="Messaging\EntityMessage.cs" />
     <Compile Include="Reflection\Action.cs" />
     <Compile Include="Extension\EnumHelper.cs" />
     <Compile Include="Extension\Linq\Buffer.cs" />

@@ -1,43 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
+using System.Xml.Serialization;
 
 namespace NewLife.Messaging
 {
-    /// <summary>
-    /// 异常消息
-    /// </summary>
-    public class ExceptionMessage : Message
+    /// <summary>异常消息</summary>
+    public class ExceptionMessage : EntityMessage
     {
-        /// <summary>
-        /// 消息编号
-        /// </summary>
-        public override int ID
-        {
-            get { return 0xFF; }
-        }
+        /// <summary>消息类型</summary>
+        [XmlIgnore]
+        public override MessageKind Kind { get { return MessageKind.Exception; } }
 
-        private String _Error;
-        /// <summary>异常</summary>
-        public String Error
-        {
-            get { return _Error; }
-            set { _Error = value; }
-        }
-
-        /// <summary>
-        /// 初始化
-        /// </summary>
-        public ExceptionMessage() { }
-
-        /// <summary>
-        /// 初始化
-        /// </summary>
-        /// <param name="ex"></param>
-        public ExceptionMessage(Exception ex)
-        {
-            Error = ex.Message;
-        }
+        /// <summary>异常对象</summary>
+        public new Exception Value { get { return base.Value as Exception; } set { base.Value = value; } }
     }
 }

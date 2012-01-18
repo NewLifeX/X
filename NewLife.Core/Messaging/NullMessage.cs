@@ -1,20 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Xml.Serialization;
 
 namespace NewLife.Messaging
 {
-    /// <summary>
-    /// 空消息
-    /// </summary>
+    /// <summary>空消息</summary>
     public class NullMessage : Message
     {
-        /// <summary>
-        /// 消息编号
-        /// </summary>
-        public override int ID
-        {
-            get { return 0xFE; }
-        }
+        /// <summary>消息类型</summary>
+        [XmlIgnore]
+        public override MessageKind Kind { get { return MessageKind.Null; } }
     }
 }
