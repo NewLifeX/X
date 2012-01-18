@@ -706,8 +706,13 @@ namespace XCode.DataAccessLayer
             DbParameter[] ps = null;
             if (cmd.Parameters != null)
             {
-                ps = new DbParameter[cmd.Parameters.Count];
-                cmd.Parameters.CopyTo(ps, 0);
+                var cps = cmd.Parameters;
+                ps = new DbParameter[cps.Count];
+                //cmd.Parameters.CopyTo(ps, 0);
+                for (int i = 0; i < ps.Length; i++)
+                {
+                    ps[i] = cps[i];
+                }
             }
 
             WriteSQL(sql, ps);
