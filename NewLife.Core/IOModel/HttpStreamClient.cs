@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Net;
 using System.IO;
+using System.Net;
 using NewLife.Security;
 
 namespace NewLife.IO
 {
-    /// <summary>
-    /// 基于Http协议的数据流客户端
-    /// </summary>
+    /// <summary>基于Http协议的数据流客户端</summary>
     public class HttpStreamClient : StreamClient
     {
         #region 属性

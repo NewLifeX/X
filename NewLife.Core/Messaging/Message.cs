@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Xml.Serialization;
+using NewLife.Exceptions;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -36,7 +37,8 @@ namespace NewLife.Messaging
             foreach (var item in AssemblyX.FindAllPlugins(typeof(Message), true))
             {
                 var msg = TypeX.CreateInstance(item) as Message;
-                if (msg != null) container.Register<Message>(msg, msg.Kind);
+                if (msg != null) container.Register(typeof(Message), item, null, msg.Kind);
+                //if (msg != null) container.Register<Message>(msg, msg.Kind);
             }
         }
         #endregion
@@ -47,6 +49,7 @@ namespace NewLife.Messaging
         public void Write(Stream stream)
         {
             var writer = new BinaryWriterX(stream);
+            Set(writer.Settings);
             // 基类写入编号，保证编号在最前面
             writer.Write((Byte)Kind);
             writer.WriteObject(this);
@@ -68,12 +71,33 @@ namespace NewLife.Messaging
         public static Message Read(Stream stream)
         {
             var reader = new BinaryReaderX(stream);
+            Set(reader.Settings);
             // 读取了响应类型和消息类型后，动态创建消息对象
-            var type = (MessageKind)reader.ReadByte();
-            var msgtype = ObjectContainer.Current.ResolveType<Message>(type);
-            var msg = reader.ReadObject(msgtype) as Message;
+            var kind = (MessageKind)reader.ReadByte();
+            var type = ObjectContainer.Current.ResolveType<Message>(kind);
+            if (type == null) throw new XException("无法识别的消息类型（Kind={0}）！", kind);
+            var msg = reader.ReadObject(type) as Message;
 
             return msg;
+        }
+
+        static void Set(ReaderWriterSetting setting)
+        {
+            //setting.IsBaseFirst = true;
+            //setting.UseObjRef = true;
+            setting.UseTypeFullName = false;
+        }
+        #endregion
+
+        #region 方法
+        /// <summary>探测消息类型，不移动流指针</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static MessageKind PeekKind(Stream stream)
+        {
+            Int32 n = stream.ReadByte();
+            stream.Seek(-1, SeekOrigin.Current);
+            return (MessageKind)n;
         }
         #endregion
 

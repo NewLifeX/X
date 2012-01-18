@@ -71,6 +71,7 @@
     <Compile Include="Messaging\EntitiesMessage.cs" />
     <Compile Include="Messaging\MessageKind.cs" />
     <Compile Include="Messaging\EntityMessage.cs" />
+    <Compile Include="Messaging\MethodMessage.cs" />
     <Compile Include="Reflection\Action.cs" />
     <Compile Include="Extension\EnumHelper.cs" />
     <Compile Include="Extension\Linq\Buffer.cs" />
@@ -155,10 +156,7 @@
     <Compile Include="Serialization\Base\WriterBase.cs" />
     <Compile Include="Log\CodeTimer.cs" />
     <Compile Include="Messaging\ExceptionMessage.cs" />
-    <Compile Include="Messaging\IMessageHandler.cs" />
     <Compile Include="Messaging\Message.cs" />
-    <Compile Include="Messaging\MessageExceptionOption.cs" />
-    <Compile Include="Messaging\MessageStreamHandler.cs" />
     <Compile Include="Messaging\NullMessage.cs" />
     <Compile Include="Reflection\AssemblyX.cs" />
     <Compile Include="Reflection\AttributeX.cs" />

@@ -4,7 +4,10 @@ using System.Xml.Serialization;
 namespace NewLife.Messaging
 {
     /// <summary>指定长度的字节数据消息</summary>
-    /// <remarks>一般用于对数据进行二次包装，理论上，这是一个万能消息</remarks>
+    /// <remarks>
+    /// 一般用于对数据进行二次包装，理论上，这是一个万能消息。
+    /// 数据长度由<see cref="Data"/>决定，以编码整数来存储。
+    /// </remarks>
     public class DataMessage : Message
     {
         /// <summary>消息类型</summary>

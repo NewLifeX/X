@@ -26,6 +26,9 @@ namespace NewLife.Messaging
         /// <summary>经过压缩的消息</summary>
         Compression,
 
+        /// <summary>远程方法调用消息</summary>
+        Method,
+
         /// <summary>用户自定义消息在此基础上增加</summary>
         UserDefine = 0x10
     }

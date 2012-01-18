@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Configuration;
 using System.IO;
+using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
-using NewLife.Configuration;
 
 namespace NewLife.IO
 {

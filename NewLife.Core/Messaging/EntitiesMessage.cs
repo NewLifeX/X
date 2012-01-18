@@ -6,6 +6,9 @@ using System.Xml.Serialization;
 namespace NewLife.Messaging
 {
     /// <summary>指定类型的实体对象数组消息</summary>
+    /// <remarks>
+    /// 实体对象个数由<see cref="Values"/>决定，以编码整数来存储。
+    /// </remarks>
     public class EntitiesMessage : Message
     {
         /// <summary>消息类型</summary>
