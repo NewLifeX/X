@@ -95,7 +95,6 @@
     <Compile Include="Exceptions\XException.cs" />
     <Compile Include="Extension\Linq\TargetedPatchingOptOutAttribute.cs" />
     <Compile Include="IO\FileSource.cs" />
-    <Compile Include="IO\BinaryTest.cs" />
     <Compile Include="IOModel\StreamHttpHandler.cs" />
     <Compile Include="IOModel\IStreamHandler.cs" />
     <Compile Include="IO\IOHelper.cs" />
@@ -190,8 +189,6 @@
     <Compile Include="Reflection\WeakReference.cs" />
     <Compile Include="Event\EventArgs.cs" />
     <Compile Include="InlineIL.cs" />
-    <Compile Include="IO\BinaryAccessor.cs" />
-    <Compile Include="IO\IBinaryAccessor.cs" />
     <Compile Include="IO\ReadWriteMemoryStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reflection\FastIndexAccessor.cs" />
@@ -206,8 +203,6 @@
     <Compile Include="Common\HardInfo.cs" />
     <Compile Include="Common\IdentityCard.cs" />
     <None Include="Serialization\Event\事件参数.cd" />
-    <Compile Include="IO\BinaryReaderX.cs" />
-    <Compile Include="IO\BinaryWriterX.cs" />
     <Compile Include="Threading\TaskState.cs" />
     <Compile Include="Threading\ThreadPoolX.cs" />
     <Compile Include="Threading\ThreadTask.cs" />

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using NewLife.Linq;
 using System.Reflection;
 using System.Web;
+using NewLife.Linq;
 using NewLife.Reflection;
 
 namespace NewLife.IO
@@ -11,9 +11,7 @@ namespace NewLife.IO
     /// <summary>文件资源</summary>
     public static class FileSource
     {
-        /// <summary>
-        /// 释放文件
-        /// </summary>
+        /// <summary>释放文件</summary>
         /// <param name="asm"></param>
         /// <param name="filename"></param>
         /// <param name="dest"></param>

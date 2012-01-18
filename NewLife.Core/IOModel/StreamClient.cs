@@ -6,19 +6,13 @@ using NewLife.Exceptions;
 
 namespace NewLife.IO
 {
-    /// <summary>
-    /// 数据流客户端，用于与服务端的数据流处理器通讯
-    /// </summary>
+    /// <summary>数据流客户端，用于与服务端的数据流处理器通讯</summary>
     public abstract class StreamClient
     {
         #region 属性
         private Uri _Uri;
         /// <summary>服务端地址</summary>
-        public Uri Uri
-        {
-            get { return _Uri; }
-            set { _Uri = value; }
-        }
+        public Uri Uri { get { return _Uri; } set { _Uri = value; } }
 
         private String _StreamHandlerName;
         /// <summary>数据流总线名称</summary>
@@ -38,9 +32,7 @@ namespace NewLife.IO
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 实例化
-        /// </summary>
+        /// <summary>实例化</summary>
         public StreamClient() { }
 
         /// <summary>

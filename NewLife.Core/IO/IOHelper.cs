@@ -3,13 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using NewLife.Exceptions;
 
 namespace NewLife.IO
 {
-    /// <summary>
-    /// IO工具类
-    /// </summary>
+    /// <summary>IO工具类</summary>
     public static class IOHelper
     {
         #region 压缩/解压缩 数据
