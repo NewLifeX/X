@@ -52,7 +52,7 @@ namespace NewLife.Net
         /// <param name="iskeepalive">是否启用Keep-Alive</param>
         /// <param name="starttime">多长时间后开始第一次探测（单位：毫秒）</param>
         /// <param name="interval">探测时间间隔（单位：毫秒）</param>
-        public static void SetKeepAlive(this Socket socket, Boolean iskeepalive, Int32 starttime = 10000, Int32 interval = 10000)
+        public static void SetTcpKeepAlive(this Socket socket, Boolean iskeepalive, Int32 starttime = 10000, Int32 interval = 10000)
         {
             uint dummy = 0;
             byte[] inOptionValues = new byte[Marshal.SizeOf(dummy) * 3];

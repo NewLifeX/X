@@ -6,6 +6,13 @@ namespace NewLife.Web
     /// <summary>扩展的Web客户端</summary>
     public class WebClientX : WebClient
     {
+        static WebClientX()
+        {
+            // 设置默认最大连接为20，关闭默认代理，提高响应速度
+            ServicePointManager.DefaultConnectionLimit = 20;
+            WebRequest.DefaultWebProxy = null;
+        }
+
         #region 为了Cookie而重写
         private CookieContainer _Cookie;
         /// <summary>Cookie容器</summary>

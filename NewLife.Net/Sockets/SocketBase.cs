@@ -276,7 +276,7 @@ namespace NewLife.Net.Sockets
             {
                 case ProtocolType.Tcp:
                     Socket = new Socket(AddressFamily, SocketType.Stream, ProtocolType);
-                    Socket.SetKeepAlive(true);
+                    Socket.SetTcpKeepAlive(true);
                     break;
                 case ProtocolType.Udp:
                     Socket = new Socket(AddressFamily, SocketType.Dgram, ProtocolType);

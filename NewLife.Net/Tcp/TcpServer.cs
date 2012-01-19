@@ -147,7 +147,7 @@ namespace NewLife.Net.Tcp
             session.Received += (s, e2) => Statistics.Increment();
 
             // 设置心跳时间
-            e.AcceptSocket.SetKeepAlive(true);
+            e.AcceptSocket.SetTcpKeepAlive(true);
 
             // 来自这里的事件参数没有远程地址
             (session as TcpClientX).Start(e);
