@@ -3,8 +3,6 @@ using System.IO;
 using NewLife.IO;
 using NewLife.Net.Http;
 using NewLife.Net.Sockets;
-using System.Text;
-using System.Net;
 
 namespace NewLife.Net.Proxy
 {

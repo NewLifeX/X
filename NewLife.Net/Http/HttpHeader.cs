@@ -74,6 +74,8 @@ namespace NewLife.Net.Http
         /// <returns></returns>
         public static HttpHeader Read(Stream stream, HttpHeaderReadMode mode = HttpHeaderReadMode.RequestOrResponse)
         {
+            // 因为数据流可能不是Http流，这里需要更高效的Http探测方法，以提高效率。
+
             HttpHeader entity = null;
             var p = stream.Position;
             using (var reader = new StreamReaderX(stream) { Closable = false })
@@ -113,6 +115,7 @@ namespace NewLife.Net.Http
 
             String line = reader.ReadLine();
             if (line.IsNullOrWhiteSpace()) { stream.Position = p; return null; }
+
             var ss = line.Split(new Char[] { ' ' }, 3);
             if (ss == null || ss.Length < 3 || ss[0].IsNullOrWhiteSpace() || ss[0].Length > 10) { stream.Position = p; return null; }
 

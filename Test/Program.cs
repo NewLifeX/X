@@ -4,27 +4,17 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading;
+using NewLife;
 using NewLife.IO;
 using NewLife.Log;
 using NewLife.Net.DNS;
+using NewLife.Net.Fetion;
+using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
-using NewLife.Reflection;
-using XCode;
-using XCode.Code;
-using XCode.DataAccessLayer;
-using NewLife.Net.Proxy;
-using NewLife.Net.Stun;
 using NewLife.Net.UPnP;
-using NewLife;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
-using NewLife.Net;
-using NewLife.Collections;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Net.Fetion;
+using XCode.DataAccessLayer;
 
 namespace Test
 {

@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
-using System.Web.Hosting;
-using System.Security.Permissions;
 using System.Globalization;
-using System.Web;
+using System.Security.Permissions;
 using System.Security.Principal;
+using System.Threading;
+using System.Web;
+using System.Web.Hosting;
 
 namespace NewLife.Net.Http
 {
@@ -17,7 +15,7 @@ namespace NewLife.Net.Http
         private string _lowerCasedClientScriptPathWithTrailingSlash;
         private string _lowerCasedVirtualPath;
         private string _lowerCasedVirtualPathWithTrailingSlash;
-        private volatile int _pendingCallsCount;
+        private int _pendingCallsCount;
         private string _physicalClientScriptPath;
         private string _physicalPath;
         private int _port;

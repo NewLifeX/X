@@ -30,6 +30,11 @@ namespace NewLife.Net.Tcp
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// 单位秒，默认30秒。时间不是太准确，建议15秒的倍数。为0表示不检查。</summary>
         public Int32 MaxNotActive { get { return _MaxNotActive; } set { _MaxNotActive = value; } }
+
+        private Boolean _AutoReceiveAsync = true;
+        /// <summary>自动开始会话的异步接收。
+        /// 接受连接请求后，自动开始会话的异步接收，默认打开，如果会话需要同步接收数据，需要关闭该选项。</summary>
+        public Boolean AutoReceiveAsync { get { return _AutoReceiveAsync; } set { _AutoReceiveAsync = value; } }
         #endregion
 
         #region 构造
@@ -150,7 +155,7 @@ namespace NewLife.Net.Tcp
             e.AcceptSocket.SetTcpKeepAlive(true);
 
             // 来自这里的事件参数没有远程地址
-            (session as TcpClientX).Start(e);
+            if (AutoReceiveAsync) (session as TcpClientX).Start(e);
         }
 
         /// <summary>已重载。</summary>

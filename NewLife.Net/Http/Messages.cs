@@ -4,6 +4,8 @@ using System.Text;
 using System.Web;
 using System.Globalization;
 using System.IO;
+using NewLife.Reflection;
+using System.Reflection;
 
 namespace NewLife.Net.Http
 {
@@ -19,8 +21,8 @@ namespace NewLife.Net.Http
         private static String _httpErrorFormat2 = ("    </head>\r\n    <body bgcolor=\"white\">\r\n\r\n            <span><h1>{0}<hr width=100% size=1 color=silver></h1>\r\n\r\n            <h2> <i>{1}</i> </h2></span>\r\n\r\n            <hr width=100% size=1 color=silver>\r\n\r\n            <b>{2}:</b>&nbsp;{3} " + VersionString + "\r\n\r\n            </font>\r\n\r\n    </body>\r\n</html>\r\n");
         private const String _httpStyle = "        <style>\r\n        \tbody {font-family:\"Verdana\";font-weight:normal;font-size: 8pt;color:black;} \r\n        \tp {font-family:\"Verdana\";font-weight:normal;color:black;margin-top: -5px}\r\n        \tb {font-family:\"Verdana\";font-weight:bold;color:black;margin-top: -5px}\r\n        \th1 { font-family:\"Verdana\";font-weight:normal;font-size:18pt;color:red }\r\n        \th2 { font-family:\"Verdana\";font-weight:normal;font-size:14pt;color:maroon }\r\n        \tpre {font-family:\"Lucida Console\";font-size: 8pt}\r\n        \t.marker {font-weight: bold; color: black;text-decoration: none;}\r\n        \t.version {color: gray;}\r\n        \t.error {margin-bottom: 10px;}\r\n        \t.expandable { text-decoration:underline; font-weight:bold; color:navy; cursor:hand; }\r\n        </style>\r\n";
 
-        public static String Name;
-        public static String VersionString;
+        public static String Name = typeof(WebServer).Name;
+        public static String VersionString = AssemblyX.Create(Assembly.GetExecutingAssembly()).CompileVersion.ToString();
         public static String VersionInfo = "版本信息";
 
         public static String FormatDirectoryListing(String dirPath, String parentPath, FileSystemInfo[] elements)

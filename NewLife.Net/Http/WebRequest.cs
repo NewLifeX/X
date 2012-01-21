@@ -577,8 +577,8 @@ namespace NewLife.Net.Http
         }
 
         /// <summary>返回与指定虚拟路径相对应的物理路径。</summary>
-        /// <returns>与 <paramref name="virtualPath" /> 参数中指定的虚拟路径相对应的物理路径。</returns>
-        /// <param name="virtualPath">虚拟路径。</param>
+        /// <returns>与 <paramref name="path" /> 参数中指定的虚拟路径相对应的物理路径。</returns>
+        /// <param name="path">虚拟路径。</param>
         public override string MapPath(string path)
         {
             string physicalPath = string.Empty;
@@ -770,11 +770,9 @@ namespace NewLife.Net.Http
             }
         }
 
-        /// <summary>将内存块中指定数目的字节添加到响应。</summary>
-        /// <param name="data">指向内存块的非托管指针。</param>
-        /// <param name="length">要发送的字节数。</param>
-        /// <summary>将内存块中指定数目的字节添加到响应。</summary>
-        /// <param name="data">指向内存块的非托管指针。</param>
+        /// <summary>将指定文件的内容添加到响应并指定文件中的起始位置和要发送的字节数。</summary>
+        /// <param name="f">要发送的文件的名称。</param>
+        /// <param name="offset">文件中的起始位置。</param>
         /// <param name="length">要发送的字节数。</param>
         private void SendResponseFromFileStream(FileStream f, long offset, long length)
         {

@@ -38,10 +38,14 @@ namespace NewLife.Net.Tcp
         #endregion
 
         #region 方法
+        private Boolean _hasStarted = false;
         /// <summary>开始异步接收，同时处理传入的事件参数，里面可能有接收到的数据</summary>
         /// <param name="e"></param>
         internal void Start(NetEventArgs e)
         {
+            if (_hasStarted) return;
+            _hasStarted = true;
+
             if (e.BytesTransferred > 0) ProcessReceive(e);
 
             ReceiveAsync();
@@ -50,7 +54,11 @@ namespace NewLife.Net.Tcp
         /// <summary>断开客户端连接。Tcp端口，UdpClient不处理</summary>
         public void Disconnect()
         {
-            if (Socket != null && Socket.Connected) Client.Disconnect(ReuseAddress);
+            var socket = Socket;
+            if (socket != null && socket.Connected) socket.Disconnect(ReuseAddress);
+
+            // 释放
+            Dispose();
         }
         #endregion
 
