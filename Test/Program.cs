@@ -152,7 +152,7 @@ namespace Test
             s2.Port = 8080;
             s2.Start();
 
-            //HttpProxy.SetIEProxy("127.0.0.1:" + s2.Port);
+            HttpProxy.SetIEProxy("127.0.0.1:" + s2.Port);
             Console.WriteLine("已设置IE代理，任意键结束测试，关闭IE代理！");
             Console.ReadKey(true);
             HttpProxy.SetIEProxy(null);

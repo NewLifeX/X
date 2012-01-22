@@ -75,6 +75,8 @@ namespace NewLife.Net.Proxy
         /// <returns>修改后的数据</returns>
         protected virtual Stream OnReceive(NetEventArgs e, Stream stream)
         {
+            WriteLog("{0}客户数据：{1}", ID, stream.Length);
+
             return stream;
         }
 
@@ -82,10 +84,14 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected virtual void StartRemote(NetEventArgs e)
         {
-            Remote = CreateRemote(e);
-            if (Remote.ProtocolType == ProtocolType.Tcp && !Remote.Client.Connected) Remote.Connect(RemoteEndPoint);
-            Remote.Received += new EventHandler<NetEventArgs>(Remote_Received);
-            Remote.ReceiveAsync();
+            try
+            {
+                Remote = CreateRemote(e);
+                if (Remote.ProtocolType == ProtocolType.Tcp && !Remote.Client.Connected) Remote.Connect(RemoteEndPoint);
+                Remote.Received += new EventHandler<NetEventArgs>(Remote_Received);
+                Remote.ReceiveAsync();
+            }
+            catch (SocketException) { this.Dispose(); throw; }
         }
 
         /// <summary>为会话创建与远程服务器通讯的Socket。可以使用Socket池达到重用的目的。默认实现创建与服务器相同类型的客户端</summary>
@@ -96,7 +102,7 @@ namespace NewLife.Net.Proxy
             var client = NetService.Resolve<ISocketClient>(RemoteProtocolType);
             //if (client.ProtocolType == ProtocolType.Tcp && !client.Client.Connected) client.Connect(RemoteEndPoint);
             if (RemoteEndPoint != null) client.AddressFamily = RemoteEndPoint.AddressFamily;
-            client.OnDisposed += (s, e2) => this.Dispose();
+            //client.OnDisposed += (s, e2) => this.Dispose();
             return client;
         }
 
@@ -125,6 +131,8 @@ namespace NewLife.Net.Proxy
         /// <returns>修改后的数据</returns>
         protected virtual Stream OnReceiveRemote(NetEventArgs e, Stream stream)
         {
+            WriteLog("{0}远程数据：{1}", ID, stream.Length);
+
             return stream;
         }
         #endregion

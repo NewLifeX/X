@@ -4,6 +4,7 @@ using System.Text;
 using System.Collections.Specialized;
 using System.IO;
 using NewLife.IO;
+using NewLife.Serialization;
 
 namespace NewLife.Net.Http
 {
@@ -39,6 +40,13 @@ namespace NewLife.Net.Http
         public IDictionary<String, String> Headers { get { return _Headers ?? (_Headers = new HeaderCollection()); } }
 
         //const String VersionPrefix = "HTTP/";
+
+        private Boolean _IsFinish = true;
+        /// <summary>是否完整Http头。是否双换行结束</summary>
+        public Boolean IsFinish { get { return _IsFinish; } private set { _IsFinish = value; } }
+
+        /// <summary>未完成分析时剩下部分</summary>
+        private String _last;
         #endregion
 
         #region 扩展属性
@@ -84,28 +92,27 @@ namespace NewLife.Net.Http
 
             HttpHeader entity = null;
             var p = stream.Position;
-            using (var reader = new StreamReaderX(stream) { Closable = false })
+            var reader = new BinaryReaderX(stream);
+
+            entity = ReadFirst(reader);
+            if (entity == null) return null;
+
+            switch (mode)
             {
-                entity = ReadFirst(reader);
-                if (entity == null) return null;
-
-                switch (mode)
-                {
-                    case HttpHeaderReadMode.Request:
-                        if (entity.IsResponse) { stream.Position = p; return null; }
-                        break;
-                    case HttpHeaderReadMode.Response:
-                        if (!entity.IsResponse) { stream.Position = p; return null; }
-                        break;
-                    default:
-                        break;
-                }
-
-                entity.ReadHeaders(reader);
-
-                // 因为涉及字符编码，所以跟流位置可能不同。对于ASCII编码没有问题。
-                stream.Position = p + reader.CharPosition;
+                case HttpHeaderReadMode.Request:
+                    if (entity.IsResponse) { stream.Position = p; return null; }
+                    break;
+                case HttpHeaderReadMode.Response:
+                    if (!entity.IsResponse) { stream.Position = p; return null; }
+                    break;
+                default:
+                    break;
             }
+
+            entity.ReadHeaders(reader);
+
+            //// 因为涉及字符编码，所以跟流位置可能不同。对于ASCII编码没有问题。
+            //stream.Position = p + reader.CharPosition;
 
             return entity;
         }
@@ -113,10 +120,10 @@ namespace NewLife.Net.Http
         /// <summary>仅读取第一行。如果不是Http头部，指针要回到原来位置</summary>
         /// <param name="reader"></param>
         /// <returns></returns>
-        public static HttpHeader ReadFirst(StreamReader reader)
+        public static HttpHeader ReadFirst(BinaryReaderX reader)
         {
             // 如果不是Http头部，指针要回到原来位置
-            var stream = reader.BaseStream;
+            var stream = reader.Stream;
             var p = stream.Position;
 
             String line = reader.ReadLine();
@@ -150,14 +157,37 @@ namespace NewLife.Net.Http
 
         /// <summary>读取头部键值</summary>
         /// <param name="reader"></param>
-        public void ReadHeaders(StreamReader reader)
+        public void ReadHeaders(BinaryReaderX reader)
         {
-            String line;
-            while (!String.IsNullOrEmpty(line = reader.ReadLine()))
+            IsFinish = true;
+            while (true)
             {
+                var line = reader.ReadLine();
+                // 找到Empty，也就是找到了换行符，Http头结束
+                if (line == String.Empty) return;
+                if (line == null)
+                {
+                    if (!reader.EndOfStream)
+                    {
+                        // 可能是结束
+                        var str = reader.ReadToEnd();
+                        if (str == Environment.NewLine) return;
+
+                        IsFinish = false;
+                        _last += str;
+                    }
+                    break;
+                }
+                // 加上上次剩下的
+                if (_last != null)
+                {
+                    line = _last + line;
+                    _last = null;
+                }
+
                 Int32 p = line.IndexOf(":");
                 if (p < 0) throw new NetException("无法处理的头部名值对！{0}", line);
-                Headers.Add(line.Substring(0, p).Trim(), line.Substring(p + 1).Trim());
+                Headers[line.Substring(0, p).Trim()] = line.Substring(p + 1).Trim();
             }
         }
 
@@ -176,7 +206,10 @@ namespace NewLife.Net.Http
                 {
                     writer.WriteLine("{0}: {1}", item.Key, item.Value);
                 }
-                writer.WriteLine();
+                if (IsFinish)
+                    writer.WriteLine();
+                else
+                    writer.Write(_last);
             }
         }
 
@@ -215,7 +248,10 @@ namespace NewLife.Net.Http
                 sb.AppendFormat("{0}: {1}", item.Key, item.Value);
                 sb.AppendLine();
             }
-            sb.AppendLine();
+            if (IsFinish)
+                sb.AppendLine();
+            else
+                sb.Append(_last);
 
             return sb.ToString();
         }

@@ -69,10 +69,17 @@ namespace NewLife.Net
         {
             if (String.IsNullOrEmpty(hostname)) return null;
 
-            IPAddress[] hostAddresses = Dns.GetHostAddresses(hostname);
-            if (hostAddresses == null || hostAddresses.Length < 1) return null;
+            try
+            {
+                IPAddress[] hostAddresses = Dns.GetHostAddresses(hostname);
+                if (hostAddresses == null || hostAddresses.Length < 1) return null;
 
-            return hostAddresses.FirstOrDefault(d => d.AddressFamily == AddressFamily.InterNetwork || d.AddressFamily == AddressFamily.InterNetworkV6);
+                return hostAddresses.FirstOrDefault(d => d.AddressFamily == AddressFamily.InterNetwork || d.AddressFamily == AddressFamily.InterNetworkV6);
+            }
+            catch (SocketException ex)
+            {
+                throw new NetException(ex.Message + hostname, ex);
+            }
         }
 
         /// <summary>分析网络终结点</summary>

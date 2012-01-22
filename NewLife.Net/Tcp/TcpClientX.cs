@@ -54,8 +54,8 @@ namespace NewLife.Net.Tcp
         /// <summary>断开客户端连接。Tcp端口，UdpClient不处理</summary>
         public void Disconnect()
         {
-            var socket = Socket;
-            if (socket != null && socket.Connected) socket.Disconnect(ReuseAddress);
+            //var socket = Socket;
+            //if (socket != null && socket.Connected) socket.Disconnect(ReuseAddress);
 
             // 释放
             Dispose();

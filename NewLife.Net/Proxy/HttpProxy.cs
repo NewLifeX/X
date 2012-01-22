@@ -6,6 +6,7 @@ using NewLife.Net.Sockets;
 using System.Net;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
+using NewLife.Serialization;
 
 namespace NewLife.Net.Proxy
 {
@@ -28,8 +29,7 @@ namespace NewLife.Net.Proxy
             ///// <summary>代理对象</summary>
             //public new HttpReverseProxy Proxy { get { return base.Proxy as HttpReverseProxy; } set { base.Proxy = value; } }
 
-            /// <summary>请求时触发。</summary>
-            public event EventHandler<EventArgs<NetEventArgs, Stream, HttpHeader>> OnRequest;
+            HttpHeader Request;
 
             /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
             /// <param name="e"></param>
@@ -38,12 +38,42 @@ namespace NewLife.Net.Proxy
             protected override Stream OnReceive(NetEventArgs e, Stream stream)
             {
                 // 解析请求头
-                var entity = HttpHeader.Read(stream, HttpHeaderReadMode.Request);
-                if (entity == null) return base.OnReceive(e, stream);
+                var entity = Request;
+                if (entity == null)
+                {
+                    entity = HttpHeader.Read(stream, HttpHeaderReadMode.Request);
+                    if (entity == null) return base.OnReceive(e, stream);
 
+                    if (!entity.IsFinish) Request = entity;
+                }
+                else if (!entity.IsFinish)
+                {
+                    entity.ReadHeaders(new BinaryReaderX(stream));
+                    if (entity.IsFinish) Request = null;
+                }
+                else
+                    return base.OnReceive(e, stream);
+
+                // 请求头不完整，不发送，等下一部分到来
+                if (!entity.IsFinish) return null;
+
+                if (!OnRequest(entity, e, stream)) return null;
+
+                // 重新构造请求
+                var ms = new MemoryStream();
+                entity.Write(ms);
+                stream.CopyTo(ms);
+                ms.Position = 0;
+
+                return ms;
+            }
+
+            String LastHost;
+            Int32 LastPort;
+
+            protected virtual Boolean OnRequest(HttpHeader entity, NetEventArgs e, Stream stream)
+            {
                 WriteLog("{3}请求：{0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength, ID);
-
-                if (OnRequest != null) OnRequest(this, new EventArgs<NetEventArgs, Stream, HttpHeader>(e, stream, entity));
 
                 var host = "";
                 if (entity.Url.IsAbsoluteUri)
@@ -71,12 +101,22 @@ namespace NewLife.Net.Proxy
                         }
 
                         Session.Send(rs.GetStream(), ClientEndPoint);
-                        return null;
+                        return false;
                     }
                     else
                     {
                         var uri = entity.Url;
                         host = uri.Host + ":" + uri.Port;
+
+                        // 如果地址或端口改变，则重新连接服务器
+                        if (Remote != null && (uri.Host != LastHost || uri.Port != LastPort))
+                        {
+                            Remote.Dispose();
+                            Remote = null;
+                        }
+                        LastHost = uri.Host;
+                        LastPort = uri.Port;
+
                         RemoteEndPoint = new IPEndPoint(NetHelper.ParseAddress(uri.Host), uri.Port);
                         entity.Url = new Uri(uri.PathAndQuery, UriKind.Relative);
                     }
@@ -91,14 +131,24 @@ namespace NewLife.Net.Proxy
                 // 可能不含Host
                 if (String.IsNullOrEmpty(entity.Host)) entity.Host = host;
 
-                // 重新构造请求
-                var ms = new MemoryStream();
-                entity.Write(ms);
-                stream.CopyTo(ms);
-                ms.Position = 0;
+                // 处理KeepAlive
+                if (!String.IsNullOrEmpty(entity.ProxyConnection))
+                {
+                    entity.KeepAlive = entity.ProxyKeepAlive;
+                    entity.ProxyConnection = null;
+                }
 
-                return ms;
+                return true;
             }
+
+            ///// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
+            ///// <param name="e"></param>
+            ///// <param name="stream">数据</param>
+            ///// <returns>修改后的数据</returns>
+            //protected override Stream OnReceiveRemote(NetEventArgs e, Stream stream)
+            //{
+            //    return base.OnReceiveRemote(e, stream);
+            //}
         }
         #endregion
 

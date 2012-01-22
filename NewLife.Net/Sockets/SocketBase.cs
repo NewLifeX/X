@@ -141,7 +141,7 @@ namespace NewLife.Net.Sockets
         }
 
         //private Int32 _BufferSize = 10240;
-        private Int32 _BufferSize = 1500;
+        private Int32 _BufferSize = 10240;
         /// <summary>缓冲区大小</summary>
         public Int32 BufferSize { get { return _BufferSize; } set { _BufferSize = value; } }
 
@@ -460,42 +460,29 @@ namespace NewLife.Net.Sockets
         {
             base.OnDispose(disposing);
 
-            if (Socket == null) return;
+            var socket = Socket;
+            if (socket == null) return;
 
             var hand = SafeHandle;
             if (hand != null && !hand.IsClosed)
             {
                 // 先用Shutdown禁用Socket（发送未完成发送的数据），再用Close关闭，这是一种比较优雅的关闭Socket的方法
-                if (NetHelper.Debug)
+                try
                 {
-                    try
-                    {
-                        Socket.Shutdown(SocketShutdown.Both);
-                    }
-                    catch (SocketException ex2)
-                    {
-                        if (ex2.ErrorCode != 10057) WriteLog(ex2.ToString());
-                    }
-                    catch (ObjectDisposedException) { }
-                    catch (Exception ex3)
-                    {
-                        WriteLog(ex3.ToString());
-                    }
+                    if (socket.Connected) socket.Disconnect(ReuseAddress);
+                    socket.Shutdown(SocketShutdown.Both);
                 }
-                else
+                catch (SocketException ex2)
                 {
-                    try
-                    {
-                        Socket.Shutdown(SocketShutdown.Both);
-                    }
-                    catch (SocketException ex2)
-                    {
-                        if (ex2.ErrorCode != 10057) WriteLog(ex2.ToString());
-                    }
-                    catch { }
+                    if (ex2.ErrorCode != 10057) WriteLog(ex2.ToString());
+                }
+                catch (ObjectDisposedException) { }
+                catch (Exception ex3)
+                {
+                    if (NetHelper.Debug) WriteLog(ex3.ToString());
                 }
 
-                Socket.Close();
+                socket.Close();
             }
             Socket = null;
 
