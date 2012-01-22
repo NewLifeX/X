@@ -97,6 +97,13 @@ namespace NewLife.Net.Tcp
                 return Server.AcceptAsync(ev);
             }, e, false);
         }
+
+        /// <summary>确定是否有挂起的连接请求。</summary>
+        /// <returns>如果连接正挂起，则为 true；否则为 false。</returns>
+        public Boolean Pending()
+        {
+            return Server.Poll(0, SelectMode.SelectRead);
+        }
         #endregion
 
         #region 事件

@@ -57,6 +57,9 @@ namespace NewLife.Net.Proxy
             /// <summary>属性说明</summary>
             public String RawHost { get { return _RawHost; } set { _RawHost = value; } }
 
+            /// <summary>请求时触发。</summary>
+            public event EventHandler<EventArgs<NetEventArgs, Stream, HttpHeader>> OnRequest;
+
             /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
             /// <param name="e"></param>
             /// <param name="stream">数据</param>
@@ -69,7 +72,9 @@ namespace NewLife.Net.Proxy
 
                 WriteLog("{3}请求：{0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength, ID);
 
-                var host = entity.Url.IsAbsoluteUri ? entity.Url.Host : Proxy.ServerAddress;
+                if (OnRequest != null) OnRequest(this, new EventArgs<NetEventArgs, Stream, HttpHeader>(e, stream, entity));
+
+                var host = entity.Url.IsAbsoluteUri ? entity.Url.Host : Proxy.ServerHost;
                 Host = host;
                 RawHost = entity.Host;
                 entity.Host = host;
@@ -90,6 +95,7 @@ namespace NewLife.Net.Proxy
                 //var key = "Accept-Encoding";
                 //if (entity.Headers.ContainsKey(key)) entity.Headers.Remove(key);
 
+                // 重新构造请求
                 var ms = new MemoryStream();
                 entity.Write(ms);
                 stream.CopyTo(ms);

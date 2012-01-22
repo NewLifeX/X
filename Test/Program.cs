@@ -144,9 +144,21 @@ namespace Test
         {
             var server = new HttpReverseProxy();
             server.Port = 888;
-            server.ServerAddress = "www.cnblogs.com";
+            server.ServerHost = "www.cnblogs.com";
             server.ServerPort = 80;
             server.Start();
+
+            var s2 = new HttpProxy();
+            s2.Port = 8080;
+            s2.Start();
+
+            //HttpProxy.SetIEProxy("127.0.0.1:" + s2.Port);
+            Console.WriteLine("已设置IE代理，任意键结束测试，关闭IE代理！");
+            Console.ReadKey(true);
+            HttpProxy.SetIEProxy(null);
+
+            server.Dispose();
+            s2.Dispose();
         }
 
         static void client_OnNewDevice(object sender, EventArgs<InternetGatewayDevice, bool> e)

@@ -356,11 +356,12 @@ namespace NewLife.Net.Stun
             IPEndPoint ep = null;
             foreach (var item in Servers)
             {
-                Int32 p = item.IndexOf(":");
-                if (p > 0)
-                    ep = new IPEndPoint(NetHelper.ParseAddress(item.Substring(0, p)), Int32.Parse(item.Substring(p + 1)));
-                else
-                    ep = new IPEndPoint(NetHelper.ParseAddress(item), 3478);
+                ep = NetHelper.ParseEndPoint(item, 3478);
+                //Int32 p = item.IndexOf(":");
+                //if (p > 0)
+                //    ep = new IPEndPoint(NetHelper.ParseAddress(item.Substring(0, p)), Int32.Parse(item.Substring(p + 1)));
+                //else
+                //    ep = new IPEndPoint(NetHelper.ParseAddress(item), 3478);
                 var rs = Query(socket, msg, ep);
                 if (rs != null && rs.MappedAddress != null) return rs.MappedAddress;
             }

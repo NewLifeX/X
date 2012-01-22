@@ -9,9 +9,13 @@ namespace NewLife.Net.Proxy
     public class NATProxy : ProxyBase
     {
         #region 属性
-        private String _ServerAddress;
+        private IPAddress _ServerAddress;
         /// <summary>服务器地址</summary>
-        public String ServerAddress { get { return _ServerAddress; } set { _ServerAddress = value; } }
+        public IPAddress ServerAddress { get { return _ServerAddress ?? NetHelper.ParseAddress(_ServerHost); } set { _ServerAddress = value; } }
+
+        private String _ServerHost;
+        /// <summary>服务器主机地址</summary>
+        public String ServerHost { get { return _ServerHost ?? "" + _ServerAddress; } set { _ServerHost = value; } }
 
         private Int32 _ServerPort;
         /// <summary>服务器端口</summary>
@@ -38,7 +42,7 @@ namespace NewLife.Net.Proxy
         public NATProxy(String hostname, Int32 port, ProtocolType protocol)
             : this()
         {
-            ServerAddress = hostname;
+            ServerHost = hostname;
             ServerPort = port;
             ServerProtocolType = protocol;
         }
@@ -73,7 +77,7 @@ namespace NewLife.Net.Proxy
         protected override void AddSession(INetSession session)
         {
             var s = session as NATSession;
-            s.RemoteEndPoint = new IPEndPoint(NetHelper.ParseAddress(ServerAddress), ServerPort);
+            s.RemoteEndPoint = new IPEndPoint(ServerAddress, ServerPort);
             if (ServerProtocolType == ProtocolType.Tcp || ServerProtocolType == ProtocolType.Udp)
                 s.RemoteProtocolType = ServerProtocolType;
             else

@@ -67,10 +67,27 @@ namespace NewLife.Net
         /// <returns></returns>
         public static IPAddress ParseAddress(String hostname)
         {
+            if (String.IsNullOrEmpty(hostname)) return null;
+
             IPAddress[] hostAddresses = Dns.GetHostAddresses(hostname);
             if (hostAddresses == null || hostAddresses.Length < 1) return null;
 
             return hostAddresses.FirstOrDefault(d => d.AddressFamily == AddressFamily.InterNetwork || d.AddressFamily == AddressFamily.InterNetworkV6);
+        }
+
+        /// <summary>分析网络终结点</summary>
+        /// <param name="address">地址，可以不带端口</param>
+        /// <param name="defaultPort">地址不带端口时指定的默认端口</param>
+        /// <returns></returns>
+        public static IPEndPoint ParseEndPoint(String address, Int32 defaultPort = 0)
+        {
+            if (String.IsNullOrEmpty(address)) return null;
+
+            Int32 p = address.IndexOf(":");
+            if (p > 0)
+                return new IPEndPoint(ParseAddress(address.Substring(0, p)), Int32.Parse(address.Substring(p + 1)));
+            else
+                return new IPEndPoint(ParseAddress(address), defaultPort);
         }
 
         ///// <summary>获取本地IPV4列表</summary>

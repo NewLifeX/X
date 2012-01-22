@@ -126,11 +126,17 @@ namespace NewLife.Net.Http
                 entity.StatusCode = Int32.Parse(ss[1]);
                 entity.StatusDescription = ss[2];
             }
-            else
+            else if (ss[2].StartsWith("HTTP/", StringComparison.OrdinalIgnoreCase))
             {
                 entity.Method = ss[0];
                 entity.Url = new Uri(ss[1], UriKind.RelativeOrAbsolute);
                 entity.Version = ss[2];
+            }
+            else
+            {
+                // 版本必须是HTTP/开头，否则非法
+                stream.Position = p;
+                return null;
             }
 
             return entity;
@@ -144,6 +150,7 @@ namespace NewLife.Net.Http
             while (!String.IsNullOrEmpty(line = reader.ReadLine()))
             {
                 Int32 p = line.IndexOf(":");
+                if (p < 0) throw new NetException("无法处理的头部名值对！{0}", line);
                 Headers.Add(line.Substring(0, p).Trim(), line.Substring(p + 1).Trim());
             }
         }
@@ -165,6 +172,16 @@ namespace NewLife.Net.Http
                 }
                 writer.WriteLine();
             }
+        }
+
+        /// <summary>获取Http头的数据流</summary>
+        /// <returns></returns>
+        public Stream GetStream()
+        {
+            var ms = new MemoryStream();
+            Write(ms);
+            ms.Position = 0;
+            return ms;
         }
 
         /// <summary>已重载。以文本形式呈现整个头部</summary>

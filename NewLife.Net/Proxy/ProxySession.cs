@@ -63,13 +63,7 @@ namespace NewLife.Net.Proxy
             stream = OnReceive(e, stream);
             if (stream != null)
             {
-                if (Remote == null)
-                {
-                    Remote = CreateRemote(e);
-                    if (Remote.ProtocolType == ProtocolType.Tcp && !Remote.Client.Connected) Remote.Connect(RemoteEndPoint);
-                    Remote.Received += new EventHandler<NetEventArgs>(Remote_Received);
-                    Remote.ReceiveAsync();
-                }
+                if (Remote == null) StartRemote(e);
 
                 Remote.Send(stream, RemoteEndPoint);
             }
@@ -82,6 +76,16 @@ namespace NewLife.Net.Proxy
         protected virtual Stream OnReceive(NetEventArgs e, Stream stream)
         {
             return stream;
+        }
+
+        /// <summary>开始远程连接</summary>
+        /// <param name="e"></param>
+        protected virtual void StartRemote(NetEventArgs e)
+        {
+            Remote = CreateRemote(e);
+            if (Remote.ProtocolType == ProtocolType.Tcp && !Remote.Client.Connected) Remote.Connect(RemoteEndPoint);
+            Remote.Received += new EventHandler<NetEventArgs>(Remote_Received);
+            Remote.ReceiveAsync();
         }
 
         /// <summary>为会话创建与远程服务器通讯的Socket。可以使用Socket池达到重用的目的。默认实现创建与服务器相同类型的客户端</summary>

@@ -295,9 +295,10 @@ namespace NewLife.Net.Sockets
         protected virtual void OnError(object sender, NetEventArgs e)
         {
             if (e.SocketError != SocketError.Success || e.Error != null)
-                WriteLog("{2}错误 {0} {1}", e.SocketError, e.Error, e.LastOperation);
+                WriteLog("{0} {1}错误 {2} {3}", sender, e.LastOperation, e.SocketError, e.Error);
             else
-                WriteLog("{0}断开！", e.LastOperation);
+                WriteLog("{0} {1}断开！", sender, e.LastOperation);
+            //WriteLog("{0}断开！", e.LastOperation);
         }
         #endregion
 
