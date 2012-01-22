@@ -45,15 +45,17 @@ namespace NewLife.Net.Tcp
             {
                 if (_dic.Count < 1) return;
 
-                foreach (var item in _dic.Values)
+                // 必须先复制到数组，因为会话销毁的时候，会自动从集合中删除，从而引起集合枚举失败
+                var ns = new ISocketSession[_dic.Count];
+                _dic.Values.CopyTo(ns, 0);
+                _dic.Clear();
+                foreach (var item in ns)
                 {
                     //if (item == null || item.Disposed || item.Socket == null) continue;
                     if (item == null || item.Disposed) continue;
 
                     item.Close();
                 }
-
-                _dic.Clear();
             }
         }
 

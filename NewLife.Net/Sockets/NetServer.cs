@@ -244,11 +244,11 @@ namespace NewLife.Net.Sockets
                     // 必须先复制到数组，因为会话销毁的时候，会自动从集合中删除，从而引起集合枚举失败
                     var ns = new NetSession[ss.Count];
                     ss.Values.CopyTo(ns, 0);
+                    ss.Clear();
                     foreach (var item in ns)
                     {
                         item.Dispose();
                     }
-                    ss.Clear();
                 }
             }
         }
