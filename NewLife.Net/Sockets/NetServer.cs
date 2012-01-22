@@ -235,14 +235,21 @@ namespace NewLife.Net.Sockets
                 }
             }
 
-            if (_Sessions != null)
+            var ss = _Sessions;
+            if (ss != null)
             {
-                foreach (var item in _Sessions.Values)
-                {
-                    item.Dispose();
-                }
-                _Sessions.Clear();
                 _Sessions = null;
+                if (ss.Count > 0)
+                {
+                    // 必须先复制到数组，因为会话销毁的时候，会自动从集合中删除，从而引起集合枚举失败
+                    var ns = new NetSession[ss.Count];
+                    ss.Values.CopyTo(ns, 0);
+                    foreach (var item in ns)
+                    {
+                        item.Dispose();
+                    }
+                    ss.Clear();
+                }
             }
         }
         #endregion
