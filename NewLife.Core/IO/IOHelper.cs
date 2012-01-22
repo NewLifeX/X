@@ -449,7 +449,7 @@ namespace NewLife.IO
         /// <param name="buffer">字节数组</param>
         /// <param name="offset">字节数组中的偏移</param>
         /// <param name="length">字节数组中的查找长度</param>
-        /// <returns></returns>
+        /// <returns>未找到时返回空，0位置范围大小为0的字节数组</returns>
         public static Byte[] ReadBytesUntil(this Stream stream, Byte[] buffer, Int64 offset = 0, Int64 length = 0)
         {
             //if (!stream.CanSeek) throw new XException("流不支持查找！");
@@ -457,7 +457,8 @@ namespace NewLife.IO
             var ori = stream.Position;
             var p = stream.IndexOf(buffer, offset, length);
             stream.Position = ori;
-            if (p < 0) return new Byte[0];
+            if (p < 0) return null;
+            if (p == 0) return new Byte[0];
 
             return stream.ReadBytes(p);
         }
@@ -471,6 +472,21 @@ namespace NewLife.IO
         {
             if (encoding == null) encoding = Encoding.UTF8;
             return stream.ReadBytesUntil(encoding.GetBytes(str));
+        }
+
+        /// <summary>从数据流中读取一行，直到遇到换行</summary>
+        /// <param name="stream">数据流</param>
+        /// <param name="encoding"></param>
+        /// <returns>未找到返回null，0位置返回String.Empty</returns>
+        public static String ReadLine(this Stream stream, Encoding encoding = null)
+        {
+            var bts = stream.ReadBytesUntil(Environment.NewLine, encoding);
+            //if (bts == null || bts.Length < 1) return null;
+            if (bts == null) return null;
+            stream.Seek(encoding.GetByteCount(Environment.NewLine), SeekOrigin.Current);
+            if (bts.Length == 0) return String.Empty;
+
+            return encoding.GetString(bts);
         }
 
         /// <summary>流转换为字符串</summary>

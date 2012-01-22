@@ -4,6 +4,7 @@ using System.Reflection;
 using NewLife.Exceptions;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.IO;
 
 namespace NewLife.Serialization
 {
@@ -404,6 +405,29 @@ namespace NewLife.Serialization
             var ts = new TraceStream(stream);
             ts.IsLittleEndian = Settings.IsLittleEndian;
             Stream = ts;
+        }
+        #endregion
+
+        #region 查找读取
+        /// <summary>从数据流中读取一行，直到遇到换行</summary>
+        /// <returns></returns>
+        public String ReadLine()
+        {
+            if (EndOfStream) return null;
+
+            return Stream.ReadLine(Settings.Encoding);
+        }
+
+        /// <summary>从数据流中读取一行，直到最后</summary>
+        /// <returns></returns>
+        public String ReadToEnd()
+        {
+            if (EndOfStream) return null;
+
+            var bts = Stream.ReadBytes();
+            if (bts == null || bts.Length < 1) return null;
+
+            return Settings.Encoding.GetString(bts);
         }
         #endregion
     }

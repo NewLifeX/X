@@ -1741,5 +1741,11 @@ namespace NewLife.Serialization
             }
         }
         #endregion
+
+        #region 辅助属性
+        /// <summary>获取一个值，该值表示当前的流位置是否在流的末尾。</summary>
+        /// <returns>如果当前的流位置在流的末尾，则为 true；否则为 false。</returns>
+        public Boolean EndOfStream { get { return Stream.Position == Stream.Length; } }
+        #endregion
     }
 }
