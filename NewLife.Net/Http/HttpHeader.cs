@@ -63,6 +63,12 @@ namespace NewLife.Net.Http
         /// <summary>是否保持连接</summary>
         public Boolean KeepAlive { get { return !"Close".EqualIgnoreCase(Connection); } set { Connection = value ? "keep-alive" : "Close"; } }
 
+        /// <summary>是否保持代理连接</summary>
+        public String ProxyConnection { get { return Headers["Proxy-Connection"]; } set { Headers["Proxy-Connection"] = value; } }
+
+        /// <summary>是否保持代理连接</summary>
+        public Boolean ProxyKeepAlive { get { return !"Close".EqualIgnoreCase(ProxyConnection); } set { ProxyConnection = value ? "Keep-Alive" : "Close"; } }
+
         /// <summary>原始地址。直接代理会包括全路径</summary>
         public String RawUrl { get { return Url != null && Url.IsAbsoluteUri ? Url.ToString() : String.Format("http://{0}{1}", Host, Url); } }
         #endregion
