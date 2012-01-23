@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace NewLife.Net.Proxy
 {
     /// <summary>NAT会话</summary>

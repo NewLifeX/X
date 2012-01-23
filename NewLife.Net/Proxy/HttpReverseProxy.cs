@@ -40,7 +40,7 @@ namespace NewLife.Net.Proxy
 
         #region 会话
         /// <summary>Http反向代理会话</summary>
-        public class Session : NATSession
+        class Session : NATSession
         {
             ///// <summary>代理对象</summary>
             //public new HttpReverseProxy Proxy { get { return base.Proxy as HttpReverseProxy; } set { base.Proxy = value; } }

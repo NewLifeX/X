@@ -1,20 +1,14 @@
 ﻿using System;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading;
-using NewLife;
 using NewLife.IO;
 using NewLife.Log;
 using NewLife.Net.DNS;
-using NewLife.Net.Fetion;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
-using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
-using NewLife.Net.UPnP;
-using XCode.DataAccessLayer;
 
 namespace Test
 {
@@ -128,18 +122,6 @@ namespace Test
             }
         }
 
-        static void Test3()
-        {
-            //UdpServer server = new UdpServer();
-            var dal = DAL.Create("Common");
-            var p = dal.Db.Factory.CreateParameter();
-            p.ParameterName = "table_name";
-            p.Value = "admin";
-            //var ds = dal.Session.Query("sp_columns", CommandType.StoredProcedure, p);
-            var ds = dal.Session.Query("select @table_name;", CommandType.Text, p);
-            Console.Write(ds);
-        }
-
         static void Test4()
         {
             var server = new HttpReverseProxy();
@@ -159,101 +141,6 @@ namespace Test
 
             server.Dispose();
             s2.Dispose();
-        }
-
-        static void client_OnNewDevice(object sender, EventArgs<InternetGatewayDevice, bool> e)
-        {
-            Console.WriteLine("网关 {0}{1}", e.Arg1, e.Arg2 ? " [缓存]" : "");
-            if (e.Arg2) return;
-
-            Console.WriteLine();
-            Console.WriteLine("{0}上的UPnP映射：", e.Arg1);
-            foreach (var item in e.Arg1.GetMapByIndexAll())
-            {
-                Console.WriteLine(item);
-            }
-        }
-
-        static void server_Accepted(object sender, NetEventArgs e)
-        {
-            Console.WriteLine("新连接：{0}", e.RemoteEndPoint);
-            ISocketSession session = e.Socket as ISocketSession;
-            session.Send("连接收到，准备反向连接！");
-
-            // 连回去
-            try
-            {
-                Console.WriteLine("连回去");
-                var client = new TcpClientX();
-                client.Port = 12;
-                Console.WriteLine("绑定：{0} 准备连接：{1}", client.LocalEndPoint, e.RemoteEndPoint);
-                client.Connect(e.RemoteEndPoint);
-                Console.WriteLine("连接成功，发送信息");
-                client.Send("Hello nnhy!");
-                Console.WriteLine("发送完毕，接收信息");
-                var msg = client.ReceiveString();
-                Console.WriteLine("收到：{0}", msg);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-            session.Send("已进行反向连接！");
-        }
-
-        static void server_Accepted2(object sender, NetEventArgs e)
-        {
-            Console.WriteLine("反向连接：{0}", e.RemoteEndPoint);
-
-            ISocketSession session = e.Socket as ISocketSession;
-            Console.WriteLine("接收信息");
-            var msg = session.ReceiveString();
-            Console.WriteLine("收到：{0}", msg);
-
-            Console.WriteLine("发送信息");
-            session.Send("完成!");
-        }
-
-        static void Test5()
-        {
-            //ObjectPoolTest<NetEventArgs>.Start();
-
-            Console.WriteLine("飞信Wap协议测试：");
-            Console.Write("手机号：");
-            String user = Console.ReadLine();
-            Console.Write("密码：");
-            String pass = Console.ReadLine();
-
-            var client = new WapFetion(user, pass);
-            //client.ShowResponse = true;
-            client.Send(user, String.Format("{0}于{1}已登录{2}！", user, DateTime.Now, client.GetType()));
-            //Console.WriteLine("我的好友：");
-            //foreach (var item in client.Friends)
-            //{
-            //    item.Refresh();
-            //    Console.WriteLine(item);
-            //}
-            while (true)
-            {
-                Console.Write("目标手机号码：");
-                var mobile = Console.ReadLine();
-                if (String.IsNullOrEmpty(mobile)) break;
-
-                Console.Write("内容：");
-                var msg = Console.ReadLine();
-
-                client.Send(mobile, msg);
-            }
-            //client.AddFriend("15855167890", "阿黄", "大石头");
-            //client.Send("15855167890", "WapFetion测试");
-            //var mobile = client.GetMobile(185257960);
-            //client.AddFriend("13585922759", "云飞扬-张", "大石头");
-            //Thread.Sleep(10000);
-            //client.Send("13585922759", "WapFetion测试");
-            //Console.WriteLine(mobile);
-            //client.SendStranger(185257960, "WapFetion测试");
-            client.Dispose();
         }
     }
 }

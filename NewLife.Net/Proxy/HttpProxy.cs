@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
-using NewLife.IO;
-using NewLife.Net.Http;
-using NewLife.Net.Sockets;
 using System.Net;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
+using NewLife.IO;
+using NewLife.Net.Http;
+using NewLife.Net.Sockets;
 using NewLife.Serialization;
 
 namespace NewLife.Net.Proxy
@@ -24,7 +24,7 @@ namespace NewLife.Net.Proxy
 
         #region 会话
         /// <summary>Http反向代理会话</summary>
-        public class Session : ProxySession
+        class Session : ProxySession
         {
             ///// <summary>代理对象</summary>
             //public new HttpReverseProxy Proxy { get { return base.Proxy as HttpReverseProxy; } set { base.Proxy = value; } }

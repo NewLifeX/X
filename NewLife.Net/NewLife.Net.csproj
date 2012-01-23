@@ -105,7 +105,6 @@
     <Compile Include="Proxy\HttpProxy.cs" />
     <Compile Include="Proxy\HttpReverseProxy.cs" />
     <Compile Include="Proxy\IProxy.cs" />
-    <Compile Include="Proxy\IProxyFilter.cs" />
     <Compile Include="Proxy\IProxySession.cs" />
     <Compile Include="Proxy\NATSession.cs" />
     <Compile Include="Proxy\ProxySession.cs" />
