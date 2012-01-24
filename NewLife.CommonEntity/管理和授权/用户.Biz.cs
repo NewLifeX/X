@@ -5,6 +5,7 @@
  * 版权：版权所有 (C) 新生命开发团队 2011
 */
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Web;
 using NewLife.CommonEntity.Exceptions;
@@ -357,6 +358,28 @@ namespace NewLife.CommonEntity
 
         /// <summary>密码</summary>
         string IManageUser.Password { get { return Password; } }
+
+        IDictionary<String, Object> _Properties;
+        /// <summary>属性集合</summary>
+        IDictionary<String, Object> IManageUser.Properties
+        {
+            get
+            {
+                if (_Properties == null)
+                {
+                    _Properties = new Dictionary<String, Object>();
+                    foreach (var item in Meta.FieldNames)
+                    {
+                        _Properties[item] = this[item];
+                    }
+                    foreach (var item in Extends)
+                    {
+                        _Properties[item.Key] = item.Value;
+                    }
+                }
+                return _Properties;
+            }
+        }
         #endregion
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace NewLife.CommonEntity
 {
@@ -15,5 +14,8 @@ namespace NewLife.CommonEntity
 
         /// <summary>密码</summary>
         String Password { get; }
+
+        /// <summary>属性集合</summary>
+        IDictionary<String, Object> Properties { get; }
     }
 }
