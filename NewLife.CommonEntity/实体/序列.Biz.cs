@@ -129,12 +129,12 @@ namespace NewLife.CommonEntity
         public static TEntity FindByName(String __Name)
         {
             if (String.IsNullOrEmpty(__Name)) return null;
-
-            //return Find(_.Name, __Name);
+            //取消缓存，防止出现缓存过期无法获得对象
+            return Find(_.Name, __Name);
             // 实体缓存
             //return Meta.Cache.Entities.Find(_.Name, __Name);
             // 单对象缓存
-            return Meta.SingleCache[__Name];
+            //return Meta.SingleCache[__Name];
         }
         #endregion
 
