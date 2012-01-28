@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
+using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Threading;
-using NewLife.Log;
 
 namespace NewLife.Collections
 {

@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace NewLife.Collections
@@ -14,6 +13,9 @@ namespace NewLife.Collections
     /// 最好指定初始容量，因为采用数组作为存储结构最大的缺点就是容量固定，从而导致满存储时必须重新分配数组，并且复制。
     /// 
     /// 在 @Aimeast 的指点下，有所感悟，我们没必要严格的追求绝对安全，只要把冲突可能性降到尽可能低即可。
+    /// 
+    /// 安全栈有问题，如果在同一个位置同时压入和弹出，可能会导致这个位置为空，后面再弹出的时候，只得到空值。
+    /// 通过增加一个锁定数组来解决这个问题，锁定数组实现不严格的数字对比锁定，保证性能。
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     [Serializable]
@@ -22,6 +24,8 @@ namespace NewLife.Collections
         #region 属性
         /// <summary>数据数组</summary>
         private T[] _array;
+        /// <summary>锁定数组</summary>
+        private volatile Byte[] _locks;
 
         private Int32 _Count;
         /// <summary>元素个数，同时也是下一个空位的位置指针</summary>
@@ -30,6 +34,7 @@ namespace NewLife.Collections
         /// <summary>最大容量</summary>
         public Int32 Capacity { get { return _array == null ? 0 : _array.Length; } }
 
+        /// <summary>扩容时使用的全局锁。因为扩容时不允许其它任何操作。</summary>
         private Int32 _lock;
         #endregion
 
@@ -42,6 +47,7 @@ namespace NewLife.Collections
         public SafeStack(Int32 capacity)
         {
             _array = new T[capacity];
+            _locks = new Byte[capacity];
         }
 
         /// <summary>使用指定枚举实例化一个安全栈</summary>
@@ -55,6 +61,7 @@ namespace NewLife.Collections
             }
             _array = list.ToArray();
             _Count = _array.Length;
+            _locks = new Byte[_Count];
         }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
@@ -69,6 +76,8 @@ namespace NewLife.Collections
                 if (item != null && item is IDisposable) (item as IDisposable).Dispose();
                 _array[i] = default(T);
             }
+            _array = null;
+            _locks = null;
         }
         #endregion
 
@@ -81,10 +90,16 @@ namespace NewLife.Collections
             // 检查锁，因为可能加锁来改变_array
             while (_lock > 0) Thread.SpinWait(1);
 
-            Int32 p;
+            Int32 p = 0;
             do
             {
+                if (p > 0) _locks[p]--;
+
                 p = Count;
+
+                // 锁定该位置，避免同时弹出
+                while (_locks[p] > 0) Thread.SpinWait(1);
+                _locks[p]++;
             }
             // 如果Count现在还是p，表明取得这个位置，并把Count后移一位
             while (Interlocked.CompareExchange(ref _Count, p + 1, p) != p);
@@ -106,6 +121,10 @@ namespace NewLife.Collections
                     var _arr = new T[size];
                     _array.CopyTo(_arr, 0);
                     _array = _arr;
+
+                    var _arr2 = _locks = new Byte[size];
+                    _locks.CopyTo(_arr2, 0);
+                    _locks = _arr2;
                 }
 
                 // 解锁
@@ -113,6 +132,8 @@ namespace NewLife.Collections
             }
 
             _array[p] = item;
+
+            _locks[p]--;
         }
 
         /// <summary>从栈中弹出一个对象</summary>
@@ -133,9 +154,11 @@ namespace NewLife.Collections
             // 检查锁，因为可能加锁来改变_array
             while (_lock > 0) Thread.SpinWait(1);
 
-            Int32 p;
+            Int32 p = 0;
             do
             {
+                if (p > 0) _locks[p]--;
+
                 p = Count;
 
                 if (p < 1)
@@ -143,6 +166,10 @@ namespace NewLife.Collections
                     item = default(T);
                     return false;
                 }
+
+                // 锁定该位置，避免同时压入
+                while (_locks[p] > 0) Thread.SpinWait(1);
+                _locks[p]++;
             }
             // 如果Count现在还是p，表明取得这个位置，并把Count前移一位
             while (Interlocked.CompareExchange(ref _Count, p - 1, p) != p);
@@ -151,6 +178,8 @@ namespace NewLife.Collections
             p--;
             item = _array[p];
             _array[p] = default(T);
+
+            _locks[p]--;
 
             return true;
         }
