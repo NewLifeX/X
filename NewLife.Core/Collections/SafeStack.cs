@@ -188,6 +188,7 @@ namespace NewLife.Collections
             item = _array[p];
             _array[p] = default(T);
 
+            // 指针加回去才能解锁，该致命错误由 @蓝风网格（442824911）发现
             p++;
             _locks[p]--;
             Debug.Assert(_locks[p] == 0);
