@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 
 namespace NewLife.Collections
@@ -89,22 +90,25 @@ namespace NewLife.Collections
         {
             // 检查锁，因为可能加锁来改变_array
             while (_lock > 0) Thread.SpinWait(1);
+            Debug.Assert(_lock == 0);
 
-            Int32 p = 0;
+            Int32 p = -1;
             do
             {
-                if (p > 0) _locks[p]--;
+                // 解除上一次循环所加的锁
+                if (p >= 0) _locks[p]--;
 
                 p = Count;
 
                 // 锁定该位置，避免同时弹出
                 while (_locks[p] > 0) Thread.SpinWait(1);
                 _locks[p]++;
+                Debug.Assert(_locks[p] == 1);
             }
             // 如果Count现在还是p，表明取得这个位置，并把Count后移一位
             while (Interlocked.CompareExchange(ref _Count, p + 1, p) != p);
 
-            // 是否容量超标
+            #region 是否容量超标
             if (p >= _array.Length)
             {
                 // 加锁，扩容
@@ -130,10 +134,12 @@ namespace NewLife.Collections
                 // 解锁
                 Interlocked.Decrement(ref _lock);
             }
+            #endregion
 
             _array[p] = item;
 
             _locks[p]--;
+            Debug.Assert(_locks[p] == 0);
         }
 
         /// <summary>从栈中弹出一个对象</summary>
@@ -153,11 +159,13 @@ namespace NewLife.Collections
         {
             // 检查锁，因为可能加锁来改变_array
             while (_lock > 0) Thread.SpinWait(1);
+            Debug.Assert(_lock == 0);
 
-            Int32 p = 0;
+            Int32 p = -1;
             do
             {
-                if (p > 0) _locks[p]--;
+                // 解除上一次循环所加的锁
+                if (p >= 0) _locks[p]--;
 
                 p = Count;
 
@@ -170,6 +178,7 @@ namespace NewLife.Collections
                 // 锁定该位置，避免同时压入
                 while (_locks[p] > 0) Thread.SpinWait(1);
                 _locks[p]++;
+                Debug.Assert(_locks[p] == 1);
             }
             // 如果Count现在还是p，表明取得这个位置，并把Count前移一位
             while (Interlocked.CompareExchange(ref _Count, p - 1, p) != p);
@@ -179,7 +188,9 @@ namespace NewLife.Collections
             item = _array[p];
             _array[p] = default(T);
 
+            p++;
             _locks[p]--;
+            Debug.Assert(_locks[p] == 0);
 
             return true;
         }
