@@ -133,15 +133,16 @@ namespace XCode
             if (entity == null) return CreateOperate(type);
 
             // 重新使用判断，减少锁争夺
-            if (op_cache.ContainsKey(type)) return op_cache[type];
+            var oc = op_cache;
+            if (oc.ContainsKey(type)) return oc[type];
             //lock (op_cache)
             // op_cache曾经是两次非常严重的死锁的核心所在
             // 事实上，不管怎么样处理，只要这里还锁定op_cache，那么实体类静态构造函数和CreateOperate方法，就有可能导致死锁产生
             lock ("op_cache" + type.FullName)
             {
-                if (op_cache.ContainsKey(type)) return op_cache[type];
+                if (oc.ContainsKey(type)) return oc[type];
 
-                op_cache[type] = entity;
+                oc[type] = entity;
 
                 return entity;
             }

@@ -34,10 +34,10 @@ namespace NewLife.Collections
             }
             set
             {
-                if (ContainsKey(key))
-                    base[key] = value;
-                else
-                    base.Add(key, value);
+                //if (ContainsKey(key))
+                base[key] = value;
+                //else
+                //    base.Add(key, value);
             }
         }
 
