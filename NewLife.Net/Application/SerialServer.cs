@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Net.Sockets;
+using System.IO;
 using System.IO.Ports;
 using System.Net;
 using NewLife.IO;
-using System.IO;
+using NewLife.Net.Sockets;
 using NewLife.Security;
 
 namespace NewLife.Net.Application
@@ -33,10 +31,9 @@ namespace NewLife.Net.Application
             base.OnAccepted(sender, e);
 
             var session = e.Socket as ISocketSession;
-            using (var sp = new SerialPort(PortName))
+            using (var sp = Open(session))
             {
-                sp.Open();
-                ReadAndSend(sp, session, e.RemoteEndPoint);
+                if (sp != null) ReadAndSend(sp, session, e.RemoteEndPoint);
             }
         }
 
@@ -48,9 +45,10 @@ namespace NewLife.Net.Application
             base.OnReceived(sender, e);
 
             var session = e.Socket as ISocketSession;
-            using (var sp = new SerialPort(PortName))
+            using (var sp = Open(session))
             {
-                sp.Open();
+                if (sp == null) return;
+
                 if (e.BytesTransferred > 0)
                 {
                     WriteLog("Net=>SerialPort: {0}", e.Buffer.ToHex(e.Offset, e.BytesTransferred));
@@ -61,14 +59,41 @@ namespace NewLife.Net.Application
             }
         }
 
+        SerialPort Open(ISocketSession session)
+        {
+            var sp = new SerialPort(PortName);
+            try
+            {
+                sp.Open();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                session.Disconnect();
+                return null;
+            }
+            return sp;
+        }
+
         void ReadAndSend(SerialPort sp, ISocketSession session, EndPoint remote)
         {
             // 读取数据
             var ms = new MemoryStream();
-            while (sp.BytesToRead > 0)
+            sp.ReadTimeout = 500;
+            //while (sp.BytesToRead > 0)
+            //{
+            //    try
+            //    {
+            //        Int32 d = sp.ReadByte();
+            //        if (d != -1) ms.WriteByte((Byte)d);
+            //    }
+            //    catch { break; }
+            //}
+            WriteLog("可读取数据：{0}", sp.BytesToRead);
+            var str = sp.ReadExisting();
+            if (!String.IsNullOrEmpty(str))
             {
-                Int32 d = sp.ReadByte();
-                if (d != -1) ms.WriteByte((Byte)d);
+                var buffer = sp.Encoding.GetBytes(str);
+                ms.Write(buffer, 0, buffer.Length);
             }
 
             if (ms.Length > 0)

@@ -76,7 +76,7 @@ namespace NewLife.Net.Proxy
         /// <param name="session"></param>
         protected override void AddSession(INetSession session)
         {
-            var s = session as NATSession;
+            var s = session as ProxySession;
             s.RemoteEndPoint = new IPEndPoint(ServerAddress, ServerPort);
             if (ServerProtocolType == ProtocolType.Tcp || ServerProtocolType == ProtocolType.Udp)
                 s.RemoteProtocolType = ServerProtocolType;
