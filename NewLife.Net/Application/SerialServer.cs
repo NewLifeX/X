@@ -5,6 +5,7 @@ using System.Net;
 using NewLife.IO;
 using NewLife.Net.Sockets;
 using NewLife.Security;
+using System.Threading;
 
 namespace NewLife.Net.Application
 {
@@ -55,6 +56,8 @@ namespace NewLife.Net.Application
                     sp.Write(e.Buffer, e.Offset, e.BytesTransferred);
                 }
 
+                Thread.Sleep(1000);
+
                 ReadAndSend(sp, session, e.RemoteEndPoint);
             }
         }
@@ -66,7 +69,8 @@ namespace NewLife.Net.Application
             {
                 sp.Open();
             }
-            catch (UnauthorizedAccessException)
+            //catch (UnauthorizedAccessException)
+            catch
             {
                 session.Disconnect();
                 return null;

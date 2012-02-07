@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.P2P;
@@ -8,6 +9,7 @@ using NewLife.Security;
 using NewLife.Net.Application;
 using System.Threading;
 using NewLife.Net.Proxy;
+using System.IO.Ports;
 
 namespace Test2
 {
@@ -93,16 +95,16 @@ namespace Test2
         static void Test2()
         {
             NetHelper.Debug = true;
-            //if (server == null)
-            //{
-            //    server = new NetServer();
-            //    server.Port = 23;
-            //    server.Received += new EventHandler<NetEventArgs>(server_Received);
-            //    server.Start();
-            //}
+            if (server == null)
+            {
+                server = new NetServer();
+                server.Port = 23;
+                server.Received += new EventHandler<NetEventArgs>(server_Received);
+                server.Start();
+            }
             if (server2 == null)
             {
-                server2 = new SerialServer() { PortName = "COM1" };
+                server2 = new SerialServer() { PortName = "COM3" };
                 server2.Port = 24;
                 //server.Received += new EventHandler<NetEventArgs>(server_Received);
                 server2.Start();
@@ -125,20 +127,44 @@ namespace Test2
                 //"7E 2F 44 F1 10 12 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 86 01 0D"
             };
 
+            using (var client = new UdpClientX())
+            {
+                client.Connect(NetHelper.GetIPs().First(), 24);
+                for (int i = 0; i < ss.Length; i++)
+                {
+                    var data = DataHelper.FromHex(ss[i].Replace(" ", null));
+                    client.Send(data, 0, data.Length);
+                }
+            }
+
+            //Thread.Sleep(2000);
+
             //using (var client = new UdpClientX())
             //{
-            //    client.Connect("192.168.1.10", 24);
+            //    client.Connect(NetHelper.GetIPs().First(), 24);
             //    for (int i = 0; i < ss.Length; i++)
             //    {
             //        var data = DataHelper.FromHex(ss[i].Replace(" ", null));
             //        client.Send(data, 0, data.Length);
             //    }
             //}
+
+            Thread.Sleep(20000);
+
+            using (var sp = new SerialPort("COM3"))
+            {
+                sp.Open();
+                Console.WriteLine(sp.ReadExisting());
+            }
         }
 
         static void server_Received(object sender, NetEventArgs e)
         {
-            Console.WriteLine("收到：{0}", DataHelper.ToHex(e.Buffer, e.Offset, e.BytesTransferred));
+            Console.WriteLine("{1}收到：{0}", DataHelper.ToHex(e.Buffer, e.Offset, e.BytesTransferred), e.Socket.ProtocolType);
+            var session = e.Socket as ISocketSession;
+
+            Thread.Sleep(1000);
+            session.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
         }
 
         //struct Door
