@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.7.*")]
-[assembly: AssemblyFileVersion("3.7.2012.0118")]
+[assembly: AssemblyFileVersion("3.7.2012.0209")]
 
 /*
+ * v3.7.2012.0209   完善消息模型
+ * 
  * v3.7.2012.0118   重构消息模型，取消消息总线
  * 
  * v3.6.2012.0107   增加数组实现的安全栈SafeStack，改进对象池，性能有40%左右的提升，没有GC压力。

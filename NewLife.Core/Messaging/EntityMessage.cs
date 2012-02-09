@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Xml.Serialization;
+using NewLife.Serialization;
 
 namespace NewLife.Messaging
 {
@@ -8,7 +9,7 @@ namespace NewLife.Messaging
     /// 一般用于打包单个对象，理论上，这是一个万能消息。
     /// 需要注意的是：本消息的设计，允许通讯双方使用不同的类，只要这两个类继承相同的接口或者抽象类。
     /// </remarks>
-    public class EntityMessage : Message
+    public class EntityMessage : Message, IAccessor
     {
         /// <summary>消息类型</summary>
         [XmlIgnore]
@@ -21,5 +22,33 @@ namespace NewLife.Messaging
         private Object _Value;
         /// <summary>对象值</summary>
         public Object Value { get { return _Value; } set { _Value = value; if (value != null && Type == null)Type = value.GetType(); } }
+
+        #region IAccessor 成员
+        Boolean IAccessor.Read(IReader reader)
+        {
+            reader.OnMemberReading += new EventHandler<ReadMemberEventArgs>(reader_OnMemberReading);
+            return false;
+        }
+
+        void reader_OnMemberReading(object sender, ReadMemberEventArgs e)
+        {
+            if (e.Member.Name == "_Value") e.Type = Type;
+        }
+
+        Boolean IAccessor.ReadComplete(IReader reader, Boolean success) { return success; }
+
+        Boolean IAccessor.Write(IWriter writer)
+        {
+            writer.OnMemberWriting += new EventHandler<WriteMemberEventArgs>(writer_OnMemberWriting);
+            return false;
+        }
+
+        void writer_OnMemberWriting(object sender, WriteMemberEventArgs e)
+        {
+            if (e.Member.Name == "_Value") e.Type = Type;
+        }
+
+        Boolean IAccessor.WriteComplete(IWriter writer, Boolean success) { return success; }
+        #endregion
     }
 }

@@ -17,11 +17,11 @@ namespace NewLife.Messaging
         /// <summary>指定类型的实体对象消息</summary>
         Entity,
 
-        /// <summary>异常消息</summary>
-        Exception,
-
         /// <summary>指定类型的实体对象数组消息</summary>
         Entities,
+
+        /// <summary>异常消息</summary>
+        Exception,
 
         /// <summary>经过压缩的消息</summary>
         Compression,

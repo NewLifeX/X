@@ -31,7 +31,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 类型
-        private Boolean _SplitComplexType;
+        private Boolean _SplitComplexType = true;
         /// <summary>是否拆分复杂类型。将拆分数组、内嵌和泛型</summary>
         public Boolean SplitComplexType { get { return _SplitComplexType; } set { _SplitComplexType = value; } }
 

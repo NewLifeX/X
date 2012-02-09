@@ -1,10 +1,7 @@
 ﻿using System;
-using NewLife.IO;
-using System.Collections.Generic;
-using System.Text;
+using System.IO.Compression;
 using System.Xml.Serialization;
 using NewLife.Serialization;
-using System.IO.Compression;
 
 namespace NewLife.Messaging
 {

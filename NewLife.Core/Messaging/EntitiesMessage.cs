@@ -13,7 +13,7 @@ namespace NewLife.Messaging
     {
         /// <summary>消息类型</summary>
         [XmlIgnore]
-        public override MessageKind Kind { get { return MessageKind.Entity; } }
+        public override MessageKind Kind { get { return MessageKind.Entities; } }
 
         private Type _Type;
         /// <summary>实体类型。可以是接口或抽象类型（要求对象容器能识别）</summary>

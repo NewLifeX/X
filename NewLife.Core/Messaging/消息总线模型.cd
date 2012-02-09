@@ -1,63 +1,91 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
   <Class Name="NewLife.Messaging.ExceptionMessage">
-    <Position X="3.75" Y="4.25" Width="2.5" />
+    <Position X="14.75" Y="6.25" Width="1.75" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAoQAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
       <FileName>Messaging\ExceptionMessage.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="NewLife.Messaging.Message">
-    <Position X="4.75" Y="0.5" Width="2.75" />
+    <Position X="10.5" Y="0.5" Width="2.25" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAwAAMAAAACAAAACBAAAAAAAAAAABAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAhABAAEAAAAIAAgAAAAAAAAAAACAAEAAAA=</HashCode>
       <FileName>Messaging\Message.cs</FileName>
     </TypeIdentifier>
-    <Lollipop Position="0.2" />
-  </Class>
-  <Class Name="NewLife.Messaging.MessageStreamHandler">
-    <Position X="1.25" Y="4" Width="2" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAABAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Messaging\MessageStreamHandler.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="NewLife.IO.StreamHandler">
-    <Position X="0.5" Y="0.5" Width="3.5" />
-    <Compartments>
-      <Compartment Name="Fields" Collapsed="true" />
-    </Compartments>
-    <TypeIdentifier>
-      <HashCode>AIAAAAAABAAAAAAIAgAAAACAAAABAAAQCAACAAAAAAA=</HashCode>
-      <FileName>IOModule\IStreamHandler.cs</FileName>
-    </TypeIdentifier>
-    <Lollipop Position="0.2" />
+    <ShowAsAssociation>
+      <Property Name="Kind" />
+    </ShowAsAssociation>
   </Class>
   <Class Name="NewLife.Messaging.NullMessage">
-    <Position X="6.75" Y="4.25" Width="1.5" />
+    <Position X="7.25" Y="3.75" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Messaging\NullMessage.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Interface Name="NewLife.Messaging.IMessageHandler">
-    <Position X="8" Y="0.5" Width="1.75" />
+  <Class Name="NewLife.Messaging.CompressionMessage">
+    <Position X="3.75" Y="3.75" Width="2.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
     <TypeIdentifier>
-      <HashCode>AAAAAAAABAAAAAAAAgAAAAAAAAAAAEAAAAAAAAAAAAA=</HashCode>
-      <FileName>Messaging\IMessageHandler.cs</FileName>
+      <HashCode>AAAAAAAAABBAACAAAAAAAAAAABAAAAAAAAAIICAAAAA=</HashCode>
+      <FileName>Messaging\CompressionMessage.cs</FileName>
     </TypeIdentifier>
-  </Interface>
-  <Enum Name="NewLife.Messaging.MessageExceptionOption">
-    <Position X="10.5" Y="0.5" Width="2.25" />
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="NewLife.Messaging.DataMessage">
+    <Position X="9.75" Y="3.75" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
     <TypeIdentifier>
-      <HashCode>ACAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAA=</HashCode>
-      <FileName>Messaging\MessageExceptionOption.cs</FileName>
+      <HashCode>AAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAEAAAAAAA=</HashCode>
+      <FileName>Messaging\DataMessage.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Messaging.EntitiesMessage">
+    <Position X="12.25" Y="3.75" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAABAAAAACAAAAAAAAAAAAAAAAQAgAAAABAA=</HashCode>
+      <FileName>Messaging\EntitiesMessage.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Messaging.EntityMessage">
+    <Position X="14.75" Y="3.75" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAABAABAAAAAAAAAAAAAAAAAAAQAgAAAABAA=</HashCode>
+      <FileName>Messaging\EntityMessage.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Messaging.MethodMessage">
+    <Position X="17.25" Y="3.75" Width="2" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AABAQAAAAABIAAAAAAAgIAQAAAAAAAAAAYAAAAAABAA=</HashCode>
+      <FileName>Messaging\MethodMessage.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="NewLife.Messaging.MessageKind">
+    <Position X="8" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAIAAAAAAAAAAAAAAgAAAAAAAAABAAAANAAAAAAAA=</HashCode>
+      <FileName>Messaging\MessageKind.cs</FileName>
     </TypeIdentifier>
   </Enum>
   <Font Name="微软雅黑" Size="9" />

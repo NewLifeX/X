@@ -93,7 +93,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         protected static Boolean IsExactType(Type type)
         {
-            if (type == null || type.IsInterface || type.IsAbstract || type == typeof(Object))
+            // 特殊处理Type
+            if (type == null || type.IsInterface || type.IsAbstract && type != typeof(Type) || type == typeof(Object))
                 return false;
             else
                 return true;

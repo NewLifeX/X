@@ -715,13 +715,14 @@ namespace NewLife.Serialization
         {
             // 尽管使用AssemblyQualifiedName更精确，但是它的长度实在太大了
             if (Settings.UseTypeFullName)
-                Write(value.FullName);
-            else
                 Write(value.AssemblyQualifiedName);
+            else
+                Write(value.FullName);
         }
 
         /// <summary>
         /// 检查对象类型与指定写入类型是否一致，若不一致，则先写入类型，以保证读取的时候能够以正确的类型读取。同时返回对象实际类型。
+        /// 若想不写对象类型，可以提前设定精确类型。
         /// </summary>
         /// <param name="action"></param>
         /// <param name="value"></param>
@@ -731,6 +732,7 @@ namespace NewLife.Serialization
         {
             if (type == null && value == null) return null;
 
+            // 若想不写对象类型，可以提前设定精确类型
             if (!IsExactType(type))
             {
                 type = value.GetType();
