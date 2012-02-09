@@ -8,6 +8,7 @@ using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
+using System.Collections.Generic;
 
 namespace XAgent
 {
@@ -287,7 +288,16 @@ namespace XAgent
             {
                 Console.WriteLine("4 单步调试 -step");
                 Console.WriteLine("5 循环调试 -run");
-                Console.WriteLine("6 附加服务调试");
+
+                var dic = Config.GetConfigByPrefix("XAgent.AttachServer.");
+                if (dic != null && dic.Count > 0)
+                {
+                    Console.WriteLine("6 附加服务调试");
+                    foreach (var item in dic)
+                    {
+                        Console.WriteLine("{0,10} = {1}", item.Key, item.Value);
+                    }
+                }
             }
 
             Console.WriteLine("0 退出");
@@ -299,9 +309,9 @@ namespace XAgent
         /// <summary>线程组</summary>
         private Thread[] Threads { get { return _Threads ?? (_Threads = new Thread[ThreadCount]); } set { _Threads = value; } }
 
-        private IServer[] _AttachServers;
+        private Dictionary<String, IServer> _AttachServers;
         /// <summary>附加服务</summary>
-        public IServer[] AttachServers { get { return _AttachServers; } set { _AttachServers = value; } }
+        public Dictionary<String, IServer> AttachServers { get { return _AttachServers ?? (_AttachServers = new Dictionary<string, IServer>()); } /*set { _AttachServers = value; }*/ }
 
         /// <summary>服务启动事件</summary>
         /// <param name="args"></param>
@@ -337,27 +347,63 @@ namespace XAgent
 
         private void StartAttachServers()
         {
-            Type[] ts = Config.GetConfigSplit<Type>("XAgent.AttachServers", null);
-            if (ts != null && ts.Length > 0)
+            var dic = Config.GetConfigByPrefix("XAgent.AttachServer.");
+            if (dic != null && dic.Count > 0)
             {
-                AttachServers = new IServer[ts.Length];
-                for (int i = 0; i < ts.Length; i++)
+                // 实例化
+                foreach (var item in dic)
                 {
-                    if (ts[i] != null) AttachServers[i] = TypeX.CreateInstance(ts[i]) as IServer;
+                    if (!item.Key.IsNullOrWhiteSpace() && !item.Value.IsNullOrWhiteSpace())
+                    {
+                        WriteLine("");
+                        WriteLine("正在加载：{0} = {1}", item.Key, item.Value);
+                        var type = TypeX.GetType(item.Value, true);
+                        if (type != null)
+                        {
+                            var service = TypeX.CreateInstance(type) as IServer;
+                            if (service != null) AttachServers[item.Key] = service;
+                        }
+                    }
                 }
 
-                foreach (IServer item in AttachServers)
+                // 加载配置。【服务名.属性】的配置方式
+                foreach (var item in AttachServers)
                 {
-                    if (item != null) item.Start();
+                    if (item.Value != null)
+                    {
+                        var type = item.Value.GetType();
+                        // 遍历所有属性，查找指定的设置项
+                        foreach (var pi in type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetProperty))
+                        {
+                            var name = String.Format("XAgent.{0}.{1}", item.Key, pi.Name);
+                            Object value = null;
+                            // 读取配置，并赋值
+                            if (Config.TryGetConfig(name, pi.PropertyType, out value))
+                            {
+                                WriteLine("配置：{0} = {1}", name, value);
+                                PropertyInfoX.Create(pi).SetValue(item.Value, value);
+                            }
+                        }
+                    }
+                }
+
+                // 启动
+                foreach (var item in AttachServers)
+                {
+                    if (item.Value != null)
+                    {
+                        WriteLine("启动：{0}", item.Key);
+                        item.Value.Start();
+                    }
                 }
             }
         }
 
         private void StopAttachServers()
         {
-            if (AttachServers != null && AttachServers.Length > 0)
+            if (AttachServers != null)
             {
-                foreach (IServer item in AttachServers)
+                foreach (var item in AttachServers.Values)
                 {
                     if (item != null) item.Stop();
                 }
@@ -370,9 +416,9 @@ namespace XAgent
         /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
-            if (AttachServers != null && AttachServers.Length > 0)
+            if (AttachServers != null)
             {
-                foreach (IServer item in AttachServers)
+                foreach (var item in AttachServers.Values)
                 {
                     if (item != null && item is IDisposable) (item as IDisposable).Dispose();
                 }

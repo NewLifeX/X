@@ -5,7 +5,6 @@ using System.IO;
 using System.ServiceProcess;
 using NewLife.Configuration;
 using NewLife.Log;
-using System.Windows.Forms;
 
 namespace XAgent
 {
