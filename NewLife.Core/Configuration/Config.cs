@@ -112,9 +112,7 @@ namespace NewLife.Configuration
             catch (ConfigurationErrorsException) { return false; }
         }
 
-        /// <summary>
-        /// 取得指定名称的设置项，并转为指定类型
-        /// </summary>
+        /// <summary>取得指定名称的设置项，并转为指定类型</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -130,9 +128,7 @@ namespace NewLife.Configuration
             catch (ConfigurationErrorsException) { return default(T); }
         }
 
-        /// <summary>
-        /// 取得指定名称的设置项，并转为指定类型。如果设置不存在，则返回默认值
-        /// </summary>
+        /// <summary>取得指定名称的设置项，并转为指定类型。如果设置不存在，则返回默认值</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="name"></param>
         /// <param name="defaultValue"></param>
@@ -144,16 +140,32 @@ namespace NewLife.Configuration
             return defaultValue;
         }
 
-        /// <summary>
-        /// 尝试获取指定名称的设置项
-        /// </summary>
+        /// <summary>尝试获取指定名称的设置项</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
         public static Boolean TryGetConfig<T>(String name, out T value)
         {
+            Object v = null;
+            if (TryGetConfig(name, typeof(T), out v))
+            {
+                value = (T)v;
+                return true;
+            }
+
             value = default(T);
+            return false;
+        }
+
+        /// <summary>尝试获取指定名称的设置项</summary>
+        /// <param name="name"></param>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Boolean TryGetConfig(String name, Type type, out Object value)
+        {
+            value = null;
             try
             {
                 NameValueCollection nvs = AppSettings;
@@ -162,34 +174,31 @@ namespace NewLife.Configuration
                 String str = nvs[name];
                 if (String.IsNullOrEmpty(str)) return false;
 
-                Type type = typeof(T);
                 TypeCode code = Type.GetTypeCode(type);
 
                 if (code == TypeCode.String)
-                    value = (T)(Object)str;
+                    value = str;
                 else if (code == TypeCode.Int32)
-                    value = (T)(Object)Convert.ToInt32(str);
+                    value = Convert.ToInt32(str);
                 else if (code == TypeCode.Boolean)
                 {
                     Boolean b = false;
                     if (str == "1" || str.EqualIgnoreCase(Boolean.TrueString))
-                        value = (T)(Object)true;
+                        value = true;
                     else if (str == "0" || str.EqualIgnoreCase(Boolean.FalseString))
-                        value = (T)(Object)false;
+                        value = false;
                     else if (Boolean.TryParse(str.ToLower(), out b))
-                        value = (T)(Object)b;
+                        value = b;
                 }
                 else
-                    value = (T)TypeX.ChangeType(str, type);
+                    value = TypeX.ChangeType(str, type);
 
                 return true;
             }
             catch (ConfigurationErrorsException) { return false; }
         }
 
-        /// <summary>
-        /// 根据指定前缀，获取设置项
-        /// </summary>
+        /// <summary>根据指定前缀，获取设置项。其中key不包含前缀</summary>
         /// <param name="prefix"></param>
         /// <returns></returns>
         public static IDictionary<String, String> GetConfigByPrefix(String prefix)
@@ -202,7 +211,7 @@ namespace NewLife.Configuration
                 var nv = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
                 foreach (String item in nvs)
                 {
-                    if (item.Length > prefix.Length && item.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) nv.Add(item, nvs[item]);
+                    if (item.Length > prefix.Length && item.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) nv.Add(item.Substring(prefix.Length), nvs[item]);
                 }
                 //return list.Count > 0 ? list.ToArray() : null;
                 return nv.Count > 0 ? nv : null;

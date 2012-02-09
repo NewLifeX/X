@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.Collections.Generic;
 using NewLife.Linq;
 
 namespace System
@@ -67,7 +65,7 @@ namespace System
                 if (p <= 0 || p >= item.Length - 1) continue;
 
                 String key = item.Substring(0, p).Trim();
-                dic[key] = item.Substring(p + 1).Trim();
+                dic[key] = item.Substring(p + nameValueSeparator.Length).Trim();
             }
 
             return dic;

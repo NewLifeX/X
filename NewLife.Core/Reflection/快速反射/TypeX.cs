@@ -578,9 +578,7 @@ namespace NewLife.Reflection
             return type1.FullName == type2.FullName && type1.AssemblyQualifiedName == type2.AssemblyQualifiedName;
         }
 
-        /// <summary>
-        /// 获取自定义属性的值。可用于ReflectionOnly加载的程序集
-        /// </summary>
+        /// <summary>获取自定义属性的值。可用于ReflectionOnly加载的程序集</summary>
         /// <typeparam name="TAttribute"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
@@ -589,9 +587,7 @@ namespace NewLife.Reflection
             return AttributeX.GetCustomAttributeValue<TAttribute, TResult>(BaseType, true);
         }
 
-        /// <summary>
-        /// 类型转换
-        /// </summary>
+        /// <summary>类型转换</summary>
         /// <param name="value"></param>
         /// <param name="conversionType"></param>
         /// <returns></returns>
@@ -609,7 +605,13 @@ namespace NewLife.Reflection
                 conversionType = Nullable.GetUnderlyingType(conversionType);
             }
 
-            if (conversionType.IsEnum) return Enum.ToObject(conversionType, value);
+            if (conversionType.IsEnum)
+            {
+                if (vtype == typeof(String))
+                    return Enum.Parse(conversionType, (String)value, true);
+                else
+                    return Enum.ToObject(conversionType, value);
+            }
 
             // 字符串转为货币类型，处理一下
             if (vtype == typeof(String))
@@ -641,9 +643,7 @@ namespace NewLife.Reflection
             return value;
         }
 
-        /// <summary>
-        /// 类型转换
-        /// </summary>
+        /// <summary>类型转换</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="value"></param>
         /// <returns></returns>

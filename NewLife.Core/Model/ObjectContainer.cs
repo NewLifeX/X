@@ -516,7 +516,8 @@ namespace NewLife.Model
                 if (item.Value.IsNullOrWhiteSpace()) continue;
 
                 // 砍掉前缀，得到接口名
-                var name = item.Key.Substring(CONFIG_PREFIX.Length);
+                //var name = item.Key.Substring(CONFIG_PREFIX.Length);
+                var name = item.Key;
                 if (name.IsNullOrWhiteSpace()) continue;
 
                 var type = TypeX.GetType(name, true);
