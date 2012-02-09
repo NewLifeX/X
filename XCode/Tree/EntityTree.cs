@@ -37,7 +37,11 @@ namespace XCode
             get
             {
                 String name = "Parent" + KeyName;
-                return Meta.FieldNames.Contains(name) ? name : null;
+                //if (Meta.FieldNames.Contains(name)) return name;
+                // 不区分大小写的比较
+                if (Meta.FieldNames.Contains(name, StringComparer.OrdinalIgnoreCase)) return name;
+
+                return null;
             }
         }
 
@@ -56,7 +60,9 @@ namespace XCode
                     IList<String> fs = Meta.FieldNames;
                     foreach (String name in names)
                     {
-                        if (fs.Contains(name))
+                        //if (fs.Contains(name))
+                        // 不区分大小写的比较
+                        if (fs.Contains(name, StringComparer.OrdinalIgnoreCase))
                         {
                             _SortingKeyName = name;
                             break;
@@ -69,7 +75,7 @@ namespace XCode
 
         /// <summary>名称键名，如Name，否则使用第二个字段</summary>
         /// <remarks>影响NodeName、TreeNodeName、TreeNodeName2、FindByPath、GetFullPath、GetFullPath2等</remarks>
-        protected virtual String NameKeyName { get { return Meta.FieldNames.Contains("Name") ? "Name" : Meta.FieldNames[1]; } }
+        protected virtual String NameKeyName { get { return Meta.FieldNames.Contains("Name", StringComparer.OrdinalIgnoreCase) ? "Name" : Meta.Fields.Where(f => !f.IsIdentity).FirstOrDefault().Name; } }
 
         /// <summary>是否缓存Childs、AllChilds、Parent等</summary>
         protected virtual Boolean EnableCaching { get { return true; } }
