@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.IO;
 using NewLife.Linq;
 using NewLife.Log;
 using NewLife.Net;
@@ -90,23 +91,24 @@ namespace Test2
         }
 
         static NetServer server;
-        static NetServer server2;
+        static SerialServer server2;
         static NATProxy proxy;
         static void Test2()
         {
-            NetHelper.Debug = true;
-            if (server == null)
-            {
-                server = new NetServer();
-                server.Port = 23;
-                server.Received += new EventHandler<NetEventArgs>(server_Received);
-                server.Start();
-            }
+            //NetHelper.Debug = true;
+            //if (server == null)
+            //{
+            //    server = new NetServer();
+            //    server.Port = 23;
+            //    server.Received += new EventHandler<NetEventArgs>(server_Received);
+            //    server.Start();
+            //}
             if (server2 == null)
             {
-                server2 = new SerialServer() { PortName = "COM3" };
+                server2 = new SerialServer() { PortName = "COM1" };
                 server2.Port = 24;
-                //server.Received += new EventHandler<NetEventArgs>(server_Received);
+                server2.AutoClose = true;
+                server2.ReceivedBytesThreshold = 34;
                 server2.Start();
             }
             //if (proxy == null)
@@ -116,7 +118,7 @@ namespace Test2
             //    proxy.Start();
             //}
 
-            Thread.Sleep(2000);
+            //Thread.Sleep(2000);
 
             String[] ss = new String[] { 
                 "7E 2F 44 9D 10 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 22 01 0D", 
@@ -127,14 +129,21 @@ namespace Test2
                 //"7E 2F 44 F1 10 12 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 86 01 0D"
             };
 
+            String str = "7E 2F 44 82 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 01 0D";
+
             using (var client = new UdpClientX())
             {
-                client.Connect(NetHelper.GetIPs().First(), 24);
-                for (int i = 0; i < ss.Length; i++)
-                {
-                    var data = DataHelper.FromHex(ss[i].Replace(" ", null));
-                    client.Send(data, 0, data.Length);
-                }
+                client.Connect("192.168.1.10", 24);
+                //for (int i = 0; i < ss.Length; i++)
+                //{
+                //    var data = DataHelper.FromHex(ss[i].Replace(" ", null));
+                //    client.Send(data, 0, data.Length);
+                //}
+                var data = DataHelper.FromHex(str.Replace(" ", null));
+                client.Send(data, 0, data.Length);
+                data = client.Receive();
+
+                Console.WriteLine(data.ToHex());
             }
 
             //Thread.Sleep(2000);
@@ -149,19 +158,21 @@ namespace Test2
             //    }
             //}
 
-            Thread.Sleep(20000);
+            //Thread.Sleep(20000);
 
-            using (var sp = new SerialPort("COM3"))
-            {
-                sp.Open();
-                Console.WriteLine(sp.ReadExisting());
-            }
+            //using (var sp = new SerialPort("COM3"))
+            //{
+            //    sp.Open();
+            //    Console.WriteLine(sp.ReadExisting());
+            //}
         }
 
         static void server_Received(object sender, NetEventArgs e)
         {
             Console.WriteLine("{1}收到：{0}", DataHelper.ToHex(e.Buffer, e.Offset, e.BytesTransferred), e.Socket.ProtocolType);
             var session = e.Socket as ISocketSession;
+
+            if (e.Buffer.StartsWith(new Byte[] { 0xFF, 0xFA })) return;
 
             Thread.Sleep(1000);
             session.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);

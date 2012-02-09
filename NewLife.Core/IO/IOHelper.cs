@@ -450,7 +450,7 @@ namespace NewLife.IO
         /// <param name="offset">字节数组中的偏移</param>
         /// <param name="length">字节数组中的查找长度</param>
         /// <returns>未找到时返回空，0位置范围大小为0的字节数组</returns>
-        public static Byte[] ReadBytesUntil(this Stream stream, Byte[] buffer, Int64 offset = 0, Int64 length = 0)
+        public static Byte[] ReadTo(this Stream stream, Byte[] buffer, Int64 offset = 0, Int64 length = 0)
         {
             //if (!stream.CanSeek) throw new XException("流不支持查找！");
 
@@ -468,10 +468,10 @@ namespace NewLife.IO
         /// <param name="str"></param>
         /// <param name="encoding"></param>
         /// <returns></returns>
-        public static Byte[] ReadBytesUntil(this Stream stream, String str, Encoding encoding = null)
+        public static Byte[] ReadTo(this Stream stream, String str, Encoding encoding = null)
         {
             if (encoding == null) encoding = Encoding.UTF8;
-            return stream.ReadBytesUntil(encoding.GetBytes(str));
+            return stream.ReadTo(encoding.GetBytes(str));
         }
 
         /// <summary>从数据流中读取一行，直到遇到换行</summary>
@@ -480,7 +480,7 @@ namespace NewLife.IO
         /// <returns>未找到返回null，0位置返回String.Empty</returns>
         public static String ReadLine(this Stream stream, Encoding encoding = null)
         {
-            var bts = stream.ReadBytesUntil(Environment.NewLine, encoding);
+            var bts = stream.ReadTo(Environment.NewLine, encoding);
             //if (bts == null || bts.Length < 1) return null;
             if (bts == null) return null;
             stream.Seek(encoding.GetByteCount(Environment.NewLine), SeekOrigin.Current);
@@ -630,6 +630,71 @@ namespace NewLife.IO
             if (count != length) return count > length ? 1 : -1;
 
             return 0;
+        }
+
+        /// <summary>一个数据流是否以另一个数组开头。如果成功，指针移到目标之后，否则保持指针位置不变。</summary>
+        /// <param name="source"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static Boolean StartsWith(this Stream source, Byte[] buffer)
+        {
+            var p = 0;
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                var b = source.ReadByte();
+                if (b == -1) { source.Seek(-p, SeekOrigin.Current); return false; }
+                p++;
+
+                if (b != buffer[i]) { source.Seek(-p, SeekOrigin.Current); return false; }
+            }
+            return true;
+        }
+
+        /// <summary>一个数据流是否以另一个数组结尾。如果成功，指针移到目标之后，否则保持指针位置不变。</summary>
+        /// <param name="source"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static Boolean EndsWith(this Stream source, Byte[] buffer)
+        {
+            if (source.Length < buffer.Length) return false;
+
+            var p = source.Length - buffer.Length;
+            source.Seek(p, SeekOrigin.Current);
+            if (source.StartsWith(buffer)) return true;
+
+            source.Seek(-p, SeekOrigin.Current);
+            return false;
+        }
+
+        /// <summary>一个数组是否以另一个数组开头</summary>
+        /// <param name="source"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static Boolean StartsWith(this Byte[] source, Byte[] buffer)
+        {
+            if (source.Length < buffer.Length) return false;
+
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                if (source[i] != buffer[i]) return false;
+            }
+            return true;
+        }
+
+        /// <summary>一个数组是否以另一个数组结尾</summary>
+        /// <param name="source"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static Boolean EndsWith(this Byte[] source, Byte[] buffer)
+        {
+            if (source.Length < buffer.Length) return false;
+
+            var p = source.Length - buffer.Length;
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                if (source[p + i] != buffer[i]) return false;
+            }
+            return true;
         }
         #endregion
     }

@@ -1,4 +1,6 @@
 ﻿using System;
+using NewLife.Security;
+using NewLife.IO;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -9,6 +11,8 @@ using NewLife.Net.DNS;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
+using System.IO.Ports;
+using NewLife.Net.Application;
 
 namespace Test
 {
@@ -25,7 +29,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                    Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -141,6 +145,39 @@ namespace Test
 
             server.Dispose();
             s2.Dispose();
+        }
+
+        static void Test5()
+        {
+            using (var sp = new SerialPort("COM1"))
+            {
+                sp.BaudRate = 9600;
+                sp.DataBits = 8;
+                sp.Parity = Parity.None;
+                sp.StopBits = StopBits.One;
+                sp.ReadTimeout = sp.WriteTimeout = 1000;
+                //sp.ReadBufferSize = sp.WriteBufferSize = 1024;
+                sp.Handshake = Handshake.None;
+                sp.ReceivedBytesThreshold = 1;
+
+                // 如果不设置，有时候可能读不到数据
+                sp.RtsEnable = true;
+                sp.DtrEnable = true;
+                sp.Open();
+
+                //Console.WriteLine(sp.ReadExisting());
+
+                String str = "7E 2F 44 82 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 01 0D";
+                var data = DataHelper.FromHex(str.Replace(" ", null));
+                sp.Write(data, 0, data.Length);
+
+                Thread.Sleep(1000);
+
+                // 读取数据
+                data = SerialServer.Read(sp, 34);
+
+                Console.WriteLine("({0}) {1}", data.Length, data.ToHex());
+            }
         }
     }
 }
