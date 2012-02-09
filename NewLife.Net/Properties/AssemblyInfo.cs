@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("NewLife.Net")]
-[assembly: AssemblyCopyright("\x00a92002-2011 新生命开发团队")]
+[assembly: AssemblyCopyright("\x00a92002-2012 新生命开发团队")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -33,9 +33,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.7.*")]
-[assembly: AssemblyFileVersion("1.7.2011.1228")]
+[assembly: AssemblyFileVersion("1.7.2012.0209")]
 
 /*
+ * v1.7.2012.0209   完善串口服务器和DNS服务器
+ * 
  * v1.7.2011.1228   抽象网络接口，方便编写应用服务
  *                  优化事件参数对象池，避免内存泄漏
  *                  增加DNS协议解析

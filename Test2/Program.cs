@@ -11,6 +11,7 @@ using NewLife.Net.Application;
 using System.Threading;
 using NewLife.Net.Proxy;
 using System.IO.Ports;
+using NewLife.Net.DNS;
 
 namespace Test2
 {
@@ -95,6 +96,10 @@ namespace Test2
         static NATProxy proxy;
         static void Test2()
         {
+            //var dns = new DNSServer();
+            //dns.Parent = "tcp://8.8.8.8,udp://4.4.4.4";
+            //Console.WriteLine(dns.Parent);
+
             //NetHelper.Debug = true;
             //if (server == null)
             //{

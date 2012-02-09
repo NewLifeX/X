@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using NewLife.Net.Sockets;
-using NewLife.Net.Udp;
-using NewLife.Collections;
 using System.Net.Sockets;
-using NewLife.Linq;
+using NewLife.Collections;
+using NewLife.Net.Sockets;
+using System.Text;
+using NewLife.Reflection;
 
 namespace NewLife.Net.DNS
 {
@@ -21,10 +21,46 @@ namespace NewLife.Net.DNS
         private Dictionary<IPEndPoint, ProtocolType> _Parents;
         /// <summary>上级DNS地址</summary>
         public Dictionary<IPEndPoint, ProtocolType> Parents { get { return _Parents ?? (_Parents = new Dictionary<IPEndPoint, ProtocolType>()); } set { _Parents = value; } }
+
+        /// <summary>上级DNS地址，多个地址以逗号隔开</summary>
+        public String Parent
+        {
+            get
+            {
+                var ps = Parents;
+                if (ps == null || ps.Count < 1) return null;
+
+                var sb = new StringBuilder();
+                foreach (var item in ps)
+                {
+                    if (sb.Length > 0) sb.Append(",");
+                    sb.AppendFormat("{0}://{1}", item.Value, item.Key);
+                }
+                return sb.ToString();
+            }
+            set
+            {
+                var ps = Parents;
+                ps.Clear();
+
+                if (value.IsNullOrWhiteSpace()) return;
+
+                var dic = value.SplitAsDictionary("://", ",");
+                if (dic == null || dic.Count < 1) return;
+
+                foreach (var item in dic)
+                {
+                    var ep = NetHelper.ParseEndPoint(item.Value, 53);
+                    var pt = TypeX.ChangeType<ProtocolType>(item.Key);
+                    ps[ep] = pt;
+                }
+            }
+        }
         #endregion
 
         #region 构造
-
+        /// <summary>实例化一个DNS服务器</summary>
+        public DNSServer() { Port = 53; }
         #endregion
 
         #region 方法
