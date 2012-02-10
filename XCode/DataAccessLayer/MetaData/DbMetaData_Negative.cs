@@ -210,8 +210,10 @@ namespace XCode.DataAccessLayer
                     PerformSchema(sb, onlySql, DDLSchema.AddColumn, item);
                     if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql, DDLSchema.AddColumnDescription, item);
 
-                    // 这里必须给dbtable加加上当前列，否则下面如果刚好有删除列的话，会导致增加列成功，然后删除列重建表的时候没有新加的列
-                    dbtable.Columns.Add(item.Clone(dbtable));
+                    //! 以下已经不需要了，目前只有SQLite会采用重建表的方式添加删除字段。如果这里提前添加了字段，重建表的时候，会导致失败。
+
+                    //// 这里必须给dbtable加加上当前列，否则下面如果刚好有删除列的话，会导致增加列成功，然后删除列重建表的时候没有新加的列
+                    //dbtable.Columns.Add(item.Clone(dbtable));
                 }
             }
             #endregion
