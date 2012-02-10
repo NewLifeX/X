@@ -51,11 +51,11 @@ namespace NewLife.Messaging
             var writer = new BinaryWriterX(stream);
             Set(writer.Settings);
 
-#if DEBUG
-            writer.Debug = true;
-            writer.EnableTraceStream();
-#endif
-            
+            //#if DEBUG
+            //            writer.Debug = true;
+            //            writer.EnableTraceStream();
+            //#endif
+
             // 基类写入编号，保证编号在最前面
             writer.Write((Byte)Kind);
             writer.WriteObject(this);
@@ -79,11 +79,11 @@ namespace NewLife.Messaging
             var reader = new BinaryReaderX(stream);
             Set(reader.Settings);
 
-#if DEBUG
-            reader.Debug = true;
-            reader.EnableTraceStream();
-#endif
-            
+            //#if DEBUG
+            //            reader.Debug = true;
+            //            reader.EnableTraceStream();
+            //#endif
+
             // 读取了响应类型和消息类型后，动态创建消息对象
             var kind = (MessageKind)reader.ReadByte();
             var type = ObjectContainer.Current.ResolveType<Message>(kind);

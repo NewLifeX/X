@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Diagnostics;
 
 namespace NewLife.Net.Sockets
 {
@@ -36,7 +37,7 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         public virtual void Start(NetEventArgs e)
         {
-            WriteLog("会话{0}：{1}", ID, this);
+            ShowSession();
 
             // Tcp挂接事件，Udp直接处理数据
             if (Session.ProtocolType == ProtocolType.Tcp)
@@ -49,6 +50,12 @@ namespace NewLife.Net.Sockets
             }
             else
                 OnReceive(e);
+        }
+
+        [Conditional("DEBUG")]
+        void ShowSession()
+        {
+            WriteLog("会话{0}：{1}", ID, this);
         }
 
         void Session_Received(object sender, NetEventArgs e)

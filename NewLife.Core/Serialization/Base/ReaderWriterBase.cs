@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Collections;
 using System.IO;
 using NewLife.Linq;
 using NewLife.Log;
-using System.Collections;
 
 namespace NewLife.Serialization
 {
