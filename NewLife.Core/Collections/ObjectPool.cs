@@ -16,7 +16,7 @@ namespace NewLife.Collections
         #region 属性
         private IStack<T> _Stock;
         /// <summary>在库</summary>
-        public IStack<T> Stock { get { return _Stock ?? (_Stock = new SafeStack<T>(Max)); } internal set { _Stock = value; } }
+        public IStack<T> Stock { get { return _Stock ?? (_Stock = new InterlockedStack<T>()); } internal set { _Stock = value; } }
 
         private Int32 _Max = 1000;
         /// <summary>最大缓存数。默认1000，超过后将启用定时器来清理</summary>

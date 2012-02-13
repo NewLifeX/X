@@ -10,6 +10,8 @@ namespace NewLife.Collections
     /// <remarks>
     /// 注意：<see cref="Push"/>、<see cref="TryPop"/>、<see cref="Pop"/>、<see cref="TryPeek"/>、<see cref="Peek"/>是重量级线程安全代码，不要随意更改。
     /// 
+    /// 增加自由节点链表，避免频繁分配节点带来的GC压力。
+    /// 
     /// 经过测试，对象数量在万级以上时，性能急剧下降！
     /// </remarks>
     /// <typeparam name="T"></typeparam>
@@ -44,7 +46,7 @@ namespace NewLife.Collections
         /// <param name="item"></param>
         public void Push(T item)
         {
-            SingleListNode<T> newTop = new SingleListNode<T>(item);
+            SingleListNode<T> newTop = PopNode(item);
             SingleListNode<T> oldTop;
             do
             {
@@ -100,9 +102,11 @@ namespace NewLife.Collections
             Interlocked.Decrement(ref _Count);
 
             item = oldTop.Item;
-            // 断开关系链，避免内存泄漏
-            oldTop.Next = null;
-            oldTop.Item = default(T);
+            //// 断开关系链，避免内存泄漏
+            //oldTop.Next = null;
+            //oldTop.Item = default(T);
+
+            PushNode(oldTop);
 
             return true;
         }
@@ -130,6 +134,58 @@ namespace NewLife.Collections
             }
             item = top.Item;
             return true;
+        }
+        #endregion
+
+        #region 节点池
+        /// <summary>自由节点</summary>
+        private SingleListNode<T> Free;
+        private Int32 FreeCount;
+
+        SingleListNode<T> PopNode(T item)
+        {
+            SingleListNode<T> newTop;
+            SingleListNode<T> oldTop;
+            do
+            {
+                // 记住当前栈顶
+                oldTop = Free;
+                if (oldTop == null) return new SingleListNode<T>(item);
+
+                // 设置新栈顶为当前栈顶的下一个节点
+                newTop = oldTop.Next;
+            }
+            while (Interlocked.CompareExchange<SingleListNode<T>>(ref Free, newTop, oldTop) != oldTop);
+
+            Interlocked.Decrement(ref FreeCount);
+
+            oldTop.Next = null;
+            oldTop.Item = item;
+
+            return oldTop;
+        }
+
+        void PushNode(SingleListNode<T> node)
+        {
+            // 如果自由节点太多，就不要了
+            if (FreeCount > 100) return;
+
+            // 断开关系链，避免内存泄漏
+            node.Item = default(T);
+
+            SingleListNode<T> newTop = node;
+            SingleListNode<T> oldTop;
+            do
+            {
+                // 记住当前栈顶
+                oldTop = Top;
+
+                // 设置新对象的下一个节点为当前栈顶
+                newTop.Next = oldTop;
+            }
+            while (Interlocked.CompareExchange<SingleListNode<T>>(ref Free, newTop, oldTop) != oldTop);
+
+            Interlocked.Increment(ref FreeCount);
         }
         #endregion
 
