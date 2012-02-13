@@ -89,19 +89,36 @@ namespace NewLife.Collections
         public void Push(T item)
         {
             // 检查锁，因为可能加锁来改变_array
-            while (_lock > 0) Thread.SpinWait(1);
+            Int32 c = 0;
+            while (_lock > 0)
+            {
+                // 避免无限循环
+                AssertCount(ref c);
+
+                Thread.SpinWait(1);
+            }
             Debug.Assert(_lock == 0);
 
+            c = 0;
             Int32 p = -1;
             do
             {
                 // 解除上一次循环所加的锁
-                if (p >= 0) _locks[p]--;
+                if (p >= 0)
+                {
+                    Debug.Assert(_locks[p] > 1);
+                    _locks[p]--;
+                }
 
                 p = Count;
 
                 // 锁定该位置，避免同时弹出
-                while (_locks[p] > 0) Thread.SpinWait(1);
+                while (_locks[p] > 0)
+                {
+                    // 避免无限循环
+                    AssertCount(ref c);
+                    Thread.SpinWait(1);
+                }
                 _locks[p]++;
                 Debug.Assert(_locks[p] == 1);
             }
@@ -113,7 +130,14 @@ namespace NewLife.Collections
             {
                 // 加锁，扩容
                 // 开始抢锁
-                while (Interlocked.CompareExchange(ref _lock, 1, 0) != 0) Thread.SpinWait(1);
+                c = 0;
+                while (Interlocked.CompareExchange(ref _lock, 1, 0) != 0)
+                {
+                    // 避免无限循环
+                    AssertCount(ref c);
+
+                    Thread.SpinWait(1);
+                }
                 // DoubleLock
                 if (p >= _array.Length)
                 {
@@ -158,9 +182,17 @@ namespace NewLife.Collections
         public Boolean TryPop(out T item)
         {
             // 检查锁，因为可能加锁来改变_array
-            while (_lock > 0) Thread.SpinWait(1);
+            Int32 c = 0;
+            while (_lock > 0)
+            {
+                // 避免无限循环
+                AssertCount(ref c);
+
+                Thread.SpinWait(1);
+            }
             Debug.Assert(_lock == 0);
 
+            c = 0;
             Int32 p = -1;
             do
             {
@@ -175,8 +207,17 @@ namespace NewLife.Collections
                     return false;
                 }
 
+                // 避免无限循环
+                AssertCount(ref c);
+
                 // 锁定该位置，避免同时压入
-                while (_locks[p] > 0) Thread.SpinWait(1);
+                while (_locks[p] > 0)
+                {
+                    // 避免无限循环
+                    AssertCount(ref c);
+
+                    Thread.SpinWait(1);
+                }
                 _locks[p]++;
                 Debug.Assert(_locks[p] == 1);
             }
@@ -243,6 +284,15 @@ namespace NewLife.Collections
             T[] arr = new T[len];
             Array.Copy(_array, 0, arr, 0, len);
             return arr;
+        }
+        #endregion
+
+        #region 辅助方法
+        [Conditional("DEBUG")]
+        void AssertCount(ref Int32 count, Int32 max = 100)
+        {
+            count++;
+            if (count > max) throw new Exception("计数大于" + max + "！");
         }
         #endregion
 

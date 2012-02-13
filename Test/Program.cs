@@ -1,21 +1,17 @@
 ﻿using System;
-using NewLife.Security;
-using NewLife.IO;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading;
 using NewLife.IO;
 using NewLife.Log;
+using NewLife.Messaging;
+using NewLife.Net;
 using NewLife.Net.DNS;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
-using System.IO.Ports;
-using NewLife.Net.Application;
-using NewLife.Messaging;
-using NewLife.Net;
-using System.Collections.Generic;
 
 namespace Test
 {
@@ -32,7 +28,7 @@ namespace Test
                 try
                 {
 #endif
-                Test5();
+                    Test6();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -182,6 +178,34 @@ namespace Test
             Console.WriteLine("收到消息({0})：{1}", e.BytesTransferred, msg);
 
             if (msg is EntityMessage) Console.WriteLine((msg as EntityMessage).Value);
+        }
+
+        static void Test6()
+        {
+            var ts = new Thread[100];
+            for (int i = 0; i < ts.Length; i++)
+            {
+                ts[i] = new Thread(Test6_0);
+                ts[i].Priority = ThreadPriority.Lowest;
+                ts[i].Start(i);
+            }
+        }
+
+        static void Test6_0(Object state)
+        {
+            Int32 n = (Int32)state;
+            var rnd = new Random((Int32)DateTime.Now.Ticks);
+            try
+            {
+                for (int i = 0; i < rnd.Next(100, 1000); i++)
+                {
+                    XTrace.WriteLine("{0}_{1}", n, i);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
     }
 }

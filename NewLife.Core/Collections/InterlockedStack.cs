@@ -17,15 +17,10 @@ namespace NewLife.Collections
     [DebuggerDisplay("Count = {Count}")]
     public class InterlockedStack<T> : DisposeBase, IStack<T>, IEnumerable<T>, ICollection, IEnumerable
     {
-        #region 字段
+        #region 属性
         /// <summary>栈顶</summary>
         private SingleListNode<T> Top;
 
-        ///// <summary>版本</summary>
-        //private Int32 _version;
-        #endregion
-
-        #region 属性
         private Int32 _Count;
         /// <summary>元素个数</summary>
         public Int32 Count { get { return _Count; } }
@@ -44,7 +39,6 @@ namespace NewLife.Collections
         #endregion
 
         #region 核心方法
-        //private Int32 maxTimes = 0;
         /// <summary>向栈压入一个对象</summary>
         /// <remarks>重点解决多线程环境下资源争夺以及使用lock造成性能损失的问题</remarks>
         /// <param name="item"></param>
@@ -52,10 +46,8 @@ namespace NewLife.Collections
         {
             SingleListNode<T> newTop = new SingleListNode<T>(item);
             SingleListNode<T> oldTop;
-            //Int32 times = 0;
             do
             {
-                //times++;
                 // 记住当前栈顶
                 oldTop = Top;
 
@@ -67,14 +59,7 @@ namespace NewLife.Collections
             // 否则，不相等表明当前栈顶已经被修改过，操作失败，执行循环
             while (Interlocked.CompareExchange<SingleListNode<T>>(ref Top, newTop, oldTop) != oldTop);
 
-            //if (times > 1) XTrace.WriteLine("命中次数：{0}", times);
-            //if (times > maxTimes)
-            //{
-            //    maxTimes = times;
-            //    XTrace.WriteLine("新命中次数：{0}", times);
-            //}
             Interlocked.Increment(ref _Count);
-            //Interlocked.Increment(ref _version);
         }
 
         /// <summary>从栈中弹出一个对象</summary>
@@ -94,10 +79,8 @@ namespace NewLife.Collections
         {
             SingleListNode<T> newTop;
             SingleListNode<T> oldTop;
-            //Int32 times = 0;
             do
             {
-                //times++;
                 // 记住当前栈顶
                 oldTop = Top;
                 if (oldTop == null)
@@ -114,14 +97,7 @@ namespace NewLife.Collections
             // 否则，不相等表明当前栈顶已经被修改过，操作失败，执行循环
             while (Interlocked.CompareExchange<SingleListNode<T>>(ref Top, newTop, oldTop) != oldTop);
 
-            //if (times > 1) XTrace.WriteLine("命中次数：{0}", times);
-            //if (times > maxTimes)
-            //{
-            //    maxTimes = times;
-            //    XTrace.WriteLine("新命中次数：{0}", times);
-            //}
             Interlocked.Decrement(ref _Count);
-            //Interlocked.Increment(ref _version);
 
             item = oldTop.Item;
             // 断开关系链，避免内存泄漏
@@ -174,8 +150,6 @@ namespace NewLife.Collections
                 top.Next = null;
                 top.Item = default(T);
             }
-
-            //Interlocked.Increment(ref _version);
         }
 
         /// <summary>转为数组</summary>
