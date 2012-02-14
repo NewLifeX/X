@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -16,14 +17,14 @@ namespace NewLife.Collections
         #region 属性
         private IStack<T> _Stock;
         /// <summary>在库</summary>
-        public IStack<T> Stock { get { return _Stock ?? (_Stock = new InterlockedStack<T>()); } internal set { _Stock = value; } }
+        public IStack<T> Stock { get { return _Stock; } set { _Stock = value; } }
 
         private Int32 _Max = 1000;
         /// <summary>最大缓存数。默认1000，超过后将启用定时器来清理</summary>
         public Int32 Max { get { return _Max; } set { _Max = value; } }
 
         /// <summary>在库</summary>
-        public Int32 StockCount { get { return _Stock == null ? 0 : _Stock.Count; } }
+        public Int32 StockCount { get { return _Stock.Count; } }
 
         /// <summary>不在库</summary>
         public Int32 NotStockCount { get { return CreateCount - StockCount; } }
@@ -31,6 +32,11 @@ namespace NewLife.Collections
         private Int32 _CreateCount;
         /// <summary>创建数</summary>
         public Int32 CreateCount { get { return _CreateCount; } }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化一个对象池</summary>
+        public ObjectPool() { Stock = new SafeStack<T>(); }
         #endregion
 
         #region 事件
@@ -73,7 +79,11 @@ namespace NewLife.Collections
             var stack = Stock;
 
             T obj;
-            if (stack.TryPop(out obj)) return obj;
+            if (stack.TryPop(out obj))
+            {
+                Debug.Assert(obj != null);
+                return obj;
+            }
 
             obj = Create();
             Interlocked.Increment(ref _CreateCount);

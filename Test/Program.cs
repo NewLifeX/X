@@ -183,15 +183,15 @@ namespace Test
 
         static void Test6()
         {
-            //var ts = new Thread[100];
-            //for (int i = 0; i < ts.Length; i++)
-            //{
-            //    ts[i] = new Thread(Test6_0);
-            //    ts[i].Priority = ThreadPriority.Lowest;
-            //    ts[i].Start(i);
-            //}
+            var ts = new Thread[100];
+            for (int i = 0; i < ts.Length; i++)
+            {
+                ts[i] = new Thread(Test6_0);
+                ts[i].Priority = ThreadPriority.Lowest;
+                ts[i].Start(i);
+            }
 
-            ObjectPoolTest<NetEventArgs>.Start();
+            //ObjectPoolTest<NetEventArgs>.Start();
         }
 
         static void Test6_0(Object state)

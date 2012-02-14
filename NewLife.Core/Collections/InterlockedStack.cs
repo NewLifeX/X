@@ -27,6 +27,10 @@ namespace NewLife.Collections
         private Int32 _Count;
         /// <summary>元素个数</summary>
         public Int32 Count { get { return _Count; } }
+
+        private Boolean _UseNodePool;
+        /// <summary>是否使用节点池。采用节点池可以避免分配节点造成的GC压力，但是会让性能有所降低。</summary>
+        public Boolean UseNodePool { get { return _UseNodePool; } set { _UseNodePool = value; } }
         #endregion
 
         #region 构造
@@ -47,9 +51,12 @@ namespace NewLife.Collections
         /// <param name="item"></param>
         public void Push(T item)
         {
-            SingleListNode<T> newTop = PopNode(item);
+            Debug.Assert(item != null);
+
+            //SingleListNode<T> newTop = PopNode(item);
+            SingleListNode<T> newTop = UseNodePool ? PopNode(item) : new SingleListNode<T>(item);
             SingleListNode<T> oldTop;
-            SpinWait sw = null;
+            //SpinWait sw = null;
             while (true)
             {
                 // 记住当前栈顶
@@ -69,6 +76,9 @@ namespace NewLife.Collections
             }
 
             Interlocked.Increment(ref _Count);
+
+            // 数量较多时，自动采用节点池
+            if (!UseNodePool && _Count > 100) UseNodePool = true;
         }
 
         /// <summary>从栈中弹出一个对象</summary>
@@ -88,7 +98,7 @@ namespace NewLife.Collections
         {
             SingleListNode<T> newTop;
             SingleListNode<T> oldTop;
-            SpinWait sw = null;
+            //SpinWait sw = null;
             while (true)
             {
                 // 记住当前栈顶
@@ -98,6 +108,7 @@ namespace NewLife.Collections
                     item = default(T);
                     return false;
                 }
+                Debug.Assert(_Count > 0);
 
                 // 设置新栈顶为当前栈顶的下一个节点
                 newTop = oldTop.Next;
@@ -115,11 +126,16 @@ namespace NewLife.Collections
             Interlocked.Decrement(ref _Count);
 
             item = oldTop.Item;
-            //// 断开关系链，避免内存泄漏
-            //oldTop.Next = null;
-            //oldTop.Item = default(T);
+            Debug.Assert(item != null);
 
-            PushNode(oldTop);
+            if (UseNodePool)
+                PushNode(oldTop);
+            else
+            {
+                // 断开关系链，避免内存泄漏
+                oldTop.Next = null;
+                oldTop.Item = default(T);
+            }
 
             return true;
         }
@@ -151,8 +167,8 @@ namespace NewLife.Collections
         #endregion
 
         #region 节点池
-        /// <summary>自由节点</summary>
-        private SingleListNode<T> Free;
+        /// <summary>自由节点头部</summary>
+        private SingleListNode<T> FreeTop;
         private Int32 FreeCount;
 
         const Int32 MaxFreeCount = 100;
@@ -161,21 +177,21 @@ namespace NewLife.Collections
         {
             SingleListNode<T> newTop;
             SingleListNode<T> oldTop;
-            SpinWait sw = null;
+            //SpinWait sw = null;
             while (true)
             {
                 // 记住当前栈顶
-                oldTop = Free;
+                oldTop = FreeTop;
                 if (oldTop == null) return new SingleListNode<T>(item);
 
                 // 设置新栈顶为当前栈顶的下一个节点
                 newTop = oldTop.Next;
 
-                if (Interlocked.CompareExchange<SingleListNode<T>>(ref Free, newTop, oldTop) == oldTop) break;
+                if (Interlocked.CompareExchange<SingleListNode<T>>(ref FreeTop, newTop, oldTop) == oldTop) break;
 
-                //Thread.SpinWait(1);
-                if (sw == null) sw = new SpinWait();
-                sw.SpinOnce();
+                Thread.SpinWait(1);
+                //if (sw == null) sw = new SpinWait();
+                //sw.SpinOnce();
             }
 
             Interlocked.Decrement(ref FreeCount);
@@ -188,28 +204,28 @@ namespace NewLife.Collections
 
         void PushNode(SingleListNode<T> node)
         {
-            // 如果自由节点太多，就不要了
-            if (FreeCount > MaxFreeCount) return;
-
             // 断开关系链，避免内存泄漏
             node.Item = default(T);
 
+            //// 如果自由节点太多，就不要了
+            //if (FreeCount > MaxFreeCount) return;
+
             SingleListNode<T> newTop = node;
             SingleListNode<T> oldTop;
-            SpinWait sw = null;
+            //SpinWait sw = null;
             while (true)
             {
-                // 记住当前栈顶
-                oldTop = Free;
+                // 记住当前
+                oldTop = FreeTop;
 
                 // 设置新对象的下一个节点为当前栈顶
                 newTop.Next = oldTop;
 
-                if (Interlocked.CompareExchange<SingleListNode<T>>(ref Free, newTop, oldTop) == oldTop) break;
+                if (Interlocked.CompareExchange<SingleListNode<T>>(ref FreeTop, newTop, oldTop) == oldTop) break;
 
-                //Thread.SpinWait(1);
-                if (sw == null) sw = new SpinWait();
-                sw.SpinOnce();
+                Thread.SpinWait(1);
+                //if (sw == null) sw = new SpinWait();
+                //sw.SpinOnce();
             }
 
             Interlocked.Increment(ref FreeCount);

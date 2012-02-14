@@ -24,9 +24,9 @@ namespace NewLife.Collections
     public class SafeStack<T> : DisposeBase, IStack<T>, IEnumerable<T>, ICollection, IEnumerable
     {
         #region 属性
-        /// <summary>数据数组</summary>
+        /// <summary>数据数组。用于存放对象。</summary>
         private T[] _array;
-        /// <summary>锁定数组</summary>
+        /// <summary>锁定数组。用于确定每一个位置是否被锁定</summary>
         private volatile Byte[] _locks;
 
         private Int32 _Count;
@@ -90,10 +90,12 @@ namespace NewLife.Collections
         public void Push(T item)
         {
             // 检查锁，因为可能加锁来改变_array
+            // 这个锁主要用于数组扩容，所以设置的可能性很小
             while (_lock > 0) Thread.SpinWait(1);
-            //SpinWait.SpinUntil(() => _lock <= 0);
             Debug.Assert(_lock == 0);
 
+            // 先抢位置，抢到后再慢慢赋值
+            // 为了避免别人也抢到同样的位置，通过_locks给该位置加锁
             Int32 p = -1;
             do
             {
@@ -102,16 +104,34 @@ namespace NewLife.Collections
 
                 p = Count;
 
-                // 锁定该位置，避免同时弹出
-                while (_locks[p] > 0) Thread.SpinWait(1);
-                //SpinWait.SpinUntil(() => _locks[p] <= 0);
+                // 检查是否被锁定，是否在扩容
+                while (p >= _array.Length || _locks[p] > 0)
+                {
+                    Thread.SpinWait(1);
+
+                    // 这期间可能有所改变
+                    while (_lock > 0) Thread.SpinWait(10);
+                    p = Count;
+                }
+                // 锁定该位置，避免同时弹出。可能有多人同时加锁，但是CAS决定只有一个人能抢到
                 _locks[p]++;
                 Debug.Assert(_locks[p] == 1);
             }
             // 如果Count现在还是p，表明取得这个位置，并把Count后移一位
             while (Interlocked.CompareExchange(ref _Count, p + 1, p) != p);
 
-            #region 是否容量超标
+            _array[p] = item;
+
+            // 是否容量超标
+            CheckSize(p);
+
+            _locks[p]--;
+            Debug.Assert(_locks[p] == 0);
+        }
+
+        void CheckSize(Int32 p)
+        {
+            // 如果当前已经用完，那么马上扩容。当然，有可能扩容前就被别人抢到后面的位置，所以，这里要尽快加锁
             if (p >= _array.Length - 1)
             {
                 // 加锁，扩容
@@ -129,6 +149,7 @@ namespace NewLife.Collections
                     _array.CopyTo(_arr, 0);
                     _array = _arr;
 
+                    // 位置锁数组也要扩容
                     var _arr2 = new Byte[size];
                     _locks.CopyTo(_arr2, 0);
                     _locks = _arr2;
@@ -137,12 +158,6 @@ namespace NewLife.Collections
                 // 解锁
                 Interlocked.Decrement(ref _lock);
             }
-            #endregion
-
-            _array[p] = item;
-
-            _locks[p]--;
-            Debug.Assert(_locks[p] == 0);
         }
 
         /// <summary>从栈中弹出一个对象</summary>
@@ -162,9 +177,9 @@ namespace NewLife.Collections
         {
             // 检查锁，因为可能加锁来改变_array
             while (_lock > 0) Thread.SpinWait(1);
-            //SpinWait.SpinUntil(() => _lock <= 0);
             Debug.Assert(_lock == 0);
 
+            T df = default(T);
             Int32 p = -1;
             do
             {
@@ -175,13 +190,20 @@ namespace NewLife.Collections
 
                 if (p < 1)
                 {
-                    item = default(T);
+                    item = df;
                     return false;
                 }
 
-                // 锁定该位置，避免同时压入
-                while (_locks[p] > 0) Thread.SpinWait(1);
-                //SpinWait.SpinUntil(() => _locks[p] <= 0);
+                // 检查是否被锁定，是否在扩容
+                while (p >= _array.Length || _locks[p] > 0)
+                {
+                    Thread.SpinWait(1);
+
+                    // 这期间可能有所改变
+                    while (_lock > 0) Thread.SpinWait(10);
+                    p = Count;
+                }
+                // 锁定该位置，避免同时压入。可能有多人同时加锁，但是CAS决定只有一个人能抢到
                 _locks[p]++;
                 Debug.Assert(_locks[p] == 1);
             }
@@ -191,7 +213,8 @@ namespace NewLife.Collections
             // p只是下一个空位置，必须前移一位才能找到最后一个元素
             p--;
             item = _array[p];
-            _array[p] = default(T);
+            Debug.Assert(item != null);
+            _array[p] = df;
 
             // 指针加回去才能解锁，该致命错误由 @蓝风网格（442824911）发现
             p++;

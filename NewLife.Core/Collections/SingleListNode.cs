@@ -2,9 +2,7 @@
 
 namespace NewLife.Collections
 {
-    /// <summary>
-    /// 单向链表节点
-    /// </summary>
+    /// <summary>单向链表节点</summary>
     /// <typeparam name="T"></typeparam>
     public sealed class SingleListNode<T>
     {
@@ -80,6 +78,17 @@ namespace NewLife.Collections
                 }
             }
             return false;
+        }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            var item = Item;
+            if (item != null)
+                return "" + item;
+            else
+                return base.ToString();
         }
     }
 }
