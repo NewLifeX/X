@@ -63,9 +63,9 @@ namespace NewLife.Collections
                 // 否则，不相等表明当前栈顶已经被修改过，操作失败，执行循环
                 if (Interlocked.CompareExchange<SingleListNode<T>>(ref Top, newTop, oldTop) == oldTop) break;
 
-                //Thread.SpinWait(1);
-                if (sw == null) sw = new SpinWait();
-                sw.SpinOnce();
+                Thread.SpinWait(1);
+                //if (sw == null) sw = new SpinWait();
+                //sw.SpinOnce();
             }
 
             Interlocked.Increment(ref _Count);
@@ -107,9 +107,9 @@ namespace NewLife.Collections
                 // 否则，不相等表明当前栈顶已经被修改过，操作失败，执行循环
                 if (Interlocked.CompareExchange<SingleListNode<T>>(ref Top, newTop, oldTop) == oldTop) break;
 
-                //Thread.SpinWait(1);
-                if (sw == null) sw = new SpinWait();
-                sw.SpinOnce();
+                Thread.SpinWait(1);
+                //if (sw == null) sw = new SpinWait();
+                //sw.SpinOnce();
             }
 
             Interlocked.Decrement(ref _Count);
@@ -155,7 +155,7 @@ namespace NewLife.Collections
         private SingleListNode<T> Free;
         private Int32 FreeCount;
 
-        const Int32 MaxFreeCount = 10000;
+        const Int32 MaxFreeCount = 100;
 
         SingleListNode<T> PopNode(T item)
         {
