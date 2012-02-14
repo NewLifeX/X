@@ -13,6 +13,7 @@ namespace NewLife.Collections
         public static void Start()
         {
             var pool1 = new ObjectPool<T>();
+            pool1.Stock = new SafeStack<T>();
             var pool2 = new ObjectPool<T>();
             pool2.Stock = new InterlockedStack<T>();
 

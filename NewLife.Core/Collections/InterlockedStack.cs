@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using NewLife.Threading;
 
 namespace NewLife.Collections
 {
@@ -48,18 +49,24 @@ namespace NewLife.Collections
         {
             SingleListNode<T> newTop = PopNode(item);
             SingleListNode<T> oldTop;
-            do
+            SpinWait sw = null;
+            while (true)
             {
                 // 记住当前栈顶
                 oldTop = Top;
 
                 // 设置新对象的下一个节点为当前栈顶
                 newTop.Next = oldTop;
+
+                // 比较并交换
+                // 如果当前栈顶第一个参数的Top等于第三个参数，表明没有被别的线程修改，保存第二参数到第一参数中
+                // 否则，不相等表明当前栈顶已经被修改过，操作失败，执行循环
+                if (Interlocked.CompareExchange<SingleListNode<T>>(ref Top, newTop, oldTop) == oldTop) break;
+
+                //Thread.SpinWait(1);
+                if (sw == null) sw = new SpinWait();
+                sw.SpinOnce();
             }
-            // 比较并交换
-            // 如果当前栈顶第一个参数的Top等于第三个参数，表明没有被别的线程修改，保存第二参数到第一参数中
-            // 否则，不相等表明当前栈顶已经被修改过，操作失败，执行循环
-            while (Interlocked.CompareExchange<SingleListNode<T>>(ref Top, newTop, oldTop) != oldTop);
 
             Interlocked.Increment(ref _Count);
         }
@@ -81,7 +88,8 @@ namespace NewLife.Collections
         {
             SingleListNode<T> newTop;
             SingleListNode<T> oldTop;
-            do
+            SpinWait sw = null;
+            while (true)
             {
                 // 记住当前栈顶
                 oldTop = Top;
@@ -93,11 +101,16 @@ namespace NewLife.Collections
 
                 // 设置新栈顶为当前栈顶的下一个节点
                 newTop = oldTop.Next;
+
+                // 比较并交换
+                // 如果当前栈顶第一个参数的Top等于第三个参数，表明没有被别的线程修改，保存第二参数到第一参数中
+                // 否则，不相等表明当前栈顶已经被修改过，操作失败，执行循环
+                if (Interlocked.CompareExchange<SingleListNode<T>>(ref Top, newTop, oldTop) == oldTop) break;
+
+                //Thread.SpinWait(1);
+                if (sw == null) sw = new SpinWait();
+                sw.SpinOnce();
             }
-            // 比较并交换
-            // 如果当前栈顶第一个参数的Top等于第三个参数，表明没有被别的线程修改，保存第二参数到第一参数中
-            // 否则，不相等表明当前栈顶已经被修改过，操作失败，执行循环
-            while (Interlocked.CompareExchange<SingleListNode<T>>(ref Top, newTop, oldTop) != oldTop);
 
             Interlocked.Decrement(ref _Count);
 
@@ -142,11 +155,14 @@ namespace NewLife.Collections
         private SingleListNode<T> Free;
         private Int32 FreeCount;
 
+        const Int32 MaxFreeCount = 10000;
+
         SingleListNode<T> PopNode(T item)
         {
             SingleListNode<T> newTop;
             SingleListNode<T> oldTop;
-            do
+            SpinWait sw = null;
+            while (true)
             {
                 // 记住当前栈顶
                 oldTop = Free;
@@ -154,8 +170,13 @@ namespace NewLife.Collections
 
                 // 设置新栈顶为当前栈顶的下一个节点
                 newTop = oldTop.Next;
+
+                if (Interlocked.CompareExchange<SingleListNode<T>>(ref Free, newTop, oldTop) == oldTop) break;
+
+                //Thread.SpinWait(1);
+                if (sw == null) sw = new SpinWait();
+                sw.SpinOnce();
             }
-            while (Interlocked.CompareExchange<SingleListNode<T>>(ref Free, newTop, oldTop) != oldTop);
 
             Interlocked.Decrement(ref FreeCount);
 
@@ -168,22 +189,28 @@ namespace NewLife.Collections
         void PushNode(SingleListNode<T> node)
         {
             // 如果自由节点太多，就不要了
-            if (FreeCount > 100) return;
+            if (FreeCount > MaxFreeCount) return;
 
             // 断开关系链，避免内存泄漏
             node.Item = default(T);
 
             SingleListNode<T> newTop = node;
             SingleListNode<T> oldTop;
-            do
+            SpinWait sw = null;
+            while (true)
             {
                 // 记住当前栈顶
-                oldTop = Top;
+                oldTop = Free;
 
                 // 设置新对象的下一个节点为当前栈顶
                 newTop.Next = oldTop;
+
+                if (Interlocked.CompareExchange<SingleListNode<T>>(ref Free, newTop, oldTop) == oldTop) break;
+
+                //Thread.SpinWait(1);
+                if (sw == null) sw = new SpinWait();
+                sw.SpinOnce();
             }
-            while (Interlocked.CompareExchange<SingleListNode<T>>(ref Free, newTop, oldTop) != oldTop);
 
             Interlocked.Increment(ref FreeCount);
         }

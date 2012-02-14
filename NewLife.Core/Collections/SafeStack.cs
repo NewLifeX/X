@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using NewLife.Threading;
 
 namespace NewLife.Collections
 {
@@ -41,7 +42,7 @@ namespace NewLife.Collections
 
         #region 构造
         /// <summary>实例化一个容纳4个元素的安全栈</summary>
-        public SafeStack() : this(4) { }
+        public SafeStack() : this(256) { }
 
         /// <summary>实例化一个指定大小的安全栈</summary>
         /// <param name="capacity"></param>
@@ -89,36 +90,21 @@ namespace NewLife.Collections
         public void Push(T item)
         {
             // 检查锁，因为可能加锁来改变_array
-            Int32 c = 0;
-            while (_lock > 0)
-            {
-                // 避免无限循环
-                AssertCount(ref c);
-
-                Thread.SpinWait(1);
-            }
+            while (_lock > 0) Thread.SpinWait(1);
+            //SpinWait.SpinUntil(() => _lock <= 0);
             Debug.Assert(_lock == 0);
 
-            c = 0;
             Int32 p = -1;
             do
             {
                 // 解除上一次循环所加的锁
-                if (p >= 0)
-                {
-                    Debug.Assert(_locks[p] > 1);
-                    _locks[p]--;
-                }
+                if (p >= 0) _locks[p]--;
 
                 p = Count;
 
                 // 锁定该位置，避免同时弹出
-                while (_locks[p] > 0)
-                {
-                    // 避免无限循环
-                    AssertCount(ref c);
-                    Thread.SpinWait(1);
-                }
+                while (_locks[p] > 0) Thread.SpinWait(1);
+                //SpinWait.SpinUntil(() => _locks[p] <= 0);
                 _locks[p]++;
                 Debug.Assert(_locks[p] == 1);
             }
@@ -126,20 +112,13 @@ namespace NewLife.Collections
             while (Interlocked.CompareExchange(ref _Count, p + 1, p) != p);
 
             #region 是否容量超标
-            if (p >= _array.Length)
+            if (p >= _array.Length - 1)
             {
                 // 加锁，扩容
                 // 开始抢锁
-                c = 0;
-                while (Interlocked.CompareExchange(ref _lock, 1, 0) != 0)
-                {
-                    // 避免无限循环
-                    AssertCount(ref c);
-
-                    Thread.SpinWait(1);
-                }
+                while (Interlocked.CompareExchange(ref _lock, 1, 0) != 0) Thread.SpinWait(1);
                 // DoubleLock
-                if (p >= _array.Length)
+                if (p >= _array.Length - 1)
                 {
                     // 稍等一会，可能某些读取尚未完成
                     Thread.SpinWait(100);
@@ -150,7 +129,7 @@ namespace NewLife.Collections
                     _array.CopyTo(_arr, 0);
                     _array = _arr;
 
-                    var _arr2 = _locks = new Byte[size];
+                    var _arr2 = new Byte[size];
                     _locks.CopyTo(_arr2, 0);
                     _locks = _arr2;
                 }
@@ -182,17 +161,10 @@ namespace NewLife.Collections
         public Boolean TryPop(out T item)
         {
             // 检查锁，因为可能加锁来改变_array
-            Int32 c = 0;
-            while (_lock > 0)
-            {
-                // 避免无限循环
-                AssertCount(ref c);
-
-                Thread.SpinWait(1);
-            }
+            while (_lock > 0) Thread.SpinWait(1);
+            //SpinWait.SpinUntil(() => _lock <= 0);
             Debug.Assert(_lock == 0);
 
-            c = 0;
             Int32 p = -1;
             do
             {
@@ -207,17 +179,9 @@ namespace NewLife.Collections
                     return false;
                 }
 
-                // 避免无限循环
-                AssertCount(ref c);
-
                 // 锁定该位置，避免同时压入
-                while (_locks[p] > 0)
-                {
-                    // 避免无限循环
-                    AssertCount(ref c);
-
-                    Thread.SpinWait(1);
-                }
+                while (_locks[p] > 0) Thread.SpinWait(1);
+                //SpinWait.SpinUntil(() => _locks[p] <= 0);
                 _locks[p]++;
                 Debug.Assert(_locks[p] == 1);
             }
@@ -284,15 +248,6 @@ namespace NewLife.Collections
             T[] arr = new T[len];
             Array.Copy(_array, 0, arr, 0, len);
             return arr;
-        }
-        #endregion
-
-        #region 辅助方法
-        [Conditional("DEBUG")]
-        void AssertCount(ref Int32 count, Int32 max = 100)
-        {
-            count++;
-            if (count > max) throw new Exception("计数大于" + max + "！");
         }
         #endregion
 

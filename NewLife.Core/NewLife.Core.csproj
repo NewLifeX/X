@@ -201,6 +201,7 @@
     <Compile Include="Common\HardInfo.cs" />
     <Compile Include="Common\IdentityCard.cs" />
     <None Include="Serialization\Event\事件参数.cd" />
+    <Compile Include="Threading\SpinWait.cs" />
     <Compile Include="Threading\TaskState.cs" />
     <Compile Include="Threading\ThreadPoolX.cs" />
     <Compile Include="Threading\ThreadTask.cs" />
