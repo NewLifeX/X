@@ -1,4 +1,6 @@
-﻿v2.8.2011.1209   IEntityForm接口开放更多成员
+﻿v2.8.2012.0215   扩展ICommonManageProvider接口，增加FindByMenuID、GetMySubMenus等方法
+
+v2.8.2011.1209   IEntityForm接口开放更多成员
                  IEntityForm增加对另存为的支持，需要表单页增加btnCopy按钮
 
 v2.8.2011.1207   IEntityForm全新设计事件模型，更贴近实际使用

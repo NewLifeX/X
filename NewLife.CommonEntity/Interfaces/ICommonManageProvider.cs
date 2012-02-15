@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Web.UI;
+using System.Collections.Generic;
+using NewLife.Reflection;
+using XCode;
 
 namespace NewLife.CommonEntity
 {
@@ -46,6 +49,16 @@ namespace NewLife.CommonEntity
         #region 菜单
         /// <summary>菜单根，如果不支持则返回null</summary>
         IMenu MenuRoot { get; }
+
+        /// <summary>根据编号找到菜单</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        IMenu FindByMenuID(Int32 id);
+
+        /// <summary>获取指定菜单下，当前用户有权访问的子菜单。</summary>
+        /// <param name="menuid"></param>
+        /// <returns></returns>
+        IList<IMenu> GetMySubMenus(Int32 menuid);
         #endregion
     }
 
@@ -143,6 +156,45 @@ namespace NewLife.CommonEntity
         #region 菜单
         /// <summary>菜单根</summary>
         IMenu ICommonManageProvider.MenuRoot { get { return Menu.Root; } }
+
+        /// <summary>根据编号找到菜单</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public IMenu FindByMenuID(Int32 id)
+        {
+            if (id < 1) return null;
+
+            var eop = EntityFactory.CreateOperate(MenuType);
+            return eop.FindByKey(id) as IMenu;
+        }
+
+        /// <summary>获取指定菜单下，当前用户有权访问的子菜单。</summary>
+        /// <param name="menuid"></param>
+        /// <returns></returns>
+        public IList<IMenu> GetMySubMenus(Int32 menuid)
+        {
+            var provider = this as ICommonManageProvider;
+            IMenu root = provider.MenuRoot;
+
+            // 当前用户
+            var admin = provider.Current as IAdministrator;
+            if (admin == null || admin.Role == null) return null;
+
+            IMenu menu = null;
+
+            // 找到菜单
+            if (menuid > 0) menu = FindByMenuID(menuid);
+
+            if (menu == null)
+            {
+                menu = root;
+                if (menu == null || menu.Childs == null || menu.Childs.Count < 1) return null;
+                menu = menu.Childs[0];
+                if (menu == null) return null;
+            }
+
+            return admin.Role.GetMySubMenus(menu.ID);
+        }
         #endregion
     }
 }

@@ -36,9 +36,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("2.8.*")]
-[assembly: AssemblyFileVersion("2.8.2011.1209")]
+[assembly: AssemblyFileVersion("2.8.2012.0215")]
 
 /*
+ * v2.8.2012.0215   扩展ICommonManageProvider接口，增加FindByMenuID、GetMySubMenus等方法
+ * 
  * v2.8.2011.1209   IEntityForm接口开放更多成员
  *                  IEntityForm增加对另存为的支持，需要表单页增加btnCopy按钮
  * 
