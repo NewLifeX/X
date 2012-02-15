@@ -14,7 +14,7 @@ public partial class Center_Frame_Left : System.Web.UI.Page
             Int32 id = WebHelper.RequestInt("ID");
 
             IMenu m = provider.FindByMenuID(id);
-            Literal1.Text = m.Name;
+            if (m != null) Literal1.Text = m.Name;
 
             menu.DataSource = provider.GetMySubMenus(id);
             menu.DataBind();
