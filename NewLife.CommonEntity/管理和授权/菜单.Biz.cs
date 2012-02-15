@@ -385,6 +385,16 @@ namespace NewLife.CommonEntity
 
             return Encoding.UTF8.GetByteCount(str) == str.Length;
         }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            var path = FullPath;
+            if (!String.IsNullOrEmpty(path))
+                return path;
+            return base.ToString();
+        }
         #endregion
 
         #region 业务

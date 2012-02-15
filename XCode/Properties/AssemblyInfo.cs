@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.4.*")]
-[assembly: AssemblyFileVersion("8.4.2012.0113")]
+[assembly: AssemblyFileVersion("8.4.2012.0215")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.4.2012.0215   修正EntityTree.FindByPath中的一个BUG，查找多级路径时，无法把keys参数传入内部，导致有些时候查找失败
+ * 
  * v8.4.2012.0113   修正DbFactory中获取默认提供者时的BUG
  *                  DbMetaData中，无法识别字段类型时，输出日志
  *                  修正没有设置builder.IsInt导致分页没有选择最佳的MaxMin的BUG，感谢 @RICH(20371423)

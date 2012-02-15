@@ -418,7 +418,7 @@ namespace XCode
             if (ss.Length == 1) return entity;
 
             // 递归找下级
-            return entity.FindByPath(String.Join("\\", ss, 1, ss.Length - 1));
+            return entity.FindByPath(String.Join("\\", ss, 1, ss.Length - 1), keys);
         }
         #endregion
 
