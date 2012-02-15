@@ -29,6 +29,7 @@ namespace NewLife.Mvc
         public void Init(HttpApplication context)
         {
             context.BeginRequest += new EventHandler(context_BeginRequest);
+            context.EndRequest += new EventHandler(app_EndRequest);
         }
 
         #endregion IHttpModule 成员
@@ -39,7 +40,6 @@ namespace NewLife.Mvc
             HttpRequest req = app.Request;
 
             RouteContext ctx = RouteContext.Current = new RouteContext(req.Path.Substring(req.ApplicationPath.TrimEnd('/').Length));
-            app.EndRequest += new EventHandler(app_EndRequest);
             IController controller = null;
             try
             {
