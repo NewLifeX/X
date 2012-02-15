@@ -749,6 +749,11 @@ namespace NewLife.CommonEntity
 
         /// <summary>子孙菜单</summary>
         IList<IMenu> IMenu.AllChilds { get { return AllChilds.OfType<IMenu>().ToList(); } }
+
+        /// <summary>根据层次路径查找</summary>
+        /// <param name="path">层次路径</param>
+        /// <returns></returns>
+        IMenu IMenu.FindByPath(String path) { return FindByPath(path); }
         #endregion
     }
 
@@ -778,5 +783,10 @@ namespace NewLife.CommonEntity
 
         /// <summary>深度</summary>
         Int32 Deepth { get; }
+
+        /// <summary>根据层次路径查找</summary>
+        /// <param name="path">层次路径</param>
+        /// <returns></returns>
+        IMenu FindByPath(String path);
     }
 }
