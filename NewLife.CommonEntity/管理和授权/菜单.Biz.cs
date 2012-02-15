@@ -753,7 +753,7 @@ namespace NewLife.CommonEntity
         /// <summary>根据层次路径查找</summary>
         /// <param name="path">层次路径</param>
         /// <returns></returns>
-        IMenu IMenu.FindByPath(String path) { return FindByPath(path); }
+        IMenu IMenu.FindByPath(String path) { return FindByPath(path, _.Name, _.Permission, _.Remark); }
         #endregion
     }
 
