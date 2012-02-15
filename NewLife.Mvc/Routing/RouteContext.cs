@@ -52,6 +52,11 @@ namespace NewLife.Mvc
         /// </summary>
         public string RoutePath { get; private set; }
 
+        /// <summary>
+        /// 当前Mvc路由是否已经路由到一个有效的控制器,忽略的路由IgnoreRoute不算有效的控制器
+        /// </summary>
+        public bool Routed { get; internal set; }
+
         Stack<RouteFrag> _Frags = new Stack<RouteFrag>();
 
         /// <summary>

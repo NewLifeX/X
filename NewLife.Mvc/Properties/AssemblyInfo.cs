@@ -32,9 +32,12 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.5.*")]
-[assembly: AssemblyFileVersion("1.5.2011.1216")]
+[assembly: AssemblyFileVersion("1.5.2012.0215")]
 
 /*
+ * v1.5.2012.0215   路由上下文增加 是否已经路由到一个有效控制器的属性
+ *                  增加在请求结束时复位路由上下文,避免影响到下一次请求
+ * 
  * v1.5.2011.1216   增加重定向和静态资源路由的API,静态重定向和静态资源会发送缓存的Http Header,调试时重定向始终不会缓存,但是会增加额外的标识在Http Header中表示重定向生效
  *                  增加自定义忽略路由的API,类似的还有重定向和静态资源路由API
  * 

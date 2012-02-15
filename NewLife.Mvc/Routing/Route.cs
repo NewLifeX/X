@@ -38,7 +38,8 @@ namespace NewLife.Mvc
             HttpApplication app = sender as HttpApplication;
             HttpRequest req = app.Request;
 
-            RouteContext ctx = RouteContext.Current = new RouteContext(req.Path.Substring(req.ApplicationPath.TrimEnd('/').Length)); // 每次请求前重置路由上下文
+            RouteContext ctx = RouteContext.Current = new RouteContext(req.Path.Substring(req.ApplicationPath.TrimEnd('/').Length));
+            app.EndRequest += new EventHandler(app_EndRequest);
             IController controller = null;
             try
             {
@@ -57,9 +58,15 @@ namespace NewLife.Mvc
             }
             if (!IgnoreRoute.IsIgnore(controller))
             {
+                ctx.Routed = true;
                 app.Context.RemapHandler(HttpHandlerWrap.Create(ctx, controller));
                 return;
             }
+        }
+
+        void app_EndRequest(object sender, EventArgs e)
+        {
+            RouteContext.Current = null; // 复位路由上下文
         }
 
         static RouteConfigManager[] _RootConfig = new RouteConfigManager[] { null };
