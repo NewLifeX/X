@@ -70,6 +70,10 @@ namespace XUrlRewrite.Configuration
 
         private ExeConfigurationFileMap ConfigFileMap = new ExeConfigurationFileMap();
         private System.Configuration.Configuration _Configuration;
+        /// <summary>
+        /// 当模版配置信息重新加载后触发的事件
+        /// </summary>
+        public event EventHandler LoadConfig;
 
         /// <summary>
         /// 获得模板配置信息
@@ -95,6 +99,7 @@ namespace XUrlRewrite.Configuration
                     throw new Exception(
                         String.Format(@"模板映射配置文件格式不正确,或者configSections段内没有{0}的定义", ConfigSectionName), ex);
                 }
+                if (LoadConfig != null) LoadConfig(this, EventArgs.Empty);
             }
             return cfg;
         }

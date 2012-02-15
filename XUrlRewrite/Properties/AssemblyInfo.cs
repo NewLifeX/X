@@ -33,10 +33,13 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.1.*")]
-[assembly: AssemblyFileVersion("1.1.2011.1212")]
+[assembly: AssemblyFileVersion("1.1.2012.0215")]
 
 
 /**
+ * 
+ * v1.1.2012.0215    配置文件增加可选的过滤参数,可以控制特定的请求不使用Url重写
+ * 
  * v1.1.2011.1212    修正一处可能读取到错误的配置文件路径的问题
  * 
  * 

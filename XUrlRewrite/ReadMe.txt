@@ -12,7 +12,8 @@
     <section name="urlRewriteConfig" type="XUrlRewrite.Configuration.UrlRewriteConfig, XUrlRewrite"/>
   </configSections>
   <!-- directory是重写目标的默认路径,如果不使用应该写~/,那么下面to都应该是相对于这个路径 -->
-  <urlRewriteConfig directory="~/Template" enabled="true">
+  <!-- customfilter是一个类的静态方法,方法签名需要是 static bool methodname(string path, string query, HttpApplication app) -->
+  <urlRewriteConfig directory="~/Template" enabled="true" customfilter="mynamespace.classname.methodname">
     <urls>
 	  <!--
 	    下面这行是错误的,只是用来描述参数
