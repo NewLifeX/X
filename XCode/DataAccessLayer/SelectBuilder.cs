@@ -168,8 +168,9 @@ namespace XCode.DataAccessLayer
 
                     if (keys != null && keys.Length > 0)
                     {
-                        // 如果排序不包含括号，可以优化排序
-                        if (!_OrderBy.Contains("(")) _OrderBy = Join(keys, isdescs);
+                        // 2012-02-16 排序字句里面可能包含有SQLite等的分页字句，不能随便的优化
+                        //// 如果排序不包含括号，可以优化排序
+                        //if (!_OrderBy.Contains("(")) _OrderBy = Join(keys, isdescs);
 
                         if (Keys == null || Keys.Length < 1)
                         {
@@ -180,6 +181,10 @@ namespace XCode.DataAccessLayer
                 }
             }
         }
+
+        //private String _Limit;
+        ///// <summary>分页用的Limit语句</summary>
+        //public String Limit { get { return _Limit; } set { _Limit = value; } }
         #endregion
 
         #region 扩展属性
@@ -201,21 +206,17 @@ namespace XCode.DataAccessLayer
 (?:\s+Having\s+(?<分组条件>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!))))?
 (?:\s+Order\s+By\s+(?<排序>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!))))?
 $";
+        // 可以单独识别SQLite等数据库分页的Limit字句，但那样加大了复杂性
+        // (?:\s+(?<Limit>(?>Limit|Rows)\s+(\d+\s*(?>,|To|Offset)\s*)?\d+))?
+
         static Regex regexSelect = new Regex(SelectRegex, RegexOptions.Compiled);
 
-        /// <summary>
-        /// 分析一条SQL
-        /// </summary>
+        /// <summary>分析一条SQL</summary>
         /// <param name="sql"></param>
         /// <returns></returns>
         public Boolean Parse(String sql)
         {
-            Regex reg = new Regex(SelectRegex, RegexOptions.IgnoreCase);
-            //MatchCollection ms = reg.Matches(sql);
-            //if (ms != null && ms.Count > 0 && ms[0].Success)
-            //{
-            //    Match m = ms[0];
-            Match m = reg.Match(sql);
+            Match m = regexSelect.Match(sql);
             if (m != null && m.Success)
             {
                 Column = m.Groups["选择列"].Value;
@@ -224,6 +225,7 @@ $";
                 GroupBy = m.Groups["分组"].Value;
                 Having = m.Groups["分组条件"].Value;
                 OrderBy = m.Groups["排序"].Value;
+                //Limit = m.Groups["Limit"].Value;
 
                 return true;
             }
