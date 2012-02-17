@@ -40,17 +40,25 @@ public partial class Login : System.Web.UI.Page
                         if (user.Password == DataHelper.Hash("admin"))
                         {
                             UserName.Text = user.Account;
-                            Password.Text = "admin";
+                            //Password.Text = "admin";
+                            SetPass("admin");
                         }
                         else if (user.Password == DataHelper.Hash(user.Account))
                         {
                             UserName.Text = user.Account;
-                            Password.Text = user.Account;
+                            //Password.Text = user.Account;
+                            SetPass(user.Account);
                         }
                     }
                 }
             }
         }
+    }
+
+    void SetPass(String pass)
+    {
+        String js = String.Format("document.getElementById('{0}').value='{1}';", Password.ClientID, pass.Replace("'", "\\'"));
+        ClientScript.RegisterStartupScript(this.GetType(), "SetPass", js, true);
     }
 
     protected void LoginButton_Click(object sender, EventArgs e)
