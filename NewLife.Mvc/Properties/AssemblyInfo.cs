@@ -31,10 +31,15 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.5.*")]
-[assembly: AssemblyFileVersion("1.5.2012.0215")]
+[assembly: AssemblyVersion("1.6.*")]
+[assembly: AssemblyFileVersion("1.6.2012.0217")]
 
 /*
+ * v1.6.2012.0217   运行路由接口修改,可以自行调整路由片段信息
+ *                  隔离静态路由到模块和运行时路由的模块的模块对象实例缓存
+ *                  精简路由上下文信息格式,显示更多重要的信息,避免显示重复的信息
+ *                  修正重定向路由不能重定向到网站根路径的问题
+ * 
  * v1.5.2012.0215   路由上下文增加 是否已经路由到一个有效控制器的属性
  *                  增加在请求结束时复位路由上下文,避免影响到下一次请求
  * 
