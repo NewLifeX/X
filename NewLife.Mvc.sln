@@ -25,6 +25,7 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "NewLife.Mvc.Test", "NewLife
 		Release.AspNetCompiler.Debug = "False"
 		VWDPort = "1111"
 		VWDDynamicPort = "false"
+		VWDVirtualPath = "/MvcTest"
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XTemplate", "XTemplate\XTemplate.csproj", "{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}"
