@@ -69,13 +69,13 @@ namespace NewLife.Mvc
                 Response.Clear();
                 string url, routePath = "";
 
-                RouteFrag? m = context.Module;
+                RouteFrag m = context.Module;
                 if (m != null)
                 {
                     foreach (RouteFrag item in context)
                     {
                         routePath += item.Path;
-                        if (item.Related == m.Value.Related) break;
+                        if (item.Related == m.Related) break;
                     }
                 }
                 if (LocationFunc != null)
@@ -92,14 +92,18 @@ namespace NewLife.Mvc
                     {
                         url = VirtualPathUtility.ToAbsolute(LocationTo);
                     }
+                    else if (LocationTo.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                        LocationTo.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                    {
+                        url = LocationTo;
+                    }
+                    else if (RelativeRoot)
+                    {
+                        url = LocationTo;
+                    }
                     else
                     {
-                        url = "";
-                        if (!RelativeRoot)
-                        {
-                            url = routePath;
-                        }
-                        url = Request.ApplicationPath.TrimEnd('/') + url + "/" + LocationTo.TrimStart('/');
+                        url = Request.ApplicationPath.TrimEnd('/') + routePath + "/" + LocationTo.TrimStart('/');
                     }
                 }
                 string query = Request.QueryString.ToString();

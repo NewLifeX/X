@@ -25,8 +25,9 @@ class RouteFactory : IControllerFactory
             }
             catch
             {
-                context.RouteTo(new TestModuleRoute(), new RouteConfigManager()); // 自行控制模块和模块路由配置实例初始化
-                context.RouteTo(new RouteConfigManager());
+                ModuleRule m = new ModuleRule();
+                m.Module = new TestModuleRoute();
+                context.RouteTo("", m); // 自行控制模块和模块路由配置实例初始化
             }
         }
         return null;

@@ -17,7 +17,7 @@ public class Urls : IRouteConfig
             {
                 return ctx.Path.EndsWith(".txt");
             })
-            .Redirect("/rootredirect", "/")
+            .Redirect("/rootredirect", "/Test")
             .RouteToFactory<RouteFactory>("/specFactory")
             .Route<TestController>("/Test")
             .Route(

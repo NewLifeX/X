@@ -39,11 +39,12 @@ namespace NewLife.Mvc
             HttpApplication app = sender as HttpApplication;
             HttpRequest req = app.Request;
 
-            RouteContext ctx = RouteContext.Current = new RouteContext(req.Path.Substring(req.ApplicationPath.TrimEnd('/').Length));
+            RouteContext ctx = new RouteContext(req.Path.Substring(req.ApplicationPath.TrimEnd('/').Length));
+            RouteContext.Current = ctx;
             IController controller = null;
             try
             {
-                controller = ctx.RouteTo(RootConfig, false);
+                controller = ctx.RouteTo(null, RootModule, f => null);
             }
             catch (Exception ex)
             {
@@ -64,25 +65,25 @@ namespace NewLife.Mvc
             }
         }
 
-        void app_EndRequest(object sender, EventArgs e)
+        private void app_EndRequest(object sender, EventArgs e)
         {
             RouteContext.Current = null; // 复位路由上下文
         }
 
-        static RouteConfigManager[] _RootConfig = new RouteConfigManager[] { null };
+        static ModuleRule[] _RootModule = { null };
 
         /// <summary>
         /// 根路由配置,自动加载实现了IRouteConfig接口的类中配置的路由规则
         /// </summary>
-        public static RouteConfigManager RootConfig
+        public static ModuleRule RootModule
         {
             get
             {
-                if (_RootConfig[0] == null)
+                if (_RootModule[0] == null)
                 {
-                    lock (_RootConfig)
+                    lock (_RootModule)
                     {
-                        if (_RootConfig[0] == null)
+                        if (_RootModule[0] == null)
                         {
                             RouteConfigManager cfg = new RouteConfigManager();
                             // 找到所有实现IRouteConfig接口的类
@@ -91,11 +92,11 @@ namespace NewLife.Mvc
                                 cfg.Load(item);
                             }
                             //cfg.RouteToFactory("", () => Service.Resolve<IControllerFactory>()); // 从对象容器中取默认控制器工厂
-                            _RootConfig[0] = cfg;
+                            _RootModule[0] = new ModuleRule() { Config = cfg };
                         }
                     }
                 }
-                return _RootConfig[0];
+                return _RootModule[0];
             }
         }
 

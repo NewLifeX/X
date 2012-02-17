@@ -43,6 +43,7 @@ namespace NewLife.Mvc
             return Route(path, typeof(IControllerFactory), typeof(IControllerFactory), delegate(Rule r)
             {
                 (r as FactoryRule).NewFactoryFunc = newFunc;
+                return r;
             });
         }
 
@@ -275,7 +276,7 @@ namespace NewLife.Mvc
             module = null;
             if (type != null && typeof(IRouteConfigModule).IsAssignableFrom(type))
             {
-                module = LoadModuleCache.GetItem(type, NewModuleFunc);
+                module = LoadModuleCache.GetItem(type, t => (IRouteConfigModule)TypeX.CreateInstance(t));
                 Load(module);
             }
             return this;
@@ -351,7 +352,7 @@ namespace NewLife.Mvc
         /// <param name="ruleType">路由规则类型,未知类型使用null或者typeof(object)</param>
         /// <param name="onCreatedRule">创建路由规则后的回调,参数中包含刚创建的路由规则</param>
         /// <returns></returns>
-        internal virtual RouteConfigManager Route(string path, Type type, Type ruleType, Action<Rule> onCreatedRule = null)
+        internal virtual RouteConfigManager Route(string path, Type type, Type ruleType, Func<Rule, Rule> onCreatedRule = null)
         {
             Rule r = null;
             try
@@ -363,7 +364,7 @@ namespace NewLife.Mvc
                 if (ex.RoutePath == null) ex.RoutePath = path;
                 throw;
             }
-            if (onCreatedRule != null) onCreatedRule(r);
+            if (onCreatedRule != null) r = onCreatedRule(r);
             Rules.Add(r);
             sorted = false;
             return this;
@@ -390,16 +391,6 @@ namespace NewLife.Mvc
                 }
                 return _LoadModuleCache[0];
             }
-        }
-
-        /// <summary>
-        /// 实例化指定的IRouteConfigModule
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        internal static IRouteConfigModule NewModuleFunc(Type type)
-        {
-            return (IRouteConfigModule)TypeX.CreateInstance(type);
         }
 
         #endregion 私有

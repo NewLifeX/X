@@ -47,10 +47,10 @@
         <p>
             <h4>重定向测试</h4>
             <a href="Module/redirect1">至模块/foo</a>
-            <a href="rootredirect">至根模块/foo</a>
-            <a href="Module/redirect2">至网站/static.bmp</a>
-            <a href="Module/redirect3">至服务器/</a>
+            <a href="Module/redirect2">至应用~/static.bmp</a>
+            <a href="Module/redirect3">至网站/</a>
             <a href="Module/redirect4">至绝对地址www.google.com</a>
+            <a href="rootredirect">rootredirect至顶级模块/Test</a>
         </p>
         <p>
             <h4>静态资源请求</h4>

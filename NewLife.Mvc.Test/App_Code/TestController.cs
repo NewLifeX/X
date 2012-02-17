@@ -22,7 +22,7 @@ public class TestController : GenericController, IController
 
     public void Info()
     {
-        RouteContext c = RouteContext.Current;
+        IRouteContext c = RouteContext.Current;
         Response.Write("<pre>" + Server.HtmlEncode(string.Format(@"
 NewLife.Mvc.RouteContext.Current.RoutePath : {0}
 NewLife.Mvc.RouteContext.Current.Module : {1}

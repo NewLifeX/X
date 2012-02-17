@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using NewLife.Collections;
 using NewLife.Reflection;
-using Pair = System.Collections.Generic.KeyValuePair<NewLife.Mvc.IRouteConfigModule, NewLife.Mvc.RouteConfigManager>;
+using System.Diagnostics;
 
 namespace NewLife.Mvc
 {
@@ -34,14 +33,14 @@ namespace NewLife.Mvc
         #region 公共属性
 
         [ThreadStatic]
-        private static RouteContext _Current;
+        private static IRouteContext _Current;
 
         /// <summary>
         /// 当前请求路由上下文信息
         ///
         /// 通过给当前属性赋值可以实现路由探测,即尝试匹配路由规则,但是不执行最终的控制器
         /// </summary>
-        public static RouteContext Current { get { return _Current; } set { _Current = value; } }
+        public static IRouteContext Current { get { return _Current; } set { _Current = value; } }
 
         /// <summary>
         /// 当前请求的路由路径,即url排除掉当前应用部署的路径后,以/开始的路径,不包括url中?及其后面的
@@ -75,7 +74,8 @@ namespace NewLife.Mvc
         /// <summary>
         /// 当前路由最近的一个路由配置
         /// </summary>
-        public RouteFrag? Config
+        [Obsolete("不再使用Config类型的上下文,不需要使用这个方法了")]
+        public RouteFrag Config
         {
             get
             {
@@ -90,7 +90,7 @@ namespace NewLife.Mvc
         /// <summary>
         /// 返回路由最近的一个模块
         /// </summary>
-        public RouteFrag? Module
+        public RouteFrag Module
         {
             get
             {
@@ -105,7 +105,7 @@ namespace NewLife.Mvc
         /// <summary>
         /// 返回路由最近的一个控制器工厂,如果没有路由进工厂则返回null
         /// </summary>
-        public RouteFrag? Factory
+        public RouteFrag Factory
         {
             get
             {
@@ -122,7 +122,7 @@ namespace NewLife.Mvc
         /// <summary>
         /// 返回路由最近的一个控制器,如果没有路由进控制器则返回null
         /// </summary>
-        public RouteFrag? Controller
+        public RouteFrag Controller
         {
             get
             {
@@ -183,12 +183,12 @@ namespace NewLife.Mvc
 
         /// <summary>
         /// 在当前所有路由片段中查找第一个符合指定条件的路由片段
-        /// 
+        ///
         /// 匹配的Url片段将按照从右向左遍历,不同于Frags属性返回的是从左向右的
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
-        public RouteFrag? FindFrag(Func<RouteFrag, bool> filter)
+        public RouteFrag FindFrag(Func<RouteFrag, bool> filter)
         {
             foreach (var f in _Frags)
             {
@@ -199,7 +199,7 @@ namespace NewLife.Mvc
 
         /// <summary>
         /// 在当前所有路由片段中查找符合指定条件的所有路由片段
-        /// 
+        ///
         /// 匹配的Url片段将按照从右向左遍历,不同于Frags属性返回的是从左向右的
         /// </summary>
         /// <param name="filter"></param>
@@ -217,78 +217,102 @@ namespace NewLife.Mvc
         /// <summary>
         /// 路由当前路径到指定类的模块路由配置
         ///
-        /// 一般在控制器工厂中使用,用于运行时路由,相对应的是实现IRouteConfigModule接口配置路由
+        /// 一般在控制器工厂中使用,用于运行时路由,对应的静态路由是通过实现IRouteConfigModule接口配置路由
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public IController RouteTo<T>() where T : IRouteConfigModule, new()
         {
-            return RouteTo(typeof(T));
+            return RouteTo<T>(null);
         }
 
         /// <summary>
-        /// 路由当前路径到指定类型的模块路由配置
+        /// 路由当前路径到指定类的模块路由配置
         ///
-        /// 一般在控制器工厂中使用,用于运行时路由,相对应的是实现IRouteConfigModule接口配置路由
+        /// 一般在控制器工厂中使用,用于运行时路由,对应的静态路由是通过实现IRouteConfigModule接口配置路由
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="match">匹配到的路径,需要是当前Path属性的开始部分</param>
+        /// <returns></returns>
+        public IController RouteTo<T>(string match) where T : IRouteConfigModule, new()
+        {
+            return RouteTo(match, typeof(T));
+        }
+
+        /// <summary>
+        /// 路由当前路径到指定类的模块路由配置
+        ///
+        /// 一般在控制器工厂中使用,用于运行时路由,对应的静态路由是通过实现IRouteConfigModule接口配置路由
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
         public IController RouteTo(Type type)
         {
+            return RouteTo(null, type);
+        }
+
+        /// <summary>
+        /// 路由当前路径到指定类型的模块路由配置
+        ///
+        /// 一般在控制器工厂中使用,用于运行时路由,对应的静态路由是通过实现IRouteConfigModule接口配置路由
+        /// </summary>
+        /// <param name="match"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public IController RouteTo(string match, Type type)
+        {
             if (type != null && typeof(IRouteConfigModule).IsAssignableFrom(type))
             {
-                Pair item = ModuleRouteCache.GetItem(type, NewRouteConfigFunc);
-                return RouteTo(item.Key, item.Value);
+                ModuleRule moduleRule = RouteToModuleCache.GetItem(type, t => new ModuleRule() { Type = t });
+                return RouteTo(match, moduleRule);
             }
             return null;
         }
 
         /// <summary>
-        /// 路由当前路径到指定的路由配置模块,
+        /// 路由当前路径到指定的模块路由规则
         ///
-        /// 一般在控制器工厂中使用,用于运行时路由,相对应的是实现IRouteConfigModule接口配置路由
+        /// 一般在控制器工厂中使用,用于运行时路由,对应的静态路由是通过实现IRouteConfigModule接口配置路由
         /// </summary>
-        /// <param name="module">配置cfg的路由模块</param>
-        /// <param name="cfg">如果尚未有任何路由规则,则使用module配置的规则</param>
+        /// <param name="match"></param>
+        /// <param name="rule"></param>
         /// <returns></returns>
-        public IController RouteTo(IRouteConfigModule module, RouteConfigManager cfg)
+        public IController RouteTo(string match, ModuleRule rule)
         {
-            if (cfg.Count == 0)
-            {
-                module.Config(cfg);
-            }
-            Rule rule = _Frags.Count > 0 ? _Frags.Peek().Rule : null;
-            EnterModule("", Path, rule, module);
+            return RouteTo(match, rule, null);
+        }
+
+        /// <summary>
+        /// 路由当前路径到指定的模块路由规则
+        ///
+        /// 一般在控制器工厂中使用,用于运行时路由,对应的静态路由是通过实现IRouteConfigModule接口配置路由
+        /// </summary>
+        /// <param name="match"></param>
+        /// <param name="rule"></param>
+        /// <param name="adjustRouteFrag">对路由上下文片段的微调回调,如果返回null则表示不进出路由上下文,如果指定为null则不做微调</param>
+        /// <returns></returns>
+        public IController RouteTo(string match, ModuleRule rule, Func<RouteFrag, RouteFrag> adjustRouteFrag)
+        {
+            bool entered = EnterModule("" + match, Path, rule, rule.Module, adjustRouteFrag);
+            RouteConfigManager cfg = rule.Config.Sort();
             IController c = null;
             try
             {
-                c = RouteTo(cfg);
+                foreach (var r in cfg)
+                {
+                    c = r.RouteTo(this);
+                    if (c != null) break;
+                }
             }
             finally
             {
-                if (c == null)
+                if (c == null && entered)
                 {
-                    ExitModule("", Path, rule, module);
+                    ExitModule("" + match, Path, rule, rule.Module);
                 }
             }
             return c;
         }
-
-        /// <summary>
-        /// 路由当前路径到指定的路由配置
-        ///
-        /// 一般在控制器工厂中使用,用于运行时路由,相对应的是实现IRouteConfigModule接口配置路由
-        ///
-        /// 建议使用RouteTo(IRouteConfigModule module, RouteConfigManager cfg)  RouteTo(Type type)  RouteTo&lt;T&gt;() 这3个方法
-        /// 可以在上下文中留下模块路由信息,这个只能留下路由配置信息
-        /// </summary>
-        /// <param name="cfg"></param>
-        /// <returns></returns>
-        public IController RouteTo(RouteConfigManager cfg)
-        {
-            return RouteTo(cfg, true);
-        }
-
         #endregion 公共方法
 
         #region 上下文状态进出
@@ -300,6 +324,7 @@ namespace NewLife.Mvc
         /// <param name="path"></param>
         /// <param name="r"></param>
         /// <param name="related"></param>
+        [Obsolete("不再使用Config类型的上下文,不需要使用这个方法了")]
         internal void EnterConfigManager(string match, string path, Rule r, RouteConfigManager related)
         {
             Path = path.Substring(match.Length);
@@ -319,6 +344,7 @@ namespace NewLife.Mvc
         /// <param name="path"></param>
         /// <param name="r"></param>
         /// <param name="related"></param>
+        [Obsolete("不再使用Config类型的上下文,不需要使用这个方法了")]
         internal void ExitConfigManager(string match, string path, Rule r, RouteConfigManager related)
         {
 #if DEBUG
@@ -339,16 +365,25 @@ namespace NewLife.Mvc
         /// <param name="path">进入模块前的路径</param>
         /// <param name="r">当前匹配的路由规则</param>
         /// <param name="related">模块实例</param>
-        internal void EnterModule(string match, string path, Rule r, IRouteConfigModule related)
+        /// <param name="adjustRouteFrag">进入模块后调整路由上下文回调函数</param>
+        internal bool EnterModule(string match, string path, Rule r, IRouteConfigModule related, Func<RouteFrag, RouteFrag> adjustRouteFrag = null)
         {
             Path = path.Substring(match.Length);
-            _Frags.Push(new RouteFrag()
+            RouteFrag frag = new RouteFrag()
             {
                 Type = RouteFragType.Module,
                 Path = match,
                 Rule = r,
                 Related = related
-            });
+            };
+            if (adjustRouteFrag != null)
+            {
+                frag = adjustRouteFrag(frag);
+                if (frag == null) return false;
+            }
+            _Frags.Push(frag);
+            frag.ReadOnly = true;
+            return true;
         }
 
         /// <summary>
@@ -422,13 +457,13 @@ namespace NewLife.Mvc
         {
 #if DEBUG
             Debug.Assert(path.StartsWith(match));
-            RouteFrag? f = Factory;
+            RouteFrag f = Factory;
             if (f != null)
             {
-                Debug.Assert(f.Value.Path == match);
-                Debug.Assert(f.Value.Rule == r);
+                Debug.Assert(match == "");
+                Debug.Assert(f.Rule == r);
             }
-            RouteFrag? c = Controller;
+            RouteFrag c = Controller;
             if (c != null)
             {
                 Debug.Fail("不能重复进入控制器");
@@ -447,6 +482,7 @@ namespace NewLife.Mvc
         #endregion 上下文状态进出
 
         #region 实现IEnumerable接口
+
         /// <summary>
         /// 实现IEnumerable接口
         /// </summary>
@@ -483,43 +519,12 @@ namespace NewLife.Mvc
         }
 
         #region 私有成员
-
-        /// <summary>
-        /// 路由当前路径到指定的路由配置,可指定进行上下文进出
-        /// </summary>
-        /// <param name="cfg"></param>
-        /// <param name="enterContext"></param>
-        /// <returns></returns>
-        internal IController RouteTo(RouteConfigManager cfg, bool enterContext)
-        {
-            cfg.Sort();
-            Rule rule = _Frags.Count > 0 ? _Frags.Peek().Rule : null;
-            if (enterContext) EnterConfigManager("", Path, rule, cfg);
-            IController c = null;
-            try
-            {
-                foreach (var r in cfg)
-                {
-                    c = r.RouteTo(this);
-                    if (c != null) break;
-                }
-            }
-            finally
-            {
-                if (c == null)
-                {
-                    if (enterContext) ExitConfigManager("", Path, rule, cfg);
-                }
-            }
-            return c;
-        }
-
-        static DictionaryCache<Type, Pair>[] _ModuleRouteCache = new DictionaryCache<Type, Pair>[] { null };
+        static DictionaryCache<Type, ModuleRule>[] _ModuleRouteCache = { null };
 
         /// <summary>
         /// RouteTo(Type type)方法使用的缓存的RouteConfigManager,方便在工厂中使用,避免重复创建路由配置
         /// </summary>
-        internal static DictionaryCache<Type, Pair> ModuleRouteCache
+        internal static DictionaryCache<Type, ModuleRule> RouteToModuleCache
         {
             get
             {
@@ -529,7 +534,7 @@ namespace NewLife.Mvc
                     {
                         if (_ModuleRouteCache[0] == null)
                         {
-                            _ModuleRouteCache[0] = new DictionaryCache<Type, Pair>();
+                            _ModuleRouteCache[0] = new DictionaryCache<Type, ModuleRule>();
                         }
                     }
                 }
@@ -537,44 +542,95 @@ namespace NewLife.Mvc
             }
         }
 
-        /// <summary>
-        /// 在获取ModuleRouteCache属性中的值时使用
-        /// </summary>
-        /// <param name="t"></param>
-        /// <returns></returns>
-        internal static Pair NewRouteConfigFunc(Type t)
-        {
-            return new Pair(RouteConfigManager.LoadModuleCache.GetItem(t, RouteConfigManager.NewModuleFunc),
-                new RouteConfigManager());
-        }
-
         #endregion 私有成员
     }
 
     /// <summary>
-    /// 路由片段结构体,表示当前请求路径每个匹配的路径信息
+    /// 路由片段,表示当前请求路径每个匹配的路径信息
     /// </summary>
-    public struct RouteFrag
+    public class RouteFrag
     {
+        internal bool ReadOnly { get; set; }
+
+        private RouteFragType _Type;
+
         /// <summary>
         /// 片段类型
         /// </summary>
-        public RouteFragType Type { get; internal set; }
+        public RouteFragType Type
+        {
+            get
+            {
+                return _Type;
+            }
+            set
+            {
+                if (!ReadOnly)
+                {
+                    _Type = value;
+                }
+            }
+        }
+
+        private string _Path;
 
         /// <summary>
         /// 片段匹配的实际路径
         /// </summary>
-        public string Path { get; internal set; }
+        public string Path
+        {
+            get
+            {
+                return _Path;
+            }
+            set
+            {
+                if (!ReadOnly)
+                {
+                    _Path = value;
+                }
+            }
+        }
+
+        private Rule _Rule;
 
         /// <summary>
         /// 片段匹配的路由规则实例
         /// </summary>
-        public Rule Rule { get; internal set; }
+        public Rule Rule
+        {
+            get
+            {
+                return _Rule;
+            }
+            set
+            {
+                if (!ReadOnly)
+                {
+                    _Rule = value;
+                }
+            }
+        }
+
+        private object _Related;
 
         /// <summary>
         /// 相关的对象,和Type关联
         /// </summary>
-        public object Related { get; internal set; }
+        public object Related
+        {
+            get
+            {
+                return _Related;
+            }
+            set
+            {
+                if (!ReadOnly)
+                {
+                    _Related = value;
+                }
+            }
+        }
 
         /// <summary>
         /// 重写,将会输出
@@ -586,7 +642,7 @@ namespace NewLife.Mvc
         /// <see cref="Rule"/>
         public override string ToString()
         {
-            return string.Format("{{RouteFrag {0} -> {3} [{2}] {1}}}", !string.IsNullOrEmpty(Path) ? Path : "未匹配路径", Rule, Type, Related);
+            return string.Format("{{RouteFrag \"{0}\" -> [{1}]{2} Rule:{3}}}", Path, Type, Related, Rule);
         }
 
         /// <summary>
@@ -607,9 +663,9 @@ namespace NewLife.Mvc
                 case RouteFragType.Module:
                     if (typeof(T) == typeof(IRouteConfigModule) && Related is IRouteConfigModule) return (T)Related;
                     break;
-                case RouteFragType.Config:
-                    if (typeof(RouteConfigManager).IsAssignableFrom(typeof(T)) && Related is RouteConfigManager) return (T)Related;
-                    break;
+                //case RouteFragType.Config:
+                //    if (typeof(RouteConfigManager).IsAssignableFrom(typeof(T)) && Related is RouteConfigManager) return (T)Related;
+                //    break;
             }
             return default(T);
         }
@@ -635,6 +691,7 @@ namespace NewLife.Mvc
         /// <summary>
         /// 路由配置,Related是RouteConfigManager类型
         /// </summary>
+        [Obsolete("不再使用Config类型的上下文,不需要使用这个方法了")]
         Config
     }
 }

@@ -209,7 +209,7 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public override string ToString()
         {
-            return string.Format("{{Rule {0} -> {1}}}", Path, Type.FullName);
+            return string.Format("{{\"{0}\" -> {1}}}", Path, Type.FullName);
         }
     }
 
@@ -272,7 +272,7 @@ namespace NewLife.Mvc
                 {
                     if (c != null)
                     {
-                        RouteFrag? f = ctx.Controller;
+                        RouteFrag f = ctx.Controller;
                         if (f == null)
                         {
                             // 控制器工厂内部有可能通过RouteContext.RouteTo已经调用了进入控制器 所以退出时需要检查是否有需要进入控制器工厂
@@ -298,8 +298,7 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public override string ToString()
         {
-            Type t = Factory != null ? Factory.GetType() : Type;
-            return string.Format("{{FactoryRule {0} -> {1}{2}}}", Path, t.FullName, Factory != null ? " " + Factory.ToString() : "");
+            return string.Format("{{\"{0}\" -> {1}}}", Path, Factory);
         }
     }
 
@@ -308,7 +307,7 @@ namespace NewLife.Mvc
     /// </summary>
     public class ModuleRule : Rule
     {
-        IRouteConfigModule _Module;
+        IRouteConfigModule[] _Module = { null };
 
         /// <summary>
         /// 当前模块路由规则对应的模块
@@ -317,15 +316,21 @@ namespace NewLife.Mvc
         {
             get
             {
-                if (_Module == null)
+                if (_Module[0] == null)
                 {
-                    Config.GetType();
+                    lock (_Module)
+                    {
+                        if (_Module[0] == null && Type != null)
+                        {
+                            _Module[0] = (IRouteConfigModule)TypeX.CreateInstance(Type);
+                        }
+                    }
                 }
-                return _Module;
+                return _Module[0];
             }
             set
             {
-                _Module = value;
+                _Module[0] = value;
             }
         }
 
@@ -344,11 +349,7 @@ namespace NewLife.Mvc
                     {
                         if (_Config[0] == null)
                         {
-                            RouteConfigManager cfg = new RouteConfigManager();
-                            IRouteConfigModule m;
-                            cfg.Load(Type, out m);
-                            Module = m;
-                            _Config[0] = cfg;
+                            _Config[0] = new RouteConfigManager().Load(Module).Sort();
                         }
                     }
                 }
@@ -369,7 +370,7 @@ namespace NewLife.Mvc
                 IController r = null;
                 try
                 {
-                    r = ctx.RouteTo(Config, false);
+                    r = ctx.RouteTo("", this, f => null);
                 }
                 finally
                 {
@@ -386,7 +387,6 @@ namespace NewLife.Mvc
             }
             return null;
         }
-
         /// <summary>
         /// 重写,将输出
         /// {ModuleRule 规则配置的路径 -> 规则配置的目标类型 目标模块类型实例 模块产生的路由配置数量}
@@ -394,7 +394,7 @@ namespace NewLife.Mvc
         /// <returns></returns>
         public override string ToString()
         {
-            return string.Format("{{ModuleRule {0} -> {1} {2} {3}}}", Path, Type.FullName, Module, Config.Count);
+            return string.Format("{{\"{0}\" -> {1} Contains {2} rules}}", Path, Module, Config.Count);
         }
     }
 }
