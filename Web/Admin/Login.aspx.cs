@@ -5,6 +5,7 @@ using NewLife.Log;
 using NewLife.Threading;
 using NewLife.Web;
 using XCode;
+using NewLife.Security;
 
 public partial class Login : System.Web.UI.Page
 {
@@ -25,6 +26,29 @@ public partial class Login : System.Web.UI.Page
                 }
                 else
                     Response.Redirect("Default.aspx");
+            }
+            else
+            {
+                // 单一用户自动填写密码
+                IEntityOperate eop = EntityFactory.CreateOperate(ManageProvider.Provider.ManageUserType);
+                if (eop.Count <= 1)
+                {
+                    user = eop.FindAll(null, null, null, 0, 1)[0] as IManageUser;
+                    if (user != null)
+                    {
+                        // 使用admin或者用户名做密码，认为是默认密码，默认填写
+                        if (user.Password == DataHelper.Hash("admin"))
+                        {
+                            UserName.Text = user.Account;
+                            Password.Text = "admin";
+                        }
+                        else if (user.Password == DataHelper.Hash(user.Account))
+                        {
+                            UserName.Text = user.Account;
+                            Password.Text = user.Account;
+                        }
+                    }
+                }
             }
         }
     }
