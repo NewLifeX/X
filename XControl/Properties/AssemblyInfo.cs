@@ -39,9 +39,11 @@ using System.Web.UI;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("1.13.*")]
-[assembly: AssemblyFileVersion("1.13.2011.1123")]
+[assembly: AssemblyFileVersion("1.13.2012.0218")]
 
 /*
+ * v1.13.2012.0218  GridViewExtender增加DataSource和RowCount，方便访问ObjectDataSource返回的数据
+ * 
  * v1.13.2011.1123  更新My97 DatePicker的版本到4.72,以及对应的asp.net服务端控件封装,会解决IE9下,在运行时创建的iframe中只能使用一次的问题
  *                  增加MenuField,在GridView中使用的数据绑定字段,可显示菜单样式的字段
  * 

@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -9,6 +10,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Reflection;
 using NewLife.Web;
+using System.Collections;
 
 [assembly: WebResource("XControl.View.GridViewExtender.js", "text/javascript")]
 
@@ -24,7 +26,6 @@ namespace XControl
     public class GridViewExtender : ExtenderControl<GridView>
     {
         #region 属性
-
         /// <summary>选中项背景颜色</summary>
         [Description("选中项背景颜色"),
         DefaultValue(typeof(Color), ""),
@@ -94,22 +95,44 @@ namespace XControl
                 SetPropertyValue<string>("DblClickRowFieldText", value);
             }
         }
-
         #endregion 属性
 
         #region 扩展属性
-
-        //private Int32 _TotalCount;
+        private Int32 _TotalCount;
         /// <summary>总记录数</summary>
         [Browsable(false)]
         public Int32 TotalCount
         {
             get
             {
-                return PropertyInfoX.GetValue<DataSourceSelectArguments>(TargetControl, "SelectArguments").TotalRowCount;
+                return _TotalCount;
+                //return PropertyInfoX.GetValue<DataSourceSelectArguments>(TargetControl, "SelectArguments").TotalRowCount;
             }
-            //set { _TotalCount = value; }
+            private set { _TotalCount = value; }
         }
+
+        /// <summary>当前行数</summary>
+        public Int32 RowCount
+        {
+            get
+            {
+                var ed = DataSource as IEnumerable;
+                if (ed == null) return 0;
+
+                var collection = ed as ICollection;
+                if (collection != null) return collection.Count;
+
+                Int32 n = 0;
+                foreach (var item in ed) n++;
+
+                return n;
+            }
+        }
+
+        private Object _DataSource;
+        /// <summary>ObjectDataSource返回的数据源</summary>
+        [Browsable(false)]
+        public Object DataSource { get { return _DataSource; } private set { _DataSource = value; } }
 
         /// <summary>被选择行的索引</summary>
         [Browsable(false)]
@@ -216,7 +239,6 @@ namespace XControl
                 return sb.ToString();
             }
         }
-
         #endregion 扩展属性
 
         #region 方法
@@ -678,6 +700,8 @@ e.ClickElement('a',function(i){{
                 if (p != null && !String.IsNullOrEmpty(p.DefaultValue))
                     ods.Selecting += new ObjectDataSourceSelectingEventHandler(ods_Selecting);
             }
+
+            ods.Selected += new ObjectDataSourceStatusEventHandler(ods_Selected);
         }
 
         void ods_Selecting(object sender, ObjectDataSourceSelectingEventArgs e)
@@ -707,6 +731,15 @@ e.ClickElement('a',function(i){{
                     }
                 }
             }
+        }
+
+        void ods_Selected(object sender, ObjectDataSourceStatusEventArgs e)
+        {
+            var data = e.ReturnValue;
+            if (data is Int32)
+                TotalCount = (Int32)data;
+            else
+                DataSource = data;
         }
         #endregion
     }
