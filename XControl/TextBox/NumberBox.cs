@@ -62,18 +62,9 @@ namespace XControl
                     "allowMinus", AllowMinus ? 1 : 0
                 ));
             this.Page.ClientScript.RegisterClientScriptResource(typeof(NumberBox), "XControl.TextBox.Validator.js");
-        }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
-        /// <param name="writer"></param>
-        protected override void Render(HtmlTextWriter writer)
-        {
             //如果没有值，则默认显示0
-            if (String.IsNullOrEmpty(Text) || Text.Trim().Length < 1) Text = "0";
-
-            base.Render(writer);
+            if (String.IsNullOrEmpty(Text)) Text = "0";
         }
 
         /// <summary>

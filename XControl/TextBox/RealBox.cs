@@ -46,6 +46,9 @@ namespace XControl
                     "allowMinus", AllowMinus ? 1 : 0
                 ));
             this.Page.ClientScript.RegisterClientScriptResource(typeof(NumberBox), "XControl.TextBox.Validator.js");
+
+            //如果没有值，则默认显示0
+            if (String.IsNullOrEmpty(Text)) Text = "0";
         }
 
         /// <summary>
@@ -56,9 +59,9 @@ namespace XControl
         {
             get
             {
-                if (String.IsNullOrEmpty(Text)) return Double.NaN;
+                if (String.IsNullOrEmpty(Text)) return 0;
                 Double k = 0;
-                if (!Double.TryParse(Text, out k)) return Double.NaN;
+                if (!Double.TryParse(Text, out k)) return 0;
                 return k;
             }
             set
