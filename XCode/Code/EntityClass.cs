@@ -107,7 +107,7 @@ namespace XCode.Code
             Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindTableAttribute)),
                 new CodeAttributeArgument(new CodePrimitiveExpression(Table.Name)),
                 new CodeAttributeArgument("Description", new CodePrimitiveExpression(Table.Description)),
-                new CodeAttributeArgument("ConnName", new CodePrimitiveExpression(Assembly.Name)),
+                new CodeAttributeArgument("ConnName", new CodePrimitiveExpression(Assembly.ConnName)),
                 new CodeAttributeArgument("DbType", new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(typeof(DatabaseType)), Table.DbType.ToString()))
                 ));
 

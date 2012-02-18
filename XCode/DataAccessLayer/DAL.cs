@@ -424,13 +424,26 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 创建数据操作实体
+        private Assembly _Assembly;
+        /// <summary>根据数据模型动态创建的程序集。带缓存，如果要更新，建议调用<see cref="EntityAssembly.Create"/></summary>
+        public Assembly Assembly
+        {
+            get
+            {
+                return _Assembly ?? (_Assembly = EntityAssembly.CreateWithCache(ConnName, Tables));
+            }
+            set { _Assembly = value; }
+        }
+
         /// <summary>创建实体操作接口</summary>
         /// <remarks>因为只用来做实体操作，所以只需要一个实例即可</remarks>
         /// <param name="tableName"></param>
         /// <returns></returns>
         public IEntityOperate CreateOperate(String tableName)
         {
-            var asm = EntityAssembly.Create(ConnName, Tables);
+            //var asm = EntityAssembly.Create(ConnName, Tables);
+            var asm = Assembly;
+            if (asm == null) return null;
             //Type type = TypeX.GetType(asm, tableName);
             var type = AssemblyX.Create(asm).GetType(tableName);
             if (type == null) return null;

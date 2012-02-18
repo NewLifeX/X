@@ -9,6 +9,9 @@ using NewLife.Log;
 using XCode.DataAccessLayer;
 using XCode.Exceptions;
 using NewLife.Linq;
+using System.Text;
+using NewLife.Security;
+using NewLife.Configuration;
 
 namespace XCode.Code
 {
@@ -26,6 +29,10 @@ namespace XCode.Code
         private String _Name;
         /// <summary>名称</summary>
         public String Name { get { return _Name; } set { _Name = value; } }
+
+        private String _ConnName;
+        /// <summary>连接名</summary>
+        public String ConnName { get { return !String.IsNullOrEmpty(_ConnName) ? _ConnName : Name; } set { _ConnName = value; } }
 
         private List<IDataTable> _Tables;
         /// <summary>表集合</summary>
@@ -81,23 +88,58 @@ namespace XCode.Code
 
         #region 构造
         private static DictionaryCache<String, Assembly> cache = new DictionaryCache<String, Assembly>();
-        /// <summary>
-        ///为数据访问层创建实体程序集
-        /// </summary>
+        /// <summary>为数据模型创建实体程序集，带缓存，依赖于表和字段名称，不依赖名称以外的信息。</summary>
         /// <param name="name"></param>
         /// <param name="tables"></param>
         /// <returns></returns>
-        public static Assembly Create(String name, List<IDataTable> tables)
+        public static Assembly CreateWithCache(String name, List<IDataTable> tables)
         {
-            return cache.GetItem(name, k =>
+            if (String.IsNullOrEmpty(name)) return null;
+            if (tables == null) return null;
+
+            // 构建缓存Key
+            var sb = new StringBuilder();
+            sb.Append(name);
+            foreach (var item in tables)
+            {
+                sb.Append("|");
+                sb.Append(item.Name);
+                foreach (var dc in item.Columns)
+                {
+                    sb.Append(",");
+                    sb.Append(dc.Name);
+                }
+            }
+            var key = DataHelper.Hash(sb.ToString());
+
+            return cache.GetItem<String, List<IDataTable>>(key, name, tables, (k, n, ts) =>
             {
                 EntityAssembly asm = new EntityAssembly();
-                asm.Name = name;
-                asm.Tables = tables;
+                asm.Name = n;
+                asm.Tables = ts;
                 asm.CreateAll();
 
                 return asm.Compile();
             });
+        }
+
+        /// <summary>为数据模型创建实体程序集，无缓存</summary>
+        /// <param name="name">程序集名</param>
+        /// <param name="connName">连接名</param>
+        /// <param name="tables">模型表</param>
+        /// <returns></returns>
+        public static Assembly Create(String name, String connName, List<IDataTable> tables)
+        {
+            if (String.IsNullOrEmpty(name)) return null;
+            if (tables == null) return null;
+
+            EntityAssembly asm = new EntityAssembly();
+            asm.Name = name;
+            asm.ConnName = connName;
+            asm.Tables = tables;
+            asm.CreateAll();
+
+            return asm.Compile();
         }
         #endregion
 
@@ -165,6 +207,8 @@ namespace XCode.Code
         /// </summary>
         public void CreateAll()
         {
+            if (Tables == null) return;
+
             foreach (IDataTable item in Tables)
             {
                 EntityClass entity = Create(item);
@@ -217,14 +261,15 @@ namespace XCode.Code
                 options = new CompilerParameters();
                 options.GenerateInMemory = true;
 
-                if (DAL.Debug)
+                if (Debug)
                 {
                     options.GenerateInMemory = false;
-                    options.OutputAssembly = String.Format("XCode.{0}.dll", Name);
 
-                    String path = XTrace.TempPath;
-                    if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-                    options.TempFiles = new TempFileCollection(path, false);
+                    String tempPath = XTrace.TempPath;
+                    //if (!String.IsNullOrEmpty(tempPath)) tempPath = Path.Combine(tempPath, Name);
+                    if (!Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);
+                    options.OutputAssembly = Path.Combine(tempPath, String.Format("XCode.{0}.dll", Name));
+                    options.TempFiles = new TempFileCollection(tempPath, false);
                 }
             }
 
@@ -249,7 +294,7 @@ namespace XCode.Code
             CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
 
             CompilerResults rs = null;
-            if (!DAL.Debug)
+            if (!Debug)
                 rs = provider.CompileAssemblyFromDom(options, Unit);
             else
             {
@@ -308,6 +353,23 @@ namespace XCode.Code
             CompilerError err = rs.Errors[0];
             String msg = String.Format("{0} {1} {2}({3},{4})", err.ErrorNumber, err.ErrorText, err.FileName, err.Line, err.Column);
             throw new XCodeException(msg);
+        }
+        #endregion
+
+        #region 调试
+        private static Boolean? _Debug;
+        /// <summary>是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用</summary>
+        public static Boolean Debug
+        {
+            get
+            {
+                if (_Debug != null) return _Debug.Value;
+
+                _Debug = Config.GetConfig<Boolean>("XCode.Code.Debug", false);
+
+                return _Debug.Value;
+            }
+            set { _Debug = value; }
         }
         #endregion
 

@@ -10,6 +10,8 @@ v2.0 数据架构功能，实体和数据结构双向映射
 v1.2 使用泛型基类
 v1.0 创建XCode
 
+v8.4.2012.0218   改进XCode.Code，增加单独的调试开关XCode.Code.Debug
+
 v8.4.2012.0216   修正SelectBuilder中一个导致Limit式SQL出错的BUG
 
 v8.4.2012.0215   修正EntityTree.FindByPath中的一个BUG，查找多级路径时，无法把keys参数传入内部，导致有些时候查找失败
