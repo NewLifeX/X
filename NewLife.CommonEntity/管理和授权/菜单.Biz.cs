@@ -754,6 +754,9 @@ namespace NewLife.CommonEntity
             return this;
         }
 
+        /// <summary>父菜单</summary>
+        IMenu IMenu.Parent { get { return Parent; } }
+
         /// <summary>子菜单</summary>
         IList<IMenu> IMenu.Childs { get { return Childs.OfType<IMenu>().ToList(); } }
 
@@ -784,6 +787,9 @@ namespace NewLife.CommonEntity
         /// <param name="oldName"></param>
         /// <param name="newName"></param>
         IMenu CheckMenuName(String oldName, String newName);
+
+        /// <summary>父菜单</summary>
+        IMenu Parent { get; }
 
         /// <summary>子菜单</summary>
         IList<IMenu> Childs { get; }
