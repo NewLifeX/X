@@ -346,6 +346,9 @@ namespace NewLife.CommonEntity.Web
                     if (btncopy != null) btncopy.Visible = manager.Acquire(PermissionFlags.Insert);
                 }
 
+                // 新增数据时，不显示复制按钮
+                if (IsNew && btncopy != null) btncopy.Visible = false;
+
                 if (btn != null)
                 {
                     btn.Visible = CanSave;
