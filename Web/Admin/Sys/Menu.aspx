@@ -36,14 +36,14 @@
             <asp:TemplateField HeaderText="升" ShowHeader="False">
                 <ItemTemplate>
                     <asp:LinkButton ID="LinkButton2" runat="server" CausesValidation="False" CommandArgument='<%# Eval("ID") %>'
-                        CommandName="Up" Text="↑" Font-Size="12pt" ForeColor="Red"></asp:LinkButton>
+                        CommandName="Up" Text="↑" Font-Size="12pt" ForeColor="Red" Visible='<%# !IsFirst(Container.DataItem) %>'></asp:LinkButton>
                 </ItemTemplate>
                 <ItemStyle Font-Size="12pt" ForeColor="Red" />
             </asp:TemplateField>
             <asp:TemplateField HeaderText="降" ShowHeader="False">
                 <ItemTemplate>
                     <asp:LinkButton ID="LinkButton3" runat="server" CausesValidation="False" CommandArgument='<%# Eval("ID") %>'
-                        CommandName="Down" Text="↓" Font-Size="12pt" ForeColor="Green"></asp:LinkButton>
+                        CommandName="Down" Text="↓" Font-Size="12pt" ForeColor="Green" Visible='<%# !IsLast(Container.DataItem) %>'></asp:LinkButton>
                 </ItemTemplate>
                 <ItemStyle Font-Size="12pt" ForeColor="Green" />
             </asp:TemplateField>

@@ -108,4 +108,18 @@ public partial class Pages_Menu : MyEntityList
             }
         }
     }
+
+    public Boolean IsFirst(Object dataItem)
+    {
+        IMenu menu = dataItem as IMenu;
+        if (menu == null || menu.Parent == null) return true;
+        return menu.ID == menu.Parent.Childs[0].ID;
+    }
+
+    public Boolean IsLast(Object dataItem)
+    {
+        IMenu menu = dataItem as IMenu;
+        if (menu == null || menu.Parent == null) return false;
+        return menu.ID == menu.Parent.Childs[menu.Parent.Childs.Count - 1].ID;
+    }
 }
