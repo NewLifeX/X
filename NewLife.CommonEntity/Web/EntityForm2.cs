@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -8,7 +9,6 @@ using XCode;
 using XCode.Accessors;
 using XCode.Configuration;
 using XCode.Exceptions;
-using System.ComponentModel;
 
 namespace NewLife.CommonEntity.Web
 {
