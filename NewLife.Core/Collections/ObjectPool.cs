@@ -36,7 +36,7 @@ namespace NewLife.Collections
 
         #region 构造
         /// <summary>实例化一个对象池</summary>
-        public ObjectPool() { Stock = new SafeStack<T>(); }
+        public ObjectPool() { Stock = new InterlockedStack<T>(); }
         #endregion
 
         #region 事件
