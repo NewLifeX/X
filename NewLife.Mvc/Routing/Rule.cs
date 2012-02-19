@@ -43,7 +43,7 @@ namespace NewLife.Mvc
         /// <summary>
         /// 路由的目标类型,需要实现了IController,IControllerFactory,IRouteConfigMoudule任意一个
         /// </summary>
-        public Type Type { get; set; }
+        public virtual Type Type { get; set; }
 
         #endregion 公共属性
 
@@ -307,6 +307,25 @@ namespace NewLife.Mvc
     /// </summary>
     public class ModuleRule : Rule
     {
+        /// <summary>
+        /// 重写,路由目标类型
+        /// </summary>
+        public override Type Type
+        {
+            get
+            {
+                return base.Type;
+            }
+            set
+            {
+                if (base.Type != null && base.Type != value)
+                {
+                    Module = null;
+                }
+                base.Type = value;
+            }
+        }
+
         IRouteConfigModule[] _Module = { null };
 
         /// <summary>
@@ -316,11 +335,11 @@ namespace NewLife.Mvc
         {
             get
             {
-                if (_Module[0] == null)
+                if (Type != null && _Module[0] == null)
                 {
                     lock (_Module)
                     {
-                        if (_Module[0] == null && Type != null)
+                        if (Type != null && _Module[0] == null)
                         {
                             _Module[0] = (IRouteConfigModule)TypeX.CreateInstance(Type);
                         }
@@ -330,9 +349,17 @@ namespace NewLife.Mvc
             }
             set
             {
+                if (_Module[0] != null && _Module[0] != value)
+                {
+                    var cfg = _Config[0];
+                    if (cfg != null) cfg.Clear();
+                    reloadConfig = true;
+                }
                 _Module[0] = value;
             }
         }
+
+        private bool reloadConfig;
 
         RouteConfigManager[] _Config = new RouteConfigManager[] { null };
 
@@ -343,13 +370,16 @@ namespace NewLife.Mvc
         {
             get
             {
-                if (_Config[0] == null)
+                if ((_Config[0] == null || reloadConfig) && Module != null)
                 {
                     lock (_Config)
                     {
-                        if (_Config[0] == null)
+                        if ((_Config[0] == null || reloadConfig) && Module != null)
                         {
-                            _Config[0] = new RouteConfigManager().Load(Module).Sort();
+                            var cfg = _Config[0];
+                            if (cfg == null) cfg = new RouteConfigManager();
+                            reloadConfig = false;
+                            _Config[0] = cfg.Load(Module).Sort();
                         }
                     }
                 }
