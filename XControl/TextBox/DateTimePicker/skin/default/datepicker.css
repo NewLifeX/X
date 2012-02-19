@@ -23,7 +23,7 @@
 
 .WdateDiv .NavImgll a{
 	float:left;
-	background:transparent url(<%= WebResource("XControl.TextBox.DateTimePicker.skin.default.<%= WebResource("XControl.TextBox.DateTimePicker.skin.default.img.gif"") %>) %>) no-repeat scroll 0 0;
+	background:transparent url(<%= WebResource("XControl.TextBox.DateTimePicker.skin.default.img.gif") %>) no-repeat scroll 0 0;
 }
 .WdateDiv .NavImgl a{
 	float:left;
