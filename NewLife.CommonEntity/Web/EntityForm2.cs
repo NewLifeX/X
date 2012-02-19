@@ -495,7 +495,8 @@ namespace NewLife.CommonEntity.Web
 
         private void SaveFormWithTrans()
         {
-            Factory.BeginTransaction();
+            var eop = Factory;
+            eop.BeginTransaction();
             try
             {
                 Boolean cancel = false;
@@ -508,13 +509,13 @@ namespace NewLife.CommonEntity.Web
 
                 if (!cancel) SaveForm();
 
-                Factory.Commit();
+                eop.Commit();
 
                 SaveFormSuccess();
             }
             catch (Exception ex)
             {
-                Factory.Rollback();
+                eop.Rollback();
 
                 SaveFormFailure(ex);
             }
