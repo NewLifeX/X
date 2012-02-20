@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.7.*")]
-[assembly: AssemblyFileVersion("3.7.2012.0209")]
+[assembly: AssemblyFileVersion("3.7.2012.0220")]
 
 /*
+ * v3.7.2012.0220   增加基于lock的安全栈，日志对象池改用该安全栈，避免内存垃圾造成GC压力
+ * 
  * v3.7.2012.0209   完善消息模型
  * 
  * v3.7.2012.0118   重构消息模型，取消消息总线

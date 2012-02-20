@@ -52,6 +52,7 @@
     <Compile Include="Collections\HashSet.cs" />
     <Compile Include="Collections\IStack.cs" />
     <Compile Include="Collections\ListBase.cs" />
+    <Compile Include="Collections\LockStack.cs" />
     <Compile Include="Collections\ObjectPool.cs" />
     <Compile Include="Collections\ObjectPoolTest.cs" />
     <Compile Include="Collections\SafeStack.cs" />

@@ -110,7 +110,7 @@ namespace NewLife.Log
         #endregion
 
         #region 对象池
-        private static WriteLogEventArgsPool pool = new WriteLogEventArgsPool();
+        private static WriteLogEventArgsPool pool = new WriteLogEventArgsPool() { Max = 100, Stock = new LockStack<WriteLogEventArgs>() };
 
         internal static WriteLogEventArgs Create(String message, Exception exception)
         {
