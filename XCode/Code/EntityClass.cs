@@ -241,7 +241,7 @@ namespace XCode.Code
                 cond.Condition = new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("name"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(name));
 
                 Type type = typeof(Convert);
-                MethodInfo mi = type.GetMethod("To" + item.DataType.Name, new Type[] { typeof(Object) });
+                var mi = type.GetMethod("To" + item.DataType.Name, new Type[] { typeof(Object) });
                 CodeExpression ce = null;
                 if (mi != null)
                 {

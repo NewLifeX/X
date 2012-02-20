@@ -180,7 +180,7 @@ namespace NewLife.IO
                 }
                 SerializeString(info.Name, sb);
                 sb.Append(':');
-                SerializeValue(info.GetValue(o), sb, depth, objectsInUse, serializationFormat);
+                SerializeValue(FieldInfoX.Create(info).GetValue(o), sb, depth, objectsInUse, serializationFormat);
                 flag = false;
             }
             foreach (PropertyInfo info2 in type.GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance))
@@ -603,7 +603,7 @@ namespace NewLife.IO
                         }
                         try
                         {
-                            setMethod.Invoke(o, new object[] { propertyValue });
+                            MethodInfoX.Create(setMethod).Invoke(o, new object[] { propertyValue });
                             return true;
                         }
                         catch
@@ -625,7 +625,7 @@ namespace NewLife.IO
                     }
                     try
                     {
-                        field.SetValue(o, propertyValue);
+                        FieldInfoX.Create(field).SetValue(o, propertyValue);
                         return true;
                     }
                     catch

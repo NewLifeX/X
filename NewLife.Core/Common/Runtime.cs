@@ -8,6 +8,7 @@ using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Web;
+using NewLife.Reflection;
 
 namespace NewLife
 {
@@ -151,7 +152,7 @@ namespace NewLife
                 //byte* ptr = (byte*)GetDynamicMethodRuntimeHandle(method).ToPointer();
 
                 FieldInfo fieldInfo = typeof(DynamicMethod).GetField("m_method", BindingFlags.NonPublic | BindingFlags.Instance);
-                byte* ptr = (byte*)((RuntimeMethodHandle)fieldInfo.GetValue(method)).Value.ToPointer();
+                byte* ptr = (byte*)((RuntimeMethodHandle)FieldInfoX.Create(fieldInfo).GetValue(method)).Value.ToPointer();
 
                 if (IntPtr.Size == 8)
                 {

@@ -62,7 +62,7 @@ namespace NewLife.Reflection
                 case OperandType.InlineMethod:
                     try
                     {
-                        MethodInfo mOperand = (MethodInfo)_Operand;
+                        var mOperand = (MethodInfo)_Operand;
                         sb.Append(" ");
                         if (!mOperand.IsStatic) sb.Append("instance ");
                         sb.Append(FixType(mOperand.ReturnType) + " " + FixType(mOperand.ReflectedType) + "::" + mOperand.Name + "()");

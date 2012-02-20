@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel;
 using System.Reflection;
+using NewLife.Reflection;
 
 namespace XControl
 {
@@ -44,7 +45,8 @@ namespace XControl
         /// <returns></returns>
         public static string GetString(string name, params object[] args)
         {
-            MethodInfo method = SRType.GetMethod("GetString", new Type[] { typeof(String), typeof(Object[]) });
+            //var method = SRType.GetMethod("GetString", new Type[] { typeof(String), typeof(Object[]) });
+            var method = MethodInfoX.Create(SRType, "GetString", new Type[] { typeof(String), typeof(Object[]) });
             Object obj = method.Invoke(null, new Object[] { name, args });
             if (obj == null)
                 return null;
@@ -65,7 +67,8 @@ namespace XControl
             {
                 if (cache.ContainsKey(name)) return cache[name];
 
-                MethodInfo method = SRType.GetMethod("GetString", new Type[] { typeof(String) });
+                //MethodInfo method = SRType.GetMethod("GetString", new Type[] { typeof(String) });
+                var method = MethodInfoX.Create(SRType, "GetString", new Type[] { typeof(String) });
                 Object obj = method.Invoke(null, new Object[] { name });
                 String rs = String.Empty;
                 if (obj != null) rs = obj.ToString();

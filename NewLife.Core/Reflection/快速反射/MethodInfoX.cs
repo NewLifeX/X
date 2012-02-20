@@ -64,7 +64,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public new static MethodInfoX Create(Type type, String name)
         {
-            MethodInfo method = type.GetMethod(name);
+            var method = type.GetMethod(name);
             if (method == null) method = type.GetMethod(name, DefaultBinding);
             if (method == null) method = type.GetMethod(name, DefaultBinding | BindingFlags.IgnoreCase);
             if (method == null && type.BaseType != typeof(Object)) return Create(type.BaseType, name);
@@ -82,7 +82,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static MethodInfoX Create(Type type, String name, Type[] paramTypes)
         {
-            MethodInfo method = type.GetMethod(name, paramTypes);
+            var method = type.GetMethod(name, paramTypes);
             if (method == null) method = type.GetMethod(name, DefaultBinding, null, paramTypes, null);
             if (method == null) method = type.GetMethod(name, DefaultBinding | BindingFlags.IgnoreCase, null, paramTypes, null);
             if (method == null && type.BaseType != typeof(Object)) return Create(type.BaseType, name, paramTypes);

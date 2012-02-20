@@ -112,7 +112,7 @@ namespace NewLife.Reflection
             CodeFieldReferenceExpression fdRef = null;
 
             #region 方法
-            foreach (MethodInfo mi in interfaceType.GetMethods())
+            foreach (var mi in interfaceType.GetMethods())
             {
                 // 忽略专用名字的方法，如属性的get/set，还有构造函数
                 if ((mi.Attributes & MethodAttributes.SpecialName) != 0) continue;

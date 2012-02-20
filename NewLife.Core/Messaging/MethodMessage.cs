@@ -2,6 +2,7 @@
 using NewLife.Linq;
 using System.Xml.Serialization;
 using System.Reflection;
+using NewLife.Reflection;
 
 namespace NewLife.Messaging
 {
@@ -84,7 +85,7 @@ namespace NewLife.Messaging
             {
                 if (method == null) throw new ArgumentNullException("Method", String.Format("无法找到目标方法{0}.{1}！", Type, Name));
 
-                var rs = method.Invoke(null, Parameters);
+                var rs = MethodInfoX.Create(method).Invoke(null, Parameters);
                 if (rs == null)
                     return new NullMessage();
                 else

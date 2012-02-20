@@ -303,7 +303,12 @@ namespace XCode.DataAccessLayer
             Type type = asm.GetType(className);
             if (type == null) return null;
 
-            FieldInfo field = type.GetField("Instance");
+            //FieldInfo field = type.GetField("Instance");
+            //if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;
+
+            //return FieldInfoX.Create(field).GetValue(null) as DbProviderFactory;
+
+            var field = FieldInfoX.Create(type, "Instance");
             if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;
 
             return field.GetValue(null) as DbProviderFactory;

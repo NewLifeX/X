@@ -250,11 +250,11 @@ namespace NewLife.Reflection
             singleByteOpCodes = new OpCode[0x100];
             multiByteOpCodes = new OpCode[0x100];
 
-            foreach (FieldInfo fi in typeof(OpCodes).GetFields())
+            foreach (var fi in typeof(OpCodes).GetFields())
             {
                 if (fi.FieldType == typeof(OpCode))
                 {
-                    OpCode code = (OpCode)fi.GetValue(null);
+                    OpCode code = (OpCode)FieldInfoX.Create(fi).GetValue(null);
                     ushort index = (ushort)code.Value;
                     if (index < 0x100)
                     {

@@ -552,7 +552,7 @@ namespace XCode.Accessors
             }
 
             if (toolTipField != null)
-                r = toolTipField.GetValue(form) as ToolTip;
+                r = FieldInfoX.Create(toolTipField).GetValue(form) as ToolTip;
             return null;
 
         }

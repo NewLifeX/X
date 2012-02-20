@@ -159,9 +159,9 @@ namespace NewLife.Reflection
         private static FastSetValueHandler SetValueInvoker(FieldInfo field)
         {
             //定义一个没有名字的动态方法
-            DynamicMethod dynamicMethod = new DynamicMethod(String.Empty, null, new Type[] { typeof(Object), typeof(Object) }, field.DeclaringType.Module, true);
-            ILGenerator il = dynamicMethod.GetILGenerator();
-            EmitHelper help = new EmitHelper(il);
+            var dynamicMethod = new DynamicMethod(String.Empty, null, new Type[] { typeof(Object), typeof(Object) }, field.DeclaringType.Module, true);
+            var il = dynamicMethod.GetILGenerator();
+            var help = new EmitHelper(il);
 
             // 必须考虑对象是值类型的情况，需要拆箱
             // 其它地方看到的程序从来都没有人处理
@@ -170,7 +170,7 @@ namespace NewLife.Reflection
                 .CastFromObject(field.DeclaringType)
                 .Ldarg(1);
 
-            MethodInfo method = GetMethod(field.FieldType);
+            var method = GetMethod(field.FieldType);
             if (method != null)
                 help.Call(method);
             else
