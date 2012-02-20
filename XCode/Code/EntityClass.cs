@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using XCode.DataAccessLayer;
+using XCode.Exceptions;
 
 namespace XCode.Code
 {
@@ -130,6 +131,7 @@ namespace XCode.Code
             Int32 n = Class.Members.Count;
             foreach (IDataColumn item in Table.Columns)
             {
+                if (item.DataType == null) throw new XCodeException("[{0}]的[{1}]字段类型DataType不能为空！", Table.DisplayName, item.DisplayName);
                 AddField(item);
                 AddProperty(item);
             }
