@@ -105,31 +105,32 @@ namespace NewLife.Log
         /// <returns></returns>
         public override string ToString()
         {
+            if (Exception != null) Message += Exception.ToString();
             return String.Format("{0:HH:mm:ss.fff} {1} {2} {3} {4}", Time, ThreadID, IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N', String.IsNullOrEmpty(ThreadName) ? "-" : ThreadName, Message);
         }
         #endregion
 
         #region 对象池
-        private static WriteLogEventArgsPool pool = new WriteLogEventArgsPool() { Max = 100, Stock = new LockStack<WriteLogEventArgs>() };
+        //private static WriteLogEventArgsPool pool = new WriteLogEventArgsPool() { Max = 100, Stock = new LockStack<WriteLogEventArgs>() };
 
-        internal static WriteLogEventArgs Create(String message, Exception exception)
-        {
-            var e = pool.Pop();
-            e.Message = message;
-            e.Exception = exception;
-            e.Init();
-            return e;
-        }
+        //internal static WriteLogEventArgs Create(String message, Exception exception)
+        //{
+        //    var e = pool.Pop();
+        //    e.Message = message;
+        //    e.Exception = exception;
+        //    e.Init();
+        //    return e;
+        //}
 
-        /// <summary>归还</summary>
-        /// <param name="e"></param>
-        internal static void Push(WriteLogEventArgs e)
-        {
-            if (e != null) pool.Push(e);
-        }
+        ///// <summary>归还</summary>
+        ///// <param name="e"></param>
+        //internal static void Push(WriteLogEventArgs e)
+        //{
+        //    if (e != null) pool.Push(e);
+        //}
 
-        /// <summary>日志事件参数池。避免大量写日志时的零碎对象造成GC压力。</summary>
-        class WriteLogEventArgsPool : ObjectPool<WriteLogEventArgs> { }
+        ///// <summary>日志事件参数池。避免大量写日志时的零碎对象造成GC压力。</summary>
+        //class WriteLogEventArgsPool : ObjectPool<WriteLogEventArgs> { }
         #endregion
     }
 }

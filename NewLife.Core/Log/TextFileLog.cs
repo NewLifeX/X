@@ -210,20 +210,39 @@ namespace NewLife.Log
         /// <param name="msg">信息</param>
         public void WriteLine(String msg)
         {
-            //WriteLogEventArgs e = new WriteLogEventArgs(msg);
-            // 采用对象池，避免太多小对象造成GC压力
-            var e = WriteLogEventArgs.Create(msg, null);
-            try
-            {
-                if (OnWriteLog != null)
-                {
-                    OnWriteLog(null, e);
-                    return;
-                }
+            // 小对象，采用对象池的成本太高了
+            var e = new WriteLogEventArgs(msg);
 
-                PerformWriteLog(e.ToString());
+            //// 采用对象池，避免太多小对象造成GC压力
+            //var e = WriteLogEventArgs.Create(msg, null);
+            //try
+            //{
+            if (OnWriteLog != null)
+            {
+                OnWriteLog(null, e);
+                return;
             }
-            finally { WriteLogEventArgs.Push(e); }
+
+            PerformWriteLog(e.ToString());
+            //}
+            //finally { WriteLogEventArgs.Push(e); }
+        }
+
+        /// <summary>
+        /// 输出异常日志
+        /// </summary>
+        /// <param name="ex">异常信息</param>
+        public void WriteException(Exception ex)
+        {
+            var e = new WriteLogEventArgs(null, ex);
+
+            if (OnWriteLog != null)
+            {
+                OnWriteLog(null, e);
+                return;
+            }
+
+            PerformWriteLog(e.ToString());
         }
 
         /// <summary>

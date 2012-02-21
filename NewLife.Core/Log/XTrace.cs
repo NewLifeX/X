@@ -33,7 +33,7 @@ namespace NewLife.Log
         /// <param name="ex">“Ï≥£–≈œ¢</param>
         public static void WriteException(Exception ex)
         {
-            Log.WriteLine(ex.ToString());
+            Log.WriteException(ex);
         }
 
         /// <summary>

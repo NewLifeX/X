@@ -37,7 +37,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("3.7.2012.0220")]
 
 /*
- * v3.7.2012.0220   增加基于lock的安全栈，日志对象池改用该安全栈，避免内存垃圾造成GC压力
+ * v3.7.2012.0220   增加基于lock的安全栈
  * 
  * v3.7.2012.0209   完善消息模型
  * 
