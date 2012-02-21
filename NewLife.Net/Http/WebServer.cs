@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Net.Sockets;
-using System.Net.Sockets;
-using System.Web.Hosting;
 using System.Globalization;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.Web.Hosting;
+using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Http
 {

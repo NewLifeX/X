@@ -20,7 +20,7 @@ namespace NewLife.Net.Http
         /// <summary>实例化一个Http服务器</summary>
         public HttpServer()
         {
-            Port = 23;
+            Port = 80;
             ProtocolType = ProtocolType.Tcp;
         }
     }
