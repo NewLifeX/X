@@ -15,7 +15,7 @@ namespace XCode
 {
     /// <summary>实体集合，提供批量查询和批量操作实体等操作</summary>
     [Serializable]
-    public partial class EntityList<T> : List<T>, IEntityList, IList, IList<IEntity>, IListSource where T : IEntity
+    public partial class EntityList<T> : List<T>, IEntityList, IList, IList<IEntity>, IListSource, IEnumerable where T : IEntity
     {
         #region 构造函数
         /// <summary>

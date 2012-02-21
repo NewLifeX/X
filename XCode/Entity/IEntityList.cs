@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace XCode
 {
     /// <summary>实体列表接口</summary>
-    public interface IEntityList : /*IList, */IList<IEntity>
+    public interface IEntityList : /*IList, */ IEnumerable, IList<IEntity>
     {
         #region 对象查询
         /// <summary>
