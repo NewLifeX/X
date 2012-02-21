@@ -49,7 +49,7 @@ namespace XCoder
             if (e.IsTerminating)
             {
                 XTrace.WriteLine("异常退出！");
-                XTrace.WriteMiniDump(null);
+                //XTrace.WriteMiniDump(null);
                 MessageBox.Show("" + e.ExceptionObject, "异常退出", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
