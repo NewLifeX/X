@@ -421,6 +421,16 @@ namespace XCode.Configuration
         }
         #endregion
 
+        #region 排序
+        /// <summary>升序</summary>
+        /// <returns></returns>
+        public OrderExpression Asc() { return new OrderExpression(Factory.FormatName(Name)); }
+
+        /// <summary>降序</summary>
+        /// <returns></returns>
+        public OrderExpression Desc() { return new OrderExpression(Factory.FormatName(Name)); }
+        #endregion
+
         #region 类型转换
         /// <summary>
         /// 类型转换

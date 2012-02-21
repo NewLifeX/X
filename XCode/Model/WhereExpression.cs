@@ -3,19 +3,13 @@ using System.Text;
 
 namespace XCode
 {
-    /// <summary>
-    /// 条件表达式
-    /// </summary>
+    /// <summary>条件表达式</summary>
     public class WhereExpression
     {
         #region 属性
         private StringBuilder _Builder = new StringBuilder();
         /// <summary>内置字符串</summary>
-        public StringBuilder Builder
-        {
-            get { return _Builder; }
-            set { _Builder = value; }
-        }
+        public StringBuilder Builder { get { return _Builder; } set { _Builder = value; } }
         #endregion
 
         #region 构造

@@ -141,6 +141,7 @@
     <Compile Include="Entity\IEntityOperate.cs" />
     <Compile Include="Cache\SingleEntityCache.cs" />
     <Compile Include="Accessors\IEntityAccessor.cs" />
+    <Compile Include="Model\OrderExpression.cs" />
     <Compile Include="Model\WhereExpression.cs" />
     <Compile Include="Model\XCodeService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
