@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Diagnostics;
+using NewLife.Net.Common;
 
 namespace NewLife.Net.Sockets
 {
@@ -42,6 +43,9 @@ namespace NewLife.Net.Sockets
         private IPEndPoint _ClientEndPoint;
         /// <summary>客户端远程IP终结点</summary>
         public IPEndPoint ClientEndPoint { get { return _ClientEndPoint; } set { _ClientEndPoint = value; } }
+
+        /// <summary>客户端地址</summary>
+        public NetUri ClientUri { get { return new NetUri(Session != null ? Session.ProtocolType : ProtocolType.IP, ClientEndPoint); } }
         #endregion
 
         #region 方法

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Text;
+using NewLife.Net.Common;
 
 namespace NewLife.Net.Sockets
 {
@@ -28,6 +29,9 @@ namespace NewLife.Net.Sockets
 
         /// <summary>客户端远程IP终结点</summary>
         IPEndPoint ClientEndPoint { get; set; }
+
+        /// <summary>客户端地址</summary>
+        NetUri ClientUri { get; }
         #endregion
 
         #region 方法

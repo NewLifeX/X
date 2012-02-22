@@ -140,6 +140,12 @@ namespace NewLife.Net.Sockets
             }
         }
 
+        /// <summary>本地地址</summary>
+        public NetUri LocalUri { get { return new NetUri(ProtocolType, LocalEndPoint); } }
+
+        /// <summary>远程地址</summary>
+        public NetUri RemoteUri { get { return new NetUri(ProtocolType, RemoteEndPoint); } }
+
         //private Int32 _BufferSize = 10240;
         private Int32 _BufferSize = 10240;
         /// <summary>缓冲区大小</summary>
