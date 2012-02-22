@@ -253,8 +253,14 @@ namespace XAgent
             }
 
             AssemblyX asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            Console.WriteLine();
+            Console.WriteLine("核心：{0}", asm.Version);
+            //Console.WriteLine("文件：{0}", asm.FileVersion);
+            Console.WriteLine("发布：{0:yyyy-MM-dd HH:mm:ss}", asm.Compile);
+
+            asm = AssemblyX.Create(Assembly.GetEntryAssembly());
+            Console.WriteLine();
             Console.WriteLine("程序：{0}", asm.Version);
-            Console.WriteLine("文件：{0}", asm.FileVersion);
             Console.WriteLine("发布：{0:yyyy-MM-dd HH:mm:ss}", asm.Compile);
         }
 
