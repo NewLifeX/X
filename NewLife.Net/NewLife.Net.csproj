@@ -53,6 +53,7 @@
     <Compile Include="Application\SerialServer.cs" />
     <Compile Include="Common\IStatistics.cs" />
     <Compile Include="Common\NetException.cs" />
+    <Compile Include="Common\NetUri.cs" />
     <Compile Include="Common\Statistics.cs" />
     <Compile Include="Dhcp\DchpMessageType.cs" />
     <Compile Include="Dhcp\DhcpEntity.cs" />

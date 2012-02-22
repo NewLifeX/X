@@ -121,25 +121,25 @@ namespace NewLife.Net.Application
         //    return sp;
         //}
 
-        /// <summary>创建会话</summary>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        protected override INetSession CreateSession(NetEventArgs e)
-        {
-            //return base.CreateSession(e);
+        ///// <summary>创建会话</summary>
+        ///// <param name="e"></param>
+        ///// <returns></returns>
+        //protected override INetSession CreateSession(NetEventArgs e)
+        //{
+        //    //return base.CreateSession(e);
 
-            var session = new Session() { Host = this };
-            return session;
-        }
+        //    var session = new Session() { Host = this };
+        //    return session;
+        //}
         #endregion
 
         #region 会话
         /// <summary>串口服务会话</summary>
-        public class Session : NetSession
+        public class Session : NetSession<SerialServer>
         {
-            private SerialServer _Host;
-            /// <summary>主体</summary>
-            public SerialServer Host { get { return _Host; } set { _Host = value; } }
+            //private SerialServer _Host;
+            ///// <summary>主体</summary>
+            //public SerialServer Host { get { return _Host; } set { _Host = value; } }
 
             static readonly Byte[] vspStart = new Byte[] { 0xFF, 0xFA, 0x2C };
             static readonly Byte[] vspEnd = new Byte[] { 0xFF, 0xF0 };

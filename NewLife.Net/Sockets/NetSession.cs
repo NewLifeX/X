@@ -8,6 +8,14 @@ using System.Diagnostics;
 namespace NewLife.Net.Sockets
 {
     /// <summary>网络服务的会话</summary>
+    /// <typeparam name="TServer">网络服务类型</typeparam>
+    public class NetSession<TServer> : NetSession where TServer : NetServer
+    {
+        /// <summary>主服务</summary>
+        public virtual TServer Host { get { return (this as INetSession).Host as TServer; } set { (this as INetSession).Host = value; } }
+    }
+
+    /// <summary>网络服务的会话</summary>
     /// <remarks>
     /// 实际应用可通过重载<see cref="OnReceive"/>实现收到数据时的业务逻辑。
     /// </remarks>
@@ -21,7 +29,7 @@ namespace NewLife.Net.Sockets
 
         private NetServer _Host;
         /// <summary>主服务</summary>
-        public virtual NetServer Host { get { return _Host; } set { _Host = value; } }
+        NetServer INetSession.Host { get { return _Host; } set { _Host = value; } }
 
         private ISocketSession _Session;
         /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
