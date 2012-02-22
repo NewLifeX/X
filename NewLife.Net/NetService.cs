@@ -11,7 +11,7 @@ using NewLife.Reflection;
 namespace NewLife.Net
 {
     /// <summary>网络服务对象提供者</summary>
-    class NetService : ServiceContainer<NetService>
+    public class NetService : ServiceContainer<NetService>
     {
         static NetService()
         {
