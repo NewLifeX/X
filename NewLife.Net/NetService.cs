@@ -31,6 +31,10 @@ namespace NewLife.Net
         public static void Install() { }
 
         #region 方法
+        /// <summary>解析符合条件的类型</summary>
+        /// <typeparam name="TInterface"></typeparam>
+        /// <param name="func"></param>
+        /// <returns></returns>
         public static Type ResolveType<TInterface>(Func<IObjectMap, Boolean> func)
         {
             foreach (IObjectMap item in Container.ResolveAllMaps(typeof(TInterface)))
