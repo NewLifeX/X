@@ -323,6 +323,7 @@ namespace NewLife.Net.Sockets
             lock (dic)
             {
                 session.ID = ++sessionID;
+                if (session.Host == null) session.Host = this;
                 session.OnDisposed += (s, e) => { lock (dic) { dic.Remove((s as INetSession).ID); } };
                 dic[session.ID] = session;
             }
@@ -334,6 +335,7 @@ namespace NewLife.Net.Sockets
         protected virtual INetSession CreateSession(NetEventArgs e)
         {
             var session = NetService.Resolve<INetSession>();
+            session.Host = this;
 
             return session;
         }

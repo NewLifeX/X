@@ -19,6 +19,10 @@ namespace NewLife.Net.Sockets
         public virtual Int32 ID { get { return _ID; } set { if (_ID > 0)throw new NetException("禁止修改会话编号！"); _ID = value; } }
         //Int32 INetSession.ID { get { return _ID; } set { if (_ID > 0)throw new NetException("禁止修改会话编号！"); _ID = value; } }
 
+        private NetServer _Host;
+        /// <summary>主服务</summary>
+        public virtual NetServer Host { get { return _Host; } set { _Host = value; } }
+
         private ISocketSession _Session;
         /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
         public ISocketSession Session { get { return _Session; } set { _Session = value; } }

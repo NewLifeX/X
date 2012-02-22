@@ -17,6 +17,9 @@ namespace NewLife.Net.Sockets
         /// <summary>编号</summary>
         Int32 ID { get; set; }
 
+        /// <summary>主服务</summary>
+        NetServer Host { get; set; }
+
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
         ISocketServer Server { get; set; }
 
