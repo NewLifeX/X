@@ -96,9 +96,19 @@ namespace NewLife.Messaging
             return msg;
         }
 
-        static void Set(ReaderWriterSetting setting)
+        /// <summary>从流中读取消息</summary>
+        /// <typeparam name="TMessage"></typeparam>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static TMessage Read<TMessage>(Stream stream) where TMessage : Message
+        {
+            return Read(stream) as TMessage;
+        }
+
+        static void Set(BinarySettings setting)
         {
             //setting.IsBaseFirst = true;
+            setting.EncodeInt = true;
             setting.UseObjRef = false;
             setting.UseTypeFullName = false;
         }
