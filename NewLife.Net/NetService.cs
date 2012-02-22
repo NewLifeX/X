@@ -45,10 +45,18 @@ namespace NewLife.Net
             return null;
         }
 
-        //public static T Resolve<T>(ProtocolType protocol) where T : ISocket
-        //{
-        //    return Resolve<T>(protocol);
-        //}
+        /// <summary>根据网络标识创建客户端并连接（对Tcp）</summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        public static ISocketClient CreateClient(NetUri uri)
+        {
+            if (uri == null) throw new ArgumentNullException("uri");
+
+            var client = NetService.Resolve<ISocketClient>(uri.ProtocolType);
+            if (uri.ProtocolType == ProtocolType.Tcp) client.Connect(uri.EndPoint);
+
+            return client;
+        }
         #endregion
     }
 }
