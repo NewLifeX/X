@@ -3,10 +3,22 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using NewLife.Net.Common;
 using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Proxy
 {
+    /// <summary>代理会话</summary>
+    /// <typeparam name="TProxy">实际代理类型</typeparam>
+    /// <typeparam name="TProxySession">代理会话类型</typeparam>
+    public class ProxySession<TProxy, TProxySession> : ProxySession
+        where TProxy : ProxyBase<TProxySession>
+        where TProxySession : ProxySession, new()
+    {
+        /// <summary>代理对象</summary>
+        public TProxy Proxy { get { return (this as IProxySession).Proxy as TProxy; } set { (this as IProxySession).Proxy = value; } }
+    }
+
     /// <summary>代理会话。客户端的一次转发请求（或者Tcp连接），就是一个会话。转发的全部操作都在会话中完成。</summary>
     /// <remarks>
     /// 一个会话应该包含两端，两个Socket，服务端和客户端
@@ -18,23 +30,22 @@ namespace NewLife.Net.Proxy
         #region 属性
         private IProxy _Proxy;
         /// <summary>代理对象</summary>
-        public IProxy Proxy { get { return _Proxy; } set { _Proxy = value; } }
-
-        //private IProxy _BaseProxy;
-        ///// <summary>代理基类</summary>
-        //protected virtual IProxy BaseProxy { get { return _BaseProxy; } set { _BaseProxy = value; } }
+        IProxy IProxySession.Proxy { get { return _Proxy; } set { _Proxy = value; } }
 
         private ISocketClient _Remote;
         /// <summary>远程服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
         public ISocketClient Remote { get { return _Remote; } set { _Remote = value; } }
 
-        private EndPoint _RemoteEndPoint;
+        private IPEndPoint _RemoteEndPoint;
         /// <summary>服务端远程IP终结点</summary>
-        public EndPoint RemoteEndPoint { get { return _RemoteEndPoint; } set { _RemoteEndPoint = value; } }
+        public IPEndPoint RemoteEndPoint { get { return _RemoteEndPoint; } set { _RemoteEndPoint = value; } }
 
         private ProtocolType _RemoteProtocolType;
         /// <summary>服务端协议。默认与客户端协议相同</summary>
         public ProtocolType RemoteProtocolType { get { return _RemoteProtocolType; } set { _RemoteProtocolType = value; } }
+
+        /// <summary>服务端地址</summary>
+        public NetUri RemoteUri { get { return new NetUri(Remote != null ? Remote.ProtocolType : RemoteProtocolType, RemoteEndPoint); } }
         #endregion
 
         #region 方法
@@ -53,8 +64,6 @@ namespace NewLife.Net.Proxy
         #endregion
 
         #region 数据交换
-        //TODO: 这里应该如何设计，使得子类能够通过重载来改变数据流
-
         /// <summary>收到客户端发来的数据</summary>
         /// <param name="e"></param>
         protected override void OnReceive(NetEventArgs e)
@@ -86,10 +95,11 @@ namespace NewLife.Net.Proxy
         {
             try
             {
-                Remote = CreateRemote(e);
-                if (Remote.ProtocolType == ProtocolType.Tcp && !Remote.Client.Connected) Remote.Connect(RemoteEndPoint);
-                Remote.Received += new EventHandler<NetEventArgs>(Remote_Received);
-                Remote.ReceiveAsync();
+                var client = CreateRemote(e);
+                Remote = client;
+                if (client.ProtocolType == ProtocolType.Tcp && !client.Client.Connected) client.Connect(RemoteEndPoint);
+                client.Received += new EventHandler<NetEventArgs>(Remote_Received);
+                client.ReceiveAsync();
             }
             catch (SocketException) { this.Dispose(); throw; }
         }
@@ -100,9 +110,7 @@ namespace NewLife.Net.Proxy
         protected virtual ISocketClient CreateRemote(NetEventArgs e)
         {
             var client = NetService.Resolve<ISocketClient>(RemoteProtocolType);
-            //if (client.ProtocolType == ProtocolType.Tcp && !client.Client.Connected) client.Connect(RemoteEndPoint);
             if (RemoteEndPoint != null) client.AddressFamily = RemoteEndPoint.AddressFamily;
-            //client.OnDisposed += (s, e2) => this.Dispose();
             return client;
         }
 
@@ -115,14 +123,6 @@ namespace NewLife.Net.Proxy
             var stream = e.GetStream();
             stream = OnReceiveRemote(e, stream);
             if (stream != null) Session.Send(stream, ClientEndPoint);
-
-            //// UDP准备关闭
-            //if (Session.ProtocolType == ProtocolType.Udp)
-            //{
-            //    // 等待未发送完成的数据
-            //    Thread.Sleep(1000);
-            //    Dispose();
-            //}
         }
 
         /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>

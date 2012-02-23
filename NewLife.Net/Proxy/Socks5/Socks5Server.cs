@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.IO;
 using NewLife.Net.Sockets;
-using System.IO;
 
 namespace NewLife.Net.Proxy
 {
@@ -16,19 +13,19 @@ namespace NewLife.Net.Proxy
     /// 6，Socks5Answer。响应认证
     /// 7，开始传输
     /// </remarks>
-    public class Socks5 : ProxyBase
+    public class Socks5 : ProxyBase<Socks5.Session>
     {
-        /// <summary>创建会话</summary>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        protected override INetSession CreateSession(NetEventArgs e)
-        {
-            return new Session();
-        }
+        ///// <summary>创建会话</summary>
+        ///// <param name="e"></param>
+        ///// <returns></returns>
+        //protected override INetSession CreateSession(NetEventArgs e)
+        //{
+        //    return new Session();
+        //}
 
         #region 会话
         /// <summary>Socks5代理会话</summary>
-        public class Session : ProxySession
+        public class Session : ProxySession<Socks5, Session>
         {
             ///// <summary>代理对象</summary>
             //public new HttpReverseProxy Proxy { get { return base.Proxy as HttpReverseProxy; } set { base.Proxy = value; } }

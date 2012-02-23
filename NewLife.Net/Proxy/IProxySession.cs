@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife.Net.Sockets;
+using NewLife.Net.Common;
 
 namespace NewLife.Net.Proxy
 {
@@ -23,10 +24,13 @@ namespace NewLife.Net.Proxy
         ISocketClient Remote { get; set; }
 
         /// <summary>远程客户端IP终结点</summary>
-        EndPoint RemoteEndPoint { get; set; }
+        IPEndPoint RemoteEndPoint { get; set; }
 
         /// <summary>服务端协议。默认与客户端协议相同</summary>
         ProtocolType RemoteProtocolType { get; set; }
+
+        /// <summary>服务端地址</summary>
+        NetUri RemoteUri { get; }
         #endregion
 
         #region 发送

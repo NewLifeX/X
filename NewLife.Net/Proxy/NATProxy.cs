@@ -6,7 +6,7 @@ using NewLife.Net.Sockets;
 namespace NewLife.Net.Proxy
 {
     /// <summary>通用NAT代理。所有收到的数据，都转发到指定目标</summary>
-    public class NATProxy : ProxyBase
+    public class NATProxy : ProxyBase<NATSession>
     {
         #region 属性
         private IPAddress _ServerAddress;

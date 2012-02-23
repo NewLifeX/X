@@ -12,23 +12,20 @@ namespace NewLife.Net.Proxy
 {
     /// <summary>Http代理。可用于代理各种Http通讯请求。</summary>
     /// <remarks>Http代理请求与普通请求唯一的不同就是Uri，Http代理请求收到的是可能包括主机名的完整Uri</remarks>
-    public class HttpProxy : ProxyBase
+    public class HttpProxy : ProxyBase<HttpProxy.Session>
     {
-        /// <summary>创建会话</summary>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        protected override INetSession CreateSession(NetEventArgs e)
-        {
-            return new Session();
-        }
+        ///// <summary>创建会话</summary>
+        ///// <param name="e"></param>
+        ///// <returns></returns>
+        //protected override INetSession CreateSession(NetEventArgs e)
+        //{
+        //    return new Session();
+        //}
 
         #region 会话
         /// <summary>Http反向代理会话</summary>
-        class Session : ProxySession
+        public class Session : ProxySession<HttpProxy, Session>
         {
-            ///// <summary>代理对象</summary>
-            //public new HttpReverseProxy Proxy { get { return base.Proxy as HttpReverseProxy; } set { base.Proxy = value; } }
-
             HttpHeader Request;
 
             /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
@@ -71,6 +68,13 @@ namespace NewLife.Net.Proxy
             String LastHost;
             Int32 LastPort;
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="entity"></param>
+            /// <param name="e"></param>
+            /// <param name="stream"></param>
+            /// <returns></returns>
             protected virtual Boolean OnRequest(HttpHeader entity, NetEventArgs e, Stream stream)
             {
                 WriteLog("{3}请求：{0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength, ID);
