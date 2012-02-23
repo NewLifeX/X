@@ -213,10 +213,12 @@ namespace Test
 
         static void Test7()
         {
-            var msg = new DataMessage();
+            var msg = new DataMessage2();
             msg.Data = new Byte[] { 1, 2, 5, 4, 3 };
+            msg.ID = 333;
+
             var s = msg.GetStream();
-            var msg2 = Message.Read<DataMessage2>(s);
+            var msg2 = Message.Read<DataMessage>(s);
             Console.WriteLine(msg2);
         }
     }

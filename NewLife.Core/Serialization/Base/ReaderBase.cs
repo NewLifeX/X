@@ -1143,7 +1143,10 @@ namespace NewLife.Serialization
             Object value = null;
             try
             {
-                return ReadObject(type, ref value, null) ? value : null;
+                //return ReadObject(type, ref value, null) ? value : null;
+                // 尽管读取对象出错，但是可能已经读取部分，还是需要准确返回
+                ReadObject(type, ref value, null);
+                return value;
             }
             catch (XSerializationException ex)
             {
@@ -1341,6 +1344,9 @@ namespace NewLife.Serialization
 
             // 复杂类型，处理对象成员
             if (ReadCustomObject(type, ref value, callback)) return true;
+
+            // 检查数据流是否结束
+            if (EndOfStream) return false;
 
             return ReadUnKnown(type, ref value, callback);
         }
