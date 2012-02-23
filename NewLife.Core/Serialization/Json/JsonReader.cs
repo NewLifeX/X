@@ -6,7 +6,6 @@ using System.IO;
 using System.Net;
 using System.Runtime.Serialization;
 using System.Text;
-using NewLife.Exceptions;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -43,6 +42,22 @@ namespace NewLife.Serialization
             {
                 if (base.Stream != value) _Reader = null;
                 base.Stream = value;
+            }
+        }
+
+        /// <summary>获取一个值，该值表示当前的流位置是否在流的末尾。</summary>
+        /// <returns>如果当前的流位置在流的末尾，则为 true；否则为 false。</returns>
+        public override bool EndOfStream
+        {
+            get
+            {
+                var s = Stream;
+                if (s != null) return s.Position == s.Length;
+
+                var r = Reader as StreamReader;
+                if (r != null) return r.EndOfStream;
+
+                return false;
             }
         }
         #endregion

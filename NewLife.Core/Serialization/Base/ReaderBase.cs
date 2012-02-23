@@ -1138,7 +1138,6 @@ namespace NewLife.Serialization
         /// <summary>主要入口方法。从数据流中读取指定类型的对象</summary>
         /// <param name="type">类型</param>
         /// <returns>对象</returns>
-        [DebuggerHidden]
         public Object ReadObject(Type type)
         {
             Object value = null;
@@ -1164,14 +1163,12 @@ namespace NewLife.Serialization
 
         /// <summary>主要入口方法。从数据流中读取指定类型的对象</summary>
         /// <returns>对象</returns>
-        [DebuggerHidden]
         public T ReadObject<T>() { return (T)ReadObject(typeof(T)); }
 
         /// <summary>主要入口方法。尝试读取目标对象指定成员的值，通过委托方法递归处理成员</summary>
         /// <param name="type">要读取的对象类型</param>
         /// <param name="value">要读取的对象</param>
         /// <returns>是否读取成功</returns>
-        [DebuggerHidden]
         public Boolean ReadObject(Type type, ref Object value) { return ReadObject(type, ref value, ReadMember); }
 
         /// <summary>
@@ -1181,9 +1178,11 @@ namespace NewLife.Serialization
         /// <param name="value">要读取的对象</param>
         /// <param name="callback">处理成员的方法</param>
         /// <returns>是否读取成功</returns>
-        [DebuggerHidden]
         public Boolean ReadObject(Type type, ref Object value, ReadObjectCallback callback)
         {
+            // 检查数据流是否结束
+            if (EndOfStream) return false;
+
             if (type == null && value != null) type = value.GetType();
             if (callback == null) callback = ReadMember;
 
@@ -1745,7 +1744,15 @@ namespace NewLife.Serialization
         #region 辅助属性
         /// <summary>获取一个值，该值表示当前的流位置是否在流的末尾。</summary>
         /// <returns>如果当前的流位置在流的末尾，则为 true；否则为 false。</returns>
-        public Boolean EndOfStream { get { return Stream.Position == Stream.Length; } }
+        public virtual Boolean EndOfStream
+        {
+            get
+            {
+                var s = Stream;
+                if (s == null) return false;
+                return s.Position == s.Length;
+            }
+        }
         #endregion
     }
 }

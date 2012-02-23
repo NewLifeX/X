@@ -48,6 +48,22 @@ namespace NewLife.Xml
             }
         }
 
+        /// <summary>获取一个值，该值表示当前的流位置是否在流的末尾。</summary>
+        /// <returns>如果当前的流位置在流的末尾，则为 true；否则为 false。</returns>
+        public override bool EndOfStream
+        {
+            get
+            {
+                var s = Stream;
+                if (s != null) return s.Position == s.Length;
+
+                var r = Reader;
+                if (r != null) return r.EOF;
+
+                return false;
+            }
+        }
+
         /// <summary>初始化</summary>
         public XmlReaderX() { }
 
@@ -404,6 +420,5 @@ namespace NewLife.Xml
             return true;
         }
         #endregion
-
     }
 }

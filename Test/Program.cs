@@ -29,7 +29,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test6();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -210,5 +210,21 @@ namespace Test
                 Console.WriteLine(ex);
             }
         }
+
+        static void Test7()
+        {
+            var msg = new DataMessage();
+            msg.Data = new Byte[] { 1, 2, 5, 4, 3 };
+            var s = msg.GetStream();
+            var msg2 = Message.Read<DataMessage2>(s);
+            Console.WriteLine(msg2);
+        }
+    }
+
+    class DataMessage2 : DataMessage
+    {
+        private Int32 _ID;
+        /// <summary>属性说明</summary>
+        public Int32 ID { get { return _ID; } set { _ID = value; } }
     }
 }
