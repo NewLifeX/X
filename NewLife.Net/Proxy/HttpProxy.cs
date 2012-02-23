@@ -40,10 +40,11 @@ namespace NewLife.Net.Proxy
             {
                 handler(this, he);
 
-                return he.Cancel;
+                //return he.Cancel;
             }
 
-            return false;
+            //return false;
+            return he.Cancel;
         }
 
         EventHandler<HttpProxyEventArgs> GetHandler(EventKind kind)
@@ -166,16 +167,24 @@ namespace NewLife.Net.Proxy
             /// <returns></returns>
             protected virtual Boolean OnRequest(HttpHeader entity, NetEventArgs e, Stream stream)
             {
-                WriteLog("{3}请求：{0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength, ID);
-
                 var host = "";
                 if (entity.Url.IsAbsoluteUri)
                 {
                     // 特殊处理CONNECT
                     if (entity.Method.EqualIgnoreCase("CONNECT"))
                     {
+                        WriteLog("{3}请求：{0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength, ID);
+
                         host = entity.Url.ToString();
                         RemoteEndPoint = NetHelper.ParseEndPoint(entity.Url.ToString(), 80);
+
+                        // 不要连自己，避免死循环
+                        if (RemoteEndPoint.Port == Proxy.Server.Port &&
+                            (RemoteEndPoint.Address == IPAddress.Loopback || RemoteEndPoint.Address == IPAddress.IPv6Loopback))
+                        {
+                            this.Dispose();
+                            return false;
+                        }
 
                         var rs = new HttpHeader();
                         rs.Version = entity.Version;
@@ -220,6 +229,8 @@ namespace NewLife.Net.Proxy
                 }
                 else
                     throw new NetException("无法处理的请求！{0}", entity);
+
+                WriteLog("{3}请求：{0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength, ID);
 
                 // 可能不含Host
                 if (String.IsNullOrEmpty(entity.Host)) entity.Host = host;

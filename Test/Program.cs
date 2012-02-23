@@ -60,7 +60,7 @@ namespace Test
 
             var http = new HttpProxy();
             http.Port = 8080;
-            http.OnResponse += new EventHandler<HttpProxyEventArgs>(http_OnResponse);
+            //http.OnResponse += new EventHandler<HttpProxyEventArgs>(http_OnResponse);
             http.Start();
 
             HttpProxy.SetIEProxy("127.0.0.1:" + http.Port);
@@ -72,9 +72,9 @@ namespace Test
             http.Dispose();
         }
 
-        static void http_OnResponse(object sender, HttpProxyEventArgs e)
-        {
-            if (e.Header != null) XTrace.WriteLine(e.Header.ToString());
-        }
+        //static void http_OnResponse(object sender, HttpProxyEventArgs e)
+        //{
+        //    if (e.Header != null) XTrace.WriteLine(e.Header.ToString());
+        //}
     }
 }
