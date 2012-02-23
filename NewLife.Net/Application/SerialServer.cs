@@ -42,7 +42,11 @@ namespace NewLife.Net.Application
 
         #region 构造
         /// <summary>实例化一个串口服务器</summary>
-        public SerialServer() { Port = 24; }
+        public SerialServer()
+        {
+            Port = 24;
+            Name = "串口服务";
+        }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>

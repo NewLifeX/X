@@ -5,9 +5,7 @@ using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Application
 {
-    /// <summary>
-    /// Time服务器
-    /// </summary>
+    /// <summary>Time服务器</summary>
     public class TimeServer : NetServer
     {
         /// <summary>实例化一个Time服务。向请求者返回1970年1月1日以来的所有秒数</summary>
