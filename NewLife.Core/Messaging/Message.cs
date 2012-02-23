@@ -91,9 +91,11 @@ namespace NewLife.Messaging
 
             if (stream.Position == stream.Length) return TypeX.CreateInstance(type, null) as Message;
 
-            var msg = reader.ReadObject(type) as Message;
-
-            return msg;
+            try
+            {
+                return reader.ReadObject(type) as Message;
+            }
+            catch (Exception ex) { throw new XException("无法从数据流中读取消息！", ex); }
         }
 
         /// <summary>从流中读取消息</summary>
