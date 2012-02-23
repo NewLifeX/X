@@ -331,6 +331,7 @@ namespace XAgent
         /// 写日志
         /// </summary>
         /// <param name="msg"></param>
+        [Obsolete("请改用WriteLine")]
         public static void WriteLog(String msg)
         {
             if (XTrace.Debug) XTrace.WriteLine(msg);
