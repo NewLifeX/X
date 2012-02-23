@@ -107,11 +107,16 @@ namespace NewLife.Net.Common
             }
 
             // 分析端口
-            p = uri.IndexOf(":");
+            p = uri.LastIndexOf(":");
             if (p > 0)
             {
-                Port = Convert.ToInt32(uri.Substring(p + 1));
-                uri = uri.Substring(0, p);
+                var pt = uri.Substring(p + 1);
+                Int32 port = 0;
+                if (Int32.TryParse(pt, out port))
+                {
+                    Port = port;
+                    uri = uri.Substring(0, p);
+                }
             }
 
             Host = uri;
