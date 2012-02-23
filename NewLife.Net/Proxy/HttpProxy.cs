@@ -14,47 +14,138 @@ namespace NewLife.Net.Proxy
     /// <remarks>Http代理请求与普通请求唯一的不同就是Uri，Http代理请求收到的是可能包括主机名的完整Uri</remarks>
     public class HttpProxy : ProxyBase<HttpProxy.Session>
     {
-        ///// <summary>创建会话</summary>
-        ///// <param name="e"></param>
-        ///// <returns></returns>
-        //protected override INetSession CreateSession(NetEventArgs e)
-        //{
-        //    return new Session();
-        //}
+        /// <summary>收到请求时发生。</summary>
+        public event EventHandler<HttpProxyEventArgs> OnRequest;
+
+        /// <summary>收到响应时发生。</summary>
+        public event EventHandler<HttpProxyEventArgs> OnResponse;
+
+        /// <summary>收到请求主体时发生。</summary>
+        public event EventHandler<HttpProxyEventArgs> OnRequestBody;
+
+        /// <summary>收到响应主体时发生。</summary>
+        public event EventHandler<HttpProxyEventArgs> OnResponseBody;
+
+        /// <summary>
+        /// 返回是否取消操作
+        /// </summary>
+        /// <param name="kind"></param>
+        /// <param name="he"></param>
+        /// <returns></returns>
+        Boolean RaiseEvent(EventKind kind, HttpProxyEventArgs he)
+        {
+            var handler = GetHandler(kind);
+
+            if (handler != null)
+            {
+                handler(this, he);
+
+                return he.Cancel;
+            }
+
+            return false;
+        }
+
+        EventHandler<HttpProxyEventArgs> GetHandler(EventKind kind)
+        {
+            switch (kind)
+            {
+                case EventKind.OnRequest:
+                    return OnRequest;
+                case EventKind.OnResponse:
+                    return OnResponse;
+                case EventKind.OnRequestBody:
+                    return OnRequestBody;
+                case EventKind.OnResponseBody:
+                    return OnResponseBody;
+                default:
+                    break;
+            }
+            return null;
+        }
+
+        enum EventKind
+        {
+            OnRequest,
+            OnResponse,
+            OnRequestBody,
+            OnResponseBody
+        }
 
         #region 会话
         /// <summary>Http反向代理会话</summary>
         public class Session : ProxySession<HttpProxy, Session>
         {
+            /// <summary>
+            /// 当前正在处理的请求。一个连接同时只能处理一个请求，除非是Http 1.2
+            /// </summary>
             HttpHeader Request;
 
+            /// <summary>
+            /// 已完成处理，正在转发数据的请求头
+            /// </summary>
+            HttpHeader CurrentRequest;
+
             /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
+            /// <remarks>
+            /// 如果数据包包括头部和主体，可以分开处理。
+            /// 最麻烦的就是数据包不是一个完整的头部，还落了一部分在后面的包上。
+            /// </remarks>
             /// <param name="e"></param>
             /// <param name="stream">数据</param>
             /// <returns>修改后的数据</returns>
             protected override Stream OnReceive(NetEventArgs e, Stream stream)
             {
-                // 解析请求头
+                // 解析请求头。
                 var entity = Request;
                 if (entity == null)
                 {
+                    // 如果当前请求为空，说明这是第一个数据包，可能包含头部
                     entity = HttpHeader.Read(stream, HttpHeaderReadMode.Request);
-                    if (entity == null) return base.OnReceive(e, stream);
+                    if (entity == null)
+                    {
+                        var he = new HttpProxyEventArgs(this, CurrentRequest, e, stream);
+                        if (Proxy.RaiseEvent(EventKind.OnRequestBody, he)) return null;
+                        return base.OnReceive(e, he.Stream);
+                    }
 
                     if (!entity.IsFinish) Request = entity;
                 }
                 else if (!entity.IsFinish)
                 {
+                    // 如果请求未完成，说明现在的数据内容还是头部
                     entity.ReadHeaders(new BinaryReaderX(stream));
-                    if (entity.IsFinish) Request = null;
+                    if (entity.IsFinish)
+                    {
+                        CurrentRequest = entity;
+                        Request = null;
+                    }
                 }
                 else
-                    return base.OnReceive(e, stream);
+                {
+                    // 否则，头部已完成，现在就是内容
+                    var he = new HttpProxyEventArgs(this, CurrentRequest, e, stream);
+                    if (Proxy.RaiseEvent(EventKind.OnRequestBody, he)) return null;
+                    return base.OnReceive(e, he.Stream);
+                }
 
                 // 请求头不完整，不发送，等下一部分到来
                 if (!entity.IsFinish) return null;
 
-                if (!OnRequest(entity, e, stream)) return null;
+                var rs = OnRequest(entity, e, stream);
+                {
+                    var he = new HttpProxyEventArgs(this, CurrentRequest, e, stream);
+                    he.Cancel = !rs;
+                    rs = !Proxy.RaiseEvent(EventKind.OnRequest, he);
+                }
+                if (!rs) return null;
+
+                if (stream.Position < stream.Length)
+                {
+                    var he = new HttpProxyEventArgs(this, CurrentRequest, e, stream);
+                    if (Proxy.RaiseEvent(EventKind.OnRequestBody, he)) return null;
+                    stream = he.Stream;
+                }
 
                 // 重新构造请求
                 var ms = new MemoryStream();
@@ -68,9 +159,7 @@ namespace NewLife.Net.Proxy
             String LastHost;
             Int32 LastPort;
 
-            /// <summary>
-            /// 
-            /// </summary>
+            /// <summary>收到请求时</summary>
             /// <param name="entity"></param>
             /// <param name="e"></param>
             /// <param name="stream"></param>
@@ -145,14 +234,80 @@ namespace NewLife.Net.Proxy
                 return true;
             }
 
-            ///// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
-            ///// <param name="e"></param>
-            ///// <param name="stream">数据</param>
-            ///// <returns>修改后的数据</returns>
-            //protected override Stream OnReceiveRemote(NetEventArgs e, Stream stream)
-            //{
-            //    return base.OnReceiveRemote(e, stream);
-            //}
+            HttpHeader Response;
+            HttpHeader CurrentResponse;
+
+            /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
+            /// <param name="e"></param>
+            /// <param name="stream">数据</param>
+            /// <returns>修改后的数据</returns>
+            protected override Stream OnReceiveRemote(NetEventArgs e, Stream stream)
+            {
+                var parseHeader = Proxy.GetHandler(EventKind.OnResponse) != null;
+                var parseBody = Proxy.GetHandler(EventKind.OnResponseBody) != null;
+
+                if (parseHeader || parseBody)
+                {
+                    // 解析头部。
+                    var entity = Response;
+                    if (entity == null)
+                    {
+                        // 如果当前请求为空，说明这是第一个数据包，可能包含头部
+                        entity = HttpHeader.Read(stream, HttpHeaderReadMode.Response);
+                        if (entity == null)
+                        {
+                            var he = new HttpProxyEventArgs(this, CurrentResponse, e, stream);
+                            if (Proxy.RaiseEvent(EventKind.OnResponseBody, he)) return null;
+                            return base.OnReceiveRemote(e, he.Stream);
+                        }
+
+                        if (!entity.IsFinish) Response = entity;
+                    }
+                    else if (!entity.IsFinish)
+                    {
+                        // 如果请求未完成，说明现在的数据内容还是头部
+                        entity.ReadHeaders(new BinaryReaderX(stream));
+                        if (entity.IsFinish)
+                        {
+                            CurrentResponse = entity;
+                            Response = null;
+                        }
+                    }
+                    else
+                    {
+                        // 否则，头部已完成，现在就是内容
+                        var he = new HttpProxyEventArgs(this, CurrentResponse, e, stream);
+                        if (Proxy.RaiseEvent(EventKind.OnResponseBody, he)) return null;
+                        return base.OnReceiveRemote(e, he.Stream);
+                    }
+
+                    // 请求头不完整，不发送，等下一部分到来
+                    if (!entity.IsFinish) return null;
+
+                    {
+                        var he = new HttpProxyEventArgs(this, entity, e, stream);
+                        if (Proxy.RaiseEvent(EventKind.OnResponse, he)) return null;
+                        stream = he.Stream;
+                    }
+
+                    // 重新构造请求
+                    var ms = new MemoryStream();
+                    entity.Write(ms);
+                    stream.CopyTo(ms);
+                    ms.Position = 0;
+
+                    stream = ms;
+                }
+
+                if (parseBody && stream.Position < stream.Length)
+                {
+                    var he = new HttpProxyEventArgs(this, CurrentResponse, e, stream);
+                    if (Proxy.RaiseEvent(EventKind.OnResponseBody, he)) return null;
+                    stream = he.Stream;
+                }
+
+                return base.OnReceiveRemote(e, stream);
+            }
         }
         #endregion
 
@@ -219,5 +374,49 @@ namespace NewLife.Net.Proxy
             InternetSetOption(IntPtr.Zero, INTERNET_OPTION_REFRESH, IntPtr.Zero, 0);
         }
         #endregion
+    }
+
+    /// <summary>Http代理事件参数</summary>
+    public class HttpProxyEventArgs : EventArgs
+    {
+        private IProxySession _Session;
+        /// <summary>会话</summary>
+        public IProxySession Session { get { return _Session; } set { _Session = value; } }
+
+        private HttpHeader _Header;
+        /// <summary>头部</summary>
+        public HttpHeader Header { get { return _Header; } set { _Header = value; } }
+
+        private NetEventArgs _Arg;
+        /// <summary>网络时间参数</summary>
+        public NetEventArgs Arg { get { return _Arg; } set { _Arg = value; } }
+
+        private Stream _Stream;
+        /// <summary>主体数据流。外部可以更改，如果只是读取，请一定注意保持指针在原来的位置</summary>
+        public Stream Stream { get { return _Stream; } set { _Stream = value; } }
+
+        private Boolean _Cancel;
+        /// <summary>是否取消操作</summary>
+        public Boolean Cancel { get { return _Cancel; } set { _Cancel = value; } }
+
+        /// <summary>
+        /// 实例化
+        /// </summary>
+        public HttpProxyEventArgs() { }
+
+        /// <summary>
+        /// 实例化
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="header"></param>
+        /// <param name="e"></param>
+        /// <param name="stream"></param>
+        public HttpProxyEventArgs(IProxySession session, HttpHeader header, NetEventArgs e, Stream stream)
+        {
+            Session = session;
+            Header = header;
+            Arg = e;
+            Stream = stream;
+        }
     }
 }

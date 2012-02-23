@@ -31,5 +31,8 @@ namespace NewLife.Net.Proxy
             base.AddSession(session);
         }
         #endregion
+
+        #region 事件
+        #endregion
     }
 }

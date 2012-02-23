@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Collections.Specialized;
 using System.IO;
+using System.Text;
 using NewLife.IO;
 using NewLife.Serialization;
 
@@ -12,7 +11,7 @@ namespace NewLife.Net.Http
     public class HttpHeader
     {
         #region 属性
-        /// <summary>是否响应。以Method是否为空作为一句。</summary>
+        /// <summary>是否响应。以Method是否为空作为依据。</summary>
         public Boolean IsResponse { get { return String.IsNullOrEmpty(Method); } }
 
         private String _Method;

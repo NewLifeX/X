@@ -58,17 +58,23 @@ namespace Test
             server.ServerPort = 80;
             server.Start();
 
-            var s2 = new HttpProxy();
-            s2.Port = 8080;
-            s2.Start();
+            var http = new HttpProxy();
+            http.Port = 8080;
+            http.OnResponse += new EventHandler<HttpProxyEventArgs>(http_OnResponse);
+            http.Start();
 
-            HttpProxy.SetIEProxy("127.0.0.1:" + s2.Port);
+            HttpProxy.SetIEProxy("127.0.0.1:" + http.Port);
             Console.WriteLine("已设置IE代理，任意键结束测试，关闭IE代理！");
             Console.ReadKey(true);
             HttpProxy.SetIEProxy(null);
 
             server.Dispose();
-            s2.Dispose();
+            http.Dispose();
+        }
+
+        static void http_OnResponse(object sender, HttpProxyEventArgs e)
+        {
+            if (e.Header != null) XTrace.WriteLine(e.Header.ToString());
         }
     }
 }
