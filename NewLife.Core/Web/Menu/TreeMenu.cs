@@ -9,12 +9,12 @@ using System.Web;
 using System.Xml.XPath;
 using System.Xml.Xsl;
 
-[assembly: WebResource("NewLife.Core.Web.Menu.RS.tree.js", "text/javascript", PerformSubstitution = true)]
-[assembly: WebResource("NewLife.Core.Web.Menu.RS.XSL.xsl", "text/xml", PerformSubstitution = true)]
+[assembly: WebResource("NewLife.Web.Menu.RS.tree.js", "text/javascript", PerformSubstitution = true)]
+[assembly: WebResource("NewLife.Web.Menu.RS.XSL.xsl", "text/xml", PerformSubstitution = true)]
 
-[assembly: WebResource("NewLife.Core.Web.Menu.RS.book.gif", "image/gif")]
-[assembly: WebResource("NewLife.Core.Web.Menu.RS.bookopen.gif", "image/gif")]
-[assembly: WebResource("NewLife.Core.Web.Menu.RS.paper.gif", "image/gif")]
+[assembly: WebResource("NewLife.Web.Menu.RS.book.gif", "image/gif")]
+[assembly: WebResource("NewLife.Web.Menu.RS.bookopen.gif", "image/gif")]
+[assembly: WebResource("NewLife.Web.Menu.RS.paper.gif", "image/gif")]
 
 
 namespace NewLife
@@ -37,27 +37,27 @@ namespace NewLife
         /// <summary>
         /// 默认Xsl
         /// </summary>
-        public static String xslFilePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "NewLife.Core.Web.Menu.RS.XSL.xsl").Replace("&", "&amp;");
+        public static String xslFilePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "NewLife.Web.Menu.RS.XSL.xsl").Replace("&", "&amp;");
 
         /// <summary>
         /// 菜单js资源路径
         /// </summary>
-        public static String jsFilePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "NewLife.Core.Web.Menu.RS.tree.js").Replace("&", "&amp;");
+        public static String jsFilePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "NewLife.Web.Menu.RS.tree.js").Replace("&", "&amp;");
 
         /// <summary>
         /// 关闭
         /// </summary>
-        public static String ImagePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "NewLife.Core.Web.Menu.RS.book.gif");
+        public static String ImagePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "NewLife.Web.Menu.RS.book.gif");
 
         /// <summary>
         /// 打开
         /// </summary>
-        public static String ImageOpenPath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "NewLife.Core.Web.Menu.RS.bookopen.gif");
+        public static String ImageOpenPath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "NewLife.Web.Menu.RS.bookopen.gif");
 
         /// <summary>
         /// 无子级
         /// </summary>
-        public static String ImagePagePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "NewLife.Core.Web.Menu.RS.paper.gif");
+        public static String ImagePagePath = Page().ClientScript.GetWebResourceUrl(typeof(TreeMenuRoot), "NewLife.Web.Menu.RS.paper.gif");
 
 
         #endregion
