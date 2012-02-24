@@ -39,6 +39,14 @@ namespace NewLife.Exceptions
         /// 初始化
         /// </summary>
         /// <param name="innerException"></param>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public XException(Exception innerException, String format, params Object[] args) : base(String.Format(format, args), innerException) { }
+
+        /// <summary>
+        /// 初始化
+        /// </summary>
+        /// <param name="innerException"></param>
         public XException(Exception innerException) : base((innerException != null ? innerException.Message : null), innerException) { }
 
         /// <summary>

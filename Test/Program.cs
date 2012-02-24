@@ -13,6 +13,8 @@ using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Net.Udp;
 using NewLife.Collections;
+using NewLife.Threading;
+using System.Text.RegularExpressions;
 
 namespace Test
 {
@@ -50,26 +52,43 @@ namespace Test
             Console.WriteLine(e.ToString());
         }
 
+        static HttpProxy http = null;
         private static void Test1()
         {
-            var server = new HttpReverseProxy();
-            server.Port = 888;
-            server.ServerHost = "www.cnblogs.com";
-            server.ServerPort = 80;
-            server.Start();
+            //var server = new HttpReverseProxy();
+            //server.Port = 888;
+            //server.ServerHost = "www.cnblogs.com";
+            //server.ServerPort = 80;
+            //server.Start();
 
-            var http = new HttpProxy();
+            http = new HttpProxy();
             http.Port = 8080;
             //http.OnResponse += new EventHandler<HttpProxyEventArgs>(http_OnResponse);
             http.Start();
 
             HttpProxy.SetIEProxy("127.0.0.1:" + http.Port);
             Console.WriteLine("已设置IE代理，任意键结束测试，关闭IE代理！");
+
+            ThreadPoolX.QueueUserWorkItem(ShowStatus);
+
             Console.ReadKey(true);
             HttpProxy.SetIEProxy(null);
 
-            server.Dispose();
+            //server.Dispose();
             http.Dispose();
+        }
+
+        static void ShowStatus()
+        {
+            while (true)
+            {
+                var hs = http.Server as SocketBase;
+                Console.WriteLine("异步：{0} 会话：{1}", hs.AsyncCount, http.Sessions.Count);
+
+                Thread.Sleep(3000);
+
+                //GC.Collect();
+            }
         }
 
         //static void http_OnResponse(object sender, HttpProxyEventArgs e)

@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using NewLife.Exceptions;
 using NewLife.Net.Common;
 using NewLife.Net.Sockets;
 
@@ -55,10 +56,11 @@ namespace NewLife.Net.Proxy
         {
             base.OnDispose(disposing);
 
-            if (Remote != null)
+            var remote = Remote;
+            if (remote != null)
             {
-                Remote.Dispose();
                 Remote = null;
+                remote.Dispose();
             }
         }
         #endregion
@@ -74,7 +76,8 @@ namespace NewLife.Net.Proxy
             {
                 if (Remote == null) StartRemote(e);
 
-                Remote.Send(stream, RemoteEndPoint);
+                //Remote.Send(stream, RemoteEndPoint);
+                SendRemote(stream);
             }
         }
 
@@ -93,15 +96,22 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected virtual void StartRemote(NetEventArgs e)
         {
+            var start = DateTime.Now;
             try
             {
                 var client = CreateRemote(e);
-                Remote = client;
                 if (client.ProtocolType == ProtocolType.Tcp && !client.Client.Connected) client.Connect(RemoteEndPoint);
                 client.Received += new EventHandler<NetEventArgs>(Remote_Received);
                 client.ReceiveAsync();
+                Remote = client;
             }
-            catch (SocketException) { this.Dispose(); throw; }
+            catch (Exception ex)
+            {
+                this.Dispose();
+
+                var ts = DateTime.Now - start;
+                throw new XException(ex, "无法连接远程服务器{0}！耗时{1}！", RemoteEndPoint, ts);
+            }
         }
 
         /// <summary>为会话创建与远程服务器通讯的Socket。可以使用Socket池达到重用的目的。默认实现创建与服务器相同类型的客户端</summary>
@@ -114,7 +124,14 @@ namespace NewLife.Net.Proxy
             return client;
         }
 
-        void Remote_Received(object sender, NetEventArgs e) { OnReceiveRemote(e); }
+        void Remote_Received(object sender, NetEventArgs e)
+        {
+            try
+            {
+                OnReceiveRemote(e);
+            }
+            catch { this.Dispose(); throw; }
+        }
 
         /// <summary>收到远程服务器返回的数据</summary>
         /// <param name="e"></param>
@@ -122,7 +139,20 @@ namespace NewLife.Net.Proxy
         {
             var stream = e.GetStream();
             stream = OnReceiveRemote(e, stream);
-            if (stream != null) Session.Send(stream, ClientEndPoint);
+            if (stream != null)
+            {
+                var session = Session;
+                if (session == null || session.Disposed)
+                    this.Dispose();
+                else
+                {
+                    try
+                    {
+                        session.Send(stream, ClientEndPoint);
+                    }
+                    catch { this.Dispose(); throw; }
+                }
+            }
         }
 
         /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
@@ -142,17 +172,38 @@ namespace NewLife.Net.Proxy
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
-        public virtual void SendRemote(byte[] buffer, int offset = 0, int size = 0) { Remote.Send(buffer, offset, size, RemoteEndPoint); }
+        public virtual void SendRemote(byte[] buffer, int offset = 0, int size = 0)
+        {
+            try
+            {
+                Remote.Send(buffer, offset, size, RemoteEndPoint);
+            }
+            catch { this.Dispose(); throw; }
+        }
 
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public virtual long SendRemote(Stream stream) { return Remote.Send(stream, RemoteEndPoint); }
+        public virtual long SendRemote(Stream stream)
+        {
+            try
+            {
+                return Remote.Send(stream, RemoteEndPoint);
+            }
+            catch { this.Dispose(); throw; }
+        }
 
         /// <summary>发送字符串</summary>
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
-        public virtual void SendRemote(string msg, Encoding encoding = null) { Remote.Send(msg, encoding, RemoteEndPoint); }
+        public virtual void SendRemote(string msg, Encoding encoding = null)
+        {
+            try
+            {
+                Remote.Send(msg, encoding, RemoteEndPoint);
+            }
+            catch { this.Dispose(); throw; }
+        }
         #endregion
 
         #region 辅助

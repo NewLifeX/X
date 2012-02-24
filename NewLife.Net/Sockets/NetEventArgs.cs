@@ -58,6 +58,32 @@ namespace NewLife.Net.Sockets
         public Boolean Cancel { get { return _Cancel; } set { _Cancel = value; } }
         #endregion
 
+        #region 构造
+        /// <summary>析构</summary>
+        ~NetEventArgs()
+        {
+            Dispose(false);
+        }
+
+        void IDisposable.Dispose()
+        {
+            Dispose(true);
+        }
+
+        Boolean disposed;
+        void Dispose(Boolean disposing)
+        {
+            if (disposed) return;
+            disposed = true;
+
+            XTrace.WriteLine("{0}被抛弃！{1}", RemoteIPEndPoint, LastOperation);
+
+            _buffer = null;
+
+            base.Dispose();
+        }
+        #endregion
+
         #region 事件
         private Boolean hasEvent;
         private Delegate _Completed;
@@ -115,15 +141,6 @@ namespace NewLife.Net.Sockets
                 // 事件内有缓冲区时才清空，不管它多长，必须清空
                 if (Buffer != null) SetBuffer(null, 0, 0);
             }
-        }
-
-        void IDisposable.Dispose()
-        {
-            XTrace.WriteLine("{0}被抛弃！{1}", RemoteIPEndPoint, LastOperation);
-
-            _buffer = null;
-
-            base.Dispose();
         }
         #endregion
 

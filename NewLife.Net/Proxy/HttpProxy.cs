@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 using NewLife.IO;
@@ -14,6 +15,13 @@ namespace NewLife.Net.Proxy
     /// <remarks>Http代理请求与普通请求唯一的不同就是Uri，Http代理请求收到的是可能包括主机名的完整Uri</remarks>
     public class HttpProxy : ProxyBase<HttpProxy.Session>
     {
+        /// <summary>实例化</summary>
+        public HttpProxy()
+        {
+            Port = 8080;
+            ProtocolType = ProtocolType.Tcp;
+        }
+
         /// <summary>收到请求时发生。</summary>
         public event EventHandler<HttpProxyEventArgs> OnRequest;
 
@@ -110,7 +118,10 @@ namespace NewLife.Net.Proxy
                         return base.OnReceive(e, he.Stream);
                     }
 
-                    if (!entity.IsFinish) Request = entity;
+                    if (!entity.IsFinish)
+                        Request = entity;
+                    else
+                        CurrentRequest = entity;
                 }
                 else if (!entity.IsFinish)
                 {
@@ -168,10 +179,12 @@ namespace NewLife.Net.Proxy
             protected virtual Boolean OnRequest(HttpHeader entity, NetEventArgs e, Stream stream)
             {
                 var host = "";
+                var oriUrl = entity.Url;
+
                 // 特殊处理CONNECT
                 if (entity.Method.EqualIgnoreCase("CONNECT"))
                 {
-                    WriteLog("{3}请求：{0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength, ID);
+                    WriteLog("请求：{0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength);
 
                     host = entity.Url.ToString();
                     RemoteEndPoint = NetHelper.ParseEndPoint(entity.Url.ToString(), 80);
@@ -228,7 +241,7 @@ namespace NewLife.Net.Proxy
                 else
                     throw new NetException("无法处理的请求！{0}", entity);
 
-                WriteLog("{3}请求：{0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength, ID);
+                WriteLog("请求：{0} {1} [{2}]", entity.Method, oriUrl, entity.ContentLength);
 
                 // 可能不含Host
                 if (String.IsNullOrEmpty(entity.Host)) entity.Host = host;
@@ -270,7 +283,10 @@ namespace NewLife.Net.Proxy
                             return base.OnReceiveRemote(e, he.Stream);
                         }
 
-                        if (!entity.IsFinish) Response = entity;
+                        if (!entity.IsFinish)
+                            Response = entity;
+                        else
+                            CurrentResponse = entity;
                     }
                     else if (!entity.IsFinish)
                     {

@@ -147,7 +147,7 @@ namespace NewLife.Net.Sockets
         public NetUri RemoteUri { get { return new NetUri(ProtocolType, RemoteEndPoint); } }
 
         //private Int32 _BufferSize = 10240;
-        private Int32 _BufferSize = 10240;
+        private Int32 _BufferSize = 102400;
         /// <summary>缓冲区大小</summary>
         public Int32 BufferSize { get { return _BufferSize; } set { _BufferSize = value; } }
 
@@ -178,36 +178,6 @@ namespace NewLife.Net.Sockets
                 _ReuseAddress = value;
             }
         }
-
-        //private static MemberInfoX[] _mCleanedUp;
-        ///// <summary>CleanedUp字段</summary>
-        //private static MemberInfoX mCleanedUp
-        //{
-        //    get
-        //    {
-        //        if (_mCleanedUp != null && _mCleanedUp.Length > 0) return _mCleanedUp[0];
-
-        //        MemberInfoX pix = FieldInfoX.Create(typeof(Socket), "m_IntCleanedUp");
-        //        if (pix == null) pix = PropertyInfoX.Create(typeof(Socket), "CleanedUp");
-        //        _mCleanedUp = new MemberInfoX[] { pix };
-
-        //        return pix;
-        //    }
-        //}
-
-        ///// <summary>是否已经清理</summary>
-        //private Boolean CleanedUp
-        //{
-        //    get
-        //    {
-        //        if (Socket == null) return true;
-
-        //        var pix = mCleanedUp;
-        //        if (pix != null) return pix.Type == typeof(Boolean) ? (Boolean)pix.GetValue(Socket) : (Int32)pix.GetValue(Socket) == 1;
-
-        //        return false;
-        //    }
-        //}
 
         private static MemberInfoX[] _mSafeHandle;
         /// <summary>SafeHandle字段</summary>
@@ -256,12 +226,13 @@ namespace NewLife.Net.Sockets
 
             try
             {
+                // 写在另外一个方法里面，保证不会在当前方法编译的时候就报错
                 CheckNet21();
             }
             catch (TypeLoadException ex)
             {
                 if (ex.TypeName.Contains("SocketAsyncEventArgs"))
-                    throw new XException("NewLife.Net网络库需要.Net 2.0 Sp1支持！", ex);
+                    throw new XException("NewLife.Net网络库需要.Net2.0 Sp1支持！", ex);
                 else
                     throw ex;
             }
@@ -272,7 +243,57 @@ namespace NewLife.Net.Sockets
             var e = new SocketAsyncEventArgs();
             e.Dispose();
         }
+        #endregion
 
+        #region 释放资源
+        /// <summary>关闭网络操作</summary>
+        public void Close() { Dispose(); }
+
+        /// <summary>子类重载实现资源释放逻辑</summary>
+        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            var socket = Socket;
+            if (socket == null) return;
+
+            var hand = SafeHandle;
+            if (hand != null && !hand.IsClosed)
+            {
+                // 先用Shutdown禁用Socket（发送未完成发送的数据），再用Close关闭，这是一种比较优雅的关闭Socket的方法
+                if (socket.Connected)
+                {
+                    try
+                    {
+                        socket.Disconnect(ReuseAddress);
+                        socket.Shutdown(SocketShutdown.Both);
+                    }
+                    catch (SocketException ex2)
+                    {
+                        if (ex2.SocketErrorCode != SocketError.NotConnected) WriteLog(ex2.ToString());
+                    }
+                    catch (ObjectDisposedException) { }
+                    catch (Exception ex3)
+                    {
+                        if (NetHelper.Debug) WriteLog(ex3.ToString());
+                    }
+                }
+
+                socket.Close();
+            }
+            Socket = null;
+
+            if (_Statistics != null)
+            {
+                IDisposable dp = _Statistics as IDisposable;
+                if (dp != null) dp.Dispose();
+                _Statistics = null;
+            }
+        }
+        #endregion
+
+        #region 方法
         /// <summary>确保创建基础Socket对象</summary>
         protected virtual void EnsureCreate()
         {
@@ -298,9 +319,7 @@ namespace NewLife.Net.Sockets
 
             if (_ReuseAddress) ReuseAddress = true;
         }
-        #endregion
 
-        #region 方法
         /// <summary>绑定本地终结点</summary>
         public virtual void Bind()
         {
@@ -372,6 +391,10 @@ namespace NewLife.Net.Sockets
             }
         }
 
+        private Int32 _AsyncCount;
+        /// <summary>异步操作计数</summary>
+        public Int32 AsyncCount { get { return _AsyncCount; } set { _AsyncCount = value; } }
+
         /// <summary>开始异步操作</summary>
         /// <param name="callback"></param>
         /// <param name="e"></param>
@@ -391,6 +414,9 @@ namespace NewLife.Net.Sockets
             {
                 // 如果立即返回，则异步处理完成事件
                 if (!callback(e)) RaiseCompleteAsync(e);
+
+                // 异步开始，增加一个计数
+                AsyncCount++;
             }
             catch
             {
@@ -456,57 +482,15 @@ namespace NewLife.Net.Sockets
         }
         #endregion
 
-        #region 释放资源
-        /// <summary>关闭网络操作</summary>
-        public void Close() { Dispose(); }
-
-        /// <summary>子类重载实现资源释放逻辑</summary>
-        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
-        protected override void OnDispose(bool disposing)
-        {
-            base.OnDispose(disposing);
-
-            var socket = Socket;
-            if (socket == null) return;
-
-            var hand = SafeHandle;
-            if (hand != null && !hand.IsClosed)
-            {
-                // 先用Shutdown禁用Socket（发送未完成发送的数据），再用Close关闭，这是一种比较优雅的关闭Socket的方法
-                try
-                {
-                    if (socket.Connected) socket.Disconnect(ReuseAddress);
-                    socket.Shutdown(SocketShutdown.Both);
-                }
-                catch (SocketException ex2)
-                {
-                    if (ex2.ErrorCode != 10057) WriteLog(ex2.ToString());
-                }
-                catch (ObjectDisposedException) { }
-                catch (Exception ex3)
-                {
-                    if (NetHelper.Debug) WriteLog(ex3.ToString());
-                }
-
-                socket.Close();
-            }
-            Socket = null;
-
-            if (_Statistics != null)
-            {
-                IDisposable dp = _Statistics as IDisposable;
-                if (dp != null) dp.Dispose();
-                _Statistics = null;
-            }
-        }
-        #endregion
-
         #region 完成事件
         /// <summary>完成事件，将在工作线程中被调用，不要占用太多时间。</summary>
         public event EventHandler<NetEventArgs> Completed;
 
         private void OnCompleted(Object sender, SocketAsyncEventArgs e)
         {
+            // 异步完成，减少一个计数
+            AsyncCount--;
+
             if (e is NetEventArgs)
                 RaiseComplete(e as NetEventArgs);
             else
