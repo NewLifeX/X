@@ -593,7 +593,10 @@ namespace NewLife.CommonEntity
 
             // 找到子级目录
             String[] dis = Directory.GetDirectories(p);
-            if (dis == null || dis.Length <= 0) return 0;
+            if (dis == null || dis.Length <= 0)
+                //return 0;
+                //没有子目录时，将自身设置为扫述目录
+                dis = new String[] { p };
 
             Int32 num = 0;
             foreach (String item in dis)
