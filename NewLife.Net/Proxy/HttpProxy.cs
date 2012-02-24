@@ -213,7 +213,8 @@ namespace NewLife.Net.Proxy
                         rs.StatusDescription = ex.Message;
                     }
 
-                    Session.Send(rs.GetStream(), ClientEndPoint);
+                    var session = Session;
+                    if (session != null) session.Send(rs.GetStream(), ClientEndPoint);
                     return false;
                 }
 
