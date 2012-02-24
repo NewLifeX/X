@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.4.*")]
-[assembly: AssemblyFileVersion("8.4.2012.0221")]
+[assembly: AssemblyFileVersion("8.4.2012.0224")]
 
 /*
  * XCode的重大改进
@@ -52,6 +52,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.4.2012.0224   修正DbSession.InsertAndGetIdentity永远返回0的错误，该错误于20110224产生，影响Oracle和Firebird
+ * 
  * v8.4.2012.0221   增加排序表达式OrderExpression，字段FieldItem增加排序的Asc和Desc
  * 
  * v8.4.2012.0218   改进XCode.Code，增加单独的调试开关XCode.Code.Debug

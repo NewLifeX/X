@@ -502,9 +502,7 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public virtual Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            Execute(sql, type, ps);
-
-            return 0;
+            return Execute(sql, type, ps);
         }
 
         /// <summary>
