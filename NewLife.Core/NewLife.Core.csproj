@@ -237,7 +237,9 @@
     <EmbeddedResource Include="Web\Menu\RS\bookopen.gif" />
     <EmbeddedResource Include="Web\Menu\RS\paper.gif" />
     <EmbeddedResource Include="Web\Menu\RS\tree.js" />
-    <EmbeddedResource Include="Web\Menu\RS\XSL.xsl" />
+    <EmbeddedResource Include="Web\Menu\RS\XSL.xsl">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <Content Include="说明.txt" />
     <EmbeddedResource Include="UpdateInfo.txt" />
     <Content Include="Serialization\序列化_写入器.png" />
