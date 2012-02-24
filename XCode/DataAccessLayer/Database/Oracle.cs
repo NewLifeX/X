@@ -347,6 +347,28 @@ namespace XCode.DataAccessLayer
             return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
         }
         #endregion
+
+        #region 辅助
+        Dictionary<String, DateTime> cache = new Dictionary<String, DateTime>();
+        public Boolean NeedAnalyzeStatistics(String tableName)
+        {
+            var key = String.Format("{0}.{1}", Owner, tableName);
+            DateTime dt;
+            if (!cache.TryGetValue(key, out dt))
+            {
+                dt = DateTime.MinValue;
+                cache[key] = dt;
+            }
+
+            if (dt > DateTime.Now) return false;
+
+            // 一分钟后才可以再次分析
+            dt = DateTime.Now.AddSeconds(10);
+            cache[key] = dt;
+
+            return true;
+        }
+        #endregion
     }
 
     /// <summary>
@@ -369,7 +391,17 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override Int64 QueryCountFast(string tableName)
         {
-            String sql = String.Format("select NUM_ROWS from sys.all_indexes where TABLE_OWNER='{0}' and TABLE_NAME='{1}'", (Database as Oracle).Owner.ToUpper(), tableName);
+            if (String.IsNullOrEmpty(tableName)) return 0;
+
+            Int32 p = tableName.LastIndexOf(".");
+            if (p >= 0 && p < tableName.Length - 1) tableName = tableName.Substring(p + 1);
+            tableName = tableName.ToUpper();
+            var owner = (Database as Oracle).Owner.ToUpper();
+
+            String sql = String.Format("analyze table {0}.{1}  compute statistics", owner, tableName);
+            if ((Database as Oracle).NeedAnalyzeStatistics(tableName)) Execute(sql);
+
+            sql = String.Format("select NUM_ROWS from sys.all_indexes where TABLE_OWNER='{0}' and TABLE_NAME='{1}' and UNIQUENESS='UNIQUE'", owner, tableName);
             return ExecuteScalar<Int64>(sql);
         }
 
@@ -390,12 +422,12 @@ namespace XCode.DataAccessLayer
             BeginTransaction();
             try
             {
-                Int64 rs = base.InsertAndGetIdentity(sql, type, ps);
+                Int64 rs = Execute(sql, type, ps);
                 if (rs > 0)
                 {
                     Match m = reg_SEQ.Match(sql);
                     if (m != null && m.Success && m.Groups != null && m.Groups.Count > 0)
-                        rs = ExecuteScalar<Int64>(String.Format("Select {0}.currval", m.Groups[1].Value));
+                        rs = ExecuteScalar<Int64>(String.Format("Select {0}.currval From dual", m.Groups[1].Value));
                 }
                 Commit();
                 return rs;
@@ -692,6 +724,14 @@ namespace XCode.DataAccessLayer
                         field.DataType = typeof(Double);
                 }
             }
+
+            // 长度
+            Int32 len = 0;
+            if (TryGetDataRowValue<Int32>(drColumn, "LENGTHINCHARS", out len) && len > 0) field.Length = len;
+
+            // 字节数
+            len = 0;
+            if (TryGetDataRowValue<Int32>(drColumn, "LENGTH", out len) && len > 0) field.NumOfByte = len;
         }
 
         protected override string GetFieldType(IDataColumn field)
@@ -877,9 +917,28 @@ namespace XCode.DataAccessLayer
             return sql + "; " + Environment.NewLine + sqlSeq;
         }
 
+        public override String AddColumnSQL(IDataColumn field)
+        {
+            if (String.IsNullOrEmpty(Owner))
+                return String.Format("Alter Table {0} Add {1}", FormatName(field.Table.Name), FieldClause(field, true));
+            else
+                return String.Format("Alter Table {2}.{0} Add {1}", FormatName(field.Table.Name), FieldClause(field, true), Owner);
+        }
+
         public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
-            return String.Format("Alter Table {0} Modify Column {1}", FormatName(field.Table.Name), FieldClause(field, false));
+            if (String.IsNullOrEmpty(Owner))
+                return String.Format("Alter Table {0} Modify {1}", FormatName(field.Table.Name), FieldClause(field, false));
+            else
+                return String.Format("Alter Table {2}.{0} Modify {1}", FormatName(field.Table.Name), FieldClause(field, false), Owner);
+        }
+
+        public override String DropColumnSQL(IDataColumn field)
+        {
+            if (String.IsNullOrEmpty(Owner))
+                return String.Format("Alter Table {0} Drop Column {1}", FormatName(field.Table.Name), field.Name);
+            else
+                return String.Format("Alter Table {2}.{0} Drop Column {1}", FormatName(field.Table.Name), field.Name, Owner);
         }
 
         public override string AddTableDescriptionSQL(IDataTable table)

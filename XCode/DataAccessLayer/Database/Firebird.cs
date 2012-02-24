@@ -218,7 +218,7 @@ namespace XCode.DataAccessLayer
             BeginTransaction();
             try
             {
-                Int64 rs = base.InsertAndGetIdentity(sql, type, ps);
+                Int64 rs = Execute(sql, type, ps);
                 if (rs > 0)
                 {
                     Match m = reg_SEQ.Match(sql);

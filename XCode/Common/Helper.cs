@@ -105,10 +105,12 @@ namespace XCode.Common
             StringBuilder sb = new StringBuilder();
             int count = Math.Min(maxNum, st.FrameCount);
             Type last = null;
+            var entry = Assembly.GetEntryAssembly().EntryPoint;
             for (int i = 0; i < count; i++)
             {
                 StackFrame sf = st.GetFrame(i);
                 MethodBase method = sf.GetMethod();
+
                 String name = method.ToString();
                 // 去掉前面的返回类型
                 if (name.Contains(" ")) name = name.Substring(name.IndexOf(" ") + 1);
@@ -122,6 +124,9 @@ namespace XCode.Common
                 if (i < count - 1) sb.Append("<-");
 
                 last = type;
+
+                // 如果到达了入口点，可以结束了
+                if (method == entry) break;
             }
             return sb.ToString();
         }
