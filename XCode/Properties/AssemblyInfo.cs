@@ -52,7 +52,7 @@ using System.Runtime.InteropServices;
  * /
 
 /*
- * v8.4.2012.0224   修正DbSession.InsertAndGetIdentity永远返回0的错误，该错误于20110224产生，影响Oracle和Firebird
+ * v8.4.2012.0224   修正DbSession.InsertAndGetIdentity永远返回0的错误，该错误于20110224产生，影响Oracle和Firebird，感谢 @老徐（279504479）
  * 
  * v8.4.2012.0221   增加排序表达式OrderExpression，字段FieldItem增加排序的Asc和Desc
  * 
