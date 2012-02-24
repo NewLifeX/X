@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using NewLife.Log;
 
 namespace NewLife.Net.Sockets
 {
@@ -118,6 +119,8 @@ namespace NewLife.Net.Sockets
 
         void IDisposable.Dispose()
         {
+            XTrace.WriteLine("{0}被抛弃！{1}", RemoteIPEndPoint, LastOperation);
+
             _buffer = null;
 
             base.Dispose();

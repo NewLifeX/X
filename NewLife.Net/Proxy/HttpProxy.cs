@@ -168,60 +168,58 @@ namespace NewLife.Net.Proxy
             protected virtual Boolean OnRequest(HttpHeader entity, NetEventArgs e, Stream stream)
             {
                 var host = "";
-                if (entity.Url.IsAbsoluteUri)
+                // 特殊处理CONNECT
+                if (entity.Method.EqualIgnoreCase("CONNECT"))
                 {
-                    // 特殊处理CONNECT
-                    if (entity.Method.EqualIgnoreCase("CONNECT"))
+                    WriteLog("{3}请求：{0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength, ID);
+
+                    host = entity.Url.ToString();
+                    RemoteEndPoint = NetHelper.ParseEndPoint(entity.Url.ToString(), 80);
+
+                    // 不要连自己，避免死循环
+                    if (RemoteEndPoint.Port == Proxy.Server.Port &&
+                        (RemoteEndPoint.Address == IPAddress.Loopback || RemoteEndPoint.Address == IPAddress.IPv6Loopback))
                     {
-                        WriteLog("{3}请求：{0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength, ID);
-
-                        host = entity.Url.ToString();
-                        RemoteEndPoint = NetHelper.ParseEndPoint(entity.Url.ToString(), 80);
-
-                        // 不要连自己，避免死循环
-                        if (RemoteEndPoint.Port == Proxy.Server.Port &&
-                            (RemoteEndPoint.Address == IPAddress.Loopback || RemoteEndPoint.Address == IPAddress.IPv6Loopback))
-                        {
-                            this.Dispose();
-                            return false;
-                        }
-
-                        var rs = new HttpHeader();
-                        rs.Version = entity.Version;
-                        try
-                        {
-                            // 连接远程服务器，启动数据交换
-                            if (Remote == null) StartRemote(e);
-
-                            rs.StatusCode = 200;
-                            rs.StatusDescription = "OK";
-                        }
-                        catch (Exception ex)
-                        {
-                            rs.StatusCode = 500;
-                            rs.StatusDescription = ex.Message;
-                        }
-
-                        Session.Send(rs.GetStream(), ClientEndPoint);
+                        this.Dispose();
                         return false;
                     }
-                    else
+
+                    var rs = new HttpHeader();
+                    rs.Version = entity.Version;
+                    try
                     {
-                        var uri = entity.Url;
-                        host = uri.Host + ":" + uri.Port;
+                        // 连接远程服务器，启动数据交换
+                        if (Remote == null) StartRemote(e);
 
-                        // 如果地址或端口改变，则重新连接服务器
-                        if (Remote != null && (uri.Host != LastHost || uri.Port != LastPort))
-                        {
-                            Remote.Dispose();
-                            Remote = null;
-                        }
-                        LastHost = uri.Host;
-                        LastPort = uri.Port;
-
-                        RemoteEndPoint = new IPEndPoint(NetHelper.ParseAddress(uri.Host), uri.Port);
-                        entity.Url = new Uri(uri.PathAndQuery, UriKind.Relative);
+                        rs.StatusCode = 200;
+                        rs.StatusDescription = "OK";
                     }
+                    catch (Exception ex)
+                    {
+                        rs.StatusCode = 500;
+                        rs.StatusDescription = ex.Message;
+                    }
+
+                    Session.Send(rs.GetStream(), ClientEndPoint);
+                    return false;
+                }
+
+                if (entity.Url.IsAbsoluteUri)
+                {
+                    var uri = entity.Url;
+                    host = uri.Host + ":" + uri.Port;
+
+                    // 如果地址或端口改变，则重新连接服务器
+                    if (Remote != null && (uri.Host != LastHost || uri.Port != LastPort))
+                    {
+                        Remote.Dispose();
+                        Remote = null;
+                    }
+                    LastHost = uri.Host;
+                    LastPort = uri.Port;
+
+                    RemoteEndPoint = new IPEndPoint(NetHelper.ParseAddress(uri.Host), uri.Port);
+                    entity.Url = new Uri(uri.PathAndQuery, UriKind.Relative);
                 }
                 else if (!String.IsNullOrEmpty(entity.Host))
                 {
