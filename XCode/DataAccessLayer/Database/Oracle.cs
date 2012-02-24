@@ -457,36 +457,39 @@ namespace XCode.DataAccessLayer
         /// 取得所有表构架
         /// </summary>
         /// <returns></returns>
-        protected override List<IDataTable> OnGetTables()
+        protected override List<IDataTable> OnGetTables(ICollection<String> names)
         {
-            try
+            DataTable dt = null;
+
+            // 采用集合过滤，提高效率
+            String tableName = null;
+            if (names != null && names.Count > 0) tableName = names.FirstOrDefault();
+            if (String.IsNullOrEmpty(tableName))
+                tableName = null;
+            else
+                tableName = tableName.ToUpper();
+
+            if (IsUseOwner)
             {
-                //- 不要空，否则会死得很惨，列表所有数据表，实在太多了
-                //if (String.Equals(user, "system")) user = null;
+                dt = GetSchema(_.Tables, new String[] { Owner, tableName });
 
-                DataTable dt = null;
-
-                if (IsUseOwner)
-                {
-                    dt = GetSchema(_.Tables, new String[] { Owner, null });
-
-                    if (_columns == null) _columns = GetSchema(_.Columns, new String[] { Owner, null, null });
-                    if (_indexes == null) _indexes = GetSchema(_.Indexes, new String[] { Owner, null, null, null });
-                    if (_indexColumns == null) _indexColumns = GetSchema(_.IndexColumns, new String[] { Owner, null, null, null, null });
-                }
-                else
+                if (_columns == null) _columns = GetSchema(_.Columns, new String[] { Owner, tableName, null });
+                if (_indexes == null) _indexes = GetSchema(_.Indexes, new String[] { Owner, null, Owner, tableName });
+                if (_indexColumns == null) _indexColumns = GetSchema(_.IndexColumns, new String[] { Owner, null, Owner, tableName, null });
+            }
+            else
+            {
+                if (String.IsNullOrEmpty(tableName))
                     dt = GetSchema(_.Tables, null);
-
-                // 默认列出所有字段
-                DataRow[] rows = new DataRow[dt.Rows.Count];
-                dt.Rows.CopyTo(rows, 0);
-                return GetTables(rows);
-
+                else
+                    dt = GetSchema(_.Tables, new String[] { null, tableName });
             }
-            catch (DbException ex)
-            {
-                throw new XDbMetaDataException(this, "取得所有表构架出错！", ex);
-            }
+
+            // 默认列出所有字段
+            DataRow[] rows = OnGetTables(names, dt.Rows);
+            if (rows == null || rows.Length < 1) return null;
+
+            return GetTables(rows);
         }
 
         protected override void FixTable(IDataTable table, DataRow dr)

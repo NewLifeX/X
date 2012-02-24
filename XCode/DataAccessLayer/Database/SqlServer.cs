@@ -340,7 +340,7 @@ namespace XCode.DataAccessLayer
         /// 取得所有表构架
         /// </summary>
         /// <returns></returns>
-        protected override List<IDataTable> OnGetTables()
+        protected override List<IDataTable> OnGetTables(ICollection<String> names)
         {
             #region 查表说明、字段信息、索引信息
             IDbSession session = Database.CreateSession();
@@ -373,6 +373,9 @@ namespace XCode.DataAccessLayer
 
             // 列出用户表
             DataRow[] rows = dt.Select(String.Format("{0}='BASE TABLE' Or {0}='VIEW'", "TABLE_TYPE"));
+            rows = OnGetTables(names, rows);
+            if (rows == null || rows.Length < 1) return null;
+
             List<IDataTable> list = GetTables(rows);
             if (list == null || list.Count < 1) return list;
 

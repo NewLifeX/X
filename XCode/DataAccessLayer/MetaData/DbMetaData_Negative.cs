@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text;
 using NewLife.Linq;
+using NewLife.Collections;
 
 namespace XCode.DataAccessLayer
 {
@@ -113,7 +114,7 @@ namespace XCode.DataAccessLayer
         {
             // 数据库表进入字典
             Dictionary<String, IDataTable> dic = new Dictionary<String, IDataTable>(StringComparer.OrdinalIgnoreCase);
-            List<IDataTable> dbtables = GetTables();
+            List<IDataTable> dbtables = OnGetTables(new HashSet<String>(tables.Select(t => t.Name), StringComparer.OrdinalIgnoreCase));
             if (dbtables != null && dbtables.Count > 0)
             {
                 foreach (IDataTable item in dbtables)

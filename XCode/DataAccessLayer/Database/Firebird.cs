@@ -247,25 +247,15 @@ namespace XCode.DataAccessLayer
         /// 取得所有表构架
         /// </summary>
         /// <returns></returns>
-        protected override List<IDataTable> OnGetTables()
+        protected override List<IDataTable> OnGetTables(ICollection<String> names)
         {
-            try
-            {
-                //- 不要空，否则会死得很惨，列表所有数据表，实在太多了
-                //if (String.Equals(user, "system")) user = null;
+            DataTable dt = GetSchema(_.Tables, new String[] { null, null, null, "TABLE" });
 
-                DataTable dt = GetSchema(_.Tables, new String[] { null, null, null, "TABLE" });
+            // 默认列出所有字段
+            DataRow[] rows = OnGetTables(names, dt.Rows);
+            if (rows == null || rows.Length < 1) return null;
 
-                // 默认列出所有字段
-                DataRow[] rows = new DataRow[dt.Rows.Count];
-                dt.Rows.CopyTo(rows, 0);
-                return GetTables(rows);
-
-            }
-            catch (DbException ex)
-            {
-                throw new XDbMetaDataException(this, "取得所有表构架出错！", ex);
-            }
+            return GetTables(rows);
         }
 
         protected override string GetFieldType(IDataColumn field)

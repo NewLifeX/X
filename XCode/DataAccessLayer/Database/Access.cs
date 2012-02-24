@@ -252,13 +252,16 @@ namespace XCode.DataAccessLayer
     class AccessMetaData : FileDbMetaData
     {
         #region 构架
-        protected override List<IDataTable> OnGetTables()
+        protected override List<IDataTable> OnGetTables(ICollection<String> names)
         {
             DataTable dt = GetSchema(_.Tables, null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
             // 默认列出所有字段
             DataRow[] rows = dt.Select(String.Format("{0}='Table' Or {0}='View'", "TABLE_TYPE"));
+            rows = OnGetTables(names, rows);
+            if (rows == null || rows.Length < 1) return null;
+
             return GetTables(rows);
         }
 

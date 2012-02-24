@@ -53,6 +53,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v8.4.2012.0224   修正DbSession.InsertAndGetIdentity永远返回0的错误，该错误于20110224产生，影响Oracle和Firebird，感谢 @老徐（279504479）
+ *                  针对性优化元数据架构，优化正向工程、反向工程的性能，获取单表模型信息时，仅获取该表架构信息，对Oracle反向工程性能提升较大
  * 
  * v8.4.2012.0221   增加排序表达式OrderExpression，字段FieldItem增加排序的Asc和Desc
  * 
