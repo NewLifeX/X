@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:template match="/">
-    <xsl:apply-templates select="XmlTreeMenuRoot/Nodes"/>
+    <xsl:apply-templates select="TreeMenuRoot/Nodes"/>
   </xsl:template>
-  <xsl:template match="XmlTreeMenuRoot/Nodes">
-    <xsl:apply-templates select="XmlTreeNode"/>
+  <xsl:template match="TreeMenuRoot/Nodes">
+    <xsl:apply-templates select="TreeMenuNode"/>
   </xsl:template>
-  <xsl:template match="XmlTreeNode">
+  <xsl:template match="TreeMenuNode">
     <div onclick="clickOnEntity(this,event);" onselectstart="return false" ondragstart="return false" class="node_box">
       <xsl:attribute name="class">
         <xsl:if test="count(ancestor::*)=2">
@@ -62,7 +62,7 @@
           </td>
         </tr>
       </table>
-      <xsl:apply-templates select="Childs/XmlTreeNode"/>
+      <xsl:apply-templates select="Childs/TreeMenuNode"/>
     </div>
   </xsl:template>
 
