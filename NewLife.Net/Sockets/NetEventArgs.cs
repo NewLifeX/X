@@ -11,7 +11,7 @@ namespace NewLife.Net.Sockets
     public class NetEventArgs : SocketAsyncEventArgs, IDisposable
     {
         #region 属性
-#if DEBUG
+        //#if DEBUG
         static Int32 _gid;
 
         private Int32 _ID;
@@ -25,7 +25,7 @@ namespace NewLife.Net.Sockets
         {
             ID = ++_gid;
         }
-#endif
+        //#endif
         private Int32 _Times;
         /// <summary>使用次数</summary>
         public Int32 Times { get { return _Times; } set { _Times = value; } }
@@ -196,11 +196,11 @@ namespace NewLife.Net.Sockets
             //return String.Format("[{0}]{1}", LastOperation, GetString());
 
             if (Error != null)
-                return String.Format("[{0}]{1}", LastOperation, Error.Message);
+                return String.Format("[{0}]{1} {2}", ID, LastOperation, Error.Message);
             else if (SocketError != SocketError.Success)
-                return String.Format("[{0}]{1}", LastOperation, SocketError);
+                return String.Format("[{0}]{1} {2}", ID, LastOperation, SocketError);
             else
-                return String.Format("[{0}]BytesTransferred={1}", LastOperation, BytesTransferred);
+                return String.Format("[{0}]{1} BytesTransferred={2}", ID, LastOperation, BytesTransferred);
         }
         #endregion
     }

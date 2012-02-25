@@ -67,6 +67,7 @@
     <Compile Include="FTP\FTPTransferMode.cs" />
     <Compile Include="Http\ByteParser.cs" />
     <Compile Include="Http\ByteString.cs" />
+    <Compile Include="Http\HttpCache.cs" />
     <Compile Include="Http\HttpServer.cs" />
     <Compile Include="Http\HttpSession.cs" />
     <Compile Include="Http\Messages.cs" />
