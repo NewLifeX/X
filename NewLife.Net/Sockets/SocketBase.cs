@@ -9,6 +9,8 @@ using NewLife.Exceptions;
 using NewLife.Net.Common;
 using NewLife.Reflection;
 using NewLife.Threading;
+using System.Diagnostics;
+using System.Text;
 
 namespace NewLife.Net.Sockets
 {
@@ -243,6 +245,9 @@ namespace NewLife.Net.Sockets
             var e = new SocketAsyncEventArgs();
             e.Dispose();
         }
+
+        /// <summary>实例化</summary>
+        public SocketBase() { SetShowEventLog(); }
         #endregion
 
         #region 释放资源
@@ -297,7 +302,7 @@ namespace NewLife.Net.Sockets
         /// <summary>确保创建基础Socket对象</summary>
         protected virtual void EnsureCreate()
         {
-            if (Socket != null) return;
+            if (Socket != null || Disposed) return;
 
             switch (ProtocolType)
             {
@@ -393,7 +398,7 @@ namespace NewLife.Net.Sockets
 
         private Int32 _AsyncCount;
         /// <summary>异步操作计数</summary>
-        public Int32 AsyncCount { get { return _AsyncCount; } set { _AsyncCount = value; } }
+        public Int32 AsyncCount { get { return _AsyncCount; } /*set { _AsyncCount = value; }*/ }
 
         /// <summary>开始异步操作</summary>
         /// <param name="callback"></param>
@@ -416,7 +421,8 @@ namespace NewLife.Net.Sockets
                 if (!callback(e)) RaiseCompleteAsync(e);
 
                 // 异步开始，增加一个计数
-                AsyncCount++;
+                //AsyncCount++;
+                Interlocked.Increment(ref _AsyncCount);
             }
             catch
             {
@@ -489,7 +495,8 @@ namespace NewLife.Net.Sockets
         private void OnCompleted(Object sender, SocketAsyncEventArgs e)
         {
             // 异步完成，减少一个计数
-            AsyncCount--;
+            //AsyncCount--;
+            Interlocked.Decrement(ref _AsyncCount);
 
             if (e is NetEventArgs)
                 RaiseComplete(e as NetEventArgs);
@@ -504,19 +511,8 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         protected void RaiseComplete(NetEventArgs e)
         {
-#if DEBUG
-            //WriteLog("Completed[{4}] {0} {1} {2} [{3}]", this, e.LastOperation, e.SocketError, e.BytesTransferred, e.ID);
-            var sb = new System.Text.StringBuilder();
-            sb.AppendFormat("[{0}] {1}://{2}", e.ID, ProtocolType, LocalEndPoint);
-            var ep = e.RemoteIPEndPoint;
-            if (ep == null || ep.Address.IsAny()) ep = RemoteEndPoint;
-            if ((ep == null || ep.Address.IsAny()) && e.LastOperation == SocketAsyncOperation.Accept && e.AcceptSocket != null) ep = e.AcceptSocket.RemoteEndPoint as IPEndPoint;
-            if (ep != null && !ep.Address.IsAny()) sb.AppendFormat("=>{0}", ep);
-            sb.AppendFormat(" {0}", e.LastOperation);
-            if (e.SocketError != SocketError.Success) sb.AppendFormat(" {0}", e.SocketError);
-            sb.AppendFormat(" [{0}]", e.BytesTransferred);
-            WriteLog(sb.ToString());
-#endif
+            if (ShowEventLog && EnableLog) ShowEvent(e);
+
             try
             {
                 if (Completed != null)
@@ -536,6 +532,28 @@ namespace NewLife.Net.Sockets
                 // 都是在线程池线程里面了，不要往外抛出异常
                 //throw;
             }
+        }
+
+        private Boolean _ShowEventLog;
+        /// <summary>是否显示事件日志</summary>
+        public Boolean ShowEventLog { get { return _ShowEventLog; } set { _ShowEventLog = value; } }
+
+        [Conditional("DEBUG")]
+        void SetShowEventLog() { ShowEventLog = true; }
+
+        void ShowEvent(NetEventArgs e)
+        {
+            //WriteLog("Completed[{4}] {0} {1} {2} [{3}]", this, e.LastOperation, e.SocketError, e.BytesTransferred, e.ID);
+            var sb = new StringBuilder();
+            sb.AppendFormat("[{0}] {1}://{2}", e.ID, ProtocolType, LocalEndPoint);
+            var ep = e.RemoteIPEndPoint;
+            if (ep == null || ep.Address.IsAny()) ep = RemoteEndPoint;
+            if ((ep == null || ep.Address.IsAny()) && e.LastOperation == SocketAsyncOperation.Accept && e.AcceptSocket != null) ep = e.AcceptSocket.RemoteEndPoint as IPEndPoint;
+            if (ep != null && !ep.Address.IsAny()) sb.AppendFormat("=>{0}", ep);
+            sb.AppendFormat(" {0}", e.LastOperation);
+            if (e.SocketError != SocketError.Success) sb.AppendFormat(" {0}", e.SocketError);
+            sb.AppendFormat(" [{0}]", e.BytesTransferred);
+            WriteLog(sb.ToString());
         }
 
         /// <summary>异步触发完成事件处理程序</summary>
@@ -659,15 +677,14 @@ namespace NewLife.Net.Sockets
         #region 辅助
         /// <summary>检查缓冲区大小</summary>
         /// <param name="e"></param>
+        [Conditional("DEBUG")]
         internal protected void CheckBufferSize(NetEventArgs e)
         {
-#if DEBUG
-            Int32 n = e.BytesTransferred;
-            if (n >= e.Buffer.Length || ProtocolType == ProtocolType.Tcp && n >= 1452 || ProtocolType == ProtocolType.Udp && n >= 1464)
-            {
-                WriteLog("接收的实际数据大小{0}超过了缓冲区大小，需要根据真实MTU调整缓冲区大小以提高效率！", n);
-            }
-#endif
+            //Int32 n = e.BytesTransferred;
+            //if (n >= e.Buffer.Length || ProtocolType == ProtocolType.Tcp && n >= 1452 || ProtocolType == ProtocolType.Udp && n >= 1464)
+            //{
+            //    WriteLog("接收的实际数据大小{0}超过了缓冲区大小，需要根据真实MTU调整缓冲区大小以提高效率！", n);
+            //}
         }
 
         /// <summary>已重载。</summary>

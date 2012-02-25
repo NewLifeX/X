@@ -67,24 +67,33 @@ namespace NewLife.Net.Tcp
         {
             if (_dic.Count < 1) return;
 
+            var keys = new List<Int32>();
+            var values = new List<ISocketSession>();
             lock (_dic)
             {
                 if (_dic.Count < 1) return;
 
                 Int32 notactive = Server != null ? Server.MaxNotActive : 0;
-                var list = new List<Int32>();
                 // 这里可能有问题，曾经见到，_list有元素，但是value为null，这里居然没有进行遍历而直接跳过
                 // 操作这个字典的时候，必须加锁，否则就会数据错乱，成了这个样子，无法枚举
                 foreach (var elm in _dic)
                 {
                     var item = elm.Value;
                     //if (item == null || item.Disposed || item.Socket == null) list.Add(elm.Key);
-                    if (item == null || item.Disposed || notactive > 0 && item.Statistics.Last.AddSeconds(notactive) < DateTime.Now) list.Add(elm.Key);
+                    if (item == null || item.Disposed || notactive > 0 && item.Statistics.Last.AddSeconds(notactive) < DateTime.Now)
+                    {
+                        keys.Add(elm.Key);
+                        values.Add(elm.Value);
+                    }
                 }
-                foreach (var item in list)
+                foreach (var item in keys)
                 {
                     _dic.Remove(item);
                 }
+            }
+            foreach (var item in values)
+            {
+                item.Dispose();
             }
         }
 

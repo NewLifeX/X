@@ -19,6 +19,22 @@ namespace NewLife
     }
 
     /// <summary>具有销毁资源处理的抽象基类</summary>
+    /// <example>
+    /// <code>
+    /// /// &lt;summary&gt;子类重载实现资源释放逻辑时必须首先调用基类方法&lt;/summary&gt;
+    /// /// &lt;param name="disposing"&gt;从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
+    /// /// 因为该方法只会被调用一次，所以该参数的意义不太大。&lt;/param&gt;
+    /// protected override void OnDispose(bool disposing)
+    /// {
+    ///     base.OnDispose(disposing);
+    /// 
+    ///     if (disposing)
+    ///     {
+    ///         // 如果是构造函数进来，不执行这里的代码
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
     public abstract class DisposeBase : CriticalFinalizerObject, IDisposable2
     {
         #region 释放资源
@@ -65,7 +81,8 @@ namespace NewLife
         }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
-        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
+        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
+        /// 因为该方法只会被调用一次，所以该参数的意义不太大。</param>
         protected virtual void OnDispose(Boolean disposing)
         {
             // 只有从Dispose中调用，才有可能是1

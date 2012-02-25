@@ -17,7 +17,7 @@ namespace NewLife.Net.Application
             Name = "Time服务";
         }
 
-        static readonly DateTime StartTime = new DateTime(1970, 1, 1);
+        static readonly DateTime STARTTIME = new DateTime(1970, 1, 1);
 
         /// <summary>
         /// 已重载。
@@ -33,7 +33,7 @@ namespace NewLife.Net.Application
 
                 base.OnAccepted(sender, e);
 
-                TimeSpan ts = DateTime.Now - StartTime;
+                TimeSpan ts = DateTime.Now - STARTTIME;
                 Int32 s = (Int32)ts.TotalSeconds;
                 // 因为要发往网络，这里调整网络字节序
                 s = IPAddress.HostToNetworkOrder(s);

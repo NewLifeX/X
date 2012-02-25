@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using NewLife.Net.Common;
 using NewLife.Net.Sockets;
+using NewLife.Linq;
 
 namespace NewLife.Net.Tcp
 {
@@ -244,18 +245,22 @@ namespace NewLife.Net.Tcp
             // 释放托管资源
             if (disposing)
             {
-                if (_Sessions != null)
+                var sessions = _Sessions;
+                if (sessions != null)
                 {
-                    //try
+                    _Sessions = null;
+
+                    WriteLog("准备释放Tcp会话{0}个！", sessions.Count);
+                    if (sessions is IDisposable)
+                        (sessions as IDisposable).Dispose();
+                    else
                     {
-                        WriteLog("准备释放会话{0}个！", _Sessions.Count);
-                        if (_Sessions is IDisposable)
-                            (_Sessions as IDisposable).Dispose();
-                        else
-                            _Sessions.Clear();
-                        _Sessions = null;
+                        foreach (var item in sessions.Values.ToArray())
+                        {
+                            item.Dispose();
+                        }
+                        sessions.Clear();
                     }
-                    //catch { }
                 }
             }
         }

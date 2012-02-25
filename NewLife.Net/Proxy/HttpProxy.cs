@@ -171,6 +171,11 @@ namespace NewLife.Net.Proxy
             String LastHost;
             Int32 LastPort;
 
+            /// <summary>
+            /// 是否保持连接
+            /// </summary>
+            Boolean KeepAlive = false;
+
             /// <summary>收到请求时</summary>
             /// <param name="entity"></param>
             /// <param name="e"></param>
@@ -182,6 +187,7 @@ namespace NewLife.Net.Proxy
                 var oriUrl = entity.Url;
 
                 // 特殊处理CONNECT
+                #region 特殊处理CONNECT
                 if (entity.Method.EqualIgnoreCase("CONNECT"))
                 {
                     WriteLog("请求：{0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength);
@@ -217,6 +223,7 @@ namespace NewLife.Net.Proxy
                     if (session != null) session.Send(rs.GetStream(), ClientEndPoint);
                     return false;
                 }
+                #endregion
 
                 if (entity.Url.IsAbsoluteUri)
                 {
@@ -248,10 +255,13 @@ namespace NewLife.Net.Proxy
                 if (String.IsNullOrEmpty(entity.Host)) entity.Host = host;
 
                 // 处理KeepAlive
+                KeepAlive = false;
                 if (!String.IsNullOrEmpty(entity.ProxyConnection))
                 {
                     entity.KeepAlive = entity.ProxyKeepAlive;
                     entity.ProxyConnection = null;
+
+                    KeepAlive = entity.ProxyKeepAlive;
                 }
 
                 return true;
@@ -333,6 +343,14 @@ namespace NewLife.Net.Proxy
                 }
 
                 return base.OnReceiveRemote(e, stream);
+            }
+
+            /// <summary>远程连接断开时触发。默认销毁整个会话，子类可根据业务情况决定客户端与代理的链接是否重用。</summary>
+            /// <param name="client"></param>
+            protected override void OnRemoteDispose(ISocketClient client)
+            {
+                // 如果客户端不要求保持连接，就销毁吧
+                if (!KeepAlive) base.OnRemoteDispose(client);
             }
         }
         #endregion

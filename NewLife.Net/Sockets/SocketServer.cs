@@ -38,6 +38,15 @@ namespace NewLife.Net.Sockets
         /// <param name="hostname"></param>
         /// <param name="port"></param>
         public SocketServer(String hostname, Int32 port) : this(NetHelper.ParseAddress(hostname), port) { }
+
+        /// <summary>已重载。释放会话集合等资源</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            Stop();
+        }
         #endregion
 
         #region 开始停止

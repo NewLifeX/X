@@ -6,6 +6,7 @@ using System.Text;
 using NewLife.Model;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
+using NewLife.Linq;
 
 namespace NewLife.Net.Sockets
 {
@@ -110,6 +111,43 @@ namespace NewLife.Net.Sockets
         /// <param name="port"></param>
         /// <param name="protocolType"></param>
         public NetServer(IPAddress address, Int32 port, ProtocolType protocolType) : this(address, port) { ProtocolType = protocolType; }
+
+        /// <summary>已重载。释放会话集合等资源</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            // 释放托管资源
+            if (disposing)
+            {
+                var sessions = _Sessions;
+                if (sessions != null)
+                {
+                    _Sessions = null;
+
+                    WriteLog("准备释放网络会话{0}个！", sessions.Count);
+                    foreach (var item in sessions.Values.ToArray())
+                    {
+                        item.Dispose();
+                    }
+                    sessions.Clear();
+                }
+
+                var severs = _Servers;
+                if (severs != null)
+                {
+                    _Servers = null;
+
+                    WriteLog("准备释放服务{0}个！", severs.Count);
+                    foreach (var item in severs)
+                    {
+                        item.Dispose();
+                    }
+                    severs.Clear();
+                }
+            }
+        }
         #endregion
 
         #region 创建
@@ -218,40 +256,6 @@ namespace NewLife.Net.Sockets
 
         /// <summary>停止时调用的方法</summary>
         protected virtual void OnStop() { Dispose(); }
-
-        /// <summary>子类重载实现资源释放逻辑</summary>
-        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
-        protected override void OnDispose(bool disposing)
-        {
-            base.OnDispose(disposing);
-
-            // 释放托管资源
-            //if (disposing)
-            {
-                //if (Server != null) Server.Stop();
-                foreach (var item in Servers)
-                {
-                    item.Stop();
-                }
-            }
-
-            var ss = _Sessions;
-            if (ss != null)
-            {
-                _Sessions = null;
-                if (ss.Count > 0)
-                {
-                    // 必须先复制到数组，因为会话销毁的时候，会自动从集合中删除，从而引起集合枚举失败
-                    var ns = new NetSession[ss.Count];
-                    ss.Values.CopyTo(ns, 0);
-                    ss.Clear();
-                    foreach (var item in ns)
-                    {
-                        item.Dispose();
-                    }
-                }
-            }
-        }
         #endregion
 
         #region 业务
@@ -322,6 +326,7 @@ namespace NewLife.Net.Sockets
             var dic = Sessions;
             lock (dic)
             {
+                // sessionID变大后，可能达到最大值，然后变为-1，再变为0，所以不用担心
                 session.ID = ++sessionID;
                 if (session.Host == null) session.Host = this;
                 session.OnDisposed += (s, e) => { lock (dic) { dic.Remove((s as INetSession).ID); } };

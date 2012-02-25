@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -101,8 +102,16 @@ namespace NewLife.Net.Proxy
             {
                 var client = CreateRemote(e);
                 if (client.ProtocolType == ProtocolType.Tcp && !client.Client.Connected) client.Connect(RemoteEndPoint);
+                client.OnDisposed += (s, e2) =>
+                {
+                    // 这个是必须清空的，是否需要保持会话呢，由OnRemoteDispose决定
+                    _Remote = null;
+                    OnRemoteDispose(s as ISocketClient);
+                };
                 client.Received += new EventHandler<NetEventArgs>(Remote_Received);
                 client.ReceiveAsync();
+
+                Debug.Assert(client.Client.Connected);
                 Remote = client;
             }
             catch (Exception ex)
@@ -122,6 +131,13 @@ namespace NewLife.Net.Proxy
             var client = NetService.Resolve<ISocketClient>(RemoteProtocolType);
             if (RemoteEndPoint != null) client.AddressFamily = RemoteEndPoint.AddressFamily;
             return client;
+        }
+
+        /// <summary>远程连接断开时触发。默认销毁整个会话，子类可根据业务情况决定客户端与代理的链接是否重用。</summary>
+        /// <param name="client"></param>
+        protected virtual void OnRemoteDispose(ISocketClient client)
+        {
+            this.Dispose();
         }
 
         void Remote_Received(object sender, NetEventArgs e)
