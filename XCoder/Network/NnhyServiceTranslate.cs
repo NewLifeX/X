@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
 using System.Web;
+using NewLife.Log;
 using NewLife.ServiceLib;
 using NewLife.Xml;
 using TextTrans = NewLife.ServiceLib.TranslateResult.TextTrans;
-using NewLife.Log;
 
 namespace XCoder
 {

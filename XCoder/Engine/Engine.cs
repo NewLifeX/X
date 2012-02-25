@@ -529,14 +529,9 @@ namespace XCoder
                 if (Config.AutoCutPrefix || !string.IsNullOrEmpty(Config.Prefix)) name = CutPrefix(name);
                 if (Config.AutoFixWord) name = FixWord(name);
                 table.Alias = name;
-                // 描述
-                if (Config.UseCNFileName)
-                {
-                    //if (String.IsNullOrEmpty(table.Description)) table.Description = ENameToCName(table.Alias);
 
-                    if (String.IsNullOrEmpty(table.Description)) noCNDic.Add(table, table.Alias);
+                if (String.IsNullOrEmpty(table.Description)) noCNDic.Add(table, table.Alias);
 
-                }
                 if (!String.IsNullOrEmpty(table.Description))
                 {
                     AddExistTranslate(existTrans, !string.IsNullOrEmpty(table.Alias) ? table.Alias : table.Name, table.Description);
@@ -564,14 +559,8 @@ namespace XCoder
 
                     dc.Alias = name;
 
-                    // 描述
-                    if (Config.UseCNFileName)
-                    {
-                        //if (String.IsNullOrEmpty(dc.Description)) dc.Description = Engine.ENameToCName(dc.Alias);
+                    if (String.IsNullOrEmpty(dc.Description)) noCNDic.Add(dc, dc.Alias);
 
-                        if (String.IsNullOrEmpty(dc.Description)) noCNDic.Add(dc, dc.Alias);
-
-                    }
                     if (!String.IsNullOrEmpty(dc.Description))
                     {
                         AddExistTranslate(existTrans, !string.IsNullOrEmpty(dc.Alias) ? dc.Alias : dc.Name, dc.Description);
@@ -583,16 +572,16 @@ namespace XCoder
             #endregion
 
             #region 异步调用接口修正中文名
-            if (Config.UseCNFileName && noCNDic.Count > 0)
+            //if (Config.UseCNFileName && noCNDic.Count > 0)
             {
-                ThreadPoolX.QueueUserWorkItem(TranslateWords, noCNDic, ex => XTrace.WriteException(ex));
+                ThreadPoolX.QueueUserWorkItem(TranslateWords, noCNDic);
             }
             #endregion
 
             #region 提交已翻译的项目
             if (existTrans.Count > 0)
             {
-                ThreadPoolX.QueueUserWorkItem(SubmitTranslateNew, existTrans.ToArray(), ex => XTrace.WriteException(ex));
+                ThreadPoolX.QueueUserWorkItem(SubmitTranslateNew, existTrans.ToArray());
             }
             #endregion
 
@@ -638,6 +627,7 @@ namespace XCoder
                     (item.Key as IDataColumn).Description = ts[item.Value];
             }
         }
+
         void SubmitTranslateNew(object state)
         {
             string[] existTrans = state as string[];
@@ -651,6 +641,7 @@ namespace XCoder
             }
 
         }
+
         private static string[] _ExistSubmitTrans;
         private static string[] ExistSubmitTrans
         {
@@ -683,6 +674,7 @@ namespace XCoder
                 }
             }
         }
+
         void AddExistTranslate(List<string> trans, string text, string tranText)
         {
             if (text != null) text = text.Trim();
@@ -712,45 +704,6 @@ namespace XCoder
             trans.Add(text);
             trans.Add(tranText);
         }
-        ///// <summary>
-        ///// 大写字母分词
-        ///// </summary>
-        ///// <param name="s"></param>
-        ///// <returns></returns>
-        //public static List<string> UpperCaseSplitWord(string s)
-        //{
-        //    String str = s;
-        //    List<string> ks = new List<string>();
-        //    StringBuilder sb = new StringBuilder();
-        //    for (int i = 0; i < str.Length; i++)
-        //    {
-        //        bool split = false;
-        //        // 如果不是小写，作为边界，检测是否拆分
-        //        if (!(str[i] >= 'a' && str[i] <= 'z'))
-        //        {
-        //            if (i > 0 && str[i - 1] >= 'a' && str[i - 1] <= 'z') // 前一个字符是小写
-        //            {
-        //                split = true;
-        //            }
-        //            else if (i + 1 < str.Length && str[i + 1] >= 'a' && str[i + 1] <= 'z') // 后一个字符是小写
-        //            {
-        //                split = true;
-        //            }
-        //        }
-        //        if (split && sb.Replace(" ", "").Replace("_", "").Replace("-", "").Length > 0) // StringBuilder的Replace会修改自身 所以下面可以直接ToString
-        //        {
-        //            ks.Add(sb.ToString());
-        //            sb.Remove(0, sb.Length);
-        //        }
-        //        sb.Append(str[i]);
-        //    }
-        //    if (sb.Length > 0)
-        //    {
-        //        ks.Add(sb.ToString());
-        //        sb.Remove(0, sb.Length);
-        //    }
-        //    return ks;
-        //}
         #endregion
 
         #region 静态

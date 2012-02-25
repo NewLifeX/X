@@ -54,11 +54,11 @@ namespace NewLife.Xml
         {
             get
             {
-                var s = Stream;
-                if (s != null) return s.Position == s.Length;
-
                 var r = Reader;
                 if (r != null) return r.EOF;
+
+                var s = Stream;
+                if (s != null) return s.Position == s.Length;
 
                 return false;
             }
