@@ -105,7 +105,8 @@ namespace XCode.Common
             StringBuilder sb = new StringBuilder();
             int count = Math.Min(maxNum, st.FrameCount);
             Type last = null;
-            var entry = Assembly.GetEntryAssembly().EntryPoint;
+            var asm = Assembly.GetEntryAssembly();
+            var entry = asm == null ? null : asm.EntryPoint;
             for (int i = 0; i < count; i++)
             {
                 StackFrame sf = st.GetFrame(i);
