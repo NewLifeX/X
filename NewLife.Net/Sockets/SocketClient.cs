@@ -62,7 +62,17 @@ namespace NewLife.Net.Sockets
         #region 异步开始
         /// <summary>开始异步接收数据</summary>
         /// <param name="e"></param>
-        public virtual void ReceiveAsync(NetEventArgs e = null) { StartAsync(Client.ReceiveAsync, e); }
+        public virtual void ReceiveAsync(NetEventArgs e = null)
+        {
+            // 这里居然在委托的CtorClosed方法里面报this为空对错误
+            StartAsync(ev =>
+            {
+                var client = Client;
+                if (client == null) return false;
+                return client.ReceiveAsync(ev);
+            }, e);
+        }
+        //public virtual void ReceiveAsync(NetEventArgs e = null) { StartAsync(Client.ReceiveAsync, e); }
         #endregion
 
         #region 事件
