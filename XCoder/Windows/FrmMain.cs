@@ -545,19 +545,26 @@ namespace XCoder
             XmlDocument doc = new XmlDocument();
             doc.Load(stream);
 
-            XmlNodeList nodes = doc.SelectNodes(@"//item");
+            var nm = new XmlNamespaceManager(doc.NameTable);
+            if (!String.IsNullOrEmpty(doc.DocumentElement.NamespaceURI)) nm.AddNamespace("ns", doc.DocumentElement.NamespaceURI);
+
+            XmlNodeList nodes = doc.SelectNodes(@"//ns:entry", nm);
+            //XmlNodeList nodes = doc.ChildNodes;
+            //if (nodes != null && nodes.Count < 5) nodes = nodes[nodes.Count - 1].ChildNodes;
             if (nodes != null && nodes.Count > 0)
             {
                 foreach (XmlNode item in nodes)
                 {
+                    if (item.Name != "entry") continue;
+
                     Article entity = new Article();
-                    entity.Title = item.SelectSingleNode("title").InnerText;
-                    entity.Link = item.SelectSingleNode("link").InnerText;
-                    entity.Description = item.SelectSingleNode("description").InnerText;
+                    entity.Title = item.SelectSingleNode("ns:title", nm).InnerText;
+                    entity.Link = item.SelectSingleNode("ns:link", nm).Attributes["href"].InnerText;
+                    entity.Description = item.SelectSingleNode("ns:summary", nm).InnerText;
 
                     try
                     {
-                        entity.PubDate = Convert.ToDateTime(item.SelectSingleNode("pubDate").InnerText);
+                        entity.PubDate = Convert.ToDateTime(item.SelectSingleNode("ns:published", nm).InnerText);
                     }
                     catch { }
 
@@ -605,6 +612,8 @@ namespace XCoder
 
                 linkLabel1.Text = entity.Title;
                 linkLabel1.Tag = entity.Link;
+
+                webBrowser1.DocumentText = entity.Description;
 
                 articleIndex++;
             }

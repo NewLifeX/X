@@ -50,6 +50,7 @@
             this.proc_percent = new System.Windows.Forms.ToolStripStatusLabel();
             this.bw = new System.ComponentModel.BackgroundWorker();
             this.gbConfig = new System.Windows.Forms.GroupBox();
+            this.btnShowCriterion = new System.Windows.Forms.Button();
             this.frmItems = new System.Windows.Forms.Button();
             this.cbRenderGenEntity = new System.Windows.Forms.CheckBox();
             this.btnRelease = new System.Windows.Forms.Button();
@@ -84,7 +85,6 @@
             this.label9 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
-            this.btnShowCriterion = new System.Windows.Forms.Button();
             this.gbConnect.SuspendLayout();
             this.gbTable.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -311,6 +311,16 @@
             this.gbConfig.TabIndex = 26;
             this.gbConfig.TabStop = false;
             // 
+            // btnShowCriterion
+            // 
+            this.btnShowCriterion.Location = new System.Drawing.Point(247, 237);
+            this.btnShowCriterion.Name = "btnShowCriterion";
+            this.btnShowCriterion.Size = new System.Drawing.Size(124, 23);
+            this.btnShowCriterion.TabIndex = 35;
+            this.btnShowCriterion.Text = "表名字段名命名规范";
+            this.btnShowCriterion.UseVisualStyleBackColor = true;
+            this.btnShowCriterion.Click += new System.EventHandler(this.btnShowCriterion_Click);
+            // 
             // frmItems
             // 
             this.frmItems.Location = new System.Drawing.Point(540, 46);
@@ -346,7 +356,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(19, 228);
+            this.label3.Location = new System.Drawing.Point(17, 243);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(143, 12);
             this.label3.TabIndex = 29;
@@ -356,7 +366,7 @@
             // linkLabel1
             // 
             this.linkLabel1.AutoSize = true;
-            this.linkLabel1.Location = new System.Drawing.Point(19, 248);
+            this.linkLabel1.Location = new System.Drawing.Point(17, 151);
             this.linkLabel1.Name = "linkLabel1";
             this.linkLabel1.Size = new System.Drawing.Size(143, 12);
             this.linkLabel1.TabIndex = 28;
@@ -395,7 +405,7 @@
             // 
             this.webBrowser1.AllowWebBrowserDrop = false;
             this.webBrowser1.IsWebBrowserContextMenuEnabled = false;
-            this.webBrowser1.Location = new System.Drawing.Point(11, 156);
+            this.webBrowser1.Location = new System.Drawing.Point(10, 171);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser1.Name = "webBrowser1";
             this.webBrowser1.ScrollBarsEnabled = false;
@@ -571,7 +581,7 @@
             // timer2
             // 
             this.timer2.Enabled = true;
-            this.timer2.Interval = 2000;
+            this.timer2.Interval = 5000;
             this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
             // 
             // timer1
@@ -606,16 +616,6 @@
             this.label12.Size = new System.Drawing.Size(179, 12);
             this.label12.TabIndex = 34;
             this.label12.Text = "1，连接数据库，得到数据表信息";
-            // 
-            // btnShowCriterion
-            // 
-            this.btnShowCriterion.Location = new System.Drawing.Point(249, 222);
-            this.btnShowCriterion.Name = "btnShowCriterion";
-            this.btnShowCriterion.Size = new System.Drawing.Size(124, 23);
-            this.btnShowCriterion.TabIndex = 35;
-            this.btnShowCriterion.Text = "表名字段名命名规范";
-            this.btnShowCriterion.UseVisualStyleBackColor = true;
-            this.btnShowCriterion.Click += new System.EventHandler(this.btnShowCriterion_Click);
             // 
             // FrmMain
             // 
