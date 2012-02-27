@@ -564,6 +564,25 @@ namespace NewLife.CommonEntity
         }
 
         /// <summary>
+        /// 获取目录层级
+        /// </summary>
+        /// <param name="dir"></param>
+        /// <returns></returns>
+        public static String GetPathForScan(String dir)
+        {
+            if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("dir");
+
+            // 要扫描的目录
+            String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dir);
+            if (!Directory.Exists(p)) return "";
+
+            //获取层级
+            String currentPath = "../../" + p.Replace(AppDomain.CurrentDomain.BaseDirectory, null);
+
+            return currentPath;
+        }
+
+        /// <summary>
         /// 扫描指定目录并添加文件到顶级菜单之下
         /// </summary>
         /// <param name="dir"></param>
@@ -574,40 +593,42 @@ namespace NewLife.CommonEntity
             if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("dir");
             if (top == null) throw new ArgumentNullException("top");
 
+            // 添加
+            Int32 num = 0;
+
             // 要扫描的目录
             String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dir);
-            if (!Directory.Exists(p)) return 0;
+            if (!Directory.Exists(p)) return num;
 
-            // 处理Default.aspx，该顶级目录下的首页，一般是工作台
-            String defFile = Path.Combine(p, "Default.aspx");
-            if (File.Exists(defFile))
-            {
-                if (String.IsNullOrEmpty(top.Url))
-                {
-                    top.Url = String.Format(@"../{0}/{1}", dir, Path.GetFileName(defFile));
-                    String title = GetPageTitle(defFile);
-                    if (!String.IsNullOrEmpty(title)) top.Name = top.Permission = title;
-                    top.Save();
-                }
-            }
+            //本意，获取目录名
+            String dirName = new DirectoryInfo(p).Name;
 
-            // 找到子级目录
+
+            if (dirName.Equals("Frame", StringComparison.OrdinalIgnoreCase)) return num;
+            //if (dirName.Equals("System", StringComparison.OrdinalIgnoreCase)) continue;
+            if (dirName.StartsWith("img", StringComparison.OrdinalIgnoreCase)) return num;
+
+            //本目录aspx页面
+            String[] fs = Directory.GetFiles(p, "*.aspx", SearchOption.TopDirectoryOnly);
+            //本目录子子录
             String[] dis = Directory.GetDirectories(p);
-            if (dis == null || dis.Length <= 0)
-                //return 0;
-                //没有子目录时，将自身设置为扫述目录
-                dis = new String[] { p };
+            //如没有页面和子目录
+            if ((fs == null || fs.Length < 1) && (dis == null || dis.Length < 1))
+                return num;
 
-            Int32 num = 0;
-            foreach (String item in dis)
+            //本目录菜单
+            TEntity parent = Find(_.Name, dirName);
+            if (parent == null) parent = Find(_.Remark, dirName);
+            if (parent == null)
             {
-                String dirName = new DirectoryInfo(item).Name;
-                if (dirName.Equals("Frame", StringComparison.OrdinalIgnoreCase)) continue;
-                //if (dirName.Equals("System", StringComparison.OrdinalIgnoreCase)) continue;
-                if (dirName.StartsWith("img", StringComparison.OrdinalIgnoreCase)) continue;
+                parent = top.AddChild(dirName, null, 0, dirName);
+                num++;
+            }
+            parent.Save();
 
-                String[] fs = Directory.GetFiles(item, "*.aspx", SearchOption.TopDirectoryOnly);
-                if (fs == null || fs.Length < 1) continue;
+            //aspx
+            if (fs != null && fs.Length > 1)
+            {
 
                 List<String> files = new List<String>();
                 foreach (String elm in fs)
@@ -620,63 +641,164 @@ namespace NewLife.CommonEntity
 
                     files.Add(elm);
                 }
-                if (files.Count < 1) continue;
+                if (files.Count < 1) return num;
 
-                // 添加
-                TEntity parent = Find(_.Name, dirName);
-                if (parent == null) parent = Find(_.Remark, dirName);
-                if (parent == null)
-                {
-                    parent = top.AddChild(dirName, null, 0, dirName);
-                    num++;
-                }
-
-                // 处理Default.aspx
-                defFile = Path.Combine(item, "Default.aspx");
-                if (File.Exists(defFile))
-                {
-                    if (String.IsNullOrEmpty(parent.Url))
-                    {
-                        parent.Url = String.Format(@"../../{0}/{1}/{2}", dir, item, Path.GetFileName(defFile));
-                        String title = GetPageTitle(defFile);
-                        if (!String.IsNullOrEmpty(title)) parent.Name = parent.Permission = title;
-                        parent.Save();
-                    }
-
-                    continue;
-                }
-
+                String currentPath = GetPathForScan(p);
+                //aspx页面
                 foreach (String elm in files)
                 {
                     String url = null;
-                    if (elm.EndsWith("Default.aspx", StringComparison.OrdinalIgnoreCase))
+                    if (elm.Equals("Default.aspx", StringComparison.OrdinalIgnoreCase))
                     {
-
+                        parent.Url = currentPath + "Default.aspx";
+                        String title = GetPageTitle(elm);
+                        if (!String.IsNullOrEmpty(title)) parent.Name = parent.Permission = title;
+                        parent.Save();
                     }
 
                     // 全部使用全路径
                     //if (String.Equals(dir, "Admin", StringComparison.OrdinalIgnoreCase))
                     //    url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
                     //else
-                    url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
+                    url = currentPath + Path.GetFileName(elm);
                     TEntity entity = Find(_.Url, url);
                     if (entity != null) continue;
 
-                    url = String.Format(@"../../{2}/{0}/{1}", dirName, Path.GetFileName(elm), dir);
-                    entity = Find(_.Url, url);
-                    if (entity != null) continue;
-
                     entity = parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
-                    String title = GetPageTitle(elm);
-                    if (!String.IsNullOrEmpty(title)) entity.Name = entity.Permission = title;
+                    String elmTitle = GetPageTitle(elm);
+                    if (!String.IsNullOrEmpty(elmTitle)) entity.Name = entity.Permission = elmTitle;
                     entity.Save();
 
                     num++;
                 }
             }
 
+            // 子级目录
+            if (dis == null || dis.Length <= 0)
+                return num;
+            else
+                foreach (String item in dis)
+                {
+                    num += ScanAndAdd(item, parent);
+                }
+
             return num;
         }
+
+        ///// <summary>
+        ///// 扫描指定目录并添加文件到顶级菜单之下
+        ///// </summary>
+        ///// <param name="dir"></param>
+        ///// <param name="top"></param>
+        ///// <returns></returns>
+        //public static Int32 ScanAndAdd(String dir, TEntity top)
+        //{
+        //    if (String.IsNullOrEmpty(dir)) throw new ArgumentNullException("dir");
+        //    if (top == null) throw new ArgumentNullException("top");
+
+        //    // 要扫描的目录
+        //    String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dir);
+        //    if (!Directory.Exists(p)) return 0;
+
+        //    // 处理Default.aspx，该顶级目录下的首页，一般是工作台
+        //    String defFile = Path.Combine(p, "Default.aspx");
+        //    if (File.Exists(defFile))
+        //    {
+        //        if (String.IsNullOrEmpty(top.Url))
+        //        {
+        //            top.Url = String.Format(@"../{0}/{1}", dir, Path.GetFileName(defFile));
+        //            String title = GetPageTitle(defFile);
+        //            if (!String.IsNullOrEmpty(title)) top.Name = top.Permission = title;
+        //            top.Save();
+        //        }
+        //    }
+
+        //    // 找到子级目录
+        //    String[] dis = Directory.GetDirectories(p);
+        //    if (dis == null || dis.Length <= 0)
+        //        //return 0;
+        //        //没有子目录时，将自身设置为扫述目录
+        //        dis = new String[] { p };
+
+        //    Int32 num = 0;
+        //    foreach (String item in dis)
+        //    {
+        //        String dirName = new DirectoryInfo(item).Name;
+        //        if (dirName.Equals("Frame", StringComparison.OrdinalIgnoreCase)) continue;
+        //        //if (dirName.Equals("System", StringComparison.OrdinalIgnoreCase)) continue;
+        //        if (dirName.StartsWith("img", StringComparison.OrdinalIgnoreCase)) continue;
+
+        //        String[] fs = Directory.GetFiles(item, "*.aspx", SearchOption.TopDirectoryOnly);
+        //        if (fs == null || fs.Length < 1) continue;
+
+        //        List<String> files = new List<String>();
+        //        foreach (String elm in fs)
+        //        {
+        //            // 过滤掉表单页面
+        //            if (Path.GetFileNameWithoutExtension(elm).EndsWith("Form", StringComparison.OrdinalIgnoreCase)) continue;
+        //            // 过滤掉选择页面
+        //            if (Path.GetFileNameWithoutExtension(elm).StartsWith("Select", StringComparison.OrdinalIgnoreCase)) continue;
+        //            //if (elm.EndsWith("Default.aspx", StringComparison.OrdinalIgnoreCase)) continue;
+
+        //            files.Add(elm);
+        //        }
+        //        if (files.Count < 1) continue;
+
+        //        // 添加
+        //        TEntity parent = Find(_.Name, dirName);
+        //        if (parent == null) parent = Find(_.Remark, dirName);
+        //        if (parent == null)
+        //        {
+        //            parent = top.AddChild(dirName, null, 0, dirName);
+        //            num++;
+        //        }
+
+        //        // 处理Default.aspx
+        //        defFile = Path.Combine(item, "Default.aspx");
+        //        if (File.Exists(defFile))
+        //        {
+        //            if (String.IsNullOrEmpty(parent.Url))
+        //            {
+        //                parent.Url = String.Format(@"../../{0}/{1}/{2}", dir, item, Path.GetFileName(defFile));
+        //                String title = GetPageTitle(defFile);
+        //                if (!String.IsNullOrEmpty(title)) parent.Name = parent.Permission = title;
+        //                parent.Save();
+        //            }
+
+        //            continue;
+        //        }
+
+        //        foreach (String elm in files)
+        //        {
+        //            String url = null;
+        //            if (elm.EndsWith("Default.aspx", StringComparison.OrdinalIgnoreCase))
+        //            {
+
+        //            }
+
+        //            // 全部使用全路径
+        //            //if (String.Equals(dir, "Admin", StringComparison.OrdinalIgnoreCase))
+        //            //    url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
+        //            //else
+        //            url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
+        //            TEntity entity = Find(_.Url, url);
+        //            if (entity != null) continue;
+
+        //            url = String.Format(@"../../{2}/{0}/{1}", dirName, Path.GetFileName(elm), dir);
+        //            entity = Find(_.Url, url);
+        //            if (entity != null) continue;
+
+        //            entity = parent.AddChild(Path.GetFileNameWithoutExtension(elm), url);
+        //            String title = GetPageTitle(elm);
+        //            if (!String.IsNullOrEmpty(title)) entity.Name = entity.Permission = title;
+        //            entity.Save();
+
+        //            num++;
+        //        }
+        //    }
+
+        //    return num;
+        //}
 
         static Regex reg_PageTitle = new Regex("\\bTitle=\"([^\"]*)\"", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         static Regex reg_PageTitle2 = new Regex("<title>([^<]*)</title>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
