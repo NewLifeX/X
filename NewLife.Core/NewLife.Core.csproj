@@ -73,6 +73,7 @@
     <Compile Include="Messaging\MessageKind.cs" />
     <Compile Include="Messaging\EntityMessage.cs" />
     <Compile Include="Messaging\MethodMessage.cs" />
+    <Compile Include="Model\IPlugin.cs" />
     <Compile Include="Reflection\Action.cs" />
     <Compile Include="Extension\EnumHelper.cs" />
     <Compile Include="Extension\Linq\Buffer.cs" />

@@ -34,9 +34,11 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("3.7.*")]
-[assembly: AssemblyFileVersion("3.7.2012.0220")]
+[assembly: AssemblyFileVersion("3.7.2012.0227")]
 
 /*
+ * v3.7.2012.0227   增加通用插件接口IPlugin，插件管理类PluginManager
+ * 
  * v3.7.2012.0220   增加基于lock的安全栈
  * 
  * v3.7.2012.0209   完善消息模型
