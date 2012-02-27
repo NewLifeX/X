@@ -38,6 +38,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v3.7.2012.0227   增加通用插件接口IPlugin，插件管理类PluginManager
+ *                  增加消息提供者接口IMessageProvider和消息消费者接口IMessageConsumer
  * 
  * v3.7.2012.0220   增加基于lock的安全栈
  * 
