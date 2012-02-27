@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Diagnostics;
 using NewLife.Net.Common;
+using NewLife.Messaging;
 
 namespace NewLife.Net.Sockets
 {
@@ -159,6 +160,47 @@ namespace NewLife.Net.Sockets
             }
             else
                 Session.Send(msg, encoding, ClientEndPoint);
+        }
+        #endregion
+
+        #region 消息提供者
+        private IMessageProvider _provider;
+        /// <summary>获取该客户端对应的消息提供者，用于直接操作消息</summary>
+        /// <returns></returns>
+        public IMessageProvider GetMessageProvider()
+        {
+            if (_provider == null) _provider = new ClientMessageProvider(Session, ClientEndPoint);
+            return _provider;
+        }
+
+        class ClientMessageProvider : MessageProvider
+        {
+            private ISocketSession _Client;
+            /// <summary>客户端</summary>
+            public ISocketSession Client { get { return _Client; } set { _Client = value; } }
+
+            private IPEndPoint _Remote;
+            /// <summary>远程</summary>
+            public IPEndPoint Remote { get { return _Remote; } set { _Remote = value; } }
+
+            public ClientMessageProvider(ISocketSession client, IPEndPoint ep)
+            {
+                Client = client;
+                Remote = ep;
+
+                client.Received += new EventHandler<NetEventArgs>(client_Received);
+            }
+
+            void client_Received(object sender, NetEventArgs e)
+            {
+                var message = Message.Read(e.GetStream());
+                OnReceive(message);
+            }
+
+            public override void Send(Message message)
+            {
+                Client.Send(message.GetStream(), Remote);
+            }
         }
         #endregion
 

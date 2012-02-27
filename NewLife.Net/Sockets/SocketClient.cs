@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using NewLife.Messaging;
 
 namespace NewLife.Net.Sockets
 {
@@ -216,6 +217,47 @@ namespace NewLife.Net.Sockets
 
             if (encoding == null) encoding = Encoding.UTF8;
             return encoding.GetString(buffer);
+        }
+        #endregion
+
+        #region 消息提供者
+        private IMessageProvider _provider;
+        /// <summary>获取该客户端对应的消息提供者，用于直接操作消息</summary>
+        /// <returns></returns>
+        public IMessageProvider GetMessageProvider()
+        {
+            if (_provider == null) _provider = new ClientMessageProvider(this, RemoteEndPoint);
+            return _provider;
+        }
+
+        class ClientMessageProvider : MessageProvider
+        {
+            private ISocketClient _Client;
+            /// <summary>客户端</summary>
+            public ISocketClient Client { get { return _Client; } set { _Client = value; } }
+
+            private IPEndPoint _Remote;
+            /// <summary>远程</summary>
+            public IPEndPoint Remote { get { return _Remote; } set { _Remote = value; } }
+
+            public ClientMessageProvider(ISocketClient client, IPEndPoint ep)
+            {
+                Client = client;
+                Remote = ep;
+
+                client.Received += new EventHandler<NetEventArgs>(client_Received);
+            }
+
+            void client_Received(object sender, NetEventArgs e)
+            {
+                var message = Message.Read(e.GetStream());
+                OnReceive(message);
+            }
+
+            public override void Send(Message message)
+            {
+                Client.Send(message.GetStream(), Remote);
+            }
         }
         #endregion
 

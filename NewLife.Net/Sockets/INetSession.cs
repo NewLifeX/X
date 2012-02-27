@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Text;
+using NewLife.Messaging;
 using NewLife.Net.Common;
 
 namespace NewLife.Net.Sockets
@@ -38,6 +39,10 @@ namespace NewLife.Net.Sockets
         /// <summary>开始会话处理。参数e里面可能含有数据</summary>
         /// <param name="e"></param>
         void Start(NetEventArgs e);
+
+        /// <summary>获取该客户端对应的消息提供者，用于直接操作消息</summary>
+        /// <returns></returns>
+        IMessageProvider GetMessageProvider();
         #endregion
 
         #region 发送
