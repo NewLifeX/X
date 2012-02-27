@@ -15,13 +15,16 @@ namespace NewLife.Net.Proxy
     /// <remarks>Http代理请求与普通请求唯一的不同就是Uri，Http代理请求收到的是可能包括主机名的完整Uri</remarks>
     public class HttpProxy : ProxyBase<HttpProxy.Session>
     {
+        #region 构造
         /// <summary>实例化</summary>
         public HttpProxy()
         {
             Port = 8080;
             ProtocolType = ProtocolType.Tcp;
         }
+        #endregion
 
+        #region 事件
         /// <summary>收到请求时发生。</summary>
         public event EventHandler<HttpProxyEventArgs> OnRequest;
 
@@ -80,6 +83,51 @@ namespace NewLife.Net.Proxy
             OnRequestBody,
             OnResponseBody
         }
+        #endregion
+
+        #region 缓存
+        private Boolean _EnableCache;
+        /// <summary>激活缓存</summary>
+        public Boolean EnableCache
+        {
+            get { return _EnableCache; }
+            set
+            {
+                if (value)
+                {
+                    OnRequest += new EventHandler<HttpProxyEventArgs>(HttpProxy_OnRequest);
+                    OnResponse += new EventHandler<HttpProxyEventArgs>(HttpProxy_OnResponse);
+                }
+                else
+                {
+                    OnResponse -= new EventHandler<HttpProxyEventArgs>(HttpProxy_OnResponse);
+                }
+
+                _EnableCache = value;
+            }
+        }
+
+        void HttpProxy_OnRequest(object sender, HttpProxyEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        void HttpProxy_OnResponse(object sender, HttpProxyEventArgs e)
+        {
+            // 缓存Get请求的304响应
+            var request = e.Session.CurrentRequest;
+            var response = e.Header;
+            if (request != null && request.Method.EqualIgnoreCase("GET")
+                && response != null && request.StatusCode == 304)
+            {
+
+            }
+        }
+
+        private HttpCache _Cache;
+        /// <summary>Http缓存</summary>
+        HttpCache Cache { get { return _Cache ?? (_Cache = new HttpCache()); } set { _Cache = value; } }
+        #endregion
 
         #region 会话
         /// <summary>Http反向代理会话</summary>
@@ -93,7 +141,9 @@ namespace NewLife.Net.Proxy
             /// <summary>
             /// 已完成处理，正在转发数据的请求头
             /// </summary>
-            HttpHeader CurrentRequest;
+            public HttpHeader CurrentRequest;
+
+            HttpCacheItem CacheItem = null;
 
             /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
             /// <remarks>
@@ -264,6 +314,27 @@ namespace NewLife.Net.Proxy
                     KeepAlive = entity.ProxyKeepAlive;
                 }
 
+                #region 缓存
+                // 缓存Get请求的304响应
+                if (Proxy.EnableCache && entity != null && entity.Method.EqualIgnoreCase("GET"))
+                {
+                    // 查找缓存
+                    var citem = Proxy.Cache.GetItem(entity.Url.ToString());
+                    if (citem != null)
+                    {
+                        // 响应缓存
+                        var cs = citem.Stream;
+                        lock (cs)
+                        {
+                            var p = cs.Position;
+                            Send(cs);
+                            cs.Position = p;
+                        }
+                        return false;
+                    }
+                }
+                #endregion
+
                 return true;
             }
 
@@ -281,7 +352,7 @@ namespace NewLife.Net.Proxy
 
                 if (parseHeader || parseBody)
                 {
-                    // 解析头部。
+                    // 解析头部
                     var entity = Response;
                     if (entity == null)
                     {
@@ -344,6 +415,16 @@ namespace NewLife.Net.Proxy
 
                 return base.OnReceiveRemote(e, stream);
             }
+
+            ///// <summary>收到响应时</summary>
+            ///// <param name="entity"></param>
+            ///// <param name="e"></param>
+            ///// <param name="stream"></param>
+            ///// <returns></returns>
+            //protected virtual Boolean OnResponse(HttpHeader entity, NetEventArgs e, Stream stream)
+            //{
+
+            //}
 
             /// <summary>远程连接断开时触发。默认销毁整个会话，子类可根据业务情况决定客户端与代理的链接是否重用。</summary>
             /// <param name="client"></param>
@@ -423,9 +504,9 @@ namespace NewLife.Net.Proxy
     /// <summary>Http代理事件参数</summary>
     public class HttpProxyEventArgs : EventArgs
     {
-        private IProxySession _Session;
+        private HttpProxy.Session _Session;
         /// <summary>会话</summary>
-        public IProxySession Session { get { return _Session; } set { _Session = value; } }
+        public HttpProxy.Session Session { get { return _Session; } set { _Session = value; } }
 
         private HttpHeader _Header;
         /// <summary>头部</summary>
@@ -455,7 +536,7 @@ namespace NewLife.Net.Proxy
         /// <param name="header"></param>
         /// <param name="e"></param>
         /// <param name="stream"></param>
-        public HttpProxyEventArgs(IProxySession session, HttpHeader header, NetEventArgs e, Stream stream)
+        public HttpProxyEventArgs(HttpProxy.Session session, HttpHeader header, NetEventArgs e, Stream stream)
         {
             Session = session;
             Header = header;

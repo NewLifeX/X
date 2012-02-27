@@ -105,21 +105,61 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 发送
+        private Boolean _DisposeWhenSendError;
+        /// <summary>发送错误时销毁</summary>
+        public Boolean DisposeWhenSendError { get { return _DisposeWhenSendError; } set { _DisposeWhenSendError = value; } }
+
         /// <summary>发送数据</summary>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
-        public virtual void Send(byte[] buffer, int offset = 0, int size = 0) { Session.Send(buffer, offset, size, ClientEndPoint); }
+        public virtual void Send(byte[] buffer, int offset = 0, int size = 0)
+        {
+            if (DisposeWhenSendError)
+            {
+                try
+                {
+                    Session.Send(buffer, offset, size, ClientEndPoint);
+                }
+                catch { this.Dispose(); throw; }
+            }
+            else
+                Session.Send(buffer, offset, size, ClientEndPoint);
+        }
 
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public virtual long Send(Stream stream) { return Session.Send(stream, ClientEndPoint); }
+        public virtual long Send(Stream stream)
+        {
+            if (DisposeWhenSendError)
+            {
+                try
+                {
+                    return Session.Send(stream, ClientEndPoint);
+                }
+                catch { this.Dispose(); throw; }
+            }
+            else
+                return Session.Send(stream, ClientEndPoint);
+        }
 
         /// <summary>发送字符串</summary>
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
-        public virtual void Send(string msg, Encoding encoding = null) { Session.Send(msg, encoding, ClientEndPoint); }
+        public virtual void Send(string msg, Encoding encoding = null)
+        {
+            if (DisposeWhenSendError)
+            {
+                try
+                {
+                    Session.Send(msg, encoding, ClientEndPoint);
+                }
+                catch { this.Dispose(); throw; }
+            }
+            else
+                Session.Send(msg, encoding, ClientEndPoint);
+        }
         #endregion
 
         #region 辅助

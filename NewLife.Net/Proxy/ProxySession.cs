@@ -50,7 +50,13 @@ namespace NewLife.Net.Proxy
         public NetUri RemoteUri { get { return new NetUri(Remote != null ? Remote.ProtocolType : RemoteProtocolType, RemoteEndPoint); } }
         #endregion
 
-        #region 方法
+        #region 构造
+        /// <summary>实例化一个代理会话</summary>
+        public ProxySession()
+        {
+            DisposeWhenSendError = true;
+        }
+
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
         protected override void OnDispose(bool disposing)
@@ -164,7 +170,7 @@ namespace NewLife.Net.Proxy
                 {
                     try
                     {
-                        session.Send(stream, ClientEndPoint);
+                        Send(stream);
                     }
                     catch { this.Dispose(); throw; }
                 }
