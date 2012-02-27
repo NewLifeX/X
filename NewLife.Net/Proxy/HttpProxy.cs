@@ -143,7 +143,7 @@ namespace NewLife.Net.Proxy
             /// </summary>
             public HttpHeader CurrentRequest;
 
-            HttpCacheItem CacheItem = null;
+            //HttpCacheItem CacheItem = null;
 
             /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
             /// <remarks>

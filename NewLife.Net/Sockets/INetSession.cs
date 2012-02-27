@@ -39,13 +39,9 @@ namespace NewLife.Net.Sockets
         /// <summary>开始会话处理。参数e里面可能含有数据</summary>
         /// <param name="e"></param>
         void Start(NetEventArgs e);
-
-        /// <summary>获取该客户端对应的消息提供者，用于直接操作消息</summary>
-        /// <returns></returns>
-        IMessageProvider GetMessageProvider();
         #endregion
 
-        #region 发送
+        #region 收发
         /// <summary>发送数据</summary>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
@@ -61,6 +57,9 @@ namespace NewLife.Net.Sockets
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
         void Send(string msg, Encoding encoding = null);
+
+        /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
+        event EventHandler<NetEventArgs> Received;
         #endregion
     }
 }
