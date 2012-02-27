@@ -577,7 +577,10 @@ namespace NewLife.CommonEntity
             if (!Directory.Exists(p)) return "";
 
             //获取层级
-            String currentPath = "../../" + p.Replace(AppDomain.CurrentDomain.BaseDirectory, null);
+            String currentPath = Path.Combine("../../", p.Replace(AppDomain.CurrentDomain.BaseDirectory, null)).Replace("\\", "/");
+
+            if (!currentPath.EndsWith("/"))
+                currentPath += "/";
 
             return currentPath;
         }
@@ -622,9 +625,9 @@ namespace NewLife.CommonEntity
             if (parent == null)
             {
                 parent = top.AddChild(dirName, null, 0, dirName);
+                parent.Save();
                 num++;
             }
-            parent.Save();
 
             //aspx
             if (fs != null && fs.Length > 1)
@@ -650,7 +653,7 @@ namespace NewLife.CommonEntity
                     String url = null;
                     if (elm.Equals("Default.aspx", StringComparison.OrdinalIgnoreCase))
                     {
-                        parent.Url = currentPath + "Default.aspx";
+                        parent.Url = Path.Combine(currentPath, "Default.aspx");
                         String title = GetPageTitle(elm);
                         if (!String.IsNullOrEmpty(title)) parent.Name = parent.Permission = title;
                         parent.Save();
@@ -660,7 +663,7 @@ namespace NewLife.CommonEntity
                     //if (String.Equals(dir, "Admin", StringComparison.OrdinalIgnoreCase))
                     //    url = String.Format(@"../{0}/{1}", dirName, Path.GetFileName(elm));
                     //else
-                    url = currentPath + Path.GetFileName(elm);
+                    url = Path.Combine(currentPath, Path.GetFileName(elm));
                     TEntity entity = Find(_.Url, url);
                     if (entity != null) continue;
 
