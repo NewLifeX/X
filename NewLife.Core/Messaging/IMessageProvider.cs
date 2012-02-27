@@ -16,6 +16,11 @@ namespace NewLife.Messaging
         /// <summary>消息到达时触发。这里将得到所有消息</summary>
         event EventHandler<EventArgs<Message>> OnReceived;
 
+        /// <summary>接收消息。这里将得到所有消息</summary>
+        /// <param name="millisecondsTimeout">等待的毫秒数，或为 <see cref="F:System.Threading.Timeout.Infinite" /> (-1)，表示无限期等待。默认0表示不等待</param>
+        /// <returns></returns>
+        Message Receive(Int32 millisecondsTimeout = 0);
+
         /// <summary>注册消息消费者，仅消费指定范围的消息</summary>
         /// <param name="start">消息范围的起始</param>
         /// <param name="end">消息范围的结束</param>
@@ -58,6 +63,12 @@ namespace NewLife.Messaging
         {
             if (message == null) return;
 
+            if (_wait != null)
+            {
+                _Message = message;
+                _wait.Set();
+            }
+
             if (OnReceived != null) OnReceived(this, new EventArgs<Message>(message));
 
             foreach (var item in Consumers)
@@ -68,6 +79,38 @@ namespace NewLife.Messaging
 
         /// <summary>消息到达时触发。这里将得到所有消息</summary>
         public event EventHandler<EventArgs<Message>> OnReceived;
+
+        AutoResetEvent _wait;
+        Message _Message;
+
+        /// <summary>接收消息。这里将得到所有消息</summary>
+        /// <param name="millisecondsTimeout">等待的毫秒数，或为 <see cref="F:System.Threading.Timeout.Infinite" /> (-1)，表示无限期等待。默认0表示不等待</param>
+        /// <returns></returns>
+        public virtual Message Receive(Int32 millisecondsTimeout = 0)
+        {
+            var msg = _Message;
+            _Message = null;
+            if (msg != null) return msg;
+
+            if (_wait == null) _wait = new AutoResetEvent(true);
+            _wait.Reset();
+
+            if (!_wait.WaitOne(millisecondsTimeout, true)) return null;
+
+            msg = _Message;
+            _Message = null;
+            return msg != null ? msg : null;
+        }
+
+        /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
+        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
+        /// 因为该方法只会被调用一次，所以该参数的意义不太大。</param>
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            if (_wait != null) _wait.Close();
+        }
         #endregion
 
         #region 注册消费者
