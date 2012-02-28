@@ -178,6 +178,9 @@
     <Compile Include="Tcp\TcpClientX.cs" />
     <Compile Include="Tcp\TcpServer.cs" />
     <Compile Include="Tcp\TcpSessionCollection.cs" />
+    <Compile Include="TDP\TDPClient.cs" />
+    <Compile Include="TDP\TDPFlags.cs" />
+    <Compile Include="TDP\TDPPacket.cs" />
     <Compile Include="Telnet\TelnetClient.cs" />
     <Compile Include="Telnet\TelnetServer.cs" />
     <Compile Include="Telnet\TelnetSession.cs" />
@@ -194,6 +197,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="App.config" />
+    <None Include="TDP\TDP.pdf" />
     <None Include="架构设计\网络模型.cd" />
   </ItemGroup>
   <ItemGroup>
