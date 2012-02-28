@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using NewLife.Linq;
 using NewLife.Model;
 using NewLife.Net.Tcp;
 using NewLife.Net.Udp;
-using NewLife.Linq;
 
 namespace NewLife.Net.Sockets
 {
@@ -280,10 +280,11 @@ namespace NewLife.Net.Sockets
             session.OnDisposed += (s, e2) => ns.Dispose();
             AddSession(ns);
 
-            if (session is TcpClientX)
+            var tc = session as TcpClientX;
+            if (tc != null)
             {
-                session.Received += OnReceived;
-                session.Error += new EventHandler<NetEventArgs>(OnError);
+                tc.Received += OnReceived;
+                tc.Error += new EventHandler<NetEventArgs>(OnError);
             }
 
             // 开始会话处理
@@ -401,9 +402,7 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 辅助
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {

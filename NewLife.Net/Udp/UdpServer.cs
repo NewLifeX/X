@@ -118,7 +118,11 @@ namespace NewLife.Net.Udp
             IncCounter();
 
             CheckBufferSize(e);
-            if (Received != null) Received(this, e);
+            if (Received != null)
+            {
+                e.Session = CreateSession(e.RemoteIPEndPoint);
+                Received(this, e);
+            }
         }
 
         /// <summary>已重载。</summary>

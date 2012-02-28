@@ -139,7 +139,7 @@
     <Lollipop Position="0.2" />
   </Class>
   <Interface Name="NewLife.Net.Proxy.IProxySession">
-    <Position X="8" Y="14" Width="2" />
+    <Position X="8" Y="14.5" Width="2" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAKAAQAAAAAAAgAAAAAAAAIAAAAAEAAAAAAAA=</HashCode>
       <FileName>Proxy\IProxySession.cs</FileName>
@@ -150,28 +150,28 @@
     </ShowAsAssociation>
   </Interface>
   <Interface Name="NewLife.Net.Proxy.IProxy">
-    <Position X="10.75" Y="14" Width="1.5" />
+    <Position X="10.75" Y="14.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Proxy\IProxy.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Interface Name="NewLife.Net.Sockets.ISocketClient">
-    <Position X="5.25" Y="14" Width="1.75" />
+    <Position X="5.25" Y="14.5" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAABAAAAAAAIAAAAAAAAAAAAAAAAAAAAQ=</HashCode>
       <FileName>Sockets\ISocketClient.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Interface Name="NewLife.Net.Sockets.ISocketServer">
-    <Position X="3" Y="14" Width="1.5" />
+    <Position X="3" Y="14.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAgAAAAA=</HashCode>
       <FileName>Sockets\ISocketServer.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Interface Name="NewLife.Net.Sockets.ISocketSession">
-    <Position X="1" Y="10" Width="1.75" />
+    <Position X="1" Y="10.25" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAABAAAAgAAAAEAAAAAAAIAACAAQABAAABAAAAA=</HashCode>
       <FileName>Sockets\ISocketSession.cs</FileName>
@@ -183,7 +183,7 @@
   <Interface Name="NewLife.Net.Sockets.ISocket">
     <Position X="4" Y="9.75" Width="2" />
     <TypeIdentifier>
-      <HashCode>AAAggAAAAAAAIQIEAAAAAAAAAAAAgQAAAAAgAACAAAA=</HashCode>
+      <HashCode>AAAggAAAAAAAIQIEAAAAAAAACAAAgQACAAAgAACAAAE=</HashCode>
       <FileName>Sockets\ISocket.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -191,7 +191,7 @@
     </ShowAsAssociation>
   </Interface>
   <Interface Name="NewLife.Net.Common.IStatistics">
-    <Position X="7" Y="10" Width="1.75" />
+    <Position X="7" Y="10.25" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAEAAQAAAAAQAAIAAACAAAAAACQAAAAAASAAgAAAA=</HashCode>
       <FileName>Common\IStatistics.cs</FileName>

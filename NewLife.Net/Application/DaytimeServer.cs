@@ -35,14 +35,16 @@ namespace NewLife.Net.Application
 
                 Byte[] buffer = Encoding.ASCII.GetBytes(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff"));
                 //Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
-                session.Send(buffer, 0, buffer.Length, e.RemoteEndPoint);
+                //session.Send(buffer, 0, buffer.Length, e.RemoteEndPoint);
+                session.Send(buffer);
 
                 // 等一秒，等客户端接收数据
                 Thread.Sleep(1000);
             }
             finally
             {
-                session.Disconnect();
+                //session.Disconnect();
+                session.Dispose();
             }
         }
     }

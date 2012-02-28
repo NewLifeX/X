@@ -215,7 +215,7 @@ namespace NewLife.Net.Http
         public override bool IsClientConnected()
         {
             //_connectionPermission.Assert();
-            return Session.Session.Host.Connected;
+            return Session.Session.Host.Socket.Connected;
         }
 
         /// <summary>返回一个值，该值指示是否所有请求数据都可用，以及是否不需要对客户端进行进一步读取。</summary>

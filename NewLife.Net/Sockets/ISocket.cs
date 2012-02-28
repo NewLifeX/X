@@ -15,6 +15,15 @@ namespace NewLife.Net.Sockets
         /// <summary>基础Socket对象</summary>
         Socket Socket { get; set; }
 
+        /// <summary>监听本地地址</summary>
+        IPAddress Address { get; set; }
+
+        /// <summary>监听端口</summary>
+        Int32 Port { get; set; }
+
+        /// <summary>地址族</summary>
+        AddressFamily AddressFamily { get; set; }
+
         /// <summary>是否使用线程池处理事件。建议仅在事件处理非常耗时时使用线程池来处理。</summary>
         bool UseThreadPool { get; set; }
 
