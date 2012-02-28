@@ -33,7 +33,7 @@ namespace NewLife.Net.P2P
         {
             base.OnReceived(sender, e);
 
-            var session = e.Socket as ISocketSession;
+            var session = e.Session;
             var client = e.RemoteIPEndPoint;
 
             var str = e.GetString();

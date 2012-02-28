@@ -175,7 +175,7 @@ namespace Test2
         static void server_Received(object sender, NetEventArgs e)
         {
             Console.WriteLine("{1}收到：{0}", DataHelper.ToHex(e.Buffer, e.Offset, e.BytesTransferred), e.Socket.ProtocolType);
-            var session = e.Socket as ISocketSession;
+            var session = e.Session;
 
             if (e.Buffer.StartsWith(new Byte[] { 0xFF, 0xFA })) return;
 

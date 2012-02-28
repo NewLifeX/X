@@ -24,7 +24,7 @@ namespace NewLife.Net.Application
         /// <param name="e"></param>
         protected override void OnReceived(object sender, NetEventArgs e)
         {
-            var session = e.Socket as ISocketSession;
+            var session = e.Session;
             //try
             //{
             if (e.BytesTransferred > 100)

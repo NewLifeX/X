@@ -4,6 +4,7 @@ using System.Text;
 
 namespace NewLife.Net.TDP
 {
+    /// <summary>TDP标记</summary>
     [Flags]
     public enum TDPFlags : byte
     {

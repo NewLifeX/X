@@ -78,7 +78,7 @@ namespace NewLife.Net.Application
         //{
         //    base.OnAccepted(sender, e);
 
-        //    var session = e.Socket as ISocketSession;
+        //    var session = e.Session;
         //    using (var sp = Open(session))
         //    {
         //        if (sp != null) ReadAndSend(sp, session, e.RemoteEndPoint);
@@ -92,7 +92,7 @@ namespace NewLife.Net.Application
         //{
         //    base.OnReceived(sender, e);
 
-        //    var session = e.Socket as ISocketSession;
+        //    var session = e.Session;
         //    using (var sp = Open(session))
         //    {
         //        if (sp == null) return;

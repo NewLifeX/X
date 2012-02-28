@@ -270,7 +270,7 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         protected virtual void OnAccepted(Object sender, NetEventArgs e)
         {
-            var session = e.Socket as ISocketSession;
+            var session = e.Session;
 
             var ns = CreateSession(e);
             ns.Server = sender as ISocketServer;

@@ -118,7 +118,7 @@ namespace NewLife.Net.P2P
                 //Success = true;
                 if (Success > 0) Success++;
 
-                var session = e.Socket as ISocketSession;
+                var session = e.Session;
                 if (session != null)
                 {
                     session.Send("P2P连接已建立！", null, e.RemoteIPEndPoint);
@@ -147,7 +147,7 @@ namespace NewLife.Net.P2P
         {
             WriteLog("连接到来：{0}", e.RemoteIPEndPoint);
 
-            var session = e.Socket as ISocketSession;
+            var session = e.Session;
             if (session != null)
             {
                 session.Received += new EventHandler<NetEventArgs>(client_Received);

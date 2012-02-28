@@ -109,7 +109,7 @@ namespace NewLife.Net.Stun
 
             if (e.BytesTransferred > 0)
             {
-                var session = e.Socket as ISocketSession;
+                var session = e.Session;
                 IPEndPoint remote = e.RemoteIPEndPoint;
                 //if (remote == null && session != null) remote = session.RemoteEndPoint;
 

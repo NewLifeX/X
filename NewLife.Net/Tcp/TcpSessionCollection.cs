@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using NewLife.Threading;
 using NewLife.Net.Sockets;
+using NewLife.Threading;
 
 namespace NewLife.Net.Tcp
 {
@@ -54,7 +54,8 @@ namespace NewLife.Net.Tcp
                     //if (item == null || item.Disposed || item.Socket == null) continue;
                     if (item == null || item.Disposed) continue;
 
-                    item.Close();
+                    //item.Close();
+                    item.Dispose();
                 }
             }
         }
@@ -80,7 +81,7 @@ namespace NewLife.Net.Tcp
                 {
                     var item = elm.Value;
                     //if (item == null || item.Disposed || item.Socket == null) list.Add(elm.Key);
-                    if (item == null || item.Disposed || notactive > 0 && item.Statistics.Last.AddSeconds(notactive) < DateTime.Now)
+                    if (item == null || item.Disposed || notactive > 0 && item.Host.Statistics.Last.AddSeconds(notactive) < DateTime.Now)
                     {
                         keys.Add(elm.Key);
                         values.Add(elm.Value);

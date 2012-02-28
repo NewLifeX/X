@@ -34,7 +34,7 @@ namespace NewLife.Net.Application
             }
             finally
             {
-                (e.Socket as ISocketSession).Disconnect();
+                (e.Session).Disconnect();
             }
         }
     }

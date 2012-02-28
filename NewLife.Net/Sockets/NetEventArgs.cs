@@ -46,6 +46,10 @@ namespace NewLife.Net.Sockets
         /// </summary>
         public ISocket Socket { get { return _Socket; } set { _Socket = value; } }
 
+        private ISocketSession _Session;
+        /// <summary>Socket会话</summary>
+        public ISocketSession Session { get { return _Session; } set { _Session = value; } }
+
         private Exception _Error;
         /// <summary>异常信息</summary>
         public Exception Error { get { return _Error; } set { _Error = value; } }

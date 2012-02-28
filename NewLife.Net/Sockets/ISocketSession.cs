@@ -1,29 +1,36 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
+using System.Text;
 
 namespace NewLife.Net.Sockets
 {
-    /// <summary>服务端接受客户端请求后，用于与客户端进行通讯的Socket会话</summary>
+    /// <summary>用于与对方进行通讯的Socket会话，仅具有收发功能，也专用于上层应用收发数据</summary>
     /// <remarks>
-    /// 对于Tcp来说，它就是<see cref="Tcp.TcpClientX"/>;
-    /// 对于Udp来说，它就是<see cref="Udp.UdpServer"/>。
+    /// 对于Tcp来说，它就是<see cref="Tcp.TcpClientX"/>自身，不管客户端还是服务端的会话。
+    /// 对于Udp来说，需要额外创建一个对象，包括自身和远程地址。
+    /// 
+    /// Socket会话发送数据不需要指定远程地址，因为内部已经具有。
+    /// 接收数据时，Tcp接收全部数据，而Udp只接受来自所属远方的数据。
+    /// 
+    /// Socket会话不具有连接和断开的能力，所以需要外部连接好之后再创建Socket会话。
+    /// 但是会话可以销毁，来代替断开。
+    /// 对于Udp额外创建的会话来说，仅仅销毁会话而已。
     /// 
     /// 所以，它必须具有收发数据的能力。
     /// </remarks>
-    public interface ISocketSession : ISocket
+    public interface ISocketSession : ISocketAddress, IDisposable2
     {
         #region 属性
         /// <summary>编号</summary>
         Int32 ID { get; set; }
+
+        /// <summary>宿主对象。除了<see cref="Udp.UdpServer"/>外，都是<see cref="ISocketClient"/>接口。</summary>
+        ISocket Host { get; }
         #endregion
 
         #region 方法
-        /// <summary>断开客户端连接。Tcp端口，UdpClient不处理</summary>
-        void Disconnect();
+        ///// <summary>断开客户端连接。Tcp端口，UdpClient不处理</summary>
+        //void Disconnect();
         #endregion
 
         #region 发送
@@ -31,26 +38,25 @@ namespace NewLife.Net.Sockets
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
-        /// <param name="remoteEP">远程地址。仅对Udp有效</param>
-        void Send(byte[] buffer, int offset = 0, int size = 0, EndPoint remoteEP = null);
+        void Send(byte[] buffer, int offset = 0, int size = 0);
 
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>
-        /// <param name="remoteEP">远程地址。仅对Udp有效</param>
         /// <returns></returns>
-        long Send(Stream stream, EndPoint remoteEP = null);
+        long Send(Stream stream);
 
         /// <summary>发送字符串</summary>
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
-        /// <param name="remoteEP">远程地址。仅对Udp有效</param>
-        void Send(string msg, Encoding encoding = null, EndPoint remoteEP = null);
+        void Send(string msg, Encoding encoding = null);
         #endregion
 
         #region 接收
+        /// <summary>是否异步接收数据</summary>
+        Boolean UseReceiveAsync { get; }
+
         /// <summary>开始异步接收数据</summary>
-        /// <param name="e"></param>
-        void ReceiveAsync(NetEventArgs e = null);
+        void ReceiveAsync();
 
         /// <summary>接收数据</summary>
         /// <returns></returns>
@@ -62,7 +68,7 @@ namespace NewLife.Net.Sockets
         string ReceiveString(Encoding encoding = null);
 
         /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
-        event EventHandler<NetEventArgs> Received;
+        event EventHandler<DataReceiveEventArgs> Received;
         #endregion
     }
 }

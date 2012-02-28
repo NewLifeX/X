@@ -154,8 +154,10 @@
     <Compile Include="Smtp\SmtpSession.cs" />
     <Compile Include="Smtp\RelayServer.cs" />
     <Compile Include="Smtp\RelaySession.cs" />
+    <Compile Include="Sockets\DataReceiveEventArgs.cs" />
     <Compile Include="Sockets\INetSession.cs" />
     <Compile Include="Sockets\ISocket.cs" />
+    <Compile Include="Sockets\ISocketAddress.cs" />
     <Compile Include="Sockets\ISocketClient.cs" />
     <Compile Include="Sockets\ISocketServer.cs" />
     <Compile Include="Sockets\ISocketSession.cs" />
@@ -184,8 +186,10 @@
     <Compile Include="Telnet\TelnetClient.cs" />
     <Compile Include="Telnet\TelnetServer.cs" />
     <Compile Include="Telnet\TelnetSession.cs" />
+    <Compile Include="Udp\IUdp.cs" />
     <Compile Include="Udp\UdpClientX.cs" />
     <Compile Include="Udp\UdpServer.cs" />
+    <Compile Include="Udp\UdpSession.cs" />
     <Compile Include="UPnP\Entities\Device.cs" />
     <Compile Include="UPnP\Entities\Envelope.cs" />
     <Compile Include="UPnP\Entities\InternetGatewayDevice.cs" />

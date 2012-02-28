@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using NewLife.Linq;
 using NewLife.Net.Common;
 using NewLife.Net.Sockets;
-using NewLife.Linq;
 
 namespace NewLife.Net.Tcp
 {
@@ -12,7 +12,7 @@ namespace NewLife.Net.Tcp
     /// <remarks>
     /// 核心工作：启动服务<see cref="OnStart"/>时，监听端口，并启用多个（逻辑处理器数的10倍）异步接受操作<see cref="AcceptAsync"/>。
     /// 服务器只处理<see cref="SocketAsyncOperation.Accept"/>操作，并创建<see cref="ISocketSession"/>后，
-    /// 将其赋值在事件参数的<see cref="NetEventArgs.Socket"/>中，传递给<see cref="Accepted"/>。
+    /// 将其赋值在事件参数的<see cref="NetEventArgs.Session"/>中，传递给<see cref="Accepted"/>。
     /// 
     /// 服务器完全处于异步工作状态，任何操作都不可能被阻塞。
     /// 
@@ -39,27 +39,19 @@ namespace NewLife.Net.Tcp
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 构造TCP服务器对象
-        /// </summary>
+        /// <summary>构造TCP服务器对象</summary>
         public TcpServer() : base(IPAddress.Any, 0) { }
 
-        /// <summary>
-        /// 构造
-        /// </summary>
+        /// <summary>构造TCP服务器对象</summary>
         /// <param name="port"></param>
         public TcpServer(Int32 port) : base(IPAddress.Any, port) { }
 
-        /// <summary>
-        /// 构造
-        /// </summary>
+        /// <summary>构造TCP服务器对象</summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
         public TcpServer(IPAddress address, Int32 port) : base(address, port) { }
 
-        /// <summary>
-        /// 构造
-        /// </summary>
+        /// <summary>构造TCP服务器对象</summary>
         /// <param name="hostname"></param>
         /// <param name="port"></param>
         public TcpServer(String hostname, Int32 port) : base(hostname, port) { }
@@ -81,13 +73,10 @@ namespace NewLife.Net.Tcp
             // 指定10名工人待命，等待处理新连接
             // 一方面避免因没有及时安排工人而造成堵塞，另一方面避免工人中途死亡或逃跑而导致无人迎接客人
             // 该安排在一定程度上分担了Listen队列的压力，工人越多，就能及时把任务接过来，尽管处理不了那么快
-            // 需要注意的是，该设计会导致触发多次（每个工人一次）Error事件
+            // 需要注意的是，该设计会导致销毁时触发多次（每个工人一次）Error事件
 
             Int32 count = NoDelay ? 10 * Environment.ProcessorCount : 1;
-            for (int i = 0; i < count; i++)
-            {
-                AcceptAsync();
-            }
+            for (int i = 0; i < count; i++) AcceptAsync();
         }
 
         void AcceptAsync(NetEventArgs e = null)
@@ -101,10 +90,7 @@ namespace NewLife.Net.Tcp
 
         /// <summary>确定是否有挂起的连接请求。</summary>
         /// <returns>如果连接正挂起，则为 true；否则为 false。</returns>
-        public Boolean Pending()
-        {
-            return Server.Poll(0, SelectMode.SelectRead);
-        }
+        public Boolean Pending() { return Server.Poll(0, SelectMode.SelectRead); }
         #endregion
 
         #region 事件
@@ -146,7 +132,9 @@ namespace NewLife.Net.Tcp
             // 建立会话
             var session = CreateSession(e);
             //session.NoDelay = this.NoDelay;
-            e.Socket = session;
+            //e.Socket = session;
+            e.Socket = session.Host;
+            e.Session = session;
             if (Accepted != null)
             {
                 e.Cancel = false;
@@ -154,6 +142,7 @@ namespace NewLife.Net.Tcp
                 if (e.Cancel) return;
             }
 
+            // 不需要指定Key，内部会计算
             Sessions.Add(0, session);
 
             // 设置接收事件，统计异步接收的数据包，不包括同步接收
@@ -170,31 +159,10 @@ namespace NewLife.Net.Tcp
         /// <param name="e"></param>
         protected override void OnComplete(NetEventArgs e)
         {
-            switch (e.LastOperation)
+            if (e.LastOperation == SocketAsyncOperation.Accept)
             {
-                case SocketAsyncOperation.Accept:
-                    OnAccept(e);
-                    return;
-                case SocketAsyncOperation.Connect:
-                    break;
-                case SocketAsyncOperation.Disconnect:
-                    break;
-                case SocketAsyncOperation.None:
-                    break;
-                case SocketAsyncOperation.Receive:
-                    break;
-                case SocketAsyncOperation.ReceiveFrom:
-                    break;
-                case SocketAsyncOperation.ReceiveMessageFrom:
-                    break;
-                case SocketAsyncOperation.Send:
-                    break;
-                case SocketAsyncOperation.SendPackets:
-                    break;
-                case SocketAsyncOperation.SendTo:
-                    break;
-                default:
-                    break;
+                OnAccept(e);
+                return;
             }
             base.OnComplete(e);
         }

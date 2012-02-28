@@ -26,7 +26,7 @@ namespace NewLife.Net.Application
         /// <param name="e"></param>
         protected override void OnAccepted(object sender, NetEventArgs e)
         {
-            var session = e.Socket as ISocketSession;
+            var session = e.Session;
             try
             {
                 WriteLog("Daytime {0}", e.RemoteEndPoint);

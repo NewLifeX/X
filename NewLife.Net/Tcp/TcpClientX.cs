@@ -2,6 +2,8 @@
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Net.Sockets;
+using System.IO;
+using System.Text;
 
 namespace NewLife.Net.Tcp
 {
@@ -19,6 +21,9 @@ namespace NewLife.Net.Tcp
         private Int32 _ID;
         /// <summary>编号</summary>
         Int32 ISocketSession.ID { get { return _ID; } set { if (_ID > 0)throw new NetException("禁止修改会话编号！"); _ID = value; } }
+
+        /// <summary>宿主对象。</summary>
+        ISocket ISocketSession.Host { get { return this; } }
         #endregion
 
         #region 重载
@@ -51,18 +56,80 @@ namespace NewLife.Net.Tcp
             ReceiveAsync();
         }
 
-        /// <summary>断开客户端连接。Tcp端口，UdpClient不处理</summary>
-        public void Disconnect()
-        {
-            //var socket = Socket;
-            //if (socket != null && socket.Connected) socket.Disconnect(ReuseAddress);
+        ///// <summary>断开客户端连接。Tcp端口，UdpClient不处理</summary>
+        //public void Disconnect()
+        //{
+        //    //var socket = Socket;
+        //    //if (socket != null && socket.Connected) socket.Disconnect(ReuseAddress);
 
-            // 释放
-            Dispose();
+        //    // 释放
+        //    Dispose();
+        //}
+        #endregion
+
+        #region 发送
+        /// <summary>发送数据流</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public virtual Int64 Send(Stream stream)
+        {
+            Int64 total = 0;
+
+            var size = stream.CanSeek ? stream.Length - stream.Position : BufferSize;
+            Byte[] buffer = new Byte[size];
+            while (true)
+            {
+                Int32 n = stream.Read(buffer, 0, buffer.Length);
+                if (n <= 0) break;
+
+                Send(buffer, 0, n);
+                total += n;
+
+                if (n < buffer.Length) break;
+            }
+            return total;
+        }
+
+        /// <summary>发送数据</summary>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">位移</param>
+        /// <param name="size">写入字节数</param>
+        public virtual void Send(Byte[] buffer, Int32 offset = 0, Int32 size = 0)
+        {
+            if (!Client.IsBound) Bind();
+
+            if (size <= 0) size = buffer.Length - offset;
+            Client.Send(buffer, offset, size, SocketFlags.None);
+        }
+
+        /// <summary>发送字符串</summary>
+        /// <param name="msg"></param>
+        /// <param name="encoding"></param>
+        public void Send(String msg, Encoding encoding = null)
+        {
+            if (String.IsNullOrEmpty(msg)) return;
+
+            if (encoding == null) encoding = Encoding.UTF8;
+            Send(encoding.GetBytes(msg), 0, 0);
         }
         #endregion
 
         #region 接收
+        private Boolean _UseReceiveAsync;
+        /// <summary>是否异步接收数据</summary>
+        public Boolean UseReceiveAsync { get { return _UseReceiveAsync; } }
+
+        /// <summary>开始异步接收数据</summary>
+        void ISocketSession.ReceiveAsync() { ReceiveAsync(null); }
+
+        /// <summary>开始异步接收数据</summary>
+        /// <param name="e"></param>
+        public override void ReceiveAsync(NetEventArgs e = null)
+        {
+            _UseReceiveAsync = true;
+            base.ReceiveAsync(e);
+        }
+
         /// <summary>接收数据。已重载。接收到0字节表示连接断开！</summary>
         /// <param name="e"></param>
         protected override void OnReceive(NetEventArgs e)
@@ -71,6 +138,24 @@ namespace NewLife.Net.Tcp
                 base.OnReceive(e);
             else
                 OnError(e, null);
+        }
+
+        private event EventHandler<DataReceiveEventArgs> _Received;
+        /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
+        event EventHandler<DataReceiveEventArgs> ISocketSession.Received
+        {
+            add { _Received += value; }
+            remove { _Received -= value; }
+        }
+        #endregion
+
+        #region 创建会话
+        /// <summary>为指定地址创建会话。对于无连接Socket，必须指定远程地址；对于有连接Socket，指定的远程地址将不起任何作用</summary>
+        /// <param name="remoteEP"></param>
+        /// <returns></returns>
+        public override ISocketSession CreateSession(IPEndPoint remoteEP = null)
+        {
+            return this;
         }
         #endregion
     }

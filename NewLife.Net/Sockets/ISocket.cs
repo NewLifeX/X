@@ -9,35 +9,11 @@ namespace NewLife.Net.Sockets
     /// <remarks>
     /// 主要是对Socket封装一层，把所有异步操作结果转移到事件中<see cref="Completed"/>去。
     /// </remarks>
-    public interface ISocket : IDisposable2
+    public interface ISocket : ISocketAddress, IDisposable2
     {
         #region 属性
         /// <summary>基础Socket对象</summary>
         Socket Socket { get; set; }
-
-        /// <summary>协议类型</summary>
-        ProtocolType ProtocolType { get; }
-
-        /// <summary>监听本地地址</summary>
-        IPAddress Address { get; set; }
-
-        /// <summary>监听端口</summary>
-        int Port { get; set; }
-
-        /// <summary>地址族</summary>
-        AddressFamily AddressFamily { get; set; }
-
-        /// <summary>本地终结点</summary>
-        IPEndPoint LocalEndPoint { get; }
-
-        /// <summary>远程终结点</summary>
-        IPEndPoint RemoteEndPoint { get; }
-
-        /// <summary>本地地址</summary>
-        NetUri LocalUri { get; }
-
-        /// <summary>远程地址</summary>
-        NetUri RemoteUri { get; }
 
         /// <summary>是否使用线程池处理事件。建议仅在事件处理非常耗时时使用线程池来处理。</summary>
         bool UseThreadPool { get; set; }

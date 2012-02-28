@@ -16,39 +16,31 @@ namespace NewLife.Net.Udp
     /// 
     /// <see cref="ISocket.NoDelay"/>的设置会影响异步操作数，不启用时，只有一个异步操作。
     /// </remarks>
-    public class UdpServer : SocketServer, ISocketSession
+    public class UdpServer : SocketServer, IUdp
     {
         #region 属性
         /// <summary>已重载。</summary>
         public override ProtocolType ProtocolType { get { return ProtocolType.Udp; } }
 
-        private Int32 _ID;
-        /// <summary>编号</summary>
-        Int32 ISocketSession.ID { get { return _ID; } set { _ID = value; } }
+        //private Int32 _ID;
+        ///// <summary>编号</summary>
+        //Int32 ISocketSession.ID { get { return _ID; } set { _ID = value; } }
         #endregion
 
         #region 构造
-        /// <summary>
-        /// 构造
-        /// </summary>
+        /// <summary>构造一个UDP服务器实例</summary>
         public UdpServer() : base(IPAddress.Any, 0) { }
 
-        /// <summary>
-        /// 构造
-        /// </summary>
+        /// <summary>构造一个UDP服务器实例</summary>
         /// <param name="port"></param>
         public UdpServer(Int32 port) : base(IPAddress.Any, port) { }
 
-        /// <summary>
-        /// 构造
-        /// </summary>
+        /// <summary>构造一个UDP服务器实例</summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
         public UdpServer(IPAddress address, Int32 port) : base(address, port) { }
 
-        /// <summary>
-        /// 构造
-        /// </summary>
+        /// <summary>构造一个UDP服务器实例</summary>
         /// <param name="hostname"></param>
         /// <param name="port"></param>
         public UdpServer(String hostname, Int32 port) : base(hostname, port) { }
@@ -91,8 +83,8 @@ namespace NewLife.Net.Udp
             }, e);
         }
 
-        /// <summary>断开客户端连接。Tcp断开，UdpClient不处理</summary>
-        void ISocketSession.Disconnect() { }
+        ///// <summary>断开客户端连接。Tcp断开，UdpClient不处理</summary>
+        //void ISocketSession.Disconnect() { }
         #endregion
 
         #region 事件
@@ -135,25 +127,11 @@ namespace NewLife.Net.Udp
         {
             switch (e.LastOperation)
             {
-                case SocketAsyncOperation.Accept:
-                    break;
-                case SocketAsyncOperation.Connect:
-                    break;
-                case SocketAsyncOperation.Disconnect:
-                    break;
-                case SocketAsyncOperation.None:
-                    break;
                 case SocketAsyncOperation.Receive:
                 case SocketAsyncOperation.ReceiveFrom:
                 case SocketAsyncOperation.ReceiveMessageFrom:
                     OnReceive(e);
                     return;
-                case SocketAsyncOperation.Send:
-                    break;
-                case SocketAsyncOperation.SendPackets:
-                    break;
-                case SocketAsyncOperation.SendTo:
-                    break;
                 default:
                     break;
             }
@@ -163,29 +141,6 @@ namespace NewLife.Net.Udp
         #endregion
 
         #region 发送
-        /// <summary>发送数据流</summary>
-        /// <param name="stream"></param>
-        /// <param name="remoteEP"></param>
-        /// <returns></returns>
-        public virtual Int64 Send(Stream stream, EndPoint remoteEP = null)
-        {
-            Int64 total = 0;
-
-            var size = stream.CanSeek ? stream.Length - stream.Position : BufferSize;
-            Byte[] buffer = new Byte[size];
-            while (true)
-            {
-                Int32 n = stream.Read(buffer, 0, buffer.Length);
-                if (n <= 0) break;
-
-                Send(buffer, 0, n, remoteEP);
-                total += n;
-
-                if (n < buffer.Length) break;
-            }
-            return total;
-        }
-
         /// <summary>向指定目的地发送信息</summary>
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
@@ -194,23 +149,46 @@ namespace NewLife.Net.Udp
         public void Send(Byte[] buffer, Int32 offset = 0, Int32 size = 0, EndPoint remoteEP = null)
         {
             if (size <= 0) size = buffer.Length - offset;
-            Server.SendTo(buffer, offset, size, SocketFlags.None, remoteEP);
+            var socket = Server;
+            if (socket.Connected)
+                socket.Send(buffer, offset, size, SocketFlags.None);
+            else
+                socket.SendTo(buffer, offset, size, SocketFlags.None, remoteEP);
         }
 
-        /// <summary>向指定目的地发送信息</summary>
-        /// <param name="buffer"></param>
-        /// <param name="remoteEP"></param>
-        public void Send(Byte[] buffer, EndPoint remoteEP = null) { Send(buffer, 0, buffer.Length, remoteEP); }
+        ///// <summary>发送数据流</summary>
+        ///// <param name="stream"></param>
+        ///// <param name="remoteEP"></param>
+        ///// <returns></returns>
+        //public virtual Int64 Send(Stream stream, EndPoint remoteEP = null)
+        //{
+        //    Int64 total = 0;
 
-        /// <summary>向指定目的地发送信息</summary>
-        /// <param name="message"></param>
-        /// <param name="encoding"></param>
-        /// <param name="remoteEP"></param>
-        public void Send(String message, Encoding encoding = null, EndPoint remoteEP = null)
-        {
-            Byte[] buffer = Encoding.UTF8.GetBytes(message);
-            Send(buffer, 0, buffer.Length, remoteEP);
-        }
+        //    var size = stream.CanSeek ? stream.Length - stream.Position : BufferSize;
+        //    Byte[] buffer = new Byte[size];
+        //    while (true)
+        //    {
+        //        Int32 n = stream.Read(buffer, 0, buffer.Length);
+        //        if (n <= 0) break;
+
+        //        Send(buffer, 0, n, remoteEP);
+        //        total += n;
+
+        //        if (n < buffer.Length) break;
+        //    }
+        //    return total;
+        //}
+
+        ///// <summary>向指定目的地发送信息</summary>
+        ///// <param name="buffer"></param>
+        ///// <param name="remoteEP"></param>
+        //public void Send(Byte[] buffer, EndPoint remoteEP = null) { Send(buffer, 0, buffer.Length, remoteEP); }
+
+        ///// <summary>向指定目的地发送信息</summary>
+        ///// <param name="message"></param>
+        ///// <param name="encoding"></param>
+        ///// <param name="remoteEP"></param>
+        //public void Send(String message, Encoding encoding = null, EndPoint remoteEP = null) { Send(Encoding.UTF8.GetBytes(message), remoteEP); }
         #endregion
 
         #region 接收
@@ -239,6 +217,18 @@ namespace NewLife.Net.Udp
 
             if (encoding == null) encoding = Encoding.UTF8;
             return encoding.GetString(buffer);
+        }
+        #endregion
+
+        #region 创建会话
+        /// <summary>为指定地址创建会话。对于无连接Socket，必须指定远程地址；对于有连接Socket，指定的远程地址将不起任何作用</summary>
+        /// <param name="remoteEP"></param>
+        /// <returns></returns>
+        ISocketSession CreateSession(IPEndPoint remoteEP = null)
+        {
+            if (!Server.Connected && remoteEP == null) throw new ArgumentNullException("remoteEP", "未连接Udp必须指定远程地址！");
+
+            return new UdpSession(this, remoteEP);
         }
         #endregion
     }

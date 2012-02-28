@@ -71,7 +71,7 @@ namespace NewLife.Net.DNS
         /// <param name="e"></param>
         protected override void OnReceived(object sender, NetEventArgs e)
         {
-            var session = e.Socket as ISocketSession;
+            var session = e.Session;
             Boolean isTcp = session.ProtocolType == ProtocolType.Tcp;
 
             // 解析
