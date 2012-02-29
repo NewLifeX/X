@@ -75,11 +75,11 @@ namespace NewLife.Net.Udp
 
         #region ISocketSession 成员
 
-        public ISocketSession Send(byte[] buffer, int offset = 0, int size = 0) { Udp.Send(buffer, offset, size); return this; }
+        public ISocketSession Send(byte[] buffer, int offset = 0, int size = 0) { Udp.Send(buffer, offset, size, RemoteEndPoint); return this; }
 
-        public ISocketSession Send(Stream stream) { Udp.Send(stream); return this; }
+        public ISocketSession Send(Stream stream) { Udp.Send(stream, RemoteEndPoint); return this; }
 
-        public ISocketSession Send(string msg, Encoding encoding = null) { Udp.Send(msg, encoding); return this; }
+        public ISocketSession Send(string msg, Encoding encoding = null) { Udp.Send(msg, encoding, RemoteEndPoint); return this; }
 
         public void ReceiveAsync()
         {

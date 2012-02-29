@@ -40,6 +40,17 @@ namespace NewLife.Net.Tcp
             IPEndPoint ep = e.RemoteEndPoint as IPEndPoint;
             if ((ep == null || ep.Address.IsAny() && ep.Port == 0) && RemoteEndPoint != null) e.RemoteEndPoint = RemoteEndPoint;
         }
+
+        /// <summary>处理接收到的数据</summary>
+        /// <param name="e"></param>
+        protected internal override void ProcessReceive(NetEventArgs e)
+        {
+            if (e.Session == null) e.Session = CreateSession();
+
+            base.ProcessReceive(e);
+
+            if (_Received != null) _Received(this, new ReceivedEventArgs(e.GetStream()));
+        }
         #endregion
 
         #region 方法
@@ -136,13 +147,13 @@ namespace NewLife.Net.Tcp
         {
             _UseReceiveAsync = true;
             base.ReceiveAsync(e);
-            Received += new EventHandler<NetEventArgs>(TcpClientX_Received);
+            //Received += new EventHandler<NetEventArgs>(TcpClientX_Received);
         }
 
-        void TcpClientX_Received(object sender, NetEventArgs e)
-        {
-            if (_Received != null) _Received(this, new ReceivedEventArgs(e.GetStream()));
-        }
+        //void TcpClientX_Received(object sender, NetEventArgs e)
+        //{
+        //    if (_Received != null) _Received(this, new ReceivedEventArgs(e.GetStream()));
+        //}
 
         /// <summary>接收数据。已重载。接收到0字节表示连接断开！</summary>
         /// <param name="e"></param>

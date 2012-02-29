@@ -1,20 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Net;
 using System.Threading;
-using NewLife.IO;
 using NewLife.Log;
-using NewLife.Messaging;
-using NewLife.Net;
-using NewLife.Net.DNS;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
-using NewLife.Net.Udp;
-using NewLife.Collections;
 using NewLife.Threading;
-using System.Text.RegularExpressions;
 
 namespace Test
 {
@@ -61,21 +51,23 @@ namespace Test
             //server.ServerPort = 80;
             //server.Start();
 
-            http = new HttpProxy();
-            http.Port = 8080;
-            //http.OnResponse += new EventHandler<HttpProxyEventArgs>(http_OnResponse);
-            http.Start();
+            NewLife.Net.Application.AppTest.Start();
 
-            HttpProxy.SetIEProxy("127.0.0.1:" + http.Port);
-            Console.WriteLine("已设置IE代理，任意键结束测试，关闭IE代理！");
+            //http = new HttpProxy();
+            //http.Port = 8080;
+            ////http.OnResponse += new EventHandler<HttpProxyEventArgs>(http_OnResponse);
+            //http.Start();
 
-            ThreadPoolX.QueueUserWorkItem(ShowStatus);
+            //HttpProxy.SetIEProxy("127.0.0.1:" + http.Port);
+            //Console.WriteLine("已设置IE代理，任意键结束测试，关闭IE代理！");
 
-            Console.ReadKey(true);
-            HttpProxy.SetIEProxy(null);
+            //ThreadPoolX.QueueUserWorkItem(ShowStatus);
 
-            //server.Dispose();
-            http.Dispose();
+            //Console.ReadKey(true);
+            //HttpProxy.SetIEProxy(null);
+
+            ////server.Dispose();
+            //http.Dispose();
         }
 
         static void ShowStatus()

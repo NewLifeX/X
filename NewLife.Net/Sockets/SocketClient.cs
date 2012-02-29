@@ -107,7 +107,7 @@ namespace NewLife.Net.Sockets
 
         /// <summary>处理接收到的数据</summary>
         /// <param name="e"></param>
-        internal protected void ProcessReceive(NetEventArgs e)
+        internal protected virtual void ProcessReceive(NetEventArgs e)
         {
             // 统计接收数
             IncCounter();

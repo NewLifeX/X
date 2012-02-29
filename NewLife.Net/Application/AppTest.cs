@@ -7,6 +7,7 @@ using System.Threading;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net.Sockets;
+using NewLife.Net.Common;
 
 namespace NewLife.Net.Application
 {
@@ -67,11 +68,11 @@ namespace NewLife.Net.Application
             Console.WriteLine();
 
             String msg = String.Format("{0}Test_{1}_{2}!", name, protocol, isAsync ? "异步" : "同步");
-            ISocketClient client = ObjectContainer.Current.Resolve<ISocketClient>(protocol.ToString());
+            ISocketClient client = NetService.CreateClient(new NetUri(protocol, ep));
             client.Error += new EventHandler<NetEventArgs>(OnError);
             client.Received += new EventHandler<NetEventArgs>(OnReceived);
             client.AddressFamily = ep.AddressFamily;
-            if (protocol == ProtocolType.Tcp) client.Connect(ep);
+            //if (protocol == ProtocolType.Tcp) client.Connect(ep);
             client.Client.ReceiveTimeout = 60000;
             if (isAsync && isReceiveData) client.ReceiveAsync();
             if (isSendData) client.CreateSession(ep).Send(msg);

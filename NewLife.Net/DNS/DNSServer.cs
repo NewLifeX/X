@@ -120,7 +120,8 @@ namespace NewLife.Net.DNS
             foreach (var item in Parents)
             {
                 isTcp = item.Value == ProtocolType.Tcp;
-                var client = NetService.Resolve<ISocketClient>(item.Value);
+                //var client = NetService.Resolve<ISocketClient>(item.Value);
+                var session = NetService.CreateSession(new Common.NetUri(item.Value, item.Key));
                 ep = item.Key;
                 pt = item.Value;
                 // 如果是PTR请求
@@ -135,10 +136,11 @@ namespace NewLife.Net.DNS
 
                 try
                 {
-                    client.Connect(ep);
+                    //client.Connect(ep);
                     //client.Send(entity.GetStream(isTcp), ep);
-                    client.CreateSession(ep).Send(entity.GetStream(isTcp));
-                    data = client.Receive();
+                    //client.CreateSession(ep).Send(entity.GetStream(isTcp));
+                    session.Send(entity.GetStream(isTcp));
+                    data = session.Receive();
 
                     if (data != null && data.Length > 0) break;
                 }

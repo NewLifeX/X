@@ -57,6 +57,16 @@ namespace NewLife.Net
 
             return client;
         }
+
+        /// <summary>根据网络标识创建客户端会话并连接（对Tcp）</summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        public static ISocketSession CreateSession(NetUri uri)
+        {
+            if (uri == null) throw new ArgumentNullException("uri");
+
+            return CreateClient(uri).CreateSession(uri.EndPoint);
+        }
         #endregion
     }
 }

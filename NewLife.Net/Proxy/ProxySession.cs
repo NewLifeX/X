@@ -123,10 +123,12 @@ namespace NewLife.Net.Proxy
         /// <returns></returns>
         protected virtual ISocketSession CreateRemote(ReceivedEventArgs e)
         {
-            var client = NetService.Resolve<ISocketClient>(RemoteProtocolType);
-            if (RemoteEndPoint != null) client.AddressFamily = RemoteEndPoint.AddressFamily;
-            client.Connect(RemoteEndPoint);
-            return client.CreateSession();
+            //var client = NetService.Resolve<ISocketClient>(RemoteProtocolType);
+            //if (RemoteEndPoint != null) client.AddressFamily = RemoteEndPoint.AddressFamily;
+            //client.Connect(RemoteEndPoint);
+            //return client.CreateSession();
+
+            return NetService.CreateSession(new NetUri(RemoteProtocolType, RemoteEndPoint));
         }
 
         /// <summary>远程连接断开时触发。默认销毁整个会话，子类可根据业务情况决定客户端与代理的链接是否重用。</summary>
