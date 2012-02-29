@@ -1,9 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using NewLife.Net.Sockets;
-using System.IO;
 using System.Text;
+using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Tcp
 {
@@ -136,6 +136,12 @@ namespace NewLife.Net.Tcp
         {
             _UseReceiveAsync = true;
             base.ReceiveAsync(e);
+            Received += new EventHandler<NetEventArgs>(TcpClientX_Received);
+        }
+
+        void TcpClientX_Received(object sender, NetEventArgs e)
+        {
+            if (_Received != null) _Received(this, new ReceivedEventArgs(e.GetStream()));
         }
 
         /// <summary>接收数据。已重载。接收到0字节表示连接断开！</summary>
@@ -161,10 +167,7 @@ namespace NewLife.Net.Tcp
         /// <summary>为指定地址创建会话。对于无连接Socket，必须指定远程地址；对于有连接Socket，指定的远程地址将不起任何作用</summary>
         /// <param name="remoteEP"></param>
         /// <returns></returns>
-        public override ISocketSession CreateSession(IPEndPoint remoteEP = null)
-        {
-            return this;
-        }
+        public override ISocketSession CreateSession(IPEndPoint remoteEP = null) { return this; }
         #endregion
     }
 }

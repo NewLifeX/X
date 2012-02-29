@@ -37,12 +37,11 @@ namespace NewLife.Net.Proxy
         /// <summary>收到响应主体时发生。</summary>
         public event EventHandler<HttpProxyEventArgs> OnResponseBody;
 
-        /// <summary>
-        /// 返回是否取消操作
-        /// </summary>
+        /// <summary>触发事件</summary>
+        /// <param name="session"></param>
         /// <param name="kind"></param>
         /// <param name="he"></param>
-        /// <returns></returns>
+        /// <returns>返回是否取消操作</returns>
         Boolean RaiseEvent(HttpProxy.Session session, EventKind kind, HttpProxyEventArgs he)
         {
             var handler = GetHandler(kind);
@@ -234,7 +233,6 @@ namespace NewLife.Net.Proxy
             /// <summary>收到请求时</summary>
             /// <param name="entity"></param>
             /// <param name="e"></param>
-            /// <param name="stream"></param>
             /// <returns></returns>
             protected virtual Boolean OnRequest(HttpHeader entity, ReceivedEventArgs e)
             {
@@ -348,7 +346,6 @@ namespace NewLife.Net.Proxy
 
             /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
             /// <param name="e"></param>
-            /// <param name="stream">数据</param>
             /// <returns>修改后的数据</returns>
             protected override void OnReceiveRemote(ReceivedEventArgs e)
             {

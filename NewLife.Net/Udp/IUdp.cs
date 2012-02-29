@@ -33,6 +33,7 @@ namespace NewLife.Net.Udp
     static class UdpHelper
     {
         /// <summary>发送数据流</summary>
+        /// <param name="udp"></param>
         /// <param name="stream"></param>
         /// <param name="remoteEP"></param>
         /// <returns>返回自身，用于链式写法</returns>
@@ -56,12 +57,14 @@ namespace NewLife.Net.Udp
         }
 
         /// <summary>向指定目的地发送信息</summary>
+        /// <param name="udp"></param>
         /// <param name="buffer"></param>
         /// <param name="remoteEP"></param>
         /// <returns>返回自身，用于链式写法</returns>
         public static IUdp Send(this IUdp udp, Byte[] buffer, EndPoint remoteEP = null) { udp.Send(buffer, 0, buffer.Length, remoteEP); return udp; }
 
         /// <summary>向指定目的地发送信息</summary>
+        /// <param name="udp"></param>
         /// <param name="message"></param>
         /// <param name="encoding"></param>
         /// <param name="remoteEP"></param>
@@ -69,6 +72,7 @@ namespace NewLife.Net.Udp
         public static IUdp Send(this IUdp udp, String message, Encoding encoding = null, EndPoint remoteEP = null) { Send(udp, Encoding.UTF8.GetBytes(message), remoteEP); return udp; }
 
         /// <summary>接收字符串</summary>
+        /// <param name="udp"></param>
         /// <param name="encoding"></param>
         /// <returns></returns>
         public static String ReceiveString(this IUdp udp, Encoding encoding = null)
