@@ -139,7 +139,7 @@ namespace NewLife.Net.Tcp
             {
                 e.Cancel = false;
                 Accepted(this, e);
-                if (e.Cancel) return;
+                if (e.Cancel || session.Disposed || session.Host.Disposed) return;
             }
 
             // 不需要指定Key，内部会计算

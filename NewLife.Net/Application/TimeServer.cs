@@ -19,9 +19,7 @@ namespace NewLife.Net.Application
 
         static readonly DateTime STARTTIME = new DateTime(1970, 1, 1);
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         protected override void OnAccepted(object sender, NetEventArgs e)
@@ -29,7 +27,7 @@ namespace NewLife.Net.Application
             var session = e.Session;
             try
             {
-                WriteLog("Daytime {0}", e.RemoteEndPoint);
+                WriteLog("Daytime {0}", session.RemoteUri);
 
                 base.OnAccepted(sender, e);
 

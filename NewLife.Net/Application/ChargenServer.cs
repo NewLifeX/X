@@ -25,7 +25,7 @@ namespace NewLife.Net.Application
         /// <param name="e"></param>
         protected override void OnAccepted(object sender, NetEventArgs e)
         {
-            WriteLog("Chargen {0}", e.RemoteEndPoint);
+            WriteLog("Chargen {0}", e.Session.RemoteUri);
 
             // 如果没有远程地址，或者远程地址是广播地址，则跳过。否则会攻击广播者。
             // Tcp的该属性可能没值，可以忽略
@@ -49,9 +49,9 @@ namespace NewLife.Net.Application
         protected override void OnReceived(object sender, NetEventArgs e)
         {
             if (e.BytesTransferred > 100)
-                WriteLog("Chargen {0} [{1}]", e.RemoteEndPoint, e.BytesTransferred);
+                WriteLog("Chargen {0} [{1}]", e.Session.RemoteUri, e.BytesTransferred);
             else
-                WriteLog("Chargen {0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString());
+                WriteLog("Chargen {0} [{1}] {2}", e.Session.RemoteUri, e.BytesTransferred, e.GetString());
         }
 
         /// <summary>出错时</summary>

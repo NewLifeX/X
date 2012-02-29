@@ -25,17 +25,18 @@ namespace NewLife.Net.Application
         /// <param name="e"></param>
         protected override void OnReceived(object sender, NetEventArgs e)
         {
+            var session = e.Session;
             try
             {
                 if (e.BytesTransferred > 100)
-                    WriteLog("Discard {0} [{1}]", e.RemoteEndPoint, e.BytesTransferred);
+                    WriteLog("Discard {0} [{1}]", session.RemoteUri, e.BytesTransferred);
                 else
-                    WriteLog("Discard {0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString());
+                    WriteLog("Discard {0} [{1}] {2}", session.RemoteUri, e.BytesTransferred, e.GetString());
             }
             finally
             {
                 //(e.Session).Disconnect();
-                e.Session.Dispose();
+                session.Dispose();
             }
         }
     }

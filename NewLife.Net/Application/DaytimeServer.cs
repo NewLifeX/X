@@ -29,7 +29,7 @@ namespace NewLife.Net.Application
             var session = e.Session;
             try
             {
-                WriteLog("Daytime {0}", e.RemoteEndPoint);
+                WriteLog("Daytime {0}", session.RemoteUri);
 
                 base.OnAccepted(sender, e);
 

@@ -33,18 +33,12 @@ namespace NewLife.Net.Application
             StartChargenServer(19);
         }
 
-        static T CreateClient<T>() where T : ISocketClient
-        {
-            var client = Activator.CreateInstance(typeof(T)) as ISocketClient;
-            client.Error += new EventHandler<NetEventArgs>(OnError);
-            client.Received += new EventHandler<NetEventArgs>(OnReceived);
-
-            return (T)client;
-        }
-
+        static AutoResetEvent _are = new AutoResetEvent(true);
         static void OnReceived(object sender, NetEventArgs e)
         {
             Console.WriteLine("客户端{3} 收到 {0} [{1}] {2}", (sender as ISocket).RemoteEndPoint, e.BytesTransferred, e.GetString(), sender);
+
+            _are.Set();
         }
 
         static void OnError(object sender, NetEventArgs e)
@@ -68,7 +62,11 @@ namespace NewLife.Net.Application
             client.AddressFamily = ep.AddressFamily;
             //if (protocol == ProtocolType.Tcp) client.Connect(ep);
             client.Client.ReceiveTimeout = 60000;
-            if (isAsync && isReceiveData) client.ReceiveAsync();
+            if (isAsync && isReceiveData)
+            {
+                _are.Reset();
+                client.ReceiveAsync();
+            }
             if (isSendData) client.CreateSession(ep).Send(msg);
             // 异步的多发一个
             //if (isAsync)
@@ -81,10 +79,13 @@ namespace NewLife.Net.Application
                 if (!isAsync)
                     Console.WriteLine("客户端" + client + " " + client.ReceiveString());
                 else
-                    Thread.Sleep(100);
+                {
+                    _are.WaitOne(2000);
+                    //Thread.Sleep(100);
+                }
             }
             client.Close();
-            Thread.Sleep(100);
+            //Thread.Sleep(100);
             Console.WriteLine("结束！");
         }
 
