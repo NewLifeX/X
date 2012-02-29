@@ -71,7 +71,8 @@ namespace NewLife.Net.Tcp
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public virtual Int64 Send(Stream stream)
+        /// <returns>返回自身，用于链式写法</returns>
+        public virtual ISocketSession Send(Stream stream)
         {
             Int64 total = 0;
 
@@ -87,30 +88,37 @@ namespace NewLife.Net.Tcp
 
                 if (n < buffer.Length) break;
             }
-            return total;
+            //return total;
+            return this;
         }
 
         /// <summary>发送数据</summary>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
-        public virtual void Send(Byte[] buffer, Int32 offset = 0, Int32 size = 0)
+        /// <returns>返回自身，用于链式写法</returns>
+        public virtual ISocketSession Send(Byte[] buffer, Int32 offset = 0, Int32 size = 0)
         {
             if (!Client.IsBound) Bind();
 
             if (size <= 0) size = buffer.Length - offset;
             Client.Send(buffer, offset, size, SocketFlags.None);
+
+            return this;
         }
 
         /// <summary>发送字符串</summary>
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
-        public void Send(String msg, Encoding encoding = null)
+        /// <returns>返回自身，用于链式写法</returns>
+        public ISocketSession Send(String msg, Encoding encoding = null)
         {
-            if (String.IsNullOrEmpty(msg)) return;
+            if (String.IsNullOrEmpty(msg)) return this;
 
             if (encoding == null) encoding = Encoding.UTF8;
             Send(encoding.GetBytes(msg), 0, 0);
+
+            return this;
         }
         #endregion
 
@@ -140,9 +148,9 @@ namespace NewLife.Net.Tcp
                 OnError(e, null);
         }
 
-        private event EventHandler<DataReceiveEventArgs> _Received;
+        private event EventHandler<ReceivedEventArgs> _Received;
         /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
-        event EventHandler<DataReceiveEventArgs> ISocketSession.Received
+        event EventHandler<ReceivedEventArgs> ISocketSession.Received
         {
             add { _Received += value; }
             remove { _Received -= value; }

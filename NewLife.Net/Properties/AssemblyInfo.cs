@@ -32,10 +32,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.7.*")]
-[assembly: AssemblyFileVersion("1.7.2012.0209")]
+[assembly: AssemblyVersion("2.0.*")]
+[assembly: AssemblyFileVersion("2.0.2012.0229")]
 
 /*
+ * v2.0.2012.0229   完全重构网络模型。划分为四层：Socket层、封装层ISocket、数据会话层ISocketSession、网络会话INetSession
+ * 
  * v1.7.2012.0209   完善串口服务器和DNS服务器
  * 
  * v1.7.2011.1228   抽象网络接口，方便编写应用服务

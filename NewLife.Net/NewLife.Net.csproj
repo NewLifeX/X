@@ -154,7 +154,7 @@
     <Compile Include="Smtp\SmtpSession.cs" />
     <Compile Include="Smtp\RelayServer.cs" />
     <Compile Include="Smtp\RelaySession.cs" />
-    <Compile Include="Sockets\DataReceiveEventArgs.cs" />
+    <Compile Include="Sockets\ReceivedEventArgs.cs" />
     <Compile Include="Sockets\INetSession.cs" />
     <Compile Include="Sockets\ISocket.cs" />
     <Compile Include="Sockets\ISocketAddress.cs" />

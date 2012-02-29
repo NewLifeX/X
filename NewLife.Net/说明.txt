@@ -1,4 +1,13 @@
-﻿2011-10-10
+﻿2012-02-29
+整个网络模型，划分为四层：
+1，最底层当然是系统的Socket了
+2，第二层是Sockets中所包装的各个ISocket实现，包括TcpClientX、TcpServer、UdpClientX、UdpServer，各种事件采用NetEventArgs
+3，第三层是ISocketSession，实现了建立连接后的会话，仅负责收发数据，数据到达事件采用DataReceiveEventArgs
+4，第四层是网络应用层，包括NetServer和INetSession，只跟几大接口相关：ISocketServer、ISocketSession
+
+ISocketSession重点用于客户端，而服务端业务更多采用INetSession。
+
+2011-10-10
 1，考虑实现Web服务器，甚至支持ASP.Net。
 2，最好支持两种方式：HttpListener、自己监听Tcp端口处理数据。前者将有系统内核的http.sys监听端口。
 

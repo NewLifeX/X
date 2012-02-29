@@ -21,7 +21,7 @@ namespace NewLife.Net.Proxy
         IProxy Proxy { get; set; }
 
         /// <summary>远程客户端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
-        ISocketClient Remote { get; set; }
+        ISocketSession Remote { get; set; }
 
         /// <summary>远程客户端IP终结点</summary>
         IPEndPoint RemoteEndPoint { get; set; }
@@ -38,17 +38,17 @@ namespace NewLife.Net.Proxy
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
-        void SendRemote(byte[] buffer, int offset = 0, int size = 0);
+        IProxySession SendRemote(byte[] buffer, int offset = 0, int size = 0);
 
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        long SendRemote(Stream stream);
+        IProxySession SendRemote(Stream stream);
 
         /// <summary>发送字符串</summary>
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
-        void SendRemote(string msg, Encoding encoding = null);
+        IProxySession SendRemote(string msg, Encoding encoding = null);
         #endregion
     }
 }

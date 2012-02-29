@@ -254,7 +254,7 @@ namespace NewLife.Net.SGIP
             {
                 try
                 {
-                    Client.Send(cmd.GetStream());
+                    Client.CreateSession().Send(cmd.GetStream());
                 }
                 catch (Exception ex)
                 {

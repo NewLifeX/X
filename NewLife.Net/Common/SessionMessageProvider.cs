@@ -18,12 +18,12 @@ namespace NewLife.Net.Common
         {
             Session = session;
 
-            session.Received += new EventHandler<NetEventArgs>(client_Received);
+            session.Received += new EventHandler<ReceivedEventArgs>(client_Received);
         }
 
-        void client_Received(object sender, NetEventArgs e)
+        void client_Received(object sender, ReceivedEventArgs e)
         {
-            var message = Message.Read(e.GetStream());
+            var message = Message.Read(e.Stream);
             OnReceive(message);
         }
 

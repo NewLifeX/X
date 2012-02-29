@@ -1,4 +1,6 @@
 ﻿using System;
+using NewLife.IO;
+using NewLife.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -121,9 +123,9 @@ namespace NewLife.Net.P2P
                 var session = e.Session;
                 if (session != null)
                 {
-                    session.Send("P2P连接已建立！", null, e.RemoteIPEndPoint);
+                    session.Send("P2P连接已建立！", null);
                     WriteLog("P2P连接已建立！");
-                    session.Send("我与" + e.RemoteIPEndPoint + "的P2P连接已建立！", null, HoleServer);
+                    session.Send("我与" + e.RemoteIPEndPoint + "的P2P连接已建立！", null);
 
                     while (true)
                     {
@@ -132,7 +134,7 @@ namespace NewLife.Net.P2P
                         if (String.IsNullOrEmpty(line)) continue;
                         if (line == "exit") break;
 
-                        session.Send(line, null, e.RemoteIPEndPoint);
+                        session.Send(line, null);
                         Console.WriteLine("已发送！");
                     }
                 }
@@ -150,7 +152,7 @@ namespace NewLife.Net.P2P
             var session = e.Session;
             if (session != null)
             {
-                session.Received += new EventHandler<NetEventArgs>(client_Received);
+                session.Received += new EventHandler<ReceivedEventArgs>(client_Received);
                 session.Send("P2P连接已建立！");
                 WriteLog("P2P连接已建立！");
             }
@@ -169,16 +171,18 @@ namespace NewLife.Net.P2P
                 client.Port = server.LocalEndPoint.Port;
                 client.ReuseAddress = true;
                 client.Connect(HoleServer);
-                client.Received += new EventHandler<NetEventArgs>(client_Received);
-                client.ReceiveAsync();
+                var session = client.CreateSession();
+                session.Received += new EventHandler<ReceivedEventArgs>(client_Received);
+                session.ReceiveAsync();
             }
         }
 
-        void client_Received(object sender, NetEventArgs e)
+        void client_Received(object sender, ReceivedEventArgs e)
         {
-            WriteLog("数据到来：{0} {1}", e.RemoteIPEndPoint, e.GetString());
+            //WriteLog("数据到来：{0} {1}", e.RemoteIPEndPoint, e.GetString());
 
-            var ss = e.GetString().Split(":");
+            //var ss = e.GetString().Split(":");
+            var ss = e.Stream.ToStr().Split(":");
             if (ss == null || ss.Length < 2) return;
 
             IPAddress address = null;
@@ -269,7 +273,8 @@ namespace NewLife.Net.P2P
                 client.Dispose();
 
                 EnsureClient();
-                Client.Send(msg, null);
+                //Client.Send(msg, null);
+                Client.CreateSession().Send(msg);
             }
         }
         #endregion

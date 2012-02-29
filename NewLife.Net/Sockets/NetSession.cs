@@ -52,14 +52,14 @@ namespace NewLife.Net.Sockets
         #region 方法
         /// <summary>开始会话处理。参数e里面可能含有数据</summary>
         /// <param name="e"></param>
-        public virtual void Start(NetEventArgs e)
+        public virtual void Start(ReceivedEventArgs e)
         {
             ShowSession();
 
             // Tcp挂接事件，Udp直接处理数据
             if (Session.ProtocolType == ProtocolType.Tcp)
             {
-                Session.Received += new EventHandler<NetEventArgs>(Session_Received);
+                Session.Received += (s, e2) => OnReceive(e2);
                 Session.OnDisposed += (s, e2) => this.Dispose();
 
                 // 这里不需要再次Start，因为TcpServer在处理完成Accepted事件后，会调用Start
@@ -75,24 +75,20 @@ namespace NewLife.Net.Sockets
             WriteLog("会话{0}：{1}", ID, this);
         }
 
-        void Session_Received(object sender, NetEventArgs e)
-        {
-            OnReceive(e);
-        }
-
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
         protected override void OnDispose(bool disposing)
         {
             base.OnDispose(disposing);
 
-            var session = Session;
-            if (session.ProtocolType == ProtocolType.Tcp)
-            {
-                session.Received -= new EventHandler<NetEventArgs>(Session_Received);
-                session.Disconnect();
-                session.Dispose();
-            }
+            //var session = Session;
+            //if (session.ProtocolType == ProtocolType.Tcp)
+            //{
+            //    session.Received -= new EventHandler<NetEventArgs>(Session_Received);
+            //    session.Disconnect();
+            //    session.Dispose();
+            //}
+            Session.Dispose();
 
             Server = null;
             Session = null;
@@ -102,7 +98,7 @@ namespace NewLife.Net.Sockets
         #region 业务核心
         /// <summary>收到客户端发来的数据</summary>
         /// <param name="e"></param>
-        protected virtual void OnReceive(NetEventArgs e) { if (Received != null)Received(this, e); }
+        protected virtual void OnReceive(ReceivedEventArgs e) { if (Received != null)Received(this, e); }
         #endregion
 
         #region 收发
@@ -114,56 +110,62 @@ namespace NewLife.Net.Sockets
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
-        public virtual void Send(byte[] buffer, int offset = 0, int size = 0)
+        public virtual INetSession Send(byte[] buffer, int offset = 0, int size = 0)
         {
             if (DisposeWhenSendError)
             {
                 try
                 {
-                    Session.Send(buffer, offset, size, ClientEndPoint);
+                    Session.Send(buffer, offset, size);
                 }
                 catch { this.Dispose(); throw; }
             }
             else
-                Session.Send(buffer, offset, size, ClientEndPoint);
+                Session.Send(buffer, offset, size);
+
+            return this;
         }
 
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public virtual long Send(Stream stream)
+        public virtual INetSession Send(Stream stream)
         {
             if (DisposeWhenSendError)
             {
                 try
                 {
-                    return Session.Send(stream, ClientEndPoint);
+                    Session.Send(stream);
                 }
                 catch { this.Dispose(); throw; }
             }
             else
-                return Session.Send(stream, ClientEndPoint);
+                Session.Send(stream);
+
+            return this;
         }
 
         /// <summary>发送字符串</summary>
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
-        public virtual void Send(string msg, Encoding encoding = null)
+        public virtual INetSession Send(string msg, Encoding encoding = null)
         {
             if (DisposeWhenSendError)
             {
                 try
                 {
-                    Session.Send(msg, encoding, ClientEndPoint);
+                    Session.Send(msg, encoding);
                 }
                 catch { this.Dispose(); throw; }
             }
             else
-                Session.Send(msg, encoding, ClientEndPoint);
+                Session.Send(msg, encoding);
+
+            return this;
         }
 
         /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
-        public event EventHandler<NetEventArgs> Received;
+        public event EventHandler<ReceivedEventArgs> Received;
         #endregion
 
         #region 辅助

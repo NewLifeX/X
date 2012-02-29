@@ -62,15 +62,24 @@ namespace NewLife.Net.Udp
             _LocalEndPoint = socket.LocalEndPoint as IPEndPoint;
             _Connected = socket.Connected;
         }
+
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+
+            var host = _Host;
+            // 如果是已连接的会话，可以销毁
+            if (host != null && Connected) _Host.Dispose();
+        }
         #endregion
 
         #region ISocketSession 成员
 
-        public void Send(byte[] buffer, int offset = 0, int size = 0) { Udp.Send(buffer, offset, size); }
+        public ISocketSession Send(byte[] buffer, int offset = 0, int size = 0) { Udp.Send(buffer, offset, size); return this; }
 
-        public long Send(Stream stream) { return Udp.Send(stream); }
+        public ISocketSession Send(Stream stream) { Udp.Send(stream); return this; }
 
-        public void Send(string msg, Encoding encoding = null) { Udp.Send(msg, encoding); }
+        public ISocketSession Send(string msg, Encoding encoding = null) { Udp.Send(msg, encoding); return this; }
 
         public void ReceiveAsync()
         {
@@ -81,14 +90,14 @@ namespace NewLife.Net.Udp
 
         void Udp_Received(object sender, NetEventArgs e)
         {
-            if (Received != null) Received(this, new DataReceiveEventArgs(e.GetStream()));
+            if (Received != null) Received(this, new ReceivedEventArgs(e.GetStream()));
         }
 
         public byte[] Receive() { return Udp.Receive(); }
 
         public string ReceiveString(Encoding encoding = null) { return Udp.ReceiveString(); }
 
-        public event EventHandler<DataReceiveEventArgs> Received;
+        public event EventHandler<ReceivedEventArgs> Received;
 
         #endregion
     }

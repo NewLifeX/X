@@ -92,7 +92,8 @@ namespace NewLife.Net.Application
             }
             finally
             {
-                session.Disconnect();
+                //session.Disconnect();
+                session.Dispose();
             }
         }
 
@@ -115,7 +116,7 @@ namespace NewLife.Net.Application
             }
 
             //Send(sender, buffer, 0, buffer.Length, remoteEP);
-            session.Send(buffer, 0, buffer.Length, remoteEP);
+            session.Send(buffer, 0, buffer.Length);
         }
     }
 }

@@ -150,9 +150,11 @@ namespace NewLife.Net.Application
 
             /// <summary>收到客户端发来的数据</summary>
             /// <param name="e"></param>
-            protected override void OnReceive(NetEventArgs e)
+            protected override void OnReceive(ReceivedEventArgs e)
             {
-                if (e.BytesTransferred <= 0) return;
+                //if (e.BytesTransferred <= 0) return;
+                var ms = e.Stream;
+                if (ms == null || ms.Length <= 0) return;
 
                 var sp = Host.Serial;
                 if (sp == null)
@@ -178,7 +180,7 @@ namespace NewLife.Net.Application
                     Host.RaiseCreate();
                 }
 
-                var ms = e.GetStream();
+                //var ms = e.GetStream();
 
                 #region 特殊处理VSP格式
                 // 特殊处理VSP格式。有可能是先开始FFF0才到FFFA
@@ -227,7 +229,7 @@ namespace NewLife.Net.Application
                     sp.Write(data2, 0, data2.Length);
 
                     // 读数据
-                    ReadAndSend(sp, Session, ClientEndPoint);
+                    ReadAndSend(sp, Session);
 
                     if (Host.AutoClose) sp.Close();
                 }
@@ -235,7 +237,7 @@ namespace NewLife.Net.Application
                 //base.OnReceive(e);
             }
 
-            void ReadAndSend(SerialPort sp, ISocketSession session, EndPoint remote)
+            void ReadAndSend(SerialPort sp, ISocketSession session)
             {
                 // 读取数据
                 var data = Read(sp, Host.ReceivedBytesThreshold);
@@ -243,7 +245,7 @@ namespace NewLife.Net.Application
                 if (data != null && data.Length > 0)
                 {
                     WriteLog("SerialPort=>Net: {0}", data.ToHex());
-                    session.Send(data, 0, data.Length, remote);
+                    session.Send(data, 0, data.Length);
                 }
             }
         }

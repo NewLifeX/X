@@ -8,28 +8,22 @@ namespace NewLife.Net.Common
     /// <summary>客户端消息提供者</summary>
     public class ClientMessageProvider : MessageProvider
     {
-        private ISocketClient _Client;
+        private ISocketSession _Session;
         /// <summary>客户端</summary>
-        public ISocketClient Client { get { return _Client; } set { _Client = value; } }
-
-        private IPEndPoint _Remote;
-        /// <summary>远程</summary>
-        public IPEndPoint Remote { get { return _Remote; } set { _Remote = value; } }
+        public ISocketSession Session { get { return _Session; } set { _Session = value; } }
 
         /// <summary>实例化一个客户端消息提供者</summary>
-        /// <param name="client"></param>
-        /// <param name="ep"></param>
-        public ClientMessageProvider(ISocketClient client, IPEndPoint ep)
+        /// <param name="session"></param>
+        public ClientMessageProvider(ISocketSession session)
         {
-            Client = client;
-            Remote = ep;
+            Session = session;
 
-            client.Received += new EventHandler<NetEventArgs>(client_Received);
+            session.Received += new EventHandler<ReceivedEventArgs>(client_Received);
         }
 
-        void client_Received(object sender, NetEventArgs e)
+        void client_Received(object sender, ReceivedEventArgs e)
         {
-            var message = Message.Read(e.GetStream());
+            var message = Message.Read(e.Stream);
             OnReceive(message);
         }
 
@@ -37,7 +31,7 @@ namespace NewLife.Net.Common
         /// <param name="message"></param>
         public override void Send(Message message)
         {
-            Client.Send(message.GetStream(), Remote);
+            Session.Send(message.GetStream());
         }
     }
 }

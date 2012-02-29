@@ -25,23 +25,15 @@ namespace NewLife.Net.Application
         protected override void OnReceived(object sender, NetEventArgs e)
         {
             var session = e.Session;
-            //try
-            //{
+
             if (e.BytesTransferred > 100)
                 WriteLog("Echo {0} [{1}]", e.RemoteEndPoint, e.BytesTransferred);
             else
                 WriteLog("Echo {0} [{1}] {2}", e.RemoteEndPoint, e.BytesTransferred, e.GetString());
 
             //Send(e.Socket, e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
-            session.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
-
-            //// 等一秒，等客户端接收数据
-            //Thread.Sleep(1000);
-            //}
-            //finally
-            //{
-            //    session.Disconnect();
-            //}
+            //session.Send(e.Buffer, e.Offset, e.BytesTransferred, e.RemoteEndPoint);
+            session.Send(e.Buffer, e.Offset, e.BytesTransferred);
         }
     }
 }

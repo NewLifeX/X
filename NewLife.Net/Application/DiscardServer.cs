@@ -34,7 +34,8 @@ namespace NewLife.Net.Application
             }
             finally
             {
-                (e.Session).Disconnect();
+                //(e.Session).Disconnect();
+                e.Session.Dispose();
             }
         }
     }

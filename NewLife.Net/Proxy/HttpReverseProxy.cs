@@ -58,21 +58,25 @@ namespace NewLife.Net.Proxy
             public String RawHost { get { return _RawHost; } set { _RawHost = value; } }
 
             /// <summary>请求时触发。</summary>
-            public event EventHandler<EventArgs<NetEventArgs, Stream, HttpHeader>> OnRequest;
+            public event EventHandler<ReceivedEventArgs> OnRequest;
 
             /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
             /// <param name="e"></param>
-            /// <param name="stream">数据</param>
-            /// <returns>修改后的数据</returns>
-            protected override Stream OnReceive(NetEventArgs e, Stream stream)
+            protected override void OnReceive(ReceivedEventArgs e)
             {
                 // 解析请求头
+                var stream = e.Stream;
                 var entity = HttpHeader.Read(stream, HttpHeaderReadMode.Request);
-                if (entity == null) return base.OnReceive(e, stream);
+                if (entity == null)
+                {
+                    base.OnReceive(e);
+                    return;
+                }
 
                 WriteLog("{3}请求：{0} {1} [{2}]", entity.Method, entity.Url, entity.ContentLength, ID);
 
-                if (OnRequest != null) OnRequest(this, new EventArgs<NetEventArgs, Stream, HttpHeader>(e, stream, entity));
+                Request = entity;
+                if (OnRequest != null) OnRequest(this, e);
 
                 var host = entity.Url.IsAbsoluteUri ? entity.Url.Host : Proxy.ServerHost;
                 Host = host;
@@ -101,7 +105,9 @@ namespace NewLife.Net.Proxy
                 stream.CopyTo(ms);
                 ms.Position = 0;
 
-                return ms;
+                e.Stream = ms;
+
+                base.OnReceive(e);
             }
 
             ///// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>

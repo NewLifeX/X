@@ -1,9 +1,9 @@
 ﻿using System;
-using NewLife.Linq;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using NewLife.Linq;
 using NewLife.Net.Sockets;
 using NewLife.Reflection;
 
@@ -136,13 +136,18 @@ namespace NewLife.Net.Stun
                 // 是否需要发给伙伴
                 if (request.ChangeIP)
                 {
-                    if (Partner != null && !Partner.Equals(session.GetRelativeEndPoint(Partner.Address)))
+                    if (Partner != null && !Partner.Equals(session.Host.GetRelativeEndPoint(Partner.Address)))
                     {
                         // 发给伙伴
                         request.ChangeIP = false;
                         // 记住对方的地址
                         request.ResponseAddress = remote;
-                        session.Send(request.GetStream(), Partner);
+                        //session.Send(request.GetStream(), Partner);
+                        var us = session.Host as Udp.UdpServer;
+                        if (us != null)
+                        {
+                            us.CreateSession(Partner).Send(request.GetStream());
+                        }
                         return;
                     }
                     // 如果没有伙伴地址，采用不同端口代替
@@ -153,7 +158,7 @@ namespace NewLife.Net.Stun
                 switch (request.Type)
                 {
                     case StunMessageType.BindingRequest:
-                        OnBind(request, session, remote);
+                        OnBind(request, session);
                         break;
                     case StunMessageType.SharedSecretRequest:
                         break;
@@ -168,19 +173,18 @@ namespace NewLife.Net.Stun
         /// <summary>绑定</summary>
         /// <param name="request"></param>
         /// <param name="session"></param>
-        /// <param name="remote"></param>
         /// <returns></returns>
-        protected void OnBind(StunMessage request, ISocketSession session, IPEndPoint remote)
+        protected void OnBind(StunMessage request, ISocketSession session)
         {
             var rs = new StunMessage();
             rs.Type = StunMessageType.BindingResponse;
             rs.TransactionID = request.TransactionID;
-            rs.MappedAddress = remote;
+            rs.MappedAddress = session.RemoteEndPoint;
             //rs.SourceAddress = session.GetRelativeEndPoint(remote.Address);
             if (session.ProtocolType == ProtocolType.Tcp)
-                rs.SourceAddress = Public[session.Port + 100000];
+                rs.SourceAddress = Public[session.Host.Port + 100000];
             else
-                rs.SourceAddress = Public[session.Port];
+                rs.SourceAddress = Public[session.Host.Port];
 
             // 找另一个
             ISocketSession session2 = null;
@@ -215,7 +219,7 @@ namespace NewLife.Net.Stun
             // 换成另一个
             if (request.ChangePort) session = session2;
 
-            session.Send(rs.GetStream(), remote);
+            session.Send(rs.GetStream());
         }
         #endregion
 

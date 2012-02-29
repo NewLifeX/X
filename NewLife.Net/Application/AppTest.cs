@@ -74,7 +74,7 @@ namespace NewLife.Net.Application
             if (protocol == ProtocolType.Tcp) client.Connect(ep);
             client.Client.ReceiveTimeout = 60000;
             if (isAsync && isReceiveData) client.ReceiveAsync();
-            if (isSendData) client.Send(msg, null, ep);
+            if (isSendData) client.CreateSession(ep).Send(msg);
             // 异步的多发一个
             //if (isAsync)
             //{

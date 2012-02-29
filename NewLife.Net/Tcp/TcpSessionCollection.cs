@@ -130,7 +130,8 @@ namespace NewLife.Net.Tcp
             ISocketSession session;
             if (!_dic.TryGetValue(key, out session)) return false;
 
-            session.Close();
+            //session.Close();
+            session.Dispose();
 
             return _dic.Remove(key);
         }

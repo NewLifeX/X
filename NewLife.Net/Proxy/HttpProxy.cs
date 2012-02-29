@@ -43,13 +43,13 @@ namespace NewLife.Net.Proxy
         /// <param name="kind"></param>
         /// <param name="he"></param>
         /// <returns></returns>
-        Boolean RaiseEvent(EventKind kind, HttpProxyEventArgs he)
+        Boolean RaiseEvent(HttpProxy.Session session, EventKind kind, HttpProxyEventArgs he)
         {
             var handler = GetHandler(kind);
 
             if (handler != null)
             {
-                handler(this, he);
+                handler(session, he);
 
                 //return he.Cancel;
             }
@@ -114,14 +114,14 @@ namespace NewLife.Net.Proxy
 
         void HttpProxy_OnResponse(object sender, HttpProxyEventArgs e)
         {
-            // 缓存Get请求的304响应
-            var request = e.Session.CurrentRequest;
-            var response = e.Header;
-            if (request != null && request.Method.EqualIgnoreCase("GET")
-                && response != null && request.StatusCode == 304)
-            {
+            //// 缓存Get请求的304响应
+            //var request = e.Session.CurrentRequest;
+            //var response = e.Header;
+            //if (request != null && request.Method.EqualIgnoreCase("GET")
+            //    && response != null && request.StatusCode == 304)
+            //{
 
-            }
+            //}
         }
 
         private HttpCache _Cache;
@@ -151,11 +151,10 @@ namespace NewLife.Net.Proxy
             /// 最麻烦的就是数据包不是一个完整的头部，还落了一部分在后面的包上。
             /// </remarks>
             /// <param name="e"></param>
-            /// <param name="stream">数据</param>
-            /// <returns>修改后的数据</returns>
-            protected override Stream OnReceive(NetEventArgs e, Stream stream)
+            protected override void OnReceive(ReceivedEventArgs e)
             {
                 // 解析请求头。
+                var stream = e.Stream;
                 var entity = Request;
                 if (entity == null)
                 {
@@ -163,9 +162,12 @@ namespace NewLife.Net.Proxy
                     entity = HttpHeader.Read(stream, HttpHeaderReadMode.Request);
                     if (entity == null)
                     {
-                        var he = new HttpProxyEventArgs(this, CurrentRequest, e, stream);
-                        if (Proxy.RaiseEvent(EventKind.OnRequestBody, he)) return null;
-                        return base.OnReceive(e, he.Stream);
+                        var he = new HttpProxyEventArgs(CurrentRequest, stream);
+                        if (Proxy.RaiseEvent(this, EventKind.OnRequestBody, he)) return;
+                        e.Stream = he.Stream;
+                        base.OnReceive(e);
+
+                        return;
                     }
 
                     if (!entity.IsFinish)
@@ -186,26 +188,28 @@ namespace NewLife.Net.Proxy
                 else
                 {
                     // 否则，头部已完成，现在就是内容
-                    var he = new HttpProxyEventArgs(this, CurrentRequest, e, stream);
-                    if (Proxy.RaiseEvent(EventKind.OnRequestBody, he)) return null;
-                    return base.OnReceive(e, he.Stream);
+                    var he = new HttpProxyEventArgs(CurrentRequest, stream);
+                    if (Proxy.RaiseEvent(this, EventKind.OnRequestBody, he)) return;
+                    e.Stream = he.Stream;
+                    base.OnReceive(e);
+                    return;
                 }
 
                 // 请求头不完整，不发送，等下一部分到来
-                if (!entity.IsFinish) return null;
+                if (!entity.IsFinish) return;
 
-                var rs = OnRequest(entity, e, stream);
+                var rs = OnRequest(entity, e);
                 {
-                    var he = new HttpProxyEventArgs(this, CurrentRequest, e, stream);
+                    var he = new HttpProxyEventArgs(CurrentRequest, stream);
                     he.Cancel = !rs;
-                    rs = !Proxy.RaiseEvent(EventKind.OnRequest, he);
+                    rs = !Proxy.RaiseEvent(this, EventKind.OnRequest, he);
                 }
-                if (!rs) return null;
+                if (!rs) return;
 
                 if (stream.Position < stream.Length)
                 {
-                    var he = new HttpProxyEventArgs(this, CurrentRequest, e, stream);
-                    if (Proxy.RaiseEvent(EventKind.OnRequestBody, he)) return null;
+                    var he = new HttpProxyEventArgs(CurrentRequest, stream);
+                    if (Proxy.RaiseEvent(this, EventKind.OnRequestBody, he)) return;
                     stream = he.Stream;
                 }
 
@@ -215,7 +219,8 @@ namespace NewLife.Net.Proxy
                 stream.CopyTo(ms);
                 ms.Position = 0;
 
-                return ms;
+                e.Stream = ms;
+                base.OnReceive(e);
             }
 
             String LastHost;
@@ -231,7 +236,7 @@ namespace NewLife.Net.Proxy
             /// <param name="e"></param>
             /// <param name="stream"></param>
             /// <returns></returns>
-            protected virtual Boolean OnRequest(HttpHeader entity, NetEventArgs e, Stream stream)
+            protected virtual Boolean OnRequest(HttpHeader entity, ReceivedEventArgs e)
             {
                 var host = "";
                 var oriUrl = entity.Url;
@@ -270,7 +275,7 @@ namespace NewLife.Net.Proxy
                     }
 
                     var session = Session;
-                    if (session != null) session.Send(rs.GetStream(), ClientEndPoint);
+                    if (session != null) session.Send(rs.GetStream());
                     return false;
                 }
                 #endregion
@@ -345,11 +350,12 @@ namespace NewLife.Net.Proxy
             /// <param name="e"></param>
             /// <param name="stream">数据</param>
             /// <returns>修改后的数据</returns>
-            protected override Stream OnReceiveRemote(NetEventArgs e, Stream stream)
+            protected override void OnReceiveRemote(ReceivedEventArgs e)
             {
                 var parseHeader = Proxy.GetHandler(EventKind.OnResponse) != null;
                 var parseBody = Proxy.GetHandler(EventKind.OnResponseBody) != null;
 
+                var stream = e.Stream;
                 if (parseHeader || parseBody)
                 {
                     // 解析头部
@@ -360,9 +366,11 @@ namespace NewLife.Net.Proxy
                         entity = HttpHeader.Read(stream, HttpHeaderReadMode.Response);
                         if (entity == null)
                         {
-                            var he = new HttpProxyEventArgs(this, CurrentResponse, e, stream);
-                            if (Proxy.RaiseEvent(EventKind.OnResponseBody, he)) return null;
-                            return base.OnReceiveRemote(e, he.Stream);
+                            var he = new HttpProxyEventArgs(CurrentResponse, stream);
+                            if (Proxy.RaiseEvent(this, EventKind.OnResponseBody, he)) return;
+                            e.Stream = he.Stream;
+                            base.OnReceiveRemote(e);
+                            return;
                         }
 
                         if (!entity.IsFinish)
@@ -383,17 +391,19 @@ namespace NewLife.Net.Proxy
                     else
                     {
                         // 否则，头部已完成，现在就是内容
-                        var he = new HttpProxyEventArgs(this, CurrentResponse, e, stream);
-                        if (Proxy.RaiseEvent(EventKind.OnResponseBody, he)) return null;
-                        return base.OnReceiveRemote(e, he.Stream);
+                        var he = new HttpProxyEventArgs(CurrentResponse, stream);
+                        if (Proxy.RaiseEvent(this, EventKind.OnResponseBody, he)) return;
+                        base.OnReceiveRemote(e);
+                        e.Stream = he.Stream;
+                        return;
                     }
 
                     // 请求头不完整，不发送，等下一部分到来
-                    if (!entity.IsFinish) return null;
+                    if (!entity.IsFinish) return;
 
                     {
-                        var he = new HttpProxyEventArgs(this, entity, e, stream);
-                        if (Proxy.RaiseEvent(EventKind.OnResponse, he)) return null;
+                        var he = new HttpProxyEventArgs(entity, stream);
+                        if (Proxy.RaiseEvent(this, EventKind.OnResponse, he)) return;
                         stream = he.Stream;
                     }
 
@@ -408,12 +418,13 @@ namespace NewLife.Net.Proxy
 
                 if (parseBody && stream.Position < stream.Length)
                 {
-                    var he = new HttpProxyEventArgs(this, CurrentResponse, e, stream);
-                    if (Proxy.RaiseEvent(EventKind.OnResponseBody, he)) return null;
+                    var he = new HttpProxyEventArgs(CurrentResponse, stream);
+                    if (Proxy.RaiseEvent(this, EventKind.OnResponseBody, he)) return;
                     stream = he.Stream;
                 }
 
-                return base.OnReceiveRemote(e, stream);
+                e.Stream = stream;
+                base.OnReceiveRemote(e);
             }
 
             ///// <summary>收到响应时</summary>
@@ -427,11 +438,11 @@ namespace NewLife.Net.Proxy
             //}
 
             /// <summary>远程连接断开时触发。默认销毁整个会话，子类可根据业务情况决定客户端与代理的链接是否重用。</summary>
-            /// <param name="client"></param>
-            protected override void OnRemoteDispose(ISocketClient client)
+            /// <param name="session"></param>
+            protected override void OnRemoteDispose(ISocketSession session)
             {
                 // 如果客户端不要求保持连接，就销毁吧
-                if (!KeepAlive) base.OnRemoteDispose(client);
+                if (!KeepAlive) base.OnRemoteDispose(session);
             }
         }
         #endregion
@@ -504,17 +515,9 @@ namespace NewLife.Net.Proxy
     /// <summary>Http代理事件参数</summary>
     public class HttpProxyEventArgs : EventArgs
     {
-        private HttpProxy.Session _Session;
-        /// <summary>会话</summary>
-        public HttpProxy.Session Session { get { return _Session; } set { _Session = value; } }
-
         private HttpHeader _Header;
         /// <summary>头部</summary>
         public HttpHeader Header { get { return _Header; } set { _Header = value; } }
-
-        private NetEventArgs _Arg;
-        /// <summary>网络时间参数</summary>
-        public NetEventArgs Arg { get { return _Arg; } set { _Arg = value; } }
 
         private Stream _Stream;
         /// <summary>主体数据流。外部可以更改，如果只是读取，请一定注意保持指针在原来的位置</summary>
@@ -532,15 +535,11 @@ namespace NewLife.Net.Proxy
         /// <summary>
         /// 实例化
         /// </summary>
-        /// <param name="session"></param>
         /// <param name="header"></param>
-        /// <param name="e"></param>
         /// <param name="stream"></param>
-        public HttpProxyEventArgs(HttpProxy.Session session, HttpHeader header, NetEventArgs e, Stream stream)
+        public HttpProxyEventArgs(HttpHeader header, Stream stream)
         {
-            Session = session;
             Header = header;
-            Arg = e;
             Stream = stream;
         }
     }

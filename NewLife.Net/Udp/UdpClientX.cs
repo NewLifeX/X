@@ -39,15 +39,21 @@ namespace NewLife.Net.Udp
         /// <param name="remoteEP">远程终结点</param>
         public virtual void Send(Byte[] buffer, Int32 offset = 0, Int32 size = 0, EndPoint remoteEP = null)
         {
-            if (!Client.IsBound) Bind();
+            var socket = Client;
+            if (!socket.IsBound) Bind();
 
             if (size <= 0) size = buffer.Length - offset;
             if (remoteEP != null && Socket == null) AddressFamily = remoteEP.AddressFamily;
-            if (remoteEP != null && ProtocolType == ProtocolType.Udp)
-                Client.SendTo(buffer, offset, size, SocketFlags.None, remoteEP);
+            //if (remoteEP != null && ProtocolType == ProtocolType.Udp)
+            if (socket.Connected)
+                socket.Send(buffer, offset, size, SocketFlags.None);
             else
-                Client.Send(buffer, offset, size, SocketFlags.None);
+                socket.SendTo(buffer, offset, size, SocketFlags.None, remoteEP);
+
+            //return this;
         }
+
+        //IUdp IUdp.Send(Byte[] buffer, Int32 offset = 0, Int32 size = 0, EndPoint remoteEP = null) { return Send(buffer, offset, size, remoteEP); }
 
         ///// <summary>发送数据流</summary>
         ///// <param name="stream"></param>
@@ -108,14 +114,26 @@ namespace NewLife.Net.Udp
         #endregion
 
         #region 创建会话
+        private ISocketSession _session;
+
         /// <summary>为指定地址创建会话。对于无连接Socket，必须指定远程地址；对于有连接Socket，指定的远程地址将不起任何作用</summary>
         /// <param name="remoteEP"></param>
         /// <returns></returns>
         public override ISocketSession CreateSession(IPEndPoint remoteEP = null)
         {
-            if (!Client.Connected && remoteEP == null) throw new ArgumentNullException("remoteEP", "未连接Udp必须指定远程地址！");
+            var socket = Client;
+            if (!socket.Connected)
+            {
+                if (remoteEP == null) throw new ArgumentNullException("remoteEP", "未连接Udp必须指定远程地址！");
 
-            return new UdpSession(this, remoteEP);
+                return new UdpSession(this, remoteEP);
+            }
+            else
+            {
+                // 已连接。返回已有的
+                if (_session == null) _session = new UdpSession(this, remoteEP);
+                return _session;
+            }
         }
         #endregion
     }

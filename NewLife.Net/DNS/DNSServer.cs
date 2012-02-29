@@ -103,9 +103,11 @@ namespace NewLife.Net.DNS
                     }
                 }
                 entity2.Header.ID = entity.Header.ID;
-                session.Send(entity2.GetStream(isTcp), e.RemoteEndPoint);
+                //session.Send(entity2.GetStream(isTcp), e.RemoteEndPoint);
+                session.Send(entity2.GetStream(isTcp));
             }
-            session.Disconnect();
+            //session.Disconnect();
+            session.Dispose();
         }
 
         DNSEntity GetDNS(String key, DNSEntity entity)
@@ -134,7 +136,8 @@ namespace NewLife.Net.DNS
                 try
                 {
                     client.Connect(ep);
-                    client.Send(entity.GetStream(isTcp), ep);
+                    //client.Send(entity.GetStream(isTcp), ep);
+                    client.CreateSession(ep).Send(entity.GetStream(isTcp));
                     data = client.Receive();
 
                     if (data != null && data.Length > 0) break;

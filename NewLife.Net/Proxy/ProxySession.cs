@@ -34,9 +34,9 @@ namespace NewLife.Net.Proxy
         /// <summary>代理对象</summary>
         IProxy IProxySession.Proxy { get { return _Proxy; } set { _Proxy = value; } }
 
-        private ISocketClient _Remote;
+        private ISocketSession _Remote;
         /// <summary>远程服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
-        public ISocketClient Remote { get { return _Remote; } set { _Remote = value; } }
+        public ISocketSession Remote { get { return _Remote; } set { _Remote = value; } }
 
         private IPEndPoint _RemoteEndPoint;
         /// <summary>服务端远程IP终结点</summary>
@@ -75,50 +75,39 @@ namespace NewLife.Net.Proxy
         #region 数据交换
         /// <summary>收到客户端发来的数据</summary>
         /// <param name="e"></param>
-        protected override void OnReceive(NetEventArgs e)
+        protected override void OnReceive(ReceivedEventArgs e)
         {
-            var stream = e.GetStream();
-            stream = OnReceive(e, stream);
-            if (stream != null)
+            WriteLog("{0}客户数据：{1}", ID, e.Stream.Length);
+
+            if (e.Stream != null)
             {
                 if (Remote == null) StartRemote(e);
 
                 //Remote.Send(stream, RemoteEndPoint);
-                SendRemote(stream);
+                SendRemote(e.Stream);
             }
-        }
-
-        /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
-        /// <param name="e"></param>
-        /// <param name="stream">数据</param>
-        /// <returns>修改后的数据</returns>
-        protected virtual Stream OnReceive(NetEventArgs e, Stream stream)
-        {
-            WriteLog("{0}客户数据：{1}", ID, stream.Length);
-
-            return stream;
         }
 
         /// <summary>开始远程连接</summary>
         /// <param name="e"></param>
-        protected virtual void StartRemote(NetEventArgs e)
+        protected virtual void StartRemote(ReceivedEventArgs e)
         {
             var start = DateTime.Now;
             try
             {
-                var client = CreateRemote(e);
-                if (client.ProtocolType == ProtocolType.Tcp && !client.Client.Connected) client.Connect(RemoteEndPoint);
-                client.OnDisposed += (s, e2) =>
+                var session = CreateRemote(e);
+                //if (client.ProtocolType == ProtocolType.Tcp && !client.Client.Connected) client.Connect(RemoteEndPoint);
+                session.OnDisposed += (s, e2) =>
                 {
                     // 这个是必须清空的，是否需要保持会话呢，由OnRemoteDispose决定
                     _Remote = null;
-                    OnRemoteDispose(s as ISocketClient);
+                    OnRemoteDispose(s as ISocketSession);
                 };
-                client.Received += new EventHandler<NetEventArgs>(Remote_Received);
-                client.ReceiveAsync();
+                session.Received += new EventHandler<ReceivedEventArgs>(Remote_Received);
+                session.ReceiveAsync();
 
-                Debug.Assert(client.Client.Connected);
-                Remote = client;
+                //Debug.Assert(session.Client.Connected);
+                Remote = session;
             }
             catch (Exception ex)
             {
@@ -132,21 +121,19 @@ namespace NewLife.Net.Proxy
         /// <summary>为会话创建与远程服务器通讯的Socket。可以使用Socket池达到重用的目的。默认实现创建与服务器相同类型的客户端</summary>
         /// <param name="e"></param>
         /// <returns></returns>
-        protected virtual ISocketClient CreateRemote(NetEventArgs e)
+        protected virtual ISocketSession CreateRemote(ReceivedEventArgs e)
         {
             var client = NetService.Resolve<ISocketClient>(RemoteProtocolType);
             if (RemoteEndPoint != null) client.AddressFamily = RemoteEndPoint.AddressFamily;
-            return client;
+            client.Connect(RemoteEndPoint);
+            return client.CreateSession();
         }
 
         /// <summary>远程连接断开时触发。默认销毁整个会话，子类可根据业务情况决定客户端与代理的链接是否重用。</summary>
         /// <param name="client"></param>
-        protected virtual void OnRemoteDispose(ISocketClient client)
-        {
-            this.Dispose();
-        }
+        protected virtual void OnRemoteDispose(ISocketSession client) { this.Dispose(); }
 
-        void Remote_Received(object sender, NetEventArgs e)
+        void Remote_Received(object sender, ReceivedEventArgs e)
         {
             try
             {
@@ -157,11 +144,11 @@ namespace NewLife.Net.Proxy
 
         /// <summary>收到远程服务器返回的数据</summary>
         /// <param name="e"></param>
-        protected virtual void OnReceiveRemote(NetEventArgs e)
+        protected virtual void OnReceiveRemote(ReceivedEventArgs e)
         {
-            var stream = e.GetStream();
-            stream = OnReceiveRemote(e, stream);
-            if (stream != null)
+            WriteLog("{0}远程数据：{1}", ID, e.Stream.Length);
+
+            if (e.Stream != null)
             {
                 var session = Session;
                 if (session == null || session.Disposed)
@@ -170,22 +157,11 @@ namespace NewLife.Net.Proxy
                 {
                     try
                     {
-                        Send(stream);
+                        Send(e.Stream);
                     }
                     catch { this.Dispose(); throw; }
                 }
             }
-        }
-
-        /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
-        /// <param name="e"></param>
-        /// <param name="stream">数据</param>
-        /// <returns>修改后的数据</returns>
-        protected virtual Stream OnReceiveRemote(NetEventArgs e, Stream stream)
-        {
-            WriteLog("{0}远程数据：{1}", ID, stream.Length);
-
-            return stream;
         }
         #endregion
 
@@ -194,37 +170,43 @@ namespace NewLife.Net.Proxy
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
-        public virtual void SendRemote(byte[] buffer, int offset = 0, int size = 0)
+        public virtual IProxySession SendRemote(byte[] buffer, int offset = 0, int size = 0)
         {
             try
             {
-                Remote.Send(buffer, offset, size, RemoteEndPoint);
+                Remote.Send(buffer, offset, size);
             }
             catch { this.Dispose(); throw; }
+
+            return this;
         }
 
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public virtual long SendRemote(Stream stream)
+        public virtual IProxySession SendRemote(Stream stream)
         {
             try
             {
-                return Remote.Send(stream, RemoteEndPoint);
+                Remote.Send(stream);
             }
             catch { this.Dispose(); throw; }
+
+            return this;
         }
 
         /// <summary>发送字符串</summary>
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
-        public virtual void SendRemote(string msg, Encoding encoding = null)
+        public virtual IProxySession SendRemote(string msg, Encoding encoding = null)
         {
             try
             {
-                Remote.Send(msg, encoding, RemoteEndPoint);
+                Remote.Send(msg, encoding);
             }
             catch { this.Dispose(); throw; }
+
+            return this;
         }
         #endregion
 

@@ -475,6 +475,7 @@ namespace NewLife.Net.Sockets
             e.Error = null;
             e.UserToken = null;
             e.Socket = null;
+            e.Session = null;
             e.AcceptSocket = null;
             e.RemoteEndPoint = null;
             e.Completed -= OnCompleted;

@@ -30,14 +30,14 @@ namespace NewLife.Net.Proxy
             ///// <summary>代理对象</summary>
             //public new HttpReverseProxy Proxy { get { return base.Proxy as HttpReverseProxy; } set { base.Proxy = value; } }
 
-            /// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
-            /// <param name="e"></param>
-            /// <param name="stream">数据</param>
-            /// <returns>修改后的数据</returns>
-            protected override Stream OnReceive(NetEventArgs e, Stream stream)
-            {
-                return stream;
-            }
+            ///// <summary>收到客户端发来的数据。子类可通过重载该方法来修改数据</summary>
+            ///// <param name="e"></param>
+            ///// <param name="stream">数据</param>
+            ///// <returns>修改后的数据</returns>
+            //protected override Stream OnReceive(NetEventArgs e, Stream stream)
+            //{
+            //    return stream;
+            //}
         }
         #endregion
     }

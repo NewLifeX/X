@@ -288,7 +288,7 @@ namespace NewLife.Net.Sockets
             }
 
             // 开始会话处理
-            ns.Start(e);
+            ns.Start(new ReceivedEventArgs(e.GetStream()));
 
             if (Accepted != null) Accepted(sender, e);
         }

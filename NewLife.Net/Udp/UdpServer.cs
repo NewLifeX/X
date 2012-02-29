@@ -158,7 +158,11 @@ namespace NewLife.Net.Udp
                 socket.Send(buffer, offset, size, SocketFlags.None);
             else
                 socket.SendTo(buffer, offset, size, SocketFlags.None, remoteEP);
+
+            //return this;
         }
+
+        //IUdp IUdp.Send(Byte[] buffer, Int32 offset = 0, Int32 size = 0, EndPoint remoteEP = null) { return Send(buffer, offset, size, remoteEP); }
 
         ///// <summary>发送数据流</summary>
         ///// <param name="stream"></param>
@@ -228,7 +232,7 @@ namespace NewLife.Net.Udp
         /// <summary>为指定地址创建会话。对于无连接Socket，必须指定远程地址；对于有连接Socket，指定的远程地址将不起任何作用</summary>
         /// <param name="remoteEP"></param>
         /// <returns></returns>
-        ISocketSession CreateSession(IPEndPoint remoteEP = null)
+        public ISocketSession CreateSession(IPEndPoint remoteEP = null)
         {
             if (!Server.Connected && remoteEP == null) throw new ArgumentNullException("remoteEP", "未连接Udp必须指定远程地址！");
 

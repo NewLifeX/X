@@ -38,17 +38,20 @@ namespace NewLife.Net.Sockets
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
-        void Send(byte[] buffer, int offset = 0, int size = 0);
+        /// <returns>返回自身，用于链式写法</returns>
+        ISocketSession Send(byte[] buffer, int offset = 0, int size = 0);
 
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        long Send(Stream stream);
+        /// <returns>返回自身，用于链式写法</returns>
+        ISocketSession Send(Stream stream);
 
         /// <summary>发送字符串</summary>
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
-        void Send(string msg, Encoding encoding = null);
+        /// <returns>返回自身，用于链式写法</returns>
+        ISocketSession Send(string msg, Encoding encoding = null);
         #endregion
 
         #region 接收
@@ -68,7 +71,7 @@ namespace NewLife.Net.Sockets
         string ReceiveString(Encoding encoding = null);
 
         /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
-        event EventHandler<DataReceiveEventArgs> Received;
+        event EventHandler<ReceivedEventArgs> Received;
         #endregion
     }
 }

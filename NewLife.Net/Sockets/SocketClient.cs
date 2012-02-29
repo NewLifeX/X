@@ -32,16 +32,19 @@ namespace NewLife.Net.Sockets
         /// <summary>建立与远程主机的连接</summary>
         /// <param name="hostname"></param>
         /// <param name="port"></param>
-        public virtual void Connect(String hostname, Int32 port) { Connect(NetHelper.ParseAddress(hostname), port); }
+        /// <returns>返回自身，用于链式写法</returns>
+        public virtual ISocketClient Connect(String hostname, Int32 port) { return Connect(NetHelper.ParseAddress(hostname), port); }
 
         /// <summary>建立与远程主机的连接</summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
-        public virtual void Connect(IPAddress address, Int32 port) { Connect(new IPEndPoint(address, port)); }
+        /// <returns>返回自身，用于链式写法</returns>
+        public virtual ISocketClient Connect(IPAddress address, Int32 port) { return Connect(new IPEndPoint(address, port)); }
 
         /// <summary>建立与远程主机的连接</summary>
         /// <param name="remoteEP">表示远程设备。</param>
-        public void Connect(EndPoint remoteEP)
+        /// <returns>返回自身，用于链式写法</returns>
+        public ISocketClient Connect(EndPoint remoteEP)
         {
             AddressFamily = remoteEP.AddressFamily;
             if (!Client.IsBound) Bind();
@@ -49,6 +52,8 @@ namespace NewLife.Net.Sockets
 
             // 引发基类重设个地址参数
             Socket = Client;
+
+            return this;
         }
         #endregion
 

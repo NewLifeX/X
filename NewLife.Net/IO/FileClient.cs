@@ -47,8 +47,11 @@ namespace NewLife.Net.IO
             MemoryStream format = new MemoryStream();
             entity.Write(format);
             format.Position = 0;
-            Client.Send(format);
-            Client.Send(entity.Stream);
+            //Client.Send(format);
+            //Client.Send(entity.Stream);
+            var session = Client.CreateSession();
+            session.Send(format)
+                .Send(entity.Stream);
         }
 
         /// <summary>
