@@ -100,5 +100,21 @@ namespace NewLife.Net.Udp
         public event EventHandler<ReceivedEventArgs> Received;
 
         #endregion
+
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            //var socket = base.Socket;
+            //if (socket != null && socket.Connected && socket.RemoteEndPoint != null) return base.ToString() + " => " + socket.RemoteEndPoint;
+
+            var remote = RemoteEndPoint;
+            if (remote != null)
+                return String.Format("{0}://{1} => {2}", ProtocolType, LocalEndPoint, remote);
+            else
+                return String.Format("{0}://{1}", ProtocolType, LocalEndPoint);
+        }
+        #endregion
     }
 }

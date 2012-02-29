@@ -1,9 +1,7 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using NewLife.Messaging;
 
 namespace NewLife.Net.Sockets
 {
@@ -230,8 +228,11 @@ namespace NewLife.Net.Sockets
         /// <returns></returns>
         public override string ToString()
         {
-            var socket = base.Socket;
-            if (socket != null && socket.Connected && socket.RemoteEndPoint != null) return base.ToString() + " => " + socket.RemoteEndPoint;
+            //var socket = base.Socket;
+            //if (socket != null && socket.Connected && socket.RemoteEndPoint != null) return base.ToString() + " => " + socket.RemoteEndPoint;
+
+            var remote = RemoteEndPoint;
+            if (remote != null) return base.ToString() + " => " + remote;
 
             return base.ToString();
         }

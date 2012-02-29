@@ -692,7 +692,10 @@ namespace NewLife.Net.Sockets
         /// <returns></returns>
         public override string ToString()
         {
+            //if (RemoteEndPoint == null)
             return String.Format("{0}://{1}", ProtocolType, LocalEndPoint);
+            //else
+            //    return String.Format("{0}://{1}=>{2}", ProtocolType, LocalEndPoint, RemoteEndPoint);
         }
         #endregion
 
