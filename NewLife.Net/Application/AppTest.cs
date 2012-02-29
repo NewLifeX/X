@@ -1,32 +1,26 @@
 ﻿using System;
-using NewLife.Linq;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using NewLife.Log;
-using NewLife.Model;
-using NewLife.Net.Sockets;
+using NewLife.Linq;
 using NewLife.Net.Common;
+using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Application
 {
-    /// <summary>
-    /// 网络应用程序测试
-    /// </summary>
+    /// <summary>网络应用程序测试</summary>
     public static class AppTest
     {
-        /// <summary>
-        /// 开始测试
-        /// </summary>
+        /// <summary>开始测试</summary>
         public static void Start()
         {
-            Type[] ts = new Type[] { typeof(ChargenServer), typeof(DaytimeServer), typeof(DiscardServer), typeof(EchoServer), typeof(TimeServer) };
+            var ts = new Type[] { typeof(ChargenServer), typeof(DaytimeServer), typeof(DiscardServer), typeof(EchoServer), typeof(TimeServer) };
             //Type[] ts = new Type[] { typeof(EchoServer) };
-            List<NetServer> list = new List<NetServer>();
-            foreach (Type item in ts)
+            var list = new List<NetServer>();
+            foreach (var item in ts)
             {
-                NetServer server = Activator.CreateInstance(item) as NetServer;
+                var server = Activator.CreateInstance(item) as NetServer;
                 server.Start();
                 server.Servers.ForEach(s => s.UseThreadPool = false);
                 list.Add(server);

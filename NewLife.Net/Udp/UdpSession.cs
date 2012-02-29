@@ -90,6 +90,12 @@ namespace NewLife.Net.Udp
 
         void Udp_Received(object sender, NetEventArgs e)
         {
+            // 判断是否当前远程地址
+            if (!Connected)
+            {
+                // 如果不是当前远程地址，则不触发已收到事件
+                if (e.RemoteEndPoint + "" != RemoteEndPoint + "") return;
+            }
             if (Received != null) Received(this, new ReceivedEventArgs(e.GetStream()));
         }
 
