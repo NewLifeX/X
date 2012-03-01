@@ -450,8 +450,8 @@ namespace XAgent
                 // 启动服务管理线程
                 StartManagerThread();
 
-                // 显示用户界面交互窗体
-                Interactive.ShowForm();
+                //// 显示用户界面交互窗体
+                //Interactive.ShowForm();
             }
             catch (Exception ex)
             {
@@ -581,7 +581,7 @@ namespace XAgent
                 }
             }
 
-            Interactive.Hide();
+            //Interactive.Hide();
         }
 
         /// <summary>
