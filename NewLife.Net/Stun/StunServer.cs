@@ -6,6 +6,7 @@ using System.Reflection;
 using NewLife.Linq;
 using NewLife.Net.Sockets;
 using NewLife.Reflection;
+using NewLife.Net.Udp;
 
 namespace NewLife.Net.Stun
 {
@@ -143,10 +144,11 @@ namespace NewLife.Net.Stun
                         // 记住对方的地址
                         request.ResponseAddress = remote;
                         //session.Send(request.GetStream(), Partner);
-                        var us = session.Host as Udp.UdpServer;
+                        var us = session.Host as UdpServer;
                         if (us != null)
                         {
-                            us.CreateSession(Partner).Send(request.GetStream());
+                            //us.CreateSession(Partner).Send(request.GetStream());
+                            us.Send(request.GetStream(), Partner);
                         }
                         return;
                     }

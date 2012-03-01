@@ -161,42 +161,6 @@ namespace NewLife.Net.Udp
 
             //return this;
         }
-
-        //IUdp IUdp.Send(Byte[] buffer, Int32 offset = 0, Int32 size = 0, EndPoint remoteEP = null) { return Send(buffer, offset, size, remoteEP); }
-
-        ///// <summary>发送数据流</summary>
-        ///// <param name="stream"></param>
-        ///// <param name="remoteEP"></param>
-        ///// <returns></returns>
-        //public virtual Int64 Send(Stream stream, EndPoint remoteEP = null)
-        //{
-        //    Int64 total = 0;
-
-        //    var size = stream.CanSeek ? stream.Length - stream.Position : BufferSize;
-        //    Byte[] buffer = new Byte[size];
-        //    while (true)
-        //    {
-        //        Int32 n = stream.Read(buffer, 0, buffer.Length);
-        //        if (n <= 0) break;
-
-        //        Send(buffer, 0, n, remoteEP);
-        //        total += n;
-
-        //        if (n < buffer.Length) break;
-        //    }
-        //    return total;
-        //}
-
-        ///// <summary>向指定目的地发送信息</summary>
-        ///// <param name="buffer"></param>
-        ///// <param name="remoteEP"></param>
-        //public void Send(Byte[] buffer, EndPoint remoteEP = null) { Send(buffer, 0, buffer.Length, remoteEP); }
-
-        ///// <summary>向指定目的地发送信息</summary>
-        ///// <param name="message"></param>
-        ///// <param name="encoding"></param>
-        ///// <param name="remoteEP"></param>
-        //public void Send(String message, Encoding encoding = null, EndPoint remoteEP = null) { Send(Encoding.UTF8.GetBytes(message), remoteEP); }
         #endregion
 
         #region 接收
@@ -232,7 +196,7 @@ namespace NewLife.Net.Udp
         /// <summary>为指定地址创建会话。对于无连接Socket，必须指定远程地址；对于有连接Socket，指定的远程地址将不起任何作用</summary>
         /// <param name="remoteEP"></param>
         /// <returns></returns>
-        public ISocketSession CreateSession(IPEndPoint remoteEP = null)
+        ISocketSession CreateSession(IPEndPoint remoteEP = null)
         {
             if (!Server.Connected && remoteEP == null) throw new ArgumentNullException("remoteEP", "未连接Udp必须指定远程地址！");
 

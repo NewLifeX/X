@@ -26,6 +26,7 @@ namespace NewLife.Net.Sockets
             ID = ++_gid;
         }
         //#endif
+
         private Int32 _Times;
         /// <summary>使用次数</summary>
         public Int32 Times { get { return _Times; } set { _Times = value; } }

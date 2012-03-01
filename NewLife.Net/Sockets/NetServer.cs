@@ -265,7 +265,8 @@ namespace NewLife.Net.Sockets
         /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
         public event EventHandler<NetEventArgs> Received;
 
-        /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）</summary>
+        /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）。
+        /// 如果业务逻辑简单，不需要使用会话，可以重载<see cref="OnAccepted"/>来屏蔽。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         protected virtual void OnAccepted(Object sender, NetEventArgs e)
