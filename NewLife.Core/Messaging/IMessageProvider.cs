@@ -121,7 +121,7 @@ namespace NewLife.Messaging
         public virtual IMessageConsumer Register(Byte start, Byte end)
         {
             if (start > end) throw new ArgumentOutOfRangeException("start", "起始不能大于结束！");
-            return Register(Enumerable.Range(start, end - start + 1).Cast<Byte>().ToArray());
+            return Register(Enumerable.Range(start, end - start + 1).Select(e => (Byte)e).ToArray());
         }
 
         /// <summary>注册消息消费者，仅消费指定范围的消息</summary>

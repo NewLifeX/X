@@ -158,7 +158,9 @@ namespace NewLife.Threading
                     catch (ThreadInterruptedException) { break; }
                     catch { }
 
-                    Thread.Sleep(period);
+                    //Thread.Sleep(period);
+                    if (waitForTimer == null) waitForTimer = new AutoResetEvent(false);
+                    waitForTimer.WaitOne(period, false);
                 }
             }
 
