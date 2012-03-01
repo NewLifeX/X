@@ -40,7 +40,7 @@ namespace NewLife.Net.Common
         public override Message Receive(int millisecondsTimeout = 0)
         {
             var session = Session;
-            if (session.UseReceiveAsync)
+            if (!session.UseReceiveAsync)
             {
                 var bts = session.Receive();
                 if (bts == null || bts.Length <= 0) return null;
