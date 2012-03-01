@@ -47,7 +47,7 @@ namespace NewLife.Net.Proxy
         public ProtocolType RemoteProtocolType { get { return _RemoteProtocolType; } set { _RemoteProtocolType = value; } }
 
         /// <summary>服务端地址</summary>
-        public NetUri RemoteUri { get { return new NetUri(Remote != null ? Remote.ProtocolType : RemoteProtocolType, RemoteEndPoint); } }
+        public NetUri RemoteUri { get { return Remote != null ? Remote.RemoteUri : new NetUri(RemoteProtocolType, RemoteEndPoint); } }
         #endregion
 
         #region 构造
@@ -73,6 +73,16 @@ namespace NewLife.Net.Proxy
         #endregion
 
         #region 数据交换
+        /// <summary>开始会话处理。参数e里面可能含有数据</summary>
+        /// <param name="e"></param>
+        public override void Start(ReceivedEventArgs e)
+        {
+            // 如果未指定远程协议，则与来源协议一致
+            if (RemoteProtocolType == 0) RemoteProtocolType = Session.ProtocolType;
+
+            base.Start(e);
+        }
+
         /// <summary>收到客户端发来的数据</summary>
         /// <param name="e"></param>
         protected override void OnReceive(ReceivedEventArgs e)
