@@ -6,6 +6,7 @@ using System.Threading;
 using NewLife.Linq;
 using NewLife.Net.Common;
 using NewLife.Net.Sockets;
+using NewLife.IO;
 
 namespace NewLife.Net.Application
 {
@@ -34,9 +35,10 @@ namespace NewLife.Net.Application
         }
 
         static AutoResetEvent _are = new AutoResetEvent(true);
-        static void OnReceived(object sender, NetEventArgs e)
+        static void OnReceived(object sender, ReceivedEventArgs e)
         {
-            Console.WriteLine("客户端{3} 收到 {0} [{1}] {2}", (sender as ISocket).RemoteEndPoint, e.BytesTransferred, e.GetString(), sender);
+            var session = sender as ISocketSession;
+            Console.WriteLine("客户端{3} 收到 {0} [{1}] {2}", session.RemoteEndPoint, e.Stream.Length, e.Stream.ToStr(), sender);
 
             _are.Set();
         }
@@ -51,41 +53,31 @@ namespace NewLife.Net.Application
                 Console.WriteLine("客户端{0} {1}断开！", sender, e.LastOperation);
         }
 
-        static void TestSend(String name, ProtocolType protocol, IPEndPoint ep, Boolean isAsync, Boolean isSendData, Boolean isReceiveData)
+        static void TestSend(String name, NetUri uri, Boolean isAsync, Boolean isSendData, Boolean isReceiveData)
         {
             Console.WriteLine();
 
-            String msg = String.Format("{0}Test_{1}_{2}!", name, protocol, isAsync ? "异步" : "同步");
-            ISocketClient client = NetService.CreateClient(new NetUri(protocol, ep));
-            client.Error += new EventHandler<NetEventArgs>(OnError);
-            client.Received += new EventHandler<NetEventArgs>(OnReceived);
-            client.AddressFamily = ep.AddressFamily;
-            //if (protocol == ProtocolType.Tcp) client.Connect(ep);
-            client.Client.ReceiveTimeout = 60000;
+            String msg = String.Format("{0}Test_{1}_{2}!", name, uri.ProtocolType, isAsync ? "异步" : "同步");
+            var session = NetService.CreateSession(uri);
+            session.Host.Error += new EventHandler<NetEventArgs>(OnError);
+            //session.Host.Socket.ReceiveTimeout = 3000;
             if (isAsync && isReceiveData)
             {
                 _are.Reset();
-                client.ReceiveAsync();
+                session.Received += new EventHandler<ReceivedEventArgs>(OnReceived);
+                session.ReceiveAsync();
             }
-            if (isSendData) client.CreateSession(ep).Send(msg);
-            // 异步的多发一个
-            //if (isAsync)
-            //{
-            //    Thread.Sleep(300);
-            //    if (isSendData) client.Send(msg, null, ep);
-            //}
+            if (isSendData) session.Send(msg);
             if (isReceiveData)
             {
                 if (!isAsync)
-                    Console.WriteLine("客户端" + client + " " + client.ReceiveString());
+                    Console.WriteLine("客户端" + session + " " + session.ReceiveString());
                 else
                 {
                     _are.WaitOne(2000);
-                    //Thread.Sleep(100);
                 }
             }
-            client.Close();
-            //Thread.Sleep(100);
+            session.Dispose();
             Console.WriteLine("结束！");
         }
 
@@ -93,10 +85,18 @@ namespace NewLife.Net.Application
         {
             Console.WriteLine();
             Console.WriteLine("{0}：", name);
-            TestSend(name, ProtocolType.Udp, ep, false, isSendData, isReceiveData);
-            TestSend(name, ProtocolType.Udp, ep, true, isSendData, isReceiveData);
-            TestSend(name, ProtocolType.Tcp, ep, false, isSendData, isReceiveData);
-            TestSend(name, ProtocolType.Tcp, ep, true, isSendData, isReceiveData);
+            //TestSend(name, ProtocolType.Udp, ep, false, isSendData, isReceiveData);
+            //TestSend(name, ProtocolType.Udp, ep, true, isSendData, isReceiveData);
+            //TestSend(name, ProtocolType.Tcp, ep, false, isSendData, isReceiveData);
+            //TestSend(name, ProtocolType.Tcp, ep, true, isSendData, isReceiveData);
+            var uri = new NetUri(ProtocolType.Udp, ep);
+            TestSend(name, uri, false, isSendData, isReceiveData);
+            TestSend(name, uri, true, isSendData, isReceiveData);
+            uri.ProtocolType = ProtocolType.Tcp;
+            TestSend(name, uri, false, isSendData, isReceiveData);
+            TestSend(name, uri, true, isSendData, isReceiveData);
+
+            GC.Collect();
         }
 
         static void StartEchoServer(Int32 port)

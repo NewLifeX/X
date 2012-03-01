@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Xml.Serialization;
 
 namespace NewLife.Net.Common
 {
@@ -12,8 +13,10 @@ namespace NewLife.Net.Common
         /// <summary>协议类型</summary>
         public ProtocolType ProtocolType { get { return _ProtocolType; } set { _ProtocolType = value; _Protocol = value.ToString(); } }
 
+        [NonSerialized]
         private String _Protocol;
         /// <summary>协议</summary>
+        [XmlIgnore]
         public String Protocol
         {
             get { return _Protocol; }
@@ -24,40 +27,27 @@ namespace NewLife.Net.Common
                 {
                     _ProtocolType = (ProtocolType)Enum.Parse(typeof(ProtocolType), value, true);
                 }
-                catch { }
+                catch { _ProtocolType = ProtocolType.Unknown; }
             }
         }
 
-        private IPAddress _Address;
         /// <summary>地址</summary>
-        public IPAddress Address { get { return _Address; } set { _Address = value; _Host = value + ""; } }
+        [XmlIgnore]
+        public IPAddress Address { get { return EndPoint.Address; } set { EndPoint.Address = value; _Host = value + ""; } }
 
+        [NonSerialized]
         private String _Host;
         /// <summary>主机</summary>
-        public String Host { get { return _Host; } set { _Host = value; _Address = NetHelper.ParseAddress(value); } }
+        [XmlIgnore]
+        public String Host { get { return _Host; } set { _Host = value; try { EndPoint.Address = NetHelper.ParseAddress(value); } catch { } } }
 
-        private Int32 _Port;
         /// <summary>端口</summary>
-        public Int32 Port { get { return _Port; } set { _Port = value; } }
+        [XmlIgnore]
+        public Int32 Port { get { return EndPoint.Port; } set { EndPoint.Port = value; } }
 
+        private IPEndPoint _EndPoint;
         /// <summary>终结点</summary>
-        public IPEndPoint EndPoint
-        {
-            get { return new IPEndPoint(Address, Port); }
-            set
-            {
-                if (value != null)
-                {
-                    Address = value.Address;
-                    Port = value.Port;
-                }
-                else
-                {
-                    Address = null;
-                    Port = 0;
-                }
-            }
-        }
+        public IPEndPoint EndPoint { get { return _EndPoint ?? (_EndPoint = new IPEndPoint(IPAddress.Any, 0)); } set { _EndPoint = value; } }
         #endregion
 
         #region 构造

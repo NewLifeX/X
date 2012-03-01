@@ -1,11 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Diagnostics;
 using NewLife.Net.Common;
-using NewLife.Messaging;
 
 namespace NewLife.Net.Sockets
 {
@@ -72,7 +71,7 @@ namespace NewLife.Net.Sockets
         [Conditional("DEBUG")]
         void ShowSession()
         {
-            WriteLog("会话{0}：{1}", ID, this);
+            WriteLog("{2}会话{0}：{1}", ID, this, _Host.Name);
         }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
@@ -171,7 +170,7 @@ namespace NewLife.Net.Sockets
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return Session == null ? base.ToString() : String.Format("{0}://{1}", Session.ProtocolType, ClientEndPoint); }
+        public override string ToString() { return Session == null ? base.ToString() : Session.ToString(); }
         #endregion
     }
 }

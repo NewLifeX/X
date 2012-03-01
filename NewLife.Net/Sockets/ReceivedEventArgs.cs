@@ -14,6 +14,6 @@ namespace NewLife.Net.Sockets
 
         /// <summary>实例化一个数据接收事件参数</summary>
         /// <param name="steam"></param>
-        public ReceivedEventArgs(Stream steam) { Stream = Stream; }
+        public ReceivedEventArgs(Stream steam) { Stream = steam; }
     }
 }

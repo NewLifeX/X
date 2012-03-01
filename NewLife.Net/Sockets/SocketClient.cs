@@ -232,7 +232,7 @@ namespace NewLife.Net.Sockets
             //if (socket != null && socket.Connected && socket.RemoteEndPoint != null) return base.ToString() + " => " + socket.RemoteEndPoint;
 
             var remote = RemoteEndPoint;
-            if (remote != null) return base.ToString() + " => " + remote;
+            if (remote != null) return base.ToString() + "=>" + remote;
 
             return base.ToString();
         }

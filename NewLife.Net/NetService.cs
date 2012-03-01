@@ -53,7 +53,11 @@ namespace NewLife.Net
             if (uri == null) throw new ArgumentNullException("uri");
 
             var client = NetService.Resolve<ISocketClient>(uri.ProtocolType);
-            if (uri.ProtocolType == ProtocolType.Tcp) client.Connect(uri.EndPoint);
+            if (uri.EndPoint != null)
+            {
+                client.AddressFamily = uri.EndPoint.AddressFamily;
+                if (uri.ProtocolType == ProtocolType.Tcp) client.Connect(uri.EndPoint);
+            }
 
             return client;
         }

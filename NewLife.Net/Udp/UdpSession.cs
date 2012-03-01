@@ -28,7 +28,7 @@ namespace NewLife.Net.Udp
 
         private IPEndPoint _LocalEndPoint;
         /// <summary>本地终结点</summary>
-        public IPEndPoint LocalEndPoint { get { return _LocalEndPoint; } }
+        public IPEndPoint LocalEndPoint { get { return _LocalEndPoint ?? (_LocalEndPoint = Host.LocalEndPoint); } }
 
         private NetUri _LocalUri;
         /// <summary>本地地址</summary>
@@ -117,7 +117,7 @@ namespace NewLife.Net.Udp
 
             var remote = RemoteEndPoint;
             if (remote != null)
-                return String.Format("{0}://{1} => {2}", ProtocolType, LocalEndPoint, remote);
+                return String.Format("{0}://{1}=>{2}", ProtocolType, LocalEndPoint, remote);
             else
                 return String.Format("{0}://{1}", ProtocolType, LocalEndPoint);
         }
