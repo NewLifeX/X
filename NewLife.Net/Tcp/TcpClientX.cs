@@ -49,7 +49,7 @@ namespace NewLife.Net.Tcp
 
             base.ProcessReceive(e);
 
-            if (_Received != null) _Received(this, new ReceivedEventArgs(e.GetStream()));
+            //if (_Received != null) _Received(this, new ReceivedEventArgs(e.GetStream()));
         }
         #endregion
 
@@ -66,16 +66,6 @@ namespace NewLife.Net.Tcp
 
             ReceiveAsync();
         }
-
-        ///// <summary>断开客户端连接。Tcp端口，UdpClient不处理</summary>
-        //public void Disconnect()
-        //{
-        //    //var socket = Socket;
-        //    //if (socket != null && socket.Connected) socket.Disconnect(ReuseAddress);
-
-        //    // 释放
-        //    Dispose();
-        //}
         #endregion
 
         #region 发送
@@ -150,15 +140,26 @@ namespace NewLife.Net.Tcp
             //Received += new EventHandler<NetEventArgs>(TcpClientX_Received);
         }
 
-        //void TcpClientX_Received(object sender, NetEventArgs e)
-        //{
-        //    if (_Received != null) _Received(this, new ReceivedEventArgs(e.GetStream()));
-        //}
+        void TcpClientX_Received(object sender, NetEventArgs e)
+        {
+            if (_Received != null) _Received(this, new ReceivedEventArgs(e.GetStream()));
+        }
+
+        Boolean hasSet = false;
+        void SetEvent()
+        {
+            if (hasSet) return;
+            hasSet = true;
+
+            Received += new EventHandler<NetEventArgs>(TcpClientX_Received);
+        }
 
         /// <summary>接收数据。已重载。接收到0字节表示连接断开！</summary>
         /// <param name="e"></param>
         protected override void OnReceive(NetEventArgs e)
         {
+            if (_Received != null) SetEvent();
+
             if (e.BytesTransferred > 0 || !DisconnectWhenEmptyData)
                 base.OnReceive(e);
             else

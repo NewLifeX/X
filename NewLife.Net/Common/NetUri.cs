@@ -47,7 +47,7 @@ namespace NewLife.Net.Common
 
         private IPEndPoint _EndPoint;
         /// <summary>终结点</summary>
-        public IPEndPoint EndPoint { get { return _EndPoint ?? (_EndPoint = new IPEndPoint(IPAddress.Any, 0)); } set { _EndPoint = value; } }
+        public IPEndPoint EndPoint { get { return _EndPoint ?? (_EndPoint = new IPEndPoint(IPAddress.Any, 0)); } set { _EndPoint = value; _Host = value == null ? null : value.Address.ToString(); } }
         #endregion
 
         #region 构造

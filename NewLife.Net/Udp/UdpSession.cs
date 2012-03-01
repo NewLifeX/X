@@ -59,7 +59,6 @@ namespace NewLife.Net.Udp
             RemoteEndPoint = remoteEP;
 
             var socket = host.Socket;
-            _LocalEndPoint = socket.LocalEndPoint as IPEndPoint;
             _Connected = socket.Connected;
         }
 

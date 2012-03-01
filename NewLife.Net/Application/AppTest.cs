@@ -7,6 +7,7 @@ using NewLife.Linq;
 using NewLife.Net.Common;
 using NewLife.Net.Sockets;
 using NewLife.IO;
+using System.Diagnostics;
 
 namespace NewLife.Net.Application
 {
@@ -71,18 +72,30 @@ namespace NewLife.Net.Application
             if (isReceiveData)
             {
                 if (!isAsync)
-                    Console.WriteLine("客户端" + session + " " + session.ReceiveString());
+                {
+                    try
+                    {
+                        Console.WriteLine("客户端" + session + " " + session.ReceiveString());
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Fail("同步超时！" + ex.Message);
+                    }
+                }
                 else
                 {
-                    _are.WaitOne(2000);
+                    if (!_are.WaitOne(2000)) Debug.Fail("异步超时！");
                 }
             }
             session.Dispose();
+            if (session.Host != null) session.Host.Dispose();
             Console.WriteLine("结束！");
         }
 
         static void TestSends(String name, IPEndPoint ep, Boolean isSendData, Boolean isReceiveData = true)
         {
+            if (ep.AddressFamily == AddressFamily.InterNetworkV6) return;
+
             Console.WriteLine();
             Console.WriteLine("{0}：", name);
             //TestSend(name, ProtocolType.Udp, ep, false, isSendData, isReceiveData);

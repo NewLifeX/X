@@ -6,7 +6,8 @@ using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Udp
 {
-    interface IUdp
+    /// <summary>Udp接口</summary>
+    public interface IUdp
     {
         Int32 BufferSize { get; }
 
@@ -30,7 +31,8 @@ namespace NewLife.Net.Udp
         event EventHandler<NetEventArgs> Received;
     }
 
-    static class UdpHelper
+    /// <summary>Udp扩展</summary>
+    public static class UdpHelper
     {
         /// <summary>发送数据流</summary>
         /// <param name="udp"></param>
