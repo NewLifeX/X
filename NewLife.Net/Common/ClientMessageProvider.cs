@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Net;
+using System.IO;
 using NewLife.Messaging;
 using NewLife.Net.Sockets;
 
@@ -32,6 +32,23 @@ namespace NewLife.Net.Common
         public override void Send(Message message)
         {
             Session.Send(message.GetStream());
+        }
+
+        /// <summary>接收消息。这里将得到所有消息</summary>
+        /// <param name="millisecondsTimeout">等待的毫秒数，或为 <see cref="F:System.Threading.Timeout.Infinite" /> (-1)，表示无限期等待。默认0表示不等待</param>
+        /// <returns></returns>
+        public override Message Receive(int millisecondsTimeout = 0)
+        {
+            var session = Session;
+            if (session.UseReceiveAsync)
+            {
+                var bts = session.Receive();
+                if (bts == null || bts.Length <= 0) return null;
+
+                return Message.Read(new MemoryStream(bts));
+            }
+
+            return base.Receive(millisecondsTimeout);
         }
     }
 }
