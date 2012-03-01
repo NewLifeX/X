@@ -98,6 +98,9 @@ namespace NewLife.Net.Sockets
         /// <summary>收到客户端发来的数据</summary>
         /// <param name="e"></param>
         protected virtual void OnReceive(ReceivedEventArgs e) { if (Received != null)Received(this, e); }
+
+        /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
+        public event EventHandler<ReceivedEventArgs> Received;
         #endregion
 
         #region 收发
@@ -162,9 +165,6 @@ namespace NewLife.Net.Sockets
 
             return this;
         }
-
-        /// <summary>数据到达，在事件处理代码中，事件参数不得另作他用，套接字事件池将会将其回收。</summary>
-        public event EventHandler<ReceivedEventArgs> Received;
         #endregion
 
         #region 辅助

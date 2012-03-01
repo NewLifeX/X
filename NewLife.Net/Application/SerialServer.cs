@@ -1,11 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.IO.Ports;
-using System.Net;
+using System.Threading;
 using NewLife.IO;
 using NewLife.Net.Sockets;
 using NewLife.Security;
-using System.Threading;
 
 namespace NewLife.Net.Application
 {
@@ -16,7 +15,7 @@ namespace NewLife.Net.Application
     /// 串口读取的学问非常的大，影响响应比较慢，要等一会才能得到数据，并且可能只是得到一部分，而无限制的等待，又会让整个读取变得相当漫长。
     /// 一般来说，串口传输的数据，是指定长度有头有尾的帧数据。因此，只需要设定好等待时间和帧大小，就能很好的读取数据。
     /// </remarks>
-    public class SerialServer : NetServer
+    public class SerialServer : NetServer<SerialServer.Session>
     {
         #region 属性
         private String _PortName = "COM1";
@@ -71,80 +70,12 @@ namespace NewLife.Net.Application
         #endregion
 
         #region 业务
-        ///// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）</summary>
-        ///// <param name="sender"></param>
-        ///// <param name="e"></param>
-        //protected override void OnAccepted(object sender, NetEventArgs e)
-        //{
-        //    base.OnAccepted(sender, e);
-
-        //    var session = e.Session;
-        //    using (var sp = Open(session))
-        //    {
-        //        if (sp != null) ReadAndSend(sp, session, e.RemoteEndPoint);
-        //    }
-        //}
-
-        ///// <summary>收到数据时</summary>
-        ///// <param name="sender"></param>
-        ///// <param name="e"></param>
-        //protected override void OnReceived(object sender, NetEventArgs e)
-        //{
-        //    base.OnReceived(sender, e);
-
-        //    var session = e.Session;
-        //    using (var sp = Open(session))
-        //    {
-        //        if (sp == null) return;
-
-        //        if (e.BytesTransferred > 0)
-        //        {
-        //            WriteLog("Net=>SerialPort: {0}", e.Buffer.ToHex(e.Offset, e.BytesTransferred));
-        //            sp.Write(e.Buffer, e.Offset, e.BytesTransferred);
-        //        }
-
-        //        //Thread.Sleep(1000);
-
-        //        ReadAndSend(sp, session, e.RemoteEndPoint);
-        //    }
-        //}
-
-        //SerialPort Open(ISocketSession session)
-        //{
-        //    var sp = new SerialPort(PortName);
-        //    try
-        //    {
-        //        sp.Open();
-        //    }
-        //    //catch (UnauthorizedAccessException)
-        //    catch
-        //    {
-        //        session.Disconnect();
-        //        return null;
-        //    }
-        //    return sp;
-        //}
-
-        ///// <summary>创建会话</summary>
-        ///// <param name="e"></param>
-        ///// <returns></returns>
-        //protected override INetSession CreateSession(NetEventArgs e)
-        //{
-        //    //return base.CreateSession(e);
-
-        //    var session = new Session() { Host = this };
-        //    return session;
-        //}
         #endregion
 
         #region 会话
         /// <summary>串口服务会话</summary>
         public class Session : NetSession<SerialServer>
         {
-            //private SerialServer _Host;
-            ///// <summary>主体</summary>
-            //public SerialServer Host { get { return _Host; } set { _Host = value; } }
-
             static readonly Byte[] vspStart = new Byte[] { 0xFF, 0xFA, 0x2C };
             static readonly Byte[] vspEnd = new Byte[] { 0xFF, 0xF0 };
 
@@ -152,7 +83,6 @@ namespace NewLife.Net.Application
             /// <param name="e"></param>
             protected override void OnReceive(ReceivedEventArgs e)
             {
-                //if (e.BytesTransferred <= 0) return;
                 var ms = e.Stream;
                 if (ms == null || ms.Length <= 0) return;
 
