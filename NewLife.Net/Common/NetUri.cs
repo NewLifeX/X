@@ -2,11 +2,12 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Xml.Serialization;
+using NewLife.Serialization;
 
 namespace NewLife.Net.Common
 {
     /// <summary>网络地址标识</summary>
-    public class NetUri
+    public class NetUri : IAccessor
     {
         #region 属性
         private ProtocolType _ProtocolType;
@@ -123,6 +124,24 @@ namespace NewLife.Net.Common
             else
                 return String.Format("{0}://{1}", Protocol, Host);
         }
+        #endregion
+
+        #region IAccessor 成员
+
+        bool IAccessor.Read(IReader reader) { return false; }
+
+        bool IAccessor.ReadComplete(IReader reader, bool success)
+        {
+            ProtocolType = ProtocolType;
+            EndPoint = EndPoint;
+
+            return success;
+        }
+
+        bool IAccessor.Write(IWriter writer) { return false; }
+
+        bool IAccessor.WriteComplete(IWriter writer, bool success) { return success; }
+
         #endregion
     }
 }
