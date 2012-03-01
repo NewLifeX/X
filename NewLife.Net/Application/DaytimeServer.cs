@@ -27,25 +27,25 @@ namespace NewLife.Net.Application
         protected override void OnAccepted(object sender, NetEventArgs e)
         {
             var session = e.Session;
-            try
-            {
-                WriteLog("Daytime {0}", session.RemoteUri);
+            //try
+            //{
+            WriteLog("Daytime {0}", session.RemoteUri);
 
-                base.OnAccepted(sender, e);
+            base.OnAccepted(sender, e);
 
-                Byte[] buffer = Encoding.ASCII.GetBytes(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff"));
-                //Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
-                //session.Send(buffer, 0, buffer.Length, e.RemoteEndPoint);
-                session.Send(buffer);
+            Byte[] buffer = Encoding.ASCII.GetBytes(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff"));
+            //Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
+            //session.Send(buffer, 0, buffer.Length, e.RemoteEndPoint);
+            session.Send(buffer);
 
-                // 等一秒，等客户端接收数据
-                Thread.Sleep(1000);
-            }
-            finally
-            {
-                //session.Disconnect();
-                session.Dispose();
-            }
+            //    // 等一秒，等客户端接收数据
+            //    Thread.Sleep(1000);
+            //}
+            //finally
+            //{
+            //    //session.Disconnect();
+            //    session.Dispose();
+            //}
         }
     }
 }

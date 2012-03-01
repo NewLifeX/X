@@ -18,9 +18,7 @@ namespace NewLife.Net.Application
             Name = "Discard服务";
         }
 
-        /// <summary>
-        /// 已重载。
-        /// </summary>
+        /// <summary>已重载。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         protected override void OnReceived(object sender, NetEventArgs e)

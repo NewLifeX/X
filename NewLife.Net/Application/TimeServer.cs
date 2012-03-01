@@ -25,29 +25,29 @@ namespace NewLife.Net.Application
         protected override void OnAccepted(object sender, NetEventArgs e)
         {
             var session = e.Session;
-            try
-            {
-                WriteLog("Daytime {0}", session.RemoteUri);
+            //try
+            //{
+            WriteLog("Daytime {0}", session.RemoteUri);
 
-                base.OnAccepted(sender, e);
+            base.OnAccepted(sender, e);
 
-                TimeSpan ts = DateTime.Now - STARTTIME;
-                Int32 s = (Int32)ts.TotalSeconds;
-                // 因为要发往网络，这里调整网络字节序
-                s = IPAddress.HostToNetworkOrder(s);
-                Byte[] buffer = BitConverter.GetBytes(s);
-                //Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
-                //session.Send(buffer, 0, buffer.Length, e.RemoteEndPoint);
-                session.Send(buffer);
+            TimeSpan ts = DateTime.Now - STARTTIME;
+            Int32 s = (Int32)ts.TotalSeconds;
+            // 因为要发往网络，这里调整网络字节序
+            s = IPAddress.HostToNetworkOrder(s);
+            Byte[] buffer = BitConverter.GetBytes(s);
+            //Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
+            //session.Send(buffer, 0, buffer.Length, e.RemoteEndPoint);
+            session.Send(buffer);
 
-                // 等一秒，等客户端接收数据
-                Thread.Sleep(1000);
-            }
-            finally
-            {
-                //session.Disconnect();
-                session.Dispose();
-            }
+            //    // 等一秒，等客户端接收数据
+            //    Thread.Sleep(1000);
+            //}
+            //finally
+            //{
+            //    //session.Disconnect();
+            //    session.Dispose();
+            //}
         }
     }
 }

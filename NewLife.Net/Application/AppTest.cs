@@ -39,7 +39,7 @@ namespace NewLife.Net.Application
         static void OnReceived(object sender, ReceivedEventArgs e)
         {
             var session = sender as ISocketSession;
-            Console.WriteLine("客户端{3} 收到 {0} [{1}] {2}", session.RemoteEndPoint, e.Stream.Length, e.Stream.ToStr(), sender);
+            Console.WriteLine("客户端{0} 收到 [{1}] {2}", session, e.Stream.Length, e.Stream.ToStr());
 
             _are.Set();
         }

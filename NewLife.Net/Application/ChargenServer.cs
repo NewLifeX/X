@@ -37,7 +37,7 @@ namespace NewLife.Net.Application
             thread.Name = "Chargen.LoopSend";
             thread.IsBackground = true;
             thread.Priority = ThreadPriority.Lowest;
-            thread.Start(new Object[] { e.Socket, e.RemoteEndPoint });
+            thread.Start(e.Session);
 
             // 调用基类，为接收数据准备，避免占用过大内存
             base.OnAccepted(sender, e);
@@ -69,10 +69,9 @@ namespace NewLife.Net.Application
 
         void LoopSend(Object state)
         {
-            var session = ((Object[])state)[0] as ISocketSession;
+            var session = state as ISocketSession;
             if (session == null) return;
 
-            var remote = ((Object[])state)[1] as IPEndPoint;
             hasError = false;
 
             try
@@ -82,7 +81,7 @@ namespace NewLife.Net.Application
                 {
                     try
                     {
-                        Send(session, remote);
+                        Send(session);
 
                         // 暂停100ms
                         Thread.Sleep(100);
@@ -100,7 +99,7 @@ namespace NewLife.Net.Application
         Int32 Length = 72;
         Int32 Index = 0;
 
-        void Send(ISocketSession session, IPEndPoint remoteEP)
+        void Send(ISocketSession session)
         {
             Int32 startIndex = Index++;
             if (Index >= Length) Index = 0;
