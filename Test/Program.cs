@@ -21,7 +21,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -75,7 +75,16 @@ namespace Test
             while (true)
             {
                 var hs = http.Server as SocketBase;
-                Console.WriteLine("异步：{0} 会话：{1}", hs.AsyncCount, http.Sessions.Count);
+                Int32 max = 0;
+                Int32 max2 = 0;
+                Int32 min = 0;
+                Int32 min2 = 0;
+                ThreadPool.GetMaxThreads(out max, out max2);
+                ThreadPool.GetMinThreads(out min, out min2);
+                Int32 wt = 0;
+                Int32 cpt = 0;
+                ThreadPool.GetAvailableThreads(out wt, out cpt);
+                Console.WriteLine("异步：{0} 会话：{1} 用户线程：{8} 工作线程：{2}/{3}/{4} IOCP线程：{5}/{6}/{7}", hs.AsyncCount, http.Sessions.Count, min, max, wt, min2, max2, cpt, Process.GetCurrentProcess().Threads.Count);
 
                 Thread.Sleep(3000);
 

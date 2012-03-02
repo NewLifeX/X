@@ -44,7 +44,8 @@ namespace NewLife.Net.Udp
         {
             Int64 total = 0;
 
-            var size = stream.CanSeek ? stream.Length - stream.Position : udp.BufferSize;
+            //var size = stream.CanSeek ? stream.Length - stream.Position : udp.BufferSize;
+            var size = 1472;
             Byte[] buffer = new Byte[size];
             while (true)
             {

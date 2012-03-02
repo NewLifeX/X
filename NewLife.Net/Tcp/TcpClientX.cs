@@ -77,7 +77,8 @@ namespace NewLife.Net.Tcp
         {
             Int64 total = 0;
 
-            var size = stream.CanSeek ? stream.Length - stream.Position : BufferSize;
+            //var size = stream.CanSeek ? stream.Length - stream.Position : BufferSize;
+            var size = 1460;
             Byte[] buffer = new Byte[size];
             while (true)
             {
