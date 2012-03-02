@@ -583,6 +583,7 @@ function stopAnimate(){
             //sb.AppendLine("document.onload=function(){ location.reload(); }");
             //sb.AppendLine("document.onload=remove_loading;");
 
+            if (!Response.IsClientConnected) return;
             Response.Write(sb.ToString());
             Response.Flush();
             Response.End();
