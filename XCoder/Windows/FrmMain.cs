@@ -139,7 +139,7 @@ namespace XCoder
             // 加上本机MSSQL
             String localName = "local_MSSQL";
             String localstr = "Data Source=.;Initial Catalog=master;Integrated Security=True;";
-            if (!ContainConnStr(localstr)) DAL.AddConnStr(localName, localstr, null, "sqlclient");
+            if (!ContainConnStr(localstr)) DAL.AddConnStr(localName, localstr, null, "mssql");
 
             #region 检测本地Access和SQLite
             String[] ss = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.*", SearchOption.TopDirectoryOnly);
