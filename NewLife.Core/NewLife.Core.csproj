@@ -187,7 +187,7 @@
     <Compile Include="Serialization\XSerializationException.cs" />
     <Compile Include="Threading\ReadWriteLock.cs" />
     <Compile Include="Reflection\快速反射\TypeX.cs" />
-    <Compile Include="Reflection\WeakReference.cs" />
+    <Compile Include="Common\WeakReference.cs" />
     <Compile Include="Event\EventArgs.cs" />
     <Compile Include="InlineIL.cs" />
     <Compile Include="IO\ReadWriteMemoryStream.cs" />

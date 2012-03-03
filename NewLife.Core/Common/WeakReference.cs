@@ -2,9 +2,7 @@
 
 namespace NewLife
 {
-    /// <summary>
-    /// 弱引用
-    /// </summary>
+    /// <summary>弱引用</summary>
     /// <typeparam name="T"></typeparam>
     public class WeakReference<T> : WeakReference
     {
@@ -33,6 +31,15 @@ namespace NewLife
         {
             get { return (T)base.Target; }
             set { base.Target = value; }
+        }
+
+        /// <summary>尝试获取目标值</summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public Boolean TryGetTarget(out T target)
+        {
+            target = Target;
+            return IsAlive;
         }
 
         /// <summary>

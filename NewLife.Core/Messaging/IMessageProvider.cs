@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using NewLife.Linq;
@@ -13,10 +12,10 @@ namespace NewLife.Messaging
         /// <param name="message"></param>
         void Send(Message message);
 
-        /// <summary>消息到达时触发。这里将得到所有消息</summary>
-        event EventHandler<EventArgs<Message>> OnReceived;
+        /// <summary>消息到达时触发</summary>
+        event EventHandler<MessageEventArgs> OnReceived;
 
-        /// <summary>接收消息。这里将得到所有消息</summary>
+        /// <summary>接收消息。</summary>
         /// <param name="millisecondsTimeout">等待的毫秒数，或为 <see cref="F:System.Threading.Timeout.Infinite" /> (-1)，表示无限期等待。默认0表示不等待</param>
         /// <returns></returns>
         Message Receive(Int32 millisecondsTimeout = 0);
@@ -25,33 +24,46 @@ namespace NewLife.Messaging
         /// <param name="start">消息范围的起始</param>
         /// <param name="end">消息范围的结束</param>
         /// <returns>消息消费者</returns>
-        IMessageConsumer Register(Byte start, Byte end);
+        IMessageProvider Register(Byte start, Byte end);
 
         /// <summary>注册消息消费者，仅消费指定范围的消息</summary>
         /// <param name="kinds">消息类型的集合</param>
         /// <returns>消息消费者</returns>
-        IMessageConsumer Register(Byte[] kinds);
+        IMessageProvider Register(Byte[] kinds);
     }
 
-    /// <summary>消息消费者接口，仅响应指定范围的消息</summary>
-    public interface IMessageConsumer
+    /// <summary>消息事件参数</summary>
+    public class MessageEventArgs : EventArgs
     {
-        /// <summary>发送消息</summary>
+        private Message _Message;
+        /// <summary>消息</summary>
+        public Message Message { get { return _Message; } set { _Message = value; } }
+
+        /// <summary>实例化</summary>
         /// <param name="message"></param>
-        void Send(Message message);
+        public MessageEventArgs(Message message) { Message = message; }
+    }
 
-        /// <summary>接收消息</summary>
-        /// <param name="millisecondsTimeout">等待的毫秒数，或为 <see cref="F:System.Threading.Timeout.Infinite" /> (-1)，表示无限期等待。默认0表示不等待</param>
-        /// <returns></returns>
-        Message Receive(Int32 millisecondsTimeout = 0);
-
-        /// <summary>消息到达时触发</summary>
-        event EventHandler OnReceived;
+    interface IMessageProvider2 : IMessageProvider
+    {
+        /// <summary>收到消息时调用该方法</summary>
+        /// <param name="message"></param>
+        void Process(Message message);
     }
 
     /// <summary>消息提供者基类</summary>
-    public abstract class MessageProvider : DisposeBase, IMessageProvider
+    public abstract class MessageProvider : DisposeBase, IMessageProvider2
     {
+        #region 属性
+        private IMessageProvider _Provider;
+        /// <summary>消息提供者</summary>
+        public IMessageProvider Provider { get { return _Provider; } set { _Provider = value; } }
+
+        private Byte[] _Kinds;
+        /// <summary>响应的消息类型集合</summary>
+        public Byte[] Kinds { get { return _Kinds; } set { _Kinds = value; } }
+        #endregion
+
         #region 基本收发
         /// <summary>发送消息</summary>
         /// <param name="message"></param>
@@ -59,57 +71,70 @@ namespace NewLife.Messaging
 
         /// <summary>收到消息时调用该方法</summary>
         /// <param name="message"></param>
-        protected virtual void OnReceive(Message message)
+        public virtual void Process(Message message)
         {
             if (message == null) return;
 
-            if (_wait != null)
+            // 检查消息范围
+            if (Kinds != null && Array.IndexOf(Kinds, message.Kind) < 0) return;
+
+            // 为Receive准备的事件，只用一次
+            EventHandler<MessageEventArgs> handler;
+            do
             {
-                _Message = message;
-                _wait.Set();
+                handler = innerOnReceived;
+            }
+            while (handler != null && Interlocked.CompareExchange<EventHandler<MessageEventArgs>>(ref innerOnReceived, null, handler) != handler);
+
+            if (handler != null) handler(this, new MessageEventArgs(message));
+
+            if (OnReceived != null) OnReceived(this, new MessageEventArgs(message));
+
+            // 记录已过期的，要删除
+            var list = new List<WeakReference<IMessageProvider2>>();
+            var cs = Consumers;
+            foreach (var item in cs)
+            {
+                IMessageProvider2 mp;
+                if (item.TryGetTarget(out mp) && mp != null)
+                    mp.Process(message);
+                else
+                    list.Add(item);
             }
 
-            if (OnReceived != null) OnReceived(this, new EventArgs<Message>(message));
-
-            foreach (var item in Consumers)
+            if (list.Count > 0)
             {
-                item.OnReceive(message);
+                lock (cs)
+                {
+                    foreach (var item in list)
+                    {
+                        if (cs.Contains(item)) cs.Remove(item);
+                    }
+                }
             }
         }
 
         /// <summary>消息到达时触发。这里将得到所有消息</summary>
-        public event EventHandler<EventArgs<Message>> OnReceived;
-
-        AutoResetEvent _wait;
-        Message _Message;
+        public event EventHandler<MessageEventArgs> OnReceived;
+        event EventHandler<MessageEventArgs> innerOnReceived;
 
         /// <summary>接收消息。这里将得到所有消息</summary>
         /// <param name="millisecondsTimeout">等待的毫秒数，或为 <see cref="F:System.Threading.Timeout.Infinite" /> (-1)，表示无限期等待。默认0表示不等待</param>
         /// <returns></returns>
         public virtual Message Receive(Int32 millisecondsTimeout = 0)
         {
-            var msg = _Message;
-            _Message = null;
-            if (msg != null) return msg;
-
-            if (_wait == null) _wait = new AutoResetEvent(true);
+            var _wait = new AutoResetEvent(true);
             _wait.Reset();
 
-            if (!_wait.WaitOne(millisecondsTimeout, true)) return null;
+            Message msg = null;
+            innerOnReceived += (s, e) => { msg = e.Message; _wait.Set(); };
 
-            msg = _Message;
-            _Message = null;
-            return msg != null ? msg : null;
-        }
+            //if (!_wait.WaitOne(millisecondsTimeout, true)) return null;
 
-        /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
-        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
-        /// 因为该方法只会被调用一次，所以该参数的意义不太大。</param>
-        protected override void OnDispose(bool disposing)
-        {
-            base.OnDispose(disposing);
+            _wait.WaitOne(millisecondsTimeout, true);
+            _wait.Close();
 
-            if (_wait != null) _wait.Close();
+            return msg;
         }
         #endregion
 
@@ -118,7 +143,7 @@ namespace NewLife.Messaging
         /// <param name="start">消息范围的起始</param>
         /// <param name="end">消息范围的结束</param>
         /// <returns>消息消费者</returns>
-        public virtual IMessageConsumer Register(Byte start, Byte end)
+        public virtual IMessageProvider Register(Byte start, Byte end)
         {
             if (start > end) throw new ArgumentOutOfRangeException("start", "起始不能大于结束！");
             return Register(Enumerable.Range(start, end - start + 1).Select(e => (Byte)e).ToArray());
@@ -127,87 +152,42 @@ namespace NewLife.Messaging
         /// <summary>注册消息消费者，仅消费指定范围的消息</summary>
         /// <param name="kinds">消息类型的集合</param>
         /// <returns>消息消费者</returns>
-        public virtual IMessageConsumer Register(Byte[] kinds)
+        public virtual IMessageProvider Register(Byte[] kinds)
         {
             if (kinds == null || kinds.Length < 1) throw new ArgumentNullException("kinds");
             kinds = kinds.Distinct().OrderBy(e => e).ToArray();
             if (kinds == null || kinds.Length < 1) throw new ArgumentNullException("kinds");
 
+            // 检查注册范围是否有效
+            var ks = Kinds;
+            if (ks != null)
+            {
+                foreach (var item in kinds)
+                {
+                    if (Array.IndexOf(ks, item) < 0) throw new ArgumentOutOfRangeException("kinds", "当前消息提供者不支持Kind=" + item + "的消息！");
+                }
+            }
+
             var mc = new MessageConsumer() { Provider = this, Kinds = kinds };
-            Consumers.Add(mc);
+            lock (Consumers)
+            {
+                Consumers.Add(mc);
+            }
             mc.OnDisposed += (s, e) => Consumers.Remove(s as MessageConsumer);
             return mc;
         }
 
-        private List<MessageConsumer> _Consumers;
+        private List<WeakReference<IMessageProvider2>> _Consumers = new List<WeakReference<IMessageProvider2>>();
         /// <summary>消费者集合</summary>
-        private List<MessageConsumer> Consumers { get { return _Consumers ?? (_Consumers = new List<MessageConsumer>()); } set { _Consumers = value; } }
+        private List<WeakReference<IMessageProvider2>> Consumers { get { return _Consumers; } }
         #endregion
 
         #region 消息消费者
-        class MessageConsumer : DisposeBase, IMessageConsumer
+        class MessageConsumer : MessageProvider
         {
-            #region 属性
-            private IMessageProvider _Provider;
-            /// <summary>消息提供者</summary>
-            public IMessageProvider Provider { get { return _Provider; } set { _Provider = value; } }
-
-            private Byte[] _Kinds;
-            /// <summary>响应的消息类型集合</summary>
-            public Byte[] Kinds { get { return _Kinds; } set { _Kinds = value; } }
-
-            private Queue<Message> _Queue;
-            /// <summary>消息队列</summary>
-            public Queue<Message> Queue { get { return _Queue ?? (_Queue = new Queue<Message>()); } set { _Queue = value; } }
-
-            AutoResetEvent _wait;
-            #endregion
-
-            #region 方法
             /// <summary>发送消息</summary>
             /// <param name="message"></param>
-            public void Send(Message message) { Provider.Send(message); }
-
-            public void OnReceive(Message message)
-            {
-                if (Array.IndexOf(Kinds, message.Kind) < 0) return;
-
-                Queue.Enqueue(message);
-
-                if (_wait != null) _wait.Set();
-
-                if (Queue.Count > 0 && OnReceived != null) OnReceived(this, EventArgs.Empty);
-            }
-
-            /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
-            /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
-            /// 因为该方法只会被调用一次，所以该参数的意义不太大。</param>
-            protected override void OnDispose(bool disposing)
-            {
-                base.OnDispose(disposing);
-
-                if (_wait != null) _wait.Close();
-            }
-            #endregion
-
-            #region IMessageConsumer 成员
-
-            public Message Receive(int millisecondsTimeout = 0)
-            {
-                if (Queue.Count > 0) return Queue.Dequeue();
-                if (millisecondsTimeout == 0) return null;
-
-                if (_wait == null) _wait = new AutoResetEvent(true);
-                _wait.Reset();
-
-                if (!_wait.WaitOne(millisecondsTimeout, true)) return null;
-
-                return Queue.Count > 0 ? Queue.Dequeue() : null;
-            }
-
-            public event EventHandler OnReceived;
-
-            #endregion
+            public override void Send(Message message) { Provider.Send(message); }
         }
         #endregion
     }
