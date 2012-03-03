@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using NewLife.Configuration;
 using NewLife.Linq;
 using NewLife.Log;
+using NewLife.Collections;
 
 namespace NewLife.Net
 {
@@ -62,6 +63,7 @@ namespace NewLife.Net
             socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
         }
 
+        private static DictionaryCache<String, IPAddress> _dnsCache = new DictionaryCache<string, IPAddress>(StringComparer.OrdinalIgnoreCase) { Expriod = 600, Asynchronous = true };
         /// <summary>分析地址</summary>
         /// <param name="hostname"></param>
         /// <returns></returns>
@@ -71,14 +73,20 @@ namespace NewLife.Net
 
             try
             {
-                IPAddress[] hostAddresses = Dns.GetHostAddresses(hostname);
-                if (hostAddresses == null || hostAddresses.Length < 1) return null;
+                return _dnsCache.GetItem(hostname, key =>
+                {
+                    IPAddress addr = null;
+                    if (IPAddress.TryParse(key, out addr)) return addr;
 
-                return hostAddresses.FirstOrDefault(d => d.AddressFamily == AddressFamily.InterNetwork || d.AddressFamily == AddressFamily.InterNetworkV6);
+                    IPAddress[] hostAddresses = Dns.GetHostAddresses(key);
+                    if (hostAddresses == null || hostAddresses.Length < 1) return null;
+
+                    return hostAddresses.FirstOrDefault(d => d.AddressFamily == AddressFamily.InterNetwork || d.AddressFamily == AddressFamily.InterNetworkV6);
+                });
             }
             catch (SocketException ex)
             {
-                throw new NetException(ex.Message + hostname, ex);
+                throw new NetException("解析主机" + hostname + "的地址失败！" + ex.Message, ex);
             }
         }
 

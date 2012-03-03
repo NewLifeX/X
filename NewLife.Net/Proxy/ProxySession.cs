@@ -158,7 +158,7 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected virtual void OnReceiveRemote(ReceivedEventArgs e)
         {
-            WriteLog("{0}远程数据：{1}", ID, e.Stream.Length);
+            //WriteLog("{0}远程数据：{1}", ID, e.Stream.Length);
 
             if (e.Stream != null)
             {

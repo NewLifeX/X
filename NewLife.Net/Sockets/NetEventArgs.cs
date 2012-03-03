@@ -64,11 +64,11 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 构造
-        /// <summary>析构</summary>
-        ~NetEventArgs()
-        {
-            Dispose(false);
-        }
+        ///// <summary>析构</summary>
+        //~NetEventArgs()
+        //{
+        //    Dispose(false);
+        //}
 
         void IDisposable.Dispose()
         {
