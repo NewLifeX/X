@@ -232,7 +232,7 @@ namespace XAgent
         protected virtual void ShowStatus()
         {
             var color = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.ForegroundColor = ConsoleColor.Red;
 
             if (AgentServiceName != AgentDisplayName)
                 Console.WriteLine("服务：{0}({1})", AgentDisplayName, AgentServiceName);
