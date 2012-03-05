@@ -231,6 +231,9 @@ namespace XAgent
         /// </summary>
         protected virtual void ShowStatus()
         {
+            var color = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Blue;
+
             if (AgentServiceName != AgentDisplayName)
                 Console.WriteLine("服务：{0}({1})", AgentDisplayName, AgentServiceName);
             else
@@ -264,6 +267,8 @@ namespace XAgent
             Console.WriteLine();
             Console.WriteLine("程序：{0}", asm.Version);
             Console.WriteLine("发布：{0:yyyy-MM-dd HH:mm:ss}", asm.Compile);
+
+            Console.ForegroundColor = color;
         }
 
         /// <summary>
@@ -271,6 +276,9 @@ namespace XAgent
         /// </summary>
         protected virtual void ShowMenu()
         {
+            var color = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Yellow;
+
             Console.WriteLine();
             Console.WriteLine("1 显示状态");
 
@@ -309,6 +317,8 @@ namespace XAgent
             }
 
             Console.WriteLine("0 退出");
+
+            Console.ForegroundColor = color;
         }
         #endregion
 
